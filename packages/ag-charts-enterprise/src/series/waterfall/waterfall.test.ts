@@ -1515,10 +1515,12 @@ describe('WaterfallSeries', () => {
         });
 
         it('issue 3: node click events carry itemType and itemId', async () => {
-            const series = await createWaterfall(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions);
-            const nodeData = series.getNodeData()!;
             const events: any[] = [];
-            series.properties.listeners = { seriesNodeClick: (e) => events.push(e) };
+            const series = await createWaterfall({
+                ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
+                listeners: { seriesNodeClick: (e) => events.push(e) },
+            });
+            const nodeData = series.getNodeData()!;
 
             const total = nodeData.find((n) => n.itemType === 'total')!;
             const real = nodeData.find((n) => n.itemType === 'positive')!;

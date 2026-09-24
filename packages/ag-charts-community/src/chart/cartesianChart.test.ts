@@ -189,7 +189,7 @@ describe('CartesianChart', () => {
     let chart: CartesianChart;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -222,7 +222,7 @@ describe('CartesianChart', () => {
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series.find((v) => {
-                const p: typeof v.properties & { yKey?: unknown; yKeys?: unknown[][] } = v.properties;
+                const p: typeof v.options & { yKey?: unknown; yKeys?: unknown[][] } = v.options;
                 return p.yKey === yKey || p.yKeys?.some((s: unknown[]) => s.includes(yKey));
             });
             if (seriesImpl == null) fail('No seriesImpl found');

@@ -11,6 +11,10 @@ export class LicenseManager {
         // No-op.
     }
 
+    public isLicenseKeySupplied() {
+        return false;
+    }
+
     public isDisplayWatermark() {
         return false;
     }

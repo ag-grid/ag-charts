@@ -55,7 +55,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changeAggregation(aggType: 'count' | 'sum' | 'mean') {
+function changeAggregation(event: Event) {
+    const aggType = (event.target as HTMLInputElement).value as 'count' | 'sum' | 'mean';
     (options.series![0] as AgHistogramSeriesOptions).aggregation = aggType;
     options.axes!.y!.title!.text = aggType == 'count' ? 'Number of winners' : 'Total winnings (USD)';
     chart.update(options);

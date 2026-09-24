@@ -5,6 +5,7 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import faqData from '../../content/faqs/homepage.json';
 import homepage from '../../content/homepage/homepage.json';
 import versionsData from '../../content/versions/ag-charts-versions.json';
+import { buildChartsFrontmatter } from './chartsFrontmatter';
 import { latestReleasesMarkdown } from './latestReleasesMarkdown';
 import { withDefaultFramework } from './withDefaultFramework';
 
@@ -62,12 +63,15 @@ type CtaSectionBlock = Partial<Omit<CtaSection, 'heading'>> & { heading: string;
 
 function ctaSectionBlock(section: CtaSectionBlock, siteRoot?: string): string {
     const parts = [`## ${section.heading}`];
-    if (section.subHeading) {
+    if (section.subHeading != null && section.subHeading !== '') {
         parts.push(section.subHeading);
     }
     const ctas =
-        section.ctas ?? (section.ctaTitle && section.ctaUrl ? [{ title: section.ctaTitle, url: section.ctaUrl }] : []);
-    if (ctas.length) {
+        section.ctas ??
+        (section.ctaTitle != null && section.ctaTitle !== '' && section.ctaUrl != null && section.ctaUrl !== ''
+            ? [{ title: section.ctaTitle, url: section.ctaUrl }]
+            : []);
+    if (ctas.length > 0) {
         parts.push(ctas.map((cta) => ctaLink(cta.title, cta.url, siteRoot)).join(' | '));
     }
     return parts.join('\n\n');
@@ -104,12 +108,13 @@ function faqsBlock(section: HomepageSections['faqs']): string {
 export function buildHomepageMarkdown({ siteRoot }: { siteRoot?: string } = {}): string {
     const { hero, sections } = homepage as HomepageContent;
 
-    const frontmatter = [
-        '---',
-        'title: "JavaScript Charts | AG Charts"',
-        'description: "Create beautiful, high-performance JavaScript Charts quickly with AG Charts. Free forever; upgrade to enterprise for advanced features and dedicated support."',
-        '---',
-    ].join('\n');
+    const frontmatter = buildChartsFrontmatter({
+        pageUrl: '/',
+        siteRoot,
+        title: 'JavaScript Charts | AG Charts',
+        description:
+            'Create beautiful, high-performance JavaScript Charts quickly with AG Charts. Free forever; upgrade to enterprise for advanced features and dedicated support.',
+    });
 
     const document = [
         frontmatter,

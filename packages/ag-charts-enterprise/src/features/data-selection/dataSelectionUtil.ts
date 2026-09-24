@@ -7,7 +7,6 @@ import type { DataSetSelection } from './dataSetSelection';
 
 type SelectionChangesWithItems = { countDelta: number; items: DataSelectionChangeMap };
 type SelectionChangesDeltaOnly = { countDelta: number; items?: never };
-type Changes = SelectionChanges;
 
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = _ModuleSupport.DataSet<unknown>;
@@ -77,7 +76,7 @@ export function rollbackChanges(changes: SelectionChangesWithItems, service: Ser
     }
 }
 
-export function toggleSelection(changes: Changes, series: Series, srv: Service, datumIndex: number): void {
+export function toggleSelection(changes: SelectionChanges, series: Series, srv: Service, datumIndex: number): void {
     const data = series.data;
     if (!data || !series.isDatumSelectable(datumIndex)) return;
 
@@ -93,7 +92,7 @@ export function toggleSelection(changes: Changes, series: Series, srv: Service, 
     changes.countDelta += selections.toggle(datumIndex);
 }
 
-export function setSelected(changes: Changes, series: Series, srv: Service, datumIndex: number): void {
+export function setSelected(changes: SelectionChanges, series: Series, srv: Service, datumIndex: number): void {
     const data = series.data;
     if (!data || !series.isDatumSelectable(datumIndex)) return;
 
@@ -105,7 +104,13 @@ export function setSelected(changes: Changes, series: Series, srv: Service, datu
     changes.countDelta += selections.select(datumIndex);
 }
 
-export function setSelectedRange(changes: Changes, series: Series, srv: Service, start: number, end: number): void {
+export function setSelectedRange(
+    changes: SelectionChanges,
+    series: Series,
+    srv: Service,
+    start: number,
+    end: number
+): void {
     const data = series.data;
     if (!data) return;
 
@@ -113,7 +118,7 @@ export function setSelectedRange(changes: Changes, series: Series, srv: Service,
     changes.countDelta += selection.selectRange(start, end);
 }
 
-export function clearAllSelections(changes: Changes, srv: Service): void {
+export function clearAllSelections(changes: SelectionChanges, srv: Service): void {
     if (changes.items !== undefined) {
         for (const { dataSet, seriesId, selection } of srv.iterateDataSetSelections()) {
             const n = selection.getLength();

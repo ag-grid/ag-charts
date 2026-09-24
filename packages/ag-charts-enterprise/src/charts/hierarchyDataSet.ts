@@ -16,7 +16,7 @@ function pushChildren<T>(stack: T[], node: T, childrenKey: string): void {
     if (typeof node === 'object' && node != null) {
         const lenientNode: { [K in string]?: unknown } = node;
         const children: unknown = lenientNode[childrenKey];
-        if (children instanceof Array) {
+        if (Array.isArray(children)) {
             // push to stack in reverse, so that the first child is visited first:
             reversePush(stack, children);
         }
@@ -66,7 +66,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
 
     public isLeaf(datumIndex: number): boolean {
         const node: T | undefined = this.getDatumAt(datumIndex);
-        if (node && typeof node === 'object') {
+        if (node != null && typeof node === 'object') {
             const lenientNode: { [K in string]?: { length?: unknown } } = node;
             const children = lenientNode[this.childrenKey];
             return children === undefined || children.length === 0;
@@ -103,7 +103,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         const committed = super.commitPendingTransactions(undefined);
         if (!committed) return false;
 
-        if (this.dataIdKey) {
+        if (this.dataIdKey != null && this.dataIdKey !== '') {
             this.removeNestedDuplicatesFromRoot();
         }
 

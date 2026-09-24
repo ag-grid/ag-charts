@@ -1,0 +1,24 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <div class="button-group" role="group" aria-label="Highlight Mode">
+            <input
+                type="radio"
+                id="highlight-mode-single"
+                name="highlight-mode"
+                value="single"
+                checked
+                onchange="setHighlightMode(event)"
+            />
+            <label for="highlight-mode-single">Single</label>
+            <input
+                type="radio"
+                id="highlight-mode-shared"
+                name="highlight-mode"
+                value="shared"
+                onchange="setHighlightMode(event)"
+            />
+            <label for="highlight-mode-shared">Shared</label>
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>

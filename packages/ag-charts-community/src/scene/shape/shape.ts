@@ -15,7 +15,7 @@ import {
     isString,
     objectsEqual,
 } from 'ag-charts-core';
-import type { Logger, SerializedNodeState, SerializedShapeProps } from 'ag-charts-core';
+import type { Logger, NormalisedDropShadowOptions, SerializedNodeState, SerializedShapeProps } from 'ag-charts-core';
 import type {
     AgDrawingMode,
     AgImageFill,
@@ -26,7 +26,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { BBox } from '../bbox';
-import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
 import { Gradient, type GradientParams } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
@@ -216,9 +215,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         };
     }
 
-    @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })
-    fillShadow: DropShadow | undefined;
-    declare __fillShadow: DropShadow | undefined; // optimised field accessor
+    @SceneObjectChangeDetection({ equals: TRIPLE_EQ })
+    fillShadow: NormalisedDropShadowOptions | undefined;
+    declare __fillShadow: NormalisedDropShadowOptions | undefined; // optimised field accessor
 
     @DeclaredSceneObjectChangeDetection({ equals: boxesEqual, changeCb: (s) => s.onFillChange() })
     fillBBox?: BBox;
@@ -384,13 +383,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             if (lineDash) {
                 ctx.setLineDash(lineDash);
             }
-            if (lineDashOffset) {
+            if (lineDashOffset !== 0) {
                 ctx.lineDashOffset = lineDashOffset;
             }
-            if (lineCap) {
+            if (lineCap != null) {
                 ctx.lineCap = lineCap;
             }
-            if (lineJoin) {
+            if (lineJoin != null) {
                 ctx.lineJoin = lineJoin;
             }
             if (miterLimit != null) {

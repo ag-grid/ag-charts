@@ -22,7 +22,7 @@ describe('Chart highlighting', () => {
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -668,8 +668,8 @@ describe('Chart highlighting', () => {
         });
 
         const seriesHighlightEnabled = (chartInstance: Chart, seriesIndex: number) =>
-            (chartInstance.series[seriesIndex] as unknown as { properties: { highlight: { enabled: boolean } } })
-                .properties.highlight.enabled;
+            (chartInstance.series[seriesIndex] as unknown as { options: { highlight: { enabled: boolean } } }).options
+                .highlight.enabled;
 
         it('cascades chart highlight.enabled = false to series that do not override it', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
@@ -848,7 +848,7 @@ describe('Chart highlighting', () => {
                     y: { position: 'left', type: 'number' },
                 },
                 legend: { enabled: false },
-                ...(mode ? { highlight: { mode } } : {}),
+                ...(mode == null ? {} : { highlight: { mode } }),
                 series: [
                     { type: 'bar', xKey: 'category', yKey: 'apples' },
                     { type: 'bar', xKey: 'category', yKey: 'oranges' },

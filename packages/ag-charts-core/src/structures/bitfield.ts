@@ -41,7 +41,7 @@ export class Bitfield {
             // Create mask of all the bits that need to be set
             // (e.g. mask = 00...01110 for startBit=1, endBit=4).
             const mask = ((1 << (endBit - startBit)) - 1) << startBit;
-            if (value) {
+            if (value === 1) {
                 this.buffer[startWord] |= mask;
             } else {
                 this.buffer[startWord] &= ~mask;
@@ -59,7 +59,7 @@ export class Bitfield {
 
         // Fill start word, partial (startBit!=0) or full (startBit==0)
         const startMask = 0xffffffff << startBit;
-        if (value) {
+        if (value === 1) {
             this.buffer[startWord] |= startMask;
         } else {
             this.buffer[startWord] &= ~startMask;
@@ -70,7 +70,7 @@ export class Bitfield {
 
         // Fill end word
         const endMask = (1 << endBit) - 1;
-        if (value) {
+        if (value === 1) {
             this.buffer[endWord] |= endMask;
         } else {
             this.buffer[endWord] &= ~endMask;

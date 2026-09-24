@@ -32,7 +32,9 @@ export {
     radiusCategoryAxisOptionsDefs,
     radiusNumberAxisOptionsDefs,
 } from './chart/axesOptionsEnterpriseDefs';
+export { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef } from './chart/themes/themeOptionsDef';
 export {
+    type ModuleOwnedChartOptions,
     standaloneChartOptionsDefs,
     topologyChartOptionsDefs,
     initialStatePickedOptionsDef,
@@ -97,16 +99,16 @@ export {
 } from './chart/series/cartesian/util';
 export { hasDimmedOpacity } from './chart/series/util';
 export { stackCartesianSeries } from './chart/cartesianUtil';
-export { CartesianCrossLine } from './chart/crossline/cartesianCrossLine';
+export { CartesianCrossLine, crossLineHitTolerance } from './chart/crossline/cartesianCrossLine';
 export type {
     ActiveLoadMementoEvent,
     AxisLayout,
-    AxisDOMProxyDragEvent,
-    AxisDOMProxyMouseEvent,
-    AxisDOMProxyMouseEnterEvent,
-    AxisDOMProxyMouseLeaveEvent,
-    AxisDOMProxyUpdateEvent,
-    AxisDOMProxyWheelEvent,
+    AxisInteractionDragEvent,
+    AxisInteractionMouseEvent,
+    AxisInteractionMouseEnterEvent,
+    AxisInteractionMouseLeaveEvent,
+    AxisInteractionUpdateEvent,
+    AxisInteractionWheelEvent,
     CollapsedRestoreEvent,
     ContextMenuEvent,
     DataModelDiff,
@@ -145,16 +147,11 @@ export type {
     AxisValuePick,
     PolarAxisLayout,
 } from './module/axisContext';
-export type {
-    ChartRegistry,
-    ChartAxisRegistry,
-    ChartSeriesRegistry,
-    ChartSeriesAreaRegistry,
-} from './module/moduleContext';
-export type { SeriesAreaContext } from './chart/series-area/seriesAreaContext';
+export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
 export { type AxisID, type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
 export type { SelectionModuleFns } from './chart/modulesManager';
 export { Background } from './chart/background/background';
+export { SeriesArea, type SeriesAreaContent } from './chart/series-area/seriesArea';
 export type { BackgroundRegion } from './chart/background-regions/backgroundRegion';
 export { ChartAxes } from './chart/chartAxes';
 export { NiceMode, resetAxisLabelSelectionFn } from './chart/axis/axisUtil';
@@ -229,7 +226,6 @@ export type {
     ContextMenuItemContract,
     ContextMenuItemContractNonRecursive,
 } from './chart/interaction/contextMenuTypes';
-export type { DragInterpreterClickEvent, DragInterpreterDblClickEvent } from './chart/interaction/dragInterpreter';
 export { HighlightManager } from './chart/interaction/highlightManager';
 export { InteractionManager, InteractionState } from './chart/interaction/interactionManager';
 export { TooltipManager } from './chart/interaction/tooltipManager';
@@ -242,45 +238,32 @@ export {
 export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
 export { PanToBBoxScalingModeEnum } from './util/panToBBox';
 export { getItemId } from './chart/series/pickManager';
-export { Series, SeriesNodePickMode } from './chart/series/series';
+export { Series } from './chart/series/series';
+export { SeriesNodePickMode } from './chart/series/pickTypes';
 export type {
     MarkerStyleApply,
     MarkerStyleCompute,
-    PickFocusInputs,
-    PickFocusOutputs,
     SeriesNodeDataContext,
-    SeriesNodePickMatch,
     SeriesNodeStyleContext,
     SeriesDataEvent,
     UnknownSeries,
 } from './chart/series/series';
+export type { PickFocusInputs, PickFocusOutputs, SeriesNodePickMatch } from './chart/series/pickTypes';
 export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from './chart/series/seriesLabelUtil';
 export type { SeriesItemHighlightStyle } from './chart/series/seriesProperties';
-export {
-    FillGradientDefaults,
-    FillImageDefaults,
-    FillPatternDefaults,
-    HighlightProperties,
-    SeriesProperties,
-    toHighlightString,
-    toSelectionString,
-    isUnselected,
-    SeriesSelectionProperties,
-} from './chart/series/seriesProperties';
-export { SeriesMarker } from './chart/series/seriesMarker';
-export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
+export { toHighlightString, toSelectionString, isUnselected } from './chart/series/seriesProperties';
 export type {
     DatumIndex,
     ErrorBoundSeriesNodeDatum,
     ISeries,
-    ISeriesProperties,
+    ISeriesOptions,
     ItemId,
     SeriesNodeDatum,
     SeriesNodeEventTypes,
 } from './chart/series/seriesTypes';
 export { HighlightState, SelectionState } from './chart/series/seriesTypes';
 export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices, findNodeDatumInArray } from './chart/series/util';
-export { AbstractBarSeries, AbstractBarSeriesProperties } from './chart/series/cartesian/abstractBarSeries';
+export { AbstractBarSeries } from './chart/series/cartesian/abstractBarSeries';
 export type {
     AbstractBarSeriesAnimationData,
     AbstractBarSeriesNodeDataContext,
@@ -288,7 +271,6 @@ export type {
 } from './chart/series/cartesian/abstractBarSeries';
 export {
     CartesianSeries,
-    CartesianSeriesProperties,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './chart/series/cartesian/cartesianSeries';
@@ -300,7 +282,6 @@ export type {
     CartesianMarkerLikeContext,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
-    CartesianSeriesPropertiesBase,
     CartesianSeriesTypes,
     ContextOf,
     CreateNodeDataContextOf,
@@ -310,7 +291,6 @@ export type {
     LabelSelectionOf,
     NodeOf,
     OptionsOf,
-    PropertiesOf,
     StackContextOf,
 } from './chart/series/cartesian/cartesianSeriesTypes';
 export {
@@ -336,6 +316,7 @@ export { plotAreaPathFill, prepareAreaFillAnimationFns } from './chart/series/ca
 export { calculateDataDiff } from './chart/series/cartesian/diffUtil';
 export {
     computeMarkerFocusBounds,
+    computeMarkerFocusBoundsOfNodeDatum,
     getMarkerStyles,
     cartesianMarkerDrawMode,
     markerFadeInAnimation,
@@ -366,12 +347,12 @@ export {
     PolarSeries,
 } from './chart/series/polar/polarSeries';
 export type { PolarAnimationData } from './chart/series/polar/polarSeries';
-export { HierarchyNode, HierarchySeries } from './chart/series/hierarchy/hierarchySeries';
 export {
     HierarchyHighlightState,
-    HierarchySeriesProperties,
+    HierarchyNode,
+    HierarchySeries,
     toHierarchyHighlightString,
-} from './chart/series/hierarchy/hierarchySeriesProperties';
+} from './chart/series/hierarchy/hierarchySeries';
 export { MercatorScale } from './chart/series/topology/mercatorScale';
 export type { GaugeSeries } from './chart/series/gaugeSeries';
 export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';
@@ -387,7 +368,6 @@ export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
 export { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './chart/axis/axisLabelUtil';
 export type { AxisLabelFormatterCache } from './chart/axis/axisLabelUtil';
-export { SeriesLabelProperties } from './chart/series/seriesLabelProperties';
 export type { TickInterval } from './chart/axis/axisTick';
 export { PolarAxis } from './chart/axis/polarAxis';
 export { CategoryAxis } from './chart/axis/categoryAxis';
@@ -433,14 +413,13 @@ export { configureColorScale } from './scale/colorScaleUtil';
 export { LinearScale } from './scale/linearScale';
 export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';
 
-export { DropShadow } from './scene/dropShadow';
 export { Node, PointerEvents } from './scene/node';
 export type { RenderContext } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
 export type { SelectionInterface } from './scene/selection';
 export { type GradientParams } from './scene/gradient/gradient';
-export { ColorScaleProperties, getColorStops, StopProperties } from './scene/gradient/stops';
+export { getColorStops } from './scene/gradient/stops';
 export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';
@@ -452,12 +431,9 @@ export { OrdinalTimeScale } from './scale/ordinalTimeScale';
 export { ApproximateOrdinalTimeScale } from './scale/approximateOrdinalTimeScale';
 export { APPROXIMATE_THRESHOLD } from './scale/discreteTimeScale';
 export {
-    Label,
-    LabelPlacementStyle,
-    LabelStyle,
-    PlacedSeriesLabel,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
+    labelHasBox,
     placedLabelTextOffset,
     resolvePlacementLabelBoxExtent,
     styledLabelTextOffset,
@@ -490,7 +466,6 @@ export { SliderWidget } from './widget/sliderWidget';
 export { ToolbarWidget } from './widget/toolbarWidget';
 export type {
     DragWidgetEvent,
-    HoverLikeEvent,
     KeyboardWidgetEvent,
     MouseWidgetEvent,
     WheelWidgetEvent,

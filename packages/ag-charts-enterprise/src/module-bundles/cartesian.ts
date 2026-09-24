@@ -2,7 +2,7 @@ import type { ModuleDefinition } from 'ag-charts-core';
 
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
-import { AxisDOMProxyModule } from '../features/axis-dom-proxy/axisDomProxyModule';
+import { AxisInteractionModule } from '../features/axis-interaction/axisInteractionModule';
 import { BackgroundRegionsModule } from '../features/background-regions/backgroundRegionsModule';
 import { BandHighlightModule } from '../features/band-highlight/bandHighlightModule';
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
@@ -28,8 +28,7 @@ export const AllCartesianModule: ModuleDefinition[] = [
 
     AnimationModule,
     AnnotationsModule,
-    AxisDOMProxyModule,
-    BackgroundRegionsModule,
+    AxisInteractionModule,
     BandHighlightModule,
     ChartToolbarModule,
     ContextMenuModule,
@@ -42,6 +41,7 @@ export const AllCartesianModule: ModuleDefinition[] = [
     RangesModule,
     ScrollbarModule,
     SelectionModule,
+    BackgroundRegionsModule,
     StatusBarModule,
     SyncModule,
     ZoomModule,

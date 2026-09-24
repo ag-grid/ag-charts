@@ -43,7 +43,8 @@ const options: AgStandaloneChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function toggleMode(mode: 'stops' | 'gradient') {
+function modeChange(event: Event) {
+    const mode = (event.target as HTMLInputElement).value as 'stops' | 'gradient';
     const series = options.series![0] as AgTreemapSeriesOptions;
     if (mode === 'stops') {
         series.colorScale = {

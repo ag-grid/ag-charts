@@ -1,7 +1,6 @@
 import {
     ChartAxisDirection,
     type Point,
-    Property,
     type Scaling,
     addValues,
     extent,
@@ -19,9 +18,9 @@ import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { fixNumericExtent } from '../../data/dataModel';
-import type { SeriesNodePickMatch } from '../series';
+import type { SeriesNodePickMatch } from '../pickTypes';
 import type { SeriesNodeDatum } from '../seriesTypes';
-import { type CartesianAnimationData, CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
+import { type CartesianAnimationData, CartesianSeries } from './cartesianSeries';
 import type {
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
@@ -33,15 +32,12 @@ import type {
 } from './cartesianSeriesTypes';
 import { type QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
-export abstract class AbstractBarSeriesProperties<T extends object> extends CartesianSeriesProperties<T> {
-    @Property
-    direction: Direction = 'vertical';
-
-    @Property
-    width?: number = undefined;
-
-    @Property
-    widthRatio?: number = undefined;
+/** Layout keys the bar family reads off its options; a series without `direction` overrides `isVertical()`. */
+export interface AbstractBarSeriesLayoutOptions {
+    type: string;
+    direction?: Direction;
+    width?: number;
+    widthRatio?: number;
 }
 
 export interface AbstractBarSeriesNodeDataContext<
@@ -54,11 +50,10 @@ export interface AbstractBarSeriesNodeDataContext<
 /**
  * Type constraint for series extending AbstractBarSeries.
  * The node type must be compatible with quadtree hit testing.
- * The properties type must include direction for bar orientation.
  */
 export interface AbstractBarSeriesTypes extends CartesianSeriesTypes {
     readonly node: QuadtreeCompatibleNode<this['datum']>;
-    readonly properties: AbstractBarSeriesProperties<this['options']>;
+    readonly options: AbstractBarSeriesLayoutOptions;
     readonly context: AbstractBarSeriesNodeDataContext<this['datum'], this['label']>;
 }
 
@@ -101,7 +96,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     }
 
     protected isVertical(): boolean {
-        return this.properties.direction === 'vertical';
+        return this.options.direction === 'vertical';
     }
 
     protected getBarDirection() {
@@ -135,7 +130,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     }
 
     override getMinimumRangeSeries(ranges: number[]) {
-        const { width } = this.properties;
+        const { width } = this.options;
         if (width == null) return;
 
         const axis = this.getCategoryAxis();
@@ -255,7 +250,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
             // For ungrouped series, centre the bar within the width of the group.
             const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
             barOffset = (rangeWidth - barWidth) / 2;
-        } else if (groupScale && this.properties.widthRatio != null) {
+        } else if (groupScale && this.options.widthRatio != null) {
             // For grouped series with fixed widths, centre the bar on its own width adjusted by the default width of
             // bars within the group.
             barOffset = (groupScale.bandwidth - barWidth) / 2;
@@ -269,8 +264,8 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
     private getBarWidth() {
         const { seriesGrouping } = this;
-        const { width } = this.properties;
-        let { widthRatio } = this.properties;
+        const { width } = this.options;
+        let { widthRatio } = this.options;
 
         const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
         const bandwidth = groupScale?.bandwidth ?? 0;

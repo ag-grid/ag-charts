@@ -120,7 +120,13 @@ export function setupIntrinsicAssertions(
             if (msg.text().includes('This page is in Quirks Mode')) return;
 
             // Caller-supplied patterns to ignore (e.g. staging-specific noise not relevant to other specs).
-            if (opts.ignoreConsolePatterns?.some((p) => msg.text().includes(p))) return;
+            // Matched against the resource URL as well as the text: a failed request reports only
+            // its status, so the URL is the only thing naming what actually failed.
+            const messageText: string = msg.text();
+            const resourceUrl: string = msg.location().url;
+            if (opts.ignoreConsolePatterns?.some((p) => messageText.includes(p) || resourceUrl.includes(p))) {
+                return;
+            }
 
             // Browser/OS noise.
             if (msg.text().includes('GL Driver Message')) return;
@@ -258,7 +264,21 @@ export async function repeat(repCount: number, fn: () => void | Promise<void>): 
 const NETWORK_IDLE_TIMEOUT_MS = 5_000;
 
 export async function gotoUrl(page: Page, url: string) {
-    await page.goto(url);
+    // 'commit' rather than Playwright's default 'load'. The load event does not fire until every
+    // subresource in the document's delay-the-load-event set has settled, and on the deployed site
+    // that set reaches hosts nobody here controls - plausible.io and Google Tag Manager are on
+    // every page. One slow vendor otherwise times out a navigation to a page that rendered
+    // perfectly well: post-deploy verification lost 15 navigations that way on 2 September 2026,
+    // every one of them "waiting until load" against a site that was serving correctly.
+    //
+    // 'domcontentloaded' would not be enough - the Plausible tag is `defer`, and deferred scripts
+    // block DOMContentLoaded too. The bounded networkidle wait below is what settles the page, and
+    // a page that does settle still reaches it, so nothing here loosens for a healthy page.
+    await page.goto(url, { waitUntil: 'commit' });
+    // The title assertion reads the parsed document, and 'commit' resolves before the parser has
+    // reached <title>. readyState leaves 'loading' at the end of parsing, ahead of the deferred
+    // scripts that block DOMContentLoaded, so this waits for the document, not for a vendor.
+    await page.waitForFunction(() => document.readyState !== 'loading');
     await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {});
     expect(await page.title()).not.toMatch(/Page Not Found/);
 }
@@ -296,7 +316,7 @@ export async function waitForChartUpdate(wrapper: Locator) {
 
 export async function getAnimationTime(wrapper: Locator): Promise<number> {
     const timeAttr = await wrapper.getAttribute('data-animation-time-ms');
-    return timeAttr ? parseFloat(timeAttr) : 0;
+    return timeAttr == null || timeAttr === '' ? 0 : parseFloat(timeAttr);
 }
 
 export async function expectAnimationOccurred(wrapper: Locator, minTimeMs: number = 10) {

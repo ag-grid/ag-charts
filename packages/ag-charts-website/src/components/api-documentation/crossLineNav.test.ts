@@ -9,8 +9,8 @@ import {
     processMembers,
 } from './apiReferenceHelpers';
 
-// Mirrors how the type generator emits an axis-specific cross-line option: a member-less interface
-// whose single heritage is a union alias, with the per-axis label type supplied via genericsMap.
+// The indirect union form: a member-less interface whose single heritage is a union alias, with the
+// label type supplied via genericsMap. No cross-line type is emitted this way any more; `AnyLeaf` is.
 const reference = new Map<string, any>(
     entries({
         AgCartesianCrossLineOptions: {
@@ -118,6 +118,126 @@ describe('cross-line union navigation', () => {
             const union = getAliasedUnionVariants(crossLineInterface(), reference as any)!;
             const lineRef = reference.get('AgLineCrossLineOptions');
             const typeArguments = buildTypeArgumentsFromGenericsMap(lineRef, union.genericsMap);
+            const labelMember = processMembers(lineRef, {}, typeArguments).find((m) => m.name === 'label');
+            expect(labelMember?.type).toBe('AgCartesianCrossLineLabelOptions');
+        });
+    });
+});
+
+// Node shapes copied from the generated `resolved-interfaces.AUTO.json`.
+const directUnionReference = new Map<string, any>(
+    entries({
+        AgCartesianCrossLineOptions: {
+            kind: 'typeAlias',
+            name: 'AgCartesianCrossLineOptions',
+            type: {
+                kind: 'union',
+                type: [
+                    {
+                        kind: 'typeRef',
+                        type: 'AgCartesianLineCrossLineOptions',
+                        typeArguments: ['TValue', 'TContext'],
+                    },
+                    {
+                        kind: 'typeRef',
+                        type: 'AgCartesianRangeCrossLineOptions',
+                        typeArguments: ['TValue', 'TContext'],
+                    },
+                ],
+            },
+            typeParams: [
+                { kind: 'typeParam', name: 'TValue', default: 'AxisValue' },
+                { kind: 'typeParam', name: 'TContext', default: 'ContextDefault' },
+            ],
+            genericsMap: { TValue: 'AxisValue', TContext: 'ContextDefault' },
+        },
+        AgCartesianLineCrossLineOptions: {
+            kind: 'interface',
+            name: 'AgCartesianLineCrossLineOptions',
+            members: [
+                { kind: 'member', name: 'type', type: "'line'", optional: false },
+                { kind: 'member', name: 'value', type: 'TValue', optional: false },
+                { kind: 'member', name: 'stroke', type: 'AgCssColorOrRef', optional: true },
+                { kind: 'member', name: 'label', type: 'LabelType', optional: true },
+            ],
+            typeParams: [
+                { kind: 'typeParam', name: 'TValue', default: 'AxisValue' },
+                { kind: 'typeParam', name: 'TContext', default: 'ContextDefault' },
+            ],
+            genericsMap: {
+                TValue: 'AxisValue',
+                TContext: 'ContextDefault',
+                LabelType: 'AgCartesianCrossLineLabelOptions',
+            },
+        },
+        AgCartesianRangeCrossLineOptions: {
+            kind: 'interface',
+            name: 'AgCartesianRangeCrossLineOptions',
+            members: [
+                { kind: 'member', name: 'type', type: "'range'", optional: false },
+                {
+                    kind: 'member',
+                    name: 'range',
+                    type: { kind: 'tuple', type: ['TValue', 'TValue'] },
+                    optional: false,
+                },
+                { kind: 'member', name: 'stroke', type: 'AgCssColorOrRef', optional: true },
+                { kind: 'member', name: 'label', type: 'LabelType', optional: true },
+            ],
+            typeParams: [
+                { kind: 'typeParam', name: 'TValue', default: 'AxisValue' },
+                { kind: 'typeParam', name: 'TContext', default: 'ContextDefault' },
+            ],
+            genericsMap: {
+                TValue: 'AxisValue',
+                TContext: 'ContextDefault',
+                LabelType: 'AgCartesianCrossLineLabelOptions',
+            },
+        },
+        AgCartesianCrossLineLabelOptions: {
+            kind: 'interface',
+            name: 'AgCartesianCrossLineLabelOptions',
+            members: [
+                { kind: 'member', name: 'position', type: 'AgCrossLineLabelPosition', optional: true },
+                { kind: 'member', name: 'rotation', type: 'Degree', optional: true },
+            ],
+        },
+    })
+);
+
+const directUnionCrossLineAlias = () => directUnionReference.get('AgCartesianCrossLineOptions');
+
+describe('cross-line union navigation (direct union alias)', () => {
+    describe('search index (extractSearchData)', () => {
+        const labels = () =>
+            extractSearchData(directUnionReference as any, directUnionCrossLineAlias(), [
+                { name: 'x', type: 'AgCartesianCrossLineOptions' },
+            ]).map((d) => d.label);
+
+        it('expands the direct union alias into discriminated branches with the per-axis label', () => {
+            const result = labels();
+            expect(result.some((l) => l.endsWith("[type='line'].label.position"))).toBe(true);
+            expect(result.some((l) => l.endsWith("[type='line'].label.rotation"))).toBe(true);
+        });
+    });
+
+    describe('nav tree variant resolution', () => {
+        it('resolves the direct union alias to its two per-axis variants', () => {
+            const union = getAliasedUnionVariants(directUnionCrossLineAlias(), directUnionReference as any);
+            expect(union?.variants.map((v) => v.name).sort()).toEqual(['line', 'range']);
+            expect(union?.variants.map((v) => v.type).sort()).toEqual([
+                'AgCartesianLineCrossLineOptions',
+                'AgCartesianRangeCrossLineOptions',
+            ]);
+        });
+
+        it("resolves a variant's label from its own genericsMap rather than the alias' genericsMap", () => {
+            const union = getAliasedUnionVariants(directUnionCrossLineAlias(), directUnionReference as any)!;
+            expect(union.genericsMap).toEqual({ TValue: 'AxisValue', TContext: 'ContextDefault' });
+
+            const lineVariant = union.variants.find((v) => v.name === 'line')!;
+            const lineRef = directUnionReference.get(lineVariant.type);
+            const typeArguments = buildTypeArgumentsFromGenericsMap(lineRef, lineRef.genericsMap);
             const labelMember = processMembers(lineRef, {}, typeArguments).find((m) => m.name === 'label');
             expect(labelMember?.type).toBe('AgCartesianCrossLineLabelOptions');
         });

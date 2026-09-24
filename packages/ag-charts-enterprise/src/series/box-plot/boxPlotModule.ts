@@ -1,6 +1,7 @@
 import { type AgBoxPlotSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import { ChartAxisDirection, DIRECTION_SWAP_AXES, type SeriesModuleDefinition } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { BoxPlotSeries } from './boxPlotSeries';
 import { boxPlotSeriesOptionsDef } from './boxPlotSeriesOptionsDef';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
@@ -14,7 +15,7 @@ export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions>
     enterprise: true,
     groupable: true,
     version: VERSION,
-    dependencies: [CartesianChartModule],
+    dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: boxPlotSeriesOptionsDef,
     matchingKeys: ['xKey', 'lowKey', 'q1Key', 'medianKey', 'q3Key', 'highKey', 'outlierKey', 'normalizedTo'],

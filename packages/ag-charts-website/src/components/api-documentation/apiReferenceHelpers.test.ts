@@ -11,6 +11,7 @@ import {
     normalizeType,
     processMembers,
     resolveReferenceType,
+    resolveUnionAliases,
 } from './apiReferenceHelpers';
 
 const union = (...types: any[]) => ({ kind: 'union' as const, type: types });
@@ -42,6 +43,42 @@ const contextMenuReference = () =>
             AgContextMenuItemLiteral: alias('AgContextMenuItemLiteral', union("'separator'")),
         })
     );
+
+// Mirrors `legend.position`: a union of a string-literal alias and one interface carrying no string
+// literal of its own, so the union has nothing to discriminate its variants by.
+const searchLegendPosition = () => {
+    const reference = new Map<string, any>(
+        Object.entries({
+            AgChartLegendOptions: {
+                kind: 'interface',
+                name: 'AgChartLegendOptions',
+                members: [prop('position', 'AgChartLegendPosition')],
+            },
+            AgChartLegendPosition: alias(
+                'AgChartLegendPosition',
+                union('AgChartLegendPlacement', 'AgChartLegendPositionOptions')
+            ),
+            AgChartLegendPlacement: alias('AgChartLegendPlacement', union("'top'", "'bottom'")),
+            AgChartLegendPositionOptions: {
+                kind: 'interface',
+                name: 'AgChartLegendPositionOptions',
+                members: [
+                    prop('placement', 'AgChartLegendPlacement'),
+                    prop('floating', 'boolean'),
+                    prop('xOffset', 'PixelSize'),
+                    prop('yOffset', 'PixelSize'),
+                ],
+            },
+        })
+    );
+
+    return extractSearchData(
+        reference as any,
+        reference.get('AgChartLegendOptions'),
+        [{ name: 'legend', type: 'AgChartLegendOptions' }],
+        'legend.'
+    );
+};
 
 // A Root -> Wide -> Leaf structure whose Wide subtree expands to breadth + breadth^2 entries: enough to
 // overflow V8's argument limit if the index is assembled by spreading child arrays into `push`.
@@ -80,6 +117,12 @@ describe('formatUnionSignature', () => {
             AgGradientColor: iface('AgGradientColor'),
             // Pure interface-only union: nothing is lost, so no signature is needed.
             PureUnion: alias('PureUnion', union('AgGradientColor', 'TextSegment')),
+            // AgContextMenuItem-like: a nested alias whose inline form overflows the code block.
+            MenuItem: alias('MenuItem', union('MenuItemLiteral', 'TextSegment')),
+            MenuItemLiteral: alias(
+                'MenuItemLiteral',
+                union("'defaults'", "'download'", "'zoom-to-cursor'", "'pan-to-cursor'", "'reset-zoom'", "'separator'")
+            ),
         })
     );
 
@@ -95,6 +138,15 @@ describe('formatUnionSignature', () => {
         // Interfaces are represented as variant rows, never inlined here.
         expect(signature).not.toContain('interface TextSegment');
         expect(signature).not.toContain('interface ImageSegment');
+    });
+
+    it('wraps a long nested union alias one member per line', () => {
+        const node = reference.get('MenuItem');
+        const signature = formatUnionSignature(node.type, 'MenuItem', reference as any)!;
+
+        expect(signature).toContain(
+            "type MenuItemLiteral =\n    'defaults' \n  | 'download' \n  | 'zoom-to-cursor' \n  | 'pan-to-cursor' \n  | 'reset-zoom' \n  | 'separator';"
+        );
     });
 
     it('keeps a hidden alias member visible by name without expanding it', () => {
@@ -401,6 +453,57 @@ describe('extractSearchData', () => {
         ]);
     });
 
+    it('indexes properties under a variant that has no discriminator', () => {
+        const labels = searchLegendPosition().map(({ label }) => label);
+
+        expect(labels).toContain('legend.position[AgChartLegendPositionOptions]');
+        expect(labels).toContain('legend.position[AgChartLegendPositionOptions].floating');
+        expect(labels).toContain('legend.position[AgChartLegendPositionOptions].xOffset');
+    });
+
+    it('keys a discriminatorless variant on its interface name, matching the tree anchor', () => {
+        const data = searchLegendPosition();
+
+        const floating = data.find(({ label }) => label.endsWith('.floating'));
+        // These names are what `getNavigationDataFromPath` turns into the anchor the tree row carries.
+        expect(floating?.navPath).toEqual([
+            { name: 'legend', type: 'AgChartLegendOptions' },
+            { name: 'position', type: 'AgChartLegendPosition' },
+            { name: 'AgChartLegendPositionOptions', type: 'AgChartLegendPositionOptions' },
+            { name: 'floating', type: 'boolean' },
+        ]);
+        expect(data.find(({ label }) => label === 'legend.position[AgChartLegendPositionOptions]')?.searchable).toBe(
+            'agchartlegendpositionoptions'
+        );
+    });
+
+    it('omits colour-ref variants, which recur under every colour option', () => {
+        const reference = new Map<string, any>(
+            Object.entries({
+                SeriesOptions: {
+                    kind: 'interface',
+                    name: 'SeriesOptions',
+                    members: [prop('fill', 'AgCssColorOrRef')],
+                },
+                AgCssColorOrRef: alias('AgCssColorOrRef', union('CssColor', 'AgColorRef')),
+                AgColorRef: {
+                    kind: 'interface',
+                    name: 'AgColorRef',
+                    members: [prop('ref', 'string'), prop('mix', 'number')],
+                },
+            })
+        );
+
+        const labels = extractSearchData(
+            reference as any,
+            reference.get('SeriesOptions'),
+            [{ name: 'series', type: 'SeriesOptions' }],
+            'series.'
+        ).map(({ label }) => label);
+
+        expect(labels).toEqual(['series.fill']);
+    });
+
     it('flattens a large reference without overflowing the argument limit', () => {
         const breadth = 400;
         const reference = makeLargeReference(breadth);
@@ -443,6 +546,50 @@ describe('resolveReferenceType', () => {
         ['a name absent from the reference', 'Missing'],
     ])('returns undefined for %s', (_label, typeName) => {
         expect(resolveReferenceType(reference as any, typeName)).toBeUndefined();
+    });
+});
+
+describe('resolveUnionAliases', () => {
+    const reference = new Map<string, any>(
+        Object.entries({
+            Placement: alias('Placement', union("'start-center'", "'end-center'")),
+            PlacementAlias: alias('PlacementAlias', union("'middle'")),
+            Legacy: { ...alias('Legacy', union("'before'")), docs: ['@deprecated Use Placement instead.'] },
+            CssColor: alias('CssColor', 'string'),
+            Variant: { kind: 'interface', name: 'Variant', members: [] },
+        })
+    );
+
+    // Mirrors cone funnel `label.placement`: `A | B | (A | B)[]`.
+    const type = union('Placement', 'PlacementAlias', { kind: 'array', type: union('Placement', 'PlacementAlias') });
+
+    it('is reached because the member does not collapse to a single alias', () => {
+        const memberType = getMemberType(prop('placement', type));
+
+        expect(memberType).toBe('union');
+        expect(resolveReferenceType(reference as any, memberType)).toBeUndefined();
+    });
+
+    it('resolves every alias once, unwrapping arrays and the unions nested in them', () => {
+        expect(resolveUnionAliases(type, reference as any)).toEqual([
+            reference.get('Placement'),
+            reference.get('PlacementAlias'),
+        ]);
+    });
+
+    it.each([
+        ['a primitive', 'string'],
+        ['a string literal', "'none'"],
+        ['a deprecated alias', 'Legacy'],
+        ['a hidden alias', 'CssColor'],
+        ['an interface', 'Variant'],
+        ['a name absent from the reference', 'Missing'],
+    ])('keeps the aliases and drops %s', (_label, member) => {
+        expect(resolveUnionAliases(union('Placement', member), reference as any)).toEqual([reference.get('Placement')]);
+    });
+
+    it('returns undefined when the union references no alias', () => {
+        expect(resolveUnionAliases(union('string', 'Variant'), reference as any)).toBeUndefined();
     });
 });
 

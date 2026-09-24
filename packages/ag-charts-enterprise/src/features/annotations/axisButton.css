@@ -17,6 +17,7 @@
     overflow: hidden;
     padding: 0;
     position: absolute;
+    pointer-events: auto;
     top: 0px;
     user-select: none;
     white-space: nowrap;

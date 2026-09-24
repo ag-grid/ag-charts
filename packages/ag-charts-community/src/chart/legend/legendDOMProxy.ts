@@ -16,7 +16,7 @@ import type { ButtonWidget } from '../../widget/buttonWidget';
 import type { GroupWidget } from '../../widget/groupWidget';
 import type { ListWidget } from '../../widget/listWidget';
 import type { SwitchWidget } from '../../widget/switchWidget';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import type { ClickWidgetEvent, MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { Page } from '../gridLayout';
 import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';
@@ -122,9 +122,6 @@ export class LegendDOMProxy {
                     ? itemListener.onHover(ev.sourceEvent, markerLabel, true)
                     : itemListener.onLeave()
             );
-            // A `Widget` only attaches its 'touchstart' listener (which drives long-taps) when it has a 'drag-*'
-            // listener, so a dummy 'drag-start' enables touch long-tap context menus on legend buttons.
-            button.addListener('drag-start', () => {});
         });
         this.dirty = false;
     }
@@ -263,7 +260,7 @@ export class LegendDOMProxy {
         this.prevButton = undefined;
     }
 
-    private onPageButton(params: LegendDOMProxyUpdateParams, ev: MouseWidgetEvent<'click'>, node: 'previous' | 'next') {
+    private onPageButton(params: LegendDOMProxyUpdateParams, ev: ClickWidgetEvent, node: 'previous' | 'next') {
         params.pagination.onClick(ev.sourceEvent, node);
         this.updatePaginationProxyButtons(params, false);
     }
@@ -295,7 +292,7 @@ export class LegendDOMProxy {
     }
 
     private getItemAriaText(label: string | undefined, index: number, count: number): string {
-        if (index >= 0 && label) {
+        if (index >= 0 && label != null && label !== '') {
             index++;
             return this.ctx.localeManager.t('ariaLabelLegendItem', { label, index, count });
         }

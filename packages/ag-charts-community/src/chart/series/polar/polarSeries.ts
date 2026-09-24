@@ -17,8 +17,7 @@ import {
     type DataModelSeriesNodeDataContext,
     type DataModelSeriesNodeDatum,
 } from '../dataModelSeries';
-import { type PickFocusInputs, SeriesNodePickMode } from '../series';
-import { type SeriesProperties } from '../seriesProperties';
+import { type PickFocusInputs, SeriesNodePickMode } from '../pickTypes';
 import type { ShapeFillBBox } from '../shapeUtil';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -34,7 +33,8 @@ export type PolarAnimationEvent = {
 };
 export type PolarAnimationData = { duration?: number };
 
-type PolarSeriesProperties = {
+/** Keys every polar series carries in its plain options. */
+export type PolarSeriesKeys = {
     angleKey: string;
     angleName?: string;
     angleKeyAxis?: string;
@@ -53,21 +53,15 @@ export const DEFAULT_POLAR_DIRECTION_NAMES = {
     [ChartAxisDirection.Radius]: ['radiusName' as const],
 };
 
-export type UnknownPolarSeries = PolarSeries<
-    DataModelSeriesNodeDatum,
-    object,
-    SeriesProperties<object> & PolarSeriesProperties,
-    Node<DataModelSeriesNodeDatum>
->;
+export type UnknownPolarSeries = PolarSeries<DataModelSeriesNodeDatum, PolarSeriesKeys, Node<DataModelSeriesNodeDatum>>;
 
 export abstract class PolarSeries<
     TDatum extends DataModelSeriesNodeDatum & { legendItemValue?: string },
-    TOpts extends object,
-    TProps extends SeriesProperties<TOpts> & PolarSeriesProperties,
+    TOpts extends PolarSeriesKeys,
     TNode extends Node<TDatum>,
     TLabel = TDatum,
     TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
-> extends DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
+> extends DataModelSeries<TDatum, TOpts, TLabel, TContext> {
     override directions = [ChartAxisDirection.Angle, ChartAxisDirection.Radius];
 
     protected itemGroup = this.contentGroup.appendChild(new Group({ name: 'items' }));
@@ -143,7 +137,7 @@ export abstract class PolarSeries<
             item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
             label?: (node: Text<TDatum>, datum: TDatum) => AnimationValue & Partial<Text<TDatum>>;
         };
-    } & Partial<DataModelSeriesConstructorOpts<TProps>>) {
+    } & Partial<DataModelSeriesConstructorOpts<TOpts>>) {
         super({
             ...opts,
             categoryKey,
@@ -199,8 +193,9 @@ export abstract class PolarSeries<
     }
 
     override getKeyAxis(direction: ChartAxisDirection): string | undefined {
-        if (direction === ChartAxisDirection.Angle) return this.properties.angleKeyAxis;
-        if (direction === ChartAxisDirection.Radius) return this.properties.radiusKeyAxis;
+        const { angleKeyAxis, radiusKeyAxis } = this.options;
+        if (direction === ChartAxisDirection.Angle) return angleKeyAxis ?? 'angle';
+        if (direction === ChartAxisDirection.Radius) return radiusKeyAxis ?? 'radius';
     }
 
     override setZIndex(zIndex: number) {
@@ -309,7 +304,7 @@ export abstract class PolarSeries<
     }
 
     public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, legendItemValues?: string[]) {
-        if (!this.properties.highlight.enabled) {
+        if (!this.isHighlightEnabled()) {
             return false;
         }
 

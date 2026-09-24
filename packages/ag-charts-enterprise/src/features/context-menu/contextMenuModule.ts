@@ -8,7 +8,7 @@ import {
     undocumented,
 } from 'ag-charts-core';
 
-import { AxisDOMProxyModule } from '../axis-dom-proxy/axisDomProxyModule';
+import { AxisInteractionModule } from '../axis-interaction/axisInteractionModule';
 import { ContextMenu, type ContextMenuCtx } from './contextMenu';
 
 export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, _ModuleSupport.ChartRegistry> = {
@@ -16,7 +16,7 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, _Mo
     name: 'contextMenu',
     enterprise: true,
     version: VERSION,
-    dependencies: [AxisDOMProxyModule],
+    dependencies: [AxisInteractionModule],
 
     options: {
         enabled: boolean,

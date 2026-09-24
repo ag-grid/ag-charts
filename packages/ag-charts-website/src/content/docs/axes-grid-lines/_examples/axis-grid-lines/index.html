@@ -1,8 +1,20 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setGridStyle1()">Grid Style #1</button>
-        <button onclick="setGridStyle2()">Grid Style #2</button>
-        <button onclick="setDefaultGridStyle()">Default Grid Style</button>
+        <div class="button-group" role="group" aria-label="Grid Style">
+            <input type="radio" id="style-1" name="grid-style" value="1" onchange="styleChange(event)" />
+            <label for="style-1">Grid Style #1</label>
+            <input type="radio" id="style-2" name="grid-style" value="2" onchange="styleChange(event)" />
+            <label for="style-2">Grid Style #2</label>
+            <input
+                type="radio"
+                id="style-default"
+                name="grid-style"
+                value="default"
+                checked
+                onchange="styleChange(event)"
+            />
+            <label for="style-default">Default Grid Style</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

@@ -4,6 +4,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_HIERARCHY_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -34,8 +35,10 @@ export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBa
                     ['pattern', FILL_PATTERN_HIERARCHY_DEFAULTS],
                 ],
             }),
+            fillOpacity: 1,
             stroke: { $ref: 'chartBackgroundColor' },
             strokeWidth: 1,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             ...undocumentedThemeOptions({ selection: SERIES_SELECTION_THEME }),
         },
     },

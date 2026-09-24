@@ -54,15 +54,22 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         segmentation: { clickOrder: 'reverse' },
     },
     'dev-validation': {
-        'validation-overlay': { ignoreConsoleWarnings: true },
         'validation-overlay-multi': { ignoreConsoleWarnings: true, frameworks: ['vanilla'] },
-        'validation-overlay-dark': { ignoreConsoleWarnings: true, frameworks: ['vanilla'] },
+        // Selecting a consoleOn radio only changes state; only the button redraws the chart.
+        'validation-console': { skipCanvasUpdateCheck: ['[]'] },
+    },
+    'dev-validation-test': {
+        // Selecting a throwOn radio only changes state; only the button redraws the chart.
+        'validation-throw': { skipCanvasUpdateCheck: ['[]'] },
     },
     'range-area-series': {
         'range-area-missing-data': { ignoreConsoleWarnings: true },
     },
     'range-bar-series': {
         'range-bar-missing-data': { ignoreConsoleWarnings: true },
+    },
+    'series-highlighting': {
+        'highlight-mode': { skipCanvasUpdateCheck: true },
     },
     themes: {
         'advanced-theme': { frameworks: [] },
@@ -121,5 +128,15 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'layout-test': {
         'layout-inline': { frameworks: [] },
         'layout-matrix': { frameworks: [] },
+    },
+    'org-chart-test': {
+        // The 100K segment opens a confirm() dialog; Playwright auto-dismisses it, so the
+        // handler cancels and nothing is redrawn.
+        'org-chart-zoom-scale': { skipCanvasUpdateCheck: ['100K'] },
+    },
+    'range-area-series-e2e': {
+        // The Low/High segment destroys and re-creates the chart, so the new wrapper's
+        // render counter restarts at 0 and can never exceed the old one.
+        'shared-low-high-match': { skipCanvasUpdateCheck: ['Low/High'], frameworks: ['vanilla'] },
     },
 };

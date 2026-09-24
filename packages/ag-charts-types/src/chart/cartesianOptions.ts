@@ -23,9 +23,10 @@ import type { Styler } from './callbackOptions';
 import type { AgBaseThemeableChartOptions, AgSeriesAreaOptions } from './chartOptions';
 import type {
     AgBaseCrossLineLabelOptions,
-    AgBaseCrossLineOptions,
     AgCrossLineLabelPosition,
     AgCrossLineThemeOptions,
+    AgLineCrossLineOptions,
+    AgRangeCrossLineOptions,
 } from './crossLineOptions';
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
 import type { AgNumericValue, AgTimeValue } from './dataValues';
@@ -563,11 +564,21 @@ export interface AgUnitTimeAxisThemeOptions<CrossLineLabelType = AgBaseCrossLine
         AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions<TContext>>,
         AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
-export type AgCartesianCrossLineOptions<TValue = AxisValue, TContext = ContextDefault> = AgBaseCrossLineOptions<
-    TValue,
-    AgCartesianCrossLineLabelOptions,
-    TContext
->;
+/** A Cartesian axis Cross Line rendered as a single line at `value`. The label supports `position` and `rotation`. */
+export interface AgCartesianLineCrossLineOptions<
+    TValue = AxisValue,
+    TContext = ContextDefault,
+> extends AgLineCrossLineOptions<TValue, AgCartesianCrossLineLabelOptions, TContext> {}
+
+/** A Cartesian axis Cross Line rendered as a shaded band spanning `range`. The label supports `position` and `rotation`. */
+export interface AgCartesianRangeCrossLineOptions<
+    TValue = AxisValue,
+    TContext = ContextDefault,
+> extends AgRangeCrossLineOptions<TValue, AgCartesianCrossLineLabelOptions, TContext> {}
+
+export type AgCartesianCrossLineOptions<TValue = AxisValue, TContext = ContextDefault> =
+    | AgCartesianLineCrossLineOptions<TValue, TContext>
+    | AgCartesianRangeCrossLineOptions<TValue, TContext>;
 
 export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
     /** The position of the Cross Line label. */
@@ -615,15 +626,22 @@ export interface AgSeriesAreaBackgroundRegionLabel extends Omit<AgChartLabelStyl
     yOffset?: PixelSize;
 }
 
+/** The position of a background region's label.
+ *
+ * For a position outside the region, the first token is the side of the region the label sits on and
+ * the second is its alignment along that side — the same twelve names, with the same meaning, as
+ * `legend.placement`. An `inside` corner label is flush to both named edges, so token order carries no
+ * information there.
+ */
 export type AgSeriesAreaBackgroundRegionLabelPosition =
     | 'top'
     | 'left'
     | 'right'
     | 'bottom'
-    | 'top-left'
-    | 'top-right'
-    | 'bottom-left'
-    | 'bottom-right'
+    | 'left-top'
+    | 'right-top'
+    | 'left-bottom'
+    | 'right-bottom'
     | 'inside'
     | 'inside-left'
     | 'inside-right'
@@ -633,7 +651,7 @@ export type AgSeriesAreaBackgroundRegionLabelPosition =
     | 'inside-bottom-left'
     | 'inside-top-right'
     | 'inside-bottom-right'
-    | 'top-left-above'
-    | 'top-right-above'
-    | 'bottom-left-below'
-    | 'bottom-right-below';
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right';

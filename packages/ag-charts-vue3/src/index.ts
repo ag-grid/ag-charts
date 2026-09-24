@@ -2,6 +2,7 @@ import { PropType, defineComponent, h } from 'vue';
 
 import {
     AgChartInstance,
+    AgChartModule,
     AgChartOptions,
     AgCharts as AgChartsAPI,
     AgFinancialChartOptions,
@@ -21,6 +22,10 @@ export const AgCharts = /*#__PURE__*/ defineComponent({
             type: Object as PropType<AgChartOptions>,
             default: (): AgChartOptions => ({}),
         },
+        modules: {
+            type: Array as PropType<AgChartModule[]>,
+            default: undefined,
+        },
     },
     setup(): { chart: AgChartInstance | undefined } {
         return {
@@ -36,8 +41,8 @@ export const AgCharts = /*#__PURE__*/ defineComponent({
         },
     },
     mounted() {
-        const { options } = this;
-        this.chart = AgChartsAPI.create(mergeOptions(options, this.$el, 'AgCharts'));
+        const { options, modules } = this;
+        this.chart = AgChartsAPI.create(mergeOptions(options, this.$el, 'AgCharts'), { modules });
     },
     unmounted() {
         this.chart?.destroy();
@@ -50,6 +55,10 @@ export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
         options: {
             type: Object as PropType<AgFinancialChartOptions>,
             default: (): AgFinancialChartOptions => ({}),
+        },
+        modules: {
+            type: Array as PropType<AgChartModule[]>,
+            default: undefined,
         },
     },
     setup(): { chart: AgChartInstance<AgFinancialChartOptions> | undefined } {
@@ -66,8 +75,10 @@ export const AgFinancialCharts = /*#__PURE__*/ defineComponent({
         },
     },
     mounted() {
-        const { options } = this;
-        this.chart = AgChartsAPI.createFinancialChart(mergeOptions(options, this.$el, 'AgFinancialCharts'));
+        const { options, modules } = this;
+        this.chart = AgChartsAPI.createFinancialChart(mergeOptions(options, this.$el, 'AgFinancialCharts'), {
+            modules,
+        });
     },
     unmounted() {
         this.chart?.destroy();
@@ -80,6 +91,10 @@ export const AgGauge = /*#__PURE__*/ defineComponent({
         options: {
             type: Object as PropType<AgGaugeOptions>,
             default: (): AgGaugeOptions => ({ type: 'radial-gauge', value: 0 }),
+        },
+        modules: {
+            type: Array as PropType<AgChartModule[]>,
+            default: undefined,
         },
     },
     setup(): { chart: AgChartInstance<AgGaugeOptions> | undefined } {
@@ -96,8 +111,8 @@ export const AgGauge = /*#__PURE__*/ defineComponent({
         },
     },
     mounted() {
-        const { options } = this;
-        this.chart = AgChartsAPI.createGauge(mergeOptions(options, this.$el, 'AgGauge'));
+        const { options, modules } = this;
+        this.chart = AgChartsAPI.createGauge(mergeOptions(options, this.$el, 'AgGauge'), { modules });
     },
     unmounted() {
         this.chart?.destroy();
@@ -110,6 +125,10 @@ export const AgQuadrantChart = /*#__PURE__*/ defineComponent({
         options: {
             type: Object as PropType<AgQuadrantChartOptions>,
             required: true,
+        },
+        modules: {
+            type: Array as PropType<AgChartModule[]>,
+            default: undefined,
         },
     },
     setup(): { chart: AgChartInstance<AgQuadrantChartOptions> | undefined } {
@@ -126,8 +145,8 @@ export const AgQuadrantChart = /*#__PURE__*/ defineComponent({
         },
     },
     mounted() {
-        const { options } = this;
-        this.chart = AgChartsAPI.createQuadrantChart(mergeOptions(options, this.$el, 'AgQuadrantChart'));
+        const { options, modules } = this;
+        this.chart = AgChartsAPI.createQuadrantChart(mergeOptions(options, this.$el, 'AgQuadrantChart'), { modules });
     },
     unmounted() {
         this.chart?.destroy();

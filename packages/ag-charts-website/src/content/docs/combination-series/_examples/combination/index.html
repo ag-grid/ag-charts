@@ -1,7 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="areaBar()">Area & Bar</button>
-        <button onclick="barLine()">Bar & Line</button>
+        <div class="button-group" role="group" aria-label="Combination Type">
+            <input
+                type="radio"
+                id="combination-type-area-bar"
+                name="combination-type"
+                value="area-bar"
+                onchange="combinationTypeChange(event)"
+            />
+            <label for="combination-type-area-bar">Area & Bar</label>
+            <input
+                type="radio"
+                id="combination-type-bar-line"
+                name="combination-type"
+                value="bar-line"
+                checked
+                onchange="combinationTypeChange(event)"
+            />
+            <label for="combination-type-bar-line">Bar & Line</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

@@ -1,0 +1,549 @@
+import type { Mock } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { type ModuleDefinition, ModuleRegistry, ModuleType, enterpriseRegistry } from 'ag-charts-core';
+import type {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgPolarChartOptions,
+    AgSparklineOptions,
+} from 'ag-charts-types';
+
+import { AgCharts } from '../api/agCharts';
+import { SparklinePresetModule } from '../api/preset/presetModules';
+import { LegendModule } from '../chart/legend/legendModule';
+import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
+import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
+import { PieSeriesModule } from '../chart/series/polar/pieSeriesModule';
+import { prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from '../chart/test/utils';
+import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
+import { NumberAxisModule } from './axis-modules/numberAxisModule';
+import { ChartOptions } from './optionsModule';
+
+const LINE_CHART: AgCartesianChartOptions = {
+    data: [
+        { quarter: 'Q1', revenue: 10 },
+        { quarter: 'Q2', revenue: 14 },
+        { quarter: 'Q3', revenue: 9 },
+    ],
+    series: [{ type: 'line', xKey: 'quarter', yKey: 'revenue' }],
+    axes: { x: { type: 'category' }, y: { type: 'number' } },
+};
+
+const BAR_CHART: AgCartesianChartOptions = {
+    ...LINE_CHART,
+    series: [{ type: 'bar', xKey: 'quarter', yKey: 'revenue' }],
+};
+
+const PIE_CHART: AgPolarChartOptions = {
+    data: LINE_CHART.data,
+    series: [{ type: 'pie', angleKey: 'revenue', legendItemKey: 'quarter' }],
+};
+
+const LINE_MODULES = [LineSeriesModule, CategoryAxisModule, NumberAxisModule];
+
+function processOptions<T extends AgCartesianChartOptions | AgPolarChartOptions>(
+    userOptions: T,
+    modules?: ModuleDefinition[]
+) {
+    return new ChartOptions<T>(undefined, userOptions, {}, {}, { modules }, undefined, false, false);
+}
+
+// Reads and clears, so an asserted message does not trip the mock console's clean-exit check.
+function takeConsoleMessages(method: 'error' | 'warn'): string[] {
+    const mock = console[method] as Mock;
+    const messages = mock.mock.calls.map(([m]) => String(m));
+    mock.mockClear();
+    return messages;
+}
+
+function axisCount(chartOptions: ChartOptions<AgCartesianChartOptions>): number {
+    return Object.keys(chartOptions.processedOptions.axes ?? {}).length;
+}
+
+describe('instance modules', () => {
+    setupMockConsole();
+
+    let registeredModules: ModuleDefinition[];
+
+    beforeEach(() => {
+        registeredModules = [...ModuleRegistry.listModules()];
+        ModuleRegistry.reset();
+    });
+
+    afterEach(() => {
+        ModuleRegistry.reset();
+        ModuleRegistry.registerModules(registeredModules);
+    });
+
+    describe('options processing', () => {
+        it('processes a chart from instance modules alone', () => {
+            const chartOptions = processOptions(LINE_CHART, LINE_MODULES);
+
+            expect(chartOptions.processedOptions.series).toHaveLength(1);
+            expect(axisCount(chartOptions)).toBe(2);
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it('keeps instance modules invisible to other charts', () => {
+            processOptions(LINE_CHART, LINE_MODULES);
+            expect(console.error).not.toHaveBeenCalled();
+
+            const other = processOptions(LINE_CHART, [BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+            expect(other.processedOptions.series).toHaveLength(0);
+            expect(takeConsoleMessages('error').some((m) => m.includes('LineSeriesModule'))).toBe(true);
+        });
+
+        it('adds instance modules over the global registry', () => {
+            ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+
+            const chartOptions = processOptions(LINE_CHART, [LineSeriesModule]);
+
+            expect(chartOptions.processedOptions.series).toHaveLength(1);
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it('suggests the params form when a chart created with instance modules is missing one', () => {
+            processOptions(BAR_CHART, LINE_MODULES);
+
+            const [message] = takeConsoleMessages('error');
+            expect(message).toContain('required modules are not registered');
+            expect(message).toContain('AgCharts.create(options, {');
+            expect(message).toContain('BarSeriesModule');
+            expect(message).not.toContain('ModuleRegistry.registerModules');
+        });
+
+        it('keeps the global registry snippet for globally registered charts', () => {
+            ModuleRegistry.registerModules(LINE_MODULES);
+
+            processOptions(BAR_CHART);
+
+            const [message] = takeConsoleMessages('error');
+            expect(message).toContain('ModuleRegistry.registerModules([');
+            expect(message).not.toContain('AgCharts.create(options, {');
+        });
+
+        it('reports an unknown series type unchanged', () => {
+            processOptions({ ...LINE_CHART, series: [{ type: 'nonsense' } as any] }, LINE_MODULES);
+
+            const [message] = takeConsoleMessages('warn');
+            expect(message).toContain('Unknown type `nonsense` at `series[0].type`');
+            expect(message).toMatch(/expecting .*'bar'.* or '[a-z-]+', ignoring/);
+        });
+
+        it('builds separate themes for different module sets', () => {
+            const withLegend = processOptions(LINE_CHART, [...LINE_MODULES, LegendModule]);
+            const withoutLegend = processOptions(LINE_CHART, LINE_MODULES);
+            const withLegendAgain = processOptions(LINE_CHART, [LegendModule, ...LINE_MODULES]);
+
+            expect(withLegend.activeTheme).not.toBe(withoutLegend.activeTheme);
+            expect(withLegendAgain.activeTheme).toBe(withLegend.activeTheme);
+            expect(withLegend.processedOptions.legend).toBeDefined();
+            expect(withoutLegend.processedOptions.legend).toBeUndefined();
+        });
+
+        it('sees modules registered globally after the chart scope was created', () => {
+            processOptions(LINE_CHART, [LineSeriesModule]);
+            expect(takeConsoleMessages('error').some((m) => m.includes('CategoryAxisModule'))).toBe(true);
+
+            ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+
+            const chartOptions = processOptions(LINE_CHART, [LineSeriesModule]);
+            expect(axisCount(chartOptions)).toBe(2);
+            expect(console.error).not.toHaveBeenCalled();
+        });
+    });
+
+    // The pie template enables `legend` by default; only a user-set legend should report the module.
+    describe('theme defaults for unregistered modules', () => {
+        it('drops a template default for an unregistered plugin without reporting it', () => {
+            const chartOptions = processOptions(PIE_CHART, [PieSeriesModule]);
+
+            expect(chartOptions.processedOptions.series).toHaveLength(1);
+            expect('legend' in chartOptions.processedOptions).toBe(false);
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it('reports an unregistered plugin enabled through theme overrides', () => {
+            processOptions({ ...PIE_CHART, theme: { overrides: { pie: { legend: { enabled: true } } } } }, [
+                PieSeriesModule,
+            ]);
+
+            expect(takeConsoleMessages('error').some((m) => m.includes('LegendModule'))).toBe(true);
+        });
+
+        it('reports an unregistered plugin enabled through options', () => {
+            processOptions({ ...PIE_CHART, legend: { enabled: true } }, [PieSeriesModule]);
+
+            expect(takeConsoleMessages('error').some((m) => m.includes('LegendModule'))).toBe(true);
+        });
+    });
+
+    describe('chart creation', () => {
+        const ctx = setupMockCanvas();
+        let chart: AgChartInstance | undefined;
+
+        afterEach(() => {
+            chart?.destroy();
+            chart = undefined;
+        });
+
+        describe('licence check', () => {
+            const enterprisePlugin: ModuleDefinition = {
+                type: ModuleType.Plugin,
+                name: 'enterprise-plugin',
+                version: LineSeriesModule.version,
+                enterprise: true,
+                create: () => ({}),
+            };
+            const validateLicense = vi.fn();
+            let licenseKeySupplied = true;
+            const createLicenseManager = vi.fn((_document?: Document) => ({
+                validateLicense,
+                isLicenseKeySupplied: () => licenseKeySupplied,
+                isDisplayWatermark: () => true,
+                getWatermarkMessage: () => 'watermark',
+                getWatermarkForegroundConfig: () => undefined,
+                getWatermarkForegroundConfigForBrowser: () => undefined,
+                getLicenseDetails: () => ({}),
+            }));
+            const injectWatermark = vi.fn();
+            const lastLicensedDocument = () => createLicenseManager.mock.lastCall?.[0];
+
+            // Licences are cached per document, so a fresh document isolates each test from the others.
+            let hostDocument: Document;
+            const lineChart = (container = hostDocument.body) => prepareTestOptions({ ...LINE_CHART }, container);
+
+            beforeEach(() => {
+                hostDocument = document.implementation.createHTMLDocument();
+                licenseKeySupplied = true;
+                validateLicense.mockClear();
+                createLicenseManager.mockClear();
+                injectWatermark.mockClear();
+                enterpriseRegistry.licenseManager = createLicenseManager;
+                enterpriseRegistry.injectWatermark = injectWatermark;
+            });
+
+            afterEach(() => {
+                delete enterpriseRegistry.licenseManager;
+                delete enterpriseRegistry.injectWatermark;
+            });
+
+            it('validates a supplied key for a community-only chart once enterprise is loaded', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                delete enterpriseRegistry.licenseManager;
+                const unlicensedChart = AgCharts.create(lineChart());
+                await waitForChartStability(unlicensedChart);
+                expect(createLicenseManager).not.toHaveBeenCalled();
+                unlicensedChart.destroy();
+
+                enterpriseRegistry.licenseManager = createLicenseManager;
+                licenseKeySupplied = false;
+                const keylessChart = AgCharts.create(lineChart());
+                await waitForChartStability(keylessChart);
+                expect(validateLicense).not.toHaveBeenCalled();
+                keylessChart.destroy();
+
+                licenseKeySupplied = true;
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).not.toHaveBeenCalled();
+            });
+
+            it('re-checks the key on update, so one supplied after creation is validated', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                licenseKeySupplied = false;
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(validateLicense).not.toHaveBeenCalled();
+
+                licenseKeySupplied = true;
+                await chart.update(lineChart());
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).not.toHaveBeenCalled();
+            });
+
+            it('licenses a chart by the modules in its own scope', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                const enterpriseChart = AgCharts.create(lineChart(), { modules: [enterprisePlugin] });
+                await waitForChartStability(enterpriseChart);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+                enterpriseChart.destroy();
+
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+                expect(chart.isModuleRegistered('enterprise-plugin')).toBe(false);
+            });
+
+            it('licenses by module identity, not by the enterprise flag on the definition', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                // A copy of an enterprise module with the flag stripped is still not a community module.
+                const forgedPlugin = { ...enterprisePlugin, enterprise: false };
+                chart = AgCharts.create(lineChart(), { modules: [forgedPlugin] });
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+            });
+
+            it('reports the licence before any option warning on create', async () => {
+                ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
+                chart = AgCharts.create({ ...lineChart(), unknownOption: true } as any);
+                await waitForChartStability(chart);
+
+                const [warnOrder] = (console.warn as Mock).mock.invocationCallOrder;
+                const [licenceOrder] = validateLicense.mock.invocationCallOrder;
+                expect(takeConsoleMessages('warn')).toEqual([expect.stringContaining('unknownOption')]);
+                expect(licenceOrder).toBeLessThan(warnOrder);
+            });
+
+            it('licenses against the document a delta update moves the chart into', async () => {
+                ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(lastLicensedDocument()).toBe(hostDocument);
+
+                const otherDocument = document.implementation.createHTMLDocument();
+                await chart.updateDelta({ container: otherDocument.body });
+                await waitForChartStability(chart);
+                expect(lastLicensedDocument()).toBe(otherDocument);
+            });
+
+            it('skips the licence check for a chart hosted within Studio', async () => {
+                ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
+                chart = AgCharts.create({ ...lineChart(), withinStudio: true } as any);
+                await waitForChartStability(chart);
+                expect(validateLicense).not.toHaveBeenCalled();
+                expect(injectWatermark).not.toHaveBeenCalled();
+
+                // A full update replaces the options, so the flag must not need repeating.
+                await chart.update(lineChart());
+                await waitForChartStability(chart);
+                expect(validateLicense).not.toHaveBeenCalled();
+                expect(injectWatermark).not.toHaveBeenCalled();
+            });
+
+            it('does not exempt a chart that claims the Studio flag after creation', async () => {
+                ModuleRegistry.registerModules([...LINE_MODULES, enterprisePlugin]);
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+                expect((chart as any).withinStudio).toBeUndefined();
+
+                validateLicense.mockClear();
+                await chart.update({ ...lineChart(), withinStudio: true } as any);
+                await waitForChartStability(chart);
+                expect(validateLicense).toHaveBeenCalled();
+            });
+
+            it('licenses a community chart once an update resolves enterprise modules', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+                chart = AgCharts.create(lineChart());
+                await waitForChartStability(chart);
+                expect(injectWatermark).not.toHaveBeenCalled();
+
+                ModuleRegistry.registerModules([enterprisePlugin]);
+                await chart.update(lineChart());
+                await waitForChartStability(chart);
+                expect(chart.isModuleRegistered('enterprise-plugin')).toBe(true);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+
+                await chart.update(lineChart());
+                await waitForChartStability(chart);
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+            });
+
+            it('licenses a chart against the document hosting it', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+                const frameDocument = document.implementation.createHTMLDocument();
+
+                licenseKeySupplied = false;
+                const frameChart = AgCharts.create(lineChart(frameDocument.body));
+                await waitForChartStability(frameChart);
+                expect(lastLicensedDocument()).toBe(frameDocument);
+                frameChart.destroy();
+
+                chart = AgCharts.create(lineChart(), { modules: [enterprisePlugin] });
+                await waitForChartStability(chart);
+                expect(lastLicensedDocument()).toBe(hostDocument);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+            });
+
+            it('still licenses an enterprise chart after a keyless community chart seeded its document', async () => {
+                ModuleRegistry.registerModules(LINE_MODULES);
+
+                licenseKeySupplied = false;
+                const communityChart = AgCharts.create(lineChart());
+                await waitForChartStability(communityChart);
+                expect(createLicenseManager).toHaveBeenCalledTimes(1);
+                expect(validateLicense).not.toHaveBeenCalled();
+
+                chart = AgCharts.create(lineChart(), { modules: [enterprisePlugin] });
+                await waitForChartStability(chart);
+                expect(createLicenseManager).toHaveBeenCalledTimes(1);
+                expect(validateLicense).toHaveBeenCalled();
+                expect(injectWatermark).toHaveBeenCalledTimes(1);
+                communityChart.destroy();
+            });
+        });
+
+        describe('pooled charts', () => {
+            const SPARKLINE: AgSparklineOptions = { type: 'line', width: 200, height: 50, data: [1, 2, 3] };
+            const SPARKLINE_MODULES = [SparklinePresetModule, ...LINE_MODULES];
+            const { version } = LineSeriesModule;
+            const scopedPool = `Pool[name=sparkline|category@${version},line@${version},number@${version},sparkline@${version}]`;
+            let log: Mock;
+
+            beforeEach(() => {
+                (globalThis as any).agChartsDebug = ['pool'];
+                log = vi.spyOn(console, 'log').mockImplementation(() => {}) as Mock;
+            });
+
+            afterEach(() => {
+                delete (globalThis as any).agChartsDebug;
+                log.mockRestore();
+            });
+
+            function takePoolEvents(): string[] {
+                const events = log.mock.calls
+                    .map(([message]) => String(message))
+                    .filter((message) => message.startsWith('Pool['))
+                    .map((message) => message.replace(/ \(.*$/, ''));
+                log.mockClear();
+                return events;
+            }
+
+            async function createSparkline(modules?: ModuleDefinition[]) {
+                const sparkline = AgCharts.__createSparkline(prepareTestOptions({ ...SPARKLINE }), { modules });
+                await waitForChartStability(sparkline);
+                return sparkline;
+            }
+
+            it('re-uses pooled charts only across the same module set', async () => {
+                const first = await createSparkline(SPARKLINE_MODULES);
+                expect(first.isModuleRegistered('line')).toBe(true);
+                first.destroy();
+                expect(takePoolEvents()).toEqual([
+                    `${scopedPool}: Created instance`,
+                    `${scopedPool}: Releasing instance`,
+                    `${scopedPool}: Returned instance to free pool`,
+                ]);
+
+                const second = await createSparkline(SPARKLINE_MODULES);
+                expect(takePoolEvents()).toEqual([`${scopedPool}: Re-used instance`]);
+                second.destroy();
+
+                ModuleRegistry.registerModules(SPARKLINE_MODULES);
+                const global = await createSparkline();
+                expect(takePoolEvents()).toEqual([
+                    `${scopedPool}: Releasing instance`,
+                    `${scopedPool}: Returned instance to free pool`,
+                    'Pool[name=sparkline]: Created instance',
+                ]);
+                global.destroy();
+            });
+        });
+
+        it('throws when neither the global registry nor the params hold any module', () => {
+            expect(() => AgCharts.create(prepareTestOptions({ ...LINE_CHART }))).toThrow(
+                /No modules have been registered/
+            );
+            expect(() => AgCharts.create(prepareTestOptions({ ...LINE_CHART }))).toThrow(
+                /AgCharts\.create\(options, \{ modules: \[\.\.\.\] \}\)/
+            );
+        });
+
+        it('renders identically whether modules are registered globally or per instance', async () => {
+            ModuleRegistry.registerModules([...LINE_MODULES, LegendModule]);
+            chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }));
+            await waitForChartStability(chart);
+            const globalSnapshot = ctx.snapshot();
+            chart.destroy();
+            ModuleRegistry.reset();
+
+            chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }), {
+                modules: [...LINE_MODULES, LegendModule],
+            });
+            await waitForChartStability(chart);
+
+            expect(ctx.snapshot()).toMatchImage(globalSnapshot, { writeDiff: false });
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it('keeps instance modules across updates without re-passing them', async () => {
+            chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }), { modules: LINE_MODULES });
+            await waitForChartStability(chart);
+
+            await chart.update(prepareTestOptions({ ...LINE_CHART, title: { text: 'Updated' } }));
+            await chart.updateDelta({ subtitle: { text: 'Delta' } });
+
+            expect(chart.getOptions().title?.text).toBe('Updated');
+            expect(chart.getOptions().series).toHaveLength(1);
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it('answers isModuleRegistered() against the chart scope', async () => {
+            ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule]);
+            chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }), { modules: [LineSeriesModule] });
+            await waitForChartStability(chart);
+
+            expect(chart.isModuleRegistered('LineSeriesModule')).toBe(true);
+            expect(chart.isModuleRegistered('NumberAxisModule')).toBe(true);
+            expect(chart.isModuleRegistered('BarSeriesModule')).toBe(false);
+            expect(chart.isModuleRegistered('line')).toBe(true);
+            expect(ModuleRegistry.hasModule('line')).toBe(false);
+        });
+
+        it('answers isModuleRegistered() for plugin modules by their exported name', async () => {
+            const axisInteraction: ModuleDefinition = {
+                type: ModuleType.Plugin,
+                name: 'axis-interaction',
+                version: LineSeriesModule.version,
+                enterprise: false,
+                create: () => ({}),
+            };
+
+            chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }), {
+                modules: [...LINE_MODULES, axisInteraction],
+            });
+            await waitForChartStability(chart);
+
+            expect(chart.isModuleRegistered('AxisInteractionModule')).toBe(true);
+            expect(chart.isModuleRegistered('ZoomModule')).toBe(false);
+        });
+
+        it('rejects instance modules that are not module definitions', () => {
+            expect(() =>
+                AgCharts.create(prepareTestOptions({ ...LINE_CHART }), {
+                    modules: [...LINE_MODULES, { name: 'not-a-module' } as any],
+                })
+            ).toThrow(/`modules` must contain modules exported by ag-charts-community or ag-charts-enterprise/);
+        });
+
+        it('runs instance plugin modules through the chart context', async () => {
+            const register = vi.fn();
+            const plugin: ModuleDefinition = {
+                type: ModuleType.Plugin,
+                name: 'instance-plugin',
+                version: LineSeriesModule.version,
+                enterprise: false,
+                register,
+                create: () => ({}),
+            };
+
+            chart = AgCharts.create(prepareTestOptions({ ...LINE_CHART }), { modules: [...LINE_MODULES, plugin] });
+            await waitForChartStability(chart);
+
+            expect(register).toHaveBeenCalled();
+            expect(chart.isModuleRegistered('instance-plugin')).toBe(true);
+        });
+    });
+});

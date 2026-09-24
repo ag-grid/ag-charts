@@ -1,4 +1,5 @@
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -8,13 +9,17 @@ import {
     POLAR_AXIS_TYPE,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     mergeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         stroke: { $palette: 'stroke' },
+        ...STROKE_STYLE_THEME_DEFAULTS,
+        connectMissingData: false,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
@@ -38,13 +43,14 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
             fillOpacity: 1,
             shape: 'circle',
             size: 6,
-            strokeOpacity: 1,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         },
-        highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
+        highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
+            interaction: { enabled: false },
         },
     },
     axes: {

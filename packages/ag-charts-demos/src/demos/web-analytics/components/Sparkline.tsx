@@ -35,8 +35,11 @@ function sparklineOptions(
         minHeight: 0,
         background: { visible: false },
         padding: { top: 3, right: 4, bottom: 3, left: 4 },
-        fill: color,
-        fillOpacity: 0.16,
+        fill: {
+            type: 'gradient',
+            colorStops: [{ color: '#ffffff' }, { color: color }],
+        },
+        fillOpacity: 0.3,
         stroke: color,
         strokeWidth: 2,
         marker: { fill: color },
@@ -59,7 +62,6 @@ interface SparklineProps {
     formatValue: (value: number) => string;
 }
 
-// A small area sparkline of a KPI's daily values across the selected range.
 export function Sparkline({ points, color, formatValue }: SparklineProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<AgChartInstance<AgSparklineOptions>>();
@@ -77,8 +79,7 @@ export function Sparkline({ points, color, formatValue }: SparklineProps) {
         }
     }, [points, color, formatValue]);
 
-    // Clearing the ref matters as much as destroying: the effect above keys off it, and
-    // would otherwise update a destroyed instance if the component ever re-mounted.
+    // Clear the ref as well as destroying: the effect above keys off it on re-mount.
     useLayoutEffect(
         () => () => {
             chartRef.current?.destroy();

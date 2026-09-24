@@ -1,7 +1,6 @@
 import {
     type AgBoxPlotHighlightStyleOptions,
     type AgBoxPlotSeriesItemStylerParams,
-    type AgBoxPlotSeriesOptions,
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
     type AgBoxPlotWhiskerOptions,
@@ -14,6 +13,7 @@ import type {
     FillStrokeMorph,
     Mutable,
     Normalised,
+    NormalisedBoxPlotSeriesOwnOptions,
     RequireOptional,
 } from 'ag-charts-core';
 import { ChartAxisDirection, deepClone, isNumericValue, mergeDefaults, toNumber } from 'ag-charts-core';
@@ -21,7 +21,6 @@ import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
-import { BoxPlotSeriesProperties } from './boxPlotSeriesProperties';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 const {
@@ -71,8 +70,7 @@ interface BoxPlotSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesN
  */
 interface BoxPlotSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: BoxPlotNode;
-    readonly options: AgBoxPlotSeriesOptions;
-    readonly properties: BoxPlotSeriesProperties;
+    readonly options: NormalisedBoxPlotSeriesOwnOptions;
     readonly datum: BoxPlotNodeDatum;
     readonly label: BoxPlotNodeDatum;
     readonly context: BoxPlotSeriesNodeDataContext;
@@ -120,17 +118,15 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     static override readonly className = 'BoxPlotSeries';
     static readonly type = 'box-plot' as const;
 
-    override properties = new BoxPlotSeriesProperties();
-
     override createNodeParams(datum: BoxPlotNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            xKey: this.properties.xKey,
-            minKey: this.properties.minKey,
-            q1Key: this.properties.q1Key,
-            medianKey: this.properties.medianKey,
-            q3Key: this.properties.q3Key,
-            maxKey: this.properties.maxKey,
+            xKey: this.options.xKey,
+            minKey: this.options.minKey,
+            q1Key: this.options.q1Key,
+            medianKey: this.options.medianKey,
+            q3Key: this.options.q3Key,
+            maxKey: this.options.maxKey,
         };
     }
 
@@ -154,7 +150,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         if (!this.visible) return;
 
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.options;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const xScale = this.getCategoryAxis()?.scale;
@@ -168,7 +164,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             extraProps.push(animationValidation());
         }
 
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
@@ -251,7 +247,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             barOffset,
             barWidth,
             isVertical: this.isVertical(),
-            xKey: this.properties.xKey,
+            xKey: this.options.xKey,
             animationEnabled,
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
@@ -390,7 +386,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
      */
     protected override initializeResult(ctx: BoxPlotSeriesNodeDatumContext): BoxPlotSeriesNodeDataContext {
         return {
-            itemId: this.properties.xKey,
+            itemId: this.options.xKey,
             nodeData: ctx.nodes,
             labelData: [],
             scales: this.calculateScaling(),
@@ -428,7 +424,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         for (let datumIndex = 0; datumIndex < ctx.rawData.length; datumIndex++) {
             const datum = ctx.rawData[datumIndex];
             const xValue = ctx.xValues[datumIndex];
-            if (xValue === undefined && !this.properties.allowNullKeys) continue;
+            if (xValue === undefined && !this.options.allowNullKeys) continue;
 
             const minValue = ctx.minValues[datumIndex];
             const q1Value = ctx.q1Values[datumIndex];
@@ -479,7 +475,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const seriesRect = this.chart?.seriesRect;
         if (seriesRect != null) {
             result.segments = calculateSegments(
-                this.properties.segmentation,
+                this.options.segmentation,
                 ctx.xAxis,
                 ctx.yAxis,
                 seriesRect,
@@ -517,9 +513,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             ctx: { legendManager },
             visible,
         } = this;
-        const { xKey, yName, showInLegend, legendItemName } = this.properties;
+        const { xKey, yName, showInLegend, legendItemName } = this.options;
 
-        if (!xKey || legendType !== 'category') {
+        if (xKey == null || xKey === '' || legendType !== 'category') {
             return [];
         }
 
@@ -535,13 +531,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             },
         ];
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, properties } = this;
+        const { id: seriesId, dataModel, processedData, options } = this;
         const {
             xKey,
             xName,
@@ -558,7 +554,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             maxName,
             legendItemName,
             tooltip,
-        } = properties;
+        } = options;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -575,7 +571,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const maxValue = dataModel.resolveColumnById(this, `maxValue`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const allowNullKeys = this.options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const format = this.getItemStyle(datumIndex, false, undefined, undefined, undefined);
@@ -705,11 +701,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 stroke: whiskerStroke,
                 strokeOpacity: whiskerStrokeOpacity,
                 strokeWidth: whiskerStrokeWidth,
-            },
+            } = {},
             xKey,
             xName,
             yName,
-        } = this.properties;
+        } = this.options;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
         const selectionState = toSelectionString(selectionStateEnum);
         const candidateState = toSelectionString(candidateStateEnum);
@@ -777,7 +773,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             strokeWidth,
             styler,
             whisker,
-        } = this.properties;
+        } = this.options;
         let stylerResult: NormalisedBoxPlotSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState, candidateState);
@@ -800,11 +796,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
             cap: { lengthRatio: stylerResult.cap?.lengthRatio ?? cap.lengthRatio },
             whisker: {
-                lineDash: stylerResult.whisker?.lineDash ?? whisker.lineDash,
-                lineDashOffset: stylerResult.whisker?.lineDashOffset ?? whisker.lineDashOffset,
-                stroke: stylerResult.whisker?.stroke ?? whisker.stroke,
-                strokeOpacity: stylerResult.whisker?.strokeOpacity ?? whisker.strokeOpacity,
-                strokeWidth: stylerResult.whisker?.strokeWidth ?? whisker.strokeWidth,
+                lineDash: stylerResult.whisker?.lineDash ?? whisker?.lineDash,
+                lineDashOffset: stylerResult.whisker?.lineDashOffset ?? whisker?.lineDashOffset,
+                stroke: stylerResult.whisker?.stroke ?? whisker?.stroke,
+                strokeOpacity: stylerResult.whisker?.strokeOpacity ?? whisker?.strokeOpacity,
+                strokeWidth: stylerResult.whisker?.strokeWidth ?? whisker?.strokeWidth,
             },
         };
     }
@@ -816,8 +812,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         selectionState: _ModuleSupport.SelectionState | undefined,
         candidateState: _ModuleSupport.SelectionState | undefined
     ): Required<NormalisedBoxPlotSeriesStyle> {
-        const { properties } = this;
-        const { itemStyler } = properties;
+        const { itemStyler } = this.options;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex, selectionState, candidateState);
@@ -863,7 +858,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         style: Required<NormalisedBoxPlotSeriesStyle>
     ) {
         const { id: seriesId } = this;
-        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.properties;
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey } = this.options;
 
         const datum = this.processedData?.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -896,7 +891,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
         isHighlight: boolean;
     }) {
-        const { itemStyler } = this.properties;
+        const { itemStyler } = this.options;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         if (itemStyler == null) {
@@ -951,7 +946,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
         isHighlight: boolean;
     }) {
-        const { contextNodeData, properties } = this;
+        const { contextNodeData, options } = this;
         if (!contextNodeData) {
             return;
         }
@@ -961,7 +956,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const fillBBox = this.getShapeFillBBox();
         const strokeAlignment = this.getStyle(false, HighlightState.None, undefined, undefined).strokeWidth / 2;
 
-        const wickStrokeAlignment = properties.whisker.strokeWidth ?? properties.strokeWidth;
+        const wickStrokeAlignment = options.whisker?.strokeWidth ?? options.strokeWidth;
 
         datumSelection.each((boxPlotNode, nodeDatum) => {
             // Colour refs are resolved at theme-merge, so the style is normalised by render.
@@ -1024,12 +1019,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     }
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex].focusRect);
+        return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]?.focusRect);
     }
 
     protected override hasItemStylers(): boolean {
-        return (
-            this.properties.selection.enabled || this.properties.itemStyler != null || this.properties.styler != null
-        );
+        return this.isSelectionEnabled() || this.options.itemStyler != null || this.options.styler != null;
     }
 }

@@ -1,11 +1,10 @@
-import { AgDocument, type CallbackCache, type Logger, type ReactiveState } from 'ag-charts-core';
+import { AgDocument, type CallbackCache, type Logger, type ModuleScope, type ReactiveState } from 'ag-charts-core';
 
 import type { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import type { HistoryManager } from '../api/state/historyManager';
 import type { StateManager } from '../api/state/stateManager';
 import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { AxisManager } from '../chart/axis/axisManager';
-import type { BackgroundRegion } from '../chart/background-regions/backgroundRegion';
 import type { ChartService } from '../chart/chartService';
 import type { ChartState } from '../chart/chartState';
 import type { CrossLine } from '../chart/crossline/crossLine';
@@ -27,7 +26,9 @@ import type { LabelManager } from '../chart/layout/labelManager';
 import type { LayoutManager } from '../chart/layout/layoutManager';
 import type { LegendManager } from '../chart/legend/legendManager';
 import type { OptionsGraphService } from '../chart/optionsGraphService';
+import type { SeriesArea } from '../chart/series-area/seriesArea';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
+import type { ChartValidations } from '../chart/validation/chartValidations';
 import type { EventsHub } from '../core/eventsHub';
 import type { DOMManager } from '../dom/domManager';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
@@ -59,6 +60,7 @@ export interface ChartRegistry {
     readonly eventsHub: EventsHub;
     readonly callbackCache: CallbackCache;
     readonly logger: Logger;
+    readonly moduleRegistry: ModuleScope;
 
     readonly chartService: ChartService;
     readonly chartTypeOriginator: ChartTypeOriginator;
@@ -70,6 +72,8 @@ export interface ChartRegistry {
     readonly axisManager: AxisManager;
     readonly chartState: ReactiveState<ChartState>;
     readonly legendManager?: LegendManager;
+    /** Installed by the `series-area` module; modules rendering inside the series area attach through it. */
+    readonly seriesArea: SeriesArea;
 
     readonly activeManager: ActiveManager;
     readonly animationManager: AnimationManager;
@@ -89,6 +93,7 @@ export interface ChartRegistry {
     readonly stateManager: StateManager;
     readonly syncManager: SyncManager;
     readonly tooltipManager: TooltipManager;
+    readonly validations: ChartValidations;
     readonly widgets: WidgetSet;
     readonly zoomManager?: ZoomManager;
 
@@ -108,9 +113,4 @@ export interface ChartAxisRegistry<P> extends ChartRegistry {
 
 export interface ChartSeriesRegistry extends ChartRegistry {
     series: { type: string };
-}
-
-export interface ChartSeriesAreaRegistry<P> extends ChartRegistry {
-    backgroundRegion: BackgroundRegion;
-    parent: P;
 }

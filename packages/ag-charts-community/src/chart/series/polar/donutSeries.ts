@@ -1,7 +1,10 @@
 import type {
     DynamicContext,
     LabelFit,
+    NormalisedCollisionFreeSeriesLabelOptions,
     NormalisedColorType,
+    NormalisedDonutInnerLabelOptions,
+    NormalisedDonutSeriesOwnOptions,
     NormalisedDonutSeriesStyle,
     NormalisedPieSeriesStyle,
     NormalisedTextOrSegments,
@@ -16,8 +19,8 @@ import {
     type Point,
     PolarZIndexMap,
     type RequireOptional,
+    SpatialIndex,
     type WrapOptions,
-    anyOverlap,
     cachedTextMeasurer,
     canRenderTextOffscreen,
     extractDomain,
@@ -26,6 +29,7 @@ import {
     fitLabelTextToRegion,
     fontWithSize,
     formatValue,
+    gridCellSize,
     hasRealChars,
     insetFitRegion,
     isErased,
@@ -37,6 +41,7 @@ import {
     mergeDefaults,
     modulus,
     normalizeAngle180,
+    normalizeAngle360,
     probedFitRegion,
     regionTextCapacity,
     resolveLabelFit,
@@ -53,7 +58,6 @@ import type {
     AgDonutSeriesCalloutOptions,
     AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
-    AgDonutSeriesOptions,
     AgDrawingMode,
     AgNumericValue,
     AgPieSeriesItemStylerParams,
@@ -68,6 +72,7 @@ import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import type { GradientParams } from '../../../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../../../scene/group';
+import { boxCrossesSegment } from '../../../scene/intersection';
 import { PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
@@ -80,6 +85,7 @@ import {
     isBoxInSector,
     isPointInSector,
     sectorBox,
+    sectorEdges,
 } from '../../../scene/util/sector';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
@@ -93,7 +99,7 @@ import {
     rangedValueProperty,
     valueProperty,
 } from '../../data/processors';
-import { Label, expandLabelBoxExtent, expandLabelPadding } from '../../label';
+import { expandLabelBoxExtent, labelHasBox } from '../../label';
 import {
     type BlockSize,
     fitLabelToContainer,
@@ -107,12 +113,10 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
-import { type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { type SeriesNodePickMatch, SeriesNodePickMode } from '../pickTypes';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import { isUnselected } from '../seriesProperties';
 import type { HighlightState } from '../seriesTypes';
-import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
-import { DonutSeriesProperties } from './donutSeriesProperties';
 import {
     pickByMatchingAngle,
     pickSectorsInBBoxPredicate,
@@ -268,6 +272,51 @@ function fitSectorLabelToWedge(
     return found ?? placeInWedge(fontWithSize(font, floor), true).placed;
 }
 
+const twoPi = 2 * Math.PI;
+
+/** Clearance kept between callout labels, and between a label and the sectors it is pushed away from. */
+const CALLOUT_LABEL_MIN_SPACING = 4;
+/** A callout label pushed further than this along its side is hidden instead. */
+const CALLOUT_LABEL_MAX_COLLISION_OFFSET = 50;
+
+/** An angular span running anticlockwise from `start` by `sweep`, in radians. */
+interface Arc {
+    start: number;
+    sweep: number;
+}
+
+/** True when two angular spans share an angle. */
+function arcsOverlap(a: Arc, b: Arc) {
+    if (a.sweep >= twoPi || b.sweep >= twoPi) return true;
+    return normalizeAngle360(b.start - a.start) <= a.sweep || normalizeAngle360(a.start - b.start) <= b.sweep;
+}
+
+/** The narrowest arc covering `box`, or undefined when the box wraps the centre and so covers every angle. */
+function boxArc(box: BBox): Arc | undefined {
+    if (box.containsPoint(0, 0)) return;
+
+    const right = box.x + box.width;
+    const bottom = box.y + box.height;
+    const corners = [
+        normalizeAngle360(Math.atan2(box.y, box.x)),
+        normalizeAngle360(Math.atan2(box.y, right)),
+        normalizeAngle360(Math.atan2(bottom, box.x)),
+        normalizeAngle360(Math.atan2(bottom, right)),
+    ].sort((a, b) => a - b);
+
+    // The arc to keep is everything outside the widest gap between adjacent corners.
+    let widest = corners[0] + twoPi - corners[3];
+    let gapIndex = 0;
+    for (let i = 1; i < corners.length; i++) {
+        const gap = corners[i] - corners[i - 1];
+        if (gap > widest) {
+            widest = gap;
+            gapIndex = i;
+        }
+    }
+    return { start: corners[gapIndex], sweep: twoPi - widest };
+}
+
 interface PieDonutLabelDatum {
     readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
@@ -275,6 +324,8 @@ interface PieDonutLabelDatum {
     hidden: boolean;
     collisionTextAlign?: CanvasTextAlign;
     collisionOffsetY: number;
+    /** Extra radius, beyond the sector's own, that the label and its callout line are pushed out by. */
+    collisionRadiusOffset: number;
     box?: BBox;
 }
 
@@ -344,14 +395,11 @@ function prepareInnerCircleCutoutAnimationFunctions({ nodes }: PieAnimationFns):
 
 export class DonutSeries extends PolarSeries<
     PieDonutNodeDatum,
-    AgDonutSeriesOptions,
-    DonutSeriesProperties,
+    NormalisedDonutSeriesOwnOptions,
     Sector<PieDonutNodeDatum>
 > {
     static override readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
-
-    override properties = new DonutSeriesProperties();
 
     private phantomNodeData: PieDonutNodeDatum[] | undefined = undefined;
     private get calloutNodeData() {
@@ -389,7 +437,10 @@ export class DonutSeries extends PolarSeries<
 
     readonly innerLabelsGroup = this.contentGroup.appendChild(new Group({ name: 'innerLabels' }));
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
-    readonly innerLabelsSelection = Selection.select<Text<DonutInnerLabel>>(this.innerLabelsGroup, Text);
+    readonly innerLabelsSelection = Selection.select<Text<NormalisedDonutInnerLabelOptions>>(
+        this.innerLabelsGroup,
+        Text
+    );
     readonly innerCircleSelection = Selection.select<Marker<{ radius: number }>>(
         this.innerCircleGroup,
         () => new Marker({ shape: 'circle' })
@@ -407,7 +458,13 @@ export class DonutSeries extends PolarSeries<
 
     private readonly angleScale: LinearScale;
 
-    private oldTitle?: DonutTitle;
+    private readonly titleNode = this.labelGroup.appendChild(
+        new Text({ zIndex: 1 }).setProperties({
+            textAlign: 'center',
+            textBaseline: 'bottom',
+            pointerEvents: PointerEvents.None,
+        })
+    );
 
     override surroundingRadius?: number = undefined;
 
@@ -485,7 +542,7 @@ export class DonutSeries extends PolarSeries<
             id: seriesId,
             ctx: { legendManager },
         } = this;
-        const { angleKey, angleFilterKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
+        const { angleKey, angleFilterKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.options;
 
         const processor = () => (value: unknown, index: number) => {
             if (visible && (legendManager?.getItemEnabled({ seriesId, itemId: index }) ?? true)) {
@@ -495,45 +552,45 @@ export class DonutSeries extends PolarSeries<
         };
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
         const extraKeyProps = [];
         const extraProps = [];
 
         // Order here should match `getDatumIdFromData()`.
-        if (legendItemKey) {
+        if (legendItemKey != null && legendItemKey !== '') {
             extraKeyProps.push(keyProperty(legendItemKey, 'category', { id: `legendItemKey`, allowNullKey }));
-        } else if (calloutLabelKey) {
+        } else if (calloutLabelKey != null && calloutLabelKey !== '') {
             extraKeyProps.push(keyProperty(calloutLabelKey, 'category', { id: `calloutLabelKey`, allowNullKey }));
-        } else if (sectorLabelKey) {
+        } else if (sectorLabelKey != null && sectorLabelKey !== '') {
             extraKeyProps.push(keyProperty(sectorLabelKey, 'category', { id: `sectorLabelKey`, allowNullKey }));
         }
 
         const radiusScaleType = this.radiusScale.type;
         const angleScaleType = this.angleScale.type;
 
-        if (radiusKey) {
+        if (radiusKey != null && radiusKey !== '') {
             extraProps.push(
                 rangedValueProperty(radiusKey, {
                     id: 'radiusValue',
-                    min: this.properties.radiusMin ?? 0,
-                    max: this.properties.radiusMax,
-                    missingValue: this.properties.radiusMax ?? 1,
+                    min: this.options.radiusMin ?? 0,
+                    max: this.options.radiusMax,
+                    missingValue: this.options.radiusMax ?? 1,
                     processor,
                 }),
                 valueProperty(radiusKey, radiusScaleType, { id: `radiusRaw`, processor }), // Raw value pass-through.
-                normalisePropertyTo('radiusValue', [0, 1], 1, this.properties.radiusMin ?? 0, this.properties.radiusMax)
+                normalisePropertyTo('radiusValue', [0, 1], 1, this.options.radiusMin ?? 0, this.options.radiusMax)
             );
         }
-        if (calloutLabelKey) {
+        if (calloutLabelKey != null && calloutLabelKey !== '') {
             extraProps.push(valueProperty(calloutLabelKey, 'category', { id: `calloutLabelValue`, allowNullKey }));
         }
-        if (sectorLabelKey) {
+        if (sectorLabelKey != null && sectorLabelKey !== '') {
             extraProps.push(valueProperty(sectorLabelKey, 'category', { id: `sectorLabelValue`, allowNullKey }));
         }
-        if (legendItemKey) {
+        if (legendItemKey != null && legendItemKey !== '') {
             extraProps.push(valueProperty(legendItemKey, 'category', { id: `legendItemValue`, allowNullKey }));
         }
-        if (angleFilterKey) {
+        if (angleFilterKey != null && angleFilterKey !== '') {
             extraProps.push(
                 accumulativeValueProperty(angleFilterKey, angleScaleType, {
                     id: `angleFilterValue`,
@@ -602,28 +659,32 @@ export class DonutSeries extends PolarSeries<
         // Mixed-numeric so a bigint datum reaches the node datum and tooltip exactly.
         const angleRawValues = dataModel.resolveColumnById(this, `angleRaw`, processedData, 'mixed-numeric');
         const angleFilterValues =
-            this.properties.angleFilterKey == null
+            this.options.angleFilterKey == null
                 ? undefined
                 : dataModel.resolveColumnById(this, `angleFilterValue`, processedData, 'number');
         const angleFilterRawValues =
-            this.properties.angleFilterKey == null
+            this.options.angleFilterKey == null
                 ? undefined
                 : dataModel.resolveColumnById(this, `angleFilterRaw`, processedData, 'number');
-        const radiusValues = this.properties.radiusKey
+        const hasRadiusKey = this.options.radiusKey != null && this.options.radiusKey !== '';
+        const radiusValues = hasRadiusKey
             ? dataModel.resolveColumnById(this, `radiusValue`, processedData, 'number')
             : undefined;
-        const radiusRawValues = this.properties.radiusKey
+        const radiusRawValues = hasRadiusKey
             ? dataModel.resolveColumnById(this, `radiusRaw`, processedData, 'mixed-numeric')
             : undefined;
-        const calloutLabelValues = this.properties.calloutLabelKey
-            ? dataModel.resolveColumnById<string>(this, `calloutLabelValue`, processedData, 'object')
-            : undefined;
-        const sectorLabelValues = this.properties.sectorLabelKey
-            ? dataModel.resolveColumnById<string>(this, `sectorLabelValue`, processedData, 'object')
-            : undefined;
-        const legendItemValues = this.properties.legendItemKey
-            ? dataModel.resolveColumnById<string>(this, `legendItemValue`, processedData, 'object')
-            : undefined;
+        const calloutLabelValues =
+            this.options.calloutLabelKey == null || this.options.calloutLabelKey === ''
+                ? undefined
+                : dataModel.resolveColumnById<string>(this, `calloutLabelValue`, processedData, 'object');
+        const sectorLabelValues =
+            this.options.sectorLabelKey == null || this.options.sectorLabelKey === ''
+                ? undefined
+                : dataModel.resolveColumnById<string>(this, `sectorLabelValue`, processedData, 'object');
+        const legendItemValues =
+            this.options.legendItemKey == null || this.options.legendItemKey === ''
+                ? undefined
+                : dataModel.resolveColumnById<string>(this, `legendItemValue`, processedData, 'object');
 
         return {
             angleValues,
@@ -647,7 +708,7 @@ export class DonutSeries extends PolarSeries<
             ctx: { legendManager },
             visible,
         } = this;
-        const { rotation, innerRadiusRatio } = this.properties;
+        const { rotation, innerRadiusRatio } = this.options;
 
         if (!dataModel || processedData?.type !== 'ungrouped') return;
 
@@ -748,27 +809,16 @@ export class DonutSeries extends PolarSeries<
         datum: any,
         values: Pick<ProcessedDataValues, 'calloutLabelValues' | 'sectorLabelValues' | 'legendItemValues'>
     ) {
-        const { id: seriesId, ctx, properties } = this;
+        const { id: seriesId, ctx, options } = this;
         const { formatManager } = ctx;
-        const { calloutLabel, sectorLabel, calloutLabelKey, sectorLabelKey, legendItemKey } = properties;
-        const allowNullKeys = properties.allowNullKeys ?? false;
+        const { calloutLabel, sectorLabel, calloutLabelKey, sectorLabelKey, legendItemKey } = options;
+        const allowNullKeys = options.allowNullKeys ?? false;
 
         const calloutLabelValue = values.calloutLabelValues?.[datumIndex];
         const sectorLabelValue = values.sectorLabelValues?.[datumIndex];
         const legendItemValue = values.legendItemValues?.[datumIndex];
 
-        const labelFormatterParams = {
-            datum,
-            angleKey: this.properties.angleKey,
-            angleName: this.properties.angleName,
-            radiusKey: this.properties.radiusKey,
-            radiusName: this.properties.radiusName,
-            calloutLabelKey: this.properties.calloutLabelKey,
-            calloutLabelName: this.properties.calloutLabelName,
-            sectorLabelKey: this.properties.sectorLabelKey,
-            sectorLabelName: this.properties.sectorLabelName,
-            legendItemKey: this.properties.legendItemKey,
-        };
+        const labelFormatterParams = { datum, ...this.makeLabelFormatterParams() };
 
         const result: {
             callout: NormalisedTextOrSegments | undefined;
@@ -780,7 +830,7 @@ export class DonutSeries extends PolarSeries<
             legendItem: undefined,
         };
 
-        if (calloutLabelKey) {
+        if (calloutLabelKey != null && calloutLabelKey !== '') {
             result.callout = this.getLabelText<PieDonutSeriesLabelFormatterParams>(
                 calloutLabelValue,
                 datum,
@@ -793,7 +843,7 @@ export class DonutSeries extends PolarSeries<
             );
         }
 
-        if (sectorLabelKey) {
+        if (sectorLabelKey != null && sectorLabelKey !== '') {
             result.sector = this.getLabelText<PieDonutSeriesLabelFormatterParams>(
                 sectorLabelValue,
                 datum,
@@ -826,9 +876,34 @@ export class DonutSeries extends PolarSeries<
         return result;
     }
 
+    private makeLabelFormatterParams(): RequireOptional<AgDonutSeriesLabelFormatterParams> {
+        const {
+            angleKey,
+            angleName,
+            radiusKey,
+            radiusName,
+            calloutLabelKey,
+            calloutLabelName,
+            sectorLabelKey,
+            sectorLabelName,
+            legendItemKey,
+        } = this.options;
+        return {
+            angleKey,
+            angleName,
+            radiusKey,
+            radiusName,
+            calloutLabelKey,
+            calloutLabelName,
+            sectorLabelKey,
+            sectorLabelName,
+            legendItemKey,
+        };
+    }
+
     private getLabels(datumIndex: number, datum: any, midAngle: number, span: number, values: ProcessedDataValues) {
-        const { properties } = this;
-        const { calloutLabel, sectorLabel, legendItemKey } = properties;
+        const { options } = this;
+        const { calloutLabel, sectorLabel, legendItemKey } = options;
 
         const formats = this.getLabelContent(datumIndex, datum, values);
         const result: {
@@ -837,22 +912,28 @@ export class DonutSeries extends PolarSeries<
             legendItem?: { key: string; text: string };
         } = {};
 
-        if (calloutLabel.enabled && formats.callout && span >= toRadians(calloutLabel.minAngle)) {
+        if (
+            calloutLabel.enabled &&
+            formats.callout != null &&
+            formats.callout !== '' &&
+            span >= toRadians(calloutLabel.minAngle)
+        ) {
             result.calloutLabel = {
                 ...this.getTextAlignment(midAngle),
                 text: formats.callout,
                 hidden: false,
                 collisionTextAlign: undefined,
                 collisionOffsetY: 0,
+                collisionRadiusOffset: 0,
                 box: undefined,
             };
         }
 
-        if (sectorLabel.enabled && formats.sector) {
+        if (sectorLabel.enabled && formats.sector != null && formats.sector !== '') {
             result.sectorLabel = { text: formats.sector };
         }
 
-        if (legendItemKey && formats.legendItem) {
+        if (legendItemKey != null && legendItemKey !== '' && formats.legendItem != null && formats.legendItem !== '') {
             result.legendItem = { key: legendItemKey, text: formats.legendItem };
         }
 
@@ -900,11 +981,11 @@ export class DonutSeries extends PolarSeries<
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ) {
-        const { fills, strokes, itemStyler } = this.properties;
+        const { fills, strokes, itemStyler } = this.options;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues);
         const selectionStyle = withSelection ? this.getSelectionStyle(datumIndex) : undefined;
-        const defaultStyle = { fill: fills[datumIndex], stroke: strokes[datumIndex] };
+        const defaultStyle = { fill: fills[datumIndex], stroke: strokes[datumIndex], ...this.getSeriesStyle() };
 
         const {
             fill,
@@ -916,7 +997,7 @@ export class DonutSeries extends PolarSeries<
             lineDashOffset,
             cornerRadius,
             opacity,
-        } = mergeDefaults(selectionStyle, highlightStyle, defaultStyle, this.properties);
+        } = mergeDefaults(selectionStyle, highlightStyle, defaultStyle);
 
         let overrides: PieDonutSeriesStyle | undefined;
         if (itemStyler) {
@@ -955,13 +1036,18 @@ export class DonutSeries extends PolarSeries<
         };
     }
 
+    private getSeriesStyle() {
+        const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = this.options;
+        return { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius };
+    }
+
     private makeItemStylerParams(
         datum: unknown,
         datumIndex: number,
         isHighlight: boolean,
         style: Required<NormalisedPieSeriesStyle>
     ) {
-        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
+        const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.options;
 
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
@@ -991,9 +1077,9 @@ export class DonutSeries extends PolarSeries<
     private getCalloutLineStyle(nodeDatum: PieDonutNodeDatum, highlighted: boolean) {
         type TResult = AgDonutCalloutLineItemStylerResult &
             Pick<AgDonutSeriesCalloutOptions<unknown, unknown>, 'colors'>;
-        const { properties } = this;
+        const { options } = this;
         let itemStylerResult: AgDonutCalloutLineItemStylerResult = {};
-        if (properties.calloutLine.itemStyler) {
+        if (options.calloutLine.itemStyler) {
             const highlightState = this.getHighlightStateString(
                 this.ctx.highlightManager?.getActiveHighlight(),
                 highlighted,
@@ -1002,34 +1088,34 @@ export class DonutSeries extends PolarSeries<
             const selectionState = this.getSelectionStateString(nodeDatum.datumIndex);
             const candidateState = this.getCandidateStateString(nodeDatum.datumIndex);
             const params: RequireOptional<Omit<AgDonutCalloutLineItemStylerParams<unknown, unknown>, 'context'>> = {
-                angleKey: properties.angleKey,
-                angleName: properties.angleName ?? properties.angleKey,
-                calloutLabelKey: properties.calloutLabelKey,
-                calloutLabelName: properties.calloutLabelName ?? properties.calloutLabelKey,
+                angleKey: options.angleKey,
+                angleName: options.angleName ?? options.angleKey,
+                calloutLabelKey: options.calloutLabelKey,
+                calloutLabelName: options.calloutLabelName ?? options.calloutLabelKey,
                 datum: nodeDatum.datum,
                 highlightState,
                 selectionState,
                 candidateState,
-                legendItemKey: properties.legendItemKey,
-                radiusKey: properties.radiusKey,
-                radiusName: properties.radiusName ?? properties.radiusKey,
-                sectorLabelKey: properties.sectorLabelKey,
-                sectorLabelName: properties.sectorLabelName ?? properties.sectorLabelKey,
+                legendItemKey: options.legendItemKey,
+                radiusKey: options.radiusKey,
+                radiusName: options.radiusName ?? options.radiusKey,
+                sectorLabelKey: options.sectorLabelKey,
+                sectorLabelName: options.sectorLabelName ?? options.sectorLabelKey,
                 seriesId: this.id,
             };
-            itemStylerResult = this.cachedCallWithContext(properties.calloutLine.itemStyler, params) ?? {};
+            itemStylerResult = this.cachedCallWithContext(options.calloutLine.itemStyler, params) ?? {};
         }
         return {
-            length: itemStylerResult.length ?? properties.calloutLine.length,
-            strokeWidth: itemStylerResult.strokeWidth ?? properties.calloutLine.strokeWidth,
+            length: itemStylerResult.length ?? options.calloutLine.length,
+            strokeWidth: itemStylerResult.strokeWidth ?? options.calloutLine.strokeWidth,
             color: itemStylerResult.color,
-            colors: properties.calloutLine.colors,
+            colors: options.calloutLine.colors,
         } satisfies RequireOptional<TResult>;
     }
 
     override getInnerRadius() {
         const { radius } = this;
-        const { innerRadiusRatio = 1, innerRadiusOffset = 0 } = this.properties;
+        const { innerRadiusRatio = 1, innerRadiusOffset = 0 } = this.options;
         const innerRadius = radius * innerRadiusRatio + innerRadiusOffset;
         if (innerRadius === radius || innerRadius < 0) {
             return 0;
@@ -1038,7 +1124,7 @@ export class DonutSeries extends PolarSeries<
     }
 
     getOuterRadius() {
-        const { outerRadiusRatio, outerRadiusOffset } = this.properties;
+        const { outerRadiusRatio, outerRadiusOffset } = this.options;
         return Math.max(this.radius * outerRadiusRatio + outerRadiusOffset, 0);
     }
 
@@ -1065,15 +1151,12 @@ export class DonutSeries extends PolarSeries<
         if (outerRadius === 0) {
             return Number.NaN;
         }
-        const spacing = this.properties.title?.spacing ?? 0;
-        const titleOffset = 2 + spacing;
+        const titleOffset = 2 + this.options.title.spacing;
         const dy = Math.max(0, -outerRadius);
         return -outerRadius - titleOffset - dy;
     }
 
     update({ seriesRect }: { seriesRect: BBox }) {
-        const { title } = this.properties;
-
         const newNodeDataDependencies = {
             seriesRectWidth: seriesRect?.width,
             seriesRectHeight: seriesRect?.height,
@@ -1084,7 +1167,6 @@ export class DonutSeries extends PolarSeries<
         }
 
         this.maybeRefreshNodeData();
-        this.updateTitleNodes();
         this.updateRadiusScale(resize);
 
         this.contentGroup.translationX = this.centerX;
@@ -1093,23 +1175,16 @@ export class DonutSeries extends PolarSeries<
         this.highlightGroup.translationY = this.centerY;
         this.backgroundGroup.translationX = this.centerX;
         this.backgroundGroup.translationY = this.centerY;
-        if (this.labelGroup) {
+        if (this.labelGroup != null) {
             this.labelGroup.translationX = this.centerX;
             this.labelGroup.translationY = this.centerY;
         }
 
-        if (title) {
-            const dy = this.getTitleTranslationY();
-            title.node.y = Number.isFinite(dy) ? dy : 0;
-
-            const titleBox = title.node.getBBox();
-            title.node.visible =
-                title.enabled && Number.isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
-        }
+        this.updateTitleNode();
 
         for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
             circle.fillOpacity = 0;
-            circle.stroke = this.properties.calloutLabel.color;
+            circle.stroke = this.options.calloutLabel.color;
             circle.strokeWidth = 1;
             circle.strokeOpacity = 1;
         }
@@ -1120,22 +1195,17 @@ export class DonutSeries extends PolarSeries<
         this.updateNodes(seriesRect);
     }
 
-    private updateTitleNodes() {
-        const { oldTitle } = this;
-        const { title } = this.properties;
+    private updateTitleNode() {
+        const { titleNode } = this;
+        const { title } = this.options;
+        const dy = this.getTitleTranslationY();
 
-        if (oldTitle !== title) {
-            if (oldTitle) {
-                oldTitle.node.remove();
-            }
-
-            if (title) {
-                title.node.textBaseline = 'bottom';
-                this.labelGroup?.appendChild(title.node);
-            }
-
-            this.oldTitle = title;
-        }
+        titleNode.text = title.text;
+        titleNode.setFont(title);
+        titleNode.fill = title.color;
+        titleNode.y = Number.isFinite(dy) ? dy : 0;
+        titleNode.visible =
+            title.enabled && Number.isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleNode.getBBox());
     }
 
     private updateNodeMidPoint() {
@@ -1213,7 +1283,7 @@ export class DonutSeries extends PolarSeries<
         labelSelection.update(this.nodeData);
         highlightLabelSelection.update(highlightedNodeData);
 
-        innerLabelsSelection.update(this.properties.innerLabels, (node) => {
+        innerLabelsSelection.update(this.options.innerLabels ?? [], (node) => {
             node.pointerEvents = PointerEvents.None;
         });
     }
@@ -1222,7 +1292,7 @@ export class DonutSeries extends PolarSeries<
     // cover, so the fill extends to where the corner arcs top out.
     private getInnerCircleFillRadius() {
         const innerRadius = this.getInnerRadius();
-        const { fill } = this.properties.innerCircle;
+        const fill = this.options.innerCircle?.fill;
         if (innerRadius <= 0 || fill == null || fill === 'transparent') return innerRadius;
 
         let fillRadius = innerRadius;
@@ -1231,7 +1301,7 @@ export class DonutSeries extends PolarSeries<
             if (cornerRadius <= 0) continue;
 
             // `inset` pulls the sector's painted edges inwards from its radii.
-            const inset = Math.max((this.properties.sectorSpacing + (stroke == null ? 0 : strokeWidth)) / 2, 0);
+            const inset = Math.max((this.options.sectorSpacing + (stroke == null ? 0 : strokeWidth)) / 2, 0);
             const paintedInnerRadius = datum.innerRadius > 0 ? datum.innerRadius + inset : 0;
             const paintedOuterRadius = Math.max(datum.outerRadius - inset, 0);
             if (paintedInnerRadius <= 0 || paintedOuterRadius <= paintedInnerRadius) continue;
@@ -1250,16 +1320,13 @@ export class DonutSeries extends PolarSeries<
     }
 
     private updateInnerCircleSelection() {
-        const { innerCircle } = this.properties;
-
         let radius = 0;
         if (this.getInnerRadius() > 0) {
             const antiAliasingPadding = 1;
             radius = Math.ceil(this.getInnerCircleFillRadius() * 2 + antiAliasingPadding);
         }
 
-        const datums = innerCircle ? [{ radius }] : [];
-        this.innerCircleSelection.update(datums);
+        this.innerCircleSelection.update([{ radius }]);
     }
 
     // The grown circle reaches under the sectors, which a translucent sector would show through;
@@ -1278,14 +1345,14 @@ export class DonutSeries extends PolarSeries<
     }
 
     private applySectorSpacing(sector: Sector, hasStroke: boolean, strokeWidth: number) {
-        const inset = Math.max((this.properties.sectorSpacing + (hasStroke ? strokeWidth : 0)) / 2, 0);
+        const inset = Math.max((this.options.sectorSpacing + (hasStroke ? strokeWidth : 0)) / 2, 0);
         sector.inset = inset;
-        sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
+        sector.lineJoin = this.options.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
     }
 
     private applySelectedOffset(sector: Sector, datumIndex: number) {
         const datumSelectionState = this.ctx.dataSelectionService?.getDataSelectionState(this, datumIndex);
-        const { selectedOffset } = this.properties.selection;
+        const selectedOffset = this.options.selection?.selectedOffset ?? 0;
         if (!isUnselected(datumSelectionState) && selectedOffset > 0) {
             const midAngle = (sector.endAngle + sector.startAngle) / 2;
             sector.centerX = selectedOffset * Math.cos(midAngle);
@@ -1306,14 +1373,15 @@ export class DonutSeries extends PolarSeries<
         const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
-        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
+        const drawingMode = this.getChartHighlightDrawingMode();
         this.highlightGroup.visible = visible && seriesHighlighted;
         this.labelGroup.visible = visible;
 
+        const { innerCircle } = this.options;
         this.innerCircleSelection.each((node, { radius }) => {
             node.setProperties({
-                fill: this.properties.innerCircle?.fill,
-                opacity: this.properties.innerCircle?.fillOpacity,
+                fill: innerCircle?.fill,
+                opacity: innerCircle?.fillOpacity ?? 1,
                 size: radius,
             });
         });
@@ -1352,7 +1420,7 @@ export class DonutSeries extends PolarSeries<
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
-            sector.fillShadow = this.properties.shadow;
+            sector.fillShadow = this.options.shadow;
             this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
         };
@@ -1393,20 +1461,22 @@ export class DonutSeries extends PolarSeries<
             node.visible = datum.datumIndex === highlightedDatum?.datumIndex;
         });
 
-        this.updateCalloutLineNodes();
-        this.updateCalloutLabelNodes(seriesRect);
-        this.updateSectorLabelNodes();
+        // The labels resolve legend-linked highlights the same way the sectors do, so a label on a series that
+        // does not own the hovered legend item is lit with its sector rather than dimmed as another series.
+        this.updateCalloutLineNodes(legendItemValues);
+        this.updateCalloutLabelNodes(seriesRect, legendItemValues);
+        this.updateSectorLabelNodes(legendItemValues);
         this.updateInnerLabelNodes();
         this.updateZerosumRings();
 
         this.animationState.transition('update');
     }
 
-    updateCalloutLineNodes() {
-        const { strokes } = this.properties;
-        const { offset } = this.properties.calloutLabel;
+    private updateCalloutLineNodes(legendItemValues: string[] | undefined) {
+        const { strokes } = this.options;
+        const { offset } = this.options.calloutLabel;
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
         for (const line of this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine)) {
             const datum = line.unsafeClosestDatum() as PieDonutNodeDatum;
@@ -1417,19 +1487,22 @@ export class DonutSeries extends PolarSeries<
             const calloutColors: string[] = isStringFillArray(colors) ? colors : strokes;
             const { calloutLabel: label, outerRadius, datumIndex } = datum;
 
-            if (label?.text && !label.hidden && outerRadius !== 0) {
+            if (label?.text != null && label.text !== '' && !label.hidden && outerRadius !== 0) {
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
                 line.stroke = color ?? calloutColors[datumIndex % calloutColors.length];
-                line.strokeOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
+                line.strokeOpacity =
+                    this.getHighlightStyle(isDatumHighlighted, datum.datumIndex, undefined, legendItemValues).opacity ??
+                    1;
                 line.fill = undefined;
 
+                const lineEndRadius = outerRadius + label.collisionRadiusOffset + calloutLength;
                 const x1 = datum.midCos * outerRadius;
                 const y1 = datum.midSin * outerRadius;
-                let x2 = datum.midCos * (outerRadius + calloutLength);
-                let y2 = datum.midSin * (outerRadius + calloutLength);
+                let x2 = datum.midCos * lineEndRadius;
+                let y2 = datum.midSin * lineEndRadius;
 
-                const isMoved = label.collisionTextAlign ?? label.collisionOffsetY !== 0;
+                const isMoved = label.collisionTextAlign != null || label.collisionOffsetY !== 0;
                 if (isMoved && label.box != null) {
                     // Get the closest point to the text bounding box
                     const box = label.box;
@@ -1499,31 +1572,57 @@ export class DonutSeries extends PolarSeries<
         return corners.some((corner) => corner.x ** 2 + corner.y ** 2 > sur2);
     }
 
-    private getCalloutLabelBBox(datum: Has<'calloutLabel', PieDonutNodeDatum>): BBox {
-        const { calloutLabel } = this.properties;
-        const label = datum.calloutLabel;
+    /**
+     * Where the label's text anchor sits, so that the near edge of its drawn box - not the text - lands at the
+     * end of the callout line. Probing and painting must agree exactly, so both go through here.
+     */
+    private getCalloutLabelRadius(
+        datum: PieDonutNodeDatum,
+        label: PieDonutLabelDatum,
+        outerRadius: number,
+        extent: Required<PaddingOptions>,
+        calloutLength: number
+    ) {
+        const { midCos, midSin } = datum;
+        const boxInset =
+            Math.abs(midCos) * (midCos >= 0 ? extent.left : extent.right) +
+            Math.abs(midSin) * (midSin >= 0 ? extent.top : extent.bottom);
 
-        const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
-        const padding = expandLabelPadding(style);
-        const calloutLength = this.getCalloutLineStyle(datum, false).length;
-
-        const labelRadius = datum.outerRadius + calloutLength + calloutLabel.offset;
-        const x = datum.midCos * labelRadius;
-        const y = datum.midSin * labelRadius + label.collisionOffsetY;
-
-        const textAlign = label.collisionTextAlign ?? label.textAlign;
-        const textBaseline = label.textBaseline;
-        const fitted = this.fitCalloutLabel(label.text, style);
-        return Text.measureBBox(fitted.text, x, y, {
-            font: fontWithSize(style, fitted.fontSize),
-            textAlign,
-            textBaseline,
-        }).grow(padding);
+        return outerRadius + label.collisionRadiusOffset + calloutLength + this.options.calloutLabel.offset + boxInset;
     }
 
-    private computeCalloutLabelCollisionOffsets() {
+    /** Nothing here depends on the collision offsets, so it is resolved once and reused across every probe. */
+    private getCalloutLabelMetrics(datum: Has<'calloutLabel', PieDonutNodeDatum>) {
+        const { calloutLabel } = this.options;
+        const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
+        const fitted = this.fitCalloutLabel(datum.calloutLabel.text, style);
+        return {
+            extent: expandLabelBoxExtent(style),
+            calloutLength: this.getCalloutLineStyle(datum, false).length,
+            text: fitted.text,
+            font: fontWithSize(style, fitted.fontSize),
+        };
+    }
+
+    private getCalloutLabelBBox(
+        datum: Has<'calloutLabel', PieDonutNodeDatum>,
+        metrics = this.getCalloutLabelMetrics(datum)
+    ): BBox {
+        const label = datum.calloutLabel;
+        const { extent, calloutLength, text, font } = metrics;
+
+        const labelRadius = this.getCalloutLabelRadius(datum, label, datum.outerRadius, extent, calloutLength);
+
+        return Text.measureBBox(text, datum.midCos * labelRadius, datum.midSin * labelRadius + label.collisionOffsetY, {
+            font,
+            textAlign: label.collisionTextAlign ?? label.textAlign,
+            textBaseline: label.textBaseline,
+        }).grow(extent);
+    }
+
+    private computeCalloutLabelCollisionOffsets(isBoxHidden: (box: BBox) => boolean) {
         const { radiusScale } = this;
-        const { minSpacing } = this.properties.calloutLabel;
+        const minSpacing = CALLOUT_LABEL_MIN_SPACING;
         const innerRadius = radiusScale.convert(0);
 
         const shouldSkip = (datum: PieDonutNodeDatum) => {
@@ -1540,11 +1639,85 @@ export class DonutSeries extends PolarSeries<
             label.hidden = false;
             label.collisionTextAlign = undefined;
             label.collisionOffsetY = 0;
+            label.collisionRadiusOffset = 0;
         }
 
-        if (data.length <= 1) {
-            return;
-        }
+        const metrics = new Map(data.map((d) => [d, this.getCalloutLabelMetrics(d)] as const));
+        const metricsOf = (d: (typeof data)[number]) => metrics.get(d)!;
+        const labelBox = (d: (typeof data)[number]) => this.getCalloutLabelBBox(d, metricsOf(d));
+
+        const crossesCalloutLine = (box: BBox, d: (typeof data)[number]) => {
+            const { midCos, midSin, outerRadius } = d;
+            const lineEndRadius = outerRadius + d.calloutLabel.collisionRadiusOffset + metricsOf(d).calloutLength;
+            const x1 = midCos * outerRadius;
+            const y1 = midSin * outerRadius;
+            const x2 = midCos * lineEndRadius;
+            const y2 = midSin * lineEndRadius;
+
+            // This runs for every pair of labels, so reject on the segment's extent before the exact test.
+            if (
+                Math.max(x1, x2) < box.x ||
+                Math.min(x1, x2) > box.x + box.width ||
+                Math.max(y1, y2) < box.y ||
+                Math.min(y1, y2) > box.y + box.height
+            ) {
+                return false;
+            }
+
+            // A line wholly inside the box crosses none of its edges, so containment is a separate question.
+            return box.containsPoint(x1, y1) || boxCrossesSegment(box, x1, y1, x2, y2);
+        };
+
+        // Every callout line is radial, so a box can only be crossed by lines at an angle it subtends from the
+        // centre. Sorting the labels by that angle turns a scan over all of them into a walk of a narrow arc.
+        const byAngle = data
+            .map((d) => ({ angle: normalizeAngle360(Math.atan2(d.midSin, d.midCos)), datum: d }))
+            .sort((a, b) => a.angle - b.angle);
+
+        const firstAtOrAfter = (angle: number) => {
+            let low = 0;
+            let high = byAngle.length;
+            while (low < high) {
+                const mid = (low + high) >> 1;
+                if (byAngle[mid].angle < angle) {
+                    low = mid + 1;
+                } else {
+                    high = mid;
+                }
+            }
+            return low;
+        };
+
+        /** How many other labels' callout lines `box` crosses, stopping once it reaches `budget`. */
+        const countCrossedCalloutLines = (
+            box: BBox,
+            arc: Arc | undefined,
+            self: (typeof data)[number],
+            budget: number
+        ) => {
+            // A label always sits at the end of its own line, so only the other lines are obstacles.
+            const count = (d: (typeof data)[number], lines: number) =>
+                d !== self && crossesCalloutLine(box, d) ? lines + 1 : lines;
+
+            let lines = 0;
+            if (arc == null) {
+                for (const { datum } of byAngle) {
+                    lines = count(datum, lines);
+                    if (lines >= budget) break;
+                }
+                return lines;
+            }
+
+            const total = byAngle.length;
+            for (let steps = 0, i = firstAtOrAfter(arc.start) % total; steps < total; steps++, i = (i + 1) % total) {
+                const { angle, datum } = byAngle[i];
+                if (normalizeAngle360(angle - arc.start) > arc.sweep) break;
+
+                lines = count(datum, lines);
+                if (lines >= budget) break;
+            }
+            return lines;
+        };
 
         const leftLabels = data.filter((d) => d.midCos < 0).sort((a, b) => a.midSin - b.midSin);
         const rightLabels = data.filter((d) => d.midCos >= 0).sort((a, b) => a.midSin - b.midSin);
@@ -1560,8 +1733,8 @@ export class DonutSeries extends PolarSeries<
             next: (typeof data)[number],
             direction: 'to-top' | 'to-bottom'
         ) => {
-            const box = this.getCalloutLabelBBox(label).grow(minSpacing / 2);
-            const other = this.getCalloutLabelBBox(next).grow(minSpacing / 2);
+            const box = labelBox(label).grow(minSpacing / 2);
+            const other = labelBox(next).grow(minSpacing / 2);
             // The full collision is not detected, because sometimes
             // the next label can appear behind the label with offset
             const collidesOrBehind =
@@ -1589,16 +1762,225 @@ export class DonutSeries extends PolarSeries<
             }
         };
 
+        let maxOuterRadius = 0;
+        let extentSum = 0;
         const sectorObstacles = fullData.map((datum) => {
             const { startAngle, endAngle, outerRadius } = datum;
+            maxOuterRadius = Math.max(maxOuterRadius, outerRadius);
             const sector = { startAngle, endAngle, innerRadius, outerRadius };
-            return { box: sectorBox(sector), ref: sector };
+            const box = sectorBox(sector);
+            extentSum += box.width + box.height;
+            // Probes move the label, never the sector, so the sector's geometry is resolved once.
+            const arc = { start: normalizeAngle360(startAngle), sweep: Math.abs(endAngle - startAngle) };
+            return { box, sector, arc, edges: sectorEdges(sector), outerRadiusSquared: outerRadius * outerRadius };
         });
+
+        // The bisection probes this far more often than anything else in the pass, so prune before the exact test.
+        const sectorIndex = new SpatialIndex<(typeof sectorObstacles)[number]>();
+        sectorIndex.reset(
+            BBox.merge(sectorObstacles.map(({ box }) => box)),
+            gridCellSize(extentSum, 2 * sectorObstacles.length)
+        );
+        for (const obstacle of sectorObstacles) {
+            sectorIndex.insert(obstacle.box, obstacle);
+        }
+
+        // Anything lying in both the box and a sector shares an angle and a radius with each, so a sector past
+        // either bound cannot overlap. Both rejects are far cheaper than `boxOverlapsSector`, the exact test.
+        const collidesSectors = (box: BBox, arc: Arc | undefined) => {
+            const dx = Math.max(box.x, 0, -(box.x + box.width));
+            const dy = Math.max(box.y, 0, -(box.y + box.height));
+            const nearestRadiusSquared = dx * dx + dy * dy;
+
+            return sectorIndex.query(
+                box,
+                (obstacle) =>
+                    nearestRadiusSquared <= obstacle.outerRadiusSquared &&
+                    (arc == null || arcsOverlap(arc, obstacle.arc)) &&
+                    box.collidesBBox(obstacle.box) &&
+                    boxOverlapsSector(box, obstacle.sector, obstacle.edges)
+            );
+        };
+
+        const avoidSectorCollisions = () => {
+            // A push moves the label along its mid-angle without resizing it, so each side is measured once and
+            // every probe of that side is the same box translated. Re-measuring per probe dominated this pass.
+            interface Placement {
+                /** The unpadded box at zero offset; every probe of this side is it, translated. */
+                base: BBox;
+                /** Covers this side at every offset, so obstacle rejects can use it without re-deriving one. */
+                arc: Arc | undefined;
+            }
+
+            const placements = new Map<(typeof data)[number], Map<CanvasTextAlign | undefined, Placement>>();
+            const probe = new BBox(0, 0, 0, 0);
+
+            const placementOf = (d: (typeof data)[number], side: CanvasTextAlign | undefined) => {
+                let bySide = placements.get(d);
+                if (bySide == null) {
+                    bySide = new Map<CanvasTextAlign | undefined, Placement>();
+                    placements.set(d, bySide);
+                }
+
+                const cached = bySide.get(side);
+                if (cached != null) return cached;
+
+                const label = d.calloutLabel;
+                const { collisionTextAlign, collisionRadiusOffset } = label;
+                label.collisionTextAlign = side;
+                label.collisionRadiusOffset = 0;
+                const base = labelBox(d);
+                label.collisionTextAlign = collisionTextAlign;
+                label.collisionRadiusOffset = collisionRadiusOffset;
+
+                // Obstacles are tested against the padded box, so the arc has to cover that rather than the text.
+                const padded = base.clone().grow(minSpacing / 2);
+
+                // A push slides the box away from the centre, which only narrows the angles it covers, so the
+                // zero-offset arc covers every offset - but only while the box lies wholly ahead of the centre.
+                const outward =
+                    Math.min(
+                        d.midCos * padded.x + d.midSin * padded.y,
+                        d.midCos * (padded.x + padded.width) + d.midSin * padded.y,
+                        d.midCos * padded.x + d.midSin * (padded.y + padded.height),
+                        d.midCos * (padded.x + padded.width) + d.midSin * (padded.y + padded.height)
+                    ) > 0;
+
+                const placement: Placement = { base, arc: outward ? boxArc(padded) : undefined };
+                bySide.set(side, placement);
+                return placement;
+            };
+
+            /** The unpadded probe box. Consumed before the next is taken, so they all share one instance. */
+            const probeBox = ({ base }: Placement, d: (typeof data)[number], offset: number) => {
+                probe.x = base.x + d.midCos * offset;
+                probe.y = base.y + d.midSin * offset;
+                probe.width = base.width;
+                probe.height = base.height;
+                return probe;
+            };
+
+            // A sector is cleared by the margin labels keep from each other, so a remedy never stops flush to an arc.
+            const encroachesSector = (placement: Placement, d: (typeof data)[number], offset: number) =>
+                collidesSectors(probeBox(placement, d, offset).grow(minSpacing / 2), placement.arc);
+
+            // Sector overlaps must go; crossing a neighbour's callout line is lesser, so it only ranks candidates.
+            // Line crossings rank a candidate only against an incumbent it ties with on sectors, so one that
+            // already loses needs no count at all and a tying one can stop as soon as it cannot win.
+            const overlaps = (
+                d: (typeof data)[number],
+                placement: Placement,
+                box: BBox,
+                best?: { sectors: number; lines: number }
+            ) => {
+                box = box.grow(minSpacing / 2);
+                const sectors = collidesSectors(box, placement.arc) ? 1 : 0;
+                if (best != null && sectors > best.sectors) return { sectors, lines: 0 };
+
+                const lineBudget = sectors === best?.sectors ? best.lines + 1 : Infinity;
+                return { sectors, lines: countCrossedCalloutLines(box, placement.arc, d, lineBudget) };
+            };
+
+            // Setting the text beside its line keeps the label at its own radius, so it outranks a longer callout.
+            const sidesToTry = (d: (typeof data)[number]): (CanvasTextAlign | undefined)[] =>
+                d.calloutLabel.textAlign === 'center'
+                    ? [undefined, d.midCos < 0 ? 'right' : 'left', d.midCos < 0 ? 'left' : 'right']
+                    : [undefined];
+
+            // No sector reaches past the largest radius, which bounds the search: `limit` is the upper bracket.
+            const smallestClearingPush = (d: (typeof data)[number], placement: Placement, limit: number) => {
+                if (encroachesSector(placement, d, limit)) return;
+
+                let colliding = 0;
+                let clear = limit;
+                for (let i = 0; i < 8; i++) {
+                    const offset = (colliding + clear) / 2;
+                    if (encroachesSector(placement, d, offset)) {
+                        colliding = offset;
+                    } else {
+                        clear = offset;
+                    }
+                }
+                return clear;
+            };
+
+            const resolve = (d: (typeof data)[number]) => {
+                const label = d.calloutLabel;
+                const place = (side: CanvasTextAlign | undefined, offset: number) => {
+                    label.collisionTextAlign = side;
+                    label.collisionRadiusOffset = offset;
+                };
+
+                place(undefined, 0);
+                const seed = placementOf(d, undefined);
+                let best = {
+                    side: undefined as CanvasTextAlign | undefined,
+                    offset: 0,
+                    ...overlaps(d, seed, probeBox(seed, d, 0)),
+                };
+                if (best.sectors === 0 && best.lines === 0) return;
+
+                const consider = (side: CanvasTextAlign | undefined, offset: number) => {
+                    const placement = placementOf(d, side);
+                    const box = probeBox(placement, d, offset);
+                    // A remedy that costs the label its visibility is worse than the overlap it was avoiding.
+                    if (isBoxHidden(box)) return;
+
+                    // Ranked on sector overlaps first, then line crossings, and only then on how far it moved.
+                    const candidate = { side, offset, ...overlaps(d, placement, box, best) };
+                    if (candidate.sectors !== best.sectors) {
+                        if (candidate.sectors < best.sectors) best = candidate;
+                    } else if (candidate.lines !== best.lines) {
+                        if (candidate.lines < best.lines) best = candidate;
+                    } else if (candidate.offset < best.offset) {
+                        best = candidate;
+                    }
+                };
+
+                // Index 0 is the placement `best` was seeded from, so re-probing it can never win.
+                const sides = sidesToTry(d);
+                for (const side of sides.slice(1)) {
+                    consider(side, 0);
+                    // Nothing beats an unmoved label that overlaps nothing, so the pushes below cannot improve on it.
+                    if (best.sectors === 0 && best.lines === 0 && best.offset === 0) {
+                        place(best.side, 0);
+                        return;
+                    }
+                }
+
+                const limit = maxOuterRadius - d.outerRadius;
+                if (limit > 0) {
+                    for (const side of sides) {
+                        const offset = smallestClearingPush(d, placementOf(d, side), limit);
+                        if (offset != null) consider(side, offset);
+                    }
+                }
+
+                if (best.sectors > 0) {
+                    // Nothing clears the sectors, so settle for the side that at least moves off their mid-angle.
+                    place(sides.length > 1 ? sides[1] : undefined, 0);
+                    return;
+                }
+                place(best.side, best.offset);
+            };
+
+            // A push lengthens a callout line, so labels settled earlier may end up crossing it: sweep twice.
+            // A sweep that moved nothing leaves the next one nothing to react to, so it can stop there.
+            for (let pass = 0; pass < 2; pass++) {
+                let moved = false;
+                for (const d of data) {
+                    resolve(d);
+                    const { collisionTextAlign, collisionRadiusOffset } = d.calloutLabel;
+                    moved ||= collisionTextAlign != null || collisionRadiusOffset !== 0;
+                }
+                if (!moved) break;
+            }
+        };
 
         const avoidXCollisions = (labels: typeof data) => {
             const labelsCollideLabelsByY = data.some((datum) => datum.calloutLabel.collisionOffsetY !== 0);
 
-            const boxes = labels.map((label) => this.getCalloutLabelBBox(label));
+            const boxes = labels.map((label) => labelBox(label));
             const paddedBoxes = boxes.map((box) => box.clone().grow(minSpacing / 2));
 
             let labelsCollideLabelsByX = false;
@@ -1613,13 +1995,20 @@ export class DonutSeries extends PolarSeries<
                 }
             }
 
-            const labelsCollideSectors = anyOverlap(boxes, sectorObstacles, boxOverlapsSector);
+            // Where a series has one radius, siding the whole group is its only remedy for a sector overlap.
+            if (
+                !labelsCollideLabelsByX &&
+                !labelsCollideLabelsByY &&
+                !boxes.some((box) => collidesSectors(box, boxArc(box)))
+            ) {
+                return false;
+            }
 
-            if (!labelsCollideLabelsByX && !labelsCollideLabelsByY && !labelsCollideSectors) return;
-
+            let sided = false;
             for (const d of labels) {
-                if (d.calloutLabel.textAlign !== 'center') continue;
                 const label = d.calloutLabel;
+                // Sector overlaps have already picked a side; overriding it here would undo their remedy.
+                if (label.textAlign !== 'center' || label.collisionTextAlign != null) continue;
                 if (d.midCos < 0) {
                     label.collisionTextAlign = 'right';
                 } else if (d.midCos > 0) {
@@ -1627,40 +2016,56 @@ export class DonutSeries extends PolarSeries<
                 } else {
                     label.collisionTextAlign = 'center';
                 }
+                sided = true;
             }
+            return sided;
         };
 
-        avoidYCollisions(leftLabels);
-        avoidYCollisions(rightLabels);
-        avoidXCollisions(topLabels);
-        avoidXCollisions(bottomLabels);
+        avoidSectorCollisions();
+        // The remaining passes resolve labels against each other, so a lone label has nothing left to avoid.
+        if (data.length > 1) {
+            // Siding a label resizes the box the Y cascade measured, and the X pass in turn reads the
+            // offsets that cascade produced, so re-cascade once the sides settle. A group already holding
+            // one side is left alone, making the second round a fixed point rather than a cut-off.
+            for (let round = 0; round < 2; round++) {
+                avoidYCollisions(leftLabels);
+                avoidYCollisions(rightLabels);
+                const topSided = avoidXCollisions(topLabels);
+                const bottomSided = avoidXCollisions(bottomLabels);
+                if (!topSided && !bottomSided) break;
+
+                for (const d of data) {
+                    d.calloutLabel.collisionOffsetY = 0;
+                }
+            }
+        }
     }
 
     private fitCalloutLabel(text: NormalisedTextOrSegments, style: FontOptions) {
-        return fitLabelTextAutoSize(text, resolveLabelFit(this.properties.calloutLabel, false), style);
+        return fitLabelTextAutoSize(text, resolveLabelFit(this.options.calloutLabel, false), style);
     }
 
     private getLabelStyle(
         datum: PieDonutNodeDatum,
-        label: Label<AgDonutSeriesLabelFormatterParams>,
+        label: NormalisedCollisionFreeSeriesLabelOptions<AgDonutSeriesLabelFormatterParams>,
         labelPath: string,
         isHighlight = false
     ) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        return getLabelStyles(this, datum, this.properties, label, isHighlight, activeHighlight, [
+        return getLabelStyles(this, datum, this.makeLabelFormatterParams(), label, isHighlight, activeHighlight, [
             'series',
             `${this.declarationOrder}`,
             labelPath,
         ]);
     }
 
-    private updateCalloutLabelNodes(seriesRect: BBox) {
+    private updateCalloutLabelNodes(seriesRect: BBox, legendItemValues: string[] | undefined) {
         const { radiusScale } = this;
-        const { calloutLabel } = this.properties;
+        const { calloutLabel } = this.options;
 
         const tempTextNode = new Text();
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
         for (const text of this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel)) {
             const datum: PieDonutNodeDatum = text.unsafeClosestDatum();
@@ -1668,7 +2073,7 @@ export class DonutSeries extends PolarSeries<
             const radius = radiusScale.convert(datum.radius);
             const outerRadius = Math.max(0, radius);
 
-            if (!label?.text || outerRadius === 0 || label.hidden) {
+            if (label?.text == null || label.text === '' || outerRadius === 0 || label.hidden) {
                 text.visible = false;
                 continue;
             }
@@ -1679,7 +2084,13 @@ export class DonutSeries extends PolarSeries<
             const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel', isDatumHighlighted);
             const calloutLength = this.getCalloutLineStyle(datum, false).length;
 
-            const labelRadius = outerRadius + calloutLength + calloutLabel.offset;
+            const labelRadius = this.getCalloutLabelRadius(
+                datum,
+                label,
+                outerRadius,
+                expandLabelBoxExtent(style),
+                calloutLength
+            );
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
 
@@ -1721,14 +2132,15 @@ export class DonutSeries extends PolarSeries<
             text.setAlign(align);
             text.setBoxing(style);
             text.fill = style.color;
-            text.fillOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
+            text.fillOpacity =
+                this.getHighlightStyle(isDatumHighlighted, datum.datumIndex, undefined, legendItemValues).opacity ?? 1;
             text.visible = visible;
         }
     }
 
     override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
-        const { calloutLabel } = this.properties;
-        const { offset, maxCollisionOffset, minSpacing } = calloutLabel;
+        const { calloutLabel } = this.options;
+        const minSpacing = CALLOUT_LABEL_MIN_SPACING;
 
         if (!calloutLabel.avoidCollisions) {
             return null;
@@ -1737,14 +2149,13 @@ export class DonutSeries extends PolarSeries<
         this.maybeRefreshNodeData();
 
         this.updateRadiusScale(false);
-        this.computeCalloutLabelCollisionOffsets();
 
         const textBoxes: BBox[] = [];
         const text = new Text();
 
         let titleBox: BBox | undefined = undefined;
-        const { title } = this.properties;
-        if (title?.text && title.enabled) {
+        const { title } = this.options;
+        if (title.text != null && title.text !== '' && title.enabled) {
             const dy = this.getTitleTranslationY();
             if (Number.isFinite(dy)) {
                 text.text = title.text;
@@ -1760,6 +2171,29 @@ export class DonutSeries extends PolarSeries<
             }
         }
 
+        const titleCleanArea =
+            titleBox == null
+                ? undefined
+                : new BBox(
+                      titleBox.x - minSpacing,
+                      -this.centerY,
+                      titleBox.width + 2 * minSpacing,
+                      titleBox.y + titleBox.height + minSpacing + this.centerY
+                  );
+
+        const isBoxHidden = (box: BBox) => {
+            if (titleCleanArea != null && box.collidesBBox(titleCleanArea)) return true;
+            if (!options.hideWhenNecessary) return false;
+
+            const { maxWidth, hasVerticalOverflow, hasSurroundingSeriesOverflow } = this.getLabelOverflow(
+                box,
+                seriesRect
+            );
+            return hasVerticalOverflow || box.width > maxWidth || hasSurroundingSeriesOverflow;
+        };
+
+        this.computeCalloutLabelCollisionOffsets(isBoxHidden);
+
         for (const datum of this.calloutNodeData) {
             const label = datum.calloutLabel;
             if (!label || datum.outerRadius === 0) {
@@ -1768,7 +2202,13 @@ export class DonutSeries extends PolarSeries<
 
             const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
             const calloutLength = this.getCalloutLineStyle(datum, false).length;
-            const labelRadius = datum.outerRadius + calloutLength + offset;
+            const labelRadius = this.getCalloutLabelRadius(
+                datum,
+                label,
+                datum.outerRadius,
+                expandLabelBoxExtent(style),
+                calloutLength
+            );
             const x = datum.midCos * labelRadius;
             const y = datum.midSin * labelRadius + label.collisionOffsetY;
             const fitted = this.fitCalloutLabel(label.text, style);
@@ -1785,37 +2225,9 @@ export class DonutSeries extends PolarSeries<
             label.box = box;
 
             // Hide labels that where pushed too far by the collision avoidance algorithm
-            if (Math.abs(label.collisionOffsetY) > maxCollisionOffset) {
+            if (Math.abs(label.collisionOffsetY) > CALLOUT_LABEL_MAX_COLLISION_OFFSET || isBoxHidden(box)) {
                 label.hidden = true;
                 continue;
-            }
-
-            // Hide labels intersecting or above the title
-            if (titleBox) {
-                const seriesTop = -this.centerY;
-                const titleCleanArea = new BBox(
-                    titleBox.x - minSpacing,
-                    seriesTop,
-                    titleBox.width + 2 * minSpacing,
-                    titleBox.y + titleBox.height + minSpacing - seriesTop
-                );
-                if (box.collidesBBox(titleCleanArea)) {
-                    label.hidden = true;
-                    continue;
-                }
-            }
-
-            if (options.hideWhenNecessary) {
-                const { maxWidth, hasVerticalOverflow, hasSurroundingSeriesOverflow } = this.getLabelOverflow(
-                    box,
-                    seriesRect
-                );
-                const isTooShort = box.width > maxWidth;
-
-                if (hasVerticalOverflow || isTooShort || hasSurroundingSeriesOverflow) {
-                    label.hidden = true;
-                    continue;
-                }
             }
 
             label.hidden = false;
@@ -1827,17 +2239,17 @@ export class DonutSeries extends PolarSeries<
         return BBox.merge(textBoxes);
     }
 
-    private updateSectorLabelNodes() {
-        const { properties } = this;
-        const { positionOffset, positionRatio } = this.properties.sectorLabel;
+    private updateSectorLabelNodes(legendItemValues: string[] | undefined) {
+        const { options } = this;
+        const { positionOffset, positionRatio } = this.options.sectorLabel;
         // Fitting only engages when the user opts into wrapping/truncation; otherwise the sector text renders in
         // full (and hides if it overruns the wedge, as before), so the default path stays untouched.
-        const sectorFit = resolveLabelFit(this.properties.sectorLabel, false);
+        const sectorFit = resolveLabelFit(this.options.sectorLabel, false);
         // The wedge holds the drawn box, not the glyphs, so the region owes the box its own extent.
-        const labelPadding = expandLabelBoxExtent(this.properties.sectorLabel);
+        const labelPadding = expandLabelBoxExtent(this.options.sectorLabel);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
+        const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
         const innerRadius = this.radiusScale.convert(0);
         const shouldPutTextInCenter =
@@ -1855,13 +2267,15 @@ export class DonutSeries extends PolarSeries<
                 let isTextVisible = false;
                 let fittedFontSize: number | undefined;
                 if (datum.sectorLabel && outerRadius !== 0) {
-                    const style = this.getLabelStyle(datum, properties.sectorLabel, 'sectorLabel', isDatumHighlighted);
+                    const style = this.getLabelStyle(datum, options.sectorLabel, 'sectorLabel', isDatumHighlighted);
                     const labelRadius =
                         innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
                     const sectorBounds = { startAngle, endAngle, innerRadius, outerRadius };
 
                     text.fill = style.color;
-                    text.fillOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
+                    text.fillOpacity =
+                        this.getHighlightStyle(isDatumHighlighted, datum.datumIndex, undefined, legendItemValues)
+                            .opacity ?? 1;
                     if (sectorFit == null) {
                         text.x = shouldPutTextInCenter ? 0 : datum.midCos * labelRadius;
                         text.y = shouldPutTextInCenter ? 0 : datum.midSin * labelRadius;
@@ -1884,7 +2298,7 @@ export class DonutSeries extends PolarSeries<
                         text.setBoxing(style);
                         const fitted = fitSectorLabelToWedge(
                             datum.sectorLabel.text,
-                            sectorFit,
+                            { ...sectorFit, boxed: labelHasBox(style) },
                             style,
                             anchor,
                             sectorBounds,
@@ -1924,11 +2338,13 @@ export class DonutSeries extends PolarSeries<
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
             text.fontFamily = fontFamily;
-            text.text = fitLabelToContainer(datum.text, resolveLabelFit(datum, false), datum, holeBox);
+            text.text = fitLabelToContainer(datum.text, undefined, datum, holeBox);
             text.x = 0;
             text.y = 0;
             text.fill = color;
             text.textAlign = 'center';
+            // Lines are stacked by box bottom; the default `alphabetic` baseline drops each by a descent.
+            text.textBaseline = 'bottom';
             textBBoxes.push(text.getBBox());
             margins.push(datum.spacing);
         });
@@ -1964,10 +2380,10 @@ export class DonutSeries extends PolarSeries<
     override createNodeParams(datum: PieDonutNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            angleKey: this.properties.angleKey,
-            radiusKey: this.properties.radiusKey,
-            calloutLabelKey: this.properties.calloutLabelKey,
-            sectorLabelKey: this.properties.sectorLabelKey,
+            angleKey: this.options.angleKey,
+            radiusKey: this.options.radiusKey,
+            calloutLabelKey: this.options.calloutLabelKey,
+            sectorLabelKey: this.options.sectorLabelKey,
         };
     }
 
@@ -1984,7 +2400,7 @@ export class DonutSeries extends PolarSeries<
             id: seriesId,
             dataModel,
             processedData,
-            properties,
+            options,
             ctx: { formatManager },
         } = this;
         const {
@@ -1998,8 +2414,8 @@ export class DonutSeries extends PolarSeries<
             radiusKey,
             radiusName,
             tooltip,
-        } = properties;
-        const title = this.properties.title.node.getPlainText();
+        } = options;
+        const title = toPlainText(this.options.title.text);
 
         if (!dataModel || !processedData) return;
 
@@ -2056,7 +2472,7 @@ export class DonutSeries extends PolarSeries<
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
         const datum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
         const sectorFormat = this.getItemStyle({ datum, datumIndex }, false, false);
-        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.options;
 
         let { fill } = sectorFormat;
         const { stroke } = sectorFormat;
@@ -2090,12 +2506,12 @@ export class DonutSeries extends PolarSeries<
             return [];
         }
 
-        const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey, showInLegend } = this.properties;
+        const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey, showInLegend } = this.options;
 
         if (
-            !legendItemKey &&
-            (!calloutLabelKey || calloutLabelKey === angleKey) &&
-            (!sectorLabelKey || sectorLabelKey === angleKey)
+            (legendItemKey == null || legendItemKey === '') &&
+            (calloutLabelKey == null || calloutLabelKey === '' || calloutLabelKey === angleKey) &&
+            (sectorLabelKey == null || sectorLabelKey === '' || sectorLabelKey === angleKey)
         ) {
             return [];
         }
@@ -2103,10 +2519,11 @@ export class DonutSeries extends PolarSeries<
         const processedDataValues = this.getProcessedDataValues(dataModel, processedData);
         const { angleRawValues } = processedDataValues;
 
-        const titleText = this.properties.title?.showInLegend && this.properties.title.text;
+        const { title } = this.options;
+        const titleText = title.showInLegend === true ? title.text : undefined;
         const legendData: CategoryLegendDatum[] = [];
 
-        const hideZeros = this.properties.hideZeroValueSectorsInLegend;
+        const hideZeros = this.options.hideZeroValueSectorsInLegend;
         const rawData = processedData.dataSources.get(this.id)?.data;
         const invalidData = processedData.invalidData?.get(this.id);
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
@@ -2118,16 +2535,26 @@ export class DonutSeries extends PolarSeries<
             }
 
             const labelParts = [];
-            if (titleText) {
+            if (titleText != null && titleText !== '') {
                 labelParts.push(titleText);
             }
             const labels = this.getLabelContent(datumIndex, datum, processedDataValues);
 
-            if (legendItemKey && labels.legendItem !== undefined) {
+            if (legendItemKey != null && legendItemKey !== '' && labels.legendItem !== undefined) {
                 labelParts.push(labels.legendItem);
-            } else if (calloutLabelKey && calloutLabelKey !== angleKey && labels.callout !== undefined) {
+            } else if (
+                calloutLabelKey != null &&
+                calloutLabelKey !== '' &&
+                calloutLabelKey !== angleKey &&
+                labels.callout !== undefined
+            ) {
                 labelParts.push(labels.callout);
-            } else if (sectorLabelKey && sectorLabelKey !== angleKey && labels.sector !== undefined) {
+            } else if (
+                sectorLabelKey != null &&
+                sectorLabelKey !== '' &&
+                sectorLabelKey !== angleKey &&
+                labels.sector !== undefined
+            ) {
                 labelParts.push(labels.sector);
             }
 
@@ -2146,7 +2573,7 @@ export class DonutSeries extends PolarSeries<
                 },
                 symbol: this.legendItemSymbol(datumIndex),
                 legendItemName: legendItemKey == null ? undefined : datum[legendItemKey],
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
             });
         }
 
@@ -2170,7 +2597,7 @@ export class DonutSeries extends PolarSeries<
 
         const fns = preparePieSeriesAnimationFunctions(
             true,
-            this.properties.rotation,
+            this.options.rotation,
             this.radiusScale,
             this.previousRadiusScale
         );
@@ -2222,12 +2649,7 @@ export class DonutSeries extends PolarSeries<
         }
 
         const noVisibleData = !this.nodeData.some((n) => n.enabled);
-        const fns = preparePieSeriesAnimationFunctions(
-            false,
-            this.properties.rotation,
-            radiusScale,
-            previousRadiusScale
-        );
+        const fns = preparePieSeriesAnimationFunctions(false, this.options.rotation, radiusScale, previousRadiusScale);
         fromToMotion(
             this.id,
             'nodes',
@@ -2276,12 +2698,7 @@ export class DonutSeries extends PolarSeries<
         } = this;
         const { animationManager } = this.ctx;
 
-        const fns = preparePieSeriesAnimationFunctions(
-            false,
-            this.properties.rotation,
-            radiusScale,
-            previousRadiusScale
-        );
+        const fns = preparePieSeriesAnimationFunctions(false, this.options.rotation, radiusScale, previousRadiusScale);
         fromToMotion(
             this.id,
             'nodes',
@@ -2319,19 +2736,19 @@ export class DonutSeries extends PolarSeries<
             return `${datumIndex}`;
         }
 
-        const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
+        const { calloutLabelKey, sectorLabelKey, legendItemKey } = this.options;
 
         if (!processedData.reduced?.animationValidation?.uniqueKeys) {
             return `${datumIndex}`;
         }
 
-        if (legendItemKey) {
+        if (legendItemKey != null && legendItemKey !== '') {
             const legendItemKeys = dataModel.resolveKeysById(this, 'legendItemKey', processedData);
             return createDatumId(legendItemKeys[datumIndex]);
-        } else if (calloutLabelKey) {
+        } else if (calloutLabelKey != null && calloutLabelKey !== '') {
             const calloutLabelKeys = dataModel.resolveKeysById(this, 'calloutLabelKey', processedData);
             return createDatumId(calloutLabelKeys[datumIndex]);
-        } else if (sectorLabelKey) {
+        } else if (sectorLabelKey != null && sectorLabelKey !== '') {
             const sectorLabelKeys = dataModel.resolveKeysById(this, 'sectorLabelKey', processedData);
             return createDatumId(sectorLabelKeys[datumIndex]);
         }
@@ -2340,12 +2757,12 @@ export class DonutSeries extends PolarSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return !(
-            !this.properties.selection.enabled &&
-            this.properties.itemStyler == null &&
-            this.properties.calloutLabel.itemStyler == null &&
-            this.properties.sectorLabel.itemStyler == null &&
-            this.properties.innerLabels.every((innerLabel) => innerLabel.itemStyler == null)
+        const { itemStyler, calloutLabel, sectorLabel } = this.options;
+        return (
+            this.isSelectionEnabled() ||
+            itemStyler != null ||
+            calloutLabel.itemStyler != null ||
+            sectorLabel.itemStyler != null
         );
     }
 }

@@ -1999,7 +1999,6 @@ exports[`AG-15850 labels > area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2037,7 +2036,6 @@ exports[`AG-15850 labels > area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2119,7 +2117,6 @@ exports[`AG-15850 labels > bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2158,7 +2155,6 @@ exports[`AG-15850 labels > bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2253,7 +2249,6 @@ exports[`AG-15850 labels > bubble > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2297,7 +2292,6 @@ exports[`AG-15850 labels > bubble > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2384,7 +2378,6 @@ exports[`AG-15850 labels > chord > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2415,7 +2408,6 @@ exports[`AG-15850 labels > chord > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2446,7 +2438,6 @@ exports[`AG-15850 labels > chord > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2517,7 +2508,6 @@ exports[`AG-15850 labels > cone-funnel > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2553,7 +2543,6 @@ exports[`AG-15850 labels > cone-funnel > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2680,12 +2669,15 @@ exports[`AG-15850 labels > donut > itemStyler 1`] = `
 [
   [
     {
+      "angleKey": "myValue",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "calloutLabelKey": "myCategory",
+      "calloutLabelName": undefined,
       "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
@@ -2705,19 +2697,27 @@ exports[`AG-15850 labels > donut > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 0,
       "itemType": undefined,
+      "legendItemKey": undefined,
       "padding": 8,
+      "radiusKey": undefined,
+      "radiusName": undefined,
+      "sectorLabelKey": undefined,
+      "sectorLabelName": undefined,
       "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
   ],
   [
     {
+      "angleKey": "myValue",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
+      "calloutLabelKey": "myCategory",
+      "calloutLabelName": undefined,
       "candidateState": undefined,
       "color": "#464646",
       "cornerRadius": 4,
@@ -2737,7 +2737,12 @@ exports[`AG-15850 labels > donut > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 1,
       "itemType": undefined,
+      "legendItemKey": undefined,
       "padding": 8,
+      "radiusKey": undefined,
+      "radiusName": undefined,
+      "sectorLabelKey": undefined,
+      "sectorLabelName": undefined,
       "selectionState": undefined,
       "seriesId": "DonutSeries-1",
     },
@@ -2787,7 +2792,6 @@ exports[`AG-15850 labels > funnel > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2823,7 +2827,6 @@ exports[`AG-15850 labels > funnel > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -2967,7 +2970,6 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3013,7 +3015,6 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3059,7 +3060,6 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3105,7 +3105,6 @@ exports[`AG-15850 labels > histogram > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3189,7 +3188,6 @@ exports[`AG-15850 labels > line > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3227,7 +3225,6 @@ exports[`AG-15850 labels > line > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3321,11 +3318,12 @@ exports[`AG-15850 labels > map-line > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
       "color": "#464646",
+      "colorKey": undefined,
+      "colorName": undefined,
       "cornerRadius": 4,
       "datum": undefined,
       "enabled": true,
@@ -3336,11 +3334,17 @@ exports[`AG-15850 labels > map-line > itemStyler 1`] = `
       "fontStyle": undefined,
       "fontWeight": 400,
       "highlightState": "none",
+      "idKey": "myId",
+      "idName": undefined,
       "itemId": undefined,
       "itemType": undefined,
+      "labelKey": "myId",
+      "labelName": undefined,
       "padding": 8,
       "selectionState": undefined,
       "seriesId": "MapLineSeries-1",
+      "sizeKey": "myValue",
+      "sizeName": undefined,
     },
   ],
 ]
@@ -3381,11 +3385,12 @@ exports[`AG-15850 labels > map-marker > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
       "color": "#464646",
+      "colorKey": undefined,
+      "colorName": undefined,
       "cornerRadius": 4,
       "datum": undefined,
       "enabled": true,
@@ -3396,11 +3401,21 @@ exports[`AG-15850 labels > map-marker > itemStyler 1`] = `
       "fontStyle": undefined,
       "fontWeight": 400,
       "highlightState": "none",
+      "idKey": undefined,
+      "idName": undefined,
       "itemId": undefined,
       "itemType": undefined,
+      "labelKey": "myId",
+      "labelName": undefined,
+      "latitudeKey": "myLat",
+      "latitudeName": undefined,
+      "longitudeKey": "myLon",
+      "longitudeName": undefined,
       "padding": 8,
       "selectionState": undefined,
       "seriesId": "MapMarkerSeries-1",
+      "sizeKey": undefined,
+      "sizeName": undefined,
     },
   ],
 ]
@@ -3434,11 +3449,12 @@ exports[`AG-15850 labels > map-shape > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
       "color": "white",
+      "colorKey": "myValue",
+      "colorName": undefined,
       "cornerRadius": 4,
       "datum": undefined,
       "enabled": true,
@@ -3449,8 +3465,12 @@ exports[`AG-15850 labels > map-shape > itemStyler 1`] = `
       "fontStyle": undefined,
       "fontWeight": "bold",
       "highlightState": "none",
+      "idKey": "myId",
+      "idName": undefined,
       "itemId": undefined,
       "itemType": undefined,
+      "labelKey": "myId",
+      "labelName": undefined,
       "padding": 8,
       "selectionState": undefined,
       "seriesId": "MapShapeSeries-1",
@@ -3499,7 +3519,6 @@ exports[`AG-15850 labels > pyramid > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3535,7 +3554,6 @@ exports[`AG-15850 labels > pyramid > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3680,10 +3698,11 @@ exports[`AG-15850 labels > radars > itemStyler 1`] = `
 [
   [
     {
+      "angleKey": "myCategory",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3705,17 +3724,21 @@ exports[`AG-15850 labels > radars > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 0,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadarLineSeries-1",
     },
   ],
   [
     {
+      "angleKey": "myCategory",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3737,7 +3760,10 @@ exports[`AG-15850 labels > radars > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 1,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadarLineSeries-1",
     },
@@ -3788,10 +3814,11 @@ exports[`AG-15850 labels > radial-bar > itemStyler 1`] = `
 [
   [
     {
+      "angleKey": "myValue",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3813,17 +3840,21 @@ exports[`AG-15850 labels > radial-bar > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 0,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue2",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadialBarSeries-1",
     },
   ],
   [
     {
+      "angleKey": "myValue",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3845,7 +3876,10 @@ exports[`AG-15850 labels > radial-bar > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 1,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue2",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadialBarSeries-1",
     },
@@ -3896,10 +3930,11 @@ exports[`AG-15850 labels > radial-column > itemStyler 1`] = `
 [
   [
     {
+      "angleKey": "myCategory",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3921,17 +3956,21 @@ exports[`AG-15850 labels > radial-column > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 0,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadialColumnSeries-1",
     },
   ],
   [
     {
+      "angleKey": "myCategory",
+      "angleName": undefined,
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -3953,7 +3992,10 @@ exports[`AG-15850 labels > radial-column > itemStyler 1`] = `
       "highlightState": "none",
       "itemId": 1,
       "itemType": undefined,
+      "legendItemName": undefined,
       "padding": 8,
+      "radiusKey": "myValue",
+      "radiusName": undefined,
       "selectionState": undefined,
       "seriesId": "RadialColumnSeries-1",
     },
@@ -4092,7 +4134,6 @@ exports[`AG-15850 labels > range-area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4133,7 +4174,6 @@ exports[`AG-15850 labels > range-area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4174,7 +4214,6 @@ exports[`AG-15850 labels > range-area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4215,7 +4254,6 @@ exports[`AG-15850 labels > range-area > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4350,7 +4388,6 @@ exports[`AG-15850 labels > range-bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4392,7 +4429,6 @@ exports[`AG-15850 labels > range-bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4434,7 +4470,6 @@ exports[`AG-15850 labels > range-bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4476,7 +4511,6 @@ exports[`AG-15850 labels > range-bar > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4561,7 +4595,6 @@ exports[`AG-15850 labels > sankey > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4592,7 +4625,6 @@ exports[`AG-15850 labels > sankey > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4696,7 +4728,6 @@ exports[`AG-15850 labels > sunburst > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4743,7 +4774,6 @@ exports[`AG-15850 labels > sunburst > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4781,7 +4811,6 @@ exports[`AG-15850 labels > sunburst > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4865,7 +4894,6 @@ exports[`AG-15850 labels > treemap > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -4903,7 +4931,6 @@ exports[`AG-15850 labels > treemap > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -5002,7 +5029,6 @@ exports[`AG-15850 labels > waterfall > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -5039,7 +5065,6 @@ exports[`AG-15850 labels > waterfall > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,
@@ -5076,7 +5101,6 @@ exports[`AG-15850 labels > waterfall > itemStyler 1`] = `
       "border": {
         "enabled": false,
         "stroke": "rgba(70, 70, 70, 0.08)",
-        "strokeOpacity": undefined,
         "strokeWidth": 1,
       },
       "candidateState": undefined,

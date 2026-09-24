@@ -89,6 +89,10 @@ function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDat
     }
 }
 
+function unreachable(_a: never): never {
+    return undefined as never;
+}
+
 export class Legend {
     static readonly className = 'Legend';
 
@@ -364,7 +368,7 @@ export class Legend {
         const pageNumber = this.pagination.currentPage;
         const page = this.pages[pageNumber];
 
-        if (this.pages.length < 1 || !page) {
+        if (this.pages.length < 1 || page == null) {
             this.visible = false;
             return { oldPages };
         }
@@ -675,7 +679,7 @@ export class Legend {
             pages,
         } = this;
 
-        if (pages.length < 1 || !pages[pageNumber]) {
+        if (pages.length < 1 || pages[pageNumber] == null) {
             return;
         }
 
@@ -714,7 +718,7 @@ export class Legend {
 
             markerLabel.visible = true;
             const column = columns[columnIndex];
-            if (!column) return;
+            if (column == null) return;
 
             // Round off for pixel grid alignment to work properly.
             y = Math.floor(itemHeight * rowIndex);
@@ -743,7 +747,7 @@ export class Legend {
 
         // Track an item on the page in re-pagination cases (e.g. resize).
         const page = pages[pageNumber];
-        if (!page) return;
+        if (page == null) return;
         const { startIndex, endIndex } = page;
         if (startIndex === 0) {
             // Stay on first page on pagination update.
@@ -992,7 +996,7 @@ export class Legend {
             ctx: { chartService },
         } = this;
 
-        if (!datum) {
+        if (datum == null) {
             return false;
         }
 
@@ -1005,7 +1009,7 @@ export class Legend {
         let newEnabled = enabled;
         const clickEvent = makeLegendItemEvent('click', datum, event);
         if (legendItemClick) {
-            callWithContext([series.properties, this.ctx.chartService], legendItemClick, clickEvent.apiEvent);
+            callWithContext([series.options, this.ctx.chartService], legendItemClick, clickEvent.apiEvent);
         }
 
         if (clickEvent.defaultPrevented) return true;
@@ -1067,11 +1071,7 @@ export class Legend {
 
         const doubleClickEvent = makeLegendItemEvent('dblclick', datum, event);
         if (legendItemDoubleClick) {
-            callWithContext(
-                [series.properties, this.ctx.chartService],
-                legendItemDoubleClick,
-                doubleClickEvent.apiEvent
-            );
+            callWithContext([series.options, this.ctx.chartService], legendItemDoubleClick, doubleClickEvent.apiEvent);
         }
 
         if (doubleClickEvent.defaultPrevented) return true;
@@ -1286,7 +1286,7 @@ export class Legend {
     }
     private positionLegendScene(ctx: LayoutContext) {
         const { enabled, position, spacing } = this.opts;
-        if (!enabled || !this.data.length) return;
+        if (!enabled || this.data.length === 0) return;
 
         const { placement, floating, xOffset, yOffset } = expandLegendPosition(position);
         // When legend in floating, the X/Y translation is relative to the entire canvas & layoutBox doesn't shrink
@@ -1298,10 +1298,6 @@ export class Legend {
         const legendBBox = this.computePagedBBox();
 
         if (this.visible) {
-            function unreachable(_a: never): never {
-                return undefined as never;
-            }
-
             let translationX: number;
             let translationY: number;
             switch (placement) {
@@ -1424,9 +1420,6 @@ export class Legend {
 
         let legendWidth, legendHeight;
 
-        function unreachable(_a: never): never {
-            return undefined as never;
-        }
         switch (placement) {
             case 'top':
             case 'top-left':
@@ -1440,8 +1433,11 @@ export class Legend {
                     aspectRatio < 1
                         ? Math.min(maxCoefficient, minHeightCoefficient * (1 / aspectRatio))
                         : minHeightCoefficient;
-                legendWidth = maxWidth ? Math.min(maxWidth, width) : width;
-                legendHeight = maxHeight ? Math.min(maxHeight, height) : Math.round(height * heightCoefficient);
+                legendWidth = maxWidth == null || maxWidth === 0 ? width : Math.min(maxWidth, width);
+                legendHeight =
+                    maxHeight == null || maxHeight === 0
+                        ? Math.round(height * heightCoefficient)
+                        : Math.min(maxHeight, height);
                 break;
             }
 
@@ -1455,8 +1451,11 @@ export class Legend {
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;
-                legendWidth = maxWidth ? Math.min(maxWidth, width) : Math.round(width * widthCoefficient);
-                legendHeight = maxHeight ? Math.min(maxHeight, height) : height;
+                legendWidth =
+                    maxWidth == null || maxWidth === 0
+                        ? Math.round(width * widthCoefficient)
+                        : Math.min(maxWidth, width);
+                legendHeight = maxHeight == null || maxHeight === 0 ? height : Math.min(maxHeight, height);
                 break;
             }
             default:

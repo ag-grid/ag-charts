@@ -37,7 +37,8 @@ const options: AgStandaloneChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changePosition(position: AgOrganizationSeriesOptionsNodeImagePosition) {
+function changePosition(event: Event) {
+    const position = (event.target as HTMLInputElement).value as AgOrganizationSeriesOptionsNodeImagePosition;
     (options.series![0] as AgOrganizationSeriesOptions).node!.image!.position = position;
     chart.update(options);
 }

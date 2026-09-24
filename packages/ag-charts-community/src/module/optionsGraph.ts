@@ -3,6 +3,7 @@ import {
     Graph,
     type Logger,
     ModuleRegistry,
+    type ModuleScope,
     type PlainObject,
     type Resolved,
     type Vertex,
@@ -38,6 +39,7 @@ import {
     hasPathSafe,
     setPathSafe,
 } from './optionsGraphUtils';
+import { OptionsPartialCache, hasUnmergedCssVariables } from './optionsPartialCache';
 
 const debug = Debug.create('opts', 'options-graph');
 
@@ -63,11 +65,37 @@ export interface OptionsGraphAccessorResolvePartialOptions {
 }
 
 export const createOptionsGraphMemoised = simpleMemorize(createOptionsGraph);
+
+/** Theme defaults for one series type, resolved without user options or theme overrides. */
+export const resolveSeriesThemeDefaultsMemoised = simpleMemorize(resolveSeriesThemeDefaults);
+function resolveSeriesThemeDefaults(
+    theme: ChartTheme,
+    seriesType: string,
+    moduleRegistry: ModuleScope,
+    cssVariables: Record<string, string> | undefined
+): PlainObject {
+    const optionsGraph = new OptionsGraph(
+        theme.config,
+        { series: [{ type: seriesType }] },
+        theme.params,
+        theme.getThemeParameters(),
+        theme.palette,
+        undefined,
+        theme.getTemplateParameters(),
+        cssVariables,
+        undefined,
+        moduleRegistry
+    );
+    const { series } = optionsGraph.resolve(undefined);
+    optionsGraph.clearSafe();
+    return Array.isArray(series) && isPlainObject(series[0]) ? series[0] : {};
+}
 export function createOptionsGraph(
     theme: ChartTheme,
     options: PlainObject,
     cssVariables?: Record<string, string>,
-    presetOptions?: PlainObject
+    presetOptions?: PlainObject,
+    moduleRegistry?: ModuleScope
 ): OptionsGraphAccessor {
     return debug.group('OptionsGraph.constructor()', () => {
         const optionsGraph = new OptionsGraph(
@@ -79,7 +107,8 @@ export function createOptionsGraph(
             theme.overrides,
             theme.getTemplateParameters(),
             cssVariables,
-            presetOptions
+            presetOptions,
+            moduleRegistry
         );
 
         return {
@@ -119,6 +148,13 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     private static readonly EDGE_PRIORITY = [USER_OPTIONS_EDGE, OVERRIDES_EDGE, DEFAULTS_EDGE];
 
     private static readonly GRAFT_EDGE = DEFAULTS_EDGE;
+
+    private static readonly SOURCE_EDGES = [
+        DEFAULTS_EDGE,
+        OVERRIDES_EDGE,
+        USER_OPTIONS_EDGE,
+        USER_PARTIAL_OPTIONS_EDGE,
+    ];
 
     // These keys must be excluded when building the graph, they are instead resolved separately since they are objects
     // that must be applied to arrays.
@@ -190,6 +226,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     private readonly cachedPathVertices: Map<string, Vertex<unknown>> = new Map();
 
+    private readonly cachedPartials = new OptionsPartialCache();
+
     private hasUnsafeClearKeys = false;
 
     private userPartialOptions?: PlainObject;
@@ -216,7 +254,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map(),
         private cssVariables: Record<string, string> = {},
-        private readonly presetOptions: PlainObject = {}
+        private readonly presetOptions: PlainObject = {},
+        public readonly moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
     ) {
         super({
             cachedNeighboursEdge: PATH_EDGE,
@@ -231,7 +270,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         this.paletteType = isObject(userOptions?.theme) ? paletteType(userOptions.theme?.palette) : 'inbuilt';
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
-        const seriesType = userOptions.series?.[0]?.type ?? 'line';
+        const seriesType = this.resolveSeriesType();
         this.seriesType = seriesType;
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
@@ -253,7 +292,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.buildGraphFromObject(
                 this.root,
                 OVERRIDES_EDGE,
-                ModuleRegistry.getSeriesModule(seriesType)?.chartType === 'cartesian'
+                this.moduleRegistry.getSeriesModule(seriesType)?.chartType === 'cartesian'
                     ? commonOverrides
                     : without(commonOverrides, ['zoom', 'navigator'])
             );
@@ -281,7 +320,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
                 $applyTheme: [
                     ['/$seriesType/axes/$axisType/$position', '/$seriesType/axes/$axisType'],
                     {
-                        seriesType: { $path: ['/series/0/type', 'line'] },
+                        seriesType: { $path: ['/series/0/type', seriesType] },
                         axisType: { $path: ['./type', 'category'] },
                         position: { $path: ['./position'] },
                     },
@@ -336,11 +375,24 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         debug.group('OptionsGraph.clear()', () => {
             super.clear();
             this.cachedPathVertices.clear();
+            this.cachedPartials.clear();
             this.root = undefined;
             this.params = undefined;
             this.annotations = undefined;
             debug('cleared');
         });
+    }
+
+    // The theme only has entries for registered series types; any registered type shares the chart-level defaults.
+    private resolveSeriesType(): string {
+        const seriesType = this.userOptions.series?.[0]?.type ?? 'line';
+        if (seriesType in this.config) return seriesType;
+        const registeredTypes = Object.keys(this.config);
+        return (
+            registeredTypes.find((type) => this.moduleRegistry.getSeriesModule(type)?.chartType === 'cartesian') ??
+            registeredTypes[0] ??
+            seriesType
+        );
     }
 
     clearSafe() {
@@ -396,6 +448,29 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.rollbackEdgesValue.push(edge);
         }
         super.addEdge(from, to, edge);
+    }
+
+    mergeConditionalBranch(dest: Vertex<unknown>, branch: Vertex<unknown>): void {
+        if (dest === branch) return;
+
+        // Add missing source edges to dest
+        for (const edge of OptionsGraph.SOURCE_EDGES) {
+            const branchValueVertex = this.findNeighbour(branch, edge);
+            if (branchValueVertex && !this.findNeighbour(dest, edge)) {
+                this.addEdge(dest, branchValueVertex, edge);
+            }
+        }
+
+        // Recursiveness:
+        for (const branchChild of this.neighboursWithEdgeValue(branch, PATH_EDGE) ?? []) {
+            const key = this.getVertexValue(branchChild);
+            const destChild = this.findNeighbourWithValue(dest, key, PATH_EDGE);
+            if (destChild) {
+                this.mergeConditionalBranch(destChild, branchChild);
+            } else {
+                this.addEdge(dest, branchChild, PATH_EDGE);
+            }
+        }
     }
 
     /**
@@ -718,7 +793,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const orphan: PlainObject = {};
         const orphanVertex = this.addVertex(orphan);
         const contextPathArray = this.getPathArray(context);
-        const pathArray = path ? [...contextPathArray, path] : contextPathArray;
+        const pathArray = path == null ? contextPathArray : [...contextPathArray, path];
         const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
         this.value$1.set(pathArray.join('.'), value);
@@ -1323,6 +1398,34 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
         if (!this.root) return;
 
+        if (cssVariables != null && hasUnmergedCssVariables(this.cssVariables, cssVariables)) {
+            this.cssVariables = { ...this.cssVariables, ...cssVariables };
+            this.cachedPartials.clear();
+        }
+
+        this.cachedPartials.invalidateIfStale(this.resolved);
+
+        const cacheKey = this.cachedPartials.keyFor(path, partialOptions, resolveOptions);
+        const cached = cacheKey == null ? undefined : this.cachedPartials.read(cacheKey);
+        if (cached) return cached.value as Resolved<Partial<T>> | undefined;
+
+        const resolved = this.resolvePartialUncached(path, partialOptions, resolveOptions);
+        if (cacheKey != null) {
+            this.cachedPartials.write(cacheKey, resolved);
+        }
+
+        return resolved as Resolved<Partial<T>> | undefined;
+    }
+
+    private resolvePartialUncached<T extends PlainObject>(
+        path: Array<string>,
+        partialOptions: T,
+        resolveOptions?: {
+            permissivePath?: boolean;
+            pick?: boolean;
+            proxyPaths?: Record<string, Array<string>>;
+        }
+    ): PlainObject | undefined {
         const { permissivePath, proxyPaths } = resolveOptions ?? {};
 
         const partialKeys = Object.keys(partialOptions);
@@ -1332,11 +1435,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const debugLabel = debug.check() ? `OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]` : '';
 
         return debug.group(debugLabel, () => {
-            if (partialKeys.length === 0) return {} as Resolved<Partial<T>>;
-
-            if (cssVariables) {
-                this.cssVariables = { ...this.cssVariables, ...cssVariables };
-            }
+            if (partialKeys.length === 0) return {};
 
             const parentVertex = this.findVertexAtPath(path);
             if (!parentVertex) {
@@ -1417,7 +1516,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             debug('edge count', this.getEdgeCount());
             debug('resolved partial', partial);
 
-            return partial as Resolved<Partial<T>>;
+            return partial;
         });
     }
 
@@ -1445,19 +1544,21 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.diagramVertex(diagram, vertex as any, 1, maxDepth);
         }
 
-        diagram.push('classDef UO fill: #e8f5e8, stroke: #4caf50');
-        diagram.push('classDef DE fill: #e3f2fd, stroke: #2196f3');
-        diagram.push('classDef DEP fill: #ffe0fd, stroke: #ff00f2');
-        diagram.push('classDef OP fill: #fff3e0, stroke: #ff9800');
-        diagram.push('classDef OPV fill: #fff3e0, stroke: #ff9800, stroke-width: 1px');
-        diagram.push('classDef OV fill: #e8f5ee, stroke: #4caf87');
+        diagram.push(
+            'classDef UO fill: #e8f5e8, stroke: #4caf50',
+            'classDef DE fill: #e3f2fd, stroke: #2196f3',
+            'classDef DEP fill: #ffe0fd, stroke: #ff00f2',
+            'classDef OP fill: #fff3e0, stroke: #ff9800',
+            'classDef OPV fill: #fff3e0, stroke: #ff9800, stroke-width: 1px',
+            'classDef OV fill: #e8f5ee, stroke: #4caf87'
+        );
 
         ambientLog.log(diagram.join('\n'));
     }
 
     private diagramKey(path: string) {
         let diagramKey = this.diagramKeys!.get(path);
-        if (!diagramKey) {
+        if (diagramKey == null) {
             diagramKey = `${this.diagramKeys!.size}`;
             this.diagramKeys!.set(path, diagramKey);
         }
@@ -1466,7 +1567,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     private diagramLabel(path: string, vertex: Vertex<unknown, string>, edge?: string) {
         let diagramKey = this.diagramKeys!.get(path);
-        if (diagramKey) return diagramKey;
+        if (diagramKey != null) return diagramKey;
 
         diagramKey = this.diagramKey(path);
 
@@ -1478,7 +1579,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             [OPERATION_VALUE_EDGE]: 'OPV',
             [OVERRIDES_EDGE]: 'OV',
         };
-        let className = edge ? (classNames[edge] ?? undefined) : undefined;
+        let className = edge == null ? undefined : (classNames[edge] ?? undefined);
         className = className ? `:::${className}` : '';
 
         if (typeof vertex.value === 'symbol') {
@@ -1501,7 +1602,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         this.diagramNeighbours(diagram, path, vertex, depth + 1, maxDepth);
 
         let diagramKey = this.diagramKeys!.get(path);
-        if (!diagramKey) {
+        if (diagramKey == null) {
             diagramKey = this.diagramKey(path);
             diagram.push(`\t${diagramKey}["${vertex.value as any}"]`);
         }
@@ -1558,7 +1659,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         index = 0;
         // for (const operation of operationVertices) {
         const [operation] = operationVertices;
-        if (operation) {
+        if (operation != null) {
             this.diagramChildWithNeighbours(
                 diagram,
                 OPERATION_EDGE,

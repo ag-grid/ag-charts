@@ -2,6 +2,7 @@ export * from './api/initialStateOptions';
 export * from './api/activeState';
 export * from './api/stateTypes';
 export * from './api/agCharts';
+export * from './api/chartParams';
 export * from './chart/animationOptions';
 export * from './chart/annotationsOptions';
 export * from './chart/axisOptions';

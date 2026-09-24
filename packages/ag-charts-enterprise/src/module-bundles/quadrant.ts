@@ -1,6 +1,7 @@
-import { BubbleSeriesModule, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
+import { BubbleSeriesModule, ScatterSeriesModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
+import { NumberAxisModule } from '../axes/cartesian/cartesianAxisModules';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
 import { BackgroundRegionsModule } from '../features/background-regions/backgroundRegionsModule';
@@ -29,7 +30,6 @@ export const QuadrantChartModule: ModuleDefinition[] = [
     // Features
     AnimationModule,
     AnnotationsModule,
-    BackgroundRegionsModule,
     BandHighlightModule,
     ContextMenuModule,
     CrosshairModule,
@@ -38,6 +38,7 @@ export const QuadrantChartModule: ModuleDefinition[] = [
     NavigatorModule,
     RangesModule,
     SelectionModule,
+    BackgroundRegionsModule,
     SyncModule,
     ZoomModule,
 ];

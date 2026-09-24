@@ -1,10 +1,23 @@
 <div class="example-controls">
     <div class="controls-row">
         Fill Type:
-        <button onclick="defaultFill()">Default</button>
-        <button onclick="gradientFill()">Gradient</button>
-        <button onclick="patternFill()">Pattern</button>
-        <button onclick="imageFill()">Image</button>
+        <div class="button-group" role="group" aria-label="Fill Type">
+            <input
+                type="radio"
+                id="fill-default"
+                name="fill-type"
+                value="default"
+                checked
+                onchange="fillChange(event)"
+            />
+            <label for="fill-default">Default</label>
+            <input type="radio" id="fill-gradient" name="fill-type" value="gradient" onchange="fillChange(event)" />
+            <label for="fill-gradient">Gradient</label>
+            <input type="radio" id="fill-pattern" name="fill-type" value="pattern" onchange="fillChange(event)" />
+            <label for="fill-pattern">Pattern</label>
+            <input type="radio" id="fill-image" name="fill-type" value="image" onchange="fillChange(event)" />
+            <label for="fill-image">Image</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

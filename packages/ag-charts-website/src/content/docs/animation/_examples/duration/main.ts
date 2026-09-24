@@ -231,37 +231,38 @@ let options: AgCartesianChartOptions<DataType> | AgPolarChartOptions<DataType> =
     data: getData(),
     animation: {
         enabled: true,
+        duration: 500,
     },
     ...barOptions,
 };
 
 const chart = AgCharts.create(options as AgChartOptions);
 
-function changeSeriesBar() {
-    options.series = barOptions.series;
-    options.axes = barOptions.axes;
+function seriesTypeChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    switch (value) {
+        case 'bar':
+            options.series = barOptions.series;
+            options.axes = barOptions.axes;
+            break;
+        case 'line':
+            options.series = lineOptions.series;
+            options.axes = lineOptions.axes;
+            break;
+        case 'area':
+            options.series = areaOptions.series;
+            options.axes = areaOptions.axes;
+            break;
+        case 'donut':
+            options.series = donutOptions.series;
+            options.axes = donutOptions.axes;
+            break;
+    }
     chart.update(options);
 }
 
-function changeSeriesLine() {
-    options.series = lineOptions.series;
-    options.axes = lineOptions.axes;
-    chart.update(options);
-}
-
-function changeSeriesArea() {
-    options.series = areaOptions.series;
-    options.axes = areaOptions.axes;
-    chart.update(options);
-}
-
-function changeSeriesDonut() {
-    options.series = donutOptions.series;
-    options.axes = donutOptions.axes;
-    chart.update(options);
-}
-
-function changeDuration(duration: number) {
-    options.animation = { duration };
+function durationChange(event: Event) {
+    const duration = Number((event.target as HTMLInputElement).value);
+    options.animation = { enabled: true, duration };
     chart.update(options);
 }

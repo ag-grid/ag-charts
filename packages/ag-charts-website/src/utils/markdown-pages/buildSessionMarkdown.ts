@@ -1,7 +1,9 @@
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import type { Session } from '@utils/beyondThePromptSessions';
-import { sessionDurationMins } from '@utils/beyondThePromptSessions';
+import { sessionDurationMins, sessionSlug } from '@utils/beyondThePromptSessions';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+
+import { buildChartsFrontmatter } from './chartsFrontmatter';
 
 /** The page's description fallback, shared so the twin's frontmatter matches the page's meta. */
 export function sessionDescription(session: Session): string {
@@ -20,25 +22,25 @@ export function buildSessionMarkdown({ session, siteRoot }: { session: Session; 
     const durationMins = sessionDurationMins(session);
 
     const document: string[] = [
-        [
-            '---',
-            `title: ${JSON.stringify(`${session.title} | Beyond the Prompt`)}`,
-            `description: ${JSON.stringify(description)}`,
-            '---',
-        ].join('\n'),
+        buildChartsFrontmatter({
+            pageUrl: `/session/${sessionSlug(session.title)}/`,
+            siteRoot,
+            title: `${session.title} | Beyond the Prompt`,
+            description,
+        }),
         `# ${session.title}`,
     ];
 
-    if (session.speakers?.length) {
+    if (session.speakers != null && session.speakers.length > 0) {
         document.push(session.speakers.map((speaker) => `${speaker.name} (${speaker.role})`).join(', '));
     }
     if (durationMins != null) {
         document.push(`Duration: ${durationMins} minutes`);
     }
-    if (session.youtubeUrl) {
+    if (session.youtubeUrl != null && session.youtubeUrl !== '') {
         document.push(`[Watch the recording](${session.youtubeUrl})`);
     }
-    if (session.description) {
+    if (session.description != null && session.description !== '') {
         document.push(session.description);
     }
     document.push(

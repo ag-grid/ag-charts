@@ -10,7 +10,6 @@ interface PropertyTitleOptions {
     name: string;
     anchorId: string;
     prefixPath?: string[];
-    nameSeparator?: string;
     required?: boolean;
     hasChildProps?: boolean;
     isExpandable?: boolean;
@@ -23,7 +22,6 @@ export function PropertyTitle({
     name,
     anchorId,
     prefixPath,
-    nameSeparator,
     required,
     hasChildProps,
     isExpandable,
@@ -33,12 +31,12 @@ export function PropertyTitle({
         hasChildProps || isExpandable ? (
             <span className={styles.propNameExpander} onClick={childPropsOnClick}>
                 <Icon svgClasses={styles.propNameChevron} name="chevronRight" />
-                <PropertyNamePrefix prefixPath={prefixPath} separator={nameSeparator} />
+                <PropertyNamePrefix prefixPath={prefixPath} nextSegment={name} />
                 <PropertyName>{name}</PropertyName>
             </span>
         ) : (
             <span>
-                <PropertyNamePrefix prefixPath={prefixPath} separator={nameSeparator} />
+                <PropertyNamePrefix prefixPath={prefixPath} nextSegment={name} />
                 <PropertyName>{name}</PropertyName>
             </span>
         );
@@ -57,23 +55,25 @@ export function PropertyTitle({
 export function PropertyNamePrefix({
     as: Component = PropertyName,
     prefixPath,
-    separator = '.',
+    nextSegment,
 }: {
     as?: string | FunctionComponent<AllHTMLAttributes<Element>>;
     prefixPath?: string[];
-    separator?: string;
+    nextSegment?: string;
 }) {
-    // Discriminator segments (`[type='x']`) attach to the preceding property without a dot and keep
-    // their quotes, so a nested path reads `subtitle.text[type='text'].lineHeight`.
+    // Variant segments (`[type='x']`, `[AgColorRef]`) attach without a dot: `text[type='text'].lineHeight`.
     const parentPrefix = prefixPath?.reduce((acc, segment) => {
         if (segment.startsWith('[')) {
             return `${acc}${segment}`;
         }
-        return acc ? `${acc}.${cleanupName(segment)}` : cleanupName(segment);
+        return acc === '' ? cleanupName(segment) : `${acc}.${cleanupName(segment)}`;
     }, '');
+    const separator = nextSegment?.startsWith('[') ? '' : '.';
     return (
         <>
-            {parentPrefix && <Component className={styles.parentProperties}>{`${parentPrefix}${separator}`}</Component>}
+            {parentPrefix != null && parentPrefix !== '' && (
+                <Component className={styles.parentProperties}>{`${parentPrefix}${separator}`}</Component>
+            )}
         </>
     );
 }
@@ -140,10 +140,10 @@ export function PropertyType({
     return (
         <div className={styles.metaItem}>
             <div className={styles.metaRow}>
-                {name && showCodeButton && (
+                {name != null && name !== '' && showCodeButton && (
                     <CodeCollapsibleButton name={name} isExpanded={codeButtonExpanded} onClick={codeButtonOnClick} />
                 )}
-                {typeUrl && isCollapsibleCode ? (
+                {typeUrl != null && typeUrl !== '' && isCollapsibleCode ? (
                     <a
                         className={styles.metaValue}
                         href={typeUrl}
@@ -208,5 +208,7 @@ function PropertyName({
 function wbrInject(text: string, splitRegex: RegExp) {
     return text
         .split(splitRegex)
-        .reduce<ReactNode[]>((result, part, index) => result.concat(index ? [<wbr key={index} />, part] : part), []);
+        .reduce<
+            ReactNode[]
+        >((result, part, index) => result.concat(index === 0 ? part : [<wbr key={index} />, part]), []);
 }

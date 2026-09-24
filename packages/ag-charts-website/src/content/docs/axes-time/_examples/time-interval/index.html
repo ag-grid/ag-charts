@@ -1,8 +1,32 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setOneWeekInterval()">1 Week Interval</button>
-        <button onclick="setOneMonthInterval()">1 Month Interval</button>
-        <button onclick="setTwoMonthInterval()">2 Month Interval</button>
+        <div class="button-group" role="group" aria-label="Time Interval">
+            <input
+                type="radio"
+                id="interval-week"
+                name="time-interval"
+                value="week"
+                checked
+                onchange="intervalChange(event)"
+            />
+            <label for="interval-week">1 Week Interval</label>
+            <input
+                type="radio"
+                id="interval-month"
+                name="time-interval"
+                value="month"
+                onchange="intervalChange(event)"
+            />
+            <label for="interval-month">1 Month Interval</label>
+            <input
+                type="radio"
+                id="interval-two-months"
+                name="time-interval"
+                value="two-months"
+                onchange="intervalChange(event)"
+            />
+            <label for="interval-two-months">2 Month Interval</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

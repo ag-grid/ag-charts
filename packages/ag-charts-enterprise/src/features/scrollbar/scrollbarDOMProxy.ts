@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import { type DynamicContext, clamp } from 'ag-charts-core';
 import type { BoxBounds } from 'ag-charts-core';
 
@@ -8,6 +8,11 @@ const STEP_REPEAT_DELAY_MS = 400;
 const STEP_REPEAT_INTERVAL_MS = 50;
 
 const DRAG_CURSOR_ID = 'scrollbar-drag-cursor';
+
+type PointerLikeEvent =
+    | _Widget.ClickWidgetEvent
+    | _ModuleSupport.MouseWidgetEvent<'mouseenter' | 'mousemove'>
+    | _ModuleSupport.DragWidgetEvent;
 
 type ScrollbarRange = {
     min: number;
@@ -192,7 +197,7 @@ export class ScrollbarDOMProxy {
         this.slider.addListener('keydown', (ev) => this.onSliderKeyDown(ev));
         this.slider.addListener('drag-start', (ev) => this.onDragStart(ev));
         this.slider.addListener('drag-move', (ev) => this.onDragMove(ev));
-        this.slider.addListener('drag-end', (ev) => this.onDragEnd(ev));
+        this.slider.addListener('drag-end', () => this.onDragEnd());
         this.slider.addListener('mouseenter', (event) => this.handleHoverEvent(event));
         this.slider.addListener('mousemove', (event) => this.handleHoverEvent(event));
         this.slider.addListener('mouseleave', () => this.onMouseLeave());
@@ -287,8 +292,6 @@ export class ScrollbarDOMProxy {
     }
 
     private onDragMove(event: _ModuleSupport.DragWidgetEvent<'drag-move'>) {
-        event.sourceEvent.preventDefault();
-
         if (this.interactionMode === 'drag') {
             const { isHorizontal, size, start } = this.getInteractionBounds() ?? {};
             if (start == null || size == null) return;
@@ -315,9 +318,7 @@ export class ScrollbarDOMProxy {
         this.repeater.updateTarget(ratio);
     }
 
-    private onDragEnd(event: _ModuleSupport.DragWidgetEvent<'drag-end'>) {
-        event.sourceEvent.preventDefault();
-
+    private onDragEnd() {
         this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
         this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
         this.interactionBounds = undefined;
@@ -358,9 +359,7 @@ export class ScrollbarDOMProxy {
         this.onHoverChange(false);
     }
 
-    private getClickInfo(
-        event: _ModuleSupport.MouseWidgetEvent<'click'> | _ModuleSupport.DragWidgetEvent
-    ): { ratio: number; inBounds: boolean; inThumb: boolean } | undefined {
+    private getClickInfo(event: PointerLikeEvent): { ratio: number; inBounds: boolean; inThumb: boolean } | undefined {
         const ratio = this.getPointerRatio(event);
         if (ratio == null) return;
 
@@ -370,15 +369,11 @@ export class ScrollbarDOMProxy {
         return { ratio, inBounds: true, inThumb: this.isWithinThumb(ratio) };
     }
 
-    private getPointerRatio(
-        event: _ModuleSupport.MouseWidgetEvent<'click' | 'mouseenter' | 'mousemove'> | _ModuleSupport.DragWidgetEvent
-    ): number | undefined {
+    private getPointerRatio(event: PointerLikeEvent): number | undefined {
         return this.getPointerInfo(event)?.ratio;
     }
 
-    private getPointerInfo(
-        event: _ModuleSupport.MouseWidgetEvent<'click' | 'mouseenter' | 'mousemove'> | _ModuleSupport.DragWidgetEvent
-    ): { ratio: number; inCrossBounds: boolean } | undefined {
+    private getPointerInfo(event: PointerLikeEvent): { ratio: number; inCrossBounds: boolean } | undefined {
         if (event.device === 'keyboard') return;
         const { isHorizontal, size, start, crossStart, crossSize } = this.getInteractionBounds();
 

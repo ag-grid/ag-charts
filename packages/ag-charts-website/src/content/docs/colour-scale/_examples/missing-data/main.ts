@@ -40,7 +40,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setMissingFill(enabled: boolean) {
+function missingFillChange(event: Event) {
+    const enabled = (event.target as HTMLInputElement).value === 'true';
     const series = options.series![0] as AgHeatmapSeriesOptions;
     series.colorScale = {
         ...series.colorScale,

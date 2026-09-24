@@ -27,7 +27,7 @@ const { Group, TranslatableGroup, Line, BBox, FormatManager, InteractionState } 
 type HoverLikeEvent =
     | _Widget.DragWidgetEvent
     | _Widget.MouseWidgetEvent<'mousemove'>
-    | _ModuleSupport.DragInterpreterClickEvent;
+    | Extract<_Widget.ClickWidgetEvent, CurrentPoint>;
 
 interface FormatterCache {
     type: string;
@@ -71,6 +71,8 @@ export class Crosshair
 
     private activeHighlight: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     private activeHighlightInViewport: boolean = false;
+    // Set for the duration of a drag of a cross-line annotation whose own axis label is on this axis.
+    private annotationLabelDragging: boolean = false;
 
     constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<_ModuleSupport.AxisContext>) {
         super();
@@ -80,25 +82,20 @@ export class Crosshair
 
         this.hideCrosshairs();
 
-        ctx.domManager.addEventListener('focusin', ({ target }) => {
-            if (this.checkInteractionState()) return;
-            const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
-            if (this.crosshairGroup.visible && !isSeriesAreaChild) {
-                this.hideCrosshairs();
-                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
-            }
-        });
-
         const { seriesDragInterpreter } = ctx.widgets;
         this.cleanup.register(
             ctx.scene.attachNode(this.crosshairGroup),
-            ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
-            ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
+            ctx.widgets.seriesBoundsWidget.addListener('mousemove', (event) => this.onMouseHoverLike(event)),
+            ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onMouseOut()),
+            ctx.eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.onMouseOut()),
             ctx.eventsHub.on('zoom:change-complete', () => this.onMouseOut()),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.layout(event)),
+            ctx.eventsHub.on('annotations:axis-label-drag-start', (event) =>
+                this.onAnnotationAxisLabelDragStart(event)
+            ),
             () => {
                 for (const label of Object.values(this.labels)) {
                     label.destroy();
@@ -108,6 +105,7 @@ export class Crosshair
         if (seriesDragInterpreter) {
             this.cleanup.register(
                 seriesDragInterpreter.events.on('drag-move', (event) => this.onMouseHoverLike(event)),
+                seriesDragInterpreter.events.on('drag-end', () => this.onDragEnd()),
                 seriesDragInterpreter.events.on('click', (event) => this.onClick(event))
             );
         }
@@ -163,7 +161,7 @@ export class Crosshair
 
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
         const options = this.options;
-        if (!visible || !axes || !options?.enabled) return;
+        if (!visible || axes == null || !options?.enabled) return;
 
         this.seriesRect = rect;
 
@@ -171,7 +169,7 @@ export class Crosshair
 
         const axisLayout = axes[axisId];
 
-        if (!axisLayout) return;
+        if (axisLayout == null) return;
 
         this.axisLayout = axisLayout;
         this.bounds = rect.clone().grow(axisLayout.gridPadding + axisLayout.seriesAreaPadding, axisPosition);
@@ -212,7 +210,7 @@ export class Crosshair
                 labels[key] ??= new CrosshairLabel(ctx.domManager, key, this.axisCtx.axisId);
             }
 
-            if (labels[key]) {
+            if (labels[key] != null) {
                 this.updateLabel(labels[key]);
             }
         }
@@ -264,7 +262,7 @@ export class Crosshair
         return toPlainText(this.axisCtx.formatScaleValue(value, 'crosshair', this));
     }
 
-    private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
+    private onClick(event: _Widget.ClickWidgetEvent) {
         if (event.device === 'touch') {
             this.onMouseHoverLike(event);
         }
@@ -292,6 +290,33 @@ export class Crosshair
             ? InteractionState.Hoverable
             : InteractionState.Hoverable | InteractionState.Frozen;
         if (!this.ctx.interactionManager.isState(mask)) return;
+        this.hideCrosshairs();
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+    }
+
+    private onAnnotationAxisLabelDragStart({ axisId }: { axisId: string }) {
+        if (axisId !== this.axisCtx.axisId) return;
+
+        // Only the label yields, and only for the gesture: the crosshair lines stay.
+        this.annotationLabelDragging = true;
+        for (const key of Object.keys(this.labels)) {
+            this.hideLabel(key);
+        }
+    }
+
+    private onDragEnd() {
+        if (!this.annotationLabelDragging) return;
+
+        this.annotationLabelDragging = false;
+        // A snapping crosshair is highlight-driven, so restore its label now; a non-snapping one follows the
+        // next pointer move.
+        if (this.options?.snap && this.crosshairGroup.visible) {
+            this.refreshPositions();
+        }
+    }
+
+    private onSeriesBlurred() {
+        if (this.checkInteractionState() || !this.crosshairGroup.visible) return;
         this.hideCrosshairs();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
@@ -346,10 +371,10 @@ export class Crosshair
 
     private updatePositions(data: { [key: string]: { value: any; position: number } }) {
         const { seriesRect, lineGroupSelection } = this;
-        const labelEnabled = this.options?.label.enabled ?? false;
+        const labelEnabled = (this.options?.label.enabled ?? false) && !this.annotationLabelDragging;
         lineGroupSelection.each((line, key) => {
             const lineData = data[key];
-            if (!lineData) {
+            if (lineData == null) {
                 line.visible = false;
                 this.hideLabel(key);
                 return;
@@ -431,19 +456,16 @@ export class Crosshair
         const activeHighlightData: Record<string, { position: number; value: any }> = {};
 
         for (const unsafeKey of seriesKeyProperties) {
-            // `getKeyProperties()` should return keys of series.properties members of type `string | undefined`:
-            type AssertedKey = Exclude<keyof typeof series.properties, 'context' | 'selection' | 'tooltip'>;
-            const key = unsafeKey as AssertedKey;
-
-            const keyValue = series.properties[key];
-            if (keyValue === undefined) continue;
+            // `getKeyProperties()` names series options whose values are data keys (`string | undefined`).
+            const keyValue: unknown = series.options[unsafeKey as keyof typeof series.options];
+            if (typeof keyValue !== 'string') continue;
 
             const value = datum?.[keyValue];
             const position = axisCtx.scale.convert(value) + halfBandwidth;
             const isInRange = this.isInRange(position);
 
             if (isInRange) {
-                activeHighlightData[key] = { value, position };
+                activeHighlightData[unsafeKey] = { value, position };
             }
         }
 

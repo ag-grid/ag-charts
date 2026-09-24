@@ -27,7 +27,7 @@ export default function createPlugin(options: Options): AstroIntegration {
         name: 'ag-htaccess-gen',
         hooks: {
             'astro:build:done': ({ dir }) => {
-                if (!env) {
+                if (env == null) {
                     // eslint-disable-next-line no-console
                     console.info('[agHtaccessGen] .htaccess generation disabled, skipping');
                     return;

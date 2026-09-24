@@ -1,4 +1,5 @@
 import type {
+    AgDropShadowOptions,
     AgGradientColor,
     AgGradientColorBounds,
     AgGradientColorStop,
@@ -71,6 +72,11 @@ export type NormalisedColorType = CssColor | InternalAgGradientColor | InternalA
 
 export type NormalisedFillOptions = Normalised<FillOptions, never, { fill?: NormalisedColorType }>;
 export type NormalisedStrokeOptions = Normalised<StrokeOptions, never, { stroke?: CssColor }>;
+
+export type NormalisedDropShadowOptions = Normalised<
+    AgDropShadowOptions,
+    'enabled' | 'color' | 'xOffset' | 'yOffset' | 'blur'
+>;
 
 export type NormalisedBorderOptions = Normalised<
     BorderOptions,

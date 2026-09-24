@@ -1,17 +1,12 @@
-import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import {
-    BaseProperties,
-    type BoxBounds,
-    CleanupRegistry,
-    Color,
-    type DynamicContext,
-    EventEmitter,
-    PropertiesArray,
-    Property,
-} from 'ag-charts-core';
+import { type AgAnnotationLineStyleType, type AgAnnotationOptionsToolbar, _ModuleSupport } from 'ag-charts-community';
+import { type BoxBounds, CleanupRegistry, Color, type DynamicContext, EventEmitter } from 'ag-charts-core';
+import type {
+    AgAnnotationOptionsToolbarButtonValue,
+    AgAnnotationOptionsToolbarSwitchValue,
+    ToolbarButton,
+} from 'ag-charts-types';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
-import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
 import {
     type AnnotationOptionsColorPickerType,
     type HasColorAnnotationType,
@@ -32,6 +27,21 @@ import { isTextType } from './utils/types';
 type ButtonInteractionOptions = Parameters<_ModuleSupport.ToolbarButtonWidget['update']>[1];
 
 const { FloatingToolbar, Menu, ToolbarButtonWidget } = _ModuleSupport;
+
+const TOOLBAR_BUTTON_OPTIONS: Record<
+    AgAnnotationOptionsToolbarButtonValue | AgAnnotationOptionsToolbarSwitchValue,
+    AnnotationOptions
+> = {
+    delete: AnnotationOptions.Delete,
+    'line-stroke-width': AnnotationOptions.LineStrokeWidth,
+    'line-style-type': AnnotationOptions.LineStyleType,
+    'line-color': AnnotationOptions.LineColor,
+    'fill-color': AnnotationOptions.FillColor,
+    lock: AnnotationOptions.Lock,
+    'text-color': AnnotationOptions.TextColor,
+    'text-size': AnnotationOptions.TextSize,
+    settings: AnnotationOptions.Settings,
+};
 interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };
@@ -55,33 +65,23 @@ interface EventMap {
     'updated-line-width': { type: HasLineStyleAnnotationType; strokeWidth: number };
 }
 
-class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
-    @Property
-    type: 'button' | 'switch' = 'button';
-
-    @Property
-    value!: AnnotationOptions;
-
-    @Property
-    checkedOverrides = new ToolbarButtonProperties();
-
-    @Property
-    color?: string;
-
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    isMultiColor?: boolean;
-}
-
 interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
     type: 'button' | 'switch';
     value: AnnotationOptions;
+    checkedOverrides?: ToolbarButton;
     color?: string;
     strokeWidth?: number;
     isMultiColor?: boolean;
 }
+
+// The checked state shows only what `checkedOverrides` sets; the unchecked button's own text and icon are cleared.
+const UNSET_TOOLBAR_BUTTON: ToolbarButton = {
+    icon: undefined,
+    iconPosition: undefined,
+    label: undefined,
+    ariaLabel: undefined,
+    tooltip: undefined,
+};
 
 class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
     public constructor(localeManager: _ModuleSupport.LocaleManager) {
@@ -127,17 +127,14 @@ class FloatingAnnotationOptionsToolbar extends FloatingToolbar<
     }
 }
 
-export class AnnotationOptionsToolbar extends BaseProperties {
-    @Property
-    public enabled?: boolean = true;
-
-    @Property
-    public buttons = new PropertiesArray(AnnotationOptionsButtonProperties);
+export class AnnotationOptionsToolbar {
+    private enabled: boolean = true;
+    private buttons: AnnotationOptionsButtonOptions[] = [];
 
     private readonly cleanup = new CleanupRegistry();
 
     readonly events = new EventEmitter<EventMap>();
-    private visibleButtons: Array<AnnotationOptionsButtonProperties> = [];
+    private visibleButtons: Array<AnnotationOptionsButtonOptions> = [];
 
     private readonly toolbar = new FloatingAnnotationOptionsToolbar(
         this.ctx,
@@ -157,13 +154,9 @@ export class AnnotationOptionsToolbar extends BaseProperties {
         private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
         private readonly getActiveDatum: () => AnnotationProperties | undefined
     ) {
-        super();
-
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
-            ctx.widgets.seriesWidget.addListener('drag-start', this.onDragStart.bind(this)),
-            ctx.widgets.seriesWidget.addListener('drag-end', this.onDragEnd.bind(this)),
             () => {
                 this.colorPicker.destroy();
                 this.toolbar.destroy();
@@ -171,16 +164,17 @@ export class AnnotationOptionsToolbar extends BaseProperties {
         );
     }
 
-    private onDragStart() {
-        this.toolbar.ignorePointerEvents();
-    }
-
-    private onDragEnd() {
-        this.toolbar.capturePointerEvents();
-    }
-
     public destroy() {
         this.cleanup.flush();
+    }
+
+    public applyOptions(options: AgAnnotationOptionsToolbar & { enabled: boolean }) {
+        this.enabled = options.enabled;
+        this.buttons = (options.buttons ?? []).map((button) => ({
+            ...button,
+            type: button.type ?? 'button',
+            value: TOOLBAR_BUTTON_OPTIONS[button.value],
+        }));
     }
 
     public show() {
@@ -468,10 +462,13 @@ export class AnnotationOptionsToolbar extends BaseProperties {
         const locked = datum.locked ?? false;
 
         for (const [index, button] of this.visibleButtons.entries()) {
-            if (!button) continue;
+            if (button == null) continue;
             if (button.type === 'switch') {
                 this.toolbar.toggleSwitchCheckedByIndex(index, locked);
-                this.updateButtonByIndex(index, locked ? button.checkedOverrides.toJson() : button.toJson());
+                this.updateButtonByIndex(
+                    index,
+                    locked ? { ...UNSET_TOOLBAR_BUTTON, ...button.checkedOverrides } : button
+                );
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
             }
@@ -509,7 +506,7 @@ export class AnnotationOptionsToolbar extends BaseProperties {
         const button = this.visibleButtons.at(index);
         if (!button) return;
         this.toolbar.updateButtonByIndex(index, {
-            ...button.toJson(),
+            ...button,
             ...change,
             type: change.type ?? button.type,
             value: change.value ?? button.value,

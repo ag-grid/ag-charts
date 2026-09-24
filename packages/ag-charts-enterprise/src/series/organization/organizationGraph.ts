@@ -55,7 +55,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
             }
             // Keep undefined slots — filtering shifts values out of sync with `labels[i]` styles.
             const labels = labelsValues.map((ls) => ls?.[index]);
-            hasAnyKeyedValue ||= labels.length > 0 && labels.some((label) => label != null);
+            hasAnyKeyedValue ||= labels.some((label) => label != null);
 
             this.addEdge(vertex, this.addVertex(labels), 'labels');
             this.addEdge(vertex, this.addVertex(index), 'datumIndex');
@@ -83,7 +83,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
             }
 
             const parentVertex = this.verticesById[parentId];
-            if (!parentVertex) {
+            if (parentVertex == null) {
                 this.logger.warnOnce(`Could not find parentId [${parentId}] on node [${childId}], skipping.`);
                 return hasAnyKeyedValue;
             }

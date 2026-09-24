@@ -1,9 +1,34 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setNumberAxis()">Number axis</button>
-        <button onclick="setLogAxis()">Base 10 log axis</button>
-        <button onclick="setBaseTwoLogAxis()">Base 2 log axis</button>
-        <button onclick="setLogAxisWithFewerTicks()">Log axis with fewer ticks (base 10)</button>
+        <div class="button-group" role="group" aria-label="Axis Type">
+            <input
+                type="radio"
+                id="axis-type-number"
+                name="axis-type"
+                value="number"
+                checked
+                onchange="axisTypeChange(event)"
+            />
+            <label for="axis-type-number">Number axis</label>
+            <input type="radio" id="axis-type-log" name="axis-type" value="log" onchange="axisTypeChange(event)" />
+            <label for="axis-type-log">Base 10 log axis</label>
+            <input
+                type="radio"
+                id="axis-type-log-base-2"
+                name="axis-type"
+                value="log-base-2"
+                onchange="axisTypeChange(event)"
+            />
+            <label for="axis-type-log-base-2">Base 2 log axis</label>
+            <input
+                type="radio"
+                id="axis-type-log-fewer-ticks"
+                name="axis-type"
+                value="log-fewer-ticks"
+                onchange="axisTypeChange(event)"
+            />
+            <label for="axis-type-log-fewer-ticks">Log axis with fewer ticks (base 10)</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

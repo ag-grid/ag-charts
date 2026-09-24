@@ -1,5 +1,11 @@
-import { type AgMapLineBackgroundOptions, type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { DynamicContext, FeatureCollection, FillStrokeMorph, Normalised } from 'ag-charts-core';
+import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import type {
+    DynamicContext,
+    FeatureCollection,
+    Geometry,
+    NormalisedMapLineBackgroundSeriesOwnOptions,
+    NormalisedMapLineSeriesStyle,
+} from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -7,22 +13,21 @@ import { LonLatBBox } from '../map-util/lonLatBbox';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
-import {
-    type MapLineBackgroundNodeDatum,
-    MapLineBackgroundSeriesProperties,
-} from './mapLineBackgroundSeriesProperties';
 
 const { createDatumId, Group, Selection, PointerEvents } = _ModuleSupport;
 
-type NormalisedMapLineSeriesStyle = Normalised<AgMapLineSeriesStyle, never, FillStrokeMorph>;
+export interface MapLineBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+    readonly index: number;
+    readonly projectedGeometry: Geometry;
+    style: AgMapLineSeriesStyle;
+}
 
 interface MapLineNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<MapLineBackgroundNodeDatum> {}
 
 export class MapLineBackgroundSeries
     extends TopologySeries<
         MapLineBackgroundNodeDatum,
-        AgMapLineBackgroundOptions,
-        MapLineBackgroundSeriesProperties,
+        NormalisedMapLineBackgroundSeriesOwnOptions,
         MapLineBackgroundNodeDatum,
         MapLineNodeDataContext
     >
@@ -35,8 +40,6 @@ export class MapLineBackgroundSeries
 
     public topologyBounds: LonLatBBox | undefined;
 
-    override properties = new MapLineBackgroundSeriesProperties();
-
     private _chartTopology?: FeatureCollection = undefined;
 
     public override getNodeData(): MapLineBackgroundNodeDatum[] | undefined {
@@ -44,7 +47,7 @@ export class MapLineBackgroundSeries
     }
 
     private get topology() {
-        return this.properties.topology ?? this._chartTopology;
+        return this.options.topology ?? this._chartTopology;
     }
 
     override get focusable() {
@@ -127,11 +130,11 @@ export class MapLineBackgroundSeries
     }
 
     override createNodeData() {
-        const { id: seriesId, topology, scale, properties } = this;
+        const { id: seriesId, topology, scale, options } = this;
 
         if (topology == null) return;
 
-        const { stroke, strokeOpacity, lineDash, lineDashOffset, strokeWidth } = properties;
+        const { stroke, strokeOpacity, lineDash, lineDashOffset, strokeWidth } = options;
 
         const nodeData: MapLineBackgroundNodeDatum[] = [];
         const labelData: never[] = [];

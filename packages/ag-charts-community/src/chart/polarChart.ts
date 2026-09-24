@@ -10,14 +10,13 @@ import { PolarChartAxes } from './chartAxes';
 import type { LayoutContext } from './layout/layoutManager';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
 import type { Series } from './series/series';
-import type { SeriesProperties } from './series/seriesProperties';
 import type { SeriesNodeDatum } from './series/seriesTypes';
 
 export class PolarChart extends Chart {
     static override readonly className = 'PolarChart';
     static readonly type = 'polar' as const;
 
-    override series: Series<SeriesNodeDatum, object, SeriesProperties<object> & { marker?: { size: number } }>[] = [];
+    override series: Series<SeriesNodeDatum, { marker?: { size?: number } }>[] = [];
 
     override axes = this.createChartAxes();
     override createChartAxes() {
@@ -42,7 +41,7 @@ export class PolarChart extends Chart {
     }
 
     protected async performLayout(ctx: LayoutContext) {
-        const seriesRect = ctx.layoutBox.clone().shrink(this.seriesArea.getPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(this.getSeriesAreaPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
@@ -56,7 +55,7 @@ export class PolarChart extends Chart {
 
         let maxMarkerSize = 0;
         for (const series of this.series) {
-            maxMarkerSize = Math.max(maxMarkerSize, series.properties.marker?.size ?? 0);
+            maxMarkerSize = Math.max(maxMarkerSize, series.options.marker?.size ?? 0);
         }
         for (const series of filterPolarSeries(this.series)) {
             series.maxChartMarkerSize = maxMarkerSize;

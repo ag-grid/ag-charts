@@ -28,7 +28,7 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
         style = className;
         className = undefined;
     }
-    if (className) {
+    if (className != null && className !== '') {
         for (const name of className.split(' ')) {
             element.classList.add(name);
         }

@@ -10,7 +10,7 @@ import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, type Overlay } from '../overlay/overlay';
-import type { ValidationIssueCollector } from '../validation/validationIssueCollector';
+import type { ChartValidations } from '../validation/chartValidations';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 const visibleIgnoredSeries = new Set(['map-shape-background', 'map-line-background']);
@@ -34,7 +34,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly localeManager: LocaleManager,
         private readonly animationManager: AnimationManager,
         private readonly domManager: DOMManager,
-        private readonly validationCollector: ValidationIssueCollector
+        private readonly validations: ChartValidations
     ) {
         this.overlayElem = this.domManager.addProxyChild('canvas-overlay', 'overlay');
         this.overlayElem.setAttr('role', 'status');
@@ -44,7 +44,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.cleanup.register(
             this.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
             this.eventsHub.on('canvas:resize', (e) => this.onCanvasResize(e)),
-            this.validationCollector.addListener(() => this.onValidationChange())
+            this.eventsHub.on('validation:change', () => this.onValidationChange())
         );
     }
 
@@ -127,7 +127,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
 
     // Validation takes strict priority and suppresses the loading/no-data/no-visible-series overlays.
     private selectOverlayState(seriesStateCurrent: boolean): OverlayState {
-        if (this.validationCollector.hasVisibleIssues()) {
+        if (this.validations.hasVisibleIssues()) {
             return 'validation';
         }
         if (this.dataService.isLoading()) {

@@ -34,14 +34,12 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setStep(step: number) {
+function stepChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
     const axis = options.axes?.y as AgNumberAxisOptions;
-    axis.interval = { step: step };
-    chart.update(options);
-}
-
-function clearInterval() {
-    const axis = options.axes?.y as AgNumberAxisOptions;
-    axis.interval = {};
+    delete axis.interval;
+    if (value !== 'none') {
+        axis.interval = { step: Number(value) };
+    }
     chart.update(options);
 }

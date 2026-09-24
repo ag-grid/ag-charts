@@ -39,7 +39,7 @@ interface Props {
     initialLoadDeferred?: boolean;
 }
 
-const DEFAULT_HEIGHT = 500;
+export const DEFAULT_HEIGHT = 500;
 const MIN_HEIGHT = 320;
 export const ExampleRunner: FunctionComponent<Props> = ({
     id,

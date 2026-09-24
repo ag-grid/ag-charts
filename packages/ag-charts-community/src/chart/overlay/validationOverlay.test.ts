@@ -14,11 +14,11 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../test/utils';
-import type { GroupedValidationIssues } from '../validation/validationIssueCollector';
+import type { GroupedValidationIssues } from '../validation/chartValidations';
 import { getValidationOverlay } from './validationOverlay';
 
 // A single-issue misconfiguration: an invalid `strokeWidth` validated against `lineSeriesOptionsDef`
-// before construction, so the shared `validations` collector captures it at `warning` severity.
+// before construction, so the chart's `validations` service collects it at `warning` severity.
 const invalidStrokeWidthOptions: AgChartOptions = {
     data: [{ x: 'a', y: 1 }],
     series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
@@ -30,17 +30,17 @@ describe('ValidationOverlay', () => {
 
     let chart: Chart;
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
     });
 
-    describe('#overlaySeverity threshold', () => {
-        test('warning level renders the overlay with a warnings section and summary, console warning still fires', async () => {
+    describe('#showOverlayOn selection', () => {
+        test("['warning'] renders the overlay with a warnings section and summary, console warning still fires", async () => {
             chart = await createChart({
                 ...invalidStrokeWidthOptions,
-                validations: { overlaySeverity: 'warning' },
+                validations: { showOverlayOn: ['warning'] },
             } as AgChartOptions);
 
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay');
@@ -65,7 +65,7 @@ describe('ValidationOverlay', () => {
 `);
         });
 
-        test('none level (default) renders no overlay, matching today’s behaviour; console warning still fires', async () => {
+        test('the default empty selection renders no overlay; console warning still fires', async () => {
             chart = await createChart(invalidStrokeWidthOptions);
 
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay')).toBeNull();
@@ -79,10 +79,10 @@ describe('ValidationOverlay', () => {
 `);
         });
 
-        test('error level excludes a warning-severity issue, so no overlay is rendered', async () => {
+        test("['error'] excludes a warning-severity issue, so no overlay is rendered", async () => {
             chart = await createChart({
                 ...invalidStrokeWidthOptions,
-                validations: { overlaySeverity: 'error' },
+                validations: { showOverlayOn: ['error'] },
             } as AgChartOptions);
 
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay')).toBeNull();
@@ -102,7 +102,7 @@ describe('ValidationOverlay', () => {
             chart = await createChart({
                 ...invalidStrokeWidthOptions,
                 data: [],
-                validations: { overlaySeverity: 'warning' },
+                validations: { showOverlayOn: ['warning'] },
             } as AgChartOptions);
 
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay')).not.toBeNull();
@@ -124,7 +124,7 @@ describe('ValidationOverlay', () => {
         test('replacing one issue with another re-renders the overlay content while it stays shown', async () => {
             const options = prepareTestOptions({
                 ...invalidStrokeWidthOptions,
-                validations: { overlaySeverity: 'warning' },
+                validations: { showOverlayOn: ['warning'] },
             } as AgChartOptions);
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
@@ -168,18 +168,18 @@ describe('ValidationOverlay', () => {
         // visible overlay must hold it back and clearing the overlay must release it.
         test('a visible overlay suppresses the tooltip; dismissing it releases the tooltip', async () => {
             chart = await createChart(invalidStrokeWidthOptions);
-            expect(chart.validationCollector.hasVisibleIssues()).toBe(false);
+            expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
 
             const suppressSpy = vi.spyOn(chart.ctx.tooltipManager, 'suppressTooltip');
             const unsuppressSpy = vi.spyOn(chart.ctx.tooltipManager, 'unsuppressTooltip');
 
-            chart.validationCollector.setOverlaySeverity('warning');
-            expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+            chart.ctx.validations.setShowOverlayOn(['warning']);
+            expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
             expect(suppressSpy).toHaveBeenCalledWith('validation-overlay');
             expect(unsuppressSpy).not.toHaveBeenCalled();
 
-            chart.validationCollector.dismiss();
-            expect(chart.validationCollector.hasVisibleIssues()).toBe(false);
+            chart.ctx.validations.dismiss();
+            expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
             expect(unsuppressSpy).toHaveBeenCalledWith('validation-overlay');
 
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -198,10 +198,10 @@ describe('ValidationOverlay', () => {
             try {
                 chart = await createChart({
                     ...invalidStrokeWidthOptions,
-                    validations: { overlaySeverity: 'warning' },
+                    validations: { showOverlayOn: ['warning'] },
                 } as AgChartOptions);
 
-                expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+                expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
                 expect(suppressSpy).toHaveBeenCalledWith('validation-overlay');
             } finally {
                 suppressSpy.mockRestore();
@@ -219,7 +219,7 @@ describe('ValidationOverlay', () => {
 
     describe('#callback errors', () => {
         // A throwing user callback is swallowed by the shared `safeCall` guard, so it never reaches
-        // `tryPerformUpdate`'s catch, yet must still surface as an error-severity overlay entry.
+        // `tryPerformUpdate`'s catch, yet must still surface as a warning-severity overlay entry.
         const throwingItemStylerOptions: AgChartOptions = {
             data: [
                 { x: 'Jan', y: 10 },
@@ -237,20 +237,20 @@ describe('ValidationOverlay', () => {
             ],
         };
 
-        test('a throwing itemStyler surfaces one error entry on the overlay and the chart still renders', async () => {
+        test('a throwing itemStyler surfaces one warning entry on the overlay and the chart still renders', async () => {
             chart = await createChart({
                 ...throwingItemStylerOptions,
-                validations: { overlaySeverity: 'error' },
+                validations: { showOverlayOn: ['warning'] },
             } as AgChartOptions);
 
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay');
             expect(overlayEl).not.toBeNull();
 
-            const errorSection = overlayEl!.querySelector('.ag-charts-validation-overlay__section--error');
-            expect(errorSection).not.toBeNull();
+            const warningSection = overlayEl!.querySelector('.ag-charts-validation-overlay__section--warning');
+            expect(warningSection).not.toBeNull();
 
             // The styler throws once per datum, but the caught errors collapse to a single overlay entry.
-            const messages = Array.from(errorSection!.querySelectorAll('.ag-charts-validation-overlay__message')).map(
+            const messages = Array.from(warningSection!.querySelectorAll('.ag-charts-validation-overlay__message')).map(
                 (el) => el.textContent ?? ''
             );
             expect(messages).toHaveLength(1);
@@ -264,27 +264,43 @@ describe('ValidationOverlay', () => {
             ]);
         });
 
+        // Each severity is selected on its own, so an errors-only selection must leave a warning unshown.
+        test("['error'] does not render a warning-severity callback issue", async () => {
+            chart = await createChart({
+                ...throwingItemStylerOptions,
+                validations: { showOverlayOn: ['error'] },
+            } as AgChartOptions);
+
+            expect(chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay')).toBeNull();
+            expect(chart.ctx.validations.hasVisibleIssues()).toBe(false);
+            expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(0);
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('Uncaught exception in user callback'), expect.any(Error)],
+            ]);
+        });
+
         test('a still-broken itemStyler stays on the overlay across a cache-hit redraw', async () => {
             chart = await createChart({
                 ...throwingItemStylerOptions,
-                validations: { overlaySeverity: 'error' },
+                validations: { showOverlayOn: ['warning'] },
             } as AgChartOptions);
 
-            const errorMessages = () =>
+            const warningMessages = () =>
                 Array.from(
                     chart.ctx.agDocument.body.querySelectorAll(
-                        '.ag-charts-validation-overlay__section--error .ag-charts-validation-overlay__message'
+                        '.ag-charts-validation-overlay__section--warning .ag-charts-validation-overlay__message'
                     )
                 ).map((el) => el.textContent ?? '');
 
-            expect(errorMessages()).toHaveLength(1);
+            expect(warningMessages()).toHaveLength(1);
 
-            // A redraw that reuses the callback cache never re-invokes the styler, so no fresh error is
-            // collected this cycle; the committed error must survive rather than be wiped by an empty cycle.
+            // A redraw that reuses the callback cache never re-invokes the styler, so the collected issue
+            // must survive rather than be wiped by an empty cycle.
             chart.update(ChartUpdateType.SCENE_RENDER);
             await chart.waitForUpdate(5000, true);
 
-            expect(errorMessages()).toHaveLength(1);
+            expect(warningMessages()).toHaveLength(1);
 
             expectWarningsCalls().toEqual([
                 [expect.stringContaining('Uncaught exception in user callback'), expect.any(Error)],
@@ -298,7 +314,7 @@ describe('ValidationOverlay', () => {
         test('dismiss hides the overlay; a subsequent different issue re-shows it', async () => {
             const options = prepareTestOptions({
                 ...invalidStrokeWidthOptions,
-                validations: { overlaySeverity: 'warning' },
+                validations: { showOverlayOn: ['warning'] },
             } as AgChartOptions);
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
@@ -310,7 +326,7 @@ describe('ValidationOverlay', () => {
 
             // A dismiss happens outside any update cycle, so nothing drives a removal animation to completion; the
             // overlay must detach synchronously rather than linger until the next resize.
-            chart.validationCollector.dismiss();
+            chart.ctx.validations.dismiss();
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.getAttribute('aria-hidden')).toEqual(
                 'true'
             );
@@ -358,7 +374,7 @@ describe('ValidationOverlay', () => {
                     {
                         severity: 'deprecation',
                         message: 'Option `series[0].verticalSpacing` is deprecated. Use `depthSpacing` instead.',
-                        code: 'series[0].verticalSpacing',
+                        detail: 'series[0].verticalSpacing',
                     },
                 ],
             };
@@ -390,7 +406,7 @@ describe('ValidationOverlay', () => {
     describe('#copy button availability', () => {
         const groupedWithIssue: GroupedValidationIssues = {
             error: [],
-            warning: [{ severity: 'warning', message: 'Invalid strokeWidth', code: 'series[0].strokeWidth' }],
+            warning: [{ severity: 'warning', message: 'Invalid strokeWidth', detail: 'series[0].strokeWidth' }],
             deprecation: [],
         };
 

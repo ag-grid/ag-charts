@@ -2,8 +2,8 @@ import type { FunnelStep, PageRow, PathLink, Session } from '../types';
 import { DurationHistogramChart } from './DurationHistogramChart';
 import { EmptyState } from './EmptyState';
 import { FunnelChart } from './FunnelChart';
-import { PageGrid } from './PageGrid';
 import { PagePerformanceChart } from './PagePerformanceChart';
+import { PageTreemapChart } from './PageTreemapChart';
 import { PathFlowChart } from './PathFlowChart';
 
 interface BehaviorViewProps {
@@ -31,7 +31,7 @@ export function BehaviorView({ funnelData, pathData, pageData, sessions, hasData
                     )}
                 </div>
             </section>
-            <div className="wa-grid-3">
+            <div className="wa-grid-2-even">
                 <section className="wa-card">
                     <div className="wa-card-head">
                         <div>
@@ -60,11 +60,12 @@ export function BehaviorView({ funnelData, pathData, pageData, sessions, hasData
                         )}
                     </div>
                 </section>
-
+            </div>
+            <div className="wa-grid-2-even">
                 <section className="wa-card">
                     <div className="wa-card-head">
                         <div>
-                            <h2 className="wa-card-title">Pageviews vs conversion rate</h2>
+                            <h2 className="wa-card-title">Page views vs conversion rate</h2>
                         </div>
                     </div>
                     <div className="wa-chart-box">
@@ -75,16 +76,21 @@ export function BehaviorView({ funnelData, pathData, pageData, sessions, hasData
                         )}
                     </div>
                 </section>
-            </div>
-
-            <section className="wa-card">
-                <div className="wa-card-head">
-                    <div>
-                        <h2 className="wa-card-title">Page performance</h2>
+                <section className="wa-card">
+                    <div className="wa-card-head">
+                        <div>
+                            <h2 className="wa-card-title">Page view distribution</h2>
+                        </div>
                     </div>
-                </div>
-                {hasData ? <PageGrid rows={pageData} /> : <EmptyState message="No page data in this range" />}
-            </section>
+                    <div className="wa-chart-box">
+                        {hasData && pageData.length > 0 ? (
+                            <PageTreemapChart data={pageData} />
+                        ) : (
+                            <EmptyState message="No page data in this range" />
+                        )}
+                    </div>
+                </section>
+            </div>
         </div>
     );
 }

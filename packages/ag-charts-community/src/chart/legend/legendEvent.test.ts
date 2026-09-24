@@ -4,6 +4,7 @@ import type {
     AgCartesianChartOptions,
     AgChartLegendClickEvent,
     AgChartLegendDoubleClickEvent,
+    AgChartOptions,
     AgSeriesVisibilityChange,
 } from 'ag-charts-types';
 
@@ -51,7 +52,7 @@ describe('LegendEvent', () => {
     };
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -234,6 +235,33 @@ describe('LegendEvent', () => {
                 itemId: undefined,
                 legendItemName: undefined,
             });
+        });
+
+        test('initialState legend ignores an empty itemId rather than matching every item', async () => {
+            const opts = prepareTestOptions({
+                data: [
+                    { os: 'Android', share: 5 },
+                    { os: 'iOS', share: 3 },
+                    { os: 'Windows', share: 2 },
+                ],
+                series: [{ id: 'donut-1', type: 'donut', angleKey: 'share', legendItemKey: 'os' }],
+            } as AgChartOptions);
+            const apiChart = AgCharts.create(opts);
+            chart = deproxy(apiChart);
+            await waitForChartStability(chart);
+
+            await apiChart.update({
+                ...opts,
+                initialState: { legend: [{ seriesId: 'donut-1', itemId: '', visible: false }] },
+            });
+            await waitForChartStability(chart);
+
+            // `itemId: 0` addresses the first slice only; a truthiness check on `itemId` matched
+            // every item in the series instead.
+            const { legendManager } = chart.ctx;
+            expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 0 })).toBe(true);
+            expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 1 })).toBe(true);
+            expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 2 })).toBe(true);
         });
     });
 

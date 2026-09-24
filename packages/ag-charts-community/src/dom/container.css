@@ -31,10 +31,6 @@
     pointer-events: none;
 }
 
-.ag-charts-canvas-background {
-    position: absolute;
-}
-
 .ag-charts-canvas-center {
     position: absolute;
     touch-action: auto;
@@ -61,10 +57,16 @@
     display: block;
 }
 
+.ag-charts-series-area-bounds {
+    position: absolute;
+}
+
 .ag-charts-series-area {
     outline: none;
     pointer-events: auto;
     position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 .ag-charts-swapchain {

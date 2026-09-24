@@ -103,7 +103,8 @@ describe('buildOptionsApiMarkdown', () => {
     const output = buildOptionsApiMarkdown({ reference: optionsReference, siteRoot: SITE_ROOT });
 
     it("emits frontmatter matching the page's title and description", () => {
-        expect(output.startsWith('---\ntitle: "Options API"\n')).toBe(true);
+        expect(output.startsWith('---\nproduct: "AG Charts"\n')).toBe(true);
+        expect(output).toContain('title: "Options API"');
         expect(output).toContain('description: "Options API reference for AG Charts');
         expect(output).toContain('\n# AgChartOptions\n');
         expect(output).toContain('Configuration for the chart.');
@@ -134,6 +135,7 @@ describe('buildOptionsVariantMarkdown', () => {
         pageInterface: 'AgBarSeriesOptions',
         pageTitle,
         ...optionsVariantPageContent(pageTitle),
+        pageUrl: '/options/series/bar/',
         siteRoot: SITE_ROOT,
     });
 
@@ -156,7 +158,8 @@ describe('buildThemesApiMarkdown', () => {
     const output = buildThemesApiMarkdown({ reference: themesReference, siteRoot: SITE_ROOT });
 
     it("emits frontmatter matching the page's title and description", () => {
-        expect(output.startsWith('---\ntitle: "Themes API"\n')).toBe(true);
+        expect(output.startsWith('---\nproduct: "AG Charts"\n')).toBe(true);
+        expect(output).toContain('title: "Themes API"');
         expect(output).toContain('\n# AgChartTheme\n');
         expect(output).toContain('Interface: `AgChartTheme`');
     });

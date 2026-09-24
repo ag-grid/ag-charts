@@ -1,14 +1,15 @@
 import { type AxisPluginModuleDefinition, undocumentedThemeOptions } from 'ag-charts-core';
 import type { AgBaseCrossLineOptions } from 'ag-charts-types';
 
+import { communityModule } from '../../module/moduleIdentity';
 import { VERSION } from '../../version';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import { CrossLinesPlugin } from './crossLinesPlugin';
 
-export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions[]> = {
+export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions[]> = /* #__PURE__ */ communityModule({
     type: 'axis:plugin',
     name: 'crossLines',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
     enterprise: false,
     version: VERSION,
 
@@ -58,4 +59,4 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
         ctx.factory('crossLine', () => new CartesianCrossLine());
     },
     create: (ctx) => new CrossLinesPlugin(ctx),
-};
+});

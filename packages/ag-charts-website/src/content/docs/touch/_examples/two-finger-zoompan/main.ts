@@ -73,7 +73,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setEnabled(enabled: boolean) {
+function toggleTwoFingerZoom(event: Event) {
+    const enabled = (event.target as HTMLInputElement).value === 'true';
     if (options.zoom) {
         options.zoom.enableTwoFingerZoom = enabled;
     }

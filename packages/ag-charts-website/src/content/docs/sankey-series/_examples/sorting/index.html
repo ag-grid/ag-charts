@@ -1,9 +1,15 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="sortData()"><code>'data'</code></button>
-        <button onclick="sortAscending()"><code>'ascending'</code></button>
-        <button onclick="sortDescending()"><code>'descending'</code></button>
-        <button onclick="sortAuto()"><code>'auto'</code></button>
+        <div class="button-group" role="group" aria-label="Sort">
+            <input type="radio" id="sort-data" name="sort" value="data" onchange="sortChange(event)" />
+            <label for="sort-data"><code>'data'</code></label>
+            <input type="radio" id="sort-ascending" name="sort" value="ascending" onchange="sortChange(event)" />
+            <label for="sort-ascending"><code>'ascending'</code></label>
+            <input type="radio" id="sort-descending" name="sort" value="descending" onchange="sortChange(event)" />
+            <label for="sort-descending"><code>'descending'</code></label>
+            <input type="radio" id="sort-auto" name="sort" value="auto" checked onchange="sortChange(event)" />
+            <label for="sort-auto"><code>'auto'</code></label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

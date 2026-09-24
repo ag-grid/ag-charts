@@ -1,5 +1,6 @@
 import { type AgMapShapeSeriesOptions, VERSION } from 'ag-charts-community';
 import {
+    COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -7,7 +8,9 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_RANGE2_OPERATION,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
@@ -27,6 +30,8 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
+            ...COMMON_SERIES_THEME_DEFAULTS,
+            ...undocumentedThemeOptions({ topologyIdKey: 'name' }),
             fill: applyMapPalette({
                 $applySwitch: [
                     { $path: 'type' },
@@ -50,21 +55,31 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                         },
                     ],
                 },
+                mode: 'continuous',
             },
             fillOpacity: 1,
             strokeWidth: 1,
-            lineDash: [0],
-            lineDashOffset: 0,
+            ...STROKE_STYLE_THEME_DEFAULTS,
             padding: 2,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
+                // The shape always bounds the label, so the shared opt-in triggers do not apply: wrapping is
+                // always on and overflow hides unless `truncate` (or the deprecated `ellipsis`) is asked for.
+                wrapping: 'on-space',
+                truncate: {
+                    $isUserOption: [
+                        './overflowStrategy',
+                        { $eq: [{ $path: './overflowStrategy' }, 'ellipsis'] },
+                        undefined,
+                    ],
+                },
                 enabled: true,
                 color: { $ref: 'chartBackgroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: 'bold',
-                overflowStrategy: 'hide',
             },
+            tooltip: { interaction: { enabled: false } },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,
         },

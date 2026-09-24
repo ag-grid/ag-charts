@@ -93,7 +93,7 @@ async function renderGalleryExamples(attributes: Record<string, any>, siteRoot?:
     });
     const links = family.examples.map(({ label, url }) => `- [${label}](${toAbsoluteUrl(url, siteRoot)})`).join('\n');
     const hubUrl = toAbsoluteUrl(family.hubUrl, siteRoot);
-    return `Every ${galleryFamilyName(family.title)} example in the [AG Charts gallery](${hubUrl}):\n\n${links}`;
+    return `See more ${galleryFamilyName(family.title)} examples in the [AG Charts Gallery](${hubUrl}).\n\n${links}`;
 }
 
 async function renderMajorTable(
@@ -135,7 +135,7 @@ function renderEmbedSnippet(attributes: Record<string, any>, pageName: string, s
 function renderChangelogSection(attributes: Record<string, any>): string {
     const version = String(attributes.version ?? '');
     const site = (attributes.site ?? 'charts') as Library;
-    if (!version) {
+    if (version === '') {
         return '';
     }
     const url = getChangelogUrl({ site, version });
@@ -145,7 +145,7 @@ function renderChangelogSection(attributes: Record<string, any>): string {
 function renderDocumentationArchiveSection(attributes: Record<string, any>): string {
     const version = String(attributes.version ?? '');
     const site = (attributes.site ?? 'charts') as Library;
-    if (!version) {
+    if (version === '') {
         return '';
     }
     const { major, minor } = parseVersion(version);
@@ -179,9 +179,10 @@ function renderFeaturesSection(
     }
     return features
         .map((feature) => {
-            const title = feature.link
-                ? `[${feature.title}](${toAbsoluteUrl(urlWithPrefix({ url: feature.link, framework }), siteRoot)})`
-                : feature.title;
+            const title =
+                feature.link == null || feature.link === ''
+                    ? feature.title
+                    : `[${feature.title}](${toAbsoluteUrl(urlWithPrefix({ url: feature.link, framework }), siteRoot)})`;
             return `- **${title}** — ${feature.description}`;
         })
         .join('\n');

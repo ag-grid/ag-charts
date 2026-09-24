@@ -179,4 +179,8 @@ function toggleLowHigh(lowHigh: boolean): void {
     } satisfies AgChartOptions<DatumType>);
 }
 
+function lowHighChange(event: Event) {
+    toggleLowHigh((event.target as HTMLInputElement).value === 'split');
+}
+
 toggleLowHigh(false);

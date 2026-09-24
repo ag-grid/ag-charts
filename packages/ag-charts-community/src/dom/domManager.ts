@@ -1,13 +1,13 @@
 import {
     AgDocument,
     type StrictHTMLElement,
-    attachListener,
     createElement,
     createId,
     createStyleElement,
     entries,
     isDirectionRtl,
     isDocumentFragment,
+    isNode,
     isObject,
     kebabCase,
     setAttribute,
@@ -30,12 +30,12 @@ import NORMAL_DOM from './domLayout.html';
 const DOM_ELEMENT_CLASSES = [
     'styles',
     'canvas',
-    'canvas-background',
     'canvas-center',
     'canvas-container',
     'canvas-overlay',
     'canvas-proxy',
     'series-area',
+    'series-area-bounds',
     'tooltip-container',
     'style-sensors',
 ] as const;
@@ -55,6 +55,7 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['canvas-overlay', { childElementType: 'div' }],
     ['canvas-center', { childElementType: 'div' }],
     ['series-area', { childElementType: 'div' }],
+    ['series-area-bounds', { childElementType: 'div' }],
     ['tooltip-container', { childElementType: 'div' }],
 ]);
 
@@ -77,7 +78,6 @@ function setupObserver(agDocument: AgDocument, element: HTMLElement, cb: (inters
 type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, StrictHTMLElement>;
-    listeners: [string, Function, boolean | AddEventListenerOptions | undefined][];
 };
 
 const NULL_DOMRECT: DOMRect = {
@@ -148,7 +148,9 @@ const globalListenerRegistry = createPerWindowRegistry<GlobalListenerSubscriber,
 export class DOMManager extends BaseManager {
     static readonly className = 'DOMManager';
     private static readonly batchedUpdateContainer: DOMManager[] = [];
-    private static readonly headStyles = new Set<string>();
+    // Head styles are shared per document: a chart in an iframe must not stop a chart in the main document
+    // from getting its own copy.
+    private static readonly headStyles = new WeakMap<HTMLHeadElement, Set<string>>();
 
     readonly anchorName = `--${createId(this)}`;
 
@@ -219,6 +221,7 @@ export class DOMManager extends BaseManager {
         this.rootElements = this.initRootElements();
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
+        this.element.addEventListener('focusin', this.onFocusIn);
 
         this.sizeMonitor.observe(this.rootElements['canvas'].element, () => this.invalidateRectCaches(), {
             skipInitialRead: this.mode === 'minimal',
@@ -270,7 +273,8 @@ export class DOMManager extends BaseManager {
         const seriesArea = createElement('div');
         element.appendChild(seriesArea);
         seriesArea.role = 'presentation';
-        seriesArea.classList.add('ag-charts-series-area');
+        // Both classes on one element: minimal mode has nothing for the series area to offset against.
+        seriesArea.classList.add('ag-charts-series-area', 'ag-charts-series-area-bounds');
         return element;
     }
 
@@ -296,11 +300,7 @@ export class DOMManager extends BaseManager {
                 throw new Error(`AG Charts - unable to find DOM element ${className}`);
             }
 
-            rootElements[domElement] = {
-                element: el,
-                children: new Map<string, StrictHTMLElement>(),
-                listeners: [],
-            };
+            rootElements[domElement] = { element: el, children: new Map<string, StrictHTMLElement>() };
         }
 
         return rootElements;
@@ -321,6 +321,7 @@ export class DOMManager extends BaseManager {
         this.observer?.unobserve(this.element);
         this.disconnectAttachObservers();
         this.sizeMonitor.unobserve(this.rootElements['canvas'].element);
+        this.element.removeEventListener('focusin', this.onFocusIn);
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
         }
@@ -624,35 +625,20 @@ export class DOMManager extends BaseManager {
         key: string,
         modifier: string | undefined
     ) {
-        return `${prefix}${component ? '__' : ''}${component ?? ''}-${kebabCase(key)}${modifier ? '--' : ''}${modifier ?? ''}`;
+        const componentPart = component == null || component === '' ? '' : `__${component}`;
+        const modifierPart = modifier == null || modifier === '' ? '' : `--${modifier}`;
+        return `${prefix}${componentPart}-${kebabCase(key)}${modifierPart}`;
     }
 
     updateCanvasLabel(ariaLabel: string) {
         setAttribute(this.rootElements['canvas-proxy'].element, 'aria-label', ariaLabel);
     }
 
-    private getEventElement<K extends keyof HTMLElementEventMap>(defaultElem: HTMLElement, eventType: K) {
-        // For now, the only element managed by DOMManager that is focusable is 'series-area'
-        const events = ['focus', 'blur', 'keydown', 'keyup'];
-        return events.includes(eventType) ? this.rootElements['series-area'].element : defaultElem;
-    }
-
-    addEventListener<K extends keyof HTMLElementEventMap>(
-        type: K,
-        listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-        options?: boolean | AddEventListenerOptions
-    ) {
-        const element = this.getEventElement(this.element, type);
-        return attachListener(element, type, listener, options);
-    }
-
-    removeEventListener<K extends keyof HTMLElementEventMap>(
-        type: K,
-        listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-        options?: boolean | EventListenerOptions
-    ) {
-        this.getEventElement(this.element, type).removeEventListener(type, listener, options);
-    }
+    private readonly onFocusIn = ({ target }: FocusEvent) => {
+        if (isNode(target) && !this.rootElements['series-area-bounds'].element.contains(target)) {
+            this.eventsHub.emit('dom:series-blurred', null);
+        }
+    };
 
     /** Get the main chart area client bound rect. */
     getBoundingClientRect() {
@@ -820,11 +806,6 @@ export class DOMManager extends BaseManager {
         return search != null && el.contains(search);
     }
 
-    contains(element: HTMLElement, domElementClass?: DOMElementClass) {
-        if (domElementClass == null) return this.element.contains(element);
-        return this.rootElements[domElementClass].element.contains(element);
-    }
-
     addStyles(id: string, styles: string) {
         const dataAttribute = 'data-ag-charts';
 
@@ -876,11 +857,19 @@ export class DOMManager extends BaseManager {
             // Add to our DOM tree as we don't know if this is a shadow DOM case or not, or even necessarily
             // which Document we might be attached to.
             styleElement = this.addChild('styles', id);
-        } else if (this.shadowDocumentRoot == null && !DOMManager.headStyles.has(id)) {
+        } else if (this.shadowDocumentRoot == null) {
             // Add to document head as failsafe fallback.
-            styleElement = addStyleElement(this.agDocument.head);
-            DOMManager.headStyles.add(id);
-        } else if (this.shadowDocumentRoot != null) {
+            const { head } = this.agDocument;
+            let headStyles = DOMManager.headStyles.get(head);
+            if (headStyles == null) {
+                headStyles = new Set();
+                DOMManager.headStyles.set(head, headStyles);
+            }
+            if (!headStyles.has(id)) {
+                styleElement = addStyleElement(head);
+                headStyles.add(id);
+            }
+        } else {
             // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
             styleElement = this.addChild('styles', id);
         }
@@ -956,9 +945,9 @@ export class DOMManager extends BaseManager {
     }
 
     addChild(domElementClass: DOMElementClass, id: string, child?: HTMLElement, insert?: DOMInsertOption) {
-        const { element, children, listeners } = this.rootElements[domElementClass];
+        const { element, children } = this.rootElements[domElementClass];
 
-        if (!children) {
+        if (children == null) {
             throw new Error('AG Charts - unable to create DOM elements after destroy()');
         }
         if (children.has(id)) {
@@ -972,9 +961,6 @@ export class DOMManager extends BaseManager {
 
         // Only allow return values from createElementId() to be used for newChild.id
         const newChild = (child ?? (createElement(childElementType) satisfies HTMLElement)) as StrictHTMLElement;
-        for (const [type, fn, opts] of listeners) {
-            newChild.addEventListener(type, fn as any, opts);
-        }
         children.set(id, newChild);
         if (childElementType === 'style' && this.styleNonce != null) {
             newChild.nonce = this.styleNonce;
@@ -1019,7 +1005,7 @@ export class DOMManager extends BaseManager {
 
     removeChild(domElementClass: DOMElementClass, id: string) {
         const { children } = this.rootElements[domElementClass];
-        if (!children) return;
+        if (children == null) return;
 
         children.get(id)?.remove();
         children.delete(id);

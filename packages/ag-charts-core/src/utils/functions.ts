@@ -39,14 +39,14 @@ export function debounce<T extends (...args: Parameters<T>) => void>(
     }
 
     function debounceCallback(...args: Parameters<T>) {
-        if (leading && !startTime) {
+        if (leading && startTime == null) {
             startTime = Date.now();
             timerId = setTimeout(() => (startTime = null), waitMs);
             callback(...args);
             return;
         }
         let adjustedWaitMs = waitMs;
-        if (maxWait !== Infinity && startTime) {
+        if (maxWait !== Infinity && startTime != null) {
             const elapsedTime = Date.now() - startTime;
             if (waitMs > maxWait - elapsedTime) {
                 adjustedWaitMs = maxWait - elapsedTime;
@@ -129,14 +129,12 @@ export function safeCall<T = unknown>(
     callback: Function,
     args: any[],
     logger: Logger | undefined,
-    errorPath = '',
-    onError?: (error: unknown, errorPath: string) => void
+    errorPath = ''
 ): T | undefined {
     try {
         return callback(...args);
     } catch (error) {
-        const postfix = errorPath ? ` \`${errorPath}\`` : '';
+        const postfix = errorPath === '' ? '' : ` \`${errorPath}\``;
         logger?.warnOnce(`Uncaught exception in user callback${postfix}`, error);
-        onError?.(error, errorPath);
     }
 }

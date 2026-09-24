@@ -52,12 +52,17 @@ export interface ApiMenuItem {
     path: string;
 }
 
+export interface FooterLink {
+    name: string;
+    url: string;
+    newTab?: boolean;
+    showCookiesPrefs?: boolean;
+    iconName?: IconName;
+}
+
 export interface FooterItem {
     title: string;
-    links: {
-        name: string;
-        url: string;
-        newTab?: boolean;
-        iconName: string;
-    }[];
+    /** Where the group renders: the legal strip under the columns, or (default) a menu column. */
+    placement?: 'legal';
+    links: FooterLink[];
 }

@@ -1,21 +1,12 @@
-import {
-    BaseProperties,
-    Property,
-    cachedTextMeasurer,
-    clampArray,
-    createId,
-    findMinMax,
-    fitLabelText,
-    toRadians,
-} from 'ag-charts-core';
-import type { BoxBounds, CanvasPoint, CrossLineLabelOverflow, Scale } from 'ag-charts-core';
+import { cachedTextMeasurer, clampArray, createId, findMinMax, fitLabelText, toRadians } from 'ag-charts-core';
 import type {
-    AgCartesianAxisPosition,
-    AgCartesianCrossLineLabelOptions,
-    AgCrossLineLabelPosition,
-    AgCrossLineListeners,
-    Padding,
-} from 'ag-charts-types';
+    BoxBounds,
+    CanvasPoint,
+    NormalisedAxisCrossLineLabelOptions,
+    NormalisedAxisCrossLineOptions,
+    Scale,
+} from 'ag-charts-core';
+import type { AgCartesianAxisPosition, AgCrossLineLabelPosition, AgCrossLineListeners } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
@@ -23,7 +14,6 @@ import { PointerEvents } from '../../scene/node';
 import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { LabelStyle } from '../label';
 import { rangeAlignment } from '../rangeAlignment';
 import { bandRangeExpansion } from '../scaleValue';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
@@ -143,81 +133,39 @@ function availableExtent(anchorAt: number, labelDir: AnchorDirection, pad: numbe
     return 2 * Math.min(anchorAt - low, high - anchorAt);
 }
 
-class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLineLabelOptions {
-    @Property
-    enabled!: boolean;
-
-    @Property
-    override padding: Padding = 5;
-
-    @Property
-    text?: string;
-
-    @Property
+export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions & {
     position?: CrossLineLabelPosition;
-
-    @Property
-    overflow?: CrossLineLabelOverflow;
-
-    @Property
-    reserveSpace: boolean = false;
-
-    @Property
-    rotation?: number;
-
-    @Property
+    reserveSpace: boolean;
     parallel?: boolean;
-}
+};
 
 type NodeData = [number, number];
 
-/** Pointer hit tolerance in pixels, widening a cross line's line/fill so thin `line` cross lines remain targetable. */
-const CROSS_LINE_HIT_TOLERANCE = 5;
+const CROSS_LINE_MIN_HIT_TOLERANCE = 5;
 
-export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
+/** Pointer hit tolerance in pixels: half the stroke, floored so thin `line` cross lines remain targetable. */
+export function crossLineHitTolerance(strokeWidth: number | undefined): number {
+    return Math.max(CROSS_LINE_MIN_HIT_TOLERANCE, (strokeWidth ?? 1) / 2);
+}
+
+const DEFAULT_RANGE_FILL = '#c16068';
+
+export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOptions> {
     static readonly className = 'CrossLine';
     readonly internalId = createId(this);
 
-    @Property
     id?: string;
-
-    @Property
     enabled?: boolean;
-
-    @Property
     type!: CrossLineType;
-
-    @Property
     range?: [unknown, unknown];
-
-    @Property
     value?: unknown;
-
-    @Property
-    defaultColorRange: string[] = [];
-
-    @Property
-    fill: string = '#c16068';
-
-    @Property
+    fill: string = DEFAULT_RANGE_FILL;
     fillOpacity?: number;
-
-    @Property
     stroke?: string;
-
-    @Property
     strokeWidth?: number;
-
-    @Property
     strokeOpacity?: number;
-
-    @Property
-    lineDash?: [];
-
-    @Property
-    label: CartesianCrossLineLabel = new CartesianCrossLineLabel();
-
-    @Property
+    lineDash?: number[];
+    label!: CartesianCrossLineLabelOptions;
     listeners?: AgCrossLineListeners<unknown>;
 
     scale?: Scale<any, number> = undefined; // TODO: this type does not match the interface
@@ -242,15 +190,32 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private endLine: boolean = false;
 
     constructor() {
-        super();
         this.crossLineRange.pointerEvents = PointerEvents.None;
+    }
+
+    applyOptions(options: NormalisedAxisCrossLineOptions) {
+        const { id, enabled, type, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, listeners } =
+            options;
+        this.id = id;
+        this.enabled = enabled;
+        this.type = type;
+        this.range = options.type === 'range' ? options.range : undefined;
+        this.value = options.type === 'line' ? options.value : undefined;
+        this.fill = fill ?? DEFAULT_RANGE_FILL;
+        this.fillOpacity = fillOpacity;
+        this.stroke = stroke;
+        this.strokeWidth = strokeWidth;
+        this.strokeOpacity = strokeOpacity;
+        this.lineDash = lineDash;
+        this.listeners = listeners;
+        this.label = { reserveSpace: false, ...options.label };
     }
 
     /**
      * Hit-tests a canvas-space point against this cross line's rendered line/fill and its label, widened
-     * by {@link CROSS_LINE_HIT_TOLERANCE} so thin `line` cross lines remain targetable. The `crossLineRange`
-     * node holds the geometry for both the `line` (stroke) and `range` (fill) variants; its bbox is
-     * transformed into canvas space to match the pointer coordinates carried by pointer events.
+     * by {@link crossLineHitTolerance}. The `crossLineRange` node holds the geometry for both the `line`
+     * (stroke) and `range` (fill) variants; its bbox is transformed into canvas space to match the
+     * pointer coordinates carried by pointer events.
      */
     containsPoint(point: CanvasPoint): boolean {
         const group = this.type === 'range' ? this.rangeGroup : this.lineGroup;
@@ -258,7 +223,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             return false;
         }
 
-        const bbox = Transformable.toCanvas(this.crossLineRange).clone().grow(CROSS_LINE_HIT_TOLERANCE);
+        const tolerance = crossLineHitTolerance(this.strokeWidth);
+        const bbox = Transformable.toCanvas(this.crossLineRange).clone().grow(tolerance);
         if (bbox.containsPoint(point.canvasX, point.canvasY)) {
             return true;
         }
@@ -266,7 +232,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         // The label is only rendered under the same conditions `updateNodes` applies, so an
         // unlabelled cross line must not report a hit on its zero-sized label node.
         const { label } = this;
-        if (!this.labelGroup.visible || label.enabled === false || !label.text) {
+        if (!this.labelGroup.visible || label.enabled === false || label.text == null || label.text === '') {
             return false;
         }
         return Transformable.toCanvas(this.crossLineLabel).containsPoint(point.canvasX, point.canvasY);
@@ -367,7 +333,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         this.data = [clampedYStart, clampedYEnd];
 
-        if (this.label.enabled === false || !this.label.text) return;
+        if (this.label.enabled === false || this.label.text == null || this.label.text === '') return;
     }
 
     get reservesLabelSpace(): boolean {
@@ -377,7 +343,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     /** Taken from the drawn node, so whatever `positionLabel` and `clipLabelText` settled on is reserved. */
     getLabelBox(): BoxBounds | undefined {
         const { crossLineLabel, label } = this;
-        if (label.enabled === false || !label.text || !this.labelGroup.visible) return;
+        if (label.enabled === false || label.text == null || label.text === '' || !this.labelGroup.visible) return;
 
         return Transformable.toCanvas(crossLineLabel);
     }
@@ -404,7 +370,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         this.updateRangeNode(bounds);
 
         const { label } = this;
-        if (label.enabled !== false && label.text) {
+        if (label.enabled !== false && label.text != null && label.text !== '') {
             this.updateLabel();
             if (label.overflow === 'clip-text') {
                 this.clipLabelText(bounds);
@@ -449,7 +415,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private updateLabel() {
         const { crossLineLabel, label } = this;
 
-        if (!label.text) return;
+        if (label.text == null || label.text === '') return;
 
         crossLineLabel.fill = label.color;
         crossLineLabel.text = label.text;
@@ -498,10 +464,10 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     private clipLabelText(bounds: BBox) {
         const { crossLineLabel, containerBox, label, anchor } = this;
         const { text } = label;
-        if (containerBox == null || !text) return;
+        if (containerBox == null || text == null || text === '') return;
 
         const bbox = crossLineLabel.getBBox();
-        if (!bbox) return;
+        if (bbox == null) return;
 
         const { x, y, width, height } = containerBox;
         const container = Transformable.fromCanvas(this.labelGroup, new BBox(x, y, width, height));
@@ -538,7 +504,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const { crossLineLabel, anchor } = this;
 
         const bbox = crossLineLabel.getBBox();
-        if (!bbox) return;
+        if (bbox == null) return;
         const { width, height } = bbox;
 
         const { pad, xPaddingDiff, yPaddingDiff } = this.labelAnchorOffsets();
@@ -556,7 +522,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     private computeLabelSize(): { width: number; height: number } | undefined {
         const { label } = this;
-        if (label.enabled === false || !label.text) return;
+        if (label.enabled === false || label.text == null || label.text === '') return;
         const tempText = new TransformableText();
         tempText.fontFamily = label.fontFamily;
         tempText.fontSize = label.fontSize;
@@ -568,7 +534,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         tempText.textAlign = 'center';
 
         const bbox = tempText.getBBox();
-        if (!bbox) return;
+        if (bbox == null) return;
 
         const { width, height } = bbox;
         return { width, height };

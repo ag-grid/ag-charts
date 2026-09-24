@@ -8,21 +8,28 @@ export interface DemoExample extends DemoPageExample {
     demoAppId: string;
 }
 
-/** Listed in feature-list order; paths stay flat so the site needs no redirects. */
+/**
+ * Listed in feature-list order; paths stay flat so the site needs no redirects.
+ *
+ * To refresh an `image`, screenshot `/demos/<demoAppId>/` off a running `nx dev` at 1600x1000
+ * (16:10, matching the button) and save it 320px wide (2x the 160px feature-list thumbnail).
+ */
 export const DEMO_EXAMPLES: DemoExample[] = [
     {
         id: 'financial',
-        title: 'Financial Dashboard',
+        title: 'Trading Terminal',
         path: './examples/',
-        description: 'Candlestick and volume series driven by a live price feed.',
+        description: 'Candlestick and volume series driven by streaming market data.',
         demoAppId: 'financial',
+        image: '/images/demos/financial.webp',
     },
     {
         id: 'web-analytics',
         title: 'Web Analytics',
         path: './examples-web-analytics/',
-        description: 'Traffic, funnel and retention charts over a shared date range.',
+        description: 'Traffic, funnel and sankey charts over a shared date range.',
         demoAppId: 'web-analytics',
+        image: '/images/demos/web-analytics.webp',
     },
     // Uncomment to re-list the procurement demo, restoring `src/pages/examples-procurement.astro`
     // and its `.md.ts` twin alongside it. Its copy is still in DEMO_PAGE_CONTENT.

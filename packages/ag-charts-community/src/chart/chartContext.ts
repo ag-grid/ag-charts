@@ -4,11 +4,12 @@ import {
     type DynamicContext,
     EventEmitter,
     type Logger,
-    ModuleRegistry,
+    type ModuleScope,
     ModuleType,
     ReactiveState,
     type StrictHTMLElement,
     createDynamicContext,
+    moduleMatchesChartType,
 } from 'ag-charts-core';
 
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
@@ -43,6 +44,7 @@ import { LayoutManager } from './layout/layoutManager';
 import { OptionsGraphService } from './optionsGraphService';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
+import { ChartValidations } from './validation/chartValidations';
 
 export interface ChartContextVars {
     chartType: ChartType;
@@ -57,6 +59,7 @@ export interface ChartContextVars {
     domMode?: 'normal' | 'minimal';
     withDragInterpretation: boolean;
     logger: Logger;
+    moduleRegistry: ModuleScope;
     updateMutex: Mutex;
     cssVariables?: Record<string, string>;
 }
@@ -99,6 +102,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
     // Owned by the options processing that created it and shared with the chart that replaces this
     // one on a type switch, so it must outlive this context's destroy cascade.
     ctx.ref('logger', vars.logger)
+        .constant('moduleRegistry', vars.moduleRegistry)
         .constant('eventsHub', eventsHub)
         .constant('agDocument', vars.agDocument)
         // `ref` keeps the host chart readable via `ctx.chartService` without the destroy cascade
@@ -112,7 +116,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         // when transferable resources are preserved across chart-type switches.
         .ref('scene', scene);
 
-    ctx.service('callbackCache', (c) => new CallbackCache(c.logger))
+    ctx.service('validations', (c) => new ChartValidations(c))
+        .service('callbackCache', (c) => new CallbackCache(c.logger))
         .service('formatManager', () => new FormatManager())
         .service('seriesStateManager', () => new SeriesStateManager())
         .service('stateManager', (c) => new StateManager(c.logger))
@@ -143,8 +148,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
 
     // Plugin modules register their own services (e.g. sharedToolbar) after the
     // core registry is complete but before any consumer reads from the context.
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-        if (!module.chartType || module.chartType === vars.chartType) {
+    for (const module of vars.moduleRegistry.listModulesByType(ModuleType.Plugin)) {
+        if (moduleMatchesChartType(module, vars.chartType)) {
             module.register?.(ctx);
         }
     }

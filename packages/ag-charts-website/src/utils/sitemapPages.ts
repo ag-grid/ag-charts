@@ -1,6 +1,5 @@
 import { getDocsPages } from '@components/docs/utils/pageData';
 import { getExamplePageUrl } from '@components/docs/utils/urlPaths';
-import { FRAMEWORK_REDIRECT_PATH } from '@constants';
 import { getCollection } from 'astro:content';
 
 import { getDebugPageUrls } from './pages';
@@ -16,13 +15,10 @@ const getDocsExamplePaths = () => {
 
 const getInternalPages = () => {
     return [
-        urlWithBaseUrl('/*/*-test/'),
+        // SE-182: NOT /*/*-test/ or /demos/ — a Disallow would hide their own noindex/canonical signal.
         urlWithBaseUrl('/*/*-e2e/'),
         urlWithBaseUrl('/gallery-test'),
         urlWithBaseUrl('/*/benchmarks/'),
-        // Demo app examples: the routes and their built SPA assets are published but
-        // must stay out of search engines and AI crawlers.
-        urlWithBaseUrl('/demos/'),
         urlWithBaseUrl('/internal-demos/'),
     ];
 };
@@ -39,13 +35,16 @@ const getHiddenPages = async () => {
     return docsHiddenPages;
 };
 
-const getIgnoredPages = () => {
+export const getIgnoredPages = () => {
     return [
         urlWithBaseUrl('/404'),
         addTrailingSlash(urlWithBaseUrl('/gallery/examples')),
         addTrailingSlash(urlWithBaseUrl('/archive')),
-        // Redirects
-        addTrailingSlash(urlWithBaseUrl(`/${FRAMEWORK_REDIRECT_PATH}`)),
+
+        // NOTE: /r/ framework redirect pages are deliberately NOT disallowed: they are
+        // crawlable so their static links to the framework pages can be followed for SEO. They
+        // are still excluded from the sitemap (see sitemap.ts `isRedirectPage`).
+
         // Release note stubs — minimal content, crawl waste
         addTrailingSlash(urlWithBaseUrl('/changelog/releases')),
         // Contact form result pages — post-submission confirmations, nothing to index

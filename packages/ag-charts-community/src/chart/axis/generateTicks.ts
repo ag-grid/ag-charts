@@ -14,7 +14,7 @@ import {
     normalizeAngle360FromDegrees,
     rotatePoint,
 } from 'ag-charts-core';
-import type { PaddingOptions } from 'ag-charts-types';
+import type { PaddingOptions, VerticalAlign } from 'ag-charts-types';
 
 import { CategoryScale } from '../../scale/categoryScale';
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -24,6 +24,7 @@ import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { expandLabelPadding } from '../label';
+import { getVerticalAlignShift } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
 import {
@@ -59,7 +60,16 @@ const sunday = new Date(1970, 0, 4);
 export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>
 ) {
-    const { label, parallel = false, domain, axisRotation, labelOffset, sideFlag } = options;
+    const {
+        label,
+        parallel = false,
+        domain,
+        axisRotation,
+        labelOffset,
+        sideFlag,
+        labelBaseline,
+        labelBandOffsets,
+    } = options;
     const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
         label.rotation,
         parallel,
@@ -72,10 +82,31 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         const labelSpacing = label.minSpacing ?? (configuredRotation === 0 && rotation === 0 ? 10 : 0);
         const labelRotation = initialRotation + rotation;
         const labelPadding = expandLabelPadding(label);
+        // Where the band flush will leave each label, rather than where the anchor sits now: rotated
+        // labels of differing size flush by differing amounts, along their own text direction.
+        // The flush is measured off the label nodes, so it needs the rendered rotation - not
+        // `labelRotation`, whose `defaultRotation` is only the frame `createLabelData` compares in.
+        const computedBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
+        const bandOffsets = labelBandOffsets?.(
+            tickData.ticks,
+            configuredRotation + rotation,
+            getTextAlign(parallel, configuredRotation, rotation, sideFlag, regularFlipFlag),
+            computedBaseline
+        );
 
         return (
             axisLabelsOverlap(createTimeLabelData(options, tickData, labelRotation), labelSpacing) ||
-            axisLabelsOverlap(createLabelData(tickData.ticks, labelOffset, labelRotation, labelPadding), labelSpacing)
+            axisLabelsOverlap(
+                createLabelData(
+                    tickData.ticks,
+                    labelOffset,
+                    labelRotation,
+                    labelPadding,
+                    labelBaseline ?? computedBaseline,
+                    bandOffsets
+                ),
+                labelSpacing
+            )
         );
     };
 
@@ -99,13 +130,21 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         rawFirstTickIndex: 0,
     };
 
+    // A configured step or explicit values pin the ticks, so lowering the count only decays the
+    // nice domain: at tickCount 1 the scale stops honouring the interval and widens past the data.
+    const fixedInterval = options.interval?.step != null || options.interval?.values != null;
+
     while (labelOverlap && index <= maxIterations) {
-        ({ tickData, index } = buildTickData(options, tickGenerationType, tickData, index));
+        let intervalIgnored: boolean | undefined;
+        ({ tickData, index, intervalIgnored } = buildTickData(options, tickGenerationType, tickData, index));
 
         autoRotation =
             tryAutoRotate && checkLabelOverlap(tickData, 0)
                 ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335)
                 : 0;
+
+        // A step the scale rejected as too dense leaves automatic ticks, which the search can still thin.
+        if (fixedInterval && !intervalIgnored) break;
 
         labelOverlap = avoidCollisions && checkLabelOverlap(tickData, autoRotation);
     }
@@ -180,6 +219,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
 ): {
     index: number;
     tickData: TickData<TDatum>;
+    intervalIgnored: boolean | undefined;
 } {
     const { step, values } = options.interval ?? {};
 
@@ -224,6 +264,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
         alignment,
         fractionDigits,
         timeInterval,
+        intervalIgnored,
     } = nextTicks;
 
     return {
@@ -247,7 +288,71 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
             }),
         },
         index: index + 1,
+        intervalIgnored,
     };
+}
+
+/**
+ * Explicit values pin the ticks, leaving no meaningful tick count for the bounds to be niced
+ * against: a count that suits the data can snap them to a grid the data does not sit on, leaving
+ * the axis wider than another nicing would. Take whichever encloses the data most tightly.
+ */
+function calculateNiceDomain<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
+    scale: TScale,
+    domainParams: ScaleTickParams<any>,
+    domain: TDatum[],
+    { tickCount, minTickCount }: CountParams,
+    tickGenerationType: TickGenerationType,
+    values: unknown[] | undefined
+): TDatum[] {
+    let niceDomain = scale.niceDomain(domainParams, domain);
+    if (tickGenerationType !== TickGenerationType.VALUES) return niceDomain;
+
+    const spacing = domainParams.interval == null && values != null ? evenValueSpacing(values) : undefined;
+    const candidates: ScaleTickParams<any>[] = [];
+    if (minTickCount < tickCount) {
+        candidates.push({ ...domainParams, tickCount: minTickCount });
+    }
+    if (spacing != null) {
+        candidates.push({ ...domainParams, interval: spacing });
+    }
+
+    for (const params of candidates) {
+        const candidate = scale.niceDomain(params, domain);
+        if (contains(candidate, domain) && domainExtent(candidate) < domainExtent(niceDomain)) {
+            niceDomain = candidate;
+        }
+    }
+    return niceDomain;
+}
+
+function domainExtent(domain: unknown[]): number {
+    const [d0, d1] = findMinMax(domain.map(Number));
+    return Number.isFinite(d0) && Number.isFinite(d1) ? d1 - d0 : Infinity;
+}
+
+function contains(outer: unknown[], inner: unknown[]): boolean {
+    const [o0, o1] = findMinMax(outer.map(Number));
+    const [i0, i1] = findMinMax(inner.map(Number));
+    return o0 <= i0 && o1 >= i1;
+}
+
+function evenValueSpacing(values: unknown[]): number | undefined {
+    if (values.length < 2 || !values.every((value) => typeof value === 'number' && Number.isFinite(value))) {
+        return;
+    }
+
+    const sorted = (values as number[]).toSorted((a, b) => a - b);
+    const spacing = (sorted.at(-1)! - sorted[0]) / (sorted.length - 1);
+    if (spacing <= 0) return;
+
+    // Adjacent subtractions of a decimal sequence each round differently, so compare every value
+    // against the position it would occupy rather than against its neighbour.
+    const tolerance = spacing * 1e-6;
+    for (let i = 1; i < sorted.length - 1; i += 1) {
+        if (Math.abs(sorted[i] - (sorted[0] + i * spacing)) > tolerance) return;
+    }
+    return spacing;
 }
 
 function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
@@ -289,7 +394,8 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     }
 
     const niceDomain = niceMode.includes(NiceMode.TickAndDomain)
-        ? (secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain))
+        ? (secondaryAxisTicks?.domain ??
+          calculateNiceDomain(scale, domainParams, domain, countParams, tickGenerationType, interval?.values))
         : domain;
     let tickDomain: TDatum[] = niceDomain;
     let rawTicks: any[] | undefined;
@@ -298,6 +404,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     let timeInterval: AnyTimeInterval | undefined;
     let primaryTicksIndices: Set<number> | undefined;
     let alignment: ScaleAlignment | undefined;
+    let intervalIgnored: boolean | undefined;
 
     const generatePrimaryTicks = primaryLabel?.enabled === true && tickParams.interval == null;
 
@@ -328,6 +435,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     const tickGeneration = scale.ticks(tickParams, niceDomain, visibleRange);
                     rawTicks = tickGeneration?.ticks;
                     rawTickCount = tickGeneration?.count;
+                    intervalIgnored = tickGeneration?.intervalIgnored;
                 }
                 break;
 
@@ -364,18 +472,19 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     timeInterval = minTimeInterval;
                 }
 
-                const intervalTicks = timeInterval
-                    ? getTimeIntervalTicks(
-                          scale,
-                          visibleRange,
-                          tickCount,
-                          maxTickCount,
-                          tickParams,
-                          timeInterval,
-                          reverse,
-                          minimumTimeGranularity
-                      )
-                    : undefined;
+                const intervalTicks =
+                    timeInterval == null
+                        ? undefined
+                        : getTimeIntervalTicks(
+                              scale,
+                              visibleRange,
+                              tickCount,
+                              maxTickCount,
+                              tickParams,
+                              timeInterval,
+                              reverse,
+                              minimumTimeGranularity
+                          );
                 if (intervalTicks) {
                     ({ ticks: rawTicks, primaryTicksIndices, alignment } = intervalTicks);
                 } else {
@@ -388,6 +497,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                     rawTicks = tickGeneration?.ticks;
                     rawTickCount = tickGeneration?.count;
                     rawFirstTickIndex = tickGeneration?.firstTickIndex;
+                    intervalIgnored = tickGeneration?.intervalIgnored;
                     if (TimeScale.is(scale) || DiscreteTimeScale.is(scale)) {
                         const paramsInterval =
                             typeof tickParams.interval === 'number'
@@ -426,6 +536,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
         alignment,
         fractionDigits,
         timeInterval,
+        intervalIgnored,
     };
 }
 
@@ -459,20 +570,29 @@ function createLabelData(
     tickData: TickDatum[],
     labelOffset: number,
     labelRotation: number,
-    labelPadding: Required<PaddingOptions>
+    labelPadding: Required<PaddingOptions>,
+    textBaseline: VerticalAlign,
+    bandOffsets?: number[]
 ) {
     const labelData: BoxBounds[] = [];
     const xPadding = labelPadding.left + labelPadding.right;
     const yPadding = labelPadding.top + labelPadding.bottom;
 
-    for (const { tickLabel, textMetrics, translation } of tickData) {
-        if (!tickLabel) continue;
+    for (let i = 0; i < tickData.length; i += 1) {
+        const { tickLabel, textMetrics, translation } = tickData[i];
+        if (tickLabel == null || tickLabel === '') continue;
 
-        const { x, y } = rotatePoint(labelOffset, translation, labelRotation);
+        // `labelOffset` runs outward from the axis line, the opposite sign to the datum's `y` that
+        // the flush moves, so the displacement is subtracted.
+        const crossOffset = labelOffset - (bandOffsets?.[i] ?? 0);
+        const { x, y } = rotatePoint(crossOffset, translation, labelRotation);
         const width = textMetrics.width + xPadding;
         const height = textMetrics.height + yPadding;
+        // The boxes are compared in the label's own frame, where the anchor sits on the baseline:
+        // a taller label hangs further above a bottom baseline than a shorter one does.
+        const top = y + getVerticalAlignShift(textMetrics.height, 'top', textBaseline) - labelPadding.top;
 
-        labelData.push({ x, y, width, height });
+        labelData.push({ x, y: top, width, height });
     }
 
     return labelData;

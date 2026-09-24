@@ -42,7 +42,8 @@ const options: AgStandaloneChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function toggleMode(mode: 'stops' | 'gradient') {
+function modeChange(event: Event) {
+    const mode = (event.target as HTMLInputElement).value as 'stops' | 'gradient';
     const series = options.series![0] as AgSunburstSeriesOptions;
     if (mode === 'stops') {
         series.colorScale = {

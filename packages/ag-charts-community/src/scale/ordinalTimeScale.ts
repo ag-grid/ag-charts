@@ -143,7 +143,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const { interval, maxTickCount, tickCount = maxTickCount } = params;
         const { bands, reversed } = this;
 
-        if (!bands.length) return;
+        if (bands.length === 0) return;
 
         if (reversed) {
             visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
@@ -171,16 +171,19 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const [r0, r1] = this.range;
         const availableRange = Math.abs(r1 - r0);
 
-        const dateTicks =
-            getDateTicksForInterval({
-                start,
-                stop,
-                interval,
-                availableRange,
-                visibleRange,
-                extend,
-                logger: this.logger,
-            }) ?? this.getDefaultTicks(domain, tickCount, visibleRange, extend).ticks;
+        const intervalTicks = getDateTicksForInterval({
+            start,
+            stop,
+            interval,
+            availableRange,
+            visibleRange,
+            extend,
+            logger: this.logger,
+        });
+        // A rejected interval leaves automatic ticks driven by tickCount, so the axis overlap search
+        // must keep thinning them rather than stopping after its first pass.
+        const intervalIgnored = intervalTicks == null;
+        const dateTicks = intervalTicks ?? this.getDefaultTicks(domain, tickCount, visibleRange, extend).ticks;
 
         const ticks: Date[] = [];
         let lastIndex = -1;
@@ -194,7 +197,9 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             }
         }
 
-        return { ticks, count: undefined, firstTickIndex: undefined };
+        const result: ScaleTickResult<Date> = { ticks, count: undefined, firstTickIndex: undefined };
+        if (intervalIgnored) result.intervalIgnored = true;
+        return result;
     }
 
     stepTicks(bandStep: number, domain?: Date[], visibleRange: [number, number] = [0, 1], dropLast = true): Date[] {

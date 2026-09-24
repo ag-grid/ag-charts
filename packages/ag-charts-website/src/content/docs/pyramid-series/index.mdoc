@@ -1,6 +1,6 @@
 ---
 title: 'Pyramid Series'
-description: '$framework Pyramid Series uses the height of sections to show the proportions of a value over a category of values.'
+description: '$framework Pyramid Series uses the height of segments to show the proportions of a value over a category of values.'
 ---
 
 A Pyramid Series is a triangular shaped visualisation that uses the height of each segment to represent its value as a proportion of the whole.
@@ -84,23 +84,32 @@ In this configuration:
 
 ## Labels
 
-Each stage can show its value with `label`, positioned along the stage axis.
+The values can be displayed inside or outside each segment using the `label` option, and the segment name can be shown with the `stageLabel` option.
+
+{% chartExampleRunner title="Pyramid Label Placement" name="pyramid-label-placement" type="generated" /%}
 
 ```js format="snippet"
 {
     label: {
         enabled: true,
-        placement: ['inside-center', 'outside-after'],
+        placement: 'inside-center',
+    },
+    stageLabel: {
+        placement: 'before',
     },
 }
 ```
 
 In this configuration:
 
-- `inside-center` centres the label on the stage and limits its width to the part of the stage the text sits across, so a long label wraps more in a narrow stage than in a wide one.
-- An outside placement is rejected when it would leave the series area, so it works best as a fallback. Use `aspectRatio` and `spacing` to make room for one.
+- The label is positioned as `inside-center`. Use the dropdown to see all available placements.
+    - `start` and `end` are above and below the segment when vertical, left and right of it when horizontal.
+    - `before` and `after` are the other two sides, matching `stageLabel.placement`.
+- `stageLabel.placement` positions the segment names on either side of the chart.
+- On a vertical pyramid, `before` and `after` are mirrored when [RTL Layout](./rtl/) is enabled.
+- Providing `placement` as an ordered array (e.g. `['inside-center', 'outside-end']`) lets a label that does not fit inside its segment fall back to an outside position.
 
-See [Series Labels](./series-labels/) for the full set of label, placement and collision options.
+See [Series Labels](./series-labels/) for the full set of label placement and collision avoidance options, and the [API Reference](#api-reference) for additional customisation options.
 
 ## Pyramid Chart Examples
 

@@ -1,11 +1,45 @@
 <div class="example-controls">
     <div class="controls-row">
-        <label>Axis Scrolling:</label>
-        <button onclick="setAxisScrolling(true)">Enable</button>
-        <button onclick="setAxisScrolling(false)">Disable</button>
-        <label>Series Area Scrolling:</label>
-        <button onclick="setSeriesAreaScrolling(true)">Enable</button>
-        <button class="gap-right" onclick="setSeriesAreaScrolling(false)">Disable</button>
+        <span>Axis Scrolling:</span>
+        <div class="button-group gap-right" role="group" aria-label="Axis Scrolling">
+            <input
+                type="radio"
+                id="axis-scrolling-enable"
+                name="axis-scrolling"
+                value="true"
+                checked
+                onchange="setAxisScrolling(event)"
+            />
+            <label for="axis-scrolling-enable">Enable</label>
+            <input
+                type="radio"
+                id="axis-scrolling-disable"
+                name="axis-scrolling"
+                value="false"
+                onchange="setAxisScrolling(event)"
+            />
+            <label for="axis-scrolling-disable">Disable</label>
+        </div>
+        <span>Series Area Scrolling:</span>
+        <div class="button-group" role="group" aria-label="Series Area Scrolling">
+            <input
+                type="radio"
+                id="series-area-scrolling-enable"
+                name="series-area-scrolling"
+                value="true"
+                checked
+                onchange="setSeriesAreaScrolling(event)"
+            />
+            <label for="series-area-scrolling-enable">Enable</label>
+            <input
+                type="radio"
+                id="series-area-scrolling-disable"
+                name="series-area-scrolling"
+                value="false"
+                onchange="setSeriesAreaScrolling(event)"
+            />
+            <label for="series-area-scrolling-disable">Disable</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

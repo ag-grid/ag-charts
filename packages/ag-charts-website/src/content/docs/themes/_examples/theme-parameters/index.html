@@ -1,9 +1,15 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="useDefaultTheme()">Default</button>
-        <button onclick="usePaperTheme()">Paper</button>
-        <button onclick="useOceanTheme()">Ocean</button>
-        <button onclick="useNeonTheme()">Neon</button>
+        <div class="button-group" role="group" aria-label="Theme">
+            <input type="radio" id="theme-default" name="theme" value="default" onchange="themeChange(event)" />
+            <label for="theme-default">Default</label>
+            <input type="radio" id="theme-paper" name="theme" value="paper" checked onchange="themeChange(event)" />
+            <label for="theme-paper">Paper</label>
+            <input type="radio" id="theme-ocean" name="theme" value="ocean" onchange="themeChange(event)" />
+            <label for="theme-ocean">Ocean</label>
+            <input type="radio" id="theme-neon" name="theme" value="neon" onchange="themeChange(event)" />
+            <label for="theme-neon">Neon</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

@@ -40,7 +40,7 @@ jobs:
         steps:
             # Needed for the local shared action below; it clones the publish branch itself.
             - name: Checkout
-              uses: actions/checkout@v7
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
               with:
                   fetch-depth: 1
 
@@ -63,6 +63,10 @@ jobs:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   publish_branch: snapshot-review
                   dry_run: ${{ inputs.dry_run || false }}
+                  # Report links pin a commit SHA on this branch (the viewer refuses a branch
+                  # name), so its history must stay intact - a squash would orphan every
+                  # link already posted on an open PR.
+                  squash_history: false
                   # Nothing but self-contained HTML reports is published here, so there are no maps
                   # to find and the scan is pure cost.
                   purge_source_maps: false

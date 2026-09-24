@@ -23,7 +23,7 @@
         flex: none;
         padding: $spacing-size-2 $spacing-size-4;
         font-size: 12px;
-        line-height: var(--text-lh-tight);
+        line-height: var(--text-lh-ratio-tight);
         border-top: 1px solid var(--color-border-secondary);
         transition: border-color 0.5s ease-in-out;
     }
@@ -59,6 +59,30 @@
 
     @media screen and (min-width: 1120px) {
         --columns: 3;
+    }
+}
+
+// A carousel slide, on the hub grid's column count so a page of the strip is a hub row.
+.layout-thumbnail {
+    --slides-per-page: 1;
+
+    width: calc((100% - var(--carousel-gap) * (var(--slides-per-page) - 1)) / var(--slides-per-page));
+
+    @media screen and (min-width: 720px) {
+        --slides-per-page: 2;
+    }
+
+    @media screen and (min-width: 1120px) {
+        --slides-per-page: 3;
+    }
+}
+
+// Sized entirely by its container, for a card grid that sets its own track widths.
+.layout-fill {
+    width: 100%;
+
+    .image {
+        padding: $spacing-size-3;
     }
 }
 

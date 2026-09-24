@@ -1,12 +1,14 @@
 import { type AgBandHighlightOptions, VERSION } from 'ag-charts-community';
 import type { AxisPluginModuleDefinition } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { BandHighlight } from './bandHighlight';
 
 export const BandHighlightModule: AxisPluginModuleDefinition<AgBandHighlightOptions> = {
     type: 'axis:plugin',
     name: 'bandHighlight',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
+    dependencies: [BackgroundRegionsModule],
     axisTypes: ['category', 'ordinal-time', 'unit-time', 'grouped-category'],
     enterprise: true,
     version: VERSION,

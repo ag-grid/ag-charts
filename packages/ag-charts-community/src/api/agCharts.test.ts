@@ -8,6 +8,7 @@ import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
 import {
     deproxy,
+    expectErrorsCalls,
     expectWarningsCalls,
     prepareTestOptions,
     resetMockConsole,
@@ -30,7 +31,7 @@ describe('AgCharts', () => {
     });
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -415,14 +416,6 @@ describe('AgCharts', () => {
         });
     });
     describe('invalid options', () => {
-        // `setupMockConsole` asserts `console.error` is clean at teardown, so reading through here consumes the reports.
-        function expectErrorCalls() {
-            const errorMock = console.error as Mock;
-            const { calls } = errorMock.mock;
-            errorMock.mockClear();
-            return expect(calls);
-        }
-
         const expectedError =
             /^AG Charts - AgCharts\.create\(\) requires a non-empty options object; a minimal chart specifies a `container` and `series` \(or `data`\)\./;
 
@@ -439,7 +432,7 @@ describe('AgCharts', () => {
         ])('logs a descriptive error for %s and still returns an instance', (_name, options) => {
             expect(() => (chart = AgCharts.create(options as any))).not.toThrow();
             expect(chart).toBeDefined();
-            expectErrorCalls().toEqual([[expect.stringMatching(expectedError)]]);
+            expectErrorsCalls().toEqual([[expect.stringMatching(expectedError)]]);
             expect(console.warn).not.toHaveBeenCalled();
         });
 
@@ -462,11 +455,11 @@ describe('AgCharts', () => {
 
         it('records the error as a validation issue the overlay can show', () => {
             chart = AgCharts.create(undefined as any);
-            expectErrorCalls().toHaveLength(1);
-            const { validationCollector } = deproxy(chart);
-            validationCollector.setOverlaySeverity('error');
-            expect(validationCollector.hasVisibleIssues()).toBe(true);
-            expect(validationCollector.getVisibleIssues().error).toEqual([
+            expectErrorsCalls().toHaveLength(1);
+            const { validations } = deproxy(chart).ctx;
+            validations.setShowOverlayOn(['error']);
+            expect(validations.hasVisibleIssues()).toBe(true);
+            expect(validations.getVisibleIssues().error).toEqual([
                 { severity: 'error', message: expect.stringMatching(/^AgCharts\.create\(\) requires a non-empty/) },
             ]);
         });
@@ -478,7 +471,7 @@ describe('AgCharts', () => {
                 'AgCharts `options` prop'
             );
             chart = AgCharts.create({ ...wrapperOptions, container } as any);
-            expectErrorCalls().toEqual([
+            expectErrorsCalls().toEqual([
                 [
                     expect.stringMatching(
                         /^AG Charts - AgCharts `options` prop requires a non-empty options object.*Received undefined\.$/
@@ -498,7 +491,7 @@ describe('AgCharts', () => {
             );
             await chart.update({ ...wrapperOptions, container } as AgChartOptions);
 
-            expectErrorCalls().toEqual([
+            expectErrorsCalls().toEqual([
                 [expect.stringMatching(/^AG Charts - AgCharts `options` prop requires a non-empty options object/)],
             ]);
         });
@@ -511,17 +504,13 @@ describe('AgCharts', () => {
         // The enterprise presets are unregistered in this community-only registry, so each also reports
         // the module the caller needs before its entry point can do anything.
         it.each([
-            [
-                'createFinancialChart',
-                () => AgCharts.createFinancialChart(undefined as any),
-                ['PriceVolumePresetModule'],
-            ],
-            ['createGauge', () => AgCharts.createGauge(undefined as any), ['GaugePresetModule']],
+            ['createFinancialChart', () => AgCharts.createFinancialChart(undefined as any), ['FinancialChartModule']],
+            ['createGauge', () => AgCharts.createGauge(undefined as any), ['AllGaugeModule']],
             ['createQuadrantChart', () => AgCharts.createQuadrantChart(undefined as any), ['QuadrantChartModule']],
             ['__createSparkline', () => AgCharts.__createSparkline(undefined as any), []],
         ])('names %s in the error it reports', (methodName, call, missingModules) => {
             expect(() => (chart = call() as AgChartInstance)).not.toThrow();
-            expectErrorCalls().toEqual([
+            expectErrorsCalls().toEqual([
                 ...missingModules.map((moduleId) => [expect.stringContaining(moduleId)]),
                 [
                     expect.stringMatching(
@@ -535,7 +524,7 @@ describe('AgCharts', () => {
 
         it('rejects a sparkline whose only option is `pool`', () => {
             chart = AgCharts.__createSparkline({ pool: true } as any) as AgChartInstance;
-            expectErrorCalls().toEqual([
+            expectErrorsCalls().toEqual([
                 [
                     expect.stringMatching(
                         /^AG Charts - AgCharts\.__createSparkline\(\) requires a non-empty options object/
@@ -588,55 +577,84 @@ describe('AgCharts', () => {
             return messages;
         }
 
-        it('reports the implicit `line` default and renders nothing instead of crashing', async () => {
-            await withOnlyBarRegistered(() => {
-                expect(() => (chart = AgCharts.create({ container } as AgChartOptions))).not.toThrow();
+        // No series survive, yet the captions and chart-level defaults are resolved and applied.
+        function expectEmptyChartWithDefaults(title: string) {
+            const chartInstance = deproxy(chart);
+            expect(chartInstance.series).toHaveLength(0);
+            expect(chartInstance.ctx.chartState.getValue('options', 'title')?.text).toBe(title);
+            expect(chartInstance.ctx.chartState.getValue('options', 'padding')).toBeDefined();
+            expect(chartInstance.ctx.chartState.getValue('options', 'touch')).toBeDefined();
+        }
+
+        it('reports the implicit `line` default and renders an empty chart', async () => {
+            await withOnlyBarRegistered(async () => {
+                expect(
+                    () => (chart = AgCharts.create({ container, title: { text: 'Implicit' } } as AgChartOptions))
+                ).not.toThrow();
+                await chart.waitForUpdate();
             });
 
             const messages = takeErrorMessages();
             expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
             expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
-            expect(messages.some((m) => m.includes("reading 'dragAction'"))).toBe(false);
-            expect(deproxy(chart).series).toHaveLength(0);
+            expect(messages).toHaveLength(1);
+            expectEmptyChartWithDefaults('Implicit');
         });
 
-        it('reports an explicit series type with no module and renders nothing instead of crashing', async () => {
-            await withOnlyBarRegistered(() => {
+        it('reports an explicit series type with no module and renders an empty chart', async () => {
+            await withOnlyBarRegistered(async () => {
                 expect(
                     () =>
                         (chart = AgCharts.create({
                             container,
+                            title: { text: 'Explicit' },
                             data: [{ x: 'a', y: 1 }],
                             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                         } as AgChartOptions))
                 ).not.toThrow();
+                await chart.waitForUpdate();
             });
 
             const messages = takeErrorMessages();
             expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
-            expect(messages.some((m) => m.includes("reading 'dragAction'"))).toBe(false);
-            expect(deproxy(chart).series).toHaveLength(0);
+            expect(messages).toHaveLength(1);
+            expectEmptyChartWithDefaults('Explicit');
         });
 
-        it('replaces the refresh listener, so a refresh after the module is registered applies the latest options', async () => {
-            let created: AgChartInstance | undefined;
+        it('reports an enterprise series type with no module and renders an empty chart', async () => {
+            expect(
+                () =>
+                    (chart = AgCharts.create({
+                        container,
+                        title: { text: 'Enterprise' },
+                        data: [{ month: 'Jan', region: 'North', revenue: 130 }],
+                        series: [{ type: 'heatmap', xKey: 'month', yKey: 'region', colorKey: 'revenue' }],
+                    } as AgChartOptions))
+            ).not.toThrow();
+            await chart.waitForUpdate();
+
+            const messages = takeErrorMessages();
+            expect(messages.some((m) => m.includes('HeatmapSeriesModule'))).toBe(true);
+            expect(messages).toHaveLength(1);
+            expectEmptyChartWithDefaults('Enterprise');
+        });
+
+        it('applies the latest options once the module is registered and a refresh is requested', async () => {
             await withOnlyBarRegistered(async () => {
-                created = AgCharts.create({
+                chart = AgCharts.create({
                     container,
                     data: [{ x: 'a', y: 1 }],
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
                 } as AgChartOptions);
-                chart = created!;
                 await chart.waitForUpdate();
 
-                // Skipped — no line module yet — but it must still own the refresh listener.
                 await chart.update({
                     container,
                     data: [{ x: 'a', y: 1 }],
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 } as AgChartOptions);
                 takeErrorMessages();
-                expect(deproxy(chart).series.map((s) => s.type)).toEqual(['bar']);
+                expect(deproxy(chart).series).toHaveLength(0);
 
                 ModuleRegistry.registerModules([LineSeriesModule]);
                 deproxy(chart).ctx.eventsHub.emit('chart:request-refresh', null);
@@ -644,68 +662,6 @@ describe('AgCharts', () => {
             });
 
             expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
-        });
-
-        it('keeps the skipped options as the base, so a later delta update recovers them', async () => {
-            await withOnlyBarRegistered(async () => {
-                chart = AgCharts.create({
-                    container,
-                    data: [{ x: 'a', y: 1 }],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                } as AgChartOptions);
-                await chart.waitForUpdate();
-
-                await chart.update({
-                    container,
-                    data: [{ x: 'a', y: 1 }],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                } as AgChartOptions);
-                takeErrorMessages();
-
-                ModuleRegistry.registerModules([LineSeriesModule]);
-                // A delta cannot restate the series, so it must merge onto the skipped options.
-                await chart.updateDelta({ data: [{ x: 'a', y: 2 }] });
-                await chart.waitForUpdate();
-            });
-
-            expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
-        });
-
-        it('resolves the lead series type from the post-sentinel options on a full update()', async () => {
-            await withOnlyBarRegistered(async () => {
-                ModuleRegistry.registerModules([LineSeriesModule]);
-                chart = AgCharts.create({
-                    container,
-                    title: { text: 'Dropped by the next update' },
-                    data: [{ x: 'a', y: 1 }],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                } as AgChartOptions);
-                await chart.waitForUpdate();
-
-                // Omitting `title` makes the diff carry removal sentinels, so the lead type has to be
-                // read from options the sentinels have already been cleaned out of.
-                await chart.update({
-                    container,
-                    data: [{ x: 'a', y: 1 }],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                } as AgChartOptions);
-                await chart.waitForUpdate();
-            });
-
-            expect(console.error).not.toHaveBeenCalled();
-            expect(deproxy(chart).series.map((s) => s.type)).toEqual(['line']);
-        });
-
-        it('skips a chart-driven update instead of crashing on the pruned chart-level defaults', async () => {
-            // The constructor updates (via `parentResize`) before `AgCharts.create()` can short-circuit,
-            // so the skip has to hold inside `Chart.update()` too.
-            await withOnlyBarRegistered(() => {
-                chart = AgCharts.create({ container } as AgChartOptions);
-                expect(() => deproxy(chart).update()).not.toThrow();
-            });
-
-            takeErrorMessages();
-            expect(deproxy(chart).series).toHaveLength(0);
         });
 
         it('still renders a series type that is registered', async () => {

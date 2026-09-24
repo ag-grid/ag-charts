@@ -36,12 +36,12 @@ const options: AgLinearGaugeOptions = {
 
 const chart = AgCharts.createGauge(options);
 
-function setCornerMode(cornerMode: 'container' | 'item') {
-    options.cornerMode = cornerMode;
+function setCornerMode(event: Event) {
+    options.cornerMode = (event.target as HTMLInputElement).value as 'container' | 'item';
     chart.update(options);
 }
 
-function setSegmentation(segmented: boolean) {
-    options.segmentation!.enabled = segmented;
+function setSegmentation(event: Event) {
+    options.segmentation!.enabled = (event.target as HTMLInputElement).value === 'true';
     chart.update(options);
 }

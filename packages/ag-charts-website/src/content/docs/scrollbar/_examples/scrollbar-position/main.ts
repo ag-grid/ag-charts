@@ -60,6 +60,9 @@ const options: AgCartesianChartOptions = {
         vertical: {
             position: 'right',
         },
+        horizontal: {
+            position: 'bottom',
+        },
     },
     initialState: {
         zoom: {
@@ -71,7 +74,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setVerticalPosition(value: 'left' | 'right') {
+function setVerticalPosition(event: Event) {
+    const value = (event.target as HTMLInputElement).value as 'left' | 'right';
     options.scrollbar = {
         ...options.scrollbar,
         vertical: {
@@ -82,7 +86,8 @@ function setVerticalPosition(value: 'left' | 'right') {
     chart.update(options);
 }
 
-function setHorizontalPosition(value: 'top' | 'bottom') {
+function setHorizontalPosition(event: Event) {
+    const value = (event.target as HTMLInputElement).value as 'top' | 'bottom';
     options.scrollbar = {
         ...options.scrollbar,
         horizontal: {

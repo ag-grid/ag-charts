@@ -1,8 +1,13 @@
-import { afterEach, describe, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
-import { compareImageSnapshot, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import {
+    compareImageSnapshot,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -14,7 +19,7 @@ describe('BackgroundImage', () => {
     let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -65,5 +70,26 @@ describe('BackgroundImage', () => {
         chart = AgCharts.create(options);
 
         await compare(chart);
+    });
+
+    it('Resets the image opacity when it is removed on update', async () => {
+        const options: AgCartesianChartOptions = {
+            background: { image: { url: SMALL_IMAGE, width: 100, height: 100 } },
+        };
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        const opaque = ctx.snapshot();
+
+        await chart.update({
+            ...options,
+            background: { image: { url: SMALL_IMAGE, width: 100, height: 100, opacity: 0.3 } },
+        });
+        await waitForChartStability(chart);
+        expect(ctx.snapshot()).not.toMatchImage(opaque, { writeDiff: false });
+
+        await chart.update(options);
+        await waitForChartStability(chart);
+        expect(ctx.snapshot()).toMatchImage(opaque);
     });
 });

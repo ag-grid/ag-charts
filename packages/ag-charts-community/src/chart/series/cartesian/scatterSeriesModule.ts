@@ -2,6 +2,7 @@ import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
+    COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -11,11 +12,13 @@ import {
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgScatterSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
+import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { BUBBLE_SCATTER_COLOR_SCALE_THEME, BUBBLE_SCATTER_GRADIENT_LEGEND_THEME } from './bubbleSeriesModule';
@@ -25,6 +28,7 @@ import { predictCartesianAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
     series: {
+        ...COMMON_SERIES_THEME_DEFAULTS,
         shape: 'circle',
         size: 7,
         fill: {
@@ -38,6 +42,8 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
         },
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.8,
+        strokeWidth: 1,
+        ...STROKE_STYLE_THEME_DEFAULTS,
         maxRenderedItems: 2000,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
@@ -50,6 +56,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesArea: false } }) },
+            placement: 'top',
         },
         tooltip: {
             range: {
@@ -62,15 +69,16 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
             position: {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
+            interaction: { enabled: false },
         },
-        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         colorScale: BUBBLE_SCATTER_COLOR_SCALE_THEME,
     },
     gradientLegend: BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,
 };
 
-export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
+export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = /* #__PURE__ */ communityModule({
     type: 'series',
     name: 'scatter',
     chartType: 'cartesian',
@@ -93,4 +101,4 @@ export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions>
     themeTemplate,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new ScatterSeries(ctx),
-};
+});

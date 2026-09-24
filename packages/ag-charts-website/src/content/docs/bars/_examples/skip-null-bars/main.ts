@@ -61,12 +61,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function skipNullBars() {
-    (options.axes!.x as AgCategoryAxisOptions).skipNullBars = true;
-    chart.update(options);
-}
-
-function showNullBars() {
-    (options.axes!.x as AgCategoryAxisOptions).skipNullBars = false;
+function skipNullBarsChange(event: Event) {
+    (options.axes!.x as AgCategoryAxisOptions).skipNullBars = (event.target as HTMLInputElement).value === 'true';
     chart.update(options);
 }

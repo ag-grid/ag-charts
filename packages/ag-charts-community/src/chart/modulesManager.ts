@@ -1,4 +1,4 @@
-import { ModuleRegistry, ModuleType, type PluginModuleInstance } from 'ag-charts-core';
+import { type PluginModuleInstance } from 'ag-charts-core';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { ModuleMap } from '../module/moduleMap';
@@ -6,14 +6,17 @@ import type { ChartLegend, ChartLegendType } from './legend/legendDatum';
 
 export type SelectionModuleFns = Pick<AgChartInstance, 'getSelection' | 'setSelection' | 'clearSelection'>;
 
+const LEGEND_MODULES: ReadonlyArray<[legendType: ChartLegendType, moduleName: string]> = [
+    ['category', 'legend'],
+    ['gradient', 'gradientLegend'],
+];
+
 export class ModulesManager extends ModuleMap<PluginModuleInstance> {
     *legends(): Generator<{ legendType: ChartLegendType; legend: ChartLegend }> {
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-            if (module.name === 'legend' || module.name === 'gradientLegend') {
-                yield {
-                    legendType: module.name === 'legend' ? 'category' : 'gradient',
-                    legend: this.getModule<ChartLegend>(module.name)!,
-                };
+        for (const [legendType, moduleName] of LEGEND_MODULES) {
+            const legend = this.getModule<ChartLegend>(moduleName);
+            if (legend) {
+                yield { legendType, legend };
             }
         }
     }

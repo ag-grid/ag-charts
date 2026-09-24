@@ -10,7 +10,9 @@ test.describe('Combination charts', () => {
             test('loads combination chart', async ({ page }) => {
                 await gotoExample(page, url);
 
-                const controlButtons = await page.locator('.controls-row button').all();
+                const controlButtons = await page
+                    .locator('.controls-row button, .controls-row .button-group > label')
+                    .all();
                 for (let i = 0; i < controlButtons.length; i++) {
                     await controlButtons[i].click();
                     await waitForAllChartUpdates(page);

@@ -38,12 +38,14 @@ function getFactory(bindings: any): string {
 
 function getCreateCall(bindings: any, propertyName: string, isPrimary: boolean): string {
     const factory = getFactory(bindings);
+    const modules = bindings.chartModules[propertyName];
+    const args = modules ? `${propertyName}, { modules: ${modules} }` : propertyName;
 
     if (isPrimary) {
-        return `const chart = ${factory}(${propertyName});`;
+        return `const chart = ${factory}(${args});`;
     }
 
-    return `${factory}(${propertyName});`;
+    return `${factory}(${args});`;
 }
 
 export function vanillaToTypescript(bindings: any): string {

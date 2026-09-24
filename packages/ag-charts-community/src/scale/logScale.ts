@@ -1,4 +1,4 @@
-import type { ScaleTickParams } from 'ag-charts-core';
+import type { ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
 import { createTicks, findMinMax, findRangeExtent, isDenseInterval, isInteger, range } from 'ag-charts-core';
 
 import { ContinuousScale } from './continuousScale';
@@ -89,8 +89,8 @@ export class LogScale extends ContinuousScale<number> {
         { interval, tickCount = ContinuousScale.defaultTickCount }: ScaleTickParams<number>,
         domain: number[] = this.domain,
         visibleRange?: [number, number]
-    ): { ticks: number[]; count: number; firstTickIndex: number | undefined } | undefined {
-        if (!domain || domain.length < 2 || tickCount < 1) {
+    ): ScaleTickResult<number> | undefined {
+        if (domain == null || domain.length < 2 || tickCount < 1) {
             return;
         }
         // See niceDomain: narrow a raw bigint domain to Number before Math.min/Math.log.
@@ -104,7 +104,8 @@ export class LogScale extends ContinuousScale<number> {
         let p0 = this.log(start);
         let p1 = this.log(stop);
 
-        if (interval) {
+        let intervalIgnored: boolean | undefined;
+        if (interval != null && interval !== 0 && !Number.isNaN(interval)) {
             const inBounds = (tick: number) => tick >= start && tick <= stop;
             const step = Math.min(Math.abs(interval), Math.abs(p1 - p0));
             const { ticks: rangeTicks, count, firstTickIndex } = range(p0, p1, step, visibleRange);
@@ -113,6 +114,7 @@ export class LogScale extends ContinuousScale<number> {
             if (!isDenseInterval(ticks.length, this.getPixelRange(), this.logger)) {
                 return { ticks, count, firstTickIndex };
             }
+            intervalIgnored = true;
         }
 
         // If base is a float or the difference between p1 and p0 is large,
@@ -120,11 +122,9 @@ export class LogScale extends ContinuousScale<number> {
         if (!isInteger(base) || p1 - p0 >= tickCount) {
             const step = Math.min(p1 - p0, tickCount);
             const { ticks, count, firstTickIndex } = createTicks(p0, p1, step, undefined, undefined, visibleRange);
-            return {
-                ticks: ticks.map(this.pow),
-                count,
-                firstTickIndex,
-            };
+            const result: ScaleTickResult<number> = { ticks: ticks.map(this.pow), count, firstTickIndex };
+            if (intervalIgnored) result.intervalIgnored = true;
+            return result;
         }
 
         const ticks: number[] = [];
@@ -150,6 +150,8 @@ export class LogScale extends ContinuousScale<number> {
             }
         }
 
-        return filterVisibleTicks(ticks, isPositive, visibleRange);
+        const result: ScaleTickResult<number> = filterVisibleTicks(ticks, isPositive, visibleRange);
+        if (intervalIgnored) result.intervalIgnored = true;
+        return result;
     }
 }

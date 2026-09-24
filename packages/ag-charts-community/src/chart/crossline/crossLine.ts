@@ -1,13 +1,21 @@
-import type { BoxBounds, CanvasPoint, ChartAxisDirection, Forbid, RequireOptional, Scale } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    CanvasPoint,
+    ChartAxisDirection,
+    Forbid,
+    NormalisedAxisCrossLineLabelOptions,
+    NormalisedAxisCrossLineOptions,
+    RequireOptional,
+    Scale,
+} from 'ag-charts-core';
 import { callWithContext } from 'ag-charts-core';
 import type {
-    AgBaseCrossLineLabelOptions,
-    AgClickParams,
     AgCrossLineClickEvent,
     AgCrossLineClickParams,
     AgCrossLineDoubleClickEvent,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
+    AgMatchedParams,
     AgTimeInterval,
     AgTimeIntervalUnit,
 } from 'ag-charts-types';
@@ -33,11 +41,11 @@ interface PendingCallback {
 }
 
 export type PendingCrossLineCallbackParam =
-    | Forbid<AgCrossLineClickEvent, 'allClickParams'>
-    | Forbid<AgCrossLineDoubleClickEvent, 'allClickParams'>;
+    | Forbid<AgCrossLineClickEvent, 'allMatchedParams'>
+    | Forbid<AgCrossLineDoubleClickEvent, 'allMatchedParams'>;
 
 export interface PendingCrossLineCallbacks {
-    allClickParams: AgCrossLineClickParams[];
+    allMatchedParams: AgCrossLineClickParams[];
     chart?: PendingCallback;
     axes: Map<string, PendingCallback>;
     crossLines: Map<string, PendingCallback>;
@@ -67,29 +75,29 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
     }
 }
 
-function firePendingCrossLineCallback(allClickParams: AgClickParams<unknown>[], callback: PendingCallback): void {
+function firePendingCrossLineCallback(allMatchedParams: AgMatchedParams<unknown>[], callback: PendingCallback): void {
     const { callers, fn, params } = callback;
-    callWithContext(callers, fn, { ...params, allClickParams });
+    callWithContext(callers, fn, { ...params, allMatchedParams });
 }
 
 export function fireAllPendingCrossLineCallbacks(
     pending: PendingCrossLineCallbacks,
-    otherClickParams: AgClickParams<unknown>[]
+    otherHitParams: AgMatchedParams<unknown>[]
 ): void {
-    const allClickParams: AgClickParams<unknown>[] =
-        otherClickParams.length > 0 ? [...pending.allClickParams, ...otherClickParams] : pending.allClickParams;
+    const allMatchedParams: AgMatchedParams<unknown>[] =
+        otherHitParams.length > 0 ? [...pending.allMatchedParams, ...otherHitParams] : pending.allMatchedParams;
     for (const crossLine of pending.crossLines.values()) {
-        firePendingCrossLineCallback(allClickParams, crossLine);
+        firePendingCrossLineCallback(allMatchedParams, crossLine);
     }
     for (const axis of pending.axes.values()) {
-        firePendingCrossLineCallback(allClickParams, axis);
+        firePendingCrossLineCallback(allMatchedParams, axis);
     }
     if (pending.chart) {
-        firePendingCrossLineCallback(allClickParams, pending.chart);
+        firePendingCrossLineCallback(allMatchedParams, pending.chart);
     }
 }
 
-export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
+export interface CrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> {
     calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
     calculatePadding?(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     /**
@@ -99,7 +107,6 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     containsPoint?(point: CanvasPoint): boolean;
     clippedRange: [number, number];
     enabled?: boolean;
-    defaultColorRange: string[];
     fill?: string;
     fillOpacity?: number;
     gridLength: number;
@@ -132,10 +139,10 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     type: CrossLineType;
     update(visible: boolean): void;
     value?: any;
-    set(properties: object): void;
+    applyOptions(options: NormalisedAxisCrossLineOptions): void;
 }
 
-export interface PolarCrossLine<LabelType = AgBaseCrossLineLabelOptions> extends CrossLine<LabelType> {
+export interface PolarCrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> extends CrossLine<LabelType> {
     direction: ChartAxisDirection;
     parallelFlipRotation: number;
     regularFlipRotation: number;

@@ -53,6 +53,8 @@ export const CodeViewer = ({
         setActiveFile(initialSelectedFile);
     }, [initialSelectedFile]);
 
+    const activeFileCode = activeFile === '' ? undefined : exampleFiles[activeFile];
+
     return (
         <div
             className={classnames(styles.codeViewer, styles.codeViewerBorder, {
@@ -103,9 +105,8 @@ export const CodeViewer = ({
                     )}
                 </div>
                 <div className={styles.code}>
-                    {!exampleFiles && <FileView path={'loading.js'} code={'// Loading...'} />}
-                    {exampleFiles && activeFile && exampleFiles[activeFile] && (
-                        <FileView key={activeFile} path={activeFile} code={exampleFiles[activeFile]} />
+                    {activeFileCode != null && activeFileCode !== '' && (
+                        <FileView key={activeFile} path={activeFile} code={activeFileCode} />
                     )}
                 </div>
             </div>

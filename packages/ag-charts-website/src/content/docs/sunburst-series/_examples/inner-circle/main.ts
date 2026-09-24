@@ -29,7 +29,7 @@ const options: AgChartOptions = {
             sizeName: 'Budget',
             innerRadiusRatio: 0.4,
             innerCircle: {
-                fill: 'white',
+                fill: '#c9fdc9',
             },
             innerLabels: [
                 {

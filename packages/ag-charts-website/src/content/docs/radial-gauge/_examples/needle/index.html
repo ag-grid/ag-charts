@@ -1,9 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setNeedleEnabled(false)">Hide Needle</button>
-        <button class="gap-right" onclick="setNeedleEnabled(true)">Show Needle</button>
-        <button onclick="setBarEnabled(false)">Hide Bar</button>
-        <button onclick="setBarEnabled(true)">Show Bar</button>
+        <div class="button-group gap-right" role="group" aria-label="Needle">
+            <input type="radio" id="needle-hide" name="needle" value="false" onchange="setNeedleEnabled(event)" />
+            <label for="needle-hide">Hide Needle</label>
+            <input
+                type="radio"
+                id="needle-show"
+                name="needle"
+                value="true"
+                checked
+                onchange="setNeedleEnabled(event)"
+            />
+            <label for="needle-show">Show Needle</label>
+        </div>
+        <div class="button-group" role="group" aria-label="Bar">
+            <input type="radio" id="bar-hide" name="bar" value="false" checked onchange="setBarEnabled(event)" />
+            <label for="bar-hide">Hide Bar</label>
+            <input type="radio" id="bar-show" name="bar" value="true" onchange="setBarEnabled(event)" />
+            <label for="bar-show">Show Bar</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

@@ -18,7 +18,7 @@ export const App = () => {
         return () => window.removeEventListener('hashchange', onHashChange);
     }, []);
 
-    const entry = useMemo(() => (id ? DEMO_APPS.find((app) => app.id === id) : DEMO_APPS[0]), [id]);
+    const entry = useMemo(() => (id === '' ? DEMO_APPS[0] : DEMO_APPS.find((app) => app.id === id)), [id]);
     const LazyApp = useMemo(() => (entry ? lazy(entry.load) : null), [entry]);
 
     if (!entry || !LazyApp) {

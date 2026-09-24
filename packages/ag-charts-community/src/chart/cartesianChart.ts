@@ -185,7 +185,7 @@ export class CartesianChart extends Chart {
         this.lastLayoutWidth = ctx.width;
         this.lastLayoutHeight = ctx.height;
 
-        const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.getPadding());
+        const seriesPaddedRect = seriesRect.clone().grow(this.getSeriesAreaPadding());
 
         const alwaysClip = this.series.some((s) => s.alwaysClip);
         const enableClip = alwaysClip || (this.seriesArea.clip ?? false) || clipSeries;
@@ -282,7 +282,7 @@ export class CartesianChart extends Chart {
 
         let overflows = false;
         let clipSeries = false;
-        const seriesAreaPadding = this.seriesArea.getPadding();
+        const seriesAreaPadding = this.getSeriesAreaPadding();
 
         for (const dir of directions) {
             const padding = seriesAreaPadding[dir] ?? 0;
@@ -714,7 +714,7 @@ export class CartesianChart extends Chart {
 
     private clipAxis(axis: CartesianAxis, seriesRect: BBox, layoutBBox: BBox) {
         const gridLinePadding = Math.ceil(axis.options.gridLine.width);
-        const axisLinePadding = Math.ceil(axis.options.line.width);
+        const axisLinePadding = Math.ceil(axis.options.line.strokeWidth);
 
         let { width, height } = seriesRect;
 

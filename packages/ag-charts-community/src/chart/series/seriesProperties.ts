@@ -1,34 +1,7 @@
-import type {
-    AreExact,
-    ColorSpace,
-    InternalAgColorType,
-    NormalisedColorType,
-    NormalisedGradientColorStop,
-    NormalisedSeriesSegmentation,
-    RequiredInternalAgGradientColor,
-    RequiredInternalAgImageFill,
-    RequiredInternalAgPatternColor,
-} from 'ag-charts-core';
-import { BaseProperties, PropertiesArray, Property, mergeDefaults } from 'ag-charts-core';
-import type {
-    AgColorRepeat,
-    AgGradientColorBounds,
-    AgGradientColorStop,
-    AgGradientType,
-    AgImageFillFit,
-    AgPatternName,
-    AgSelectionContainment,
-    AgSeriesListeners,
-    AgSeriesShapeSegmentOptions,
-    CssColor,
-    InteractionRange,
-    Opacity,
-    PixelSize,
-    HighlightState as PublicHighlightState,
-    SelectionState as PublicSelectionState,
-} from 'ag-charts-types';
+import type { AreExact, NormalisedColorType } from 'ag-charts-core';
+import { isEmptyObject, mergeDefaults } from 'ag-charts-core';
+import type { HighlightState as PublicHighlightState, SelectionState as PublicSelectionState } from 'ag-charts-types';
 
-import type { SeriesTooltip } from './seriesTooltip';
 import { HighlightState, SelectionState } from './seriesTypes';
 
 export const highlightStates = [
@@ -162,267 +135,30 @@ export function stagedSelectionState(
 }
 
 type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
-type SelectionOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 
 export type SeriesItemHighlightStyle = HighlightOptions<object>;
 
-export class HighlightProperties<TOpts extends object> extends BaseProperties {
-    @Property
-    enabled = true;
-
-    @Property
-    range: 'tooltip' | 'node' = 'tooltip';
-
-    @Property
-    bringToFront: boolean = true;
-
-    @Property
-    readonly highlightedItem: HighlightOptions<TOpts> = {};
-
-    @Property
-    readonly unhighlightedItem: HighlightOptions<TOpts> = {};
-
-    @Property
-    readonly highlightedSeries: HighlightOptions<TOpts> = {};
-
-    @Property
-    readonly unhighlightedSeries: HighlightOptions<TOpts> = {};
-
-    getStyle(highlightState: HighlightState): HighlightOptions<TOpts> {
-        const keys = getHighlightStyleOptionKeys(highlightState);
-        if (keys.length === 0) return {};
-        return mergeDefaults<HighlightOptions<TOpts>>(...keys.map((key) => this[key]));
-    }
+/** Merges the highlight-state buckets that apply to `highlightState`, earlier keys taking precedence. */
+export function getHighlightStyle<TStyle extends object>(
+    highlight: { [K in HighlightStyleOptionKey]?: TStyle } | undefined,
+    highlightState: HighlightState
+): TStyle {
+    const keys = getHighlightStyleOptionKeys(highlightState);
+    if (highlight == null || keys.length === 0) return {} as TStyle;
+    return mergeDefaults<TStyle>(...keys.map((key) => highlight[key]));
 }
 
-export class SeriesSelectionProperties<TOpts extends object> extends BaseProperties {
-    @Property
-    enabled = false;
-
-    @Property
-    containment: AgSelectionContainment = 'any';
-
-    @Property
-    readonly selectedItem: SelectionOptions<TOpts> = {};
-
-    @Property
-    readonly unselectedItem: SelectionOptions<TOpts> = {};
-
-    @Property
-    readonly unselectedSeries: SelectionOptions<TOpts> = {};
-
-    @Property
-    selectedOffset = 0; // pie-only
-
-    getStyle(selectionState: SelectionState): SelectionOptions<TOpts> {
-        const keys = getSelectionStyleOptionKeys(selectionState);
-        if (keys.length === 0) return {};
-        return mergeDefaults<SelectionOptions<TOpts>>(...keys.map((key) => this[key]));
-    }
+/** Merges the selection-state buckets that apply to `selectionState`, earlier keys taking precedence. */
+export function getSelectionStyle<TStyle extends object>(
+    selection: { [K in SelectionStyleOptionKey]?: TStyle } | undefined,
+    selectionState: SelectionState
+): TStyle {
+    const keys = getSelectionStyleOptionKeys(selectionState);
+    if (selection == null || keys.length === 0) return {} as TStyle;
+    return mergeDefaults<TStyle>(...keys.map((key) => selection[key]));
 }
 
-export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegmentOptions {
-    @Property
-    start?: number;
-
-    @Property
-    stop?: number;
-
-    @Property
-    fill: InternalAgColorType = '#c16068';
-
-    @Property
-    fillOpacity = 1;
-
-    @Property
-    stroke: string = '#874349';
-
-    @Property
-    strokeWidth = 2;
-
-    @Property
-    strokeOpacity = 1;
-
-    @Property
-    lineDash: number[] = [0];
-
-    @Property
-    lineDashOffset: number = 0;
-}
-
-export class Segmentation implements NormalisedSeriesSegmentation {
-    @Property
-    enabled?: boolean;
-
-    @Property
-    key: 'x' | 'y' = 'x';
-
-    @Property
-    segments = new PropertiesArray<SegmentOptions>(SegmentOptions);
-}
-
-export class FillGradientDefaults
-    extends BaseProperties<RequiredInternalAgGradientColor>
-    implements RequiredInternalAgGradientColor
-{
-    @Property
-    type: 'gradient' = 'gradient' as const;
-
-    @Property
-    colorStops: NormalisedGradientColorStop[] = [];
-
-    @Property
-    bounds: AgGradientColorBounds = 'item';
-
-    @Property
-    gradient: AgGradientType = 'linear';
-
-    @Property
-    rotation: number = 0;
-
-    @Property
-    reverse: boolean = false;
-
-    @Property
-    colorSpace: ColorSpace = 'rgb';
-}
-
-export class FillPatternDefaults
-    extends BaseProperties<RequiredInternalAgPatternColor>
-    implements RequiredInternalAgPatternColor
-{
-    @Property
-    type: 'pattern' = 'pattern' as const;
-
-    @Property
-    colorStops: AgGradientColorStop[] = [];
-
-    @Property
-    bounds: AgGradientColorBounds = 'item';
-
-    @Property
-    gradient: AgGradientType = 'linear';
-
-    @Property
-    rotation: number = 0;
-
-    @Property
-    scale: number = 1;
-
-    @Property
-    reverse: boolean = false;
-
-    @Property
-    path?: string;
-
-    @Property
-    pattern: AgPatternName = 'forward-slanted-lines';
-
-    @Property
-    width: number = 26;
-
-    @Property
-    height: number = 26;
-
-    @Property
-    padding: number = 6;
-
-    @Property
-    fill: CssColor = 'black';
-
-    @Property
-    fillOpacity: Opacity = 1;
-
-    @Property
-    backgroundFill: CssColor = 'white';
-
-    @Property
-    backgroundFillOpacity: Opacity = 1;
-
-    @Property
-    stroke: CssColor = 'black';
-
-    @Property
-    strokeOpacity: number = 1;
-
-    @Property
-    strokeWidth: PixelSize = 0;
-}
-
-export class FillImageDefaults
-    extends BaseProperties<RequiredInternalAgImageFill>
-    implements RequiredInternalAgImageFill
-{
-    @Property
-    type: 'image' = 'image' as const;
-
-    @Property
-    url: string = '';
-
-    @Property
-    rotation: number = 0;
-
-    @Property
-    scale: number = 1;
-
-    @Property
-    backgroundFill: CssColor = 'black';
-
-    @Property
-    backgroundFillOpacity: Opacity = 1;
-
-    @Property
-    repeat: AgColorRepeat = 'no-repeat';
-
-    @Property
-    fit: AgImageFillFit = 'contain';
-}
-
-export abstract class SeriesProperties<T extends object> extends BaseProperties<T> {
-    @Property
-    id?: string;
-
-    // Private - use series.visible
-    @Property
-    protected readonly visible: boolean = true;
-
-    @Property
-    focusPriority?: number = Infinity;
-
-    @Property
-    showInLegend: boolean = true;
-
-    @Property
-    cursor = 'default';
-
-    @Property
-    nodeClickRange: InteractionRange = 'exact';
-
-    @Property
-    listeners?: AgSeriesListeners<unknown, unknown> & { seriesVisibilityChange?: never };
-
-    @Property
-    readonly highlight: HighlightProperties<T> = new HighlightProperties();
-
-    @Property
-    readonly selection: SeriesSelectionProperties<T> = new SeriesSelectionProperties();
-
-    abstract tooltip: SeriesTooltip<never>;
-
-    // User pass-through option: no validation-decorator required.
-    context?: unknown;
-
-    // Internal option to allow null values as discrete keys (undocumented).
-    allowNullKeys?: boolean;
-
-    override handleUnknownProperties(unknownKeys: Set<unknown>, properties: T) {
-        if ('context' in properties) {
-            this.context = properties.context;
-            unknownKeys.delete('context');
-        }
-        if ('allowNullKeys' in properties) {
-            this.allowNullKeys = (properties as { allowNullKeys?: boolean }).allowNullKeys;
-            unknownKeys.delete('allowNullKeys');
-        }
-    }
+/** Whether a highlight/selection bucket carries any overrides; an absent bucket carries none. */
+export function hasStateStyle(bucket: object | undefined): boolean {
+    return bucket != null && !isEmptyObject(bucket);
 }

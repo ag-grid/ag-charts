@@ -9,6 +9,7 @@ export type MockEvent = {
 
 const KNOWN_AG_CHARTS_CLASSES: readonly string[] = [
     'ag-charts-series-area',
+    'ag-charts-series-area-bounds',
     'ag-charts-canvas-proxy',
     'ag-charts-canvas-container',
 ] as const;
@@ -37,13 +38,15 @@ type TMouseEvent =
     | 'dblclick'
     | 'contextmenu';
 
-function makeMouseEvent<T extends TMouseEvent>(
+type TPointerEvent = 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel' | 'lostpointercapture';
+
+function makeMouseEvent<T extends TMouseEvent | TPointerEvent>(
     type: T,
     testTarget: MockEvent,
     clientX: number,
     clientY: number,
     bubbles: boolean,
-    modifiers: EventModifierInit | undefined
+    modifiers: MouseEventInit | undefined
 ): MouseEvent {
     const { offsetX, offsetY, target } = testTarget;
     const view = target.ownerDocument.defaultView!;
@@ -127,6 +130,104 @@ export function contextMenuEvent(
     modifiers?: EventModifierInit
 ): MouseEvent {
     return makeMouseEvent('contextmenu', offsets, clientX, clientY, false, modifiers);
+}
+
+/**
+ * jsdom implements no part of the Pointer Events API: there is no `PointerEvent` constructor and
+ * `Element` has none of the capture methods. Chart drags are driven by `pointerdown` and pointer
+ * capture, so the capture methods are shimmed below and pointer events are built from `MouseEvent`
+ * with the pointer fields defined on top — jsdom delivers those to 'pointerdown' listeners just as
+ * well, and nothing under test distinguishes the two by `instanceof`.
+ */
+export type PointerType = 'mouse' | 'touch' | 'pen';
+export type PointerOpts = EventModifierInit & {
+    pointerId?: number;
+    pointerType?: PointerType;
+    button?: number;
+    buttons?: number;
+};
+
+const DEFAULT_POINTER_ID = 1;
+
+// A captured pointer's events go to the capturing element, not the element under the cursor.
+const pointerCaptures = new Map<number, Element>();
+
+export function resetPointerCaptures() {
+    pointerCaptures.clear();
+}
+
+export function installPointerCapture() {
+    const proto = globalThis.Element.prototype;
+    proto.setPointerCapture = function (pointerId: number) {
+        pointerCaptures.set(pointerId, this);
+    };
+    proto.releasePointerCapture = function (pointerId: number) {
+        if (pointerCaptures.get(pointerId) !== this) return;
+        pointerCaptures.delete(pointerId);
+        const event = new Event('lostpointercapture', { bubbles: true });
+        Object.defineProperty(event, 'pointerId', { value: pointerId, enumerable: true, configurable: true });
+        this.dispatchEvent(event);
+    };
+    proto.hasPointerCapture = function (pointerId: number) {
+        return pointerCaptures.get(pointerId) === this;
+    };
+}
+
+function makePointerEvent<T extends TPointerEvent>(
+    type: T,
+    testTarget: MockEvent,
+    clientX: number,
+    clientY: number,
+    opts: PointerOpts | undefined
+): MouseEvent {
+    const {
+        pointerId = DEFAULT_POINTER_ID,
+        pointerType = 'mouse',
+        button = 0,
+        buttons = type === 'pointerup' || type === 'pointercancel' ? 0 : 1,
+        ...modifiers
+    } = opts ?? {};
+    const event = makeMouseEvent(type, testTarget, clientX, clientY, true, { ...modifiers, button, buttons });
+    for (const [key, value] of [
+        ['pointerId', pointerId],
+        ['pointerType', pointerType],
+        ['isPrimary', true],
+        ['pressure', buttons === 0 ? 0 : 0.5],
+    ] as const) {
+        Object.defineProperty(event, key, { value, enumerable: true, configurable: true });
+    }
+    return event;
+}
+
+export function pointerDownEvent(offsets: MockEvent, clientX: number, clientY: number, opts?: PointerOpts): MouseEvent {
+    return makePointerEvent('pointerdown', offsets, clientX, clientY, opts);
+}
+
+export function pointerMoveEvent(offsets: MockEvent, clientX: number, clientY: number, opts?: PointerOpts): MouseEvent {
+    return makePointerEvent('pointermove', offsets, clientX, clientY, opts);
+}
+
+export function pointerUpEvent(offsets: MockEvent, clientX: number, clientY: number, opts?: PointerOpts): MouseEvent {
+    return makePointerEvent('pointerup', offsets, clientX, clientY, opts);
+}
+
+export function pointerCancelEvent(
+    offsets: MockEvent,
+    clientX: number,
+    clientY: number,
+    opts?: PointerOpts
+): MouseEvent {
+    return makePointerEvent('pointercancel', offsets, clientX, clientY, opts);
+}
+
+/**
+ * Delivers a pointer event to whichever element has captured that pointer, falling back to the
+ * element under the cursor. Use this rather than {@link dispatchEvent} for pointer events, or a
+ * drag that leaves the captured element stops being delivered.
+ */
+export function dispatchPointerEvent(mockEvent: MockEvent, event: MouseEvent) {
+    const { pointerId = DEFAULT_POINTER_ID } = event as { pointerId?: number };
+    (pointerCaptures.get(pointerId) ?? mockEvent.target).dispatchEvent(event);
 }
 
 /**
@@ -257,6 +358,6 @@ export function touchEvent(type: MockTouchTypes, mockEvent: MockEvent, mockTouch
     return event;
 }
 
-export function keydownEvent(input: { key: string; code: string }): KeyboardEvent {
+export function keydownEvent(input: KeyboardEventInit & { key: string; code: string }): KeyboardEvent {
     return new KeyboardEvent('keydown', input);
 }

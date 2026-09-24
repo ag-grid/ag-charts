@@ -56,6 +56,9 @@ export interface ScaleTickResult<D> {
     firstTickIndex?: number;
     // Used for continuous time scale ticks
     timeInterval?: AgTimeInterval;
+    // Set when a configured interval was rejected as too dense, so these ticks are automatic
+    // (driven by tickCount) rather than pinned to the interval.
+    intervalIgnored?: boolean;
 }
 
 export enum ScaleAlignment {

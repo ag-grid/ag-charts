@@ -186,18 +186,22 @@ const RETURNING_VISITOR_POOL = 1500;
 // Days before DATA_END, so events stay anchored near "today" whatever the history length.
 const fromEnd = (daysBeforeEnd: number) => HISTORY_DAYS - 1 - daysBeforeEnd;
 const EVENT_OFFSET = {
-    outage: fromEnd(59),
+    // Must stay clear of every range's comparison period, or the dip lands on a series no cross-line explains.
+    outage: fromEnd(60),
     springLaunch: fromEnd(27),
     creatorCollab: fromEnd(15),
-    release: fromEnd(14),
+    release: fromEnd(12),
 };
 
 // Aligned with the seeded annotations so a campaign launch visibly lifts traffic.
 const SPIKES: Record<number, number> = {
     [EVENT_OFFSET.springLaunch]: 1.6,
     [EVENT_OFFSET.creatorCollab]: 1.35,
-    [EVENT_OFFSET.outage]: 0.7, // outage / bad deploy dip
+    [EVENT_OFFSET.outage]: 0.01, // outage / bad deploy dip
 };
+
+// A spike only scales session count, so ratio metrics stay flat unless degraded days bounce the sessions too.
+const DEGRADED_DAYS = new Set([EVENT_OFFSET.outage]);
 
 function dailyVolume(dayIndex: number, rand: () => number): number {
     const date = new Date(DAY_BOUNDS[dayIndex]);
@@ -258,6 +262,7 @@ function generateSessions(): Session[] {
     const knownVisitors: string[] = [];
     for (let day = 0; day < HISTORY_DAYS; day++) {
         const count = dailyVolume(day, rand);
+        const degraded = DEGRADED_DAYS.has(day);
         const dayStart = DAY_BOUNDS[day];
         const dayLength = DAY_BOUNDS[day + 1] - dayStart;
         for (let i = 0; i < count; i++) {
@@ -278,7 +283,7 @@ function generateSessions(): Session[] {
                 const recentFrom = Math.max(0, knownVisitors.length - RETURNING_VISITOR_POOL);
                 visitorId = knownVisitors[recentFrom + Math.floor(rand() * (knownVisitors.length - recentFrom))];
             }
-            const step = funnelStepReached(rand, isNew, channel);
+            const step = degraded ? 0 : funnelStepReached(rand, isNew, channel);
             const journey = buildJourney(rand, step);
             const converted = step >= 4;
             const campaigns = CAMPAIGNS[channel];
@@ -325,9 +330,9 @@ export const SEED_ANNOTATIONS: Annotation[] = [
     {
         annotationId: 'a1',
         date: dayDate(EVENT_OFFSET.outage),
-        label: 'API outage',
-        description: 'Checkout degraded for ~3h after a bad deploy.',
-        type: 'deploy',
+        label: 'Site outage',
+        description: 'Site-wide outage after a bad deploy.',
+        type: 'product',
         createdBy: 'ops',
     },
     {
@@ -335,7 +340,7 @@ export const SEED_ANNOTATIONS: Annotation[] = [
         date: dayDate(EVENT_OFFSET.springLaunch),
         label: 'Spring launch',
         description: 'Spring product launch campaign went live across paid + social.',
-        type: 'campaign_launch',
+        type: 'marketing',
         createdBy: 'growth',
     },
     {
@@ -343,7 +348,7 @@ export const SEED_ANNOTATIONS: Annotation[] = [
         date: dayDate(EVENT_OFFSET.creatorCollab),
         label: 'Creator collab',
         description: 'Influencer collaboration drove a social traffic spike.',
-        type: 'campaign_launch',
+        type: 'marketing',
         createdBy: 'growth',
     },
     {
@@ -351,7 +356,7 @@ export const SEED_ANNOTATIONS: Annotation[] = [
         date: dayDate(EVENT_OFFSET.release),
         label: 'v4.2 release',
         description: 'Shipped the redesigned onboarding flow.',
-        type: 'deploy',
+        type: 'product',
         createdBy: 'eng',
     },
 ];

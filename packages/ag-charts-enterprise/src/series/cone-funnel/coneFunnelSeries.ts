@@ -1,10 +1,9 @@
 import {
     type AgConeFunnelSeriesLabelPlacement,
-    type AgConeFunnelSeriesOptions,
     type AgConeFunnelSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DynamicContext, RequireOptional } from 'ag-charts-core';
+import type { DynamicContext, NormalisedConeFunnelSeriesOwnOptions, RequireOptional } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -12,8 +11,11 @@ import {
     type FunnelAnimationData,
     type FunnelNodeDatum,
 } from '../funnel/baseFunnelSeries';
-import { CONE_FUNNEL_TO_BAR_PLACEMENT, resolveConeFunnelPlacements } from '../funnel/funnelLabelPlacement';
-import { ConeFunnelProperties } from './coneFunnelProperties';
+import {
+    CONE_FUNNEL_TO_BAR_PLACEMENT,
+    funnelValuePlacementAxes,
+    resolveConeFunnelPlacements,
+} from '../funnel/funnelLabelPlacement';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
 const { Line, resetMotion } = _ModuleSupport;
@@ -23,15 +25,12 @@ const { Line, resetMotion } = _ModuleSupport;
  */
 interface ConeFunnelSeriesTypes extends BaseFunnelSeriesTypes {
     readonly node: _ModuleSupport.Line<FunnelNodeDatum>;
-    readonly options: AgConeFunnelSeriesOptions;
-    readonly properties: ConeFunnelProperties;
+    readonly options: NormalisedConeFunnelSeriesOwnOptions;
 }
 
 export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
     static override readonly className = 'ConeFunnelSeries';
     static readonly type = 'cone-funnel' as const;
-
-    override properties = new ConeFunnelProperties();
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -74,11 +73,11 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         { datumIndex }: Pick<FunnelNodeDatum, 'datumIndex'>,
         _isHighlight: boolean
     ): RequireOptional<AgConeFunnelSeriesStyle> & { opacity: number } {
-        return this.properties.getStyle(datumIndex);
+        return this.itemStyle(datumIndex);
     }
 
     protected override connectorStyle(index: number): RequireOptional<AgConeFunnelSeriesStyle> & { opacity: number } {
-        return this.properties.getStyle(index);
+        return this.itemStyle(index);
     }
 
     protected override nodeFactory(): _ModuleSupport.Line<FunnelNodeDatum> {
@@ -91,19 +90,17 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
 
     protected override resolveLabelPlacements(barAlongX: boolean) {
         const reportedPlacements = resolveConeFunnelPlacements(
-            this.properties.label.placement,
+            this.options.label.placement,
             this.defaultLabelPlacement(),
             barAlongX,
             this.ctx.domManager.isRtl
         );
+        const axes = funnelValuePlacementAxes(barAlongX);
         return {
             placements: reportedPlacements.map((placement) => CONE_FUNNEL_TO_BAR_PLACEMENT[placement]),
             reportedPlacements,
-            // A divider spans the value axis, so `before`/`after` is the cross axis: the bar convention.
-            isVertical: !barAlongX,
-            // `start`/`end` run along the divider in reading order: left to right, or top to bottom.
-            isUpward: barAlongX,
-            // The divider has no thickness, so a `middle-*` region takes its cross extent from the plot.
+            axes: reportedPlacements.map(() => axes),
+            // The divider has no thickness, so a `middle-*` region takes its cross extent from the series area.
             insideCrossRegion: this.getSeriesPlotRegion(),
         };
     }
@@ -127,7 +124,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
 
     protected tooltipStyle(_datum: any, datumIndex: number) {
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
-            this.properties.getStyle(datumIndex);
+            this.itemStyle(datumIndex);
 
         return {
             fill,
@@ -138,9 +135,5 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
             lineDash,
             lineDashOffset,
         };
-    }
-
-    protected override hasItemStylers(): boolean {
-        return this.properties.selection.enabled || this.properties.label.itemStyler != null;
     }
 }

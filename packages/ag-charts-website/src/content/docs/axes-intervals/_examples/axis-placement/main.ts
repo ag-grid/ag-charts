@@ -28,7 +28,7 @@ const options: AgCartesianChartOptions = {
             },
             gridLine: {
                 width: 1,
-                style: [{ fill: 'black', fillOpacity: 0.05, stroke: '#2b5c95' }, { stroke: '#2b5c95' }],
+                style: [{ fill: '#999', fillOpacity: 0.1, stroke: '#2b5c95' }, { stroke: '#2b5c95' }],
             },
             tick: {
                 enabled: true,
@@ -45,7 +45,9 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setPlacement(placement: 'on' | 'between') {
+function placementChange(event: Event) {
+    const placement = (event.target as HTMLInputElement).value as 'on' | 'between';
+
     (options.axes!.x! as AgCategoryAxisOptions).interval!.placement = placement;
     (options.axes!.x! as AgCategoryAxisOptions).title!.text = `placement: '${placement}'`;
     chart.update(options);

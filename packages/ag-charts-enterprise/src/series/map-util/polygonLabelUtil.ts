@@ -1,4 +1,4 @@
-import type { Position } from 'ag-charts-core';
+import { type FitRegion, type Position, memoiseByBand } from 'ag-charts-core';
 
 import { polygonPointSearch } from './polygonPointSearch';
 
@@ -194,25 +194,50 @@ export function xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
     return into;
 }
 
-export function maxWidthInPolygonForRectOfHeight(polygons: Position[][], cx: number, cy: number, height: number) {
-    const result = {
-        minX: -Infinity,
-        maxX: Infinity,
-    };
-
+/**
+ * The room a polygon offers a label anchored at `(cx, cy)`, which must lie inside it, as a {@link FitRegion}.
+ * Spans are exact, taken from the edges each band meets, and memoised as wrapping asks per candidate word.
+ */
+export function polygonFitRegion(polygons: Position[][], cx: number, cy: number): FitRegion {
+    let extentAbove = Infinity;
+    let extentBelow = Infinity;
     for (const polygon of polygons) {
-        let p0 = polygon.at(-1)!;
-
-        for (const p1 of polygon) {
-            xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(result, p0, p1, cx, cy, height);
-            p0 = p1;
+        let [x0, y0] = polygon.at(-1)!;
+        for (const [x1, y1] of polygon) {
+            if (Math.min(x0, x1) <= cx && cx <= Math.max(x0, x1)) {
+                // A vertical edge on the anchor's own column bounds it at its nearer end on each side.
+                const yLo = x0 === x1 ? Math.min(y0, y1) : y0 + ((cx - x0) * (y1 - y0)) / (x1 - x0);
+                const yHi = x0 === x1 ? Math.max(y0, y1) : yLo;
+                if (yLo <= cy) extentAbove = Math.min(extentAbove, cy - Math.min(yHi, cy));
+                if (yHi >= cy) extentBelow = Math.min(extentBelow, Math.max(yLo, cy) - cy);
+            }
+            x0 = x1;
+            y0 = y1;
         }
     }
 
-    const { minX, maxX } = result;
-    if (Number.isFinite(minX) && Number.isFinite(maxX)) {
-        return { x: cx + (minX + maxX) / 2, width: maxX - minX };
-    } else {
-        return { x: cx, width: 0 };
-    }
+    const spanAt = (top: number, bottom: number): readonly [number, number] => {
+        const into = { minX: -Infinity, maxX: Infinity };
+        for (const polygon of polygons) {
+            let p0 = polygon.at(-1)!;
+            for (const p1 of polygon) {
+                xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
+                    into,
+                    p0,
+                    p1,
+                    cx,
+                    cy + (top + bottom) / 2,
+                    bottom - top
+                );
+                p0 = p1;
+            }
+        }
+        return Number.isFinite(into.minX) && Number.isFinite(into.maxX) ? [into.minX, into.maxX] : [0, 0];
+    };
+
+    return {
+        spanAt: memoiseByBand(spanAt),
+        extentAbove: Number.isFinite(extentAbove) ? extentAbove : 0,
+        extentBelow: Number.isFinite(extentBelow) ? extentBelow : 0,
+    };
 }

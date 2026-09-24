@@ -1,7 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setParentLevel(false)">Disable Parent Level</button>
-        <button onclick="setParentLevel(true)">Enable Parent Level</button>
+        <div class="button-group" role="group" aria-label="Parent Level">
+            <input
+                type="radio"
+                id="parent-level-disabled"
+                name="parent-level"
+                value="false"
+                checked
+                onchange="setParentLevel(event)"
+            />
+            <label for="parent-level-disabled">Disable Parent Level</label>
+            <input
+                type="radio"
+                id="parent-level-enabled"
+                name="parent-level"
+                value="true"
+                onchange="setParentLevel(event)"
+            />
+            <label for="parent-level-enabled">Enable Parent Level</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

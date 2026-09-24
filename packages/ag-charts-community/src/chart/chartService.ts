@@ -3,17 +3,15 @@ import type { AgBaseChartListeners, AgChartInstance, AgCoordinates } from 'ag-ch
 
 import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
-import type { ChartHighlight } from './chartHighlight';
 import type { ChartType } from './chartType';
-import type { SeriesProperties } from './series/seriesProperties';
-import type { DatumIndex, ISeries, SeriesNodeDatum } from './series/seriesTypes';
+import type { DatumIndex, ISeries, ISeriesOptions, SeriesNodeDatum } from './series/seriesTypes';
 import type { CategoryGroupSeries } from './sharedCategoryGroup';
 
 export type ChartListeners = AgBaseChartListeners<unknown, unknown>;
 export type ChartEventType = keyof ChartListeners;
 export type ChartEventMap = { [K in ChartEventType]: Parameters<NonNullable<ChartListeners[K]>>[0] };
 
-type BaseSeries = ISeries<SeriesNodeDatum, SeriesProperties<object>>;
+type BaseSeries = ISeries<SeriesNodeDatum, ISeriesOptions>;
 
 // Subset of chart.ts exposed in the module context:
 export interface ChartService {
@@ -25,7 +23,6 @@ export interface ChartService {
     readonly selectionRoot: Group;
     readonly publicApi?: AgChartInstance;
     readonly context?: unknown;
-    readonly highlight?: ChartHighlight;
     getChartType(): ChartType;
     /** The index of the item `series` contributes at the hovered datum's category. Optional for partial stubs. */
     getSharedHighlightMatch?(
@@ -33,7 +30,6 @@ export interface ChartService {
         hoveredDatumIndex: DatumIndex,
         series: CategoryGroupSeries
     ): DatumIndex | undefined;
-    overrideFocusVisible(visible: boolean | undefined): void;
     readonly listeners: ChartListeners;
     callListener<K extends ChartEventType>(event: ChartEventMap[K] & { type: K }): void;
     toAgCoordinates(point: CanvasPoint): AgCoordinates | undefined;

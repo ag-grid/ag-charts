@@ -45,12 +45,12 @@ const myTheme: AgChartTheme = {
             axes: {
                 category: {
                     line: {
-                        width: 4,
+                        strokeWidth: 4,
                     },
                 },
                 number: {
                     line: {
-                        width: 2,
+                        strokeWidth: 2,
                     },
                 },
             },
@@ -130,7 +130,8 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options as AgChartOptions);
 
-function applyOptions(type: 'bar' | 'pie') {
+function applyOptions(event: Event) {
+    const type = (event.target as HTMLInputElement).value as 'bar' | 'pie';
     if (type === 'pie') {
         options.series = [
             {

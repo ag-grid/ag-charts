@@ -1,0 +1,59 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="placementSelect">Label Placement:</label>
+        <select id="placementSelect" onchange="setPlacement(event.target.value)">
+            <option value="inside-center" selected>inside-center</option>
+            <option value="inside-start">inside-start</option>
+            <option value="inside-end">inside-end</option>
+            <option value="inside-before">inside-before</option>
+            <option value="inside-after">inside-after</option>
+            <option value="outside-start">outside-start</option>
+            <option value="outside-end">outside-end</option>
+            <option value="outside-before">outside-before</option>
+            <option value="outside-after">outside-after</option>
+        </select>
+        <span class="gap-left">Stage Label Placement:</span>
+        <div class="button-group" role="group" aria-label="Stage Label Placement">
+            <input
+                type="radio"
+                id="stage-label-before"
+                name="stageLabelPlacement"
+                value="before"
+                checked
+                onchange="setStageLabelPlacement(event)"
+            />
+            <label for="stage-label-before"><code>Before</code></label>
+            <input
+                type="radio"
+                id="stage-label-after"
+                name="stageLabelPlacement"
+                value="after"
+                onchange="setStageLabelPlacement(event)"
+            />
+            <label for="stage-label-after"><code>After</code></label>
+        </div>
+    </div>
+    <div class="controls-row">
+        <span>Direction:</span>
+        <div class="button-group" role="group" aria-label="Direction">
+            <input
+                type="radio"
+                id="direction-vertical"
+                name="direction"
+                value="vertical"
+                checked
+                onchange="setDirection(event)"
+            />
+            <label for="direction-vertical"><code>Vertical</code></label>
+            <input
+                type="radio"
+                id="direction-horizontal"
+                name="direction"
+                value="horizontal"
+                onchange="setDirection(event)"
+            />
+            <label for="direction-horizontal"><code>Horizontal</code></label>
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>

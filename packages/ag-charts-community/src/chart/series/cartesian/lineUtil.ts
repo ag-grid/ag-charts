@@ -1,6 +1,6 @@
 import type {
-    InterpolationProperties,
     MeasuredLabel,
+    NormalisedInterpolationOptions,
     NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
     Point,
@@ -130,7 +130,7 @@ export interface LineNodeDatumScratch {
 
 export function interpolatePoints(
     points: LineSpanPointDatum[],
-    interpolation: InterpolationProperties
+    interpolation: NormalisedInterpolationOptions
 ): LinePathSpan[] {
     const pointsIter = points.map((point) => point.point);
     let spans: Span[] = linearPoints(pointsIter);

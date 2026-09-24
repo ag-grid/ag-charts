@@ -14,6 +14,27 @@ In the above example:
 
 Highlighting is enabled by default. Use `highlight.enabled` to configure it globally, or `series[].highlight.enabled` to override it per series.
 
+## Highlight Modes
+
+By default, hovering an item highlights only that item. Use `highlight.mode: 'shared'` to also highlight the item of every other series that shares the hovered item's category.
+
+{% chartExampleRunner title="Highlight Mode" name="highlight-mode" type="generated" /%}
+
+```js format="snippet"
+{
+    highlight: {
+        mode: 'shared', // or 'single'
+    },
+}
+```
+
+The options for `mode` are:
+
+- `single` - highlights the hovered item only.
+- `shared` - highlights the item of every other series that shares the hovered item's category.
+
+See [Tooltip Modes](./tooltips/#tooltip-modes) to apply the same shared grouping to series highlighting.
+
 ## Bring to Front
 
 By default, the highlighted series is brought to the front to make it stand out, especially when multiple series overlap.

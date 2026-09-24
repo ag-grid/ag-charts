@@ -5,7 +5,7 @@ import { markdownPathAlternation } from '../markdownPages';
 import { urlWithBaseUrl } from '../urlWithBaseUrl';
 import type { CspEnv } from './cspRules';
 import { getCspHtaccessBlock, getScopedCspHtaccessBlock } from './cspRules';
-import { SITE_301_REDIRECTS, type SimpleRedirectRule } from './redirects';
+import { type Redirect, SITE_301_REDIRECTS, type SimpleRedirectRule } from './redirects';
 
 export type HtaccessEnv = Extract<CspEnv, 'staging' | 'production'>;
 
@@ -34,12 +34,23 @@ AddCharset utf-8 .md
 # env-split, so the policy is generated per environment.
 ${getCspContent(env)}
 
-${getMarkdownNegotiationRules()}
+${env === 'production' ? `${getHostCanonicalizationRules()}\n\n` : ''}${getMarkdownNegotiationRules()}
 
 ${getRedirectRules()}
 
 Options -Indexes
 `;
+}
+
+// The parent site's .htaccess apex-to-www swap isn't inherited into this nested .htaccess, so /charts needs its own (production only; staging has a single host).
+function getHostCanonicalizationRules(): string {
+    return `<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Canonical host is www.ag-grid.com; the bare apex domain must not serve pages directly.
+    RewriteCond %{HTTP_HOST} ^ag-grid\\.com$ [NC]
+    RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI} [R=301,L]
+</IfModule>`;
 }
 
 function getCspContent(env: HtaccessEnv): string {
@@ -53,35 +64,45 @@ function getCspContent(env: HtaccessEnv): string {
 ${getScopedCspHtaccessBlock({ env }, 'report-only')}`;
 }
 
+// Archive builds omit the `sitemap()` integration (see astro.config.mjs) and are the only
+// builds whose base URL carries `archive`, so this is the same signal used there.
+const isArchiveBuild = () => (SITE_BASE_URL ?? '').includes('archive');
+
+const dropArchiveOnlyRedirects = (redirects: Redirect[]) =>
+    isArchiveBuild()
+        ? redirects.filter((redirect) => !(redirect as { skipForArchive?: true }).skipForArchive)
+        : redirects;
+
 export function getRedirectRules() {
     // Unlike mod_rewrite, mod_alias does not strip the directory prefix, so patterns must carry
     // the base; rule definitions stay base-relative and it is spliced in here.
     const basePath = (SITE_BASE_URL ?? '').replace(/\/$/, '');
     const toBaseAwarePattern = (fromPattern: string) =>
         fromPattern.startsWith('^') ? `^${basePath}${fromPattern.slice(1)}` : `${basePath}${fromPattern}`;
-    return `${SITE_301_REDIRECTS.map((redirect) => {
-        const { from, fromPattern, to, gone } = redirect as any;
-        if (!from && !fromPattern) {
-            // eslint-disable-next-line no-console
-            console.warn('Missing `from` in redirect', redirect);
-            return;
-        }
-        // 410 Gone: permanently removed, no target.
-        if (gone) {
-            return from
-                ? `Redirect 410 ${urlWithBaseUrl(from)}`
-                : `RedirectMatch 410 "${toBaseAwarePattern(fromPattern)}"`;
-        }
-        if (!to) {
-            // eslint-disable-next-line no-console
-            console.warn('Missing `to` in redirect', redirect);
-            return;
-        }
-        if (from) {
-            return `Redirect 301 ${urlWithBaseUrl(from)} ${urlWithBaseUrl(to)}`;
-        }
-        return `RedirectMatch 301 "${toBaseAwarePattern(fromPattern)}" "${urlWithBaseUrl(to)}"`;
-    })
+    return `${dropArchiveOnlyRedirects(SITE_301_REDIRECTS)
+        .map((redirect) => {
+            const { from, fromPattern, to, gone } = redirect as any;
+            if (!from && !fromPattern) {
+                // eslint-disable-next-line no-console
+                console.warn('Missing `from` in redirect', redirect);
+                return;
+            }
+            // 410 Gone: permanently removed, no target.
+            if (gone) {
+                return from
+                    ? `Redirect 410 ${urlWithBaseUrl(from)}`
+                    : `RedirectMatch 410 "${toBaseAwarePattern(fromPattern)}"`;
+            }
+            if (!to) {
+                // eslint-disable-next-line no-console
+                console.warn('Missing `to` in redirect', redirect);
+                return;
+            }
+            if (from) {
+                return `Redirect 301 ${urlWithBaseUrl(from)} ${urlWithBaseUrl(to)}`;
+            }
+            return `RedirectMatch 301 "${toBaseAwarePattern(fromPattern)}" "${urlWithBaseUrl(to)}"`;
+        })
         .filter(Boolean)
         .join('\n')}`;
 }
@@ -126,7 +147,7 @@ export function getMarkdownNegotiationRules() {
 
 export function getAstroRedirectRules(): AstroUserConfig['redirects'] {
     // Gone rules have no `to`, so skip them.
-    const simpleRedirects = SITE_301_REDIRECTS.filter(
+    const simpleRedirects = dropArchiveOnlyRedirects(SITE_301_REDIRECTS).filter(
         (redirect) => Boolean((redirect as SimpleRedirectRule).from) && !(redirect as { gone?: true }).gone
     ) as SimpleRedirectRule[];
 

@@ -14,6 +14,7 @@ import {
 } from 'ag-charts-core';
 import type { AgZoomButton, AgZoomOnDataChangeStrategy, AgZoomOptions } from 'ag-charts-types';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { ZoomInteractionModule } from '../zoom-interaction/zoomInteractionModule';
 import { Zoom, type ZoomCtx } from './zoom';
 
@@ -24,7 +25,7 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions, _ModuleSupport.Ch
     name: 'zoom',
     enterprise: true,
     version: VERSION,
-    dependencies: [ZoomInteractionModule],
+    dependencies: [ZoomInteractionModule, BackgroundRegionsModule],
 
     options: {
         enabled: boolean,

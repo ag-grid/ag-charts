@@ -2,6 +2,7 @@ import type {
     CandidateStyleResolver,
     LabelMeasureContext,
     MeasuredLabel,
+    NormalisedPlacedSeriesLabelOptions,
     NormalisedTextOrSegments,
     PlacedLabel,
     Point,
@@ -20,8 +21,12 @@ import type { AgMarkerShape } from 'ag-charts-types';
 
 import { PointerEvents } from '../../../scene/node';
 import type { Text } from '../../../scene/shape/text';
-import type { PlacedSeriesLabel } from '../../label';
-import { expandPlacementLabelBoxExtent, placedLabelTextOffset, styledLabelTextOffset } from '../../label';
+import {
+    expandPlacementLabelBoxExtent,
+    placedLabelTextOffset,
+    resolvePlacementLabelStyle,
+    styledLabelTextOffset,
+} from '../../label';
 import {
     boundLabelFit,
     compassCandidatePlacement,
@@ -110,8 +115,8 @@ export abstract class PlacedLabelCartesianSeries<
     /** Reads the label anchor point from a datum. */
     protected abstract readLabelPoint(datum: LabelOf<TTypes>): Point;
     protected abstract makeLabelFormatterParams(): TTypes['labelParams'];
-    /** The series' typed label property; bridges `properties.label` to the shared base generic. */
-    protected abstract get labelProperty(): PlacedSeriesLabel<TTypes['labelParams']>;
+    /** The series' typed label options; bridges the concrete series onto the shared base generic. */
+    protected abstract get labelProperty(): NormalisedPlacedSeriesLabelOptions<TTypes['labelParams']>;
 
     /**
      * Series-constant geometry for a marker-anchored placed label.
@@ -212,6 +217,10 @@ export abstract class PlacedLabelCartesianSeries<
         // A styled label's reservation was sized from the style resolved at its winning placement, so its
         // offset comes from that same style rather than the two placements' shared reservation.
         const styled = label.itemStyler != null;
+        // OPTIMIZATION: without a styler the resolved style is datum-independent, so the placement merge
+        // is done once per placement here rather than once per label inside `getLabelStyles`.
+        const insideLabel = styled ? label : resolvePlacementLabelStyle(label, insideStyle);
+        const outsideLabel = styled ? label : resolvePlacementLabelStyle(label, outsideStyle);
 
         opts.labelSelection.each((text, datum) => {
             const isInside = datum.placement === 'inside';
@@ -221,15 +230,15 @@ export abstract class PlacedLabelCartesianSeries<
                 this,
                 datum,
                 params,
-                label,
+                isInside ? insideLabel : outsideLabel,
                 isHighlight,
                 activeHighlight,
                 undefined,
-                placementStyle,
+                styled ? placementStyle : undefined,
                 { placement: datum.placement }
             );
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
-            if (enabled && datum?.labelText) {
+            if (enabled && datum?.labelText != null && datum.labelText !== '') {
                 const point = this.readLabelPoint(datum);
                 const offset = styled ? styledLabelTextOffset(style) : placementOffset;
                 text.fontStyle = fontStyle;

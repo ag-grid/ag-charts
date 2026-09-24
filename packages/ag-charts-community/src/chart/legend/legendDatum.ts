@@ -114,7 +114,8 @@ function deriveNamedLabels(
     const [d0, d1] = displayDomain
         ? [toNumber(displayDomain[0]), toNumber(displayDomain[1])]
         : [domain[0], domain.at(-1)!];
-    const extent = d1 - d0 || 1;
+    const span = d1 - d0;
+    const extent = span === 0 || Number.isNaN(span) ? 1 : span;
     const labels: GradientLegendNamedLabel[] = [];
 
     for (let i = 0; i < range.length; i++) {
@@ -214,7 +215,7 @@ export interface ColorScaleLegendFormatterContext {
  * community and enterprise `Series` subclasses without an import cycle.
  */
 interface ColorScaleSeries {
-    readonly properties: { colorKey?: string; legendItemName?: string };
+    readonly options: object;
     readonly ctx: { formatManager: FormatManager };
     callWithContext: GlobalContextFormatter;
     getFormatterContext(property: 'color'): FormatterBoundSeries[];
@@ -226,13 +227,18 @@ interface ColorScaleSeries {
  * `colorScale.mode === 'discrete'`. Replaces the previous per-call-site
  * boilerplate that packed the same five fields by hand.
  */
+function readStringOption(options: object, key: string): string | undefined {
+    const value: unknown = key in options ? options[key as keyof typeof options] : undefined;
+    return typeof value === 'string' ? value : undefined;
+}
+
 export function colorScaleLegendFormatterContext(series: ColorScaleSeries): ColorScaleLegendFormatterContext {
     return {
         formatManager: series.ctx.formatManager,
         formatInContext: series.callWithContext.bind(series),
         // Read via bracket access so the result is `string | undefined` without an `as` cast.
-        key: 'colorKey' in series.properties ? series.properties.colorKey : undefined,
-        legendItemName: 'legendItemName' in series.properties ? series.properties.legendItemName : undefined,
+        key: readStringOption(series.options, 'colorKey'),
+        legendItemName: readStringOption(series.options, 'legendItemName'),
         boundSeries: series.getFormatterContext('color'),
     };
 }

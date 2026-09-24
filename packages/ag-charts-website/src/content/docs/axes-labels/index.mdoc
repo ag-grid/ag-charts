@@ -92,6 +92,68 @@ A collision is defined as labels coming within 10 pixels of each other. This min
 
 If `autoRotate` is enabled, rotation will be attempted before label skipping applies.
 
+## Alignment
+
+Axis labels are aligned within the axis thickness and bands, with a default alignment derived from the axis position and label rotation. Both directions can be set explicitly.
+
+### Text Alignment
+
+Use `label.textAlign` to control the horizontal alignment of labels. This is most useful on a vertical axis containing labels of differing width.
+
+{% chartExampleRunner title="Axis Label Text Alignment" name="axis-label-text-align" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            label: {
+                textAlign: 'center',
+            },
+        },
+        y: {
+            label: {
+                textAlign: 'left',
+            },
+        },
+    },
+}
+```
+
+In this example:
+
+- Use the buttons to see the `textAlign` options for each axis.
+- On the vertical number axis, labels are horizontally aligned within the axis thickness.
+- On the horizontal category axis, labels are horizontally aligned within each category band.
+
+### Vertical Alignment
+
+Use `label.verticalAlign` to control the vertical alignment of labels. This is most useful on a horizontal axis containing labels of differing height.
+
+{% chartExampleRunner title="Axis Label Vertical Alignment" name="axis-label-vertical-align" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            label: {
+                verticalAlign: 'top',
+            },
+        },
+        y: {
+            label: {
+                verticalAlign: 'middle',
+            },
+        },
+    },
+}
+```
+
+In this example:
+
+- Use the buttons to see the `verticalAlign` options for each axis.
+- On the horizontal category axis, labels are vertically aligned within the axis thickness.
+- On the vertical number axis, labels are vertically aligned around the tick they label.
+
 ## Label Text Formatting
 
 The label text is taken directly from the data.

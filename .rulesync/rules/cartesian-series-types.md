@@ -20,7 +20,6 @@ CartesianSeries takes a single `TTypes extends CartesianSeriesTypes` generic par
 interface MySeriesTypes extends CartesianSeriesTypes {
     readonly node: MyNode; // Scene graph node type
     readonly options: AgMySeriesOptions; // API options type
-    readonly properties: MySeriesProperties;
     readonly datum: MyNodeDatum;
     readonly label: MyLabelDatum; // Often same as datum
     readonly context: MySeriesNodeDataContext;
@@ -36,7 +35,7 @@ Individual types are accessed via extractors (`NodeOf<T>`, `DatumOf<T>`, `Contex
 
 -   **Enterprise series** use the `_ModuleSupport.` prefix for all imported base types (`_ModuleSupport.CartesianSeriesTypes`, `_ModuleSupport.AbstractBarSeries<MySeriesTypes>`, `_ModuleSupport.Rect<MyNodeDatum>`, …).
 -   **Bar-like series** extend `AbstractBarSeriesTypes` / `AbstractBarSeries` instead of the cartesian bases.
--   **Template base classes** (e.g. OHLC): the base types interface leaves subclass-varying members open (`node: OhlcBaseNode<any>`), the abstract base takes `TTypes extends OhlcSeriesBaseTypes`, and each concrete series narrows `node`/`options`/`properties`. See `ohlcSeriesBase.ts`.
+-   **Template base classes** (e.g. OHLC): the base types interface leaves subclass-varying members open (`node: OhlcBaseNode<any>`), the abstract base takes `TTypes extends OhlcSeriesBaseTypes`, and each concrete series narrows `node`/`options`. See `ohlcSeriesBase.ts`.
 -   **Context type**: use `CartesianSeriesNodeDataContext<TDatum, TLabel>` (or `AbstractBarSeriesNodeDataContext`) — not `SeriesNodeDataContext`, which lacks the required `scales` and `visible` properties.
 -   Existing conversions to copy from: `barSeries.ts` (`AbstractBarSeries`), `lineSeries.ts` / `areaSeries.ts` (`CartesianSeries`), `ohlcSeries.ts` / `candlestickSeries.ts` (template base).
 

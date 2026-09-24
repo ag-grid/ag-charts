@@ -4,6 +4,8 @@ import type { DemoExampleId } from '@components/demo-examples/exampleRegistry';
 import { DEMO_EXAMPLES, getDemoExample } from '@components/demo-examples/exampleRegistry';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
+import { buildChartsFrontmatter } from './chartsFrontmatter';
+
 /**
  * Build the markdown twin of a showcase page. The showcase is an interactive demo with no text
  * representation, so the twin carries the page's hero copy and lists the sibling demos.
@@ -17,12 +19,12 @@ export function buildDemoMarkdown({ demo, siteRoot }: { demo: DemoExampleId; sit
     const current = getDemoExample(demo);
 
     const document = [
-        [
-            '---',
-            `title: ${JSON.stringify(content.metaTitle)}`,
-            `description: ${JSON.stringify(content.metaDescription)}`,
-            '---',
-        ].join('\n'),
+        buildChartsFrontmatter({
+            pageUrl: `${current.path.replace(/^\./, '')}/`,
+            siteRoot,
+            title: content.metaTitle,
+            description: content.metaDescription,
+        }),
         `# ${DEMO_PAGE_HERO.title}`,
         DEMO_PAGE_HERO.description,
         `This page runs an interactive AG Charts demo: ${current.description} ` +

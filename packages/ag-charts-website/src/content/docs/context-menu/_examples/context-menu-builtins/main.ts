@@ -56,12 +56,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function onCustomOrder() {
-    options.contextMenu!.items = CUSTOM_ORDER;
-    chart.update(options);
-}
-
-function onDefaultOrder() {
-    options.contextMenu!.items = ['defaults'];
+function orderChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    options.contextMenu!.items = value === 'custom' ? CUSTOM_ORDER : ['defaults'];
     chart.update(options);
 }

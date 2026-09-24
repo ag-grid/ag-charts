@@ -7,6 +7,7 @@ import { __clearStructuralCacheForTests } from '../module/optionsStructuralCache
 import type { Chart } from './chart';
 import { __clearSanitizedThemeCacheForTests } from './factory/processModuleOptions';
 import { __clearChartThemeCacheForTests } from './mapping/themes';
+import { formatSeriesTooltip } from './series/seriesTooltip';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -285,7 +286,6 @@ describe('Sparkline', () => {
         // invoking `formatTooltip` directly mirrors what hover would otherwise trigger.
         const invokeTooltipRenderer = (c: Chart) => {
             const series = c.series[0] as any;
-            const tooltip = series.properties.tooltip;
             const params: any = {
                 datum: { x: 0, y: 1 },
                 xKey: 'x',
@@ -296,7 +296,12 @@ describe('Sparkline', () => {
                 title: undefined,
                 color: undefined,
             };
-            tooltip.formatTooltip([series.properties, series.ctx.chartService], { data: [] }, params);
+            formatSeriesTooltip(
+                series.options.tooltip,
+                [series.options, series.ctx.chartService],
+                { data: [] },
+                params
+            );
         };
 
         it('passes chart-level context to tooltip.renderer params', async () => {
@@ -373,7 +378,6 @@ describe('Sparkline', () => {
 
         const renderDefaultTooltip = (c: Chart, datum: any, xKey: string, yKey: string) => {
             const series = c.series[0] as any;
-            const tooltip = series.properties.tooltip;
             const xValue = datum[xKey];
             const yValue = datum[yKey];
             const params: any = {
@@ -386,7 +390,12 @@ describe('Sparkline', () => {
                 title: undefined,
                 color: undefined,
             };
-            return tooltip.formatTooltip([series.properties, series.ctx.chartService], { data: [] }, params);
+            return formatSeriesTooltip(
+                series.options.tooltip,
+                [series.options, series.ctx.chartService],
+                { data: [] },
+                params
+            );
         };
 
         it('omits the synthesised x index from number-array data', async () => {

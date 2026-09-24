@@ -41,7 +41,7 @@ export const donutTheme: ExtensibleSeriesTheme<'donut'> = {
                 spacing: 2,
             },
         },
-        highlight: PART_WHOLE_HIGHLIGHT_STYLE,
+        highlight: { ...PART_WHOLE_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },
 };

@@ -5,9 +5,11 @@ import type {
     AgAxisContextMenuActionEvent,
     AgAxisValue,
     AgCaptionContextMenuActionEvent,
+    AgContextMenuGetItemsParams,
     AgContextMenuGetItemsParamsAxis,
     AgContextMenuGetItemsParamsCaption,
     AgContextMenuGetItemsParamsCrossLine,
+    AgContextMenuShowOnParamsCrossLine,
     AgContextMenuShowOnParamsSeriesArea,
     AgCrossLineContextMenuActionEvent,
 } from 'ag-charts-types';
@@ -268,13 +270,16 @@ test.describe('context-menu', () => {
         };
 
         const getItemsEvent = (captionType: CaptionType, text: TextType): AgContextMenuGetItemsParamsCaption => {
+            // A DOM event serialises to `{}` across `page.evaluate`, so presence is all that can be asserted here.
+            const event = expect.anything() as AgCaptionContextMenuActionEvent['event'];
             return {
                 captionType,
                 defaultItems: ['download'],
                 context: undefined,
+                event,
                 showOn: 'caption',
                 text,
-                allShowOnParams: [{ showOn: 'caption', captionType, text }],
+                allShowOnParams: [{ showOn: 'caption', captionType, text, event }],
             };
         };
 
@@ -396,7 +401,7 @@ test.describe('context-menu', () => {
 
         type AxisParams = Omit<
             AgContextMenuGetItemsParamsAxis,
-            'showOn' | 'defaultItems' | 'value' | 'index' | 'allShowOnParams' | 'groupPercentage'
+            'showOn' | 'defaultItems' | 'value' | 'index' | 'allShowOnParams' | 'groupPercentage' | 'event'
         >;
         // `groupPercentage` is left out for the continuous axes, which have no bands to report a position in.
         type PointParams = { index: number; value: AgAxisValue; groupPercentage?: number };
@@ -426,12 +431,15 @@ test.describe('context-menu', () => {
         };
 
         function itemsEvent(commonArg: AxisParams, pointArgs: PointParams): AgContextMenuGetItemsParamsAxis {
+            // A DOM event serialises to `{}` across `page.evaluate`, so presence is all that can be asserted here.
+            const event = expect.anything() as AgAxisContextMenuActionEvent['event'];
             return {
                 showOn: 'axis',
                 defaultItems: ['download'],
+                event,
                 ...commonArg,
                 ...pointArgs,
-                allShowOnParams: [{ showOn: 'axis', ...commonArg, ...pointArgs }],
+                allShowOnParams: [{ showOn: 'axis', event, ...commonArg, ...pointArgs }],
             };
         }
 
@@ -582,21 +590,31 @@ test.describe('context-menu', () => {
     test.describe('AG-18053 showOn axis for undeclared axes', () => {
         type AxisParams = Omit<
             AgContextMenuGetItemsParamsAxis,
-            'showOn' | 'defaultItems' | 'value' | 'index' | 'allShowOnParams' | 'coordinates' | 'groupPercentage'
+            | 'showOn'
+            | 'defaultItems'
+            | 'value'
+            | 'index'
+            | 'allShowOnParams'
+            | 'coordinates'
+            | 'groupPercentage'
+            | 'event'
         >;
         // `groupPercentage` is left out for the continuous axes, which have no bands to report a position in.
         type PointParams = { index: number; value: AgAxisValue; groupPercentage?: number };
 
         function itemsEvent(commonArg: AxisParams, pointArgs: PointParams): AgContextMenuGetItemsParamsAxis {
+            // A DOM event serialises to `{}` across `page.evaluate`, so presence is all that can be asserted here.
+            const event = expect.anything() as AgAxisContextMenuActionEvent['event'];
             return {
                 showOn: 'axis',
                 defaultItems: ['download'],
                 // Only the `series-area`, `series-node` and `cross-line` scopes carry domain-space
                 // `coordinates`; asserted rather than omitted so populating it here is a deliberate change.
                 coordinates: undefined,
+                event,
                 ...commonArg,
                 ...pointArgs,
-                allShowOnParams: [{ showOn: 'axis', ...commonArg, ...pointArgs }],
+                allShowOnParams: [{ showOn: 'axis', event, ...commonArg, ...pointArgs }],
             };
         }
 
@@ -762,11 +780,21 @@ test.describe('context-menu', () => {
                 },
 
                 itemsEvent(...expectedHits: Params[]): AgContextMenuGetItemsParamsCrossLine {
-                    expectedHits = expectedHits.map((hit) => ({ ...hit, showOn: 'cross-line' }));
-                    const seriesAreaShowOnParams: AgContextMenuShowOnParamsSeriesArea = { showOn: 'series-area' };
+                    // A DOM event serialises to `{}` across `page.evaluate`, so presence is all that can be
+                    // asserted here — for the winning scope and for every `allShowOnParams` entry alike.
+                    const event = expect.anything() as AgCrossLineContextMenuActionEvent['event'];
+                    const crossLineHits: AgContextMenuShowOnParamsCrossLine[] = expectedHits.map((hit) => ({
+                        ...hit,
+                        showOn: 'cross-line',
+                        event,
+                    }));
+                    const seriesAreaShowOnParams: AgContextMenuShowOnParamsSeriesArea = {
+                        showOn: 'series-area',
+                        event,
+                    };
                     return {
-                        ...expectedHits[0],
-                        allShowOnParams: [...expectedHits, seriesAreaShowOnParams],
+                        ...crossLineHits[0],
+                        allShowOnParams: [...crossLineHits, seriesAreaShowOnParams],
                         coordinates: result.coordinates,
                         defaultItems: ['download'],
                     };
@@ -887,6 +915,95 @@ test.describe('context-menu', () => {
                     POINT_allcrosslines.actionEvent(PARAMS_crossline1, PARAMS_crossline2, PARAMS_crossline3),
                 ]);
             });
+        });
+    });
+
+    test.describe('AG-18618 showOn crossline (polar)', () => {
+        type Params = Pick<
+            AgCrossLineContextMenuActionEvent,
+            'crossLineId' | 'axisId' | 'direction' | 'crossLineType' | 'value' | 'range'
+        >;
+
+        const PARAMS_band: Params = {
+            axisId: 'angle',
+            crossLineId: 'band',
+            crossLineType: 'range',
+            direction: 'angle',
+            range: ['Q2', 'Q3'],
+            value: undefined,
+        };
+        const PARAMS_threshold: Params = {
+            axisId: 'radius',
+            crossLineId: 'threshold',
+            crossLineType: 'line',
+            direction: 'radius',
+            range: undefined,
+            value: 5,
+        };
+
+        // Canvas coordinates shared with the events-e2e polar cross-line example, which draws the same chart.
+        const POINTS = {
+            band: { x: 560, y: 300 },
+            threshold: { x: 255, y: 285 },
+            both: { x: 515, y: 285 },
+            miss: { x: 330, y: 285 },
+        };
+
+        function itemsEvent(...hits: Params[]): AgContextMenuGetItemsParamsCrossLine {
+            const event = expect.anything() as AgCrossLineContextMenuActionEvent['event'];
+            const crossLineParams = hits.map((hit) => ({ ...hit, showOn: 'cross-line' as const, event }));
+            const seriesArea: AgContextMenuShowOnParamsSeriesArea = { showOn: 'series-area', event };
+            return {
+                ...crossLineParams[0],
+                allShowOnParams: [...crossLineParams, seriesArea],
+                defaultItems: ['download'],
+            };
+        }
+
+        function actionEvent(...hits: Params[]): AgCrossLineContextMenuActionEvent {
+            return {
+                type: 'crossLineContextMenuAction',
+                event: expect.anything() as AgCrossLineContextMenuActionEvent['event'],
+                ...hits[0],
+            };
+        }
+
+        let toPage: (x: number, y: number) => { x: number; y: number };
+
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('context-menu-e2e', 'ag-18618-polar-crosslines', 'vanilla').url);
+            toPage = await canvasToPageTransformer(page);
+        });
+
+        async function rightClick(page: Page, point: { x: number; y: number }) {
+            const { x, y } = toPage(point.x, point.y);
+            await page.mouse.click(x, y, { button: 'right' });
+        }
+
+        for (const [name, hits] of [
+            ['band', [PARAMS_band]],
+            ['threshold', [PARAMS_threshold]],
+            ['both', [PARAMS_band, PARAMS_threshold]],
+        ] as const) {
+            test.describe(`point: ${name}`, () => {
+                test.beforeEach(async ({ page }) => {
+                    await rightClick(page, POINTS[name]);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([itemsEvent(...hits)]);
+                });
+                test('actions', async ({ page }) => {
+                    await page.getByText('Run cross-line action').click();
+                    expect(await popActions(page)).toEqual([actionEvent(...hits)]);
+                });
+            });
+        }
+
+        test('point clear of every cross line offers no cross-line region', async ({ page }) => {
+            await rightClick(page, POINTS.miss);
+            const [params] = (await popGetItems(page)) as AgContextMenuGetItemsParams[];
+            expect(params.showOn).not.toBe('cross-line');
+            expect(params.allShowOnParams.map((p) => p.showOn)).not.toContain('cross-line');
         });
     });
 });

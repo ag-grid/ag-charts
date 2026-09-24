@@ -65,8 +65,7 @@ export class ReactiveState<StateMap extends object = Record<string, unknown>> {
      */
     observe(callback: StateObserver<StateMap>) {
         const observeKeys = new Map<keyof StateMap, Set<string>>();
-        const getter: ValueGetter<StateMap> = (key: keyof StateMap, subPath?: string) => {
-            const path = subPath ?? '';
+        const getter: ValueGetter<StateMap> = (key: keyof StateMap, path: string = '') => {
             let paths = observeKeys.get(key);
             if (paths == null) {
                 paths = new Set<string>();

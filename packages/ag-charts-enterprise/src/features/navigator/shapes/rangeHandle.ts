@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { Logger } from 'ag-charts-core';
-import { Property, SceneChangeDetection } from 'ag-charts-core';
+import { SceneChangeDetection } from 'ag-charts-core';
 
 const { BBox, ExtendedPath2D } = _ModuleSupport;
 export class RangeHandle extends _ModuleSupport.Path {
@@ -11,19 +11,15 @@ export class RangeHandle extends _ModuleSupport.Path {
     private centerX: number = 0;
     private centerY: number = 0;
 
-    @Property
     @SceneChangeDetection()
     width: number = 8;
 
-    @Property
     @SceneChangeDetection()
     height: number = 16;
 
-    @Property
     @SceneChangeDetection()
     cornerRadius: number = 4;
 
-    @Property
     @SceneChangeDetection()
     grip: boolean = true;
 

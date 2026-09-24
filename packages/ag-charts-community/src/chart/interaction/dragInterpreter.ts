@@ -1,12 +1,12 @@
 import type { ClientPoint } from 'ag-charts-core';
-import { CleanupRegistry, EventEmitter } from 'ag-charts-core';
+import { CleanupRegistry, EventEmitter, attachListener } from 'ag-charts-core';
 
 import type { Widget } from '../../widget/widget';
 import type {
+    ClickWidgetEvent,
+    DblClickWidgetEvent,
     DragWidgetEvent,
     MouseWidgetEvent,
-    NativeMouseWidgetEvent,
-    TouchSyntheticMouseWidgetEvent,
     TouchWidgetEvent,
     WidgetEventMap,
 } from '../../widget/widgetEvents';
@@ -14,28 +14,12 @@ import type {
 const DRAG_THRESHOLD_PX = 3;
 const DOUBLE_TAP_TIMER_MS = 505;
 const DOUBLE_TAP_THRESHOLD_PX = 30;
+const LONG_TAP_DURATION_MS = 500;
+const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px² */
 
-type TSynthetic = 'click' | 'dblclick';
-type Device = MouseWidgetEvent['device'];
-
-/**
- * A `DragInterpreterClickEvent` is either a native 'click' MouseEvent, or a synthetic click event fired by a single
- * finger 'touchstart' and 'touchend'.
- */
-export type DragInterpreterClickEvent = NativeMouseWidgetEvent<'click'> | TouchSyntheticMouseWidgetEvent<'click'>;
-
-/**
- * A `DragInterpreterDblClickEvent` is either a native 'dblclick' MouseEvent, or a synthetic click event fired by two
- * finger 'touchstart' and 'touchend' in quick succession (DOUBLE_TAP_TIMER_MS).
- */
-export type DragInterpreterDblClickEvent =
-    | NativeMouseWidgetEvent<'dblclick'>
-    | TouchSyntheticMouseWidgetEvent<'dblclick'>;
-
-type WE<D extends Device> = DragWidgetEvent & { device: D };
-function makeSynthetic<T extends TSynthetic>(type: T, event: WE<'mouse'>): MouseWidgetEvent<T> & { device: 'mouse' };
-function makeSynthetic<T extends TSynthetic>(type: T, event: WE<'touch'>): MouseWidgetEvent<T> & { device: 'touch' };
-function makeSynthetic(type: TSynthetic, event: DragWidgetEvent) {
+function makeSynthetic(type: 'click', event: DragWidgetEvent): ClickWidgetEvent;
+function makeSynthetic(type: 'dblclick', event: DragWidgetEvent): DblClickWidgetEvent;
+function makeSynthetic(type: 'click' | 'dblclick', event: DragWidgetEvent): ClickWidgetEvent | DblClickWidgetEvent {
     const { device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent } = event;
     return { type, device, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
 }
@@ -46,18 +30,24 @@ function checkDragDistance(dx: number, dy: number) {
     return distanceSquared >= thresholdSquared;
 }
 
-function checkDoubleTapDistance(t1: ClientPoint, t2: ClientPoint) {
-    const dx = t1.clientX - t2.clientX;
-    const dy = t1.clientY - t2.clientY;
-    const distanceSquared = dx * dx + dy * dy;
-    const thresholdSquared = DOUBLE_TAP_THRESHOLD_PX * DOUBLE_TAP_THRESHOLD_PX;
-    return distanceSquared < thresholdSquared;
+function deltaClientSquared(a: ClientPoint, b: ClientPoint): number {
+    const dx = a.clientX - b.clientX;
+    const dy = a.clientY - b.clientY;
+    return dx * dx + dy * dy;
 }
 
-type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
-    click: DragInterpreterClickEvent;
-    dblclick: DragInterpreterDblClickEvent;
-};
+function checkDoubleTapDistance(t1: ClientPoint, t2: ClientPoint) {
+    const thresholdSquared = DOUBLE_TAP_THRESHOLD_PX * DOUBLE_TAP_THRESHOLD_PX;
+    return deltaClientSquared(t1, t2) < thresholdSquared;
+}
+
+function findTouch(touches: TouchList, identifier: number): Touch | undefined {
+    // Indexed to avoid the array copy: runs on every 'touchmove' while a candidate is alive.
+    for (let i = 0; i < touches.length; i += 1) {
+        if (touches[i].identifier === identifier) return touches[i];
+    }
+    return undefined;
+}
 
 /**
  * In the interest of robustness (and simplicity), the Widget class always dispatches these events after mousedown &
@@ -73,7 +63,7 @@ type EventMap = Omit<WidgetEventMap, 'click' | 'dblclick'> & {
  */
 export class DragInterpreter {
     private readonly cleanup = new CleanupRegistry();
-    readonly events = new EventEmitter<EventMap>();
+    readonly events = new EventEmitter<WidgetEventMap>();
 
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
     private isDragging = false;
@@ -126,7 +116,7 @@ export class DragInterpreter {
         this.events.emit('mousemove', event);
     }
 
-    private onDblClick(event: MouseWidgetEvent<'dblclick'>) {
+    private onDblClick(event: DblClickWidgetEvent) {
         this.events.emit('dblclick', event);
     }
 
@@ -156,12 +146,12 @@ export class DragInterpreter {
             return;
         }
 
-        if (event.device === 'mouse') {
+        if (event.device === 'mouse' || event.device === 'pen') {
             const click = makeSynthetic('click', event);
             this.events.emit('click', click);
         }
         // ignore 'drag-end' events from 'touchstart' or 'touchcancel'
-        else if (event.sourceEvent.type === 'touchend') {
+        else if ((event.device satisfies 'touch') === 'touch') {
             if (checkDragDistance(this.touch.distanceTravelledX, this.touch.distanceTravelledY)) {
                 return; // this is a drag not a click, do not dispatch a 'click' event.
             }
@@ -184,4 +174,108 @@ export class DragInterpreter {
             }
         }
     }
+}
+
+/**
+ * Synthesises the 'contextmenu' that touch devices never send: iOS Safari reserves long-press for selectable
+ * content, so touch users cannot otherwise reach the chart's context menus. Listening on the chart element and
+ * re-dispatching on `sourceEvent.target` means a widget needs only its existing 'contextmenu' listener.
+ */
+export class LongTapInterpreter {
+    private readonly cleanup = new CleanupRegistry();
+    // Separate lifetime: registered when the long tap fires, flushed when the finger lifts.
+    private readonly gestureCleanup = new CleanupRegistry();
+    private timer?: ReturnType<typeof setTimeout>;
+    private candidate?: { touch: Touch; target: EventTarget };
+
+    constructor(private readonly widget: Widget) {
+        this.cleanup.register(
+            widget.addListener('touchstart', this.onTouchStart.bind(this)),
+            widget.addListener('touchmove', this.onTouchMove.bind(this)),
+            widget.addListener('touchend', this.disarm.bind(this)),
+            widget.addListener('touchcancel', this.disarm.bind(this))
+        );
+    }
+
+    destroy(): void {
+        this.disarm();
+        this.gestureCleanup.flush();
+        this.cleanup.flush();
+    }
+
+    private onTouchStart(event: TouchWidgetEvent<'touchstart'>) {
+        this.disarm();
+        // Counted per target, so a pinch on the series area cancels itself, but a finger on each of two
+        // elements does not.
+        const { targetTouches, target } = event.sourceEvent;
+        const touch = targetTouches[0];
+        if (targetTouches.length !== 1 || touch == null || target == null) return;
+
+        this.candidate = { touch, target };
+        this.timer = setTimeout(this.onLongTap, LONG_TAP_DURATION_MS);
+    }
+
+    private onTouchMove(event: TouchWidgetEvent<'touchmove'>) {
+        const { candidate } = this;
+        if (candidate == null) return;
+
+        // Measured from the touch-down point, so a finger that wanders and returns is still a drag.
+        const touch = findTouch(event.sourceEvent.targetTouches, candidate.touch.identifier);
+        if (touch != null && deltaClientSquared(candidate.touch, touch) > LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX) {
+            this.disarm();
+        }
+    }
+
+    private disarm() {
+        clearTimeout(this.timer);
+        this.timer = undefined;
+        this.candidate = undefined;
+    }
+
+    private readonly onLongTap = () => {
+        const { candidate } = this;
+        if (candidate == null) return;
+        const { touch, target } = candidate;
+        const element = this.widget.getElement();
+        this.disarm();
+
+        // A chart update can replace the touched element mid-hold, leaving nothing to dispatch to.
+        if (!element.contains(target as Node)) return;
+
+        // Must precede the listeners below, whose 'touchcancel' handler would misread it as a lift.
+        target.dispatchEvent(
+            new TouchEvent('touchcancel', {
+                bubbles: true,
+                touches: [touch],
+                targetTouches: [touch],
+                changedTouches: [touch],
+            })
+        );
+
+        // The context menu owns the rest of the gesture: no page scroll, no emulated click on lift.
+        const suppressDefault = (e: Event) => e.preventDefault();
+        const finish = (e: Event) => {
+            e.preventDefault();
+            this.gestureCleanup.flush();
+        };
+        const opts: AddEventListenerOptions = { passive: false, capture: true };
+        this.gestureCleanup.register(
+            attachListener(element, 'touchstart', suppressDefault, opts),
+            attachListener(element, 'touchmove', suppressDefault, opts),
+            attachListener(element, 'touchend', finish, opts),
+            attachListener(element, 'touchcancel', finish, opts)
+        );
+
+        const { clientX, clientY } = touch;
+        target.dispatchEvent(
+            new PointerEvent('contextmenu', {
+                bubbles: true,
+                cancelable: true,
+                view: element.ownerDocument.defaultView,
+                clientX,
+                clientY,
+                pointerType: 'touch',
+            })
+        );
+    };
 }

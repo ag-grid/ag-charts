@@ -102,6 +102,9 @@ test.describe('api-ref-page', () => {
 
         const gradientVariant = page.locator('#reference-AgBarSeriesOptions-fill-gradient');
         await expect(gradientVariant).toBeVisible();
+        await expect(gradientVariant).toContainText("fill[type='gradient']");
+        const colorRefVariant = page.locator('#reference-AgBarSeriesOptions-fill-AgColorRefMixOntoColor');
+        await expect(colorRefVariant).toContainText('fill[AgColorRefMixOntoColor]');
 
         // The signature code block (`-details`) belongs to the separate "See more details" affordance and stays absent here.
         await page.getByRole('button', { name: 'See child properties of gradient', exact: true }).click();
@@ -191,6 +194,27 @@ test.describe('api-ref-page', () => {
         await page.keyboard.press('Enter');
 
         await expect(getSearchInput(page)).toHaveValue('');
+    });
+
+    // `legend.position` is a union whose interface variant carries no string literal, so it is keyed
+    // on the interface name in both the tree anchor and the search index.
+    test('finds a property under a union variant that has no discriminator', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        const searchInput = getSearchInput(page);
+        await searchInput.click();
+        await searchInput.fill('floating');
+
+        await selectSearchOption(page, 'legend.position[AgChartLegendPositionOptions].floating');
+        await page.keyboard.press('Enter');
+
+        await page.waitForURL(/#reference-AgChartOptions-legend-position-AgChartLegendPositionOptions-floating$/);
+        const floating = page.locator(
+            '#reference-AgChartOptions-legend-position-AgChartLegendPositionOptions-floating'
+        );
+        await expect(floating).toBeVisible();
+        await expect(floating).toContainText('legend.position[AgChartLegendPositionOptions].floating');
     });
 
     // The dropdown scrolls on both axes; wheeling vertically moves the pointer onto a new option,
@@ -398,9 +422,12 @@ test.describe('api-ref-page', () => {
         await page.getByRole('button', { name: 'See available interfaces of padding', exact: true }).click();
         const paddingOptions = page.locator('#reference-AgChartOptions-padding-PaddingOptions');
         await expect(paddingOptions).toBeVisible();
+        await expect(paddingOptions).toContainText('padding[PaddingOptions]');
 
         await page.getByRole('button', { name: 'See child properties of PaddingOptions', exact: true }).click();
-        await expect(page.locator('#reference-AgChartOptions-padding-PaddingOptions-top')).toBeVisible();
+        const top = page.locator('#reference-AgChartOptions-padding-PaddingOptions-top');
+        await expect(top).toBeVisible();
+        await expect(top).toContainText('padding[PaddingOptions].top');
     });
 
     // A mixed union keeps its non-interface members (here the primitive `PixelSize`) in a signature

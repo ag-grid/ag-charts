@@ -1,0 +1,42 @@
+---
+/**
+ * Flat, server-rendered list of an interface's top-level members, for crawlers that don't execute
+ * JavaScript. Replaced once the React reference island mounts, so it stays deliberately shallow to
+ * keep the served HTML small.
+ */
+import { cleanupName, normalizeType, parseJsDocs } from '@components/api-documentation/apiReferenceHelpers';
+import type { MemberNode } from '@generate-code-reference-plugin/doc-interfaces/types';
+import styles from './ApiReferenceFallback.module.scss';
+
+interface Props {
+    /** Interface name, as the anchor prefix the hydrated rows use. */
+    id: string;
+    members: MemberNode[];
+    hideRequired?: boolean;
+}
+
+const { id, members, hideRequired } = Astro.props;
+---
+
+<dl class={styles.referenceList}>
+    {
+        members.map((member) => {
+            const memberDocs = parseJsDocs(member.docs);
+            return (
+                <div class={styles.referenceRow} id={`reference-${id}-${member.name}`}>
+                    <dt>
+                        <span class={styles.propertyName}>{cleanupName(member.name)}</span>
+                        {!member.optional && !hideRequired && <span class={styles.required}>required</span>}
+                        <code class={styles.propertyType}>{normalizeType(member.type)}</code>
+                        {member.defaultValue != null && (
+                            <span class={styles.propertyDefault}>default: {member.defaultValue}</span>
+                        )}
+                    </dt>
+                    {/* Always rendered: a definition-list group needs both a term and a
+                        description, even for undocumented members. */}
+                    <dd class="text-secondary">{memberDocs}</dd>
+                </div>
+            );
+        })
+    }
+</dl>

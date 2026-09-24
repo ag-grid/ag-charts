@@ -78,7 +78,8 @@ function updateTickSpacingEnabled() {
     tickSpacingGroup.disabled = !(placement === 'inner' && ticksEnabled);
 }
 
-function setPlacement(value: AgScrollbarPlacement) {
+function setPlacement(event: Event) {
+    const value = (event.target as HTMLInputElement).value as AgScrollbarPlacement;
     placement = value;
     options.scrollbar!.placement = value;
     chart.update(options);

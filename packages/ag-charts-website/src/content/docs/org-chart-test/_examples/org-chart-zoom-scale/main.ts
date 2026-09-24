@@ -13,7 +13,6 @@ ModuleRegistry.registerModules([OrganizationSeriesModule, ZoomModule]);
 
 type Scale = 100 | 1_000 | 10_000 | 100_000;
 
-const SCALES: Scale[] = [100, 1_000, 10_000, 100_000];
 const SCALE_LABELS: Record<Scale, string> = { 100: '100', 1000: '1K', 10000: '10K', 100000: '100K' };
 
 let activeScale: Scale = 100;
@@ -35,16 +34,6 @@ const options: AgStandaloneChartOptions = {
 const chart = AgCharts.create(options);
 
 /** inScope */
-function setActiveButton(scale: Scale): void {
-    SCALES.forEach((s) => {
-        const btn = document.getElementById(`scale-btn-${s}`);
-        if (btn) {
-            btn.classList.toggle('active', s === scale);
-        }
-    });
-}
-
-/** inScope */
 function updateStatus(text: string): void {
     const el = document.getElementById('scale-status');
     if (el) el.textContent = text;
@@ -57,11 +46,14 @@ async function loadScale(scale: Scale): Promise<void> {
         scale >= 100_000 &&
         !confirm(`Loading ${SCALE_LABELS[scale]} nodes may take several seconds and use significant memory. Continue?`)
     ) {
+        // The radio commits before the handler runs, so re-check the previously-active scale.
+        // Assigning `checked` programmatically fires no `change` event, so there is no re-entry.
+        const activeInput = document.getElementById(`scale-${activeScale}`) as HTMLInputElement | null;
+        if (activeInput) activeInput.checked = true;
         return;
     }
 
     activeScale = scale;
-    setActiveButton(scale);
     updateStatus(`Generating ${SCALE_LABELS[scale]} nodes…`);
 
     // Yield to the browser so the status text is painted before generation starts.
@@ -84,10 +76,9 @@ async function loadScale(scale: Scale): Promise<void> {
     updateStatus(`${SCALE_LABELS[scale]} nodes loaded`);
 }
 
-// Initialise the active button state on page load.
-setActiveButton(activeScale);
-updateStatus('100 nodes loaded');
+function scaleChange(event: Event) {
+    const scale = Number((event.target as HTMLInputElement).value) as Scale;
+    void loadScale(scale);
+}
 
-SCALES.forEach((scale) => {
-    document.getElementById(`scale-btn-${scale}`)?.addEventListener('click', () => void loadScale(scale));
-});
+updateStatus('100 nodes loaded');

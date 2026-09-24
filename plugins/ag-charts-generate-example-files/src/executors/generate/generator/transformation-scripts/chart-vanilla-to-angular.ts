@@ -125,6 +125,12 @@ function getComponentMetadata(bindings: any, property: any, methodNames: string[
         propertyAssignments.push(`this.${property.name} = ${prefixInstanceMethodCalls(property.value, methodNames)};`);
     }
 
+    const modules = bindings.chartModules[property.name];
+    if (modules) {
+        propertyAttributes.push(`[modules]="${property.name}Modules"`);
+        propertyVars.push(`public ${property.name}Modules = ${modules};`);
+    }
+
     return { propertyAttributes, propertyVars, propertyAssignments };
 }
 

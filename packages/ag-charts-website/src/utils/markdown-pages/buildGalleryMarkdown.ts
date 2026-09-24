@@ -5,6 +5,7 @@ import { galleryFamilyHeading, resolveGalleryH1 } from '@components/gallery/util
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 import galleryData from '../../content/gallery/data.json';
+import { buildChartsFrontmatter } from './chartsFrontmatter';
 import { withDefaultFramework } from './withDefaultFramework';
 
 // The slice of the gallery collection this twin consumes; shaped to how gallery.astro iterates.
@@ -35,12 +36,12 @@ function galleryExampleUrl(name: string, siteRoot?: string): string {
 export function buildGalleryMarkdown({ siteRoot }: { siteRoot?: string } = {}): string {
     const { series } = galleryData as GalleryContent;
 
-    const frontmatter = [
-        '---',
-        `title: ${JSON.stringify(GALLERY_HUB_COPY.title)}`,
-        `description: ${JSON.stringify(GALLERY_HUB_COPY.description)}`,
-        '---',
-    ].join('\n');
+    const frontmatter = buildChartsFrontmatter({
+        pageUrl: '/gallery/',
+        siteRoot,
+        title: GALLERY_HUB_COPY.title,
+        description: GALLERY_HUB_COPY.description,
+    });
 
     const sections = [
         frontmatter,
@@ -56,7 +57,7 @@ export function buildGalleryMarkdown({ siteRoot }: { siteRoot?: string } = {}): 
         const heading = chartType.enterprise ? `${familyHeading} (Enterprise)` : familyHeading;
         const links = chartType.examples
             .filter((example) => !example.hidden)
-            .map((example) => `- [${resolveGalleryH1(example)}](${galleryExampleUrl(example.name, siteRoot)})`);
+            .map((example) => `- [${resolveGalleryH1(example.name)}](${galleryExampleUrl(example.name, siteRoot)})`);
 
         if (links.length === 0) {
             continue;

@@ -41,6 +41,8 @@ have multiple axes on the same edge. These are displayed alongside each other.
 The `crossAt` option allows an axis to intersect a perpendicular axis at a specific axis value instead of the chart edge.
 This is useful for centring the chart origin or aligning axes to highlight particular thresholds.
 
+The axis title, [labels](./axes-labels/) and [crosshair label](./axes-crosshairs/) can be positioned alongside the axis or at the edge of the chart.
+
 {% chartExampleRunner title="CrossAt" name="axis-cross-at" type="generated" /%}
 
 ```js format="snippet"
@@ -73,12 +75,11 @@ This is useful for centring the chart origin or aligning axes to highlight parti
 In this example:
 
 - Both axes have a `crossAt.value` set. It is also possible to set it on a single axis only.
+- The `crossAt.titlePlacement`, `crossAt.labelPlacement` and `crossAt.crosshairLabelPlacement` properties control where these elements are placed.
 - The `crossAt.value` must be of the same type as the perpendicular axis domain, such as `Number` or `Date`.
 - The `crossAt` target value should be within the domain of the perpendicular axis.
-- The `crossAt.titlePlacement`, `crossAt.labelPlacement` and `crossAt.crosshairLabelPlacement` can be changed to `'crossing'` or `'edge'`, independently.
 
 When the target value leaves the visible range, such as by [Zooming](./zoom/), the axis will stick to the edge of the chart and remain in view.
-
 Set `sticky: false` to allow the axis to be moved out of view in this scenario.
 
 ## Band Alignment

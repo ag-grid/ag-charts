@@ -11,7 +11,7 @@ describe('DOMManager', () => {
     beforeEach(() => {
         // Prevent bleed of state between tests.
         doc.head.innerHTML = '';
-        (DOMManager as any).headStyles?.clear?.();
+        (DOMManager as any).headStyles.delete(doc.head);
     });
 
     const eventsHub: EventsHub = new EventEmitter();
@@ -41,6 +41,19 @@ describe('DOMManager', () => {
         });
     });
 
+    describe('for minimal-mode containers', () => {
+        it('resolves the series area and its bounds element to the same attached element', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+
+            const dm = new DOMManager(eventsHub, '416d1178', doc, container, undefined, undefined, 'minimal');
+            const seriesArea = dm.getParent('series-area');
+
+            expect(dm.getParent('series-area-bounds')).toBe(seriesArea);
+            expect(container.contains(seriesArea)).toBe(true);
+        });
+    });
+
     describe('for disconnected container cases', () => {
         it('should initialize the expected DOM', () => {
             const container = doc.createElement('div');
@@ -65,6 +78,25 @@ describe('DOMManager', () => {
 
             expect(container).toMatchSnapshot();
             expect(doc.head).toMatchInlineSnapshot(`<head />`);
+        });
+    });
+
+    describe('for charts in a second document', () => {
+        // A chart in an iframe must not stop a later chart in the main document from getting its stylesheet.
+        it('adds the head styles to each document', () => {
+            const otherDocument = getDocument().implementation.createHTMLDocument('other');
+            const otherDoc = new AgDocument(otherDocument, getDocument().defaultView!);
+            const otherContainer = otherDocument.createElement('div');
+            otherDocument.body.append(otherContainer);
+            new DOMManager(eventsHub, 'other-doc', otherDoc, otherContainer).addStyles('test', '.test {}');
+
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            new DOMManager(eventsHub, 'main-doc', doc, container).addStyles('test', '.test {}');
+
+            const selector = 'style[data-ag-charts="test"]';
+            expect(otherDocument.head.querySelector(selector)).not.toBeNull();
+            expect(doc.head.querySelector(selector)).not.toBeNull();
         });
     });
 

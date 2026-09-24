@@ -1,6 +1,7 @@
 import {
     BASE_FONT_SIZE,
     Color,
+    type ContributionHost,
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
     DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
@@ -24,7 +25,9 @@ import {
     FONT_SIZE_RATIO,
     IS_DARK_THEME,
     ModuleRegistry,
+    type ModuleScope,
     ModuleType,
+    type OptionsContribution,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
     PALETTE_ALT_NEUTRAL_FILL,
@@ -37,6 +40,11 @@ import {
     PALETTE_NEUTRAL_STROKE,
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
+    type PlainObject,
+    contributionMatchesAxisType,
+    contributionMatchesChartType,
+    contributionMatchesSeriesType,
+    createScopedCache,
     deepClone,
     deepFreeze,
     getSequentialColors,
@@ -45,6 +53,7 @@ import {
     jsonWalk,
     mergeDefaults,
     mergeDefaultsShallowOperations,
+    nestAtOptionsPath,
 } from 'ag-charts-core';
 import type {
     AgChartAllThemeParams,
@@ -122,6 +131,21 @@ function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverri
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
 }
 
+/**
+ * The frozen per-series-type defaults a `ChartTheme` bakes into `config` depend on the theme class, the
+ * preset and the module registry — never on the instance's own overrides, palette or params. Building them
+ * means merging every series, axis and plugin theme template, then deep-cloning and deep-freezing the result,
+ * which dominated the cost of `new ChartTheme(...)` for every distinct theme-options object (each one misses
+ * the identity-keyed cache in `mapping/themes.ts`). They are built once per class and preset per module scope
+ * and shared, which is safe because the result is frozen; a registry change empties the scope's entries.
+ */
+const defaultsConfigCache = createScopedCache(
+    () => ({ byClass: new WeakMap<Function, Map<string | undefined, any>>() }),
+    (cache) => {
+        cache.byClass = new WeakMap();
+    }
+);
+
 export class ChartTheme {
     readonly palette: Required<AgChartThemePalette> & {
         sequentialColors: CssColor[][]; // TODO: AG-14186 make public
@@ -197,7 +221,7 @@ export class ChartTheme {
             },
             buttonBorderRadius: { $ref: 'borderRadius' },
             buttonFontWeight: 400,
-            buttonTextColor: { $ref: 'textColor' },
+            buttonTextColor: { $ref: 'chromeTextColor' },
 
             inputBackgroundColor: { $ref: 'backgroundColor' },
             inputBorder: {
@@ -377,13 +401,16 @@ export class ChartTheme {
         };
     }
 
-    constructor(options: AgChartTheme = {}, presetName?: string) {
+    constructor(
+        options: AgChartTheme = {},
+        presetName?: string,
+        moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
+    ) {
         const { overrides, palette, params } = deepClone(options) as AgChartThemeOptions;
-        const defaults = this.createChartConfigPerChartType(this.getDefaults(presetName));
         const presets: Record<string, any> = {};
 
         if (overrides) {
-            this.processOverrides(presets, overrides);
+            this.processOverrides(presets, overrides, moduleRegistry);
         }
 
         const { fills, strokes, sequentialColors, ...otherColors } = this.getDefaultColors();
@@ -399,13 +426,32 @@ export class ChartTheme {
 
         this.params = mergeDefaults(params, this.getThemeParameters() as AgChartAllThemeParams);
 
-        this.config = deepFreeze(deepClone(defaults));
+        this.config = this.getFrozenDefaultsConfig(presetName, moduleRegistry);
         this.overrides = deepFreeze(overrides);
         this.presets = deepFreeze(presets);
     }
 
-    private processOverrides(presets: AgPresetOverrides, overrides: AgThemeOverrides) {
-        for (const s of ModuleRegistry.listModulesByType(ModuleType.Series)) {
+    private getFrozenDefaultsConfig(presetName: string | undefined, moduleRegistry: ModuleScope) {
+        const { byClass } = defaultsConfigCache.for(moduleRegistry);
+        let byPreset = byClass.get(this.constructor);
+        if (byPreset == null) {
+            byPreset = new Map();
+            byClass.set(this.constructor, byPreset);
+        }
+        let config = byPreset.get(presetName);
+        if (config == null) {
+            const defaults = this.createChartConfigPerChartType(
+                this.getDefaults(presetName, moduleRegistry),
+                moduleRegistry
+            );
+            config = deepFreeze(deepClone(defaults));
+            byPreset.set(presetName, config);
+        }
+        return config;
+    }
+
+    private processOverrides(presets: AgPresetOverrides, overrides: AgThemeOverrides, moduleRegistry: ModuleScope) {
+        for (const s of moduleRegistry.listModulesByType(ModuleType.Series)) {
             const seriesType = s.name as keyof AgThemeOverrides;
             const seriesOverrides = overrides[seriesType];
 
@@ -416,9 +462,9 @@ export class ChartTheme {
         }
     }
 
-    private createChartConfigPerChartType(config: AgChartThemeOverrides) {
-        for (const chartModule of ModuleRegistry.listModulesByType(ModuleType.Chart)) {
-            for (const seriesModule of ModuleRegistry.listModulesByType(ModuleType.Series)) {
+    private createChartConfigPerChartType(config: AgChartThemeOverrides, moduleRegistry: ModuleScope) {
+        for (const chartModule of moduleRegistry.listModulesByType(ModuleType.Chart)) {
+            for (const seriesModule of moduleRegistry.listModulesByType(ModuleType.Series)) {
                 if (seriesModule.chartType !== chartModule.name) continue;
                 config[seriesModule.name as keyof AgChartThemeOverrides] ??= chartModule.themeTemplate;
             }
@@ -426,8 +472,8 @@ export class ChartTheme {
         return config;
     }
 
-    private getDefaults(presetName?: string): AgChartThemeOverrides {
-        const presetModule = presetName == null ? undefined : ModuleRegistry.getPresetModule(presetName);
+    private getDefaults(presetName: string | undefined, moduleRegistry: ModuleScope): AgChartThemeOverrides {
+        const presetModule = presetName == null ? undefined : moduleRegistry.getPresetModule(presetName);
         const presetTemplate = presetModule?.themeTemplate;
 
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
@@ -435,17 +481,17 @@ export class ChartTheme {
             const chartTypeDefaults = mergeDefaultsShallowOperations(
                 { axes: {} },
                 presetTemplate?.common,
-                ...Array.from(ModuleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
-                    [p.name]: p.themeTemplate,
-                })),
-                ModuleRegistry.getChartModule(chartType)?.themeTemplate,
+                ...contributedThemeTemplates(moduleRegistry, 'chart', (c) =>
+                    contributionMatchesChartType(c, chartType)
+                ),
+                moduleRegistry.getChartModule(chartType)?.themeTemplate,
                 this.getChartDefaults()
             );
 
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaultsShallowOperations(
                     (presetTemplate as any)?.[seriesType],
-                    getSeriesThemeTemplate(seriesType),
+                    getSeriesThemeTemplate(seriesType, moduleRegistry),
                     result[seriesType] ?? chartTypeDefaults
                 );
 
@@ -461,11 +507,11 @@ export class ChartTheme {
 
                 const { axes } = result[seriesType] as { axes: Record<string, object> };
 
-                for (const axisModule of ModuleRegistry.listModulesByType(ModuleType.Axis)) {
+                for (const axisModule of moduleRegistry.listModulesByType(ModuleType.Axis)) {
                     axes[axisModule.name] = mergeDefaultsShallowOperations(
                         axes[axisModule.name],
-                        !axisModule.chartType || axisModule.chartType === chartType
-                            ? getAxisThemeTemplate(axisModule.name)
+                        axisModule.chartType == null || axisModule.chartType === chartType
+                            ? getAxisThemeTemplate(axisModule.name, moduleRegistry)
                             : null
                     );
                 }
@@ -479,8 +525,8 @@ export class ChartTheme {
             return result;
         };
 
-        const seriesModules = [...ModuleRegistry.listModulesByType(ModuleType.Series)];
-        const seriesByChartType = groupBy(seriesModules, (s) => s.chartType || 'unknown');
+        const seriesModules = [...moduleRegistry.listModulesByType(ModuleType.Series)];
+        const seriesByChartType = groupBy(seriesModules, (s) => s.chartType ?? 'unknown');
 
         return mergeDefaultsShallowOperations(
             ...Object.keys(seriesByChartType).map((chartType) =>
@@ -585,34 +631,34 @@ export class ChartTheme {
     }
 }
 
-function getAxisThemeTemplate(axisType: string) {
-    let themeTemplate = ModuleRegistry.getAxisModule(axisType)?.themeTemplate ?? {};
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
-        if (module.axisTypes?.includes(axisType) ?? true) {
-            const optionsKey = module.optionsKey ?? module.name;
-            themeTemplate = mergeDefaultsShallowOperations({ [optionsKey]: module.themeTemplate }, themeTemplate);
-        }
+/** Each contributed theme template nested at its path relative to `host`, in registry order. */
+function contributedThemeTemplates(
+    moduleRegistry: ModuleScope,
+    host: ContributionHost,
+    applies: (contribution: OptionsContribution) => boolean = () => true
+): PlainObject[] {
+    const templates: PlainObject[] = [];
+    for (const entry of moduleRegistry.optionsContributions()) {
+        const { contribution } = entry;
+        if (entry.host !== host || contribution.themeTemplate == null || !applies(contribution)) continue;
+        templates.push(nestAtOptionsPath(entry.relative, contribution.themeTemplate));
     }
-    return themeTemplate;
+    return templates;
 }
 
-function getSeriesThemeTemplate(seriesType: string) {
-    let themeTemplate = ModuleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
-        if (module.seriesTypes?.includes(seriesType) ?? true) {
-            themeTemplate = mergeDefaultsShallowOperations(
-                { series: { [module.name]: module.themeTemplate } },
-                themeTemplate
-            );
-        }
-    }
+function getAxisThemeTemplate(axisType: string, moduleRegistry: ModuleScope) {
+    return mergeDefaultsShallowOperations(
+        ...contributedThemeTemplates(moduleRegistry, 'axis', (c) => contributionMatchesAxisType(c, axisType)),
+        moduleRegistry.getAxisModule(axisType)?.themeTemplate ?? {}
+    );
+}
 
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
-        themeTemplate = mergeDefaultsShallowOperations(
-            { seriesArea: { [module.name]: module.themeTemplate } },
-            themeTemplate
-        );
-    }
-
-    return themeTemplate;
+function getSeriesThemeTemplate(seriesType: string, moduleRegistry: ModuleScope) {
+    const seriesTemplates = contributedThemeTemplates(moduleRegistry, 'series', (c) =>
+        contributionMatchesSeriesType(c, seriesType)
+    );
+    return mergeDefaultsShallowOperations(
+        ...seriesTemplates.map((template) => ({ series: template })),
+        moduleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {}
+    );
 }

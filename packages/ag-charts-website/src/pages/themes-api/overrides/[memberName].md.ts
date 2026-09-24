@@ -14,7 +14,13 @@ export function getStaticPaths() {
     return getThemesApiStaticPaths(getInterfacesReference());
 }
 
-export function GET({ props }: { props: { pageInterface: string; pageTitle: PageTitle } }) {
+export function GET({
+    props,
+    params,
+}: {
+    props: { pageInterface: string; pageTitle: PageTitle };
+    params: Record<string, string>;
+}) {
     const { pageInterface, pageTitle } = props;
 
     const output = buildThemesApiOverrideMarkdown({
@@ -22,6 +28,7 @@ export function GET({ props }: { props: { pageInterface: string; pageTitle: Page
         pageInterface,
         pageTitle,
         title: THEMES_API_PAGE_CONTENT.title,
+        pageUrl: `/themes-api/overrides/${params.memberName}/`,
         siteRoot: SITE_URL,
     });
 

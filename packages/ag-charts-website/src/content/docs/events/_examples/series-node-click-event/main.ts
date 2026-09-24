@@ -1,5 +1,6 @@
-import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import type { AgChartOptions } from 'ag-charts-community';
 import {
+    AgCharts,
     BarSeriesModule,
     CategoryAxisModule,
     LineSeriesModule,
@@ -9,7 +10,8 @@ import {
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
+
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
@@ -19,33 +21,32 @@ const options: AgChartOptions<DataType> = {
         text: '(click a data point for details)',
     },
     data: getData(),
+    legend: {
+        enabled: false,
+    },
     series: [
         {
             type: 'line',
             xKey: 'month',
             yKey: 'high',
+            listeners: {
+                seriesNodeClick: (event) => console.log('[line click]', event),
+                seriesNodeDoubleClick: (event) => console.log('[line double click]', event),
+            },
         },
         {
             type: 'bar',
             xKey: 'month',
             yKey: 'low',
+            listeners: {
+                seriesNodeClick: (event) => console.log('[bar click]', event),
+                seriesNodeDoubleClick: (event) => console.log('[bar double click]', event),
+            },
         },
     ],
-
-    legend: {
-        enabled: false,
-    },
     listeners: {
-        seriesNodeClick: ({ datum, yKey, seriesId }) => {
-            console.log(`[click]\nTemperature in ${datum.month}: ${String(datum[yKey!])}°C\nSeries: ${seriesId}`);
-        },
-        seriesNodeDoubleClick: ({ datum, yKey, seriesId }) => {
-            const celsius = Number(datum[yKey!]);
-            const fahrenheit = (celsius * 9) / 5 + 32;
-            console.log(
-                `[double click]\nTemperature in ${datum.month}: ${fahrenheit.toFixed(2)}°F\nSeries: ${seriesId}`
-            );
-        },
+        seriesNodeClick: (event) => console.log('[chart click]', event),
+        seriesNodeDoubleClick: (event) => console.log('[chart double click]', event),
     },
 };
 

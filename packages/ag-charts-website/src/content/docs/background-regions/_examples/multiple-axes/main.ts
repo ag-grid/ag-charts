@@ -1,7 +1,6 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    BackgroundRegionsModule,
     BarSeriesModule,
     LegendModule,
     LineSeriesModule,
@@ -12,24 +11,18 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    BackgroundRegionsModule,
-    BarSeriesModule,
-    LegendModule,
-    LineSeriesModule,
-    NumberAxisModule,
-    UnitTimeAxisModule,
-]);
+ModuleRegistry.registerModules([BarSeriesModule, LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Reservoir Level and Rainfall',
+        text: 'Reservoir Capacity and Rainfall',
     },
     seriesArea: {
         backgroundRegions: [
             {
+                xRange: { start: new Date(2025, 0, 1), end: new Date(2025, 4, 1) },
                 yRange: { axis: 'rainfall', start: 100 },
                 label: {
                     text: 'Heavy Rainfall',
@@ -49,16 +42,18 @@ const options: AgCartesianChartOptions = {
         {
             type: 'line',
             xKey: 'date',
-            yKey: 'level',
-            yName: 'Level',
+            yKey: 'capacity',
+            yName: 'Capacity',
+            yKeyAxis: 'capacity',
         },
     ],
     axes: {
         x: {
             type: 'unit-time',
         },
-        y: {
+        capacity: {
             type: 'number',
+            position: 'left',
             title: {
                 text: 'Capacity (%)',
             },

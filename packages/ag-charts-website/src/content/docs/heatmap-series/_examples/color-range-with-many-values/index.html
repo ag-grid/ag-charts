@@ -1,11 +1,45 @@
 <div class="example-controls">
     <div class="controls-row">
-        Mode:
-        <button onclick="setMode('continuous')">Continuous</button>
-        <button onclick="setMode('discrete')">Discrete</button>
+        <span>Mode:</span>
+        <div class="button-group" role="group" aria-label="Mode">
+            <input
+                type="radio"
+                id="mode-continuous"
+                name="color-scale-mode"
+                value="continuous"
+                checked
+                onchange="modeChange(event)"
+            />
+            <label for="mode-continuous">Continuous</label>
+            <input
+                type="radio"
+                id="mode-discrete"
+                name="color-scale-mode"
+                value="discrete"
+                onchange="modeChange(event)"
+            />
+            <label for="mode-discrete">Discrete</label>
+        </div>
         <span class="gap-left">Domain:</span>
-        <button onclick="setDomain('auto')">Auto</button>
-        <button onclick="setDomain('fixed')">Fixed</button>
+        <div class="button-group" role="group" aria-label="Domain">
+            <input
+                type="radio"
+                id="domain-auto"
+                name="color-scale-domain"
+                value="auto"
+                checked
+                onchange="domainChange(event)"
+            />
+            <label for="domain-auto">Auto</label>
+            <input
+                type="radio"
+                id="domain-fixed"
+                name="color-scale-domain"
+                value="fixed"
+                onchange="domainChange(event)"
+            />
+            <label for="domain-fixed">Fixed</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

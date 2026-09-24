@@ -35,24 +35,24 @@ export function debouncedAnimationFrame(
     return buildScheduler(scheduleWithAnimationFrame, cb, cancelWithAnimationFrame);
 }
 
+function scheduleWithDelay(innerCb: VoidCallback, delayMs = 0): number | void {
+    if (delayMs === 0) {
+        queueMicrotask(innerCb);
+        return undefined;
+    }
+
+    return setTimeout(innerCb, delayMs) as unknown as number;
+}
+
+function cancelWithTimeout(id: number | void): void {
+    clearTimeout(id as unknown as ReturnType<typeof setTimeout>);
+}
+
 export function debouncedCallback(cb: Callback): {
     schedule(delayMs?: number): void;
     cancel(): void;
     waitForCompletion(): Promise<void>;
 } {
-    function scheduleWithDelay(innerCb: VoidCallback, delayMs = 0): number | void {
-        if (delayMs === 0) {
-            queueMicrotask(innerCb);
-            return undefined;
-        }
-
-        return setTimeout(innerCb, delayMs) as unknown as number;
-    }
-
-    function cancelWithTimeout(id: number | void): void {
-        clearTimeout(id as unknown as ReturnType<typeof setTimeout>);
-    }
-
     return buildScheduler(scheduleWithDelay, cb, cancelWithTimeout);
 }
 

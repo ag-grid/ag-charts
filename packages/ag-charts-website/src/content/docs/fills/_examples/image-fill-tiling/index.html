@@ -1,7 +1,18 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="repeat('repeat')">Repeat</button>
-        <button onclick="repeat('no-repeat')">No Repeat</button>
+        <div class="button-group" role="group" aria-label="Repeat">
+            <input type="radio" id="repeat-repeat" name="repeat" value="repeat" onchange="repeatChange(event)" />
+            <label for="repeat-repeat">Repeat</label>
+            <input
+                type="radio"
+                id="repeat-no-repeat"
+                name="repeat"
+                value="no-repeat"
+                checked
+                onchange="repeatChange(event)"
+            />
+            <label for="repeat-no-repeat">No Repeat</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

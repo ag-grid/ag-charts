@@ -16,29 +16,31 @@ import {
 } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
+import { communityModule } from '../moduleIdentity';
 
-export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions, UnitTimeAxis> = {
-    type: 'axis',
-    name: 'unit-time',
-    chartType: 'cartesian',
-    version: VERSION,
-    dependencies: [CartesianChartModule],
+export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions, UnitTimeAxis> =
+    /* #__PURE__ */ communityModule({
+        type: 'axis',
+        name: 'unit-time',
+        chartType: 'cartesian',
+        version: VERSION,
+        dependencies: [CartesianChartModule],
 
-    options: unitTimeAxisOptionsDefs,
-    themeTemplate: mergeDefaults(
-        {
-            groupPaddingInner: 0.1,
-            maxThicknessRatio: 0.3,
-            label: { autoRotate: false },
-            gridLine: { enabled: false },
-            parentLevel: { enabled: true },
-            interval: { placement: 'between' },
-        },
-        titleAxisThemeTemplate,
-        parentLevelAxisThemeTemplate,
-        commonAxisThemeTemplate
-    ),
+        options: unitTimeAxisOptionsDefs,
+        themeTemplate: mergeDefaults(
+            {
+                groupPaddingInner: 0.1,
+                maxThicknessRatio: 0.3,
+                label: { autoRotate: false },
+                gridLine: { enabled: false },
+                parentLevel: { enabled: true },
+                interval: { placement: 'between' },
+            },
+            titleAxisThemeTemplate,
+            parentLevelAxisThemeTemplate,
+            commonAxisThemeTemplate
+        ),
 
-    create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
-        new UnitTimeAxis(ctx, id, options as NormalisedUnitTimeAxisOptions),
-};
+        create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
+            new UnitTimeAxis(ctx, id, options as NormalisedUnitTimeAxisOptions),
+    });

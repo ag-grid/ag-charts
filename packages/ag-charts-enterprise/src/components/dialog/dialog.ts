@@ -142,19 +142,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         };
 
         const header = new NativeWidget(createElement('div', 'ag-charts-dialog__header'));
-        header.addListener('drag-start', (event) => {
-            const { sourceEvent } = event;
-            // Only start dragging when an empty part of the header is dragged
-            if (
-                sourceEvent.target instanceof Element &&
-                sourceEvent.target.classList.contains('ag-charts-dialog__header')
-            ) {
-                this.onDragStart(event);
-            }
-        });
-        header.addListener('drag-move', (event) => this.onDragMove(event));
-        header.addListener('drag-end', () => this.onDragEnd());
-
         const dragHandle = new DragHandleWidget();
         this.setDragHandle(dragHandle);
         const tabButtons = mapValues(tabs, (tab, key) =>
@@ -261,7 +248,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     protected createTextArea({ placeholder, value, onChange }: TextAreaOptions) {
-        const placeholderT = placeholder ? this.ctx.localeManager.t(placeholder) : undefined;
+        const placeholderT = placeholder === '' ? undefined : this.ctx.localeManager.t(placeholder);
         return createTextArea({ value, onChange }, { placeholder: placeholderT });
     }
 
@@ -334,7 +321,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
         if (isMultiColor) {
             colorEl.classList.toggle('ag-charts-dialog__color-picker-button--multi-color');
-        } else if (color) {
+        } else if (color != null && color !== '') {
             const hex = Color.fromString(color);
             const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);
             colorEl.style.setProperty('--color', hexWithOpacity.toHexString());

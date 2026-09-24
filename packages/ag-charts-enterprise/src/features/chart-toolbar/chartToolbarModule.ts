@@ -1,6 +1,7 @@
 import { type AgChartToolbarThemeableOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import { type PluginModuleDefinition, boolean } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { SharedToolbar } from '../shared-toolbar/sharedToolbar';
 import { ChartToolbar } from './chartToolbar';
 
@@ -8,7 +9,8 @@ export const ChartToolbarModule: PluginModuleDefinition<AgChartToolbarThemeableO
     {
         type: 'plugin',
         name: 'chartToolbar',
-        chartType: 'cartesian',
+        chartTypes: ['cartesian'],
+        dependencies: [BackgroundRegionsModule],
         enterprise: true,
         version: VERSION,
 

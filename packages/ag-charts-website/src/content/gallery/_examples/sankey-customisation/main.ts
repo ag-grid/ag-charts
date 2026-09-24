@@ -62,6 +62,7 @@ const options: AgFlowProportionChartOptions = {
                 strokeWidth: 3,
                 strokeOpacity: 0.8,
                 fillOpacity: 0.9,
+                cornerRadius: 8,
             },
             link: {
                 fillOpacity: 0.2,

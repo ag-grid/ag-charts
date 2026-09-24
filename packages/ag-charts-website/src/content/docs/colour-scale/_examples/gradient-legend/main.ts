@@ -50,7 +50,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setPosition(position: 'bottom' | 'right' | 'left' | 'top') {
+function positionChange(event: Event) {
+    const position = (event.target as HTMLInputElement).value as 'bottom' | 'right' | 'left' | 'top';
     options.gradientLegend = { ...options.gradientLegend, position };
     chart.update(options);
 }

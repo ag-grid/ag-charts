@@ -1,11 +1,45 @@
 <div class="example-controls">
     <div class="controls-row">
-        <label>Vertical:</label>
-        <button onclick="setVerticalPosition('left')">Left</button>
-        <button onclick="setVerticalPosition('right')">Right</button>
-        <label class="gap-left">Horizontal:</label>
-        <button onclick="setHorizontalPosition('top')">Top</button>
-        <button onclick="setHorizontalPosition('bottom')">Bottom</button>
+        <span>Vertical:</span>
+        <div class="button-group gap-right" role="group" aria-label="Vertical">
+            <input
+                type="radio"
+                id="vertical-left"
+                name="vertical-position"
+                value="left"
+                onchange="setVerticalPosition(event)"
+            />
+            <label for="vertical-left">Left</label>
+            <input
+                type="radio"
+                id="vertical-right"
+                name="vertical-position"
+                value="right"
+                checked
+                onchange="setVerticalPosition(event)"
+            />
+            <label for="vertical-right">Right</label>
+        </div>
+        <span>Horizontal:</span>
+        <div class="button-group" role="group" aria-label="Horizontal">
+            <input
+                type="radio"
+                id="horizontal-top"
+                name="horizontal-position"
+                value="top"
+                onchange="setHorizontalPosition(event)"
+            />
+            <label for="horizontal-top">Top</label>
+            <input
+                type="radio"
+                id="horizontal-bottom"
+                name="horizontal-position"
+                value="bottom"
+                checked
+                onchange="setHorizontalPosition(event)"
+            />
+            <label for="horizontal-bottom">Bottom</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

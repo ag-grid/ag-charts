@@ -49,3 +49,19 @@ test.describe('crosshair', () => {
         await expectChartScreenshot(page, page, 'crosshair-visible.png');
     });
 });
+
+test.describe('band highlight', () => {
+    test('hover over axisButton does not unhighlight the band', async ({ page }) => {
+        const { url } = toExamplePageUrl('axes-crosshairs-e2e', 'band-highlight-with-annotations', 'vanilla');
+        await gotoExample(page, url);
+
+        await page.mouse.move(159, 247);
+        await expectChartScreenshot(page, page, 'band-jan-highlighted.png');
+
+        await page.mouse.move(141, 247);
+        await expectChartScreenshot(page, page, 'band-axisButton-hovered.png');
+
+        await page.mouse.click(141, 247);
+        await expectChartScreenshot(page, page, 'band-axisButton-clicked.png');
+    });
+});

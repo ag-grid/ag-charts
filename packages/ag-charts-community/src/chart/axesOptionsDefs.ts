@@ -15,6 +15,7 @@ import {
     constant,
     date,
     defined,
+    deprecated,
     fillOptionsDef,
     fontOptionsDef,
     greaterThan,
@@ -44,6 +45,7 @@ import {
     typeUnion,
     undocumented,
     union,
+    verticalAlign,
 } from 'ag-charts-core';
 import type {
     AgAxisBaseIntervalOptions,
@@ -183,6 +185,7 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     enabled: boolean,
     rotation: number,
     textAlign,
+    verticalAlign,
     avoidCollisions: boolean,
     minSpacing: positiveNumber,
     spacing: positiveNumber,
@@ -252,8 +255,11 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
     label: commonAxisLabelOptionsDefs,
     line: {
         enabled: boolean,
-        width: positiveNumber,
+        width: deprecated(positiveNumber, 'Use `strokeWidth` instead.'),
         stroke: colorOrRef,
+        strokeWidth: positiveNumber,
+        strokeOpacity: ratio,
+        lineDash: arrayOf(positiveNumber),
     },
     tick: cartesianAxisTick,
     context: () => true,

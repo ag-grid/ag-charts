@@ -8,7 +8,7 @@ describe('buildGalleryMarkdown', () => {
     it('emits frontmatter and the page H1', () => {
         expect(output.startsWith('---\n')).toBe(true);
         expect(output).toContain('title: "AG Charts Gallery - 100+ JavaScript Chart Examples | AG Charts"');
-        expect(output).toContain('\n# AG Charts Gallery - JavaScript Chart Examples\n');
+        expect(output).toContain('\n# AG Charts Gallery\n');
     });
 
     it('serves the same intro as the page', () => {

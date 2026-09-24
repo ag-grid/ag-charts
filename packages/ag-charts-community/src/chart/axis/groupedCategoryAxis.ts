@@ -105,7 +105,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                           spacing: depthLabel?.spacing ?? label?.spacing ?? 5,
                           wrapping: depthLabel?.wrapping ?? label?.wrapping,
                           truncate: depthLabel?.truncate ?? label?.truncate,
-                          rotation: depthLabel?.rotation ?? (i ? defaultNonLeafRotation : label?.rotation), // Default top-level label rotation only applies to label leaves
+                          rotation: depthLabel?.rotation ?? (i === 0 ? label?.rotation : defaultNonLeafRotation), // Default top-level label rotation only applies to label leaves
                           avoidCollisions: depthLabel?.avoidCollisions ?? label?.avoidCollisions ?? true,
                       }
                     : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }
@@ -133,7 +133,9 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const { line } = this.options;
         this.lineNode.visible = line.enabled;
         this.lineNode.stroke = line.stroke;
-        this.lineNode.strokeWidth = line.width;
+        this.lineNode.strokeWidth = line.strokeWidth;
+        this.lineNode.strokeOpacity = line.strokeOpacity;
+        this.lineNode.lineDash = line.lineDash;
     }
 
     private computeLayout() {
@@ -153,11 +155,16 @@ export class GroupedCategoryAxis extends CategoryAxis<
         this.lineNode.datum = horizontal
             ? { x1: range[0], x2: range[1], y1: 0, y2: 0 }
             : { x1: 0, x2: 0, y1: range[0], y2: range[1] };
-        this.lineNode.setProperties({ stroke: line.stroke, strokeWidth: line.enabled ? line.width : 0 });
+        this.lineNode.setProperties({
+            stroke: line.stroke,
+            strokeWidth: line.enabled ? line.strokeWidth : 0,
+            strokeOpacity: line.strokeOpacity,
+            lineDash: line.lineDash,
+        });
 
         this.tickTreeLayout?.resize(this.scale.range, this.scale.step, this.scale.inset, this.scale.bandwidth);
 
-        if (!this.tickTreeLayout?.depth) {
+        if (this.tickTreeLayout == null || this.tickTreeLayout.depth === 0) {
             this.pickTickData = [];
             return { bbox: BBox.zero, spacing: 0, tickSizeAtDepth: [], tickLabelLayout: [] };
         }
@@ -189,7 +196,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
             const tickIndex = index - 1;
             const value = (datum.refId == null ? undefined : this.tickValues?.[datum.refId]) ?? [];
             const inputText = tickFormatter(value, tickIndex, depth);
-            const alongHalfWidth = ((datum.leafCount || 1) * step) / 2;
+            const alongHalfWidth = ((datum.leafCount === 0 ? 1 : datum.leafCount) * step) / 2;
             pickIdentities.push({
                 index: tickIndex,
                 value,
@@ -198,10 +205,10 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 depth,
             });
 
-            const isLeaf = !datum.children.length;
+            const isLeaf = datum.children.length === 0;
             if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
 
-            let maxWidth = (datum.leafCount || 1) * step;
+            let maxWidth = (datum.leafCount === 0 ? 1 : datum.leafCount) * step;
             if (maxWidth < MIN_CATEGORY_SPACING) continue;
 
             let text = inputText;
@@ -225,7 +232,8 @@ export class GroupedCategoryAxis extends CategoryAxis<
                     maxWidth,
                     maxHeight,
                 };
-                text = wrapTextOrSegments(text, wrapOptions) || text;
+                const wrapped = wrapTextOrSegments(text, wrapOptions);
+                text = wrapped === '' ? text : wrapped;
             }
 
             const truncatedText = text !== inputText && isTruncated(text) ? toPlainText(inputText) : undefined;
@@ -240,7 +248,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
             tempText.setFont(labelStyles);
             tempText.setBoxing(labelStyles);
 
-            if (!tempText.getBBox()) continue;
+            if (tempText.getBBox() == null) continue;
 
             labelDataCache.set(index, { text, styles: labelStyles, truncatedText });
             labelBBoxes.set(index, tempText.getBBox());
@@ -287,7 +295,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
             const cached = labelDataCache.get(index);
             if (!cached) continue;
 
-            const isLeaf = !datum.children.length;
+            const isLeaf = datum.children.length === 0;
             const depth = maxDepth - datum.depth;
 
             if (isLeaf && step < MIN_CATEGORY_SPACING) continue;
@@ -532,7 +540,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const getHierarchyDepth = (node: TreeNode) => Math.min(maxHierarchyDepth, tickTreeLayout.depth - node.depth);
 
         const root = tickTreeLayout.nodes[0];
-        if (!root?.children.length) {
+        if (root == null || root.children.length === 0) {
             return storeResult({
                 ticks: ticksToRender,
                 positions: tickPositions,
@@ -587,7 +595,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
             }
         }
 
-        while (stack.length) {
+        while (stack.length > 0) {
             const node = stack.pop()!;
             const tickLabel = leafNodeToKey.get(node.leftmostLeaf);
             if (tickLabel == null || !candidateTicks.has(tickLabel)) continue;
@@ -694,12 +702,12 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
         const getDatumId = (datum: { tickId: string }) => datum.tickId;
         this.gridLineGroupSelection.update(
-            gridLine.enabled && gridLength ? this.calculateGridLines(gridLineData, p1, p2) : [],
+            gridLine.enabled && gridLength !== 0 ? this.calculateGridLines(gridLineData, p1, p2) : [],
             undefined,
             getDatumId
         );
         this.gridFillGroupSelection.update(
-            gridLine.enabled && gridLength ? this.calculateGridFills(gridLineData, p1, p2) : [],
+            gridLine.enabled && gridLength !== 0 ? this.calculateGridFills(gridLineData, p1, p2) : [],
             undefined,
             getDatumId
         );
@@ -789,7 +797,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
         const orderedDomain: GroupedCategoryKey[] = [];
         for (const node of this.tickTreeLayout.nodes) {
-            if (node.leafCount || node.refId == null) continue;
+            if (node.leafCount !== 0 || node.refId == null) continue;
             orderedDomain.push(this.dataDomain.domain[node.refId]);
         }
 

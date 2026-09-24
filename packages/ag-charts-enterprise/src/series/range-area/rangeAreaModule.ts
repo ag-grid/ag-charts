@@ -6,6 +6,7 @@ import {
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { RangeAreaSeries } from './rangeArea';
 import { rangeAreaSeriesOptionsDef } from './rangeAreaSeriesOptionsDef';
 import { RANGE_AREA_SERIES_THEME } from './rangeAreaThemes';
@@ -18,7 +19,7 @@ export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOpti
     chartType: 'cartesian',
     enterprise: true,
     version: VERSION,
-    dependencies: [CartesianChartModule],
+    dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: rangeAreaSeriesOptionsDef,
     matchingKeys: ['xKey', 'yLowKey', 'yHighKey', 'normalizedTo'],

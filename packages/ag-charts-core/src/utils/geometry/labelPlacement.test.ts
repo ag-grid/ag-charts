@@ -48,7 +48,9 @@ vi.mock('../canvas', () => ({
     createCanvasContext: () => ({
         font: '',
         measureText(text: string) {
-            const scale = (Number.parseFloat(this.font) || BASE_FONT_SIZE) / BASE_FONT_SIZE;
+            const parsedFontSize = Number.parseFloat(this.font);
+            const fontSize = Number.isNaN(parsedFontSize) || parsedFontSize === 0 ? BASE_FONT_SIZE : parsedFontSize;
+            const scale = fontSize / BASE_FONT_SIZE;
             return {
                 width: [...text].length * CHAR_WIDTH * scale,
                 fontBoundingBoxAscent: 16 * scale,
@@ -123,7 +125,7 @@ function placeLabelsOracle(data: Map<string, SeriesLabels>, bounds: BoxBounds, p
     const dataValues = [...sortedDataClone.values()].flat();
     for (const [seriesId, datums] of sortedDataClone.entries()) {
         const labels: PlacedLabel[] = [];
-        if (!datums[0]?.label) continue;
+        if (datums[0]?.label == null) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {
             const d = datums[index];
             const { point, label, anchor } = d;
@@ -2342,6 +2344,40 @@ describe('placeLabels obstacle-driven shrink', () => {
             placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 0, []).get('s')![0].text;
         expect(textAt(insideLabel({ threshold: 6 }))).toBe(textAt(insideLabel()));
     });
+
+    // With no `overflowStrategy` the re-fit hands back drawable text however little room is left, so
+    // the reduction must stay uncapped for such a policy however narrow the glyph already is.
+    it('keeps a label with no overflow strategy that an obstacle clips by more than its glyph width', () => {
+        const text = 'WW WW';
+        // `maxWidth` wraps this to 'WW\nWW' up front: a 20px glyph inside a 28px box.
+        const preserving: PointLabelDatum = {
+            point: { x: 200, y: 200, size: 1 },
+            label: { text, width: 50, height: 20 },
+            fit: {
+                text,
+                policy: { maxWidth: 30 },
+                font: FONT,
+                boxPadding: { top: 2, right: 4, bottom: 2, left: 4 },
+                boundByRegion: false,
+            },
+            anchor: undefined,
+            placement: 'inside',
+            placements: ['inside'],
+            gap: 1,
+            spacing: 0,
+            alwaysShow: false,
+        };
+        // Reaches 26px in: past the 20px glyph, but not past the box, so the retreat is affordable.
+        const clipping: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 180, y: 217, width: 33, height: 35 },
+            category: 'label',
+        };
+
+        const placed = placeLabels(new Map([['s', seriesLabels([preserving])]]), bounds, 0, [clipping]).get('s')!;
+
+        expect(placed).toHaveLength(1);
+    });
 });
 
 describe('placeLabels candidate styles', () => {
@@ -2593,7 +2629,7 @@ function placePositionedLabelsOracle(
     const obstacles: LabelObstacle[] = [...externalObstacles];
     for (const [seriesId, entry] of orderKeepFirstOracle(data)) {
         const labels: PlacedLabel[] = [];
-        if (!entry.datums[0]?.label) continue;
+        if (entry.datums[0]?.label == null) continue;
         for (let index = 0, ln = entry.datums.length; index < ln; index++) {
             const d = entry.datums[index];
             if (d.label.text === '') continue;

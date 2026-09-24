@@ -20,12 +20,6 @@ export function prepareProcessedOptions(options: unknown) {
     __clearStructuralCacheForTests();
     __clearSanitizedThemeCacheForTests();
 
-    const { processedOptions, validationIssues } = new ChartOptions(
-        options as AgChartOptions,
-        {} as AgChartOptions,
-        {},
-        {},
-        {}
-    );
-    return { processedOptions, validationIssues };
+    const { processedOptions, issues } = new ChartOptions(options as AgChartOptions, {} as AgChartOptions, {}, {}, {});
+    return { processedOptions, validationIssues: issues };
 }

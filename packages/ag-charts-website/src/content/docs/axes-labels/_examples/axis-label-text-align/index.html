@@ -1,1 +1,55 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <span>X Axis:</span>
+        <div class="button-group" role="group" aria-label="X Axis Text Alignment">
+            <input type="radio" id="x-text-align-left" name="xTextAlign" value="left" onchange="setXTextAlign(event)" />
+            <label for="x-text-align-left"><code>left</code></label>
+            <input
+                type="radio"
+                id="x-text-align-center"
+                name="xTextAlign"
+                value="center"
+                checked
+                onchange="setXTextAlign(event)"
+            />
+            <label for="x-text-align-center"><code>center</code></label>
+            <input
+                type="radio"
+                id="x-text-align-right"
+                name="xTextAlign"
+                value="right"
+                onchange="setXTextAlign(event)"
+            />
+            <label for="x-text-align-right"><code>right</code></label>
+        </div>
+        <span class="gap-left">Y Axis:</span>
+        <div class="button-group" role="group" aria-label="Y Axis Text Alignment">
+            <input
+                type="radio"
+                id="y-text-align-left"
+                name="yTextAlign"
+                value="left"
+                checked
+                onchange="setYTextAlign(event)"
+            />
+            <label for="y-text-align-left"><code>left</code></label>
+            <input
+                type="radio"
+                id="y-text-align-center"
+                name="yTextAlign"
+                value="center"
+                onchange="setYTextAlign(event)"
+            />
+            <label for="y-text-align-center"><code>center</code></label>
+            <input
+                type="radio"
+                id="y-text-align-right"
+                name="yTextAlign"
+                value="right"
+                onchange="setYTextAlign(event)"
+            />
+            <label for="y-text-align-right"><code>right</code></label>
+        </div>
+    </div>
+</div>
 <div id="myChart"></div>

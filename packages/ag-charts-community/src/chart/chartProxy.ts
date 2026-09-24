@@ -25,6 +25,7 @@ import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverri
 import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
 import { deepCloneDataSet } from './data/dataSetUtil';
+import { findExpectedModuleName } from './factory/expectedModules';
 import { InteractionState } from './interaction/interactionManager';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
@@ -44,7 +45,8 @@ export interface FactoryApi {
         processedOverrides?: Partial<AgChartOptions>,
         specialOverrides?: ChartSpecialOverrides,
         optionsMetadata?: ChartInternalOptionMetadata,
-        data?: DataServiceRestoredData
+        data?: DataServiceRestoredData,
+        licenseManager?: LicenseManager
     ): AgChartProxy;
     update(
         opts: AgChartOptions,
@@ -77,11 +79,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
     })
     chart?: Chart;
     releaseChart?: () => void;
+    licenseManager?: LicenseManager;
 
     constructor(
         chart: Chart,
-        private readonly factoryApi: FactoryApi,
-        private readonly licenseManager?: LicenseManager
+        private readonly factoryApi: FactoryApi
     ) {
         this.chart = chart;
     }
@@ -93,8 +95,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
             const apiStartTime = Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined;
             this.factoryApi.update(options, this, undefined, apiStartTime);
             await this.chart?.waitForUpdate();
-            const failFastError = this.chart?.takeFailFastError();
-            if (failFastError != null) throw failFastError;
         });
     }
 
@@ -105,8 +105,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
             const apiStartTime = Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined;
             this.factoryApi.updateUserDelta(this, deltaOptions, apiStartTime);
             await this.chart?.waitForUpdate();
-            const failFastError = this.chart?.takeFailFastError();
-            if (failFastError != null) throw failFastError;
         });
     }
 
@@ -126,8 +124,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (!this.chart) throw new Error(DESTROYED_ERROR);
 
         await this.chart.waitForUpdate();
-        const failFastError = this.chart.takeFailFastError();
-        if (failFastError != null) throw failFastError;
     }
 
     applyTransaction(transaction: AgDataTransaction) {
@@ -247,6 +243,13 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return this.chart?.setSelection(items);
     }
 
+    isModuleRegistered(moduleId: string): boolean {
+        if (!this.chart) throw new Error(DESTROYED_ERROR);
+
+        const moduleName = findExpectedModuleName(moduleId) ?? moduleId;
+        return this.chart.chartOptions.moduleRegistry.hasModule(moduleName);
+    }
+
     clearSelection(): void {
         return this.chart?.clearSelection();
     }
@@ -295,13 +298,14 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (ModuleRegistry.isEnterprise()) {
             // Disable enterprise features that may interfere with image generation.
             processedOverrides.animation = { enabled: false };
+        }
 
-            // Add watermark if no licence
-            const foreground = this.licenseManager?.getWatermarkForegroundConfigForBrowser();
-            if (foreground) {
-                // @ts-expect-error undocumented option
-                processedOverrides.foreground = foreground;
-            }
+        // The watermark follows the licence rather than the registry mode, and honours a key set since creation.
+        this.licenseManager?.validateLicense();
+        const foreground = this.licenseManager?.getWatermarkForegroundConfigForBrowser();
+        if (foreground) {
+            // @ts-expect-error undocumented option
+            processedOverrides.foreground = foreground;
         }
 
         const specialOverrides = { ...chart.chartOptions.specialOverrides };
@@ -314,7 +318,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
             processedOverrides,
             specialOverrides,
             optionsMetadata,
-            data
+            data,
+            this.licenseManager
         );
 
         if (state.legend) {
@@ -399,8 +404,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             originators.push(new LegendPaginationOriginator(categoryLegend));
         }
 
-        originators.push(this.chart.ctx.activeManager);
-        originators.push(this.chart.ctx.collapsedManager);
+        originators.push(this.chart.ctx.activeManager, this.chart.ctx.collapsedManager);
 
         return originators;
     }

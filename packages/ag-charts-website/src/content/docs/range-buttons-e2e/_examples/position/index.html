@@ -1,11 +1,50 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="changePosition('top-left')">Top Left</button>
-        <button onclick="changePosition('top')">Top</button>
-        <button onclick="changePosition('top-right')">Top Right</button>
-        <button onclick="changePosition('bottom-left')">Bottom Left</button>
-        <button onclick="changePosition('bottom')">Bottom</button>
-        <button onclick="changePosition('bottom-right')">Bottom Right</button>
+        <div class="button-group" role="group" aria-label="Position">
+            <input
+                type="radio"
+                id="position-top-left"
+                name="ranges-position"
+                value="top-left"
+                onchange="changePosition(event)"
+            />
+            <label for="position-top-left">Top Left</label>
+            <input type="radio" id="position-top" name="ranges-position" value="top" onchange="changePosition(event)" />
+            <label for="position-top">Top</label>
+            <input
+                type="radio"
+                id="position-top-right"
+                name="ranges-position"
+                value="top-right"
+                checked
+                onchange="changePosition(event)"
+            />
+            <label for="position-top-right">Top Right</label>
+            <input
+                type="radio"
+                id="position-bottom-left"
+                name="ranges-position"
+                value="bottom-left"
+                onchange="changePosition(event)"
+            />
+            <label for="position-bottom-left">Bottom Left</label>
+            <input
+                type="radio"
+                id="position-bottom"
+                name="ranges-position"
+                value="bottom"
+                onchange="changePosition(event)"
+            />
+            <label for="position-bottom">Bottom</label>
+            <input
+                type="radio"
+                id="position-bottom-right"
+                name="ranges-position"
+                value="bottom-right"
+                onchange="changePosition(event)"
+            />
+            <label for="position-bottom-right">Bottom Right</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

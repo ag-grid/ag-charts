@@ -14,6 +14,7 @@ import type { AxisID } from '../types/idBranding';
 import type { Normalised } from '../types/normalised-options/normalise';
 import type { ScaleType } from '../types/scales';
 import type { Point } from '../types/scene';
+import type { OptionsContribution } from './optionsContribution';
 
 export enum ModuleType {
     Chart = 'chart',
@@ -22,7 +23,6 @@ export enum ModuleType {
     Plugin = 'plugin',
     AxisPlugin = 'axis:plugin',
     SeriesPlugin = 'series:plugin',
-    SeriesAreaPlugin = 'series-area:plugin',
     Preset = 'preset',
 }
 
@@ -40,9 +40,7 @@ export type ModuleTypeSwitch<TModule extends ModuleType, TOptions = any> = TModu
               ? AxisPluginModuleDefinition<TOptions>
               : TModule extends ModuleType.SeriesPlugin
                 ? SeriesPluginModuleDefinition<TOptions>
-                : TModule extends ModuleType.SeriesAreaPlugin
-                  ? SeriesAreaPluginModuleDefinition<TOptions>
-                  : never;
+                : never;
 
 export interface ModuleInstance {
     destroy?(this: void): void;
@@ -80,20 +78,13 @@ export interface AxisPluginModuleInstance extends ModuleInstance {
 }
 
 export interface SeriesPluginModuleInstance extends ModuleInstance {
+    applyOptions(this: void, options: any, diff?: any): void;
     pickNodeExact(point: Point): PickNodeDatumResult;
     pickNodeNearest(point: Point): PickNodeDatumResult;
     pickNodeMainAxisFirst(point: Point, majorDirection: any /* ChartAxisDirection */): PickNodeDatumResult | undefined;
     getPropertyDefinitions(opts: PropertyDefinitionOpts): any[] /* PropertyDefinition<unknown>[] */;
     getDomain(direction: any /* ChartAxisDirection */): any[];
     getTooltipParams(): object;
-}
-
-export interface SeriesAreaPluginModuleInstance extends ModuleInstance {
-    applyOptions(this: void, options: any): void;
-    onSeriesAreaUpdate?(
-        this: void,
-        clipRect: { x: number; y: number; width: number; height: number } | undefined
-    ): void;
 }
 
 export interface ModuleDefinition<
@@ -107,6 +98,12 @@ export interface ModuleDefinition<
     readonly enterprise?: boolean;
     readonly dependencies?: ModuleDefinition[];
     readonly placeholder?: boolean;
+    /**
+     * Option locations this module owns. Omit to derive the single location the module type implies
+     * from `options` and `themeTemplate` (see `contributionsOf`); declare it to own options anywhere
+     * else in the tree. A module with neither owns nothing.
+     */
+    readonly contributes?: readonly OptionsContribution[];
 
     options?: OptionsDefs<TOptions>; // options definitions validation
     themeTemplate?: ExtensibleSeriesTheme<any>; // module's default theme template
@@ -136,6 +133,8 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     options: OptionsDefs<TOptions>;
     baseTheme?: AgChartThemeName;
     themeTemplate?: ExtensibleTheme;
+    /** The public entry point the preset is reached through, named in the missing-module warning. */
+    readonly apiName?: string;
 
     // Remove these keys from the compiled theme to treat them as `undefined` with priority over the series theme.
     removeThemeSeriesKeys?: string[];
@@ -201,7 +200,7 @@ export interface PluginModuleDefinition<TOptions, TRegistry = unknown> extends M
     ModuleType.Plugin,
     TOptions
 > {
-    readonly chartType?: string;
+    readonly chartTypes?: readonly string[];
 
     register?(this: void, ctx: DynamicContext<TRegistry>): void;
 }
@@ -211,7 +210,7 @@ export interface AxisPluginModuleDefinition<TOptions> extends ModuleDefinition<
     TOptions,
     AxisPluginModuleInstance
 > {
-    readonly chartType?: string;
+    readonly chartTypes?: readonly string[];
     readonly axisTypes?: string[];
     readonly optionsKey?: string;
 }
@@ -221,14 +220,6 @@ export interface SeriesPluginModuleDefinition<TOptions> extends ModuleDefinition
     TOptions,
     SeriesPluginModuleInstance
 > {
-    readonly chartType?: string;
+    readonly chartTypes?: readonly string[];
     readonly seriesTypes?: string[];
-}
-
-export interface SeriesAreaPluginModuleDefinition<TOptions> extends ModuleDefinition<
-    ModuleType.SeriesAreaPlugin,
-    TOptions,
-    SeriesAreaPluginModuleInstance
-> {
-    readonly chartType?: string;
 }

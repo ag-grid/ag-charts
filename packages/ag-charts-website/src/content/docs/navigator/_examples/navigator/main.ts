@@ -89,7 +89,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function toggleEnabled(value: boolean) {
-    options.navigator!.enabled = value;
+function toggleEnabled(event: Event) {
+    options.navigator!.enabled = (event.target as HTMLInputElement).value === 'true';
     chart.update(options);
 }

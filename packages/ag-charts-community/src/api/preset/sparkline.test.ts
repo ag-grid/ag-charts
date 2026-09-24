@@ -18,7 +18,7 @@ describe('Sparkline Preset', () => {
     let chart: AgChartInstance<AgSparklineOptions>;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

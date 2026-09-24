@@ -6,7 +6,9 @@ import {
     defined,
     number,
     numericValue,
+    positiveNumber,
     string,
+    undocumented,
     union,
     without,
 } from 'ag-charts-core';
@@ -135,3 +137,6 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     theme: defined,
     width: defined,
 };
+
+// @ts-expect-error undocumented option
+quadrantOptionsDefs.overrideDevicePixelRatio = undocumented(positiveNumber);

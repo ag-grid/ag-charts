@@ -1,8 +1,6 @@
 import {
     type AgPyramidSeriesItemStylerParams,
     type AgPyramidSeriesLabelFormatterParams,
-    type AgPyramidSeriesOptions,
-    type AgPyramidSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -11,11 +9,11 @@ import {
     type ChartAnimationPhase,
     type DomainWithMetadata,
     type DynamicContext,
-    type FillStrokeMorph,
     type LabelFit,
     type LabelObstacle,
-    type Normalised,
-    type NormalisedColorType,
+    type NormalisedPyramidSeriesOwnOptions,
+    type NormalisedPyramidSeriesStageLabelOptions,
+    type NormalisedPyramidSeriesStyle,
     type NormalisedTextOrSegments,
     type PlacedLabel,
     type Point,
@@ -50,13 +48,15 @@ import type { AgFunnelSeriesLabelPlacement, AgNumericValue } from 'ag-charts-typ
 import { FunnelConnector } from '../funnel/funnelConnector';
 import {
     FUNNEL_TO_BAR_PLACEMENT,
+    type PlacementAxes,
+    funnelPlacementAxesList,
+    funnelValuePlacementAxes,
     pyramidLabelBand,
     pyramidPlacementAxes,
     pyramidStageTrapezoid,
     resolveFunnelPlacements,
     toResolvedFunnelPlacement,
 } from '../funnel/funnelLabelPlacement';
-import { PyramidProperties } from './pyramidProperties';
 import { applyPyramidDatum, preparePyramidAnimationFunctions } from './pyramidUtil';
 
 const {
@@ -79,6 +79,7 @@ const {
     resolveBarLabelCandidate,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
+    labelHasBox,
     fitLabelToContainerAutoSize,
     pickPlacementStyle,
 } = _ModuleSupport;
@@ -125,16 +126,14 @@ interface PyramidLabelContext {
     /** Bar-vocabulary placements, index-parallel with {@link reportedPlacements}. */
     placements: readonly _ModuleSupport.BarLabelPlacement[];
     reportedPlacements: readonly AgFunnelSeriesLabelPlacement[];
-    isVertical: boolean;
-    isUpward: boolean;
+    /** The bar axis flags each placement is positioned against, index-parallel with {@link placements}. */
+    axes: readonly PlacementAxes[];
     routesThroughEngine: boolean;
     plotRegion?: BoxBounds;
     labelFit?: LabelFit;
 }
 
 type PyramidStageValue = string | number | { toString(): string };
-
-type NormalisedPyramidSeriesStyle = Normalised<AgPyramidSeriesStyle, never, FillStrokeMorph>;
 
 interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
@@ -166,15 +165,12 @@ type PyramidAnimationEvent = {
 
 export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     PyramidNodeDatum,
-    AgPyramidSeriesOptions,
-    PyramidProperties,
+    NormalisedPyramidSeriesOwnOptions,
     PyramidNodeLabelDatum,
     PyramidNodeDataContext
 > {
     static override readonly className = 'PyramidSeries';
     static readonly type = 'pyramid' as const;
-
-    override properties = new PyramidProperties();
 
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
@@ -235,6 +231,21 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return new FunnelConnector<PyramidNodeDatum>();
     }
 
+    /** The themed style of one stage, as the base every highlight, selection and styler layer merges onto. */
+    private itemStyle(index: number = 0): Required<NormalisedPyramidSeriesStyle> & { opacity: number } {
+        const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.options;
+        return {
+            fill: fills[index % fills.length],
+            fillOpacity,
+            stroke: strokes[index % strokes.length],
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+            opacity: 1,
+        };
+    }
+
     public override getNodeData(): PyramidNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
     }
@@ -256,7 +267,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             ctx: { legendManager },
         } = this;
 
-        const { stageKey, valueKey } = this.properties;
+        const { stageKey, valueKey } = this.options;
 
         const xScaleType = 'category';
         const yScaleType = 'number';
@@ -264,7 +275,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const validation = (_value: unknown, _datum: unknown, index: number) =>
             visible && (legendManager?.getItemEnabled({ seriesId, itemId: index }) ?? true);
         const visibleProps = this.visible ? {} : { forceValue: 0 };
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 valueProperty(stageKey, xScaleType, { id: 'xValue', allowNullKey }),
@@ -278,7 +289,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             id: seriesId,
             dataModel,
             processedData,
-            properties,
+            options,
             visible,
             ctx: { legendManager },
         } = this;
@@ -291,7 +302,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             aspectRatio,
             label,
             stageLabel,
-        } = properties;
+        } = options;
 
         if (dataModel == null || processedData == null) return;
 
@@ -326,7 +337,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         for (const [datumIndex, datum] of rawData.entries()) {
             const xValue = xValues[datumIndex];
             // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-            if (xValue === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
+            if (xValue === undefined && !options.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
             const yValue = yValues[datumIndex];
             const enabled = visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true);
 
@@ -340,9 +351,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 stageKey,
                 'x',
                 xDomain,
-                this.properties.stageLabel,
+                stageLabel,
                 { datum, value: yValue, stageKey, valueKey },
-                this.properties.allowNullKeys ?? false
+                options.allowNullKeys ?? false
             );
 
             const { width, height } = isArray(text)
@@ -416,7 +427,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         for (const [datumIndex, datum] of rawData.entries()) {
             const xValue = xValues[datumIndex];
             // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-            if (xValue === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
+            if (xValue === undefined && !options.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
             const yValue = yValues[datumIndex];
 
             const enabled = visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true);
@@ -523,24 +534,34 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private labelStylerParams(): RequireOptional<AgPyramidSeriesLabelFormatterParams> {
-        const { stageKey, valueKey } = this.properties;
+        const { stageKey, valueKey } = this.options;
         return { stageKey, valueKey };
     }
 
     private routesThroughEngine(): boolean {
-        return barLabelPropsRouteThroughEngine(this.properties.label);
+        return barLabelPropsRouteThroughEngine(this.options.label);
     }
 
     private createLabelContext(horizontal: boolean): PyramidLabelContext {
-        const { label } = this.properties;
-        const reportedPlacements = resolveFunnelPlacements(label.placement, 'inside-center');
+        const { label } = this.options;
+        const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
+        const reportedPlacements = resolveFunnelPlacements(
+            label.placement,
+            'inside-center',
+            !horizontal,
+            this.ctx.domManager.isRtl
+        );
         return {
             placements: reportedPlacements.map((placement) => FUNNEL_TO_BAR_PLACEMENT[placement]),
             reportedPlacements,
-            ...pyramidPlacementAxes(horizontal),
+            axes: funnelPlacementAxesList(
+                reportedPlacements,
+                pyramidPlacementAxes(horizontal),
+                funnelValuePlacementAxes(!horizontal)
+            ),
             routesThroughEngine: this.routesThroughEngine(),
             plotRegion: this.resolveLabelPlotRegion(label.collision),
-            labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
+            labelFit: labelFit && { ...labelFit, boxed: labelHasBox(label) },
         };
     }
 
@@ -561,7 +582,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumIndex: number;
         visible: boolean;
     }): PyramidNodeLabelDatum {
-        const { label } = this.properties;
+        const { label } = this.options;
         const trapezoid = pyramidStageTrapezoid(stage, horizontal);
         const stageBox = trapezoidBox(trapezoid);
 
@@ -588,8 +609,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const spanOf = (size: { width: number; height: number }) => (trapezoid.vertical ? size.height : size.width);
         const buildCandidates = (index: number, rect: BoxBounds) =>
             buildBarLabelCandidates<AgPyramidSeriesLabelFormatterParams, AgFunnelSeriesLabelPlacement>({
-                isUpward: labelContext.isUpward,
-                isVertical: labelContext.isVertical,
+                ...labelContext.axes[index],
                 placements: [labelContext.placements[index]],
                 reportedPlacements: [labelContext.reportedPlacements[index]],
                 orientations: ['horizontal'],
@@ -632,7 +652,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                           label,
                           this.labelStylerParams(),
                           undefined,
-                          (placement) => labelContext.reportedPlacements[labelContext.placements.indexOf(placement)]
+                          () => built.placement
                       )
                   );
         if (first != null) {
@@ -678,12 +698,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private labelPlacementStyle(placement: AgFunnelSeriesLabelPlacement | undefined) {
-        const { label } = this.properties;
+        const { label } = this.options;
         return placement == null ? undefined : pickPlacementStyle(label, toResolvedFunnelPlacement(placement));
     }
 
     getLabelObstacles(): LabelObstacle[] | undefined {
-        const { label, stageLabel, direction } = this.properties;
+        const { label, stageLabel, direction } = this.options;
         const horizontal = direction === 'horizontal';
         const labelBox = expandPlacementLabelBoxExtent(label);
         const stageLabelBox = expandLabelBoxExtent(stageLabel);
@@ -717,7 +737,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override getLabelData(): PointLabelDatum[] {
-        const { label } = this.properties;
+        const { label } = this.options;
         if (!this.usesPlacedLabels || !label.enabled) return [];
         const { alwaysShow, collideWith, threshold, measureBox, fitFor } = barLabelDataContext(label);
         const data: PointLabelDatum[] = [];
@@ -747,7 +767,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
         const params = this.labelStylerParams();
-        return createBarPositionedCandidateResolver(this, this.properties.label, () => params);
+        return createBarPositionedCandidateResolver(this, this.options.label, () => params);
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<PyramidNodeLabelDatum>[]) {
@@ -816,7 +836,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         this.stageLabelSelection = this.updateStageLabelSelection({ stageLabelData, stageLabelSelection });
         this.updateStageLabelNodes({
             labelSelection: stageLabelSelection,
-            labelProperties: this.properties.stageLabel,
+            labelProperties: this.options.stageLabel,
             checkActiveHighlight: true,
         });
 
@@ -845,13 +865,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         { datumIndex, datum }: Partial<PyramidNodeDatum>,
         isHighlight: boolean
     ): Required<NormalisedPyramidSeriesStyle> {
-        const { properties } = this;
-        const { itemStyler } = properties;
+        const { itemStyler } = this.options;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle(datumIndex));
-        let style = baseStyle as Required<NormalisedPyramidSeriesStyle>; // refs resolved at runtime
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, this.itemStyle(datumIndex));
+        let style = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -879,8 +898,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         isHighlight: boolean,
         style: Required<NormalisedPyramidSeriesStyle>
     ) {
-        const { id: seriesId, properties } = this;
-        const { stageKey, valueKey } = properties;
+        const { id: seriesId, options } = this;
+        const { stageKey, valueKey } = options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -919,8 +938,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
         isHighlight: boolean;
     }) {
-        const { properties } = this;
-        const { shadow } = properties;
+        const { shadow } = this.options;
 
         const bounds = this.contextNodeData?.bounds;
         const fillBBox: _ModuleSupport.ShapeFillBBox | undefined = bounds
@@ -940,7 +958,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         labelData: PyramidNodeLabelDatum[];
         labelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text<PyramidNodeLabelDatum>>;
     }) {
-        return opts.labelSelection.update(this.properties.label.enabled ? opts.labelData : []);
+        return opts.labelSelection.update(this.options.label.enabled ? opts.labelData : []);
     }
 
     private updateStageLabelSelection(opts: {
@@ -957,7 +975,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         labelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text<PyramidNodeLabelDatum>>;
         isHighlight: boolean;
     }) {
-        const { label } = this.properties;
+        const { label } = this.options;
         const params = this.labelStylerParams();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { labelSelection, isHighlight } = opts;
@@ -993,12 +1011,13 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private updateStageLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<PyramidStageLabelDatum, _ModuleSupport.Text<PyramidStageLabelDatum>>;
-        labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
+        labelProperties: NormalisedPyramidSeriesStageLabelOptions;
         isHighlight?: boolean;
         checkActiveHighlight?: boolean;
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { labelSelection, labelProperties, isHighlight = false, checkActiveHighlight = false } = opts;
+        const params = this.labelStylerParams();
 
         labelSelection.each((label, nodeDatum, datumIndex) => {
             const { visible, x, y, text, textAlign, textBaseline } = nodeDatum;
@@ -1006,14 +1025,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 isHighlight || (checkActiveHighlight && activeHighlight?.datumIndex === datumIndex);
             const highlightStyle = this.getHighlightStyle(datumIsHighlighted, datumIndex);
 
-            const style = getLabelStyles(
-                this,
-                undefined,
-                this.properties,
-                labelProperties,
-                datumIsHighlighted,
-                activeHighlight
-            );
+            const style = getLabelStyles(this, undefined, params, labelProperties, datumIsHighlighted, activeHighlight);
 
             const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
             label.visible = visible && style.enabled === true;
@@ -1058,8 +1070,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, properties } = this;
-        const { stageKey, valueKey, tooltip } = properties;
+        const { id: seriesId, dataModel, processedData, options } = this;
+        const { stageKey, valueKey, tooltip, stageLabel } = options;
 
         if (!dataModel || !processedData) return;
 
@@ -1069,7 +1081,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         ];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData, 'mixed-numeric')[datumIndex];
 
-        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const allowNullKeys = options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
 
         const label = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
@@ -1078,7 +1090,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             stageKey,
             'x',
             dataModel.getDomain(this, 'xValue', 'value', processedData).domain,
-            this.properties.stageLabel,
+            stageLabel,
             { datum, value: xValue, stageKey, valueKey }
         );
 
@@ -1128,8 +1140,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private legendItemSymbol(datumIndex: number) {
-        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
-        const fill = (fills[datumIndex] ?? 'black') as NormalisedColorType; // refs resolved at runtime
+        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.options;
+        const fill = fills[datumIndex] ?? 'black';
         const stroke = strokes[datumIndex] ?? 'black';
         return {
             marker: {
@@ -1157,13 +1169,13 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             return [];
         }
 
-        const { showInLegend } = this.properties;
+        const { showInLegend } = this.options;
         const stageValues = dataModel.resolveColumnById<PyramidStageValue>(this, `xValue`, processedData, 'object');
 
         return (processedData.dataSources.get(this.id)?.data ?? [])
             .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
                 const stageValue = stageValues[datumIndex];
-                const allowNullKeys = this.properties.allowNullKeys ?? false;
+                const allowNullKeys = this.options.allowNullKeys ?? false;
                 if (stageValue == null && !allowNullKeys) return;
 
                 return {
@@ -1175,7 +1187,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true),
                     label: { text: String(stageValue) },
                     symbol: this.legendItemSymbol(datumIndex),
-                    hideInLegend: !showInLegend,
+                    hideInLegend: showInLegend === false,
                 };
             })
             .filter((datum): datum is _ModuleSupport.CategoryLegendDatum => datum != null);
@@ -1187,18 +1199,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private animateEmptyUpdateReady() {
-        const { datumSelection, labelSelection, properties } = this;
+        const { datumSelection, labelSelection, options } = this;
 
-        const fns = preparePyramidAnimationFunctions(properties.direction);
+        const fns = preparePyramidAnimationFunctions(options.direction);
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
     protected override hasItemStylers(): boolean {
-        return (
-            this.properties.selection.enabled ||
-            this.properties.itemStyler != null ||
-            this.properties.label.itemStyler != null
-        );
+        return this.isSelectionEnabled() || this.options.itemStyler != null || this.options.label.itemStyler != null;
     }
 }

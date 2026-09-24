@@ -1,7 +1,5 @@
 import {
-    BaseProperties,
     type NormalisedTextOrSegments,
-    Property,
     callWithContext,
     coerceTextValue,
     createElement,
@@ -11,7 +9,13 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type { AgChartOverlayRendererParams, DatumDefault, ImageSegment, Renderer } from 'ag-charts-types';
+import type {
+    AgChartOverlayOptions,
+    AgChartOverlayRendererParams,
+    DatumDefault,
+    ImageSegment,
+    Renderer,
+} from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
@@ -50,14 +54,11 @@ export function imageSegmentStyle(segment: ImageSegment): Partial<CSSStyleDeclar
     };
 }
 
-export class Overlay extends BaseProperties {
-    @Property
+export type NormalisedChartOverlayOptions = Omit<AgChartOverlayOptions, 'text'> & { text?: NormalisedTextOrSegments };
+
+export class Overlay {
     enabled = true;
-
-    @Property
     text?: NormalisedTextOrSegments;
-
-    @Property
     renderer?: Renderer<AgChartOverlayRendererParams<DatumDefault>, HTMLElement>;
 
     private content?: HTMLElement;
@@ -66,19 +67,27 @@ export class Overlay extends BaseProperties {
 
     constructor(
         protected className: string,
-        protected defaultMessageId: string
+        protected defaultMessageId: string,
+        private readonly defaultRenderer?: Overlay['renderer']
     ) {
-        super();
+        this.renderer = defaultRenderer;
+    }
+
+    applyOptions(options: NormalisedChartOverlayOptions | undefined) {
+        this.enabled = options?.enabled ?? true;
+        this.text = options?.text;
+        this.renderer = options?.renderer ?? this.defaultRenderer;
     }
 
     getText(localeManager: LocaleManager): string {
         if (isArray(this.text)) {
             return toPlainText(this.text);
         }
-        if (this.rendererAsText) {
+        if (this.rendererAsText != null && this.rendererAsText !== '') {
             return this.rendererAsText;
         }
-        return localeManager.t(toTextString(this.text) || this.defaultMessageId);
+        const text = toTextString(this.text);
+        return localeManager.t(text === '' ? this.defaultMessageId : text);
     }
 
     getElement(

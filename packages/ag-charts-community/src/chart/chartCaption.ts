@@ -29,7 +29,7 @@ import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
-import type { MouseWidgetEvent } from '../widget/widgetEvents';
+import type { ClickWidgetEvent, DblClickWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
 import { expandLabelPadding } from './label';
 import type { TooltipContent } from './tooltip/tooltipContent';
@@ -58,10 +58,7 @@ export function captionFont(opts: NormalisedChartCaptionOptions) {
 /**
  * Chart-level caption (title/subtitle/footnote). Reads its option subtree from
  * `ctx.chartState.getValue('options', key)` and applies values to its scene node
- * during layout. Mirrors the Legend/Zoom pattern.
- *
- * For axis/series titles (which use `Caption`), the BaseProperties-based
- * `Caption` class continues to be used.
+ * during layout. Mirrors the Legend/Zoom pattern. Axis titles use `Caption` instead.
  */
 export class ChartCaption implements CaptionLike {
     static readonly className = 'ChartCaption';
@@ -174,13 +171,13 @@ export class ChartCaption implements CaptionLike {
 
     private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {
         const { proxyInteractionService } = moduleCtx;
-        if (!this.enabled || !this.text) {
+        if (!this.enabled || this.text == null || this.text === '') {
             this.destroyProxyText();
             return;
         }
 
         const bbox = Transformable.toCanvas(this.node);
-        if (!bbox) return;
+        if (bbox == null) return;
 
         const { id: domManagerId } = this;
         if (this.proxyText == null) {
@@ -307,7 +304,7 @@ export class ChartCaption implements CaptionLike {
      * `captionDoubleClick` counterparts. Mirrors the caption context-menu dispatch above, reporting
      * the same `captionType` discriminator.
      */
-    private handleClick(moduleCtx: DynamicContext<ChartRegistry>, event: MouseWidgetEvent<'click' | 'dblclick'>) {
+    private handleClick(moduleCtx: DynamicContext<ChartRegistry>, event: ClickWidgetEvent | DblClickWidgetEvent) {
         // Keyboard activation of caption listeners is not supported.
         if (event.device === 'keyboard') return;
 

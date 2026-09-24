@@ -1,5 +1,19 @@
 <div class="example-controls">
     <div class="controls-row">
+        <label for="stackFromDepthInput">Stack From Depth:</label>
+        <input
+            type="range"
+            id="stackFromDepthInput"
+            min="2"
+            max="4"
+            value="4"
+            step="1"
+            oninput="updateStackFromDepth(event)"
+            onchange="updateStackFromDepth(event)"
+        />
+        <span id="stackFromDepthValue">4</span>
+    </div>
+    <div class="controls-row">
         <label for="linkIndentationInput">Link Indentation:</label>
         <input
             type="range"
@@ -24,20 +38,6 @@
             onchange="updateNodeIndentation(event)"
         />
         <span id="nodeIndentationValue">26</span>
-    </div>
-    <div class="controls-row">
-        <label for="stackFromDepthIndentation">Stack At Depth:</label>
-        <input
-            type="range"
-            id="stackFromDepthIndentation"
-            min="2"
-            max="4"
-            value="4"
-            step="1"
-            oninput="updatestackFromDepth(event)"
-            onchange="updatestackFromDepth(event)"
-        />
-        <span id="stackFromDepthValue">4</span>
     </div>
 </div>
 <div id="myChart"></div>

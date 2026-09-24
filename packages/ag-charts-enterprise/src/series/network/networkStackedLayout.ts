@@ -128,7 +128,7 @@ class NetworkStackedVerticalLayout<TVertex, TEdge> extends NetworkDirectionalLay
         path: _ModuleSupport.ExtendedPath2D,
         parentBBox: TBBox,
         childBBox: TBBox,
-        interpolation: NetworkLinkInterpolation = { type: 'step' },
+        interpolation: NetworkLinkInterpolation,
         options: NetworkStackedLayoutUpdateOptions<TVertex, TEdge>
     ) {
         const start = Vec2.from(
@@ -220,7 +220,7 @@ class NetworkStackedHorizontalLayout<TVertex, TEdge> extends NetworkDirectionalL
         path: _ModuleSupport.ExtendedPath2D,
         parentBBox: TBBox,
         childBBox: TBBox,
-        interpolation: NetworkLinkInterpolation = { type: 'step' },
+        interpolation: NetworkLinkInterpolation,
         options: NetworkStackedLayoutUpdateOptions<TVertex, TEdge>
     ) {
         const start = Vec2.from(

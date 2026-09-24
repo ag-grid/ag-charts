@@ -7,7 +7,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { AgOhlcSeriesBaseOptions, AgOhlcSeriesItemStylerParams } from 'ag-charts-community';
+import type { AgOhlcSeriesItemStylerParams } from 'ag-charts-community';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -21,13 +21,13 @@ import {
     type FillStrokeMorph,
     type Mutable,
     type Normalised,
-    type NormalisedColorType,
+    type NormalisedOhlcSeriesBaseOwnOptions,
     type Point,
     type Scale,
     mergeDefaults,
     toNumber,
 } from 'ag-charts-core';
-import type { AgNumericValue, CssColor } from 'ag-charts-types';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     type OhlcSeriesDataAggregationFilter,
@@ -35,7 +35,6 @@ import {
     aggregateOhlcDataFromDataModelPartial,
 } from './ohlcAggregation';
 import { OhlcBaseNode } from './ohlcNode';
-import type { OhlcSeriesBaseProperties } from './ohlcSeriesProperties';
 
 const OPEN = AGGREGATION_INDEX_X_MIN;
 const HIGH = AGGREGATION_INDEX_Y_MAX;
@@ -159,8 +158,7 @@ interface OhlcSeriesBaseNodeDataContext extends _ModuleSupport.AbstractBarSeries
  */
 export interface OhlcSeriesBaseTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly node: OhlcBaseNode<OhlcNodeDatum>;
-    readonly options: AgOhlcSeriesBaseOptions;
-    readonly properties: OhlcSeriesBaseProperties<this['options']>;
+    readonly options: NormalisedOhlcSeriesBaseOwnOptions;
     readonly datum: OhlcNodeDatum;
     readonly label: OhlcNodeDatum;
     readonly context: OhlcSeriesBaseNodeDataContext;
@@ -203,11 +201,11 @@ export abstract class OhlcSeriesBase<
     override createNodeParams(datum: OhlcNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            xKey: this.properties.xKey,
-            openKey: this.properties.openKey,
-            closeKey: this.properties.closeKey,
-            highKey: this.properties.highKey,
-            lowKey: this.properties.lowKey,
+            xKey: this.options.xKey,
+            openKey: this.options.openKey,
+            closeKey: this.options.closeKey,
+            highKey: this.options.highKey,
+            lowKey: this.options.lowKey,
         };
     }
 
@@ -233,7 +231,7 @@ export abstract class OhlcSeriesBase<
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
         if (!this.visible) return;
 
-        const { xKey, openKey, closeKey, highKey, lowKey } = this.properties;
+        const { xKey, openKey, closeKey, highKey, lowKey } = this.options;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.getCategoryAxis()?.scale;
@@ -247,7 +245,7 @@ export abstract class OhlcSeriesBase<
         if (animationEnabled) {
             extraProps.push(animationValidation());
         }
-        if (openKey) {
+        if (openKey != null && openKey !== '') {
             extraProps.push(
                 valueProperty(openKey, yScaleType, {
                     id: `openValue`,
@@ -257,7 +255,7 @@ export abstract class OhlcSeriesBase<
             );
         }
 
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
@@ -444,11 +442,11 @@ export abstract class OhlcSeriesBase<
             barWidth,
             applyWidthOffset,
             crisp,
-            xKey: this.properties.xKey,
-            openKey: this.properties.openKey,
-            closeKey: this.properties.closeKey,
-            highKey: this.properties.highKey,
-            lowKey: this.properties.lowKey,
+            xKey: this.options.xKey,
+            openKey: this.options.openKey,
+            closeKey: this.options.closeKey,
+            highKey: this.options.highKey,
+            lowKey: this.options.lowKey,
             dataAggregationFilter,
             range,
             nodeDatumStateScratch: {
@@ -477,7 +475,7 @@ export abstract class OhlcSeriesBase<
         datumIndex: number
     ): PreparedOhlcNodeDatumState | undefined {
         const xValue = ctx.xValues[datumIndex];
-        if (xValue === undefined && !this.properties.allowNullKeys) {
+        if (xValue === undefined && !this.options.allowNullKeys) {
             return undefined;
         }
 
@@ -657,7 +655,7 @@ export abstract class OhlcSeriesBase<
         const ctx = this.buildDatumContext(xAxis, yAxis);
 
         const resultContext = {
-            itemId: this.properties.xKey,
+            itemId: this.options.xKey,
             nodeData: ctx?.nodeData ?? [],
             labelData: [],
             scales: this.calculateScaling(),
@@ -813,8 +811,8 @@ export abstract class OhlcSeriesBase<
         highlightState?: _ModuleSupport.HighlightState,
         itemType: 'up' | 'down' = 'up'
     ) {
-        const { properties, dataModel, processedData } = this;
-        const { itemStyler } = properties;
+        const { options, dataModel, processedData } = this;
+        const { itemStyler } = options;
 
         const highlightStyle: FillOptions & StrokeOptions & LineDashOptions & { opacity?: number } =
             this.getHighlightStyle(isHighlight, datumIndex, highlightState);
@@ -824,7 +822,7 @@ export abstract class OhlcSeriesBase<
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            properties.getStyle(itemType)
+            this.itemStyle(itemType)
         ) as Required<NormalisedOhlcCandleStickSeriesStyle> & { opacity: number };
 
         let style = baseStyle;
@@ -850,14 +848,18 @@ export abstract class OhlcSeriesBase<
         return style;
     }
 
+    protected itemStyle(itemType: 'up' | 'down') {
+        return { ...this.options.item[itemType], opacity: 1 };
+    }
+
     private makeItemStylerParams(
         itemType: 'up' | 'down',
         datumIndex: number,
         isHighlight: boolean,
         style: Required<NormalisedOhlcCandleStickSeriesStyle> & { opacity: number }
     ) {
-        const { id: seriesId, properties, processedData } = this;
-        const { xKey, openKey, closeKey, highKey, lowKey } = properties;
+        const { id: seriesId, options, processedData } = this;
+        const { xKey, openKey, closeKey, highKey, lowKey } = options;
 
         const datum = processedData!.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -888,7 +890,7 @@ export abstract class OhlcSeriesBase<
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, properties } = this;
+        const { id: seriesId, dataModel, processedData, options } = this;
         const {
             xKey,
             xName,
@@ -903,7 +905,7 @@ export abstract class OhlcSeriesBase<
             closeName,
             legendItemName,
             tooltip,
-        } = properties;
+        } = options;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -917,23 +919,22 @@ export abstract class OhlcSeriesBase<
         const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const allowNullKeys = options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const itemType = closeValue >= openValue ? 'up' : 'down';
-        const item = this.properties.item[itemType];
+        const item = options.item[itemType];
 
         const format = this.getItemStyle(datumIndex, false);
 
-        // Colour refs on item.fill/stroke are resolved to concrete colours before this point.
         const marker = {
-            fill: (item.fill ?? item.stroke) as NormalisedColorType,
-            fillOpacity: item.fillOpacity ?? item.strokeOpacity ?? 1,
-            stroke: item.stroke as CssColor,
-            strokeWidth: item.strokeWidth ?? 1,
-            strokeOpacity: item.strokeOpacity ?? 1,
-            lineDash: item.lineDash ?? [0],
-            lineDashOffset: item.lineDashOffset ?? 0,
+            fill: item.fill ?? item.stroke,
+            fillOpacity: item.fillOpacity ?? item.strokeOpacity,
+            stroke: item.stroke,
+            strokeWidth: item.strokeWidth,
+            strokeOpacity: item.strokeOpacity,
+            lineDash: item.lineDash,
+            lineDashOffset: item.lineDashOffset,
         };
 
         return this.formatTooltipWithContext(

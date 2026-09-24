@@ -26,7 +26,7 @@ const options: AgRadialGaugeOptions = {
 
 const chart = AgCharts.createGauge(options);
 
-function setFillMode(fillMode: 'continuous' | 'discrete') {
-    options.bar!.fillMode = fillMode;
+function setFillMode(event: Event) {
+    options.bar!.fillMode = (event.target as HTMLInputElement).value as 'continuous' | 'discrete';
     chart.update(options);
 }

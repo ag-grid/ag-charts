@@ -183,11 +183,11 @@ describe('TreemapSeries', () => {
         });
 
         const tileEnabled = (series: TreemapSeries) =>
-            (series as unknown as { properties: { tile: { highlight: { enabled: boolean } } } }).properties.tile
-                .highlight.enabled;
+            (series as unknown as { options: { tile: { highlight: { enabled: boolean } } } }).options.tile.highlight
+                .enabled;
         const groupEnabled = (series: TreemapSeries) =>
-            (series as unknown as { properties: { group: { highlight: { enabled: boolean } } } }).properties.group
-                .highlight.enabled;
+            (series as unknown as { options: { group: { highlight: { enabled: boolean } } } }).options.group.highlight
+                .enabled;
 
         it('cascades chart-level highlight.enabled = false to tile and group', async () => {
             const options: AgChartOptions = {
@@ -700,7 +700,7 @@ describe('TreemapSeries', () => {
                 : { enabled: false };
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
-            const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
+            const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
             const options: AgCartesianChartOptions | AgPolarChartOptions = {
                 container: document.body,
                 tooltip: { range: 'exact' },
@@ -876,7 +876,7 @@ describe('TreemapSeries', () => {
             },
             getDatumValues: (item, series) => {
                 const { datum } = item.datum;
-                return [datum[series.properties.labelKey], datum[series.properties.sizeKey]];
+                return [datum[series.options.labelKey], datum[series.options.sizeKey]];
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;

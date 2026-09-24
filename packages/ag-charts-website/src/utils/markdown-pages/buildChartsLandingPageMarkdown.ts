@@ -23,6 +23,7 @@ import { getFrameworkFromInternalFramework } from '@utils/framework';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 
+import { buildChartsFrontmatter } from './chartsFrontmatter';
 import { type ReleaseVersion, latestReleasesMarkdown } from './latestReleasesMarkdown';
 
 /** The `landingPages` entry as this builder needs it: the shared shape, narrowed to charts sections. */
@@ -34,6 +35,8 @@ export interface BuildChartsLandingPageMarkdownOptions {
     content: ChartsLandingPageContent;
     /** The `versions` collection, for the hero's version badge and the What's New section. */
     versions?: Array<LandingPageVersion & ReleaseVersion>;
+    /** The landing page's own URL, for the frontmatter's related links. */
+    pageUrl: string;
     siteRoot?: string;
 }
 
@@ -60,7 +63,8 @@ function chartTypesShowcaseBody(section: ChartTypesShowcaseSection, resolve: Res
         .map((item) => {
             // Not every card carries a link — the "And More..." card and the docs-example cards on
             // the enterprise page have none, and the page renders those as unlinked cards.
-            const title = item.link ? link(item.title, item.link, resolve, siteRoot) : item.title;
+            const title =
+                item.link == null || item.link === '' ? item.title : link(item.title, item.link, resolve, siteRoot);
             return `- **${title}** — ${item.description}`;
         })
         .join('\n');
@@ -68,7 +72,7 @@ function chartTypesShowcaseBody(section: ChartTypesShowcaseSection, resolve: Res
 }
 
 function codeExampleBody(section: CodeExampleSection): string[] {
-    const fileName = section.fileName ? `\`${section.fileName}\`` : undefined;
+    const fileName = section.fileName == null || section.fileName === '' ? undefined : `\`${section.fileName}\``;
     const fence = `\`\`\`${section.language ?? 'ts'}\n${section.code}\n\`\`\``;
     return [fileName, fence].filter((part): part is string => part != null);
 }
@@ -143,27 +147,34 @@ function heroBlock(
     versions: BuildChartsLandingPageMarkdownOptions['versions'],
     siteRoot?: string
 ): string[] {
-    const heading = hero.headingHtml ? htmlInlineToMarkdown(hero.headingHtml, siteRoot) : hero.heading;
-    const latestVersion = versions?.find((version) => version.landingPageHighlight);
+    const heading =
+        hero.headingHtml == null || hero.headingHtml === ''
+            ? hero.heading
+            : htmlInlineToMarkdown(hero.headingHtml, siteRoot);
+    const latestVersion = versions?.find(
+        (version) => version.landingPageHighlight != null && version.landingPageHighlight !== ''
+    );
 
     const parts = [
         `# ${heading}`,
-        hero.subHeadingHtml ? htmlInlineToMarkdown(hero.subHeadingHtml, siteRoot) : hero.subHeading,
+        hero.subHeadingHtml == null || hero.subHeadingHtml === ''
+            ? hero.subHeading
+            : htmlInlineToMarkdown(hero.subHeadingHtml, siteRoot),
     ];
     if (hero.showVersionBadge && latestVersion) {
         parts.push(`**Latest version:** v${latestVersion.version} — ${latestVersion.landingPageHighlight}`);
     }
-    if (content.packageName) {
+    if (content.packageName != null && content.packageName !== '') {
         parts.push(`Install: \`npm install ${content.packageName}\``);
     }
-    if (hero.secondaryCta?.url) {
+    if (hero.secondaryCta?.url != null && hero.secondaryCta.url !== '') {
         parts.push(link(hero.secondaryCta.text, hero.secondaryCta.url, urlWithBaseUrl, siteRoot));
     }
-    if (hero.galleryExamples?.length) {
+    if (hero.galleryExamples != null && hero.galleryExamples.length > 0) {
         const examples = hero.galleryExamples.map(({ title, exampleName, pageName }) =>
-            pageName
-                ? `- ${title}`
-                : `- [${title}](${toAbsoluteUrl(urlWithBaseUrl(`/gallery/${exampleName}/`), siteRoot)})`
+            pageName == null || pageName === ''
+                ? `- [${title}](${toAbsoluteUrl(urlWithBaseUrl(`/gallery/${exampleName}/`), siteRoot)})`
+                : `- ${title}`
         );
         parts.push(examples.join('\n'));
     }
@@ -179,6 +190,7 @@ function heroBlock(
 export function buildChartsLandingPageMarkdown({
     content,
     versions,
+    pageUrl,
     siteRoot,
 }: BuildChartsLandingPageMarkdownOptions): string {
     const framework = getFrameworkFromInternalFramework(content.internalFramework);
@@ -189,12 +201,12 @@ export function buildChartsLandingPageMarkdown({
     // framework-relative and need the prefixing helper to land on the right docs page.
     const resolveFaqUrl: Resolve = (url) => urlWithPrefix({ framework, url });
 
-    const frontmatter = [
-        '---',
-        `title: ${JSON.stringify(content.meta.title)}`,
-        `description: ${JSON.stringify(content.meta.description)}`,
-        '---',
-    ].join('\n');
+    const frontmatter = buildChartsFrontmatter({
+        pageUrl,
+        siteRoot,
+        title: content.meta.title,
+        description: content.meta.description,
+    });
 
     const hero = content.sections.find((section) => section.type === 'hero');
     const intro = hero ? heroBlock(hero, content, versions, siteRoot) : [];

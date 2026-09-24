@@ -170,10 +170,11 @@ describe('label itemStyler participates in placement', () => {
     /**
      * Funnel-family series map their public placements onto the bar vocabulary internally, so every route
      * that resolves a styled box has to report the public value back: `itemStyler` is documented API and
-     * must never be handed `inside-start` or `beside-before-center`.
+     * must only ever be handed a value the series was configured with. The funnel cases configure
+     * `before`/`after`, which map onto bar `inside-start`/`inside-end`, so a leaked bar value is distinct.
      */
     describe('funnel family reports public placements to the styler', () => {
-        const FUNNEL_PLACEMENT = /^(inside|outside)-(center|before|after)$/;
+        const FUNNEL_PLACEMENTS = ['inside-before', 'inside-after'];
         const CONE_FUNNEL_PLACEMENT = /^(start|middle|end)-(before|center|after)$/;
 
         const seriesChart = (type: string, placement: string[], extra: object, seen: Set<string>) => ({
@@ -218,15 +219,13 @@ describe('label itemStyler participates in placement', () => {
         };
 
         it('reports funnel placements to a funnel label styler', async () => {
-            const seen = await styledPlacements('funnel', ['inside-before', 'inside-after']);
-            expect(seen.every((placement) => FUNNEL_PLACEMENT.test(placement))).toBe(true);
+            const seen = await styledPlacements('funnel', FUNNEL_PLACEMENTS);
+            expect(seen.every((placement) => FUNNEL_PLACEMENTS.includes(placement))).toBe(true);
         });
 
         it('reports pyramid placements to a pyramid label styler', async () => {
-            const seen = await styledPlacements('pyramid', ['inside-before', 'inside-after'], {
-                direction: 'vertical',
-            });
-            expect(seen.every((placement) => FUNNEL_PLACEMENT.test(placement))).toBe(true);
+            const seen = await styledPlacements('pyramid', FUNNEL_PLACEMENTS, { direction: 'vertical' });
+            expect(seen.every((placement) => FUNNEL_PLACEMENTS.includes(placement))).toBe(true);
         });
 
         it('reports cone-funnel placements to a cone-funnel label styler', async () => {

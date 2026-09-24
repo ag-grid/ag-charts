@@ -1,7 +1,22 @@
 import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger, ModuleRegistry, ambientLog, ambientLogger } from 'ag-charts-core';
+import {
+    Logger,
+    type ModuleDefinition,
+    ModuleRegistry,
+    ModuleType,
+    type OptionsContribution,
+    ambientLog,
+    ambientLogger,
+    contributionHost,
+    contributionMatchesChartType,
+    contributionsOf,
+    describeValidator,
+    nestAtOptionsPath,
+    parseOptionsPath,
+    visitOptionsPath,
+} from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -15,18 +30,43 @@ import type {
     SeriesType,
 } from 'ag-charts-types';
 
-import { sanitizeThemeModules } from '../chart/factory/processModuleOptions';
+import { CrossLinesModule } from '../chart/crossline/crossLinesModule';
+import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expectedModules';
+import { removeUnregisteredModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
+import { captureUncaught } from '../chart/test/utils';
 import { ChartTheme } from '../chart/themes/chartTheme';
+import { createProvisionalRuntime } from '../chart/validation/chartValidations';
 import { VERSION } from '../version';
 import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
 import { NumberAxisModule } from './axis-modules/numberAxisModule';
+import { resolveSeriesThemeDefaultsMemoised } from './optionsGraph';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
 
+const moduleMessages = () =>
+    (console.error as Mock).mock.calls
+        .map(([m]) => String(m))
+        .filter((m) => m.includes('required modules are not registered'));
+
+function runtimeFor(logger?: Logger) {
+    return logger == null ? undefined : createProvisionalRuntime(logger);
+}
+
 function prepareOptions<T extends AgChartOptions>(userOptions: T, logger?: Logger): T {
-    const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {}, undefined, false, false, undefined, logger);
+    const chartOptions = new ChartOptions(
+        userOptions,
+        {} as T,
+        {},
+        {},
+        {},
+        undefined,
+        false,
+        false,
+        undefined,
+        runtimeFor(logger)
+    );
     return chartOptions.processedOptions;
 }
 
@@ -43,7 +83,7 @@ function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logge
         false,
         false,
         undefined,
-        logger
+        runtimeFor(logger)
     );
     return chartOptions.processedOptions;
 }
@@ -61,7 +101,7 @@ function prepareGaugeOptions(userOptions: AgGaugeOptions, logger?: Logger): AgCh
         false,
         false,
         undefined,
-        logger
+        runtimeFor(logger)
     );
     return chartOptions.processedOptions;
 }
@@ -486,12 +526,12 @@ describe('ChartOptions', () => {
                 ).length;
 
             const first = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, { domMode: 'minimal' });
-            expect(first.validationIssues.length).toBeGreaterThan(0);
+            expect(first.issues.length).toBeGreaterThan(0);
             expect(cacheProbe('miss')).toBe(1);
 
             const second = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, { domMode: 'minimal' });
             expect(cacheProbe('hit')).toBe(1);
-            expect(second.validationIssues).toEqual(first.validationIssues);
+            expect(second.issues).toEqual(first.issues);
         });
     });
 
@@ -657,8 +697,40 @@ describe('ChartOptions', () => {
 
             const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
             expect(errors.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(errors.some((m) => m.includes('GaugePresetModule'))).toBe(true);
+            expect(errors.some((m) => m.includes('AllGaugeModule'))).toBe(true);
             expect((console.warn as Mock).mock.calls.every(([m]) => !String(m).includes('Unknown option'))).toBe(true);
+        });
+
+        const backgroundRegionsOptions = () =>
+            ({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                seriesArea: { backgroundRegions: [{ xRange: { start: 0, end: 1 } }] },
+            }) as AgCartesianChartOptions;
+
+        it('reports BackgroundRegionsModule for `seriesArea.backgroundRegions` and drops it outside enterprise', () => {
+            const processedOptions = prepareOptions(backgroundRegionsOptions(), new Logger());
+
+            expect(moduleMessages()).toEqual([expect.stringContaining('BackgroundRegionsModule')]);
+            expect(processedOptions.seriesArea?.backgroundRegions).toBeUndefined();
+        });
+
+        it('leaves the community `seriesArea` options alongside it untouched', () => {
+            const processedOptions = prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                seriesArea: { clip: true, backgroundRegions: [{ xRange: { start: 0, end: 1 } }] },
+            } as AgCartesianChartOptions);
+
+            expect(processedOptions.seriesArea?.clip).toBe(true);
+            expect(processedOptions.seriesArea?.backgroundRegions).toBeUndefined();
+        });
+
+        it('stays silent when `backgroundRegions` appears only as a theme override', () => {
+            prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                theme: { overrides: { line: { seriesArea: { backgroundRegions: { fill: '#f00' } } } } },
+            } as AgCartesianChartOptions);
+
+            expect(moduleMessages()).toEqual([]);
         });
     });
 
@@ -762,8 +834,7 @@ describe('ChartOptions', () => {
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('Option `highlight.mode` cannot be set to `"invalid"`'))).toBe(true);
             expect(messages.some((m) => m.includes("expecting a keyword such as 'single' or 'shared'"))).toBe(true);
-            // The invalid value is dropped rather than substituted, so `ChartHighlight`'s own
-            // `mode = 'single'` property default applies at the chart-instance level.
+            // The invalid value is dropped rather than substituted; consumers fall back to 'single'.
             expect((options as any).highlight?.mode).toBeUndefined();
         });
     });
@@ -837,10 +908,13 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
               [
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -887,11 +961,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -919,8 +995,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#2b5c95",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -936,10 +1016,13 @@ describe('ChartOptions', () => {
                   "yName": "IPhone",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -986,11 +1069,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1018,8 +1103,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#cc6f10",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1035,10 +1124,13 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1085,11 +1177,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1117,8 +1211,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#1e652e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1134,10 +1232,13 @@ describe('ChartOptions', () => {
                   "yName": "Wearables",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1184,11 +1285,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1216,8 +1319,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#18859e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1233,7 +1340,10 @@ describe('ChartOptions', () => {
                   "yName": "Services",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -1276,17 +1386,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#e1cc00",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#a69400",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1298,10 +1417,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#e1cc00",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -1317,7 +1440,10 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -1360,17 +1486,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#9669cb",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#603c88",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1382,10 +1517,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#9669cb",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -1412,10 +1551,13 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
               [
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1462,11 +1604,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1494,8 +1638,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#2b5c95",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1511,10 +1659,13 @@ describe('ChartOptions', () => {
                   "yName": "IPhone",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1561,11 +1712,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1593,8 +1746,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#cc6f10",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1610,10 +1767,13 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1660,11 +1820,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1692,8 +1854,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#1e652e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1709,10 +1875,13 @@ describe('ChartOptions', () => {
                   "yName": "Wearables",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -1759,11 +1928,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1791,8 +1962,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#18859e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -1808,7 +1983,10 @@ describe('ChartOptions', () => {
                   "yName": "Services",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -1851,17 +2029,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#e1cc00",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#a69400",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1873,10 +2060,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#e1cc00",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -1892,7 +2083,10 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -1935,17 +2129,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#9669cb",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#603c88",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1957,10 +2160,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#9669cb",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -1987,10 +2194,13 @@ describe('ChartOptions', () => {
             expect(options).toMatchInlineSnapshot(`
               [
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "pink",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2037,11 +2247,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2069,8 +2281,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#2b5c95",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2086,10 +2302,13 @@ describe('ChartOptions', () => {
                   "yName": "IPhone",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "red",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2136,11 +2355,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2168,8 +2389,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#cc6f10",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2185,10 +2410,13 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#459d55",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2235,11 +2463,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2267,8 +2497,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": true,
                   "stroke": "#1e652e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2284,10 +2518,13 @@ describe('ChartOptions', () => {
                   "yName": "Wearables",
                 },
                 {
+                  "cornerRadius": 0,
+                  "cursor": "default",
                   "direction": "vertical",
                   "fill": "#34bfe1",
                   "fillOpacity": 1,
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedItem": {
                       "opacity": 0.6,
@@ -2334,11 +2571,13 @@ describe('ChartOptions', () => {
                     0,
                   ],
                   "lineDashOffset": 0,
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2366,8 +2605,12 @@ describe('ChartOptions', () => {
                   },
                   "showInLegend": false,
                   "stroke": "#18859e",
+                  "strokeOpacity": 1,
                   "strokeWidth": 0,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "pointer",
                       "offset": 12,
@@ -2383,7 +2626,10 @@ describe('ChartOptions', () => {
                   "yName": "Services",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -2426,17 +2672,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#e1cc00",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#a69400",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2448,10 +2703,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#e1cc00",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -2467,7 +2726,10 @@ describe('ChartOptions', () => {
                   "yName": "Mac",
                 },
                 {
+                  "connectMissingData": false,
+                  "cursor": "default",
                   "highlight": {
+                    "bringToFront": true,
                     "enabled": true,
                     "unhighlightedSeries": {
                       "opacity": 0.2,
@@ -2510,17 +2772,26 @@ describe('ChartOptions', () => {
                   ],
                   "lineDashOffset": 0,
                   "marker": {
+                    "enabled": true,
                     "fill": "#9669cb",
+                    "fillOpacity": 1,
+                    "lineDash": [
+                      0,
+                    ],
+                    "lineDashOffset": 0,
                     "shape": "circle",
                     "size": 7,
                     "stroke": "#603c88",
+                    "strokeOpacity": 1,
                     "strokeWidth": 0,
                   },
+                  "nodeClickRange": "exact",
                   "segmentation": {
                     "enabled": false,
                     "key": "x",
                   },
                   "selection": {
+                    "containment": "any",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2532,10 +2803,14 @@ describe('ChartOptions', () => {
                       "opacity": 0.2,
                     },
                   },
+                  "showInLegend": true,
                   "stroke": "#9669cb",
                   "strokeOpacity": 1,
                   "strokeWidth": 2,
                   "tooltip": {
+                    "interaction": {
+                      "enabled": false,
+                    },
                     "position": {
                       "anchorTo": "node",
                       "offset": 12,
@@ -3007,6 +3282,36 @@ describe('ChartOptions', () => {
                 false,
                 true,
             ]);
+        });
+
+        it('should resolve axis label verticalAlign from a theme override, with a per-axis inline value taking precedence', () => {
+            const options: AgCartesianChartOptions = {
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y' },
+                    { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'y2' },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    y2: { type: 'number', position: 'right', label: { verticalAlign: 'bottom' } },
+                },
+                theme: {
+                    overrides: {
+                        line: {
+                            axes: {
+                                number: { label: { verticalAlign: 'top' } },
+                            },
+                        },
+                    },
+                },
+            };
+
+            const preparedOptions = prepareOptions(options);
+
+            expect((preparedOptions.axes?.y as AgNumberAxisOptions | undefined)?.label?.verticalAlign).toBe('top');
+            expect((preparedOptions.axes?.__AXIS_ID_2 as AgNumberAxisOptions | undefined)?.label?.verticalAlign).toBe(
+                'bottom'
+            );
         });
 
         it('should drop unregistered theme overrides before processing', () => {
@@ -4083,6 +4388,19 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('mini-chart series theme defaults', () => {
+        it('substitutes css variables while resolving the series defaults', () => {
+            const theme = new ChartTheme({ params: { foregroundColor: 'var(--fg)' } });
+
+            const defaults = resolveSeriesThemeDefaultsMemoised(theme, 'line', ModuleRegistry.resolveModuleScope(), {
+                'var(--fg)': '#123456',
+            });
+
+            expect(defaults.type).toBe('line');
+            expect(JSON.stringify(defaults)).not.toContain('var(--fg)');
+        });
+    });
+
     describe('invalid `ontoColor` var fallback (AG-17816 AC4)', () => {
         const mockComputedStyle = (container: HTMLElement, values: Record<string, string>) => {
             vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
@@ -4182,7 +4500,7 @@ describe('ChartOptions', () => {
                 false,
                 false,
                 undefined,
-                logger
+                runtimeFor(logger)
             );
 
             chartOptions.processCSSVariablesPartial({ foregroundColor: 'var(--bad)' }, container);
@@ -4383,187 +4701,179 @@ describe('ChartOptions', () => {
             ...extra,
         }) as AgChartOptions;
 
-    describe('validations.consoleLogSeverity', () => {
-        it('silences first-render validation warnings when set to `none`, without silencing validation itself', () => {
-            const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogSeverity: 'none' } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+    // The pass under test is run for what it logs and throws, not for the instance it yields.
+    const construct = (userOptions: AgChartOptions, base?: ChartOptions) =>
+        base == null
+            ? new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {})
+            : new ChartOptions(base, userOptions, {}, {}, {});
+
+    describe('validations.consoleOn', () => {
+        it('honours an explicit `[]`, silencing first-render warnings without silencing validation itself', () => {
+            const chartOptions = construct(invalidOptions({ validations: { consoleOn: [] } }));
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
+            // An empty selection is a usable value, so it is honoured rather than defaulted away.
+            expect(chartOptions.issues.some((issue) => issue.message.includes('validations.consoleOn'))).toBe(false);
         });
 
-        it('warns for the same invalid options without a consoleLogSeverity override', () => {
-            const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
+        it('warns for the same invalid options without a consoleOn override', () => {
+            const chartOptions = construct(invalidOptions());
 
             expect(console.warn).toHaveBeenCalled();
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
         });
 
-        it('silences validation warnings when set to `error`', () => {
-            const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogSeverity: 'error' } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+        it("silences warning-severity output when set to `['error']`", () => {
+            const chartOptions = construct(invalidOptions({ validations: { consoleOn: ['error'] } }));
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
         });
 
-        it('reports an invalid consoleLogSeverity value rather than silencing logging with it', () => {
-            const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogSeverity: 'verbose' } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+        it('treats a duplicated severity as if it had been listed once, without reporting it', () => {
+            const chartOptions = construct(invalidOptions({ validations: { consoleOn: ['error', 'error'] } }));
 
-            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleLogSeverity')).toBe(
-                true
-            );
+            // A repeat is not an invalid value: the array is accepted whole, and `['error', 'error']`
+            // selects exactly what `['error']` does - warning-severity output stays silenced.
+            expect(chartOptions.issues.some((issue) => issue.message.includes('validations.consoleOn'))).toBe(false);
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
+        });
+
+        it('reports an invalid consoleOn value rather than silencing logging with it', () => {
+            const chartOptions = construct(invalidOptions({ validations: { consoleOn: 'verbose' } }));
+
+            expect(chartOptions.issues.some((issue) => issue.message.includes('validations.consoleOn'))).toBe(true);
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.some((m) => m.includes('validations.consoleLogSeverity'))).toBe(true);
+            expect(messages.some((m) => m.includes('validations.consoleOn'))).toBe(true);
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
         });
 
-        it('reports an explicit null consoleLogSeverity rather than deferring to a silencing override', () => {
+        // A rejected array must fall back to the *loudest* default, never to the elements that
+        // happened to parse: the report of the bad value itself goes through `logger.warn`.
+        it.each<{ label: string; value: unknown }>([
+            { label: "['loud']", value: ['loud'] },
+            { label: "['error', 'loud']", value: ['error', 'loud'] },
+            { label: "'error' (not an array)", value: 'error' },
+        ])(
+            'falls back to the loudest default for an unusable consoleOn ($label), and still reports it',
+            ({ value }) => {
+                const chartOptions = construct(invalidOptions({ validations: { consoleOn: value } }));
+
+                expect(chartOptions.issues.some((issue) => issue.message.includes('validations.consoleOn'))).toBe(true);
+                const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('validations.consoleOn'))).toBe(true);
+                // `['error', 'loud']` filtered to `['error']` would leave warnings off and lose both messages.
+                expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+            }
+        );
+
+        it('reports an explicit null consoleOn rather than deferring to a silencing override', () => {
             const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogSeverity: null } }),
+                invalidOptions({ validations: { consoleOn: null } }),
                 {} as AgChartOptions,
-                { validations: { consoleLogSeverity: 'none' } } as Partial<AgChartOptions>,
+                { validations: { consoleOn: [] } } as Partial<AgChartOptions>,
                 {},
                 {}
             );
 
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
         });
 
-        it('returns to default logging once a delta update removes a `none` override', () => {
-            const base = new ChartOptions(
-                invalidOptions({ validations: { consoleLogSeverity: 'none' } }),
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
+        it('returns to default logging once a delta update removes an empty-array override', () => {
+            const base = construct(invalidOptions({ validations: { consoleOn: [] } }));
             expect(console.warn).not.toHaveBeenCalled();
 
             const updated = new ChartOptions(base, invalidOptions(), {}, {}, {});
 
             expect(console.warn).toHaveBeenCalled();
-            expect(updated.validationIssues.length).toBeGreaterThan(0);
+            expect(updated.issues.length).toBeGreaterThan(0);
         });
     });
 
     describe('validations.throwOn', () => {
-        it('does not throw for the default (option absent), and still logs the existing warning', () => {
-            const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
+        let capture: ReturnType<typeof captureUncaught>;
+        beforeEach(() => {
+            capture = captureUncaught();
+        });
+        afterEach(() => capture.restore());
+
+        const uncaughtMessages = async () => {
+            await capture.settle();
+            return capture.uncaught.map(String);
+        };
+
+        it('does not throw for the default (option absent), and still logs the existing warning', async () => {
+            const chartOptions = construct(invalidOptions());
 
             expect(console.warn).toHaveBeenCalled();
-            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
+            expect(await uncaughtMessages()).toEqual([]);
         });
 
-        it('does not throw when explicitly set to `none`', () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'none' } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    )
-            ).not.toThrow();
+        it('honours an explicit `[]`, which never throws and is not reported as unusable', async () => {
+            const chartOptions = construct(invalidOptions({ validations: { throwOn: [] } }));
 
             expect(console.warn).toHaveBeenCalled();
+            expect(chartOptions.issues.some((issue) => issue.message.includes('validations.throwOn'))).toBe(false);
+            expect(await uncaughtMessages()).toEqual([]);
         });
 
-        it.each(['loud', null, 42])(
-            'does not throw for an unrecognised throwOn value (%s), and the union validator still reports it',
-            (badValue) => {
-                let chartOptions!: ChartOptions<AgChartOptions>;
-                expect(() => {
-                    chartOptions = new ChartOptions(
-                        invalidOptions({ validations: { throwOn: badValue } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    );
-                }).not.toThrow();
+        // A bad element rejects the whole array, so the key is dropped and the default (off) applies -
+        // the diagnostic is reported at the option path rather than at an element of it.
+        it.each<{ label: string; value: unknown }>([
+            { label: "'loud'", value: 'loud' },
+            { label: 'null', value: null },
+            { label: '42', value: 42 },
+            { label: "['loud']", value: ['loud'] },
+            { label: "['error', 'loud']", value: ['error', 'loud'] },
+            { label: "'error' (not an array)", value: 'error' },
+        ])(
+            'does not throw for an unusable throwOn value ($label), and the validator still reports it',
+            async ({ value }) => {
+                const chartOptions = construct(invalidOptions({ validations: { throwOn: value } }));
 
-                expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.throwOn')).toBe(true);
+                expect(chartOptions.issues.some((issue) => issue.message.includes('validations.throwOn'))).toBe(true);
                 const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
                 expect(messages.some((m) => m.includes('validations.throwOn'))).toBe(true);
+                expect(await uncaughtMessages()).toEqual([]);
             }
         );
 
-        it('throws on a warning-severity option error, naming the option path in the message', () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'warning' } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    )
-            ).toThrowError(/^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: /);
+        it('returns from the options pass, then throws uncaught for a warning-severity option error, naming the option path', async () => {
+            expect(() => construct(invalidOptions({ validations: { throwOn: ['warning'] } }))).not.toThrow();
+
+            expect(await uncaughtMessages()).toEqual([
+                expect.stringMatching(
+                    /^Error: AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set/
+                ),
+            ]);
         });
 
-        it('writes the console record before throwing (AC2)', () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'warning' } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    )
-            ).toThrow();
+        it('writes the console record as well as throwing (AC2)', async () => {
+            construct(invalidOptions({ validations: { throwOn: ['warning'] } }));
 
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+            expect(await uncaughtMessages()).toHaveLength(1);
         });
 
-        it('does not claim the option was ignored in the thrown message, while the console record still does (TC2)', () => {
-            let thrown!: Error;
-            try {
-                new ChartOptions(
-                    invalidOptions({ validations: { throwOn: 'warning' } }),
-                    {} as AgChartOptions,
-                    {},
-                    {},
-                    {}
-                );
-            } catch (e) {
-                thrown = e as Error;
-            }
+        it('throws the console wording, fallback clause included, because the fallback is applied before the throw', async () => {
+            construct(invalidOptions({ validations: { throwOn: ['warning'] } }));
 
-            // Nothing was ignored under an armed threshold - the pass aborted instead of defaulting.
-            expect(thrown).toBeDefined();
-            expect(thrown.message).not.toMatch(/ignoring/i);
-            expect(thrown.message).toMatch(
-                /^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: .*expecting a number greater than or equal to 0$/
+            const [thrown] = await uncaughtMessages();
+            expect(thrown).toMatch(
+                /^Error: AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set .*expecting a number greater than or equal to 0, ignoring\.$/
             );
 
-            // AC2: the console record is untouched by fail-fast, trailing clause included.
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => /notanumber/.test(m) && /, ignoring\.$/.test(m))).toBe(true);
         });
 
-        it('throws for the first qualifying issue rather than collecting the whole batch first (AC3)', () => {
+        it('throws once per qualifying issue, so every issue of the pass is both reported and thrown (AC3)', async () => {
             const options: AgChartOptions = {
                 series: [
                     {
@@ -4574,73 +4884,213 @@ describe('ChartOptions', () => {
                         lineDash: 'notanarray' as any,
                     },
                 ],
-                validations: { throwOn: 'warning' },
+                validations: { throwOn: ['warning'] },
             } as AgChartOptions;
 
-            expect(() => new ChartOptions(options, {} as AgChartOptions, {}, {}, {})).toThrow();
+            construct(options);
 
-            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect(console.warn).toHaveBeenCalledTimes(2);
+            expect(await uncaughtMessages()).toEqual([
+                expect.stringContaining('series[0].strokeWidth'),
+                expect.stringContaining('series[0].lineDash'),
+            ]);
         });
 
-        it('does not throw at `error` for a warning-severity option error (nothing in the option pass is error-severity)', () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'error' } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    )
-            ).not.toThrow();
+        it("does not throw at `['error']` for a warning-severity option error (nothing in the option pass is error-severity)", async () => {
+            construct(invalidOptions({ validations: { throwOn: ['error'] } }));
 
             expect(console.warn).toHaveBeenCalled();
+            expect(await uncaughtMessages()).toEqual([]);
         });
 
-        it('throws at `deprecation` too, since the threshold is inclusive of every louder severity', () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'deprecation' } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {}
-                    )
-            ).toThrowError(/^AG Charts - validations\.throwOn: warning - /);
+        it("does not throw at `['deprecation']` for a warning-severity option error, each severity being independent", async () => {
+            const chartOptions = construct(invalidOptions({ validations: { throwOn: ['deprecation'] } }));
+
+            expect(console.warn).toHaveBeenCalled();
+            expect(chartOptions.issues.some((issue) => issue.severity === 'warning')).toBe(true);
+            expect(await uncaughtMessages()).toEqual([]);
         });
 
-        it('re-validates and throws again on a warm update, rather than carrying validation issues forward (S6/D4)', () => {
+        it('re-validates and throws again on a warm update, rather than carrying validation issues forward (S6/D4)', async () => {
             const validOptions: AgChartOptions = {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                validations: { throwOn: 'warning' },
+                validations: { throwOn: ['warning'] },
             } as AgChartOptions;
 
-            const base = new ChartOptions(validOptions, {} as AgChartOptions, {}, {}, {});
+            const base = construct(validOptions);
             expect(console.warn).not.toHaveBeenCalled();
+            expect(await uncaughtMessages()).toEqual([]);
 
-            expect(
-                () => new ChartOptions(base, invalidOptions({ validations: { throwOn: 'warning' } }), {}, {}, {})
-            ).toThrow();
+            construct(invalidOptions({ validations: { throwOn: ['warning'] } }), base);
+            expect(await uncaughtMessages()).toHaveLength(1);
         });
 
-        it('does not throw when fail-fast is suppressed for the CSS-refresh re-construction', () => {
-            expect(
-                () =>
-                    new ChartOptions(
-                        invalidOptions({ validations: { throwOn: 'warning' } }),
-                        {} as AgChartOptions,
-                        {},
-                        {},
-                        {},
-                        undefined,
-                        false,
-                        true
-                    )
-            ).not.toThrow();
+        // A rejected pass hands the chart back its previous `validations`, but the failure belongs to the
+        // pass that was attempted, so it is reported under that pass's settings.
+        describe('a processing failure on a warm update', () => {
+            const throwingDataOptions = (validations?: object): AgChartOptions => {
+                const data = [
+                    {
+                        x: 'A',
+                        get y() {
+                            throw new Error('datum boom');
+                        },
+                    },
+                ];
+                return { data, series: [{ type: 'line', xKey: 'x', yKey: 'y' }], validations } as AgChartOptions;
+            };
+            const validOptions = (): AgChartOptions =>
+                ({ data: [{ x: 'A', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] }) as AgChartOptions;
+
+            it("throws the fail-fast error when the rejected pass armed `['error']`, then restores the previous settings", async () => {
+                const runtime = createProvisionalRuntime(new Logger());
+                const base = new ChartOptions(
+                    validOptions(),
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {},
+                    undefined,
+                    false,
+                    false,
+                    undefined,
+                    runtime
+                );
+
+                expect(
+                    () =>
+                        new ChartOptions(
+                            base,
+                            throwingDataOptions({ throwOn: ['error'] }),
+                            {},
+                            {},
+                            {},
+                            undefined,
+                            false,
+                            false,
+                            undefined,
+                            runtime
+                        )
+                ).toThrow('datum boom');
+                expect(await uncaughtMessages()).toEqual([
+                    expect.stringMatching(/^Error: AG Charts - validations\.throwOn: error - datum boom/),
+                ]);
+
+                runtime.logger.error('later error');
+                expect(await uncaughtMessages()).toHaveLength(1);
+            });
+
+            it('tells the `issueRaised` listener the rejected pass supplied', () => {
+                const runtime = createProvisionalRuntime(new Logger());
+                const base = new ChartOptions(
+                    validOptions(),
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {},
+                    undefined,
+                    false,
+                    false,
+                    undefined,
+                    runtime
+                );
+                const issueRaised = vi.fn();
+
+                expect(
+                    () =>
+                        new ChartOptions(
+                            base,
+                            throwingDataOptions({ issueRaised }),
+                            {},
+                            {},
+                            {},
+                            undefined,
+                            false,
+                            false,
+                            undefined,
+                            runtime
+                        )
+                ).toThrow('datum boom');
+
+                expect(issueRaised).toHaveBeenCalledWith({ severity: 'error', message: 'datum boom' });
+            });
         });
 
         describe('unregistered modules (AC5)', () => {
+            describe('a path owned by modules of different chart types', () => {
+                const crossLineOptions = () =>
+                    ({
+                        axes: { angle: { crossLines: [{ type: 'line', value: 'a' }] } },
+                    }) as any;
+                const scope = ModuleRegistry.resolveModuleScope([CrossLinesModule]);
+
+                it('reports the polar owner when only the cartesian owner is registered', () => {
+                    const options = crossLineOptions();
+                    const missing = removeUnregisteredModuleOptions('polar', options, scope);
+
+                    expect(missing.map(({ module }) => module.moduleId)).toEqual(['PolarCrossLinesModule']);
+                    expect(options.axes.angle.crossLines).toBeUndefined();
+                });
+
+                it('treats the path as covered on the chart type the registered owner supports', () => {
+                    const options = crossLineOptions();
+                    const missing = removeUnregisteredModuleOptions('cartesian', options, scope);
+
+                    expect(missing).toEqual([]);
+                    expect(options.axes.angle.crossLines).toHaveLength(1);
+                });
+            });
+
+            describe('every enterprise option contribution', () => {
+                beforeEach(() => {
+                    __clearStructuralCacheForTests();
+                    ambientLog.reset();
+                });
+
+                const requestedValue = (contribution: OptionsContribution) => {
+                    const description = contribution.options && describeValidator(contribution.options);
+                    if (description === 'a function') return () => {};
+                    if (description === 'an array' || description === 'an object array') return [{}];
+                    return { enabled: true };
+                };
+
+                const cases: [string, ModulePlaceholder, OptionsContribution][] = [];
+                for (const module of ExpectedModules.values()) {
+                    if (!module.enterprise) continue;
+                    for (const contribution of contributionsOf(module)) {
+                        if (!contributionMatchesChartType(contribution, 'cartesian')) continue;
+                        cases.push([`${module.moduleId} owns \`${contribution.path}\``, module, contribution]);
+                    }
+                }
+
+                it.each(cases)(
+                    '%s: a community chart reports the module and drops the option',
+                    (_, module, contribution) => {
+                        const path = parseOptionsPath(contribution.path);
+                        const { host, relative } = contributionHost(path);
+                        const options = {
+                            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                            axes: {
+                                x: { type: 'category', position: 'bottom' },
+                                y: { type: 'number', position: 'left' },
+                            },
+                        } as any;
+                        const hosts = { chart: options, axis: options.axes.x, series: options.series[0] };
+                        const target = hosts[host];
+                        Object.assign(target, nestAtOptionsPath(relative, requestedValue(contribution)));
+
+                        const processed = prepareOptions(options as AgChartOptions, new Logger());
+
+                        expect(moduleMessages()).toEqual([expect.stringContaining(module.moduleId)]);
+                        const remaining: unknown[] = [];
+                        visitOptionsPath(processed, path, (owner, key) => {
+                            if (owner[key] != null) remaining.push(owner[key]);
+                        });
+                        expect(remaining).toEqual([]);
+                    }
+                );
+            });
+
             const unregisteredAxisOptions = (extra?: object): AgChartOptions =>
                 ({
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -4651,38 +5101,122 @@ describe('ChartOptions', () => {
                     ...extra,
                 }) as any;
 
-            it('throws at `error` for a dropped axis module, after the console record is written', () => {
-                const logger = new Logger();
+            const moduleThrow = expect.stringMatching(
+                /^Error: AG Charts - validations\.throwOn: error - required modules are not registered/
+            );
 
-                expect(() =>
-                    prepareOptions(unregisteredAxisOptions({ validations: { throwOn: 'error' } }), logger)
-                ).toThrow(/required modules are not registered/);
-
-                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
-                expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            });
-
-            it('silently drops the unregistered module at `none`, exactly as today', () => {
-                const logger = new Logger();
-
-                expect(() => prepareOptions(unregisteredAxisOptions(), logger)).not.toThrow();
+            it("throws at `['error']` for a dropped axis module, after the console record is written", async () => {
+                prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['error'] } }), new Logger());
 
                 const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
                 expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+                expect(await uncaughtMessages()).toEqual([moduleThrow]);
             });
 
-            it('throws at `error` for a dropped plugin module too, not just series/axes', () => {
-                const logger = new Logger();
+            it('silently drops the unregistered module when throwOn is left at its default, exactly as today', async () => {
+                prepareOptions(unregisteredAxisOptions(), new Logger());
+
+                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+                expect(await uncaughtMessages()).toEqual([]);
+            });
+
+            it("throws at `['error']` for a dropped plugin module too, not just series/axes", async () => {
                 const options = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     zoom: { enabled: true },
-                    validations: { throwOn: 'error' },
+                    validations: { throwOn: ['error'] },
                 } as AgChartOptions;
 
-                expect(() => prepareOptions(options, logger)).toThrow(/required modules are not registered/);
+                prepareOptions(options, new Logger());
 
                 const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
                 expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+                expect(await uncaughtMessages()).toEqual([moduleThrow]);
+            });
+
+            describe('axis click listeners', () => {
+                const axisListenerOptions = (extra?: object): AgChartOptions =>
+                    ({
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        axes: {
+                            x: { type: 'category', position: 'bottom', listeners: { click: () => {} } },
+                            y: { type: 'number', position: 'left' },
+                        },
+                        ...extra,
+                    }) as any;
+
+                it('reports AxisInteractionModule for an axis click listener and strips the listener', () => {
+                    const processed = prepareOptions(axisListenerOptions(), new Logger()) as any;
+
+                    expect(moduleMessages()).toEqual([expect.stringContaining('AxisInteractionModule')]);
+                    expect(Object.values(processed.axes).some((axis: any) => axis.listeners?.click)).toBe(false);
+                });
+
+                it('reports AxisInteractionModule for a chart-level axisDoubleClick listener', () => {
+                    const options = {
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        listeners: { axisDoubleClick: () => {} },
+                    } as AgChartOptions;
+                    const processed = prepareOptions(options, new Logger()) as any;
+
+                    expect(moduleMessages()).toEqual([expect.stringContaining('AxisInteractionModule')]);
+                    expect(processed.listeners?.axisDoubleClick).toBeUndefined();
+                });
+
+                it('strips the listener from a non-cartesian chart as unsupported rather than as a missing module', () => {
+                    const options = {
+                        series: [{ type: 'pie', angleKey: 'y' }],
+                        listeners: { axisClick: () => {} },
+                    } as AgChartOptions;
+                    const processed = prepareOptions(options, new Logger()) as any;
+
+                    expect(moduleMessages()).toEqual([]);
+                    expect(processed.listeners?.axisClick).toBeUndefined();
+                    expect((console.warn as Mock).mock.calls.map(([m]) => String(m))).toEqual([
+                        expect.stringContaining(
+                            'Option `listeners.axisClick` is not supported by `pie` series, ignoring.'
+                        ),
+                    ]);
+                });
+
+                it("throws at `['error']` for the dropped axis click listener", async () => {
+                    prepareOptions(axisListenerOptions({ validations: { throwOn: ['error'] } }), new Logger());
+
+                    expect(await uncaughtMessages()).toEqual([moduleThrow]);
+                });
+
+                it('keeps the listener quiet when a registered module contributes the listener path', () => {
+                    const registeredModules = [...ModuleRegistry.listModules()];
+                    const axisInteraction: ModuleDefinition = {
+                        type: ModuleType.Plugin,
+                        name: 'axis-interaction',
+                        version: VERSION,
+                        contributes: [{ path: 'axes[].listeners.click' }],
+                        create: () => ({}),
+                    };
+                    ModuleRegistry.registerModules([axisInteraction]);
+                    try {
+                        const processed = prepareOptions(axisListenerOptions(), new Logger()) as any;
+
+                        expect(moduleMessages()).toEqual([]);
+                        expect(Object.values(processed.axes).some((axis: any) => axis.listeners?.click)).toBe(true);
+                    } finally {
+                        ModuleRegistry.reset();
+                        ModuleRegistry.registerModules(registeredModules);
+                    }
+                });
+            });
+
+            // Asserted on the module message rather than on whether anything throws, so an unrelated
+            // diagnostic from the same fixture cannot decide the case either way.
+            it("arms only the tier it names — the dropped module throws at `['error']` but not at `['warning']`", async () => {
+                prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['error'] } }), new Logger());
+                expect(await uncaughtMessages()).toEqual([moduleThrow]);
+
+                capture.uncaught.length = 0;
+                prepareOptions(unregisteredAxisOptions({ validations: { throwOn: ['warning'] } }), new Logger());
+                expect(await uncaughtMessages()).not.toContainEqual(moduleThrow);
             });
         });
     });
@@ -4694,26 +5228,25 @@ describe('ChartOptions', () => {
                 validations,
             }) as unknown as AgChartOptions;
 
-        // `issueRaised` is wired up on the `Chart`, absent at this level, so assert on
-        // `validationIssues`, the array the listener is fed from.
+        // `issueRaised` is wired up on the `Chart`, absent at this level, so assert on `issues`, the
+        // Logger capture the listener is fed from.
         it('records an issue whose message matches the console warning content', () => {
             const chartOptions = new ChartOptions(badStrokeWidthOptions(), {} as AgChartOptions, {}, {}, {});
 
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-            expect(chartOptions.validationIssues).toContainEqual({
+            expect(chartOptions.issues).toContainEqual({
                 severity: 'warning',
                 message:
                     'Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.',
-                code: 'series[0].strokeWidth',
             });
             expect(messages).toContain(
                 'AG Charts - Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.'
             );
         });
 
-        it('records the issue independently of `consoleLogSeverity` silencing the console', () => {
+        it('records the issue independently of `consoleOn` silencing the console', () => {
             const chartOptions = new ChartOptions(
-                badStrokeWidthOptions({ consoleLogSeverity: 'none' }),
+                badStrokeWidthOptions({ consoleOn: [] }),
                 {} as AgChartOptions,
                 {},
                 {},
@@ -4721,11 +5254,10 @@ describe('ChartOptions', () => {
             );
 
             expect(console.warn).not.toHaveBeenCalled();
-            expect(chartOptions.validationIssues).toContainEqual({
+            expect(chartOptions.issues).toContainEqual({
                 severity: 'warning',
                 message:
                     'Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.',
-                code: 'series[0].strokeWidth',
             });
         });
 
@@ -4744,11 +5276,10 @@ describe('ChartOptions', () => {
                 );
             }).not.toThrow();
 
-            expect(chartOptions!.validationIssues).toContainEqual({
+            expect(chartOptions!.issues).toContainEqual({
                 severity: 'warning',
                 message:
                     'Option `validations.issueRaised` cannot be set to `"not-a-function"`; expecting a function, ignoring.',
-                code: 'validations.issueRaised',
             });
         });
     });

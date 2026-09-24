@@ -59,7 +59,8 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setAutoScaling(enabled: boolean) {
-    options.zoom!.autoScaling!.enabled = enabled;
+function setAutoScaling(event: Event) {
+    const autoScaling = (event.target as HTMLInputElement).value === 'true';
+    options.zoom!.autoScaling!.enabled = autoScaling;
     chart.update(options);
 }

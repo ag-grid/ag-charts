@@ -1,9 +1,22 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="changeSeriesBar()">Bar</button>
-        <button onclick="changeSeriesLine()">Line</button>
-        <button onclick="changeSeriesArea()">Area</button>
-        <button class="gap-right" onclick="changeSeriesDonut()">Pie &amp; Donut</button>
+        <div class="button-group gap-right" role="group" aria-label="Series Type">
+            <input
+                type="radio"
+                id="series-bar"
+                name="series-type"
+                value="bar"
+                checked
+                onchange="seriesTypeChange(event)"
+            />
+            <label for="series-bar">Bar</label>
+            <input type="radio" id="series-line" name="series-type" value="line" onchange="seriesTypeChange(event)" />
+            <label for="series-line">Line</label>
+            <input type="radio" id="series-area" name="series-type" value="area" onchange="seriesTypeChange(event)" />
+            <label for="series-area">Area</label>
+            <input type="radio" id="series-donut" name="series-type" value="donut" onchange="seriesTypeChange(event)" />
+            <label for="series-donut">Pie &amp; Donut</label>
+        </div>
         <button class="animation-data-updates__action" onclick="add()">Add</button>
         <button class="animation-data-updates__action" onclick="remove()">Remove</button>
         <button class="animation-data-updates__action gap-right" onclick="update()">Update</button>

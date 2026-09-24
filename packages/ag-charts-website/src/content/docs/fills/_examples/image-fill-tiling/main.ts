@@ -40,7 +40,8 @@ const options: AgPolarChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function repeat(type: AgColorRepeat) {
+function repeatChange(event: Event) {
+    const type = (event.target as HTMLInputElement).value as AgColorRepeat;
     const series = options.series![0] as AgDonutSeriesOptions;
     series.fills = series.fills?.map((fill) => ({
         ...(fill as AgImageFill),

@@ -1,7 +1,7 @@
 import { fail } from 'assert';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
-import { classCast } from 'ag-charts-test';
+import { classCast, expectWarningsCalls } from 'ag-charts-test';
 import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -29,7 +29,7 @@ describe('ChartTheme', () => {
     let chart: ChartOrProxy;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
             (chart as any) = null;
@@ -195,22 +195,22 @@ describe('ChartTheme', () => {
             for (let i = 0; i < 5; i++) {
                 expect(chart.series[i].type).toBe('bar');
                 const barSeries = classCast(chart.series[i], BarSeries);
-                expect(barSeries.properties.fill).toEqual(fills[i]);
-                expect(barSeries.properties.stroke).toEqual(strokes[i]);
-                expect(barSeries.properties.label.enabled).toBe(true);
-                expect(barSeries.properties.label.color).toBe('yellow');
-                expect(barSeries.properties.label.fontSize).toBe(18);
-                expect(barSeries.properties.tooltip.enabled).toBe(false);
-                expect(barSeries.properties.tooltip.renderer).toBeDefined();
+                expect(barSeries.options.fill).toEqual(fills[i]);
+                expect(barSeries.options.stroke).toEqual(strokes[i]);
+                expect(barSeries.options.label.enabled).toBe(true);
+                expect(barSeries.options.label.color).toBe('yellow');
+                expect(barSeries.options.label.fontSize).toBe(18);
+                expect(barSeries.options.tooltip.enabled).toBe(false);
+                expect(barSeries.options.tooltip.renderer).toBeDefined();
             }
 
             const areaFills = ['blue', 'red', 'green', 'blue', 'red'];
             const areaStrokes = ['cyan', 'cyan', 'cyan', 'cyan', 'cyan'];
             for (let i = 5; i < 10; i++) {
                 expect(chart.series[i].type).toBe('area');
-                expect((chart.series[i] as unknown as AreaSeries).properties.fill).toEqual(areaFills[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).properties.stroke).toEqual(areaStrokes[i - 5]);
-                expect((chart.series[i] as unknown as AreaSeries).properties.marker.itemStyler).toBeDefined();
+                expect((chart.series[i] as unknown as AreaSeries).options.fill).toEqual(areaFills[i - 5]);
+                expect((chart.series[i] as unknown as AreaSeries).options.stroke).toEqual(areaStrokes[i - 5]);
+                expect((chart.series[i] as unknown as AreaSeries).options.marker.itemStyler).toBeDefined();
             }
         });
     });
@@ -288,13 +288,13 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            expect(pieSeries.properties.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
-            expect(pieSeries.properties.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
-            expect(pieSeries.properties.calloutLabel.enabled).toBe(true);
-            expect(pieSeries.properties.calloutLabel.color).toBe('yellow');
-            expect(pieSeries.properties.calloutLabel.fontSize).toBe(18);
-            expect(pieSeries.properties.tooltip.enabled).toBe(false);
-            expect(pieSeries.properties.tooltip.renderer).toBeDefined();
+            expect(pieSeries.options.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
+            expect(pieSeries.options.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
+            expect(pieSeries.options.calloutLabel.enabled).toBe(true);
+            expect(pieSeries.options.calloutLabel.color).toBe('yellow');
+            expect(pieSeries.options.calloutLabel.fontSize).toBe(18);
+            expect(pieSeries.options.tooltip.enabled).toBe(false);
+            expect(pieSeries.options.tooltip.renderer).toBeDefined();
         });
     });
 
@@ -441,13 +441,13 @@ describe('ChartTheme', () => {
             for (let i = 0; i < 5; i++) {
                 expect(chart.series[i].type).toBe('bar');
                 const barSeries = classCast(chart.series[i], BarSeries);
-                expect(barSeries.properties.fill).toEqual(fills[i]);
-                expect(barSeries.properties.stroke).toEqual(strokes[i]);
-                expect(barSeries.properties.label.enabled).toBe(true);
-                expect(barSeries.properties.label.color).toBe('blue');
-                expect(barSeries.properties.label.fontSize).toBe(18);
-                expect(barSeries.properties.tooltip.enabled).toBe(false);
-                expect(barSeries.properties.tooltip.renderer).toBeDefined();
+                expect(barSeries.options.fill).toEqual(fills[i]);
+                expect(barSeries.options.stroke).toEqual(strokes[i]);
+                expect(barSeries.options.label.enabled).toBe(true);
+                expect(barSeries.options.label.color).toBe('blue');
+                expect(barSeries.options.label.fontSize).toBe(18);
+                expect(barSeries.options.tooltip.enabled).toBe(false);
+                expect(barSeries.options.tooltip.renderer).toBeDefined();
             }
         });
 
@@ -465,13 +465,13 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            expect(pieSeries.properties.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
-            expect(pieSeries.properties.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
-            expect(pieSeries.properties.calloutLabel.enabled).toBe(true);
-            expect(pieSeries.properties.calloutLabel.color).toBe('yellow');
-            expect(pieSeries.properties.calloutLabel.fontSize).toBe(18);
-            expect(pieSeries.properties.tooltip.enabled).toBe(false);
-            expect(pieSeries.properties.tooltip.renderer).toBeDefined();
+            expect(pieSeries.options.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
+            expect(pieSeries.options.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
+            expect(pieSeries.options.calloutLabel.enabled).toBe(true);
+            expect(pieSeries.options.calloutLabel.color).toBe('yellow');
+            expect(pieSeries.options.calloutLabel.fontSize).toBe(18);
+            expect(pieSeries.options.tooltip.enabled).toBe(false);
+            expect(pieSeries.options.tooltip.renderer).toBeDefined();
         });
     });
 
@@ -817,7 +817,14 @@ describe('ChartTheme', () => {
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
             expect(axisX.options.line.stroke).toBe('blue');
-            expect(axisX.options.line.width).toBe(5);
+            expect(axisX.options.line.strokeWidth).toBe(5);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                ],
+              ]
+            `);
             expect(axisX.options?.label?.fontSize).toBe(18);
             expect(axisX.options?.label?.fontStyle).toBe(undefined);
             expect(axisX.options?.label?.fontFamily).toBe(
@@ -830,6 +837,174 @@ describe('ChartTheme', () => {
             // Since config is provided, the `enabled` should be auto-set to `true`,
             // even though theme's default is `false`.
             expect(axisX.options.title?.enabled).toBe(true);
+        });
+    });
+
+    describe('line width alias precedence', () => {
+        async function createChart(
+            axisLine: Record<string, unknown> | undefined,
+            theme?: AgChartTheme
+        ): Promise<ChartOrProxy> {
+            const created = deproxy(
+                AgCharts.create({
+                    theme,
+                    data,
+                    axes: {
+                        x: {
+                            type: 'category',
+                            position: 'bottom',
+                            ...(axisLine ? { line: axisLine } : {}),
+                        },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                        },
+                    },
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'label',
+                            yKey: 'v1',
+                        },
+                    ],
+                } as AgCartesianChartOptions)
+            );
+            await waitForChartStability(created);
+            return created;
+        }
+
+        test('`width` only resolves `strokeWidth` and warns', async () => {
+            chart = await createChart({ width: 5 });
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            expect(axisX.options.line.strokeWidth).toBe(5);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                ],
+              ]
+            `);
+        });
+
+        test('`strokeWidth` only resolves without a notice', async () => {
+            chart = await createChart({ strokeWidth: 5 });
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            expect(axisX.options.line.strokeWidth).toBe(5);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        test('both set: `strokeWidth` wins over `width`, and `width` still warns', async () => {
+            chart = await createChart({ width: 5, strokeWidth: 3 });
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            expect(axisX.options.line.strokeWidth).toBe(3);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`axes.x.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                ],
+              ]
+            `);
+        });
+
+        test('neither set: `strokeWidth` defaults to 1', async () => {
+            chart = await createChart(undefined);
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            expect(axisX.options.line.strokeWidth).toBe(1);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        test('`width` set via a theme override resolves `strokeWidth` and warns', async () => {
+            const theme: AgChartTheme = {
+                baseTheme: 'ag-default',
+                overrides: {
+                    common: {
+                        axes: {
+                            category: {
+                                line: {
+                                    width: 7,
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+            chart = await createChart(undefined, theme);
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            expect(axisX.options.line.strokeWidth).toBe(7);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`theme.overrides.common.axes.category.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                ],
+              ]
+            `);
+        });
+
+        test('`width` set via a positional theme override resolves `strokeWidth` and warns', async () => {
+            const theme: AgChartTheme = {
+                baseTheme: 'ag-default',
+                overrides: {
+                    common: {
+                        axes: {
+                            number: {
+                                bottom: {
+                                    line: {
+                                        width: 9,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            };
+            chart = deproxy(
+                AgCharts.create({
+                    theme,
+                    data,
+                    axes: {
+                        x: {
+                            type: 'number',
+                            position: 'bottom',
+                        },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                        },
+                    },
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'v1',
+                            yKey: 'v2',
+                        },
+                    ],
+                } as AgCartesianChartOptions)
+            );
+            await waitForChartStability(chart);
+            if (!(chart instanceof CartesianChart)) fail();
+
+            const axisX = chart.axes.x as any;
+            // Pins the merge-order the plan flagged as the row most likely to diverge:
+            // a positional (`number.bottom`) theme override satisfies `$isUserOption` the
+            // same way a type-level override does.
+            expect(axisX.options.line.strokeWidth).toBe(9);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`theme.overrides.common.axes.number.bottom.line.width\` is deprecated. Use \`strokeWidth\` instead.",
+                ],
+              ]
+            `);
         });
     });
 
@@ -900,10 +1075,10 @@ describe('ChartTheme', () => {
             expect(series[1].type).toEqual('bar');
             expect(series[2].type).toEqual('line');
             expect(series[3].type).toEqual('area');
-            expect(classCast(series[0], BarSeries).properties.strokeWidth).toEqual(16);
-            expect(classCast(series[1], BarSeries).properties.strokeWidth).toEqual(16);
-            expect(classCast(series[2], LineSeries).properties.strokeWidth).toEqual(17);
-            expect(classCast(series[3], AreaSeries).properties.strokeWidth).toEqual(18);
+            expect(classCast(series[0], BarSeries).options.strokeWidth).toEqual(16);
+            expect(classCast(series[1], BarSeries).options.strokeWidth).toEqual(16);
+            expect(classCast(series[2], LineSeries).options.strokeWidth).toEqual(17);
+            expect(classCast(series[3], AreaSeries).options.strokeWidth).toEqual(18);
         });
     });
 });

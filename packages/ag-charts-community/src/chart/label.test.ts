@@ -1,12 +1,16 @@
 import { vi } from 'vitest';
 
+import { type NormalisedChartLabelStyleOptions, resolveCollideWith } from 'ag-charts-core';
+import { classCast } from 'ag-charts-test';
 import type { AgBarSeriesLabelPlacement, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { Label, LabelCollision, LabelPlacementStyle, resolvePlacementLabelPadding } from './label';
+import { resolvePlacementLabelPadding } from './label';
 import { adjustLabelPlacement } from './labelUtil';
+import { BarSeries } from './series/cartesian/barSeries';
 import {
     compareImageSnapshot,
+    deproxy,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -19,7 +23,7 @@ describe('Labels', () => {
     let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -104,14 +108,22 @@ describe('Labels', () => {
     });
 
     describe('collision.alwaysShow', () => {
-        test('defaults to true (keep the label rather than hide it)', () => {
-            expect(new LabelCollision().alwaysShow).toBe(true);
+        test('defaults to true (keep the label rather than hide it)', async () => {
+            chart = AgCharts.create(
+                prepareTestOptions({
+                    data: [{ x: 'A', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                })
+            );
+            await waitForChartStability(chart);
+            const barSeries = classCast(deproxy(chart).series[0], BarSeries);
+            expect(barSeries.options.label.collision.alwaysShow).toBe(true);
         });
     });
 
     describe('collision.resolveCollideWith', () => {
         test('defaults markers/labels/seriesArea on and seriesItems off', () => {
-            expect(new LabelCollision().resolveCollideWith()).toEqual({
+            expect(resolveCollideWith({ alwaysShow: true })).toEqual({
                 marker: true,
                 label: true,
                 seriesItem: false,
@@ -120,30 +132,22 @@ describe('Labels', () => {
         });
 
         test('opts seriesItems in only when explicitly enabled', () => {
-            const collision = new LabelCollision();
-            collision.collideWith.seriesItems = true;
-            expect(collision.resolveCollideWith().seriesItem).toBe(true);
+            expect(resolveCollideWith({ alwaysShow: true, collideWith: { seriesItems: true } }).seriesItem).toBe(true);
         });
 
         test('opts seriesArea out only when explicitly disabled', () => {
-            const collision = new LabelCollision();
-            collision.collideWith.seriesArea = false;
-            expect(collision.resolveCollideWith().seriesArea).toBe(false);
+            expect(resolveCollideWith({ alwaysShow: true, collideWith: { seriesArea: false } }).seriesArea).toBe(false);
         });
 
         test('disables a category when its toggle is false', () => {
-            const collision = new LabelCollision();
-            collision.collideWith.markers = false;
-            expect(collision.resolveCollideWith().marker).toBe(false);
+            expect(resolveCollideWith({ alwaysShow: true, collideWith: { markers: false } }).marker).toBe(false);
         });
     });
 
     describe('resolvePlacementLabelPadding', () => {
-        function boxedLabel(padding: Label['padding']) {
-            const label = new Label();
-            label.fill = 'red';
-            label.padding = padding;
-            return label;
+        const baseLabel: NormalisedChartLabelStyleOptions = { fontSize: 12, fontFamily: 'sans-serif' };
+        function boxedLabel(padding: NormalisedChartLabelStyleOptions['padding']): NormalisedChartLabelStyleOptions {
+            return { ...baseLabel, fill: 'red', padding };
         }
 
         test('expands uniform box padding to every side', () => {
@@ -162,16 +166,13 @@ describe('Labels', () => {
         });
 
         test('is all-zero for a boxless label so the gap comes from spacing alone', () => {
-            const label = new Label();
-            label.padding = { top: 20, bottom: 4, left: 2, right: 6 };
+            const label = { ...baseLabel, padding: { top: 20, bottom: 4, left: 2, right: 6 } };
             expect(resolvePlacementLabelPadding(label, undefined)).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
         });
 
         test('resolves the box from the placement style when the label itself is boxless', () => {
-            const placementStyle = new LabelPlacementStyle();
-            placementStyle.fill = 'red';
-            placementStyle.padding = { top: 12, bottom: 4, left: 2, right: 6 };
-            expect(resolvePlacementLabelPadding(new Label(), placementStyle)).toEqual({
+            const placementStyle = { fill: 'red', padding: { top: 12, bottom: 4, left: 2, right: 6 } };
+            expect(resolvePlacementLabelPadding(baseLabel, placementStyle)).toEqual({
                 top: 12,
                 right: 6,
                 bottom: 4,

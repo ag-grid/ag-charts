@@ -32,12 +32,18 @@ export class BaseProperties<T extends object = object> {
                 if (isProperties(self[propertyKey])) {
                     // re-set property to force re-validation
                     if (self[propertyKey] instanceof PropertiesArray) {
-                        // reset() runtime-validates the value and returns undefined for non-arrays.
-                        const array = self[propertyKey].reset(value as object[]);
-                        if (array == null) {
-                            ambientLog.warn(`unable to set [${String(propertyKey)}] - expecting a properties array`);
+                        if (value == null) {
+                            self[propertyKey].clear();
                         } else {
-                            self[propertyKey] = array;
+                            // reset() runtime-validates the value and returns undefined for non-arrays.
+                            const array = self[propertyKey].reset(value as object[]);
+                            if (array == null) {
+                                ambientLog.warn(
+                                    `unable to set [${String(propertyKey)}] - expecting a properties array`
+                                );
+                            } else {
+                                self[propertyKey] = array;
+                            }
                         }
                     } else {
                         // set() runtime-validates the value and warns for non-objects.

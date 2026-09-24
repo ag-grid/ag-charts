@@ -16,8 +16,9 @@ import {
 } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
+import { communityModule } from '../moduleIdentity';
 
-export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions, TimeAxis> = {
+export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions, TimeAxis> = /* #__PURE__ */ communityModule({
     type: 'axis',
     name: 'time',
     chartType: 'cartesian',
@@ -37,4 +38,4 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions, TimeAxis> =
 
     create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
         new TimeAxis(ctx, id, options as NormalisedTimeAxisOptions),
-};
+});

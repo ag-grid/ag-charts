@@ -40,16 +40,19 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setClickMode(value: AgSelectionClickMode) {
-    options.selection = { ...options.selection, clickMode: value };
+function setClickMode(event: Event) {
+    const clickMode = (event.target as HTMLInputElement).value as AgSelectionClickMode;
+    options.selection = { ...options.selection, clickMode };
     options.subtitle = {
         text: `clickMode: '${options.selection!.clickMode}', clickAwayToClear: ${options.selection!.enableClickAwayToClear}`,
     };
     chart.update(options);
 }
 
-function setClickAway(value: boolean) {
-    options.selection = { ...options.selection, enableClickAwayToClear: value };
+function setClickAway(event: Event) {
+    const enableClickAwayToClear = (event.target as HTMLInputElement).value === 'true';
+
+    options.selection = { ...options.selection, enableClickAwayToClear };
     options.subtitle = {
         text: `clickMode: '${options.selection!.clickMode}', clickAwayToClear: ${options.selection!.enableClickAwayToClear}`,
     };

@@ -51,10 +51,12 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function toggleOutOfRange(enabled: boolean) {
+function toggleOutOfRange(event: Event) {
+    const enableOutOfRange = (event.target as HTMLInputElement).value === 'true';
+
     options.ranges = {
         ...options.ranges,
-        enableOutOfRange: enabled,
+        enableOutOfRange,
     };
     chart.update(options);
 }

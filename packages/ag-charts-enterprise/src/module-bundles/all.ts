@@ -24,7 +24,6 @@ export const AllEnterpriseModule: ModuleDefinition[] = [
     AllGaugeModule,
     FinancialChartModule,
     QuadrantChartModule,
-
     BackgroundRegionsModule,
 
     ChordSeriesModule,

@@ -47,6 +47,26 @@ export const getExampleUrl = ({
 };
 
 /**
+ * Link to the standalone example page
+ *
+ * The same URL as `getExampleUrl`, under the name the shared docs components use. Grid's
+ * `getExampleUrl` is slash-less because it doubles as the base its example file urls are appended
+ * to, so grid needs the two names to differ; here `pathJoin` drops the trailing slash again when a
+ * file name is appended, so one url serves both.
+ */
+export const getExampleLinkUrl = ({
+    internalFramework,
+    pageName,
+    exampleName,
+}: {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+}) => {
+    return getExampleUrl({ internalFramework, pageName, exampleName });
+};
+
+/**
  * Dynamic path where docs example runner examples are
  */
 export const getExampleRunnerExampleUrl = ({

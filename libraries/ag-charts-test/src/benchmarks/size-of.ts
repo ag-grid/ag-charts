@@ -363,9 +363,9 @@ function calculateTrivialObjectSize(value: unknown) {
     }
 
     if (ArrayBuffer.isView(value)) {
-        return (
-            (value.byteLength || (value as any).length * SIZE.TYPEARRAY_DEFAULT_ELEMENT_SIZE) + SIZE.TYPEARRAY_OVERHEAD
-        );
+        const byteLength =
+            value.byteLength === 0 ? (value as any).length * SIZE.TYPEARRAY_DEFAULT_ELEMENT_SIZE : value.byteLength;
+        return byteLength + SIZE.TYPEARRAY_OVERHEAD;
     }
 
     if (value instanceof RegExp) {

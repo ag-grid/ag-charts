@@ -1,7 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="enableBringToFront()">Enable Bring to Front</button>
-        <button onclick="disableBringToFront()">Disable Bring to Front</button>
+        <div class="button-group" role="group" aria-label="Bring to Front">
+            <input
+                type="radio"
+                id="bring-to-front-enable"
+                name="bring-to-front"
+                value="true"
+                checked
+                onchange="bringToFrontChange(event)"
+            />
+            <label for="bring-to-front-enable">Enable Bring to Front</label>
+            <input
+                type="radio"
+                id="bring-to-front-disable"
+                name="bring-to-front"
+                value="false"
+                onchange="bringToFrontChange(event)"
+            />
+            <label for="bring-to-front-disable">Disable Bring to Front</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

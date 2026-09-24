@@ -374,7 +374,7 @@ describe('AreaSeries', () => {
     let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -2243,6 +2243,32 @@ describe('AreaSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('isPointInArea', () => {
+        test('a gap between two spans is outside the fill', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, y: 5 },
+                    { x: 1, y: 5 },
+                    { x: 2, y: null },
+                    { x: 3, y: 5 },
+                    { x: 4, y: 5 },
+                ],
+                series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+                axes: { x: { type: 'number' }, y: { type: 'number' } },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const areaSeries = classCast(deproxy(chart).series[0], AreaSeries);
+            const pointAt = (x: number) => areaSeries.getNodeData()!.find((n) => n.xValue === x)!.point;
+            const [p1, p3, p4] = [1, 3, 4].map(pointAt);
+
+            expect(areaSeries.isPointInArea((p3.x + p4.x) / 2, p3.y + 10)).toBe(true);
+            expect(areaSeries.isPointInArea((p1.x + p3.x) / 2, p1.y + 10)).toBe(false);
         });
     });
 

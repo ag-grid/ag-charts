@@ -19,7 +19,7 @@ export const GallerySeriesLink = ({ series, link }) => {
     const url = urlWithPrefix({ url: baseUrl, framework: frameworkFromInternalFramework });
 
     return (
-        <a href={url} className={classnames(styles.seriesLink, 'text-base')}>
+        <a href={url} className={classnames(styles.seriesLink, 'text-sm')}>
             View {toTitle(series)} Charts Documentation
             <Icon svgClasses={styles.arrowIcon} name="arrowRight" />
         </a>

@@ -78,7 +78,7 @@ export class HistoryManager {
 
     undo() {
         const undoAction = this.history[this.historyIndex];
-        if (!undoAction) return;
+        if (undoAction == null) return;
 
         for (const mementoOriginatorKey of undoAction.mementos.keys()) {
             const previousMemento = this.findPreviousMemento(mementoOriginatorKey);
@@ -95,7 +95,7 @@ export class HistoryManager {
 
     redo() {
         const redoAction = this.history[this.historyIndex + 1];
-        if (!redoAction) return;
+        if (redoAction == null) return;
 
         for (const [mementoOriginatorKey, memento] of redoAction.mementos.entries()) {
             this.restoreMemento(mementoOriginatorKey, memento);

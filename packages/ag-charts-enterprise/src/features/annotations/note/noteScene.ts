@@ -32,7 +32,13 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         this.shape.visible = false;
         this.label.visible = false;
 
-        this.iconBackground.fillShadow = new _ModuleSupport.DropShadow();
+        this.iconBackground.fillShadow = {
+            enabled: true,
+            color: 'rgba(0, 0, 0, 0.5)',
+            xOffset: 0,
+            yOffset: 0,
+            blur: 5,
+        };
 
         this.append([this.shape, this.label, this.iconBackground, this.iconLines, this.handle]);
     }

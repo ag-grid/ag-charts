@@ -1,8 +1,13 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setBounds('closed')">Both Bounds</button>
-        <button onclick="setBounds('open')">Open Ended</button>
-        <button onclick="setBounds('full')">Full Width</button>
+        <div class="button-group" role="group" aria-label="Bounds">
+            <input type="radio" id="closed" name="bounds" value="closed" onchange="setBounds(event)" />
+            <label for="closed">Both Bounds</label>
+            <input type="radio" id="open" name="bounds" value="open" checked onchange="setBounds(event)" />
+            <label for="open">Open Ended</label>
+            <input type="radio" id="full" name="bounds" value="full" onchange="setBounds(event)" />
+            <label for="full">Full Width</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

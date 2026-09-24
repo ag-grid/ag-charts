@@ -1,3 +1,4 @@
+import { GALLERY_GET_STARTED_COPY } from '@components/gallery/galleryCopy';
 import { getGalleryExamples } from '@components/gallery/utils/filesData';
 import { resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
 import { existsSync, readFileSync } from 'node:fs';
@@ -33,14 +34,32 @@ describe('buildGalleryExampleMarkdown', () => {
 
     it("emits frontmatter, heading and intro matching the page's own copy", async () => {
         const { page } = EXAMPLES.find((example) => example.exampleName === 'simple-bar')!;
-        const seo = resolveGallerySeo(page);
+        const seo = resolveGallerySeo(page.name);
         const output = await buildFor('simple-bar');
 
         expect(output.startsWith('---\n')).toBe(true);
         expect(output).toContain(`title: ${JSON.stringify(seo.title)}`);
         expect(output).toContain(`description: ${JSON.stringify(seo.description)}`);
         expect(output).toContain(`\n# ${seo.h1}`);
-        expect(output).toContain(seo.intro);
+        // The intro's own links are absolute here, so it is emitted rewritten rather than verbatim.
+        expect(output).toContain(seo.intro.replace(/\]\(\//g, '](https://www.ag-grid.com/'));
+    });
+
+    it('closes the intro with the get-started line as a paragraph of its own', async () => {
+        const { page } = EXAMPLES.find((example) => example.exampleName === 'simple-bar')!;
+        const seo = resolveGallerySeo(page.name);
+        const output = await buildFor('simple-bar');
+
+        // The blank line between the two is the point: the line is a paragraph, not a hard break
+        // on the end of the intro, which read as a new line with no gap before it.
+        const absolute = (copy: string) => copy.replace(/\]\(\//g, '](https://www.ag-grid.com/');
+        expect(output).toContain(`${absolute(seo.intro)}\n\n${absolute(GALLERY_GET_STARTED_COPY)}`);
+    });
+
+    it("makes the intro's inline links absolute, so the file reads out of context", async () => {
+        const output = await buildFor('simple-bar');
+        expect(output).toContain('[bar chart](https://www.ag-grid.com/r/bar-series/)');
+        expect(output).toContain('[React](https://www.ag-grid.com/react/quick-start/)');
     });
 
     it('names the chart type and links its documentation page', async () => {
@@ -70,11 +89,11 @@ describe('buildGalleryExampleMarkdown', () => {
     });
 
     it('names the chart family when every related example is a sibling', async () => {
-        const output = await buildFor('simple-bar');
-        expect(output).toContain('## More Bar Chart Examples');
+        const output = await buildFor('bar-line-combination');
+        expect(output).toContain('## More Combination Chart Examples');
     });
 
-    it('falls back to a generic heading where the family is too small to fill the strip', async () => {
+    it('falls back to a generic heading once the strip is topped up from other families', async () => {
         const output = await buildFor('ohlc');
         expect(output).toContain('## More Chart Examples');
     });

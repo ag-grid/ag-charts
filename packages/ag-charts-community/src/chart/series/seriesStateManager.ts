@@ -201,7 +201,7 @@ export class SeriesStateManager {
             maxWidth = Math.max(maxWidth, entry.width ?? groupScale.bandwidth);
         }
 
-        return maxWidth || groupScale.bandwidth;
+        return maxWidth === 0 ? groupScale.bandwidth : maxWidth;
     }
 
     public getGroupOffset(series: SeriesLike): number {

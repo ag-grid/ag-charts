@@ -28,12 +28,12 @@ const options: AgRadialGaugeOptions = {
 
 const chart = AgCharts.createGauge(options);
 
-function setNeedleEnabled(enabled: boolean) {
-    options.needle!.enabled = enabled;
+function setNeedleEnabled(event: Event) {
+    options.needle!.enabled = (event.target as HTMLInputElement).value === 'true';
     chart.update(options);
 }
 
-function setBarEnabled(enabled: boolean) {
-    options.bar!.enabled = enabled;
+function setBarEnabled(event: Event) {
+    options.bar!.enabled = (event.target as HTMLInputElement).value === 'true';
     chart.update(options);
 }

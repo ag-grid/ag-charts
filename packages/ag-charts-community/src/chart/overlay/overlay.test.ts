@@ -1,5 +1,7 @@
 import { afterEach, describe, expect } from 'vitest';
 
+import type { AgChartOptions } from 'ag-charts-types';
+
 import type { Chart } from '../chart';
 import {
     createChart,
@@ -18,7 +20,7 @@ describe('Overlay', () => {
     let chart: Chart;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
         }
     });
@@ -194,6 +196,23 @@ describe('Overlay', () => {
             });
             const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
             expect(overlayEl?.innerText).toEqual('TEST CUSTOM NO DATA TEXT');
+        });
+
+        test('reverts to the default overlay when the custom renderer is removed', async () => {
+            const options: AgChartOptions = {
+                data: [],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                overlays: { noData: { renderer: () => '<div>TEST CUSTOM NO DATA TEXT</div>' } },
+            };
+            chart = await createChart(options);
+            const { publicApi } = chart;
+            expect(publicApi).toBeDefined();
+
+            await publicApi!.update(prepareTestOptions({ ...options, overlays: {} }));
+            await waitForChartStability(chart);
+
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('No data to display');
         });
 
         test('custom no data text with html', async () => {

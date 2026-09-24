@@ -4,7 +4,9 @@ import {
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
+    SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     linearGaugeSeriesOptionsDef,
     undocumentedThemeOptions,
@@ -21,19 +23,36 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
         enabled: false,
     },
     series: {
+        ...SERIES_INTERACTION_THEME_DEFAULTS,
+        direction: 'vertical',
         thickness: 50,
+        cornerRadius: 0,
+        cornerMode: 'container',
         scale: {
+            min: 0,
+            max: 1,
+            fillMode: 'continuous',
+            fillOpacity: 1,
             stroke: { $path: ['/2', SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
             strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+            ...STROKE_STYLE_THEME_DEFAULTS,
             label: {
+                enabled: true,
                 spacing: 11,
+                avoidCollisions: true,
             },
             ...undocumentedThemeOptions({
                 defaultFill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
             }),
         },
         bar: {
+            enabled: true,
+            thicknessRatio: 1,
+            fillMode: 'continuous',
+            fillOpacity: 1,
+            stroke: 'black',
             strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+            ...STROKE_STYLE_THEME_DEFAULTS,
         },
         segmentation: {
             enabled: false,
@@ -44,16 +63,21 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             placement: 'inside-start',
+            avoidCollisions: true,
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $rem: 2 },
             minimumFontSize: FONT_SIZE.SMALL,
             spacing: 18,
             color: { $ref: 'chartBackgroundColor' },
+            wrapping: 'on-space',
+            overflowStrategy: 'ellipsis',
         },
         tooltip: {
             range: { $path: ['/tooltip/range', 10] },
+            interaction: { enabled: false },
         },
+        highlight: { enabled: true },
         selection: SERIES_SELECTION_THEME,
         ...undocumentedThemeOptions({
             defaultColorRange: {
@@ -65,13 +89,18 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             },
             defaultTarget: {
                 fill: { $ref: 'foregroundColor' },
+                fillOpacity: 1,
                 stroke: { $ref: 'foregroundColor' },
+                strokeWidth: 0,
+                ...STROKE_STYLE_THEME_DEFAULTS,
                 size: 10,
                 shape: 'triangle',
                 placement: 'after',
                 spacing: 5,
+                rotation: 0,
                 label: {
                     enabled: true,
+                    fontStyle: 'normal',
                     fontWeight: { $ref: 'fontWeight' },
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },

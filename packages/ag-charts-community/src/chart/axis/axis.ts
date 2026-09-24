@@ -76,7 +76,7 @@ import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
+import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
 import type { AxisLabelFormatterCache } from './axisLabelUtil';
 import { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
@@ -356,7 +356,7 @@ export abstract class Axis<
         this._requiredRange = value;
     }
 
-    boundSeries: ISeries<SeriesNodeDatum, ISeriesProperties>[] = [];
+    boundSeries: ISeries<SeriesNodeDatum, ISeriesOptions>[] = [];
     includeInvisibleDomains: boolean = false;
 
     interactionEnabled = true;
@@ -526,7 +526,7 @@ export abstract class Axis<
         const datum: LabelNodeDatum | undefined = node?.unsafeDatum;
         const { textUntruncated: title = undefined } = datum ?? {};
 
-        if (title) {
+        if (title != null && title !== '') {
             this.moduleCtx.tooltipManager.updateTooltip(
                 this.id,
                 { canvasX: event.currentX, canvasY: event.currentY, showArrow: false },
@@ -617,7 +617,7 @@ export abstract class Axis<
 
     protected onGridLengthChange(value: number, prevValue: number) {
         // Was visible and now invisible, or was invisible and now visible.
-        if (prevValue ^ value) {
+        if ((prevValue ^ value) !== 0) {
             this.onGridVisibilityChange();
         }
         this.notifyAxisPlugins('onGridChange');
@@ -634,7 +634,7 @@ export abstract class Axis<
         this.updatePosition();
         this.updateSelections();
 
-        this.gridLineGroup.visible = this.options.gridLine.enabled;
+        this.gridLineGroup.visible = this.options.gridLine.enabled && !this.hasNoSeriesData();
 
         this.updateLabels();
         this.notifyAxisPlugins('onAxisUpdate');
@@ -1168,6 +1168,24 @@ export abstract class Axis<
 
     hasVisibleSeries() {
         return this.boundSeries.some((s) => s.isEnabled());
+    }
+
+    /**
+     * Whether the chart as a whole resolves to nothing renderable — the state it raises its no-data
+     * overlay in, so gridlines drawn behind it would contradict it. Every axis reads the same
+     * chart-wide verdict, so a series that resolves to nothing cannot take the grid off its own axis
+     * while a populated series elsewhere keeps the chart displayed. Legend-hidden series are excluded:
+     * their `hasData` depends on whether they have ever been processed, which would make the grid
+     * flip on a toggle round-trip.
+     */
+    private hasNoSeriesData() {
+        let enabledCount = 0;
+        for (const series of this.moduleCtx.chartService.series) {
+            if (!series.isEnabled()) continue;
+            if (series.hasData) return false;
+            enabledCount++;
+        }
+        return enabledCount > 0;
     }
 
     clipTickLines(x: number, y: number, width: number, height: number) {

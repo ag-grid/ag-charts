@@ -101,6 +101,10 @@ const EXAMPLES: Record<string, PolarTestCase> = {
         options: examples.PIE_CALLOUT_LABELS_COLLISIONS,
         assertions: polarChartAssertions({ seriesTypes: ['pie'] }),
     },
+    DONUT_VARIABLE_RADIUS_CALLOUT_COLLISIONS: {
+        options: examples.DONUT_VARIABLE_RADIUS_CALLOUT_COLLISIONS,
+        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+    },
 };
 
 describe('PolarSeries', () => {
@@ -109,7 +113,7 @@ describe('PolarSeries', () => {
     let chart: ChartOrProxy;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -255,7 +259,7 @@ describe('PolarSeries', () => {
                 : { enabled: false };
 
             const listeners = params.onNodeClick ? { seriesNodeClick: params.onNodeClick } : undefined;
-            const nodeClickRangeParams = params.nodeClickRange ? { nodeClickRange: params.nodeClickRange } : {};
+            const nodeClickRangeParams = params.nodeClickRange == null ? {} : { nodeClickRange: params.nodeClickRange };
             const options: AgPolarChartOptions = {
                 container: document.body,
                 series: [
@@ -418,7 +422,7 @@ describe('PolarSeries', () => {
             },
             getDatumValues: (item, series) => {
                 const { datum } = item;
-                return [datum[series.properties.sectorLabelKey], datum[series.properties.angleKey]];
+                return [datum[series.options.sectorLabelKey], datum[series.options.angleKey]];
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;

@@ -28,21 +28,21 @@ const options: AgCartesianChartOptions = {
             title: {
                 text: 'Market Share (%)',
             },
-            interval: { step: 20 },
         },
     },
 };
 
 const chart = AgCharts.create(options);
 
-function setMinMaxSpacing(minSpacing: number, maxSpacing: number) {
+// 'default' deletes the interval so the axis falls back to its automatic spacing, which is the state
+// the chart is created in — so the checked segment always names the interval actually applied.
+function spacingChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
     const axis = options.axes?.y as AgNumberAxisOptions;
-    axis.interval = { minSpacing, maxSpacing };
-    chart.update(options);
-}
-
-function reset() {
-    const axis = options.axes?.y as AgNumberAxisOptions;
-    axis.interval = {};
+    if (value === 'min-max') {
+        axis.interval = { minSpacing: 15, maxSpacing: 25 };
+    } else {
+        delete axis.interval;
+    }
     chart.update(options);
 }

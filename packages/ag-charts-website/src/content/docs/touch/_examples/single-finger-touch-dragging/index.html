@@ -1,9 +1,21 @@
 <div class="example-controls">
     <div class="controls-row">
         <span>Drag Action:</span>
-        <button onclick="changeAction('none')"><code>'none'</code></button>
-        <button onclick="changeAction('drag')"><code>'drag'</code></button>
-        <button onclick="changeAction('hover')"><code>'hover'</code></button>
+        <div class="button-group" role="group" aria-label="Drag Action">
+            <input
+                type="radio"
+                id="dragAction-none"
+                name="drag-action"
+                value="none"
+                checked
+                onchange="changeAction(event)"
+            />
+            <label for="dragAction-none"><code>'none'</code></label>
+            <input type="radio" id="dragAction-drag" name="drag-action" value="drag" onchange="changeAction(event)" />
+            <label for="dragAction-drag"><code>'drag'</code></label>
+            <input type="radio" id="dragAction-hover" name="drag-action" value="hover" onchange="changeAction(event)" />
+            <label for="dragAction-hover"><code>'hover'</code></label>
+        </div>
     </div>
 </div>
 

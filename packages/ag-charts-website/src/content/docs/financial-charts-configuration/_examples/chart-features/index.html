@@ -1,12 +1,14 @@
 <div class="example-controls">
     <div class="controls-row">
         Toggle:
-        <button onclick="toggleFeature('navigator')">Navigator</button>
-        <button onclick="toggleFeature('toolbar')">Toolbar</button>
-        <button onclick="toggleFeature('rangeButtons')">Range Buttons</button>
-        <button onclick="toggleFeature('volume')">Volume</button>
-        <button onclick="toggleFeature('statusBar')">Status Bar</button>
-        <button onclick="toggleFeature('zoom')">Zoom</button>
+        <button id="toggle-navigator" aria-pressed="false" onclick="toggleFeature('navigator')">Navigator</button>
+        <button id="toggle-toolbar" aria-pressed="true" onclick="toggleFeature('toolbar')">Toolbar</button>
+        <button id="toggle-rangeButtons" aria-pressed="true" onclick="toggleFeature('rangeButtons')">
+            Range Buttons
+        </button>
+        <button id="toggle-volume" aria-pressed="true" onclick="toggleFeature('volume')">Volume</button>
+        <button id="toggle-statusBar" aria-pressed="true" onclick="toggleFeature('statusBar')">Status Bar</button>
+        <button id="toggle-zoom" aria-pressed="true" onclick="toggleFeature('zoom')">Zoom</button>
     </div>
 </div>
 <div id="myChart"></div>

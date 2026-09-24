@@ -1,12 +1,14 @@
 import { type AgChartSyncOptions, VERSION } from 'ag-charts-community';
 import { type PluginModuleDefinition, boolean, string, union } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { ChartSync } from './chartSync';
 
 export const SyncModule: PluginModuleDefinition<AgChartSyncOptions> = {
     type: 'plugin',
     name: 'sync',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
+    dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,
 

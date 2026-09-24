@@ -1,33 +1,35 @@
 import { getArchiveUrl, getDocumentationArchiveUrl } from '@ag-website-shared/utils/getArchiveUrl';
 
 describe('getArchiveUrl', () => {
-    // A version archive is a directory index, so a slashless URL costs a 301 (SE-166); the version's
-    // dotted segment must not be mistaken for a file extension.
-    test.each`
-        site        | version     | expected
-        ${'charts'} | ${'13.3.1'} | ${'https://www.ag-grid.com/charts/archive/13.3.1/'}
-        ${'charts'} | ${'9.3.2'}  | ${'https://charts.ag-grid.com/archive/9.3.2/'}
-        ${'grid'}   | ${'27.2.0'} | ${'https://www.ag-grid.com/archive/27.2.0/'}
-        ${'studio'} | ${'1.1.1'}  | ${'https://www.ag-grid.com/studio/archive/1.1.1/'}
-    `('$site $version -> $expected', ({ site, version, expected }) => {
-        expect(getArchiveUrl({ site, version })).toBe(expected);
+    test('links to the version archive as a directory index', () => {
+        expect(getArchiveUrl({ site: 'grid', version: '36.0.0' })).toBe('https://www.ag-grid.com/archive/36.0.0/');
     });
 });
 
 describe('getDocumentationArchiveUrl', () => {
-    // The archived docs are directory indexes, so a slashless URL costs a 301 (SE-166). The slash
-    // goes into the pathname, ahead of any query string or anchor, and files are left alone.
+    // Archive pages are directory indexes, so a slash-less url only reaches them via a 301. The bare
+    // version url (grid < 27.3.0, no `/documentation`) also proves the builder routes through
+    // `addTrailingSlashToPath`, whose file check must not mistake `26.0.0` for a file extension.
     test.each`
-        site        | version     | path                                | expected
-        ${'charts'} | ${'13.3.1'} | ${undefined}                        | ${'https://www.ag-grid.com/charts/archive/13.3.1/documentation/'}
-        ${'charts'} | ${'9.3.2'}  | ${undefined}                        | ${'https://charts.ag-grid.com/archive/9.3.2/documentation/'}
-        ${'grid'}   | ${'27.2.0'} | ${undefined}                        | ${'https://www.ag-grid.com/archive/27.2.0/'}
-        ${'charts'} | ${'13.3.1'} | ${'/gallery/bar'}                   | ${'https://www.ag-grid.com/charts/archive/13.3.1/gallery/bar/'}
-        ${'charts'} | ${'13.3.1'} | ${'/gallery?series=bar'}            | ${'https://www.ag-grid.com/charts/archive/13.3.1/gallery/?series=bar'}
-        ${'charts'} | ${'13.3.1'} | ${'/vanilla/bars#example-grouped'}  | ${'https://www.ag-grid.com/charts/archive/13.3.1/vanilla/bars/#example-grouped'}
-        ${'charts'} | ${'13.3.1'} | ${'/vanilla/bars/#example-grouped'} | ${'https://www.ag-grid.com/charts/archive/13.3.1/vanilla/bars/#example-grouped'}
-        ${'charts'} | ${'13.3.1'} | ${'/vanilla/guide.pdf'}             | ${'https://www.ag-grid.com/charts/archive/13.3.1/vanilla/guide.pdf'}
-    `('$site $version $path -> $expected', ({ site, version, path, expected }) => {
-        expect(getDocumentationArchiveUrl({ site, version, path })).toBe(expected);
+        version     | path                                              | expected
+        ${'30.0.0'} | ${undefined}                                      | ${'https://www.ag-grid.com/archive/30.0.0/documentation/'}
+        ${'26.0.0'} | ${undefined}                                      | ${'https://www.ag-grid.com/archive/26.0.0/'}
+        ${'30.0.0'} | ${'/gallery/bar-series'}                          | ${'https://www.ag-grid.com/archive/30.0.0/gallery/bar-series/'}
+        ${'30.0.0'} | ${'/javascript-data-grid/side-bar/'}              | ${'https://www.ag-grid.com/archive/30.0.0/javascript-data-grid/side-bar/'}
+        ${'36.0.0'} | ${'/gallery?series=bar'}                          | ${'https://www.ag-grid.com/archive/36.0.0/gallery/?series=bar'}
+        ${'36.0.0'} | ${'/javascript-data-grid/side-bar#example-basic'} | ${'https://www.ag-grid.com/archive/36.0.0/javascript-data-grid/side-bar/#example-basic'}
+        ${'36.0.0'} | ${'/javascript-data-grid/guide.pdf'}              | ${'https://www.ag-grid.com/archive/36.0.0/javascript-data-grid/guide.pdf'}
+    `('returns $expected for version $version and path $path', ({ version, path, expected }) => {
+        expect(getDocumentationArchiveUrl({ site: 'grid', version, path })).toBe(expected);
+    });
+
+    test('leaves an anchored url alone, as the anchor already terminates the path', () => {
+        expect(
+            getDocumentationArchiveUrl({
+                site: 'grid',
+                version: '30.0.0',
+                path: '/javascript-data-grid/side-bar/#example-basic',
+            })
+        ).toBe('https://www.ag-grid.com/archive/30.0.0/javascript-data-grid/side-bar/#example-basic');
     });
 });

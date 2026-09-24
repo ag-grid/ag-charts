@@ -518,9 +518,31 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
     },
 };
 
+/** Interaction defaults for series whose public options omit `showInLegend`. */
+export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickRange: 'exact' } as const;
+
+/** Solid, fully opaque stroke; the theme value every stroked element starts from. */
+export const STROKE_STYLE_THEME_DEFAULTS = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
+
+/** Series-level defaults every migrated series module spreads into its `themeTemplate.series`. */
+export const COMMON_SERIES_THEME_DEFAULTS = { ...SERIES_INTERACTION_THEME_DEFAULTS, showInLegend: true } as const;
+
+/** Per-type interpolation defaults keyed off the resolved `type`; `defaultType` may itself be an operation. */
+export function interpolationThemeTemplate(defaultType: unknown = 'linear') {
+    return {
+        $applySwitch: [
+            { $path: ['type', defaultType] },
+            {},
+            ['linear', { type: 'linear' }],
+            ['smooth', { type: 'smooth', tension: 1 }],
+            ['step', { type: 'step', position: 'end' }],
+        ],
+    };
+}
+
 export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelectionStyleOptions>> = {
     enabled: { $path: ['/selection/enabled', false] },
-    containment: { $path: '/selection/containment' },
+    containment: { $path: ['/selection/containment', 'any'] },
     selectedItem: {
         strokeWidth: 2,
     },

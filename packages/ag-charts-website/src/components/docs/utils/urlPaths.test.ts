@@ -2,6 +2,7 @@ import {
     getExampleCodeSandboxUrl,
     getExampleContentsUrl,
     getExampleFileUrl,
+    getExampleLinkUrl,
     getExamplePlunkrUrl,
     getExampleRunnerExampleUrl,
     getExampleUrl,
@@ -23,11 +24,18 @@ describe('docs urlPaths', () => {
     test.each`
         build                         | expected
         ${getExampleUrl}              | ${`${base}/`}
+        ${getExampleLinkUrl}          | ${`${base}/`}
         ${getExampleRunnerExampleUrl} | ${`${base}/example-runner/`}
         ${getExamplePlunkrUrl}        | ${`${base}/plunkr/`}
         ${getExampleCodeSandboxUrl}   | ${`${base}/codesandbox/`}
     `('-> $expected', ({ build, expected }) => {
         expect(build(example)).toBe(expected);
+    });
+
+    // The shared docs components link to the example page through this name; grid needs it to
+    // differ from `getExampleUrl` because its base is slash-less, whereas here they coincide.
+    it('links to the example page at the same url as the example base', () => {
+        expect(getExampleLinkUrl(example)).toBe(getExampleUrl(example));
     });
 
     // File endpoints hang off the same base and must NOT gain a slash.

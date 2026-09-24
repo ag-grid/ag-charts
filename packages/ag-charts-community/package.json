@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-community",
-  "version": "14.2.0-beta.20260903",
+  "version": "14.2.0-beta.20260922",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
@@ -64,20 +64,20 @@
   ],
   "homepage": "https://www.ag-grid.com/charts/",
   "dependencies": {
-    "ag-charts-core": "14.2.0-beta.20260903",
-    "ag-charts-types": "14.2.0-beta.20260903",
-    "ag-charts-locale": "14.2.0-beta.20260903"
+    "ag-charts-core": "14.2.0-beta.20260922",
+    "ag-charts-types": "14.2.0-beta.20260922",
+    "ag-charts-locale": "14.2.0-beta.20260922"
   },
   "devDependencies": {
     "@types/node": "^16.0.0",
     "@types/pixelmatch": "^5.2.4",
     "@types/pngjs": "6.0.5",
-    "jest-image-snapshot": "^6.0.0",
+    "jest-image-snapshot": "^6.5.2",
     "skia-canvas": "^3.0.8",
-    "path2d": "^0.3.1",
-    "timezone-mock": "1.4.2",
+    "path2d": "^0.3.4",
+    "timezone-mock": "1.4.3",
     "vitest": "2.1.9",
-    "ag-charts-test": "14.2.0-beta.20260903"
+    "ag-charts-test": "14.2.0-beta.20260922"
   },
   "publishConfig": {
     "access": "public"

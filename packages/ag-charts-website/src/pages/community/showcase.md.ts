@@ -1,5 +1,6 @@
 import { buildCommunityShowcaseMarkdown } from '@ag-website-shared/markdown-pages/community/buildCommunityShowcaseMarkdown';
 import { DISABLE_MARKDOWN_DOCS, SITE_URL } from '@constants';
+import { chartsSiteFrontmatter } from '@utils/markdown-pages/chartsFrontmatter';
 
 // Served at /community/showcase.md — a markdown twin of the /community/showcase page for LLMs,
 // built from the same showcase.json the page renders.
@@ -9,7 +10,12 @@ export function GET() {
     }
 
     return new Response(
-        buildCommunityShowcaseMarkdown({ product: 'AG Charts', currentSite: 'charts', siteRoot: SITE_URL }),
+        buildCommunityShowcaseMarkdown({
+            product: 'AG Charts',
+            currentSite: 'charts',
+            siteRoot: SITE_URL,
+            siteFrontmatter: chartsSiteFrontmatter({ pageUrl: '/community/showcase/', siteRoot: SITE_URL }),
+        }),
         {
             status: 200,
             headers: {

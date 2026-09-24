@@ -1,8 +1,32 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="exact()">Exact (Default)</button>
-        <button onclick="nearest()">Nearest</button>
-        <button onclick="distance()">Distance (10 Pixels)</button>
+        <div class="button-group" role="group" aria-label="Node Click Range">
+            <input
+                type="radio"
+                id="range-exact"
+                name="node-click-range"
+                value="exact"
+                checked
+                onchange="nodeClickRangeChange(event)"
+            />
+            <label for="range-exact">Exact (Default)</label>
+            <input
+                type="radio"
+                id="range-nearest"
+                name="node-click-range"
+                value="nearest"
+                onchange="nodeClickRangeChange(event)"
+            />
+            <label for="range-nearest">Nearest</label>
+            <input
+                type="radio"
+                id="range-distance"
+                name="node-click-range"
+                value="distance"
+                onchange="nodeClickRangeChange(event)"
+            />
+            <label for="range-distance">Distance (10 Pixels)</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

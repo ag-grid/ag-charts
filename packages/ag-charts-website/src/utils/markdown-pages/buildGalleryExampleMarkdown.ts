@@ -1,12 +1,16 @@
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { getGeneratedContents } from '@components/example-generator';
 import { stripOutExampleGeneratorCode } from '@components/example-runner/components/stripOutExampleGeneratorCode';
+import { GALLERY_GET_STARTED_COPY } from '@components/gallery/galleryCopy';
 import { galleryFamilyHeading, resolveGallerySeo } from '@components/gallery/utils/gallerySeo';
 import { type GalleryRelatedExample, relatedExamplesHeading } from '@components/gallery/utils/relatedExamples';
 import { getExampleFileUrl, getExampleUrl, getPageUrl } from '@components/gallery/utils/urlPaths';
 import { toTitle } from '@utils/toTitle';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import GithubSlugger from 'github-slugger';
+
+import { buildChartsFrontmatter } from './chartsFrontmatter';
 
 /** A gallery example as `getGalleryExamples` hands it to the page (and to this builder). */
 export interface GalleryExamplePage {
@@ -28,6 +32,17 @@ export interface BuildGalleryExampleMarkdownOptions {
     /** The related examples the page's strip links, in the same order. */
     relatedExamples: GalleryRelatedExample[];
     siteRoot?: string;
+}
+
+/** Site-relative markdown link, as the page's copy carries: `[tooltips](/r/tooltips/)`. */
+const COPY_LINK = /\]\((\/[^)]*)\)/g;
+
+/**
+ * Absolute-ise the inline links a line of copy carries, as every other link in the document is:
+ * the `.md` is read out of context, where a root-relative href resolves against the wrong origin.
+ */
+function withAbsoluteCopyLinks(copy: string, siteRoot?: string): string {
+    return copy.replace(COPY_LINK, (_match, href: string) => `](${toAbsoluteUrl(urlWithBaseUrl(href), siteRoot)})`);
 }
 
 /** Matches GallerySeriesLink: an explicit `seriesLink`, else the chart type's default docs slug. */
@@ -53,14 +68,18 @@ export async function buildGalleryExampleMarkdown({
     siteRoot,
 }: BuildGalleryExampleMarkdownOptions): Promise<string> {
     const contents = await getGeneratedContents({ type: 'gallery', exampleName });
-    const seo = resolveGallerySeo(page);
+    const seo = resolveGallerySeo(page.name);
 
     const document: string[] = [
-        ['---', `title: ${JSON.stringify(seo.title)}`, `description: ${JSON.stringify(seo.description)}`, '---'].join(
-            '\n'
-        ),
+        buildChartsFrontmatter({
+            pageUrl: `/gallery/${exampleName}/`,
+            siteRoot,
+            title: seo.title,
+            description: seo.description,
+        }),
         `# ${seo.h1}`,
-        seo.intro,
+        withAbsoluteCopyLinks(seo.intro, siteRoot),
+        withAbsoluteCopyLinks(GALLERY_GET_STARTED_COPY, siteRoot),
     ];
 
     const chartType = page.enterprise ? `${page.seriesTitle} (Enterprise)` : page.seriesTitle;
@@ -71,7 +90,7 @@ export async function buildGalleryExampleMarkdown({
     document.push(`[Run this example](${toAbsoluteUrl(getExampleUrl({ exampleName }), siteRoot)})`);
 
     const entryFileName = contents?.entryFileName;
-    if (entryFileName && contents?.files?.[entryFileName]) {
+    if (entryFileName != null && entryFileName !== '' && (contents?.files?.[entryFileName] ?? '') !== '') {
         const files = { ...contents.files };
         stripOutExampleGeneratorCode(files);
         document.push('## Source', `\`\`\`js\n${files[entryFileName].trim()}\n\`\`\``);
@@ -80,7 +99,7 @@ export async function buildGalleryExampleMarkdown({
         const dataFiles = Object.keys(contents.files).filter(
             (fileName) => fileName !== entryFileName && fileName.endsWith('.js')
         );
-        if (dataFiles.length) {
+        if (dataFiles.length > 0) {
             const links = dataFiles
                 .map(
                     (fileName) =>
@@ -91,7 +110,7 @@ export async function buildGalleryExampleMarkdown({
         }
     }
 
-    if (relatedExamples.length) {
+    if (relatedExamples.length > 0) {
         const links = relatedExamples
             .map(({ label, name }) => `- [${label}](${toAbsoluteUrl(getPageUrl(name), siteRoot)})`)
             .join('\n');

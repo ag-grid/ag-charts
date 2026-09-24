@@ -1,35 +1,64 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
     ChartUpdateType,
     type NormalisedBandHighlightOptions,
+    type RequiredInternalAgGradientColor,
+    type RequiredInternalAgImageFill,
+    type RequiredInternalAgPatternColor,
     ZIndexMap,
     createId,
 } from 'ag-charts-core';
 
-const {
-    Range,
-    TranslatableGroup,
-    BBox,
-    FillGradientDefaults,
-    FillImageDefaults,
-    FillPatternDefaults,
-    getShapeFill,
-    InteractionState,
-} = _ModuleSupport;
+const { Range, TranslatableGroup, BBox, getShapeFill, InteractionState } = _ModuleSupport;
+
+// Shape definitions `getShapeFill` completes a user-supplied non-flat fill with; internal only.
+const BAND_FILL_GRADIENT_DEFAULTS: RequiredInternalAgGradientColor = {
+    type: 'gradient',
+    colorStops: [],
+    bounds: 'item',
+    gradient: 'linear',
+    rotation: 0,
+    reverse: false,
+    colorSpace: 'rgb',
+};
+const BAND_FILL_PATTERN_DEFAULTS: RequiredInternalAgPatternColor = {
+    type: 'pattern',
+    rotation: 0,
+    scale: 1,
+    pattern: 'forward-slanted-lines',
+    width: 26,
+    height: 26,
+    padding: 6,
+    fill: 'black',
+    fillOpacity: 1,
+    backgroundFill: 'white',
+    backgroundFillOpacity: 1,
+    stroke: 'black',
+    strokeOpacity: 1,
+    strokeWidth: 0,
+};
+const BAND_FILL_IMAGE_DEFAULTS: RequiredInternalAgImageFill = {
+    type: 'image',
+    url: '',
+    rotation: 0,
+    backgroundFill: 'black',
+    backgroundFillOpacity: 1,
+    repeat: 'no-repeat',
+    fit: 'contain',
+};
+
+type HoverLikeEvent =
+    | _Widget.ClickWidgetEvent
+    | _ModuleSupport.MouseWidgetEvent<'mousemove'>
+    | _ModuleSupport.DragWidgetEvent<'drag-move'>;
 
 export class BandHighlight extends AbstractModuleInstance {
     static readonly className = 'BandHighlight';
     readonly id = createId(this);
 
     private options: NormalisedBandHighlightOptions | undefined;
-
-    // Built-in shape definitions for `getShapeFill` when the user supplies a non-flat fill; these
-    // are internal only, never user-facing options.
-    private readonly fillGradientDefaults = new FillGradientDefaults();
-    private readonly fillPatternDefaults = new FillPatternDefaults();
-    private readonly fillImageDefaults = new FillImageDefaults();
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
     private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
@@ -49,27 +78,19 @@ export class BandHighlight extends AbstractModuleInstance {
         this.axisCtx = ctx.parent;
         this.hideBand();
 
-        ctx.domManager.addEventListener('focusin', ({ target }) => {
-            const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
-            if (this.bandHighlightGroup.visible && !isSeriesAreaChild) {
-                this.hideBand();
-                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
-            }
-        });
-
         const {
-            widgets: { seriesWidget, seriesDragInterpreter },
+            widgets: { seriesBoundsWidget, seriesDragInterpreter },
             animationManager,
             eventsHub,
         } = ctx;
 
         this.cleanup.register(
             ctx.scene.attachNode(this.bandHighlightGroup),
-            seriesWidget.addListener('mousemove', (event) => this.onHoverLikeEvent(event)),
-            seriesWidget.addListener('mouseleave', () => this.clearAllHighlight()),
+            seriesBoundsWidget.addListener('mousemove', (event) => this.onHoverLikeEvent(event)),
+            seriesBoundsWidget.addListener('mouseleave', () => this.clearAllHighlight()),
             animationManager.addListener('animation-start', () => this.clearAllHighlight()),
-
             eventsHub.on('layout:complete', (event) => this.layout(event)),
+            eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
             eventsHub.on('series:focus-change', () => this.onKeyPress()),
             eventsHub.on('zoom:pan-start', () => this.clearAllHighlight()),
             eventsHub.on('zoom:change-complete', () => this.clearAllHighlight()),
@@ -93,7 +114,7 @@ export class BandHighlight extends AbstractModuleInstance {
         this.onHighlightChange();
     }
 
-    private isHover(event: _ModuleSupport.HoverLikeEvent): boolean {
+    private isHover(event: HoverLikeEvent): boolean {
         return (
             event.type === 'mousemove' ||
             event.type === 'click' ||
@@ -101,7 +122,7 @@ export class BandHighlight extends AbstractModuleInstance {
         );
     }
 
-    private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
+    private onClick(event: _Widget.ClickWidgetEvent) {
         if (event.device === 'touch') {
             this.onHoverLikeEvent(event);
         }
@@ -113,20 +134,26 @@ export class BandHighlight extends AbstractModuleInstance {
         this.onHighlightChange();
     }
 
+    private onSeriesBlurred() {
+        if (!this.bandHighlightGroup.visible) return;
+        this.hideBand();
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+    }
+
     private onKeyPress() {
         if (this.ctx.interactionManager.isState(InteractionState.Default)) {
             this.onHighlightChange();
         }
     }
 
-    private onHoverLikeEvent(event: _ModuleSupport.HoverLikeEvent): void {
+    private onHoverLikeEvent(event: HoverLikeEvent): void {
         const requiredState = this.isHover(event) ? InteractionState.Hoverable : InteractionState.AnnotationsMoveable;
         if (!this.ctx.interactionManager.isState(requiredState)) return;
         this.handleHoverHighlight(event);
     }
 
-    private handleHoverHighlight(event: _ModuleSupport.HoverLikeEvent) {
-        if (!event) return;
+    private handleHoverHighlight(event: HoverLikeEvent) {
+        if (event == null || event.device === 'keyboard') return;
 
         const { currentX: x, currentY: y } = event;
 
@@ -134,12 +161,12 @@ export class BandHighlight extends AbstractModuleInstance {
     }
 
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
-        if (!visible || !axes || !this.options?.enabled) return;
+        if (!visible || axes == null || !this.options?.enabled) return;
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
         const axisLayout = axes[axisId];
-        if (!axisLayout) return;
+        if (axisLayout == null) return;
 
         this.axisLayout = axisLayout;
         this.bounds = rect.clone().grow(axisLayout.gridPadding, axisPosition);
@@ -163,7 +190,12 @@ export class BandHighlight extends AbstractModuleInstance {
         node.strokeOpacity = strokeOpacity;
         node.lineDash = lineDash;
         node.lineDashOffset = lineDashOffset;
-        node.fill = getShapeFill(fill, this.fillGradientDefaults, this.fillPatternDefaults, this.fillImageDefaults);
+        node.fill = getShapeFill(
+            fill,
+            BAND_FILL_GRADIENT_DEFAULTS,
+            BAND_FILL_PATTERN_DEFAULTS,
+            BAND_FILL_IMAGE_DEFAULTS
+        );
         node.fillOpacity = fillOpacity;
         node.startLine = true;
         node.endLine = true;

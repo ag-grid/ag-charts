@@ -1,8 +1,26 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setUnitTimeAxis()">Unit Time Axis</button>
-        <button onclick="setOrdinalTimeAxis()">Ordinal Time Axis</button>
-        <button onclick="setContinuousTimeAxis()">Continuous Time Axis</button>
+        <div class="button-group" role="group" aria-label="Axis Type">
+            <input
+                type="radio"
+                id="axis-type-unit-time"
+                name="axis-type"
+                value="unit-time"
+                checked
+                onchange="axisTypeChange(event)"
+            />
+            <label for="axis-type-unit-time">Unit Time Axis</label>
+            <input
+                type="radio"
+                id="axis-type-ordinal-time"
+                name="axis-type"
+                value="ordinal-time"
+                onchange="axisTypeChange(event)"
+            />
+            <label for="axis-type-ordinal-time">Ordinal Time Axis</label>
+            <input type="radio" id="axis-type-time" name="axis-type" value="time" onchange="axisTypeChange(event)" />
+            <label for="axis-type-time">Continuous Time Axis</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

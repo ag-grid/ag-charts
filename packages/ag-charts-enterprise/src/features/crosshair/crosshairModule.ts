@@ -1,12 +1,14 @@
 import { type AgCrosshairOptions, VERSION } from 'ag-charts-community';
 import type { AxisPluginModuleDefinition } from 'ag-charts-core';
 
+import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { Crosshair } from './crosshair';
 
 export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
     type: 'axis:plugin',
     name: 'crosshair',
-    chartType: 'cartesian',
+    chartTypes: ['cartesian'],
+    dependencies: [BackgroundRegionsModule],
     enterprise: true,
     version: VERSION,
 

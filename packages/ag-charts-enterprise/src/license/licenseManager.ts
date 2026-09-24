@@ -19,12 +19,22 @@ const LICENSE_TYPES = {
 
 const LICENSING_HELP_URL = 'https://www.ag-grid.com/charts/licensing/';
 
+function normaliseLicenseKey(licenseKey: unknown): string | undefined {
+    if (licenseKey == null) return undefined;
+    return typeof licenseKey === 'string' ? licenseKey : String(licenseKey);
+}
+
 export class LicenseManager {
-    private static readonly RELEASE_INFORMATION: string = 'MTc4NzkzMjI4NjQxMg==';
+    private static readonly RELEASE_INFORMATION: string = 'MTc4OTU0MjEzNTg4NQ==';
     private static licenseKey?: string;
+    // Latched by any `setLicenseKey` call, whatever it was passed: only a page that never called it is exempt.
+    private static licenseKeySupplied = false;
     private static gridContext: boolean = false;
     private static licenseOutputLogged = false;
     private watermarkMessage: string | undefined = undefined;
+    private validatedKey: string | undefined = undefined;
+    private validatedGridContext = false;
+    private validated = false;
 
     private readonly md5: MD5;
     private readonly document?: Document;
@@ -39,7 +49,15 @@ export class LicenseManager {
     }
 
     public validateLicense(): void {
-        const licenseDetails = this.getLicenseDetails(LicenseManager.licenseKey!, LicenseManager.gridContext);
+        const { licenseKey, gridContext } = LicenseManager;
+        // A repeat check is a no-op until the key or grid context changes; a change replaces the earlier verdict.
+        if (this.validated && this.validatedKey === licenseKey && this.validatedGridContext === gridContext) return;
+        this.validated = true;
+        this.validatedKey = licenseKey;
+        this.validatedGridContext = gridContext;
+        this.watermarkMessage = undefined;
+
+        const licenseDetails = this.getLicenseDetails(licenseKey!, gridContext);
         const currentLicenseName = `AG ${
             licenseDetails.currentLicenseType === 'BOTH' ? 'Grid and ' : ''
         }Charts Enterprise`;
@@ -98,6 +116,12 @@ export class LicenseManager {
         return { md5, license, version, isTrial, type };
     }
 
+    // Any `setLicenseKey` call counts as supplying a key, even with an empty or nullish value: the caller is
+    // owed a verdict, and such a key is reported as missing.
+    public isLicenseKeySupplied(): boolean {
+        return LicenseManager.licenseKeySupplied;
+    }
+
     public getLicenseDetails(licenseKey: string, gridContext = false) {
         const currentLicenseType = 'CHARTS';
         if (missingOrEmpty(licenseKey)) {
@@ -117,12 +141,6 @@ export class LicenseManager {
         let expiry: Date | null = null;
         let incorrectLicenseType = false;
         let suppliedLicenseType: undefined | string = undefined;
-
-        function handleTrial() {
-            const now = new Date();
-            trialExpired = expiry! < now;
-            expired = undefined;
-        }
 
         if (valid) {
             expiry = LicenseManager.extractExpiry(license);
@@ -146,7 +164,8 @@ export class LicenseManager {
                                 valid = false;
                                 incorrectLicenseType = true;
                             } else if (isTrial) {
-                                handleTrial();
+                                trialExpired = expiry < new Date();
+                                expired = undefined;
                             }
                         }
                     }
@@ -182,7 +201,7 @@ export class LicenseManager {
     public isDisplayWatermark(): boolean {
         return (
             this.isForceWatermark() ||
-            (!this.isLocalhost() && !this.isE2ETest() && !this.isWebsiteUrl() && !missingOrEmpty(this.watermarkMessage))
+            (!this.isLocalhost() && !this.isWebsiteUrl() && !missingOrEmpty(this.watermarkMessage))
         );
     }
 
@@ -192,7 +211,7 @@ export class LicenseManager {
 
     public getWatermarkForegroundConfig(): object | undefined {
         const message = this.getWatermarkMessage();
-        if (!message) {
+        if (message === '') {
             return undefined;
         }
         return this.buildWatermarkConfig(message);
@@ -203,7 +222,7 @@ export class LicenseManager {
             return undefined;
         }
         const message = this.getWatermarkMessage();
-        if (!message) {
+        if (message === '') {
             return undefined;
         }
         return this.buildWatermarkConfig(message);
@@ -223,19 +242,27 @@ export class LicenseManager {
         };
     }
 
-    private getHostname(): string {
-        if (!this.document) {
-            return 'localhost';
-        }
-        const win = this.document.defaultView ?? globalThis;
-        if (!win) {
-            return 'localhost';
-        }
+    // Fails closed: an unknown host is neither localhost nor a website URL, so it is watermarked.
+    private getHostname(): string | undefined {
+        const win = this.document?.defaultView;
+        if (!win) return undefined;
+
+        const hostname = LicenseManager.readHostname(win);
+        if (hostname !== '') return hostname;
+
+        // An about:blank or srcdoc frame has no host of its own, so it answers for its top-level document.
         try {
-            const hostname = win.location?.hostname ?? '';
-            return hostname || 'localhost';
+            return win.top != null && win.top !== win ? LicenseManager.readHostname(win.top) : '';
         } catch {
-            return 'localhost';
+            return undefined;
+        }
+    }
+
+    private static readHostname(win: Window): string | undefined {
+        try {
+            return win.location?.hostname ?? '';
+        } catch {
+            return undefined;
         }
     }
 
@@ -243,17 +270,17 @@ export class LicenseManager {
         if (!this.document) {
             return false;
         }
-        const win = (this.document?.defaultView ?? globalThis.window != undefined) ? globalThis : undefined;
+        const hasWindow = this.document?.defaultView != null || globalThis.window != undefined;
+        const win = hasWindow ? globalThis : undefined;
         if (!win) {
             return false;
         }
 
-        const pathname = win.location?.pathname;
-        return pathname ? pathname.includes('forceWatermark') : false;
+        return win.location?.pathname?.includes('forceWatermark') ?? false;
     }
 
     private isWebsiteUrl(): boolean {
-        const hostname = this.getHostname();
+        const hostname = this.getHostname() ?? '';
         return (
             /^((?:[\w-]+\.)?ag-grid\.com)$/.exec(hostname) !== null ||
             /^((?:[\w-]+\.)?bryntum\.com)$/.exec(hostname) !== null
@@ -261,13 +288,8 @@ export class LicenseManager {
     }
 
     private isLocalhost(): boolean {
-        const hostname = this.getHostname();
+        const hostname = this.getHostname() ?? '';
         return /^(?:127\.0\.0\.1|localhost)$/.exec(hostname) !== null;
-    }
-
-    private isE2ETest(): boolean {
-        const hostname = this.getHostname();
-        return /^(?:172\.17\.0\.1|host\.docker\.internal)$/.exec(hostname) !== null;
     }
 
     private static formatDate(date: any): string {
@@ -347,17 +369,21 @@ export class LicenseManager {
         LicenseManager.gridContext = gridContext;
     }
 
-    public static setLicenseKey(licenseKey?: string): void {
-        if (this.licenseKey && this.licenseKey !== licenseKey) {
+    // Typed as a string, but a page passes whatever it read from its config: a nullish value is reported as a
+    // missing key, and any other non-string as an invalid one, rather than throwing during validation.
+    public static setLicenseKey(licenseKey?: string | null): void {
+        const key = normaliseLicenseKey(licenseKey);
+        if (this.licenseKey != null && this.licenseKey !== '' && this.licenseKey !== key) {
             console.warn(
                 `License Key being set multiple times with different values. This can result in an incorrect license key being used.`
             );
         }
 
-        if (this.licenseKey !== licenseKey) {
+        if (this.licenseKey !== key) {
             LicenseManager.licenseOutputLogged = false;
         }
-        LicenseManager.licenseKey = licenseKey;
+        LicenseManager.licenseKeySupplied = true;
+        LicenseManager.licenseKey = key;
     }
 
     private static extractBracketedInformation(licenseKey: string): [string | null, boolean | null, string?] {
@@ -368,13 +394,13 @@ export class LicenseManager {
 
         // eslint-disable-next-line sonarjs/slow-regex
         const matches = licenseKey.match(/\[(.*?)\]/g)!.map((match) => match.replace('[', '').replace(']', ''));
-        if (!matches || matches.length === 0) {
+        if (matches.length === 0) {
             return ['legacy', false, undefined];
         }
 
         const isTrial = matches.filter((match) => match === 'TRIAL').length === 1;
         const rawVersion = matches.find((match) => match.startsWith('v'));
-        const version = rawVersion ? rawVersion.replace('v', '') : 'legacy';
+        const version = rawVersion == null ? 'legacy' : rawVersion.replace('v', '');
         const type = (LICENSE_TYPES as any)[matches.find((match) => (LICENSE_TYPES as any)[match])!];
 
         return [version, isTrial, type];

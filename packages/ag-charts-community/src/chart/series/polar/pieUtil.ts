@@ -10,7 +10,7 @@ import { Sector } from '../../../scene/shape/sector';
 import { Transformable } from '../../../scene/transformable';
 import { boxOverlapsSector } from '../../../scene/util/sector';
 import type { Marker } from '../../marker/marker';
-import type { PickNodesInBBoxPredicate, SeriesNodePickMatch } from '../series';
+import type { PickNodesInBBoxPredicate, SeriesNodePickMatch } from '../pickTypes';
 
 type AnimatableSectorDatum = {
     radius: number;
@@ -174,11 +174,11 @@ export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesN
 }
 
 export function pickSectorsInBBoxPredicate(series: {
-    properties: { selection: { containment: AgSelectionContainment } };
+    options: { selection?: { containment: AgSelectionContainment } };
     contentGroup: Group;
 }): PickNodesInBBoxPredicate {
     const unreachable = (a: never): never => a;
-    const containment = series.properties.selection.containment;
+    const containment = series.options.selection?.containment ?? 'any';
     switch (containment) {
         case 'any':
             return (selectionBox: BoxBounds, node: Node<unknown>): boolean => {

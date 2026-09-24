@@ -3,15 +3,15 @@ import type { LineDashOptions } from 'ag-charts-types';
 
 export function setSvgFontAttributes(element: SVGElement, options: FontOptions) {
     const { fontStyle, fontWeight, fontSize, fontFamily } = options;
-    if (fontStyle) element.setAttribute('font-style', fontStyle);
-    if (fontWeight) element.setAttribute('font-weight', String(fontWeight));
+    if (fontStyle != null) element.setAttribute('font-style', fontStyle);
+    if (fontWeight != null && fontWeight !== 0) element.setAttribute('font-weight', String(fontWeight));
     if (fontSize != null) element.setAttribute('font-size', String(fontSize));
-    if (fontFamily) element.setAttribute('font-family', fontFamily);
+    if (fontFamily != null && fontFamily !== '') element.setAttribute('font-family', fontFamily);
 }
 
 export function setSvgStrokeAttributes(element: SVGElement, options: NormalisedStrokeOptions) {
     const { stroke, strokeWidth, strokeOpacity } = options;
-    if (stroke) element.setAttribute('stroke', stroke);
+    if (stroke != null && stroke !== '') element.setAttribute('stroke', stroke);
     if (strokeWidth != null) element.setAttribute('stroke-width', String(strokeWidth));
     if (strokeOpacity != null) element.setAttribute('stroke-opacity', String(strokeOpacity));
 }

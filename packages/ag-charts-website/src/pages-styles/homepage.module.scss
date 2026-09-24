@@ -385,7 +385,7 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
             margin: $spacing-size-8;
             font-family: var(--text-font-family);
             font-size: var(--text-fs-lg);
-            line-height: var(--text-lh-base);
+            line-height: var(--text-lh-body-lg);
             font-weight: var(--text-regular);
             color: var(--color-text-primary);
         }
@@ -459,7 +459,7 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     h3 {
         margin-bottom: $spacing-size-6;
         font-size: var(--text-fs-2xl);
-        line-height: var(--text-lh-tight);
+        line-height: var(--text-lh-ratio-tight);
         font-weight: var(--text-bold);
 
         @media screen and (min-width: $breakpoint-hero-small) {
@@ -714,7 +714,7 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
 
         button:not([class^='ag-']) {
             padding: $spacing-size-1;
-            line-height: var(--text-lh-ultra-tight);
+            line-height: var(--text-lh-ratio-ultra-tight);
         }
     }
 

@@ -22,6 +22,7 @@ import {
     labelBoxOptionsDef,
     labelCollisionFitOptionsDefs,
     labelCollisionPlacementDef,
+    labelFitOptionsDefs,
     labelOrientationDef,
     labelPlacementStyleDefs,
     lessThanOrEqual,
@@ -32,6 +33,7 @@ import {
     multiSeriesHighlightOptionsDef,
     number,
     numberFormatValidator,
+    overflowStrategy,
     positiveNumber,
     positiveNumberNonZero,
     positiveNumericValue,
@@ -247,8 +249,12 @@ Object.assign(chordSeriesThemeableOptionsDef.label, without(undocumentedLabelFit
 
 const funnelPlacementDef = unionOrArray(
     'inside-center',
+    'inside-start',
+    'inside-end',
     'inside-before',
     'inside-after',
+    'outside-start',
+    'outside-end',
     'outside-before',
     'outside-after'
 );
@@ -431,7 +437,13 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     }),
-    label: autoSizedLabelOptionsDefs,
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
+        lineHeight: positiveNumber,
+        overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
+    },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
@@ -827,6 +839,16 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
     ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'selection', 'showInLegend']),
 };
 
+const waterfallSeriesLabelOptionsDef = {
+    ...seriesLabelOptionsDefs,
+    ...labelCollisionFitOptionsDefs,
+    ...labelAutoFontSizeOptionsDefs,
+    ...labelPlacementStyleDefs,
+    placement: waterfallPlacementDef,
+    orientation: labelOrientationDef,
+    spacing: positiveNumber,
+};
+
 const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<any>> = {
     name: string,
     cornerRadius: positiveNumber,
@@ -836,15 +858,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
         ...lineDashOptionsDef,
         cornerRadius: positiveNumber,
     }),
-    label: {
-        ...seriesLabelOptionsDefs,
-        ...labelCollisionFitOptionsDefs,
-        ...labelAutoFontSizeOptionsDefs,
-        ...labelPlacementStyleDefs,
-        placement: waterfallPlacementDef,
-        orientation: labelOrientationDef,
-        spacing: positiveNumber,
-    },
+    label: waterfallSeriesLabelOptionsDef,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...fillOptionsDef,
@@ -860,6 +874,7 @@ export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesTh
         negative: waterfallSeriesItemOptionsDef,
         total: waterfallSeriesItemOptionsDef,
     },
+    label: waterfallSeriesLabelOptionsDef,
     line: {
         enabled: boolean,
         ...strokeOptionsDef,

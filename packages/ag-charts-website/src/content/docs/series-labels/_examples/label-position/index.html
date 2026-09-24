@@ -1,13 +1,31 @@
 <div class="example-controls">
     <div class="controls-row">
         <span>Series:</span>
-        <button onclick="setSeriesType('bubble')"><code>Bubble</code></button>
-        <button onclick="setSeriesType('bar')"><code>Bar</code></button>
-        <button onclick="setSeriesType('bar-horizontal')"><code>Horizontal Bar</code></button>
+        <div class="button-group" role="group" aria-label="Series">
+            <input
+                type="radio"
+                id="series-bubble"
+                name="series-type"
+                value="bubble"
+                checked
+                onchange="setSeriesType(event)"
+            />
+            <label for="series-bubble"><code>Bubble</code></label>
+            <input type="radio" id="series-bar" name="series-type" value="bar" onchange="setSeriesType(event)" />
+            <label for="series-bar"><code>Bar</code></label>
+            <input
+                type="radio"
+                id="series-bar-horizontal"
+                name="series-type"
+                value="bar-horizontal"
+                onchange="setSeriesType(event)"
+            />
+            <label for="series-bar-horizontal"><code>Horizontal Bar</code></label>
+        </div>
     </div>
     <div class="controls-row">
-        <span>Placement:</span>
-        <span id="bubblePlacementRow">
+        <fieldset id="bubblePlacementGroup" class="control-group">
+            <span>Bubble Placement:</span>
             <select id="bubblePlacementSelect" class="gap-right" onchange="setPlacement(event.target.value)">
                 <option value="top" selected>Top</option>
                 <option value="top-right">Top Right</option>
@@ -22,8 +40,9 @@
                 <option value="top, bottom, left, right">Top + Bottom + Left + Right fallback</option>
                 <option value="left, right">Left + Right fallback</option>
             </select>
-        </span>
-        <span id="barPlacementRow" style="display: none">
+        </fieldset>
+        <fieldset id="barPlacementGroup" class="control-group" disabled>
+            <span>Bar Placement:</span>
             <select id="barPlacementSelect" class="gap-right" onchange="setPlacement(event.target.value)">
                 <option value="outside-end" selected>Outside End</option>
                 <option value="outside-start">Outside Start</option>
@@ -40,7 +59,7 @@
                 <option value="outside-end, inside-end">Outside End + Inside End fallback</option>
                 <option value="inside-center, beside-after-center">Inside Centre + Beside After Centre fallback</option>
             </select>
-        </span>
+        </fieldset>
         <label for="spacingSlider">Spacing:</label>
         <input
             type="range"

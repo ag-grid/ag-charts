@@ -1,10 +1,41 @@
 <div class="example-controls">
     <div class="controls-row">
         Position:
-        <button onclick="setPosition('bottom')">Bottom</button>
-        <button onclick="setPosition('right')">Right</button>
-        <button onclick="setPosition('left')">Left</button>
-        <button onclick="setPosition('top')">Top</button>
+        <div class="button-group" role="group" aria-label="Position">
+            <input
+                type="radio"
+                id="gradient-legend-position-bottom"
+                name="gradient-legend-position"
+                value="bottom"
+                onchange="positionChange(event)"
+            />
+            <label for="gradient-legend-position-bottom">Bottom</label>
+            <input
+                type="radio"
+                id="gradient-legend-position-right"
+                name="gradient-legend-position"
+                value="right"
+                checked
+                onchange="positionChange(event)"
+            />
+            <label for="gradient-legend-position-right">Right</label>
+            <input
+                type="radio"
+                id="gradient-legend-position-left"
+                name="gradient-legend-position"
+                value="left"
+                onchange="positionChange(event)"
+            />
+            <label for="gradient-legend-position-left">Left</label>
+            <input
+                type="radio"
+                id="gradient-legend-position-top"
+                name="gradient-legend-position"
+                value="top"
+                onchange="positionChange(event)"
+            />
+            <label for="gradient-legend-position-top">Top</label>
+        </div>
     </div>
     <div class="controls-row">
         Thickness: <input type="range" min="5" max="60" value="16" step="1" oninput="setThickness(event)" />

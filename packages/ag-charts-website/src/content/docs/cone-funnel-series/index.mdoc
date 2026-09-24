@@ -3,7 +3,7 @@ title: 'Cone Funnel Series'
 description: '$framework Cone Funnel Series shows the change of a value over a set of processes.'
 ---
 
-A Funnel Series illustrates how a value changes during a process, with a line representing the value at each stage
+A Cone Funnel Series illustrates how a value changes during a process, with a line representing the value at each stage
 and filled areas denoting the change between them.
 
 ## Simple Cone Funnel
@@ -41,7 +41,7 @@ To create a horizontal Cone Funnel Series, set the `direction` to `horizontal`.
 }
 ```
 
-### Customisation
+## Customisation
 
 {% chartExampleRunner title="Cone Funnel Fills" name="cone-funnel-fills" type="generated" /%}
 
@@ -58,25 +58,31 @@ In this configuration:
 
 ## Labels
 
-Each divider can show its value with `label`, positioned by the side of the divider it sits on and its position along it.
+The values can be displayed along the dividing line using the `label` option, and the stage names can be shown with the `stageLabel` option.
+
+{% chartExampleRunner title="Cone Funnel Label Placement" name="cone-funnel-label-placement" type="generated" /%}
 
 ```js format="snippet"
 {
     label: {
         enabled: true,
-        placement: 'start-center',
+        placement: 'middle-center',
+    },
+    stageLabel: {
+        placement: 'before',
     },
 }
 ```
 
 In this configuration:
 
-- `start` and `end` are the two sides of the divider and `middle` sits on it, while `before`, `center` and `after` position the label along its length.
-- `before` and `after` follow text alignment: where the divider spans the horizontal axis, `before` is its left end in a left-to-right chart and its right end in a right-to-left one. Where the divider spans the vertical axis, `before` is always its top end.
-- `start` and `end` are direction-aware in the same way: where the divider spans the vertical axis, `start` is its left side in a left-to-right chart and its right side in a right-to-left one.
-- The single-word values `'before'`, `'middle'` and `'after'` are deprecated. Use `'start-center'`, `'middle-center'` and `'end-center'` instead.
+- The label defaults to `start-center`. Use the dropdown to see all available placements.
+    - `start` and `end` are the two sides of the dividing line with `middle` sitting exactly on it.
+    - `before`, `center` and `after` position the label along the length of the line.
+- `stageLabel.placement` positions the stage names on either side of the chart.
+- On a vertical cone funnel, `before` and `after` are mirrored when [RTL Layout](./rtl/) is enabled.
 
-See [Series Labels](./series-labels/) for the full set of label, placement and collision options.
+See [Series Labels](./series-labels/) for the full set of label placement and collision avoidance options, and the [API Reference](#api-reference) for additional customisation options.
 
 ## Cone Funnel Chart Examples
 

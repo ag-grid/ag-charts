@@ -1,7 +1,12 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="line()">Line</button>
-        <button onclick="bar()">Bar</button>
+        <span>Series Type:</span>
+        <div class="button-group" role="group" aria-label="Series Type">
+            <input type="radio" id="type-line" name="series-type" value="line" checked onchange="typeChange(event)" />
+            <label for="type-line">Line</label>
+            <input type="radio" id="type-bar" name="series-type" value="bar" onchange="typeChange(event)" />
+            <label for="type-bar">Bar</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

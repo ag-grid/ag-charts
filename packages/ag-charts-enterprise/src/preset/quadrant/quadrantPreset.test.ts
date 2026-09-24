@@ -1,11 +1,15 @@
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type ChartTestCase,
+    PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     compareImageSnapshot,
+    deproxy,
     expectNonBlank,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -254,7 +258,12 @@ const EXAMPLES: Record<string, QuadrantTestCase> = {
     NO_PIVOT_NUMERIC: { options: NO_PIVOT_NUMERIC, assertions },
     PIVOT_NUMERIC: { options: PIVOT_NUMERIC, assertions },
     UNALIGNED_AXES_NUMERIC: { options: UNALIGNED_AXES_NUMERIC, assertions },
-    ITEM_STYLERS_NUMERIC: { options: ITEM_STYLERS_NUMERIC, assertions },
+    // The pattern tile is resampled at a fractional offset; its edge pixels sit on the default threshold.
+    ITEM_STYLERS_NUMERIC: {
+        options: ITEM_STYLERS_NUMERIC,
+        assertions,
+        imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
+    },
     BUBBLE_SIZED_NUMERIC: {
         options: BUBBLE_SIZED_NUMERIC,
         assertions: cartesianChartAssertions({ seriesTypes: ['bubble'], axisTypes: { x: 'number', y: 'number' } }),
@@ -285,8 +294,8 @@ describe('Quadrant Preset', () => {
 
     const ctx = setupMockCanvas();
 
-    const compare = async () => {
-        await compareImageSnapshot(chart, ctx);
+    const compare = async (imageSnapshotDefaults?: MatchImageSnapshotOptions) => {
+        await compareImageSnapshot(chart, ctx, imageSnapshotDefaults);
     };
 
     it.each(Object.entries(EXAMPLES))(
@@ -307,7 +316,7 @@ describe('Quadrant Preset', () => {
                     );
                 }
             }
-            if (!example.warnings?.length) {
+            if (example.warnings == null || example.warnings.length === 0) {
                 expect(console.warn).not.toHaveBeenCalled();
             }
         }
@@ -320,14 +329,37 @@ describe('Quadrant Preset', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.createQuadrantChart(options);
-            await compare();
+            await compare(example.imageSnapshotDefaults);
 
             if (example.extraScreenshotActions) {
                 await example.extraScreenshotActions(chart);
-                await compare();
+                await compare(example.imageSnapshotDefaults);
             }
         }
     );
+
+    it('forwards overrideDevicePixelRatio to the cartesian chart options', () => {
+        const cartesianOptions = createQuadrant(
+            { ...BUBBLE_SIZED_NUMERIC, overrideDevicePixelRatio: 2 } as AgQuadrantChartOptions,
+            undefined,
+            undefined,
+            undefined,
+            new Logger(),
+            () => undefined
+        );
+
+        expect(cartesianOptions).toMatchObject({ overrideDevicePixelRatio: 2 });
+    });
+
+    it('accepts overrideDevicePixelRatio without a validation warning', async () => {
+        const options = { ...BUBBLE_SIZED_NUMERIC, overrideDevicePixelRatio: 2 } as AgQuadrantChartOptions;
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.createQuadrantChart(options);
+        await waitForChartStability(chart);
+
+        expect(console.warn).not.toHaveBeenCalled();
+    });
 
     it('forwards sizeName to the tooltip renderer params', () => {
         const rendererParams: unknown[] = [];
@@ -468,6 +500,8 @@ describe('Quadrant Preset', () => {
 // The preset `themeTemplate` is baked into the resolved `ChartTheme`, so charts sharing a theme
 // value must not inherit each other's preset template.
 describe('Quadrant Preset theme isolation', () => {
+    setupMockConsole();
+
     const DATA = NUMERIC.data;
 
     const resolveAxes = (options: AgChartOptions, presetType?: 'quadrant') => {
@@ -488,6 +522,7 @@ describe('Quadrant Preset theme isolation', () => {
     const expectQuadrantStyling = (axes: Record<'x' | 'y', Record<string, any>>) => {
         expect(axes.x.line.enabled).toBe(true);
         expect(axes.x.line.stroke).toBe('#8c8e8f');
+        expect(axes.x.line.strokeWidth).toBe(1);
     };
 
     const expectPlainStyling = (axes: Record<'x' | 'y', Record<string, any>>) => {
@@ -503,6 +538,24 @@ describe('Quadrant Preset theme isolation', () => {
     it('does not lose the preset template to a plain chart created beforehand', () => {
         expectPlainStyling(resolveAxes(plainOptions()));
         expectQuadrantStyling(resolveAxes(quadrantOptions(), 'quadrant'));
+    });
+
+    // The preset omits an axis-line strokeWidth so the common template's width alias survives the merge.
+    it('still resolves a deprecated line.width theme override to strokeWidth on a quadrant chart', () => {
+        const axes = resolveAxes(
+            {
+                ...quadrantOptions(),
+                theme: { overrides: { scatter: { axes: { number: { line: { width: 3 } } } } } },
+            },
+            'quadrant'
+        );
+
+        expect(axes.x.line.strokeWidth).toBe(3);
+        expectWarningsCalls().toEqual([
+            [
+                'AG Charts - Option `theme.overrides.scatter.axes.number.line.width` is deprecated. Use `strokeWidth` instead.',
+            ],
+        ]);
     });
 });
 
@@ -534,5 +587,47 @@ describe('Quadrant Preset label enabled default', () => {
 
     it.each(cases)('%s', (_name, options, expected) => {
         expect(resolveLabelEnabled(options)).toBe(expected);
+    });
+});
+
+describe('AG-18413 quadrant with a key naming no column', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const createQuadrantChart = async (overrides: Partial<AgQuadrantChartOptions>) => {
+        const options: AgQuadrantChartOptions = { ...NUMERIC, ...overrides };
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+        chart = deproxy(AgCharts.createQuadrantChart(options) as any) as any;
+        await waitForChartStability(chart);
+        return chart.series[0];
+    };
+
+    // An empty key names a column like any other string, so it takes the unmatched-key warning —
+    // and, with nothing renderable behind it, the no-data overlay stands alone over the axes.
+    it('draws no markers and warns for an empty sizeKey', async () => {
+        const series = await createQuadrantChart({ sizeKey: '' });
+
+        expect(series.getNodeData()).toEqual([]);
+        expect(series.hasData).toBe(false);
+        // The no-data overlay stands alone over the axes: no markers, and no gridlines behind it.
+        expect(chart.axes.map((a: { gridLineGroup: { visible: boolean } }) => a.gridLineGroup.visible)).toEqual([
+            false,
+            false,
+        ]);
+        expectWarningsCalls().toEqual([[`AG Charts - the key '' was not found in any data element for ${series.id}.`]]);
+    });
+
+    it('keeps the series populated for a sizeKey that does name a column', async () => {
+        const series = await createQuadrantChart({ sizeKey: 'size' });
+
+        expect(series.getNodeData()).toHaveLength(NUMERIC.data!.length);
+        expectWarningsCalls().toEqual([]);
     });
 });

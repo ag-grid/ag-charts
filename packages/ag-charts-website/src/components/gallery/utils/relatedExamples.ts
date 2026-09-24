@@ -28,11 +28,12 @@ export interface GalleryFamilyExamples {
     title: string;
     /** The family's section on the gallery hub. */
     hubUrl: string;
-    examples: { label: string; url: string }[];
+    /** `name` is the example's key, which the card's thumbnail is resolved from. */
+    examples: { label: string; name: string; url: string }[];
 }
 
-/** Fewest links a strip carries: three families hold one example, so siblings alone leave them empty. */
-const MIN_RELATED_EXAMPLES = 3;
+/** Slots a strip aims to fill: four cards show at once, so six always leaves somewhere to scroll to. */
+const MIN_RELATED_EXAMPLES = 6;
 
 function visibleExamples(family: RelatedGalleryFamily) {
     return family.examples.filter(({ hidden }) => hidden !== true);
@@ -42,26 +43,17 @@ function findFamily(galleryData: RelatedGalleryData, exampleName: string) {
     return galleryData.series.flat().find((family) => visibleExamples(family).some(({ name }) => name === exampleName));
 }
 
-/**
- * Every other example by distance from this one, preceding side first: `data.json` keeps related
- * families adjacent, and a one-example family usually specialises the one before it.
- */
-function examplesNearest(galleryData: RelatedGalleryData, exampleName: string) {
-    const allExamples = galleryData.series.flat().flatMap(visibleExamples);
-    const position = allExamples.findIndex(({ name }) => name === exampleName);
-    const at = (offset: number) => allExamples[(position + offset + allExamples.length) % allExamples.length];
-
-    const nearest = [];
-    for (let distance = 1; distance < allExamples.length; distance++) {
-        nearest.push(at(-distance), at(distance));
-    }
-    return nearest;
+/** The families after this one in `data.json`, wrapping round to the first and stopping short of it. */
+function familiesAfter(galleryData: RelatedGalleryData, family: RelatedGalleryFamily) {
+    const families = galleryData.series.flat();
+    const position = families.indexOf(family);
+    return [...families.slice(position + 1), ...families.slice(0, position)];
 }
 
 /**
- * The examples a gallery page links as related: every sibling in its own chart family, topped up —
- * only where the family is too small to fill the strip — from the rest of its group in `data.json`
- * and then from its nearest neighbours in the gallery.
+ * The examples a gallery page links as related: every sibling in its own chart family, then the
+ * families that follow it until the strip holds {@link MIN_RELATED_EXAMPLES}. Families share no
+ * example, so topping up cannot repeat one.
  */
 export function getRelatedExamples({
     galleryData,
@@ -75,35 +67,20 @@ export function getRelatedExamples({
         return [];
     }
 
-    const toRelated = (example: { title: string; name: string }, isFamilySibling: boolean) => ({
-        label: resolveGalleryH1(example),
+    const toRelated = (example: { name: string }, isFamilySibling: boolean) => ({
+        label: resolveGalleryH1(example.name),
         name: example.name,
         isFamilySibling,
     });
 
-    const related = visibleExamples(family)
-        .filter(({ name }) => name !== exampleName)
-        .map((sibling) => toRelated(sibling, true));
-    if (related.length >= MIN_RELATED_EXAMPLES) {
-        return related;
-    }
+    const siblings = visibleExamples(family).filter(({ name }) => name !== exampleName);
+    const shortfall = MIN_RELATED_EXAMPLES - siblings.length;
+    const topUp = familiesAfter(galleryData, family).flatMap(visibleExamples).slice(0, Math.max(shortfall, 0));
 
-    const group = galleryData.series.find((families) => families.includes(family)) ?? [family];
-    const topUp = [...group.flatMap(visibleExamples), ...examplesNearest(galleryData, exampleName)];
-
-    const linked = new Set([exampleName, ...related.map(({ name }) => name)]);
-    for (const example of topUp) {
-        if (related.length >= MIN_RELATED_EXAMPLES) {
-            break;
-        }
-        if (linked.has(example.name)) {
-            continue;
-        }
-        linked.add(example.name);
-        related.push(toRelated(example, false));
-    }
-
-    return related;
+    return [
+        ...siblings.map((sibling) => toRelated(sibling, true)),
+        ...topUp.map((example) => toRelated(example, false)),
+    ];
 }
 
 /** Names the chart family only when every related link is one of its siblings. */
@@ -138,7 +115,8 @@ export function getFamilyExamples({
         title: family.title,
         hubUrl: getPageHashUrl({ chartSeriesName: family.seriesName }),
         examples: visibleExamples(family).map((example) => ({
-            label: resolveGalleryH1(example),
+            label: resolveGalleryH1(example.name),
+            name: example.name,
             url: getPageUrl(example.name),
         })),
     };

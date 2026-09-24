@@ -376,7 +376,7 @@ describe('RadarLineSeries', () => {
                 [...s]
                     .filter(([k]) => k.startsWith('series[1]/marker['))
                     .map(([, v]) => [v.x + (v.translationX ?? 0), v.y + (v.translationY ?? 0)] as const)
-                    .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+                    .sort((a, b) => (a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]));
             const centersBefore = survivorCenters(before);
             const centersHidden = survivorCenters(hidden);
             expect(centersHidden.length, 'survivor marker count unchanged by hide').toBe(centersBefore.length);
@@ -821,6 +821,30 @@ describe('RadarLineSeries', () => {
         await hoverAction(300, 200)(chart);
         await waitForChartStability(chart);
         await compare();
+    });
+
+    it('should drop the item highlight marker once the highlight moves to the whole series', async () => {
+        const options: AgPolarChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            series: [{ type: 'radar-line', angleKey: 'subject', radiusKey: 'gradeA', marker: { size: 10 } }],
+            legend: { enabled: true, position: 'bottom' },
+        };
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const { highlightGroup } = deproxy(chart).series[0];
+        const highlightNodeCount = () => [...highlightGroup.children()].length;
+        const idleCount = highlightNodeCount();
+
+        await hoverAction(400, 186)(chart);
+        await waitForChartStability(chart);
+        expect(highlightNodeCount()).toBe(idleCount + 1);
+
+        const legend = computeLegendBBox(deproxy(chart));
+        await hoverAction(legend.x + legend.width / 2, legend.y + legend.height / 2)(chart);
+        await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
+        expect(highlightNodeCount()).toBe(idleCount);
     });
 
     describe('AG-15743 legendItemName', () => {

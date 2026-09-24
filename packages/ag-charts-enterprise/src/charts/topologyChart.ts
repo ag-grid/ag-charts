@@ -1,15 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AxisID, CanvasPoint, FeatureCollection, Position } from 'ag-charts-core';
-import { ChartAxisDirection, Property, createId } from 'ag-charts-core';
+import { ChartAxisDirection, createId } from 'ag-charts-core';
 import type { AgCoordinates, AgTopologyChartOptions } from 'ag-charts-types';
 
 import type { LonLatBBox } from '../series/map-util/lonLatBbox';
 import type { ITopology } from '../series/map-util/topologyTypes';
 
 const { Chart, MercatorScale } = _ModuleSupport;
-function isTopologySeries(
-    series: _ModuleSupport.Series<_ModuleSupport.SeriesNodeDatum, object, any>
-): series is ITopology {
+function isTopologySeries(series: _ModuleSupport.Series<any, any, any>): series is ITopology {
     return (
         series.type === 'map-shape' ||
         series.type === 'map-line' ||
@@ -25,7 +23,6 @@ export class TopologyChart extends Chart {
     private readonly xAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.X } as const;
     private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;
 
-    @Property
     topology?: FeatureCollection;
 
     constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
@@ -65,7 +62,7 @@ export class TopologyChart extends Chart {
     protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
 
-        const seriesRect = ctx.layoutBox.clone().shrink(this.seriesArea.getPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(this.getSeriesAreaPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;

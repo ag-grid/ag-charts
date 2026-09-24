@@ -73,6 +73,13 @@ export function expectWarningsCalls() {
     return expect(mockCalls);
 }
 
+export function expectErrorsCalls() {
+    const errorMock = console.error as Mock;
+    const mockCalls = errorMock.mock.calls;
+    errorMock.mockClear();
+    return expect(mockCalls);
+}
+
 export function expectWarningMessages(messages: any) {
     const warnMock = console.warn as Mock;
     try {

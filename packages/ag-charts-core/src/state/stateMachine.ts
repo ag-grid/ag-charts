@@ -128,7 +128,7 @@ export class StateMachine<
             return;
         }
 
-        if (!destination) {
+        if (destination == null) {
             this.debug(`${debugPrefix} ${this.state}`, debugQuietColor);
             return;
         }

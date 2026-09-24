@@ -104,9 +104,6 @@ export class Zoom extends AbstractModuleInstance {
 
     private hoveredAxisId?: AxisID;
     private hoveredAxisDirection?: ChartAxisDirection;
-    // DragInterpreter does not capture the pointer, so a deferred drag-start can be reported against a different
-    // element; recorded from the un-deferred drag-start so the axis the mousedown hit is known.
-    private draggedAxisId?: AxisID;
 
     // State
     private dragState = DragState.None;
@@ -165,7 +162,6 @@ export class Zoom extends AbstractModuleInstance {
 
         if (ctx.widgets.seriesDragInterpreter) {
             this.cleanup.register(
-                ctx.widgets.seriesWidget.addListener('drag-start', () => (this.draggedAxisId = this.hoveredAxisId)),
                 ctx.widgets.seriesDragInterpreter.events.on('dblclick', (event) => this.onSeriesAreaDoubleClick(event)),
                 ctx.widgets.seriesDragInterpreter.events.on('drag-start', (event) => this.onSeriesAreaDragStart(event)),
                 ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onSeriesAreaDragMove(event)),
@@ -228,10 +224,7 @@ export class Zoom extends AbstractModuleInstance {
                 ctx.zoomManager.setIndependentAxes(Boolean((opts as ZoomOpts).enableIndependentAxes));
                 this.panner.deceleration = opts.deceleration;
 
-                // ZoomToolbar still uses @Property/@ActionOnSet — sync options via set()
-                if (opts.buttons) {
-                    this.buttons.set(opts.buttons);
-                }
+                this.buttons.applyOptions(opts.buttons);
 
                 if (prevEnabled !== opts.enabled) {
                     prevEnabled = opts.enabled;
@@ -289,9 +282,7 @@ export class Zoom extends AbstractModuleInstance {
         return isMaxZoom(this.getZoom());
     }
 
-    private onSeriesAreaDoubleClick(
-        event?: _ModuleSupport.DragInterpreterDblClickEvent & { preventZoomDblClick?: boolean }
-    ) {
+    private onSeriesAreaDoubleClick(event?: _Widget.DblClickWidgetEvent & { preventZoomDblClick?: boolean }) {
         const { enabled, enableDoubleClickToReset } = this.opts;
 
         if (!enabled || !enableDoubleClickToReset) return;
@@ -319,13 +310,11 @@ export class Zoom extends AbstractModuleInstance {
 
         this.panner.stopInteractions();
 
-        if (this.draggedAxisId) return;
-
         let newDragState = DragState.None;
 
         const selectionOpts = this.selectionOpts;
         const hasDataSelection: boolean = !!(selectionOpts?.enabled && selectionOpts?.enableDrag);
-        const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as MouseEvent);
+        const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent);
         const modifierlessDragInUse = enableSelecting || hasDataSelection;
         // Allow panning if either selection is disabled or the panning key is pressed.
         if (enablePanning && (!modifierlessDragInUse || panKeyPressed)) {
@@ -353,16 +342,11 @@ export class Zoom extends AbstractModuleInstance {
             ctx: { interactionManager, tooltipManager, eventsHub },
         } = this;
 
-        if (this.draggedAxisId) return;
-
         if (!enabled || !paddedRect || !this.isState(InteractionState.ZoomDraggable) || this.isIgnoredTouch(event)) {
             return;
         }
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
-        if (event.device === 'touch') {
-            event.sourceEvent.preventDefault();
-        }
 
         switch (dragState) {
             case DragState.Pan:
@@ -392,7 +376,7 @@ export class Zoom extends AbstractModuleInstance {
         // it for the rest of the session.
         this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
 
-        if (this.draggedAxisId || !this.opts.enabled || this.dragState === DragState.None) return;
+        if (!this.opts.enabled || this.dragState === DragState.None) return;
 
         this.handleRegularDragEnd();
         this.resetDragState();
@@ -537,9 +521,6 @@ export class Zoom extends AbstractModuleInstance {
         if (!enabled || !enableAxisDragging || !seriesRect) return;
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
-        if (event.device === 'touch') {
-            event.sourceEvent.preventDefault();
-        }
 
         const zoom = this.getZoom();
 
@@ -787,7 +768,7 @@ export class Zoom extends AbstractModuleInstance {
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         const { enabled, enableDoubleClickToReset, enableAxisDragging, enableAxisScrolling } = this.opts;
 
-        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+        this.ctx.eventsHub.emit('axis-interaction:update', {
             source: 'zoom',
             enabled,
             enableDoubleClick: enableDoubleClickToReset,
@@ -835,7 +816,7 @@ export class Zoom extends AbstractModuleInstance {
         }
     }
 
-    private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
+    private isPanningKeyPressed(event: PointerEvent) {
         switch (this.opts.panKey) {
             case 'alt':
                 return event.altKey;

@@ -1,7 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="onDefaultOrder()">Default Order</button>
-        <button onclick="onCustomOrder()">Custom Order</button>
+        <div class="button-group" role="group" aria-label="Order">
+            <input
+                type="radio"
+                id="order-default"
+                name="context-menu-order"
+                value="default"
+                onchange="orderChange(event)"
+            />
+            <label for="order-default">Default Order</label>
+            <input
+                type="radio"
+                id="order-custom"
+                name="context-menu-order"
+                value="custom"
+                checked
+                onchange="orderChange(event)"
+            />
+            <label for="order-custom">Custom Order</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

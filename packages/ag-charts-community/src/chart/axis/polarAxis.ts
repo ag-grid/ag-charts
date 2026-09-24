@@ -1,4 +1,5 @@
 import type { NormalisedBasePolarAxisOptions, Scale } from 'ag-charts-core';
+import type { AgAxisCrossLineListeners } from 'ag-charts-types';
 
 import type { AxisContext, PolarAxisLayout } from '../../module/axisContext';
 import type { BBox } from '../../scene/bbox';
@@ -26,6 +27,10 @@ export abstract class PolarAxis<
 
     get shape(): 'polygon' | 'circle' {
         return this.options.shape;
+    }
+
+    protected override get userListeners(): AgAxisCrossLineListeners<unknown> | undefined {
+        return this.options.listeners;
     }
 
     /**

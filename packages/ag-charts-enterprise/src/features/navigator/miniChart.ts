@@ -4,7 +4,6 @@ import {
     ActionOnSet,
     ChartAxisDirection,
     type DynamicContext,
-    Padding,
     ProxyProperty,
     ZIndexMap,
     calcLineHeight,
@@ -159,7 +158,7 @@ export class MiniChart extends AbstractModuleInstance {
     }
 
     protected destroySeries(allSeries: _ModuleSupport.UnknownSeries[]): void {
-        if (allSeries) {
+        if (allSeries != null) {
             for (const series of allSeries) {
                 series.destroy();
                 series.detachSeries(this.seriesRoot, this.seriesRoot, undefined);
@@ -251,7 +250,7 @@ export class MiniChart extends AbstractModuleInstance {
     }
 
     computeAxisPadding() {
-        const padding = new Padding();
+        const padding = { top: 0, right: 0, bottom: 0, left: 0 };
         if (!this.enabled) {
             return padding;
         }
@@ -267,7 +266,7 @@ export class MiniChart extends AbstractModuleInstance {
                 size = thickness;
             } else {
                 size =
-                    (line.enabled ? line.width : 0) +
+                    (line.enabled ? line.strokeWidth : 0) +
                     (label.enabled ? calcLineHeight(label.fontSize) + label.spacing : 0);
             }
 

@@ -4,7 +4,6 @@ import { testLogger } from 'ag-charts-test';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
-import { DropShadow } from '../dropShadow';
 import { SectorBox } from '../sectorBox';
 import { Sector } from './sector';
 
@@ -14,7 +13,13 @@ describe('Sector', () => {
     describe('rendering', () => {
         const canvasCtx = setupMockCanvas({ width: 600, height: 1600 });
 
-        const shadowFn = (offset: number) => Object.assign(new DropShadow(), { xOffset: offset, yOffset: offset });
+        const shadowFn = (offset: number) => ({
+            enabled: true,
+            color: 'rgba(0, 0, 0, 0.5)',
+            xOffset: offset,
+            yOffset: offset,
+            blur: 5,
+        });
         const fullCircle = 2 * Math.PI;
 
         const GAP = 10;

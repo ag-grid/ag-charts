@@ -1,3 +1,6 @@
+import agGridOrganization from '@ag-website-shared/content/organization/agGridOrganization.json';
+import { PRODUCTION_GRID_SITE_URL } from '@constants';
+
 /**
  * Builders for schema.org JSON-LD structured data emitted in the page <head>.
  *
@@ -104,6 +107,15 @@ interface SoftwareApplicationInput {
     sameAs?: string[];
 }
 
+interface SoftwareSourceCodeInput {
+    pageUrl: string;
+    /** Unique among the examples on the page, used to key the node's `@id`. */
+    exampleName: string;
+    programmingLanguage: string;
+    /** `@id` of the `TechArticle` this example illustrates, so the two nodes stay linked. */
+    aboutEntityId?: string;
+}
+
 interface TechArticleInput {
     canonicalUrlBase: string;
     pageUrl: string;
@@ -167,14 +179,17 @@ export function siteRootUrl(canonicalUrlBase: string): string {
     return canonicalUrlBase.endsWith('/') ? canonicalUrlBase : `${canonicalUrlBase}/`;
 }
 
-export const getOrganizationId = (canonicalUrlBase: string): string => `${siteRootUrl(canonicalUrlBase)}#organization`;
+export const getOrganizationId = (): string => `${PRODUCTION_GRID_SITE_URL}/#organization`;
 export const getWebSiteId = (canonicalUrlBase: string): string => `${siteRootUrl(canonicalUrlBase)}#website`;
 export const getSoftwareApplicationId = (canonicalUrlBase: string): string =>
     `${siteRootUrl(canonicalUrlBase)}#software-application`;
 export const getSiteNavigationElementId = (canonicalUrlBase: string): string =>
     `${siteRootUrl(canonicalUrlBase)}#site-navigation`;
 
+export const getTechArticleId = (pageUrl: string): string => `${pageUrl}${ARTICLE_ID_FRAGMENT}`;
+
 const ARTICLE_ID_FRAGMENT = '#article';
+const SOURCE_CODE_ID_FRAGMENT = '#source-code';
 const BREADCRUMB_ID_FRAGMENT = '#breadcrumb';
 const FAQ_ID_FRAGMENT = '#faq';
 const CONTACT_PAGE_ID_FRAGMENT = '#contact-page';
@@ -194,7 +209,7 @@ export function buildOrganization({
 }: OrgInput): JsonLdObject {
     const result: JsonLdObject = {
         '@type': 'Organization',
-        '@id': getOrganizationId(canonicalUrlBase),
+        '@id': getOrganizationId(),
         name,
         url: siteRootUrl(canonicalUrlBase),
         logo: logoUrl,
@@ -231,6 +246,15 @@ export function buildOrganization({
     return result;
 }
 
+/**
+ * The Organization node for AG Grid Ltd, the company behind every AG product. All AG sites
+ * emit it under the grid `@id` (see `getOrganizationId`); the company details live in
+ * `content/organization/agGridOrganization.json`.
+ */
+export function buildAgGridOrganization(): JsonLdObject {
+    return buildOrganization({ canonicalUrlBase: PRODUCTION_GRID_SITE_URL, ...agGridOrganization });
+}
+
 export function buildWebSite({ canonicalUrlBase, name, description }: WebSiteInput): JsonLdObject {
     return {
         '@type': 'WebSite',
@@ -239,7 +263,7 @@ export function buildWebSite({ canonicalUrlBase, name, description }: WebSiteInp
         name,
         description,
         inLanguage: 'en',
-        publisher: { '@id': getOrganizationId(canonicalUrlBase) },
+        publisher: { '@id': getOrganizationId() },
     };
 }
 
@@ -260,7 +284,7 @@ export function buildSoftwareApplication({
         operatingSystem,
         softwareVersion: version,
         url: siteRootUrl(canonicalUrlBase),
-        publisher: { '@id': getOrganizationId(canonicalUrlBase) },
+        publisher: { '@id': getOrganizationId() },
     };
     if (offers && offers.length > 0) {
         result.offers = offers;
@@ -280,14 +304,42 @@ export function buildTechArticle({
 }: TechArticleInput): JsonLdObject {
     const result: JsonLdObject = {
         '@type': 'TechArticle',
-        '@id': `${pageUrl}${ARTICLE_ID_FRAGMENT}`,
+        '@id': getTechArticleId(pageUrl),
         headline: title,
         description,
         inLanguage: 'en',
         url: pageUrl,
         mainEntityOfPage: { '@type': 'WebPage', '@id': pageUrl },
         isPartOf: { '@id': getWebSiteId(canonicalUrlBase) },
-        publisher: { '@id': getOrganizationId(canonicalUrlBase) },
+        publisher: { '@id': getOrganizationId() },
+    };
+    if (aboutEntityId) {
+        result.about = { '@id': aboutEntityId };
+    }
+    return result;
+}
+
+/**
+ * Build a `SoftwareSourceCode` node for one runnable example embedded on a docs page.
+ *
+ * Deliberately omits `text`: the example's files are already crawlable as visible markup
+ * (see `ExampleRunnerSourceCode.astro`), so repeating them here would only double the page
+ * weight for no indexing benefit. The node exists to type and name that visible block, and
+ * to link it back to the `TechArticle` it illustrates via `about`.
+ */
+export function buildSoftwareSourceCode({
+    pageUrl,
+    exampleName,
+    programmingLanguage,
+    aboutEntityId,
+}: SoftwareSourceCodeInput): JsonLdObject {
+    const result: JsonLdObject = {
+        '@type': 'SoftwareSourceCode',
+        '@id': `${pageUrl}${SOURCE_CODE_ID_FRAGMENT}-${exampleName}`,
+        name: exampleName,
+        programmingLanguage,
+        codeSampleType: 'full',
+        url: pageUrl,
     };
     if (aboutEntityId) {
         result.about = { '@id': aboutEntityId };
@@ -356,7 +408,7 @@ export function buildContactPage({ canonicalUrlBase, pageUrl, name }: ContactPag
         url: pageUrl,
         name,
         isPartOf: { '@id': getWebSiteId(canonicalUrlBase) },
-        mainEntity: { '@id': getOrganizationId(canonicalUrlBase) },
+        mainEntity: { '@id': getOrganizationId() },
     };
 }
 

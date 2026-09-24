@@ -98,19 +98,11 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
-export function line() {
+function typeChange(event: Event) {
+    const type = (event.target as HTMLInputElement).value as 'line' | 'bar';
     if (options.series !== undefined) {
         for (const opt of options.series) {
-            opt.type = 'line';
-        }
-    }
-    chart.update(options);
-}
-
-export function bar() {
-    if (options.series !== undefined) {
-        for (const opt of options.series) {
-            opt.type = 'bar';
+            opt.type = type;
         }
     }
     chart.update(options);

@@ -12,9 +12,11 @@ import type {
 
 import { AgCharts } from '../../../api/agCharts';
 import { OptionsGraph } from '../../../module/optionsGraph';
+import type { BBox } from '../../../scene/bbox';
 import type { Sector } from '../../../scene/shape/sector';
 import type { Text } from '../../../scene/shape/text';
 import { Transformable } from '../../../scene/transformable';
+import { boxOverlapsSector } from '../../../scene/util/sector';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
@@ -37,7 +39,8 @@ import {
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
-import { DonutSeries } from './donutSeries';
+import { DonutNodeTag, DonutSeries } from './donutSeries';
+import * as polarExamples from './test/examples';
 
 function* iterLegendMarkerLabels(myChart: Chart) {
     for (const { legend } of deproxy(myChart).modulesManager.legends()) {
@@ -49,11 +52,114 @@ function* iterLegendMarkerLabels(myChart: Chart) {
     }
 }
 
+interface CalloutLabelBox {
+    text: string;
+    box: BBox;
+}
+
+interface SectorBounds {
+    startAngle: number;
+    endAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+}
+
+/** Every polar series in a chart is centred on the same point, so all of this is one coordinate space. */
+function calloutSeries(myChart: Chart) {
+    const series: unknown[] = deproxy(myChart).series;
+    return series.filter((entry): entry is DonutSeries => entry instanceof DonutSeries);
+}
+
+/** Element access keeps the internal reads type-checked; the invariants are about what was drawn. */
+const calloutNodeDataOf = (series: DonutSeries) => series['calloutNodeData'];
+
+function sectorNodesOf(series: DonutSeries) {
+    return series['itemSelection'].nodes().filter((node) => node.visible && node.outerRadius > node.innerRadius);
+}
+
+function visibleCalloutLabels(myChart: Chart): CalloutLabelBox[] {
+    const labels: CalloutLabelBox[] = [];
+    for (const series of calloutSeries(myChart)) {
+        for (const datum of calloutNodeDataOf(series)) {
+            const label = datum.calloutLabel;
+            if (label?.box == null || label.hidden) continue;
+            labels.push({ text: String(label.text), box: label.box });
+        }
+    }
+    return labels;
+}
+
+function drawnSectors(myChart: Chart): SectorBounds[] {
+    return calloutSeries(myChart).flatMap((series) =>
+        sectorNodesOf(series).map(({ startAngle, endAngle, innerRadius, outerRadius }) => ({
+            startAngle,
+            endAngle,
+            innerRadius,
+            outerRadius,
+        }))
+    );
+}
+
+/**
+ * A label is only ever pushed out as far as the largest sector of its own series, so where that
+ * series has one radius no push can clear a sector - a sibling series at another radius does not
+ * widen the bracket.
+ */
+function hasVariableRadius(myChart: Chart) {
+    return calloutSeries(myChart).some((series) => {
+        const radii = sectorNodesOf(series).map((node) => node.outerRadius);
+        return Math.max(...radii) - Math.min(...radii) > 1e-6;
+    });
+}
+
+function labelsOverlappingASector(myChart: Chart) {
+    const sectors = drawnSectors(myChart);
+    return visibleCalloutLabels(myChart)
+        .filter(({ box }) => sectors.some((sector) => boxOverlapsSector(box, sector)))
+        .map(({ text }) => text);
+}
+
+function labelsOverlappingEachOther(myChart: Chart) {
+    const labels = visibleCalloutLabels(myChart);
+    const offenders: string[] = [];
+    for (let i = 0; i < labels.length; i++) {
+        for (let j = i + 1; j < labels.length; j++) {
+            if (labels[i].box.collidesBBox(labels[j].box)) {
+                offenders.push(`${labels[i].text} / ${labels[j].text}`);
+            }
+        }
+    }
+    return offenders;
+}
+
+/** The `legend-e2e/legend-item-key` docs example: two concentric donuts, four tiny slices at the top. */
+const UNIFORM_RADIUS_CROWDED_TOP: AgPolarChartOptions = {
+    data: [
+        { os: 'Android', 2020: 56.9, 2023: 63.9 },
+        { os: 'iOS', 2020: 22.5, 2023: 16.5 },
+        { os: 'BlackBerry', 2020: 6.8, 2023: 2.8 },
+        { os: 'Symbian', 2020: 8.5, 2023: 2.5 },
+        { os: 'Bada', 2020: 2.6, 2023: 0.6 },
+        { os: 'Windows', 2020: 1.9, 2023: 0.9 },
+    ],
+    series: [
+        { type: 'donut', calloutLabelKey: 'os', legendItemKey: 'os', angleKey: '2023', innerRadiusRatio: 0.7 },
+        {
+            type: 'donut',
+            legendItemKey: 'os',
+            angleKey: '2020',
+            outerRadiusRatio: 0.6,
+            innerRadiusRatio: 0.3,
+            showInLegend: false,
+        },
+    ],
+};
+
 describe('DonutSeries', () => {
     setupMockConsole();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -726,6 +832,78 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('CRT-1205 legend-linked label highlight', () => {
+        // The outer series is the one linked through `legendItemKey` because an inner series' callout labels
+        // are hidden when they overlap the surrounding series, which would leave the callout paths unasserted.
+        const data = [
+            { browser: 'Chrome', share: 0.6 },
+            { browser: 'Safari', share: 0.3 },
+            { browser: 'Other', share: 0.1 },
+        ];
+
+        const sectorLabelOpacities = (series: any): number[] => {
+            const result: number[] = [];
+            series.labelSelection.each((node: Text, datum: any) => {
+                result[datum.datumIndex] = node.fillOpacity;
+            });
+            return result;
+        };
+        const calloutOpacities = (series: any, tag: DonutNodeTag, property: 'fillOpacity' | 'strokeOpacity') => {
+            const result: number[] = [];
+            for (const node of series.calloutLabelSelection.selectByTag(tag)) {
+                expect(node.visible).toBe(true);
+                result[node.unsafeClosestDatum().datumIndex] = node[property];
+            }
+            return result;
+        };
+
+        beforeEach(async () => {
+            chart = await createChart({
+                series: [
+                    {
+                        type: 'pie',
+                        data,
+                        angleKey: 'share',
+                        legendItemKey: 'browser',
+                        sectorLabelKey: 'share',
+                        outerRadiusRatio: 0.5,
+                    },
+                    {
+                        type: 'donut',
+                        data,
+                        angleKey: 'share',
+                        legendItemKey: 'browser',
+                        sectorLabelKey: 'share',
+                        calloutLabelKey: 'browser',
+                        innerRadiusRatio: 0.6,
+                        showInLegend: false,
+                    },
+                ],
+            });
+        });
+
+        test('lights the linked series labels with the legend owner on legend hover', async () => {
+            const [owner, linked] = (chart as any).series as any[];
+            const [{ x, y }] = [...iterLegendMarkerLabels(chart)];
+
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            const ownerSector = sectorLabelOpacities(owner);
+
+            // The hovered item's label must be brighter than the others on the owning series.
+            expect(ownerSector[0]).toBeGreaterThan(ownerSector[1]);
+            expect(ownerSector[1]).toBe(ownerSector[2]);
+
+            // The linked series must resolve every label exactly as the legend owner does.
+            expect(sectorLabelOpacities(linked)).toEqual(ownerSector);
+            expect(calloutOpacities(linked, DonutNodeTag.CalloutLabel, 'fillOpacity')).toEqual(ownerSector);
+            expect(calloutOpacities(linked, DonutNodeTag.CalloutLine, 'strokeOpacity')).toEqual(ownerSector);
+
+            await compare('donut-series-test-ts-legend-linked-label-highlight');
+        });
+    });
+
     describe('AG-14232 legend toggling', () => {
         beforeEach(async () => {
             chart = await createChart({
@@ -808,7 +986,7 @@ describe('DonutSeries', () => {
         });
 
         test('reprocesses palette entries for new data', async () => {
-            expect(donutSeries.properties.fills).toEqual(['red', 'green']);
+            expect(donutSeries.options.fills).toEqual(['red', 'green']);
 
             await chartProxy.applyTransaction({
                 add: [
@@ -818,7 +996,7 @@ describe('DonutSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(donutSeries.properties.fills).toEqual(['red', 'green', 'red', 'green']);
+            expect(donutSeries.options.fills).toEqual(['red', 'green', 'red', 'green']);
             const nodeData = donutSeries.getNodeData() ?? [];
             expect(nodeData).toHaveLength(4);
             expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);
@@ -1308,6 +1486,110 @@ describe('DonutSeries', () => {
         });
     });
 
+    describe('AG-18485 inner label centring', () => {
+        const centredOptions = (innerLabels: AgDonutSeriesOptions['innerLabels']): AgPolarChartOptions => ({
+            ...options,
+            data: [
+                { label: 'A', value: 60 },
+                { label: 'B', value: 40 },
+            ],
+            series: [{ type: 'donut', angleKey: 'value', innerRadiusRatio: 0.9, innerLabels }],
+        });
+
+        const innerLabelBoxes = (myChart: Chart) =>
+            classCast(myChart.series[0], DonutSeries)
+                .innerLabelsSelection.nodes()
+                .map((node) => node.getBBox());
+
+        // 1px tolerance absorbs canvas-mock measurement noise; the defect is a whole descent.
+        it('centres a single inner label on the centre of the hole', async () => {
+            chart = await createChart(centredOptions([{ text: '10', fontSize: 80 }]));
+
+            const [node] = classCast(chart.series[0], DonutSeries).innerLabelsSelection.nodes();
+            expect(node.visible).toBe(true);
+            const bbox = node.getBBox();
+            expect(Math.abs(bbox.y + bbox.height / 2)).toBeLessThan(1);
+        });
+
+        it('centres a two-line inner label stack on the centre of the hole, spacing intact', async () => {
+            chart = await createChart(
+                centredOptions([
+                    { text: 'Total', fontSize: 24, spacing: 6 },
+                    { text: '100', fontSize: 18, spacing: 10 },
+                ])
+            );
+
+            const boxes = innerLabelBoxes(chart);
+            expect(boxes).toHaveLength(2);
+            const top = Math.min(...boxes.map((bbox) => bbox.y));
+            const bottom = Math.max(...boxes.map((bbox) => bbox.y + bbox.height));
+            expect(Math.abs((top + bottom) / 2)).toBeLessThan(1);
+            // The gap is the upper label's spacing below plus the lower label's spacing above.
+            expect(boxes[1].y - (boxes[0].y + boxes[0].height)).toBeCloseTo(16, 5);
+        });
+
+        it('renders the ticket repro with the inner label centred in the hole', async () => {
+            const reproOptions = prepareTestOptions({
+                data: [
+                    { asset: 'Stocks', amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                    { asset: 'Cash', amount: 7000 },
+                    { asset: 'Real Estate', amount: 5000 },
+                    { asset: 'Commodities', amount: 3000 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        innerRadiusRatio: 0.9,
+                        innerLabels: [{ text: '10', fontSize: 80 }],
+                    },
+                ],
+            } as AgPolarChartOptions);
+            // prepareTestOptions fixes the canvas size, so the repro's height is applied after it.
+            reproOptions.height = 200;
+            chart = deproxy(AgCharts.create(reproOptions) as AgChartProxy);
+            await waitForChartStability(chart);
+            await compare();
+        });
+    });
+
+    describe('AG-18500 removing inner labels on update', () => {
+        const donutOptions = (innerLabels?: AgDonutSeriesOptions['innerLabels']): AgPolarChartOptions => ({
+            ...options,
+            data: [
+                { asset: 'Stocks', amount: 60000 },
+                { asset: 'Bonds', amount: 40000 },
+            ],
+            series: [
+                {
+                    type: 'donut',
+                    angleKey: 'amount',
+                    innerRadiusRatio: 0.7,
+                    // Spread rather than assign: an absent key and an explicit `undefined` reach
+                    // the options delta differently.
+                    ...(innerLabels && { innerLabels }),
+                },
+            ],
+        });
+
+        it('hides the inner labels when innerLabels is omitted from the updated options', async () => {
+            chart = await createChart(
+                donutOptions([
+                    { text: 'Total Investment', fontSize: 14 },
+                    { text: '$100,000', fontSize: 20, spacing: 8 },
+                ])
+            );
+            expect(classCast(chart.series[0], DonutSeries).innerLabelsSelection.nodes()).toHaveLength(2);
+
+            await chart.publicApi!.update(prepareTestOptions(donutOptions()) as AgChartOptions);
+            await waitForChartStability(chart);
+
+            expect(classCast(chart.series[0], DonutSeries).innerLabelsSelection.nodes()).toHaveLength(0);
+            expectWarningsCalls().toEqual([]);
+        });
+    });
+
     describe('inner circle with rounded corners', () => {
         const data = [
             { asset: 'Stocks', amount: 30 },
@@ -1725,6 +2007,48 @@ describe('DonutSeries', () => {
             const pattern = ctx.snapshot();
 
             await expectDiffersFromFlatFill(pattern, LIGHT_FOREGROUND_COLOR, { cornerRadius });
+        });
+    });
+
+    // Geometry, not pixels: a snapshot says something moved, these say which property broke, so
+    // label churn cannot silently reintroduce an overlap.
+    describe('callout label collision invariants', () => {
+        describe('labels clear the sectors they annotate', () => {
+            test.each([
+                ['variable-radius donut', polarExamples.DONUT_VARIABLE_RADIUS_CALLOUT_COLLISIONS],
+                ['variable-radius pie', polarExamples.PIE_SECTORS_DIFFERENT_RADII],
+                ['grouped variable-radius donuts', polarExamples.DONUT_SERIES_DIFFERENT_RADII],
+            ])('%s', async (_name, seriesOptions) => {
+                chart = await createChart(seriesOptions);
+
+                expect(hasVariableRadius(chart)).toBe(true);
+                expect(labelsOverlappingASector(chart)).toEqual([]);
+            });
+        });
+
+        describe('labels clear each other', () => {
+            test.each([
+                ['uniform radius, crowded top', UNIFORM_RADIUS_CROWDED_TOP],
+                ['pie with colliding callouts', polarExamples.PIE_CALLOUT_LABELS_COLLISIONS],
+                ['grouped donuts', polarExamples.DONUT_SERIES],
+            ])('%s', async (_name, seriesOptions) => {
+                chart = await createChart(seriesOptions);
+
+                expect(labelsOverlappingEachOther(chart)).toEqual([]);
+            });
+        });
+
+        test('a uniform-radius series keeps every label on its own radius', async () => {
+            chart = await createChart(UNIFORM_RADIUS_CROWDED_TOP);
+            expect(hasVariableRadius(chart)).toBe(false);
+
+            const offsets = calloutSeries(chart).flatMap((series) =>
+                calloutNodeDataOf(series)
+                    .filter((datum) => datum.calloutLabel != null)
+                    .map((datum) => datum.calloutLabel!.collisionRadiusOffset)
+            );
+            expect(offsets).not.toEqual([]);
+            expect(offsets.filter((offset) => offset !== 0)).toEqual([]);
         });
     });
 

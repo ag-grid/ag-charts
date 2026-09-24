@@ -34,6 +34,7 @@ import {
     object,
     optionsDefs,
     or,
+    partial,
     positiveNumber,
     ratio,
     required,
@@ -171,9 +172,16 @@ describe('Validation utils', () => {
             expect(isValid<{ value: string }>({ value: undefined }, { value: required(string) })).toBe(false);
         });
 
+        test('partial makes required entries optional without loosening their validators', () => {
+            const defs = partial<{ key: string; size: number }>({ key: required(string), size: number });
+            expect(isValid({ size: 1 }, defs)).toBe(true);
+            expect(isValid({ key: 'x' }, defs)).toBe(true);
+            expect(isValid({ key: 1 }, defs)).toBe(false);
+        });
+
         test('attachDescription adds a description to a validator', () => {
             const describedValidator = attachDescription(
-                (value: unknown, context) => string(value, context) && value !== '',
+                (value: unknown, context) => string(value, context) === true && value !== '',
                 'a non-empty string'
             );
             expect(validate<{ str: string }>({ str: '' }, { str: describedValidator }).invalid).toMatchSnapshot();
@@ -242,7 +250,7 @@ describe('Validation utils', () => {
     });
 
     describe('deprecated wrapper', () => {
-        afterEach(() => validationLogger.setLevel('deprecation'));
+        afterEach(() => validationLogger.setEnabledLevels(['error', 'warning', 'deprecation']));
 
         test('emits a deprecationOnce notice at the default console level', () => {
             const { cleared, invalid } = validate<{ colorScale: string }>(
@@ -256,8 +264,8 @@ describe('Validation utils', () => {
             expect((console.warn as Mock).mock.calls[0][0]).toContain('Use `colorScale.fills` instead.');
         });
 
-        test('silences the notice once the console level is raised to "warning"', () => {
-            validationLogger.setLevel('warning');
+        test('silences the notice once "deprecation" is deselected from the console levels', () => {
+            validationLogger.setEnabledLevels(['error', 'warning']);
             // A message distinct from the preceding test's, so the shared logger's do-once cache
             // cannot be what keeps this quiet.
             const { cleared, invalid } = validate<{ colorScale: string }>(
@@ -270,30 +278,24 @@ describe('Validation utils', () => {
             expect(console.warn).not.toHaveBeenCalled();
         });
 
-        test('reports the deprecation to onDeprecation with the notice and path', () => {
-            const onDeprecation = vi.fn();
+        test('reports the deprecation to the console with the notice and path', () => {
             validate<{ colorScale: string }>(
                 { colorScale: 'red' },
-                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') },
-                '',
-                { onDeprecation }
+                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') }
             );
-            expect(onDeprecation).toHaveBeenCalledTimes(1);
-            expect(onDeprecation).toHaveBeenCalledWith(
-                'Option `colorScale` is deprecated. Use `colorScale.fills` instead.',
-                'colorScale'
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect((console.warn as Mock).mock.calls[0][0]).toContain(
+                'Option `colorScale` is deprecated. Use `colorScale.fills` instead.'
             );
         });
 
-        test('stays silent to onDeprecation under silentAdvisories', () => {
-            const onDeprecation = vi.fn();
+        test('stays silent under silentAdvisories', () => {
             validate<{ colorScale: string }>(
                 { colorScale: 'red' },
                 { colorScale: deprecated(string, 'Use `colorScale.range` instead.') },
                 '',
-                { onDeprecation, silentAdvisories: true }
+                { silentAdvisories: true }
             );
-            expect(onDeprecation).not.toHaveBeenCalled();
             expect(console.warn).not.toHaveBeenCalled();
         });
 
@@ -306,24 +308,12 @@ describe('Validation utils', () => {
             );
 
             test('passes the deprecated value through and warns once', () => {
-                const onDeprecation = vi.fn();
-                const { cleared, invalid } = validate<{ placement: string }>(
-                    { placement: 'before' },
-                    { placement },
-                    '',
-                    {
-                        onDeprecation,
-                    }
-                );
+                const { cleared, invalid } = validate<{ placement: string }>({ placement: 'before' }, { placement });
                 expect(cleared).toEqual({ placement: 'before' });
                 expect(invalid).toEqual([]);
                 expect(console.warn).toHaveBeenCalledTimes(1);
                 expect((console.warn as Mock).mock.calls[0][0]).toContain(
                     'Value `"before"` of option `placement` is deprecated. Use `before-center` instead.'
-                );
-                expect(onDeprecation).toHaveBeenCalledWith(
-                    'Value `"before"` of option `placement` is deprecated. Use `before-center` instead.',
-                    'placement'
                 );
             });
 
@@ -339,20 +329,15 @@ describe('Validation utils', () => {
             });
 
             test('stays silent for a supported value', () => {
-                const onDeprecation = vi.fn();
-                validate<{ placement: string }>({ placement: 'before-center' }, { placement }, '', { onDeprecation });
-                expect(onDeprecation).not.toHaveBeenCalled();
+                validate<{ placement: string }>({ placement: 'before-center' }, { placement });
                 expect(console.warn).not.toHaveBeenCalled();
             });
 
             test('stays silent for a theme-injected value under silentAdvisories', () => {
-                const onDeprecation = vi.fn();
                 const { cleared } = validate<{ placement: string }>({ placement: 'before' }, { placement }, '', {
-                    onDeprecation,
                     silentAdvisories: true,
                 });
                 expect(cleared).toEqual({ placement: 'before' });
-                expect(onDeprecation).not.toHaveBeenCalled();
                 expect(console.warn).not.toHaveBeenCalled();
             });
 

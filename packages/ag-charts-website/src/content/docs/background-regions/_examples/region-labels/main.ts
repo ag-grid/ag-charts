@@ -2,7 +2,6 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     AgSeriesAreaBackgroundRegionLabelPosition,
-    BackgroundRegionsModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -11,13 +10,13 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BackgroundRegionsModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
+ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Reservoir Level',
+        text: 'Reservoir Capacity',
     },
     seriesArea: {
         backgroundRegions: [
@@ -35,8 +34,8 @@ const options: AgCartesianChartOptions = {
         {
             type: 'line',
             xKey: 'date',
-            yKey: 'level',
-            yName: 'Level',
+            yKey: 'capacity',
+            yName: 'Capacity',
         },
     ],
     axes: {
@@ -58,4 +57,22 @@ function setLabelPosition(position: AgSeriesAreaBackgroundRegionLabelPosition) {
     options.seriesArea!.backgroundRegions![0].label!.position = position;
 
     chart.update(options);
+}
+
+function updateLabelXOffset(event: any) {
+    var value = +event.target.value;
+
+    options.seriesArea!.backgroundRegions![0].label!.xOffset = value;
+    chart.update(options);
+
+    document.getElementById('xOffsetValue')!.innerHTML = String(value);
+}
+
+function updateLabelYOffset(event: any) {
+    var value = +event.target.value;
+
+    options.seriesArea!.backgroundRegions![0].label!.yOffset = value;
+    chart.update(options);
+
+    document.getElementById('yOffsetValue')!.innerHTML = String(value);
 }

@@ -28,13 +28,6 @@ exports[`DOMManager > for disconnected container cases > should initialize the e
             
         <div
           aria-hidden="true"
-          class="ag-charts-canvas-background"
-          role="presentation"
-        />
-        
-            
-        <div
-          aria-hidden="true"
           class="ag-charts-canvas"
           role="presentation"
         />
@@ -47,9 +40,18 @@ exports[`DOMManager > for disconnected container cases > should initialize the e
           
                 
           <div
-            class="ag-charts-series-area"
+            class="ag-charts-series-area-bounds"
             role="presentation"
-          />
+          >
+            
+                    
+            <div
+              class="ag-charts-series-area"
+              role="presentation"
+            />
+            
+                
+          </div>
           
             
         </div>
@@ -117,13 +119,6 @@ exports[`DOMManager > for normal container cases > should initialize the expecte
             
         <div
           aria-hidden="true"
-          class="ag-charts-canvas-background"
-          role="presentation"
-        />
-        
-            
-        <div
-          aria-hidden="true"
           class="ag-charts-canvas"
           role="presentation"
         />
@@ -136,9 +131,18 @@ exports[`DOMManager > for normal container cases > should initialize the expecte
           
                 
           <div
-            class="ag-charts-series-area"
+            class="ag-charts-series-area-bounds"
             role="presentation"
-          />
+          >
+            
+                    
+            <div
+              class="ag-charts-series-area"
+              role="presentation"
+            />
+            
+                
+          </div>
           
             
         </div>
@@ -211,13 +215,6 @@ exports[`DOMManager > for shadow-DOM container cases > should initialize the exp
             
         <div
           aria-hidden="true"
-          class="ag-charts-canvas-background"
-          role="presentation"
-        />
-        
-            
-        <div
-          aria-hidden="true"
           class="ag-charts-canvas"
           role="presentation"
         />
@@ -230,9 +227,18 @@ exports[`DOMManager > for shadow-DOM container cases > should initialize the exp
           
                 
           <div
-            class="ag-charts-series-area"
+            class="ag-charts-series-area-bounds"
             role="presentation"
-          />
+          >
+            
+                    
+            <div
+              class="ag-charts-series-area"
+              role="presentation"
+            />
+            
+                
+          </div>
           
             
         </div>

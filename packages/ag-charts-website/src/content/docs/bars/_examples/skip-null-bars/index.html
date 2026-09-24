@@ -1,7 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="skipNullBars()">Skip Null Bars</button>
-        <button onclick="showNullBars()">Show Null Bars</button>
+        <div class="button-group" role="group" aria-label="Skip Null Bars">
+            <input
+                type="radio"
+                id="skip-null-bars-on"
+                name="skip-null-bars"
+                value="true"
+                checked
+                onchange="skipNullBarsChange(event)"
+            />
+            <label for="skip-null-bars-on">Skip Null Bars</label>
+            <input
+                type="radio"
+                id="skip-null-bars-off"
+                name="skip-null-bars"
+                value="false"
+                onchange="skipNullBarsChange(event)"
+            />
+            <label for="skip-null-bars-off">Show Null Bars</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

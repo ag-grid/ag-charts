@@ -1,9 +1,15 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="contain()">Contain</button>
-        <button onclick="cover()">Cover</button>
-        <button onclick="stretch()">Stretch</button>
-        <button onclick="none()">None</button>
+        <div class="button-group" role="group" aria-label="Fit">
+            <input type="radio" id="fit-contain" name="fit" value="contain" onchange="fitChange(event)" />
+            <label for="fit-contain">Contain</label>
+            <input type="radio" id="fit-cover" name="fit" value="cover" onchange="fitChange(event)" />
+            <label for="fit-cover">Cover</label>
+            <input type="radio" id="fit-stretch" name="fit" value="stretch" checked onchange="fitChange(event)" />
+            <label for="fit-stretch">Stretch</label>
+            <input type="radio" id="fit-none" name="fit" value="none" onchange="fitChange(event)" />
+            <label for="fit-none">None</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

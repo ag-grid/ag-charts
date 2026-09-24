@@ -76,7 +76,7 @@ In this configuration:
 
 ## Polar Axes Cross Lines
 
-Cross Lines are also available for Polar Axes. These have the same configuration as the Cartesian Cross Lines.
+Cross Lines are also available for Polar Axes. They share the line and range options of Cartesian Cross Lines, but the label options differ by axis: radius axis labels are positioned with `positionAngle`, and angle axis labels support the common label options only.
 
 {% note %}
 Polar Cross Lines are not included in `CrossLinesModule`. Register `PolarCrossLinesModule` separately when using [module imports](./module-registry/).
@@ -123,12 +123,28 @@ Polar Cross Lines are not included in `CrossLinesModule`. Register `PolarCrossLi
 
 {% tabs %}
 
-{% tabItem id="AgLineCrossLineOptions" label="Line" %}
-{% apiReference id="AgLineCrossLineOptions" hideHeader=true /%}
+{% tabItem id="AgCartesianLineCrossLineOptions" label="Cartesian Line" %}
+{% apiReference id="AgCartesianLineCrossLineOptions" hideHeader=true /%}
 {% /tabItem %}
 
-{% tabItem id="AgRangeCrossLineOptions" label="Range" %}
-{% apiReference id="AgRangeCrossLineOptions" hideHeader=true /%}
+{% tabItem id="AgCartesianRangeCrossLineOptions" label="Cartesian Range" %}
+{% apiReference id="AgCartesianRangeCrossLineOptions" hideHeader=true /%}
+{% /tabItem %}
+
+{% tabItem id="AgAngleLineCrossLineOptions" label="Angle Line" %}
+{% apiReference id="AgAngleLineCrossLineOptions" hideHeader=true /%}
+{% /tabItem %}
+
+{% tabItem id="AgAngleRangeCrossLineOptions" label="Angle Range" %}
+{% apiReference id="AgAngleRangeCrossLineOptions" hideHeader=true /%}
+{% /tabItem %}
+
+{% tabItem id="AgRadiusLineCrossLineOptions" label="Radius Line" %}
+{% apiReference id="AgRadiusLineCrossLineOptions" hideHeader=true /%}
+{% /tabItem %}
+
+{% tabItem id="AgRadiusRangeCrossLineOptions" label="Radius Range" %}
+{% apiReference id="AgRadiusRangeCrossLineOptions" hideHeader=true /%}
 {% /tabItem %}
 
 {% /tabs %}

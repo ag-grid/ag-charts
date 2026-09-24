@@ -6,6 +6,8 @@ import {
     AgCaptionListeners,
     AgChartInstance,
     AgChartLegendListeners,
+    AgChartModule,
+    AgChartParams,
     AgCharts as AgChartsAPI,
     AgContextMenuGetItemsCallback,
     AgContextMenuItem,
@@ -20,13 +22,15 @@ import {
 export abstract class AgChartsBase<Options extends {}> implements AfterViewInit, OnChanges, OnDestroy {
     public chart?: AgChartInstance;
     public abstract options: Options;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
+    public abstract modules: AgChartModule[] | undefined;
     public abstract chartReady: EventEmitter<AgChartInstance>;
 
     protected _nativeElement: any;
     protected _initialised = false;
     protected ngZone!: NgZone;
 
-    protected abstract createChart(options: Options): any;
+    protected abstract createChart(options: Options, params: AgChartParams): any;
 
     /** The element name this component is used as, so an options error names the tag the author wrote. */
     protected abstract readonly selector: string;
@@ -34,7 +38,7 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     ngAfterViewInit(): void {
         const options = this.patchChartOptions(this.options);
 
-        this.chart = this.runOutsideAngular(() => this.createChart(options));
+        this.chart = this.runOutsideAngular(() => this.createChart(options, { modules: this.modules }));
         this._initialised = true;
 
         (this.chart as any).chart.waitForUpdate().then(() => {
@@ -190,10 +194,10 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     }
 
     private runOutsideAngular<T>(callback: () => T): T {
-        return this.ngZone ? this.ngZone.runOutsideAngular(callback) : callback();
+        return this.ngZone == null ? callback() : this.ngZone.runOutsideAngular(callback);
     }
 
     private runInsideAngular<T>(callback: () => T): T {
-        return this.ngZone ? this.ngZone.run(callback) : callback();
+        return this.ngZone == null ? callback() : this.ngZone.run(callback);
     }
 }

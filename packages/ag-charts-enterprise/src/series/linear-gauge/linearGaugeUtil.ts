@@ -1,12 +1,99 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
-import { cachedTextMeasurer, isArray, measureTextSegments, toPlainText, toTextString } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import {
+    type InternalAgGradientColor,
+    type NormalisedGaugeColorStop,
+    type NormalisedGaugeSeriesStyle,
+    type NormalisedLinearGaugeBarOptions,
+    type NormalisedLinearGaugeDefaultTargetOptions,
+    type NormalisedLinearGaugeScaleOptions,
+    type NormalisedLinearGaugeTargetOptions,
+    cachedTextMeasurer,
+    isArray,
+    measureTextSegments,
+    toNumberOrUndefined,
+    toPlainText,
+    toTextString,
+} from 'ag-charts-core';
+import type { AgGaugeFillMode, AgNumericValue } from 'ag-charts-types';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel } from '../util/labelFormatter';
-import type { LinearGaugeLabelDatum } from './linearGaugeSeriesProperties';
+import type { LinearGaugeLabelDatum } from './linearGaugeTypes';
 
-const { BBox } = _ModuleSupport;
+const { BBox, getColorStops } = _ModuleSupport;
+
+export function createLinearGradient(
+    fills: NormalisedGaugeColorStop[] | undefined,
+    fillMode: AgGaugeFillMode,
+    defaultColorRange: string[],
+    scale: _ModuleSupport.LinearScale,
+    horizontal: boolean
+): InternalAgGradientColor {
+    // Colour-stop positions are fractional thresholds, so Number is exact enough here.
+    const stops = fills?.map(({ color, stop }) => ({ color, stop: toNumberOrUndefined(stop) })) ?? [];
+    const colorStops = getColorStops(stops, defaultColorRange, scale.domain.map(Number), fillMode);
+    return {
+        type: 'gradient',
+        gradient: 'linear',
+        colorSpace: 'oklch',
+        colorStops,
+        rotation: horizontal ? 90 : 0,
+        bounds: 'series',
+    };
+}
+
+export function getLinearGaugeBarStyle(
+    bar: NormalisedLinearGaugeBarOptions,
+    defaultColorRange: string[],
+    horizontal: boolean,
+    scale: _ModuleSupport.LinearScale
+): Required<NormalisedGaugeSeriesStyle> {
+    const { fill, fills, fillMode, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = bar;
+    const barFill = fill ?? createLinearGradient(fills, fillMode, defaultColorRange, scale, horizontal);
+    return { fill: barFill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
+}
+
+export function getLinearGaugeScaleStyle(
+    scaleOptions: NormalisedLinearGaugeScaleOptions,
+    barEnabled: boolean,
+    defaultColorRange: string[],
+    horizontal: boolean,
+    scale: _ModuleSupport.LinearScale
+): Required<NormalisedGaugeSeriesStyle> {
+    const {
+        fill,
+        fills,
+        defaultFill,
+        fillMode,
+        fillOpacity,
+        stroke,
+        strokeWidth,
+        strokeOpacity,
+        lineDash,
+        lineDashOffset,
+    } = scaleOptions;
+    const scaleFill =
+        fill ??
+        (barEnabled && (fills == null || fills.length === 0) ? defaultFill : undefined) ??
+        createLinearGradient(fills, fillMode, defaultColorRange, scale, horizontal);
+    return { fill: scaleFill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
+}
+
+export function getLinearGaugeTargetStyle(
+    target: NormalisedLinearGaugeTargetOptions,
+    defaultTarget: NormalisedLinearGaugeDefaultTargetOptions
+): Required<NormalisedGaugeSeriesStyle> {
+    const {
+        fill = defaultTarget.fill,
+        fillOpacity = defaultTarget.fillOpacity,
+        stroke = defaultTarget.stroke,
+        strokeWidth = defaultTarget.strokeWidth,
+        strokeOpacity = defaultTarget.strokeOpacity,
+        lineDash = defaultTarget.lineDash,
+        lineDashOffset = defaultTarget.lineDashOffset,
+    } = target;
+    return { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
+}
 
 interface AnimatableRectDatum {
     x0: number;

@@ -1,14 +1,37 @@
-import { type AgRangeAreaSeriesItemType, type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgRangeAreaSeriesItemStylerParams,
+    type AgRangeAreaSeriesItemType,
+    type AgSeriesMarkerStyle,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type LabelPlacement,
     type NormalisedTextOrSegments,
     type Point,
     type PointLabelDatum,
+    type SizedPoint,
     areScalingEqual,
     isScaleValid,
 } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
-import { type RangeAreaMarkerDatum } from './rangeAreaProperties';
+export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
+    readonly itemId?: never;
+    readonly itemType: AgRangeAreaSeriesItemType;
+    readonly index: number;
+    readonly yLowKey: string;
+    readonly yHighKey: string;
+    readonly yLowValue: AgNumericValue;
+    readonly yHighValue: AgNumericValue;
+    readonly point: Readonly<SizedPoint>;
+    readonly enabled: boolean;
+    style?: AgSeriesMarkerStyle;
+}
+
+export type RangeAreaSeriesParams = Pick<
+    AgRangeAreaSeriesItemStylerParams<unknown, unknown>,
+    'xKey' | 'yLowKey' | 'yHighKey' | 'itemType'
+>;
 
 const {
     CollapseMode,

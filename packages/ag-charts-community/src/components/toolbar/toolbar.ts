@@ -1,5 +1,4 @@
 import type { BoxBounds, DynamicContext } from 'ag-charts-core';
-import { BaseProperties } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
@@ -11,7 +10,7 @@ import { CollapseMode } from '../../widget/collapseMode';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 import type { RovingDirection } from '../../widget/rovingDirection';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import type { ClickWidgetEvent } from '../../widget/widgetEvents';
 import { ToolbarButtonWidget, type ToolbarButtonWidgetOptions } from './toolbarButtonWidget';
 
 const BUTTON_ACTIVE_CLASS = 'ag-charts-toolbar__button--active';
@@ -24,7 +23,7 @@ export interface ToolbarButtonOptions extends ToolbarButtonWidgetOptions {
 
 export interface ToolbarEventMap<ButtonOptions extends ToolbarButtonOptions = ToolbarButtonOptions> {
     'button-pressed': {
-        event: MouseWidgetEvent<'click'>;
+        event: ClickWidgetEvent;
         button: ButtonOptions & { index: number };
         buttonBounds: BoxBounds;
         buttonWidget: ExpansionControllerWidget<HTMLElement>;
@@ -192,7 +191,7 @@ export abstract class BaseToolbar<
         buttonWidget.addClass('ag-charts-toolbar__button');
 
         buttonWidget.addListener('click', (event) => {
-            const buttonOptions = { index, ...(button instanceof BaseProperties ? button.toJson() : button) };
+            const buttonOptions = { index, ...button };
             const buttonBounds = this.getButtonWidgetBounds(buttonWidget);
             const params: ToolbarEventMap<ButtonOptions>['button-pressed'] = {
                 event,
@@ -215,7 +214,7 @@ export abstract class BaseToolbar<
             });
         });
 
-        if (button.section) {
+        if (button.section != null) {
             buttonWidget.section = button.section;
         }
 

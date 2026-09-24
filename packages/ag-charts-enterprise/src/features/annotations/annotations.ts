@@ -21,7 +21,6 @@ import {
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { TextInput } from '../text-input/textInput';
-import { AxesButtons } from './annotationAxesButtons';
 import { AnnotationDefaults } from './annotationDefaults';
 import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
 import type {
@@ -38,6 +37,7 @@ import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene as AnnotationSceneUnion } from './annotationsSuperTypes';
 import { AnnotationsToolbar } from './annotationsToolbar';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
+import { HorizontalLineProperties, VerticalLineProperties } from './cross-line/crossLineProperties';
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
@@ -65,7 +65,7 @@ export class Annotations extends AbstractModuleInstance {
         return getTypedDatum(this.annotationData.at(active));
     });
 
-    public axesButtons = new AxesButtons();
+    public axesButtons: { enabled: boolean; axes: 'x' | 'y' | 'xy' } = { enabled: false, axes: 'y' };
 
     // Annotations is only created when the `annotations` subtree is configured, so assert
     // the subtree's presence here and rely on annotationsTheme for field-level defaults.
@@ -114,13 +114,10 @@ export class Annotations extends AbstractModuleInstance {
                 const opts = get('options', 'annotations');
                 const enabled = opts?.enabled ?? false;
 
-                this.toolbar.enabled = enabled;
-                this.optionsToolbar.enabled = enabled;
-                this.axesButtons.enabled = enabled;
-
-                if (opts?.toolbar != null) this.toolbar.set(opts.toolbar);
-                if (opts?.optionsToolbar != null) this.optionsToolbar.set(opts.optionsToolbar);
-                if (opts?.axesButtons != null) this.axesButtons.set(opts.axesButtons);
+                const { toolbar, optionsToolbar, axesButtons } = opts ?? {};
+                this.toolbar.applyOptions({ ...toolbar, enabled: toolbar?.enabled ?? enabled });
+                this.optionsToolbar.applyOptions({ ...optionsToolbar, enabled: optionsToolbar?.enabled ?? enabled });
+                this.axesButtons = { enabled: axesButtons?.enabled ?? enabled, axes: axesButtons?.axes ?? 'y' };
             }),
             () => {
                 this.clear();
@@ -265,6 +262,10 @@ export class Annotations extends AbstractModuleInstance {
                 this.popAnnotationState(InteractionState.Annotations);
             },
 
+            startDragging: (index: number) => {
+                this.onStartDragging(index);
+            },
+
             create: (type: AnnotationType, datum: AnnotationProperties) => {
                 this.createAnnotation(type, datum);
             },
@@ -369,7 +370,7 @@ export class Annotations extends AbstractModuleInstance {
 
             showAnnotationOptions: (active: number) => {
                 const node = this.annotations.at(active) as AnnotationSceneUnion;
-                if (!node || isEphemeralType(this.annotationData.at(active))) return;
+                if (node == null || isEphemeralType(this.annotationData.at(active))) return;
 
                 this.optionsToolbar.updateButtons(this.annotationData.at(active)!);
                 this.optionsToolbar.show();
@@ -411,8 +412,10 @@ export class Annotations extends AbstractModuleInstance {
                     },
                     onChangeText: (props) => {
                         this.state.transition('lineText', props);
-                        if (props.alignment) this.defaults.setDefaultLineTextAlignment(datum.type, props.alignment);
-                        if (props.position) this.defaults.setDefaultLineTextPosition(datum.type, props.position);
+                        if (props.alignment != null)
+                            this.defaults.setDefaultLineTextAlignment(datum.type, props.alignment);
+                        if (props.position != null)
+                            this.defaults.setDefaultLineTextPosition(datum.type, props.position);
                         this.recordActionAfterNextUpdate(
                             `Change ${datum.type} text ${Object.keys(props)
                                 .map((key) => `${key} to ${(props as any)[key]}`)
@@ -459,7 +462,6 @@ export class Annotations extends AbstractModuleInstance {
                 // Interactions
                 seriesDragInterpreter.events.on('click', this.hoverTouchPreHandler.bind(this)),
                 seriesDragInterpreter.events.on('drag-start', this.hoverTouchPreHandler.bind(this)),
-                seriesDragInterpreter.events.on('drag-move', this.dragMoveTouchPreHandler.bind(this)),
                 seriesDragInterpreter.events.on('mousemove', this.onHover.bind(this)),
                 seriesDragInterpreter.events.on('click', this.onClick.bind(this)),
                 seriesDragInterpreter.events.on('dblclick', this.onDoubleClick.bind(this)),
@@ -836,14 +838,17 @@ export class Annotations extends AbstractModuleInstance {
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
         const bounds = new BBox(0, 0, seriesRect.width, seriesRect.height).grow(padding, axisPosition);
 
-        const lineDirection = direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
+        const isDirectionX = direction === ChartAxisDirection.X;
+        const lineDirection = isDirectionX ? 'vertical' : 'horizontal';
 
         const opts = this.opts;
         const enabled = opts.enabled ?? true;
         const snap = opts.snap ?? false;
         const { axesButtons } = this;
         const buttonEnabled =
-            enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
+            enabled &&
+            axesButtons.enabled &&
+            (axesButtons.axes === 'xy' || axesButtons.axes === (isDirectionX ? 'x' : 'y'));
         if (buttonEnabled) {
             button ??= new AxisButton(
                 this.ctx,
@@ -990,11 +995,11 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('hover', { offset, point, shiftKey, context });
     }
 
-    private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
+    private onClick(event: _Widget.ClickWidgetEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
-        if (!context) return;
+        if (!context || event.device === 'keyboard') return;
 
         const shiftKey = event.sourceEvent.shiftKey;
         const point = invertCoords(Vec2.from(event), context);
@@ -1004,7 +1009,7 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('click', { point, shiftKey, textInputValue, bbox });
     }
 
-    private onDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
+    private onDoubleClick(event: _Widget.DblClickWidgetEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -1020,7 +1025,7 @@ export class Annotations extends AbstractModuleInstance {
         this.reset();
 
         const context = this.getAnnotationContext();
-        if (!this.annotationData || !context) return;
+        if (this.annotationData == null || !context) return;
 
         const { state } = this;
 
@@ -1056,15 +1061,9 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('resize', { textInputValue, bbox });
     }
 
-    private hoverTouchPreHandler(event: Parameters<Annotations['onHover']>[0] & { device: 'mouse' | 'touch' }) {
+    private hoverTouchPreHandler(event: _Widget.ClickWidgetEvent | _Widget.DragWidgetEvent) {
         if (event.device === 'touch') {
             this.onHover(event);
-        }
-    }
-
-    private dragMoveTouchPreHandler(event: _Widget.DragWidgetEvent<'drag-move'>) {
-        if (event.device === 'touch' && this.ctx.interactionManager.isState(InteractionState.AnnotationsSelected)) {
-            event.sourceEvent.preventDefault();
         }
     }
 
@@ -1102,7 +1101,7 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('dragEnd');
     }
 
-    private onCancel(widgetEvent?: _Widget.MouseWidgetEvent) {
+    private onCancel(widgetEvent?: _Widget.ClickWidgetEvent) {
         const { sourceEvent } = widgetEvent ?? {};
         if (sourceEvent?.currentTarget !== sourceEvent?.target) return;
         this.cancel();
@@ -1170,7 +1169,7 @@ export class Annotations extends AbstractModuleInstance {
                 return;
         }
 
-        if (translation.x || translation.y) {
+        if (translation.x !== 0 || translation.y !== 0) {
             state.transition('translate', { translation });
             sourceEvent.preventDefault();
         }
@@ -1244,6 +1243,20 @@ export class Annotations extends AbstractModuleInstance {
         this.settingsDialog.hide();
         this.toolbar.hideOverlays();
         this.optionsToolbar.hideOverlays();
+    }
+
+    // A cross-line's own axis label already reports the value being dragged, so the crosshair label on that axis
+    // would only cover it.
+    private onStartDragging(index: number) {
+        const datum = this.annotationData.at(index);
+        const isHorizontal = HorizontalLineProperties.is(datum);
+        if (!isHorizontal && !VerticalLineProperties.is(datum)) return;
+        if (!datum.axisLabel.enabled) return;
+
+        const axis = isHorizontal ? this.yAxis : this.xAxis;
+        if (!axis) return;
+
+        this.ctx.eventsHub.emit('annotations:axis-label-drag-start', { axisId: axis.context.axisId });
     }
 
     private pushAnnotationState(

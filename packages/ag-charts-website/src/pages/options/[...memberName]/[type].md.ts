@@ -14,7 +14,13 @@ export function getStaticPaths() {
     return getOptionsStaticPaths(getInterfacesReference());
 }
 
-export function GET({ props }: { props: { pageInterface: string; pageTitle: PageTitle } }) {
+export function GET({
+    props,
+    params,
+}: {
+    props: { pageInterface: string; pageTitle: PageTitle };
+    params: Record<string, string>;
+}) {
     const { pageInterface, pageTitle } = props;
 
     const output = buildOptionsVariantMarkdown({
@@ -22,6 +28,7 @@ export function GET({ props }: { props: { pageInterface: string; pageTitle: Page
         pageInterface,
         pageTitle,
         ...optionsVariantPageContent(pageTitle),
+        pageUrl: `/options/${params.memberName}/${params.type}/`,
         siteRoot: SITE_URL,
     });
 

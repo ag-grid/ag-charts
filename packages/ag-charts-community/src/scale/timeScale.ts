@@ -16,7 +16,9 @@ import { ContinuousScale } from './continuousScale';
 
 const sunday = new Date(1970, 0, 4);
 
-export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeIntervalUnit | number> {
+type TimeTickInterval = AgTimeInterval | AgTimeIntervalUnit | number;
+
+export class TimeScale extends ContinuousScale<Date, TimeTickInterval> {
     static override is(value: unknown): value is TimeScale {
         return value instanceof TimeScale;
     }
@@ -60,7 +62,7 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
      * Returns uniformly-spaced dates that represent the scale's domain.
      */
     override ticks(
-        params: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
+        params: ScaleTickParams<TimeTickInterval>,
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1],
         { extend = false } = {}
@@ -74,20 +76,26 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
 
         if (interval != null) {
             const availableRange = this.getPixelRange();
-            return {
+            const intervalTicks = getDateTicksForInterval({
+                start,
+                stop,
+                interval,
+                availableRange,
+                visibleRange,
+                extend,
+                logger: this.logger,
+            });
+            // A rejected interval leaves automatic ticks driven by tickCount, which the axis overlap
+            // search can still thin; an honoured one pins them.
+            const intervalIgnored = intervalTicks == null;
+            const result: ScaleTickResult<Date> = {
                 ticks:
-                    getDateTicksForInterval({
-                        start,
-                        stop,
-                        interval,
-                        availableRange,
-                        visibleRange,
-                        extend,
-                        logger: this.logger,
-                    }) ??
+                    intervalTicks ??
                     getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
                 count: undefined,
             };
+            if (intervalIgnored) result.intervalIgnored = true;
+            return result;
         } else if (nice.every(Boolean) && tickCount === 2) {
             return { ticks: domain, count: undefined };
         } else if (nice.every(Boolean) && tickCount === 1) {
@@ -151,7 +159,7 @@ export function getDateTicksForInterval({
     extend: boolean;
     logger: Logger | undefined;
 }): Date[] | undefined {
-    if (!interval) {
+    if (interval == null) {
         return [];
     }
 
@@ -195,7 +203,7 @@ export function getDateTicksForInterval({
 function updateNiceDomainIteration(
     d0: Date,
     d1: Date,
-    ticks: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
+    ticks: ScaleTickParams<TimeTickInterval>,
     availableRange: number,
     logger: Logger | undefined
 ): [Date, Date] {

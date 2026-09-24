@@ -37,7 +37,7 @@ runs:
     using: composite
     steps:
         - name: Upsert consolidated PR comment sections
-          uses: actions/github-script@v9
+          uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
           # Advisory surface — a comment failure must never fail the job that produced real work.
           continue-on-error: true
           env:

@@ -98,7 +98,7 @@ export function calculateSegments(
         return result;
     };
 
-    return getSegments(segmentation.segments).map(({ stop, start, ...style }) => {
+    return getSegments(segmentation.segments ?? []).map(({ stop, start, ...style }) => {
         // Calculate dimensions based on direction
         const x0 = isXDirection ? start : -horizontalMargin;
         const y0 = isXDirection ? -verticalMargin : start;
@@ -127,12 +127,12 @@ export function predictCartesianAxis<SeriesOptions extends AgCartesianSeriesOpti
     const position = getAxisPosition(direction, seriesOptions);
 
     const groupedCategory = predictGroupedCategoryAxisType(value);
-    if (groupedCategory) {
+    if (groupedCategory != null) {
         return { type: groupedCategory, position };
     }
 
     const timeAxis = predictTimeAxisType(key, value);
-    if (timeAxis) {
+    if (timeAxis != null) {
         return { type: timeAxis, position };
     }
 
@@ -175,7 +175,7 @@ export function predictCartesianFinancialAxis<SeriesOptions extends AgCartesianS
     const position = getAxisPosition(direction, seriesOptions);
 
     const ordinalTimeAxis = predictOrdinalTimeAxisType(key, value);
-    if (ordinalTimeAxis) {
+    if (ordinalTimeAxis != null) {
         return { type: ordinalTimeAxis, position };
     }
 

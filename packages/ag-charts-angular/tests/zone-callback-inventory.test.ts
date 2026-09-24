@@ -82,7 +82,8 @@ function collectCallbackSurfaces(): Set<string> {
 
     const isVoidLike = (t: ts.Type): boolean =>
         expand(t).every(
-            (m) => m.flags & (ts.TypeFlags.Void | ts.TypeFlags.Undefined | ts.TypeFlags.Any | ts.TypeFlags.Never)
+            (m) =>
+                (m.flags & (ts.TypeFlags.Void | ts.TypeFlags.Undefined | ts.TypeFlags.Any | ts.TypeFlags.Never)) !== 0
         );
 
     const carriesCallbacks = (t: ts.Type, depth: number, seen: Set<number>): boolean => {
@@ -93,7 +94,7 @@ function collectCallbackSurfaces(): Set<string> {
             if (member.getCallSignatures().length > 0) return true;
             const element = checker.isArrayLikeType(member) ? member.getNumberIndexType() : undefined;
             if (element && carriesCallbacks(element, depth, seen)) return true;
-            if (member.flags & ts.TypeFlags.Object && isLocalType(member)) {
+            if ((member.flags & ts.TypeFlags.Object) !== 0 && isLocalType(member)) {
                 for (const prop of checker.getPropertiesOfType(member)) {
                     if (carriesCallbacks(checker.getTypeOfSymbol(prop), depth - 1, seen)) return true;
                 }
@@ -120,7 +121,7 @@ function collectCallbackSurfaces(): Set<string> {
                 if (element) walk(element);
                 continue;
             }
-            if (!(member.flags & ts.TypeFlags.Object)) continue;
+            if ((member.flags & ts.TypeFlags.Object) === 0) continue;
 
             const stringIndex = member.getStringIndexType();
             if (stringIndex) walk(stringIndex);

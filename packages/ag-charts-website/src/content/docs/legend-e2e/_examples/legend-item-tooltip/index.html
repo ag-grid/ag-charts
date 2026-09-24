@@ -1,10 +1,48 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setMode('auto')">Auto</button>
-        <button onclick="setMode('always')">Always</button>
-        <button onclick="setMode('never')">Never</button>
-        <button onclick="setMode('custom-text')">Custom Text</button>
-        <button onclick="setMode('renderer')">Renderer</button>
+        <div class="button-group" role="group" aria-label="Tooltip Mode">
+            <input
+                type="radio"
+                id="tooltip-mode-auto"
+                name="legend-item-tooltip-mode"
+                value="auto"
+                checked
+                onchange="setMode(event)"
+            />
+            <label for="tooltip-mode-auto">Auto</label>
+            <input
+                type="radio"
+                id="tooltip-mode-always"
+                name="legend-item-tooltip-mode"
+                value="always"
+                onchange="setMode(event)"
+            />
+            <label for="tooltip-mode-always">Always</label>
+            <input
+                type="radio"
+                id="tooltip-mode-never"
+                name="legend-item-tooltip-mode"
+                value="never"
+                onchange="setMode(event)"
+            />
+            <label for="tooltip-mode-never">Never</label>
+            <input
+                type="radio"
+                id="tooltip-mode-custom-text"
+                name="legend-item-tooltip-mode"
+                value="custom-text"
+                onchange="setMode(event)"
+            />
+            <label for="tooltip-mode-custom-text">Custom Text</label>
+            <input
+                type="radio"
+                id="tooltip-mode-renderer"
+                name="legend-item-tooltip-mode"
+                value="renderer"
+                onchange="setMode(event)"
+            />
+            <label for="tooltip-mode-renderer">Renderer</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

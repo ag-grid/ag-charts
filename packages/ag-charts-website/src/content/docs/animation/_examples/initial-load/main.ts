@@ -258,26 +258,10 @@ let options: AgCartesianChartOptions<DataType> | AgPolarChartOptions<DataType> =
 
 const chart = AgCharts.create(options as AgChartOptions);
 
-function changeSeriesBar() {
-    options.series = barOptions.series;
-    options.axes = barOptions.axes;
-    chart.update(options);
-}
-
-function changeSeriesLine() {
-    options.series = lineOptions.series;
-    options.axes = lineOptions.axes;
-    chart.update(options);
-}
-
-function changeSeriesArea() {
-    options.series = areaOptions.series;
-    options.axes = areaOptions.axes;
-    chart.update(options);
-}
-
-function changeSeriesDonut() {
-    options.series = donutOptions.series;
-    options.axes = donutOptions.axes;
+function seriesTypeChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    const seriesOptions = { bar: barOptions, line: lineOptions, area: areaOptions, donut: donutOptions }[value]!;
+    options.series = seriesOptions.series;
+    options.axes = seriesOptions.axes;
     chart.update(options);
 }

@@ -36,7 +36,7 @@ import {
     toTimeInterval,
     wrapTextOrSegments,
 } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle } from 'ag-charts-types';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, VerticalAlign } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
@@ -79,6 +79,27 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     sizeLimit?: number;
     isVertical?: boolean;
     inRange?: (value: number) => boolean;
+    /**
+     * A configured `label.verticalAlign`, replacing the computed baseline the labels would otherwise
+     * hang from. Collision avoidance measures each label's box from that baseline, so on a vertical
+     * axis - where the baseline acts along the axis - neighbours of differing height are checked
+     * where they will actually render.
+     */
+    labelBaseline?: VerticalAlign;
+    /**
+     * Per-label displacement, across the axis, that the band flush for a configured
+     * `label.verticalAlign` will apply once the ticks are laid out. Collision avoidance runs before
+     * that flush, so without this the labels it approved can still be moved into each other - see
+     * `CartesianAxis.alignLabelBands`. Only supplied when a flush is actually configured, so an axis
+     * that leaves the option unset pays nothing.
+     */
+    labelBandOffsets?: (
+        this: void,
+        ticks: TickDatum[],
+        rotation: number,
+        textAlign: ResolvedTextAlign,
+        textBaseline: VerticalAlign
+    ) => number[] | undefined;
 
     tickFormatter(
         this: void,
@@ -208,7 +229,8 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
     const ticks: TickDatum[] = [];
 
     withTemporaryDomain(scale, niceDomain, () => {
-        const maxBandwidth = BandScale.is(scale) ? scale.bandwidth || Infinity : Infinity;
+        const bandwidth = BandScale.is(scale) ? scale.bandwidth : 0;
+        const maxBandwidth = bandwidth === 0 ? Infinity : bandwidth;
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const axisFormatter = axisTickFormatter(
             label.enabled,
@@ -223,7 +245,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
         let maxWidth = isVertical ? sizeLimit : maxBandwidth;
         let maxHeight = isVertical ? maxBandwidth : sizeLimit;
 
-        if (label.rotation) {
+        if (label.rotation != null && label.rotation !== 0) {
             const innerRect = getMaxInnerRectSize(label.rotation, maxWidth, maxHeight);
             maxWidth = innerRect.width;
             maxHeight = innerRect.height;
@@ -248,7 +270,8 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             let wrappedLabel: NormalisedTextOrSegments | null = null;
             if (label.avoidCollisions) {
-                wrappedLabel = wrapTextOrSegments(inputText, wrapOptions) || null;
+                const wrapped = wrapTextOrSegments(inputText, wrapOptions);
+                wrappedLabel = wrapped === '' ? null : wrapped;
                 if (wrappedLabel === EllipsisChar) {
                     wrappedLabel = null;
                 }
@@ -311,7 +334,7 @@ function axisTickFormatter<S extends Scale<D, number, TickInterval<S>>, D>(
     tickFormatter: GenerateTicksOptions<S, D>['tickFormatter']
 ) {
     const dateStyle: DateFormatterStyle = generatePrimaryTicks ? 'component' : 'long';
-    const parentInterval = generatePrimaryTicks && timeInterval ? intervalHierarchy(timeInterval) : undefined;
+    const parentInterval = generatePrimaryTicks && timeInterval != null ? intervalHierarchy(timeInterval) : undefined;
 
     const primaryFormatter = generatePrimaryTicks
         ? tickFormatter(niceDomain, rawTicks, true, fractionDigits, parentInterval, dateStyle)
@@ -499,16 +522,17 @@ export function timeIntervalMaxLabelSize(
     }
 
     const labelFormatter = buildDateFormatter(specifier);
-    const hierarchy = timeInterval ? intervalHierarchy(timeInterval) : undefined;
+    const hierarchy = timeInterval == null ? undefined : intervalHierarchy(timeInterval);
     const primarySpecifier = labelSpecifier(primaryLabel?.format, hierarchy);
-    const primaryLabelFormatter = primarySpecifier ? buildDateFormatter(primarySpecifier) : labelFormatter;
+    const primaryLabelFormatter = primarySpecifier == null ? labelFormatter : buildDateFormatter(primarySpecifier);
 
     const d0 = new Date(domain[0]);
     const d1 = new Date(domain.at(-1)!);
 
-    const hierarchyRange = hierarchy
-        ? intervalRange(hierarchy, new Date(domain[0]), new Date(domain.at(-1)!), { extend: true })
-        : undefined;
+    const hierarchyRange =
+        hierarchy == null
+            ? undefined
+            : intervalRange(hierarchy, new Date(domain[0]), new Date(domain.at(-1)!), { extend: true });
 
     let maxWidth = 0;
     let maxHeight = 0;
@@ -558,8 +582,8 @@ export function getTextBaseline(
     labelRotation: number,
     sideFlag: ChartAxisLabelFlipFlag,
     parallelFlipFlag: ChartAxisLabelFlipFlag
-): CanvasTextBaseline {
-    if (parallel && !labelRotation) {
+): VerticalAlign {
+    if (parallel && labelRotation === 0) {
         return sideFlag * parallelFlipFlag === -1 ? 'top' : 'bottom';
     }
     return 'middle';
@@ -577,7 +601,7 @@ export function getTextAlign(
     const alignFlag = labelRotated || labelAutoRotated ? -1 : 1;
 
     if (parallel) {
-        if (labelRotation || labelAutoRotation) {
+        if (labelRotation !== 0 || labelAutoRotation !== 0) {
             if (sideFlag * alignFlag === -1) {
                 return 'right';
             }
@@ -614,9 +638,9 @@ export function calculateLabelRotation(
     regularFlipFlag: ChartAxisLabelFlipFlag;
 } {
     const configuredRotation = normalizeAngle360FromDegrees(rotation);
-    const parallelFlipFlag = !configuredRotation && axisRotation >= 0 && axisRotation <= Math.PI ? -1 : 1;
+    const parallelFlipFlag = configuredRotation === 0 && axisRotation >= 0 && axisRotation <= Math.PI ? -1 : 1;
     const regularFlipFlag =
-        !configuredRotation && axisRotation - Math.PI / 2 >= 0 && axisRotation - Math.PI / 2 <= Math.PI ? -1 : 1;
+        configuredRotation === 0 && axisRotation - Math.PI / 2 >= 0 && axisRotation - Math.PI / 2 <= Math.PI ? -1 : 1;
     const defaultRotation = parallel ? parallelFlipFlag * (Math.PI / 2) : 0;
 
     return { configuredRotation, defaultRotation, parallelFlipFlag, regularFlipFlag };

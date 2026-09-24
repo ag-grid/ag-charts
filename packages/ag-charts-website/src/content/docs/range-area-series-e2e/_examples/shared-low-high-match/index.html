@@ -1,7 +1,18 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="toggleLowHigh(false)">Shared</button>
-        <button onclick="toggleLowHigh(true)">Low/High</button>
+        <div class="button-group" role="group" aria-label="Low High">
+            <input
+                type="radio"
+                id="low-high-shared"
+                name="low-high"
+                value="shared"
+                checked
+                onchange="lowHighChange(event)"
+            />
+            <label for="low-high-shared">Shared</label>
+            <input type="radio" id="low-high-split" name="low-high" value="split" onchange="lowHighChange(event)" />
+            <label for="low-high-split">Low/High</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

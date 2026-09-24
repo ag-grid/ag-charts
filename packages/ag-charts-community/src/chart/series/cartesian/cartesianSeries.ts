@@ -1,10 +1,14 @@
-import type { ChartAnimationPhase, NormalisedSeriesSegmentation, Scaling } from 'ag-charts-core';
+import type {
+    ChartAnimationPhase,
+    NormalisedCartesianSeriesOptionsCommon,
+    NormalisedSeriesOptions,
+    Scaling,
+} from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
     DebugMetrics,
     type Point,
-    Property,
     type Scale,
     StateMachine,
     extractDomain,
@@ -40,20 +44,14 @@ import type { ChartAxis } from '../../chartAxis';
 import { processedDataIsAnimatable } from '../../data/processors';
 import { getPickedFocusBBox } from '../../keyboardUtil';
 import { DataModelSeries, type DataModelSeriesConstructorOpts } from '../dataModelSeries';
-import type {
-    PickFocusOutputs,
-    PickViewportFocusInputs,
-    SeriesDirectionKeysMapping,
-    SeriesNodePickMatch,
-} from '../series';
-import { Segmentation, SeriesProperties } from '../seriesProperties';
+import type { PickFocusOutputs, PickViewportFocusInputs, SeriesNodePickMatch } from '../pickTypes';
+import type { SeriesDirectionKeysMapping } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
-    CartesianSeriesPropertiesBase,
     CartesianSeriesTypes,
     ContextOf,
     CreateNodeDataContextOf,
@@ -61,15 +59,14 @@ import type {
     LabelOf,
     NodeOf,
     OptionsOf,
-    PropertiesOf,
     StackContextOf,
 } from './cartesianSeriesTypes';
 
 type CartesianSeriesOpts<TTypes extends CartesianSeriesTypes> = {
     pathsPerSeries: string[];
     pathsZIndexSubOrderOffset: number[];
-    propertyKeys: SeriesDirectionKeysMapping<PropertiesOf<TTypes>>;
-    propertyNames: SeriesDirectionKeysMapping<PropertiesOf<TTypes>>;
+    propertyKeys: SeriesDirectionKeysMapping<OptionsOf<TTypes>>;
+    propertyNames: SeriesDirectionKeysMapping<OptionsOf<TTypes>>;
     datumSelectionGarbageCollection: boolean;
     animationAlwaysUpdateSelections: boolean;
     animationAlwaysPopulateNodeData: boolean;
@@ -122,35 +119,16 @@ export interface CartesianAnimationData<
     duration?: number;
 }
 
-export abstract class CartesianSeriesProperties<T extends object>
-    extends SeriesProperties<T>
-    implements CartesianSeriesPropertiesBase<T>
-{
-    @Property
-    xKeyAxis: string = 'x';
-
-    @Property
-    yKeyAxis: string = 'y';
-
-    @Property
-    legendItemName?: string;
-
-    @Property
-    pickOutsideVisibleMinorAxis = false;
-
-    @Property
-    segmentation: NormalisedSeriesSegmentation = new Segmentation();
-}
-
 export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 100;
 
 export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> extends DataModelSeries<
     DatumOf<TTypes>,
     OptionsOf<TTypes>,
-    PropertiesOf<TTypes>,
     LabelOf<TTypes>,
     ContextOf<TTypes>
 > {
+    declare options: NormalisedSeriesOptions<OptionsOf<TTypes>> & NormalisedCartesianSeriesOptionsCommon;
+
     private _contextNodeData?: ContextOf<TTypes>;
     get contextNodeData() {
         return this._contextNodeData;
@@ -204,7 +182,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         ...otherOpts
     }: Partial<CartesianSeriesOpts<TTypes>> &
         Pick<CartesianSeriesOpts<TTypes>, 'propertyKeys' | 'propertyNames'> &
-        DataModelSeriesConstructorOpts<PropertiesOf<TTypes>>) {
+        DataModelSeriesConstructorOpts<OptionsOf<TTypes>>) {
         super({
             propertyKeys,
             propertyNames,
@@ -212,7 +190,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             ...otherOpts,
         });
 
-        if (!propertyKeys || !propertyNames) throw new Error(`Unable to initialise series type ${this.type}`);
+        if (propertyKeys == null || propertyNames == null)
+            throw new Error(`Unable to initialise series type ${this.type}`);
 
         this.opts = {
             pathsPerSeries,
@@ -295,12 +274,13 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     override getKeyAxis(direction: ChartAxisDirection): string | undefined {
+        const { xKeyAxis = 'x', yKeyAxis = 'y' } = this.options;
         if (this.shouldFlipXY()) {
-            if (direction === ChartAxisDirection.X) return this.properties.yKeyAxis;
-            if (direction === ChartAxisDirection.Y) return this.properties.xKeyAxis;
+            if (direction === ChartAxisDirection.X) return yKeyAxis;
+            if (direction === ChartAxisDirection.Y) return xKeyAxis;
         }
-        if (direction === ChartAxisDirection.X) return this.properties.xKeyAxis;
-        if (direction === ChartAxisDirection.Y) return this.properties.yKeyAxis;
+        if (direction === ChartAxisDirection.X) return xKeyAxis;
+        if (direction === ChartAxisDirection.Y) return yKeyAxis;
     }
 
     override attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined): void {
@@ -359,23 +339,24 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     public override isSeriesHighlighted(
         highlightedDatum: HighlightNodeDatum | undefined
     ): highlightedDatum is DatumOf<TTypes> {
-        if (!this.properties.highlight.enabled) {
+        if (!this.isHighlightEnabled()) {
             return false;
         }
 
         const { series, legendItemName: activeLegendItemName } = highlightedDatum ?? {};
 
-        const { legendItemName } = this.properties;
+        const { legendItemName } = this.options;
 
         return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }
 
     protected strokewidthChange() {
-        const unhighlightedStrokeWidth = ('strokeWidth' in this.properties && this.properties.strokeWidth) ?? 0;
+        const { options } = this;
+        const seriesStrokeWidth: unknown = 'strokeWidth' in options ? options.strokeWidth : undefined;
+        const unhighlightedStrokeWidth = typeof seriesStrokeWidth === 'number' ? seriesStrokeWidth : 0;
         const highlightedSeriesStrokeWidth =
-            this.properties.highlight.highlightedSeries.strokeWidth ?? unhighlightedStrokeWidth;
-        const highlightedItemStrokeWidth =
-            this.properties.highlight.highlightedItem?.strokeWidth ?? unhighlightedStrokeWidth;
+            options.highlight?.highlightedSeries?.strokeWidth ?? unhighlightedStrokeWidth;
+        const highlightedItemStrokeWidth = options.highlight?.highlightedItem?.strokeWidth ?? unhighlightedStrokeWidth;
         return (
             unhighlightedStrokeWidth > highlightedItemStrokeWidth ||
             highlightedSeriesStrokeWidth > highlightedItemStrokeWidth
@@ -714,7 +695,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         this.highlightGroup.visible = (animationEnabled || visible) && itemHighlighted;
 
         this.updateDatumStyles({ datumSelection: highlightSelection, isHighlight: true });
-        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
+        const drawingMode = this.getChartHighlightDrawingMode();
 
         this.updateDatumNodes({
             datumSelection: highlightSelection,
@@ -760,7 +741,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         _nodeData: DatumOf<TTypes>[],
         highlightedItem: DatumOf<TTypes>
     ): DatumOf<TTypes>[] | undefined {
-        return highlightedItem ? [{ ...highlightedItem }] : undefined;
+        return highlightedItem == null ? undefined : [{ ...highlightedItem }];
     }
 
     protected getHighlightLabelData(
@@ -833,12 +814,13 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         if (this.contextNodeData?.nodeData === undefined) return;
 
+        const dataCount = this.dataCount();
         const { otherIndex, where, hoverRect } = opts;
         if (where === 'data-start') {
             return this.pickFocus({ datumIndex: 0, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
         }
         if (where === 'data-end') {
-            const end = this.contextNodeData.nodeData.length - 1;
+            const end = dataCount - 1;
             return this.pickFocus({ datumIndex: end, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
         }
 
@@ -846,7 +828,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         let left: number = 0;
         let mid: number;
-        let right: number = this.contextNodeData.nodeData.length - 1;
+        let right: number = dataCount - 1;
         const reverse: boolean = this.axes.x?.options.reverse === true;
 
         function isRightEdgeInViewport(focusBBox: Readonly<BBox>): boolean {
@@ -909,7 +891,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         // Binary-search the node data for a datum in the viewport, bailing out at the O(log2(n)) bound.
         // Math.log2(0) is -Infinity, so an empty node array skips the loop entirely.
         let currentIteration = 0;
-        const maxIterations = Math.ceil(Math.log2(this.contextNodeData.nodeData.length)) + 1;
+        const maxIterations = Math.ceil(Math.log2(dataCount)) + 1;
         while (left <= right && currentIteration <= maxIterations) {
             mid = Math.floor((left + right) / 2);
 
@@ -1043,7 +1025,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     ): SeriesNodePickMatch | undefined {
         const { x, y } = point;
         const { axes, _contextNodeData: contextNodeData } = this;
-        const { pickOutsideVisibleMinorAxis } = this.properties;
+        const { pickOutsideVisibleMinorAxis } = this.options;
         if (!contextNodeData) return;
 
         const xAxis = axes[ChartAxisDirection.X];

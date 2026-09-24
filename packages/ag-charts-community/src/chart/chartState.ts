@@ -1,9 +1,11 @@
 import type {
+    NormalisedBorderOptions,
     NormalisedChartCaptionOptions,
     NormalisedGradientLegendOptions,
     NormalisedLegendOptions,
     NormalisedPaddingOptions,
     NormalisedSelectionOptions,
+    NormalisedSeriesAreaBackgroundRegion,
     NormalisedZoomOptions,
     ZoomState,
 } from 'ag-charts-core';
@@ -29,11 +31,14 @@ import type {
     AgScrollbarThumbStyle,
     AgScrollbarTrackStyle,
     AgScrollbarVerticalOrientationOptions,
+    AgSeriesAreaOptions,
     AgTouchOptions,
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { CategoryLegendDatum } from './legend/legendDatum';
+import type { NormalisedChartOverlaysOptions } from './overlay/chartOverlays';
+import type { NormalisedTooltipOptions } from './tooltip/tooltip';
 
 export type NormalisedBackgroundOptions = AgChartBackground & { visible: boolean; fill: string };
 
@@ -133,6 +138,11 @@ export type NormalisedScrollbarOptions = AgScrollbarOptions & {
     vertical: NormalisedScrollbarOrientationOptions;
 };
 
+export type NormalisedSeriesAreaOptions = Omit<AgSeriesAreaOptions, 'border'> & {
+    border?: NormalisedBorderOptions;
+    backgroundRegions?: NormalisedSeriesAreaBackgroundRegion[];
+};
+
 export type ResolvedChartOptions = Omit<
     AgChartOptions,
     | 'animation'
@@ -145,14 +155,17 @@ export type ResolvedChartOptions = Omit<
     | 'keyboard'
     | 'legend'
     | 'navigator'
+    | 'overlays'
     | 'padding'
     | 'ranges'
     | 'scrollbar'
     | 'selection'
+    | 'seriesArea'
     | 'subtitle'
     | 'suppressFieldDotNotation'
     | 'sync'
     | 'title'
+    | 'tooltip'
     | 'touch'
     | 'zoom'
 > & {
@@ -165,14 +178,17 @@ export type ResolvedChartOptions = Omit<
     keyboard: { enabled: boolean; initialFocus: AgInitialFocus; tabIndex?: number };
     legend: NormalisedLegendOptions;
     navigator?: NormalisedNavigatorOptions;
+    overlays?: NormalisedChartOverlaysOptions;
     padding: NormalisedPaddingOptions;
     ranges?: NormalisedRangesOptions;
     scrollbar?: NormalisedScrollbarOptions;
     selection: NormalisedSelectionOptions | undefined;
+    seriesArea?: NormalisedSeriesAreaOptions;
     subtitle?: NormalisedChartCaptionOptions;
     suppressFieldDotNotation: boolean;
     sync?: NormalisedChartSyncOptions;
     title?: NormalisedChartCaptionOptions;
+    tooltip?: NormalisedTooltipOptions;
     touch: Required<AgTouchOptions>;
     zoom: NormalisedZoomOptions;
     // Undocumented options that the chart consumes through chartState.

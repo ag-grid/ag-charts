@@ -13,6 +13,7 @@ import type {
     FillStrokeMorph,
     InternalAgColorType,
     Normalised,
+    NormalisedFlowProportionSeriesKeys,
     Point,
 } from 'ag-charts-core';
 
@@ -29,7 +30,6 @@ import {
     toFlowNodeAriaIndex,
     toFlowNodeOffset,
 } from './flowDatumIndex';
-import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
 const {
@@ -96,14 +96,12 @@ export abstract class FlowProportionSeries<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
     TLabel,
-    TOpts extends object,
-    TProps extends FlowProportionSeriesProperties<TOpts>,
+    TOptions extends NormalisedFlowProportionSeriesKeys,
     TNode extends _ModuleSupport.Node<TNodeDatum> & DistantObject,
     TLink extends _ModuleSupport.Node<TLinkDatum> & DistantObject,
 > extends Series<
     TDatum<TNodeDatum, TLinkDatum>,
-    TOpts,
-    TProps,
+    TOptions,
     TLabel,
     _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>
 > {
@@ -119,10 +117,8 @@ export abstract class FlowProportionSeries<
         };
     }
 
-    abstract override properties: TProps;
-
     protected get nodes() {
-        return this.properties.nodes;
+        return this.options.nodes;
     }
 
     protected nodeCount: number = 0;
@@ -179,7 +175,7 @@ export abstract class FlowProportionSeries<
 
         if (data == null) return;
 
-        const { fromKey, toKey, sizeKey, idKey, labelKey } = this.properties;
+        const { fromKey, toKey, sizeKey, idKey, labelKey } = this.options;
 
         const nodesDataController = new DataController(
             'standalone',
@@ -188,7 +184,7 @@ export abstract class FlowProportionSeries<
             this.ctx.logger
         );
         const nodesDataModelPromise =
-            nodes == null
+            nodes == null || idKey == null
                 ? null
                 : nodesDataController.request<any, any, true>(
                       this.id,
@@ -343,7 +339,7 @@ export abstract class FlowProportionSeries<
     }
 
     private callGetItemId(params: { nodeName: string; index: number; datum: unknown }): string | undefined {
-        const { getItemId } = this.properties;
+        const { getItemId } = this.options;
         return getItemId == null ? undefined : this.cachedCallWithContext(getItemId, params);
     }
 
@@ -384,7 +380,7 @@ export abstract class FlowProportionSeries<
             return { nodeGraph, links, maxPathLength };
         }
 
-        const { sizeKey } = this.properties;
+        const { sizeKey } = this.options;
 
         const fromIdValues = linksDataModel.resolveColumnById(this, 'fromValue', linksProcessedData, 'string');
         const toIdValues = linksDataModel.resolveColumnById(this, 'toValue', linksProcessedData, 'string');
@@ -476,7 +472,7 @@ export abstract class FlowProportionSeries<
 
         this.contentGroup.visible = this.visible;
         const highlightState = highlightedDatum == null ? HighlightState.None : HighlightState.OtherItem;
-        this.contentGroup.opacity = this.properties.highlight.getStyle(highlightState).opacity ?? 1;
+        this.contentGroup.opacity = this.getHighlightStyle(undefined, undefined, highlightState).opacity ?? 1;
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
         this.updateLabelNodes({ labelSelection: this.labelSelection });
@@ -637,7 +633,7 @@ export abstract class FlowProportionSeries<
             lineDashOffset?: number;
         } = {}
     ): _ModuleSupport.LegendSymbolOptions {
-        const { fills, strokes } = this.properties;
+        const { fills, strokes } = this.options;
 
         const {
             fill = fills[nodeIndex % fills.length],
@@ -665,7 +661,7 @@ export abstract class FlowProportionSeries<
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (legendType !== 'category') return [];
 
-        const { showInLegend } = this.properties;
+        const { showInLegend } = this.options;
         return Array.from(
             this.processedNodes.values(),
             ({ id, label }, index): _ModuleSupport.CategoryLegendDatum => ({
@@ -676,7 +672,7 @@ export abstract class FlowProportionSeries<
                 enabled: true,
                 label: { text: label ?? id },
                 symbol: this.legendItemSymbol(FlowProportionDatumType.Node, flowNodeDatumIndex(index)),
-                hideInLegend: !showInLegend,
+                hideInLegend: showInLegend === false,
                 isFixed: true,
             })
         );
@@ -718,7 +714,7 @@ export abstract class FlowProportionSeries<
                     from: datum.fromNode.id,
                     to: datum.toNode.id,
                     size: datum.size,
-                    sizeName: this.properties.sizeName ?? this.properties.sizeKey,
+                    sizeName: this.options.sizeName ?? this.options.sizeKey,
                 }),
             };
         } else if (datum.type === FlowProportionDatumType.Node) {
@@ -799,10 +795,10 @@ export abstract class FlowProportionSeries<
     override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
         const {
             id: seriesId,
-            properties,
+            options,
             ctx: { formatManager },
         } = this;
-        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
+        const { fromKey, toKey, sizeKey, sizeName, tooltip } = options;
 
         // This needs refactoring
         const seriesDatum = this.contextNodeData?.nodeData.find((d) => d.datumIndex === datumIndex);
@@ -853,7 +849,6 @@ export abstract class FlowProportionSeries<
                 data,
             },
             {
-                context: undefined,
                 seriesId,
                 datum,
                 title,

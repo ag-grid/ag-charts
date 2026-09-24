@@ -1,4 +1,10 @@
-import type { NormalisedSeriesMarkerStyle, Point, Scale, SizedPoint } from 'ag-charts-core';
+import type {
+    NormalisedSeriesMarkerOptions,
+    NormalisedSeriesMarkerStyle,
+    Point,
+    Scale,
+    SizedPoint,
+} from 'ag-charts-core';
 import { ChartAxisDirection, clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
 import type { AgDrawingMode, AgMarkerShape } from 'ag-charts-types';
 
@@ -12,10 +18,9 @@ import { Transformable } from '../../../scene/transformable';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { MarkerStrokePickStyle } from '../../marker/marker';
 import { Marker, markerStrokePickInflation } from '../../marker/marker';
-import type { PickFocusInputs } from '../series';
-import type { SeriesMarker } from '../seriesMarker';
+import type { PickFocusInputs } from '../pickTypes';
 import { highlightStates } from '../seriesProperties';
-import type { HighlightState, ISeries, ISeriesProperties, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
+import type { HighlightState, ISeries, ISeriesOptions, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 type NodeWithDrawingMode<D> = Node<D> & { drawingMode?: AgDrawingMode };
@@ -32,7 +37,7 @@ export function markerFadeInAnimation<D>(
 ) {
     const params = {
         ...options,
-        phase: options?.phase ?? (status ? NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] : 'trailing'),
+        phase: options?.phase ?? (status == null ? 'trailing' : NODE_UPDATE_STATE_TO_PHASE_MAPPING[status]),
     };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
     for (const s of markerSelections) {
@@ -140,8 +145,8 @@ interface MarkerNodeDatum extends SeriesNodeDatum {
     readonly point: Point & SizedPoint;
 }
 
-interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<TDatum, ISeriesProperties, unknown> {
-    getNodeData(): { [index: number]: TDatum | undefined } | undefined;
+interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<TDatum, ISeriesOptions, unknown> {
+    getNodeData(): { find(predicate: (elem: TDatum) => boolean): TDatum | undefined } | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number; shape?: AgMarkerShape };
 }
 
@@ -152,7 +157,14 @@ export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
     const nodeData = series.getNodeData();
     if (nodeData === undefined) return undefined;
 
-    const datum = nodeData[datumIndex];
+    const nodeDatum = nodeData.find((n) => n.datumIndex === datumIndex);
+    return computeMarkerFocusBoundsOfNodeDatum(series, nodeDatum);
+}
+
+export function computeMarkerFocusBoundsOfNodeDatum<TDatum extends MarkerNodeDatum>(
+    series: MarkerSeries<TDatum>,
+    datum: TDatum | undefined
+): BBox | undefined {
     const { point } = datum ?? {};
     if (datum == null || point == null) return undefined;
 
@@ -188,7 +200,7 @@ export type MarkerDrawMode = {
     hideWithSize0: boolean;
 };
 export function cartesianMarkerDrawMode(
-    properties: { selection: { enabled: boolean } },
+    properties: { selection?: { enabled: boolean } },
     contextNodeData: { crossFiltering?: boolean } | undefined,
     processedData: { input: { count: number } },
     axes: { [ChartAxisDirection.X]?: { scale: Scale<unknown, number, unknown> } },
@@ -200,7 +212,7 @@ export function cartesianMarkerDrawMode(
         contextNodeData?.crossFiltering === true ||
         markerEnabled(processedData.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
 
-    if (properties.selection.enabled && !isMiniChart) {
+    if (properties.selection?.enabled && !isMiniChart) {
         // selection.enabled needs NodeData for the selected-style overrides; mini-charts never render selection.
         return { needsNodeData: true, hideWithSize0: !markersEnabled };
     } else {
@@ -208,15 +220,11 @@ export function cartesianMarkerDrawMode(
     }
 }
 
-type SeriesStyler<TStylerParams, TStylerResult> = (params: TStylerParams) => TStylerResult;
 type DefaultOverrideStyle = NormalisedSeriesMarkerStyle & { size: number };
 
-interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
-    properties: {
-        styler?: SeriesStyler<TStylerParams, TStylerResult>;
-    };
+interface MarkerStyleSeries {
     getMarkerStyle<TParams>(
-        marker: SeriesMarker<TParams>,
+        marker: NormalisedSeriesMarkerOptions<TParams>,
         nodeDatum: object,
         params?: TParams,
         opts?: { highlightState?: HighlightState },
@@ -231,10 +239,10 @@ type LineProperties = {
     strokeOpacity: number;
 };
 
-export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>(
-    series: MarkerSeriesStylerProps<TStylerParams, TStylerResult>,
+export function getMarkerStyles<TItemStylerParams>(
+    series: MarkerStyleSeries,
     line: LineProperties,
-    marker: SeriesMarker<TItemStylerParams>,
+    marker: NormalisedSeriesMarkerOptions<TItemStylerParams>,
     inheritedStyle?: NormalisedSeriesMarkerStyle
 ) {
     inheritedStyle ??= {

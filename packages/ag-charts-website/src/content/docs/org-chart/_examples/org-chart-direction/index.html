@@ -1,8 +1,25 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="changeDirection('horizontal')">Horizontal</button>
-        <button onclick="changeDirection('vertical')">Vertical</button>
-        <button onclick="toggleReverse()">Toggle Reverse</button>
+        <div class="button-group" role="group" aria-label="Direction">
+            <input
+                type="radio"
+                id="direction-horizontal"
+                name="direction"
+                value="horizontal"
+                checked
+                onchange="directionChange(event)"
+            />
+            <label for="direction-horizontal">Horizontal</label>
+            <input
+                type="radio"
+                id="direction-vertical"
+                name="direction"
+                value="vertical"
+                onchange="directionChange(event)"
+            />
+            <label for="direction-vertical">Vertical</label>
+        </div>
+        <button id="reverseToggle" aria-pressed="false" onclick="toggleReverse()">Toggle Reverse</button>
     </div>
 </div>
 <div id="myChart"></div>

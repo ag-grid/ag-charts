@@ -7,6 +7,8 @@ import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { resolveSharedUrl } from '@ag-website-shared/utils/resolveSharedUrl';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 
+import { buildChartsFrontmatter } from './chartsFrontmatter';
+
 // The page is framework-agnostic, so its doc links resolve against one arbitrary framework.
 const FRAMEWORK: Framework = 'javascript';
 
@@ -40,7 +42,7 @@ function featureCell(value: FeatureValue): string {
     const included = typeof value === 'object' ? value.value : value;
     const detail = typeof value === 'object' ? value.detail : undefined;
     const mark = included ? '✓' : '✗';
-    return detail ? `${mark} (${htmlToText(detail)})` : mark;
+    return detail == null || detail === '' ? mark : `${mark} (${htmlToText(detail)})`;
 }
 
 function featureRow(leaf: FeatureLeaf, siteRoot?: string): string[] {
@@ -72,7 +74,7 @@ function renderPlans(siteRoot?: string): string {
     // Matches LicensePricing's defaultSelection: the charts plans plus the Enterprise Bundle.
     const chartsPlans = DEV_LICENSE_DATA.filter((plan) => plan.tabGroup === 'charts' || plan.tabGroup === 'both');
     const rows = chartsPlans.map((plan) => {
-        const suffix = plan.description ? ` (${htmlToText(plan.description)})` : '';
+        const suffix = plan.description === '' ? '' : ` (${htmlToText(plan.description)})`;
         const price = plan.priceFullDollars === '0' ? 'Free' : `$${plan.priceFullDollars} USD per developer`;
         const cta = plan.id === 'community' ? 'Get started' : 'Buy now';
         const buyLink = toAbsoluteUrl(plan.buyLink, siteRoot);
@@ -114,12 +116,13 @@ function renderTrial(siteRoot?: string): string {
  * (DEV_LICENSE_DATA + chartsFeaturesMatrix.json) and serialises it directly.
  */
 export function buildLicensePricingMarkdown({ siteRoot }: { siteRoot?: string } = {}): string {
-    const frontmatter = [
-        '---',
-        'title: "AG Charts: Licence & Pricing"',
-        'description: "AG Charts licence plans, prices, and a full Community vs Enterprise vs Bundle feature comparison."',
-        '---',
-    ].join('\n');
+    const frontmatter = buildChartsFrontmatter({
+        pageUrl: '/license-pricing/',
+        siteRoot,
+        title: 'AG Charts: Licence & Pricing',
+        description:
+            'AG Charts licence plans, prices, and a full Community vs Enterprise vs Bundle feature comparison.',
+    });
 
     const document = [
         frontmatter,

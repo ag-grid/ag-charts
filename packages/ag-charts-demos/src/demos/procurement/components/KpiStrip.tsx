@@ -267,7 +267,9 @@ export function KpiStrip({ kpis }: { kpis: Kpi[] }) {
                         row: the sentence on the left, the counts it refers to ranged right. */}
                     {(kpi.detail != null || kpi.segments != null) && (
                         <span className="pc-kpi-foot">
-                            {kpi.detail && <span className="pc-kpi-detail">{kpi.detail}</span>}
+                            {kpi.detail != null && kpi.detail !== '' && (
+                                <span className="pc-kpi-detail">{kpi.detail}</span>
+                            )}
                             {kpi.segments && <KpiSegmentKeys segments={kpi.segments} />}
                         </span>
                     )}

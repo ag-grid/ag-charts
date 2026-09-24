@@ -65,6 +65,10 @@ const hiddenInterfaces = new Set([
     'DatumKey',
 ]);
 
+// OPTIMIZATION: these recur under every colour option, so indexing their members costs ~86k
+// near-identical themes-api entries (+68%) that search cannot usefully disambiguate.
+const unindexedVariants = new Set(['AgColorRef', 'AgColorRefMixOnto', 'AgColorRefMixOntoColor']);
+
 const isTypeNodeObject = (type: TypeNode): type is Exclude<TypeNode, string> => typeof type === 'object';
 const isTypeReferenceNode = (type: TypeNode): type is TypeReferenceNode =>
     isTypeNodeObject(type) && type.kind === 'typeRef';
@@ -114,7 +118,7 @@ export function getMemberType(member: MemberNode): string {
             type.type.map((subType) => getReferencedTypeName(isArrayNode(subType) ? subType.type : subType))
         );
         const [only] = names;
-        if (names.size === 1 && only) {
+        if (names.size === 1 && only != null && only !== '') {
             return only;
         }
     }
@@ -133,7 +137,7 @@ export function normalizeType(refType: TypeNode, keepGenerics?: boolean): string
 
     if (isTypeReferenceNode(refType)) {
         const showArgs = keepGenerics === true || refType.type === 'Omit' || refType.type === 'Pick';
-        return showArgs && refType.typeArguments?.length
+        return showArgs && refType.typeArguments != null && refType.typeArguments.length > 0
             ? `${refType.type}<${refType.typeArguments.map((typeArg) => normalizeType(typeArg)).join(', ')}>`
             : refType.type;
     }
@@ -174,7 +178,7 @@ export function processMembers(
 ) {
     const { prioritise, include, exclude } = config;
     const members = Array.isArray(interfaceRef.members) ? interfaceRef.members : [];
-    if (!members.length) {
+    if (members.length === 0) {
         return [];
     }
 
@@ -230,8 +234,8 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
     for (let i = 0; i < path.length; i++) {
         const item = path[i];
         if (isArrayOrRecordSpecialType(specialType, item.type)) {
-            const child = path[i + 1];
-            if (child) {
+            const child = path.at(i + 1);
+            if (child != null) {
                 if (data.hash.startsWith(baseHash)) {
                     const prePath = data.hash
                         .slice(baseHash.length + 1)
@@ -255,8 +259,8 @@ export function getNavigationDataFromPath([basePath, ...path]: NavigationPath[],
         }
 
         if (specialType?.[item.type] === 'NestedPage') {
-            const child = path[i + 1];
-            if (child) {
+            const child = path.at(i + 1);
+            if (child != null) {
                 data.pathname += `${item.name}/${child.name}/`;
                 data.hash = `reference-${child.type}`;
                 data.pageTitle = { name: child.name };
@@ -357,7 +361,7 @@ export function parseJsDocs(docs?: string[]) {
 }
 
 function filterMembers(members: MemberNode[], include?: string[], exclude?: string[]) {
-    if (!include?.length && !exclude?.length) {
+    if ((include?.length ?? 0) === 0 && (exclude?.length ?? 0) === 0) {
         return members;
     }
     return members.filter((member) => !exclude?.includes(member.name) && (include?.includes(member.name) ?? true));
@@ -426,7 +430,7 @@ function substituteGenerics(type: TypeNode, genericsMap: Map<unknown, unknown>):
         });
         return changed ? { ...type, type: subTypes } : type;
     }
-    if (isTypeReferenceNode(type) && type.typeArguments?.length) {
+    if (isTypeReferenceNode(type) && type.typeArguments != null && type.typeArguments.length > 0) {
         let changed = false;
         const typeArguments = type.typeArguments.map((arg) => {
             const resolved = substituteGenerics(arg, genericsMap);
@@ -441,7 +445,12 @@ function substituteGenerics(type: TypeNode, genericsMap: Map<unknown, unknown>):
 }
 
 function extractOmitType(memberType: TypeNode) {
-    if (!isTypeReferenceNode(memberType) || memberType.type !== 'Omit' || !memberType.typeArguments?.length) {
+    if (
+        !isTypeReferenceNode(memberType) ||
+        memberType.type !== 'Omit' ||
+        memberType.typeArguments == null ||
+        memberType.typeArguments.length === 0
+    ) {
         return null;
     }
 
@@ -458,10 +467,10 @@ function formatInterfaceCode(
     const genericsMap = new Map<string, unknown>(entries(apiNode.genericsMap ?? {}));
     const additionalTypes = new Set<string>();
     const typesList = apiNode.members.map((nodeMember) => {
-        const resolved = genericsMap.size ? applyGenericsToMember(nodeMember, genericsMap) : nodeMember;
+        const resolved = genericsMap.size === 0 ? nodeMember : applyGenericsToMember(nodeMember, genericsMap);
         const memberString = `${resolved.name}${resolved.optional ? '?' : ''}: ${normalizeType(resolved.type)};`;
         collectAdditionalTypes(resolved, additionalTypes, seen);
-        if (resolved.docs?.length && resolved.docs[0] !== '') {
+        if (resolved.docs != null && resolved.docs.length > 0 && resolved.docs[0] !== '') {
             return resolved.docs
                 .map((docsLine: string) => `// ${docsLine}`)
                 .concat(memberString)
@@ -530,10 +539,10 @@ function formatUnionTypeAlias(
         if (shouldFormatAdditionalType(type, reference, seen)) {
             const subType = reference.get(type)!;
             const codeResult = formatTypeToCode(subType, member, reference, seen);
-            if (codeResult) {
+            if (codeResult !== '') {
                 result.push(codeResult);
             }
-            if (subType.kind === 'interface' && subType.members.length) {
+            if (subType.kind === 'interface' && subType.members.length > 0) {
                 for (const subMember of subType.members) {
                     additionalTypes.add(
                         normalizeType(isArrayNode(subMember.type) ? subMember.type.type : subMember.type)
@@ -581,11 +590,11 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
     const codeSample = `function ${name}(${paramsString}): ${normalizeType(normalizedReturn, true)};`;
     const additionalSeen = new Set<string>();
 
-    return additionalTypes.length
-        ? [codeSample]
+    return additionalTypes.length === 0
+        ? codeSample
+        : [codeSample]
               .concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference, additionalSeen)))
-              .join('\n\n')
-        : codeSample;
+              .join('\n\n');
 }
 
 function applyTypeArgumentsToFunction(apiNode: FunctionNode, member: MemberNode, reference: ApiReferenceType) {
@@ -597,8 +606,9 @@ function applyTypeArgumentsToFunction(apiNode: FunctionNode, member: MemberNode,
 
         if (typeParams) {
             params = apiNode.params?.map((nodeParam) => {
-                const genericValue = typeArguments[typeParams.findIndex((param) => param.name === nodeParam.type)];
-                return genericValue ? { ...nodeParam, type: genericValue } : nodeParam;
+                const genericIndex = typeParams.findIndex((param) => param.name === nodeParam.type);
+                const genericValue = genericIndex === -1 ? undefined : typeArguments[genericIndex];
+                return genericValue == null ? nodeParam : { ...nodeParam, type: genericValue };
             });
 
             if (isUnionNode(returnType)) {
@@ -701,10 +711,42 @@ export function getReferencedTypeName(type?: TypeNode): string | undefined {
     return undefined;
 }
 
+/** Union members with arrays and nested unions unwrapped, e.g. `A | B | (A | B)[]` yields `[A, B, A, B]`. */
+function flattenUnionMembers(type: TypeNode): TypeNode[] {
+    const members = isUnionNode(type) ? type.type : [type];
+    return members.flatMap((member) => {
+        const element = isArrayNode(member) ? member.type : member;
+        return isUnionNode(element) ? flattenUnionMembers(element) : [member];
+    });
+}
+
+/**
+ * The non-deprecated type aliases a union references, so a row typed `A | B | (A | B)[]` expands
+ * into their definitions as `A | A[]` already does. `undefined` when it references none.
+ */
+export function resolveUnionAliases(
+    unionType: MultiTypeNode & { kind: 'union' },
+    reference: ApiReferenceType | undefined
+): TypeAliasNode[] | undefined {
+    if (!reference) {
+        return undefined;
+    }
+    const names = referencedMemberNames({ kind: 'union', type: flattenUnionMembers(unionType) }, reference);
+    const aliases = [...new Set(names)]
+        .map((name) => reference.get(name)!)
+        .filter((node): node is TypeAliasNode => node.kind === 'typeAlias' && !isDeprecated(node));
+    return aliases.length === 0 ? undefined : aliases;
+}
+
+/** The generator marks deprecation only through the doc tag, which its own filters also key on. */
+function isDeprecated(node: NodeTypes): boolean {
+    return Boolean(node.docs?.some((line) => line.includes('@deprecated')));
+}
+
 /** A union member is "lost" when it is not rendered as an interface variant row (see `toUnionVariant`). */
 function isVariantInterface(member: TypeNode, reference: ApiReferenceType): boolean {
     const name = getReferencedTypeName(isArrayNode(member) ? member.type : member);
-    const node = name ? reference.get(name) : undefined;
+    const node = name == null ? undefined : reference.get(name);
     return node?.kind === 'interface' && !isInterfaceHidden(name!);
 }
 
@@ -715,6 +757,9 @@ function referencedMemberNames(type: TypeNode, reference: ApiReferenceType): str
         .map((member) => getReferencedTypeName(isArrayNode(member) ? member.type : member))
         .filter((name): name is string => Boolean(name) && reference.has(name!) && !isInterfaceHidden(name!));
 }
+
+/** Nested union aliases longer than this wrap one member per line in the signature code block. */
+const MAX_INLINE_ALIAS_LENGTH = 80;
 
 /**
  * Builds the type-signature code for a *mixed* union — one with members that are not rendered as
@@ -736,11 +781,11 @@ export function formatUnionSignature(
     }
 
     const signature = addNewLineOnPipe(normalizeType(unionType));
-    const lines = [aliasName ? `type ${aliasName} =\n    ${signature};` : signature];
+    const lines = [aliasName == null ? signature : `type ${aliasName} =\n    ${signature};`];
 
-    const seen = new Set<string>(aliasName ? [aliasName] : []);
+    const seen = new Set<string>(aliasName == null ? [] : [aliasName]);
     const queue = referencedMemberNames(unionType, reference);
-    while (queue.length) {
+    while (queue.length > 0) {
         const name = queue.shift()!;
         if (seen.has(name)) {
             continue;
@@ -750,7 +795,12 @@ export function formatUnionSignature(
         if (node?.kind !== 'typeAlias') {
             continue;
         }
-        lines.push(`type ${name} = ${normalizeType(node.type)};`);
+        const inline = `type ${name} = ${normalizeType(node.type)};`;
+        lines.push(
+            isUnionNode(node.type) && inline.length > MAX_INLINE_ALIAS_LENGTH
+                ? `type ${name} =\n    ${addNewLineOnPipe(normalizeType(node.type))};`
+                : inline
+        );
         queue.push(...referencedMemberNames(node.type, reference));
     }
 
@@ -758,12 +808,13 @@ export function formatUnionSignature(
 }
 
 /**
- * Resolves a reference that represents a union, whether directly (a union type alias) or
- * indirectly. Axis-specific cross-line aliases (e.g. `AgCartesianCrossLineOptions`) are
- * emitted as an interface with no own members whose single heritage is a union type alias
- * (`AgBaseCrossLineOptions`); without this they resolve to zero members and disappear from
- * the navigation and options page. The alias' `genericsMap` is returned so generic members
- * of the union variants (e.g. `label`) resolve to the per-axis type.
+ * Resolves a reference that represents a union, whether directly (a union type alias, e.g. the
+ * axis-specific cross-line aliases `AgCartesianCrossLineOptions` et al.) or indirectly. The
+ * indirect form covers an alias whose RHS is a `typeRef` to a union alias rather than the union
+ * itself: it is emitted as an interface with no own members whose single heritage entry points at
+ * the union alias (e.g. `AnyLeaf` → `Leaf`); without this it resolves to zero members and
+ * disappears from the navigation and options page. Either way, the alias' `genericsMap` is
+ * returned so generic members of the union variants (e.g. `label`) resolve to the per-axis type.
  */
 export function resolveAliasedUnion(
     interfaceRef?: NodeTypes,
@@ -779,7 +830,7 @@ export function resolveAliasedUnion(
     ) {
         const [heritage] = interfaceRef.heritage;
         const heritageName = getReferencedTypeName(heritage);
-        const target = heritageName ? reference?.get(heritageName) : undefined;
+        const target = heritageName == null ? undefined : reference?.get(heritageName);
         if (isUnionTypeAlias(target)) {
             return { unionType: target.type, genericsMap: interfaceRef.genericsMap };
         }
@@ -822,8 +873,10 @@ export function getVariantDiscriminator(node?: NodeTypes): { key: string; value:
  * Resolves the discriminated variants of an aliased union (see {@link resolveAliasedUnion}) into
  * `{ name, type }` navigation entries — `name` being the variant's discriminator value and
  * `type` its interface name. Returns the alias' `genericsMap` so callers can resolve generic
- * members (e.g. the per-axis `label`) when rendering each variant. Mirrors the shape produced for
- * direct union aliases so both can feed the same typed-union navigation rendering.
+ * members inherited from the union itself; a per-axis cross-line alias instead carries the
+ * per-axis `label` type on each variant's own `genericsMap`, since the alias' union members are
+ * the axis-specific interfaces directly. Mirrors the shape produced for the member-less-interface
+ * form so both can feed the same typed-union navigation rendering.
  *
  * For a mixed union, `primitive` carries the non-interface members joined with ` | ` (the part the
  * variant rows omit, mirroring the right-hand signature from {@link formatUnionSignature}); it is
@@ -844,7 +897,7 @@ export function getAliasedUnionVariants(
     }
 
     const variants = collectAliasedVariants(aliasedUnion.unionType.type, reference);
-    if (!variants.length) {
+    if (variants.length === 0) {
         return undefined;
     }
 
@@ -854,9 +907,8 @@ export function getAliasedUnionVariants(
     const isArray = variantMembers.length > 0 && variantMembers.every((member) => isArrayNode(member));
 
     const primitiveMembers = aliasedUnion.unionType.type.filter((member) => !memberYieldsVariants(member, reference));
-    const primitive = primitiveMembers.length
-        ? primitiveMembers.map((member) => normalizeType(member)).join(' | ')
-        : undefined;
+    const primitive =
+        primitiveMembers.length === 0 ? undefined : primitiveMembers.map((member) => normalizeType(member)).join(' | ');
 
     return { variants, genericsMap: aliasedUnion.genericsMap, primitive, isArray };
 }
@@ -871,7 +923,7 @@ function collectAliasedVariants(unionTypes: TypeNode[], reference: ApiReferenceT
     return unionTypes.flatMap((subType) => {
         const elementType = isArrayNode(subType) ? subType.type : subType;
         const subtypeName = getReferencedTypeName(elementType);
-        const node = subtypeName ? reference.get(subtypeName) : undefined;
+        const node = subtypeName == null ? undefined : reference.get(subtypeName);
         if (isUnionTypeAlias(node)) {
             return collectAliasedVariants(node.type.type, reference);
         }
@@ -893,11 +945,11 @@ function collectAliasedVariants(unionTypes: TypeNode[], reference: ApiReferenceT
 function memberYieldsVariants(member: TypeNode, reference: ApiReferenceType): boolean {
     const elementType = isArrayNode(member) ? member.type : member;
     const name = getReferencedTypeName(elementType);
-    const node = name ? reference.get(name) : undefined;
+    const node = name == null ? undefined : reference.get(name);
     if (isUnionTypeAlias(node)) {
         return node.type.type.some((nested) => memberYieldsVariants(nested, reference));
     }
-    return Boolean(name && !isInterfaceHidden(name) && getVariantDiscriminator(node));
+    return name != null && !isInterfaceHidden(name) && getVariantDiscriminator(node) != null;
 }
 
 /** Builds positional type arguments for an interface from a generics map keyed by type-param name. */
@@ -984,7 +1036,7 @@ function collectInterfaceSearchData(
         });
 
         const referenceTarget = resolveMemberReference(member, reference, genericsMap);
-        if (referenceTarget) {
+        if (referenceTarget != null) {
             collectSearchData(out, reference, referenceTarget, navPath, `${label}.`);
         }
     }
@@ -1000,7 +1052,7 @@ function resolveMemberReference(
         element = element.type;
     }
     const resolvedType = getReferencedTypeName(element);
-    return resolvedType && reference?.get(resolvedType);
+    return resolvedType == null ? undefined : reference?.get(resolvedType);
 }
 
 function collectUnionSearchData(
@@ -1025,7 +1077,7 @@ function collectUnionSearchEntries(
     parentGenericsMap?: Record<string, TypeNode>
 ): void {
     const subtypeName = getReferencedTypeName(typeName);
-    if (!subtypeName || isInterfaceHidden(subtypeName)) {
+    if (subtypeName == null || isInterfaceHidden(subtypeName) || unindexedVariants.has(subtypeName)) {
         return;
     }
 
@@ -1034,20 +1086,20 @@ function collectUnionSearchEntries(
         return;
     }
 
+    // Must key on the interface name when undiscriminated, matching the anchors `toUnionVariant` builds.
     const discriminator = getVariantDiscriminator(subtypeRef);
-    if (!discriminator) {
-        return;
-    }
+    const anchorSegment = discriminator?.value ?? cleanupName(subtypeRef.name);
+    const variantKey = discriminator == null ? anchorSegment : `${discriminator.key}='${discriminator.value}'`;
 
-    const label = `${labelPrefix.replace(/\.$/, '')}[${discriminator.key}='${discriminator.value}']`;
+    const label = `${labelPrefix.replace(/\.$/, '')}[${variantKey}]`;
     const navPath = basePath.concat({
-        name: discriminator.value,
+        name: anchorSegment,
         type: subtypeName,
     });
 
     out.push({
         label,
-        searchable: discriminator.value.toLowerCase(),
+        searchable: anchorSegment.toLowerCase(),
         navPath,
     });
     collectSearchData(out, reference, subtypeRef, navPath, `${label}.`, parentGenericsMap);
@@ -1068,7 +1120,7 @@ function findRequiredRefs(reference: ApiReferenceType) {
     const annotationRef = tryGet('AgAnnotation')!;
     const miniChartSeriesRef = tryGet('AgMiniChartSeriesOptions')!;
 
-    if (typeNamesNotFound.length) {
+    if (typeNamesNotFound.length > 0) {
         throw new Error(`Cannot find types: ${typeNamesNotFound.join(', ')}`);
     }
     return { axesRef, seriesRef, annotationRef, miniChartSeriesRef };

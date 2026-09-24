@@ -1,7 +1,6 @@
-import { DeclaredSceneChangeDetection } from 'ag-charts-core';
+import { DeclaredSceneChangeDetection, type NormalisedDropShadowOptions } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
 
-import type { DropShadow } from '../dropShadow';
 import { Rect } from './rect';
 
 export const FEATHERED_THRESHOLD = 1e-3;
@@ -35,7 +34,7 @@ export class BarShape<D = any> extends Rect<D> {
         bottomLeftCornerRadius: number,
         visible: boolean,
         crisp: boolean,
-        fillShadow: DropShadow | undefined,
+        fillShadow: NormalisedDropShadowOptions | undefined,
         direction?: 'x' | 'y',
         featherRatio?: number,
         crispCentreDirection?: 'x' | 'y'
@@ -145,7 +144,7 @@ export class BarShape<D = any> extends Rect<D> {
             path,
         } = this;
 
-        if (stroke && strokeWidth) {
+        if (stroke != null && stroke !== '' && strokeWidth > 0) {
             const { globalAlpha } = ctx;
 
             this.applyStrokeAndAlpha(ctx);
@@ -154,13 +153,13 @@ export class BarShape<D = any> extends Rect<D> {
             if (lineDash) {
                 ctx.setLineDash(lineDash);
             }
-            if (lineDashOffset) {
+            if (lineDashOffset !== 0) {
                 ctx.lineDashOffset = lineDashOffset;
             }
-            if (lineCap) {
+            if (lineCap != null) {
                 ctx.lineCap = lineCap;
             }
-            if (lineJoin) {
+            if (lineJoin != null) {
                 ctx.lineJoin = lineJoin;
             }
 

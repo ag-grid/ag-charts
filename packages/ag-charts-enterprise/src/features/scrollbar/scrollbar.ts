@@ -189,7 +189,7 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         const opts = this.opts;
-        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+        this.ctx.eventsHub.emit('axis-interaction:update', {
             source: 'scrollbar',
             enabled: opts.enabled,
             enableDoubleClick: false,
@@ -230,7 +230,7 @@ export class Scrollbar extends AbstractModuleInstance {
             positionHasAxis,
         } = state;
 
-        const axisLayout = state.axisId ? event.axes[state.axisId] : undefined;
+        const axisLayout = state.axisId == null ? undefined : event.axes[state.axisId];
 
         if (!axisLayout) return;
 

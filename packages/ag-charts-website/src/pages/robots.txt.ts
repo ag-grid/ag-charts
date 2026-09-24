@@ -1,14 +1,13 @@
 import { getIsStaging } from '@utils/env';
 
+import { CHARTS_SITE_URL } from '../constants';
+
 const disallowAllRobotsTxt = () => 'User-agent: *\nDisallow: /';
 
-export function GET() {
-    // Only generate robots.txt in staging environments
-    if (!getIsStaging()) {
-        return new Response('Not Found', { status: 404 });
-    }
+const productionRobotsTxt = () => `User-agent: *\nAllow: /\n\nSitemap: ${CHARTS_SITE_URL}/sitemap-0.xml`;
 
-    const output = disallowAllRobotsTxt();
+export function GET() {
+    const output = getIsStaging() ? disallowAllRobotsTxt() : productionRobotsTxt();
 
     return new Response(output, {
         status: 200,

@@ -243,7 +243,7 @@ export class ProxyInteractionService {
         const element = widget.getElement();
         setElementStyle(element, 'cursor', params.cursor);
         element.classList.toggle('ag-charts-proxy-elem', true);
-        if (params.classList?.length) {
+        if (params.classList != null && params.classList.length > 0) {
             element.classList.add(...params.classList);
         }
         return element;
@@ -268,7 +268,7 @@ export class ProxyInteractionService {
         if ('parent' in params) {
             params.parent?.addChild(element);
         } else {
-            const insert = { where: params.where, query: '.ag-charts-series-area' };
+            const insert = { where: params.where, query: '.ag-charts-series-area-bounds' };
             this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, element.getElement(), insert);
             element.destroyListener = () => {
                 this.ctx.domManager.removeChild('canvas-proxy', params.domManagerId);

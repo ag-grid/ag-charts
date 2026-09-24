@@ -6,6 +6,7 @@ import { buildApiReferenceTable } from '@utils/markdoc/renderApiReferenceTable';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 import { OPTIONS_API_PAGE_CONTENT, THEMES_API_PAGE_CONTENT, apiReferencePageHeading } from './apiReferencePageContent';
+import { buildChartsFrontmatter } from './chartsFrontmatter';
 
 /**
  * `AgChartTheme.overrides` holds one entry per chart type, each repeating the whole chart options
@@ -26,10 +27,9 @@ interface ApiReferenceMarkdownParams {
     /** Markdown blocks appended after the table — related pages, and any caveat about the table. */
     sections?: string[];
     tableLimits?: ApiReferenceTableLimits;
-}
-
-function frontmatter(title: string, description: string) {
-    return ['---', `title: ${JSON.stringify(title)}`, `description: ${JSON.stringify(description)}`, '---'].join('\n');
+    /** The reference page's own URL, for the frontmatter's related links. */
+    pageUrl: string;
+    siteRoot?: string;
 }
 
 /**
@@ -46,12 +46,14 @@ function buildApiReferenceMarkdown({
     description,
     sections = [],
     tableLimits,
+    pageUrl,
+    siteRoot,
 }: ApiReferenceMarkdownParams): string {
     const interfaceRef = reference.get(pageInterface);
     const docs = interfaceRef?.kind === 'interface' ? parseJsDocs(interfaceRef.docs) : undefined;
 
     const document = [
-        frontmatter(title, description),
+        buildChartsFrontmatter({ pageUrl, siteRoot, title, description }),
         `# ${heading}`,
         docs,
         `Interface: \`${pageInterface}\``,
@@ -79,14 +81,17 @@ export function buildOptionsApiMarkdown({
         reference,
         pageInterface: 'AgChartOptions',
         heading: 'AgChartOptions',
+        pageUrl: '/options/',
+        siteRoot,
         ...OPTIONS_API_PAGE_CONTENT,
-        sections: variants.length
-            ? [
-                  '## Options with a reference page per type',
-                  'Each of these properties is a union whose variants are documented separately.',
-                  variants.join('\n'),
-              ]
-            : [],
+        sections:
+            variants.length > 0
+                ? [
+                      '## Options with a reference page per type',
+                      'Each of these properties is a union whose variants are documented separately.',
+                      variants.join('\n'),
+                  ]
+                : [],
     });
 }
 
@@ -97,6 +102,7 @@ export function buildOptionsVariantMarkdown({
     pageTitle,
     title,
     description,
+    pageUrl,
     siteRoot,
 }: {
     reference: ApiReferenceType;
@@ -104,6 +110,7 @@ export function buildOptionsVariantMarkdown({
     pageTitle: PageTitle;
     title: string;
     description: string;
+    pageUrl: string;
     siteRoot?: string;
 }): string {
     return buildApiReferenceMarkdown({
@@ -112,6 +119,8 @@ export function buildOptionsVariantMarkdown({
         heading: apiReferencePageHeading(pageTitle),
         title,
         description,
+        pageUrl,
+        siteRoot,
         sections: [
             `Part of the [AG Charts Options API reference](${toAbsoluteUrl(urlWithBaseUrl('/options/'), siteRoot)}).`,
         ],
@@ -131,6 +140,8 @@ export function buildThemesApiMarkdown({
         reference,
         pageInterface: 'AgChartTheme',
         heading: 'AgChartTheme',
+        pageUrl: '/themes-api/',
+        siteRoot,
         ...THEMES_API_PAGE_CONTENT,
         tableLimits: THEMES_API_TABLE_LIMITS,
         sections: [
@@ -145,12 +156,14 @@ export function buildThemesApiOverrideMarkdown({
     pageInterface,
     pageTitle,
     title,
+    pageUrl,
     siteRoot,
 }: {
     reference: ApiReferenceType;
     pageInterface: string;
     pageTitle: PageTitle;
     title: string;
+    pageUrl: string;
     siteRoot?: string;
 }): string {
     return buildApiReferenceMarkdown({
@@ -159,6 +172,8 @@ export function buildThemesApiOverrideMarkdown({
         heading: apiReferencePageHeading(pageTitle),
         title,
         description: THEMES_API_PAGE_CONTENT.description,
+        pageUrl,
+        siteRoot,
         sections: [
             `Part of the [AG Charts Themes API reference](${toAbsoluteUrl(urlWithBaseUrl('/themes-api/'), siteRoot)}).`,
         ],

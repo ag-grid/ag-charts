@@ -8,7 +8,6 @@ import {
     callback,
     commonChartOptionsDefs,
     defined,
-    fillOptionsDef,
     geoJson,
     htmlElement,
     nonNegativeInteger,
@@ -20,7 +19,6 @@ import {
     required,
     strictUnion,
     string,
-    strokeOptionsDef,
     themeOperator,
     undocumented,
     union,
@@ -29,15 +27,21 @@ import type {
     AgActiveItemState,
     AgActiveState,
     AgCartesianChartOptions,
+    AgCartesianSeriesAreaThemableOptions,
     AgChartValidationSeverity,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
-    AgSeriesAreaBackgroundRegion,
     AgStandaloneChartOptions,
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
-import { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef } from './themes/themeOptionsDef';
+/** Chart-level keys owned by plugin modules; their defs arrive through the modules' contributions. */
+export type ModuleOwnedChartOptions = 'annotations' | 'navigator' | 'scrollbar';
+
+/** `seriesArea.backgroundRegions` is owned by the enterprise background regions module. */
+export type CartesianChartDefOptions = Omit<AgCartesianChartOptions, ModuleOwnedChartOptions | 'seriesArea'> & {
+    seriesArea?: Omit<AgCartesianSeriesAreaThemableOptions, 'backgroundRegions'>;
+};
 
 export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
     activeItem: {
@@ -48,8 +52,14 @@ export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
     frozen: boolean,
 };
 
-// Exhaustive against the public option type, so neither side can gain a level without the other.
-const validationSeverity = strictUnion<AgChartValidationSeverity>()('error', 'warning', 'deprecation', 'none');
+// Exhaustive against the public option type, so neither side can gain a severity without the other.
+// Strict, so an array carrying an unrecognised severity is rejected whole and diagnosed, rather than
+// having that element silently dropped: a bare union validator returns a boolean, which `arrayOf`
+// cannot turn into a per-element diagnostic.
+const validationSeverities = arrayOf(
+    strictUnion<AgChartValidationSeverity>()('error', 'warning', 'deprecation'),
+    "an array of validation severities ('error', 'warning' or 'deprecation')"
+);
 
 // These options are being validated by other modules
 export const commonChartOptions = {
@@ -57,18 +67,15 @@ export const commonChartOptions = {
     withinStudio: undocumented(boolean),
     loading: boolean,
     validations: {
-        overlaySeverity: validationSeverity,
-        consoleLogSeverity: validationSeverity,
-        throwOn: validationSeverity,
+        showOverlayOn: validationSeverities,
+        consoleOn: validationSeverities,
+        throwOn: validationSeverities,
         issueRaised: callback,
     },
     container: htmlElement,
     context: () => true,
     theme: defined,
     series: array,
-    annotations: object,
-    navigator: object,
-    scrollbar: object,
     initialState: {
         active: initialStatePickedOptionsDef,
         chartType: string,
@@ -88,7 +95,7 @@ export const commonChartOptions = {
     },
 };
 
-export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
+export const cartesianChartOptionsDefs: OptionsDefs<CartesianChartDefOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     axes: object,
@@ -99,17 +106,10 @@ export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
         clip: boolean,
         cornerRadius: number,
         padding: or(themeOperator, padding),
-        backgroundRegions: arrayOfDefs<AgSeriesAreaBackgroundRegion>({
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
-            xRange: seriesAreaBackgroundRegionRangeDef,
-            yRange: seriesAreaBackgroundRegionRangeDef,
-            label: seriesAreaBackgroundRegionLabelDef,
-        }),
     },
 };
 
-export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
+export const polarChartOptionsDefs: OptionsDefs<Omit<AgPolarChartOptions, ModuleOwnedChartOptions>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     axes: object,
@@ -117,7 +117,7 @@ export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
     dataIdKey: string,
 };
 
-export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
+export const topologyChartOptionsDefs: OptionsDefs<Omit<AgTopologyChartOptions, ModuleOwnedChartOptions>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
@@ -125,7 +125,7 @@ export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
     topology: geoJson,
 };
 
-export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions> = {
+export const standaloneChartOptionsDefs: OptionsDefs<Omit<AgStandaloneChartOptions, ModuleOwnedChartOptions>> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,

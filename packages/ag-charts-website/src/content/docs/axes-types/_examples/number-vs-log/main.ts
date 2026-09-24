@@ -22,58 +22,24 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
+    // The created axes match the checked 'Number axis' segment below, so the group opens showing the
+    // option actually applied.
+    axes: {
+        y: { type: 'number', label: { format: '.0f' } },
+    },
 };
 
 const chart = AgCharts.create(options);
 
-function setNumberAxis() {
-    options.axes = {
-        y: {
-            type: 'number',
-            label: {
-                format: '.0f',
-            },
-        },
-    };
-    chart.update(options);
-}
+const axisTypes: Record<string, AgCartesianChartOptions['axes']> = {
+    number: { y: { type: 'number', label: { format: '.0f' } } },
+    log: { y: { type: 'log', label: { format: '.0f' } } },
+    'log-base-2': { y: { type: 'log', label: { format: '.0f' }, base: 2 } },
+    'log-fewer-ticks': { y: { type: 'log', interval: { minSpacing: 200 }, label: { format: '.0f' } } },
+};
 
-function setLogAxis() {
-    options.axes = {
-        y: {
-            type: 'log',
-            label: {
-                format: '.0f',
-            },
-        },
-    };
-    chart.update(options);
-}
-
-function setBaseTwoLogAxis() {
-    options.axes = {
-        y: {
-            type: 'log',
-            label: {
-                format: '.0f',
-            },
-            base: 2,
-        },
-    };
-    chart.update(options);
-}
-
-function setLogAxisWithFewerTicks() {
-    options.axes = {
-        y: {
-            type: 'log',
-            interval: {
-                minSpacing: 200,
-            },
-            label: {
-                format: '.0f',
-            },
-        },
-    };
+function axisTypeChange(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    options.axes = axisTypes[value];
     chart.update(options);
 }

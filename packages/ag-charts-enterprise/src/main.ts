@@ -1,5 +1,4 @@
 import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
-import type { AgChartOptions } from 'ag-charts-types';
 
 import { Background } from './features/background/background';
 import { Foreground } from './features/foreground/foreground';
@@ -12,15 +11,23 @@ export * from 'ag-charts-community';
 
 export { AngleCategoryAxisModule } from './axes/angle-category/angleCategoryAxisModule';
 export { AngleNumberAxisModule } from './axes/angle-number/angleNumberAxisModule';
+export {
+    CategoryAxisModule,
+    GroupedCategoryAxisModule,
+    LogAxisModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+} from './axes/cartesian/cartesianAxisModules';
 export { OrdinalTimeAxisModule } from './axes/ordinal/ordinalTimeAxisModule';
 export { RadiusCategoryAxisModule } from './axes/radius-category/radiusCategoryAxisModule';
 export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisModule';
 export { PolarCrossLinesModule } from './axes/polar-crosslines/polarCrossLinesModule';
 export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
-export { AxisDOMProxyModule as AxisInteractionModule } from './features/axis-dom-proxy/axisDomProxyModule';
-export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
+export { AxisInteractionModule } from './features/axis-interaction/axisInteractionModule';
 export { BackgroundRegionsModule } from './features/background-regions/backgroundRegionsModule';
+export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
 export { ChartToolbarModule } from './features/chart-toolbar/chartToolbarModule';
 export { ContextMenuModule } from './features/context-menu/contextMenuModule';
 export { CrosshairModule } from './features/crosshair/crosshairModule';
@@ -78,8 +85,7 @@ export { AllMapSeriesModule } from './module-bundles/topology';
 ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.Enterprise);
 
 enterpriseRegistry.styles = styles;
-enterpriseRegistry.licenseManager = (options: AgChartOptions) =>
-    new LicenseManager(options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document));
+enterpriseRegistry.licenseManager = (document) => new LicenseManager(document);
 enterpriseRegistry.injectWatermark = injectWatermark;
 enterpriseRegistry.createBackground = (ctx) => new Background(ctx);
 enterpriseRegistry.createForeground = (ctx) => new Foreground(ctx);

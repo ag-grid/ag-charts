@@ -5,7 +5,6 @@ import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import { debouncedCallback } from '../../util/render';
 import { StateTracker } from '../../util/stateTracker';
-import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 import { getDatumRefPoint } from '../series/util';
 import type {
@@ -141,7 +140,7 @@ export class TooltipManager {
 
     private applyStates() {
         const id = this.stateTracker.stateId();
-        const state = id ? this.stateTracker.get(id) : undefined;
+        const state = id == null ? undefined : this.stateTracker.get(id);
 
         if (this.suppressState.stateValue() || state?.meta == null || state?.content == null) {
             this.appliedState = null;
@@ -172,7 +171,7 @@ export class TooltipManager {
         movedBounds: BoxBounds | undefined
     ): TooltipMeta {
         const { canvasX, canvasY } = event;
-        const tooltip = series.properties.tooltip as SeriesTooltip<any>;
+        const { tooltip } = series.options;
         const { placement, anchorTo, xOffset, yOffset, offset } = tooltip.position;
         const refPoint = getDatumRefPoint(series, datum, movedBounds);
         const meta: TooltipMeta = {

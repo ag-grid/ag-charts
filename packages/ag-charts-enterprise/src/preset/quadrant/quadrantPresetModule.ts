@@ -2,6 +2,7 @@ import { VERSION } from 'ag-charts-community';
 import type { PresetModuleDefinition } from 'ag-charts-core';
 import type { AgQuadrantChartOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
+import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import {
     backgroundRegionStyle,
     backgroundRegionsTheme,
@@ -13,7 +14,7 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
     axes: {
         number: {
             label: { spacing: 6 },
-            line: { enabled: true, width: 1, stroke: { $foregroundBackgroundMix: 0.5 } },
+            line: { enabled: true, stroke: { $foregroundBackgroundMix: 0.5 } },
             tick: { enabled: false },
         },
     },
@@ -41,8 +42,9 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
 export const QuadrantPresetModule: PresetModuleDefinition<AgQuadrantChartOptions> = {
     type: 'preset',
     name: 'quadrant',
+    apiName: 'AgCharts.createQuadrantChart',
     enterprise: true,
-    dependencies: [],
+    dependencies: [BackgroundRegionsModule],
     version: VERSION,
 
     options: quadrantOptionsDefs,

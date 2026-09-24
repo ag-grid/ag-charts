@@ -47,6 +47,7 @@ import {
     processMembers,
     resolveAliasedUnion,
     resolveReferenceType,
+    resolveUnionAliases,
 } from '../apiReferenceHelpers';
 import { navigateToSelection, useApiReferenceLocation } from '../apiReferenceRouting';
 import { SelectionContext } from './OptionsNavigation';
@@ -215,7 +216,7 @@ function UnionVariantNode({
     const location = useApiReferenceLocation();
     const docs = parseJsDocs(variant.node.docs);
     const { discriminator } = variant;
-    const displayName = discriminator ? `[${discriminator.key}='${discriminator.value}']` : variant.anchorSegment;
+    const displayName = `[${discriminator ? `${discriminator.key}='${discriminator.value}'` : variant.anchorSegment}]`;
 
     useEffect(() => {
         const hash = location?.hash.substring(1);
@@ -243,7 +244,6 @@ function UnionVariantNode({
                         name={displayName}
                         anchorId={anchorId}
                         prefixPath={prefixPath}
-                        nameSeparator={discriminator ? '' : undefined}
                         hasChildProps
                         childPropsOnClick={toggleExpanded}
                     />
@@ -257,7 +257,7 @@ function UnionVariantNode({
                 </div>
                 <div className={styles.rightColumn}>
                     <div role="presentation" className={styles.description}>
-                        {docs && (
+                        {docs != null && docs !== '' && (
                             <Markdown
                                 remarkPlugins={[remarkBreaks]}
                                 urlTransform={(url: string) => urlWithBaseUrl(url)}
@@ -328,7 +328,7 @@ export function ApiReference({
                 [styles.isInline]: isInline,
             })}
         >
-            {anchorId && <a id={anchorId} />}
+            {anchorId != null && anchorId !== '' && <a id={anchorId} />}
             {!config.hideHeader &&
                 (parseJsDocs(interfaceRef.docs) ?? (
                     <p className={styles.propertyDescription}>
@@ -495,7 +495,7 @@ function ApiReferenceRow({
                         <UnionTypesButton name={memberName} isExpanded={isExpanded} onClick={onDetailsToggle} />
                     )}
                 </div>
-                {nestedPath && (
+                {nestedPath != null && nestedPath !== '' && (
                     <div className={styles.actions}>
                         <a
                             tabIndex={0}
@@ -528,7 +528,7 @@ function ApiReferenceRow({
                 </div>
             )}
 
-            {signature && isSignatureExpanded && (
+            {signature != null && signature !== '' && isSignatureExpanded && (
                 <div id={getDetailsId(anchorId)} className={styles.expandedContent}>
                     <Code code={signature} />
                 </div>
@@ -559,7 +559,7 @@ export function TypeCodeBlock({
           )
         : formatTypeToCode(apiNode, member, reference, seen, member.name, expandReferences);
 
-    if (!codeSample?.length) {
+    if (codeSample == null || codeSample.length === 0) {
         // eslint-disable-next-line no-console
         console.warn('Unknown API node', apiNode);
         return null;
@@ -573,7 +573,7 @@ function getCollapsibleType(additionalDetails: MemberAdditionalDetails, nestedPa
         return 'childrenProperties';
     }
     // A nested-page member keeps its "See property details" link and is never hijacked into inline content.
-    if (nestedPath) {
+    if (nestedPath != null && nestedPath !== '') {
         return 'none';
     }
     if (isUnionTypesDetails(additionalDetails)) {
@@ -615,7 +615,7 @@ function useMemberAdditionalDetails(member: MemberNode): MemberAdditionalDetails
     );
     if (aliasedUnion) {
         const variants = collectUnionVariants(aliasedUnion.unionType.type, reference, aliasedUnion.genericsMap);
-        if (variants.length) {
+        if (variants.length > 0) {
             return {
                 kind: 'unionTypes',
                 variants,
@@ -632,13 +632,14 @@ function useMemberAdditionalDetails(member: MemberNode): MemberAdditionalDetails
     // Inline union (not declared through a named alias): same treatment as the aliased union above.
     if (typeof member.type === 'object' && member.type.kind === 'union') {
         const variants = collectUnionVariants(member.type.type, reference);
-        if (variants.length) {
+        if (variants.length > 0) {
             return {
                 kind: 'unionTypes',
                 variants,
                 signature: reference ? formatUnionSignature(member.type, undefined, reference) : undefined,
             };
         }
+        return resolveUnionAliases(member.type, reference);
     }
 }
 
@@ -651,7 +652,7 @@ function collectUnionVariants(
         // Unwrap array members (e.g. `ContentSegment[]`) to their element type.
         const elementType = isArrayNode(unionType) ? unionType.type : unionType;
         const typeName = getReferencedTypeName(elementType);
-        const node = typeName ? reference?.get(typeName) : undefined;
+        const node = typeName == null ? undefined : reference?.get(typeName);
         // A member that is itself a named union alias (e.g.
         // `ContentSegment = TextSegment | ImageSegment`) expands into its own variants.
         if (isUnionTypeAlias(node)) {

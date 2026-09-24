@@ -43,7 +43,7 @@ test.describe('caption tooltip', () => {
     });
 
     test('visible: always shows tooltip on hover', async ({ page }) => {
-        await page.locator('#visible-always').click();
+        await page.locator('label[for="visible-always"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -51,7 +51,7 @@ test.describe('caption tooltip', () => {
     });
 
     test('visible: always shows subtitle tooltip on hover', async ({ page }) => {
-        await page.locator('#visible-always').click();
+        await page.locator('label[for="visible-always"]').click();
         await hoverSubtitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -60,14 +60,14 @@ test.describe('caption tooltip', () => {
 
     test('visible: never hides tooltip even when truncated', async ({ page }) => {
         await page.locator('#truncate').click();
-        await page.locator('#visible-never').click();
+        await page.locator('label[for="visible-never"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).not.toBeVisible();
     });
 
     test('custom text shows on hover', async ({ page }) => {
-        await page.locator('#custom-text').click();
+        await page.locator('label[for="custom-text"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -75,7 +75,7 @@ test.describe('caption tooltip', () => {
     });
 
     test('renderer shows HTML content', async ({ page }) => {
-        await page.locator('#renderer').click();
+        await page.locator('label[for="renderer"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -83,14 +83,14 @@ test.describe('caption tooltip', () => {
     });
 
     test('empty renderer hides tooltip', async ({ page }) => {
-        await page.locator('#empty-renderer').click();
+        await page.locator('label[for="empty-renderer"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).not.toBeVisible();
     });
 
     test('renderer returning undefined falls back to caption text', async ({ page }) => {
-        await page.locator('#undefined-renderer').click();
+        await page.locator('label[for="undefined-renderer"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -98,7 +98,7 @@ test.describe('caption tooltip', () => {
     });
 
     test('renderer returning undefined falls back to tooltip text when set', async ({ page }) => {
-        await page.locator('#undefined-renderer').click();
+        await page.locator('label[for="undefined-renderer"]').click();
         await hoverSubtitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
@@ -113,8 +113,44 @@ test.describe('caption tooltip', () => {
         await expect(tooltip).toContainText('Quarterly Revenue');
     });
 
+    test('a visibility option clears the content selection', async ({ page }) => {
+        await page.locator('label[for="custom-text"]').click();
+        await expect(page.locator('#custom-text')).toBeChecked();
+
+        // Never replaces the tooltip with a visibility-only object, so no content option applies.
+        await page.locator('label[for="visible-never"]').click();
+        await expect(page.locator('#custom-text')).not.toBeChecked();
+
+        // Custom Text is re-selectable because the radio was cleared.
+        await page.locator('label[for="custom-text"]').click();
+        await expect(page.locator('#custom-text')).toBeChecked();
+        await hoverTitle(page);
+        const tooltip = page.locator(SELECTORS.tooltip);
+        await expect(tooltip).toBeVisible();
+        await expect(tooltip).toContainText('Revenue in USD from internal CRM');
+    });
+
+    test('the Always option still applies after a content option', async ({ page }) => {
+        await page.locator('label[for="visible-never"]').click();
+        await page.locator('label[for="custom-text"]').click();
+
+        // Custom Text applies to the title only, so the captions no longer share a visibility option.
+        await expect(page.locator('#visible-never')).not.toBeChecked();
+        await expect(page.locator('#visible-always')).not.toBeChecked();
+
+        await page.locator('label[for="visible-always"]').click();
+        await expect(page.locator('#visible-always')).toBeChecked();
+        await expect(page.locator('#custom-text')).not.toBeChecked();
+
+        // Both captions are visible again, including the subtitle left on 'never'.
+        await hoverSubtitle(page);
+        const tooltip = page.locator(SELECTORS.tooltip);
+        await expect(tooltip).toBeVisible();
+        await expect(tooltip).toContainText('Fiscal Year 2025');
+    });
+
     test('tooltip hides when mouse leaves caption', async ({ page }) => {
-        await page.locator('#visible-always').click();
+        await page.locator('label[for="visible-always"]').click();
         await hoverTitle(page);
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();

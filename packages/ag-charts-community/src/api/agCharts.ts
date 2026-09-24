@@ -4,6 +4,7 @@ import {
     type LicenseManager,
     MementoCaretaker,
     ModuleRegistry,
+    type ModuleScope,
     deepClone,
     deepFreeze,
     enterpriseRegistry,
@@ -14,6 +15,7 @@ import {
 import type {
     AgChartInstance,
     AgChartOptions,
+    AgChartParams,
     AgFinancialChartOptions,
     AgGaugeOptions,
     AgQuadrantChartOptions,
@@ -26,6 +28,8 @@ import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
 import { detectChartType } from '../chart/mapping/types';
+import { resolveInstanceModuleScope } from '../module/instanceModuleScope';
+import { isCommunityModule } from '../module/moduleIdentity';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
@@ -63,7 +67,7 @@ const OPTIONS_ARGUMENT_ISSUE = Symbol('agChartsOptionsArgumentIssue');
  * so the fields named in the message are guidance for the caller, not a stricter requirement.
  *
  * Reported, never thrown: the chart reports it as an `error`-severity validation issue, so it reaches
- * the console, the `validations.overlaySeverity` overlay and `validations.issueRaised` like any other
+ * the console, the `validations.showOverlayOn` overlay and `validations.issueRaised` like any other
  * validation error, and a wrapper does not have to translate an exception into its own error channel.
  */
 function optionsArgumentIssue(options: unknown, methodName: string): string | undefined {
@@ -90,29 +94,63 @@ function takeOptionsArgumentIssue<O>(options: O, methodName: string): { options:
     return { options: rest as O, issue: issue as string };
 }
 
+// A chart is licensed by the modules it can use, and only definitions the community package marked
+// count as community: the `enterprise` flag is caller-writable, so it decides nothing here.
+function usesEnterpriseModules(moduleScope: ModuleScope): boolean {
+    for (const module of moduleScope.listModules()) {
+        if (!isCommunityModule(module)) return true;
+    }
+    return false;
+}
+
+// The watermark decision depends on the hosting document, so a manager built for one document is
+// never reused by a chart in another. The manager itself validates once per key and latches the banner.
+const NO_DOCUMENT = {};
+const licenseManagers = new WeakMap<object, LicenseManager>();
+// Decided once at creation and kept off the instance, so a later update or a caller cannot exempt a chart.
+const studioCharts = new WeakMap<AgChartInstanceProxy, boolean>();
+
+function isStudioChart(proxy: AgChartInstanceProxy | undefined, userOptions: AgChartOptions): boolean {
+    if (proxy) return studioCharts.get(proxy) === true;
+    // Presets strip this undocumented flag from the processed options, so read it as the user gave it.
+    return (userOptions as { withinStudio?: boolean }).withinStudio === true;
+}
+
+/** Resolved before options processing, so the licence verdict reaches the console ahead of any option warning. */
+interface LicenceScope {
+    chartDocument: Document | undefined;
+    moduleScope: ModuleScope;
+}
+
+function hostDocument(container: HTMLElement | null | undefined): Document | undefined {
+    return container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document);
+}
+
+function validatedLicenseManager(
+    chartDocument: Document | undefined,
+    keyRequired: boolean
+): LicenseManager | undefined {
+    const cacheKey = chartDocument ?? NO_DOCUMENT;
+    let licenseManager = licenseManagers.get(cacheKey);
+    if (licenseManager == null) {
+        // Enterprise may load lazily, so an absent manager must not be cached.
+        licenseManager = enterpriseRegistry.licenseManager?.(chartDocument);
+        if (licenseManager == null) return;
+        licenseManagers.set(cacheKey, licenseManager);
+    }
+    // A supplied key is always validated, even an empty or undefined one: only a page that never set a key is silent.
+    if (keyRequired && !licenseManager.isLicenseKeySupplied()) return;
+
+    licenseManager.validateLicense();
+    return licenseManager;
+}
+
 /**
  * Factory for creating and updating instances of AgChartInstance.
  *
  * @docsInterface
  */
 export abstract class AgCharts {
-    private static licenseManager?: LicenseManager;
-    private static licenseChecked = false;
-
-    private static licenseCheck(options: AgChartOptions): LicenseManager | undefined {
-        if ((options as { withinStudio?: boolean }).withinStudio) {
-            return undefined;
-        }
-        let licenseManager = this.licenseManager;
-        if (!this.licenseChecked) {
-            licenseManager = enterpriseRegistry.licenseManager?.(options);
-            this.licenseManager = licenseManager;
-            licenseManager?.validateLicense();
-            this.licenseChecked = true;
-        }
-        return licenseManager;
-    }
-
     /** @private - for use by Charts website dark-mode support. */
     static readonly optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
 
@@ -130,7 +168,7 @@ export abstract class AgCharts {
     }
 
     public static getLicenseDetails(licenseKey: string) {
-        return enterpriseRegistry.licenseManager?.({}).getLicenseDetails(licenseKey);
+        return enterpriseRegistry.licenseManager?.().getLicenseDetails(licenseKey);
     }
 
     /**
@@ -145,7 +183,14 @@ export abstract class AgCharts {
      */
     public static create<O extends AgChartOptions<DatumDefault, any>>( // set TContext=any for backward-compatibility
         userOptions: O,
-        optionsMetadata?: ChartInternalOptionMetadata
+        params?: AgChartParams
+    ): AgChartInstance<O> {
+        return this.createInternal(userOptions, { modules: params?.modules });
+    }
+
+    private static createInternal<O extends AgChartOptions<DatumDefault, any>>(
+        userOptions: O,
+        optionsMetadata: ChartInternalOptionMetadata
     ): AgChartInstance<O> {
         const { options: validOptions, issue: argumentIssue } = takeOptionsArgumentIssue(
             userOptions,
@@ -156,57 +201,66 @@ export abstract class AgCharts {
         return debug.group('AgCharts.create()', () => {
             // deepClone should clone EVERYTHING here, so we can detect mutations in development mode.
             userOptions = Debug.inDevelopmentMode(() => deepFreeze(deepClone(userOptions))) ?? userOptions;
-            const licenseManager = this.licenseCheck(userOptions);
             const chart = AgChartsInternal.createOrUpdate({
                 userOptions,
-                licenseManager,
                 optionsMetadata,
                 optionsArgumentIssue: argumentIssue,
                 apiStartTime,
             });
-
-            if (licenseManager?.isDisplayWatermark()) {
-                enterpriseRegistry.injectWatermark?.(chart.chart!.ctx.domManager, licenseManager.getWatermarkMessage());
-            }
             return chart as unknown as AgChartInstance<O>;
         });
     }
 
-    public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
+    public static createFinancialChart(
+        options: AgFinancialChartOptions,
+        params?: AgChartParams
+    ): AgChartInstance<AgFinancialChartOptions> {
         options = withOptionsArgumentIssue(options, 'AgCharts.createFinancialChart()');
         return debug.group('AgCharts.createFinancialChart()', () => {
-            return this.create(options as any, { presetType: 'price-volume' }) as any;
+            return this.createInternal(options as any, {
+                presetType: 'price-volume',
+                modules: params?.modules,
+            }) as any;
         });
     }
 
-    public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
+    public static createGauge(options: AgGaugeOptions, params?: AgChartParams): AgChartInstance<AgGaugeOptions> {
         options = withOptionsArgumentIssue(options, 'AgCharts.createGauge()');
         return debug.group('AgCharts.createGauge()', () => {
-            return this.create(options as AgChartOptions, { presetType: 'gauge-preset' }) as any;
+            return this.createInternal(options as AgChartOptions, {
+                presetType: 'gauge-preset',
+                modules: params?.modules,
+            }) as any;
         });
     }
 
     public static createQuadrantChart<TDatum = DatumDefault, TContext = ContextDefault>(
-        options: AgQuadrantChartOptions<TDatum, TContext>
+        options: AgQuadrantChartOptions<TDatum, TContext>,
+        params?: AgChartParams
         // TODO: any to prevent errors
     ): AgChartInstance<AgQuadrantChartOptions<TDatum, any>> {
         options = withOptionsArgumentIssue(options, 'AgCharts.createQuadrantChart()');
         return debug.group('AgCharts.createQuadrantChart()', () => {
-            return this.create(options, {
+            return this.createInternal(options, {
                 presetType: 'quadrant',
+                modules: params?.modules,
             }) as AgChartInstance<AgQuadrantChartOptions<TDatum, any>>;
         });
     }
 
-    public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
+    public static __createSparkline(
+        options: AgSparklineOptions,
+        params?: AgChartParams
+    ): AgChartInstance<AgSparklineOptions> {
         options = withOptionsArgumentIssue(options, 'AgCharts.__createSparkline()');
         return debug.group('AgCharts.__createSparkline()', () => {
             const { pool, ...normalOptions } = options as any;
-            return this.create(withOptionsArgumentIssue(normalOptions, 'AgCharts.__createSparkline()'), {
+            return this.createInternal(withOptionsArgumentIssue(normalOptions, 'AgCharts.__createSparkline()'), {
                 presetType: 'sparkline',
                 pool: pool ?? true,
                 domMode: 'minimal',
                 withDragInterpretation: false,
+                modules: params?.modules,
             }) as any;
         });
     }
@@ -222,13 +276,14 @@ class AgChartsInternal {
 
     private static readonly callbackApi: FactoryApi = {
         caretaker: AgChartsInternal.caretaker,
-        create(userOptions, processedOverrides, specialOverrides, optionsMetadata, data) {
+        create(userOptions, processedOverrides, specialOverrides, optionsMetadata, data, licenseManager) {
             return AgChartsInternal.createOrUpdate({
                 userOptions,
                 processedOverrides,
                 specialOverrides,
                 optionsMetadata,
                 data,
+                licenseManager,
             });
         },
         update(opts, chart, specialOverrides, apiStartTime) {
@@ -249,6 +304,7 @@ class AgChartsInternal {
         deltaOptions?: DeepPartial<AgChartOptions>;
         processedOverrides?: Partial<AgChartOptions>;
         proxy?: AgChartInstanceProxy;
+        /** An internal clone (e.g. for image download) inherits its source chart's licence rather than being re-checked. */
         licenseManager?: LicenseManager;
         specialOverrides?: Partial<ChartSpecialOverrides>;
         optionsMetadata?: ChartInternalOptionMetadata;
@@ -273,12 +329,15 @@ class AgChartsInternal {
         let { optionsArgumentIssue: argumentIssue } = opts;
         const styles = enterpriseRegistry.styles == null ? [] : [['ag-charts-enterprise', enterpriseRegistry.styles]];
 
-        if (ModuleRegistry.listModules().next().done) {
+        const moduleScope =
+            proxy?.chart?.chartOptions.moduleRegistry ?? resolveInstanceModuleScope(optionsMetadata.modules);
+        if (moduleScope.listModules().next().done) {
             throw new Error(
                 [
                     'AG Charts - No modules have been registered.',
                     '',
-                    'Call ModuleRegistry.registerModules(...) with the modules you need before using AgCharts.create().',
+                    'Call ModuleRegistry.registerModules(...) with the modules you need before using AgCharts.create(),',
+                    'or pass them to the chart with AgCharts.create(options, { modules: [...] }).',
                     '',
                     'See https://www.ag-grid.com/charts/r/module-registry/ for more details.',
                 ].join('\n')
@@ -297,7 +356,7 @@ class AgChartsInternal {
             debug(() => ['>>> AgCharts.createOrUpdate() MUTATED user options', deepClone(mutableOptions)]);
         }
 
-        const pool = this.getPool(optionsMetadata);
+        const pool = this.getPool(optionsMetadata, moduleScope);
         let create = false;
         let poolResult;
         let chart = proxy?.chart;
@@ -321,6 +380,14 @@ class AgChartsInternal {
         argumentIssue ??= taggedIssue;
         const baseOptions = chart?.getChartOptions();
         const newSpecialOverrides = { ...specialOverrides, document, window: userWindow, styleContainer, skipCss };
+        const withinStudio = isStudioChart(proxy, options);
+        let licenceScope: LicenceScope | undefined;
+        if (licenseManager == null && !withinStudio) {
+            const container =
+                options.container ?? deltaOptions?.container ?? proxy?.chart?.chartOptions.processedOptions.container;
+            licenceScope = { chartDocument: hostDocument(container), moduleScope };
+            validatedLicenseManager(licenceScope.chartDocument, !usesEnterpriseModules(moduleScope));
+        }
         let chartOptions;
         try {
             chartOptions = new ChartOptions(
@@ -333,10 +400,10 @@ class AgChartsInternal {
                 stripSymbols,
                 false,
                 apiStartTime,
-                chart?.ctx.logger
+                chart?.ctx
             );
         } catch (e) {
-            // Options processing can throw (`validations.throwOn`), and a chart already taken out of
+            // Options processing can throw (a datum getter that throws), and a chart already taken out of
             // the pool above would otherwise stay in the busy pool for the rest of the page's life.
             poolResult?.release();
             throw e;
@@ -344,10 +411,11 @@ class AgChartsInternal {
 
         if (
             chart == null ||
-            detectChartType(chartOptions.processedOptions) !== detectChartType(chart.chartOptions.processedOptions)
+            detectChartType(chartOptions.processedOptions, chartOptions.moduleRegistry) !==
+                detectChartType(chart.chartOptions.processedOptions, chart.chartOptions.moduleRegistry)
         ) {
             poolResult?.release(); // Undo previous obtain(), we need to use a different pool!
-            poolResult = this.getPool(chartOptions.optionMetadata)?.obtain(chartOptions);
+            poolResult = this.getPool(chartOptions.optionMetadata, chartOptions.moduleRegistry)?.obtain(chartOptions);
             if (poolResult) {
                 chart = poolResult.item;
             } else {
@@ -357,10 +425,9 @@ class AgChartsInternal {
         }
 
         // A pooled chart keeps its own Logger, so adopt it to keep console output and `warnOnce` dedup unified.
-        chartOptions.adoptLogger(chart.ctx.logger);
-        chartOptions.adoptValidationSink((issue) => chart.validationCollector.recordCallbackIssue(issue));
+        chartOptions.adopt(chart.ctx);
 
-        // After `adoptLogger`, so the report goes to the Logger the chart actually keeps.
+        // After `adopt`, so the report goes to the Logger the chart actually keeps.
         if (argumentIssue != null) {
             chartOptions.recordOptionsArgumentError(argumentIssue);
         }
@@ -404,13 +471,17 @@ class AgChartsInternal {
         chart.ctx.dataService.setForcedLoading(loading);
 
         if (proxy == null) {
-            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);
+            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi);
+            studioCharts.set(proxy, withinStudio);
+            proxy.licenseManager = licenseManager;
             proxy.releaseChart = poolResult?.release;
         } else if (poolResult || create) {
             proxy.releaseChart?.();
             proxy.chart = chart;
             proxy.releaseChart = poolResult?.release;
         }
+        const chartProxy = proxy;
+        AgChartsInternal.licenseCheck(chartProxy, licenceScope);
 
         if (debug.check() && typeof globalThis.window !== 'undefined') {
             (globalThis as any).agChartInstances ??= {};
@@ -419,7 +490,6 @@ class AgChartsInternal {
 
         chart.ctx.domManager.updateCSSVariableWatchers(chartOptions.processedCSSVariables);
 
-        // Must precede the short-circuit below: each listener closes over its own update's options.
         chart.setRequestRefreshListener(() => {
             const refreshedChartOptions = new ChartOptions(
                 baseOptions,
@@ -431,21 +501,30 @@ class AgChartsInternal {
                 stripSymbols,
                 true,
                 Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined,
-                chart.ctx.logger
+                chart.ctx
             );
-            // Re-derived per refresh, so registering the module later recovers.
-            if (refreshedChartOptions.unusableLeadSeriesType != null) return;
+            AgChartsInternal.licenseCheck(chartProxy, licenceScope);
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
-
-        if (chartOptions.unusableLeadSeriesType != null) {
-            AgChartsInternal.queueSkippedUpdate(chart, chartOptions);
-            return proxy;
-        }
 
         AgChartsInternal.requestFactoryUpdate(chart, chartOptions);
 
         return proxy;
+    }
+
+    // Re-run on every update: the scope may gain enterprise modules, or a key may have been set since.
+    private static licenseCheck(proxy: AgChartInstanceProxy, licenceScope: LicenceScope | undefined) {
+        if (licenceScope == null) return;
+
+        // A community-only scope is validated only when a key was supplied, and is never watermarked.
+        const enterpriseScope = usesEnterpriseModules(licenceScope.moduleScope);
+        const licenseManager = validatedLicenseManager(licenceScope.chartDocument, !enterpriseScope);
+        if (licenseManager == null || !enterpriseScope || proxy.licenseManager != null) return;
+
+        proxy.licenseManager = licenseManager;
+        if (licenseManager.isDisplayWatermark()) {
+            enterpriseRegistry.injectWatermark?.(proxy.chart!.ctx.domManager, licenseManager.getWatermarkMessage());
+        }
     }
 
     // `Parameters` and `unknown` here strictly enforce type-safety.
@@ -455,9 +534,9 @@ class AgChartsInternal {
         node: DeepPartial<AgChartOptions>,
         _parallelNode: DeepPartial<AgChartOptions> | undefined,
         _ctx: unknown,
-        previousModified: boolean | undefined
+        previousModified: boolean | undefined = false
     ): boolean => {
-        let modified = previousModified ?? false;
+        let modified = previousModified;
         if (typeof node !== 'object' || node == null) return modified;
         for (const key of strictObjectKeys(node)) {
             const value = node[key];
@@ -497,37 +576,26 @@ class AgChartsInternal {
 
     private static createChartInstance(this: void, options: ChartOptions, oldChart?: Chart): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
-        const chartType = detectChartType(options.processedOptions);
-        const chartDef = ModuleRegistry.getChartModule(chartType);
+        const chartType = detectChartType(options.processedOptions, options.moduleRegistry);
+        const chartDef = options.moduleRegistry.getChartModule(chartType);
         return chartDef.create(options, transferableResource) as Chart;
     }
 
     private static readonly detachAndClear = (chart: Chart) => chart.detachAndClear();
     private static readonly destroy = (chart: Chart) => chart.destroy();
-    private static getPool(optionMetadata: ChartInternalOptionMetadata) {
+    // A chart's context binds its module scope at construction, so pooled charts are keyed by module set too.
+    private static getPool(optionMetadata: ChartInternalOptionMetadata, moduleScope: ModuleScope) {
         if (optionMetadata.pool !== true) return;
 
+        const scopeKey = ModuleRegistry.getModuleScopeKey(moduleScope);
+        const presetType = optionMetadata.presetType ?? 'default';
         return Pool.getPool<Chart, ChartOptions>(
-            optionMetadata.presetType ?? 'default',
+            scopeKey === '' ? presetType : `${presetType}|${scopeKey}`,
             this.createChartInstance,
             this.detachAndClear,
             this.destroy,
             Infinity // Unbounded, so Grid sorting cannot exhaust the pool.
         );
-    }
-
-    private static readonly skippedChartOptions = new WeakSet<ChartOptions>();
-
-    // Only an applied update splices its entry off the queue, so replace the last skipped one.
-    private static queueSkippedUpdate(chart: Chart, chartOptions: ChartOptions) {
-        const queued = chart.queuedChartOptions.at(-1);
-        if (queued != null && AgChartsInternal.skippedChartOptions.has(queued)) {
-            chart.queuedChartOptions.pop();
-            chart.queuedUserOptions.pop();
-        }
-        AgChartsInternal.skippedChartOptions.add(chartOptions);
-        chart.queuedUserOptions.push(chartOptions.userOptions);
-        chart.queuedChartOptions.push(chartOptions);
     }
 
     private static requestFactoryUpdate(chart: Chart, chartOptions: ChartOptions) {

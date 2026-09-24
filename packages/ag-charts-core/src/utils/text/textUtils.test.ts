@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import { LtrEmbedding, PopDirectionalFormatting } from '../../types/text';
-import { forceLtrNumbers, forceLtrNumbersIn, isDirectionNeutral, resolveTextAlign, toFontString } from './textUtils';
+import {
+    forceLtrNumbers,
+    forceLtrNumbersIn,
+    graphemeSegments,
+    isDirectionNeutral,
+    resolveTextAlign,
+    toFontString,
+} from './textUtils';
 
 const mark = (text: string) => LtrEmbedding + text + PopDirectionalFormatting;
 
@@ -222,6 +229,26 @@ describe('forceLtrNumbersIn', () => {
 
     it('marks an LTR-only number leading the text in an RTL paragraph', () => {
         expect(forceLtrNumbersIn('33ms', true)).toBe(mark('33ms'));
+    });
+});
+
+describe('graphemeSegments', () => {
+    it('splits printable ASCII into single characters', () => {
+        expect(graphemeSegments('Point 12')).toEqual(['P', 'o', 'i', 'n', 't', ' ', '1', '2']);
+        expect(graphemeSegments('')).toEqual([]);
+    });
+
+    it('keeps a surrogate pair together', () => {
+        expect(graphemeSegments('a\u{1F600}b')).toEqual(['a', '\u{1F600}', 'b']);
+    });
+
+    it('keeps a combining mark with its base character', () => {
+        expect(graphemeSegments('e\u0301x')).toEqual(['e\u0301', 'x']);
+    });
+
+    it('keeps a ZWJ emoji sequence whole', () => {
+        const family = '\u{1F468}\u200D\u{1F469}\u200D\u{1F467}';
+        expect(graphemeSegments(`${family}!`)).toEqual([family, '!']);
     });
 });
 

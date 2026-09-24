@@ -106,18 +106,6 @@ export interface ValidateParams {
      */
     logger: Logger;
     /**
-     * Reports an error caught by {@link safeCall} while invoking a user callback, alongside the
-     * console `warnOnce`. Lets a chart surface a swallowed callback failure (which never reaches
-     * `tryPerformUpdate`'s catch) on the validation overlay without core depending on the collector.
-     */
-    onCallbackError?: (error: unknown, errorPath: string) => void;
-    /**
-     * Reports a deprecated option encountered by {@link deprecated}, alongside the console
-     * `deprecationOnce`. Lets a chart surface deprecations on the validation overlay (severity
-     * `deprecation`) without core depending on the collector.
-     */
-    onDeprecation?: (message: string, path: string) => void;
-    /**
      * Skip required-field and discriminant enforcement on nodes with `enabled: false`. The second
      * validation pass in `optionsModule` opts in: `removeDisabledOptions` has by then stripped a
      * disabled node down to `{ enabled: false }`, so re-validating it would warn about the
@@ -149,7 +137,7 @@ function extendPath(path: string, key: string | number) {
     if (isFiniteNumber(key)) {
         return `${path}[${key}]`;
     }
-    return path ? `${path}.${key}` : key;
+    return path === '' ? key : `${path}.${key}`;
 }
 
 export class ValidationError {
@@ -172,8 +160,8 @@ export class ValidationError {
 
     getPrefix(): string {
         const { altPath: path = this.path, key } = this;
-        if (!path && !key) return 'Value';
-        return `Option \`${key ? extendPath(path, key) : path}\``;
+        if (path === '' && (key == null || key === '')) return 'Value';
+        return `Option \`${key == null || key === '' ? path : extendPath(path, key)}\``;
     }
 
     toString() {
@@ -204,7 +192,7 @@ export class UnknownError extends ValidationError {
 
     getPostfix() {
         const suggestions = joinFormatted(findSuggestions(this.key, this.suggestions), 'or', (val) => `\`${val}\``);
-        return suggestions ? `; Did you mean ${suggestions}? Ignoring.` : ', ignoring.';
+        return suggestions === '' ? ', ignoring.' : `; Did you mean ${suggestions}? Ignoring.`;
     }
 
     override toString() {
@@ -222,7 +210,7 @@ export class UnknownError extends ValidationError {
 export function validate<T>(
     options: unknown,
     optionsDefs: OptionsDefs<T>,
-    path = '',
+    path: string,
     params: ValidateParams
 ): ValidationResult<T> {
     if (!isObject(options)) {
@@ -351,6 +339,11 @@ function findSuggestions(value: string, suggestions: string[], maxDistance: numb
     });
 }
 
+/** The description attached to a validator or defs object, as used in its validation messages. */
+export function describeValidator(validatorOrDefs: Validator | OptionsDefs<any>): string | undefined {
+    return (validatorOrDefs as { [descriptionSymbol]?: string })[descriptionSymbol];
+}
+
 /**
  * Attaches a descriptive message to a validator function.
  * @param validator The validator function to which to attach a description.
@@ -406,6 +399,20 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
     ) as T;
 }
 
+/** `defs` with every required entry made optional, for options the theme supplies later. */
+export function partial<T>(defs: OptionsDefs<T>): OptionsDefs<Partial<T>> {
+    const result: Record<string | symbol, unknown> = { ...defs };
+    for (const key of Object.keys(defs)) {
+        const def = defs[key as keyof OptionsDefs<T>] as Validator & PrivateSymbols;
+        if (!def[requiredSymbol]) continue;
+        result[key] = Object.assign((value: unknown, context: any) => def(value, context), {
+            [descriptionSymbol]: def[descriptionSymbol],
+            [undocumentedSymbol]: def[undocumentedSymbol],
+        });
+    }
+    return result as OptionsDefs<Partial<T>>;
+}
+
 /**
  * Marks an option as enterprise-only. When AG Charts Enterprise is not registered, supplied values
  * are stripped during validation and a one-shot warning is emitted via `warnOnce` so repeated
@@ -459,7 +466,6 @@ export function deprecated<T extends Validator | OptionsDefs<any>>(validatorOrDe
         if (value !== undefined && !context.params?.silentAdvisories) {
             const notice = `Option \`${context.path}\` is deprecated. ${message}`;
             context.params.logger.deprecationOnce(notice);
-            context.params.onDeprecation?.(notice, context.path);
         }
         return inner(value, context);
     };
@@ -702,7 +708,6 @@ export function union(...allowed: any[]) {
         if (message != null && !context.params?.silentAdvisories) {
             const notice = `Value \`${stringifyValue(value)}\` of option \`${context.path}\` is deprecated. ${message}`;
             context.params.logger.deprecationOnce(notice);
-            context.params.onDeprecation?.(notice, context.path);
         }
         return true;
     }, `a keyword such as ${keywords}`);
@@ -833,13 +838,7 @@ export const callbackOf = (validator: Validator, description?: string) =>
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
-                const result = safeCall(
-                    value,
-                    args,
-                    context.params.logger,
-                    context.path,
-                    context.params.onCallbackError
-                );
+                const result = safeCall(value, args, context.params.logger, context.path);
                 if (result == null) return;
                 const validatorResult = validator(result, { options: result, path: '', params: context.params });
                 if (typeof validatorResult === 'object') {
@@ -870,13 +869,7 @@ export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object')
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
-                const result = safeCall(
-                    value,
-                    args,
-                    context.params.logger,
-                    context.path,
-                    context.params.onCallbackError
-                );
+                const result = safeCall(value, args, context.params.logger, context.path);
                 if (result == null) return;
                 const validatorResult = validate(result, defs, context.path, context.params);
                 warnCallbackErrors(validatorResult, context, validatorDescription);
@@ -907,9 +900,9 @@ function warnCallbackErrors(
         }
         const errorValue = stringifyValue(error.value, 50);
         context.params.logger.warnOnce(
-            error.key
-                ? `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
-                : `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}, ignoring.`
+            error.key == null || error.key === ''
+                ? `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}, ignoring.`
+                : `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
         );
     }
 }

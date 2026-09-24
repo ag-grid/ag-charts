@@ -60,7 +60,7 @@ runs:
         # ./.github/actions/pr-report-comment. No comment is created here.
         - name: Write snapshot-status section
           if: steps.snapshot_check.outputs.updated == 'true' && github.ref != 'refs/heads/latest'
-          uses: actions/github-script@v9
+          uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
           continue-on-error: true
           with:
               script: |
@@ -158,7 +158,7 @@ runs:
                 #   echo "url=${url}" >> $GITHUB_OUTPUT
 
         - name: Slack Notification
-          uses: rtCamp/action-slack-notify@v2
+          uses: rtCamp/action-slack-notify@33ca3be66c6f378fe1610fd1d5258632dbed5e58 # v2.4.0
           if: steps.snapshot_check.outputs.updated == 'true' && github.ref == 'refs/heads/latest'
           env:
               SLACK_WEBHOOK: ${{ inputs.slack_webhook }}

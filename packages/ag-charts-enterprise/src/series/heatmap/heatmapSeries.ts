@@ -1,8 +1,6 @@
 import type {
     AgHeatmapSeriesItemStylerParams,
     AgHeatmapSeriesLabelFormatterParams,
-    AgHeatmapSeriesOptions,
-    AgHeatmapSeriesStyle,
     FontStyle,
     FontWeight,
     TextAlign,
@@ -14,13 +12,14 @@ import {
     ChartAxisDirection,
     type DomainWithMetadata,
     type DynamicContext,
-    type FillStrokeMorph,
     type InternalAgColorType,
     type Mutable,
-    type Normalised,
+    type NormalisedHeatmapSeriesOwnOptions,
+    type NormalisedHeatmapSeriesStyle,
     type NormalisedTextOrSegments,
     type Point,
     type ResolvedTextAlign,
+    STROKE_STYLE_THEME_DEFAULTS,
     type SizedPoint,
     extent,
     findDiscreteColorBinLabel,
@@ -31,7 +30,6 @@ import {
 } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
-import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
 
 const {
     SeriesNodePickMode,
@@ -54,8 +52,6 @@ const {
     updateLabelNode,
     upsertNodeDatum,
 } = _ModuleSupport;
-
-type NormalisedHeatmapSeriesStyle = Normalised<AgHeatmapSeriesStyle, never, FillStrokeMorph>;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
@@ -144,8 +140,7 @@ const VERTICAL_ALIGNS: VerticalAlign[] = ['top', 'middle', 'bottom'];
  */
 interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
     readonly node: _ModuleSupport.Rect<HeatmapNodeDatum>;
-    readonly options: AgHeatmapSeriesOptions;
-    readonly properties: HeatmapSeriesProperties;
+    readonly options: NormalisedHeatmapSeriesOwnOptions;
     readonly datum: HeatmapNodeDatum;
     readonly label: HeatmapLabelDatum;
     readonly context: _ModuleSupport.CartesianSeriesNodeDataContext<HeatmapNodeDatum, HeatmapLabelDatum>;
@@ -157,14 +152,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     static override readonly className = 'HeatmapSeries';
     static readonly type = 'heatmap' as const;
 
-    override properties = new HeatmapSeriesProperties();
-
     override createNodeParams(datum: HeatmapNodeDatum) {
         return {
             ...super.createNodeParams(datum),
-            xKey: this.properties.xKey,
-            yKey: this.properties.yKey,
-            colorKey: this.properties.colorKey,
+            xKey: this.options.xKey,
+            yKey: this.options.yKey,
+            colorKey: this.options.colorKey,
         };
     }
 
@@ -195,21 +188,21 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             return;
         }
 
-        const { xKey, yKey, colorKey } = this.properties;
+        const { xKey, yKey, colorKey } = this.options;
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const colorScaleType = this.colorScale.type;
 
-        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const allowNullKey = this.options.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
                 valueProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
                 valueProperty(yKey, yScaleType, { id: 'yValue', allowNullKey }),
-                ...(colorKey
-                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
-                    : []),
+                ...(colorKey == null || colorKey === ''
+                    ? []
+                    : [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]),
             ],
         });
 
@@ -219,7 +212,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const domain = extent(rawDomain);
 
             if (domain != null) {
-                const colorScaleProps = this.properties.colorScale;
+                const colorScaleProps = this.options.colorScale;
                 // A degenerate single-value domain collapses to the midpoint colour, so a diverging
                 // palette doesn't render with its endpoints.
                 if (domain[0] === domain[1] && colorScaleProps.fills.length > 0) {
@@ -239,8 +232,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     private isColorScaleValid() {
-        const { colorKey } = this.properties;
-        if (!colorKey) {
+        const { colorKey } = this.options;
+        if (colorKey == null || colorKey === '') {
             return false;
         }
 
@@ -343,7 +336,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         ctx: HeatmapSeriesNodeDatumContext
     ): _ModuleSupport.CartesianSeriesNodeDataContext<HeatmapNodeDatum, HeatmapLabelDatum> {
         return {
-            itemId: this.properties.yKey ?? this.id,
+            itemId: this.options.yKey ?? this.id,
             nodeData: ctx.nodes,
             labelData: ctx.labels,
             scales: this.calculateScaling(),
@@ -363,20 +356,24 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         if (!dataModel || !processedData) return undefined;
 
-        const { xKey, xName, yKey, yName, colorKey, colorName, itemPadding } = this.properties;
+        const { xKey, xName, yKey, yName, colorKey, colorName, itemPadding } = this.options;
         // The top-level textAlign/verticalAlign are write-only forwarders, never read by the series.
-        const { textAlign, verticalAlign } = this.properties.label;
+        const { textAlign, verticalAlign } = this.options.label;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'object');
         const yValues = dataModel.resolveColumnById(this, `yValue`, processedData, 'object');
-        const colorValues = colorKey
-            ? dataModel.resolveColumnById(this, `colorValue`, processedData, 'number')
-            : undefined;
+        const colorValues =
+            colorKey == null || colorKey === ''
+                ? undefined
+                : dataModel.resolveColumnById(this, `colorValue`, processedData, 'number');
 
-        const colorDomain = colorKey ? dataModel.getDomain(this, 'colorValue', 'value', processedData).domain : [];
+        const colorDomain =
+            colorKey == null || colorKey === ''
+                ? []
+                : dataModel.getDomain(this, 'colorValue', 'value', processedData).domain;
 
         const width = xScale.bandwidth ?? 10;
         const height = yScale.bandwidth ?? 10;
@@ -425,7 +422,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     private createItemStyleContext(): HeatmapItemStyleContext {
-        const { stroke, strokeWidth, strokeOpacity } = this.properties;
+        const { stroke, strokeWidth, strokeOpacity } = this.options;
         return {
             colorScaleValid: this.isColorScaleValid(),
             baseStyle: { fillOpacity: 1, stroke, strokeWidth, strokeOpacity, opacity: 1 },
@@ -542,7 +539,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         datum: unknown,
         nodeDatum: HeatmapNodeDatum
     ): HeatmapLabelDatum | undefined {
-        const { label } = this.properties;
+        const { label } = this.options;
         const {
             width,
             height,
@@ -577,9 +574,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const labels = formatLabels(
             // Preserve `ContentSegment[]` rather than flattening, so image-bearing labels keep images.
             labelText,
-            this.properties.label,
+            this.options.label,
             undefined,
-            this.properties.label,
+            this.options.label,
             { padding: itemPadding },
             sizeFittingHeight
         );
@@ -589,7 +586,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
 
         const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
-        const { fontStyle, fontFamily, fontWeight, color, textAlign, verticalAlign } = this.properties.label;
+        const { fontStyle, fontFamily, fontWeight, color, textAlign, verticalAlign } = this.options.label;
         const anchorX = nodeDatum.point.x;
         const anchorY = nodeDatum.point.y - (labels.height - labelHeight) * 0.5;
         const xSpan = width - 2 * itemPadding;
@@ -646,9 +643,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         highlightState?: _ModuleSupport.HighlightState,
         itemStyleContext: HeatmapItemStyleContext = this.createItemStyleContext()
     ): NormalisedHeatmapSeriesStyle {
-        const { properties } = this;
-        const { itemStyler, colorKey } = properties;
-        const { missingDataFill } = properties.colorScale;
+        const { options } = this;
+        const { itemStyler, colorKey } = options;
+        const { missingDataFill } = options.colorScale;
         const { colorScaleValid, baseStyle } = itemStyleContext;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
@@ -684,14 +681,19 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return overrides ? mergeDefaults(overrides, style) : style;
     }
 
+    private makeLabelFormatterParams() {
+        const { xKey, yKey, colorKey, xName, yName, colorName } = this.options;
+        return { xKey, yKey, colorKey, xName, yName, colorName };
+    }
+
     private makeItemStylerParams(
         datum: unknown,
         datumIndex: number,
         isHighlight: boolean,
         style: Required<NormalisedHeatmapSeriesStyle>
     ) {
-        const { id: seriesId, properties } = this;
-        const { xKey, yKey, colorKey } = properties;
+        const { id: seriesId, options } = this;
+        const { xKey, yKey, colorKey } = options;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -745,7 +747,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             rect.setStyleProperties(style);
 
             rect.crisp = crisp;
-            rect.cornerRadius = this.properties.cornerRadius;
+            rect.cornerRadius = this.options.cornerRadius;
             rect.x = point.x - width / 2;
             rect.y = point.y - height / 2;
             rect.width = width;
@@ -758,7 +760,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text<HeatmapLabelDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
-        const { enabled } = this.properties.label;
+        const { enabled } = this.options.label;
         const data = enabled ? labelData : [];
 
         return labelSelection.update(data);
@@ -770,7 +772,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const styledAlignment = this.properties.label.itemStyler != null;
+        const styledAlignment = this.options.label.itemStyler != null;
         opts.labelSelection.each((text, datum) => {
             text.pointerEvents = PointerEvents.None;
             text.text = datum.text;
@@ -780,7 +782,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             if (styledAlignment) {
                 this.anchorStyledLabel(datum, isHighlight, activeHighlight);
             }
-            updateLabelNode<P, D>(this, text, this.properties, this.properties.label, datum, {
+            updateLabelNode<P, D>(this, text, this.makeLabelFormatterParams(), this.options.label, datum, {
                 isHighlight,
                 activeHighlight,
             });
@@ -800,8 +802,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             ...getLabelStyles<AgHeatmapSeriesLabelFormatterParams>(
                 this,
                 datum,
-                this.properties,
-                this.properties.label,
+                this.makeLabelFormatterParams(),
+                this.options.label,
                 isHighlight,
                 activeHighlight
             ),
@@ -822,9 +824,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties, colorScale, ctx } = this;
+        const { id: seriesId, dataModel, processedData, axes, options, colorScale, ctx } = this;
         const { formatManager } = ctx;
-        const { xKey, xName, yKey, yName, colorKey, colorName, title, legendItemName, tooltip } = properties;
+        const { xKey, xName, yKey, yName, colorKey, colorName, title, tooltip } = options;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -838,7 +840,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 ? undefined
                 : dataModel.resolveColumnById(this, `colorValue`, processedData, 'number')[datumIndex];
 
-        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const allowNullKeys = this.options.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
 
         // Independent of `isColorScaleValid()` so an invalidly-configured scale doesn't take out
@@ -852,7 +854,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         // Reachable only when colorKey is null (missing-colour datums returned above).
         let fill: InternalAgColorType;
         if (colorValue == null) {
-            fill = properties.colorScale.fills[0]?.color ?? 'black';
+            fill = options.colorScale.fills[0]?.color ?? 'black';
         } else {
             fill = colorScale.convert(colorValue);
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
@@ -861,7 +863,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 value: colorValue,
                 datum,
                 seriesId,
-                legendItemName,
+                legendItemName: undefined,
                 key: colorKey!,
                 source: 'tooltip',
                 property: 'color',
@@ -870,12 +872,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            const binLabel = findDiscreteColorBinLabel(
-                colorScale,
-                properties.colorScale.fills,
-                colorValue,
-                formatValue
-            );
+            const binLabel = findDiscreteColorBinLabel(colorScale, options.colorScale.fills, colorValue, formatValue);
             data.push({
                 label: colorName,
                 fallbackLabel: colorKey!,
@@ -887,12 +884,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             {
                 label: xName,
                 fallbackLabel: xKey,
-                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, undefined),
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
-                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
+                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, undefined),
             }
         );
 
@@ -911,15 +908,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                           fillOpacity: 1,
                           stroke: undefined,
                           strokeWidth: 0,
-                          strokeOpacity: 1,
-                          lineDash: [0],
-                          lineDashOffset: 0,
+                          ...STROKE_STYLE_THEME_DEFAULTS,
                       },
                   };
 
         return this.formatTooltipWithContext(
             tooltip,
-            { title: title ?? legendItemName, symbol, data },
+            { title, symbol, data },
             {
                 seriesId,
                 datum,
@@ -942,7 +937,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             return [];
         }
 
-        const { colorScale: colorScaleProps } = this.properties;
+        const { colorScale: colorScaleProps } = this.options;
 
         if (legendType === 'category' && colorScaleProps.mode === 'discrete' && colorScaleProps.fills.length > 0) {
             return buildColorCategoryLegendData(
@@ -970,7 +965,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     protected isLabelEnabled() {
-        return this.properties.label.enabled && Boolean(this.properties.colorKey);
+        return this.options.label.enabled && Boolean(this.options.colorKey);
     }
 
     override getBandScalePadding() {
@@ -1000,9 +995,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     protected override hasItemStylers(): boolean {
         return (
-            this.properties.selection.enabled ||
-            this.properties.itemStyler != null ||
-            this.properties.label.itemStyler != null ||
+            this.isSelectionEnabled() ||
+            this.options.itemStyler != null ||
+            this.options.label.itemStyler != null ||
             this.isColorScaleValid()
         );
     }

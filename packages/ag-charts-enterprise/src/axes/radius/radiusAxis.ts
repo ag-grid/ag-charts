@@ -87,10 +87,12 @@ export abstract class RadiusAxis<
         this.updateTitle();
         this.updateGridLines();
 
-        const { enabled, stroke, width } = this.options.line;
+        const { enabled, stroke, strokeWidth, strokeOpacity, lineDash } = this.options.line;
         this.lineNode.setProperties({
             stroke,
-            strokeWidth: enabled ? width : 0,
+            strokeWidth: enabled ? strokeWidth : 0,
+            strokeOpacity,
+            lineDash,
             x1: 0,
             y1: this.range[0],
             x2: 0,
@@ -180,7 +182,7 @@ export abstract class RadiusAxis<
 
         const { ticks, labels } = generatedTicks;
 
-        this.gridLineGroupSelection.update(this.gridLength ? ticks : []);
+        this.gridLineGroupSelection.update(this.gridLength > 0 ? ticks : []);
         this.tickLabelGroupSelection.update(labels);
         this.gridPathSelection.update(this.options.gridLine.enabled ? this.prepareGridPathTickData(ticks) : []);
 
@@ -210,7 +212,7 @@ export abstract class RadiusAxis<
     private updateGridLines(): void {
         const { shape, generatedTicks } = this;
         const { style, width } = this.options.gridLine;
-        if (!style || !generatedTicks) {
+        if (style == null || !generatedTicks) {
             return;
         }
 
@@ -287,16 +289,7 @@ export abstract class RadiusAxis<
         const title = this.options.title;
         const { formatter = identityFormatter } = title;
 
-        caption.enabled = title.enabled;
-        caption.fontFamily = title.fontFamily;
-        caption.fontSize = title.fontSize;
-        caption.fontStyle = title.fontStyle;
-        caption.fontWeight = title.fontWeight;
-        caption.color = title.color;
-        caption.wrapping = title.wrapping;
-        caption.truncate = title.truncate;
-        caption.maxWidth = title.maxWidth;
-        caption.maxHeight = title.maxHeight;
+        caption.applyTitle(title);
 
         let titleVisible = false;
         const titleNode = caption.node;
@@ -311,8 +304,7 @@ export abstract class RadiusAxis<
             titleNode.textAlign = 'center';
             titleNode.textBaseline = 'bottom';
 
-            titleNode.text = this.cachedCallWithContext(formatter, this.getTitleFormatterParams(this.scale.domain));
-            caption.text = titleNode.text;
+            caption.setText(this.cachedCallWithContext(formatter, this.getTitleFormatterParams(this.scale.domain)));
             caption.computeTextWrap(axisLength, Infinity);
         }
 

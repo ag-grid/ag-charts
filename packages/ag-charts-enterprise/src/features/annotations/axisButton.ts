@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import type { CurrentPoint, DynamicContext, Point } from 'ag-charts-core';
-import { AbstractModuleInstance, ChartAxisDirection, Property, getIconClassNames } from 'ag-charts-core';
+import { AbstractModuleInstance, ChartAxisDirection, getIconClassNames } from 'ag-charts-core';
 
 import { convert, invert } from './utils/values';
 
@@ -8,7 +8,6 @@ const { InteractionState } = _ModuleSupport;
 export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
 export class AxisButton extends AbstractModuleInstance {
-    @Property
     public enabled = true;
 
     private readonly button: _Widget.ButtonWidget;
@@ -30,17 +29,12 @@ export class AxisButton extends AbstractModuleInstance {
 
         this.snap = Boolean(axisCtx.scale.bandwidth);
 
-        ctx.domManager.addEventListener('focusin', ({ target }) => {
-            const htmlTarget = target instanceof HTMLElement ? target : undefined;
-            const isSeriesAreaChild = htmlTarget && ctx.domManager.contains(htmlTarget, 'series-area');
-            if (!isSeriesAreaChild && htmlTarget !== this.button.getElement()) this.hide();
-        });
-
         this.cleanup.register(
             ctx.widgets.seriesWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
-            ctx.widgets.seriesWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
-            ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseLeave()),
+            ctx.widgets.seriesBoundsWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
+            ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onMouseLeave()),
             ctx.widgets.seriesDragInterpreter?.events.on('click', (e) => this.onClick(e)),
+            ctx.eventsHub.on('dom:series-blurred', () => this.hide()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.hide()),
             ctx.eventsHub.on('zoom:change-complete', () => this.hide()),
@@ -59,7 +53,7 @@ export class AxisButton extends AbstractModuleInstance {
         button.addClass(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
         button.setTabIndex(-1);
         button.setAriaLabel(this.ctx.localeManager.t('ariaLabelAddHorizontalLine'));
-        this.ctx.widgets.seriesWidget.getElement().appendChild(button.getElement());
+        this.ctx.widgets.seriesBoundsWidget.getElement().appendChild(button.getElement());
         return button;
     }
 
@@ -79,13 +73,13 @@ export class AxisButton extends AbstractModuleInstance {
         if (this.ctx.interactionManager.isState(InteractionState.Hoverable)) this.hide();
     }
 
-    private onClick(e: _ModuleSupport.DragInterpreterClickEvent) {
+    private onClick(e: _Widget.ClickWidgetEvent) {
         if (this.ctx.interactionManager.isState(InteractionState.Clickable) && e.device === 'touch') this.show(e);
     }
 
     private show(event: CurrentPoint & { sourceEvent: MouseEvent | TouchEvent }) {
-        const { sourceEvent, currentX: x, currentY: y } = event;
-        if (!(this.enabled && this.ctx.widgets.seriesWidget.getElement().contains(sourceEvent.target as Node | null))) {
+        const { currentX: x, currentY: y } = event;
+        if (!(this.enabled && this.ctx.widgets.seriesBoundsWidget.containsTarget(event))) {
             this.hide();
             return;
         }
@@ -165,7 +159,6 @@ export class AxisButton extends AbstractModuleInstance {
         const { button } = this;
         button.addListener('click', () => this.onButtonClick(this.coords));
         button.addListener('touchend', () => this.onButtonClick(this.coords));
-        button.addListener('drag-start', () => {}); // ignore drag events on this button.
         button.setInnerHTML(
             `<span class="${getIconClassNames('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`
         );

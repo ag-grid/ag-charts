@@ -1,8 +1,25 @@
 <div class="example-controls">
     <div class="controls-row">
         Fill Mode:
-        <button onclick="setFillMode('continuous')">Continuous</button>
-        <button onclick="setFillMode('discrete')">Discrete</button>
+        <div class="button-group" role="group" aria-label="Fill Mode">
+            <input
+                type="radio"
+                id="fill-mode-continuous"
+                name="fill-mode"
+                value="continuous"
+                onchange="setFillMode(event)"
+            />
+            <label for="fill-mode-continuous">Continuous</label>
+            <input
+                type="radio"
+                id="fill-mode-discrete"
+                name="fill-mode"
+                value="discrete"
+                checked
+                onchange="setFillMode(event)"
+            />
+            <label for="fill-mode-discrete">Discrete</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

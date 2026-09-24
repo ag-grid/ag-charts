@@ -5,6 +5,7 @@ import { getChangelogUrl } from '@ag-website-shared/utils/getChangelogUrl';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 
 import versionsData from '../../content/versions/ag-charts-versions.json';
+import { buildChartsFrontmatter } from './chartsFrontmatter';
 
 const TABLE_HEADERS = ['Version', 'Date', 'Type', 'Documentation', 'Changelog'];
 
@@ -43,12 +44,13 @@ export function buildDocumentationArchiveMarkdown({ siteRoot }: { siteRoot?: str
         .filter((entry) => parseVersion(entry.version).isMajor)
         .map((entry) => parseVersion(entry.version).major);
 
-    const frontmatter = [
-        '---',
-        'title: "AG Charts Documentation Archive"',
-        'description: "Browse archived documentation for previous AG Charts versions, from version 9 onwards. View changelogs for every minor and major release."',
-        '---',
-    ].join('\n');
+    const frontmatter = buildChartsFrontmatter({
+        pageUrl: '/documentation-archive/',
+        siteRoot,
+        title: 'AG Charts Documentation Archive',
+        description:
+            'Browse archived documentation for previous AG Charts versions, from version 9 onwards. View changelogs for every minor and major release.',
+    });
 
     const sections = [frontmatter, '# Documentation Archive', 'Review documentation for previous AG Charts versions.'];
 

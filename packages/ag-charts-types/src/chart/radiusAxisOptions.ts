@@ -5,8 +5,14 @@ import type {
     AgContinuousAxisOptions,
     AgNumericAxisFormattableLabelOptions,
 } from './axisOptions';
-import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions, AgCrossLineThemeOptions } from './crossLineOptions';
+import type {
+    AgBaseCrossLineLabelOptions,
+    AgCrossLineThemeOptions,
+    AgLineCrossLineOptions,
+    AgRangeCrossLineOptions,
+} from './crossLineOptions';
 import type { AgNumericValue } from './dataValues';
+import type { AgAxisCrossLineListeners } from './eventOptions';
 import type { AgPolarAxisShape } from './polarAxisOptions';
 import type { AxisValue, ContextDefault, Degree, Ratio } from './types';
 
@@ -29,6 +35,8 @@ export interface AgRadiusNumberAxisOptions<TContext = ContextDefault>
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgRadiusCrossLineOptions<AgNumericValue>[];
+    /** A map of event names to event listeners. */
+    listeners?: AgAxisCrossLineListeners<TContext>;
     /**
      * The ratio of the inner radius of the axis as a proportion of the overall radius.
      *  Used to create an inner circle.
@@ -47,6 +55,8 @@ export interface AgRadiusCategoryAxisOptions<TContext = ContextDefault> extends 
     title?: AgAxisCaptionOptions;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgRadiusCrossLineOptions<AxisValue>[];
+    /** A map of event names to event listeners. */
+    listeners?: AgAxisCrossLineListeners<TContext>;
     /**
      * The ratio of the inner radius of the axis as a proportion of the overall radius.
      *  Used to create an inner circle.
@@ -69,11 +79,23 @@ export interface AgRadiusCategoryAxisOptions<TContext = ContextDefault> extends 
     paddingOuter?: Ratio;
 }
 
-export type AgRadiusCrossLineOptions<TValue = AxisValue> = AgBaseCrossLineOptions<
+/** A radius axis Cross Line rendered as a single line at `value`. The label supports `positionAngle`. */
+export interface AgRadiusLineCrossLineOptions<TValue = AxisValue> extends AgLineCrossLineOptions<
     TValue,
     AgRadiusCrossLineLabelOptions,
     ContextDefault
->;
+> {}
+
+/** A radius axis Cross Line rendered as a shaded band spanning `range`. The label supports `positionAngle`. */
+export interface AgRadiusRangeCrossLineOptions<TValue = AxisValue> extends AgRangeCrossLineOptions<
+    TValue,
+    AgRadiusCrossLineLabelOptions,
+    ContextDefault
+> {}
+
+export type AgRadiusCrossLineOptions<TValue = AxisValue> =
+    | AgRadiusLineCrossLineOptions<TValue>
+    | AgRadiusRangeCrossLineOptions<TValue>;
 export interface AgRadiusCrossLineThemeOptions extends AgCrossLineThemeOptions<AgRadiusCrossLineLabelOptions> {}
 
 export interface AgRadiusAxesCrossLineThemeOptions {
@@ -81,5 +103,6 @@ export interface AgRadiusAxesCrossLineThemeOptions {
 }
 
 export interface AgRadiusCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
+    /** The angle in degrees around the centre of the polar chart at which the Cross Line label is positioned. */
     positionAngle?: Degree;
 }

@@ -1,9 +1,11 @@
-import { BarSeriesModule, LineSeriesModule, NumberAxisModule, TimeAxisModule } from 'ag-charts-community';
+import { BarSeriesModule, LineSeriesModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
+import { NumberAxisModule, TimeAxisModule } from '../axes/cartesian/cartesianAxisModules';
 import { OrdinalTimeAxisModule } from '../axes/ordinal/ordinalTimeAxisModule';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
+import { BackgroundRegionsModule } from '../features/background-regions/backgroundRegionsModule';
 import { BandHighlightModule } from '../features/band-highlight/bandHighlightModule';
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
 import { ContextMenuModule } from '../features/context-menu/contextMenuModule';
@@ -43,6 +45,7 @@ export const FinancialChartModule: ModuleDefinition[] = [
     NavigatorModule,
     RangesModule,
     SelectionModule,
+    BackgroundRegionsModule,
     SyncModule,
     ZoomModule,
 

@@ -1,19 +1,27 @@
 import {
-    type AxisPluginModuleDefinition,
     Debug,
     type Logger,
     ModuleRegistry,
+    type ModuleScope,
     ModuleType,
+    type OptionsContribution,
+    type OptionsDefs,
+    type OptionsPath,
     type PlainObject,
-    type PluginModuleDefinition,
-    type SeriesPluginModuleDefinition,
+    type ResolvedContribution,
+    composeContributedDefs,
+    contributionMatchesChartType,
+    contributionsOf,
+    createScopedCache,
     deepClone,
     deepFreeze,
     groupBy,
-    isArray,
+    isContributionRequested,
     isDefined,
     isObject,
-    unique,
+    moduleMatchesChartType,
+    resolveContributions,
+    visitOptionsPath,
 } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
@@ -22,14 +30,19 @@ import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
 
 const SkippedModules = new Set<string>(['foreground']);
 
-let sanitizedThemeCache = new WeakMap<ChartTheme, ChartTheme>();
-let sanitizedThemeCacheRevision = -1;
+const sanitizedThemeCaches = createScopedCache(
+    () => ({ themes: new WeakMap<ChartTheme, ChartTheme>() }),
+    (cache) => {
+        cache.themes = new WeakMap();
+    }
+);
 const sanitizedThemeCacheDebug = Debug.create(true, 'perf', 'theme');
 
-export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
-    sanitizedThemeCacheRevision = ModuleRegistry.ifRegistryChanged(sanitizedThemeCacheRevision, () => {
-        sanitizedThemeCache = new WeakMap();
-    });
+export function sanitizeThemeModules(
+    theme: ChartTheme,
+    moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
+): ChartTheme {
+    const { themes: sanitizedThemeCache } = sanitizedThemeCaches.for(moduleRegistry);
     const cached = sanitizedThemeCache.get(theme);
     if (cached !== undefined) {
         sanitizedThemeCacheDebug('[CACHE] SanitizedTheme', 'hit');
@@ -37,89 +50,74 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     }
 
     sanitizedThemeCacheDebug('[CACHE] SanitizedTheme', 'miss');
-    const result = sanitizeThemeModulesUncached(theme);
+    const result = sanitizeThemeModulesUncached(theme, moduleRegistry);
     sanitizedThemeCache.set(theme, result);
     return result;
 }
 
 /** Test-only: drop all cached entries so cases start from a known cold state. */
 export function __clearSanitizedThemeCacheForTests() {
-    sanitizedThemeCache = new WeakMap();
-    sanitizedThemeCacheRevision = -1;
+    sanitizedThemeCaches.clear();
 }
 
-function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
-    const missingModules = new Map<string, Set<string>>();
+function sanitizeThemeModulesUncached(theme: ChartTheme, moduleRegistry: ModuleScope): ChartTheme {
+    const missingByType = new Map<string, Set<string>>();
+    const missingPlaceholders: ModulePlaceholder[] = [];
 
-    // Keys already covered by a registered axis-plugin module. A missing module must not prune a theme key
-    // another registered module also owns (`CrossLinesModule` vs `PolarCrossLinesModule` share `crossLines`).
-    const coveredAxisPluginKeys = new Set<string>(
-        [...ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)].map((m) => m.optionsKey ?? m.name)
-    );
-
-    for (const [name, { type, optionsKey }] of ExpectedModules) {
-        if (ModuleRegistry.hasModule(name)) continue;
-
-        // For axis-plugin modules, store the optionsKey that would be pruned from
-        // theme axis configs. Skip if another registered module already covers that key.
-        const pruneKey = type === ModuleType.AxisPlugin ? (optionsKey ?? name) : name;
-        if (type === ModuleType.AxisPlugin && coveredAxisPluginKeys.has(pruneKey)) continue;
-
-        if (missingModules.has(type)) {
-            missingModules.get(type)!.add(pruneKey);
+    for (const [name, module] of ExpectedModules) {
+        if (contributionsOf(module).length === 0) {
+            if (moduleRegistry.hasModule(name)) continue;
+            let names = missingByType.get(module.type);
+            if (names == null) {
+                names = new Set();
+                missingByType.set(module.type, names);
+            }
+            names.add(name);
         } else {
-            missingModules.set(type, new Set<string>([pruneKey]));
+            missingPlaceholders.push(module);
         }
     }
 
-    if (missingModules.size === 0) return theme;
+    const missingContributions = uncoveredContributions(missingPlaceholders, moduleRegistry, undefined);
 
-    function prunePlugins(target?: PlainObject) {
-        const missingPlugins = missingModules.get(ModuleType.Plugin);
-        if (!isObject(target) || !missingPlugins) return;
-        for (const pluginName of missingPlugins) {
-            if (pluginName in target && target[pluginName].enabled !== true) {
-                delete target[pluginName];
+    if (missingByType.size === 0 && missingContributions.length === 0) return theme;
+
+    // A template default is never a user request; only a user-supplied explicit `enabled: true` is,
+    // and only where the contribution is requested by that flag rather than by mere presence.
+    function isPrunable(contribution: OptionsContribution, value: unknown, userSupplied: boolean) {
+        if (!userSupplied || contribution.requested === 'present') return true;
+        return !isObject(value) || value.enabled !== true;
+    }
+
+    function pruneHost(host: unknown, contribution: OptionsContribution, relative: OptionsPath, userSupplied: boolean) {
+        visitOptionsPath(host, relative, (target, key) => {
+            if (key in target && isPrunable(contribution, target[key], userSupplied)) {
+                delete target[key];
             }
-        }
+        });
     }
 
-    function pruneSeriesPlugins(target?: PlainObject) {
-        const missingSeriesPlugins = missingModules.get(ModuleType.SeriesPlugin);
-        if (!isObject(target) || !missingSeriesPlugins) return;
-        for (const pluginName of missingSeriesPlugins) {
-            if (pluginName in target) {
-                delete target[pluginName];
-            }
-        }
-    }
-
-    function pruneAxisPlugins(target?: PlainObject) {
-        const missingAxisPlugins = missingModules.get(ModuleType.AxisPlugin);
-        if (!isObject(target) || !missingAxisPlugins) return;
-        for (const pluginName of missingAxisPlugins) {
-            if (pluginName in target && target[pluginName].enabled !== true) {
-                delete target[pluginName];
-            }
-        }
-    }
-
-    function pruneAxes(axes?: PlainObject) {
-        if (!isObject(axes)) return;
-        for (const axisName of Object.keys(axes)) {
-            if (missingModules.get(ModuleType.Axis)?.has(axisName)) {
-                delete axes[axisName];
-                continue;
-            }
-            pruneAxisPlugins(axes[axisName] as PlainObject);
-        }
-    }
-
-    function pruneSeriesEntry(entry?: PlainObject) {
+    function pruneEntry(entry: PlainObject | undefined, userSupplied: boolean) {
         if (!isObject(entry)) return;
-        pruneAxes(entry.axes as PlainObject);
-        prunePlugins(entry);
-        pruneSeriesPlugins(entry.series as PlainObject);
+        const axes = isObject(entry.axes) ? entry.axes : undefined;
+        if (axes != null) {
+            for (const axisName of Object.keys(axes)) {
+                if (missingByType.get(ModuleType.Axis)?.has(axisName)) {
+                    delete axes[axisName];
+                }
+            }
+        }
+        for (const { contribution, host, relative } of missingContributions) {
+            if (host === 'chart') {
+                pruneHost(entry, contribution, relative, userSupplied);
+            } else if (host === 'series') {
+                pruneHost(entry.series, contribution, relative, userSupplied);
+            } else if (axes != null) {
+                for (const axis of Object.values(axes)) {
+                    pruneHost(axis, contribution, relative, userSupplied);
+                }
+            }
+        }
     }
 
     const config = deepClone(theme.config);
@@ -127,26 +125,21 @@ function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
     const presets = deepClone(theme.presets);
 
     for (const seriesType of Object.keys(config)) {
-        if (missingModules.get(ModuleType.Series)?.has(seriesType)) {
+        if (missingByType.get(ModuleType.Series)?.has(seriesType)) {
             delete config[seriesType];
             continue;
         }
-        pruneSeriesEntry(config[seriesType]);
+        pruneEntry(config[seriesType], false);
     }
 
     if (isObject(overrides)) {
         const overridesObj = overrides as PlainObject;
-        if (isObject(overridesObj.common)) {
-            pruneAxes(overridesObj.common.axes);
-            prunePlugins(overridesObj.common);
-        }
         for (const seriesType of Object.keys(overridesObj)) {
-            if (seriesType === 'common') continue;
-            if (missingModules.get(ModuleType.Series)?.has(seriesType)) {
+            if (seriesType !== 'common' && missingByType.get(ModuleType.Series)?.has(seriesType)) {
                 delete overridesObj[seriesType];
                 continue;
             }
-            pruneSeriesEntry(overridesObj[seriesType] as PlainObject);
+            pruneEntry(overridesObj[seriesType] as PlainObject, true);
         }
     }
 
@@ -154,14 +147,13 @@ function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
         const presetsObj = presets as PlainObject;
         for (const presetName of Object.keys(presetsObj)) {
             if (
-                missingModules.get(ModuleType.Preset)?.has(presetName) ||
-                missingModules.get(ModuleType.Series)?.has(presetName)
+                missingByType.get(ModuleType.Preset)?.has(presetName) ||
+                missingByType.get(ModuleType.Series)?.has(presetName)
             ) {
                 delete presetsObj[presetName];
                 continue;
             }
-            prunePlugins(presetsObj[presetName] as PlainObject);
-            pruneAxes(presetsObj[presetName]?.axes);
+            pruneEntry(presetsObj[presetName] as PlainObject, true);
         }
     }
 
@@ -172,45 +164,52 @@ function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
     });
 }
 
-/** What `processModuleOptions` wrote to the console, and the full set of modules it dropped for it. */
-export interface ProcessModuleOptionsReport {
-    message: string;
-    missingModules: ModulePlaceholder[];
+export interface MissingModule {
+    module: ModulePlaceholder;
+    /** Public names of the supplied options that asked for the module, for the UMD feature warning. */
+    features: string[];
 }
 
 export function processModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
     options: T,
     additionalMissingModules: ModulePlaceholder[],
-    logger: Logger
-): ProcessModuleOptionsReport | undefined {
-    const missingModules = unique(removeUnregisteredModuleOptions(chartType, options).concat(additionalMissingModules));
+    logger: Logger,
+    moduleRegistry: ModuleScope
+): void {
+    const missingModules = removeUnregisteredModuleOptions(chartType, options, moduleRegistry);
+    for (const module of additionalMissingModules) {
+        if (!missingModules.some((missing) => missing.module === module)) {
+            missingModules.push({ module, features: [] });
+        }
+    }
 
-    if (!missingModules.length) return undefined;
+    if (missingModules.length === 0) return;
 
     const installationReferenceUrl = ModuleRegistry.isIntegrated()
         ? 'https://www.ag-grid.com/data-grid/integrated-charts-installation/'
         : 'https://www.ag-grid.com/charts/r/module-registry/';
 
-    const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
+    const missingOptions = groupBy(missingModules, ({ module }) => (module.enterprise ? 'enterprise' : 'community'));
 
-    let message: string;
     if (ModuleRegistry.isUmd()) {
-        message = umdMissingModulesMessage(missingOptions.enterprise ?? []);
-        logger.warnOnce(message);
+        logger.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
     } else {
-        message = bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl);
+        const message = bundlerMissingModulesMessage(
+            missingModules,
+            missingOptions,
+            installationReferenceUrl,
+            !ModuleRegistry.isGlobalScope(moduleRegistry)
+        );
         logger.errorOnce(message);
     }
-
-    return { message, missingModules };
 }
 
-function umdMissingModulesMessage(enterpriseModules: ModulePlaceholder[]): string {
+function umdMissingModulesMessage(enterpriseModules: MissingModule[]): string {
     const installationUrl = ModuleRegistry.isIntegrated()
         ? 'https://www.ag-grid.com/data-grid/integrated-charts-installation/'
         : 'https://www.ag-grid.com/charts/javascript/installation/';
-    const enterpriseOptions = enterpriseModules.map((module) => module.apiName ?? module.name).join('\n');
+    const enterpriseOptions = enterpriseModules.map(formatMissingFeatureName).join('\n');
     return [
         `unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded:`,
         '',
@@ -221,22 +220,29 @@ function umdMissingModulesMessage(enterpriseModules: ModulePlaceholder[]): strin
 }
 
 function bundlerMissingModulesMessage(
-    missingModules: ModulePlaceholder[],
-    missingOptions: Partial<Record<'enterprise' | 'community', ModulePlaceholder[]>>,
-    installationReferenceUrl: string
+    missingModules: MissingModule[],
+    missingOptions: Partial<Record<'enterprise' | 'community', MissingModule[]>>,
+    installationReferenceUrl: string,
+    instanceModules: boolean
 ): string {
-    const packageName = ModuleRegistry.isEnterprise() || missingOptions.enterprise?.length ? 'enterprise' : 'community';
+    const packageName =
+        ModuleRegistry.isEnterprise() || (missingOptions.enterprise?.length ?? 0) > 0 ? 'enterprise' : 'community';
     return [
         'required modules are not registered. Check if you have registered the modules:',
         '',
-        createRegistrySnippet(missingModules.map(formatMissingModuleName), packageName),
+        createRegistrySnippet(
+            missingModules.map(({ module }) => module.moduleId ?? module.name),
+            packageName,
+            instanceModules
+        ),
         '',
         `See ${installationReferenceUrl} for more details.`,
     ].join('\n');
 }
 
-function formatMissingModuleName(module: ModulePlaceholder): string {
-    return module.moduleId ?? module.name;
+function formatMissingFeatureName({ module, features }: MissingModule): string {
+    if (module.apiName != null) return module.apiName;
+    return features.length === 0 ? module.name : features.join(' / ');
 }
 
 function formatImportItem(name: string) {
@@ -244,22 +250,27 @@ function formatImportItem(name: string) {
 }
 
 function formatImports(imports: string[], packageName: string) {
-    return imports.length
-        ? `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`
-        : null;
+    return imports.length === 0
+        ? null
+        : `import {\n${imports.map(formatImportItem).join('\n')}\n} from 'ag-charts-${packageName}';`;
 }
 
-function createRegistrySnippet(moduleNames: string[], packageName: string): string {
-    const imports = formatImports(['ModuleRegistry'].concat(moduleNames), packageName);
+function createRegistrySnippet(moduleNames: string[], packageName: string, instanceModules: boolean): string {
     const moduleList = moduleNames.map(formatImportItem).join('\n');
+    if (instanceModules) {
+        const imports = formatImports(['AgCharts'].concat(moduleNames), packageName);
+        return `${imports}\n\nAgCharts.create(options, {\n    modules: [\n${moduleList.replace(/^/gm, '    ')}\n    ],\n});`;
+    }
+    const imports = formatImports(['ModuleRegistry'].concat(moduleNames), packageName);
     return `${imports}\n\nModuleRegistry.registerModules([\n${moduleList}\n]);`;
 }
 
 export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
-    options: T
-): ModulePlaceholder[] {
-    const missingModules = new Map<string, ModulePlaceholder>();
+    options: T,
+    moduleRegistry: ModuleScope
+): MissingModule[] {
+    const missingModules = new Map<string, MissingModule>();
     const optionsAxes = 'axes' in options && isObject(options.axes) ? options.axes : {};
     const axisTypesInOptions = new Set<string>(
         Object.values(optionsAxes)
@@ -268,15 +279,23 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
     );
     const seriesTypesInOptions = new Set<string>(options.series?.map((series) => series.type).filter(isDefined));
 
-    function addMissingModule(module: ModulePlaceholder) {
-        missingModules.set(module.name, module);
+    function addMissingModule(module: ModulePlaceholder, feature?: string) {
+        let missing = missingModules.get(module.name);
+        if (missing == null) {
+            missing = { module, features: [] };
+            missingModules.set(module.name, missing);
+        }
+        if (feature != null && !missing.features.includes(feature)) {
+            missing.features.push(feature);
+        }
     }
 
+    const uncovered = uncoveredPlaceholderContributions(moduleRegistry, chartType);
+
     for (const module of ExpectedModules.values()) {
-        if (ModuleRegistry.hasModule(module.name)) continue;
         if (SkippedModules.has(module.name)) continue;
         // Ignore modules that don't match the current chart type
-        if (chartType && module.chartType && chartType !== module.chartType) continue;
+        if (!moduleMatchesChartType(module, chartType)) continue;
 
         switch (module.type) {
             case 'chart':
@@ -284,6 +303,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                 break;
 
             case 'axis':
+                if (moduleRegistry.hasModule(module.name)) break;
                 if (axisTypesInOptions.has(module.name)) {
                     for (const key of Object.keys(optionsAxes)) {
                         if (optionsAxes?.[key].type === module.name) {
@@ -295,107 +315,158 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
                 break;
 
             case 'series':
+                if (moduleRegistry.hasModule(module.name)) break;
                 if (seriesTypesInOptions.has(module.name)) {
                     options.series = (options.series as any[]).filter((series) => series.type !== module.name);
                     addMissingModule(module);
                 }
                 break;
 
-            case 'plugin':
-                const optionsKey = module.name as keyof T;
-                const pluginValue = options[optionsKey];
-                if (isObject(pluginValue)) {
-                    if (pluginValue.enabled !== false) {
-                        addMissingModule(module);
-                    }
-                    delete options[optionsKey];
-                }
-                break;
-
-            case 'axis:plugin':
-                for (const axis of Object.values(optionsAxes)) {
-                    const axisModuleKey = (module.optionsKey ?? module.name) as keyof typeof axis;
-                    if (axis?.[axisModuleKey]) {
-                        if (axis[axisModuleKey].enabled !== false) {
-                            addMissingModule(module);
+            default:
+                for (const { contribution, path } of uncovered.get(module) ?? []) {
+                    if (!contributionMatchesChartType(contribution, chartType)) continue;
+                    visitOptionsPath(options, path, (host, key) => {
+                        const value = host[key];
+                        if (value == null) return;
+                        if (isContributionRequested(contribution, value)) {
+                            addMissingModule(module, contribution.apiName ?? contribution.path);
                         }
-                        delete axis[axisModuleKey];
-                    }
-                }
-                break;
-
-            case 'series:plugin':
-                for (const series of options.series ?? []) {
-                    type SeriesModuleKey = Exclude<keyof typeof series, 'type'>;
-                    if (series[module.name as SeriesModuleKey]) {
-                        delete series[module.name as SeriesModuleKey];
-                        addMissingModule(module);
-                    }
+                        delete host[key];
+                    });
                 }
                 break;
         }
     }
 
-    // If a series type matches an expected module but isn't registered, treat it as a missing module instead of an
-    // unknown series type to surface a clearer warning to the user.
-    for (const seriesType of seriesTypesInOptions) {
-        const expectedSeriesModule = ExpectedModules.get(seriesType);
-        if (
-            expectedSeriesModule?.type === ModuleType.Series &&
-            !ModuleRegistry.hasModule(expectedSeriesModule.name) &&
-            !missingModules.has(expectedSeriesModule.name)
-        ) {
-            options.series = (options.series as any[]).filter((series) => series.type !== expectedSeriesModule.name);
-            addMissingModule(expectedSeriesModule);
-        }
-    }
     return Array.from(missingModules.values());
 }
 
+/**
+ * Placeholder contributions whose path no registered module owns for `chartType`. Ownership is by
+ * path, not by name: a community `series-area` registration does not cover the enterprise
+ * `seriesArea.backgroundRegions`, while `CrossLinesModule` covers `axes[].crossLines` on a cartesian
+ * chart but not on a polar one, where `PolarCrossLinesModule` is still missing.
+ */
+function uncoveredContributions(
+    placeholders: Iterable<ModulePlaceholder>,
+    moduleRegistry: ModuleScope,
+    chartType: string | undefined
+): ResolvedContribution<ModulePlaceholder>[] {
+    const coveredPaths = new Set<string>();
+    for (const { contribution } of moduleRegistry.optionsContributions()) {
+        if (contributionMatchesChartType(contribution, chartType)) {
+            coveredPaths.add(contribution.path);
+        }
+    }
+    return resolveContributions(placeholders).filter(({ contribution }) => !coveredPaths.has(contribution.path));
+}
+
+const placeholderContributionCaches = createScopedCache(
+    () => ({
+        byChartType: new Map<string | undefined, Map<ModulePlaceholder, ResolvedContribution<ModulePlaceholder>[]>>(),
+    }),
+    (cache) => {
+        cache.byChartType = new Map();
+    }
+);
+
+/** The uncovered contributions of every expected module, grouped by placeholder and cached per scope revision. */
+function uncoveredPlaceholderContributions(moduleRegistry: ModuleScope, chartType: string | undefined) {
+    const cache = placeholderContributionCaches.for(moduleRegistry);
+    let grouped = cache.byChartType.get(chartType);
+    if (grouped == null) {
+        grouped = new Map();
+        for (const entry of uncoveredContributions(ExpectedModules.values(), moduleRegistry, chartType)) {
+            let entries = grouped.get(entry.definition);
+            if (entries == null) {
+                entries = [];
+                grouped.set(entry.definition, entries);
+            }
+            entries.push(entry);
+        }
+        cache.byChartType.set(chartType, grouped);
+    }
+    return grouped;
+}
+
+/** Contributions of every module the chart could use: registered ones, then unregistered placeholders. */
+function knownContributions(moduleRegistry: ModuleScope, chartType: string): ResolvedContribution[] {
+    const known: ResolvedContribution[] = [...moduleRegistry.optionsContributions()];
+    for (const entries of uncoveredPlaceholderContributions(moduleRegistry, chartType).values()) {
+        known.push(...entries);
+    }
+    return known;
+}
+
+/**
+ * Strips options owned by modules that do not apply to `chartType`. Pass `logger` when `options` are
+ * the user's, so each dropped option is reported; theme defaults are stripped silently.
+ */
 export function removeIncompatibleModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
-    options: T
+    options: T,
+    moduleRegistry: ModuleScope,
+    logger?: Logger
 ): string[] {
-    const hasAxesOptions = 'axes' in options && isObject(options.axes);
-    const hasSeriesOptions = 'series' in options && isArray(options.series);
-    const matchChartType = (
-        module: AxisPluginModuleDefinition<any> | SeriesPluginModuleDefinition<any> | PluginModuleDefinition<any>
-    ) => chartType == null || !module.chartType || module.chartType === chartType;
-    const incompatibleModules: string[] = [];
+    if (chartType == null) return [];
 
-    // Axis-plugin modules can share an `optionsKey`, so only strip a key when no compatible axis-plugin
-    // module claims it for the current chartType.
-    const supportedAxisPluginKeys = new Set<string>();
-    for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
-        if (matchChartType(module)) {
-            supportedAxisPluginKeys.add(module.optionsKey ?? module.name);
+    const table = knownContributions(moduleRegistry, chartType);
+    // Two modules can own one path for different chart types (`crossLines` cartesian/polar), so a
+    // path is only stripped when no compatible owner claims it.
+    const supportedPaths = new Set<string>();
+    for (const { contribution } of table) {
+        if (contributionMatchesChartType(contribution, chartType)) {
+            supportedPaths.add(contribution.path);
         }
     }
 
-    for (const module of ModuleRegistry.listModules()) {
-        if (ModuleRegistry.isModuleType(ModuleType.Plugin, module)) {
-            if (!matchChartType(module)) {
-                delete options[module.name as keyof AgChartOptions];
-                incompatibleModules.push(module.name);
-            }
-        } else if (ModuleRegistry.isModuleType(ModuleType.AxisPlugin, module)) {
-            if (hasAxesOptions && !matchChartType(module)) {
-                const optionsKey = module.optionsKey ?? module.name;
-                if (supportedAxisPluginKeys.has(optionsKey)) continue;
-                for (const axis of Object.values(options.axes as object)) {
-                    delete axis[optionsKey as keyof typeof axis];
-                }
-                incompatibleModules.push(module.name);
-            }
-        } else if (ModuleRegistry.isModuleType(ModuleType.SeriesPlugin, module)) {
-            if (hasSeriesOptions && !matchChartType(module)) {
-                for (const series of options.series as object[]) {
-                    delete series[module.name as Exclude<keyof typeof series, 'type'>];
-                }
-                incompatibleModules.push(module.name);
-            }
-        }
+    const incompatibleModules = new Set<string>();
+    for (const { definition, contribution, path } of table) {
+        if (contributionMatchesChartType(contribution, chartType) || supportedPaths.has(contribution.path)) continue;
+        visitOptionsPath(options, path, (host, key, location) => {
+            if (!(key in host)) return;
+            const requested = isContributionRequested(contribution, host[key]);
+            delete host[key];
+            incompatibleModules.add(definition.name);
+            if (logger == null || !requested) return;
+            const seriesType = options.series?.at(0)?.type;
+            const seriesTypeMessage = seriesType == null ? 'this series type' : `\`${seriesType}\` series`;
+            logger.warn(`Option \`${location}\` is not supported by ${seriesTypeMessage}, ignoring.`);
+        });
     }
+    return Array.from(incompatibleModules);
+}
 
-    return incompatibleModules;
+const composedChartDefsCaches = createScopedCache(
+    () => ({ defs: new WeakMap<object, Map<string, OptionsDefs<any>>>() }),
+    (cache) => {
+        cache.defs = new WeakMap();
+    }
+);
+
+/**
+ * The chart module's defs with every applicable module-owned location installed, so the first
+ * validation pass accepts module options and an unregistered module's options survive to be
+ * reported. Cached per scope revision so the validator's schema-key cache keeps hitting.
+ */
+export function composeChartOptionsDefs<T>(
+    chartType: string,
+    chartDefs: OptionsDefs<T>,
+    moduleRegistry: ModuleScope
+): OptionsDefs<T> {
+    const cache = composedChartDefsCaches.for(moduleRegistry);
+    let byChartType = cache.defs.get(chartDefs);
+    if (byChartType == null) {
+        byChartType = new Map();
+        cache.defs.set(chartDefs, byChartType);
+    }
+    let composed = byChartType.get(chartType) as OptionsDefs<T> | undefined;
+    if (composed == null) {
+        const applicable = knownContributions(moduleRegistry, chartType).filter(({ contribution }) =>
+            contributionMatchesChartType(contribution, chartType)
+        );
+        composed = composeContributedDefs(chartDefs, applicable);
+        byChartType.set(chartType, composed);
+    }
+    return composed;
 }

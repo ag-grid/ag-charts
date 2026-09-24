@@ -177,6 +177,46 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         expect(Object.keys(astro).some((k) => k.includes('archive') || k.includes('privacy'))).toBe(false);
         expect(Object.keys(astro).some((k) => k.includes('(.*)'))).toBe(false);
     });
+
+    it('emits the SE-186 sitemap.xml redirect for a normal (non-archive) build', () => {
+        expect(rules).toContain(`Redirect 301 ${base}/sitemap.xml ${base}/sitemap-0.xml`);
+        expect(getAstroRedirectRules()).toMatchObject({ '/sitemap.xml': `${base}/sitemap-0.xml` });
+    });
+});
+
+describe('htaccessRules redirects (SE-186): archive builds never generate sitemap-0.xml', () => {
+    // Archive builds omit the `sitemap()` integration (see astro.config.mjs), so a redirect
+    // whose target is that generated file must not be emitted there either — it would 301 to a
+    // file the archive build never produces, and the link checker (correctly) flags the
+    // resulting broken anchor.
+    beforeEach(() => {
+        vi.resetModules();
+        vi.doMock('../../constants', async (importActual) => {
+            const actual = await importActual<typeof import('../../constants')>();
+            return { ...actual, SITE_BASE_URL: '/charts/archive/14.2.0/' };
+        });
+    });
+
+    afterEach(() => {
+        vi.doUnmock('../../constants');
+    });
+
+    it('drops the sitemap.xml redirect from the generated .htaccess', async () => {
+        const archiveHtaccessRules = await import('./htaccessRules');
+        expect(archiveHtaccessRules.getRedirectRules()).not.toContain('sitemap.xml');
+    });
+
+    it('drops the sitemap.xml redirect from the Astro redirect map', async () => {
+        const archiveHtaccessRules = await import('./htaccessRules');
+        expect(archiveHtaccessRules.getAstroRedirectRules()).not.toHaveProperty('/sitemap.xml');
+    });
+
+    it('keeps unrelated redirects', async () => {
+        const archiveHtaccessRules = await import('./htaccessRules');
+        expect(archiveHtaccessRules.getRedirectRules()).toContain(
+            '/charts/archive/14.2.0/react/line/ /charts/archive/14.2.0/react/line-series/'
+        );
+    });
 });
 
 describe('htaccessRules markdown content negotiation', () => {

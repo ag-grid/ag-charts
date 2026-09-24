@@ -25,7 +25,7 @@ describe('Tooltip', () => {
     let chart: AgChartProxy | Chart;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
         }
@@ -78,6 +78,36 @@ describe('Tooltip', () => {
   ],
 ]
 `);
+        });
+    });
+
+    describe('Options', () => {
+        it('should reset the position when it is removed on update', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { month: 'Jun', sweaters: 50 },
+                    { month: 'Jul', sweaters: 70 },
+                ],
+                series: [{ type: 'line', xKey: 'month', yKey: 'sweaters' }],
+            };
+            const internalChart = await createChart(options);
+            chart = internalChart;
+            const { publicApi } = internalChart;
+            expect(publicApi).toBeDefined();
+            const defaultPosition = { ...internalChart.tooltip.position };
+
+            await publicApi!.update(
+                prepareTestOptions({
+                    ...options,
+                    tooltip: { position: { anchorTo: 'chart', placement: 'top-left', xOffset: 10, yOffset: 20 } },
+                })
+            );
+            await waitForChartStability(internalChart);
+            expect(internalChart.tooltip.position).toMatchObject({ anchorTo: 'chart', placement: 'top-left' });
+
+            await publicApi!.update(prepareTestOptions(options));
+            await waitForChartStability(internalChart);
+            expect(internalChart.tooltip.position).toEqual(defaultPosition);
         });
     });
 

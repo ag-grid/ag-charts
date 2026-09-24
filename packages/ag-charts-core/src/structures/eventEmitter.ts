@@ -34,6 +34,10 @@ export class EventEmitter<EventMap extends object> {
         }
     }
 
+    hasListeners<K extends keyof EventMap>(eventName: K) {
+        return this.events.has(eventName);
+    }
+
     /**
      * Emits an event to all registered listeners.
      * @param eventName The name of the event to emit.
@@ -53,10 +57,10 @@ export class EventEmitter<EventMap extends object> {
      * @param eventName (Optional) The name of the event to clear listeners for. If not provided, all listeners for all events are cleared.
      */
     clear<K extends keyof EventMap>(eventName?: K) {
-        if (eventName) {
-            this.events.delete(eventName);
-        } else {
+        if (eventName == null) {
             this.events.clear();
+        } else {
+            this.events.delete(eventName);
         }
     }
 }

@@ -18,6 +18,7 @@ export { PolarChartModule } from './chart/polarChartModule';
 
 export { CrossLinesModule } from './chart/crossline/crossLinesModule';
 export { LegendModule } from './chart/legend/legendModule';
+export { SeriesAreaModule } from './chart/series-area/seriesAreaModule';
 export { AreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 export { BarSeriesModule } from './chart/series/cartesian/barSeriesModule';
 export { BubbleSeriesModule } from './chart/series/cartesian/bubbleSeriesModule';

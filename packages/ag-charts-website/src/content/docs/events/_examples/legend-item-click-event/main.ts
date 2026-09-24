@@ -13,7 +13,7 @@ import {
 } from 'ag-charts-community';
 
 ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
-let options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
         {
@@ -52,11 +52,11 @@ let options: AgCartesianChartOptions = {
 
     legend: {
         listeners: {
-            legendItemClick: ({ seriesId, itemId, visible }: AgChartLegendClickEvent) => {
-                console.log(`Click - seriesId: ${seriesId}, itemId: ${itemId}, visible: ${visible}`);
+            legendItemClick: (event: AgChartLegendClickEvent) => {
+                console.log('[click]', event);
             },
-            legendItemDoubleClick: ({ seriesId, itemId, visible }: AgChartLegendDoubleClickEvent) => {
-                console.log(`Double Click - seriesId: ${seriesId}, itemId: ${itemId}, visible: ${visible}`);
+            legendItemDoubleClick: (event: AgChartLegendDoubleClickEvent) => {
+                console.log('[double click]', event);
             },
         },
     },
