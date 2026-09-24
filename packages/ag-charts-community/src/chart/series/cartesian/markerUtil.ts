@@ -4,6 +4,7 @@ import type {
     Point,
     Scale,
     SizedPoint,
+    Writeable,
 } from 'ag-charts-core';
 import { ChartAxisDirection, clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
 import type { AgDrawingMode, AgMarkerShape } from 'ag-charts-types';
@@ -178,6 +179,26 @@ export function computeMarkerFocusBoundsOfNodeDatum<TDatum extends MarkerNodeDat
     const x = datum.point.x - paddedRadius - anchorX;
     const y = datum.point.y - paddedRadius - anchorY;
     return Transformable.toCanvas(series.contentGroup, new BBox(x, y, paddedSize, paddedSize));
+}
+
+export function computeLineAreaFocusBounds<D extends MarkerNodeDatum, Ctx, Scratch extends { yDatum: unknown }>(
+    series: MarkerSeries<D> & {
+        nodeDatumContext?: Ctx;
+        allocDatumScratch(): Scratch;
+        allocDatumWriteable(ctx: Ctx): Writeable<D>;
+        handleDatum(ctx: Ctx, scratch: Scratch, datumIndex: number, dst: Writeable<D>): void;
+    },
+    opts: PickFocusInputs
+) {
+    const ctx = series.nodeDatumContext;
+    if (ctx === undefined) return undefined;
+
+    const scratch = series.allocDatumScratch();
+    const nodeDatum = series.allocDatumWriteable(ctx);
+    series.handleDatum(ctx, scratch, opts.datumIndex, nodeDatum);
+    if (scratch.yDatum === undefined) return undefined;
+
+    return computeMarkerFocusBoundsOfNodeDatum(series, nodeDatum);
 }
 
 function markerEnabled(
