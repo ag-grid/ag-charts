@@ -31,9 +31,9 @@ import { RELEASE_BRANCH, resolveBranch } from '../../packages/ag-charts-demos/to
  * production site this check must run from that branch: the version comes from the branch name
  * and the seeds listed are the ones that deployment carries. The site's own `/debug/meta.json`
  * is read as a cross-check and a disagreement fails the run, since it means the checkout is not
- * what was deployed. The branch is resolved as the seed tooling resolves it (`resolveBranch` in
- * `packages/ag-charts-demos/tools/seeds/seed-common.mjs`): `GITHUB_REF_NAME` in a workflow run, the
- * checked-out branch locally.
+ * what was deployed. The branch is resolved by `resolveBranch` in
+ * `packages/ag-charts-demos/tools/seeds/seed-common.mjs`: `GITHUB_REF_NAME` in a workflow run, the
+ * checked-out branch locally, or `AG_CHARTS_SEED_BRANCH` ahead of either.
  *
  * Usage: node tools/ci/check-demo-seed-links.mjs <site-url>   (from a bX.Y.Z branch for production)
  *   <site-url> includes the site's base path: `https://charts-staging.ag-grid.com` for staging,

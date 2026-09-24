@@ -76,8 +76,8 @@ generated React seeds and the framework ports do not wait.
 
 Each demo/framework pair is a standalone Vite project committed under `seeds/<id>/<framework>/`,
 with `ag-charts-*` pinned to something public npm resolves, and is opened in StackBlitz straight
-from GitHub: the exact release on a `bX.Y.Z` release branch and at its `release-X.Y.Z` tag, npm's
-`latest` dist-tag everywhere else. How the pin is chosen is under "Pins" in
+from GitHub: the exact release at its `release-X.Y.Z` tag, npm's `latest` dist-tag for every
+pre-release, on release branches too. How the pin is chosen is under "Pins" in
 [`tools/seeds/README.md`](tools/seeds/README.md). There is no separate demos repository and no zip
 download.
 

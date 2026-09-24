@@ -64,52 +64,59 @@ A seed is installed from public npm, which is where StackBlitz installs from, so
 dependency in its `package.json` must be something npm resolves. Between releases the workspace
 carries a pre-release, `X.Y.Z-beta.<date>[.<time>]` (`tools/calculate-next-version.js`), and betas
 are published only to the private registry at registry.ag-grid.com, never to public npm. So the
-pin follows the branch (`readPinnedChartsVersion` in `seed-common.mjs`):
+pin follows the workspace version, whatever the branch (`readPinnedChartsVersion` in
+`seed-common.mjs`):
 
-| Where                                                                                         | Pin      | `pinSource` |
-| --------------------------------------------------------------------------------------------- | -------- | ----------- |
-| A release branch `bX.Y.Z`, or a pull request into one, beta or not                            | `X.Y.Z`  | `release`   |
-| A plain `X.Y.Z` workspace version (the "Release X.Y.Z Prep" commit), on any branch            | `X.Y.Z`  | `release`   |
-| Everywhere else: `latest`, `next`, feature branches, pull requests into them, a detached HEAD | `latest` | `dist-tag`  |
+| Workspace version                                                                 | Pin                                       | `pinSource` |
+| --------------------------------------------------------------------------------- | ----------------------------------------- | ----------- |
+| A plain `X.Y.Z` (the "Release X.Y.Z Prep" commit that is tagged)                  | `X.Y.Z`                                   | `release`   |
+| A pre-release, on any branch, release branches `bX.Y.Z` included                  | `latest`                                  | `dist-tag`  |
+| A pre-release, while every seed carries one released `X.Y.Z` in from a merge-back | that `X.Y.Z`, until the next version bump | `release`   |
 
-The `latest` dist-tag makes `npm install` fetch the newest published release, so a seed on `latest`
-may lag a feature its demo already uses until that release ships. Production links the seeds at the
+The `latest` dist-tag makes `npm install` fetch the newest published release, so a seed may lag a
+feature its demo already uses until that release ships. Production links the seeds at the
 `release-X.Y.Z` tag, where they pin `X.Y.Z` exactly; staging and local builds link `latest`.
 
-The branch is resolved in this order (`resolveBranch` in `seed-common.mjs`, shared with
-`tools/ci/check-demo-seed-links.mjs`):
+### A release carried in by a merge-back
 
-1. `AG_CHARTS_SEED_BRANCH`, when set;
-2. `GITHUB_BASE_REF`, set on GitHub Actions pull requests, so a pull request is checked against
-   the branch it merges into;
-3. `GITHUB_REF_NAME`, the pushed or dispatched branch in any other GitHub Actions run;
-4. the checked-out branch. A detached HEAD with none of the above resolves to no branch, and so to
-   the dist-tag unless the workspace version is a plain `X.Y.Z`.
+Release branches are merged back into `latest` several times per release, both directly and
+through `bX.Y.Z-to-latest` branches, and git carries the release branch's pin lines across without
+a conflict. Before the release both sides pin `latest`, so nothing changes. After it, the release
+branch can carry the tagged `X.Y.Z` pins, and `latest` would otherwise fail `check-seeds.mjs` on the
+merge. So where the workspace carries a pre-release, a plain `X.Y.Z` is accepted too, provided the
+seeds agree on it completely: every `ag-charts-*` dependency in every seed's `package.json`, React
+seeds and ports alike, and every manifest's `pinnedVersion`, with `pinSource` `release`. A plain
+version only ever comes from a tagged Release Prep, which publishes it to npm, so the seeds still
+install. Anything else, a mixture of pins or a pre-release pin such as `14.3.0-beta.1`, is held to
+`latest`, and the check's message lists which seeds carry which pin.
+
+`generate-react-seed.mjs` and `pin-ports.mjs` keep such a release by default, so regenerating a
+React seed after a demo change leaves it, and the other seeds, as they were. Passing `--reset-pin`
+to either drops it and writes the pin the workspace version calls for. `tools/bump-versions.sh`
+passes it on every bump, so the next version bump puts `latest` back.
+
+Every message names the pin and the rule that chose it, for example
+`14.2.0 (release carried in by a merge-back; the next beta bump restores latest)` or
+`latest (npm dist-tag: workspace version 14.3.0-beta.20260920 is a pre-release, which public npm does not have)`.
 
 ### Pins through a release
 
 - **Cutting the branch.** `tools/create-release-automated.sh` (and `create-release.sh`) checks out
-  `bX.Y.Z` first and then runs `tools/bump-versions.sh`, twice: to `X.Y.Z`, then to the branch's
-  first `X.Y.Z-beta.*`. `bump-versions.sh` sets `AG_CHARTS_SEED_BRANCH` to the checked-out
-  branch before regenerating the React seeds and running `pin-ports.mjs`, so both bumps pin
-  `X.Y.Z` and the prep commit carries them. `latest` keeps pinning the dist-tag.
+  `bX.Y.Z` and runs `tools/bump-versions.sh` twice: to `X.Y.Z`, which pins `X.Y.Z`, then to the
+  branch's first `X.Y.Z-beta.*`, which pins `latest` again. Both bumps pass `--reset-pin`.
 - **Beta bumps.** `update-release.sh` and the Bump Beta Version workflow (`beta-publish.yml`) run
-  `bump-versions.sh` on the branch they bump, so a release branch stays on `X.Y.Z` and `latest`
-  on the dist-tag; the pins do not change.
-- **"Release X.Y.Z Prep".** This commit is made outside this repository's scripts, and is what
-  gets tagged `release-X.Y.Z`. It sets the plain `X.Y.Z` version, which pins
-  `X.Y.Z` with `pinSource` `release`, exactly what the release branch already carries, so it
-  needs no seed change and need not run the seed tooling. If it does run `bump-versions.sh` from
-  a detached HEAD, that is still right: a plain version pins itself whatever the branch.
-  Either way the tagged commit's pins are what `check-seeds.mjs --pins` expects there.
-- **Merging a release branch into `latest`.** Such a merge brings `X.Y.Z` pins with it, and CI on
-  `latest` then fails `check-seeds`. Run `yarn nx run ag-charts-demos:generate-seeds` and
-  `node packages/ag-charts-demos/tools/seeds/pin-ports.mjs` on the merge, as for the version
-  numbers the merge also has to resolve.
-- **Running the scripts elsewhere.** A job that runs `bump-versions.sh`, `generate-react-seed.mjs`
-  or `pin-ports.mjs` on a detached checkout with no GitHub Actions variables pins the dist-tag
-  for a beta. On a release branch it must first check out the branch by name, or set
-  `AG_CHARTS_SEED_BRANCH=bX.Y.Z`.
+  `bump-versions.sh`, so the seeds pin `latest` on every branch after a beta bump, and a carried-in
+  release on `latest` is dropped at the next weekly bump.
+- **"Release X.Y.Z Prep".** This commit is made outside this repository's release scripts, and is
+  what gets tagged `release-X.Y.Z`. It changes exactly the files `bump-versions.sh` writes, run
+  with the plain version, which pins `X.Y.Z` with `pinSource` `release`, so the tagged commit's
+  pins are what production links and what `check-seeds.mjs --pins` expects there.
+- **Merging a release branch into `latest`.** Before the release the merge carries no pin change.
+  After it the merge carries the `X.Y.Z` pins, which `latest` accepts as above until its next beta
+  bump; nothing needs rerunning on the merge. A merge that leaves the seeds mixed, for example
+  after a conflict resolved by hand, fails `check-seeds.mjs`; run
+  `node packages/ag-charts-demos/tools/seeds/generate-react-seed.mjs --reset-pin` and
+  `node packages/ag-charts-demos/tools/seeds/pin-ports.mjs --reset-pin` to put `latest` back.
 
 ## Scripts
 
@@ -123,6 +130,10 @@ the seed's `src/main.tsx`, which mounts the demo at once. The seed does not wait
 fonts: the demos app does that only in an e2e run, for the parity harness (see "Web fonts and the
 first render" in the package README), and the parity harness compares the ports with the demos
 app, not with this seed.
+
+It reads the pin once, before writing any seed, and keeps a release every seed carries in from a
+merge-back unless it is given `--reset-pin` (see "Pins"). `--out <dir>` writes the seeds below
+another folder, as the freshness check does.
 
 ### Combining the `check-seeds.mjs` flags
 
@@ -141,7 +152,7 @@ committed together with its regenerated seed.
 ### `check-seeds.mjs --pins`
 
 Fails when a framework port's `ag-charts-*` dependencies, or the `pinnedVersion` / `pinSource` in
-its manifest, disagree with what the seeds install on this branch (see "Pins" below). The message
+its manifest, disagree with what the seeds install (see "Pins" above). The message
 names each port and what is off, the pin expected and why, and the command that fixes it. The React
 seed is not listed: `--react` regenerates it with its pins.
 
@@ -153,12 +164,13 @@ Rewrites every framework port to the pinned version: each `ag-charts-*` entry in
 are replaced in the file text, not re-serialised, so each port keeps its own JSON formatting.
 Reports what it changed; changes nothing when every port is already in step.
 
-`tools/bump-versions.sh` runs it right after regenerating the React seeds, so a version bump moves
-the ports' pins in the same commit. Run it by hand after adding a port, or when `--pins` fails, on
-the branch the change targets (or with `AG_CHARTS_SEED_BRANCH` set to it; see "Pins"):
+`tools/bump-versions.sh` runs it with `--reset-pin` right after regenerating the React seeds the
+same way, so a version bump moves the ports' pins in the same commit. Run it by hand after adding a
+port, or when `--pins` fails. Without `--reset-pin` it keeps a release every seed carries in from a
+merge-back; with it, it writes the pin the workspace version calls for (see "Pins"):
 
 ```sh
-node packages/ag-charts-demos/tools/seeds/pin-ports.mjs
+node packages/ag-charts-demos/tools/seeds/pin-ports.mjs [--reset-pin]
 ```
 
 ### `check-seeds.mjs --stale [--fail-on-stale]`
