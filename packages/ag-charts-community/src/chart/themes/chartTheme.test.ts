@@ -1162,8 +1162,7 @@ describe('ChartTheme', () => {
         });
 
         test('caption sizes recompute when fontSize changes on update', async () => {
-            const options = captionOptions({ baseTheme: 'ag-default', params: { fontSize: 20 } });
-            const proxy = AgCharts.create(options);
+            const proxy = AgCharts.create(captionOptions({ baseTheme: 'ag-default', params: { fontSize: 20 } }));
             chart = deproxy(proxy);
             await waitForChartStability(chart);
             await proxy.update(captionOptions({ baseTheme: 'ag-default', params: { fontSize: 24 } }));
@@ -1211,7 +1210,7 @@ describe('ChartTheme', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             expect(typography('title').color).toBe('#ff0000');
             expect(typography('subtitle').color).toBe('#ff0000');
-            expect(typography('footnote').color).not.toBe(DEFAULTS['ag-default'].footnote.color);
+            expect(typography('footnote').color).toBe('#ff8080');
         });
     });
 });
