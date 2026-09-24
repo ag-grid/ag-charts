@@ -259,10 +259,10 @@ export class ChartTheme {
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
 
-            colorPickerColorBorderRadius: { $rem: [0.5, 'borderRadius'] },
+            colorPickerColorBorderRadius: { $mul: [0.5, { $ref: 'borderRadius' }] },
             colorPickerThumbBorderWidth: 3,
             colorPickerThumbSize: 18,
-            colorPickerTrackBorderRadius: { $rem: [99, 'borderRadius'] },
+            colorPickerTrackBorderRadius: { $mul: [99, { $ref: 'borderRadius' }] },
             colorPickerTrackSize: 12,
             dragHandleColor: { $ref: 'chromeTextColor' },
         };

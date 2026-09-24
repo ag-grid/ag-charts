@@ -1325,10 +1325,12 @@ function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 
 enum NumericOperation {
     IsEven = '$isEven',
+    Mul = '$mul',
 }
 
 const numericOperations: Record<NumericOperation, OperationFns> = {
     $isEven: isEvenOperation,
+    $mul: mulOperation,
 };
 
 function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -1336,6 +1338,23 @@ function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
     const value = graph.resolveVertexValue(vertex, valueVertex);
     if (Number.isNaN(Number(value))) return false;
     return Number(value) % 2 === 0;
+}
+
+function mulOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [aVertex, bVertex] = values;
+    const a = graph.resolveVertexValue(vertex, aVertex);
+    const b = graph.resolveVertexValue(vertex, bVertex);
+
+    // Unlike `$rem`, the product is not rounded, so fractional pixels survive.
+    if (typeof a === 'number' && typeof b === 'number') {
+        return a * b;
+    }
+
+    Debug.inDevelopmentMode(() =>
+        graph.warnOnce(
+            `\`$mul\` json operation failed on [${String(a)}, ${String(b)}] at [${graph.getPathArray(vertex).join('.')}], expecting two numbers.`
+        )
+    );
 }
 
 // --- EXPORTS ---

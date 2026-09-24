@@ -146,6 +146,13 @@ describe("the documentation examples' dark mode", () => {
             expect(style.getPropertyValue('--ag-charts-color-picker-track-border-radius')).toBe('0px');
         });
 
+        test('colour picker radii keep fractional pixels', async () => {
+            const style = await getRootStyle({ params: { borderRadius: 3 } });
+
+            expect(style.getPropertyValue('--ag-charts-color-picker-color-border-radius')).toBe('1.5px');
+            expect(style.getPropertyValue('--ag-charts-color-picker-track-border-radius')).toBe('297px');
+        });
+
         test('cardShadow does not follow popupShadow', async () => {
             const style = await getRootStyle({ params: { popupShadow: 'none' } });
 

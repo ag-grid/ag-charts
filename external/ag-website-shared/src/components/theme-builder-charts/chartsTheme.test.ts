@@ -42,7 +42,7 @@ describe('AG Charts param translation', () => {
                 collectOperations(params[property], operations);
             }
         }
-        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$ref', '$rem']);
+        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$mul', '$ref', '$rem']);
     });
 
     describe('colour references', () => {
@@ -76,10 +76,14 @@ describe('AG Charts param translation', () => {
         });
 
         it('maps $rem to a calculated length', () => {
-            expect(toStackParamValue('colorPickerColorBorderRadius', { $rem: [0.5, 'borderRadius'] })).toEqual({
-                calc: 'borderRadius * 0.5',
-            });
+            expect(toStackParamValue('chromeFontSize', { $rem: [1.2, 'fontSize'] })).toEqual({ calc: 'fontSize * 1.2' });
             expect(toStackParamValue('chromeFontSize', { $rem: 1.2 })).toEqual({ calc: 'fontSize * 1.2' });
+        });
+
+        it('maps $mul to a calculated length', () => {
+            expect(
+                toStackParamValue('colorPickerColorBorderRadius', { $mul: [0.5, { $ref: 'borderRadius' }] })
+            ).toEqual({ calc: 'borderRadius * 0.5' });
         });
 
         it('translates the members of a composite param', () => {
