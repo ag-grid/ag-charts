@@ -33,6 +33,10 @@ function getFactory(bindings: any): string {
         return 'AgCharts.__createSparkline';
     }
 
+    if (typeStr.includes('VolumeProfileChart') || importNames.has('AgVolumeProfileChartOptions')) {
+        return 'AgCharts.createVolumeProfileChart';
+    }
+
     return 'AgCharts.create';
 }
 

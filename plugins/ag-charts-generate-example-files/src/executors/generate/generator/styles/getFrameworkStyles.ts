@@ -34,7 +34,8 @@ my-app {
 ag-charts,
 ag-financial-charts,
 ag-gauge,
-ag-quadrant-chart {
+ag-quadrant-chart,
+ag-volume-profile-chart {
     display: block;
     padding: 1rem;
     height: 100%;

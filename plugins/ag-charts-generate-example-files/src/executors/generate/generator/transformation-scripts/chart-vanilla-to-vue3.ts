@@ -9,6 +9,7 @@ const components: Record<ChartAPI, string> = {
     quadrant: 'AgQuadrantChart',
     sparkline: 'AgSparkline',
     vanilla: 'AgCharts',
+    'volume-profile': 'AgVolumeProfileChart',
 };
 
 const tags: Record<ChartAPI, string> = {
@@ -17,6 +18,7 @@ const tags: Record<ChartAPI, string> = {
     quadrant: 'ag-quadrant-chart',
     sparkline: 'ag-sparkline',
     vanilla: 'ag-charts',
+    'volume-profile': 'ag-volume-profile-chart',
 };
 
 function processFunction(code: string, suppressOptionsClone: boolean): string {

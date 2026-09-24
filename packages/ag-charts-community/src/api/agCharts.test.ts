@@ -507,6 +507,11 @@ describe('AgCharts', () => {
             ['createFinancialChart', () => AgCharts.createFinancialChart(undefined as any), ['FinancialChartModule']],
             ['createGauge', () => AgCharts.createGauge(undefined as any), ['AllGaugeModule']],
             ['createQuadrantChart', () => AgCharts.createQuadrantChart(undefined as any), ['QuadrantChartModule']],
+            [
+                'createVolumeProfileChart',
+                () => AgCharts.createVolumeProfileChart(undefined as any),
+                ['FinancialChartModule'],
+            ],
             ['__createSparkline', () => AgCharts.__createSparkline(undefined as any), []],
         ])('names %s in the error it reports', (methodName, call, missingModules) => {
             expect(() => (chart = call() as AgChartInstance)).not.toThrow();

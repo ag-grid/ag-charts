@@ -103,7 +103,7 @@ export function priceVolume(
         legend: { enabled: false },
         series: [
             ...createVolumeSeries(getTheme, keys, shownVolumeKey),
-            ...createVolumeProfileSeries(getTheme, volumeProfile, tickSize),
+            ...createVolumeProfileSeries(getTheme, volumeProfile, tickSize, 'y'),
             ...createPriceSeries(chartType, keys, logger),
         ],
         axes: {

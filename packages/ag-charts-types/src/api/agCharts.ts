@@ -5,6 +5,7 @@ import type {
     AgGaugeOptions,
     AgQuadrantChartOptions,
     AgTypedChartInstance,
+    AgVolumeProfileChartOptions,
 } from '../chartBuilderOptions';
 import type { AgChartParams } from './chartParams';
 
@@ -32,6 +33,12 @@ export interface AgChartsApi {
         options: AgQuadrantChartOptions<TDatum, TContext>,
         params?: AgChartParams
     ): AgTypedChartInstance<TDatum, TContext, AgQuadrantChartOptions<TDatum, TContext>>;
+
+    /** Create a new `AgChartInstance` based upon the given configuration options. */
+    createVolumeProfileChart<TDatum>(
+        options: AgVolumeProfileChartOptions<TDatum>,
+        params?: AgChartParams
+    ): AgTypedChartInstance<TDatum, never, AgVolumeProfileChartOptions<TDatum>>;
 
     /** @private Internal to AG Grid, returns the `AgChartInstance` for a DOM node, if there is one. */
     getInstance(element: HTMLElement): AgChartInstance<AgChartOptions<unknown, unknown>> | undefined;

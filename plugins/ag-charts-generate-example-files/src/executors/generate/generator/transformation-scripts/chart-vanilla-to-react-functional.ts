@@ -15,6 +15,7 @@ const components: Record<ChartAPI, string> = {
     quadrant: 'AgQuadrantChart',
     sparkline: 'AgSparkline',
     vanilla: 'AgCharts',
+    'volume-profile': 'AgVolumeProfileChart',
 };
 
 export function processFunction(code: string, suppressOptionsClone: boolean): string {
