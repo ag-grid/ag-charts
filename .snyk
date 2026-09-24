@@ -1,6 +1,100 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-URIJS-19963963:
+    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:43:30.205Z
+    - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:43:30.204Z
+    - '@modelcontextprotocol/server-sequential-thinking@2025.12.18 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:43:30.202Z
+    - '@modelcontextprotocol/server-puppeteer@2025.5.12 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:43:30.200Z
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:43:30.198Z
+    - request@2.88.2 > har-validator@5.1.5 > ajv@6.12.6 > uri-js@4.4.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:43:30.196Z
+    - eslint@9.37.0 > @eslint/eslintrc@3.3.1 > ajv@6.12.6 > uri-js@4.4.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:43:30.193Z
+    - dependency-cruiser@13.1.5 > ajv@8.12.0 > uri-js@4.4.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:43:30.156Z
+  SNYK-JS-HTTPCACHESEMANTICS-19964068:
+    - '@swc/cli@0.3.14 > @mole-inc/bin-wrapper@8.0.1 > got@11.8.6 > cacheable-request@7.0.4 > http-cache-semantics@4.1.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:42:54.532Z
+  SNYK-JS-HTTPCACHESEMANTICS-19964064:
+    - '@swc/cli@0.3.14 > @mole-inc/bin-wrapper@8.0.1 > got@11.8.6 > cacheable-request@7.0.4 > http-cache-semantics@4.1.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:42:23.797Z
+  SNYK-JS-BRACES-19963945:
+    - madge@8.0.0 > dependency-tree@11.0.1 > precinct@12.1.2 > detective-typescript@13.0.0 > @typescript-eslint/typescript-estree@7.18.0 > globby@11.1.0 > fast-glob@3.3.2 > micromatch@4.0.8 > braces@3.0.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.900Z
+    - '@types/jest-image-snapshot@6.4.2 > @types/jest@29.5.11 > expect@29.7.0 > jest-message-util@29.7.0 > micromatch@4.0.8 > braces@3.0.3':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.899Z
+    - rulesync@7.0.0 > globby@16.1.0 > fast-glob@3.3.3 > micromatch@4.0.8 > braces@3.0.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.898Z
+    - patch-package@8.0.1 > find-yarn-workspace-root@2.0.0 > micromatch@4.0.8 > braces@3.0.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.896Z
+    - '@swc/cli@0.3.14 > fast-glob@3.3.2 > micromatch@4.0.8 > braces@3.0.3':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.895Z
+    - '@nx/esbuild@20.3.1 > fast-glob@3.2.7 > micromatch@4.0.8 > braces@3.0.3':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.894Z
+    - jscodeshift@0.16.1 > micromatch@4.0.8 > braces@3.0.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.888Z
+    - eslint-plugin-check-file@2.8.0 > micromatch@4.0.8 > braces@3.0.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.865Z
   SNYK-JS-UNDICI-19635222:
     - rulesync@7.0.0 > fastmcp@3.31.0 > undici@7.29.0:
         reason: >-

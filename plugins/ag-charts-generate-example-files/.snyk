@@ -1,6 +1,12 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-BRACES-19963945:
+    - jscodeshift@0.16.1 > micromatch@4.0.8 > braces@3.0.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.891Z
   # FALSE POSITIVE - a working entry must live in THIS file, not the repo root.
   # `snyk test --yarn-workspaces` reads each workspace project's own .snyk, so a
   # root-level ignore never reaches this project. The path is `*` on purpose: the
