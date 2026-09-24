@@ -281,7 +281,7 @@ export class Annotations extends AbstractModuleInstance {
 
             deleteAll: () => {
                 // Filter the readOnly data and recreate the array since this is not a standard array.
-                const readOnly = this.annotationData.filter((datum) => (datum.readOnly ? datum : false));
+                const readOnly = this.annotationData.filter((datum) => datum.readOnly === true);
                 this.annotationData.splice(0, this.annotationData.length, ...readOnly);
             },
 
