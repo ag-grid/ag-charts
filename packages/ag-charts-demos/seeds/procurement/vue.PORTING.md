@@ -12,9 +12,10 @@ person or an agent performs it.
    name and the element structure of the React output are preserved so the stylesheet applies
    unchanged. Never adapt the CSS to the port; make the port emit the DOM the CSS expects.
 2. Reuse pure modules unchanged. A `.ts` module without a React import is copied byte for byte,
-   including the JSON dataset under `src/data/` and the vendored `web-analytics/topology.ts`. Diff
-   the copies against the source before anything else; a byte difference in one of them is a sync
-   bug, not a design choice.
+   including the JSON dataset under `src/data/` and the vendored `web-analytics/topology.ts`. The
+   one exception is `routes.ts`, copied from the React seed rather than the source (see under the
+   file mapping). Diff the copies against the source (`routes.ts` against the React seed) before
+   anything else; a byte difference in one of them is a sync bug, not a design choice.
 3. One-to-one files. Every React component has one Vue single-file component of the same name.
    A React file that defines several components is split into one `.vue` file per component, as
    listed in the table below; do not merge or split further. The parity failure messages and this
@@ -36,7 +37,7 @@ person or an agent performs it.
 | `geo.ts`                                                                                                                | `geo.ts`                                                                                                                 | copied unchanged                    |
 | `grid.ts`                                                                                                               | `grid.ts`                                                                                                                | copied unchanged                    |
 | `procurement.css`                                                                                                       | `procurement.css`                                                                                                        | copied unchanged                    |
-| `routes.ts`                                                                                                             | `routes.ts`                                                                                                              | copied unchanged                    |
+| `routes.ts`                                                                                                             | `routes.ts`                                                                                                              | from the React seed, see below      |
 | `types.ts`                                                                                                              | `types.ts`                                                                                                               | copied unchanged                    |
 | `workspace.ts`                                                                                                          | `workspace.ts`                                                                                                           | copied unchanged                    |
 | `../web-analytics/topology.ts` (vendored by the React seed)                                                             | `vendored/web-analytics/topology.ts`                                                                                     | copied unchanged                    |
@@ -65,6 +66,11 @@ person or an agent performs it.
 | `components/SupplierTrendChart.tsx` (`TrendMetric`, the component)                                                      | `components/SupplierTrendChart.vue`                                                                                      | ported                              |
 | `components/SuppliersView.tsx`                                                                                          | `components/SuppliersView.vue`                                                                                           | ported                              |
 | React seed `src/main.tsx`                                                                                               | `main.ts`                                                                                                                | ported (mount)                      |
+
+`routes.ts` is copied byte for byte from the React seed (`seeds/procurement/react/src/routes.ts`),
+not from the demo source: the seed's copy imports `./vendored/web-analytics/topology` where the
+source imports the sibling demo's `../web-analytics/topology`, and that import is the only
+difference.
 
 A React file's non-component exports (`buildKpis`, `buildSpendKpis`, `SpendKpis`, `MAX_SLIP_DAYS`,
 `binned`, `Binned`, `STATUS_CLASS`, `TrendMetric`) stay in the `.vue` file of the component they

@@ -149,17 +149,20 @@ The functional specs and the parity harness depend on these. Do not rename, wrap
   fixed-position, which would leave the wrapper with no box, so every port sizes it to the
   viewport as the React generator does in `main.tsx`.
 - `.wa-app` > `.wa-topbar` (`.wa-brand` with the brand mark and "Pulse Analytics", the tab list,
-  `.wa-topbar-spacer`, `.wa-controls` with the range select and the demo notice) then `.wa-body`
-  holding the three `.wa-tab-content` panels.
-- Overview: `.wa-view.wa-view--fill` > `.wa-kpi-tabs[role="tablist"][aria-label="Traffic metric"]`
-  of `.wa-kpi[role="tab"]` tiles (`.wa-kpi-label`, `.wa-kpi-value`, `.wa-kpi-delta`,
-  `.wa-kpi-spark-box` > `.wa-kpi-spark`), then `.wa-card.wa-card--tabbed` > `.wa-card-head`
-  (`.wa-card-title`, `.wa-card-sub`, `.wa-card-actions` with the remove button and the
-  "Add event" trigger) and `.wa-chart-box-lg[role="tabpanel"]`, then `.wa-card.wa-card--fill` >
-  `.wa-card-head` and `.wa-grid-host`.
-- Audience and Behavior: `.wa-view` > `.wa-grid-4` / `.wa-grid-2` / `.wa-grid-2-even` of
-  `.wa-card` > `.wa-card-head` + `.wa-chart-box-xsm` or `.wa-chart-box-xxsm`, with `.wa-fill`
-  around an empty state that replaces a chart.
+  `.wa-topbar-spacer`, `.wa-controls` holding only the range select, then the demo notice as its
+  sibling) then `.wa-body` holding the three `.wa-tab-content` panels.
+- Overview: `.wa-view` > `.wa-card.wa-card--tabbed` (`.wa-kpi-tabs[role="tablist"][aria-label="Traffic metric"]`
+  of `.wa-kpi[role="tab"]` tiles with `.wa-kpi-label`, `.wa-kpi-value`, `.wa-kpi-delta` and
+  `.wa-kpi-spark-box` > `.wa-kpi-spark`; `.wa-card-head` with the `.wa-card-title` and
+  `.wa-card-actions` holding the remove button and the "Add event" trigger;
+  `.wa-chart-box-lg[role="tabpanel"]`), then `.wa-card` (`.wa-card-head` with the
+  `.wa-card-title`, the `.wa-card-sub` summary and the "Clear filters" button; `.wa-grid-host`).
+- Audience: `.wa-view.wa-view--fill` > `.wa-grid-4` of four `.wa-card`s with `.wa-chart-box-xsm`,
+  then `.wa-grid-2` of two `.wa-card.wa-card--fill`s (`.wa-fill` for the map; `.wa-chart-box-xxsm`
+  then `.wa-fill` for the activity charts). Behavior: `.wa-view` > `.wa-card` with
+  `.wa-chart-box-lg`, then two `.wa-grid-2-even` rows of `.wa-card`s with `.wa-chart-box`. Every
+  card starts with a `.wa-card-head`. An empty state replaces a chart inside its box, or in the
+  `.wa-card--fill` cards inside a `.wa-fill` of its own.
 - The empty state is `.wa-empty` > `.wa-empty-icon[aria-hidden="true"]`, the message span and an
   optional `.wa-card-sub` hint.
 - The demo notice is `.wa-notice` > `.wa-notice-trigger[aria-describedby]` and, while open,
