@@ -1,30 +1,18 @@
-import type { AgScrollbarOptions, WithThemeParams } from 'ag-charts-community';
+import type { AgScrollbarOptions, AgScrollbarThumbStyle, WithThemeParams } from 'ag-charts-community';
 
-type ScrollbarBorderParam = 'scrollbarTrackBorder' | 'scrollbarThumbBorder';
+type ThumbTheme = WithThemeParams<Required<AgScrollbarThumbStyle>>;
+type BorderParam = 'scrollbarTrackBorder' | 'scrollbarThumbBorder';
 
 // `true` means the default border colour at width 1, `false` disables the border.
-function borderStroke(param: ScrollbarBorderParam) {
-    return {
-        $if: [{ $isType: [{ $ref: param }, 'boolean'] }, { $ref: 'borderColor' }, { $ref: `${param}.color` }],
-    } as const;
+function borderStroke(param: BorderParam, colorRef: `${BorderParam}.color`): ThumbTheme['stroke'] {
+    return { $if: [{ $isType: [{ $ref: param }, 'boolean'] }, { $ref: 'borderColor' }, { $ref: colorRef }] };
 }
 
-function borderStrokeWidth(param: ScrollbarBorderParam) {
-    return {
-        $if: [{ $isType: [{ $ref: param }, 'boolean'] }, { $if: [{ $ref: param }, 1, 0] }, { $ref: `${param}.width` }],
-    } as const;
+function borderStrokeWidth(param: BorderParam, widthRef: `${BorderParam}.width`): ThumbTheme['strokeWidth'] {
+    return { $if: [{ $isType: [{ $ref: param }, 'boolean'] }, { $if: [{ $ref: param }, 1, 0] }, { $ref: widthRef }] };
 }
 
-// Hover values derived from a thumb value. A boolean hover (or thumb) border param falls back to deriving from the
-// resolved thumb style, as the dotted hover-border refs have nothing to resolve against.
 const HOVER_MIX_RATIO = 0.075;
-const hoverFromThumb = (path: string) => ({ $mix: [{ $path: path }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] });
-const isAnyThumbBorderBoolean = {
-    $or: [
-        { $isType: [{ $ref: 'scrollbarThumbHoverBorder' }, 'boolean'] },
-        { $isType: [{ $ref: 'scrollbarThumbBorder' }, 'boolean'] },
-    ],
-};
 
 const SCROLLBAR_ORIENTATION_THEME: WithThemeParams<AgScrollbarOptions> = {
     enabled: { $path: '../enabled' },
@@ -72,8 +60,8 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
     visible: 'auto',
     track: {
         fill: { $ref: 'scrollbarTrackBackgroundColor' },
-        stroke: borderStroke('scrollbarTrackBorder'),
-        strokeWidth: borderStrokeWidth('scrollbarTrackBorder'),
+        stroke: borderStroke('scrollbarTrackBorder', 'scrollbarTrackBorder.color'),
+        strokeWidth: borderStrokeWidth('scrollbarTrackBorder', 'scrollbarTrackBorder.width'),
         lineDash: [0],
         lineDashOffset: 0,
         opacity: 1,
@@ -81,26 +69,36 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
     },
     thumb: {
         fill: { $ref: 'scrollbarThumbBackgroundColor' },
-        stroke: borderStroke('scrollbarThumbBorder'),
-        strokeWidth: borderStrokeWidth('scrollbarThumbBorder'),
+        stroke: borderStroke('scrollbarThumbBorder', 'scrollbarThumbBorder.color'),
+        strokeWidth: borderStrokeWidth('scrollbarThumbBorder', 'scrollbarThumbBorder.width'),
         lineDash: [0],
         lineDashOffset: 0,
         opacity: 1,
         cornerRadius: { $ref: 'scrollbarThumbBorderRadius' },
         minSize: 20,
-        // A per-chart thumb style still drives the hover style, as it did before the hover params existed.
+        // A per-chart thumb style still drives the hover style, as it did before the hover params existed. A boolean
+        // thumb or hover border param also derives from the thumb, as the dotted hover-border refs have nothing to resolve.
         hoverStyle: {
             fill: {
-                $isUserOption: ['../fill', hoverFromThumb('../fill'), { $ref: 'scrollbarThumbHoverBackgroundColor' }],
+                $isUserOption: [
+                    '../fill',
+                    { $mix: [{ $path: '../fill' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
+                    { $ref: 'scrollbarThumbHoverBackgroundColor' },
+                ],
             },
             stroke: {
                 $isUserOption: [
                     '../stroke',
-                    hoverFromThumb('../stroke'),
+                    { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
                     {
                         $if: [
-                            isAnyThumbBorderBoolean,
-                            hoverFromThumb('../stroke'),
+                            {
+                                $or: [
+                                    { $isType: [{ $ref: 'scrollbarThumbHoverBorder' }, 'boolean'] },
+                                    { $isType: [{ $ref: 'scrollbarThumbBorder' }, 'boolean'] },
+                                ],
+                            },
+                            { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
                             { $ref: 'scrollbarThumbHoverBorder.color' },
                         ],
                     },
