@@ -1,20 +1,32 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { type BoxBounds, type Point, ZIndexMap, calcLineHeight, clamp, wrapText } from 'ag-charts-core';
 
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType, type Padding } from '../annotationTypes';
+import type { TextualPointDatum } from '../datum/textualDatum';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { TextualPointScene } from '../scenes/textualPointScene';
-import { ANNOTATION_TEXT_LINE_HEIGHT } from '../text/util';
+import { ANNOTATION_TEXT_LINE_HEIGHT, getBBox, uniformPadding } from '../text/util';
 import { convertPoint } from '../utils/values';
-import { ICON_HEIGHT, ICON_WIDTH, LABEL_OFFSET, type NoteProperties, TOOLBAR_OFFSET } from './noteProperties';
+import type { NoteDatum } from './noteDatum';
 
-export class NoteScene extends TextualPointScene<NoteProperties> {
+const DEFAULT_NOTE_PADDING = 10;
+const ICON_HEIGHT = 20;
+const ICON_WIDTH = 22;
+const ICON_SPACING = 10;
+const LABEL_OFFSET = ICON_HEIGHT + ICON_SPACING;
+const TOOLBAR_OFFSET = 34;
+
+export class NoteScene extends TextualPointScene<NoteDatum> {
     static override is(value: unknown): value is NoteScene {
         return AnnotationScene.isCheck(value, AnnotationType.Note);
     }
 
     type = AnnotationType.Note;
+
+    protected override textPosition: 'top' | 'bottom' = 'bottom';
+    protected override readonly textAlignment = 'center' as const;
+    protected override readonly textWidth = 200;
 
     private readonly shape = new _ModuleSupport.Rect();
     private readonly iconBackground = new _ModuleSupport.TranslatableSvgPath(
@@ -43,51 +55,71 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         this.append([this.shape, this.label, this.iconBackground, this.iconLines, this.handle]);
     }
 
-    override update(datum: NoteProperties, context: AnnotationContext): void {
+    override update(datum: NoteDatum, context: AnnotationContext): void {
         this.updateIcon(datum, context);
         super.update(datum, context);
     }
 
-    override getTextBBox(datum: NoteProperties, coords: Point, context: AnnotationContext) {
+    override getTextBBox(datum: NoteDatum, coords: Point, context: AnnotationContext) {
+        const { textWidth } = this;
         const bbox = super.getTextBBox(datum, coords, context);
 
-        bbox.x -= datum.width / 2;
-        bbox.x = clamp(0, bbox.x, context.seriesRect.width - datum.width);
-
-        const padding = datum.getPadding().top;
-        const topY = bbox.y - LABEL_OFFSET - padding * 2;
-        const bottomY = bbox.y + DivariantHandle.HANDLE_SIZE + padding * 2;
-
-        if (topY - bbox.height - TOOLBAR_OFFSET < 0) {
-            bbox.y = bottomY;
-            datum.position = 'top';
-        } else {
-            bbox.y = topY + padding;
-            datum.position = 'bottom';
-        }
+        bbox.x -= textWidth / 2;
+        bbox.x = clamp(0, bbox.x, context.seriesRect.width - textWidth);
+        bbox.y = this.placeText(datum, bbox.y, bbox.height);
 
         return bbox;
     }
 
-    override updateLabel(datum: NoteProperties, bbox: BoxBounds, context: AnnotationContext): void {
+    protected override getTextInputCoords(datum: TextualPointDatum, context: AnnotationContext, height: number) {
+        const { textWidth } = this;
+        const coords = super.getTextInputCoords(datum, context, height);
+        const bbox = getBBox(this.getTextOptions(datum), datum.text, coords);
+
+        bbox.x = clamp(textWidth / 2, bbox.x, context.seriesRect.width - textWidth / 2);
+        bbox.y = this.placeText(datum, bbox.y, Math.max(bbox.height, height));
+
+        return { x: bbox.x, y: bbox.y };
+    }
+
+    // Flip the text above the icon when there is no room for it and the toolbar below.
+    private placeText(datum: TextualPointDatum, y: number, textHeight: number) {
+        const padding = this.getPadding(datum).top;
+        const topY = y - LABEL_OFFSET - padding * 2;
+        const bottomY = y + DivariantHandle.HANDLE_SIZE + padding * 2;
+
+        if (topY - textHeight - TOOLBAR_OFFSET < 0) {
+            this.textPosition = 'top';
+            return bottomY;
+        }
+
+        this.textPosition = 'bottom';
+        return topY + padding;
+    }
+
+    protected override getPadding(datum: TextualPointDatum): Padding {
+        return uniformPadding(datum.padding ?? DEFAULT_NOTE_PADDING);
+    }
+
+    override updateLabel(datum: NoteDatum, bbox: BoxBounds, context: AnnotationContext): void {
         const labelVisibility = datum.visible === false ? false : this.label.visible;
 
         super.updateLabel(datum, bbox, context);
 
         if (context.isRtl) {
-            this.label.x += datum.width - bbox.width;
+            this.label.x += this.textWidth - bbox.width;
         }
 
         this.label.visible = labelVisibility;
         this.label.text = wrapText(datum.text, {
-            maxWidth: 200,
+            maxWidth: this.textWidth,
             font: datum,
             textWrap: 'always',
             avoidOrphans: false,
         });
     }
 
-    override updateShape(datum: NoteProperties, bbox: BoxBounds) {
+    override updateShape(datum: NoteDatum, bbox: BoxBounds) {
         const { shape } = this;
         shape.fill = datum.background.fill;
         shape.fillOpacity = datum.background.fillOpacity ?? 1;
@@ -96,16 +128,16 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         shape.strokeWidth = datum.background.strokeWidth ?? 1;
         shape.cornerRadius = 4;
 
-        const padding = datum.getPadding().top;
-        const isPositionTop = datum.position === 'top';
+        const padding = this.getPadding(datum).top;
+        const isPositionTop = this.textPosition === 'top';
 
         shape.x = bbox.x - padding;
-        shape.width = datum.width + padding * 2;
+        shape.width = this.textWidth + padding * 2;
         shape.height = bbox.height + padding * 2;
         shape.y = bbox.y + (isPositionTop ? 0 : -bbox.height) - padding;
     }
 
-    private updateIcon(datum: NoteProperties, context: AnnotationContext) {
+    private updateIcon(datum: NoteDatum, context: AnnotationContext) {
         const { active, iconBackground, iconLines } = this;
         const { x, y } = convertPoint(datum, context);
 
@@ -130,37 +162,37 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         }
     }
 
-    protected override updateAnchor(datum: NoteProperties, bbox: BoxBounds, context: AnnotationContext) {
-        const padding = datum.getPadding().top;
-        const isPositionTop = datum.position === 'top';
+    protected override updateAnchor(datum: NoteDatum, bbox: BoxBounds, context: AnnotationContext) {
+        const padding = this.getPadding(datum).top;
+        const isPositionTop = this.textPosition === 'top';
         const direction = isPositionTop ? 1 : -1;
 
         return {
-            x: bbox.x + context.seriesRect.x + datum.width / 2,
+            x: bbox.x + context.seriesRect.x + this.textWidth / 2,
             y: bbox.y + context.seriesRect.y + direction * (bbox.height + padding),
             position: isPositionTop ? ('below' as const) : ('above' as const),
         };
     }
 
-    protected override getLabelCoords(datum: NoteProperties, bbox: BoxBounds): Point {
-        const isPositionTop = datum.position === 'top';
-        const padding = datum.getPadding().top + calcLineHeight(datum.fontSize, ANNOTATION_TEXT_LINE_HEIGHT) / 2;
+    protected override getLabelCoords(datum: NoteDatum, bbox: BoxBounds): Point {
+        const isPositionTop = this.textPosition === 'top';
+        const padding = this.getPadding(datum).top + calcLineHeight(datum.fontSize, ANNOTATION_TEXT_LINE_HEIGHT) / 2;
 
         return { x: bbox.x, y: bbox.y + (isPositionTop ? padding / 2 : 0) };
     }
 
-    protected override getTextBaseline(datum: NoteProperties): CanvasTextBaseline {
-        return datum.position === 'top' ? 'middle' : datum.position;
+    protected override getTextBaseline(): CanvasTextBaseline {
+        return this.textPosition === 'top' ? 'middle' : this.textPosition;
     }
 
-    protected override getHandleCoords(_datum: NoteProperties, coords: Point, _bbox: BoxBounds): Point {
+    protected override getHandleCoords(_datum: NoteDatum, coords: Point, _bbox: BoxBounds): Point {
         return {
             x: coords.x,
             y: coords.y + DivariantHandle.HANDLE_SIZE / 2 + 4,
         };
     }
 
-    protected override getHandleStyles(datum: NoteProperties) {
+    protected override getHandleStyles(datum: NoteDatum) {
         return {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? datum.fill,

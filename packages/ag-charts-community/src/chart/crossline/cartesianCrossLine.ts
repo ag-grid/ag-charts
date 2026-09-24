@@ -136,7 +136,6 @@ function availableExtent(anchorAt: number, labelDir: AnchorDirection, pad: numbe
 export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions & {
     position?: CrossLineLabelPosition;
     reserveSpace: boolean;
-    parallel?: boolean;
 };
 
 type NodeData = [number, number];

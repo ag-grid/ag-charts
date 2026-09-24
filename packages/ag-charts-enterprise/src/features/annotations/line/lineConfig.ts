@@ -1,25 +1,22 @@
 import { AnnotationType } from '../annotationTypes';
 import type { AnnotationTypeConfig } from '../annotationsSuperTypes';
 import { DragStateMachine } from '../states/dragState';
-import { ArrowProperties, LineProperties } from './lineProperties';
+import { type ArrowDatum, type LineDatum, arrowDatum, lineDatum } from './lineDatum';
 import { LineScene } from './lineScene';
 import { ArrowStateMachine, LineStateMachine } from './lineState';
 
-export const lineConfig: AnnotationTypeConfig<LineProperties, LineScene> = {
-    type: AnnotationType.Line,
-    datum: LineProperties,
+export const lineConfig: AnnotationTypeConfig<LineDatum, LineScene> = {
     scene: LineScene,
-    isDatum: LineProperties.is,
     translate: (node, datum, transition, context) => {
-        if (LineProperties.is(datum) && LineScene.is(node)) node.translate(datum, transition, context);
+        if (lineDatum.is(datum) && LineScene.is(node)) node.translate(datum, transition, context);
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (LineProperties.is(datum) && LineProperties.is(copiedDatum) && LineScene.is(node)) {
-            return node.copy(datum, copiedDatum, context) as LineProperties;
+        if (lineDatum.is(datum) && lineDatum.is(copiedDatum) && LineScene.is(node)) {
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (LineProperties.is(datum) && LineScene.is(node)) {
+        if (lineDatum.is(datum) && LineScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -28,24 +25,21 @@ export const lineConfig: AnnotationTypeConfig<LineProperties, LineScene> = {
             ...ctx,
             create: createDatum(AnnotationType.Line),
         }),
-    dragState: (ctx) => new DragStateMachine<LineProperties, LineScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<LineDatum, LineScene>(ctx),
 };
 
-export const arrowConfig: AnnotationTypeConfig<ArrowProperties, LineScene> = {
-    type: AnnotationType.Arrow,
-    datum: ArrowProperties,
+export const arrowConfig: AnnotationTypeConfig<ArrowDatum, LineScene> = {
     scene: LineScene,
-    isDatum: ArrowProperties.is,
     translate: (node, datum, transition, context) => {
-        if (ArrowProperties.is(datum) && LineScene.is(node)) node.translate(datum, transition, context);
+        if (arrowDatum.is(datum) && LineScene.is(node)) node.translate(datum, transition, context);
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (ArrowProperties.is(datum) && ArrowProperties.is(copiedDatum) && LineScene.is(node)) {
-            return node.copy(datum, copiedDatum, context) as ArrowProperties;
+        if (arrowDatum.is(datum) && arrowDatum.is(copiedDatum) && LineScene.is(node)) {
+            return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (ArrowProperties.is(datum) && LineScene.is(node)) {
+        if (arrowDatum.is(datum) && LineScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -54,5 +48,5 @@ export const arrowConfig: AnnotationTypeConfig<ArrowProperties, LineScene> = {
             ...ctx,
             create: createDatum(AnnotationType.Arrow),
         }),
-    dragState: (ctx) => new DragStateMachine<ArrowProperties, LineScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<ArrowDatum, LineScene>(ctx),
 };

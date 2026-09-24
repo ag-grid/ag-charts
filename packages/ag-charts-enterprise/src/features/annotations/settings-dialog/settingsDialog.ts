@@ -3,6 +3,7 @@ import { type DynamicContext, EventEmitter, focusCursorAtEnd } from 'ag-charts-c
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
+import { getDefaultColor, getDefaultOpacity } from '../annotationDatums';
 import {
     type AnnotationOptionsColorPickerType,
     AnnotationType,
@@ -13,12 +14,14 @@ import {
 } from '../annotationTypes';
 import { FIBONACCI_RATIO_ITEMS, LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
 import type {
-    ChannelPropertiesType,
-    EphemeralPropertiesType,
-    FibonacciPropertiesType,
-    LinePropertiesType,
-    MeasurerPropertiesType,
+    ChannelDatumType,
+    EphemeralDatumType,
+    FibonacciDatumType,
+    LineDatumType,
+    MeasurerDatumType,
 } from '../annotationsSuperTypes';
+import { dateRangeDatum, priceRangeDatum } from '../measurer/measurerDatum';
+import { hasBackground, hasExtendable } from '../utils/has';
 import { isChannelType, isFibonacciType } from '../utils/types';
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
@@ -54,9 +57,9 @@ export interface LinearSettingsDialogTextChangeProps {
     label?: string;
 }
 
-type LinearDialogPropertiesType = Exclude<
-    LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType | FibonacciPropertiesType,
-    EphemeralPropertiesType
+type LinearDialogDatumType = Exclude<
+    LineDatumType | ChannelDatumType | MeasurerDatumType | FibonacciDatumType,
+    EphemeralDatumType
 >;
 
 interface EventMap {
@@ -71,7 +74,7 @@ export class AnnotationSettingsDialog extends Dialog {
         this.hideFns.push(() => this.events.emit('hidden', null));
     }
 
-    public show(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {
+    public show(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
         const lineTab = this.createLinearLineTab(datum, options);
         const textTab = this.createLinearTextTab(datum, options);
 
@@ -105,21 +108,18 @@ export class AnnotationSettingsDialog extends Dialog {
         popover.classList.add('ag-charts-dialog--annotation-settings');
     }
 
-    private createLinearLineTab(
-        datum: LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType | FibonacciPropertiesType,
-        options: LinearSettingsDialogOptions
-    ) {
+    private createLinearLineTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
         const panel = this.createTabPanel();
 
         const groupOne = this.createInputGroupLine();
         const groupTwo = this.createInputGroupLine();
 
-        const hasMultiColorOption = 'isMultiColor' in datum;
+        const hasMultiColorOption = isFibonacciType(datum);
         const lineColorPicker = this.createColorPickerInput(
             'line-color',
-            datum.getDefaultColor('line-color'),
-            datum.getDefaultOpacity('line-color'),
-            hasMultiColorOption ? datum.isMultiColor : false,
+            getDefaultColor(datum, 'line-color'),
+            getDefaultOpacity(datum, 'line-color'),
+            isFibonacciType(datum) ? datum.isMultiColor : false,
             hasMultiColorOption,
             options.onChangeLineColor,
             options.onChangeHideLineColor
@@ -130,11 +130,11 @@ export class AnnotationSettingsDialog extends Dialog {
 
         groupOne.append(lineColorPicker);
 
-        if ('background' in datum) {
+        if (hasBackground(datum)) {
             const fillColorPicker = this.createColorPickerInput(
                 'fill-color',
-                datum.getDefaultColor('fill-color'),
-                datum.getDefaultOpacity('fill-color'),
+                getDefaultColor(datum, 'fill-color'),
+                getDefaultOpacity(datum, 'fill-color'),
                 false,
                 false,
                 options.onChangeFillColor,
@@ -143,7 +143,7 @@ export class AnnotationSettingsDialog extends Dialog {
 
             groupOne.append(fillColorPicker);
             groupTwo.append(strokeWidth);
-        } else if ('showFill' in datum) {
+        } else if (isFibonacciType(datum)) {
             groupOne.append(
                 this.createCheckbox({
                     label: 'dialogInputShowFill',
@@ -160,13 +160,13 @@ export class AnnotationSettingsDialog extends Dialog {
 
         panel.append(groupOne, groupTwo);
 
-        if ('bands' in datum) {
+        if (isFibonacciType(datum)) {
             panel.append(
                 this.createFibonacciRatioSelect(datum.bands ?? 10, (bands) => options.onChangeLine({ bands }))
             );
         }
 
-        if ('extendStart' in datum && 'extendEnd' in datum) {
+        if (hasExtendable(datum)) {
             panel.append(
                 this.createCheckbox({
                     label: isChannelType(datum) ? 'dialogInputExtendChannelStart' : 'dialogInputExtendLineStart',
@@ -181,7 +181,7 @@ export class AnnotationSettingsDialog extends Dialog {
             );
         }
 
-        if ('extendAbove' in datum && 'extendBelow' in datum) {
+        if (dateRangeDatum.is(datum)) {
             panel.append(
                 this.createCheckbox({
                     label: 'dialogInputExtendAbove',
@@ -196,7 +196,7 @@ export class AnnotationSettingsDialog extends Dialog {
             );
         }
 
-        if ('extendLeft' in datum && 'extendRight' in datum) {
+        if (priceRangeDatum.is(datum)) {
             panel.append(
                 this.createCheckbox({
                     label: 'dialogInputExtendLeft',
@@ -211,7 +211,7 @@ export class AnnotationSettingsDialog extends Dialog {
             );
         }
 
-        if ('reverse' in datum && 'showFill' in datum) {
+        if (isFibonacciType(datum)) {
             panel.append(
                 this.createCheckbox({
                     label: 'dialogInputReverse',
@@ -224,7 +224,7 @@ export class AnnotationSettingsDialog extends Dialog {
         return panel;
     }
 
-    private createLinearTextTab(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {
+    private createLinearTextTab(datum: LinearDialogDatumType, options: LinearSettingsDialogOptions) {
         const panel = this.createTabPanel();
 
         const textArea = this.createTextArea({

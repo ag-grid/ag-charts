@@ -1,15 +1,18 @@
-import { Debug, type Point, StateMachine, StateMachineProperty, isNumber } from 'ag-charts-core';
+import { Debug, type Point, StateMachine, isNumber } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
-import { snapPoint } from '../utils/coords';
+import { SNAP_TO_ANGLE, snapPoint } from '../utils/coords';
+import { applyAnnotationOptions } from '../utils/datum';
 import { getGroupingValue } from '../utils/scale';
-import { ParallelChannelProperties } from './parallelChannelProperties';
+import { type ParallelChannelDatum, parallelChannelDatum } from './parallelChannelDatum';
 import type { ParallelChannelScene } from './parallelChannelScene';
 
+const INHERITED_PROPERTIES = ['datum', 'node', 'snapping'] as const;
+
 interface ParallelChannelStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
-    create: (datum: ParallelChannelProperties) => void;
+    create: (datum: ParallelChannelDatum) => void;
 }
 
 export class ParallelChannelStateMachine extends StateMachine<
@@ -21,19 +24,20 @@ export class ParallelChannelStateMachine extends StateMachine<
 > {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
-    protected datum?: ParallelChannelProperties;
+    protected datum?: ParallelChannelDatum;
 
-    @StateMachineProperty()
     protected node?: ParallelChannelScene;
 
-    @StateMachineProperty()
     protected snapping: boolean = false;
+
+    override inheritedProperties() {
+        return INHERITED_PROPERTIES;
+    }
 
     constructor(ctx: ParallelChannelStateMachineContext) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
-            const datum = new ParallelChannelProperties();
-            datum.set({ start: point, end: point, height: 0 });
+            const datum = parallelChannelDatum.create();
+            applyAnnotationOptions(datum, { start: point, end: point });
             ctx.create(datum);
         };
 
@@ -54,7 +58,7 @@ export class ParallelChannelStateMachine extends StateMachine<
             const { datum, snapping } = this;
             if (!datum) return;
 
-            datum.set({ end: snapPoint(offset, context, snapping, datum.start, datum.snapToAngle) });
+            applyAnnotationOptions(datum, { end: snapPoint(offset, context, snapping, datum.start, SNAP_TO_ANGLE) });
             ctx.update();
         };
 
@@ -87,7 +91,7 @@ export class ParallelChannelStateMachine extends StateMachine<
                 return;
             }
 
-            datum.set({ height });
+            datum.height = height;
             ctx.update();
         };
 
@@ -113,7 +117,7 @@ export class ParallelChannelStateMachine extends StateMachine<
                 return;
             }
 
-            datum.set({ height });
+            datum.height = height;
             ctx.recordAction(`Create ${AnnotationType.ParallelChannel} annotation`);
             ctx.showAnnotationOptions();
             ctx.update();

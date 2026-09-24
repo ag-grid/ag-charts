@@ -1,6 +1,5 @@
 import type { CanvasPoint, DeepPartial, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
-    ActionOnSet,
     AgDocument,
     AsyncAwaitQueue,
     type AxisID,
@@ -96,6 +95,23 @@ export type TransferableResources = {
     styleContainer?: HTMLElement;
     scene: Scene;
 };
+
+type SizeOptionKey = 'width' | 'height' | 'minWidth' | 'minHeight' | 'overrideDevicePixelRatio';
+const SIZE_OPTIONS = [
+    ['height', 'inHeight'],
+    ['minHeight', 'inMinHeight'],
+    ['minWidth', 'inMinWidth'],
+    ['overrideDevicePixelRatio', 'inOverrideDevicePixelRatio'],
+    ['width', 'inWidth'],
+] as const;
+
+/** A chart-like owner of series and axes: the chart itself or the navigator's mini chart. */
+interface SeriesAxesHost {
+    series: UnknownSeries[];
+    axes: ChartAxes;
+    setSeries(series: UnknownSeries[]): void;
+    setAxes(axes: ChartAxes): void;
+}
 
 type SeriesChangeType =
     | 'no-op'
@@ -286,18 +302,25 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     private extraDebugStats: Record<string, number> = {};
 
-    @ActionOnSet<Chart>({
-        newValue(value: HTMLElement) {
-            if (this.destroyed) return;
+    private _container?: HTMLElement;
 
-            this.ctx.domManager.setContainer(value);
-            Chart.chartsInstances.set(value, this);
-        },
-        oldValue(value: HTMLElement) {
-            Chart.chartsInstances.delete(value);
-        },
-    })
-    container?: HTMLElement;
+    get container() {
+        return this._container;
+    }
+
+    private setContainer(container: HTMLElement | undefined) {
+        const previous = this._container;
+        if (container === previous) return;
+
+        if (previous != null) {
+            Chart.chartsInstances.delete(previous);
+        }
+        this._container = container;
+        if (container != null && !this.destroyed) {
+            this.ctx.domManager.setContainer(container);
+            Chart.chartsInstances.set(container, this);
+        }
+    }
 
     public data: DataSet;
 
@@ -307,39 +330,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     public loading: boolean | undefined = undefined;
 
-    @ActionOnSet<Chart>({
-        newValue(value) {
-            this.resize('width option', { inWidth: value });
-        },
-    })
     width?: number;
-
-    @ActionOnSet<Chart>({
-        newValue(value) {
-            this.resize('height option', { inHeight: value });
-        },
-    })
     height?: number;
-
-    @ActionOnSet<Chart>({
-        newValue(value) {
-            this.resize('minWidth option', { inMinWidth: value });
-        },
-    })
     minWidth?: number;
-
-    @ActionOnSet<Chart>({
-        newValue(value) {
-            this.resize('minHeight option', { inMinHeight: value });
-        },
-    })
     minHeight?: number;
-
-    @ActionOnSet<Chart>({
-        newValue(value) {
-            this.resize('overrideDevicePixelRatio option', { inOverrideDevicePixelRatio: value });
-        },
-    })
     overrideDevicePixelRatio?: number;
 
     /** NOTE: This is exposed for use by Integrated charts only. */
@@ -551,7 +545,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             ),
         ];
 
-        this.container = container;
+        this.setContainer(container);
 
         const moduleContext = this.getModuleContext();
         this.background = enterpriseRegistry.createBackground?.(moduleContext) ?? new Background(moduleContext);
@@ -774,7 +768,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     detachAndClear() {
-        this.container = undefined;
+        this.setContainer(undefined);
         this.ctx.scene.clearCanvas();
     }
 
@@ -830,7 +824,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         if (!keepTransferableResources) {
             this.ctx.scene.destroy();
-            this.container = undefined;
+            this.setContainer(undefined);
         }
 
         this.destroySeries(this.series);
@@ -1242,22 +1236,26 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
     }
 
-    @ActionOnSet<Chart>({
-        changeValue(newValue, oldValue) {
-            this.onAxisChange(newValue, oldValue);
-        },
-    })
     axes: ChartAxes = this.createChartAxes();
     createChartAxes(): ChartAxes {
         return new ChartAxes();
     }
 
-    @ActionOnSet<Chart>({
-        changeValue(newValue, oldValue) {
-            this.onSeriesChange(newValue, oldValue);
-        },
-    })
     series: UnknownSeries[] = [];
+
+    setAxes(axes: ChartAxes) {
+        const previous = this.axes;
+        if (axes === previous) return;
+        this.axes = axes;
+        this.onAxisChange(axes, previous);
+    }
+
+    setSeries(series: UnknownSeries[]) {
+        const previous = this.series;
+        if (series === previous) return;
+        this.series = series;
+        this.onSeriesChange(series, previous);
+    }
 
     protected onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         if (oldValue == null && newValue.length === 0) return;
@@ -1355,6 +1353,19 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         this._lastAutoSize = [width, height, pixelRatio];
         this.resize('SizeMonitor', {});
+    }
+
+    /** Applies the sizing options in their declaration order, resizing once per changed value. */
+    private applySizeOptions(deltaOptions: Partial<Record<SizeOptionKey, number | undefined>>) {
+        for (const [key, param] of SIZE_OPTIONS) {
+            if (!(key in deltaOptions)) continue;
+            const value = deltaOptions[key];
+            if (value === this[key]) continue;
+            this[key] = value;
+            if (value != null) {
+                this.resize(`${key} option`, { [param]: value });
+            }
+        }
     }
 
     private resize(
@@ -1763,20 +1774,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.ctx.domManager.setEnableRtl(deltaOptions.enableRtl);
         }
 
-        // Chart-level fields not yet migrated to chartState-driven consumption.
-        // Their @ActionOnSet decorators trigger resize / DOM setup on assignment.
-        if ('container' in deltaOptions) this.container = deltaOptions.container ?? undefined;
-        if ('height' in deltaOptions) this.height = deltaOptions.height;
-        if ('minHeight' in deltaOptions) this.minHeight = deltaOptions.minHeight;
-        if ('minWidth' in deltaOptions) this.minWidth = deltaOptions.minWidth;
-        if ('overrideDevicePixelRatio' in deltaOptions) {
-            this.overrideDevicePixelRatio = deltaOptions.overrideDevicePixelRatio as number | undefined;
-        }
-        if ('width' in deltaOptions) this.width = deltaOptions.width;
+        if ('container' in deltaOptions) this.setContainer(deltaOptions.container ?? undefined);
+        this.applySizeOptions(deltaOptions);
         if ('loading' in deltaOptions) this.loading = deltaOptions.loading;
         if ('context' in deltaOptions) this.context = deltaOptions.context;
-
-        // tooltip/seriesArea/overlays subtrees are applied via chartState observers registered in the constructor.
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
@@ -1821,9 +1822,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         this.chartOptions = newChartOptions;
 
-        const navigatorModule = this.modulesManager.getModule<{
-            miniChart?: { enabled?: boolean; series: unknown[]; axes: unknown[] };
-        }>('navigator');
+        const navigatorModule = this.modulesManager.getModule<{ miniChart?: SeriesAxesHost & { enabled?: boolean } }>(
+            'navigator'
+        );
 
         if (!this.hasViewportSupport()) {
             // reset zoom to initial state
@@ -1839,8 +1840,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (miniChart?.enabled === true && miniChartSeries != null) {
             this.applyMiniChartOptions(miniChart, miniChartSeries, newOpts, oldOpts);
         } else if (miniChart?.enabled === false) {
-            miniChart.series = [];
-            miniChart.axes = []; // TODO axes should be an object, but that throws a "mutex callback error"
+            miniChart.setSeries([]);
+            miniChart.setAxes(new ChartAxes());
         }
 
         this.ctx.annotationManager?.setAnnotationStyles(newChartOptions.annotationThemes);
@@ -2035,7 +2036,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private applySeries(
-        chart: { series: UnknownSeries[] },
+        chart: SeriesAxesHost,
         optSeries: AgChartOptions['series'],
         oldOptSeries?: AgChartOptions['series']
     ): SeriesChangeType {
@@ -2048,7 +2049,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
             const chartSeries = optSeries.map((opts) => this.createSeries(opts));
             this.initSeriesDeclarationOrder(chartSeries);
-            chart.series = chartSeries;
+            chart.setSeries(chartSeries);
             return 'replaced';
         }
 
@@ -2098,7 +2099,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         this.initSeriesDeclarationOrder(seriesInstances);
 
         debug(`Chart.applySeries() - final series instances`, seriesInstances);
-        chart.series = seriesInstances;
+        chart.setSeries(seriesInstances);
 
         if (groupingChanged) {
             return 'series-grouping-change';
@@ -2112,7 +2113,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return isUpdated ? 'updated' : 'no-op';
     }
 
-    private applyAxes(chart: { axes: ChartAxes }, options: AgChartOptions, seriesStatus: SeriesChangeType) {
+    private applyAxes(chart: SeriesAxesHost, options: AgChartOptions, seriesStatus: SeriesChangeType) {
         if (!('axes' in options) || !options.axes) {
             return false;
         }
@@ -2131,7 +2132,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             }
         } else {
             debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
-            chart.axes = this.createAxes(axes);
+            chart.setAxes(this.createAxes(axes));
         }
 
         // Implicit primary axes have no unmapped key, so fall back to the canonical id to keep `userKey` usable.
@@ -2200,9 +2201,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         if ('seriesGrouping' in changedOptions) {
             if (seriesGrouping == null) {
-                target.seriesGrouping = undefined;
+                target.setSeriesGrouping(undefined);
             } else {
-                target.seriesGrouping = { ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) };
+                target.setSeriesGrouping({ ...target.seriesGrouping, ...(seriesGrouping as SeriesGrouping) });
             }
         }
     }

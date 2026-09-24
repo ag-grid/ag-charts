@@ -483,9 +483,9 @@ describe('Legend', () => {
         // The item group, the marker/line group and the nodes themselves each carry part of the
         // dimming, so only their product says what the user sees.
         const effectiveAlpha = (node: LegendTestItemNode) => ({
-            marker: (node.opacity ?? 1) * (node.symbolsOpacity ?? 1) * (node.marker?.fillOpacity ?? 1),
-            line: (node.opacity ?? 1) * (node.symbolsOpacity ?? 1) * (node.line?.strokeOpacity ?? 1),
-            label: (node.opacity ?? 1) * (node.labelOpacity ?? 1),
+            marker: (node.opacity ?? 1) * (node.symbolsGroup.opacity ?? 1) * (node.marker?.fillOpacity ?? 1),
+            line: (node.opacity ?? 1) * (node.symbolsGroup.opacity ?? 1) * (node.line?.strokeOpacity ?? 1),
+            label: (node.opacity ?? 1) * (node.label.opacity ?? 1),
         });
 
         it('should dim a toggled-off item as a whole when no disabledStyle is set', async () => {
@@ -493,17 +493,17 @@ describe('Legend', () => {
 
             // The item group carries the dim and the label keeps its own 0.5 on top.
             expect(disabled.opacity).toBe(0.5);
-            expect(disabled.symbolsOpacity).toBe(1);
+            expect(disabled.symbolsGroup.opacity).toBe(1);
             expect(disabled.marker?.fillOpacity).toBe(1);
             expect(disabled.line?.strokeOpacity).toBe(1);
-            expect(disabled.labelOpacity).toBe(0.5);
+            expect(disabled.label.opacity).toBe(0.5);
             expect(effectiveAlpha(disabled)).toEqual({ marker: 0.5, line: 0.5, label: 0.25 });
 
             expect(enabled.opacity).toBe(1);
-            expect(enabled.symbolsOpacity).toBe(1);
+            expect(enabled.symbolsGroup.opacity).toBe(1);
             expect(enabled.marker?.fillOpacity).toBe(1);
             expect(enabled.line?.strokeOpacity).toBe(1);
-            expect(enabled.labelOpacity).toBe(1);
+            expect(enabled.label.opacity).toBe(1);
         });
 
         it('should treat opacity as absolute, per sub-element, once any disabledStyle is set', async () => {
@@ -526,7 +526,7 @@ describe('Legend', () => {
         // the next one - the shared `chart` afterEach only disposes of the last.
         const disabledAlphas = async (item: AgChartLegendItemOptions) => {
             const [disabled] = await disabledItem(item);
-            const alphas = { ...effectiveAlpha(disabled), symbolsOpacity: disabled.symbolsOpacity };
+            const alphas = { ...effectiveAlpha(disabled), symbolsOpacity: disabled.symbolsGroup.opacity };
             await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
@@ -577,7 +577,7 @@ describe('Legend', () => {
             await waitForChartStability(chart);
             expect(nodes()[0].marker?.fill).toBe(enabledFill);
             expect(nodes()[0].marker?.fillOpacity).toBe(1);
-            expect(nodes()[0].labelOpacity).toBe(1);
+            expect(nodes()[0].label.opacity).toBe(1);
         });
 
         it('should let chart options override a theme override', async () => {

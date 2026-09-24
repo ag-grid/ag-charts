@@ -9,11 +9,12 @@ import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle } from '../scenes/handle';
 import { StartEndScene } from '../scenes/startEndScene';
 import { applySceneNodeTopCenterAnchor } from '../utils/coords';
+import { getLineCap, getLineDash } from '../utils/line';
 import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
-import type { LineTypeProperties } from './lineProperties';
+import { type LineTypeDatum, arrowDatum } from './lineDatum';
 
-export class LineScene extends StartEndScene<LineTypeProperties> {
+export class LineScene extends StartEndScene<LineTypeDatum> {
     static override is(value: unknown): value is LineScene {
         return AnnotationScene.isCheck(value, 'line');
     }
@@ -22,7 +23,6 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
     private readonly line = new CollidableLine();
     public text?: CollidableText<never>;
-    private startCap?: CapScene;
     private endCap?: CapScene;
 
     constructor() {
@@ -30,7 +30,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         this.append([this.line, this.start, this.end]);
     }
 
-    public override update(datum: LineTypeProperties, context: AnnotationContext) {
+    public override update(datum: LineTypeDatum, context: AnnotationContext) {
         let coords = convertLine(datum, context);
 
         if (coords == null) {
@@ -50,15 +50,15 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         this.updateAnchor(datum, coords, context);
     }
 
-    private updateLine(datum: LineTypeProperties, coords: Bounds4, context: AnnotationContext) {
+    private updateLine(datum: LineTypeDatum, coords: Bounds4, context: AnnotationContext) {
         const { line } = this;
         const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const linePoints = this.extendLine(coords, datum, context);
 
         line.setProperties({
             ...linePoints,
-            lineCap: datum.getLineCap(),
-            lineDash: datum.getLineDash(),
+            lineCap: getLineCap(datum),
+            lineDash: getLineDash(datum),
             lineDashOffset,
             stroke,
             strokeWidth,
@@ -67,72 +67,40 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         });
     }
 
-    private updateText(datum: LineTypeProperties, coords: Bounds4) {
+    private updateText(datum: LineTypeDatum, coords: Bounds4) {
         this.text = this.updateNode(CollidableText<never>, this.text, datum.text.label !== '');
         updateLineText(this.line.id, this.line, coords, datum.text, this.text, datum.text.label, datum.strokeWidth);
     }
 
-    private updateCaps(datum: LineTypeProperties, coords: Bounds4) {
-        if (datum.startCap == null && this.startCap) {
-            this.startCap.remove();
-            this.startCap = undefined;
-        }
+    private updateCaps(datum: LineTypeDatum, coords: Bounds4) {
+        const hasEndCap = arrowDatum.is(datum);
 
-        if (datum.endCap == null && this.endCap) {
-            this.endCap.remove();
+        if (!hasEndCap) {
+            this.endCap?.remove();
             this.endCap = undefined;
+            return;
         }
 
-        if (datum.startCap == null && datum.endCap == null) return;
+        if (this.endCap == null) {
+            this.endCap = new ArrowCapScene();
+            this.append([this.endCap]);
+        }
 
         const { stroke, strokeWidth, strokeOpacity } = datum;
         const [start, end] = Vec2.from(coords);
         const angle = Vec2.angle(Vec2.sub(end, start));
 
-        if (datum.startCap != null) {
-            if (this.startCap && this.startCap.type !== datum.startCap) {
-                this.startCap.remove();
-                this.startCap = undefined;
-            }
-
-            if (this.startCap == null) {
-                this.startCap = new ArrowCapScene();
-                this.append([this.startCap]);
-            }
-
-            this.startCap.update({
-                x: start.x,
-                y: start.y,
-                angle: angle - Math.PI,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            });
-        }
-
-        if (datum.endCap != null) {
-            if (this.endCap && this.endCap.type !== datum.endCap) {
-                this.endCap.remove();
-                this.endCap = undefined;
-            }
-
-            if (this.endCap == null) {
-                this.endCap = new ArrowCapScene();
-                this.append([this.endCap]);
-            }
-
-            this.endCap.update({
-                x: end.x,
-                y: end.y,
-                angle,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-            });
-        }
+        this.endCap.update({
+            x: end.x,
+            y: end.y,
+            angle,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+        });
     }
 
-    override updateAnchor(_datum: LineTypeProperties, coords: Bounds4, _context: AnnotationContext, _bbox?: BoxBounds) {
+    override updateAnchor(_datum: LineTypeDatum, coords: Bounds4, _context: AnnotationContext, _bbox?: BoxBounds) {
         applySceneNodeTopCenterAnchor(this.line, this.anchor, coords);
     }
 
@@ -150,28 +118,24 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
     }
 
     protected override getHandleCoords(
-        _datum: LineTypeProperties,
+        _datum: LineTypeDatum,
         coords: Bounds4,
         handle: 'start' | 'end',
         _bbox?: BoxBounds
     ): Point {
-        const { startCap, endCap } = this;
+        const [startPoint, end] = Vec2.from(coords);
+        let endPoint = end;
 
-        let [startPoint, endPoint] = Vec2.from(coords);
-
-        // Offset the handles so they do not cover the caps
-        const angle = Vec2.angle(Vec2.sub(endPoint, startPoint));
-        if (startCap) {
-            startPoint = Vec2.rotate(Vec2.from(0, -DivariantHandle.HANDLE_SIZE / 2), angle, startPoint);
-        }
-        if (endCap) {
+        // Offset the end handle so it does not cover the cap
+        if (this.endCap) {
+            const angle = Vec2.angle(Vec2.sub(endPoint, startPoint));
             endPoint = Vec2.rotate(Vec2.from(0, DivariantHandle.HANDLE_SIZE / 2), angle, endPoint);
         }
 
         return handle === 'start' ? startPoint : endPoint;
     }
 
-    protected override getHandleStyles(datum: LineTypeProperties) {
+    protected override getHandleStyles(datum: LineTypeDatum) {
         return {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? datum.stroke,

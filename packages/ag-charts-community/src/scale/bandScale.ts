@@ -2,7 +2,6 @@ import type { ScaleAlignment } from 'ag-charts-core';
 import { clamp } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
-import { Invalidating } from './invalidating';
 import { unpackDomainMinMax } from './scaleUtil';
 
 /**
@@ -17,11 +16,25 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
 
     protected invalid = true;
 
-    @Invalidating
-    range: number[] = [0, 1];
+    private _range: number[] = [0, 1];
+    get range(): number[] {
+        return this._range;
+    }
+    set range(value: number[]) {
+        if (value === this._range) return;
+        this._range = value;
+        this.invalid = true;
+    }
 
-    @Invalidating
-    round = false;
+    private _round = false;
+    get round(): boolean {
+        return this._round;
+    }
+    set round(value: boolean) {
+        if (value === this._round) return;
+        this._round = value;
+        this.invalid = true;
+    }
 
     protected _bandwidth: number = 1;
     override get bandwidth(): number {

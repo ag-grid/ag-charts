@@ -1,9 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
+import { Debug, StateMachine } from 'ag-charts-core';
 
 import type { AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
-import type { TextualPointProperties } from '../properties/textualPointProperties';
+import type { TextualPointDatum } from '../datum/textualDatum';
 import type { TextualPointScene } from '../scenes/textualPointScene';
 import { maybeWrapText } from '../text/util';
 import { setColor } from '../utils/styles';
@@ -11,7 +11,9 @@ import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
-interface TextualPointStateMachineContext<Datum extends TextualPointProperties> extends Omit<
+const INHERITED_PROPERTIES = ['datum', 'node'] as const;
+
+interface TextualPointStateMachineContext<Datum extends TextualPointDatum> extends Omit<
     AnnotationsCreateStateMachineContext,
     'create'
 > {
@@ -19,7 +21,7 @@ interface TextualPointStateMachineContext<Datum extends TextualPointProperties> 
 }
 
 export abstract class TextualPointStateMachine<
-    Datum extends TextualPointProperties,
+    Datum extends TextualPointDatum,
     Node extends TextualPointScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit',
@@ -40,16 +42,19 @@ export abstract class TextualPointStateMachine<
 > {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
     protected datum?: Datum;
 
-    @StateMachineProperty()
     protected node?: Node;
+
+    override inheritedProperties() {
+        return INHERITED_PROPERTIES;
+    }
 
     constructor(ctx: TextualPointStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
-            datum.set({ x: point.x, y: point.y });
+            datum.x = point.x;
+            datum.y = point.y;
             ctx.create(datum);
         };
 
@@ -91,12 +96,13 @@ export abstract class TextualPointStateMachine<
             opacity: number;
             isMultiColor: boolean;
         }) => {
-            if (!this.datum) return;
+            const { datum } = this;
+            if (!isTextType(datum)) return;
 
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            setColor(this.datum as any, colorPickerType, colorOpacity, color, opacity, isMultiColor);
+            setColor(datum, colorPickerType, colorOpacity, color, opacity, isMultiColor);
             ctx.update();
         };
 
@@ -122,10 +128,10 @@ export abstract class TextualPointStateMachine<
                 }
 
                 const wrappedText = maybeWrapText(datum, textInputValue, bbox.width);
-                datum?.set({ text: wrappedText });
+                datum.text = wrappedText;
 
                 ctx.update();
-                ctx.recordAction(`Create ${datum?.type} annotation`);
+                ctx.recordAction(`Create ${datum.type} annotation`);
             } else {
                 ctx.delete();
             }

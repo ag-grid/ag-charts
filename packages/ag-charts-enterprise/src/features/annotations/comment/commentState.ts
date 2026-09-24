@@ -1,9 +1,9 @@
 import { TextualPointStateMachine } from '../states/textualPointState';
-import { CommentProperties } from './commentProperties';
+import { type CommentDatum, commentDatum } from './commentDatum';
 import type { CommentScene } from './commentScene';
 
-export class CommentStateMachine extends TextualPointStateMachine<CommentProperties, CommentScene> {
+export class CommentStateMachine extends TextualPointStateMachine<CommentDatum, CommentScene> {
     protected override createDatum() {
-        return new CommentProperties();
+        return commentDatum.create();
     }
 }

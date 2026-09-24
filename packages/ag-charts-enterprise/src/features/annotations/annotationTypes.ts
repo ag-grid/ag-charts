@@ -1,5 +1,6 @@
 import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 import type { Logger } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { PointType } from './utils/scale';
 
@@ -120,10 +121,12 @@ export interface AnnotationAxisContext extends Pick<
 
 export interface AnnotationContext {
     logger: Logger;
+    localeManager: _ModuleSupport.LocaleManager;
     seriesRect: _ModuleSupport.BBox;
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
     isRtl: boolean;
+    getVolume(from: DataPoint['x'], to: DataPoint['x']): AgNumericValue | undefined;
 }
 
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';

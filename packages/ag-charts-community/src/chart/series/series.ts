@@ -25,7 +25,6 @@ import type {
     SeriesPluginModuleInstance,
 } from 'ag-charts-core';
 import {
-    ActionOnSet,
     ChartAxisDirection,
     CleanupRegistry,
     EventEmitter,
@@ -302,12 +301,18 @@ export abstract class Series<
         return 'main';
     }
 
-    @ActionOnSet<Series<TDatum, TOpts, TLabel>>({
-        changeValue: function (newVal, oldVal) {
-            this.onSeriesGroupingChange(oldVal, newVal);
-        },
-    })
-    seriesGrouping: SeriesGrouping | undefined = undefined;
+    private _seriesGrouping: SeriesGrouping | undefined = undefined;
+
+    get seriesGrouping() {
+        return this._seriesGrouping;
+    }
+
+    setSeriesGrouping(seriesGrouping: SeriesGrouping | undefined) {
+        const previous = this._seriesGrouping;
+        if (seriesGrouping === previous) return;
+        this._seriesGrouping = seriesGrouping;
+        this.onSeriesGroupingChange(previous, seriesGrouping);
+    }
 
     readonly internalId = createId(this);
 
@@ -598,7 +603,7 @@ export abstract class Series<
         return hasDimmedOpacity(unhighlightedItem) || hasDimmedOpacity(unhighlightedSeries);
     }
 
-    /** The chart-level `highlight` options; the single-key read avoids a sub-path split on per-datum paths. */
+    /** The chart-level `highlight` options. */
     protected getChartHighlightOptions() {
         return this.ctx.chartState.getValue('options')?.highlight;
     }

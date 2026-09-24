@@ -1,6 +1,5 @@
 import type { MementoCaretaker, MementoOriginator } from 'ag-charts-core';
 import {
-    ActionOnSet,
     ChartUpdateType,
     Debug,
     type DeepPartial,
@@ -64,20 +63,29 @@ export interface FactoryApi {
 export class AgChartInstanceProxy implements AgChartProxy {
     static readonly chartInstances = new WeakMap<Chart, AgChartInstanceProxy>();
 
-    @ActionOnSet<AgChartInstanceProxy>({
-        oldValue(chart) {
-            if (!chart.destroyed) {
-                chart.publicApi = undefined;
+    // An ES private field keeps the chart, which links back through `publicApi`, out of `JSON.stringify`.
+    #chart?: Chart;
+
+    get chart() {
+        return this.#chart;
+    }
+
+    setChart(chart: Chart | undefined) {
+        const previous = this.#chart;
+        if (chart === previous) return;
+
+        if (previous != null) {
+            if (!previous.destroyed) {
+                previous.publicApi = undefined;
             }
-            AgChartInstanceProxy.chartInstances.delete(chart);
-        },
-        newValue(chart) {
-            if (!chart) return;
+            AgChartInstanceProxy.chartInstances.delete(previous);
+        }
+        this.#chart = chart;
+        if (chart != null) {
             chart.publicApi = this;
             AgChartInstanceProxy.chartInstances.set(chart, this);
-        },
-    })
-    chart?: Chart;
+        }
+    }
     releaseChart?: () => void;
     licenseManager?: LicenseManager;
 
@@ -85,7 +93,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         chart: Chart,
         private readonly factoryApi: FactoryApi
     ) {
-        this.chart = chart;
+        this.setChart(chart);
     }
 
     async update(options: AgChartOptions) {
@@ -270,7 +278,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             this.chart.publicApi = undefined;
             this.chart.destroy();
         }
-        this.chart = undefined;
+        this.setChart(undefined);
     }
 
     private async prepareResizedChart(

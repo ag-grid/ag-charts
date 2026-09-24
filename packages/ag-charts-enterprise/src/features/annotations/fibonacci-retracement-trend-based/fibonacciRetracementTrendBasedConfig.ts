@@ -1,33 +1,33 @@
 import { AnnotationType } from '../annotationTypes';
 import type { AnnotationTypeConfig } from '../annotationsSuperTypes';
 import { DragStateMachine } from '../states/dragState';
-import { FibonacciRetracementTrendBasedProperties } from './fibonacciRetracementTrendBasedProperties';
+import {
+    type FibonacciRetracementTrendBasedDatum,
+    fibonacciRetracementTrendBasedDatum,
+} from './fibonacciRetracementTrendBasedDatum';
 import { FibonacciRetracementTrendBasedScene } from './fibonacciRetracementTrendBasedScene';
 import { FibonacciRetracementTrendBasedStateMachine } from './fibonacciRetracementTrendBasedState';
 
 export const fibonacciRetracementTrendBasedConfig: AnnotationTypeConfig<
-    FibonacciRetracementTrendBasedProperties,
+    FibonacciRetracementTrendBasedDatum,
     FibonacciRetracementTrendBasedScene
 > = {
-    type: AnnotationType.FibonacciRetracementTrendBased,
-    datum: FibonacciRetracementTrendBasedProperties,
     scene: FibonacciRetracementTrendBasedScene,
-    isDatum: FibonacciRetracementTrendBasedProperties.is,
     translate: (node, datum, transition, context) => {
-        if (FibonacciRetracementTrendBasedProperties.is(datum) && FibonacciRetracementTrendBasedScene.is(node))
+        if (fibonacciRetracementTrendBasedDatum.is(datum) && FibonacciRetracementTrendBasedScene.is(node))
             node.translate(datum, transition, context);
     },
     copy: (node, datum, copiedDatum, context) => {
         if (
-            FibonacciRetracementTrendBasedProperties.is(datum) &&
-            FibonacciRetracementTrendBasedProperties.is(copiedDatum) &&
+            fibonacciRetracementTrendBasedDatum.is(datum) &&
+            fibonacciRetracementTrendBasedDatum.is(copiedDatum) &&
             FibonacciRetracementTrendBasedScene.is(node)
         ) {
             return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (FibonacciRetracementTrendBasedProperties.is(datum) && FibonacciRetracementTrendBasedScene.is(node)) {
+        if (fibonacciRetracementTrendBasedDatum.is(datum) && FibonacciRetracementTrendBasedScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -37,5 +37,5 @@ export const fibonacciRetracementTrendBasedConfig: AnnotationTypeConfig<
             create: createDatum(AnnotationType.FibonacciRetracementTrendBased),
         }),
     dragState: (ctx) =>
-        new DragStateMachine<FibonacciRetracementTrendBasedProperties, FibonacciRetracementTrendBasedScene>(ctx),
+        new DragStateMachine<FibonacciRetracementTrendBasedDatum, FibonacciRetracementTrendBasedScene>(ctx),
 };

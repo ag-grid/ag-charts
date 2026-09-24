@@ -3,8 +3,8 @@ import type { FillStrokeMorph, Normalised } from 'ag-charts-core';
 import { type Bounds4, type BoxBounds, type Point, Vec2, Vec4, entries } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
-import type { StartEndProperties } from '../properties/startEndProperties';
-import { translate } from '../utils/coords';
+import type { StartEndDatum } from '../datum/startEndDatum';
+import { SNAP_TO_ANGLE, translate } from '../utils/coords';
 import { convertLine, convertPoint } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
@@ -13,7 +13,7 @@ export type StartEndHandle = 'start' | 'end';
 
 type NormalisedAnnotationHandleStyles = Normalised<AgAnnotationHandleStyles, never, FillStrokeMorph>;
 
-export abstract class StartEndScene<Datum extends StartEndProperties> extends LinearScene<Datum> {
+export abstract class StartEndScene<Datum extends StartEndDatum> extends LinearScene<Datum> {
     override activeHandle?: StartEndHandle;
 
     protected readonly start = new DivariantHandle();
@@ -65,7 +65,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
 
         const snapHandle = activeHandle === 'start' ? 'end' : 'start';
         const snap = snapping
-            ? { vectors: { [activeHandle]: convertPoint(datum[snapHandle], context) }, angle: datum.snapToAngle }
+            ? { vectors: { [activeHandle]: convertPoint(datum[snapHandle], context) }, angle: SNAP_TO_ANGLE }
             : undefined;
 
         const { [activeHandle]: point } = translate(

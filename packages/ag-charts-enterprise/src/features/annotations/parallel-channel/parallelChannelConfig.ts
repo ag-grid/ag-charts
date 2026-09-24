@@ -1,31 +1,24 @@
 import { AnnotationType } from '../annotationTypes';
 import type { AnnotationTypeConfig } from '../annotationsSuperTypes';
 import { DragStateMachine } from '../states/dragState';
-import { ParallelChannelProperties } from './parallelChannelProperties';
+import { type ParallelChannelDatum, parallelChannelDatum } from './parallelChannelDatum';
 import { ParallelChannelScene } from './parallelChannelScene';
 import { ParallelChannelStateMachine } from './parallelChannelState';
 
-export const parallelChannelConfig: AnnotationTypeConfig<ParallelChannelProperties, ParallelChannelScene> = {
-    type: AnnotationType.ParallelChannel,
-    datum: ParallelChannelProperties,
+export const parallelChannelConfig: AnnotationTypeConfig<ParallelChannelDatum, ParallelChannelScene> = {
     scene: ParallelChannelScene,
-    isDatum: ParallelChannelProperties.is,
     translate: (node, datum, transition, context) => {
-        if (ParallelChannelProperties.is(datum) && ParallelChannelScene.is(node)) {
+        if (parallelChannelDatum.is(datum) && ParallelChannelScene.is(node)) {
             node.translate(datum, transition, context);
         }
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (
-            ParallelChannelProperties.is(datum) &&
-            ParallelChannelProperties.is(copiedDatum) &&
-            ParallelChannelScene.is(node)
-        ) {
+        if (parallelChannelDatum.is(datum) && parallelChannelDatum.is(copiedDatum) && ParallelChannelScene.is(node)) {
             return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (ParallelChannelProperties.is(datum) && ParallelChannelScene.is(node)) {
+        if (parallelChannelDatum.is(datum) && ParallelChannelScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -34,5 +27,5 @@ export const parallelChannelConfig: AnnotationTypeConfig<ParallelChannelProperti
             ...ctx,
             create: createDatum(AnnotationType.ParallelChannel),
         }),
-    dragState: (ctx) => new DragStateMachine<ParallelChannelProperties, ParallelChannelScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<ParallelChannelDatum, ParallelChannelScene>(ctx),
 };
