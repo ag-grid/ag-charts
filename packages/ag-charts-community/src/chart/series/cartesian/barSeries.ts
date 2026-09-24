@@ -2195,10 +2195,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return this.options.label.enabled;
     }
 
-    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        const datumIndex = this.contextNodeData?.nodeData[opts.datumIndex].datumIndex;
-        if (datumIndex == null) return undefined;
-
+    protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
         const ctx = this.nodeDatumContext;
         if (ctx == null || this.processedData?.invalidData?.get(this.id)?.[datumIndex] === true) return undefined;
 
