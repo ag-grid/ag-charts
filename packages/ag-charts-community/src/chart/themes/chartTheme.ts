@@ -255,6 +255,28 @@ export class ChartTheme {
             crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
+
+            // The border mixes reproduce the scrollbar colours that predate these params.
+            scrollbarThickness: 12,
+            scrollbarTrackBackgroundColor: { $foregroundBackgroundMix: 0.03 },
+            scrollbarTrackBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.031] },
+                width: { $ref: 'borderWidth' },
+            },
+            scrollbarTrackBorderRadius: 6,
+            scrollbarThumbBackgroundColor: { $foregroundBackgroundMix: 0.125 },
+            scrollbarThumbBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.2513] },
+                width: { $ref: 'borderWidth' },
+            },
+            scrollbarThumbBorderRadius: 6,
+            scrollbarThumbHoverBackgroundColor: {
+                $mix: [{ $ref: 'scrollbarThumbBackgroundColor' }, { $ref: 'foregroundColor' }, 0.075],
+            },
+            scrollbarThumbHoverBorder: {
+                color: { $mix: [{ $ref: 'scrollbarThumbBorder.color' }, { $ref: 'foregroundColor' }, 0.075] },
+                width: { $ref: 'scrollbarThumbBorder.width' },
+            },
         };
     }
 

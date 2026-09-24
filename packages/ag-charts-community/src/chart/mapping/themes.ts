@@ -299,6 +299,16 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
 
         crosshairLabelBackgroundColor: colorOrRef,
         crosshairLabelTextColor: colorOrRef,
+
+        scrollbarThickness: positiveNumber,
+        scrollbarTrackBackgroundColor: colorOrRef,
+        scrollbarTrackBorder: or(boolean, themeParamBorder),
+        scrollbarTrackBorderRadius: number,
+        scrollbarThumbBackgroundColor: colorOrRef,
+        scrollbarThumbBorder: or(boolean, themeParamBorder),
+        scrollbarThumbBorderRadius: number,
+        scrollbarThumbHoverBackgroundColor: colorOrRef,
+        scrollbarThumbHoverBorder: or(boolean, themeParamBorder),
     },
     palette: {
         fills: arrayOf(simpleColorUnion),
