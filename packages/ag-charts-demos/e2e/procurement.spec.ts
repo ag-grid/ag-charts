@@ -309,7 +309,7 @@ test.describe(DEMO_ID, () => {
     });
 
     test.describe('accessibility contract of the Radix controls', () => {
-        test('every aria-labelledby and aria-controls names an element, on every tab', async ({ page }) => {
+        test('every aria-labelledby, aria-controls and label for names an element, on every tab', async ({ page }) => {
             await expectIdLinkagesResolve(page);
             for (const tab of TABS.slice(1)) {
                 await openTab(page, tab.name);

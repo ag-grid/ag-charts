@@ -63,9 +63,11 @@ const optionAfter = (options: readonly string[], current: string) =>
     options[(options.indexOf(current) + 1) % options.length];
 
 /**
- * Every `aria-labelledby` and `aria-controls` on the demo's own controls names an element that
- * exists. The closed combobox is exempt: Radix gives it `aria-controls` for a listbox it has not
- * mounted yet, and the open state is asserted in `expectSelectOpenTypeahead`.
+ * Every `aria-labelledby` and `aria-controls` on the demo's own controls, and every `for` on their
+ * labels, names an element that exists. The closed combobox is exempt: Radix gives it
+ * `aria-controls` for a listbox it has not mounted yet, and the open state is asserted in
+ * `expectSelectOpenTypeahead`. Call it once the demo has rendered: the React app shows the demo's
+ * container before a lazily loaded demo renders anything, and an empty page has nothing to fail.
  */
 export async function expectIdLinkagesResolve(page: Page) {
     const unresolved = await page.evaluate((selector) => {
@@ -79,9 +81,13 @@ export async function expectIdLinkagesResolve(page: Page) {
                 }
             }
         }
+        for (const label of document.querySelectorAll(`label[for]${selector}`)) {
+            const id = label.getAttribute('for')!;
+            if (!document.getElementById(id)) misses.push(`label for="${id}"`);
+        }
         return misses;
     }, DEMO_CONTROLS);
-    expect(unresolved, 'aria-labelledby / aria-controls ids with no element').toEqual([]);
+    expect(unresolved, 'aria-labelledby / aria-controls / label for ids with no element').toEqual([]);
 }
 
 /**
