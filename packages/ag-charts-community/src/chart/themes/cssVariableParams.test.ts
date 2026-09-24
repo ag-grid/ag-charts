@@ -28,6 +28,8 @@ const DARK_MODE_PARAMS: AgChartThemeParams = {
     foregroundColor: '#fff',
     gridLineColor: '#545b67',
     groupedCategoryLineColor: '#7e838c',
+    scrollbarThumbBorder: { color: '#6d727d', width: 1 },
+    scrollbarTrackBorder: { color: '#424956', width: 1 },
     subtleTextColor: '#7c818a',
 };
 
