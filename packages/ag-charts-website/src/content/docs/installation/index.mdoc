@@ -232,9 +232,7 @@ To use AG Charts in your React application, return the `AgCharts` component with
 ```tsx format="reactHooks"
 const MyChart = () => {
     // Define chart options; mutating this object will cause the chart to update
-    const [chartOptions, setChartOptions] = useState({
-        /*...*/
-    });
+    const [chartOptions, setChartOptions] = useState({/*...*/});
 
     // Return the AgCharts component with the chart options
     return <AgCharts options={chartOptions} />;
@@ -258,9 +256,7 @@ export class AppComponent {
     // Chart Options
     public chartOptions: AgChartOptions;
     constructor() {
-        this.chartOptions = {
-            /*...*/
-        };
+        this.chartOptions = {/*...*/};
     }
 }
 ```
@@ -293,9 +289,7 @@ To use AG Charts in your JavaScript application, use the `create` API to create 
 
 ```js format="snippet"
 // Chart Options
-const options = {
-    /*...*/
-};
+const options = {/*...*/};
 
 // Create Chart
 const chart = AgCharts.create(options);

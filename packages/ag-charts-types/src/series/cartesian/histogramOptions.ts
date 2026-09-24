@@ -69,11 +69,7 @@ export interface AgHistogramSeriesGetItemIdParams<TDatum = DatumDefault, TContex
     extends ContextCallbackParams<TContext>, AgHistogramSeriesBinParams<TDatum> {}
 
 export type AgHistogramSeriesLabelPlacement =
-    | 'inside-center'
-    | 'inside-start'
-    | 'inside-end'
-    | 'outside-start'
-    | 'outside-end';
+    'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
 
 export interface AgHistogramSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends

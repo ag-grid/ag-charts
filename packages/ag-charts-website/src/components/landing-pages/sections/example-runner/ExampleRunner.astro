@@ -39,22 +39,20 @@ try {
 ---
 
 {
-    (
-        <ExampleRunnerContainer
+    <ExampleRunnerContainer
+        exampleHeight={exampleHeight}
+        pageName={pageName}
+        exampleName={name}
+        hasExampleConsoleLog={hasExampleConsoleLog}
+    >
+        <DocsExampleRunner
+            client:visible={{ rootMargin: '200px' }}
+            title={title}
+            name={name}
             exampleHeight={exampleHeight}
             pageName={pageName}
-            exampleName={name}
+            isDev={isDev}
             hasExampleConsoleLog={hasExampleConsoleLog}
-        >
-            <DocsExampleRunner
-                client:visible={{ rootMargin: '200px' }}
-                title={title}
-                name={name}
-                exampleHeight={exampleHeight}
-                pageName={pageName}
-                isDev={isDev}
-                hasExampleConsoleLog={hasExampleConsoleLog}
-            />
-        </ExampleRunnerContainer>
-    )
+        />
+    </ExampleRunnerContainer>
 }

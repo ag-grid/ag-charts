@@ -37,7 +37,8 @@ doc?.write(html`
                 ${css`
                     html {
                         color-scheme: only light;
-                    }`}
+                    }
+                `}
             </style>
         </head>
         <body>

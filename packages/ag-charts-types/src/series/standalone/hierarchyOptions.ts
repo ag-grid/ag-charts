@@ -5,8 +5,7 @@ import type { AgSunburstSeriesOptions } from './sunburstOptions';
 import type { AgTreemapSeriesOptions } from './treemapOptions';
 
 export type AgHierarchySeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> =
-    | AgTreemapSeriesOptions<TDatum, TContext>
-    | AgSunburstSeriesOptions<TDatum, TContext>;
+    AgTreemapSeriesOptions<TDatum, TContext> | AgSunburstSeriesOptions<TDatum, TContext>;
 
 export interface AgBaseHierarchyChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** Series configurations. */

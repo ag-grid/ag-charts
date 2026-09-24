@@ -211,13 +211,7 @@ export type NormalisedCandlestickSeriesOptions = NormalisedSeriesOptions<Normali
     NormalisedCartesianSeriesOptionsCommon;
 
 type FunnelStyleRequiredKeys =
-    | 'fills'
-    | 'strokes'
-    | 'fillOpacity'
-    | 'strokeWidth'
-    | 'strokeOpacity'
-    | 'lineDash'
-    | 'lineDashOffset';
+    'fills' | 'strokes' | 'fillOpacity' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset';
 
 /** Label shape the shared funnel implementation reads; only the funnel leaf exposes placement styles. */
 export type NormalisedBaseFunnelSeriesLabelOptions =

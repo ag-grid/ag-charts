@@ -31,13 +31,11 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
     <div class="gallery-page-container layout-max-width-small text-base">
         <div class="title-container">
             <h1>{seo.h1}</h1>
-            {
-                page.enterprise && (
-                    <span class="enterpriseIcon">
-                        <Icon client:only="react" name="enterprise" />
-                    </span>
-                )
-            }
+            {page.enterprise && (
+                <span class="enterpriseIcon">
+                    <Icon client:only="react" name="enterprise" />
+                </span>
+            )}
         </div>
 
         <div class="seriesDocsLink text-secondary">
@@ -45,30 +43,32 @@ const relatedHeading = relatedExamplesHeading({ seriesTitle: page.seriesTitle, r
         </div>
 
         <div class="intro">
-            <p><GalleryIntro intro={seo.intro} /></p>
-            <p><GalleryIntro intro={GALLERY_GET_STARTED_COPY} /></p>
+            <p>
+                <GalleryIntro intro={seo.intro} />
+            </p>
+            <p>
+                <GalleryIntro intro={GALLERY_GET_STARTED_COPY} />
+            </p>
         </div>
 
         <GalleryExampleRunner exampleName={exampleName} />
 
-        {
-            relatedExamples.length > 0 && (
-                <section class="related">
-                    <h2 class="moreExampleLabel">{relatedHeading}</h2>
+        {relatedExamples.length > 0 && (
+            <section class="related">
+                <h2 class="moreExampleLabel">{relatedHeading}</h2>
 
-                    <p class="moreExampleHubLink text-secondary">
-                        <a href={page.galleryHubUrl}>View All Examples</a>
-                    </p>
+                <p class="moreExampleHubLink text-secondary">
+                    <a href={page.galleryHubUrl}>View All Examples</a>
+                </p>
 
-                    <GalleryExampleCarousel
-                        client:visible
-                        examples={relatedExamples}
-                        enableDprScaling={GALLERY_IMAGE_DPR_ENHANCEMENT}
-                        label={relatedHeading}
-                    />
-                </section>
-            )
-        }
+                <GalleryExampleCarousel
+                    client:visible
+                    examples={relatedExamples}
+                    enableDprScaling={GALLERY_IMAGE_DPR_ENHANCEMENT}
+                    label={relatedHeading}
+                />
+            </section>
+        )}
     </div>
 </Layout>
 

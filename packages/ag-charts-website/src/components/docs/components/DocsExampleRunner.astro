@@ -64,13 +64,11 @@ const sourceCode =
         hasExampleConsoleLog={hasExampleConsoleLog}
         initialLoadDeferred={initialLoadDeferred}
     />
-    {
-        sourceCode && (
-            <ExampleRunnerSourceCode
-                internalFramework={internalFramework}
-                files={sourceCode.files}
-                mainFileName={sourceCode.mainFileName}
-            />
-        )
-    }
+    {sourceCode && (
+        <ExampleRunnerSourceCode
+            internalFramework={internalFramework}
+            files={sourceCode.files}
+            mainFileName={sourceCode.mainFileName}
+        />
+    )}
 </ExampleRunnerContainer>

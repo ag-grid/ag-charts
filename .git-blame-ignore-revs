@@ -1,0 +1,5 @@
+# Formatting-only commits, skipped by git blame.
+# Use locally with: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Apply prettier 3.9.9 formatting
+31495941b67ec062b8f1b01535cc089f4e6d9c9f

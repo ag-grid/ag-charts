@@ -692,13 +692,11 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const { depthsMap } = filteredTicks;
         const tickDepth = (tickLabel: GroupedCategoryKey) => depthsMap.get(tickLabel) ?? maxDepth - 1;
 
-        const gridLineData = rawTicks.map(
-            (t, index): GridLineStyleTickDatum => ({
-                index: tickScale.findIndex(t)!,
-                tickId: createDatumId(index, ...t),
-                translation: Math.round(filteredTicks.positions?.get(t) ?? tickScale.convert(t)),
-            })
-        );
+        const gridLineData = rawTicks.map((t, index): GridLineStyleTickDatum => ({
+            index: tickScale.findIndex(t)!,
+            tickId: createDatumId(index, ...t),
+            translation: Math.round(filteredTicks.positions?.get(t) ?? tickScale.convert(t)),
+        }));
 
         const getDatumId = (datum: { tickId: string }) => datum.tickId;
         this.gridLineGroupSelection.update(

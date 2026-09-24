@@ -246,8 +246,7 @@ export class SeriesAreaManager extends BaseManager {
     };
 
     private cachedTooltipContent:
-        | { series: PickedNode['series']; datumIndex: unknown; content: TooltipContent[] }
-        | undefined = undefined;
+        { series: PickedNode['series']; datumIndex: unknown; content: TooltipContent[] } | undefined = undefined;
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
@@ -705,8 +704,7 @@ export class SeriesAreaManager extends BaseManager {
             ? this.chart.ctx.chartService.toAgCoordinates(canvasPoint)
             : undefined;
         const newEvent = { type, event: event.sourceEvent, coordinates } satisfies
-            | CallbackParamRules<AgChartClickEvent>
-            | CallbackParamRules<AgChartDoubleClickEvent>;
+            CallbackParamRules<AgChartClickEvent> | CallbackParamRules<AgChartDoubleClickEvent>;
         this.chart.ctx.chartService.callListener(newEvent);
     }
 

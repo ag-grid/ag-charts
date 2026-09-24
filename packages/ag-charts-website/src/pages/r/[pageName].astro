@@ -26,7 +26,9 @@ const frameworkLinks = FRAMEWORKS.map((framework) => ({
 
 <Layout
     title={`${title} | AG Charts`}
-    description={'View the AG Grid Documentation - a feature-rich datagrid for major JavaScript frameworks, offering filtering, grouping, pivoting, and more.'}
+    description={
+        'View the AG Grid Documentation - a feature-rich datagrid for major JavaScript frameworks, offering filtering, grouping, pivoting, and more.'
+    }
     showSearchBar={false}
     showDocsNav={false}
     noIndex={true}
@@ -34,13 +36,11 @@ const frameworkLinks = FRAMEWORKS.map((framework) => ({
     <FrameworkRedirectPage redirectPageName={pageName}>
         <h1>Redirecting to "{title}" page</h1>
         <ul>
-            {
-                frameworkLinks.map(({ href, text }) => (
-                    <li>
-                        <a href={href}>{text}</a>
-                    </li>
-                ))
-            }
+            {frameworkLinks.map(({ href, text }) => (
+                <li>
+                    <a href={href}>{text}</a>
+                </li>
+            ))}
         </ul>
     </FrameworkRedirectPage>
 </Layout>

@@ -132,7 +132,8 @@ for (const { styles, options: caseOptions } of cases) {
                             }
 
                             ${styles}
-                            ${extraStyles ?? ''}`}
+                            ${extraStyles ?? ''}
+                        `}
                     </style>
                 </head>
                 <body>

@@ -26,15 +26,7 @@ import { SpatialIndex, gridCellSize } from './spatialIndex';
 export type { LabelFit } from '../text/textWrapper';
 
 export type LabelPlacement =
-    | 'inside'
-    | 'top'
-    | 'bottom'
-    | 'left'
-    | 'right'
-    | 'top-left'
-    | 'top-right'
-    | 'bottom-left'
-    | 'bottom-right';
+    'inside' | 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 export interface MeasuredLabel {
     readonly text: NormalisedTextOrSegments;

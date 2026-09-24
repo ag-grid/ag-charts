@@ -4,8 +4,7 @@ import type { AgChordSeriesOptions } from './chordOptions';
 import type { AgSankeySeriesOptions } from './sankeyOptions';
 
 export type AgFlowProportionSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> =
-    | AgSankeySeriesOptions<TDatum, TContext>
-    | AgChordSeriesOptions<TDatum, TContext>;
+    AgSankeySeriesOptions<TDatum, TContext> | AgChordSeriesOptions<TDatum, TContext>;
 
 export interface AgBaseFlowProportionChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
     /** Series configurations. */

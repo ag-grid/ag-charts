@@ -1,13 +1,7 @@
 import type { DatumDefault, Ratio } from '../../chart/types';
 
 export type AgPriceVolumeChartType =
-    | 'candlestick'
-    | 'hollow-candlestick'
-    | 'ohlc'
-    | 'line'
-    | 'step-line'
-    | 'hlc'
-    | 'high-low';
+    'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'hlc' | 'high-low';
 
 export interface AgPriceVolumePreset {
     /** Series type used for the OHLC data.

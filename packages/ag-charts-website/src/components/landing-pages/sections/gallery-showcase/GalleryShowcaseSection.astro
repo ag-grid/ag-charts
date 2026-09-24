@@ -43,25 +43,23 @@ const examples = section.examples.map((exampleName) => {
     showBackgroundGradient={section.showBackgroundGradient}
 >
     <div class:list={[styles.galleryShowcaseGrid, styles[columnClass]]}>
-        {
-            examples.map((example) => (
-                <a
-                    href={example.url}
-                    class:list={[
-                        styles.galleryShowcaseItem,
-                        `plausible-event-name=${pageContent.analyticsPrefix}-gallery-${example.exampleName}`,
-                    ]}
-                >
-                    <GalleryExampleImage
-                        client:visible
-                        exampleName={example.exampleName}
-                        label={example.title}
-                        enableDprScaling={true}
-                        className={styles.galleryShowcaseImage}
-                    />
-                    <div class={styles.galleryShowcaseTitle}>{example.title}</div>
-                </a>
-            ))
-        }
+        {examples.map((example) => (
+            <a
+                href={example.url}
+                class:list={[
+                    styles.galleryShowcaseItem,
+                    `plausible-event-name=${pageContent.analyticsPrefix}-gallery-${example.exampleName}`,
+                ]}
+            >
+                <GalleryExampleImage
+                    client:visible
+                    exampleName={example.exampleName}
+                    label={example.title}
+                    enableDprScaling={true}
+                    className={styles.galleryShowcaseImage}
+                />
+                <div class={styles.galleryShowcaseTitle}>{example.title}</div>
+            </a>
+        ))}
     </div>
 </LandingPageSection>
