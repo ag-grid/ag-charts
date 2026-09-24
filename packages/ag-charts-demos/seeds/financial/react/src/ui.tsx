@@ -38,7 +38,7 @@ export function Select({
 }) {
     return (
         <>
-            <RLabel.Root htmlFor={label} className="fin-labeled-select">
+            <RLabel.Root className="fin-labeled-select">
                 <span>{label}</span>
                 <RSelect.Root value={value} onValueChange={onValueChange}>
                     <RSelect.Trigger className="fin-btn fin-select-trigger" aria-label={ariaLabel}>
