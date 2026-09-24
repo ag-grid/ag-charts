@@ -2,12 +2,7 @@ import { fail } from 'assert';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
-import type {
-    AgCartesianChartOptions,
-    AgChartTheme,
-    AgChartThemeParams,
-    AgPolarChartOptions,
-} from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartTheme, AgChartThemeParams, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import { CartesianChart } from '../cartesianChart';
