@@ -50,7 +50,7 @@
     "jotai": "^2.8.0",
     "jsdom": "~26.1.0",
     "lucide-react": "^0.343.0",
-    "nanostores": "^0.9.3",
+    "nanostores": "^0.11.4",
     "node-html-parser": "^6.1.13",
     "prettier": "3.8.3",
     "react": "^18.2.0",
