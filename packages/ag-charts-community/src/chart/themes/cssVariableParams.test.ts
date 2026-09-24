@@ -32,7 +32,7 @@ const DARK_MODE_PARAMS: AgChartThemeParams = {
 };
 
 /** Neither is a plain colour, so neither can travel through a CSS variable. */
-const UNMAPPABLE_PROPERTIES = ['--ag-charts-popup-shadow', '--ag-charts-focus-color'];
+const UNMAPPABLE_PROPERTIES = ['--ag-charts-card-shadow', '--ag-charts-popup-shadow', '--ag-charts-focus-color'];
 
 /**
  * The palette entries `ag-default-dark` retunes. None can be driven from CSS - `theme.palette`
@@ -69,7 +69,7 @@ describe("the documentation examples' dark mode", () => {
         charts = [];
     });
 
-    const getThemeProperties = async (theme: AgCartesianChartOptions['theme']) => {
+    const getRootStyle = async (theme: AgCartesianChartOptions['theme']) => {
         const container = document.body.appendChild(document.createElement('div'));
         const chart = AgCharts.create({
             theme,
@@ -86,7 +86,11 @@ describe("the documentation examples' dark mode", () => {
         const root = container.querySelector<HTMLElement>('[class*="ag-charts-theme-"]');
         if (root == null) throw new Error('no chart root element found');
 
-        const { style } = root;
+        return root.style;
+    };
+
+    const getThemeProperties = async (theme: AgCartesianChartOptions['theme']) => {
+        const style = await getRootStyle(theme);
         const properties: Record<string, string> = {};
         for (let i = 0; i < style.length; i++) {
             const name = style[i];
@@ -113,5 +117,39 @@ describe("the documentation examples' dark mode", () => {
             .sort((a, b) => a.localeCompare(b));
 
         expect(differing).toEqual(DARK_PALETTE_KEYS);
+    });
+
+    describe('UI component parameters shared with Grid', () => {
+        test.each([
+            ['ag-default', '0 0 16px rgba(0, 0, 0, 0.15)', '#747779'],
+            ['ag-default-dark', '0 0 16px rgba(0, 0, 0, 0.33)', '#a3a7ad'],
+        ] as const)('default to the existing %s styling', async (theme, shadow, placeholderColor) => {
+            const style = await getRootStyle(theme);
+            const get = (name: string) => style.getPropertyValue(`--ag-charts-${name}`);
+
+            expect(get('card-shadow')).toBe(shadow);
+            expect(get('card-shadow')).toBe(get('popup-shadow'));
+            expect(get('color-picker-color-border-radius')).toBe('2px');
+            expect(get('color-picker-thumb-border-width')).toBe('3px');
+            expect(get('color-picker-thumb-size')).toBe('18px');
+            expect(get('color-picker-track-border-radius')).toBe('396px');
+            expect(get('color-picker-track-size')).toBe('12px');
+            expect(get('drag-handle-color')).toBe(get('chrome-text-color'));
+            expect(get('input-placeholder-text-color')).toBe(placeholderColor);
+            expect(get('menu-separator-color')).toBe(get('border-color'));
+        });
+
+        test('colour picker radii follow borderRadius', async () => {
+            const style = await getRootStyle({ params: { borderRadius: 0 } });
+
+            expect(style.getPropertyValue('--ag-charts-color-picker-color-border-radius')).toBe('0px');
+            expect(style.getPropertyValue('--ag-charts-color-picker-track-border-radius')).toBe('0px');
+        });
+
+        test('cardShadow does not follow popupShadow', async () => {
+            const style = await getRootStyle({ params: { popupShadow: 'none' } });
+
+            expect(style.getPropertyValue('--ag-charts-card-shadow')).toBe('0 0 16px rgba(0, 0, 0, 0.15)');
+        });
     });
 });

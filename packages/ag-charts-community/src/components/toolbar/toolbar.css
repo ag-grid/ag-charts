@@ -173,6 +173,7 @@
     border-end-start-radius: var(--ag-charts-button-border-radius);
     border-start-start-radius: var(--ag-charts-button-border-radius);
     border-inline-end-width: 0;
+    color: var(--ag-charts-drag-handle-color);
     cursor: grab;
     display: flex;
     justify-content: center;

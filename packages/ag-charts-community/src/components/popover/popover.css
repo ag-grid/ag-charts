@@ -12,3 +12,7 @@
     box-shadow: var(--ag-charts-popup-shadow);
     z-index: var(--ag-charts-layer-ui-overlay);
 }
+
+.ag-charts-popover--anchored {
+    box-shadow: var(--ag-charts-card-shadow);
+}
