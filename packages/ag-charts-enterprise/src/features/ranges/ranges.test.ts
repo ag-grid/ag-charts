@@ -312,6 +312,36 @@ describe('Ranges', () => {
             });
         });
 
+        it('hover and disabled states inherit a user-set text colour and stroke', async () => {
+            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                ranges: {
+                    enabled: true,
+                    textColor: 'red',
+                    stroke: 'green',
+                    buttons: [{ label: 'All', value: [0, 19] }],
+                },
+            } as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+
+            expect(ranges.button.hover.textColor).toBe('red');
+            expect(ranges.button.hover.stroke).toBe('green');
+            expect(ranges.button.disabled.stroke).toBe('green');
+        });
+
+        it('a false state border hides the border colour', async () => {
+            const ranges = await resolvedRanges({ buttonHoverBorder: false });
+
+            expect(ranges.button.hover.stroke).toBe('transparent');
+        });
+
         it('boolean state borders use borderColor', async () => {
             const ranges = await resolvedRanges({ borderColor: 'purple', buttonActiveBorder: true });
 

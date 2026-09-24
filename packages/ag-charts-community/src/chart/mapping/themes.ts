@@ -286,8 +286,8 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         buttonDisabledBackgroundColor: colorOrRef,
         buttonDisabledBorder: or(boolean, themeParamBorder),
         buttonDisabledTextColor: colorOrRef,
-        buttonHorizontalPadding: number,
-        buttonVerticalPadding: number,
+        buttonHorizontalPadding: positiveNumber,
+        buttonVerticalPadding: positiveNumber,
 
         inputBackgroundColor: colorOrRef,
         inputBorder: or(boolean, themeParamBorder),

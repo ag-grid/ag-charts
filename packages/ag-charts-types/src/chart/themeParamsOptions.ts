@@ -73,29 +73,29 @@ export interface AgBaseChartThemeParams {
     /** Background colour of buttons when hovered. A colour string, or a theme-colour reference object. */
     buttonHoverBackgroundColor?: AgCssColorOrRef;
     /**
-     * Border around buttons when hovered. `true` for the default border, `false` to disable, or an object to customise it.
-     * The border width follows `buttonBorder` unless set here.
+     * Border colour of buttons when hovered. `true` for the default border colour, `false` for no visible border, or an
+     * object to customise it. The border width always follows `buttonBorder`.
      */
     buttonHoverBorder?: boolean | AgBorderThemeParam;
     /** Text colour of buttons when hovered. A colour string, or a theme-colour reference object. */
     buttonHoverTextColor?: AgCssColorOrRef;
     /**
-     * Background colour of buttons in the active (pressed) state, such as a toggled toolbar button or a selected menu
-     * item. A colour string, or a theme-colour reference object.
+     * Background colour of buttons in the active (toggled or selected) state, such as a toggled toolbar button or a
+     * selected menu item. A colour string, or a theme-colour reference object.
      */
     buttonActiveBackgroundColor?: AgCssColorOrRef;
     /**
-     * Border around buttons in the active (pressed) state. `true` for the default border, `false` to disable, or an
-     * object to customise it. The border width follows `buttonBorder` unless set here.
+     * Border colour of buttons in the active (toggled or selected) state. `true` for the default border colour, `false`
+     * for no visible border, or an object to customise it. The border width always follows `buttonBorder`.
      */
     buttonActiveBorder?: boolean | AgBorderThemeParam;
-    /** Text colour of buttons in the active (pressed) state. A colour string, or a theme-colour reference object. */
+    /** Text colour of buttons in the active (toggled or selected) state. A colour string, or a theme-colour reference object. */
     buttonActiveTextColor?: AgCssColorOrRef;
     /** Background colour of disabled buttons. A colour string, or a theme-colour reference object. */
     buttonDisabledBackgroundColor?: AgCssColorOrRef;
     /**
-     * Border around disabled buttons. `true` for the default border, `false` to disable, or an object to customise it.
-     * The border width follows `buttonBorder` unless set here.
+     * Border colour of disabled buttons. `true` for the default border colour, `false` for no visible border, or an
+     * object to customise it. The border width always follows `buttonBorder`.
      */
     buttonDisabledBorder?: boolean | AgBorderThemeParam;
     /** Text colour of disabled buttons. A colour string, or a theme-colour reference object. */

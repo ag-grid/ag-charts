@@ -149,7 +149,7 @@ describe('button state theme params', () => {
     };
 
     test.each(Object.keys(themes) as AgChartThemeName[])(
-        '%s defaults match the existing button styling',
+        '%s button state defaults match the focus, accent and base button colours',
         async (themeName) => {
             const get = await getButtonProperties(themeName);
 
@@ -177,7 +177,6 @@ describe('button state theme params', () => {
 
     test.each([
         ['true', true],
-        ['false', false],
         ['an object', { color: 'red', width: 3 }],
     ] as const)('hover and disabled borders follow buttonBorder set to %s', async (_, buttonBorder) => {
         const get = await getButtonProperties({ params: { buttonBorder } });
@@ -186,6 +185,14 @@ describe('button state theme params', () => {
             expect(get(`button-${state}-border-color`)).toBe(get('button-border-color'));
             expect(get(`button-${state}-border-width`)).toBe(get('button-border-width'));
         }
+    });
+
+    test('hover and disabled borders are hidden when buttonBorder is false', async () => {
+        const get = await getButtonProperties({ params: { buttonBorder: false } });
+
+        expect(get('button-border-width')).toBe('0');
+        expect(get('button-hover-border-color')).toBe('transparent');
+        expect(get('button-disabled-border-color')).toBe('transparent');
     });
 
     test('custom values are published as CSS variables', async () => {
@@ -214,13 +221,12 @@ describe('button state theme params', () => {
         expect(get('button-active-border-width')).toBe('var(--ag-charts-border-width)');
         expect(get('button-disabled-background-color')).toBe('rgb(6, 6, 6)');
         expect(get('button-disabled-text-color')).toBe('rgb(7, 7, 7)');
-        expect(get('button-disabled-border-color')).toBe('none');
-        expect(get('button-disabled-border-width')).toBe('0');
+        expect(get('button-disabled-border-color')).toBe('transparent');
         expect(get('button-horizontal-padding')).toBe('20px');
         expect(get('button-vertical-padding')).toBe('2px');
     });
 
-    test('new colour params can be referenced by other params', async () => {
+    test('button state colour params can be referenced by other params', async () => {
         const get = await getButtonProperties({
             params: {
                 buttonHoverBackgroundColor: 'rgb(9, 9, 9)',

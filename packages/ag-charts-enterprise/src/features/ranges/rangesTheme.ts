@@ -78,7 +78,7 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
         stroke: {
             $if: [
                 { $isType: [{ $ref: 'buttonActiveBorder' }, 'boolean'] },
-                { $ref: 'borderColor' },
+                { $if: [{ $ref: 'buttonActiveBorder' }, { $ref: 'borderColor' }, 'transparent'] },
                 { $ref: 'buttonActiveBorder.color' },
             ],
         },
@@ -88,10 +88,16 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
         ...stateTheme,
         fill: { $ref: 'buttonDisabledBackgroundColor' },
         stroke: {
-            $if: [
-                { $isType: [{ $ref: 'buttonDisabledBorder' }, 'boolean'] },
-                { $ref: 'borderColor' },
-                { $ref: 'buttonDisabledBorder.color' },
+            $isUserOption: [
+                '../stroke',
+                { $path: '../stroke' },
+                {
+                    $if: [
+                        { $isType: [{ $ref: 'buttonDisabledBorder' }, 'boolean'] },
+                        { $if: [{ $ref: 'buttonDisabledBorder' }, { $ref: 'borderColor' }, 'transparent'] },
+                        { $ref: 'buttonDisabledBorder.color' },
+                    ],
+                },
             ],
         },
         textColor: { $ref: 'buttonDisabledTextColor' },
@@ -100,13 +106,19 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
         ...stateTheme,
         fill: { $ref: 'buttonHoverBackgroundColor' },
         stroke: {
-            $if: [
-                { $isType: [{ $ref: 'buttonHoverBorder' }, 'boolean'] },
-                { $ref: 'borderColor' },
-                { $ref: 'buttonHoverBorder.color' },
+            $isUserOption: [
+                '../stroke',
+                { $path: '../stroke' },
+                {
+                    $if: [
+                        { $isType: [{ $ref: 'buttonHoverBorder' }, 'boolean'] },
+                        { $if: [{ $ref: 'buttonHoverBorder' }, { $ref: 'borderColor' }, 'transparent'] },
+                        { $ref: 'buttonHoverBorder.color' },
+                    ],
+                },
             ],
         },
-        textColor: { $ref: 'buttonHoverTextColor' },
+        textColor: { $isUserOption: ['../textColor', { $path: '../textColor' }, { $ref: 'buttonHoverTextColor' }] },
     },
     button: {
         active: { ...componentStateTheme('active') },
