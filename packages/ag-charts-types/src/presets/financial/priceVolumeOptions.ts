@@ -57,9 +57,13 @@ export interface AgPriceVolumePreset {
      * Default: `true`
      */
     volume?: boolean;
-    /** TODO
-     */
+    /** Configuration for a Volume Profile, showing the traded volume at each price level as horizontal bars against the price axis. */
     volumeProfile?: AgVolumeProfileOptions;
+    /** The height of each Volume Profile price level, in price units.
+     *
+     * If not set, the smallest gap between the prices in `volumeProfile.data` is used.
+     */
+    tickSize?: number;
     /** Whether to show the range buttons.
      *
      * Default: `true`
@@ -88,14 +92,32 @@ export interface AgPriceVolumePreset {
 }
 
 export interface AgVolumeProfileOptions {
-    /** TODO */
+    /** Whether to show the Volume Profile.
+     *
+     * Default: `true`
+     */
+    enabled?: boolean;
+    /** The price levels to display, supplied separately from the chart's own `data`. */
     data: DatumDefault[];
-    /** TODO */
+    /** The key used to retrieve the price of each level from the data.
+     *
+     * Default: `'price'`
+     */
+    priceKey?: string;
+    /** The key used to retrieve the up volume of each level from the data. */
+    upKey: string;
+    /** The key used to retrieve the down volume of each level from the data. */
+    downKey: string;
+    /** The edge of the series area the bars extend from.
+     *
+     * Default: `'left'`
+     */
     placement?: AgVolumeProfilePlacement;
-    /** TODO */
-    tickSize?: number;
-    /** TODO */
-    width?: Ratio;
+    /** The length of the longest bar, as a ratio of the series area width.
+     *
+     * Default: `0.5`
+     */
+    widthRatio?: Ratio;
 }
 
 type AgVolumeProfilePlacement = 'left' | 'right';

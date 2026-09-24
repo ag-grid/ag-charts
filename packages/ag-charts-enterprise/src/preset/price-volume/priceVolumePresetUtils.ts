@@ -1,9 +1,15 @@
 import { isFiniteNumber } from 'ag-charts-core';
 import type { DatumDefault } from 'ag-charts-types';
 
-export function inferVolumeProfileTickSize(data: DatumDefault[]): number | undefined {
+export interface VolumeProfileKeys {
+    priceKey: string;
+    upKey: string;
+    downKey: string;
+}
+
+export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: string): number | undefined {
     const prices = data
-        .map((d) => d.price)
+        .map((d) => d[priceKey])
         .filter((price) => isFiniteNumber(price))
         .sort((a, b) => a - b);
 
@@ -18,8 +24,12 @@ export function inferVolumeProfileTickSize(data: DatumDefault[]): number | undef
     return Number(smallest.toPrecision(12));
 }
 
-export function normaliseVolumeProfile(data: DatumDefault[], tickSize: number): VolumeProfileDatum[] {
-    const bands = mergeVolumeProfileBands(data);
+export function normaliseVolumeProfile(
+    data: DatumDefault[],
+    keys: VolumeProfileKeys,
+    tickSize: number
+): VolumeProfileDatum[] {
+    const bands = mergeVolumeProfileBands(data, keys);
     if (bands.length === 0) return [];
 
     const lowest = bands[0].price;
@@ -29,15 +39,15 @@ export function normaliseVolumeProfile(data: DatumDefault[], tickSize: number): 
     const epsilon = 1e-9;
     const lowIndex = (edge: number) => Math.floor((edge - lowest) / tickSize + 0.5 + epsilon);
     const highIndex = (edge: number) => Math.ceil((edge - lowest) / tickSize - 0.5 - epsilon);
-    const levels: Array<{ centre: number; upVolume: number; downVolume: number }> = [];
+    const levels: VolumeProfileDatum[] = [];
     for (let i = 0; i <= lowIndex(highest); i++) {
-        levels.push({ centre: lowest + i * tickSize, upVolume: 0, downVolume: 0 });
+        levels.push({ price: Number((lowest + i * tickSize).toPrecision(12)), upVolume: 0, downVolume: 0, total: 0 });
     }
     const gridFrom = lowest - tickSize / 2;
-    const gridTo = levels.at(-1)!.centre + tickSize / 2;
+    const gridTo = lowest + (levels.length - 0.5) * tickSize;
 
     // Capping bands at half the input step, rather than meeting the neighbour, keeps prices with no row empty.
-    const halfStep = (inferVolumeProfileTickSize(bands) ?? tickSize) / 2;
+    const halfStep = (inferVolumeProfileTickSize(bands, 'price') ?? tickSize) / 2;
     for (let b = 0; b < bands.length; b++) {
         const { price, upVolume, downVolume } = bands[b];
         let from = price - halfStep;
@@ -51,22 +61,18 @@ export function normaliseVolumeProfile(data: DatumDefault[], tickSize: number): 
         const start = Math.max(0, lowIndex(from));
         const end = Math.min(levels.length - 1, highIndex(to));
         for (let l = start; l <= end; l++) {
-            const level = levels[l];
-            const levelFrom = level.centre - tickSize / 2;
+            const levelFrom = lowest + (l - 0.5) * tickSize;
             const overlap = Math.min(to, levelFrom + tickSize) - Math.max(from, levelFrom);
             if (overlap <= 0) continue;
             const share = width > 0 ? overlap / width : 1;
+            const level = levels[l];
             level.upVolume += upVolume * share;
             level.downVolume += downVolume * share;
+            level.total += (upVolume + downVolume) * share;
         }
     }
 
-    return levels.map(({ centre, upVolume, downVolume }) => ({
-        price: Number(centre.toPrecision(12)),
-        upVolume,
-        downVolume,
-        total: upVolume + downVolume,
-    }));
+    return levels;
 }
 
 interface VolumeProfileDatum {
@@ -77,14 +83,18 @@ interface VolumeProfileDatum {
 }
 
 // Merged before normalising, as a duplicate price would otherwise become a zero-width band and lose its volume.
-function mergeVolumeProfileBands(data: DatumDefault[]): VolumeProfileDatum[] {
+function mergeVolumeProfileBands(
+    data: DatumDefault[],
+    { priceKey, upKey, downKey }: VolumeProfileKeys
+): VolumeProfileDatum[] {
     const byPrice = new Map<number, VolumeProfileDatum>();
     for (const d of data) {
-        if (!isFiniteNumber(d.price)) continue;
-        const band = byPrice.get(d.price) ?? { price: d.price, upVolume: 0, downVolume: 0, total: 0 };
-        band.upVolume += d.upVolume ?? 0;
-        band.downVolume += d.downVolume ?? 0;
-        byPrice.set(d.price, band);
+        const price = d[priceKey];
+        if (!isFiniteNumber(price)) continue;
+        const band = byPrice.get(price) ?? { price, upVolume: 0, downVolume: 0, total: 0 };
+        band.upVolume += d[upKey] ?? 0;
+        band.downVolume += d[downKey] ?? 0;
+        byPrice.set(price, band);
     }
     return [...byPrice.values()].sort((a, b) => a.price - b.price);
 }

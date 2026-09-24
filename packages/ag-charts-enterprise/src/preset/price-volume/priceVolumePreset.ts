@@ -78,7 +78,8 @@ export function priceVolume(
         chartType = 'candlestick',
         navigator = false,
         volume = true,
-        volumeProfile = null,
+        volumeProfile: volumeProfileOptions,
+        tickSize,
         rangeButtons = true,
         statusBar = true,
         toolbar = true,
@@ -94,7 +95,8 @@ export function priceVolume(
 
     const priceSeries = createPriceSeries(chartType, dateKey, highKey, lowKey, openKey, closeKey, logger);
     const volumeSeries = createVolumeSeries(getTheme, dateKey, openKey, closeKey, volume, volumeKey);
-    const volumeProfileSeries = createVolumeProfileSeries(volumeProfile);
+    const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
+    const volumeProfileSeries = createVolumeProfileSeries(getTheme, volumeProfile, tickSize);
 
     const userToolbarButtons = themeOverrides?.common?.annotations?.toolbar?.buttons;
     const buttons = userToolbarButtons ?? toolbarButtons;
@@ -202,12 +204,13 @@ export function priceVolume(
                   nice: false,
                   crosshair: { enabled: false },
                   gridLine: { enabled: false },
+                  reverse: volumeProfile.placement === 'right',
                   // @ts-expect-error undocumented option
                   layoutConstraints: {
                       stacked: false,
-                      width: 50,
+                      width: (volumeProfile.widthRatio ?? 0.5) * 100,
                       unit: 'percent',
-                      align: 'start',
+                      align: volumeProfile.placement === 'right' ? 'end' : 'start',
                   },
                   ignoreZoom: true,
               } satisfies AgNumberAxisOptions,
@@ -217,12 +220,7 @@ export function priceVolume(
     return {
         animation: { enabled: false },
         legend: { enabled: false },
-        series: [
-            //
-            ...volumeSeries,
-            ...priceSeries,
-            ...volumeProfileSeries,
-        ],
+        series: [...volumeSeries, ...volumeProfileSeries, ...priceSeries],
         axes: {
             y: {
                 type: 'number',
@@ -297,11 +295,19 @@ function createVolumeSeries(
     ];
 }
 
-function createVolumeProfileSeries(volumeProfile: AgVolumeProfileOptions | null) {
+function createVolumeProfileSeries(
+    getTheme: () => ChartTheme,
+    volumeProfile: AgVolumeProfileOptions | undefined,
+    tickSize: number | undefined
+) {
     if (!volumeProfile) return [];
 
-    const tickSize = volumeProfile.tickSize ?? inferVolumeProfileTickSize(volumeProfile.data) ?? 1;
-    const normalisedData = normaliseVolumeProfile(volumeProfile.data, tickSize);
+    const { data, priceKey = 'price', upKey, downKey } = volumeProfile;
+    const normalisedData = normaliseVolumeProfile(
+        data,
+        { priceKey, upKey, downKey },
+        tickSize ?? inferVolumeProfileTickSize(data, priceKey) ?? 1
+    );
 
     return [
         {
@@ -316,6 +322,8 @@ function createVolumeProfileSeries(volumeProfile: AgVolumeProfileOptions | null)
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
             fillOpacity: 1,
+            // @ts-expect-error undocumented option
+            simpleItemStyler: () => ({ fill: getTheme().palette.up?.fill }),
             tooltip: {
                 enabled: true,
                 renderer: (params) => {
@@ -338,6 +346,8 @@ function createVolumeProfileSeries(volumeProfile: AgVolumeProfileOptions | null)
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
             fillOpacity: 1,
+            // @ts-expect-error undocumented option
+            simpleItemStyler: () => ({ fill: getTheme().palette.down?.fill }),
             tooltip: {
                 enabled: true,
                 renderer: (params) => {

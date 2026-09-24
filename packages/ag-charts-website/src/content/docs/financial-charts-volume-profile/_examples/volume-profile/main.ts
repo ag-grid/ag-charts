@@ -13,8 +13,10 @@ const options: AgFinancialChartOptions = {
     title: { text: 'Acme Inc.' },
     volumeProfile: {
         data: getRegularVolumeProfile(),
+        upKey: 'upVolume',
+        downKey: 'downVolume',
         placement: 'left',
-        width: 20,
+        widthRatio: 0.2,
     },
 };
 
@@ -38,6 +40,6 @@ function changeTickSize(event: Event) {
 
 /** inScope */
 function updateTickSize() {
-    options.volumeProfile!.tickSize = tickSizeEnabled ? tickSize : undefined;
+    options.tickSize = tickSizeEnabled ? tickSize : undefined;
     chart.update(options);
 }
