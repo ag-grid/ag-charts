@@ -313,9 +313,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         const { bandwidth, rangePadding } = bandRangeExpansion(scale);
 
-        let [clippedRange0, clippedRange1] = findMinMax(clippedRange);
-        clippedRange0 -= bandwidth;
-        clippedRange1 += bandwidth;
+        const [clipMin, clipMax] = findMinMax(clippedRange);
 
         let yStart: number;
         let yEnd: number;
@@ -328,7 +326,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             clampedYStart = scale.convert(value as any, { clamp: true }) + offset;
             clampedYEnd = Number.NaN;
 
-            if (yStart > clippedRange1 || yStart < clippedRange0) {
+            if (yStart > clipMax + bandwidth || yStart < clipMin - bandwidth) {
                 return;
             }
         } else if (range) {
@@ -345,7 +343,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
                 [yStart, yEnd] = [yEnd, yStart];
             }
 
-            if (clampedYStart >= clippedRange1 || clampedYEnd <= clippedRange0) {
+            // Both ends clamped onto the same scale bound means the range lies wholly outside the domain.
+            const clampedAway = clampedYStart === clampedYEnd && (clampedYStart !== yStart || clampedYEnd !== yEnd);
+            if (clampedAway) {
                 return;
             }
 
@@ -356,6 +356,10 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             if (Number.isFinite(yEnd)) {
                 yEnd += bandwidth;
                 clampedYEnd += bandwidth + rangePadding;
+            }
+
+            if (clampedYStart >= clipMax || clampedYEnd <= clipMin) {
+                return;
             }
         } else {
             return;

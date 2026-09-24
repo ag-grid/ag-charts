@@ -1697,4 +1697,61 @@ describe('Zoom', () => {
             removeTooltip.mockRestore();
         });
     });
+
+    describe('range cross lines on band axes', () => {
+        const WEEKS = Array.from({ length: 52 }, (_, i) => new Date(2019, 0, 7 + i * 7));
+        const WINDOW = 0.17;
+
+        async function prepareCrossLineChart(axisType: 'unit-time' | 'category', start: number) {
+            const toKey = (date: Date) => (axisType === 'category' ? date.toISOString() : date);
+            const options: AgCartesianChartOptions = {
+                data: WEEKS.map((date, i) => ({ date: toKey(date), value: i % 7 })),
+                series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                axes: {
+                    x: {
+                        type: axisType,
+                        position: 'bottom',
+                        crossLines: [
+                            { type: 'range', range: [toKey(WEEKS[16]), toKey(WEEKS[25])], label: { text: 'Peak' } },
+                        ],
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+            await prepareChart({ axes: 'x' }, { ratioX: { start, end: start + WINDOW } }, options, false);
+            await waitForChartStability(chart);
+
+            const instance = deproxy(chart);
+            const [crossLine] = _ModuleSupport.getCrossLinesPlugin(instance.axes.findById('x')!)!.getInstances();
+            return { crossLine, seriesRect: instance.seriesRect! };
+        }
+
+        describe.each(['unit-time', 'category'] as const)('%s axis', (axisType) => {
+            it.each([
+                ['left', 0.492],
+                ['right', 0.14],
+            ])('keeps a range clipped by the %s edge visible', async (_edge, start) => {
+                const { crossLine, seriesRect } = await prepareCrossLineChart(axisType, start);
+
+                expect(crossLine.rangeGroup.visible).toBe(true);
+                expect(crossLine.labelGroup.visible).toBe(true);
+
+                const [rangeNode] = crossLine.rangeGroup.children();
+                const box = _ModuleSupport.Transformable.toCanvas(rangeNode);
+                expect(box.width).toBeGreaterThan(0);
+                expect(box.x).toBeGreaterThanOrEqual(seriesRect.x);
+                expect(box.x + box.width).toBeLessThanOrEqual(seriesRect.x + seriesRect.width);
+            });
+
+            it.each([
+                ['left', 0.52],
+                ['right', 0.125],
+            ])('hides a range fully beyond the %s edge', async (_edge, start) => {
+                const { crossLine } = await prepareCrossLineChart(axisType, start);
+
+                expect(crossLine.rangeGroup.visible).toBe(false);
+                expect(crossLine.labelGroup.visible).toBe(false);
+            });
+        });
+    });
 });
