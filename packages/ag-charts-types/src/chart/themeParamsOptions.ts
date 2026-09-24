@@ -197,9 +197,9 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     crosshairLabelTextColor?: AgCssColorOrRef;
     /**
-     * Font size of the chart title.
+     * Font size of the chart title. Follows fontSize, keeping the same proportion to it.
      *
-     * Default: scales with `fontSize` (`17` at the default `fontSize` of `12`)
+     * Default: `17`
      */
     titleFontSize?: FontSize;
     /**
@@ -221,9 +221,9 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     titleColor?: AgCssColorOrRef;
     /**
-     * Font size of the chart subtitle.
+     * Font size of the chart subtitle. Follows fontSize, keeping the same proportion to it.
      *
-     * Default: scales with `fontSize` (`13` at the default `fontSize` of `12`)
+     * Default: `13`
      */
     subtitleFontSize?: FontSize;
     /**
@@ -245,9 +245,9 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     subtitleColor?: AgCssColorOrRef;
     /**
-     * Font size of the chart footnote.
+     * Font size of the chart footnote. Follows fontSize, keeping the same proportion to it.
      *
-     * Default: scales with `fontSize` (`13` at the default `fontSize` of `12`)
+     * Default: `13`
      */
     footnoteFontSize?: FontSize;
     /**
