@@ -29,14 +29,7 @@ export function makeMockEvent(
 }
 
 type TMouseEvent =
-    | 'mousedown'
-    | 'mouseup'
-    | 'mouseenter'
-    | 'mouseleave'
-    | 'mousemove'
-    | 'click'
-    | 'dblclick'
-    | 'contextmenu';
+    'mousedown' | 'mouseup' | 'mouseenter' | 'mouseleave' | 'mousemove' | 'click' | 'dblclick' | 'contextmenu';
 
 type TPointerEvent = 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel' | 'lostpointercapture';
 

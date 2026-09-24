@@ -100,7 +100,7 @@ function getVueTag(tag: string, bindings: any, attributes: string[]) {
 
 function getTemplate(tag: string, bindings: any, attributes: string[]): string {
     /* prettier-ignore */
-    const agChartTag = getVueTag(tag, bindings, attributes)
+    const agChartTag = getVueTag(tag, bindings, attributes);
 
     let template = bindings.template ?? agChartTag;
     Object.values(bindings.placeholders).forEach((placeholder) => {

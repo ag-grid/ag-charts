@@ -114,8 +114,7 @@ export type NormalisedScrollbarThumbStyle = AgScrollbarThumbStyle & {
 };
 
 export type NormalisedScrollbarOrientationOptions = (
-    | AgScrollbarHorizontalOrientationOptions
-    | AgScrollbarVerticalOrientationOptions
+    AgScrollbarHorizontalOrientationOptions | AgScrollbarVerticalOrientationOptions
 ) & {
     enabled: boolean;
     thickness: number;

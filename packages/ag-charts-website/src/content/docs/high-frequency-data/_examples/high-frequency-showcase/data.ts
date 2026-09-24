@@ -2,15 +2,7 @@ const DATA_INTERVAL_MS = 250;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 
 export type SeriesType =
-    | 'line'
-    | 'area'
-    | 'bar'
-    | 'stacked-bar'
-    | 'stacked-area'
-    | 'range-area'
-    | 'range-bar'
-    | 'candlestick'
-    | 'ohlc';
+    'line' | 'area' | 'bar' | 'stacked-bar' | 'stacked-area' | 'range-area' | 'range-bar' | 'candlestick' | 'ohlc';
 
 export type ValueDatum = {
     timestamp: number;

@@ -85,11 +85,9 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl(`/${curre
     markdownUrl={markdownUrl}
 >
     <div class:list={[hidePageMenu && styles.noLeftMenu, styles.contentViewport, 'layout-grid', { largeExamples }]}>
-        {
-            !hidePageMenu && (
-                <DocsNav client:load menuData={docsNavData} framework={currentFramework} pageName={pageName} />
-            )
-        }
+        {!hidePageMenu && (
+            <DocsNav client:load menuData={docsNavData} framework={currentFramework} pageName={pageName} />
+        )}
         <div
             id="doc-content"
             class:list={[

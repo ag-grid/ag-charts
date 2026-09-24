@@ -57,9 +57,7 @@ export type NormalisedSeriesShapeSegmentOptions = Normalised<AgSeriesShapeSegmen
 
 /** Per-type interpolation options; the theme defaults `tension` and `position` for their own type. */
 export type NormalisedInterpolationOptions =
-    | { type: 'linear' }
-    | { type: 'smooth'; tension: number }
-    | { type: 'step'; position: 'start' | 'middle' | 'end' };
+    { type: 'linear' } | { type: 'smooth'; tension: number } | { type: 'step'; position: 'start' | 'middle' | 'end' };
 
 /** Options every cartesian series reads on top of {@link NormalisedSeriesOptions}; all set outside the theme. */
 export interface NormalisedCartesianSeriesOptionsCommon {

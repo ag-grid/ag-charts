@@ -33,8 +33,7 @@ interface PendingCallback {
 }
 
 export type PendingCrossLineCallbackParam =
-    | Forbid<AgCrossLineClickEvent, 'allMatchedParams'>
-    | Forbid<AgCrossLineDoubleClickEvent, 'allMatchedParams'>;
+    Forbid<AgCrossLineClickEvent, 'allMatchedParams'> | Forbid<AgCrossLineDoubleClickEvent, 'allMatchedParams'>;
 
 export interface PendingCrossLineCallbacks {
     allMatchedParams: AgCrossLineClickParams[];

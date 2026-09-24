@@ -191,8 +191,7 @@ export type AgPresetOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgQuadrantChartOptions<TDatum, TContext>;
 
 export type AgChartInstanceOptions<TDatum = DatumDefault, TContext = ContextDefault> =
-    | AgChartOptions<TDatum, TContext>
-    | AgPresetOptions<TDatum, TContext>;
+    AgChartOptions<TDatum, TContext> | AgPresetOptions<TDatum, TContext>;
 
 type DeepPartial<T> = T extends Array<unknown> ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T;
 

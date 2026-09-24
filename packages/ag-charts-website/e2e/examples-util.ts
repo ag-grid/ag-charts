@@ -162,20 +162,18 @@ export function convertPageUrls(
 
     return pages
         .filter((r) => scopedFrameworks?.includes(r.framework) !== false)
-        .map(
-            ({ url, example: pageExample, framework }): ExampleOptions => ({
-                pagePath,
-                url,
-                example: pageExample,
-                framework,
-                status,
-                clickOrder,
-                skipCanvasUpdateCheck,
-                ignoreConsoleWarnings,
-                randomData,
-                snapshot,
-            })
-        );
+        .map(({ url, example: pageExample, framework }): ExampleOptions => ({
+            pagePath,
+            url,
+            example: pageExample,
+            framework,
+            status,
+            clickOrder,
+            skipCanvasUpdateCheck,
+            ignoreConsoleWarnings,
+            randomData,
+            snapshot,
+        }));
 }
 
 export function createTestCase(

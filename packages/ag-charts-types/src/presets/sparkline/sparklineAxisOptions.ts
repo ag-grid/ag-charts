@@ -45,6 +45,4 @@ export interface AgSparklineTimeAxisOptions
 }
 
 export type AgSparklineAxisOptions =
-    | AgSparklineCategoryAxisOptions
-    | AgSparklineNumberAxisOptions
-    | AgSparklineTimeAxisOptions;
+    AgSparklineCategoryAxisOptions | AgSparklineNumberAxisOptions | AgSparklineTimeAxisOptions;

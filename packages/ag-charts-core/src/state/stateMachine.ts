@@ -199,11 +199,7 @@ export class StateMachine<
 
     private getDestinationState<Data>(
         destination:
-            | StateTransition<State, Data>
-            | StateTransitionAction<Data>
-            | State
-            | HierarchyState
-            | StateMachine<any, any>
+            StateTransition<State, Data> | StateTransitionAction<Data> | State | HierarchyState | StateMachine<any, any>
     ) {
         let state: State | HierarchyState = this.state;
 

@@ -324,7 +324,7 @@ AG Charts is used within AG Grid to power the [Integrated Charting](https://www.
 Learn more at [ag-grid.com](https://www.ag-grid.com/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)
 
 <div align="center">
-    
+
 <hr/>
 
 <strong>Follow us to keep up to date with all the latest news from AG Grid:</strong>

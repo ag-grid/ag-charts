@@ -33,17 +33,15 @@ const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWi
 
 <div class={styles.container}>
     <div class={styles.tabContainer}>
-        {
-            Object.keys(galleryExamplesData).map((id) => {
-                const example = galleryExamplesData[id];
-                return (
-                    <button class={styles.tabButton} data-example-id={id}>
-                        <Icon svgClasses={styles.tabButtonIcon} name={example.icon as IconName} />
-                        {example.buttonText}
-                    </button>
-                );
-            })
-        }
+        {Object.keys(galleryExamplesData).map((id) => {
+            const example = galleryExamplesData[id];
+            return (
+                <button class={styles.tabButton} data-example-id={id}>
+                    <Icon svgClasses={styles.tabButtonIcon} name={example.icon as IconName} />
+                    {example.buttonText}
+                </button>
+            );
+        })}
     </div>
     <div class={styles.exampleContainer}>
         <div id="myChart"></div>
@@ -53,10 +51,8 @@ const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWi
     </div>
 </div>
 
-{
-    /* External rather than inline: the build-hashed class names it needs would make a CSP
-    hash unstable. Must stay non-deferred so it runs after the AgCharts UMD above. */
-}
+{/* External rather than inline: the build-hashed class names it needs would make a CSP
+    hash unstable. Must stay non-deferred so it runs after the AgCharts UMD above. */}
 <script
     is:inline
     src={urlWithBaseUrl('/scripts/homepage-gallery.js')}
@@ -65,4 +61,5 @@ const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWi
     data-active-button-class={styles.activeTabButton}
     data-update-examples-var={GLOBAL_UPDATE_EXAMPLES_VARIABLE}
     data-update-fn-name={GLOBAL_UPDATE_FUNCTION_NAME}
-    data-loading-id={loadingId}></script>
+    data-loading-id={loadingId}
+></script>

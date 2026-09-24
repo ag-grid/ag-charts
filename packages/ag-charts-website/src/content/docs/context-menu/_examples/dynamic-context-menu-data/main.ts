@@ -79,36 +79,34 @@ function labelColors(color: string): Pick<LabelOptions, 'color' | 'fill' | 'bord
 }
 
 function createSeries(): AgLineSeriesOptions<DatumType>[] {
-    return seriesMeta.map(
-        ({ id, yKey, yName, color }): AgLineSeriesOptions<DatumType> => ({
-            id,
-            type: 'line',
-            xKey: 'year',
-            yKey,
-            yName,
-            // Assign an explicit colour per series so the palette isn't reassigned by position when a series is removed.
+    return seriesMeta.map(({ id, yKey, yName, color }): AgLineSeriesOptions<DatumType> => ({
+        id,
+        type: 'line',
+        xKey: 'year',
+        yKey,
+        yName,
+        // Assign an explicit colour per series so the palette isn't reassigned by position when a series is removed.
+        stroke: color,
+        marker: {
+            enabled: true,
+            fill: color,
             stroke: color,
-            marker: {
-                enabled: true,
-                fill: color,
-                stroke: color,
-                itemStyler: ({ seriesId, datum }) =>
-                    emphasisedPoints.has(pointKey(seriesId, datum.year)) ? { size: 14 } : {},
+            itemStyler: ({ seriesId, datum }) =>
+                emphasisedPoints.has(pointKey(seriesId, datum.year)) ? { size: 14 } : {},
+        },
+        label: {
+            enabled: true,
+            ...labelColors(color),
+            padding: 4,
+            placement: ['top', 'bottom', 'left', 'right'],
+            collision: {
+                alwaysShow: true,
             },
-            label: {
-                enabled: true,
-                ...labelColors(color),
-                padding: 4,
-                placement: ['top', 'bottom', 'left', 'right'],
-                collision: {
-                    alwaysShow: true,
-                },
-                itemStyler: ({ seriesId, datum }) => ({
-                    enabled: emphasisedPoints.has(pointKey(seriesId, datum.year)),
-                }),
-            },
-        })
-    );
+            itemStyler: ({ seriesId, datum }) => ({
+                enabled: emphasisedPoints.has(pointKey(seriesId, datum.year)),
+            }),
+        },
+    }));
 }
 
 let data: DatumType[] = baseData.map((datum) => ({ ...datum }));
