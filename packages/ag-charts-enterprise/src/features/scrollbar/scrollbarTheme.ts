@@ -44,7 +44,20 @@ const SCROLLBAR_ORIENTATION_THEME: WithThemeParams<AgScrollbarOptions> = {
         hoverStyle: {
             fill: { $path: '../../../thumb/hoverStyle/fill' },
             stroke: { $path: '../../../thumb/hoverStyle/stroke' },
-            strokeWidth: { $path: '../../../thumb/hoverStyle/strokeWidth' },
+            // An orientation's own thumb width carries to hover, unless the shared hover width is set explicitly.
+            strokeWidth: {
+                $isUserOption: [
+                    '../../../thumb/hoverStyle/strokeWidth',
+                    { $path: '../../../thumb/hoverStyle/strokeWidth' },
+                    {
+                        $isUserOption: [
+                            '../strokeWidth',
+                            { $path: '../strokeWidth' },
+                            { $path: '../../../thumb/hoverStyle/strokeWidth' },
+                        ],
+                    },
+                ],
+            },
         },
     },
 };
@@ -76,8 +89,9 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
         opacity: 1,
         cornerRadius: { $ref: 'scrollbarThumbBorderRadius' },
         minSize: 20,
-        // A per-chart thumb style still drives the hover style, as it did before the hover params existed. A boolean
-        // thumb or hover border param also derives from the thumb, as the dotted hover-border refs have nothing to resolve.
+        // A per-chart thumb style still drives the hover style, as it did before the hover params existed. A hover border
+        // member that does not resolve (a boolean hover border, or the default one over a boolean thumb border) derives
+        // from the thumb instead.
         hoverStyle: {
             fill: {
                 $isUserOption: [
@@ -92,14 +106,9 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
                     { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
                     {
                         $if: [
-                            {
-                                $or: [
-                                    { $isType: [{ $ref: 'scrollbarThumbHoverBorder' }, 'boolean'] },
-                                    { $isType: [{ $ref: 'scrollbarThumbBorder' }, 'boolean'] },
-                                ],
-                            },
-                            { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
+                            { $isType: [{ $ref: 'scrollbarThumbHoverBorder.color' }, 'string'] },
                             { $ref: 'scrollbarThumbHoverBorder.color' },
+                            { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
                         ],
                     },
                 ],
@@ -114,9 +123,9 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
                             { $if: [{ $ref: 'scrollbarThumbHoverBorder' }, { $path: '../strokeWidth' }, 0] },
                             {
                                 $if: [
-                                    { $isType: [{ $ref: 'scrollbarThumbBorder' }, 'boolean'] },
-                                    { $path: '../strokeWidth' },
+                                    { $isType: [{ $ref: 'scrollbarThumbHoverBorder.width' }, 'number'] },
                                     { $ref: 'scrollbarThumbHoverBorder.width' },
+                                    { $path: '../strokeWidth' },
                                 ],
                             },
                         ],

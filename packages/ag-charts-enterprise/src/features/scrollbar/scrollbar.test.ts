@@ -725,6 +725,34 @@ describe('Scrollbar theme params', () => {
         expect(scrollbar.thumb.hoverStyle.strokeWidth).toBe(0);
     });
 
+    it('applies an explicit hover border over a boolean thumb border', () => {
+        const scrollbar = resolveScrollbar(
+            {},
+            { params: { scrollbarThumbBorder: false, scrollbarThumbHoverBorder: { color: '#ff0000', width: 2 } } }
+        );
+
+        expect(scrollbar.thumb.strokeWidth).toBe(0);
+        expect(scrollbar.thumb.hoverStyle).toMatchObject({ stroke: '#ff0000', strokeWidth: 2 });
+        expect(scrollbar.horizontal.thumb.hoverStyle).toMatchObject({ stroke: '#ff0000', strokeWidth: 2 });
+    });
+
+    it('keeps an orientation thumb strokeWidth on hover', () => {
+        const scrollbar = resolveScrollbar({ scrollbar: { horizontal: { thumb: { strokeWidth: 0 } } } }, 'ag-default');
+
+        expect(scrollbar.horizontal.thumb.strokeWidth).toBe(0);
+        expect(scrollbar.horizontal.thumb.hoverStyle.strokeWidth).toBe(0);
+        expect(scrollbar.vertical.thumb.hoverStyle.strokeWidth).toBe(1);
+    });
+
+    it('lets an explicit hover strokeWidth win over an orientation thumb strokeWidth', () => {
+        const scrollbar = resolveScrollbar(
+            { scrollbar: { thumb: { hoverStyle: { strokeWidth: 3 } }, horizontal: { thumb: { strokeWidth: 0 } } } },
+            'ag-default'
+        );
+
+        expect(scrollbar.horizontal.thumb.hoverStyle.strokeWidth).toBe(3);
+    });
+
     it('lets an explicit hoverStyle win over the hover params', () => {
         const scrollbar = resolveScrollbar(
             { scrollbar: { thumb: { hoverStyle: { fill: '#00ff00', stroke: '#0000ff', strokeWidth: 2 } } } },
