@@ -1224,13 +1224,13 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         return {
             series: this,
             datum: undefined,
-            datumIndex: NaN,
+            datumIndex: Number.NaN,
             xKey: ctx.xKey,
             xValue: undefined,
             yKey: ctx.yKey,
             yValue: undefined,
-            point: { x: NaN, y: NaN, size: NaN },
-            strokeWidth: NaN,
+            point: { x: Number.NaN, y: Number.NaN, size: Number.NaN },
+            strokeWidth: Number.NaN,
             cumulativeValue: 0,
             crossFilterSelected: undefined,
         };
