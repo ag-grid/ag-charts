@@ -31,7 +31,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:53:39.100Z
-    - '@lavamoat/allow-scripts@5.0.2 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@lavamoat/allow-scripts@5.1.0 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -42,7 +42,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:53:16.532Z
-    - '@lavamoat/allow-scripts@5.0.2 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@lavamoat/allow-scripts@5.1.0 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -59,7 +59,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:52:59.690Z
   SNYK-JS-SHARP-19653587:
-    - '@kazuph/mcp-fetch@1.6.2 > sharp@0.33.5':
+    - '@kazuph/mcp-fetch@1.6.3 > sharp@0.33.5':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -109,7 +109,7 @@ ignore:
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:51:21.699Z
-    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7':
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > proxy-addr@2.0.7':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
@@ -249,7 +249,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-24T13:44:44.109Z
   SNYK-JS-UNDICI-17372758:
-    - '@lavamoat/allow-scripts@5.0.2 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@lavamoat/allow-scripts@5.1.0 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-24T13:44:02.694Z
@@ -307,7 +307,7 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-24T13:43:11.560Z
   SNYK-JS-UNDICI-17372658:
-    - '@lavamoat/allow-scripts@5.0.2 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
+    - '@lavamoat/allow-scripts@5.1.0 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > undici@6.26.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-24T13:42:12.287Z
@@ -714,11 +714,11 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
-    - '@types/jest-image-snapshot@6.4.1 > @types/jest@29.5.11 > expect@29.7.0 > jest-util@29.7.0 > picomatch@2.3.1':
+    - '@types/jest-image-snapshot@6.4.2 > @types/jest@29.5.11 > expect@29.7.0 > jest-util@29.7.0 > picomatch@2.3.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
-    - '@types/jest-image-snapshot@6.4.1 > @types/jest@29.5.11 > expect@29.7.0 > jest-message-util@29.7.0 > micromatch@4.0.8 > picomatch@2.3.1':
+    - '@types/jest-image-snapshot@6.4.2 > @types/jest@29.5.11 > expect@29.7.0 > jest-message-util@29.7.0 > micromatch@4.0.8 > picomatch@2.3.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -743,7 +743,7 @@ ignore:
         reason: MCP/dev tooling - not a directly exposed production dependency
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:54.954Z
-    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -768,7 +768,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:17:42.282Z
-    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > router@2.2.0 > path-to-regexp@8.2.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -825,7 +825,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-16T10:22:04.045Z
-    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > express-rate-limit@8.2.1':
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > express-rate-limit@8.2.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -867,7 +867,7 @@ ignore:
         reason: MCP/dev tooling - not a directly exposed production dependency
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:32:01.541Z
-    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -875,11 +875,11 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
-    - react-instantsearch@7.22.1 > instantsearch.js@4.86.1 > qs@6.14.1:
+    - 'react-instantsearch@7.50.0 > instantsearch.js@4.118.0 > qs@6.14.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
-    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > body-parser@2.2.2 > qs@6.14.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -1427,7 +1427,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:45:05.000Z
-    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > ajv@8.17.1':
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > ajv@8.17.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -1435,7 +1435,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
-    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0':
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -1484,7 +1484,7 @@ ignore:
         reason: rulesync is only used during development so an attack would only affect developer machines
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-02-12T10:10:00.000Z
-    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > express@5.2.1 > qs@6.14.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
@@ -1621,7 +1621,7 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-HONONODESERVER-18170326:
-    - '@kazuph/mcp-fetch@1.6.2 > @modelcontextprotocol/sdk@1.26.0 > @hono/node-server@1.19.9':
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > @hono/node-server@1.19.9':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
@@ -1642,22 +1642,22 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-SHARP-18184259:
-    - '@kazuph/mcp-fetch@1.6.2 > sharp@0.33.5':
+    - '@kazuph/mcp-fetch@1.6.3 > sharp@0.33.5':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-SHARP-18184418:
-    - '@kazuph/mcp-fetch@1.6.2 > sharp@0.33.5':
+    - '@kazuph/mcp-fetch@1.6.3 > sharp@0.33.5':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-TAR-17909068:
-    - '@lavamoat/allow-scripts@5.0.2 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
+    - '@lavamoat/allow-scripts@5.1.0 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-TAR-17909152:
-    - '@lavamoat/allow-scripts@5.0.2 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
+    - '@lavamoat/allow-scripts@5.1.0 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
