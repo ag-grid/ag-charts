@@ -422,11 +422,11 @@ describe('PolarCrossLine listeners', () => {
                 );
             };
             chart = await createEnterpriseChart(options(true));
-            const point = pointOn(crossLineAt(chart, axisId));
+            const point = pointOnPolarCrossLine(polarCrossLineAt(chart, axisId));
 
             await chart.publicApi!.update(prepareEnterpriseTestOptions(options(false)));
             await waitForChartStability(chart);
-            const instance = crossLineAt(chart, axisId);
+            const instance = polarCrossLineAt(chart, axisId);
             expect(instance.rangeGroup.visible).toBe(false);
             expect(instance.labelGroup.visible).toBe(false);
 
