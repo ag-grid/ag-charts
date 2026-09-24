@@ -69,15 +69,22 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
             listeners: {},
             toggleSeries: true,
             item: {
-                padding: { $applyPadding: { top: 4, right: 8, bottom: 4, left: 8 } },
-                marker: { size: 15, padding: { $applyPadding: 8 } },
+                padding: {
+                    $applyPadding: {
+                        top: { $ref: 'legendItemVerticalPadding' },
+                        right: { $ref: 'legendItemHorizontalPadding' },
+                        bottom: { $ref: 'legendItemVerticalPadding' },
+                        left: { $ref: 'legendItemHorizontalPadding' },
+                    },
+                },
+                marker: { size: { $ref: 'legendMarkerSize' }, padding: { $applyPadding: 8 } },
                 line: { length: 25 },
                 showSeriesStroke: true,
                 label: {
-                    color: { $ref: 'textColor' },
-                    fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
-                    fontFamily: { $ref: 'fontFamily' },
-                    fontWeight: { $ref: 'fontWeight' },
+                    color: { $ref: 'legendLabelColor' },
+                    fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'legendLabelFontSize'] },
+                    fontFamily: { $ref: 'legendLabelFontFamily' },
+                    fontWeight: { $ref: 'legendLabelFontWeight' },
                 },
             },
             reverseOrder: false,
@@ -87,13 +94,22 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                 inactiveStyle: { fill: { $ref: 'subtleTextColor' }, strokeWidth: 1, strokeOpacity: 1 },
                 highlightStyle: { fill: { $ref: 'foregroundColor' }, strokeWidth: 1, strokeOpacity: 1 },
                 label: {
-                    color: { $ref: 'textColor' },
-                    fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
-                    fontFamily: { $ref: 'fontFamily' },
+                    color: { $ref: 'legendLabelColor' },
+                    fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'legendLabelFontSize'] },
+                    fontFamily: { $ref: 'legendLabelFontFamily' },
                 },
             },
             fill: {
-                $if: [{ $path: ['./position/floating', false] }, { $ref: 'chartBackgroundColor' }, 'transparent'],
+                $if: [
+                    {
+                        $and: [
+                            { $path: ['./position/floating', false] },
+                            { $eq: [{ $ref: 'legendBackgroundColor' }, 'transparent'] },
+                        ],
+                    },
+                    { $ref: 'chartBackgroundColor' },
+                    { $ref: 'legendBackgroundColor' },
+                ],
             },
         },
 

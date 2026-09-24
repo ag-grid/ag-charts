@@ -109,6 +109,8 @@ const themeParams = [
     'crosshairLabelBackgroundColor',
     'crosshairLabelTextColor',
     'groupedCategoryLineColor',
+    'legendBackgroundColor',
+    'legendLabelColor',
 ];
 const themeParamsValidator = union(...themeParams);
 // A complete `var(--…)` expression: `var(` … balanced parens … `)` with no trailing text, so a prefix-only match like

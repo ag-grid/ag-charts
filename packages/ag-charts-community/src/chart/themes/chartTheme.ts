@@ -255,6 +255,18 @@ export class ChartTheme {
             crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
+
+            legendBackgroundColor: 'transparent',
+            legendBorder: false,
+            legendBorderRadius: { $ref: 'borderRadius' },
+            legendItemHorizontalPadding: 8,
+            legendItemVerticalPadding: 4,
+            legendLabelColor: { $ref: 'textColor' },
+            legendLabelFontFamily: { $ref: 'fontFamily' },
+            legendLabelFontSize: { $ref: 'fontSize' },
+            legendLabelFontWeight: { $ref: 'fontWeight' },
+            legendMarkerSize: 15,
+            legendPadding: 5,
         };
     }
 

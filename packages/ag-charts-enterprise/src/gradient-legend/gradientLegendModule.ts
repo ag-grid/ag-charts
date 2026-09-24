@@ -26,10 +26,10 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
         scale: {
             padding: 13,
             label: {
-                color: { $ref: 'textColor' },
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
+                color: { $ref: 'legendLabelColor' },
+                fontSize: { $ref: 'legendLabelFontSize' },
+                fontFamily: { $ref: 'legendLabelFontFamily' },
+                fontWeight: { $ref: 'legendLabelFontWeight' },
                 minSpacing: 5,
             },
             interval: {
@@ -44,7 +44,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
         fill: {
             $applySwitch: [
                 { $path: 'type' },
-                { $ref: 'chartBackgroundColour' },
+                { $ref: 'legendBackgroundColor' },
                 ['gradient', FILL_GRADIENT_BLANK_DEFAULTS],
                 ['pattern', FILL_PATTERN_BLANK_DEFAULTS],
                 ['image', FILL_IMAGE_BLANK_DEFAULTS],

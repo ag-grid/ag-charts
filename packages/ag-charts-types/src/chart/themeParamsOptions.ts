@@ -202,6 +202,52 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     gridLineColor?: AgCssColorOrRef;
     /** Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object. */
     groupedCategoryLineColor?: AgCssColorOrRef;
+    /**
+     * Background colour of the legend and the gradient legend. A colour string, or a theme-colour reference object.
+     *
+     * While this is `'transparent'`, a floating legend is filled with the chart background colour.
+     */
+    legendBackgroundColor?: AgCssColorOrRef;
+    /** Border around the legend and the gradient legend. `true` for the default border, `false` to disable, or an object to customise it. */
+    legendBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the legend and the gradient legend.
+     *
+     * Default: `borderRadius`
+     */
+    legendBorderRadius?: PixelSize;
+    /** Horizontal padding around each legend item. Applies to the legend only, not the gradient legend. */
+    legendItemHorizontalPadding?: PixelSize;
+    /** Vertical padding around each legend item. Applies to the legend only, not the gradient legend. */
+    legendItemVerticalPadding?: PixelSize;
+    /**
+     * Colour of the legend item labels, the legend pagination label and the gradient legend scale labels. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    legendLabelColor?: AgCssColorOrRef;
+    /**
+     * Font family of the legend item labels, the legend pagination label and the gradient legend scale labels. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    legendLabelFontFamily?: FontFamilyFull;
+    /**
+     * Font size of the legend item labels, the legend pagination label and the gradient legend scale labels.
+     *
+     * Default: `fontSize`
+     */
+    legendLabelFontSize?: FontSize;
+    /**
+     * Font weight of the legend item labels and the gradient legend scale labels.
+     *
+     * Default: `fontWeight`
+     */
+    legendLabelFontWeight?: FontWeight;
+    /** Size of the legend item markers. Applies to the legend only, not the gradient legend. */
+    legendMarkerSize?: PixelSize;
+    /** Padding inside the legend and the gradient legend. Applied only when the legend has a border or a background. */
+    legendPadding?: PixelSize;
 }
 
 export interface AgChartPrivateThemeParams {

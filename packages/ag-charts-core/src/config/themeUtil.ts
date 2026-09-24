@@ -556,15 +556,47 @@ export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelect
 
 export const LEGEND_CONTAINER_THEME: any = {
     border: {
-        enabled: false,
-        stroke: { $foregroundBackgroundMix: 0.25 },
+        enabled: { $isType: [{ $ref: 'legendBorder' }, 'boolean', { $ref: 'legendBorder' }, true] },
+        // `legendBorder: false` keeps the legend's own stroke for a border enabled through the legend options.
+        stroke: {
+            $isType: [
+                { $ref: 'legendBorder' },
+                'boolean',
+                { $if: [{ $ref: 'legendBorder' }, { $ref: 'borderColor' }, { $foregroundBackgroundMix: 0.25 }] },
+                { $if: [{ $ref: 'legendBorder.color' }, { $ref: 'legendBorder.color' }, { $ref: 'borderColor' }] },
+            ],
+        },
         strokeOpacity: 1,
-        strokeWidth: 1,
+        strokeWidth: {
+            $isType: [
+                { $ref: 'legendBorder' },
+                'boolean',
+                { $if: [{ $ref: 'legendBorder' }, { $ref: 'borderWidth' }, 1] },
+                {
+                    $isType: [
+                        { $ref: 'legendBorder.width' },
+                        'number',
+                        { $ref: 'legendBorder.width' },
+                        { $ref: 'borderWidth' },
+                    ],
+                },
+            ],
+        },
     },
-    cornerRadius: 4,
+    cornerRadius: { $ref: 'legendBorderRadius' },
     fillOpacity: 1,
     padding: {
-        $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, { $isUserOption: ['./fill', 5, 0] }],
+        $if: [
+            {
+                $or: [
+                    { $eq: [{ $path: './border/enabled' }, true] },
+                    { $isUserOption: ['./fill', true, false] },
+                    { $not: { $eq: [{ $ref: 'legendBackgroundColor' }, 'transparent'] } },
+                ],
+            },
+            { $ref: 'legendPadding' },
+            0,
+        ],
     },
 };
 
