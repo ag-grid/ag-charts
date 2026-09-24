@@ -44,12 +44,8 @@ import type { ChartAxis } from '../../chartAxis';
 import { processedDataIsAnimatable } from '../../data/processors';
 import { getPickedFocusBBox } from '../../keyboardUtil';
 import { DataModelSeries, type DataModelSeriesConstructorOpts } from '../dataModelSeries';
-import type {
-    PickFocusOutputs,
-    PickViewportFocusInputs,
-    SeriesDirectionKeysMapping,
-    SeriesNodePickMatch,
-} from '../series';
+import type { PickFocusOutputs, PickViewportFocusInputs, SeriesNodePickMatch } from '../pickTypes';
+import type { SeriesDirectionKeysMapping } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
@@ -818,12 +814,13 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         if (this.contextNodeData?.nodeData === undefined) return;
 
+        const dataCount = this.dataCount();
         const { otherIndex, where, hoverRect } = opts;
         if (where === 'data-start') {
             return this.pickFocus({ datumIndex: 0, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
         }
         if (where === 'data-end') {
-            const end = this.contextNodeData.nodeData.length - 1;
+            const end = dataCount - 1;
             return this.pickFocus({ datumIndex: end, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
         }
 
@@ -831,7 +828,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         let left: number = 0;
         let mid: number;
-        let right: number = this.contextNodeData.nodeData.length - 1;
+        let right: number = dataCount - 1;
         const reverse: boolean = this.axes.x?.options.reverse === true;
 
         function isRightEdgeInViewport(focusBBox: Readonly<BBox>): boolean {
@@ -894,7 +891,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         // Binary-search the node data for a datum in the viewport, bailing out at the O(log2(n)) bound.
         // Math.log2(0) is -Infinity, so an empty node array skips the loop entirely.
         let currentIteration = 0;
-        const maxIterations = Math.ceil(Math.log2(this.contextNodeData.nodeData.length)) + 1;
+        const maxIterations = Math.ceil(Math.log2(dataCount)) + 1;
         while (left <= right && currentIteration <= maxIterations) {
             mid = Math.floor((left + right) / 2);
 
