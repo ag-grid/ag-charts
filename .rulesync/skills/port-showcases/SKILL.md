@@ -67,13 +67,11 @@ Once a port reproduces the change:
 
 ```sh
 node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs <demo> <framework>
-node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale   # the port is no longer listed
-node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --pins
+node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale --pins   # the port is no longer listed
 ```
 
-Run `--stale` and `--pins` as separate commands: given both, `check-seeds.mjs` runs only `--pins`.
-Use the stamp script, not a hand-written manifest rewrite (some guides still show one); it keeps
-`vendored`, `dist` and the pins. Never stamp a port that fails a gate below.
+`check-seeds.mjs` runs every check it is given and prints only the `--stale` report on stdout.
+Use the stamp script, not a hand-written manifest rewrite; it keeps `vendored`, `dist` and the pins. Never stamp a port that fails a gate below.
 
 ## 4. Gate
 
