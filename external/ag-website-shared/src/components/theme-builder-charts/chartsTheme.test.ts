@@ -76,7 +76,9 @@ describe('AG Charts param translation', () => {
         });
 
         it('maps $rem to a calculated length', () => {
-            expect(toStackParamValue('chromeFontSize', { $rem: [1.2, 'fontSize'] })).toEqual({ calc: 'fontSize * 1.2' });
+            expect(toStackParamValue('chromeFontSize', { $rem: [1.2, 'fontSize'] })).toEqual({
+                calc: 'fontSize * 1.2',
+            });
             expect(toStackParamValue('chromeFontSize', { $rem: 1.2 })).toEqual({ calc: 'fontSize * 1.2' });
         });
 
