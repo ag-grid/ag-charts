@@ -299,6 +299,19 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
 
         crosshairLabelBackgroundColor: colorOrRef,
         crosshairLabelTextColor: colorOrRef,
+
+        titleFontSize: number,
+        titleFontWeight: fontWeight,
+        titleFontFamily: fontFamilyFull,
+        titleColor: colorOrRef,
+        subtitleFontSize: number,
+        subtitleFontWeight: fontWeight,
+        subtitleFontFamily: fontFamilyFull,
+        subtitleColor: colorOrRef,
+        footnoteFontSize: number,
+        footnoteFontWeight: fontWeight,
+        footnoteFontFamily: fontFamilyFull,
+        footnoteColor: colorOrRef,
     },
     palette: {
         fills: arrayOf(simpleColorUnion),
