@@ -35,11 +35,11 @@ const getHiddenPages = async () => {
     return docsHiddenPages;
 };
 
-const getIgnoredPages = () => {
+export const getIgnoredPages = () => {
     return [
         urlWithBaseUrl('/404'),
         addTrailingSlash(urlWithBaseUrl('/gallery/examples')),
-        // SE-182: NOT /archive — a Disallow would hide its redirect to /charts/documentation-archive/.
+        addTrailingSlash(urlWithBaseUrl('/archive')),
 
         // NOTE: /r/ framework redirect pages are deliberately NOT disallowed: they are
         // crawlable so their static links to the framework pages can be followed for SEO. They
