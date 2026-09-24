@@ -36,6 +36,12 @@ describe('ChartTheme', () => {
         }
     });
 
+    const resolvedLegend = async (options: AgCartesianChartOptions) => {
+        chart = deproxy(AgCharts.create(options));
+        await waitForChartStability(chart);
+        return (chart as any).ctx.chartState.getValue('options', 'legend');
+    };
+
     describe('cartesian overrides', () => {
         const tooltipRenderer = () => 'testing';
         const markerFormatter = () => {
@@ -485,12 +491,6 @@ describe('ChartTheme', () => {
             legend,
         });
 
-        const resolvedLegend = async (options: AgCartesianChartOptions) => {
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
-            return (chart as any).ctx.chartState.getValue('options', 'legend');
-        };
-
         // Padding supplied via theme.overrides must resolve identically to the same padding supplied
         // as direct chart options.
         test('CRT-1145: legend.item.padding partial-side override matches direct options', async () => {
@@ -533,12 +533,6 @@ describe('ChartTheme', () => {
             legend,
             theme,
         });
-
-        const resolvedLegend = async (options: AgCartesianChartOptions) => {
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
-            return (chart as any).ctx.chartState.getValue('options', 'legend');
-        };
 
         const containerOf = (legend: any) => ({
             fill: legend.fill,
