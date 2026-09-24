@@ -68,13 +68,13 @@ const hashInlineScript = (source: string): string =>
 // pinned, and an Astro upgrade changes them. To regenerate: build, serve via
 // `preview:csp`, visit a page per client: directive and read the sha256 values out of the
 // console's CSP violations, then bump ASTRO_HYDRATION_HASHES_VERIFIED_FOR.
-export const ASTRO_HYDRATION_HASHES_VERIFIED_FOR = '6.1.9';
+export const ASTRO_HYDRATION_HASHES_VERIFIED_FOR = '7.3.4';
 const ASTRO_HYDRATION_SCRIPT_HASHES = [
     "'sha256-QzWFZi+FLIx23tnm9SBU4aEgx4x8DsuASP07mfqol/c='", // client:load bootstrap
     "'sha256-eIXWvAmxkr251LJZkjniEK5LcPF3NkapbJepohwYRIc='", // client:only bootstrap
     "'sha256-Q2BPg90ZMplYY+FSdApNErhpWafg2hcRRbndmvxuL/Q='", // client:visible bootstrap
     "'sha256-BF0290pkb3jxQsE7z00xR8Imp8X34FLC88L0lkMnrGw='", // client:idle bootstrap
-    "'sha256-BrDhGE1lwa85arfXcrBxSo+n37uVSX5CAROXnIM6Q+g='", // <astro-island> hydration runtime
+    "'sha256-Ya0pUYrC7nM5Cn/056TyVuEiz6dFGrzmkWzgON0pF0U='", // <astro-island> hydration runtime
 ];
 
 // Each pins a third party's exact bytes, so editing the tag silently stops it running. A tag is

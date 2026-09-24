@@ -115,6 +115,8 @@ export default defineConfig({
     site: PUBLIC_SITE_URL,
     base: PUBLIC_BASE_URL,
     outDir: OUTPUT_DIR,
+    // Astro 7's 'jsx' default drops the space in `text\n<tag>`, which many pages rely on.
+    compressHTML: true,
     devToolbar: {
         enabled: false,
     },
@@ -131,6 +133,10 @@ export default defineConfig({
     },
     vite: {
         plugins,
+        resolve: {
+            // Left external, the prerender output resolves the hoisted cookie 0.x, not Astro's 2.x.
+            noExternal: ['cookie'],
+        },
         optimizeDeps: {
             exclude: [
                 'ag-charts-angular',
