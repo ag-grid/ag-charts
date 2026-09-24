@@ -136,8 +136,56 @@ export interface AgBaseChartThemeParams {
 }
 
 export interface AgChartThemeParams extends AgBaseChartThemeParams {
+    /**
+     * Colour of axis tick labels. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    axisLabelColor?: AgCssColorOrRef;
+    /**
+     * Font family of axis tick labels. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    axisLabelFontFamily?: FontFamilyFull;
+    /**
+     * Font size of axis tick labels.
+     *
+     * Default: `fontSize`
+     */
+    axisLabelFontSize?: FontSize;
+    /**
+     * Font weight of axis tick labels.
+     *
+     * Default: `fontWeight`
+     */
+    axisLabelFontWeight?: FontWeight;
     /** Default colour for axis lines and ticks. A colour string, or a theme-colour reference object. */
     axisLineColor?: AgCssColorOrRef;
+    /**
+     * Colour of axis titles. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    axisTitleColor?: AgCssColorOrRef;
+    /**
+     * Font family of axis titles. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    axisTitleFontFamily?: FontFamilyFull;
+    /**
+     * Base font size of axis titles. Axis titles render at 13/12 of this value, so the default of 12 renders at 13.
+     *
+     * Default: `fontSize`
+     */
+    axisTitleFontSize?: FontSize;
+    /**
+     * Font weight of axis titles.
+     *
+     * Default: `fontWeight`
+     */
+    axisTitleFontWeight?: FontWeight;
     /**
      * Colour painted behind the chart. Follows backgroundColor, which is also blended into text, borders and other
      * backgrounds - so change that one to shift the whole theme, and this one to repaint the chart alone. A colour
