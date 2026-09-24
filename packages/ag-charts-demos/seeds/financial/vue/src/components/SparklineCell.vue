@@ -70,7 +70,7 @@ function scrollShift(points: SparkPoint[], history: number[]): { removed: SparkP
 
 <script setup lang="ts">
 import { type ICellRendererParams } from 'ag-grid-community';
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue';
 
 import { type AgChartInstance, AgCharts } from 'ag-charts-community';
 
@@ -80,9 +80,9 @@ type SparklineCellParams = ICellRendererParams<SparkRow>;
 const props = defineProps<{ params: SparklineCellParams }>();
 
 // The grid streams a changed row in through `refresh` rather than new props (see TickerCell.vue).
-const row = ref<SparkRow | undefined>(props.params.data);
+const params = shallowRef(props.params);
 function refresh(next: SparklineCellParams): boolean {
-    row.value = next.data;
+    params.value = next;
     return true;
 }
 defineExpose({ refresh });
@@ -107,28 +107,31 @@ function seed(history: number[], baseline: number) {
 }
 
 onMounted(() => {
-    const { history, baseline } = readRow(row.value);
+    const { history, baseline } = readRow(params.value.data);
     chart = AgCharts.__createSparkline(sparklineOptions(container.value!, seed(history, baseline), baseline));
 });
 onBeforeUnmount(() => chart?.destroy());
 
 // Created once; data updates stream in here.
-watch(row, (data) => {
-    const { history, baseline } = readRow(data);
-    // The baseline drives segmentation, which a transaction cannot change, so a shift in it
-    // forces a full reseed.
-    if (baseline !== shownBaseline) {
-        chart?.update(sparklineOptions(container.value!, seed(history, baseline), baseline)).catch(logError);
-        return;
-    }
+watch(
+    () => params.value.data,
+    (data) => {
+        const { history, baseline } = readRow(data);
+        // The baseline drives segmentation, which a transaction cannot change, so a shift in it
+        // forces a full reseed.
+        if (baseline !== shownBaseline) {
+            chart?.update(sparklineOptions(container.value!, seed(history, baseline), baseline)).catch(logError);
+            return;
+        }
 
-    const { removed, appended } = scrollShift(points, history);
-    const added = appended.map((y) => ({ x: seq++, y }));
-    points = [...points.slice(removed.length), ...added];
-    if (removed.length || added.length) {
-        chart?.applyTransaction({ remove: removed, add: added }).catch(logError);
+        const { removed, appended } = scrollShift(points, history);
+        const added = appended.map((y) => ({ x: seq++, y }));
+        points = [...points.slice(removed.length), ...added];
+        if (removed.length || added.length) {
+            chart?.applyTransaction({ remove: removed, add: added }).catch(logError);
+        }
     }
-});
+);
 </script>
 
 <template>
