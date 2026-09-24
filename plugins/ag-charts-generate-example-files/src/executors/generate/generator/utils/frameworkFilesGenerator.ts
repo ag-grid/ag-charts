@@ -137,6 +137,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = transformEntryFile({ entryFile: mainJs, chartAPI: 'AgCharts' });
         }
 
+        // Before the UMD globals are unpacked below, so that the injected snippets - which a plain
+        // script cannot hoist over - end up beneath the declarations they reference.
+        if (transformEntryFile) {
+            mainJs = transformEntryFile({ entryFile: mainJs, chartAPI: 'AgCharts' });
+        }
+
         const localeImports = typedBindings.imports
             .filter((i: any) => i.module.includes('ag-charts-locale'))
             .flatMap((imp) => imp.imports);
