@@ -175,7 +175,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     axisTitleFontFamily?: FontFamilyFull;
     /**
-     * Base font size of axis titles. Axis titles render at 13/12 of this value, so the default of 12 renders at 13.
+     * Base font size of axis titles. Axis titles render at 13/12 of this value, so a value of 12 renders at 13.
      *
      * Default: `fontSize`
      */

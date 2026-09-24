@@ -432,16 +432,11 @@ describe('Polar Axes', () => {
         const expectedTitle = { fontSize: 26, fontWeight: 'bold', fontFamily: 'Courier', color: 'blue' };
 
         it.each([
-            ['angle-category', 'radius-number', RADAR_LINE_SERIES, EXAMPLE_OPTIONS.data],
-            [
-                'angle-number',
-                'radius-category',
-                [{ type: 'radial-bar', angleKey: 'Bob', radiusKey: 'skill' }],
-                EXAMPLE_OPTIONS.data,
-            ],
-        ])('overrides reach %s and %s axes', async (angleType, radiusType, series, data) => {
+            ['angle-category', 'radius-number', RADAR_LINE_SERIES],
+            ['angle-number', 'radius-category', [{ type: 'radial-bar', angleKey: 'Bob', radiusKey: 'skill' }]],
+        ])('overrides reach %s and %s axes', async (angleType, radiusType, series) => {
             chart = await createEnterpriseChart({
-                data,
+                data: EXAMPLE_OPTIONS.data,
                 series,
                 axes: {
                     angle: { type: angleType },
