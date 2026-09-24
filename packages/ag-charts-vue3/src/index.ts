@@ -8,6 +8,7 @@ import {
     AgFinancialChartOptions,
     AgGaugeOptions,
     AgQuadrantChartOptions,
+    AgVolumeProfileChartOptions,
 } from 'ag-charts-community';
 
 // Spreading `options` into the container merge turns anything spreadable into a valid `{ container }`
@@ -147,6 +148,42 @@ export const AgQuadrantChart = /*#__PURE__*/ defineComponent({
     mounted() {
         const { options, modules } = this;
         this.chart = AgChartsAPI.createQuadrantChart(mergeOptions(options, this.$el, 'AgQuadrantChart'), { modules });
+    },
+    unmounted() {
+        this.chart?.destroy();
+        this.chart = undefined;
+    },
+});
+
+export const AgVolumeProfileChart = /*#__PURE__*/ defineComponent({
+    props: {
+        options: {
+            type: Object as PropType<AgVolumeProfileChartOptions>,
+            required: true,
+        },
+        modules: {
+            type: Array as PropType<AgChartModule[]>,
+            default: undefined,
+        },
+    },
+    setup(): { chart: AgChartInstance<AgVolumeProfileChartOptions> | undefined } {
+        return {
+            chart: undefined,
+        };
+    },
+    render() {
+        return h('div');
+    },
+    watch: {
+        options(options) {
+            this.chart?.update(mergeOptions(options, this.$el, 'AgVolumeProfileChart'));
+        },
+    },
+    mounted() {
+        const { options, modules } = this;
+        this.chart = AgChartsAPI.createVolumeProfileChart(mergeOptions(options, this.$el, 'AgVolumeProfileChart'), {
+            modules,
+        });
     },
     unmounted() {
         this.chart?.destroy();

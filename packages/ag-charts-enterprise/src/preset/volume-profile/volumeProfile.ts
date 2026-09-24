@@ -8,7 +8,8 @@ type ChartTheme = _Theme.ChartTheme;
 export function createVolumeProfileSeries(
     getTheme: () => ChartTheme,
     volumeProfile: AgVolumeProfileOptions | undefined,
-    tickSize: number | undefined
+    tickSize: number | undefined,
+    priceAxisKey: string
 ) {
     if (!volumeProfile) return [];
 
@@ -28,7 +29,7 @@ export function createVolumeProfileSeries(
             xName: 'Price',
             yKey: 'upVolume',
             yName: 'Up Volume',
-            xKeyAxis: 'y',
+            xKeyAxis: priceAxisKey,
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
             fillOpacity: 1,
@@ -52,7 +53,7 @@ export function createVolumeProfileSeries(
             xName: 'Price',
             yKey: 'downVolume',
             yName: 'Down Volume',
-            xKeyAxis: 'y',
+            xKeyAxis: priceAxisKey,
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
             fillOpacity: 1,

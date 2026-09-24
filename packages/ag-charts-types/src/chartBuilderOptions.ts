@@ -13,6 +13,7 @@ import type {
 } from './chart/themeOptions';
 import type { ContextDefault, DatumDefault, PixelSize } from './chart/types';
 import type { AgFinancialChartPresets } from './presets/financial/financialOptions';
+import type { AgVolumeProfileChartPreset } from './presets/financial/volumeProfileChartOptions';
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
@@ -116,6 +117,9 @@ export type AgBaseSparklinePresetThemeOptions<TDatum = DatumDefault> = AgSparkli
 export type AgFinancialChartOptions<TDatum = DatumDefault> = AgBaseFinancialPresetOptions<TDatum> &
     AgFinancialChartPresets;
 
+export type AgVolumeProfileChartOptions<TDatum = DatumDefault> = AgBaseFinancialPresetOptions<TDatum> &
+    AgVolumeProfileChartPreset;
+
 export interface AgBaseGaugePresetOptions<
     TDatum = DatumDefault,
     TContext = ContextDefault,
@@ -188,7 +192,8 @@ export type AgPresetOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgFinancialChartOptions<TDatum>
     | AgGaugeOptions<TDatum, TContext>
     | AgSparklineOptions<TDatum, TContext>
-    | AgQuadrantChartOptions<TDatum, TContext>;
+    | AgQuadrantChartOptions<TDatum, TContext>
+    | AgVolumeProfileChartOptions<TDatum>;
 
 export type AgChartInstanceOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgChartOptions<TDatum, TContext>

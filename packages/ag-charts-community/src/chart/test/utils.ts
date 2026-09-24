@@ -237,7 +237,10 @@ export async function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function prepareFinancialTestOptions(options: AgFinancialChartOptions, container = getDocument('body')) {
+export function prepareFinancialTestOptions<T extends AgFinancialChartOptions>(
+    options: T,
+    container = getDocument('body')
+): T {
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;
     options.container = container;

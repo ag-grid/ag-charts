@@ -674,4 +674,11 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         name: 'sparkline',
         moduleId: 'SparklinePresetModule',
     },
+    {
+        type: 'preset',
+        name: 'volume-profile',
+        moduleId: 'FinancialChartModule',
+        enterprise: true,
+        apiName: 'AgCharts.createVolumeProfileChart',
+    },
 ];

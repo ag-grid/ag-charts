@@ -63,7 +63,7 @@ const canResolveVars = (container) =>
     getComputedStyle(container).getPropertyValue('--ag-example-chart-background-color').trim() !== '';
 
 const getDarkmodeTheme = (theme = 'ag-default', preset) => {
-    const baseTheme = preset === 'price-volume' ? 'ag-financial' : theme.replace(/-dark$/, '');
+    const baseTheme = preset === 'price-volume' || preset === 'volume-profile' ? 'ag-financial' : theme.replace(/-dark$/, '');
     return isDarkmode() ? baseTheme + '-dark' : baseTheme;
 };
 
