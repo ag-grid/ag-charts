@@ -378,18 +378,18 @@ describe('readCommittedPins', () => {
     it('reads every seed with a manifest, the React seed included, and skips anything else', () => {
         const seedsDir = mkdtempSync(join(tmpdir(), 'seed-pins-'));
         try {
-            const write = (path, value) => {
+            const writeJson = (path, value) => {
                 mkdirSync(join(seedsDir, path, '..'), { recursive: true });
                 writeFileSync(join(seedsDir, path), JSON.stringify(value));
             };
-            write('project.json', {});
-            write('financial/react/package.json', {
+            writeJson('project.json', {});
+            writeJson('financial/react/package.json', {
                 dependencies: { 'ag-charts-community': 'latest', react: '^19.0.0' },
                 devDependencies: { 'ag-charts-types': '14.2.0' },
             });
-            write('financial/react/.seed-manifest.json', { pinnedVersion: 'latest', pinSource: 'dist-tag' });
-            write('financial/vue/.seed-manifest.json', {});
-            write('financial/notes/package.json', { dependencies: { 'ag-charts-community': '1.0.0' } });
+            writeJson('financial/react/.seed-manifest.json', { pinnedVersion: 'latest', pinSource: 'dist-tag' });
+            writeJson('financial/vue/.seed-manifest.json', {});
+            writeJson('financial/notes/package.json', { dependencies: { 'ag-charts-community': '1.0.0' } });
 
             expect(readCommittedPins(seedsDir)).toEqual([
                 { seed: 'financial/react', versions: ['14.2.0', 'latest'], pinSource: 'dist-tag' },
