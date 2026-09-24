@@ -59,12 +59,6 @@ export const toStackParamValue = (property: string, value: ChartsParamValue): un
         return { ref: 'foregroundColor', mix: value.$foregroundBackgroundMix, onto: 'backgroundColor' };
     }
 
-    if ('$rem' in value) {
-        // A length scaled from another param, `fontSize` unless one is named.
-        const [ratio, source = 'fontSize'] = [value.$rem].flat() as [number, string?];
-        return { calc: `${source} * ${ratio}` };
-    }
-
     if ('$mul' in value) {
         // A length scaled from another param, e.g. `[0.5, { $ref: 'borderRadius' }]`.
         const [ratio, source] = value.$mul as [number, unknown];

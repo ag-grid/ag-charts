@@ -42,7 +42,7 @@ describe('AG Charts param translation', () => {
                 collectOperations(params[property], operations);
             }
         }
-        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$mul', '$ref', '$rem']);
+        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$mul', '$ref']);
     });
 
     describe('colour references', () => {
@@ -73,13 +73,6 @@ describe('AG Charts param translation', () => {
             expect(toStackParamValue('focusShadow', '0 0 0 3px var(--ag-charts-accent-color)')).toBe(
                 '0 0 0 3px var(--ag-accent-color)'
             );
-        });
-
-        it('maps $rem to a calculated length', () => {
-            expect(toStackParamValue('chromeFontSize', { $rem: [1.2, 'fontSize'] })).toEqual({
-                calc: 'fontSize * 1.2',
-            });
-            expect(toStackParamValue('chromeFontSize', { $rem: 1.2 })).toEqual({ calc: 'fontSize * 1.2' });
         });
 
         it('maps $mul to a calculated length', () => {
