@@ -28,12 +28,22 @@
     border-width: var(--ag-charts-button-border-width);
     color: var(--ag-charts-button-text-color);
     cursor: pointer;
-    padding: var(--input-padding);
+    padding: var(--ag-charts-button-vertical-padding) var(--ag-charts-button-horizontal-padding);
     transition-property: background, border-color;
 }
 
 .ag-charts-button:hover {
-    background: var(--ag-charts-focus-color);
+    background: var(--ag-charts-button-hover-background-color);
+    border-color: var(--ag-charts-button-hover-border-color);
+    color: var(--ag-charts-button-hover-text-color);
+}
+
+.ag-charts-button:disabled,
+.ag-charts-button[aria-disabled='true'] {
+    background: var(--ag-charts-button-disabled-background-color);
+    border-color: var(--ag-charts-button-disabled-border-color);
+    color: var(--ag-charts-button-disabled-text-color);
+    cursor: default;
 }
 
 .ag-charts-button:has(.ag-charts-icon) {

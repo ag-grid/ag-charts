@@ -39,6 +39,9 @@ const DOM_ELEMENT_CLASSES = [
     'tooltip-container',
     'style-sensors',
 ] as const;
+// Theme params without a `Size`/`Radius`/`Width` suffix that are still emitted as pixel lengths.
+const BUTTON_PADDING_KEYS = ['buttonHorizontalPadding', 'buttonVerticalPadding'];
+
 const MINIMAL_DOM_ELEMENT_ROLES = new Set(['styles', 'canvas-container', 'canvas', 'tooltip-container']);
 const CONTAINER_MODIFIERS = {
     safeHorizontal: 'ag-charts-wrapper--safe-horizontal',
@@ -574,7 +577,7 @@ export class DOMManager extends BaseManager {
             }
         }
 
-        this.setCSSVariables('--ag-charts', undefined, undefined, variables);
+        this.setCSSVariables('--ag-charts', undefined, undefined, variables, BUTTON_PADDING_KEYS);
         this.eventsHub.emit('theme:params-change', null);
     }
 

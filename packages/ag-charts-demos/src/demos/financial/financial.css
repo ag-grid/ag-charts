@@ -58,6 +58,8 @@
 .fin-container .ag-charts-toolbar,
 .fin-container .ag-charts-popover {
     --ag-charts-focus-color: var(--fin-elevated-hover);
+    --ag-charts-button-hover-background-color: var(--fin-elevated-hover);
+    --ag-charts-button-active-background-color: var(--fin-elevated-hover);
 }
 
 /* ---- scrollbars ---- */

@@ -74,20 +74,39 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
     ...stylesTheme,
     active: {
         ...stateTheme,
-        fill: { $ref: 'focusColor' },
-        stroke: { $ref: 'accentColor' },
-        textColor: { $ref: 'accentColor' },
+        fill: { $ref: 'buttonActiveBackgroundColor' },
+        stroke: {
+            $if: [
+                { $isType: [{ $ref: 'buttonActiveBorder' }, 'boolean'] },
+                { $ref: 'borderColor' },
+                { $ref: 'buttonActiveBorder.color' },
+            ],
+        },
+        textColor: { $ref: 'buttonActiveTextColor' },
     },
     disabled: {
         ...stateTheme,
-        fill: {
-            $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
+        fill: { $ref: 'buttonDisabledBackgroundColor' },
+        stroke: {
+            $if: [
+                { $isType: [{ $ref: 'buttonDisabledBorder' }, 'boolean'] },
+                { $ref: 'borderColor' },
+                { $ref: 'buttonDisabledBorder.color' },
+            ],
         },
-        textColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'chromeTextColor' }, 0.5] },
+        textColor: { $ref: 'buttonDisabledTextColor' },
     },
     hover: {
         ...stateTheme,
-        fill: { $ref: 'focusColor' },
+        fill: { $ref: 'buttonHoverBackgroundColor' },
+        stroke: {
+            $if: [
+                { $isType: [{ $ref: 'buttonHoverBorder' }, 'boolean'] },
+                { $ref: 'borderColor' },
+                { $ref: 'buttonHoverBorder.color' },
+            ],
+        },
+        textColor: { $ref: 'buttonHoverTextColor' },
     },
     button: {
         active: { ...componentStateTheme('active') },

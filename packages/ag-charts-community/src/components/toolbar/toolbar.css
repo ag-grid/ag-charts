@@ -10,17 +10,17 @@
     --toolbar-button-padding: 6px;
     --toolbar-button-text-color: var(--ag-charts-button-text-color);
 
-    --toolbar-button-background-color--active: var(--ag-charts-focus-color);
-    --toolbar-button-border-color--active: var(--ag-charts-accent-color);
-    --toolbar-button-text-color--active: var(--ag-charts-accent-color);
+    --toolbar-button-background-color--active: var(--ag-charts-button-active-background-color);
+    --toolbar-button-border-color--active: var(--ag-charts-button-active-border-color);
+    --toolbar-button-text-color--active: var(--ag-charts-button-active-text-color);
 
     --toolbar-button-background-color--disabled: var(--ag-charts-button-disabled-background-color);
-    --toolbar-button-border-color--disabled: var(--toolbar-button-border-color);
+    --toolbar-button-border-color--disabled: var(--ag-charts-button-disabled-border-color);
     --toolbar-button-text-color--disabled: var(--ag-charts-button-disabled-text-color);
 
-    --toolbar-button-background-color--hover: var(--ag-charts-focus-color);
-    --toolbar-button-border-color--hover: var(--toolbar-button-border-color);
-    --toolbar-button-text-color--hover: var(--toolbar-button-text-color);
+    --toolbar-button-background-color--hover: var(--ag-charts-button-hover-background-color);
+    --toolbar-button-border-color--hover: var(--ag-charts-button-hover-border-color);
+    --toolbar-button-text-color--hover: var(--ag-charts-button-hover-text-color);
 
     align-items: center;
     display: flex;
