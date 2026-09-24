@@ -1,5 +1,5 @@
 import type { Scale } from 'ag-charts-core';
-import { ChartAxisDirection, type Point, objectsEqual } from 'ag-charts-core';
+import { ChartAxisDirection, type Point, clamp, objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -168,7 +168,7 @@ export abstract class DataModelSeries<
         return !missing && enabled && focusable;
     }
 
-    private findNodeDataIndexBounds(opts: PickFocusInputs, nodeData: TDatum[]) {
+    private findNodeDataIndexBounds(targetDatumIndex: number, nodeData: TDatum[]) {
         if (nodeData.length === 0) return [undefined, undefined];
 
         const result: [undefined | number, undefined | number] = [undefined, undefined];
@@ -177,17 +177,17 @@ export abstract class DataModelSeries<
         while (low <= upp) {
             const mid = (low + upp) >> 1;
             const midNode = nodeData[mid];
-            if (midNode.datumIndex < opts.datumIndex) {
+            if (midNode.datumIndex < targetDatumIndex) {
                 result[0] = mid;
                 low = mid + 1;
-            } else if (midNode.datumIndex > opts.datumIndex) {
+            } else if (midNode.datumIndex > targetDatumIndex) {
                 result[1] = mid;
                 upp = mid - 1;
-            } /* midNode.datumIndex === opts.datumIndex */ else {
+            } /* midNode.datumIndex === targetDatumIndex */ else {
                 // Exact match found, but there might be duplicate `datumIndex` entries (e.g. range-area), so search for
                 // the 1st duplicate:
                 let firstIdx = mid;
-                while (firstIdx > 0 && nodeData[firstIdx - 1].datumIndex === opts.datumIndex) {
+                while (firstIdx > 0 && nodeData[firstIdx - 1].datumIndex === targetDatumIndex) {
                     firstIdx--;
                 }
                 return [firstIdx, firstIdx];
@@ -197,7 +197,8 @@ export abstract class DataModelSeries<
     }
 
     private findFocus(opts: PickFocusInputs, nodeData: TDatum[]): Pick<PickFocusOutputs, 'datum' | 'datumIndex'> {
-        const [lower, upper] = this.findNodeDataIndexBounds(opts, nodeData);
+        const clampedDatumIndex = clamp(0, opts.datumIndex, this.dataCount() - 1);
+        const [lower, upper] = this.findNodeDataIndexBounds(clampedDatumIndex, nodeData);
 
         const searchBackward = (nodeDatumIndex: number, delta: number): number | undefined => {
             while (nodeDatumIndex >= 0 && !this.isDatumEnabled(nodeData, nodeDatumIndex)) {
@@ -220,17 +221,17 @@ export abstract class DataModelSeries<
             } else if (opts.datumIndexDelta > 0) {
                 nextNodeIndex = searchForward(upper, opts.datumIndexDelta);
             } /* opts.datumIndexDelta === 0 */ else {
-                if (nodeData[lower].datumIndex === opts.datumIndex) {
+                if (nodeData[lower].datumIndex === clampedDatumIndex) {
                     nextNodeIndex = lower;
                 }
-                if (nodeData[upper].datumIndex === opts.datumIndex) {
+                if (nodeData[upper].datumIndex === clampedDatumIndex) {
                     nextNodeIndex = upper;
                 }
             }
         }
 
         if (nextNodeIndex === undefined) {
-            return { datum: SeriesNodeDatumSentinel.CULLED, datumIndex: opts.datumIndex };
+            return { datum: SeriesNodeDatumSentinel.CULLED, datumIndex: clampedDatumIndex };
         } else {
             const nextNode = nodeData[nextNodeIndex];
             return { datum: nextNode, datumIndex: nextNode.datumIndex };
