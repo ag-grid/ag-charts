@@ -1,10 +1,10 @@
-import { afterEach, describe, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions, AgRadarAreaSeriesOptions, AgRadarLineSeriesOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import { compareImageSnapshot, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
 
 describe('Polar Axes', () => {
     setupMockConsole();
@@ -413,6 +413,51 @@ describe('Polar Axes', () => {
 
         chart = AgCharts.create(options);
         await compare();
+    });
+
+    describe('axis typography theme params', () => {
+        const theme = {
+            params: {
+                axisLabelFontSize: 20,
+                axisLabelFontWeight: 'bold',
+                axisLabelFontFamily: 'Georgia',
+                axisLabelColor: 'red',
+                axisTitleFontSize: 24,
+                axisTitleFontWeight: 'bold',
+                axisTitleFontFamily: 'Courier',
+                axisTitleColor: 'blue',
+            },
+        } as const;
+        const expectedLabel = { fontSize: 20, fontWeight: 'bold', fontFamily: 'Georgia', color: 'red' };
+        const expectedTitle = { fontSize: 26, fontWeight: 'bold', fontFamily: 'Courier', color: 'blue' };
+
+        it.each([
+            ['angle-category', 'radius-number', RADAR_LINE_SERIES, EXAMPLE_OPTIONS.data],
+            [
+                'angle-number',
+                'radius-category',
+                [{ type: 'radial-bar', angleKey: 'Bob', radiusKey: 'skill' }],
+                EXAMPLE_OPTIONS.data,
+            ],
+        ])('overrides reach %s and %s axes', async (angleType, radiusType, series, data) => {
+            chart = await createEnterpriseChart({
+                data,
+                series,
+                axes: {
+                    angle: { type: angleType },
+                    radius: { type: radiusType, title: { enabled: true, text: 'Radius' } },
+                },
+                theme,
+            } as AgChartOptions);
+
+            const angle = chart.axes.find((a: any) => a.id === 'angle');
+            const radius = chart.axes.find((a: any) => a.id === 'radius');
+            expect(angle.type).toBe(angleType);
+            expect(radius.type).toBe(radiusType);
+            expect(angle.options.label).toMatchObject(expectedLabel);
+            expect(radius.options.label).toMatchObject(expectedLabel);
+            expect(radius.options.title).toMatchObject(expectedTitle);
+        });
     });
 
     describe('radius axis title text wrap', () => {

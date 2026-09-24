@@ -13,6 +13,7 @@ import { LineSeries } from '../series/cartesian/lineSeries';
 import { PieSeries } from '../series/polar/pieSeries';
 import type { ChartOrProxy } from '../test/utils';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
+import { ChartTheme } from './chartTheme';
 
 const data = [
     { label: 'Android', v1: 5.67, v2: 8.63, v3: 8.14, v4: 6.45, v5: 1.37 },
@@ -517,6 +518,111 @@ describe('ChartTheme', () => {
 
             expect(override.item.marker.padding).toEqual(direct.item.marker.padding);
             expect(override.item.marker.padding).toEqual({ top: 8, right: 8, bottom: 8, left: 8 });
+        });
+    });
+
+    describe('axis typography theme params', () => {
+        const typographyParams = {
+            axisLabelFontSize: 20,
+            axisLabelFontWeight: 'bold',
+            axisLabelFontFamily: 'Georgia',
+            axisLabelColor: 'red',
+            axisTitleFontSize: 24,
+            axisTitleFontWeight: 'bold',
+            axisTitleFontFamily: 'Courier',
+            axisTitleColor: 'blue',
+        } as const;
+
+        const dateData = [
+            { date: new Date(2024, 0, 1), value: 1 },
+            { date: new Date(2024, 0, 2), value: 2 },
+            { date: new Date(2024, 0, 3), value: 3 },
+        ];
+
+        const createChart = async (xType: string, yType: string, params?: AgChartTheme['params']) => {
+            const x = { type: xType, position: 'bottom', title: { enabled: true, text: 'X' } };
+            const y = { type: yType, position: 'left', title: { enabled: true, text: 'Y' } };
+            const isTime = xType === 'time' || xType === 'unit-time';
+            const series = isTime
+                ? [{ type: 'line', xKey: 'date', yKey: 'value' }]
+                : [{ type: 'bar', xKey: 'label', yKey: 'v1' }];
+            chart = deproxy(
+                AgCharts.create({
+                    data: isTime ? dateData : data,
+                    series,
+                    axes: { x, y },
+                    theme: params ? { baseTheme: 'ag-default', params } : 'ag-default',
+                } as AgCartesianChartOptions)
+            );
+            if (!(chart instanceof CartesianChart)) fail();
+            await waitForChartStability(chart);
+            return { x: chart.axes.x as any, y: chart.axes.y as any };
+        };
+
+        test('defaults are unchanged', async () => {
+            const { x } = await createChart('category', 'number');
+            const defaults = ChartTheme.getDefaultPublicParameters();
+
+            expect(x.options.label).toMatchObject({
+                fontSize: 12,
+                fontWeight: 400,
+                fontFamily: defaults.fontFamily,
+                color: defaults.foregroundColor,
+            });
+            expect(x.options.title).toMatchObject({
+                fontSize: 13,
+                fontWeight: 400,
+                fontFamily: defaults.fontFamily,
+                color: defaults.foregroundColor,
+            });
+        });
+
+        test.each([
+            ['category', 'number'],
+            ['category', 'log'],
+            ['grouped-category', 'number'],
+            ['time', 'number'],
+            ['unit-time', 'number'],
+        ])('overrides reach %s and %s axis labels and titles', async (xType, yType) => {
+            const axes = await createChart(xType, yType, typographyParams);
+
+            for (const axis of [axes.x, axes.y]) {
+                expect(axis.options.label).toMatchObject({
+                    fontSize: 20,
+                    fontWeight: 'bold',
+                    fontFamily: 'Georgia',
+                    color: 'red',
+                });
+                expect(axis.options.title).toMatchObject({
+                    fontSize: 26,
+                    fontWeight: 'bold',
+                    fontFamily: 'Courier',
+                    color: 'blue',
+                });
+            }
+        });
+
+        test('time axis parent-level labels follow the axis label params, staying bold', async () => {
+            const { x } = await createChart('time', 'number', { axisLabelFontSize: 20, axisLabelColor: 'red' });
+
+            expect(x.options.parentLevel.label).toMatchObject({ fontSize: 20, color: 'red', fontWeight: 'bold' });
+        });
+
+        test('base font size and text colour still flow through to axis labels and titles', async () => {
+            const { x } = await createChart('category', 'number', { fontSize: 16, textColor: 'green' });
+
+            expect(x.options.label).toMatchObject({ fontSize: 16, color: 'green' });
+            expect(x.options.title).toMatchObject({ fontSize: 17, color: 'green' });
+        });
+
+        test('colour params accept references to the new params', async () => {
+            const { x } = await createChart('category', 'number', {
+                axisLabelColor: 'red',
+                axisTitleColor: { ref: 'axisLabelColor' },
+            });
+
+            expect(x.options.title.color).toBe('red');
+            expectWarningsCalls().toHaveLength(0);
         });
     });
 
