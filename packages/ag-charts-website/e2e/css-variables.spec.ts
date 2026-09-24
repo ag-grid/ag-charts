@@ -149,7 +149,18 @@ test.describe('css variables', () => {
         test('dialogs take dragHandleColor and keep popupShadow', async ({ page }) => {
             const { url } = toExamplePageUrl('themes-e2e', 'ui-component-params', 'vanilla');
             await gotoExample(page, url);
-            await addAndSelectTextAnnotation(page);
+
+            await page.getByTitle('Trend Lines').click();
+            await page.getByText('Trend Line', { exact: true }).click();
+            for (const position of [
+                { x: 100, y: 100 },
+                { x: 200, y: 200 },
+            ]) {
+                await page.hover(SELECTORS.canvasProxy, { position });
+                await page.click(SELECTORS.canvasProxy, { position });
+            }
+            await page.hover(SELECTORS.canvasProxy, { position: { x: 150, y: 150 } });
+            await page.click(SELECTORS.canvasProxy, { position: { x: 150, y: 150 } });
 
             // dragHandleColor styles the dialog drag handle; the dialog keeps popupShadow.
             await page.getByTitle('Settings').click();
