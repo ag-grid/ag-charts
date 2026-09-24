@@ -25,11 +25,8 @@ const TABS = [
     { name: 'My spend', charts: 6 },
 ] as const;
 
-/**
- * Rows of the supplier roster grid. Scoped to the scrolling columns because the grid pins the
- * contact column, and a pinned column puts every row in a second container of its own.
- */
-const rosterRows = (page: Page) => page.locator('.ag-center-cols-container .pc-supplier');
+/** Rows of the supplier roster grid, matched by the row class the demo sets. */
+const rosterRows = (page: Page) => page.locator('.ag-row.pc-supplier');
 
 /** Chips in the purchase-orders header, which state what the grid is actually showing. */
 const chips = (page: Page) => page.locator('.pc-chip');
@@ -226,8 +223,7 @@ test.describe(DEMO_ID, () => {
         await page.locator('.pc-attention-body').first().click();
         await waitForAllChartUpdates(page);
 
-        // The Action column is pinned right, so its cells live in their own container.
-        const actionCell = page.locator('.ag-pinned-right-cols-container .ag-row').first();
+        const actionCell = page.locator('.ag-cell[col-id="action"]').first();
         await actionCell.getByRole('button', { name: 'Resolve' }).click();
 
         await expect(actionCell.locator('.pc-po-action-done')).toHaveText(/Resolved/);
