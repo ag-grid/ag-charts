@@ -1,3 +1,5 @@
+import type { DatumDefault, Ratio } from '../../chart/types';
+
 export type AgPriceVolumeChartType =
     | 'candlestick'
     | 'hollow-candlestick'
@@ -55,6 +57,9 @@ export interface AgPriceVolumePreset {
      * Default: `true`
      */
     volume?: boolean;
+    /** TODO
+     */
+    volumeProfile?: AgVolumeProfileOptions;
     /** Whether to show the range buttons.
      *
      * Default: `true`
@@ -81,3 +86,16 @@ export interface AgPriceVolumePreset {
      */
     sync?: boolean;
 }
+
+export interface AgVolumeProfileOptions {
+    /** TODO */
+    data: DatumDefault[];
+    /** TODO */
+    placement?: AgVolumeProfilePlacement;
+    /** TODO */
+    tickSize?: number;
+    /** TODO */
+    width?: Ratio;
+}
+
+type AgVolumeProfilePlacement = 'left' | 'right';
