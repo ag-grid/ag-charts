@@ -75,7 +75,7 @@ export function normaliseVolumeProfile(
     return levels;
 }
 
-interface VolumeProfileDatum {
+export interface VolumeProfileDatum {
     price: number;
     upVolume: number;
     downVolume: number;
