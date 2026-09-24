@@ -93,7 +93,7 @@ import {
 } from './lineUtil';
 import {
     cartesianMarkerDrawMode,
-    computeMarkerFocusBoundsOfNodeDatum,
+    computeLineAreaFocusBounds,
     getMarkerStyles,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
@@ -180,7 +180,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
-    private nodeDatumContext: LineSeriesDatumContext | undefined = undefined;
+    public nodeDatumContext: LineSeriesDatumContext | undefined = undefined;
     private hideWithSize0 = false;
     private markerNodesPickable = true;
 
@@ -552,7 +552,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
      * Processes a single datum and updates the context's nodes and spanPoints arrays.
      * Uses the scratch object to avoid per-iteration allocations.
      */
-    private handleDatum(
+    public handleDatum(
         ctx: LineSeriesDatumContext,
         scratch: LineNodeDatumScratch,
         datumIndex: number,
@@ -596,7 +596,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             // Markerless vertices still nudge their label clear of the line with a small fixed gap.
             const gap = ctx.size > 0 ? ctx.size / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 
-            const existingNode: Writeable<LineNodeDatum> | undefined =
+            const existingNode: typeof dst =
                 dst === undefined && ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length
                     ? ctx.nodes[ctx.nodeIndex]
                     : dst;
@@ -679,7 +679,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         }
     }
 
-    private allocDatumScratch(): LineNodeDatumScratch {
+    public allocDatumScratch(): LineNodeDatumScratch {
         return {
             datum: undefined,
             xDatum: undefined,
@@ -691,7 +691,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         };
     }
 
-    private allocDatumWriteable(ctx: LineSeriesDatumContext): Writeable<LineNodeDatum> {
+    public allocDatumWriteable(ctx: LineSeriesDatumContext): Writeable<LineNodeDatum> {
         return {
             series: this,
             datum: undefined,
@@ -1424,15 +1424,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        const ctx = this.nodeDatumContext;
-        if (ctx === undefined) return undefined;
-
-        const scratch = this.allocDatumScratch();
-        const nodeDatum = this.allocDatumWriteable(ctx);
-        this.handleDatum(ctx, scratch, opts.datumIndex, nodeDatum);
-        if (scratch.yDatum === undefined) return undefined;
-
-        return computeMarkerFocusBoundsOfNodeDatum(this, nodeDatum);
+        return computeLineAreaFocusBounds(this, opts);
     }
 
     protected override hasItemStylers(): boolean {
