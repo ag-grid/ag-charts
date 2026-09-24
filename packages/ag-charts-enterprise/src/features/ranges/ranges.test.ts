@@ -231,7 +231,7 @@ describe('Ranges', () => {
     });
 
     describe('theme params', () => {
-        const resolvedRanges = async (params: Record<string, string>) => {
+        const resolvedRanges = async (params: Record<string, unknown>) => {
             const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -270,6 +270,52 @@ describe('Ranges', () => {
             const ranges = await resolvedRanges({ textColor: 'green', chromeTextColor: 'blue' });
 
             expect(ranges.button.textColor).toBe('blue');
+        });
+
+        it('button states keep their default styling', async () => {
+            const ranges = await resolvedRanges({ borderColor: 'gray', accentColor: 'teal' });
+
+            expect(ranges.button.hover.fill).toBe(ranges.button.active.fill);
+            expect(ranges.button.hover.stroke).toBe('gray');
+            expect(ranges.button.disabled.stroke).toBe('gray');
+            expect(ranges.button.active.stroke).toBe('teal');
+            expect(ranges.button.active.textColor).toBe('teal');
+        });
+
+        it('button states follow the button state params', async () => {
+            const ranges = await resolvedRanges({
+                buttonHoverBackgroundColor: 'rgb(1, 1, 1)',
+                buttonHoverTextColor: 'rgb(2, 2, 2)',
+                buttonHoverBorder: { color: 'rgb(3, 3, 3)' },
+                buttonActiveBackgroundColor: 'rgb(4, 4, 4)',
+                buttonActiveTextColor: 'rgb(5, 5, 5)',
+                buttonActiveBorder: { color: 'rgb(6, 6, 6)' },
+                buttonDisabledBackgroundColor: 'rgb(7, 7, 7)',
+                buttonDisabledTextColor: 'rgb(8, 8, 8)',
+                buttonDisabledBorder: { color: 'rgb(9, 9, 9)' },
+            });
+
+            expect(ranges.button.hover).toMatchObject({
+                fill: 'rgb(1, 1, 1)',
+                textColor: 'rgb(2, 2, 2)',
+                stroke: 'rgb(3, 3, 3)',
+            });
+            expect(ranges.button.active).toMatchObject({
+                fill: 'rgb(4, 4, 4)',
+                textColor: 'rgb(5, 5, 5)',
+                stroke: 'rgb(6, 6, 6)',
+            });
+            expect(ranges.button.disabled).toMatchObject({
+                fill: 'rgb(7, 7, 7)',
+                textColor: 'rgb(8, 8, 8)',
+                stroke: 'rgb(9, 9, 9)',
+            });
+        });
+
+        it('boolean state borders use borderColor', async () => {
+            const ranges = await resolvedRanges({ borderColor: 'purple', buttonActiveBorder: true });
+
+            expect(ranges.button.active.stroke).toBe('purple');
         });
     });
 });

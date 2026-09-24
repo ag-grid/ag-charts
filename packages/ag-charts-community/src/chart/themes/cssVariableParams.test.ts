@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, test } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartThemeParams } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartThemeName, AgChartThemeParams } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { expectWarningsCalls } from '../../util/test/mockConsole';
+import { themes } from '../mapping/themes';
 import type { ChartOrProxy } from '../test/utils';
 import { setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 import { ChartTheme } from './chartTheme';
@@ -31,8 +33,16 @@ const DARK_MODE_PARAMS: AgChartThemeParams = {
     subtleTextColor: '#7c818a',
 };
 
-/** Neither is a plain colour, so neither can travel through a CSS variable. */
-const UNMAPPABLE_PROPERTIES = ['--ag-charts-popup-shadow', '--ag-charts-focus-color'];
+/**
+ * The shadow is not a plain colour, and the focus, hover and active colours use a different accent mix in the dark
+ * theme, so none of these can travel through a CSS variable.
+ */
+const UNMAPPABLE_PROPERTIES = [
+    '--ag-charts-popup-shadow',
+    '--ag-charts-focus-color',
+    '--ag-charts-button-hover-background-color',
+    '--ag-charts-button-active-background-color',
+];
 
 /**
  * The palette entries `ag-default-dark` retunes. None can be driven from CSS - `theme.palette`
@@ -55,6 +65,25 @@ const DARK_PALETTE_KEYS = [
     'up',
 ];
 
+/** Renders a chart and returns its root element, where the resolved parameters are published as custom properties. */
+async function renderChartRoot(theme: AgCartesianChartOptions['theme'], charts: ChartOrProxy[]) {
+    const container = document.body.appendChild(document.createElement('div'));
+    const chart = AgCharts.create({
+        theme,
+        width: 400,
+        height: 300,
+        container,
+        data: [{ x: 'a', y: 1 }],
+        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+    } as AgCartesianChartOptions);
+    charts.push(chart);
+    await waitForChartStability(chart);
+
+    const root = container.querySelector<HTMLElement>('[class*="ag-charts-theme-"]');
+    if (root == null) throw new Error('no chart root element found');
+    return root;
+}
+
 describe("the documentation examples' dark mode", () => {
     setupMockConsole();
     setupMockCanvas();
@@ -70,23 +99,7 @@ describe("the documentation examples' dark mode", () => {
     });
 
     const getThemeProperties = async (theme: AgCartesianChartOptions['theme']) => {
-        const container = document.body.appendChild(document.createElement('div'));
-        const chart = AgCharts.create({
-            theme,
-            width: 400,
-            height: 300,
-            container,
-            data: [{ x: 'a', y: 1 }],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-        } as AgCartesianChartOptions);
-        charts.push(chart);
-        await waitForChartStability(chart);
-
-        // The resolved parameters are published as custom properties on the chart's root element.
-        const root = container.querySelector<HTMLElement>('[class*="ag-charts-theme-"]');
-        if (root == null) throw new Error('no chart root element found');
-
-        const { style } = root;
+        const { style } = await renderChartRoot(theme, charts);
         const properties: Record<string, string> = {};
         for (let i = 0; i < style.length; i++) {
             const name = style[i];
@@ -113,5 +126,121 @@ describe("the documentation examples' dark mode", () => {
             .sort((a, b) => a.localeCompare(b));
 
         expect(differing).toEqual(DARK_PALETTE_KEYS);
+    });
+});
+
+describe('button state theme params', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let charts: ChartOrProxy[] = [];
+
+    afterEach(async () => {
+        for (const chart of charts) {
+            await waitForChartStability(chart);
+            chart.destroy();
+        }
+        charts = [];
+    });
+
+    const getButtonProperties = async (theme: AgCartesianChartOptions['theme']) => {
+        const root = await renderChartRoot(theme, charts);
+        return (name: string) => root.style.getPropertyValue(`--ag-charts-${name}`);
+    };
+
+    test.each(Object.keys(themes) as AgChartThemeName[])(
+        '%s defaults match the existing button styling',
+        async (themeName) => {
+            const get = await getButtonProperties(themeName);
+
+            expect(get('button-hover-background-color')).toBe(get('focus-color'));
+            expect(get('button-active-background-color')).toBe(get('focus-color'));
+
+            expect(get('button-hover-text-color')).toBe(get('button-text-color'));
+            expect(get('button-active-text-color')).toBe(get('accent-color'));
+
+            expect(get('button-hover-border-color')).toBe(get('button-border-color'));
+            expect(get('button-hover-border-width')).toBe(get('button-border-width'));
+            expect(get('button-disabled-border-color')).toBe(get('button-border-color'));
+            expect(get('button-disabled-border-width')).toBe(get('button-border-width'));
+            expect(get('button-active-border-color')).toBe(get('accent-color'));
+            // The active border width falls back to the base button border width in CSS.
+            expect(get('button-active-border-width')).toBe('');
+
+            expect(get('button-disabled-background-color')).not.toBe('');
+            expect(get('button-disabled-text-color')).not.toBe('');
+
+            expect(get('button-horizontal-padding')).toBe('8px');
+            expect(get('button-vertical-padding')).toBe('8px');
+        }
+    );
+
+    test.each([
+        ['true', true],
+        ['false', false],
+        ['an object', { color: 'red', width: 3 }],
+    ] as const)('hover and disabled borders follow buttonBorder set to %s', async (_, buttonBorder) => {
+        const get = await getButtonProperties({ params: { buttonBorder } });
+
+        for (const state of ['hover', 'disabled']) {
+            expect(get(`button-${state}-border-color`)).toBe(get('button-border-color'));
+            expect(get(`button-${state}-border-width`)).toBe(get('button-border-width'));
+        }
+    });
+
+    test('custom values are published as CSS variables', async () => {
+        const params: AgChartThemeParams = {
+            buttonHoverBackgroundColor: 'rgb(1, 1, 1)',
+            buttonHoverTextColor: 'rgb(2, 2, 2)',
+            buttonHoverBorder: { color: 'rgb(3, 3, 3)', width: 2 },
+            buttonActiveBackgroundColor: 'rgb(4, 4, 4)',
+            buttonActiveTextColor: 'rgb(5, 5, 5)',
+            buttonActiveBorder: true,
+            buttonDisabledBackgroundColor: 'rgb(6, 6, 6)',
+            buttonDisabledTextColor: 'rgb(7, 7, 7)',
+            buttonDisabledBorder: false,
+            buttonHorizontalPadding: 20,
+            buttonVerticalPadding: 2,
+        };
+        const get = await getButtonProperties({ params });
+
+        expect(get('button-hover-background-color')).toBe('rgb(1, 1, 1)');
+        expect(get('button-hover-text-color')).toBe('rgb(2, 2, 2)');
+        expect(get('button-hover-border-color')).toBe('rgb(3, 3, 3)');
+        expect(get('button-hover-border-width')).toBe('2px');
+        expect(get('button-active-background-color')).toBe('rgb(4, 4, 4)');
+        expect(get('button-active-text-color')).toBe('rgb(5, 5, 5)');
+        expect(get('button-active-border-color')).toBe('var(--ag-charts-border-color)');
+        expect(get('button-active-border-width')).toBe('var(--ag-charts-border-width)');
+        expect(get('button-disabled-background-color')).toBe('rgb(6, 6, 6)');
+        expect(get('button-disabled-text-color')).toBe('rgb(7, 7, 7)');
+        expect(get('button-disabled-border-color')).toBe('none');
+        expect(get('button-disabled-border-width')).toBe('0');
+        expect(get('button-horizontal-padding')).toBe('20px');
+        expect(get('button-vertical-padding')).toBe('2px');
+    });
+
+    test('new colour params can be referenced by other params', async () => {
+        const get = await getButtonProperties({
+            params: {
+                buttonHoverBackgroundColor: 'rgb(9, 9, 9)',
+                buttonActiveTextColor: { ref: 'buttonHoverBackgroundColor' },
+            },
+        });
+
+        expect(get('button-active-text-color')).toBe('rgb(9, 9, 9)');
+    });
+
+    test('invalid values are rejected with a warning', async () => {
+        const get = await getButtonProperties({
+            params: {
+                buttonHoverBorder: 'thick',
+                buttonHorizontalPadding: '12px',
+            } as unknown as AgChartThemeParams,
+        });
+
+        expectWarningsCalls().toHaveLength(2);
+        expect(get('button-hover-border-color')).toBe(get('button-border-color'));
+        expect(get('button-horizontal-padding')).toBe('8px');
     });
 });
