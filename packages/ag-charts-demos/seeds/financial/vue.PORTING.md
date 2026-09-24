@@ -79,7 +79,7 @@ import TickerCell from './TickerCell.vue';
 
 | Radix React                                                                            | reka-ui                                                                                                                         |
 | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `Label.Root htmlFor`                                                                   | `Label :for`                                                                                                                    |
+| `Label.Root`                                                                           | `Label`                                                                                                                         |
 | `Select.Root value onValueChange`                                                      | `SelectRoot v-model`                                                                                                            |
 | `Select.Trigger`, `Value`, `Icon`, `Portal`, `Content`, `Viewport`, `Item`, `ItemText` | `SelectTrigger`, `SelectValue`, `SelectIcon`, `SelectPortal`, `SelectContent`, `SelectViewport`, `SelectItem`, `SelectItemText` |
 | `ToggleGroup.Root type="single" value onValueChange`                                   | `ToggleGroupRoot type="single" :model-value @update:model-value`                                                                |

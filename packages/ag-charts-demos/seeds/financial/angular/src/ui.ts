@@ -174,7 +174,7 @@ export class SelectItem {
 @Component({
     selector: 'label[finSelect]',
     imports: [CdkConnectedOverlay, CdkOverlayOrigin, SelectItem],
-    host: { class: 'fin-labeled-select', '[attr.for]': 'label()' },
+    host: { class: 'fin-labeled-select' },
     template: `
         <span>{{ label() }}</span>
         <button

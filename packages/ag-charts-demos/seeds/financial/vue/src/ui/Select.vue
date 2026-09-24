@@ -53,7 +53,7 @@ function onTriggerKeydown(event: KeyboardEvent) {
 </script>
 
 <template>
-    <Label :for="label" class="fin-labeled-select">
+    <Label class="fin-labeled-select">
         <span>{{ label }}</span>
         <SelectRoot v-model="model" v-model:open="open">
             <SelectTrigger class="fin-btn fin-select-trigger" :aria-label="ariaLabel" @keydown="onTriggerKeydown">

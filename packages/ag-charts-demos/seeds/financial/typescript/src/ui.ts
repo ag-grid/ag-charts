@@ -372,7 +372,6 @@ export function createSelect({
     const el = h(
         'label',
         {
-            for: label,
             class: 'fin-labeled-select',
             onmousedown: (event: MouseEvent) => {
                 // Radix Label: a double click on the text must not select it.

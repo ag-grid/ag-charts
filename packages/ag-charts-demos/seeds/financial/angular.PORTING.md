@@ -130,7 +130,7 @@ Each component renders exactly what the Radix primitive renders, minus Radix's p
   without stopping on it. A click selects; the selected item cannot be deselected (`valueChange`
   only ever emits a value).
 - `Select` (Root/Trigger/Value/Icon/Portal/Content/Viewport/Item/ItemText) -> `Select` on
-  `label[finSelect]`: the host is the Radix `Label.Root`, `<label for class="fin-labeled-select">`,
+  `label[finSelect]`: the host is the Radix `Label.Root`, `<label class="fin-labeled-select">` (no `for`: it wraps its control),
   holding `<span>Speed</span>` and the trigger
   `<button type="button" role="combobox" aria-controls aria-expanded aria-autocomplete="none" dir="ltr" data-state="closed|open" class="fin-btn fin-select-trigger" aria-label>`
   with `<span style="pointer-events: none;">label</span><span aria-hidden="true">▾</span>`. While

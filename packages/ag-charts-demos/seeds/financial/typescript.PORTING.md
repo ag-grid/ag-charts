@@ -97,7 +97,7 @@ Each factory renders exactly what the Radix primitive renders, minus Radix's pri
 - `Select` (Root/Trigger/Value/Icon/Portal/Content/Viewport/Item/ItemText) -> `createSelect`:
   the trigger is `<button type="button" role="combobox" aria-controls aria-expanded aria-autocomplete="none" dir="ltr" data-state="closed|open" class="fin-btn fin-select-trigger" aria-label>`
   holding `<span style="pointer-events: none;">label</span><span aria-hidden="true">▾</span>`,
-  wrapped in `<label for class="fin-labeled-select"><span>Speed</span>…</label>`. Opening appends
+  wrapped in `<label class="fin-labeled-select"><span>Speed</span>…</label>`. Opening appends
   to `document.body` a wrapper `<div dir="ltr" style="position: fixed; left: 0px; top: 0px; min-width: max-content; z-index: 60; transform: translate(x, y);">`
   containing `<div role="listbox" id data-state="open" data-side="bottom|top" data-align="start" dir="ltr" class="fin-portal fin-select-content" tabindex="-1" style="box-sizing: border-box; display: flex; flex-direction: column; outline: none; pointer-events: auto;">`
   then `<div role="presentation" style="position: relative; flex: 1 1 0%; overflow: auto;">` and
@@ -111,7 +111,7 @@ Each factory renders exactly what the Radix primitive renders, minus Radix's pri
   resets after a second). While open, the rest of the page carries `aria-hidden="true"` (with
   Radix's `data-aria-hidden` marker) and `document.body` takes no pointer events. `destroy()`, the
   unmount, closes an open listbox without moving focus, cancels pending timers and removes the select.
-- `Label` -> a plain `<label for>` with the same class.
+- `Label` -> a plain `<label>` with the same class, wrapping its control rather than naming it with `for`.
 
 ## DOM and class-name invariants
 
