@@ -138,18 +138,15 @@ function calloutLinesMissingTheirBorder(myChart: Chart, borderWidth: number) {
     const tolerance = 1e-3;
     const offenders: string[] = [];
     for (const series of calloutSeries(myChart)) {
+        const data = calloutNodeDataOf(series);
         for (const line of series['calloutLabelSelection'].selectByTag<Line>(DonutNodeTag.CalloutLine)) {
-            const datum: ReturnType<typeof calloutNodeDataOf>[number] = line.unsafeClosestDatum();
-            const label = datum.calloutLabel;
+            const label = data.find((datum) => datum === line.closestDatum())?.calloutLabel;
             if (!line.visible || label?.box == null || label.hidden) continue;
 
             const { x2, y2 } = line;
             const outer = label.box;
-            const inner = label.box.clone().grow(-borderWidth);
-            const gap = Math.hypot(
-                Math.max(outer.x - x2, 0, x2 - (outer.x + outer.width)),
-                Math.max(outer.y - y2, 0, y2 - (outer.y + outer.height))
-            );
+            const inner = outer.clone().shrink(borderWidth);
+            const gap = Math.sqrt(outer.distanceSquared(x2, y2));
             const depth = Math.min(x2 - inner.x, inner.x + inner.width - x2, y2 - inner.y, inner.y + inner.height - y2);
             if (gap > tolerance || depth > tolerance) {
                 offenders.push(`${String(label.text)} (gap ${gap.toFixed(2)}, depth ${depth.toFixed(2)})`);
@@ -208,7 +205,7 @@ const SHORT_TOP_UNDER_SERIES_TITLE: AgPolarChartOptions = {
     legend: { enabled: false },
 };
 
-const boxedCalloutLabels = (border: boolean): AgPolarChartOptions => ({
+const boxedCalloutLabels = (borderWidth: number): AgPolarChartOptions => ({
     data: [
         { asset: 'Stocks', amount: 60000 },
         { asset: 'Bonds', amount: 40000 },
@@ -225,7 +222,7 @@ const boxedCalloutLabels = (border: boolean): AgPolarChartOptions => ({
                 offset: 0,
                 padding: 12,
                 fill: 'lightgrey',
-                ...(border ? { border: { strokeWidth: 3, stroke: 'lightblue' } } : {}),
+                ...(borderWidth > 0 ? { border: { strokeWidth: borderWidth, stroke: 'lightblue' } } : {}),
             },
         },
     ],
@@ -2134,22 +2131,65 @@ describe('DonutSeries', () => {
             });
 
             test.each([
-                ['short sectors in a narrow chart', NARROW_SHORT_BETWEEN_TALL, 175, 300],
-                ['short top sector under a series title', SHORT_TOP_UNDER_SERIES_TITLE, 450, 420],
-            ])('%s, where no push clears them', async (_name, seriesOptions, width, height) => {
+                [
+                    'short sectors in a narrow chart',
+                    NARROW_SHORT_BETWEEN_TALL,
+                    175,
+                    300,
+                    ['Tall A', 'Tall B', 'Short 3'],
+                ],
+                [
+                    'short top sector under a series title',
+                    SHORT_TOP_UNDER_SERIES_TITLE,
+                    450,
+                    420,
+                    ['Tall A', 'Short B', 'Tall C', 'Short D', 'Tall E'],
+                ],
+            ])('%s, where no push clears them', async (_name, seriesOptions, width, height, expectedVisible) => {
                 chart = await createSizedChart(seriesOptions, width, height);
 
-                expect(visibleCalloutLabels(chart)).not.toEqual([]);
+                expect(visibleCalloutLabels(chart).map(({ text }) => text)).toEqual(expectedVisible);
                 expect(labelsOverlappingASector(chart)).toEqual([]);
             });
         });
 
+        test('labels with no way to be pushed stay visible', async () => {
+            chart = await createSizedChart(
+                {
+                    data: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((name) => ({ name, value: 1 })),
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'value',
+                            calloutLabelKey: 'name',
+                            calloutLine: { length: 0 },
+                            calloutLabel: { offset: 0 },
+                        },
+                    ],
+                    legend: { enabled: false },
+                },
+                600,
+                400
+            );
+
+            expect(visibleCalloutLabels(chart).map(({ text }) => text)).toEqual([
+                'A',
+                'B',
+                'C',
+                'D',
+                'E',
+                'F',
+                'G',
+                'H',
+            ]);
+        });
+
         describe('callout lines reach the label box', () => {
             test.each([
-                ['padded box', false, 0],
-                ['padded box with a border', true, 3],
-            ])('%s', async (_name, border, borderWidth) => {
-                chart = await createChart(boxedCalloutLabels(border));
+                ['padded box', 0],
+                ['padded box with a border', 3],
+            ])('%s', async (_name, borderWidth) => {
+                chart = await createChart(boxedCalloutLabels(borderWidth));
 
                 expect(visibleCalloutLabels(chart)).not.toEqual([]);
                 expect(calloutLinesMissingTheirBorder(chart, borderWidth)).toEqual([]);

@@ -1576,44 +1576,39 @@ export class DonutSeries extends PolarSeries<
      * Where the label's text anchor sits, so that the near edge of its drawn box - not the text - lands at the
      * end of the callout line. Probing and painting must agree exactly, so both go through here.
      */
-    private getCalloutLabelRadius(
-        datum: PieDonutNodeDatum,
+    private getCalloutLabelAnchor(
+        { midCos, midSin }: PieDonutNodeDatum,
         label: PieDonutLabelDatum,
         outerRadius: number,
-        anchoredBox: BBox,
-        calloutLength: number
+        { extent, calloutLength, text, font }: ReturnType<DonutSeries['getCalloutLabelMetrics']>
     ) {
-        const { midCos, midSin } = datum;
-        // The anchor lies within its box, so sliding the box along the mid-angle clears it at the first near edge.
-        const nearX = midCos >= 0 ? -anchoredBox.x : anchoredBox.x + anchoredBox.width;
-        const nearY = midSin >= 0 ? -anchoredBox.y : anchoredBox.y + anchoredBox.height;
-        const clearX = midCos === 0 ? Infinity : nearX / Math.abs(midCos);
-        const clearY = midSin === 0 ? Infinity : nearY / Math.abs(midSin);
-        const boxInset = Math.max(0, Math.min(clearX, clearY));
-
-        return outerRadius + label.collisionRadiusOffset + calloutLength + this.options.calloutLabel.offset + boxInset;
-    }
-
-    /** The drawn box with the text anchored at the origin, which the radius is resolved against. */
-    private getCalloutLabelAnchoredBox(
-        label: PieDonutLabelDatum,
-        text: NormalisedTextOrSegments,
-        font: FontOptions,
-        extent: Required<PaddingOptions>
-    ) {
-        return Text.measureBBox(text, 0, 0, {
+        const box = Text.measureBBox(text, 0, 0, {
             font,
             textAlign: label.collisionTextAlign ?? label.textAlign,
             textBaseline: label.textBaseline,
         }).grow(extent);
+
+        // The anchor lies within its box, so sliding the box along the mid-angle clears it at the first near edge.
+        const nearX = midCos >= 0 ? -box.x : box.x + box.width;
+        const nearY = midSin >= 0 ? -box.y : box.y + box.height;
+        const clearX = midCos === 0 ? Infinity : nearX / Math.abs(midCos);
+        const clearY = midSin === 0 ? Infinity : nearY / Math.abs(midSin);
+        const boxInset = Math.max(0, Math.min(clearX, clearY));
+
+        const radius =
+            outerRadius + label.collisionRadiusOffset + calloutLength + this.options.calloutLabel.offset + boxInset;
+        const x = midCos * radius;
+        const y = midSin * radius + label.collisionOffsetY;
+        return { x, y, box: box.translate(x, y) };
     }
 
     /** Nothing here depends on the collision offsets, so it is resolved once and reused across every probe. */
-    private getCalloutLabelMetrics(datum: Has<'calloutLabel', PieDonutNodeDatum>) {
+    private getCalloutLabelMetrics(datum: PieDonutNodeDatum, label: PieDonutLabelDatum, isHighlight = false) {
         const { calloutLabel } = this.options;
-        const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
-        const fitted = this.fitCalloutLabel(datum.calloutLabel.text, style);
+        const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel', isHighlight);
+        const fitted = this.fitCalloutLabel(label.text, style);
         return {
+            style,
             extent: expandLabelPadding(style),
             calloutLength: this.getCalloutLineStyle(datum, false).length,
             text: fitted.text,
@@ -1623,15 +1618,9 @@ export class DonutSeries extends PolarSeries<
 
     private getCalloutLabelBBox(
         datum: Has<'calloutLabel', PieDonutNodeDatum>,
-        metrics = this.getCalloutLabelMetrics(datum)
+        metrics = this.getCalloutLabelMetrics(datum, datum.calloutLabel)
     ): BBox {
-        const label = datum.calloutLabel;
-        const { extent, calloutLength, text, font } = metrics;
-
-        const box = this.getCalloutLabelAnchoredBox(label, text, font, extent);
-        const labelRadius = this.getCalloutLabelRadius(datum, label, datum.outerRadius, box, calloutLength);
-
-        return box.translate(datum.midCos * labelRadius, datum.midSin * labelRadius + label.collisionOffsetY);
+        return this.getCalloutLabelAnchor(datum, datum.calloutLabel, datum.outerRadius, metrics).box;
     }
 
     private computeCalloutLabelCollisionOffsets(isBoxHidden: (box: BBox) => boolean) {
@@ -1656,7 +1645,7 @@ export class DonutSeries extends PolarSeries<
             label.collisionRadiusOffset = 0;
         }
 
-        const metrics = new Map(data.map((d) => [d, this.getCalloutLabelMetrics(d)] as const));
+        const metrics = new Map(data.map((d) => [d, this.getCalloutLabelMetrics(d, d.calloutLabel)] as const));
         const metricsOf = (d: (typeof data)[number]) => metrics.get(d)!;
         const labelBox = (d: (typeof data)[number]) => this.getCalloutLabelBBox(d, metricsOf(d));
 
@@ -1936,11 +1925,15 @@ export class DonutSeries extends PolarSeries<
                 };
                 if (best.sectors === 0 && best.lines === 0) return;
 
+                let clearPlacementHidden = false;
                 const consider = (side: CanvasTextAlign | undefined, offset: number) => {
                     const placement = placementOf(d, side);
                     const box = probeBox(placement, d, offset);
                     // A remedy that costs the label its visibility is worse than the overlap it was avoiding.
-                    if (isBoxHidden(box)) return;
+                    if (isBoxHidden(box)) {
+                        clearPlacementHidden ||= !encroachesSector(placement, d, offset);
+                        return;
+                    }
 
                     // Ranked on sector overlaps first, then line crossings, and only then on how far it moved.
                     const candidate = { side, offset, ...overlaps(d, placement, box, best) };
@@ -1972,10 +1965,15 @@ export class DonutSeries extends PolarSeries<
                     }
                 }
 
-                if (best.sectors > 0) {
-                    // No placement clear of the sectors can be shown, so there is no room for the label.
+                if (best.sectors > 0 && clearPlacementHidden) {
+                    // The only placements clear of the sectors cannot be shown, so there is no room for the label.
                     place(undefined, 0);
                     label.hidden = true;
+                    return;
+                }
+                if (best.sectors > 0) {
+                    // Nothing clears the sectors, so settle for the side that at least moves off their mid-angle.
+                    place(sides.length > 1 ? sides[1] : undefined, 0);
                     return;
                 }
                 place(best.side, best.offset);
@@ -2102,27 +2100,16 @@ export class DonutSeries extends PolarSeries<
             const isDatumHighlighted =
                 seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
 
-            const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel', isDatumHighlighted);
-            const calloutLength = this.getCalloutLineStyle(datum, false).length;
-            const fitted = this.fitCalloutLabel(label.text, style);
-            const fittedFont = fontWithSize(style, fitted.fontSize);
-
-            const labelRadius = this.getCalloutLabelRadius(
-                datum,
-                label,
-                outerRadius,
-                this.getCalloutLabelAnchoredBox(label, fitted.text, fittedFont, expandLabelPadding(style)),
-                calloutLength
-            );
-            const x = datum.midCos * labelRadius;
-            const y = datum.midSin * labelRadius + label.collisionOffsetY;
+            const metrics = this.getCalloutLabelMetrics(datum, label, isDatumHighlighted);
+            const { style, text: fittedText, font: fittedFont } = metrics;
+            const { x, y } = this.getCalloutLabelAnchor(datum, label, outerRadius, metrics);
 
             // Detect text overflow
             const align = {
                 textAlign: label.collisionTextAlign ?? label.textAlign,
                 textBaseline: label.textBaseline,
             };
-            tempTextNode.text = fitted.text;
+            tempTextNode.text = fittedText;
             tempTextNode.x = x;
             tempTextNode.y = y;
             tempTextNode.setFont(fittedFont);
@@ -2130,7 +2117,7 @@ export class DonutSeries extends PolarSeries<
             tempTextNode.setBoxing(style);
             const box = tempTextNode.getBBox();
 
-            let displayText = fitted.text;
+            let displayText = fittedText;
             let visible = true;
             if (calloutLabel.avoidCollisions) {
                 const { maxWidth, hasVerticalOverflow } = this.getLabelOverflow(box, seriesRect);
@@ -2141,7 +2128,7 @@ export class DonutSeries extends PolarSeries<
                         overflow: 'hide',
                         maxWidth,
                     };
-                    displayText = wrapTextOrSegments(fitted.text, options);
+                    displayText = wrapTextOrSegments(fittedText, options);
                 }
                 visible = !hasVerticalOverflow;
             }
@@ -2221,28 +2208,17 @@ export class DonutSeries extends PolarSeries<
                 continue;
             }
 
-            const style = this.getLabelStyle(datum, calloutLabel, 'calloutLabel');
-            const calloutLength = this.getCalloutLineStyle(datum, false).length;
-            const fitted = this.fitCalloutLabel(label.text, style);
-            const fittedFont = fontWithSize(style, fitted.fontSize);
-            const labelRadius = this.getCalloutLabelRadius(
-                datum,
-                label,
-                datum.outerRadius,
-                this.getCalloutLabelAnchoredBox(label, fitted.text, fittedFont, expandLabelPadding(style)),
-                calloutLength
-            );
-            const x = datum.midCos * labelRadius;
-            const y = datum.midSin * labelRadius + label.collisionOffsetY;
-            text.text = fitted.text;
+            const metrics = this.getCalloutLabelMetrics(datum, label);
+            const { x, y } = this.getCalloutLabelAnchor(datum, label, datum.outerRadius, metrics);
+            text.text = metrics.text;
             text.x = x;
             text.y = y;
-            text.setFont(fittedFont);
+            text.setFont(metrics.font);
             text.setAlign({
                 textAlign: label.collisionTextAlign ?? label.textAlign,
                 textBaseline: label.textBaseline,
             });
-            text.setBoxing(style);
+            text.setBoxing(metrics.style);
             const box = text.getBBox();
             label.box = box;
 
