@@ -12,6 +12,8 @@ import type {
     AgNavigatorOptions,
     AgNumberAxisOptions,
     AgOhlcSeriesOptions,
+    AgOrdinalTimeAxisOptions,
+    AgPriceVolumeChartType,
     AgPriceVolumePreset,
     AgRangeAreaSeriesOptions,
     AgRangeBarSeriesOptions,
@@ -62,7 +64,7 @@ const toolbarButtons: AgAnnotationsToolbarButton[] = [
 
 export function priceVolume(
     opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions,
-    _presetTheme: any,
+    _presetTheme: unknown,
     getTheme: () => ChartTheme,
     themeOverrides: AgThemeOverrides | undefined,
     logger: Logger
@@ -92,183 +94,35 @@ export function priceVolume(
         ...unusedOpts
     } = opts;
 
-    const priceSeries = createPriceSeries(chartType, dateKey, highKey, lowKey, openKey, closeKey, logger);
-    const volumeSeries = createVolumeSeries(getTheme, dateKey, openKey, closeKey, volume, volumeKey);
+    const keys: PriceSeriesKeys = { xKey: dateKey, openKey, closeKey, highKey, lowKey };
+    const shownVolumeKey = volume ? volumeKey : undefined;
     const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
-    const volumeProfileSeries = createVolumeProfileSeries(getTheme, volumeProfile, tickSize);
-
-    const userToolbarButtons = themeOverrides?.common?.annotations?.toolbar?.buttons;
-    const buttons = userToolbarButtons ?? toolbarButtons;
-
-    const miniChart = volume
-        ? {
-              miniChart: {
-                  enabled: navigator,
-                  series: [
-                      {
-                          type: 'line' as const,
-                          xKey: dateKey,
-                          yKey: volumeKey,
-                      },
-                  ],
-              },
-          }
-        : null;
-    const navigatorOpts = {
-        navigator: {
-            enabled: navigator,
-            ...miniChart,
-        } satisfies AgNavigatorOptions,
-    };
-
-    const annotationOpts = {
-        annotations: {
-            enabled: toolbar,
-            optionsToolbar: {
-                enabled: toolbar,
-            },
-            // @ts-expect-error undocumented option
-            snap: true,
-            toolbar: {
-                enabled: toolbar,
-                buttons,
-                padding: 0,
-            },
-            data,
-            xKey: dateKey,
-            volumeKey: volume ? volumeKey : undefined,
-        } satisfies AgAnnotationsOptions,
-    };
-
-    const statusBarOpts = statusBar
-        ? {
-              statusBar: {
-                  enabled: true,
-                  highKey,
-                  openKey,
-                  lowKey,
-                  closeKey,
-                  volumeKey: volume ? volumeKey : undefined,
-              },
-          }
-        : null;
-
-    const zoomOpts = {
-        zoom: {
-            enabled: zoom,
-        } satisfies AgZoomOptions,
-    };
-
-    const toolbarOpts = {
-        ranges: {
-            enabled: rangeButtons && zoom,
-        } satisfies AgRangesOptions,
-    };
-
-    const syncGroup = sync
-        ? {
-              sync: {
-                  enabled: sync,
-              } satisfies AgChartSyncOptions,
-          }
-        : null;
-
-    const volumeAxis = volume
-        ? {
-              yVolume: {
-                  type: 'number',
-                  position: 'left',
-                  label: { enabled: false },
-                  crosshair: { enabled: false },
-                  gridLine: { enabled: false },
-                  nice: false,
-                  // @ts-expect-error undocumented option
-                  layoutConstraints: {
-                      stacked: false,
-                      width: 20,
-                      unit: 'percent',
-                      align: 'end',
-                  },
-              } satisfies AgNumberAxisOptions,
-          }
-        : {};
 
     return {
         animation: { enabled: false },
         legend: { enabled: false },
-        series: [...volumeSeries, ...volumeProfileSeries, ...priceSeries],
+        series: [
+            ...createVolumeSeries(getTheme, keys, shownVolumeKey),
+            ...createVolumeProfileSeries(getTheme, volumeProfile, tickSize),
+            ...createPriceSeries(chartType, keys, logger),
+        ],
         axes: {
-            y: {
-                type: 'number',
-                position: 'right',
-                crosshair: {
-                    enabled: true,
-                    snap: false,
-                },
-                // @ts-expect-error undocumented option
-                layoutConstraints: {
-                    stacked: false,
-                    width: 100,
-                    unit: 'percent',
-                    align: 'start',
-                },
-            },
-            x: {
-                type: 'ordinal-time',
-                position: 'bottom',
-                line: {
-                    enabled: false,
-                },
-                label: {
-                    enabled: true,
-                },
-                crosshair: {
-                    enabled: true,
-                },
-            },
-            ...volumeAxis,
+            ...createPriceAxis(),
+            ...createDateAxis(),
+            ...createVolumeAxis(volume),
             ...createVolumeProfileAxis(volumeProfile),
         },
         tooltip: { enabled: true, mode: 'shared' },
         data,
         formatter,
-        ...annotationOpts,
-        ...navigatorOpts,
-        ...statusBarOpts,
-        ...zoomOpts,
-        ...toolbarOpts,
-        ...syncGroup,
+        ...createAnnotationsOptions(toolbar, themeOverrides, data, dateKey, shownVolumeKey),
+        ...createNavigatorOptions(navigator, dateKey, shownVolumeKey),
+        ...createRangesOptions(rangeButtons, zoom),
+        ...createStatusBarOptions(statusBar, keys, shownVolumeKey),
+        ...createSyncOptions(sync),
+        ...createZoomOptions(zoom),
         ...unusedOpts,
     } satisfies AgCartesianChartOptions<DatumDefault, never>;
-}
-
-function createVolumeSeries(
-    getTheme: () => ChartTheme,
-    xKey: string,
-    openKey: string,
-    closeKey: string,
-    volume: boolean,
-    volumeKey: string
-) {
-    if (!volume) return [];
-
-    return [
-        {
-            type: 'bar',
-            xKey: xKey,
-            yKey: volumeKey,
-            yKeyAxis: 'yVolume',
-            tooltip: { enabled: false },
-            grouped: false,
-            // @ts-expect-error undocumented options: simpleItemStyler, focusPriority
-            simpleItemStyler(datum: any) {
-                const { up, down } = getTheme().palette;
-                return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
-            },
-            focusPriority: 1,
-            highlight: { unhighlightedSeries: { opacity: 1 } },
-        } satisfies AgBarSeriesOptions,
-    ];
 }
 
 const RANGE_AREA_TYPE = 'range-area';
@@ -291,32 +145,17 @@ interface PriceSeriesSingleKeys {
     yKey: string;
 }
 
-function createPriceSeries(
-    chartType: AgPriceVolumePreset['chartType'],
-    xKey: string,
-    highKey: string,
-    lowKey: string,
-    openKey: string,
-    closeKey: string,
-    logger: Logger
-) {
-    const keys: PriceSeriesKeys = {
-        xKey,
-        openKey,
-        closeKey,
-        highKey,
-        lowKey,
-    };
+function createPriceSeries(chartType: AgPriceVolumeChartType, keys: PriceSeriesKeys, logger: Logger) {
     const singleKeys: PriceSeriesSingleKeys = {
-        xKey,
-        yKey: closeKey,
+        xKey: keys.xKey,
+        yKey: keys.closeKey,
     };
     const common: PriceSeriesCommon = {
         tooltip: { enabled: false },
         pickOutsideVisibleMinorAxis: true,
     };
 
-    switch (chartType ?? 'candlestick') {
+    switch (chartType) {
         case 'ohlc':
             return createPriceSeriesOHLC(common, keys);
         case 'line':
@@ -330,7 +169,7 @@ function createPriceSeries(
         case 'hollow-candlestick':
             return createPriceSeriesCandlestick(common, keys);
         default:
-            logger.warnOnce(`unknown chart type: ${chartType}; expected one of: ${chartTypes.join(', ')}`);
+            logger.warnOnce(`unknown chart type: ${String(chartType)}; expected one of: ${chartTypes.join(', ')}`);
             return createPriceSeriesCandlestick(common, keys);
     }
 }
@@ -418,9 +257,181 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
     ];
 }
 
-export function inlineSwitch<T extends string>(
-    caseName: T,
-    switchCases: { [K in T]?: object } & { default?: object }
-): object | undefined {
-    return switchCases[caseName] ?? switchCases.default;
+function createVolumeSeries(
+    getTheme: () => ChartTheme,
+    { xKey, openKey, closeKey }: PriceSeriesKeys,
+    volumeKey: string | undefined
+) {
+    if (volumeKey == null) return [];
+
+    return [
+        {
+            type: 'bar',
+            xKey,
+            yKey: volumeKey,
+            yKeyAxis: 'yVolume',
+            tooltip: { enabled: false },
+            grouped: false,
+            // @ts-expect-error undocumented options: simpleItemStyler, focusPriority
+            simpleItemStyler(datum: DatumDefault) {
+                const { up, down } = getTheme().palette;
+                return { fill: datum[openKey] < datum[closeKey] ? up?.fill : down?.fill };
+            },
+            focusPriority: 1,
+            highlight: { unhighlightedSeries: { opacity: 1 } },
+        } satisfies AgBarSeriesOptions,
+    ];
+}
+
+function createPriceAxis() {
+    return {
+        y: {
+            type: 'number',
+            position: 'right',
+            crosshair: {
+                enabled: true,
+                snap: false,
+            },
+            // @ts-expect-error undocumented option
+            layoutConstraints: {
+                stacked: false,
+                width: 100,
+                unit: 'percent',
+                align: 'start',
+            },
+        } satisfies AgNumberAxisOptions,
+    };
+}
+
+function createDateAxis() {
+    return {
+        x: {
+            type: 'ordinal-time',
+            position: 'bottom',
+            line: {
+                enabled: false,
+            },
+            label: {
+                enabled: true,
+            },
+            crosshair: {
+                enabled: true,
+            },
+        } satisfies AgOrdinalTimeAxisOptions,
+    };
+}
+
+function createVolumeAxis(volume: boolean): Record<string, AgNumberAxisOptions> {
+    if (!volume) return {};
+
+    return {
+        yVolume: {
+            type: 'number',
+            position: 'left',
+            label: { enabled: false },
+            crosshair: { enabled: false },
+            gridLine: { enabled: false },
+            nice: false,
+            // @ts-expect-error undocumented option
+            layoutConstraints: {
+                stacked: false,
+                width: 20,
+                unit: 'percent',
+                align: 'end',
+            },
+        } satisfies AgNumberAxisOptions,
+    };
+}
+
+function createAnnotationsOptions(
+    toolbar: boolean,
+    themeOverrides: AgThemeOverrides | undefined,
+    data: DatumDefault[] | undefined,
+    xKey: string,
+    volumeKey: string | undefined
+) {
+    const buttons = themeOverrides?.common?.annotations?.toolbar?.buttons ?? toolbarButtons;
+
+    return {
+        annotations: {
+            enabled: toolbar,
+            optionsToolbar: {
+                enabled: toolbar,
+            },
+            // @ts-expect-error undocumented option
+            snap: true,
+            toolbar: {
+                enabled: toolbar,
+                buttons,
+                padding: 0,
+            },
+            data,
+            xKey,
+            volumeKey,
+        } satisfies AgAnnotationsOptions,
+    };
+}
+
+function createNavigatorOptions(navigator: boolean, xKey: string, volumeKey: string | undefined) {
+    const miniChart =
+        volumeKey == null
+            ? {}
+            : {
+                  miniChart: {
+                      enabled: navigator,
+                      series: [{ type: 'line' as const, xKey, yKey: volumeKey }],
+                  },
+              };
+
+    return {
+        navigator: {
+            enabled: navigator,
+            ...miniChart,
+        } satisfies AgNavigatorOptions,
+    };
+}
+
+function createRangesOptions(rangeButtons: boolean, zoom: boolean) {
+    return {
+        ranges: {
+            enabled: rangeButtons && zoom,
+        } satisfies AgRangesOptions,
+    };
+}
+
+function createStatusBarOptions(
+    statusBar: boolean,
+    { openKey, closeKey, highKey, lowKey }: PriceSeriesKeys,
+    volumeKey: string | undefined
+) {
+    if (!statusBar) return {};
+
+    return {
+        statusBar: {
+            enabled: true,
+            highKey,
+            openKey,
+            lowKey,
+            closeKey,
+            volumeKey,
+        },
+    };
+}
+
+function createSyncOptions(sync: boolean) {
+    if (!sync) return {};
+
+    return {
+        sync: {
+            enabled: true,
+        } satisfies AgChartSyncOptions,
+    };
+}
+
+function createZoomOptions(zoom: boolean) {
+    return {
+        zoom: {
+            enabled: zoom,
+        } satisfies AgZoomOptions,
+    };
 }
