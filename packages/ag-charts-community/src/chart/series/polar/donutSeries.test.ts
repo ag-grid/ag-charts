@@ -13,6 +13,7 @@ import type {
 import { AgCharts } from '../../../api/agCharts';
 import { OptionsGraph } from '../../../module/optionsGraph';
 import type { BBox } from '../../../scene/bbox';
+import type { Line } from '../../../scene/shape/line';
 import type { Sector } from '../../../scene/shape/sector';
 import type { Text } from '../../../scene/shape/text';
 import { Transformable } from '../../../scene/transformable';
@@ -131,6 +132,105 @@ function labelsOverlappingEachOther(myChart: Chart) {
     }
     return offenders;
 }
+
+/** A label's border is stroked inside its box, so a line end meets it anywhere across the stroke's width. */
+function calloutLinesMissingTheirBorder(myChart: Chart, borderWidth: number) {
+    const tolerance = 1e-3;
+    const offenders: string[] = [];
+    for (const series of calloutSeries(myChart)) {
+        for (const line of series['calloutLabelSelection'].selectByTag<Line>(DonutNodeTag.CalloutLine)) {
+            const datum: ReturnType<typeof calloutNodeDataOf>[number] = line.unsafeClosestDatum();
+            const label = datum.calloutLabel;
+            if (!line.visible || label?.box == null || label.hidden) continue;
+
+            const { x2, y2 } = line;
+            const outer = label.box;
+            const inner = label.box.clone().grow(-borderWidth);
+            const gap = Math.hypot(
+                Math.max(outer.x - x2, 0, x2 - (outer.x + outer.width)),
+                Math.max(outer.y - y2, 0, y2 - (outer.y + outer.height))
+            );
+            const depth = Math.min(x2 - inner.x, inner.x + inner.width - x2, y2 - inner.y, inner.y + inner.height - y2);
+            if (gap > tolerance || depth > tolerance) {
+                offenders.push(`${String(label.text)} (gap ${gap.toFixed(2)}, depth ${depth.toFixed(2)})`);
+            }
+        }
+    }
+    return offenders;
+}
+
+async function createSizedChart(options: AgPolarChartOptions, width: number, height: number) {
+    const prepared = prepareTestOptions({ ...options });
+    prepared.width = width;
+    prepared.height = height;
+    const sized = deproxy(AgCharts.create(prepared) as AgChartProxy);
+    await waitForChartStability(sized);
+    return sized;
+}
+
+/** Short sectors between tall ones, in a chart too narrow for their labels to be pushed clear. */
+const NARROW_SHORT_BETWEEN_TALL: AgPolarChartOptions = {
+    data: [
+        { name: 'Tall A', value: 30, radius: 100 },
+        { name: 'Short 1', value: 5, radius: 30 },
+        { name: 'Tall B', value: 30, radius: 100 },
+        { name: 'Short 2', value: 5, radius: 30 },
+        { name: 'Tall C', value: 30, radius: 100 },
+        { name: 'Short 3', value: 5, radius: 30 },
+    ],
+    series: [{ type: 'pie', calloutLabelKey: 'name', angleKey: 'value', radiusKey: 'radius', radiusMin: 0 }],
+    legend: { enabled: false },
+};
+
+/** A short sector at the top, whose clearing push would run into the series title. */
+const SHORT_TOP_UNDER_SERIES_TITLE: AgPolarChartOptions = {
+    title: { text: 'Chart title' },
+    data: [
+        { name: 'Top short', value: 6, radius: 10 },
+        { name: 'Tall A', value: 30, radius: 100 },
+        { name: 'Short B', value: 6, radius: 15 },
+        { name: 'Tall C', value: 30, radius: 95 },
+        { name: 'Short D', value: 6, radius: 12 },
+        { name: 'Tall E', value: 30, radius: 90 },
+    ],
+    series: [
+        {
+            type: 'donut',
+            calloutLabelKey: 'name',
+            angleKey: 'value',
+            radiusKey: 'radius',
+            radiusMin: 0,
+            innerRadiusRatio: 0.4,
+            rotation: -11,
+            title: { text: 'Series title', showInLegend: false },
+        },
+    ],
+    legend: { enabled: false },
+};
+
+const boxedCalloutLabels = (border: boolean): AgPolarChartOptions => ({
+    data: [
+        { asset: 'Stocks', amount: 60000 },
+        { asset: 'Bonds', amount: 40000 },
+        { asset: 'Cash', amount: 7000 },
+        { asset: 'Real Estate', amount: 5000 },
+        { asset: 'Commodities', amount: 3000 },
+    ],
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'amount',
+            calloutLabelKey: 'asset',
+            calloutLabel: {
+                offset: 0,
+                padding: 12,
+                fill: 'lightgrey',
+                ...(border ? { border: { strokeWidth: 3, stroke: 'lightblue' } } : {}),
+            },
+        },
+    ],
+    legend: { enabled: false },
+});
 
 /** The `legend-e2e/legend-item-key` docs example: two concentric donuts, four tiny slices at the top. */
 const UNIFORM_RADIUS_CROWDED_TOP: AgPolarChartOptions = {
@@ -1100,45 +1200,53 @@ describe('DonutSeries', () => {
         });
     });
 
-    test('AG-8290 label boxing', async () => {
-        chart = await createChart({
-            data: [
-                { asset: 'Stocks', amount: 60000 },
-                { asset: 'Bonds', amount: 40000 },
-                { asset: 'Cash', amount: 7000 },
-                { asset: 'Real Estate', amount: 5000 },
-                { asset: 'Commodities', amount: 3000 },
-            ],
-            title: {
-                text: 'Portfolio Composition',
-            },
-            series: [
-                {
-                    type: 'pie',
-                    angleKey: 'amount',
-                    calloutLabelKey: 'asset',
-                    sectorLabelKey: 'amount',
-                    sectorLabel: {
-                        color: 'white',
-                        fontWeight: 'bold',
-                        padding: 5,
-                        border: { strokeWidth: 3, stroke: 'lightblue' },
-                        fill: 'lightgrey',
-                        fillOpacity: 0.7,
-                        cornerRadius: 10,
-                    },
-                    calloutLabel: {
-                        color: 'green',
-                        fontWeight: 'bold',
-                        padding: 5,
-                        border: { strokeWidth: 3, stroke: 'lightblue' },
-                        fill: 'lightgrey',
-                        fillOpacity: 0.7,
-                        cornerRadius: 10,
-                    },
+    const labelBoxingOptions = (calloutOffset?: number): AgPolarChartOptions => ({
+        data: [
+            { asset: 'Stocks', amount: 60000 },
+            { asset: 'Bonds', amount: 40000 },
+            { asset: 'Cash', amount: 7000 },
+            { asset: 'Real Estate', amount: 5000 },
+            { asset: 'Commodities', amount: 3000 },
+        ],
+        title: {
+            text: 'Portfolio Composition',
+        },
+        series: [
+            {
+                type: 'pie',
+                angleKey: 'amount',
+                calloutLabelKey: 'asset',
+                sectorLabelKey: 'amount',
+                sectorLabel: {
+                    color: 'white',
+                    fontWeight: 'bold',
+                    padding: 5,
+                    border: { strokeWidth: 3, stroke: 'lightblue' },
+                    fill: 'lightgrey',
+                    fillOpacity: 0.7,
+                    cornerRadius: 10,
                 },
-            ],
-        });
+                calloutLabel: {
+                    color: 'green',
+                    fontWeight: 'bold',
+                    padding: 5,
+                    border: { strokeWidth: 3, stroke: 'lightblue' },
+                    fill: 'lightgrey',
+                    fillOpacity: 0.7,
+                    cornerRadius: 10,
+                    ...(calloutOffset == null ? {} : { offset: calloutOffset }),
+                },
+            },
+        ],
+    });
+
+    test('AG-8290 label boxing', async () => {
+        chart = await createChart(labelBoxingOptions());
+        await compare();
+    });
+
+    test('AG-8290 label boxing with zero callout offset', async () => {
+        chart = await createChart(labelBoxingOptions(0));
         await compare();
     });
 
@@ -2023,6 +2131,28 @@ describe('DonutSeries', () => {
 
                 expect(hasVariableRadius(chart)).toBe(true);
                 expect(labelsOverlappingASector(chart)).toEqual([]);
+            });
+
+            test.each([
+                ['short sectors in a narrow chart', NARROW_SHORT_BETWEEN_TALL, 175, 300],
+                ['short top sector under a series title', SHORT_TOP_UNDER_SERIES_TITLE, 450, 420],
+            ])('%s, where no push clears them', async (_name, seriesOptions, width, height) => {
+                chart = await createSizedChart(seriesOptions, width, height);
+
+                expect(visibleCalloutLabels(chart)).not.toEqual([]);
+                expect(labelsOverlappingASector(chart)).toEqual([]);
+            });
+        });
+
+        describe('callout lines reach the label box', () => {
+            test.each([
+                ['padded box', false, 0],
+                ['padded box with a border', true, 3],
+            ])('%s', async (_name, border, borderWidth) => {
+                chart = await createChart(boxedCalloutLabels(border));
+
+                expect(visibleCalloutLabels(chart)).not.toEqual([]);
+                expect(calloutLinesMissingTheirBorder(chart, borderWidth)).toEqual([]);
             });
         });
 
