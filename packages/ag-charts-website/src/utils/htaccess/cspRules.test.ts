@@ -11,6 +11,7 @@ import {
 import {
     ACCEPTED_CSP_VIOLATIONS,
     ASTRO_HYDRATION_HASHES_VERIFIED_FOR,
+    EXAMPLES_PATH_REGEXP,
     getCspDirectives,
     getScopedCspHtaccessBlock,
 } from './cspRules';
@@ -334,8 +335,21 @@ describe('cspRules', () => {
 
         it('matches the /examples/ and /archive/ segment anywhere (charts nests examples under framework/gallery paths)', () => {
             expect(getScopedCspHtaccessBlock({ env: 'production' }, 'enforce')).toContain(
-                '<If "%{REQUEST_URI} =~ m#/(examples|archive)/#">'
+                '<If "%{REQUEST_URI} =~ m#/(examples/[^/?]|archive/)#">'
             );
+        });
+
+        it('keeps the top-level /examples/ demo page on the site policy', () => {
+            for (const path of ['/charts/examples/', '/charts/examples/?theme=dark', '/examples/']) {
+                expect(EXAMPLES_PATH_REGEXP.test(path), path).toBe(false);
+            }
+            for (const path of [
+                '/charts/javascript/quick-start/examples/create-a-chart/',
+                '/charts/gallery/examples/simple-bar/',
+                '/charts/archive/12.0.0/javascript/',
+            ]) {
+                expect(EXAMPLES_PATH_REGEXP.test(path), path).toBe(true);
+            }
         });
 
         it('report-only mode never unsets the enforced header', () => {
