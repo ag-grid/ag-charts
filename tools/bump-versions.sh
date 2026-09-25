@@ -9,6 +9,14 @@ NEW_VERSION="$1"
 TOOLS_DIR=$(dirname $0)
 SKIP_FORMAT="${2:-no}"
 
+# generate-react-seed.mjs below imports prettier, so the bump needs the workspace's packages even on
+# a bare checkout, such as the job that makes the "Release X.Y.Z Prep" commit. Install them here,
+# before any package.json is bumped, while the committed yarn.lock still matches.
+if ! node -e "require.resolve('prettier')" >/dev/null 2>&1; then
+    echo "prettier is not installed - running yarn install for the demo seed tooling"
+    yarn install --frozen-lockfile --ignore-scripts --prefer-offline
+fi
+
 PACKAGES=(
     ag-charts
     ag-charts-core
