@@ -1164,6 +1164,9 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                     crossFilterSelected: scratch.crossFilterSelected,
                 });
             }
+            if (dst === undefined) {
+                ctx.nodeIndex++;
+            }
         }
 
         // Label data (only if enabled - skip expensive getLabelText when disabled)
@@ -1258,9 +1261,6 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         for (let i = startIndex; i < endIndex; i += 1) {
             const datumIndex = ctx.indices?.[i] ?? i;
             this.handleDatum(ctx, scratch, datumIndex, undefined);
-            if (scratch.validPoint) {
-                ctx.nodeIndex++;
-            }
         }
     }
 
