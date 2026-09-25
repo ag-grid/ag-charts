@@ -204,11 +204,9 @@ export function createSupplierScorecard({ onSelect, ...props }: SupplierScorecar
      * clears the treatment — and unlike keying the style off the button's `aria-pressed`, it reaches
      * the pinned contact column too, which lives in a row container of its own.
      */
-    const rowClassRules = memo(
-        (selectedSupplierId: string | undefined): RowClassRules<Row> => ({
-            'is-selected': ({ data }) => data?.supplierId === selectedSupplierId,
-        })
-    );
+    const rowClassRules = memo((selectedSupplierId: string | undefined): RowClassRules<Row> => ({
+        'is-selected': ({ data }) => data?.supplierId === selectedSupplierId,
+    }));
 
     let { rows, supplierColors, selectedSupplierId } = props;
     let api: GridApi<Row> | undefined;

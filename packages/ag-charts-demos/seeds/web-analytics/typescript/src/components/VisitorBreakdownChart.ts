@@ -6,44 +6,41 @@ import { fmtInt } from '../format';
 import type { VisitorDatum } from '../types';
 
 export function createVisitorBreakdownChart(data: VisitorDatum[]): DataChart<VisitorDatum[]> {
-    return createDataChart(
+    return createDataChart(data, (data): AgPolarChartOptions => ({
+        theme: THEME,
         data,
-        (data): AgPolarChartOptions => ({
-            theme: THEME,
-            data,
-            series: [
-                {
-                    type: 'donut',
-                    angleKey: 'sessions',
-                    legendItemKey: 'type',
-                    cornerRadius: 4,
-                    innerRadiusRatio: 0.8,
-                    tooltip: {
-                        renderer: () => ({
-                            symbol: { marker: { shape: 'circle' } },
-                        }),
-                    },
-                },
-            ],
-            legend: {
-                enabled: true,
-                position: 'right',
-                spacing: 24,
-                maxWidth: 240,
-                item: {
-                    label: {
-                        formatter: ({ datum }) => `${datum.type} - ${fmtInt(datum.sessions)}`,
-                    },
-                    marker: {
-                        shape: 'circle',
-                        size: 12,
-                    },
+        series: [
+            {
+                type: 'donut',
+                angleKey: 'sessions',
+                legendItemKey: 'type',
+                cornerRadius: 4,
+                innerRadiusRatio: 0.8,
+                tooltip: {
+                    renderer: () => ({
+                        symbol: { marker: { shape: 'circle' } },
+                    }),
                 },
             },
-            formatter: {
-                angle: ({ value }) => fmtInt(Number(value)),
+        ],
+        legend: {
+            enabled: true,
+            position: 'right',
+            spacing: 24,
+            maxWidth: 240,
+            item: {
+                label: {
+                    formatter: ({ datum }) => `${datum.type} - ${fmtInt(datum.sessions)}`,
+                },
+                marker: {
+                    shape: 'circle',
+                    size: 12,
+                },
             },
-            padding: { top: 8, right: 8, bottom: 8, left: 8 },
-        })
-    );
+        },
+        formatter: {
+            angle: ({ value }) => fmtInt(Number(value)),
+        },
+        padding: { top: 8, right: 8, bottom: 8, left: 8 },
+    }));
 }
