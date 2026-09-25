@@ -1,5 +1,3 @@
-import { FONT_SIZE_RATIO } from 'ag-charts-core';
-
 /**
  * Title defaults for axes that render a title (cartesian + radius). Composed via
  * `mergeDefaults` into the relevant module `themeTemplate`s so the Normalised
@@ -11,7 +9,7 @@ export const titleAxisThemeTemplate = {
         text: 'Axis Title',
         spacing: 25,
         fontWeight: { $ref: 'axisTitleFontWeight' },
-        fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM, 'axisTitleFontSize'] },
+        fontSize: { $ref: 'axisTitleFontSize' },
         fontFamily: { $ref: 'axisTitleFontFamily' },
         color: { $ref: 'axisTitleColor' },
         wrapping: 'always',

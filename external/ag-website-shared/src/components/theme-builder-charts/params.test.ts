@@ -49,6 +49,8 @@ describe('params with an inherited value', () => {
         expect(INHERITED_KEYS.has('tooltipBorder')).toBe(true);
         expect(INHERITED_KEYS.has('focusShadow')).toBe(true);
         expect(INHERITED_KEYS.has('popupShadow')).toBe(false);
+        // A size scaled from another one.
+        expect(INHERITED_KEYS.has('axisTitleFontSize')).toBe(true);
     });
 
     it('names only params the builder offers', () => {
@@ -90,6 +92,10 @@ describe('what a param inherits from', () => {
         expect(inheritedSourcesOf('0 0 0 3px color-mix(in srgb, var(--ag-accent-color) 50%, transparent)')).toEqual([
             'accentColor',
         ]);
+    });
+
+    it('names the params a calculation scales', () => {
+        expect(inheritedSourcesOf({ calc: 'fontSize * 1.5' })).toEqual(['fontSize']);
     });
 
     it('names nothing for a value that stands alone', () => {

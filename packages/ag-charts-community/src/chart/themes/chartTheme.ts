@@ -220,7 +220,7 @@ export class ChartTheme {
             axisLabelFontWeight: { $ref: 'fontWeight' },
             axisTitleColor: { $ref: 'textColor' },
             axisTitleFontFamily: { $ref: 'fontFamily' },
-            axisTitleFontSize: { $ref: 'fontSize' },
+            axisTitleFontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
             axisTitleFontWeight: { $ref: 'fontWeight' },
 
             buttonBackgroundColor: { $ref: 'backgroundColor' },
