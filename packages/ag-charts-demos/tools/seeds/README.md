@@ -23,8 +23,8 @@ replace it with the clone's starting commit.
 Nothing lists the seeds. Everything that needs to know which seeds there are walks
 `seeds/<demo>/<framework>/` and takes the folders that carry a `.seed-manifest.json`:
 
-- the website: the demo page offers an "Open in StackBlitz" button and a "See on GitHub" link for
-  every framework with a manifest, in the order React, Angular, Vue, TypeScript (`readSeedManifests`
+- the website: the demo page's "Open in StackBlitz" and "See on GitHub" buttons list every
+  framework with a manifest, in the order React, Angular, Vue, TypeScript (`readSeedManifests`
   in `packages/ag-charts-website/src/components/demo-examples/seedLinks.ts`);
 - the parity harness, with `PARITY_DISCOVER=1`, serves and compares every port with a manifest
   that is not stale, and lists the stale ones it skips (`e2e/parity/README.md`, "Discovered ports");
