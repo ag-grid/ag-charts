@@ -15,17 +15,35 @@ const PRODUCTION = 'https://www.ag-grid.com/charts';
 const TREE = 'https://github.com/ag-grid/ag-charts/tree';
 const SEEDS = 'packages/ag-charts-demos/seeds';
 
-/** A demo page's seed list as `DemoPage.astro` renders it (Astro's scoped class names included). */
+/**
+ * A demo page's seed buttons as `DemoPage.astro` renders them (Astro's scoped class names
+ * included): with one framework, each button is itself the link; with more, each opens a list of
+ * one link per framework.
+ */
 function renderPage(links) {
-    const items = links
-        .map(
-            ({ framework, stackblitz, github }) => `<li class="_openInItem_1x2y">
-<a class="button-secondary _openInButton_1x2y" href="${stackblitz}" target="_blank" rel="noreferrer" data-seed-framework="${framework}"><svg></svg>Open in StackBlitz (${framework})</a>
-<a class="button-tertiary _openInSource_1x2y" href="${github}" target="_blank" rel="noreferrer" data-seed-source="${framework}"><svg></svg>See on GitHub</a>
-</li>`
-        )
-        .join('\n');
-    return `<!doctype html><html><body><a href="/charts/">Home</a><ul class="_openIn_1x2y" aria-label="Run this demo yourself">${items}</ul></body></html>`;
+    const action = (label, buttonClass, attribute, hrefOf) => {
+        if (links.length === 1) {
+            const [seed] = links;
+            return `<a class="${buttonClass} _openInButton_1x2y" href="${hrefOf(seed)}" target="_blank" rel="noreferrer" ${attribute}="${seed.framework}"><svg></svg>${label}</a>`;
+        }
+        const items = links
+            .map(
+                (seed) =>
+                    `<li><a class="_openInLink_1x2y" href="${hrefOf(seed)}" target="_blank" rel="noreferrer" ${attribute}="${seed.framework}">${seed.framework}</a></li>`
+            )
+            .join('\n');
+        return `<details class="_openInMenu_1x2y" name="demo-open-in" data-open-in-menu>
+<summary class="${buttonClass} _openInButton_1x2y"><svg></svg>${label}<svg></svg></summary>
+<ul class="_openInList_1x2y" aria-label="${label}">${items}</ul>
+</details>`;
+    };
+    const buttons = links.length
+        ? `<div class="_openIn_1x2y" role="group" aria-label="Run this demo yourself">
+${action('Open in StackBlitz', 'button-secondary', 'data-seed-framework', (seed) => seed.stackblitz)}
+${action('See on GitHub', 'button-tertiary', 'data-seed-source', (seed) => seed.github)}
+</div>`
+        : '';
+    return `<!doctype html><html><body><a href="/charts/">Home</a>${buttons}</body></html>`;
 }
 
 const seedLink = (demo, framework, label, ref = 'latest') => ({

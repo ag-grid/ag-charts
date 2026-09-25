@@ -100,8 +100,9 @@ download.
 ### How the demo pages link the seeds
 
 The showcase pages (`ag-charts-website/src/pages/examples*.astro`, rendered through
-`src/components/demo-examples/DemoPage.astro`) show one "Open in StackBlitz" button and one
-"See on GitHub" link per framework the demo has a seed for. The set is not configured anywhere:
+`src/components/demo-examples/DemoPage.astro`) show an "Open in StackBlitz" and a "See on GitHub"
+button, each opening a list of the frameworks the demo has a seed for (with a single framework,
+each button links straight to it). The set is not configured anywhere:
 `seedLinks.ts` in that folder reads every `seeds/<id>/<framework>/.seed-manifest.json` when the
 site builds and offers exactly the frameworks that have one, in the order React, Angular, Vue,
 TypeScript. **A new port becomes visible on the site by committing its folder with a manifest;
