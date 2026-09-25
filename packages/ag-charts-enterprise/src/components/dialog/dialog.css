@@ -49,9 +49,12 @@
 
 .ag-charts-dialog__tab-button:hover {
     background: none;
+    border-color: transparent;
+    color: var(--ag-charts-panel-subtle-text-color);
 }
 
-.ag-charts-dialog__tab-button--active {
+.ag-charts-dialog__tab-button--active,
+.ag-charts-dialog__tab-button--active:hover {
     border-color: var(--ag-charts-accent-color);
     color: inherit;
 }
@@ -149,6 +152,7 @@
 
 .ag-charts-dialog__color-picker-button:hover {
     background: var(--color);
+    color: transparent;
 }
 
 .ag-charts-dialog__color-picker-button--multi-color,
