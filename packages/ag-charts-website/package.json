@@ -66,7 +66,7 @@
     "typescript": "~5.8.3",
     "vite": "5.4.20",
     "vite-plugin-mkcert": "^2.1.0",
-    "vite-plugin-svgr": "^5.2.0",
+    "vite-plugin-svgr": "^4.5.0",
     "vitest": "2.1.9"
   },
   "devDependencies": {
