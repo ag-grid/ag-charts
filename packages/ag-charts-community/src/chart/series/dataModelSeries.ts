@@ -9,13 +9,9 @@ import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
 import type { PropertyDefinition } from '../data/dataModelTypes';
 import { DataSet } from '../data/dataSet';
-import type {
-    PickFocusInputs,
-    PickFocusOutputs,
-    SeriesConstructorOpts,
-    SeriesNodeDataContext,
-    SeriesNodePickMatch,
-} from './series';
+import type { PickFocusInputs, PickFocusOutputs, SeriesNodePickMatch } from './pickTypes';
+import { SeriesNodeDatumSentinel } from './pickTypes';
+import type { SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import { type SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
@@ -152,13 +148,8 @@ export abstract class DataModelSeries<
             return;
         }
 
-        const datumIndex = this.computeFocusDatumIndex(opts, nodeData);
-        if (datumIndex === undefined) {
-            return;
-        }
-
         const { clipFocusBox } = this;
-        const datum = nodeData[datumIndex];
+        const { datum, datumIndex } = this.findFocus(opts, nodeData);
         const derivedOpts = { ...opts, datumIndex };
         const bounds = this.computeFocusBounds(derivedOpts);
         if (bounds !== undefined) {
@@ -172,47 +163,78 @@ export abstract class DataModelSeries<
         return matches;
     }
 
-    protected isDatumEnabled(nodeData: TDatum[], datumIndex: number): boolean {
-        const { missing = false, enabled = true, focusable = true } = nodeData[datumIndex];
+    protected isDatumEnabled(nodeData: TDatum[], nodeDatumIndex: number): boolean {
+        const { missing = false, enabled = true, focusable = true } = nodeData[nodeDatumIndex];
         return !missing && enabled && focusable;
     }
 
-    private computeFocusDatumIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
-        const searchBackward = (datumIndex: number, delta: number): number | undefined => {
-            while (datumIndex >= 0 && !this.isDatumEnabled(nodeData, datumIndex)) {
-                datumIndex += delta;
+    private findNodeDataIndexBounds(targetDatumIndex: number, nodeData: TDatum[]) {
+        if (nodeData.length === 0) return [undefined, undefined];
+
+        const result: [undefined | number, undefined | number] = [undefined, undefined];
+        let low = 0;
+        let upp = nodeData.length - 1;
+        while (low <= upp) {
+            const mid = (low + upp) >> 1;
+            const midNode = nodeData[mid];
+            if (midNode.datumIndex < targetDatumIndex) {
+                result[0] = mid;
+                low = mid + 1;
+            } else if (midNode.datumIndex > targetDatumIndex) {
+                result[1] = mid;
+                upp = mid - 1;
+            } /* midNode.datumIndex === targetDatumIndex */ else {
+                // Exact match found, but there might be duplicate `datumIndex` entries (e.g. range-area), so search for
+                // the 1st duplicate:
+                let firstIdx = mid;
+                while (firstIdx > 0 && nodeData[firstIdx - 1].datumIndex === targetDatumIndex) {
+                    firstIdx--;
+                }
+                return [firstIdx, firstIdx];
             }
-            return datumIndex === -1 ? undefined : datumIndex;
+        }
+        return result;
+    }
+
+    private findFocus(opts: PickFocusInputs, nodeData: TDatum[]): Pick<PickFocusOutputs, 'datum' | 'datumIndex'> {
+        const clampedDatumIndex = clamp(0, opts.datumIndex, this.dataCount() - 1);
+        const [lower, upper] = this.findNodeDataIndexBounds(clampedDatumIndex, nodeData);
+
+        const searchBackward = (nodeDatumIndex: number, delta: number): number | undefined => {
+            while (nodeDatumIndex >= 0 && !this.isDatumEnabled(nodeData, nodeDatumIndex)) {
+                nodeDatumIndex += delta;
+            }
+            return nodeDatumIndex === -1 ? undefined : nodeDatumIndex;
         };
-        const searchForward = (datumIndex: number, delta: number): number | undefined => {
-            while (datumIndex < nodeData.length && !this.isDatumEnabled(nodeData, datumIndex)) {
-                datumIndex += delta;
+        const searchForward = (nodeDatumIndex: number, delta: number): number | undefined => {
+            while (nodeDatumIndex < nodeData.length && !this.isDatumEnabled(nodeData, nodeDatumIndex)) {
+                nodeDatumIndex += delta;
             }
-            return datumIndex === nodeData.length ? undefined : datumIndex;
+            return nodeDatumIndex === nodeData.length ? undefined : nodeDatumIndex;
         };
 
+        let nextNodeIndex: number | undefined;
         // Search forward or backwards depending on the delta direction.
-        let datumIndex: number | undefined;
-        const clampedIndex = clamp(0, opts.datumIndex, nodeData.length - 1);
-        if (opts.datumIndexDelta < 0) {
-            datumIndex = searchBackward(clampedIndex, opts.datumIndexDelta);
-        } else if (opts.datumIndexDelta > 0) {
-            datumIndex = searchForward(clampedIndex, opts.datumIndexDelta);
-        } /* opts.datumIndexDelta === 0 */ else {
-            datumIndex = searchForward(clampedIndex, +1) ?? searchBackward(clampedIndex, -1);
+        if (lower !== undefined && upper !== undefined) {
+            if (opts.datumIndexDelta < 0) {
+                nextNodeIndex = searchBackward(lower, opts.datumIndexDelta);
+            } else if (opts.datumIndexDelta > 0) {
+                nextNodeIndex = searchForward(upper, opts.datumIndexDelta);
+            } /* opts.datumIndexDelta === 0 */ else {
+                if (nodeData[lower].datumIndex === clampedDatumIndex) {
+                    nextNodeIndex = lower;
+                }
+                if (nodeData[upper].datumIndex === clampedDatumIndex) {
+                    nextNodeIndex = upper;
+                }
+            }
         }
 
-        if (datumIndex === undefined) {
-            if (opts.datumIndexDelta === 0) {
-                return;
-            } else {
-                // If datumIndex is undefined, then this datum is the first or last enabled datum.
-                // last enabled datum. If that's the case, then reverse the keyboard delta to stay on
-                // this datum.
-                return opts.datumIndex - opts.datumIndexDelta;
-            }
+        if (nextNodeIndex === undefined) {
+            return { datum: SeriesNodeDatumSentinel.CULLED, datumIndex: clampedDatumIndex };
         } else {
-            return datumIndex;
+            const nextNode = nodeData[nextNodeIndex];
+            return { datum: nextNode, datumIndex: nextNode.datumIndex };
         }
     }
 

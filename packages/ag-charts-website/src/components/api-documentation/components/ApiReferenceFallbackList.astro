@@ -19,24 +19,22 @@ const { id, members, hideRequired } = Astro.props;
 ---
 
 <dl class={styles.referenceList}>
-    {
-        members.map((member) => {
-            const memberDocs = parseJsDocs(member.docs);
-            return (
-                <div class={styles.referenceRow} id={`reference-${id}-${member.name}`}>
-                    <dt>
-                        <span class={styles.propertyName}>{cleanupName(member.name)}</span>
-                        {!member.optional && !hideRequired && <span class={styles.required}>required</span>}
-                        <code class={styles.propertyType}>{normalizeType(member.type)}</code>
-                        {member.defaultValue != null && (
-                            <span class={styles.propertyDefault}>default: {member.defaultValue}</span>
-                        )}
-                    </dt>
-                    {/* Always rendered: a definition-list group needs both a term and a
+    {members.map((member) => {
+        const memberDocs = parseJsDocs(member.docs);
+        return (
+            <div class={styles.referenceRow} id={`reference-${id}-${member.name}`}>
+                <dt>
+                    <span class={styles.propertyName}>{cleanupName(member.name)}</span>
+                    {!member.optional && !hideRequired && <span class={styles.required}>required</span>}
+                    <code class={styles.propertyType}>{normalizeType(member.type)}</code>
+                    {member.defaultValue != null && (
+                        <span class={styles.propertyDefault}>default: {member.defaultValue}</span>
+                    )}
+                </dt>
+                {/* Always rendered: a definition-list group needs both a term and a
                         description, even for undocumented members. */}
-                    <dd class="text-secondary">{memberDocs}</dd>
-                </div>
-            );
-        })
-    }
+                <dd class="text-secondary">{memberDocs}</dd>
+            </div>
+        );
+    })}
 </dl>

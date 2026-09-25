@@ -1,25 +1,10 @@
 import type { Size, SizeMonitor } from '../util/sizeMonitor';
 
 type StyleProperty =
-    | '--left'
-    | '--top'
-    | 'height'
-    | 'left'
-    | 'pointer-events'
-    | 'position-anchor'
-    | 'top'
-    | 'translate'
-    | 'width';
+    '--left' | '--top' | 'height' | 'left' | 'pointer-events' | 'position-anchor' | 'top' | 'translate' | 'width';
 
 type HtmlAttribute =
-    | 'aria-atomic'
-    | 'aria-hidden'
-    | 'aria-live'
-    | 'data-axis-id'
-    | 'data-key'
-    | 'popover'
-    | 'role'
-    | 'tabindex';
+    'aria-atomic' | 'aria-hidden' | 'aria-live' | 'data-axis-id' | 'data-key' | 'popover' | 'role' | 'tabindex';
 
 type CacheKey =
     | 'innerHTML'

@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { type CrossLineLabelOverflow, mapValues } from 'ag-charts-core';
+import {
+    type CrossLineLabelOverflow,
+    type NormalisedAxisCrossLineLabelOptions,
+    type NormalisedAxisCrossLineOptions,
+    mapValues,
+} from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineLabelOptions,
@@ -1262,15 +1267,35 @@ describe('CrossLine', () => {
     describe('AG-7486: label overflow', () => {
         const outsidePositions: AgCrossLineLabelPosition[] = labelPositions.filter((p) => !p.startsWith('inside'));
 
+        function crossLineOptions(
+            type: CrossLineType,
+            label: Partial<NormalisedAxisCrossLineLabelOptions>
+        ): NormalisedAxisCrossLineOptions {
+            const style = { enabled: true, stroke: 'black', strokeWidth: 1 };
+            const fullLabel: NormalisedAxisCrossLineLabelOptions = {
+                enabled: true,
+                text: 'A long enough label',
+                fontSize: 12,
+                fontFamily: 'sans-serif',
+                fontWeight: 'normal',
+                padding: 5,
+                color: 'black',
+                cornerRadius: 0,
+                ...label,
+            };
+            return type === 'line'
+                ? { ...style, type, value: 0, label: fullLabel }
+                : { ...style, type, range: [0, 1], label: fullLabel };
+        }
+
         function crossLineWith(
             overflow: CrossLineLabelOverflow,
             position: AgCrossLineLabelPosition,
             type: CrossLineType
         ) {
             const crossLine = new CartesianCrossLine();
-            crossLine.type = type;
+            crossLine.applyOptions(crossLineOptions(type, { overflow, position }));
             crossLine.position = 'bottom';
-            crossLine.label.set({ enabled: true, text: 'A long enough label', overflow, position });
             return crossLine;
         }
 
@@ -1295,9 +1320,8 @@ describe('CrossLine', () => {
 
         it('an unset overflow pads as pad-chart does', () => {
             const crossLine = new CartesianCrossLine();
-            crossLine.type = 'line';
+            crossLine.applyOptions(crossLineOptions('line', { position: 'top' }));
             crossLine.position = 'bottom';
-            crossLine.label.set({ enabled: true, text: 'A long enough label', position: 'top' });
 
             const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
             crossLine.calculatePadding(into);

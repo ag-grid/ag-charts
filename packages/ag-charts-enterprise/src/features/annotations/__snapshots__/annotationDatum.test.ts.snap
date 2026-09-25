@@ -1,0 +1,808 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Annotation datum lifecycle > serialised state > serialises a callout annotation created from minimal options 1`] = `
+[
+  {
+    "color": "#464646",
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 70,
+    },
+    "fill": "#464646",
+    "fillOpacity": 0.075,
+    "fontFamily": "Verdana, sans-serif",
+    "fontSize": 14,
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 30,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": "Callout",
+    "type": "callout",
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a comment annotation created from minimal options 1`] = `
+[
+  {
+    "color": "white",
+    "fill": "#464646",
+    "fontFamily": "Verdana, sans-serif",
+    "fontSize": 14,
+    "fontWeight": 700,
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "text": "Comment",
+    "type": "comment",
+    "x": {
+      "__type": "date",
+      "value": "2024-06-01T00:00:00.000Z",
+    },
+    "y": 50,
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a date-price-range annotation created from minimal options 1`] = `
+[
+  {
+    "background": {
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 70,
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 30,
+    },
+    "statistics": {
+      "color": "#000",
+      "divider": {
+        "stroke": "#181d1f",
+        "strokeOpacity": 0.5,
+        "strokeWidth": 1,
+      },
+      "fill": "#fafafa",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "stroke": "#ddd",
+      "strokeWidth": 1,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "top",
+    },
+    "type": "date-price-range",
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a date-range annotation created from minimal options 1`] = `
+[
+  {
+    "background": {
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 70,
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 30,
+    },
+    "statistics": {
+      "color": "#000",
+      "divider": {
+        "stroke": "#181d1f",
+        "strokeOpacity": 0.5,
+        "strokeWidth": 1,
+      },
+      "fill": "#fafafa",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "stroke": "#ddd",
+      "strokeWidth": 1,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "top",
+    },
+    "type": "date-range",
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a disjoint-channel annotation created from minimal options 1`] = `
+[
+  {
+    "background": {
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 80,
+    },
+    "endHeight": 40,
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 60,
+    },
+    "startHeight": 20,
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "top",
+    },
+    "type": "disjoint-channel",
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a fibonacci-retracement annotation created from minimal options 1`] = `
+[
+  {
+    "bands": 10,
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 80,
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "isMultiColor": true,
+    "label": {
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 10,
+    },
+    "rangeStroke": "#464646",
+    "reverse": false,
+    "showFill": true,
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 20,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "strokes": [
+      "#797b86",
+      "#e24c4a",
+      "#f49d2d",
+      "#65ab58",
+      "#409682",
+      "#4db9d2",
+      "#5090dc",
+      "#3068f9",
+      "#e24c4a",
+      "#913aac",
+      "#d93e64",
+    ],
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "center",
+    },
+    "type": "fibonacci-retracement",
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a fibonacci-retracement-trend-based annotation created from minimal options 1`] = `
+[
+  {
+    "bands": 10,
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-06-01T00:00:00.000Z",
+      },
+      "y": 80,
+    },
+    "endRetracement": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 50,
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "isMultiColor": true,
+    "label": {
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 10,
+    },
+    "rangeStroke": "#464646",
+    "reverse": false,
+    "showFill": true,
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 20,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "strokes": [
+      "#797b86",
+      "#e24c4a",
+      "#f49d2d",
+      "#65ab58",
+      "#409682",
+      "#4db9d2",
+      "#5090dc",
+      "#3068f9",
+      "#e24c4a",
+      "#913aac",
+      "#d93e64",
+    ],
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "center",
+    },
+    "type": "fibonacci-retracement-trend-based",
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a horizontal-line annotation created from minimal options 1`] = `
+[
+  {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "top",
+    },
+    "type": "horizontal-line",
+    "value": 50,
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a line annotation created from minimal options 1`] = `
+[
+  {
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 70,
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 30,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "top",
+    },
+    "type": "line",
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a note annotation created from minimal options 1`] = `
+[
+  {
+    "background": {
+      "fill": "#fafafa",
+      "stroke": "#ddd",
+      "strokeWidth": 1,
+    },
+    "color": "#000",
+    "fill": "#5090dc",
+    "fontFamily": "Verdana, sans-serif",
+    "fontSize": 14,
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "stroke": "white",
+    "strokeOpacity": 1,
+    "strokeWidth": 1,
+    "text": "Note",
+    "type": "note",
+    "x": {
+      "__type": "date",
+      "value": "2024-06-01T00:00:00.000Z",
+    },
+    "y": 50,
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a parallel-channel annotation created from minimal options 1`] = `
+[
+  {
+    "background": {
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 80,
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "height": 20,
+    "middle": {
+      "lineDash": [
+        6,
+        5,
+      ],
+      "strokeWidth": 1,
+    },
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 60,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "top",
+    },
+    "type": "parallel-channel",
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a price-range annotation created from minimal options 1`] = `
+[
+  {
+    "background": {
+      "fill": "#464646",
+      "fillOpacity": 0.075,
+    },
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 70,
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 30,
+    },
+    "statistics": {
+      "color": "#000",
+      "divider": {
+        "stroke": "#181d1f",
+        "strokeOpacity": 0.5,
+        "strokeWidth": 1,
+      },
+      "fill": "#fafafa",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "stroke": "#ddd",
+      "strokeWidth": 1,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "top",
+    },
+    "type": "price-range",
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a quick-date-price-range annotation created from minimal options 1`] = `
+[
+  {
+    "background": {},
+    "down": {
+      "fill": "#e35c5c",
+      "fillOpacity": 0.2,
+      "handle": {
+        "fill": "#ffffff",
+        "stroke": "#e35c5c",
+        "strokeOpacity": 1,
+        "strokeWidth": 2,
+      },
+      "statistics": {
+        "color": "#fff",
+        "divider": {
+          "stroke": "#fff",
+          "strokeOpacity": 0.5,
+          "strokeWidth": 1,
+        },
+        "fill": "#e35c5c",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "stroke": "#ddd",
+        "strokeWidth": 0,
+      },
+      "stroke": "#e35c5c",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 70,
+    },
+    "handle": {},
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 30,
+    },
+    "statistics": {
+      "divider": {},
+      "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+      "fontSize": 12,
+    },
+    "text": {
+      "alignment": "left",
+      "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+      "fontSize": 12,
+      "label": "",
+      "position": "top",
+    },
+    "type": "quick-date-price-range",
+    "up": {
+      "fill": "#5090dc",
+      "fillOpacity": 0.2,
+      "handle": {
+        "fill": "#ffffff",
+        "strokeOpacity": 1,
+        "strokeWidth": 2,
+      },
+      "statistics": {
+        "color": "#fff",
+        "divider": {
+          "stroke": "#fff",
+          "strokeOpacity": 0.5,
+          "strokeWidth": 1,
+        },
+        "fill": "#5090dc",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
+        "stroke": "#ddd",
+        "strokeWidth": 0,
+      },
+      "stroke": "#464646",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a text annotation created from minimal options 1`] = `
+[
+  {
+    "color": "#464646",
+    "fontFamily": "Verdana, sans-serif",
+    "fontSize": 14,
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "text": "Text",
+    "type": "text",
+    "x": {
+      "__type": "date",
+      "value": "2024-06-01T00:00:00.000Z",
+    },
+    "y": 50,
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises a vertical-line annotation created from minimal options 1`] = `
+[
+  {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "top",
+    },
+    "type": "vertical-line",
+    "value": {
+      "__type": "date",
+      "value": "2024-06-01T00:00:00.000Z",
+    },
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises an arrow annotation created from minimal options 1`] = `
+[
+  {
+    "end": {
+      "x": {
+        "__type": "date",
+        "value": "2024-09-01T00:00:00.000Z",
+      },
+      "y": 70,
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "start": {
+      "x": {
+        "__type": "date",
+        "value": "2024-03-01T00:00:00.000Z",
+      },
+      "y": 30,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "top",
+    },
+    "type": "arrow",
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises an arrow-down annotation created from minimal options 1`] = `
+[
+  {
+    "fill": "#ef5452",
+    "handle": {
+      "fill": "#ffffff",
+      "stroke": "#464646",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "type": "arrow-down",
+    "x": {
+      "__type": "date",
+      "value": "2024-06-01T00:00:00.000Z",
+    },
+    "y": 50,
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > serialised state > serialises an arrow-up annotation created from minimal options 1`] = `
+[
+  {
+    "fill": "#459d55",
+    "handle": {
+      "fill": "#ffffff",
+      "stroke": "#464646",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "type": "arrow-up",
+    "x": {
+      "__type": "date",
+      "value": "2024-06-01T00:00:00.000Z",
+    },
+    "y": 50,
+  },
+]
+`;
+
+exports[`Annotation datum lifecycle > toolbar drawing > serialises a horizontal line drawn from the toolbar 1`] = `
+[
+  {
+    "axisLabel": {
+      "color": "white",
+      "cornerRadius": 2,
+      "enabled": true,
+      "fill": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 12,
+      "textAlign": "center",
+    },
+    "handle": {
+      "fill": "#ffffff",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+    },
+    "stroke": "#464646",
+    "strokeOpacity": 1,
+    "strokeWidth": 2,
+    "text": {
+      "alignment": "center",
+      "color": "#464646",
+      "fontFamily": "Verdana, sans-serif",
+      "fontSize": 14,
+      "label": "",
+      "position": "top",
+    },
+    "type": "horizontal-line",
+    "value": 40,
+  },
+]
+`;

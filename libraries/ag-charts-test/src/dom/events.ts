@@ -29,14 +29,7 @@ export function makeMockEvent(
 }
 
 type TMouseEvent =
-    | 'mousedown'
-    | 'mouseup'
-    | 'mouseenter'
-    | 'mouseleave'
-    | 'mousemove'
-    | 'click'
-    | 'dblclick'
-    | 'contextmenu';
+    'mousedown' | 'mouseup' | 'mouseenter' | 'mouseleave' | 'mousemove' | 'click' | 'dblclick' | 'contextmenu';
 
 type TPointerEvent = 'pointerdown' | 'pointermove' | 'pointerup' | 'pointercancel' | 'lostpointercapture';
 
@@ -358,6 +351,6 @@ export function touchEvent(type: MockTouchTypes, mockEvent: MockEvent, mockTouch
     return event;
 }
 
-export function keydownEvent(input: { key: string; code: string }): KeyboardEvent {
+export function keydownEvent(input: KeyboardEventInit & { key: string; code: string }): KeyboardEvent {
     return new KeyboardEvent('keydown', input);
 }

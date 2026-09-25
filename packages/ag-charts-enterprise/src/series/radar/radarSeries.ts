@@ -386,7 +386,7 @@ export abstract class RadarSeries<
             this.updateDatumStyles(this.highlightSelection, true);
         }
 
-        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
+        const drawingMode = this.getChartHighlightDrawingMode();
 
         this.updateMarkers(this.itemSelection, false, 'overlay');
         this.updateMarkers(this.highlightSelection, true, drawingMode);

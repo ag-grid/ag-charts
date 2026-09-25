@@ -238,28 +238,20 @@ export {
 export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
 export { PanToBBoxScalingModeEnum } from './util/panToBBox';
 export { getItemId } from './chart/series/pickManager';
-export { Series, SeriesNodePickMode } from './chart/series/series';
+export { Series } from './chart/series/series';
+export { SeriesNodePickMode } from './chart/series/pickTypes';
 export type {
     MarkerStyleApply,
     MarkerStyleCompute,
-    PickFocusInputs,
-    PickFocusOutputs,
     SeriesNodeDataContext,
-    SeriesNodePickMatch,
     SeriesNodeStyleContext,
     SeriesDataEvent,
     UnknownSeries,
 } from './chart/series/series';
+export type { PickFocusInputs, PickFocusOutputs, SeriesNodePickMatch } from './chart/series/pickTypes';
 export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from './chart/series/seriesLabelUtil';
 export type { SeriesItemHighlightStyle } from './chart/series/seriesProperties';
-export {
-    FillGradientDefaults,
-    FillImageDefaults,
-    FillPatternDefaults,
-    toHighlightString,
-    toSelectionString,
-    isUnselected,
-} from './chart/series/seriesProperties';
+export { toHighlightString, toSelectionString, isUnselected } from './chart/series/seriesProperties';
 export type {
     DatumIndex,
     ErrorBoundSeriesNodeDatum,
@@ -324,6 +316,7 @@ export { plotAreaPathFill, prepareAreaFillAnimationFns } from './chart/series/ca
 export { calculateDataDiff } from './chart/series/cartesian/diffUtil';
 export {
     computeMarkerFocusBounds,
+    computeMarkerFocusBoundsOfNodeDatum,
     getMarkerStyles,
     cartesianMarkerDrawMode,
     markerFadeInAnimation,
@@ -438,7 +431,6 @@ export { OrdinalTimeScale } from './scale/ordinalTimeScale';
 export { ApproximateOrdinalTimeScale } from './scale/approximateOrdinalTimeScale';
 export { APPROXIMATE_THRESHOLD } from './scale/discreteTimeScale';
 export {
-    LabelStyle,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
     labelHasBox,

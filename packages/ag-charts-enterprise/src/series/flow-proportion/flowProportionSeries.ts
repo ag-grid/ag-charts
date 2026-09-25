@@ -662,20 +662,17 @@ export abstract class FlowProportionSeries<
         if (legendType !== 'category') return [];
 
         const { showInLegend } = this.options;
-        return Array.from(
-            this.processedNodes.values(),
-            ({ id, label }, index): _ModuleSupport.CategoryLegendDatum => ({
-                legendType: 'category',
-                id: this.id,
-                itemId: id,
-                seriesId: this.id,
-                enabled: true,
-                label: { text: label ?? id },
-                symbol: this.legendItemSymbol(FlowProportionDatumType.Node, flowNodeDatumIndex(index)),
-                hideInLegend: showInLegend === false,
-                isFixed: true,
-            })
-        );
+        return Array.from(this.processedNodes.values(), ({ id, label }, index): _ModuleSupport.CategoryLegendDatum => ({
+            legendType: 'category',
+            id: this.id,
+            itemId: id,
+            seriesId: this.id,
+            enabled: true,
+            label: { text: label ?? id },
+            symbol: this.legendItemSymbol(FlowProportionDatumType.Node, flowNodeDatumIndex(index)),
+            hideInLegend: showInLegend === false,
+            isFixed: true,
+        }));
     }
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {

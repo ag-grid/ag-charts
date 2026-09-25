@@ -85,15 +85,18 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
                     </noscript>
 
                     <h1 class="only-script">
-                        <span class={styles.heroTopLine}>The Best&nbsp;<FrameworkTextAnimation client:load /></span>
+                        <span class={styles.heroTopLine}>
+                            The Best&nbsp;
+                            <FrameworkTextAnimation client:load />
+                        </span>
                         <span>Charts in the World</span>
                     </h1>
 
                     <h2>{hero.subHeading}</h2>
 
-                    <a id="view-gallery" href={urlWithBaseUrl(hero.cta.url)} class="button-secondary"
-                        >{hero.cta.title} <Icon name="chevronRight" /></a
-                    >
+                    <a id="view-gallery" href={urlWithBaseUrl(hero.cta.url)} class="button-secondary">
+                        {hero.cta.title} <Icon name="chevronRight" />
+                    </a>
                 </div>
 
                 <ImageCarousel client:load />
@@ -108,13 +111,11 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
 
         <LandingPageSection tag={sections.gallery.tag} heading={sections.gallery.heading}>
             <div class={styles.gallerySectionCtas}>
-                {
-                    sections.gallery.ctas.map((cta) => (
-                        <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
-                            {cta.title} <Icon name="chevronRight" />
-                        </a>
-                    ))
-                }
+                {sections.gallery.ctas.map((cta) => (
+                    <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
+                        {cta.title} <Icon name="chevronRight" />
+                    </a>
+                ))}
             </div>
             <HomepageGalleryExamples />
         </LandingPageSection>
@@ -192,28 +193,26 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
             ctaId={sections.releases.ctaId}
         >
             <div class={styles.latestNewsVersions}>
-                {
-                    versionsData
-                        .filter((versionInfo) => versionInfo.version.endsWith('.0')) // Exclude patch releases
-                        .slice(0, 3)
-                        .map((versionInfo, index) => {
-                            if (versionInfo.highlights) {
-                                const { major, minor } = parseVersion(versionInfo.version);
-                                const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
-                                return (
-                                    <Version
-                                        client:load
-                                        isLatest={index === 0}
-                                        blogUrl={blogUrl}
-                                        version={versionInfo.version}
-                                        date={versionInfo.date}
-                                        highlights={versionInfo.highlights}
-                                        notesPath={versionInfo.notesPath}
-                                    />
-                                );
-                            }
-                        })
-                }
+                {versionsData
+                    .filter((versionInfo) => versionInfo.version.endsWith('.0')) // Exclude patch releases
+                    .slice(0, 3)
+                    .map((versionInfo, index) => {
+                        if (versionInfo.highlights) {
+                            const { major, minor } = parseVersion(versionInfo.version);
+                            const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
+                            return (
+                                <Version
+                                    client:load
+                                    isLatest={index === 0}
+                                    blogUrl={blogUrl}
+                                    version={versionInfo.version}
+                                    date={versionInfo.date}
+                                    highlights={versionInfo.highlights}
+                                    notesPath={versionInfo.notesPath}
+                                />
+                            );
+                        }
+                    })}
             </div>
         </LandingPageSection>
 
@@ -227,13 +226,12 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
     </div>
 </Layout>
 
-{
-    /* Externalised so the site CSP can drop script-src 'unsafe-inline'; classic and non-deferred
-    so `document.currentScript` resolves. */
-}
+{/* Externalised so the site CSP can drop script-src 'unsafe-inline'; classic and non-deferred
+    so `document.currentScript` resolves. */}
 <script
     is:inline
     src={urlWithBaseUrl('/scripts/site-header-scroll.js')}
     data-target-selector=".site-header"
     data-scrolled-class="header-scrolled"
-    data-scroll-position="480"></script>
+    data-scroll-position="480"
+></script>

@@ -1,26 +1,6 @@
-import type {
-    AreExact,
-    ColorSpace,
-    NormalisedColorType,
-    NormalisedGradientColorStop,
-    RequiredInternalAgGradientColor,
-    RequiredInternalAgImageFill,
-    RequiredInternalAgPatternColor,
-} from 'ag-charts-core';
-import { BaseProperties, Property, isEmptyObject, mergeDefaults } from 'ag-charts-core';
-import type {
-    AgColorRepeat,
-    AgGradientColorBounds,
-    AgGradientColorStop,
-    AgGradientType,
-    AgImageFillFit,
-    AgPatternName,
-    CssColor,
-    Opacity,
-    PixelSize,
-    HighlightState as PublicHighlightState,
-    SelectionState as PublicSelectionState,
-} from 'ag-charts-types';
+import type { AreExact, NormalisedColorType } from 'ag-charts-core';
+import { isEmptyObject, mergeDefaults } from 'ag-charts-core';
+import type { HighlightState as PublicHighlightState, SelectionState as PublicSelectionState } from 'ag-charts-types';
 
 import { HighlightState, SelectionState } from './seriesTypes';
 
@@ -33,10 +13,7 @@ export const highlightStates = [
 ];
 
 export type HighlightStyleOptionKey =
-    | 'highlightedItem'
-    | 'unhighlightedItem'
-    | 'highlightedSeries'
-    | 'unhighlightedSeries';
+    'highlightedItem' | 'unhighlightedItem' | 'highlightedSeries' | 'unhighlightedSeries';
 
 export type SelectionStyleOptionKey = 'selectedItem' | 'unselectedItem' | 'unselectedSeries';
 
@@ -181,121 +158,4 @@ export function getSelectionStyle<TStyle extends object>(
 /** Whether a highlight/selection bucket carries any overrides; an absent bucket carries none. */
 export function hasStateStyle(bucket: object | undefined): boolean {
     return bucket != null && !isEmptyObject(bucket);
-}
-
-export class FillGradientDefaults
-    extends BaseProperties<RequiredInternalAgGradientColor>
-    implements RequiredInternalAgGradientColor
-{
-    @Property
-    type: 'gradient' = 'gradient' as const;
-
-    @Property
-    colorStops: NormalisedGradientColorStop[] = [];
-
-    @Property
-    bounds: AgGradientColorBounds = 'item';
-
-    @Property
-    gradient: AgGradientType = 'linear';
-
-    @Property
-    rotation: number = 0;
-
-    @Property
-    reverse: boolean = false;
-
-    @Property
-    colorSpace: ColorSpace = 'rgb';
-}
-
-export class FillPatternDefaults
-    extends BaseProperties<RequiredInternalAgPatternColor>
-    implements RequiredInternalAgPatternColor
-{
-    @Property
-    type: 'pattern' = 'pattern' as const;
-
-    @Property
-    colorStops: AgGradientColorStop[] = [];
-
-    @Property
-    bounds: AgGradientColorBounds = 'item';
-
-    @Property
-    gradient: AgGradientType = 'linear';
-
-    @Property
-    rotation: number = 0;
-
-    @Property
-    scale: number = 1;
-
-    @Property
-    reverse: boolean = false;
-
-    @Property
-    path?: string;
-
-    @Property
-    pattern: AgPatternName = 'forward-slanted-lines';
-
-    @Property
-    width: number = 26;
-
-    @Property
-    height: number = 26;
-
-    @Property
-    padding: number = 6;
-
-    @Property
-    fill: CssColor = 'black';
-
-    @Property
-    fillOpacity: Opacity = 1;
-
-    @Property
-    backgroundFill: CssColor = 'white';
-
-    @Property
-    backgroundFillOpacity: Opacity = 1;
-
-    @Property
-    stroke: CssColor = 'black';
-
-    @Property
-    strokeOpacity: number = 1;
-
-    @Property
-    strokeWidth: PixelSize = 0;
-}
-
-export class FillImageDefaults
-    extends BaseProperties<RequiredInternalAgImageFill>
-    implements RequiredInternalAgImageFill
-{
-    @Property
-    type: 'image' = 'image' as const;
-
-    @Property
-    url: string = '';
-
-    @Property
-    rotation: number = 0;
-
-    @Property
-    scale: number = 1;
-
-    @Property
-    backgroundFill: CssColor = 'black';
-
-    @Property
-    backgroundFillOpacity: Opacity = 1;
-
-    @Property
-    repeat: AgColorRepeat = 'no-repeat';
-
-    @Property
-    fit: AgImageFillFit = 'contain';
 }

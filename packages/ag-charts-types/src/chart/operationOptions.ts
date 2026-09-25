@@ -106,10 +106,7 @@ type LocationOperation =
     // Target vertex, or list of targets matching if any is set | Value if true (default `true`) | Value if false (default `false`)
     | {
           $isUserOption:
-              | Leaf<string>
-              | [UserOptionTarget]
-              | [UserOptionTarget, AnyLeaf]
-              | [UserOptionTarget, AnyLeaf, AnyLeaf];
+              Leaf<string> | [UserOptionTarget] | [UserOptionTarget, AnyLeaf] | [UserOptionTarget, AnyLeaf, AnyLeaf];
       }
     | { $mapPalette: PaletteParam } // Palette param
     | { $palette: PaletteParam } // Palette param

@@ -365,7 +365,7 @@ export function measureTextSegments(
 
     let maxWidth = 0;
     let totalHeight = 0;
-    for (let i = 0; i < lineMetrics.length; ) {
+    for (let i = 0; i < lineMetrics.length;) {
         const line = lineMetrics[i];
         if (line.blockImages != null && line.blockImages.length > 0) {
             const span = line.blockRowSpan ?? 1;

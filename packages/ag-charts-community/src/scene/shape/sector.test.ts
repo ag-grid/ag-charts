@@ -107,46 +107,38 @@ describe('Sector', () => {
                 ...INSET_TC_PARAMS,
             })),
             ...CORNER_RADII_BASE_CASES.map((cases): Partial<Sector>[] =>
-                cases.map(
-                    (c): Partial<Sector> => ({
-                        ...c,
-                        ...CORNER_RADIUS_TC_PARAMS,
-                        innerRadius: 0,
-                        outerRadius: 30,
-                    })
-                )
+                cases.map((c): Partial<Sector> => ({
+                    ...c,
+                    ...CORNER_RADIUS_TC_PARAMS,
+                    innerRadius: 0,
+                    outerRadius: 30,
+                }))
             ),
             ...CORNER_RADII_BASE_CASES.map((cases): Partial<Sector>[] =>
-                cases.map(
-                    (c): Partial<Sector> => ({
-                        ...c,
-                        ...CORNER_RADIUS_TC_PARAMS,
-                        innerRadius: 15,
-                        outerRadius: 30,
-                    })
-                )
+                cases.map((c): Partial<Sector> => ({
+                    ...c,
+                    ...CORNER_RADIUS_TC_PARAMS,
+                    innerRadius: 15,
+                    outerRadius: 30,
+                }))
             ),
             ...CORNER_RADII_BASE_CASES.map((cases): Partial<Sector>[] =>
-                cases.map(
-                    (c): Partial<Sector> => ({
-                        ...c,
-                        ...CORNER_RADIUS_TC_PARAMS,
-                        innerRadius: 0,
-                        outerRadius: 30,
-                        inset: 2,
-                    })
-                )
+                cases.map((c): Partial<Sector> => ({
+                    ...c,
+                    ...CORNER_RADIUS_TC_PARAMS,
+                    innerRadius: 0,
+                    outerRadius: 30,
+                    inset: 2,
+                }))
             ),
             ...CORNER_RADII_BASE_CASES.map((cases): Partial<Sector>[] =>
-                cases.map(
-                    (c): Partial<Sector> => ({
-                        ...c,
-                        ...CORNER_RADIUS_TC_PARAMS,
-                        innerRadius: 15,
-                        outerRadius: 30,
-                        inset: 2,
-                    })
-                )
+                cases.map((c): Partial<Sector> => ({
+                    ...c,
+                    ...CORNER_RADIUS_TC_PARAMS,
+                    innerRadius: 15,
+                    outerRadius: 30,
+                    inset: 2,
+                }))
             ),
             [
                 // Shadow cases.
@@ -161,15 +153,13 @@ describe('Sector', () => {
                 { strokeOpacity: 0.5, strokeWidth: 3, stroke: 'yellow', fill: 'blue' },
             ],
             // GO FOR IT!
-            [{}, { lineDash: [5, 5] }, { opacity: 0.5 }].map(
-                (mixin): Partial<Sector> => ({
-                    fillShadow: shadowFn(10),
-                    fill: 'blue',
-                    strokeWidth: 3,
-                    stroke: 'yellow',
-                    ...mixin,
-                })
-            ),
+            [{}, { lineDash: [5, 5] }, { opacity: 0.5 }].map((mixin): Partial<Sector> => ({
+                fillShadow: shadowFn(10),
+                fill: 'blue',
+                strokeWidth: 3,
+                stroke: 'yellow',
+                ...mixin,
+            })),
             // Regressions
             [
                 // AG-11219

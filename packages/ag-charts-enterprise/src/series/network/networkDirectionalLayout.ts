@@ -219,8 +219,7 @@ export abstract class NetworkDirectionalLayout<
 
     private getVisibleChildren(options: TOptions, vertex: Vertex<TVertex, TEdge>) {
         const children = options.graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as
-            | Vertex<TVertex, TEdge>[]
-            | undefined;
+            Vertex<TVertex, TEdge>[] | undefined;
         if (!children || children.length === 0 || options.isVertexCollapsed(vertex)) return;
 
         return children;

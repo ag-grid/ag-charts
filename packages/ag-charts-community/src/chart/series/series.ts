@@ -75,7 +75,6 @@ import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
-import type { Path } from '../../scene/shape/path';
 import { Transformable } from '../../scene/transformable';
 import type { ChartAxis } from '../chartAxis';
 import type { ChartMode } from '../chartMode';
@@ -88,6 +87,16 @@ import type { Marker } from '../marker/marker';
 import { markerStrokePickInflation } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
+import type {
+    PickFocusInputs,
+    PickFocusOutputs,
+    PickNodesInBBoxPredicate,
+    PickResult,
+    PickViewportFocusInputs,
+    SeriesNodePickIntent,
+    SeriesNodePickMatch,
+} from './pickTypes';
+import { SeriesNodePickMode } from './pickTypes';
 import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 import {
     getHighlightStyle,
@@ -124,64 +133,8 @@ export interface SeriesDataEvent {
     readonly processedData: ProcessedData<any>;
 }
 
-/** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
-export enum SeriesNodePickMode {
-    /** Pick matches based upon pick coordinates being inside a matching shape/marker. */
-    EXACT_SHAPE_MATCH,
-    /** Pick matches based upon distance to ideal position */
-    NEAREST_NODE,
-    /** Pick matches based upon distance from axis */
-    AXIS_ALIGNED,
-}
-
-export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
-
 /** Pick radius substituted for `nodeClickRange: 'exact'` when a series has no pickable node shapes. */
 const MARKERLESS_NODE_PICK_RANGE = 10;
-
-export type SeriesNodePickMatch = {
-    datum: SeriesNodeDatum;
-    distance: number;
-    /**
-     * The scene-node hit under the pointer, as accurate as possible. Exact-shape and
-     * nearest-object picks report the matched leaf; modes that match on datum geometry (e.g.
-     * "closest") cannot resolve the leaf efficiently and fall back to the series `contentGroup`.
-     */
-    target: Node<unknown>;
-};
-
-export type PickFocusInputs = {
-    // datum delta is strictly +ve/-ve when changing datum focus, or 0 when changing series focus.
-    readonly datumIndex: number;
-    readonly datumIndexDelta: number;
-    // 'other' means 'depth' for hierarchical charts, or 'series' for all other charts
-    readonly otherIndex: number;
-    readonly otherIndexDelta: number;
-    readonly seriesRect?: BBox;
-};
-
-export type PickViewportFocusInputs = {
-    readonly otherIndex: number;
-    readonly where: 'data-start' | 'data-end' | 'viewport-start' | 'viewport-end';
-    readonly hoverRect: Readonly<BoxBounds>;
-};
-
-export type PickFocusOutputs = {
-    datumIndex: number;
-    datum: SeriesNodeDatum;
-    otherIndex?: number;
-    bounds: BBox | Path;
-    movedBounds?: BBox;
-    clipFocusBox: boolean;
-};
-
-export type PickResult = {
-    pickMode: SeriesNodePickMode;
-    picks: SeriesNodePickMatch[];
-};
-
-export type PickNodesInBBoxPredicate = (selectionBox: BoxBounds, node: Node<unknown>) => boolean;
-
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
@@ -598,11 +551,20 @@ export abstract class Series<
         return hasDimmedOpacity(unhighlightedItem) || hasDimmedOpacity(unhighlightedSeries);
     }
 
+    /** The chart-level `highlight` options; the single-key read avoids a sub-path split on per-datum paths. */
+    protected getChartHighlightOptions() {
+        return this.ctx.chartState.getValue('options')?.highlight;
+    }
+
+    protected getChartHighlightDrawingMode(): AgDrawingMode {
+        return this.getChartHighlightOptions()?.drawingMode ?? 'overlay';
+    }
+
     protected getDrawingMode(isHighlight?: boolean, highlightDrawingMode: AgDrawingMode = 'cutout'): AgDrawingMode {
         if (isHighlight) {
             return highlightDrawingMode;
         }
-        return this.hasHighlightOpacity() ? (this.ctx.chartService.highlight?.drawingMode ?? 'overlay') : 'overlay';
+        return this.hasHighlightOpacity() ? this.getChartHighlightDrawingMode() : 'overlay';
     }
 
     protected getAnimationDrawingModes() {
@@ -846,13 +808,16 @@ export abstract class Series<
      * `undefined` when there is none, for series-level highlights, and for the hovered series itself.
      */
     private getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
-        const { chartService } = this.ctx;
-        if (highlightedDatum == null || chartService.highlight?.mode !== 'shared') return;
-        if (highlightedDatum.series == null || !this.isDatumHighlight(highlightedDatum)) return;
+        if (highlightedDatum?.series == null || !this.isDatumHighlight(highlightedDatum)) return;
         // The hovered series is styled as in `'single'` mode, so a match of its own would only repaint it.
         if (highlightedDatum.series === this) return;
+        if (this.getChartHighlightOptions()?.mode !== 'shared') return;
 
-        return chartService.getSharedHighlightMatch?.(highlightedDatum.series, highlightedDatum.datumIndex, this);
+        return this.ctx.chartService.getSharedHighlightMatch?.(
+            highlightedDatum.series,
+            highlightedDatum.datumIndex,
+            this
+        );
     }
 
     public getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined {

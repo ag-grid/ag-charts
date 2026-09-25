@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
-import { setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 import type { AgRangesButtonValueFunctionParams, AgRangesButtonValueSource } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -227,6 +227,49 @@ describe('Ranges', () => {
 
             expect(receivedContexts.length).toBeGreaterThan(0);
             expect(receivedContexts[0]).toBeUndefined();
+        });
+    });
+
+    describe('theme params', () => {
+        const resolvedRanges = async (params: Record<string, string>) => {
+            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] },
+                theme: { params },
+            } as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+        };
+
+        it('button text follows buttonTextColor, not chromeTextColor', async () => {
+            const ranges = await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' });
+
+            expect(ranges.button.textColor).toBe('red');
+        });
+
+        it('button hover text follows buttonTextColor', async () => {
+            const ranges = await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' });
+
+            expect(ranges.button.hover.textColor).toBe('red');
+        });
+
+        it('button text falls back to chromeTextColor when buttonTextColor is unset', async () => {
+            const ranges = await resolvedRanges({ chromeTextColor: 'blue' });
+
+            expect(ranges.button.textColor).toBe('blue');
+        });
+
+        it('button text ignores textColor once chromeTextColor is set', async () => {
+            const ranges = await resolvedRanges({ textColor: 'green', chromeTextColor: 'blue' });
+
+            expect(ranges.button.textColor).toBe('blue');
         });
     });
 });

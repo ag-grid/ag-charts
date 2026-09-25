@@ -113,7 +113,7 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
-import { type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { type SeriesNodePickMatch, SeriesNodePickMode } from '../pickTypes';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import { isUnselected } from '../seriesProperties';
 import type { HighlightState } from '../seriesTypes';
@@ -1373,7 +1373,7 @@ export class DonutSeries extends PolarSeries<
         const { legendItemValues } = this.getProcessedDataValues(dataModel, processedData);
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum, legendItemValues);
 
-        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
+        const drawingMode = this.getChartHighlightDrawingMode();
         this.highlightGroup.visible = visible && seriesHighlighted;
         this.labelGroup.visible = visible;
 

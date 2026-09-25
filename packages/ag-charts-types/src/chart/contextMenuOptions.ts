@@ -22,13 +22,7 @@ export type AgContextMenuItemLiteral =
     | 'separator';
 
 export type AgContextMenuItemShowOn =
-    | 'always'
-    | 'axis'
-    | 'caption'
-    | 'cross-line'
-    | 'series-area'
-    | 'series-node'
-    | 'legend-item';
+    'always' | 'axis' | 'caption' | 'cross-line' | 'series-area' | 'series-node' | 'legend-item';
 
 export type AgContextMenuItemType = 'action' | 'separator';
 

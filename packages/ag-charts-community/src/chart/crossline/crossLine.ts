@@ -1,7 +1,15 @@
-import type { BoxBounds, CanvasPoint, ChartAxisDirection, Forbid, RequireOptional, Scale } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    CanvasPoint,
+    ChartAxisDirection,
+    Forbid,
+    NormalisedAxisCrossLineLabelOptions,
+    NormalisedAxisCrossLineOptions,
+    RequireOptional,
+    Scale,
+} from 'ag-charts-core';
 import { callWithContext } from 'ag-charts-core';
 import type {
-    AgBaseCrossLineLabelOptions,
     AgCrossLineClickEvent,
     AgCrossLineClickParams,
     AgCrossLineDoubleClickEvent,
@@ -33,8 +41,7 @@ interface PendingCallback {
 }
 
 export type PendingCrossLineCallbackParam =
-    | Forbid<AgCrossLineClickEvent, 'allMatchedParams'>
-    | Forbid<AgCrossLineDoubleClickEvent, 'allMatchedParams'>;
+    Forbid<AgCrossLineClickEvent, 'allMatchedParams'> | Forbid<AgCrossLineDoubleClickEvent, 'allMatchedParams'>;
 
 export interface PendingCrossLineCallbacks {
     allMatchedParams: AgCrossLineClickParams[];
@@ -89,7 +96,7 @@ export function fireAllPendingCrossLineCallbacks(
     }
 }
 
-export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
+export interface CrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> {
     calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
     calculatePadding?(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     /**
@@ -99,7 +106,6 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     containsPoint?(point: CanvasPoint): boolean;
     clippedRange: [number, number];
     enabled?: boolean;
-    defaultColorRange: string[];
     fill?: string;
     fillOpacity?: number;
     gridLength: number;
@@ -132,10 +138,10 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     type: CrossLineType;
     update(visible: boolean): void;
     value?: any;
-    set(properties: object): void;
+    applyOptions(options: NormalisedAxisCrossLineOptions): void;
 }
 
-export interface PolarCrossLine<LabelType = AgBaseCrossLineLabelOptions> extends CrossLine<LabelType> {
+export interface PolarCrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> extends CrossLine<LabelType> {
     direction: ChartAxisDirection;
     parallelFlipRotation: number;
     regularFlipRotation: number;

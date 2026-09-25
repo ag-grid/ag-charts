@@ -1,26 +1,40 @@
-import { BaseProperties, Property } from 'ag-charts-core';
-
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
-import { Overlay } from './overlay';
+import { type NormalisedChartOverlayOptions, Overlay } from './overlay';
 
-export class ChartOverlays extends BaseProperties {
-    @Property
+export type NormalisedChartOverlaysOptions = {
+    darkTheme?: boolean;
+    loading?: NormalisedChartOverlayOptions;
+    noData?: NormalisedChartOverlayOptions;
+    noVisibleSeries?: NormalisedChartOverlayOptions;
+    unsupportedBrowser?: NormalisedChartOverlayOptions;
+};
+
+export class ChartOverlays {
     darkTheme = false;
 
-    @Property
-    readonly loading = new Overlay('ag-charts-loading-overlay', 'overlayLoadingData');
-
-    @Property
+    readonly loading: Overlay;
     readonly noData = new Overlay('ag-charts-no-data-overlay', 'overlayNoData');
-
-    @Property
     readonly noVisibleSeries = new Overlay('ag-charts-no-visible-series', 'overlayNoVisibleSeries');
-
-    @Property
     readonly unsupportedBrowser = new Overlay('ag-charts-unsupported-browser', 'overlayUnsupportedBrowser');
+    readonly validation: Overlay;
 
-    readonly validation = new Overlay('ag-charts-validation-overlay', 'overlayValidation');
+    constructor(defaultRenderers?: { loading?: Overlay['renderer']; validation?: Overlay['renderer'] }) {
+        this.loading = new Overlay('ag-charts-loading-overlay', 'overlayLoadingData', defaultRenderers?.loading);
+        this.validation = new Overlay(
+            'ag-charts-validation-overlay',
+            'overlayValidation',
+            defaultRenderers?.validation
+        );
+    }
+
+    applyOptions(options: NormalisedChartOverlaysOptions) {
+        this.darkTheme = options.darkTheme ?? false;
+        this.loading.applyOptions(options.loading);
+        this.noData.applyOptions(options.noData);
+        this.noVisibleSeries.applyOptions(options.noVisibleSeries);
+        this.unsupportedBrowser.applyOptions(options.unsupportedBrowser);
+    }
 
     getFocusInfo(localeManager: LocaleManager): { text: string; rect: BBox } | undefined {
         for (const overlay of [

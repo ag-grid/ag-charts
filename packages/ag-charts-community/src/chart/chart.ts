@@ -61,7 +61,6 @@ import type { ChartAxis } from './chartAxis';
 import type { ChartCaption } from './chartCaption';
 import { ChartCaptions } from './chartCaptions';
 import { createChartContext } from './chartContext';
-import { ChartHighlight } from './chartHighlight';
 import type { ChartEventMap, ChartEventType, ChartListeners, ChartService } from './chartService';
 import type { ChartState } from './chartState';
 import type { ChartType } from './chartType';
@@ -99,13 +98,7 @@ export type TransferableResources = {
 };
 
 type SeriesChangeType =
-    | 'no-op'
-    | 'no-change'
-    | 'replaced'
-    | 'data-change'
-    | 'series-grouping-change'
-    | 'series-count-changed'
-    | 'updated';
+    'no-op' | 'no-change' | 'replaced' | 'data-change' | 'series-grouping-change' | 'series-count-changed' | 'updated';
 
 const MINI_CHART_LABEL_EXCLUDED: ReadonlySet<string> = new Set([
     'interval',
@@ -272,7 +265,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
-    readonly highlight: ChartHighlight;
     private readonly sharedCategoryGroup = new SharedCategoryGroup();
     readonly background: Background;
     get seriesArea(): SeriesArea {
@@ -522,21 +514,22 @@ export abstract class Chart implements ModuleInstance, ChartService {
         );
         ctx.scene.setDirection(ctx.domManager.isRtl);
 
-        this.overlays = new ChartOverlays();
-        this.overlays.loading.renderer ??= () =>
-            getLoadingSpinner(
-                ctx.agDocument,
-                this.overlays.loading.getText(ctx.localeManager),
-                ctx.animationManager.defaultDuration,
-                ctx.domManager.styleNonce
-            );
-        this.overlays.validation.renderer ??= () =>
-            getValidationOverlay({
-                agDocument: ctx.agDocument,
-                localeManager: ctx.localeManager,
-                grouped: ctx.validations.getVisibleIssues(),
-                onDismiss: () => ctx.validations.dismiss(),
-            });
+        this.overlays = new ChartOverlays({
+            loading: () =>
+                getLoadingSpinner(
+                    ctx.agDocument,
+                    this.overlays.loading.getText(ctx.localeManager),
+                    ctx.animationManager.defaultDuration,
+                    ctx.domManager.styleNonce
+                ),
+            validation: () =>
+                getValidationOverlay({
+                    agDocument: ctx.agDocument,
+                    localeManager: ctx.localeManager,
+                    grouped: ctx.validations.getVisibleIssues(),
+                    onDismiss: () => ctx.validations.dismiss(),
+                }),
+        });
 
         this.processors = [
             new DataWindowProcessor(this, ctx),
@@ -552,7 +545,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             ),
         ];
 
-        this.highlight = new ChartHighlight();
         this.container = container;
 
         const moduleContext = this.getModuleContext();
@@ -566,19 +558,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this.cleanup.register(
-            // Observers that re-apply BaseProperties subtrees when their option subtree changes.
-            ctx.chartState.observe((get) => {
-                const opts = get('options', 'tooltip');
-                if (opts != null) this.tooltip.set(opts);
-            }),
-            ctx.chartState.observe((get) => {
-                const opts = get('options', 'highlight');
-                if (opts != null) this.highlight.set(opts);
-            }),
-            ctx.chartState.observe((get) => {
-                const opts = get('options', 'overlays');
-                if (opts != null) this.overlays.set(opts);
-            }),
+            ctx.chartState.observe((get) => this.tooltip.applyOptions(get('options', 'tooltip') ?? {})),
+            ctx.chartState.observe((get) => this.overlays.applyOptions(get('options', 'overlays') ?? {})),
             // A tooltip is painted in the browser's top layer (a `popover`), so no z-index can place it
             // beneath the validation overlay. Hold tooltips back while the overlay is shown so it stays legible.
             ctx.eventsHub.on('validation:change', () => {
@@ -658,7 +639,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     public abstract toAgCoordinates(_point: CanvasPoint): AgCoordinates | undefined;
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
-        const { ctx, tooltip, highlight, overlays, seriesRoot } = this;
+        const { ctx, tooltip, overlays, seriesRoot } = this;
         const chartType = this.getChartType();
         const hasViewportSupport: () => boolean = () => this.hasViewportSupport();
         const hasPgUpPgDownSupport: () => boolean = () => this.hasPgUpPgDownSupport();
@@ -678,7 +659,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             chartType,
             ctx,
             tooltip,
-            highlight,
             overlays,
             seriesRoot,
         };
@@ -1094,7 +1074,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
             case ChartUpdateType.SERIES_UPDATE: {
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
-                this.seriesRoot.renderToOffscreenCanvas = this.highlight.drawingMode === 'cutout';
+                this.seriesRoot.renderToOffscreenCanvas =
+                    this.ctx.chartState.getValue('options')?.highlight?.drawingMode === 'cutout';
 
                 await this.updateSeries(seriesToUpdate);
 
@@ -1789,8 +1770,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if ('loading' in deltaOptions) this.loading = deltaOptions.loading;
         if ('context' in deltaOptions) this.context = deltaOptions.context;
 
-        // tooltip/highlight/seriesArea/overlays subtrees are applied via chartState observers
-        // registered in the constructor — no explicit cascade needed here.
+        // tooltip/seriesArea/overlays subtrees are applied via chartState observers registered in the constructor.
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
