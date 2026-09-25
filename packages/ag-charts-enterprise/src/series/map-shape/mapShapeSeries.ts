@@ -44,6 +44,7 @@ import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { polygonFitRegion, preferredLabelCenter } from '../map-util/polygonLabelUtil';
+import { polygonCentroid } from '../map-util/polygonUtil';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
@@ -111,7 +112,11 @@ interface LabelLayout {
     y: number;
     /** Centre of a squarer rect for wrapped text, as the single-line one may hug a strip. `null` once found wanting. */
     wrapAnchor?: { x: number; y: number } | null;
+    centroid: Position | undefined;
 }
+
+/** Bisection steps from the anchor towards the centroid when the label does not fit at the centroid itself. */
+const CENTRING_STEPS = 3;
 
 /** What one render's label fitting shares across every shape. */
 interface LabelFitting {
@@ -355,7 +360,8 @@ export class MapShapeSeries
 
         const { x, y } = labelPlacement;
 
-        return { geometry, labelText, aspectRatio, fixedPolygon, x, y };
+        const centroid = polygonCentroid(fixedPolygon[0]);
+        return { geometry, labelText, aspectRatio, fixedPolygon, x, y, centroid };
     }
 
     private getWrapAnchor(labelLayout: LabelLayout) {
@@ -369,6 +375,7 @@ export class MapShapeSeries
 
     // Each line is wrapped to the width the polygon offers where it lands. Text that fits whole on one line
     // keeps the single-line anchor; anything else is also tried at the squarer one and the fuller result wins.
+    // The winner then moves as near the centroid as it can while still fitting as well.
     private getLabelDatum(
         labelLayout: LabelLayout,
         projectedGeometry: Geometry,
@@ -387,7 +394,8 @@ export class MapShapeSeries
             const [x, y] = scale.convert(fixedScale.invert([fixedX, fixedY]));
             const region = insetFitRegion(polygonFitRegion(polygon, x, y), inset.x, inset.y);
             const fitted = fitLabelTextToRegionAutoSize(labelText, withFitRegion(fit, region), font);
-            return { x: x + fitted.offsetX, y: y + fitted.offsetY, fitted, kept: keptCharacters(fitted.text) };
+            const kept = keptCharacters(fitted.text);
+            return { fixedX, fixedY, x: x + fitted.offsetX, y: y + fitted.offsetY, fitted, kept };
         };
 
         let placed = fitAt(labelLayout.x, labelLayout.y);
@@ -401,6 +409,7 @@ export class MapShapeSeries
             }
         }
         if (!hasRealChars(placed.fitted.text)) return;
+        placed = centreLabel(placed, labelLayout.centroid, fitAt, font.fontSize);
 
         return {
             x: placed.x,
@@ -993,4 +1002,47 @@ export class MapShapeSeries
     protected override hasItemStylers(): boolean {
         return this.isSelectionEnabled() || this.options.itemStyler != null || this.options.label.itemStyler != null;
     }
+}
+
+interface PlacedLabel {
+    fixedX: number;
+    fixedY: number;
+    fitted: { text: NormalisedTextOrSegments; fontSize?: number };
+    kept: number;
+}
+
+function lineCount(placed: PlacedLabel) {
+    return toPlainText(placed.fitted.text).split('\n').length;
+}
+
+function centreLabel<T extends PlacedLabel>(
+    placed: T,
+    centroid: Position | undefined,
+    fitAt: (fixedX: number, fixedY: number) => T,
+    fontSize: number
+): T {
+    if (centroid == null) return placed;
+    const fitsAsWell = (candidate: T) =>
+        candidate.kept >= placed.kept &&
+        (candidate.fitted.fontSize ?? fontSize) >= (placed.fitted.fontSize ?? fontSize) &&
+        lineCount(candidate) <= lineCount(placed);
+
+    const [cx, cy] = centroid;
+    const atCentroid = fitAt(cx, cy);
+    if (fitsAsWell(atCentroid)) return atCentroid;
+
+    let best = placed;
+    let fromCentroid = 0;
+    let fromAnchor = 1;
+    for (let step = 0; step < CENTRING_STEPS; step += 1) {
+        const t = (fromCentroid + fromAnchor) / 2;
+        const candidate = fitAt(cx + (placed.fixedX - cx) * t, cy + (placed.fixedY - cy) * t);
+        if (fitsAsWell(candidate)) {
+            best = candidate;
+            fromAnchor = t;
+        } else {
+            fromCentroid = t;
+        }
+    }
+    return best;
 }

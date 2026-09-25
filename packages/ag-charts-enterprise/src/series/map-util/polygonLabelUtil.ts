@@ -6,13 +6,18 @@ export function preferredLabelCenter(
     polygons: Position[][],
     { aspectRatio, precision }: { aspectRatio: number; precision: number }
 ) {
-    const result = polygonPointSearch(polygons, precision, (p, cx, cy, stride) => {
-        const width = maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(p, cx, cy, aspectRatio);
-        const maxWidth = width + 2 * stride * aspectRatio;
-        const distance = width * Math.SQRT2;
-        const maxDistance = maxWidth * Math.SQRT2;
-        return { distance, maxDistance };
-    });
+    const result = polygonPointSearch(
+        polygons,
+        precision,
+        (p, cx, cy, stride) => {
+            const width = maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(p, cx, cy, aspectRatio);
+            const maxWidth = width + 2 * stride * aspectRatio;
+            const distance = width * Math.SQRT2;
+            const maxDistance = maxWidth * Math.SQRT2;
+            return { distance, maxDistance };
+        },
+        { pullFromCentroid: true }
+    );
     if (result == null) return;
 
     const { x, y, distance } = result;

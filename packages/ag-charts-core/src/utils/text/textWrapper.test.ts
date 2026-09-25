@@ -1175,6 +1175,32 @@ describe('fitLabelText bounded by a shape', () => {
         expect(fitLabelText('AAAA BBBB', fit, font)).toBe('');
     });
 
+    it.each([
+        ['center', 0],
+        ['start', LINE_HEIGHT],
+        ['end', -LINE_HEIGHT],
+    ] as const)(
+        'aligns a block that fills its maxHeight to %s when the shape has room around it',
+        (regionAlign, offsetY) => {
+            const region: FitRegion = {
+                spanAt: () => [-50, 50],
+                extentAbove: 3 * LINE_HEIGHT,
+                extentBelow: 3 * LINE_HEIGHT,
+            };
+            const fit = {
+                region,
+                maxWidth: 50,
+                maxHeight: 2 * LINE_HEIGHT,
+                regionAlign,
+                wrapping: 'on-space',
+                overflowStrategy: 'hide',
+            } as const;
+            const fitted = fitLabelTextToRegion('AAAA BBBB', fit, font);
+            expect(fitted.text).toBe('AAAA\nBBBB');
+            expect(fitted.offsetY).toBe(offsetY);
+        }
+    );
+
     it('fits a lopsided shape at the anchor for a caller that cannot move the label', () => {
         // The same region, through the API that returns text alone: an offset it cannot report must not be
         // taken, or the text is fitted to room the label is never drawn in.

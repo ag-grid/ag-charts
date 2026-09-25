@@ -12,6 +12,8 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../test/utils';
 import ukTopology from './map-test/ukTopology.json';
+import { usData } from './map-test/usData';
+import usTopology from './map-test/usTopology.json';
 
 const ELLIPSIS = '…';
 
@@ -425,8 +427,9 @@ describe('series label fit', () => {
                 },
             ],
         });
-        const mapShapeLabels = (): { text: unknown; fontSize: number }[] =>
-            (chart.series[0].contextNodeData?.labelData ?? []) as { text: unknown; fontSize: number }[];
+        type MapShapeLabel = { text: unknown; fontSize: number; idValue: string };
+        const mapShapeLabels = (): MapShapeLabel[] =>
+            (chart.series[0].contextNodeData?.labelData ?? []) as MapShapeLabel[];
         const expectCornersInside = (shape: any, box: { x: number; y: number; width: number; height: number }) => {
             for (const [x, y] of [
                 [box.x, box.y],
@@ -526,6 +529,61 @@ describe('series label fit', () => {
             expect(boxes.length).toBeGreaterThan(0);
             expect(boxes.every((box) => box.width <= 40 + 1)).toBe(true);
             expect(someTruncated(flatLabelTexts())).toBe(true);
+        });
+
+        // Two 10px lines exactly fill a 20px maxHeight, which must not be mistaken for filling the shape.
+        describe('with a block that fills maxHeight', () => {
+            const usSeries = () => ({
+                data: usData,
+                topology: usTopology,
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        labelKey: 'name',
+                        label: { fontSize: 8, wrapping: 'on-space', maxWidth: 40, maxHeight: 20, lineHeight: 10 },
+                    },
+                ],
+            });
+            const bounds = (boxes: { x: number; y: number; width: number; height: number }[]) => {
+                const y = Math.min(...boxes.map((box) => box.y));
+                const bottom = Math.max(...boxes.map((box) => box.y + box.height));
+                return { y, height: bottom - y };
+            };
+            const labelledIds = () => mapShapeLabels().map((label) => label.idValue);
+
+            it('centres the labels in their shapes', async () => {
+                await renderAndSnapshot(usSeries());
+                expect(labelledIds()).toContain('New Mexico');
+                const offCentre = new Map<string, number>();
+                eachLabelShape((shape, text) => {
+                    const shapeBox = shape.getBBox();
+                    const labelBox = bounds(text.getLineBoxes());
+                    const offset = labelBox.y + labelBox.height / 2 - (shapeBox.y + shapeBox.height / 2);
+                    offCentre.set(text.datum.idValue, Math.abs(offset) / shapeBox.height);
+                });
+                const blocky = ['North Dakota', 'South Dakota', 'Colorado', 'Utah', 'Nevada', 'Kansas', 'Wyoming'];
+                expect(Object.fromEntries(blocky.map((id) => [id, offCentre.get(id)! < 0.15]))).toEqual(
+                    Object.fromEntries(blocky.map((id) => [id, true]))
+                );
+                expect(everyLineInsideItsShape()).toBeGreaterThan(0);
+            });
+
+            it('keeps a label that fits as the chart grows', async () => {
+                const options = usSeries() as AgChartOptions;
+                prepareEnterpriseTestOptions(options);
+                Object.assign(options, { width: 890, height: 600 });
+                const api = AgCharts.create(options);
+                chart = deproxy(api);
+                await waitForChartStability(chart);
+                const grown = ['North Carolina', 'South Dakota'];
+                expect(labelledIds()).toEqual(expect.arrayContaining(grown));
+
+                await api.updateDelta({ width: 900 });
+                await compareImageSnapshot(chart, ctx);
+                expect(labelledIds()).toEqual(expect.arrayContaining(grown));
+                expect(everyLineInsideItsShape()).toBeGreaterThan(0);
+            });
         });
 
         it('shrinks labels to minimumFontSize before wrapping or hiding them', async () => {
