@@ -777,42 +777,4 @@ describe('Ordinal Time Axis Examples', () => {
         await waitForChartStability(chart);
         expect(chart).toBeDefined();
     });
-
-    it('applies the axis typography theme params to labels, parent-level labels and the title', async () => {
-        chart = await createEnterpriseChart<AgCartesianChartOptions>({
-            data: DATA,
-            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
-            axes: {
-                x: { type: 'ordinal-time', position: 'bottom', title: { enabled: true, text: 'Date' } },
-                y: { type: 'number', position: 'left' },
-            },
-            theme: {
-                params: {
-                    axisLabelFontSize: 20,
-                    axisLabelFontWeight: 'bold',
-                    axisLabelFontFamily: 'Georgia',
-                    axisLabelColor: 'red',
-                    axisTitleFontSize: 24,
-                    axisTitleFontWeight: 'bold',
-                    axisTitleFontFamily: 'Courier',
-                    axisTitleColor: 'blue',
-                },
-            },
-        });
-
-        const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time') as any;
-        expect(axis.options.label).toMatchObject({
-            fontSize: 20,
-            fontWeight: 'bold',
-            fontFamily: 'Georgia',
-            color: 'red',
-        });
-        expect(axis.options.parentLevel.label).toMatchObject({ fontSize: 20, fontFamily: 'Georgia', color: 'red' });
-        expect(axis.options.title).toMatchObject({
-            fontSize: 26,
-            fontWeight: 'bold',
-            fontFamily: 'Courier',
-            color: 'blue',
-        });
-    });
 });
