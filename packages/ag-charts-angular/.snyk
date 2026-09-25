@@ -1,6 +1,50 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-URIJS-19963963:
+    - '@angular/cli@20.3.27 > @angular-devkit/architect@0.2003.27 > @angular-devkit/core@20.3.27 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:43:30.208Z
+    - '@angular-devkit/build-angular@20.3.27 > @angular-devkit/architect@0.2003.27 > @angular-devkit/core@20.3.27 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:43:30.207Z
+  SNYK-JS-HTTPCACHESEMANTICS-19964068:
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > npm-registry-fetch@19.1.1 > make-fetch-happen@15.0.6 > http-cache-semantics@4.1.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:42:54.557Z
+  SNYK-JS-HTTPCACHESEMANTICS-19964064:
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > npm-registry-fetch@19.1.1 > make-fetch-happen@15.0.6 > http-cache-semantics@4.1.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:42:23.823Z
+  SNYK-JS-BRACES-19963945:
+    - karma@6.4.4 > chokidar@3.5.3 > braces@3.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.907Z
+    - karma@6.4.4 > braces@3.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.905Z
+    - '@angular-devkit/build-angular@20.3.27 > webpack-dev-server@5.2.2 > chokidar@3.6.0 > braces@3.0.2':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.904Z
+    - '@angular-devkit/build-angular@20.3.27 > fast-glob@3.3.3 > micromatch@4.0.8 > braces@3.0.3':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-24T14:41:56.902Z
   SNYK-JS-NODEFORGE-19635204:
     - '@angular-devkit/build-angular@20.3.27 > webpack-dev-server@5.2.2 > selfsigned@2.4.1 > node-forge@1.3.1':
         reason: >-

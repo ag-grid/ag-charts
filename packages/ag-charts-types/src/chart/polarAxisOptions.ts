@@ -96,6 +96,5 @@ export interface AgAngleRangeCrossLineOptions<TValue = AxisValue> extends AgRang
 > {}
 
 export type AgAngleCrossLineOptions<TValue = AxisValue> =
-    | AgAngleLineCrossLineOptions<TValue>
-    | AgAngleRangeCrossLineOptions<TValue>;
+    AgAngleLineCrossLineOptions<TValue> | AgAngleRangeCrossLineOptions<TValue>;
 export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions<AgBaseCrossLineLabelOptions> {}

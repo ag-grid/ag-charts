@@ -38,16 +38,10 @@ export enum AnnotationType {
 }
 
 type TextualAnnotationType =
-    | AnnotationType.Callout
-    | AnnotationType.Comment
-    | AnnotationType.Note
-    | AnnotationType.Text;
+    AnnotationType.Callout | AnnotationType.Comment | AnnotationType.Note | AnnotationType.Text;
 
 type LineAnnotationType =
-    | AnnotationType.Line
-    | AnnotationType.HorizontalLine
-    | AnnotationType.VerticalLine
-    | AnnotationType.Arrow;
+    AnnotationType.Line | AnnotationType.HorizontalLine | AnnotationType.VerticalLine | AnnotationType.Arrow;
 
 type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationType.ParallelChannel;
 
@@ -60,8 +54,7 @@ type MeasurerAnnotationType =
 type EphemeralAnnotationType = AnnotationType.QuickDatePriceRange;
 
 export type FibonacciAnnotationType =
-    | AnnotationType.FibonacciRetracement
-    | AnnotationType.FibonacciRetracementTrendBased;
+    AnnotationType.FibonacciRetracement | AnnotationType.FibonacciRetracementTrendBased;
 
 export type HasColorAnnotationType = AnnotationType;
 export type HasLineStyleAnnotationType = Exclude<

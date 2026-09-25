@@ -13,9 +13,9 @@
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-popover": "^1.1.0",
-    "ag-grid-community": "~35.0.1",
-    "ag-grid-enterprise": "~35.0.1",
-    "ag-grid-react": "~35.0.1",
+    "ag-grid-community": "~36.2.0",
+    "ag-grid-enterprise": "~36.2.0",
+    "ag-grid-react": "~36.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

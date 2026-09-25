@@ -24,8 +24,8 @@ export abstract class Gradient {
     ): CanvasGradient | undefined;
 
     private _cache:
-        | { ctx: CanvasRenderingContext2D; bbox: BBox; gradient: CanvasGradient | string | undefined }
-        | undefined = undefined;
+        { ctx: CanvasRenderingContext2D; bbox: BBox; gradient: CanvasGradient | string | undefined } | undefined =
+        undefined;
     createGradient(
         ctx: CanvasRenderingContext2D,
         shapeBbox: BBox,

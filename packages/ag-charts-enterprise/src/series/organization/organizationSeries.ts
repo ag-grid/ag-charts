@@ -357,8 +357,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
         while (
             (vertex = this.graph.findNeighbour(vertex, 'parent') as
-                | Vertex<OrganizationVertex, OrganizationEdge>
-                | undefined) != null
+                Vertex<OrganizationVertex, OrganizationEdge> | undefined) != null
         ) {
             const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex') as number | undefined;
             if (datumIndex == null) break;
@@ -641,8 +640,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
         if (depthDelta < 0) {
             const parent = this.graph.findNeighbour(current, 'parent') as
-                | Vertex<OrganizationVertex, OrganizationEdge>
-                | undefined;
+                Vertex<OrganizationVertex, OrganizationEdge> | undefined;
             if (!parent) return;
             // The synthetic root carries no datumIndex — clamp at the top tier.
             const parentDatumIdx = this.graph.findNeighbourValue(parent, 'datumIndex');
@@ -663,8 +661,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         vertex: Vertex<OrganizationVertex, OrganizationEdge>
     ): Vertex<OrganizationVertex, OrganizationEdge>[] {
         const parent = this.graph.findNeighbour(vertex, 'parent') as
-            | Vertex<OrganizationVertex, OrganizationEdge>
-            | undefined;
+            Vertex<OrganizationVertex, OrganizationEdge> | undefined;
         // Top-tier nodes' parent is the synthetic root; falling back to `getRootVertices()` keeps
         // the sibling set consistent for ArrowLeft/ArrowRight at the top of the tree.
         if (parent === this.rootVertex || parent == null) {
@@ -762,8 +759,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         nodeData.push(nodeDatum);
 
         const children = this.graph.neighboursWithEdgeValue(vertex, 'child') as
-            | Vertex<OrganizationVertex, OrganizationEdge>[]
-            | undefined;
+            Vertex<OrganizationVertex, OrganizationEdge>[] | undefined;
         if (!children) return;
 
         collapsedByAncestor ||= this.ctx.collapsedManager.isCollapsed(vertex.value as string);
@@ -803,8 +799,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             title: this.graph.findNeighbourValue(vertex, 'title') as NormalisedTextOrSegments | undefined,
             subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as NormalisedTextOrSegments | undefined,
             labels: this.graph.findNeighbourValue(vertex, 'labels') as
-                | (NormalisedTextOrSegments | undefined)[]
-                | undefined,
+                (NormalisedTextOrSegments | undefined)[] | undefined,
         };
     }
 

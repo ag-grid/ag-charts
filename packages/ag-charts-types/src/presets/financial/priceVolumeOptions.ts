@@ -1,11 +1,7 @@
+import type { DatumDefault, Ratio } from '../../chart/types';
+
 export type AgPriceVolumeChartType =
-    | 'candlestick'
-    | 'hollow-candlestick'
-    | 'ohlc'
-    | 'line'
-    | 'step-line'
-    | 'hlc'
-    | 'high-low';
+    'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'hlc' | 'high-low';
 
 export interface AgPriceVolumePreset {
     /** Series type used for the OHLC data.
@@ -55,6 +51,9 @@ export interface AgPriceVolumePreset {
      * Default: `true`
      */
     volume?: boolean;
+    /** TODO
+     */
+    volumeProfile?: AgVolumeProfileOptions;
     /** Whether to show the range buttons.
      *
      * Default: `true`
@@ -81,3 +80,16 @@ export interface AgPriceVolumePreset {
      */
     sync?: boolean;
 }
+
+export interface AgVolumeProfileOptions {
+    /** TODO */
+    data: DatumDefault[];
+    /** TODO */
+    placement?: AgVolumeProfilePlacement;
+    /** TODO */
+    tickSize?: number;
+    /** TODO */
+    width?: Ratio;
+}
+
+type AgVolumeProfilePlacement = 'left' | 'right';

@@ -71,13 +71,10 @@ import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
 import { type BucketLookupFeature, BucketLookupManager } from '../bucketLookupFeature';
-import {
-    type MarkerStyleApply,
-    type MarkerStyleCompute,
-    type PickFocusInputs,
-    Series,
-    SeriesNodePickMode,
-} from '../series';
+import type { PickFocusInputs } from '../pickTypes';
+import { SeriesNodePickMode } from '../pickTypes';
+import type { MarkerStyleApply, MarkerStyleCompute } from '../series';
+import { Series } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { HighlightState, SelectionState } from '../seriesTypes';

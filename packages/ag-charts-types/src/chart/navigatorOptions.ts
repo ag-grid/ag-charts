@@ -96,31 +96,15 @@ export type BoxPlotIgnoredProperties =
     | 'q3Name'
     | 'maxName';
 export type BubbleIgnoredProperties =
-    | CommonIgnoredProperties
-    | 'title'
-    | 'label'
-    | 'labelKey'
-    | 'labelName'
-    | 'sizeName';
+    CommonIgnoredProperties | 'title' | 'label' | 'labelKey' | 'labelName' | 'sizeName';
 export type HeatmapIgnoredProperties =
-    | CommonIgnoredProperties
-    | 'title'
-    | 'label'
-    | 'colorName'
-    | 'textAlign'
-    | 'verticalAlign'
-    | 'itemPadding';
+    CommonIgnoredProperties | 'title' | 'label' | 'colorName' | 'textAlign' | 'verticalAlign' | 'itemPadding';
 export type HistogramIgnoredProperties = CommonIgnoredProperties | 'label';
 export type LineIgnoredProperties = CommonIgnoredProperties | 'errorBar' | 'title' | 'label';
 export type RangeAreaIgnoredProperties = CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName';
 export type RangeBarIgnoredProperties = CommonIgnoredProperties | 'label' | 'direction' | 'yLowName' | 'yHighName';
 export type ScatterIgnoredProperties =
-    | CommonIgnoredProperties
-    | 'errorBar'
-    | 'title'
-    | 'label'
-    | 'labelKey'
-    | 'labelName';
+    CommonIgnoredProperties | 'errorBar' | 'title' | 'label' | 'labelKey' | 'labelName';
 export type WaterfallIgnoredProperties = CommonIgnoredProperties | 'direction';
 
 export interface AgLineMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<

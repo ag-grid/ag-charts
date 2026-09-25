@@ -101,14 +101,9 @@ import { Marker } from '../../marker/marker';
 import { type MarkerLabelRect, markerLabelRect, markerRowSpans } from '../../marker/markerLabelRect';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
-import {
-    type MarkerStyleApply,
-    type MarkerStyleCompute,
-    type PickFocusInputs,
-    type SeriesNodePickMatch,
-    SeriesNodePickMode,
-    type SeriesNodeStyleContext,
-} from '../series';
+import type { PickFocusInputs, SeriesNodePickMatch } from '../pickTypes';
+import { SeriesNodePickMode } from '../pickTypes';
+import type { MarkerStyleApply, MarkerStyleCompute, SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { markerDiameter } from '../seriesMarker';
 import { toHighlightString, toSelectionString } from '../seriesProperties';

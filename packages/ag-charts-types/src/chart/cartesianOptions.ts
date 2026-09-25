@@ -577,8 +577,7 @@ export interface AgCartesianRangeCrossLineOptions<
 > extends AgRangeCrossLineOptions<TValue, AgCartesianCrossLineLabelOptions, TContext> {}
 
 export type AgCartesianCrossLineOptions<TValue = AxisValue, TContext = ContextDefault> =
-    | AgCartesianLineCrossLineOptions<TValue, TContext>
-    | AgCartesianRangeCrossLineOptions<TValue, TContext>;
+    AgCartesianLineCrossLineOptions<TValue, TContext> | AgCartesianRangeCrossLineOptions<TValue, TContext>;
 
 export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
     /** The position of the Cross Line label. */

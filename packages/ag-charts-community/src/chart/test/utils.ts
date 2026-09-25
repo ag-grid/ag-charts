@@ -1568,9 +1568,7 @@ export type PhasedPropertyExpectation = {
     settlesAt?: number;
 };
 export type ScenePropertyExpectation =
-    | TrajectoryExpectation
-    | readonly TrajectoryExpectation[]
-    | PhasedPropertyExpectation;
+    TrajectoryExpectation | readonly TrajectoryExpectation[] | PhasedPropertyExpectation;
 export type SceneNodeExpectation = 'constant' | 'any' | Partial<Record<string, ScenePropertyExpectation>>;
 export type PhasedTrajectory = { phaseIntervals: AnimationPhase[][] };
 

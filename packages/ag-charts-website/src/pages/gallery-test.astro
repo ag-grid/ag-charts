@@ -16,33 +16,31 @@ const { series } = galleryData;
 <Layout title="AG Charts Gallery" hideFooter={true}>
     <div class="gallery-outer homepage-image-gen text-sm">
         <div class="content gallery-test">
-            {
-                series.map((series: GalleryExampleChartType[]) => (
-                    <div class="chart-type">
-                        <div class="gallery-list">
-                            {series.map(({ title, name, examples }) => {
-                                const threeColExamples = examples
-                                    .filter(({ hidden }) => !hidden)
-                                    .toSpliced(0, examples.length % 3);
+            {series.map((series: GalleryExampleChartType[]) => (
+                <div class="chart-type">
+                    <div class="gallery-list">
+                        {series.map(({ title, name, examples }) => {
+                            const threeColExamples = examples
+                                .filter(({ hidden }) => !hidden)
+                                .toSpliced(0, examples.length % 3);
 
-                                return (
-                                    <>
-                                        <h3 id={name} class="gallery-list-title">
-                                            {title}
-                                        </h3>
+                            return (
+                                <>
+                                    <h3 id={name} class="gallery-list-title">
+                                        {title}
+                                    </h3>
 
-                                        {threeColExamples.map(({ title, name }: GalleryExample) => (
-                                            <span class="gallery-test-item">
-                                                <GalleryExampleLink client:visible label={title} exampleName={name} />
-                                            </span>
-                                        ))}
-                                    </>
-                                );
-                            })}
-                        </div>
+                                    {threeColExamples.map(({ title, name }: GalleryExample) => (
+                                        <span class="gallery-test-item">
+                                            <GalleryExampleLink client:visible label={title} exampleName={name} />
+                                        </span>
+                                    ))}
+                                </>
+                            );
+                        })}
                     </div>
-                ))
-            }
+                </div>
+            ))}
         </div>
     </div>
 </Layout>

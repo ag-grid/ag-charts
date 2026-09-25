@@ -42,10 +42,7 @@ export type LinePropertiesType = LineProperties | HorizontalLineProperties | Ver
 export type FibonacciPropertiesType = FibonacciRetracementProperties | FibonacciRetracementTrendBasedProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
 export type MeasurerPropertiesType =
-    | DateRangeProperties
-    | PriceRangeProperties
-    | DatePriceRangeProperties
-    | QuickDatePriceRangeProperties;
+    DateRangeProperties | PriceRangeProperties | DatePriceRangeProperties | QuickDatePriceRangeProperties;
 
 export type AnnotationProperties =
     | LinePropertiesType

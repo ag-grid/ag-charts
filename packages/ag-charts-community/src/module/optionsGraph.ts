@@ -1220,14 +1220,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         const pathVertex = this.findVertexAtPath(pathArray);
         const defaultsEnabled = this.findNeighbourValue(autoEnableValueVertex, DEFAULTS_EDGE) as
-            | PlainObject
-            | undefined;
+            PlainObject | undefined;
         const overridesEnabled = this.findNeighbourValue(autoEnableValueVertex, OVERRIDES_EDGE) as
-            | PlainObject
-            | undefined;
+            PlainObject | undefined;
         const userOptionsEnabled = this.findNeighbourValue(autoEnableValueVertex, USER_OPTIONS_EDGE) as
-            | PlainObject
-            | undefined;
+            PlainObject | undefined;
 
         // If `enabled` has been explicitly set in the user options then ignore the auto-enable value of userPartial.
         const hasUserOptionEnabled = pathVertex && this.findNeighbour(pathVertex, USER_OPTIONS_EDGE) != null;

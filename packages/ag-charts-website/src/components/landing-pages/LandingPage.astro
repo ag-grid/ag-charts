@@ -99,229 +99,208 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
 ---
 
 <Layout title={content.meta.title} description={content.meta.description} showDocsNav={false} showSearchBar={true}>
-    {
-        content.sections.map((section) => {
-            switch (section.type) {
-                case 'hero':
-                    // Hero section using shared component with auto-scrolling gallery
-                    // Add logo to heading for framework landing pages only
-                    const heroSec = section as HeroSectionType;
-                    const heroSectionWithLogo =
-                        isFrameworkLandingPage && frameworkKey
-                            ? {
-                                  ...heroSec,
-                                  headingHtml: getHeadingWithLogo(frameworkKey, heroSec.heading, urlWithBaseUrl),
-                              }
-                            : heroSec;
+    {content.sections.map((section) => {
+        switch (section.type) {
+            case 'hero':
+                // Hero section using shared component with auto-scrolling gallery
+                // Add logo to heading for framework landing pages only
+                const heroSec = section as HeroSectionType;
+                const heroSectionWithLogo =
+                    isFrameworkLandingPage && frameworkKey
+                        ? {
+                              ...heroSec,
+                              headingHtml: getHeadingWithLogo(frameworkKey, heroSec.heading, urlWithBaseUrl),
+                          }
+                        : heroSec;
 
-                    return (
-                        <HeroSection
-                            section={heroSectionWithLogo}
-                            pageContent={content}
-                            latestVersion={latestVersion}
-                            urlWithBaseUrl={urlWithBaseUrl}
-                            styles={pageStyles}
-                        >
-                            {/* Hero demo slot - auto-scrolling gallery carousel */}
-                            {heroSec.galleryExamples && heroSec.galleryExamples.length > 0 && (
-                                <HeroGallery
-                                    slot="hero-demo"
-                                    client:load
-                                    examples={heroSec.galleryExamples}
-                                    height={heroSec.demoHeight ?? 500}
-                                    autoAdvanceDelay={7000}
-                                    framework={content.internalFramework}
-                                />
-                            )}
-
-                            {/* Install text slot */}
-                            <InstallText slot="hero-install" client:load packageName={content.packageName} />
-
-                            <TrialButton
-                                slot="hero-trial-button"
+                return (
+                    <HeroSection
+                        section={heroSectionWithLogo}
+                        pageContent={content}
+                        latestVersion={latestVersion}
+                        urlWithBaseUrl={urlWithBaseUrl}
+                        styles={pageStyles}
+                    >
+                        {/* Hero demo slot - auto-scrolling gallery carousel */}
+                        {heroSec.galleryExamples && heroSec.galleryExamples.length > 0 && (
+                            <HeroGallery
+                                slot="hero-demo"
                                 client:load
-                                className={`button-secondary ${styles.heroSectionCta1} plausible-event-name=${content.analyticsPrefix}-trial-cta`}
-                            >
-                                Start Free Trial
-                            </TrialButton>
+                                examples={heroSec.galleryExamples}
+                                height={heroSec.demoHeight ?? 500}
+                                autoAdvanceDelay={7000}
+                                framework={content.internalFramework}
+                            />
+                        )}
 
-                            {/* Customer logos slot */}
-                            <CustomerLogos slot="hero-logos" client:load />
-                        </HeroSection>
-                    );
+                        {/* Install text slot */}
+                        <InstallText slot="hero-install" client:load packageName={content.packageName} />
 
-                case 'features':
-                    // Add logo to heading for framework landing pages only
-                    const featuresSectionWithLogo =
-                        isFrameworkLandingPage && frameworkKey
-                            ? {
-                                  ...section,
-                                  headingHtml: getHeadingWithLogo(
-                                      frameworkKey,
-                                      section.heading || 'Build, Customise and Expand your Charts',
-                                      urlWithBaseUrl
-                                  ),
-                              }
-                            : section;
-                    return (
-                        <FeaturesSection section={featuresSectionWithLogo} pageContent={content}>
-                            <FeaturesWithExamples features={section.items} framework={content.internalFramework} />
-                        </FeaturesSection>
-                    );
-
-                case 'customers':
-                    return (
-                        <CustomersSection section={section} pageContent={content}>
-                            <CustomerLogos client:load />
-                        </CustomersSection>
-                    );
-
-                case 'examples':
-                    return (
-                        <ExamplesSection
-                            section={section}
-                            pageContent={content}
-                            urlWithBaseUrl={urlWithBaseUrl}
-                            styles={pageStyles}
-                        />
-                    );
-
-                case 'faq':
-                    return <FAQSection section={section} pageContent={content} />;
-
-                case 'contact':
-                    return (
-                        <ContactSection section={section} pageContent={content} styles={pageStyles}>
-                            <CustomerLogos slot="contact-logos" client:load />
-                        </ContactSection>
-                    );
-
-                // Charts-specific sections
-                case 'gallery-showcase':
-                    return (
-                        <GalleryShowcaseSection section={section as GalleryShowcaseSectionType} pageContent={content} />
-                    );
-
-                case 'chart-types':
-                    return (
-                        <ChartTypesGridSection section={section as ChartTypesGridSectionType} pageContent={content} />
-                    );
-
-                case 'interactive-demo':
-                    return (
-                        <InteractiveDemoSection section={section as InteractiveDemoSectionType} pageContent={content} />
-                    );
-
-                case 'financial-charts':
-                    return (
-                        <FinancialChartsSection section={section as FinancialChartsSectionType} pageContent={content} />
-                    );
-
-                case 'map-charts':
-                    return <MapChartsSection section={section as MapChartsSectionType} pageContent={content} />;
-
-                case 'integrated-charts':
-                    return (
-                        <IntegratedChartsSection
-                            section={section as IntegratedChartsSectionType}
-                            pageContent={content}
-                        />
-                    );
-
-                case 'whats-new':
-                    return <WhatsNewSection section={section as WhatsNewSectionType} pageContent={content} />;
-
-                case 'performance-demo':
-                    return (
-                        <PerformanceDemoSection section={section as PerformanceDemoSectionType} pageContent={content} />
-                    );
-
-                case 'comparison':
-                    return (
-                        <LandingPageSection
-                            id="comparison"
-                            tag={section.tag}
-                            heading={section.heading}
-                            subHeading={section.subHeading}
-                            showBackgroundGradient={section.showBackgroundGradient}
+                        <TrialButton
+                            slot="hero-trial-button"
+                            client:load
+                            className={`button-secondary ${styles.heroSectionCta1} plausible-event-name=${content.analyticsPrefix}-trial-cta`}
                         >
-                            <ComparisonTable client:load />
-                        </LandingPageSection>
-                    );
+                            Start Free Trial
+                        </TrialButton>
 
-                case 'code-example':
-                    return <CodeExampleSection section={section as CodeExampleSectionType} pageContent={content} />;
+                        {/* Customer logos slot */}
+                        <CustomerLogos slot="hero-logos" client:load />
+                    </HeroSection>
+                );
 
-                case 'feature-grid':
-                    return <FeatureGridSection section={section as FeatureGridSectionType} pageContent={content} />;
+            case 'features':
+                // Add logo to heading for framework landing pages only
+                const featuresSectionWithLogo =
+                    isFrameworkLandingPage && frameworkKey
+                        ? {
+                              ...section,
+                              headingHtml: getHeadingWithLogo(
+                                  frameworkKey,
+                                  section.heading || 'Build, Customise and Expand your Charts',
+                                  urlWithBaseUrl
+                              ),
+                          }
+                        : section;
+                return (
+                    <FeaturesSection section={featuresSectionWithLogo} pageContent={content}>
+                        <FeaturesWithExamples features={section.items} framework={content.internalFramework} />
+                    </FeaturesSection>
+                );
 
-                case 'chart-types-showcase':
-                    return (
-                        <ChartTypesShowcaseSection
-                            section={section as ChartTypesShowcaseSectionType}
-                            pageContent={content}
-                        />
-                    );
+            case 'customers':
+                return (
+                    <CustomersSection section={section} pageContent={content}>
+                        <CustomerLogos client:load />
+                    </CustomersSection>
+                );
 
-                case 'pricing':
-                    return (
-                        <LandingPageSection
-                            id="pricing"
-                            tag={section.tag}
-                            heading={section.heading}
-                            subHeading={section.subHeading}
-                            showBackgroundGradient={section.showBackgroundGradient}
-                        >
-                            <div class={styles.pricingContainer}>
-                                {section.cards.map((card) => (
-                                    <div class={styles.pricingCard}>
-                                        <h3>{card.title}</h3>
-                                        <div
-                                            class={
-                                                card.price === 'Free' ? styles.pricingPriceFree : styles.pricingPrice
-                                            }
-                                        >
-                                            {card.price}
-                                        </div>
-                                        <p class={styles.pricingPriceNote}>{card.priceNote}</p>
-                                        <ul class={styles.pricingFeatures}>
-                                            {card.features.map((feature) => (
-                                                <li>{feature}</li>
-                                            ))}
-                                        </ul>
-                                        <a
-                                            id={card.ctaId}
-                                            class:list={[
-                                                card.isPrimary ? 'button-tertiary' : 'button-secondary',
-                                                styles.pricingCta,
-                                                `plausible-event-name=${content.analyticsPrefix}-${card.title.toLowerCase().replace(/\s+/g, '-')}-cta`,
-                                            ]}
-                                            href={
-                                                card.ctaUrl.startsWith('http')
-                                                    ? card.ctaUrl
-                                                    : urlWithBaseUrl(card.ctaUrl)
-                                            }
-                                        >
-                                            {card.ctaText}
-                                        </a>
-                                        {card.showTrialButton && (
-                                            <TrialButton
-                                                client:load
-                                                className={`button-secondary ${styles.pricingTrialCta} plausible-event-name=${content.analyticsPrefix}-${card.title.toLowerCase().replace(/\s+/g, '-')}-trial-cta`}
-                                            >
-                                                Free Trial
-                                            </TrialButton>
-                                        )}
+            case 'examples':
+                return (
+                    <ExamplesSection
+                        section={section}
+                        pageContent={content}
+                        urlWithBaseUrl={urlWithBaseUrl}
+                        styles={pageStyles}
+                    />
+                );
+
+            case 'faq':
+                return <FAQSection section={section} pageContent={content} />;
+
+            case 'contact':
+                return (
+                    <ContactSection section={section} pageContent={content} styles={pageStyles}>
+                        <CustomerLogos slot="contact-logos" client:load />
+                    </ContactSection>
+                );
+
+            // Charts-specific sections
+            case 'gallery-showcase':
+                return <GalleryShowcaseSection section={section as GalleryShowcaseSectionType} pageContent={content} />;
+
+            case 'chart-types':
+                return <ChartTypesGridSection section={section as ChartTypesGridSectionType} pageContent={content} />;
+
+            case 'interactive-demo':
+                return <InteractiveDemoSection section={section as InteractiveDemoSectionType} pageContent={content} />;
+
+            case 'financial-charts':
+                return <FinancialChartsSection section={section as FinancialChartsSectionType} pageContent={content} />;
+
+            case 'map-charts':
+                return <MapChartsSection section={section as MapChartsSectionType} pageContent={content} />;
+
+            case 'integrated-charts':
+                return (
+                    <IntegratedChartsSection section={section as IntegratedChartsSectionType} pageContent={content} />
+                );
+
+            case 'whats-new':
+                return <WhatsNewSection section={section as WhatsNewSectionType} pageContent={content} />;
+
+            case 'performance-demo':
+                return <PerformanceDemoSection section={section as PerformanceDemoSectionType} pageContent={content} />;
+
+            case 'comparison':
+                return (
+                    <LandingPageSection
+                        id="comparison"
+                        tag={section.tag}
+                        heading={section.heading}
+                        subHeading={section.subHeading}
+                        showBackgroundGradient={section.showBackgroundGradient}
+                    >
+                        <ComparisonTable client:load />
+                    </LandingPageSection>
+                );
+
+            case 'code-example':
+                return <CodeExampleSection section={section as CodeExampleSectionType} pageContent={content} />;
+
+            case 'feature-grid':
+                return <FeatureGridSection section={section as FeatureGridSectionType} pageContent={content} />;
+
+            case 'chart-types-showcase':
+                return (
+                    <ChartTypesShowcaseSection
+                        section={section as ChartTypesShowcaseSectionType}
+                        pageContent={content}
+                    />
+                );
+
+            case 'pricing':
+                return (
+                    <LandingPageSection
+                        id="pricing"
+                        tag={section.tag}
+                        heading={section.heading}
+                        subHeading={section.subHeading}
+                        showBackgroundGradient={section.showBackgroundGradient}
+                    >
+                        <div class={styles.pricingContainer}>
+                            {section.cards.map((card) => (
+                                <div class={styles.pricingCard}>
+                                    <h3>{card.title}</h3>
+                                    <div class={card.price === 'Free' ? styles.pricingPriceFree : styles.pricingPrice}>
+                                        {card.price}
                                     </div>
-                                ))}
-                            </div>
-                        </LandingPageSection>
-                    );
+                                    <p class={styles.pricingPriceNote}>{card.priceNote}</p>
+                                    <ul class={styles.pricingFeatures}>
+                                        {card.features.map((feature) => (
+                                            <li>{feature}</li>
+                                        ))}
+                                    </ul>
+                                    <a
+                                        id={card.ctaId}
+                                        class:list={[
+                                            card.isPrimary ? 'button-tertiary' : 'button-secondary',
+                                            styles.pricingCta,
+                                            `plausible-event-name=${content.analyticsPrefix}-${card.title.toLowerCase().replace(/\s+/g, '-')}-cta`,
+                                        ]}
+                                        href={
+                                            card.ctaUrl.startsWith('http') ? card.ctaUrl : urlWithBaseUrl(card.ctaUrl)
+                                        }
+                                    >
+                                        {card.ctaText}
+                                    </a>
+                                    {card.showTrialButton && (
+                                        <TrialButton
+                                            client:load
+                                            className={`button-secondary ${styles.pricingTrialCta} plausible-event-name=${content.analyticsPrefix}-${card.title.toLowerCase().replace(/\s+/g, '-')}-trial-cta`}
+                                        >
+                                            Free Trial
+                                        </TrialButton>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </LandingPageSection>
+                );
 
-                default:
-                    // Unknown section type - skip
-                    return null;
-            }
-        })
-    }
+            default:
+                // Unknown section type - skip
+                return null;
+        }
+    })}
 </Layout>

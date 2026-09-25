@@ -98,13 +98,7 @@ export type TransferableResources = {
 };
 
 type SeriesChangeType =
-    | 'no-op'
-    | 'no-change'
-    | 'replaced'
-    | 'data-change'
-    | 'series-grouping-change'
-    | 'series-count-changed'
-    | 'updated';
+    'no-op' | 'no-change' | 'replaced' | 'data-change' | 'series-grouping-change' | 'series-count-changed' | 'updated';
 
 const MINI_CHART_LABEL_EXCLUDED: ReadonlySet<string> = new Set([
     'interval',
