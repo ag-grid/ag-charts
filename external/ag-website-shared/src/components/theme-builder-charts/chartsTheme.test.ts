@@ -42,7 +42,7 @@ describe('AG Charts param translation', () => {
                 collectOperations(params[property], operations);
             }
         }
-        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$mul', '$ref']);
+        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$multiply', '$ref']);
     });
 
     describe('colour references', () => {
@@ -75,9 +75,9 @@ describe('AG Charts param translation', () => {
             );
         });
 
-        it('maps $mul to a calculated length', () => {
+        it('maps $multiply to a calculated length', () => {
             expect(
-                toStackParamValue('colorPickerColorBorderRadius', { $mul: [0.5, { $ref: 'borderRadius' }] })
+                toStackParamValue('colorPickerColorBorderRadius', { $multiply: [0.5, { $ref: 'borderRadius' }] })
             ).toEqual({ calc: 'borderRadius * 0.5' });
         });
 

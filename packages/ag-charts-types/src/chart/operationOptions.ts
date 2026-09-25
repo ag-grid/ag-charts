@@ -141,7 +141,7 @@ type LogicOperation =
 
 type NumericOperation =
     | { $even: Leaf<number> } // Number
-    | { $mul: [Leaf<number>, Leaf<number>] }; // Number | Number — the unrounded product
+    | { $multiply: [Leaf<number>, Leaf<number>] }; // Number | Number — the unrounded product
 
 type TransformOperation =
     | { $apply: Leaf<object> | [Leaf<object>, Leaf<object[]>] } // Object to merge with each item in the array | Default if no user options supplied

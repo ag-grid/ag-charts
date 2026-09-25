@@ -59,14 +59,14 @@ export const toStackParamValue = (property: string, value: ChartsParamValue): un
         return { ref: 'foregroundColor', mix: value.$foregroundBackgroundMix, onto: 'backgroundColor' };
     }
 
-    if ('$mul' in value) {
+    if ('$multiply' in value) {
         // A length scaled from another param, e.g. `[0.5, { $ref: 'borderRadius' }]`.
-        const [ratio, source] = value.$mul as [number, unknown];
+        const [ratio, source] = value.$multiply as [number, unknown];
         const sourceName = refName(source);
         if (typeof ratio === 'number' && sourceName != null) {
             return { calc: `${sourceName} * ${ratio}` };
         }
-        console.warn(`[charts theme builder] cannot express $mul for "${property}" as a calculated length`);
+        console.warn(`[charts theme builder] cannot express $multiply for "${property}" as a calculated length`);
         return undefined;
     }
 
