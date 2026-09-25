@@ -9,6 +9,14 @@ NEW_VERSION="$1"
 TOOLS_DIR=$(dirname $0)
 SKIP_FORMAT="${2:-no}"
 
+# generate-react-seed.mjs below imports prettier, so the bump needs the workspace's packages even on
+# a bare checkout, such as the job that makes the "Release X.Y.Z Prep" commit. Install them here,
+# before any package.json is bumped, while the committed yarn.lock still matches.
+if ! node -e "require.resolve('prettier')" >/dev/null 2>&1; then
+    echo "prettier is not installed - running yarn install for the demo seed tooling"
+    yarn install --frozen-lockfile --ignore-scripts --prefer-offline
+fi
+
 PACKAGES=(
     ag-charts
     ag-charts-core
@@ -30,6 +38,15 @@ PACKAGES=(
 for package in ${PACKAGES[@]}; do
     node ${TOOLS_DIR}/update-package-json-deps.js $package "$NEW_VERSION"
 done
+
+# The demo seed projects pin ag-charts-* by version, whatever the branch (readPinnedChartsVersion in
+# packages/ag-charts-demos/tools/seeds/seed-common.mjs): X.Y.Z for a plain X.Y.Z version, the npm
+# "latest" dist-tag for a pre-release. Between bumps the seed tooling keeps a release pin that a
+# merge-back from a release branch carried in; --reset-pin drops it, so every bump, the weekly beta
+# bump and the release-branch cut included, writes the pin the new version calls for.
+node ./packages/ag-charts-demos/tools/seeds/generate-react-seed.mjs --reset-pin
+# The framework ports are hand-written rather than generated, so their pins are rewritten in place.
+node ./packages/ag-charts-demos/tools/seeds/pin-ports.mjs --reset-pin
 
 echo >./packages/ag-charts-community/src/version.ts "// DO NOT UPDATE MANUALLY: Generated from script during build time
 export const VERSION = '${NEW_VERSION}';"

@@ -268,10 +268,14 @@ jobs:
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
 
                   # Whether the demo-apps smoke should run (its own files or an upstream dep changed).
+                  # The seed projects under packages/ag-charts-demos/seeds are the nested project
+                  # ag-charts-demos-seeds, which has no test:e2e target of its own, so a port-only
+                  # change affects only it; it is counted too, since the job carries the parity step
+                  # that gates the ports. Non-zero means run; the value may be 2.
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     demos_affected=1
                   else
-                    demos_affected=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | grep -Fxc 'ag-charts-demos' || true)
+                    demos_affected=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} | grep -Fxc -e 'ag-charts-demos' -e 'ag-charts-demos-seeds' || true)
                   fi
                   echo "demos_affected=${demos_affected}" >> $GITHUB_OUTPUT
                   echo "Demos affected: ${demos_affected}"
@@ -304,6 +308,7 @@ jobs:
                       packages/*/dist/
                       external/*/dist/
                       packages/ag-charts-website/e2e/generated/
+                      packages/ag-charts-demos/seeds/*/*/dist/
                       !packages/*/dist/**/*.map
 
     lint:
@@ -347,6 +352,32 @@ jobs:
               id: lint
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --exclude all
+
+            # The committed seed projects under packages/ag-charts-demos/seeds are generated from the
+            # React demos; this fails when a demo (or the workspace version) changed without them.
+            - name: nx check-seeds
+              id: check-seeds
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: yarn nx run ag-charts-demos:check-seeds
+
+            # The Angular, Vue and TypeScript seeds are ports of the React demos, aligned after the
+            # fact: a demo change is expected to leave them stale, and they stay stale on latest
+            # between releases. The "Demo Port Alignment" workflow (demo-port-align.yml) aligns them
+            # at the release-branch cut, and /port-showcases does it on demand. This only tells the
+            # author so. Never blocks: the report is informational.
+            - name: Stale demo ports (non-blocking)
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              continue-on-error: true
+              run: |
+                  node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > stale-ports.json
+                  jq -r '.stale[] | "::warning title=Stale demo port::seeds/\(.demo)/\(.framework) was last aligned to \(.manifestCommit[0:8] // "an unknown commit") and no longer matches src/demos/\(.demo). The ports are aligned by the Demo Port Alignment workflow when the next release branch is cut; no action needed on this PR."' stale-ports.json
+
+            # The blocking parity run skips stale ports, so a port this change edits must not be left
+            # stale: an alignment that forgot to restamp the manifest would otherwise skip its own
+            # parity check. Pin-only edits (a version bump) do not count.
+            - name: Edited demo ports are restamped
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --touched "${{ steps.setup.outputs.base }}"
 
     generate:
         runs-on: ubuntu-24.04
@@ -1345,6 +1376,52 @@ jobs:
                     npx playwright test
               timeout-minutes: 15
 
+            # Self-parity: the React app served twice from the dist/ the init job built, with
+            # vite preview as the port run serves its reference, and compared with itself. Every
+            # pixel must match; this proves the demos and the harness are deterministic, which the
+            # port comparison below relies on to mean anything.
+            - name: playwright self-parity ag-charts-demos
+              id: demos_self_parity
+              if: ${{ !cancelled() }}
+              run: |
+                  docker run --rm --ipc=host --init \
+                    -v "$(pwd)":/data \
+                    -w /data/packages/ag-charts-demos \
+                    -e CI \
+                    ${PLAYWRIGHT_IMAGE} \
+                    npx playwright test -c playwright.parity.config.ts
+              timeout-minutes: 15
+
+            # Pixel parity of the framework ports against the React reference, served from the
+            # dist/ the init job built. PARITY_DISCOVER finds every committed port by its
+            # seeds/<demo>/<framework>/.seed-manifest.json and serves the seed dist/ the init job
+            # built (ag-charts-demos-seeds:build, restored with the init outputs), so a new port
+            # joins this run by committing its manifest. Stale ports, whose demo changed after they
+            # were last aligned, are skipped and listed: they are expected between releases and
+            # aligned at the release-branch cut. The stale report is written here on the runner,
+            # where the checkout's git is set up, and read by the run in the container.
+            - name: playwright parity ag-charts-demos
+              id: demos_parity
+              if: ${{ !cancelled() }}
+              run: |
+                  # The report goes under the runner's temp folder, mounted read-only into the
+                  # container: e2e/parity/results/ is created by the self-parity container as root,
+                  # so the runner user cannot write into it.
+                  report="${RUNNER_TEMP}/parity-input/stale-ports.json"
+                  mkdir -p "$(dirname "$report")"
+                  node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > "$report"
+                  jq -r '.stale[] | "::warning title=Stale demo port skipped by parity::seeds/\(.demo)/\(.framework) no longer matches src/demos/\(.demo) and is not compared. It is aligned at the release-branch cut (Demo Port Alignment workflow) or with /port-showcases."' "$report"
+                  docker run --rm --ipc=host --init \
+                    -v "$(pwd)":/data \
+                    -v "${RUNNER_TEMP}/parity-input":/parity-input:ro \
+                    -w /data/packages/ag-charts-demos \
+                    -e CI \
+                    -e PARITY_DISCOVER=1 \
+                    -e PARITY_STALE_REPORT=/parity-input/stale-ports.json \
+                    ${PLAYWRIGHT_IMAGE} \
+                    npx playwright test -c playwright.parity.config.ts
+              timeout-minutes: 15
+
             - name: Persist test results
               if: always()
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -1353,6 +1430,7 @@ jobs:
                   path: |
                       reports/
                       packages/ag-charts-demos/test-results/
+                      packages/ag-charts-demos/e2e/parity/results/
 
     fw_pkg_test:
         runs-on: ubuntu-24.04

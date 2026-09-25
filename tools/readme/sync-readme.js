@@ -13,6 +13,11 @@ const path = require('path');
 const glob = require('glob');
 const prettier = require('prettier');
 const packageReadmeList = glob.sync('packages/*/README.md');
+// A package README whose first line carries this marker is written by hand (for example
+// packages/ag-charts-demos/README.md, which documents the demo apps rather than the library)
+// and must not be regenerated from the root README.
+const HAND_MAINTAINED_MARKER = '<!-- hand-maintained:';
+const isHandMaintained = (readme) => fs.readFileSync(readme, 'utf8').trimStart().startsWith(HAND_MAINTAINED_MARKER);
 const rootReadme = fs.readFileSync('./README.md').toString();
 const libraries = ['ag-charts-community', 'ag-charts-enterprise', 'ag-charts-types', 'ag-charts-locale'];
 
@@ -169,6 +174,9 @@ const updateSetup = (content, packageTitle) => {
 };
 
 for (const readme of packageReadmeList) {
+    if (isHandMaintained(readme)) {
+        continue;
+    }
     prettier
         .format(updateContent(readme), { filepath: './README.md', tabWidth: 4, singleQuote: true })
         .then((result) => fs.writeFileSync(readme, result))

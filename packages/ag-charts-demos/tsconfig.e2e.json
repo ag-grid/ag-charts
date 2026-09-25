@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client"]
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts", "playwright.parity.config.ts"],
+  "exclude": ["e2e/parity/results"]
+}

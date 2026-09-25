@@ -1,0 +1,403 @@
+name: Demo Port Alignment
+
+# ============================================================================
+# Brings the Angular, Vue and TypeScript ports of the showcase demos back into
+# step with their React golden masters on a new release branch, and opens one
+# PR into that branch with the result.
+#
+# A port is stale when its seeds/<demo>/<framework>/.seed-manifest.json records
+# a source hash behind src/demos/<demo> (packages/ag-charts-demos/tools/seeds/
+# README.md). `detect` runs the stale report on a bare checkout; with nothing
+# stale the run ends green there and no agent runs. Otherwise `align` runs the
+# repo-local /port-showcases skill headlessly (.rulesync/skills/port-showcases),
+# which commits one port per commit and writes reports/port-showcases/summary.md
+# with its gate results. This workflow then checks the commits touch only port
+# files, pushes them to `demo-port-align/<release branch>-<run id>` with the App
+# token (so the PR's own CI runs; a GITHUB_TOKEN push would not trigger it),
+# opens the PR and posts to Slack.
+#
+# Triggers:
+#   - push to a release branch `bX.Y.Z`, ONLY on branch creation
+#     (`github.event.created`). As in release-review.yml, the push never runs
+#     the agent directly: anthropics/claude-code-action rejects push events
+#     ("Unsupported event type: push"), so `dispatch-on-push` re-fires this
+#     workflow as a genuine workflow_dispatch against the new branch.
+#   - workflow_dispatch with the release branch to align.
+#
+# Prerequisites (all already present for release-review.yml and the JIRA agent
+# pipeline):
+#   secrets: ANTHROPIC_API_KEY, SLACK_BOT_OAUTH_TOKEN, JIRA_AGENT_APP_PRIVATE_KEY
+#   vars:    JIRA_AGENT_APP_ID
+# ============================================================================
+
+on:
+    workflow_dispatch:
+        inputs:
+            release_branch:
+                description: 'Release branch to align the demo ports on (e.g. b13.2.0)'
+                type: string
+                required: true
+    push:
+        branches:
+            # Same release-branch glob as ci.yml and release-review.yml. Combined
+            # with the `github.event.created` job guard this fires once per cut.
+            - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
+
+permissions:
+    contents: read
+
+env:
+    # Disable git's post-fetch background gc/maintenance for every git invocation
+    # (injected via git's GIT_CONFIG_* protocol). Otherwise it rewrites .git/shallow
+    # concurrently with the next chained `git fetch --depth 1`, intermittently failing
+    # job setup with "fatal: shallow file has changed since we read it".
+    GIT_CONFIG_COUNT: 2
+    GIT_CONFIG_KEY_0: gc.auto
+    GIT_CONFIG_VALUE_0: '0'
+    GIT_CONFIG_KEY_1: maintenance.auto
+    GIT_CONFIG_VALUE_1: 'false'
+    DEV_PROMPTS_CHANNEL: canary
+
+jobs:
+    dispatch-on-push:
+        name: Dispatch alignment (push → workflow_dispatch)
+        if: github.event_name == 'push' && github.event.created
+        runs-on: ubuntu-latest
+        permissions:
+            actions: write
+        steps:
+            - name: Trigger alignment via workflow_dispatch
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  REPOSITORY: ${{ github.repository }}
+                  REF_NAME: ${{ github.ref_name }}
+              run: |
+                  gh workflow run demo-port-align.yml \
+                      --repo "$REPOSITORY" \
+                      --ref "$REF_NAME" \
+                      -f release_branch="$REF_NAME"
+
+    detect:
+        name: Detect stale ports
+        if: github.event_name == 'workflow_dispatch'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        outputs:
+            release_branch: ${{ steps.validate.outputs.release_branch }}
+            stale_count: ${{ steps.stale.outputs.count }}
+            stale_json: ${{ steps.stale.outputs.json }}
+        steps:
+            - name: Validate the release branch
+              id: validate
+              env:
+                  RELEASE_BRANCH: ${{ inputs.release_branch }}
+              run: |
+                  set -euo pipefail
+                  if ! printf '%s' "$RELEASE_BRANCH" | grep -Eq '^b[0-9]+\.[0-9]+\.[0-9]+$'; then
+                      echo "::error title=Not a release branch::release_branch must match bX.Y.Z (got '${RELEASE_BRANCH}')."
+                      exit 1
+                  fi
+                  echo "release_branch=${RELEASE_BRANCH}" >> "$GITHUB_OUTPUT"
+
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  ref: ${{ steps.validate.outputs.release_branch }}
+                  # The report names the last commit to touch each demo, so the history has to be there.
+                  fetch-depth: 0
+                  persist-credentials: false
+
+            - name: Setup Node
+              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version-file: '.nvmrc'
+
+            # No install: the --stale path uses only Node built-ins.
+            - name: Report stale ports
+              id: stale
+              env:
+                  RELEASE_BRANCH: ${{ steps.validate.outputs.release_branch }}
+              run: |
+                  set -euo pipefail
+                  node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > "$RUNNER_TEMP/stale.json"
+                  count=$(jq '.stale | length' "$RUNNER_TEMP/stale.json")
+                  echo "count=${count}" >> "$GITHUB_OUTPUT"
+                  echo "json=$(jq -c '.stale' "$RUNNER_TEMP/stale.json")" >> "$GITHUB_OUTPUT"
+                  if [ "$count" = "0" ]; then
+                      echo "Every demo port on ${RELEASE_BRANCH} is in step with its React demo; nothing to align." >> "$GITHUB_STEP_SUMMARY"
+                  else
+                      {
+                          echo "${count} demo port(s) stale on ${RELEASE_BRANCH}:"
+                          jq -r '.stale[] | "- `\(.demo)/\(.framework)`"' "$RUNNER_TEMP/stale.json"
+                      } >> "$GITHUB_STEP_SUMMARY"
+                  fi
+
+    align:
+        name: Align stale ports
+        needs: detect
+        if: needs.detect.outputs.stale_count != '0'
+        runs-on: ubuntu-latest
+        timeout-minutes: 120
+        permissions:
+            contents: read
+            # install-ag-dev-prompts reads GitHub Packages with github.token.
+            packages: read
+        concurrency:
+            group: demo-port-align-${{ needs.detect.outputs.release_branch }}
+            cancel-in-progress: false
+        env:
+            RELEASE_BRANCH: ${{ needs.detect.outputs.release_branch }}
+            ALIGN_BRANCH: demo-port-align/${{ needs.detect.outputs.release_branch }}-${{ github.run_id }}
+            STALE_COUNT: ${{ needs.detect.outputs.stale_count }}
+            STALE_JSON: ${{ needs.detect.outputs.stale_json }}
+            RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  ref: ${{ needs.detect.outputs.release_branch }}
+                  # The skill diffs each demo since the commit its port was last aligned to.
+                  fetch-depth: 0
+                  # The branch is pushed with the App token minted after the agent, never GITHUB_TOKEN.
+                  persist-credentials: false
+
+            - name: Record the base commit
+              id: base
+              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+            - name: Mint ag-dev-prompts read token
+              id: prompts-token
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ag-grid
+                  repositories: ag-dev-prompts
+
+            - name: Setup Nx (renders .claude/settings.json and .claude/skills)
+              uses: ./.github/actions/setup-nx
+              env:
+                  GITHUB_TOKEN: ${{ steps.prompts-token.outputs.token }}
+              with:
+                  cache_mode: ro
+                  fetch_base: skip
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
+              with:
+                  channel: ${{ env.DEV_PROMPTS_CHANNEL }}
+
+            # As the shared release-review action does: register the installed,
+            # channel-pinned package as a local-path plugin marketplace, so the agent's
+            # plugin skills (git-conventions) come from DEV_PROMPTS_CHANNEL rather than
+            # the ag-dev-prompts default branch.
+            - name: Expose @ag-grid/dev-prompts as a local plugin marketplace
+              run: |
+                  set -euo pipefail
+                  SELF_ROOT="$GITHUB_WORKSPACE/.ag-dev-prompts/node_modules/@ag-grid/dev-prompts"
+                  STABLE="${RUNNER_TEMP}/ag-dev-prompts-self"
+                  rm -rf "$STABLE"
+                  mkdir -p "$STABLE"
+                  for d in .claude-plugin plugins; do
+                      [ -d "$SELF_ROOT/$d" ] && cp -R "$SELF_ROOT/$d" "$STABLE/$d"
+                  done
+                  ln -sfn "$STABLE" "$GITHUB_WORKSPACE/.ag-dev-prompts-self"
+                  # A local ignore, so no `git add` by the agent can commit the symlink.
+                  grep -qxF '/.ag-dev-prompts-self' .git/info/exclude 2>/dev/null \
+                      || printf '/.ag-dev-prompts-self\n' >> .git/info/exclude
+                  echo "AG_DEV_PROMPTS_SELF_STABLE=$STABLE" >> "$GITHUB_ENV"
+
+            - name: Install the Playwright browser for the parity gates
+              working-directory: packages/ag-charts-demos
+              run: npx playwright install --with-deps chromium
+
+            - name: Create the alignment branch
+              run: |
+                  set -euo pipefail
+                  git config user.name 'github-actions[bot]'
+                  git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+                  git switch -c "$ALIGN_BRANCH"
+
+            - name: Run Claude (/port-showcases)
+              id: claude
+              uses: anthropics/claude-code-action@main # not @v1: Opus 5.5 needs Claude Code >=2.1.280 and the v1 tag (v1.0.231) ships 2.1.278. Return to @v1 once it is re-tagged.
+              env:
+                  ANTHROPIC_MODEL: 'claude-opus-5-5[1m]'
+              with:
+                  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+                  github_token: ${{ github.token }}
+                  # The release-cut path arrives through dispatch-on-push, which makes
+                  # github-actions[bot] the triggering actor.
+                  allowed_bots: 'github-actions'
+                  show_full_output: 'false'
+                  plugin_marketplaces: ${{ env.AG_DEV_PROMPTS_SELF_STABLE }}
+                  plugins: |
+                      ag-eng@ag-dev
+                  claude_args: |
+                      --add-dir /home/runner/.claude/plugins
+                      --max-turns 200
+                      --permission-mode bypassPermissions
+                      --debug
+                  prompt: /port-showcases --ci
+
+            - name: Capture agent transcript
+              if: always()
+              env:
+                  EXECUTION_FILE: ${{ steps.claude.outputs.execution_file }}
+              run: |
+                  set -uo pipefail
+                  mkdir -p reports/port-showcases
+                  if [ -n "${EXECUTION_FILE:-}" ] && [ -f "$EXECUTION_FILE" ]; then
+                      cp "$EXECUTION_FILE" reports/port-showcases/claude-execution-output.json
+                  else
+                      echo "No execution file to capture (EXECUTION_FILE='${EXECUTION_FILE:-}')."
+                  fi
+
+            - name: Check the agent's commits
+              id: check
+              env:
+                  BASE_SHA: ${{ steps.base.outputs.sha }}
+              run: |
+                  set -euo pipefail
+                  commits=$(git rev-list --count "${BASE_SHA}..HEAD")
+                  if [ "$commits" = "0" ]; then
+                      echo "::error title=No alignment changes::${STALE_COUNT} port(s) were stale on ${RELEASE_BRANCH} but the agent committed nothing. See reports/port-showcases in the run artefact."
+                      exit 1
+                  fi
+
+                  # Only port files, their manifests and their PORTING guides may change: never
+                  # src/demos/** or a generated React seed.
+                  outside=$(git diff --name-only "$BASE_SHA" HEAD \
+                      | grep -Ev '^packages/ag-charts-demos/seeds/[^/]+/(angular|vue|typescript)(/|\.PORTING\.md$)' || true)
+                  if [ -n "$outside" ]; then
+                      echo "::error title=Changes outside the ports::the agent changed files no port alignment may touch; no PR opened:"
+                      printf '%s\n' "$outside"
+                      exit 1
+                  fi
+
+                  leftover=$(git status --porcelain | grep -v ' \.claude/settings\.json$' || true)
+                  if [ -n "$leftover" ]; then
+                      echo "::warning title=Uncommitted changes::the agent left changes it did not commit; they are not in the PR:"
+                      printf '%s\n' "$leftover"
+                  fi
+
+                  node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --stale > "$RUNNER_TEMP/stale-after.json"
+                  remaining=$(jq '.stale | length' "$RUNNER_TEMP/stale-after.json")
+                  echo "remaining=${remaining}" >> "$GITHUB_OUTPUT"
+                  pins_status=0
+                  pins=$(node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --pins 2>&1) || pins_status=$?
+                  echo "pins_status=${pins_status}" >> "$GITHUB_OUTPUT"
+
+                  body="$RUNNER_TEMP/pr-body.md"
+                  {
+                      echo "Aligns the Angular, Vue and TypeScript demo ports with their React golden masters on \`${RELEASE_BRANCH}\`. The Demo Port Alignment workflow ran \`/port-showcases\` when the branch was cut; each commit ports one React change to one port and restamps its manifest."
+                      echo
+                      echo "## Ports stale at the cut"
+                      echo
+                      printf '%s' "$STALE_JSON" | jq -r '.[] | "- `\(.demo)/\(.framework)`: last aligned at `\((.manifestCommit // "never")[0:8])`, React now at `\((.sourceCommit // "unknown")[0:8])`"'
+                      echo
+                      echo "## Gate results"
+                      echo
+                      if [ -s reports/port-showcases/summary.md ]; then
+                          cat reports/port-showcases/summary.md
+                      else
+                          echo "The agent wrote no summary; see the run."
+                      fi
+                      echo
+                      echo "## Workflow checks"
+                      echo
+                      echo "- Changed paths: port files, manifests and PORTING guides only."
+                      if [ "$remaining" = "0" ]; then
+                          echo "- Still stale: none."
+                      else
+                          echo "- Still stale:"
+                          jq -r '.stale[] | "  - `\(.demo)/\(.framework)`"' "$RUNNER_TEMP/stale-after.json"
+                      fi
+                      echo "- \`check-seeds.mjs --pins\` (exit ${pins_status}): $(printf '%s' "$pins" | tail -n 1)"
+                      echo
+                      echo "[Workflow run](${RUN_URL})"
+                  } > "$body"
+                  echo "body=${body}" >> "$GITHUB_OUTPUT"
+
+            - name: Mint push token
+              id: push-token
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+              with:
+                  app-id: ${{ vars.JIRA_AGENT_APP_ID }}
+                  private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
+                  owner: ${{ github.repository_owner }}
+                  repositories: ${{ github.event.repository.name }}
+
+            - name: Push and open the PR
+              id: pr
+              env:
+                  GH_TOKEN: ${{ steps.push-token.outputs.token }}
+                  REPOSITORY: ${{ github.repository }}
+                  BODY_FILE: ${{ steps.check.outputs.body }}
+              run: |
+                  set -euo pipefail
+                  git push "https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git" "HEAD:refs/heads/${ALIGN_BRANCH}"
+                  url=$(gh pr create \
+                      --repo "$REPOSITORY" \
+                      --base "$RELEASE_BRANCH" \
+                      --head "$ALIGN_BRANCH" \
+                      --title "Align demo ports with the React demos on ${RELEASE_BRANCH}" \
+                      --body-file "$BODY_FILE")
+                  echo "url=${url}" >> "$GITHUB_OUTPUT"
+                  echo "Opened ${url}" >> "$GITHUB_STEP_SUMMARY"
+
+            # Same channel as release-review.yml, and likewise only from a real release
+            # context: a dispatch from any other ref is a dry run into the job summary.
+            - name: Notify Slack
+              if: always()
+              continue-on-error: true
+              env:
+                  SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  SLACK_CHANNEL: '#charts_teamcity_status'
+                  PR_URL: ${{ steps.pr.outputs.url }}
+                  REMAINING: ${{ steps.check.outputs.remaining }}
+                  WORKFLOW_REF: ${{ github.ref_name }}
+              run: |
+                  set -euo pipefail
+                  if [ -n "$PR_URL" ]; then
+                      text=":arrows_counterclockwise: *Demo Port Alignment* — \`${RELEASE_BRANCH}\`: ${STALE_COUNT} stale port(s), <${PR_URL}|PR opened>."
+                      if [ "${REMAINING:-0}" != "0" ]; then
+                          text="${text} ${REMAINING} port(s) are still stale and need a hand."
+                      fi
+                  else
+                      text=":x: *Demo Port Alignment* — \`${RELEASE_BRANCH}\`: ${STALE_COUNT} stale port(s) but no PR was opened. <${RUN_URL}|View run>"
+                  fi
+                  if [ "$WORKFLOW_REF" = "latest" ] || printf '%s' "$WORKFLOW_REF" | grep -Eq '^b[0-9]+\.[0-9]+\.[0-9]+$'; then
+                      SLACK_MESSAGE_BLOCKS=$(jq -n --arg channel "$SLACK_CHANNEL" --arg text "$text" '{channel: $channel, text: $text}')
+                      export SLACK_MESSAGE_BLOCKS
+                      node ./external/ag-shared/scripts/slack/send-slack-message-command.mjs
+                  else
+                      {
+                          echo "### Slack notification — DRY RUN (not sent)"
+                          echo
+                          echo "Ref \`${WORKFLOW_REF}\` is not a release ref; \`${SLACK_CHANNEL}\` was not notified."
+                          echo
+                          echo '```'
+                          printf '%s\n' "$text"
+                          echo '```'
+                      } >> "$GITHUB_STEP_SUMMARY"
+                  fi
+
+            - name: Upload the agent's reports
+              if: always()
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: demo-port-align-${{ github.run_id }}
+                  path: |
+                      reports/port-showcases/
+                      packages/ag-charts-demos/e2e/parity/results/
+                  if-no-files-found: warn
+                  retention-days: 30
+
+            # After the PR, Slack and the artefact, so those always happen: a PR that leaves
+            # ports stale still reads red.
+            - name: Fail if ports are still stale
+              if: steps.check.outputs.remaining != '' && steps.check.outputs.remaining != '0'
+              env:
+                  REMAINING: ${{ steps.check.outputs.remaining }}
+              run: |
+                  echo "::error title=Ports still stale::${REMAINING} port(s) on ${RELEASE_BRANCH} are still stale after the alignment; see the PR's Workflow checks."
+                  exit 1

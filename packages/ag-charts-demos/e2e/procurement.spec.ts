@@ -1,6 +1,13 @@
 import { type Page, expect, test } from '@playwright/test';
 
 import {
+    expectIdLinkagesResolve,
+    expectRadioGroupContract,
+    expectSelectClosedTypeahead,
+    expectSelectOpenTypeahead,
+    expectTabsContract,
+} from './a11y-assertions';
+import {
     expectChartPopulation,
     expectEveryChartHasData,
     waitForAllChartUpdates,
@@ -24,6 +31,28 @@ const TABS = [
     // The spend-YTD gauge, budget burn-up, monthly spend trend, sunburst and supplier concentration.
     { name: 'My spend', charts: 6 },
 ] as const;
+
+// The Radix controls of the workspace, whose accessibility contract every framework port reproduces by hand.
+const VIEWS = {
+    name: 'Workspace views',
+    tabs: TABS.map((tab) => tab.name),
+    initial: 'My orders',
+    orientation: 'vertical',
+} as const;
+/** The period select of My suppliers. */
+const PERIOD = {
+    name: 'Trailing period my supplier performance is read over',
+    options: ['Last 12 months', 'Last 6 months'],
+    initial: 'Last 12 months',
+};
+/** The period select of My spend. */
+const SPEND_PERIOD = {
+    name: 'Calendar period my spend is read over',
+    options: ['YTD', 'This quarter'],
+    initial: 'YTD',
+};
+/** The supplier-trend metric toggle group of My suppliers. */
+const METRIC = { name: 'Trend metric', options: ['Price', 'On time', 'Quality'], initial: 'Price' };
 
 /** Rows of the supplier roster grid, matched by the row class the demo sets. */
 const rosterRows = (page: Page) => page.locator('.ag-row.pc-supplier');
@@ -277,5 +306,38 @@ test.describe(DEMO_ID, () => {
     test('states the date its data is current to', async ({ page }) => {
         // The data-freshness requirement, honestly worded for a fixed dataset.
         await expect(page.locator('.pc-stamp')).toHaveText(/Data as of \w+ \d+, \d{4}/);
+    });
+
+    test.describe('accessibility contract of the Radix controls', () => {
+        test('every aria-labelledby, aria-controls and label for names an element, on every tab', async ({ page }) => {
+            await expectIdLinkagesResolve(page);
+            for (const tab of TABS.slice(1)) {
+                await openTab(page, tab.name);
+                await expectIdLinkagesResolve(page);
+            }
+        });
+
+        test('the workspace tabs link to their panels and rove focus', async ({ page }) => {
+            await expectTabsContract(page, VIEWS);
+        });
+
+        test('typing on the closed period selects changes their value', async ({ page }) => {
+            await openTab(page, 'My suppliers');
+            await expectSelectClosedTypeahead(page, PERIOD);
+            await openTab(page, 'My spend');
+            await expectSelectClosedTypeahead(page, SPEND_PERIOD);
+        });
+
+        test('typing in the open period selects moves focus to the match', async ({ page }) => {
+            await openTab(page, 'My suppliers');
+            await expectSelectOpenTypeahead(page, PERIOD);
+            await openTab(page, 'My spend');
+            await expectSelectOpenTypeahead(page, SPEND_PERIOD);
+        });
+
+        test('the trend-metric group roves focus with the arrow keys', async ({ page }) => {
+            await openTab(page, 'My suppliers');
+            await expectRadioGroupContract(page, METRIC);
+        });
     });
 });
