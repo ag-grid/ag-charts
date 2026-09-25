@@ -23,6 +23,7 @@ import type {
     RequireOptional,
     SeriesLabelDefaults,
     SeriesPluginModuleInstance,
+    SizedPoint,
 } from 'ag-charts-core';
 import {
     ActionOnSet,
@@ -1612,7 +1613,7 @@ export abstract class Series<
     protected applyMarkerStyle(
         style: NormalisedSeriesMarkerStyle,
         markerNode: Marker,
-        point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
+        point: SizedPoint | undefined,
         fillBBox: ShapeFillBBox | undefined,
         opts: {
             applyPosition?: boolean;
@@ -1648,13 +1649,17 @@ export abstract class Series<
 
             // Measure the built path so the focus indicator matches the custom marker's real size.
             const bb = markerNode.getBBox();
-            if (point != null && bb.isFinite()) {
-                const center = bb.computeCenter();
-                const [dx, dy] = (['x', 'y'] as const).map(
-                    (key) => (style.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
-                );
-                point.focusSize = Math.max(bb.width + dx, bb.height + dy);
-            }
+            this.applyFocusSize(bb, style, point);
+        }
+    }
+
+    public applyFocusSize(markerBBox: BBox, style: NormalisedSeriesMarkerStyle, point: SizedPoint | undefined) {
+        if (point != null && markerBBox.isFinite()) {
+            const center = markerBBox.computeCenter();
+            const [dx, dy] = (['x', 'y'] as const).map(
+                (key) => (style.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
+            );
+            point.focusSize = Math.max(markerBBox.width + dx, markerBBox.height + dy);
         }
     }
 
