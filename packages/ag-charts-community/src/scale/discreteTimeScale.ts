@@ -84,6 +84,11 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         return this.bands.map((d) => d.valueOf());
     }
 
+    /** Exclusive end of the last band; subclasses with a known band width override this. */
+    protected get lastBandEnd(): number {
+        return this.numericBands.at(-1)!;
+    }
+
     override convert(value: AgTimeValue, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
         this.refresh();
 
@@ -99,13 +104,17 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
 
         if (bandCount === 0) return r0;
 
+        const alignment = options?.alignment ?? ScaleAlignment.Leading;
+
         if (options?.clamp === true) {
             const { range } = this;
-            if (value.valueOf() < numericBands[0]) return range[0];
-            if (value.valueOf() > numericBands.at(-1)!) return range[1];
+            const v = value.valueOf();
+            const lastBand = numericBands.at(-1)!;
+            if (v < numericBands[0]) return range[0];
+            // A leading-aligned value belongs to the last band until that band ends.
+            if (v > lastBand && (alignment !== ScaleAlignment.Leading || v >= this.lastBandEnd)) return range[1];
         }
 
-        const alignment = options?.alignment ?? ScaleAlignment.Leading;
         if (alignment !== ScaleAlignment.Interpolate) {
             const r = super.convert(value, options);
             return reversed ? r1 - (r - r0) : r;

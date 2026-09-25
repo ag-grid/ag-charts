@@ -1264,6 +1264,64 @@ describe('CrossLine', () => {
         });
     });
 
+    describe('range clamped to the domain', () => {
+        const MONTHS = Array.from({ length: 6 }, (_, i) => new Date(2026, i, 1));
+
+        async function createBandChart(...ranges: Array<[Date, Date]>) {
+            chart = await createChart({
+                data: MONTHS.map((date, i) => ({ date, value: i + 1 })),
+                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                axes: {
+                    x: {
+                        type: 'unit-time',
+                        position: 'bottom',
+                        paddingOuter: 0,
+                        crossLines: ranges.map((range) => ({
+                            type: 'range' as const,
+                            range,
+                            label: { text: 'Range' },
+                        })),
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+            const [crossLine] = getCrossLinesPlugin(chart.axes.findById('x')!)!.getInstances();
+            return crossLine;
+        }
+
+        test('renders ranges clamped at both ends of the domain', async () => {
+            await createBandChart([new Date(2025, 10, 1), MONTHS[0]], [new Date(2026, 5, 5), new Date(2026, 5, 20)]);
+            await compare();
+        });
+
+        test('keeps the first band of a range that starts before the domain', async () => {
+            const crossLine = await createBandChart([new Date(2025, 10, 1), MONTHS[0]]);
+
+            expect(crossLine.rangeGroup.visible).toBe(true);
+            const [rangeNode] = crossLine.rangeGroup.children();
+            const box = Transformable.toCanvas(rangeNode);
+            expect(box.x).toBeCloseTo(chart.seriesRect!.x);
+            expect(box.width).toBeGreaterThanOrEqual(crossLine.scale!.bandwidth!);
+        });
+
+        test('keeps a range that lies inside the last band', async () => {
+            const crossLine = await createBandChart([new Date(2026, 5, 5), new Date(2026, 5, 20)]);
+
+            expect(crossLine.rangeGroup.visible).toBe(true);
+            const [rangeNode] = crossLine.rangeGroup.children();
+            const box = Transformable.toCanvas(rangeNode);
+            expect(box.x + box.width).toBeCloseTo(chart.seriesRect!.x + chart.seriesRect!.width);
+            expect(box.width).toBeGreaterThanOrEqual(crossLine.scale!.bandwidth!);
+        });
+
+        test('hides a range that ends before the domain', async () => {
+            const crossLine = await createBandChart([new Date(2025, 9, 1), new Date(2025, 10, 1)]);
+
+            expect(crossLine.rangeGroup.visible).toBe(false);
+            expect(crossLine.labelGroup.visible).toBe(false);
+        });
+    });
+
     describe('AG-7486: label overflow', () => {
         const outsidePositions: AgCrossLineLabelPosition[] = labelPositions.filter((p) => !p.startsWith('inside'));
 
