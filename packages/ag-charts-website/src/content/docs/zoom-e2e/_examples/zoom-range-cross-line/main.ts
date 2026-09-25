@@ -1,4 +1,3 @@
-// @ag-skip-fws
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
@@ -9,7 +8,7 @@ const options: AgCartesianChartOptions = {
     zoom: { enabled: true },
     tooltip: { enabled: false },
     initialState: {
-        zoom: { ratioX: { start: 0.4, end: 0.57 } },
+        zoom: { ratioX: { start: 0.441, end: 0.611 } },
     },
     data: getData(),
     series: [{ type: 'line', xKey: 'date', yKey: 'price' }],
@@ -32,7 +31,4 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-const chart = AgCharts.create(options);
-
-// For e2e testing:
-(window as any).agE2E = { chart };
+AgCharts.create(options);

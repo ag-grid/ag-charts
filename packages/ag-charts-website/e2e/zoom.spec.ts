@@ -301,30 +301,17 @@ test.describe('zoom', () => {
         });
     });
 
-    test.describe('range cross line while panning', () => {
-        async function panTo(page: Page, targetStart: number) {
-            const { width, height } = await locateCanvas(page);
-            const y = Math.round(height / 2);
-            for (let attempt = 0; attempt < 6; attempt++) {
-                const ratioX = (await getChartState(page)).zoom?.ratioX;
-                if (ratioX == null) throw new Error('No x zoom ratio');
-                const offset = targetStart - ratioX.start;
-                if (Math.abs(offset) < 0.003) return;
-                const dx = Math.round((-offset / (ratioX.end - ratioX.start)) * width * 0.8);
-                const x = dx < 0 ? Math.round(width * 0.8) : Math.round(width * 0.2);
-                await dragCanvas(page, { x, y }, { x: x + dx, y }, { steps: 10, stepDelay: 30 });
-                await waitForAllChartUpdates(page);
-            }
-            throw new Error(`Could not pan to ratio ${targetStart}`);
-        }
+    test('keeps range cross lines visible while panned partly past either edge', async ({ page }) => {
+        const { url } = toExamplePageUrl('zoom-e2e', 'zoom-range-cross-line', 'vanilla');
+        await gotoExample(page, url);
 
-        test('keeps ranges visible while panned partly past either edge', async ({ page }) => {
-            const { url } = toExamplePageUrl('zoom-e2e', 'zoom-range-cross-line', 'vanilla');
-            await gotoExample(page, url);
+        const { width, height } = await locateCanvas(page);
+        await hoverCanvas(page, { x: Math.round(width / 2), y: Math.round(height / 2) });
+        const panRight = page.getByTitle('Pan right');
+        for (let click = 0; click < 3; click++) {
+            await panRight.click();
             await waitForAllChartUpdates(page);
-
-            await panTo(page, 0.492);
-            await expectChartScreenshot(page, page, 'zoom-range-cross-line-clipped.png', { animations: 'disabled' });
-        });
+        }
+        await expectChartScreenshot(page, page, 'zoom-range-cross-line-clipped.png', { animations: 'disabled' });
     });
 });
