@@ -146,7 +146,7 @@ export const DEMO_STATES: Record<string, DemoStates> = {
                     await page.keyboard.press('ArrowDown');
                     await page.keyboard.press('Space');
                     await expect(page.locator('.wa-card-sub')).toContainText('1 selected day');
-                    await expect(page.locator('.ag-center-cols-container .ag-row').first()).toBeVisible();
+                    await expect(page.locator('.ag-row').first()).toBeVisible();
                 },
             },
             {
@@ -180,7 +180,7 @@ export const DEMO_STATES: Record<string, DemoStates> = {
                 name: 'supplier-selected',
                 run: async (page) => {
                     await openTab(page, 'My suppliers');
-                    const button = page.locator('.ag-center-cols-container .pc-supplier-main').first();
+                    const button = page.locator('.ag-row .pc-supplier-main').first();
                     await button.click();
                     await expect(button).toHaveAttribute('aria-pressed', 'true');
                     await waitForAllChartUpdates(page);
