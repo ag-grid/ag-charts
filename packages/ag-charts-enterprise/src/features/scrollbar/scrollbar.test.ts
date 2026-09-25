@@ -584,3 +584,30 @@ describe('Scrollbar visibility after deferred (detached -> attached) resize', ()
         expect(spanY()).toBeLessThan(1);
     });
 });
+
+describe('Scrollbar thumb hoverStyle.strokeWidth', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    const chartRef: ChartRef = {};
+    afterEach(() => destroyChartRef(chartRef));
+
+    it('applies the hover strokeWidth on hover and restores it on un-hover', async () => {
+        chartRef.current = await createEnterpriseChart({
+            data: DATA,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            scrollbar: { enabled: true, visible: 'always', thumb: { strokeWidth: 1, hoverStyle: { strokeWidth: 3 } } },
+            initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
+        });
+        const scrollbar = chartRef.current.modulesManager.getModule('scrollbar');
+        const { thumb } = scrollbar.state.horizontal;
+
+        expect(thumb.strokeWidth).toBe(1);
+
+        scrollbar.handleHoverChange('horizontal', true);
+        expect(thumb.strokeWidth).toBe(3);
+
+        scrollbar.handleHoverChange('horizontal', false);
+        expect(thumb.strokeWidth).toBe(1);
+    });
+});

@@ -124,6 +124,22 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         ],
     },
     {
+        id: 'scrollbar',
+        label: 'Scrollbar',
+        collapsed: true,
+        params: [
+            { key: 'scrollbarThickness', label: 'Thickness', min: 4, max: 32 },
+            { key: 'scrollbarTrackBackgroundColor', label: 'Track Background' },
+            { key: 'scrollbarTrackBorder', label: 'Track Border' },
+            { key: 'scrollbarTrackBorderRadius', label: 'Track Radius', icon: 'radius', min: 0, max: 16 },
+            { key: 'scrollbarThumbBackgroundColor', label: 'Thumb Background' },
+            { key: 'scrollbarThumbBorder', label: 'Thumb Border' },
+            { key: 'scrollbarThumbBorderRadius', label: 'Thumb Radius', icon: 'radius', min: 0, max: 16 },
+            { key: 'scrollbarThumbHoverBackgroundColor', label: 'Thumb Hover Background' },
+            { key: 'scrollbarThumbHoverBorder', label: 'Thumb Hover Border' },
+        ],
+    },
+    {
         id: 'effects',
         label: 'Effects',
         collapsed: true,

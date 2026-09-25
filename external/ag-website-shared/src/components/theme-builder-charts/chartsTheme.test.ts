@@ -42,7 +42,7 @@ describe('AG Charts param translation', () => {
                 collectOperations(params[property], operations);
             }
         }
-        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$ref']);
+        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$if', '$isType', '$mix', '$ref']);
     });
 
     describe('colour references', () => {
@@ -80,6 +80,61 @@ describe('AG Charts param translation', () => {
                 color: { ref: 'borderColor' },
                 width: 1,
             });
+        });
+    });
+
+    describe('composite member references', () => {
+        const params = {
+            thumbBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.25] },
+                width: { $ref: 'borderWidth' },
+            },
+        };
+
+        it('inlines a reference to a member, which has no variable of its own', () => {
+            expect(toStackParamValue('hoverBorder.width', { $ref: 'thumbBorder.width' }, params)).toEqual({
+                ref: 'borderWidth',
+            });
+        });
+
+        it('writes a blend of a member out as CSS', () => {
+            expect(
+                toStackParamValue(
+                    'hoverBorder.color',
+                    { $mix: [{ $ref: 'thumbBorder.color' }, { $ref: 'foregroundColor' }, 0.5] },
+                    params
+                )
+            ).toBe(
+                'color-mix(in srgb, var(--ag-foreground-color), color-mix(in srgb, var(--ag-foreground-color), var(--ag-border-color) 75%) 50%)'
+            );
+        });
+
+        it('follows the branch that matches a composite param set to a boolean', () => {
+            const hoverColor = {
+                $if: [
+                    { $isType: [{ $ref: 'thumbBorder' }, 'boolean'] },
+                    { $ref: 'borderColor' },
+                    { $ref: 'thumbBorder.color' },
+                ],
+            };
+            expect(toStackParamValue('hoverBorder.color', hoverColor, { thumbBorder: true })).toEqual({
+                ref: 'borderColor',
+            });
+            expect(toStackParamValue('hoverBorder.color', hoverColor, params)).toEqual({
+                ref: 'borderColor',
+                mix: 0.75,
+                onto: 'foregroundColor',
+            });
+        });
+
+        it('leaves no member reference in any stock theme', () => {
+            for (const [themeName] of STOCK_THEMES) {
+                const stackParams = getStackParams(themeName);
+                const css = PUBLIC_PARAM_NAMES.map((property) =>
+                    paramValueToCss(property, stackParams[property], null)
+                ).join(' ');
+                expect(css).not.toMatch(/var\(--ag-[a-z\d-]+\./);
+            }
         });
     });
 

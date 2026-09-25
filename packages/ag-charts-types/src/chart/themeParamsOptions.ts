@@ -202,6 +202,60 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     gridLineColor?: AgCssColorOrRef;
     /** Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object. */
     groupedCategoryLineColor?: AgCssColorOrRef;
+    /**
+     * Thickness of the scrollbar track.
+     *
+     * Default: `12`
+     */
+    scrollbarThickness?: PixelSize;
+    /**
+     * Background colour of the scrollbar track. A colour string, or a theme-colour reference object.
+     *
+     * Default: `foregroundColor + backgroundColor`
+     */
+    scrollbarTrackBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the scrollbar track. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `borderColor + foregroundColor`
+     */
+    scrollbarTrackBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the scrollbar track.
+     *
+     * Default: `6`
+     */
+    scrollbarTrackBorderRadius?: PixelSize;
+    /**
+     * Background colour of the scrollbar thumb. A colour string, or a theme-colour reference object.
+     *
+     * Default: `foregroundColor + backgroundColor`
+     */
+    scrollbarThumbBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the scrollbar thumb. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `borderColor + foregroundColor`
+     */
+    scrollbarThumbBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the scrollbar thumb.
+     *
+     * Default: `6`
+     */
+    scrollbarThumbBorderRadius?: PixelSize;
+    /**
+     * Background colour of the scrollbar thumb when hovered. A colour string, or a theme-colour reference object.
+     *
+     * Default: `scrollbarThumbBackgroundColor + foregroundColor`
+     */
+    scrollbarThumbHoverBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the scrollbar thumb when hovered. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `scrollbarThumbBorder + foregroundColor`
+     */
+    scrollbarThumbHoverBorder?: boolean | AgBorderThemeParam;
 }
 
 export interface AgChartPrivateThemeParams {
