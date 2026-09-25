@@ -240,6 +240,14 @@ function readWorkspaceVersion() {
     return readJson(join(WORKSPACE_ROOT, 'packages', 'ag-charts-community', 'package.json')).version;
 }
 
+/** A demo id as a title, as the seeds' READMEs and page titles name it: `web-analytics` to `Web Analytics`. */
+export function humanLabel(demoId) {
+    return demoId
+        .split('-')
+        .map((word) => word[0].toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
 /**
  * Demo ids in registry order. `src/registry.ts` is TypeScript, so the ids are read off its
  * `id: '...'` entries rather than by importing it; each must have a matching source folder.

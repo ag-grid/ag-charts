@@ -78,8 +78,18 @@ Each demo/framework pair is a standalone Vite project committed under `seeds/<id
 with `ag-charts-*` pinned to something public npm resolves, and is opened in StackBlitz straight
 from GitHub: the exact release at its `release-X.Y.Z` tag, npm's `latest` dist-tag for every
 pre-release, on release branches too. How the pin is chosen is under "Pins" in
-[`tools/seeds/README.md`](tools/seeds/README.md). There is no separate demos repository and no zip
-download.
+[`tools/seeds/README.md`](tools/seeds/README.md). There is no zip download.
+
+The seeds are also mirrored one way to
+[`ag-grid/ag-charts-demos`](https://github.com/ag-grid/ag-charts-demos), one folder per seed at
+`<id>/<framework>/`, so StackBlitz can import a seed without downloading this whole repository.
+The "Mirror Demo Seeds" workflow (`.github/workflows/demo-seeds-mirror.yml`) syncs the mirror
+branch of the same name on every push to `latest` or a release branch, and on each `release-X.Y.Z`
+tag tags the tagged seeds `release-X.Y.Z` there too. `tools/seeds/export-seed-mirror.mjs` builds
+what is published: the seeds, their `PORTING.md` notes, and a root modelled on
+`ag-grid/ag-grid-demos` (README, per-demo READMEs, `.gitignore`, `.vscode/settings.json` and the MIT
+`LICENSE.txt`). Links that leave the seeds folder are rewritten to point back here. Never edit the
+mirror: each sync replaces its content.
 
 - The React demo under `src/demos/<id>` is the golden master. The React seed is **generated** from it
   (`tools/seeds/generate-react-seed.mjs`) and CI fails if the committed seed is stale.
