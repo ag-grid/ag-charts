@@ -1,0 +1,171 @@
+name: Mirror Demo Seeds
+
+# One-way copy of packages/ag-charts-demos/seeds to ag-grid/ag-charts-demos, which the demo pages
+# open in StackBlitz: importing a folder of this repository makes StackBlitz download all of it
+# first, which takes minutes, where the mirror holds only the seeds.
+#
+# - A push to `latest` or a release branch `bX.Y.Z` syncs the mirror branch of the same name, so
+#   release fixes reach the mirror as they merge. A new mirror branch starts from the mirror's
+#   `latest`.
+# - A `release-X.Y.Z` tag tags the tagged commit's seeds `release-X.Y.Z` in the mirror too, which
+#   is what the production site links to: the head of the mirror's `bX.Y.Z` when that already
+#   holds them, a commit on top of it otherwise. It never moves the branch itself, and a mirror
+#   tag that already holds different content fails the run rather than being moved.
+#
+# Each sync replaces the mirror branch's content with export-seed-mirror.mjs's output and commits
+# only when something changed, so a push that does not touch the seeds is a no-op. The mirror is
+# never read back.
+
+on:
+    push:
+        branches:
+            - latest
+            - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
+        tags:
+            - 'release-*'
+    workflow_dispatch:
+
+# One run per ref at a time. A branch and its release tag can still sync the same mirror branch
+# together; the push step rebuilds and retries when the other got there first.
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
+
+permissions:
+    contents: read
+
+env:
+    DEPLOYMENT_APP_ID: 957224
+    MIRROR_REPOSITORY: ag-grid/ag-charts-demos
+
+jobs:
+    mirror:
+        if: github.repository == 'ag-grid/ag-charts'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - name: Checkout the seeds
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  fetch-depth: 1
+                  sparse-checkout-cone-mode: false
+                  sparse-checkout: |
+                      /.nvmrc
+                      /packages/ag-charts-community/LICENSE.txt
+                      /packages/ag-charts-demos/seeds/
+                      /packages/ag-charts-demos/src/
+                      /packages/ag-charts-demos/tools/seeds/
+
+            - name: Resolve the mirror branch
+              id: target
+              env:
+                  REF_TYPE: ${{ github.ref_type }}
+                  REF_NAME: ${{ github.ref_name }}
+              run: |
+                  set -euo pipefail
+                  if [ ! -d packages/ag-charts-demos/seeds ]; then
+                      echo "No seeds at ${REF_NAME}; nothing to mirror." | tee -a "$GITHUB_STEP_SUMMARY"
+                      echo "skip=true" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+                  if [ "$REF_TYPE" = tag ]; then
+                      echo "branch=b${REF_NAME#release-}" >> "$GITHUB_OUTPUT"
+                      echo "tag=${REF_NAME}" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "branch=${REF_NAME}" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Setup Node
+              if: steps.target.outputs.skip != 'true'
+              uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+              with:
+                  node-version-file: '.nvmrc'
+
+            - name: Export the mirror tree
+              if: steps.target.outputs.skip != 'true'
+              env:
+                  REF_NAME: ${{ github.ref_name }}
+              run: node packages/ag-charts-demos/tools/seeds/export-seed-mirror.mjs --out "$RUNNER_TEMP/export" --ref "$REF_NAME"
+
+            - name: Mint mirror push token
+              if: steps.target.outputs.skip != 'true'
+              id: push-token
+              uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+              with:
+                  app-id: ${{ env.DEPLOYMENT_APP_ID }}
+                  private-key: ${{ secrets.DEPLOYMENT_APP_PRIVATE_KEY }}
+                  owner: ${{ github.repository_owner }}
+                  repositories: ag-charts-demos
+
+            - name: Sync the mirror
+              if: steps.target.outputs.skip != 'true'
+              env:
+                  GH_TOKEN: ${{ steps.push-token.outputs.token }}
+                  MIRROR_BRANCH: ${{ steps.target.outputs.branch }}
+                  MIRROR_TAG: ${{ steps.target.outputs.tag }}
+                  SOURCE: ${{ github.repository }}@${{ github.sha }} (${{ github.ref_name }})
+              run: |
+                  set -euo pipefail
+                  export="$RUNNER_TEMP/export"
+                  remote="https://x-access-token:${GH_TOKEN}@github.com/${MIRROR_REPOSITORY}.git"
+                  git clone --quiet "$remote" "$RUNNER_TEMP/mirror"
+                  cd "$RUNNER_TEMP/mirror"
+                  git config user.name 'github-actions[bot]'
+                  git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+                  # Checks out the mirror branch (or where a new one starts), lays the export over
+                  # it and commits the difference, if any.
+                  build() {
+                      git fetch --quiet --prune --tags origin
+                      if git rev-parse --verify --quiet "refs/remotes/origin/${MIRROR_BRANCH}" > /dev/null; then
+                          git checkout --quiet -B "$MIRROR_BRANCH" "origin/${MIRROR_BRANCH}"
+                      elif git rev-parse --verify --quiet refs/remotes/origin/latest > /dev/null; then
+                          git checkout --quiet -B "$MIRROR_BRANCH" origin/latest
+                      else
+                          # The mirror is still empty: this is its first commit.
+                          git checkout --quiet --orphan "$MIRROR_BRANCH"
+                      fi
+                      rsync -a --delete --exclude .git "$export/" ./
+                      git add -A
+                      if git diff --cached --quiet && git rev-parse --verify --quiet HEAD > /dev/null; then
+                          echo "Mirror ${MIRROR_BRANCH} already matches ${SOURCE}."
+                      else
+                          git commit --quiet -m "Sync from ${SOURCE}"
+                      fi
+                  }
+
+                  if [ -z "$MIRROR_TAG" ]; then
+                      for attempt in 1 2 3; do
+                          build
+                          if git push --quiet origin "HEAD:refs/heads/${MIRROR_BRANCH}"; then
+                              break
+                          fi
+                          if [ "$attempt" = 3 ]; then
+                              echo "::error::Could not push ${MIRROR_BRANCH} to ${MIRROR_REPOSITORY} after 3 attempts"
+                              exit 1
+                          fi
+                          echo "Push rejected; rebuilding on the mirror's new head (attempt ${attempt})."
+                          sleep $((attempt * 5))
+                      done
+                      echo "Synced ${MIRROR_REPOSITORY} ${MIRROR_BRANCH} to $(git rev-parse HEAD) from ${SOURCE}." >> "$GITHUB_STEP_SUMMARY"
+                      exit 0
+                  fi
+
+                  # A tag run pushes only the tag, never the branch: the branch may already carry
+                  # fixes made after the release, which re-running an older tag must not undo. The
+                  # tag lands on the branch head when that already holds the tagged content, and on
+                  # a commit on top of it otherwise.
+                  build
+                  head=$(git rev-parse HEAD)
+                  existing=$(git ls-remote origin "refs/tags/${MIRROR_TAG}" | cut -f1)
+                  if [ -n "$existing" ]; then
+                      if [ "$(git rev-parse "${existing}^{tree}")" = "$(git rev-parse "HEAD^{tree}")" ]; then
+                          echo "Tag ${MIRROR_TAG} already holds ${SOURCE}."
+                          exit 0
+                      fi
+                      echo "::error::${MIRROR_REPOSITORY} tag ${MIRROR_TAG} (${existing}) holds different content from ${SOURCE}; tags are never moved"
+                      exit 1
+                  fi
+                  git tag "$MIRROR_TAG" "$head"
+                  git push --quiet origin "refs/tags/${MIRROR_TAG}"
+                  echo "Tagged ${MIRROR_REPOSITORY} ${head} as ${MIRROR_TAG} from ${SOURCE}." >> "$GITHUB_STEP_SUMMARY"

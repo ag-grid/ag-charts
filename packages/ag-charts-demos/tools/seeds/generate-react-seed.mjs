@@ -17,6 +17,7 @@ import {
     WORKSPACE_ROOT,
     describePin,
     hashDemoSource,
+    humanLabel,
     listDemoSourceFiles,
     listFiles,
     ownerDemo,
@@ -76,13 +77,6 @@ function collectImportedPackages(dir, files) {
         }
     }
     return packages;
-}
-
-function humanLabel(demoId) {
-    return demoId
-        .split('-')
-        .map((word) => word[0].toUpperCase() + word.slice(1))
-        .join(' ');
 }
 
 /** Dependency ranges for the seed: exact `ag-charts-*` pins, everything else as the demos package declares it. */

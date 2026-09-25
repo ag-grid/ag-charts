@@ -75,11 +75,22 @@ generated React seeds and the framework ports do not wait.
 ## Seed projects
 
 Each demo/framework pair is a standalone Vite project committed under `seeds/<id>/<framework>/`,
-with `ag-charts-*` pinned to something public npm resolves, and is opened in StackBlitz straight
-from GitHub: the exact release at its `release-X.Y.Z` tag, npm's `latest` dist-tag for every
+with `ag-charts-*` pinned to something public npm resolves, and is opened in StackBlitz from the
+`ag-grid/ag-charts-demos` mirror below: the exact release at its `release-X.Y.Z` tag, npm's `latest` dist-tag for every
 pre-release, on release branches too. How the pin is chosen is under "Pins" in
-[`tools/seeds/README.md`](tools/seeds/README.md). There is no separate demos repository and no zip
-download.
+[`tools/seeds/README.md`](tools/seeds/README.md). There is no zip download.
+
+The seeds are mirrored one way to
+[`ag-grid/ag-charts-demos`](https://github.com/ag-grid/ag-charts-demos), one folder per seed at
+`<id>/<framework>/`, and that mirror is what the website links. StackBlitz imports a folder by
+downloading its whole repository, which for this monorepo takes minutes; the mirror is a few MB.
+The "Mirror Demo Seeds" workflow (`.github/workflows/demo-seeds-mirror.yml`) syncs the mirror
+branch of the same name on every push to `latest` or a release branch, and on each `release-X.Y.Z`
+tag tags the tagged seeds `release-X.Y.Z` there too. `tools/seeds/export-seed-mirror.mjs` builds
+what is published: the seeds, their `PORTING.md` notes, and a root modelled on
+`ag-grid/ag-grid-demos` (README, per-demo READMEs, `.gitignore`, `.vscode/settings.json` and the MIT
+`LICENSE.txt`). Links that leave the seeds folder are rewritten to point back here. Never edit the
+mirror: each sync replaces its content.
 
 - The React demo under `src/demos/<id>` is the golden master. The React seed is **generated** from it
   (`tools/seeds/generate-react-seed.mjs`) and CI fails if the committed seed is stale.
@@ -110,21 +121,23 @@ nothing on the website side changes.** A folder without a manifest is not a seed
 A manifest that does not parse, or that names a different demo or framework from the folder it is
 in, fails the website build.
 
-The links point at the seed folder in this repository at a git ref chosen per build
+The links point at the seed folder in the mirror at a git ref chosen per build
 (`getSeedGitRef` in `seedLinks.ts`):
 
 - production links the release tag matching the version the site displays (`release-14.2.0` for
   `PUBLIC_PACKAGE_VERSION=14.2.0`, or for a `14.2.0-beta.*`), so a reader opens the seed that
   shipped with the version they are reading about;
-- every other build — dev, staging, PR previews — links the `latest` branch, which carries the seeds
-  from the moment they merge.
+- every other build — dev, staging, PR previews — links the `latest` branch, which the mirror syncs
+  on every push to this repository's `latest`.
 
-StackBlitz imports only the linked sub-folder, runs `npm install` against the seed's pins (exact at a
+StackBlitz downloads the mirror at that ref, imports the linked sub-folder, runs `npm install` against the seed's pins (exact at a
 release tag, the newest published release from `latest`) and starts its `dev` script. After each staging deploy, `tools/ci/check-demo-seed-links.mjs` (run by
 `.github/workflows/post-deploy-verification.yml`) fetches the deployed demo pages, reads the
 StackBlitz and GitHub seed links they render, checks each targets the ref that site should link
-and HEADs the GitHub folder it opens; it also HEADs the folder of every seed the manifests
-declare. A link that would 404, or a page that renders none, is caught. StackBlitz itself cannot
+and HEADs the mirror folder it opens; it also HEADs the folder of every seed the manifests
+declare. A link that would 404, or a page that renders none, is caught. It also compares the
+mirror's copy of each `.seed-manifest.json` with the checkout's and warns on a difference, which
+is how a failed sync shows up. StackBlitz itself cannot
 be driven headlessly, so its link is checked through the GitHub folder it imports.
 
 ## Commands

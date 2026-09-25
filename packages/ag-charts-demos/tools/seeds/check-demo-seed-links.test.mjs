@@ -12,8 +12,8 @@ import {
 
 const STAGING = 'https://charts-staging.ag-grid.com';
 const PRODUCTION = 'https://www.ag-grid.com/charts';
-const TREE = 'https://github.com/ag-grid/ag-charts/tree';
-const SEEDS = 'packages/ag-charts-demos/seeds';
+const TREE = 'https://github.com/ag-grid/ag-charts-demos/tree';
+const RAW = 'https://raw.githubusercontent.com/ag-grid/ag-charts-demos';
 
 /**
  * A demo page's seed buttons as `DemoPage.astro` renders them (Astro's scoped class names
@@ -48,13 +48,19 @@ ${action('See on GitHub', 'button-tertiary', 'data-seed-source', (seed) => seed.
 
 const seedLink = (demo, framework, label, ref = 'latest') => ({
     framework: label,
-    stackblitz: `https://stackblitz.com/github/ag-grid/ag-charts/tree/${ref}/${SEEDS}/${demo}/${framework}?title=AG%20Charts%20Demo%20(${label})`,
-    github: `${TREE}/${ref}/${SEEDS}/${demo}/${framework}`,
+    stackblitz: `https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/${ref}/${demo}/${framework}?title=AG%20Charts%20Demo%20(${label})`,
+    github: `${TREE}/${ref}/${demo}/${framework}`,
 });
 
+/** A seed's `.seed-manifest.json` text, the same in the checkout and the mirror unless a test says otherwise. */
+const manifestText = (seed) => `{ "demo": "${seed.split('/')[0]}", "framework": "${seed.split('/')[1]}" }\n`;
+const RAW_MANIFEST =
+    /^https:\/\/raw\.githubusercontent\.com\/ag-grid\/ag-charts-demos\/[^/]+\/([^/]+\/[^/]+)\/\.seed-manifest\.json$/;
+
 /**
- * A fetch that answers from `pages` (GET, URL to HTML) and `statuses` (HEAD, URL to status; 200
- * unless listed), recording every request. Anything else is a 404.
+ * A fetch that answers from `pages` (GET, URL to HTML) and `statuses` (URL to status; 200 unless
+ * listed), recording every request. A mirror manifest not in `pages` or `statuses` answers with
+ * `manifestText`. Anything else is a 404.
  */
 function fakeFetch({ pages = {}, statuses = {}, json = {} } = {}) {
     const calls = [];
@@ -64,6 +70,9 @@ function fakeFetch({ pages = {}, statuses = {}, json = {} } = {}) {
         if (method === 'HEAD') return { status: statuses[url] ?? 200, ok: (statuses[url] ?? 200) === 200 };
         if (url in json) return { status: 200, ok: true, json: async () => json[url] };
         if (url in pages) return { status: 200, ok: true, text: async () => pages[url] };
+        if (url in statuses) return { status: statuses[url], ok: false, text: async () => 'not found' };
+        const manifest = RAW_MANIFEST.exec(url);
+        if (manifest) return { status: 200, ok: true, text: async () => manifestText(manifest[1]) };
         return { status: 404, ok: false, text: async () => 'not found' };
     };
     return { fetchImpl, calls };
@@ -73,6 +82,7 @@ const base = {
     seeds: ['financial/angular', 'financial/react', 'procurement/react'],
     demoPages: [{ path: 'examples/', demoId: 'financial' }],
     productionSiteUrls: ['https://ag-grid.com', 'https://www.ag-grid.com'],
+    readSeedManifest: manifestText,
     branch: () => 'latest',
     log: () => {},
 };
@@ -97,9 +107,9 @@ describe('parseSeedLinks', () => {
             {
                 kind: 'stackblitz',
                 framework: 'React',
-                href: `https://stackblitz.com/github/ag-grid/ag-charts/tree/latest/${SEEDS}/financial/react?x=1&title=AG%20Charts%20Demo%20(React)`,
+                href: `https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/latest/financial/react?x=1&title=AG%20Charts%20Demo%20(React)`,
             },
-            { kind: 'github', framework: 'React', href: `${TREE}/latest/${SEEDS}/financial/react` },
+            { kind: 'github', framework: 'React', href: `${TREE}/latest/financial/react` },
         ]);
     });
 });
@@ -108,19 +118,20 @@ describe('resolveSeedLink', () => {
     it('maps a StackBlitz link to the GitHub folder it imports', () => {
         expect(resolveSeedLink({ kind: 'stackblitz', href: seedLink('financial', 'vue', 'Vue').stackblitz })).toEqual({
             ref: 'latest',
-            path: `${SEEDS}/financial/vue`,
-            githubUrl: `${TREE}/latest/${SEEDS}/financial/vue`,
+            path: 'financial/vue',
+            githubUrl: `${TREE}/latest/financial/vue`,
         });
     });
 
-    it('rejects a link outside the repository or the seeds folder', () => {
+    it('rejects a link outside the mirror, or to anything but a seed folder', () => {
         expect(
-            resolveSeedLink({ kind: 'github', href: 'https://github.com/someone/else/tree/latest/x' }).error
+            resolveSeedLink({
+                kind: 'github',
+                href: 'https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-demos/seeds/financial/vue',
+            }).error
         ).toMatch(/does not start with/);
-        expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/packages/ag-charts-demos/src` }).error).toMatch(
-            /does not point into/
-        );
-        expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/${SEEDS}/financial` }).error).toMatch(
+        expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/financial` }).error).toMatch(/does not name/);
+        expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/financial/vue/src` }).error).toMatch(
             /does not name/
         );
     });
@@ -136,16 +147,37 @@ describe('checkDemoSeedLinks', () => {
 
         expect(result).toEqual({ ok: true, errors: [], warnings: [] });
         expect(calls).toEqual([
-            `HEAD ${TREE}/latest/${SEEDS}`,
+            `HEAD ${TREE}/latest`,
             `GET ${STAGING}/examples/`,
-            `HEAD ${TREE}/latest/${SEEDS}/financial/react`,
-            `HEAD ${TREE}/latest/${SEEDS}/financial/angular`,
-            `HEAD ${TREE}/latest/${SEEDS}/procurement/react`,
+            `HEAD ${TREE}/latest/financial/react`,
+            `HEAD ${TREE}/latest/financial/angular`,
+            `GET ${RAW}/latest/financial/angular/.seed-manifest.json`,
+            `GET ${RAW}/latest/financial/react/.seed-manifest.json`,
+            `HEAD ${TREE}/latest/procurement/react`,
+            `GET ${RAW}/latest/procurement/react/.seed-manifest.json`,
+        ]);
+    });
+
+    it('warns when the mirror holds a different manifest from the checkout, or none it can read', async () => {
+        const { fetchImpl } = fakeFetch({
+            pages: {
+                [`${STAGING}/examples/`]: page,
+                [`${RAW}/latest/financial/react/.seed-manifest.json`]: '{ "sourceHash": "older" }\n',
+            },
+            statuses: { [`${RAW}/latest/procurement/react/.seed-manifest.json`]: 404 },
+        });
+
+        const result = await checkDemoSeedLinks({ ...base, siteUrl: STAGING, fetchImpl });
+
+        expect(result.ok).toBe(true);
+        expect(result.warnings).toEqual([
+            expect.stringMatching(/latest has a different financial\/react\/\.seed-manifest\.json/),
+            expect.stringMatching(/procurement\/react\/\.seed-manifest\.json could not be read .* \(404\)/),
         ]);
     });
 
     it('fails when a folder a rendered link opens does not resolve', async () => {
-        const missing = `${TREE}/latest/${SEEDS}/financial/angular`;
+        const missing = `${TREE}/latest/financial/angular`;
         const { fetchImpl } = fakeFetch({ pages: { [`${STAGING}/examples/`]: page }, statuses: { [missing]: 404 } });
 
         const result = await checkDemoSeedLinks({ ...base, siteUrl: STAGING, fetchImpl });
@@ -212,7 +244,8 @@ describe('checkDemoSeedLinks', () => {
             });
 
             expect(result).toEqual({ ok: true, errors: [], warnings: [] });
-            expect(calls).toContain(`HEAD ${TREE}/release-14.2.0/${SEEDS}/financial/react`);
+            expect(calls).toContain(`HEAD ${TREE}/release-14.2.0/financial/react`);
+            expect(calls).toContain(`GET ${RAW}/release-14.2.0/financial/react/.seed-manifest.json`);
         });
 
         it('refuses to run from anything but a release branch', async () => {
@@ -244,10 +277,10 @@ describe('checkDemoSeedLinks', () => {
             expect(result.errors[0]).toMatch(/reports version 14\.1\.0 but this checkout is branch b14\.2\.0/);
         });
 
-        it('only warns when the release tag predates the seeds folder', async () => {
+        it('only warns when the release predates the mirror', async () => {
             const { fetchImpl } = fakeFetch({
                 json: meta,
-                statuses: { [`${TREE}/release-14.2.0/${SEEDS}`]: 404 },
+                statuses: { [`${TREE}/release-14.2.0`]: 404 },
             });
             const result = await checkDemoSeedLinks({
                 ...base,
@@ -256,7 +289,7 @@ describe('checkDemoSeedLinks', () => {
                 fetchImpl,
             });
             expect(result.ok).toBe(true);
-            expect(result.warnings[0]).toMatch(/release-14\.2\.0 carries no/);
+            expect(result.warnings[0]).toMatch(/ag-charts-demos has no release-14\.2\.0 yet/);
         });
     });
 });

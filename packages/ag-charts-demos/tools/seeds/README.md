@@ -1,8 +1,9 @@
 # Demo seed tooling
 
 The demo apps under `src/demos/<demo>/` are the React golden masters. Each is published as a set
-of standalone Vite seed projects under `seeds/<demo>/<framework>/`, which the website links on
-GitHub and opens in StackBlitz. The React seed is generated; the Angular, Vue and TypeScript seeds
+of standalone Vite seed projects under `seeds/<demo>/<framework>/`, mirrored to
+`ag-grid/ag-charts-demos` (`export-seed-mirror.mjs`), where the website links them on GitHub and
+opens them in StackBlitz. The React seed is generated; the Angular, Vue and TypeScript seeds
 are hand-maintained ports. The scripts here keep both kinds honest.
 
 Every seed carries a `.seed-manifest.json` whose `sourceHash` is a content hash of
@@ -31,8 +32,8 @@ Nothing lists the seeds. Everything that needs to know which seeds there are wal
 - `check-seeds.mjs --stale` reports every port with a manifest whose `sourceHash` is behind, and
   `check-seeds.mjs --pins` fails when one pins a different `ag-charts-*` version from the seeds';
 - the post-deploy check `tools/ci/check-demo-seed-links.mjs` reads the seed links the deployed
-  demo pages render and verifies that each, and every seed with a manifest, resolves on GitHub at
-  the ref the deployed site links.
+  demo pages render and verifies that each, and every seed with a manifest, resolves in the
+  `ag-grid/ag-charts-demos` mirror at the ref the deployed site links.
 
 So a new port becomes visible on the site, and part of the CI gates, by committing its folder with a
 manifest; no registry, website or workflow change is needed. A folder without a manifest is ignored
@@ -74,8 +75,8 @@ pin follows the workspace version, whatever the branch (`readPinnedChartsVersion
 | A pre-release, while every seed carries one released `X.Y.Z` in from a merge-back | that `X.Y.Z`, until the next version bump | `release`   |
 
 The `latest` dist-tag makes `npm install` fetch the newest published release, so a seed may lag a
-feature its demo already uses until that release ships. Production links the seeds at the
-`release-X.Y.Z` tag, where they pin `X.Y.Z` exactly; staging and local builds link `latest`.
+feature its demo already uses until that release ships. Production links the mirror's seeds at
+the `release-X.Y.Z` tag, where they pin `X.Y.Z` exactly; staging and local builds link `latest`.
 
 ### A release carried in by a merge-back
 
@@ -230,6 +231,20 @@ reporting it.
 
 ```sh
 node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs financial angular
+```
+
+### `export-seed-mirror.mjs --out <dir> --ref <ref>`
+
+Builds the tree the "Mirror Demo Seeds" workflow publishes to `ag-grid/ag-charts-demos` (see "Seed
+projects" in the package README) into an empty folder, from the seeds in this checkout. Every
+folder with a manifest is copied to `<demo>/<framework>/`, with its demo's `<framework>.PORTING.md`;
+the root README, the per-demo READMEs, `.gitignore`, `.vscode/settings.json` and `LICENSE.txt` are
+written beside them. A relative Markdown link to anything the mirror does not carry, such as the
+demo source under `src/demos/`, is rewritten to the same path in `ag-grid/ag-charts` at `<ref>`, the
+branch or tag being published; a link to a path that does not exist fails the export.
+
+```sh
+node packages/ag-charts-demos/tools/seeds/export-seed-mirror.mjs --out /tmp/mirror --ref latest
 ```
 
 ## How a port gets aligned

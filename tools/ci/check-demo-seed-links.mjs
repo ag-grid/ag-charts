@@ -7,20 +7,24 @@ import { fileURLToPath } from 'node:url';
 import { RELEASE_BRANCH, resolveBranch } from '../../packages/ag-charts-demos/tools/seeds/seed-common.mjs';
 
 /**
- * Post-deploy check that the demo pages' seed links resolve. Two checks, both against GitHub:
+ * Post-deploy check that the demo pages' seed links resolve. The links open the seeds in the
+ * `ag-grid/ag-charts-demos` mirror (`.github/workflows/demo-seeds-mirror.yml` keeps it in step),
+ * where each seed is the folder `<demo>/<framework>`. Two checks, both against GitHub:
  *
  * 1. The deployed pages. Every demo page the site lists (`DEMO_EXAMPLES` in
  *    `packages/ag-charts-website/src/components/demo-examples/exampleRegistry.ts`) is fetched from
  *    the site, and the seed links it actually renders are read off it: the "Open in StackBlitz"
- *    buttons (`data-seed-framework`) and the "See on GitHub" links (`data-seed-source`). Each must
- *    point into this repository's seeds folder at the ref the site should link, and the GitHub
+ *    menu's links (`data-seed-framework`) and the "See on GitHub" menu's (`data-seed-source`). Each
+ *    must point at a seed folder of the mirror at the ref the site should link, and the GitHub
  *    folder each names must resolve. A StackBlitz link cannot be driven headlessly (headless
  *    Chromium never gets past its clone step), but it imports exactly the GitHub folder in its
  *    path, so that folder is what is resolved. A page that renders no seed link although this
  *    checkout has a seed for its demo fails too.
  * 2. The manifests. Every seed with a `seeds/<demo>/<framework>/.seed-manifest.json` in this
- *    checkout must resolve at that ref, which covers the seeds of demos the site does not list.
- *    A manifest naming a different folder fails here as it fails the site build.
+ *    checkout must resolve in the mirror at that ref, which covers the seeds of demos the site
+ *    does not list. A manifest naming a different folder fails here as it fails the site build.
+ *    The mirror's copy of each manifest is compared with the checkout's, and a difference is a
+ *    warning: the mirror is behind (a sync failed) or already ahead (a later commit synced first).
  *
  * The ref follows the website's own rule (`getSeedGitRef` in `seedLinks.ts`): a production site
  * links the release tag derived from its version, and every other site, staging included, links
@@ -38,12 +42,13 @@ import { RELEASE_BRANCH, resolveBranch } from '../../packages/ag-charts-demos/to
  * Usage: node tools/ci/check-demo-seed-links.mjs <site-url>   (from a bX.Y.Z branch for production)
  *   <site-url> includes the site's base path: `https://charts-staging.ag-grid.com` for staging,
  *   `https://www.ag-grid.com/charts` for production.
- * Exits non-zero on any failure. One exception: a release tag with no seeds folder at all
- * predates this feature, so on production that is a warning until the next release is tagged. On
- * `latest` the folder exists from the moment the seeds merge, so a miss there is always a failure.
+ * Exits non-zero on any failure. One exception: a release with no tag in the mirror predates the
+ * mirror, so on production that is a warning until the next release is tagged. On `latest` the
+ * mirror has the seeds from the first sync, so a miss there is always a failure.
  */
 
-export const REPOSITORY = 'ag-grid/ag-charts';
+/** The repository the seed links open; the seeds live in this one under `SEEDS_PATH`. */
+export const MIRROR_REPOSITORY = 'ag-grid/ag-charts-demos';
 export const SEEDS_PATH = 'packages/ag-charts-demos/seeds';
 const MANIFEST_FILENAME = '.seed-manifest.json';
 export const DEVELOPMENT_REF = 'latest';
@@ -52,8 +57,9 @@ const DEMO_REGISTRY = 'packages/ag-charts-website/src/components/demo-examples/e
 
 const WORKSPACE_ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '..', '..');
 
-const GITHUB_TREE_PREFIX = `https://github.com/${REPOSITORY}/tree/`;
-const STACKBLITZ_TREE_PREFIX = `https://stackblitz.com/github/${REPOSITORY}/tree/`;
+const GITHUB_TREE_PREFIX = `https://github.com/${MIRROR_REPOSITORY}/tree/`;
+const STACKBLITZ_TREE_PREFIX = `https://stackblitz.com/github/${MIRROR_REPOSITORY}/tree/`;
+const RAW_PREFIX = `https://raw.githubusercontent.com/${MIRROR_REPOSITORY}/`;
 
 /** The seed attribute each kind of link carries on the demo page (`DemoPage.astro` in ag-website-shared). */
 const SEED_LINK_ATTRIBUTES = { 'data-seed-framework': 'stackblitz', 'data-seed-source': 'github' };
@@ -129,20 +135,17 @@ export function parseSeedLinks(html) {
 }
 
 /**
- * The GitHub folder a rendered seed link opens, and the ref and repository path it names, or an
- * `error` when the link does not point into this repository's seeds folder.
+ * The mirror folder a rendered seed link opens, and the ref and `<demo>/<framework>` path it
+ * names, or an `error` when the link does not point at a seed folder of the mirror. The mirror's
+ * refs (`latest`, `release-X.Y.Z`) never contain a slash, so the ref is the first path segment.
  */
 export function resolveSeedLink({ kind, href }) {
     const prefix = kind === 'stackblitz' ? STACKBLITZ_TREE_PREFIX : GITHUB_TREE_PREFIX;
     if (!href.startsWith(prefix)) return { error: `does not start with ${prefix}` };
     const rest = href.slice(prefix.length).split(/[?#]/)[0];
-    const separator = rest.indexOf(`/${SEEDS_PATH}/`);
-    if (separator <= 0) return { error: `does not point into ${SEEDS_PATH}` };
-    const ref = rest.slice(0, separator);
-    const path = rest.slice(separator + 1).replace(/\/$/, '');
-    if (!/^[^/]+\/[^/]+$/.test(path.slice(SEEDS_PATH.length + 1))) {
-        return { error: `does not name a ${SEEDS_PATH}/<demo>/<framework> folder` };
-    }
+    const match = /^([^/]+)\/([^/]+\/[^/]+)\/?$/.exec(rest);
+    if (!match) return { error: `does not name a <demo>/<framework> folder of ${MIRROR_REPOSITORY}` };
+    const [, ref, path] = match;
     return { ref, path, githubUrl: `${GITHUB_TREE_PREFIX}${ref}/${path}` };
 }
 
@@ -183,16 +186,22 @@ export function listSeeds(root = WORKSPACE_ROOT) {
     return seeds;
 }
 
+/** The checkout's `.seed-manifest.json` for `<demo>/<framework>`, as text. */
+export function readManifest(seed, root = WORKSPACE_ROOT) {
+    return readFileSync(join(root, SEEDS_PATH, seed, MANIFEST_FILENAME), 'utf8');
+}
+
 /**
  * Runs both checks. Everything that touches the outside world is injected, so the unit tests can
- * run it offline: `fetchImpl` answers every request, `seeds` and `demoPages` stand in for the
- * checkout, `branch` for the current branch (`null` when none is checked out). Returns `{ ok, warnings, errors }` and logs progress
- * through `log`.
+ * run it offline: `fetchImpl` answers every request, `seeds`, `demoPages` and `readSeedManifest`
+ * stand in for the checkout, `branch` for the current branch (`null` when none is checked out).
+ * Returns `{ ok, warnings, errors }` and logs progress through `log`.
  */
 export async function checkDemoSeedLinks({
     siteUrl,
     fetchImpl = fetch,
     seeds = listSeeds(),
+    readSeedManifest = readManifest,
     demoPages = parseDemoPages(readFileSync(join(WORKSPACE_ROOT, DEMO_REGISTRY), 'utf8')),
     productionSiteUrls = readProductionSiteUrls(),
     branch = resolveBranch,
@@ -241,10 +250,10 @@ export async function checkDemoSeedLinks({
     };
     const treeUrl = `${GITHUB_TREE_PREFIX}${ref}`;
 
-    const seedsRootStatus = await resolveStatus(`${treeUrl}/${SEEDS_PATH}`);
-    if (seedsRootStatus === 404 && isProduction) {
+    const mirrorRootStatus = await resolveStatus(treeUrl);
+    if (mirrorRootStatus === 404 && isProduction) {
         warnings.push(
-            `${ref} carries no ${SEEDS_PATH} folder yet; the demo pages' seed links resolve once a release is tagged with the seeds.`
+            `${MIRROR_REPOSITORY} has no ${ref} yet; the demo pages' seed links resolve once a release is tagged with the seeds.`
         );
         return { ok: true, errors, warnings };
     }
@@ -285,14 +294,24 @@ export async function checkDemoSeedLinks({
     }
 
     // 2. Every seed this checkout declares, listed on a page or not.
-    log(`Checking ${seeds.length} seeds at ${treeUrl}/${SEEDS_PATH}`);
+    log(`Checking ${seeds.length} seeds at ${treeUrl}`);
     for (const seed of seeds) {
-        const url = `${treeUrl}/${SEEDS_PATH}/${seed}`;
+        const url = `${treeUrl}/${seed}`;
         const status = await resolveStatus(url);
-        if (status === 200) {
-            log(`ok   manifest   ${url}`);
-        } else {
+        if (status !== 200) {
             errors.push(`${url} responded ${status}`);
+            continue;
+        }
+        log(`ok   manifest   ${url}`);
+        const mirrored = await fetchImpl(`${RAW_PREFIX}${ref}/${seed}/${MANIFEST_FILENAME}`);
+        if (!mirrored.ok) {
+            warnings.push(
+                `${seed}/${MANIFEST_FILENAME} could not be read from ${MIRROR_REPOSITORY} at ${ref} (${mirrored.status}).`
+            );
+        } else if ((await mirrored.text()) !== readSeedManifest(seed)) {
+            warnings.push(
+                `${MIRROR_REPOSITORY} ${ref} has a different ${seed}/${MANIFEST_FILENAME} from this checkout: the mirror is behind (check the "Mirror Demo Seeds" runs) or already carries a later commit.`
+            );
         }
     }
 
