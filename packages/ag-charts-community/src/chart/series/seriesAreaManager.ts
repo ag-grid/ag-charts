@@ -145,6 +145,19 @@ function seriesNodeContexts(pickedNodes: readonly HighlightNodeDatum[]): SeriesN
     return contexts;
 }
 
+/** Primary region for backwards-compatible `showOn`, matching the winner `onClick` picks for the same point. */
+function primaryContextMenuRegion(
+    hasNode: boolean,
+    directNodeHit: boolean,
+    hasCrossLine: boolean,
+    hasAxis: boolean
+): AgContextMenuItemShowOn {
+    if (hasNode && (directNodeHit || !hasCrossLine)) return 'series-node';
+    if (hasCrossLine) return 'cross-line';
+    if (hasAxis) return 'axis';
+    return 'series-area';
+}
+
 function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
     switch (event.sourceDetail) {
         case 'keyboard-page(1)':
@@ -465,6 +478,7 @@ export class SeriesAreaManager extends BaseManager {
         // Every node under the point, not just the topmost: overlapping markers each get their own context.
         let pickedNodes: readonly HighlightNodeDatum[] = [];
         let position: CanvasPoint | undefined;
+        let directNodeHit = true;
         if (this.getFocusIndicator()?.isFocusVisible()) {
             const pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
             if (pickedNode) pickedNodes = [pickedNode];
@@ -482,6 +496,7 @@ export class SeriesAreaManager extends BaseManager {
                     this.chart.ctx.highlightManager.updateHighlight(this.id);
                 });
                 pickedNodes = pick.matches;
+                directNodeHit = pick.distance === 0;
             }
         }
 
@@ -503,24 +518,19 @@ export class SeriesAreaManager extends BaseManager {
             regions.push('axis');
             contexts.axis = collectEvent.axis;
         }
-        if (collectEvent.crossLine.length > 0) {
+        const hasCrossLine = collectEvent.crossLine.length > 0;
+        if (hasCrossLine) {
             regions.push('cross-line');
             contexts['cross-line'] = collectEvent.crossLine;
         }
 
-        // Primary region for backwards-compatible `showOn`: a node wins over a cross line, which wins over an
-        // overlapping axis, which wins over the bare series area (matches the pre-multi-region dispatch precedence).
-        let primary: AgContextMenuItemShowOn = 'series-area';
-        if (contexts['series-node']) {
-            primary = 'series-node';
-        } else if (collectEvent.crossLine.length > 0) {
-            primary = 'cross-line';
-        } else if (collectEvent.axis) {
-            primary = 'axis';
-        }
-
         this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
-            primary,
+            primaryContextMenuRegion(
+                contexts['series-node'] != null,
+                directNodeHit,
+                hasCrossLine,
+                collectEvent.axis != null
+            ),
             regions,
             contexts,
             { widgetEvent: event, canvasX, canvasY },
@@ -614,14 +624,7 @@ export class SeriesAreaManager extends BaseManager {
         if (this.isState(InteractionState.Default | InteractionState.Frozen)) {
             const { currentX: x, currentY: y } = event;
             pick = this.pickNodes({ x, y }, 'event');
-            const matches = pick?.matches;
-            const found = matches?.[0];
-            if (
-                (found?.series.isSelectionEnabled() && found?.series.isDatumSelectable(found.datumIndex)) ||
-                found?.series.hasNodeClickListener() ||
-                found?.series.hasBuiltinListener(pick?.target) ||
-                (matches != null && matches.length > 1 && this.chart.tooltip.pagination)
-            ) {
+            if (this.isClickable(pick)) {
                 this.chart.ctx.domManager.updateCursor(this.id, 'pointer');
             } else {
                 this.chart.ctx.domManager.updateCursor(this.id);
@@ -677,9 +680,11 @@ export class SeriesAreaManager extends BaseManager {
             : { canvasX: event.currentX, canvasY: event.currentY };
 
         const pendingCrossLineCallbacks = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
-        const clickedCrossLine = this.checkCrossLineClick(event, pendingCrossLineCallbacks);
+        const clickedCrossLine =
+            this.checkCrossLineClick(event, pendingCrossLineCallbacks) &&
+            !(isSeriesWidget && this.isClickableNodeHit(event));
         if (clickedCrossLine) {
-            // The cross line wins the event, but still reports the series nodes it covered.
+            // The cross line wins the event, but still reports the series nodes within `nodeClickRange`.
             const nodeParams = isSeriesWidget ? this.pickSeriesNodeHitParams(event) : [];
             fireAllPendingCrossLineCallbacks(pendingCrossLineCallbacks, nodeParams);
             return; // dodge chart-level / series-level user callbacks.
@@ -915,6 +920,25 @@ export class SeriesAreaManager extends BaseManager {
                 ? this.chart.ctx.chartService.listeners.crossLineClick
                 : this.chart.ctx.chartService.listeners.crossLineDoubleClick;
         return allMatchedParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
+    }
+
+    /** Whether the picked node reacts to a click, which is also when it shows the pointer cursor. */
+    private isClickable(pick: PickedNodes | undefined): boolean {
+        const found = pick?.matches[0];
+        if (pick == null || found == null) return false;
+        const { series } = found;
+        return (
+            (series.isSelectionEnabled() && series.isDatumSelectable(found.datumIndex)) ||
+            series.hasNodeClickListener() ||
+            series.hasBuiltinListener(pick.target) ||
+            (pick.matches.length > 1 && this.chart.tooltip.pagination)
+        );
+    }
+
+    /** A clickable node under the pointer beats an overlapping cross line; one only within `nodeClickRange` does not. */
+    private isClickableNodeHit(event: CurrentPoint): boolean {
+        const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
+        return pick?.distance === 0 && this.isClickable(pick);
     }
 
     private pickSeriesNodeHitParams(event: ClickLikeEvent & CurrentPoint): AgMatchedParams<unknown>[] {

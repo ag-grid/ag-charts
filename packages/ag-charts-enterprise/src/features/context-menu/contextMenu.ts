@@ -271,10 +271,11 @@ export class ContextMenu extends AbstractModuleInstance {
         return [params, callers];
     }
 
-    private makeGetItemsParamsSeriesNode(opts: GetItemsOpts): GetItemsParams {
-        const { defaultItems, active, coordinates, event } = opts;
-        if (this.pickedNodes == null) throw new Error(`this.pickedNodes is null`);
-        const regions = this.pickedNodes.map((node: PickedNode): SeriesNodeParams => {
+    private seriesNodeRegions(
+        pickedNodes: ContextShowOnMap['series-node']['context'],
+        event: Event
+    ): SeriesNodeParams[] {
+        return pickedNodes.map((node: PickedNode): SeriesNodeParams => {
             // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
             const itemId = getItemId(node, node.series.data?.dataIdKey);
             const region: SeriesNodeParams = {
@@ -300,6 +301,12 @@ export class ContextMenu extends AbstractModuleInstance {
             }
             return region;
         });
+    }
+
+    private makeGetItemsParamsSeriesNode(opts: GetItemsOpts): GetItemsParams {
+        const { defaultItems, active, coordinates, event } = opts;
+        if (this.pickedNodes == null) throw new Error(`this.pickedNodes is null`);
+        const regions = this.seriesNodeRegions(this.pickedNodes, event);
         if (regions.length === 0) throw new Error(`this.pickedNodes is empty`);
 
         // The topmost node (hit-test order) wins. Nodes overlapping it at this contextmenu point are broadcast in
@@ -347,6 +354,9 @@ export class ContextMenu extends AbstractModuleInstance {
         if (active.has('series-area')) allShowOnParams.push({ showOn: 'series-area', event });
         if (active.has('axis') && this.pickedAxisCtx != null) {
             allShowOnParams.push(this.axisRegion(this.pickedAxisCtx, event));
+        }
+        if (active.has('series-node') && this.pickedNodes != null) {
+            allShowOnParams.push(...this.seriesNodeRegions(this.pickedNodes, event));
         }
         const params: CallbackParamRules<AgContextMenuGetItemsParamsCrossLine<DatumDefault, ContextDefault>> = {
             showOn: 'cross-line',

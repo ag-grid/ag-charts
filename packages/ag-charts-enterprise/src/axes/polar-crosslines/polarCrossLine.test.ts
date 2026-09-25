@@ -11,7 +11,7 @@ import type {
     AgPolarChartOptions,
     AgRadiusCrossLineOptions,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import type { Chart } from 'ag-charts-community-test';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -386,7 +386,7 @@ describe('PolarCrossLine listeners', () => {
             polarOptions(
                 'polygon',
                 [{ type: 'line', value: 'Q3', id: 'angle-line', listeners: { click: listener } }],
-                [{ type: 'range', range: [1, 3], id: 'radius-band', listeners: { click: listener } }]
+                [{ type: 'range', range: [0, 2], id: 'radius-band', listeners: { click: listener } }]
             )
         );
 
@@ -394,6 +394,32 @@ describe('PolarCrossLine listeners', () => {
         await click(chart, pointOnPolarCrossLine(polarCrossLineAt(chart, 'radius')));
 
         expect(listener.mock.calls.map(([event]) => event.crossLineId)).toEqual(['angle-line', 'radius-band']);
+    });
+
+    it('a marker on a cross line wins the click over the cross line', async () => {
+        const crossLineClick = vi.fn();
+        const seriesNodeClick = vi.fn();
+        chart = await createEnterpriseChart(
+            polarOptions('polygon', [{ type: 'line', value: 'Q2', id: 'q2-line' }], [], {
+                listeners: { crossLineClick, seriesNodeClick },
+            })
+        );
+        const series = chart.series[0] as any;
+        const { x, y } = series.contextNodeData.nodeData[1].point;
+        const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, x, y);
+
+        await clickAction(canvasX, canvasY)(chart);
+
+        expect(seriesNodeClick).toHaveBeenCalledWith(
+            expect.objectContaining({
+                type: 'seriesNodeClick',
+                datum: { q: 'Q2', v: 4 },
+                allMatchedParams: expect.arrayContaining([
+                    expect.objectContaining({ type: 'crossLineClick', crossLineId: 'q2-line' }),
+                ]),
+            })
+        );
+        expect(crossLineClick).not.toHaveBeenCalled();
     });
 
     it('AC6: with no cross-line listener the click falls through to the chart `click` listener', async () => {
@@ -440,7 +466,7 @@ describe('PolarCrossLine listeners', () => {
     it('AC7: the same event reaches the axis-level and chart-level `crossLineClick` listeners', async () => {
         const axisClick = vi.fn();
         const chartClick = vi.fn();
-        const options = polarOptions('polygon', [], [{ type: 'range', range: [1, 3], id: 'band' }], {
+        const options = polarOptions('polygon', [], [{ type: 'range', range: [0, 2], id: 'band' }], {
             listeners: { crossLineClick: chartClick },
         });
         options.axes!.radius = { ...options.axes!.radius, listeners: { crossLineClick: axisClick } };
@@ -468,7 +494,7 @@ describe('PolarCrossLine listeners', () => {
     it('AC7: a chart-level `crossLineClick` listener receives the cross-line event', async () => {
         const chartClick = vi.fn();
         chart = await createEnterpriseChart(
-            polarOptions('polygon', [], [{ type: 'range', range: [1, 3], id: 'band' }], {
+            polarOptions('polygon', [], [{ type: 'range', range: [0, 2], id: 'band' }], {
                 listeners: { crossLineClick: chartClick },
             })
         );
