@@ -10,11 +10,7 @@ const base = process.env.DEMOS_BASE_PATH ?? '/';
 
 export default defineConfig({
     base,
-    // JSX is handled by Vite's built-in esbuild transform (automatic runtime).
-    // @vitejs/plugin-react is intentionally not used: its version pulls a rollup
-    // copy incompatible with the workspace's Vite 5, and Fast Refresh is not
-    // needed for these demos.
-    esbuild: { jsx: 'automatic', jsxImportSource: 'react' },
+    oxc: { jsx: { runtime: 'automatic', importSource: 'react' } },
     server: { port: 4700, host: true },
     preview: { port: 4700, host: true },
 });
