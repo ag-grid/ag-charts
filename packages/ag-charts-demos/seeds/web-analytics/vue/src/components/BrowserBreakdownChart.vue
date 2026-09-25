@@ -1,0 +1,86 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+
+import type { AgCartesianChartOptions } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-vue3';
+
+import { browserIconUrl } from '../browsers';
+import { PALETTE, THEME } from '../chartTheme';
+import { fmtInt } from '../format';
+import type { Browser } from '../types';
+
+const props = defineProps<{ data: { browser: Browser; sessions: number }[] }>();
+
+// Descending: largest browser at the top of the horizontal bars.
+const sorted = computed(() => [...props.data].sort((a, b) => b.sessions - a.sessions));
+
+const options = computed<AgCartesianChartOptions>(() => ({
+    theme: THEME,
+    data: sorted.value,
+    series: [
+        {
+            type: 'bar',
+            direction: 'horizontal',
+            xKey: 'browser',
+            yKey: 'sessions',
+            yName: 'Sessions',
+            fillOpacity: 0.2,
+            width: 12,
+            label: {
+                enabled: true,
+                placement: 'outside-end',
+                spacing: 12,
+                fontWeight: 'bold',
+                formatter: ({ value }) => fmtInt(value),
+            },
+            highlight: {
+                enabled: false,
+            },
+        },
+        {
+            type: 'scatter',
+            xKey: 'sessions',
+            yKey: 'browser',
+            size: 12,
+            fillOpacity: 1,
+            fill: PALETTE[0],
+            stroke: PALETTE[0],
+            highlight: {
+                enabled: false,
+            },
+        },
+    ],
+    axes: {
+        y: {
+            type: 'category',
+            position: 'left',
+            label: {
+                formatter: ({ value }) => {
+                    const url = browserIconUrl(String(value));
+                    if (!url) return String(value);
+                    return [
+                        { type: 'image', url, width: 14, height: 14, verticalAlign: 'middle' },
+                        { text: `  ${value}` },
+                    ];
+                },
+            },
+        },
+        x: {
+            type: 'number',
+            position: 'bottom',
+            nice: false,
+            gridLine: { width: 0 },
+            label: { enabled: false },
+        },
+    },
+    legend: { enabled: false },
+    padding: { top: 8, right: 48, bottom: 8, left: 8 },
+    tooltip: {
+        enabled: false,
+    },
+}));
+</script>
+
+<template>
+    <AgCharts :options="options" :style="{ height: '100%', width: '100%' }" />
+</template>

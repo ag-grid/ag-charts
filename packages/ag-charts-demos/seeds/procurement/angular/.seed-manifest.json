@@ -1,0 +1,10 @@
+{
+    "demo": "procurement",
+    "framework": "angular",
+    "sourceHash": "sha256-69480d22d2e4e7b44972b0f06812da9f9395ff72edb5b7506e8142de1d6d1195",
+    "sourceCommit": "c4a5aefa8c0235c5988454555a9c7834451ffb27",
+    "pinnedVersion": "latest",
+    "pinSource": "dist-tag",
+    "dist": "dist",
+    "vendored": ["web-analytics/topology.ts"]
+}

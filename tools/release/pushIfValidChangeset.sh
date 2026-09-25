@@ -22,11 +22,11 @@ if ! yarn check --integrity > /dev/null 2>&1; then
   yarn check --integrity || exit 1
 fi
 
-NON_PACKAGE_JSON_COUNT=`git status --porcelain | grep -Ev "package.json|yarn.lock|version.ts|packages/ag-charts-enterprise/src/license/licenseManager.ts|.env.*|README.md|ag-charts-versions.json" | wc -l`
+NON_PACKAGE_JSON_COUNT=`git status --porcelain | grep -Ev "package.json|yarn.lock|version.ts|.seed-manifest.json|packages/ag-charts-enterprise/src/license/licenseManager.ts|.env.*|README.md|ag-charts-versions.json" | wc -l`
 
 if [ $NON_PACKAGE_JSON_COUNT -ne 0 ];
 then
-  echo "Only package.json, version.ts, yarn.lock, root env files and licenseManager files should be updated - please verify changeset.."
+  echo "Only package.json, version.ts, yarn.lock, seed manifests, root env files and licenseManager files should be updated - please verify changeset.."
   git status --porcelain
   exit 1
 fi

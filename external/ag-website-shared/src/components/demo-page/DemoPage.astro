@@ -12,7 +12,7 @@ interface Props extends DemoPageHero {
     examples: DemoPageExample[];
 }
 
-const { currentId, examples, eyebrow, title, description, primaryCta, secondaryCta } = Astro.props;
+const { currentId, examples, eyebrow, title, description, primaryCta, secondaryCta, openIn = [] } = Astro.props;
 ---
 
 <div class={styles.demoPage}>
@@ -59,6 +59,35 @@ const { currentId, examples, eyebrow, title, description, primaryCta, secondaryC
                     <Icon name="chevronRight" />
                 </a>
             </div>
+
+            {openIn.length > 0 && (
+                <ul class={styles.openIn} aria-label="Run this demo yourself">
+                    {openIn.map((seed) => (
+                        <li class={styles.openInItem}>
+                            <a
+                                class:list={['button-secondary', styles.openInButton]}
+                                href={seed.href}
+                                target="_blank"
+                                rel="noreferrer"
+                                data-seed-framework={seed.framework}
+                            >
+                                <Icon name="stackblitz" />
+                                Open in StackBlitz{openIn.length > 1 && ` (${seed.framework})`}
+                            </a>
+                            <a
+                                class:list={['button-tertiary', styles.openInSource]}
+                                href={seed.sourceHref}
+                                target="_blank"
+                                rel="noreferrer"
+                                data-seed-source={seed.framework}
+                            >
+                                <Icon name="github" />
+                                See on GitHub{openIn.length > 1 && ` (${seed.framework})`}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            )}
         </div>
     </aside>
 

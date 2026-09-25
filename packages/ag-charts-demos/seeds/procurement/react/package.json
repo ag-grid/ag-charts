@@ -1,0 +1,31 @@
+{
+  "name": "ag-charts-demo-procurement-react",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@radix-ui/react-label": "^2.1.12",
+    "@radix-ui/react-select": "^2.0.0",
+    "@radix-ui/react-tabs": "^1.1.0",
+    "@radix-ui/react-toggle-group": "^1.1.0",
+    "ag-charts-community": "latest",
+    "ag-charts-enterprise": "latest",
+    "ag-charts-react": "latest",
+    "ag-grid-community": "~36.2.0",
+    "ag-grid-enterprise": "~36.2.0",
+    "ag-grid-react": "~36.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "~5.8.3",
+    "vite": "5.4.20"
+  }
+}
