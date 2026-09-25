@@ -42,7 +42,7 @@ describe('AG Charts param translation', () => {
                 collectOperations(params[property], operations);
             }
         }
-        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$ref']);
+        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$if', '$isType', '$mix', '$ref']);
     });
 
     describe('colour references', () => {
@@ -107,6 +107,24 @@ describe('AG Charts param translation', () => {
             ).toBe(
                 'color-mix(in srgb, var(--ag-foreground-color), color-mix(in srgb, var(--ag-foreground-color), var(--ag-border-color) 75%) 50%)'
             );
+        });
+
+        it('follows the branch that matches a composite param set to a boolean', () => {
+            const hoverColor = {
+                $if: [
+                    { $isType: [{ $ref: 'thumbBorder' }, 'boolean'] },
+                    { $ref: 'borderColor' },
+                    { $ref: 'thumbBorder.color' },
+                ],
+            };
+            expect(toStackParamValue('hoverBorder.color', hoverColor, { thumbBorder: true })).toEqual({
+                ref: 'borderColor',
+            });
+            expect(toStackParamValue('hoverBorder.color', hoverColor, params)).toEqual({
+                ref: 'borderColor',
+                mix: 0.75,
+                onto: 'foregroundColor',
+            });
         });
 
         it('leaves no member reference in any stock theme', () => {

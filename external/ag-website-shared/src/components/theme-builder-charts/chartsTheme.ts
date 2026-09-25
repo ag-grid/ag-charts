@@ -70,6 +70,20 @@ export const toStackParamValue = (
         return member ? toStackParamValue(value.$ref, member.value, params) : { ref: value.$ref };
     }
 
+    if ('$if' in value) {
+        // The only condition in the param defaults tests whether a composite param is a boolean, so the branch
+        // is chosen from that param's own value.
+        const [condition, whenTrue, whenFalse] = value.$if as [unknown, unknown, unknown];
+        const tested = isOperation(condition) ? condition.$isType : undefined;
+        const testedParam = Array.isArray(tested) && tested[1] === 'boolean' ? refName(tested[0]) : undefined;
+        if (testedParam != null) {
+            const branch = typeof params[testedParam] === 'boolean' ? whenTrue : whenFalse;
+            return toStackParamValue(property, branch, params);
+        }
+        console.warn(`[charts theme builder] cannot express $if for "${property}"`);
+        return undefined;
+    }
+
     if ('$foregroundBackgroundMix' in value) {
         // Color.mix(foreground, background, 1 - ratio) - i.e. `ratio` is the
         // weight of the foreground colour, which is exactly ag-stack's `mix`.

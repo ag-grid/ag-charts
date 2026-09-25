@@ -274,7 +274,14 @@ export class ChartTheme {
                 $mix: [{ $ref: 'scrollbarThumbBackgroundColor' }, { $ref: 'foregroundColor' }, 0.075],
             },
             scrollbarThumbHoverBorder: {
-                color: { $mix: [{ $ref: 'scrollbarThumbBorder.color' }, { $ref: 'foregroundColor' }, 0.075] },
+                // A boolean scrollbarThumbBorder has no members, and its thumb border uses borderColor.
+                color: {
+                    $if: [
+                        { $isType: [{ $ref: 'scrollbarThumbBorder' }, 'boolean'] },
+                        { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.075] },
+                        { $mix: [{ $ref: 'scrollbarThumbBorder.color' }, { $ref: 'foregroundColor' }, 0.075] },
+                    ],
+                },
                 width: { $ref: 'scrollbarThumbBorder.width' },
             },
         };
