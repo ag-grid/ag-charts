@@ -15,8 +15,8 @@
     "ag-charts-community": "latest",
     "ag-charts-enterprise": "latest",
     "ag-charts-react": "latest",
-    "ag-grid-community": "~35.0.1",
-    "ag-grid-react": "~35.0.1",
+    "ag-grid-community": "~36.2.0",
+    "ag-grid-react": "~36.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
