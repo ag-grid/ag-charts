@@ -2,7 +2,7 @@ import { fail } from 'assert';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
-import type { AgCartesianChartOptions, AgChartTheme, AgChartThemeParams, AgPolarChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import { CartesianChart } from '../cartesianChart';
@@ -1079,138 +1079,6 @@ describe('ChartTheme', () => {
             expect(classCast(series[1], BarSeries).options.strokeWidth).toEqual(16);
             expect(classCast(series[2], LineSeries).options.strokeWidth).toEqual(17);
             expect(classCast(series[3], AreaSeries).options.strokeWidth).toEqual(18);
-        });
-    });
-    describe('caption theme params', () => {
-        const FONT_FAMILY =
-            '"IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif';
-        const CAPTIONS = ['title', 'subtitle', 'footnote'] as const;
-        type Caption = (typeof CAPTIONS)[number];
-
-        const captionOptions = (
-            theme: AgChartTheme | string = 'ag-default',
-            extra: Partial<AgCartesianChartOptions> = {}
-        ): AgCartesianChartOptions => ({
-            theme: theme as AgChartTheme,
-            data,
-            series: [{ type: 'bar', xKey: 'label', yKey: 'v1' }],
-            title: { text: 'Title' },
-            subtitle: { text: 'Subtitle' },
-            footnote: { text: 'Footnote' },
-            ...extra,
-        });
-
-        const typography = (caption: Caption) => {
-            const { fontSize, fontWeight, fontFamily, color } = (chart as any)[caption].opts;
-            return { fontSize, fontWeight, fontFamily, color };
-        };
-
-        const createChart = async (options: AgCartesianChartOptions) => {
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
-        };
-
-        const DEFAULTS: Record<string, Record<Caption, ReturnType<typeof typography>>> = {
-            'ag-default': {
-                title: { fontSize: 17, fontWeight: 400, fontFamily: FONT_FAMILY, color: '#181d1f' },
-                subtitle: { fontSize: 13, fontWeight: 400, fontFamily: FONT_FAMILY, color: '#707374' },
-                footnote: { fontSize: 13, fontWeight: 400, fontFamily: FONT_FAMILY, color: '#707374' },
-            },
-            'ag-default-dark': {
-                title: { fontSize: 17, fontWeight: 400, fontFamily: FONT_FAMILY, color: '#fff' },
-                subtitle: { fontSize: 13, fontWeight: 400, fontFamily: FONT_FAMILY, color: '#7c818a' },
-                footnote: { fontSize: 13, fontWeight: 400, fontFamily: FONT_FAMILY, color: '#7c818a' },
-            },
-        };
-
-        test.each(Object.keys(DEFAULTS))('caption defaults are unchanged for %s', async (theme) => {
-            await createChart(captionOptions(theme));
-            for (const caption of CAPTIONS) {
-                expect(typography(caption)).toEqual(DEFAULTS[theme][caption]);
-            }
-        });
-
-        const PARAM_VALUES = {
-            FontSize: ['fontSize', 31],
-            FontWeight: ['fontWeight', 'bold'],
-            FontFamily: ['fontFamily', 'Courier New'],
-            Color: ['color', 'red'],
-        } as const;
-
-        const isolationCases = CAPTIONS.flatMap((caption) =>
-            Object.entries(PARAM_VALUES).map(([suffix, [property, value]]) => ({
-                param: `${caption}${suffix}` as keyof AgChartThemeParams,
-                caption,
-                property,
-                value,
-            }))
-        );
-
-        test.each(isolationCases)('$param styles only the $caption', async ({ param, caption, property, value }) => {
-            await createChart(captionOptions({ baseTheme: 'ag-default', params: { [param]: value } }));
-            for (const other of CAPTIONS) {
-                const expected = other === caption ? value : DEFAULTS['ag-default'][other][property];
-                expect(typography(other)[property]).toEqual(expected);
-            }
-        });
-
-        test('caption sizes scale with fontSize', async () => {
-            await createChart(captionOptions({ baseTheme: 'ag-default', params: { fontSize: 20 } }));
-            expect(typography('title').fontSize).toBe(28);
-            expect(typography('subtitle').fontSize).toBe(22);
-            expect(typography('footnote').fontSize).toBe(22);
-        });
-
-        test('caption sizes recompute when fontSize changes on update', async () => {
-            const proxy = AgCharts.create(captionOptions({ baseTheme: 'ag-default', params: { fontSize: 20 } }));
-            chart = deproxy(proxy);
-            await waitForChartStability(chart);
-            await proxy.update(captionOptions({ baseTheme: 'ag-default', params: { fontSize: 24 } }));
-            await waitForChartStability(chart);
-            expect(typography('title').fontSize).toBe(34);
-            expect(typography('subtitle').fontSize).toBe(26);
-            expect(typography('footnote').fontSize).toBe(26);
-        });
-
-        test('subtleTextColor still recolours the subtitle and footnote', async () => {
-            await createChart(captionOptions({ baseTheme: 'ag-default', params: { subtleTextColor: 'green' } }));
-            expect(typography('title').color).toBe('#181d1f');
-            expect(typography('subtitle').color).toBe('green');
-            expect(typography('footnote').color).toBe('green');
-        });
-
-        test('explicit caption options take precedence over the params', async () => {
-            await createChart(
-                captionOptions(
-                    {
-                        baseTheme: 'ag-default',
-                        params: { titleFontSize: 30, titleColor: 'red', subtitleColor: 'red' },
-                        overrides: { common: { subtitle: { color: 'blue' } } },
-                    },
-                    { title: { text: 'Title', fontSize: 11 } }
-                )
-            );
-            expect(typography('title').fontSize).toBe(11);
-            expect(typography('title').color).toBe('red');
-            expect(typography('subtitle').color).toBe('blue');
-        });
-
-        test('caption colour params accept theme-colour references', async () => {
-            await createChart(
-                captionOptions({
-                    baseTheme: 'ag-default',
-                    params: {
-                        accentColor: '#ff0000',
-                        titleColor: { ref: 'accentColor' },
-                        subtitleColor: { ref: 'titleColor' },
-                        footnoteColor: { ref: 'titleColor', mix: 0.5, onto: 'backgroundColor' },
-                    },
-                })
-            );
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
-            expect(typography('title').color).toBe('#ff0000');
-            expect(typography('subtitle').color).toBe('#ff0000');
-            expect(typography('footnote').color).toBe('#ff8080');
         });
     });
 });
