@@ -2150,6 +2150,7 @@ describe('DonutSeries', () => {
 
                 expect(visibleCalloutLabels(chart).map(({ text }) => text)).toEqual(expectedVisible);
                 expect(labelsOverlappingASector(chart)).toEqual([]);
+                await compare();
             });
         });
 
