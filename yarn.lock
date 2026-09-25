@@ -10234,30 +10234,18 @@ ag-charts-locale@14.2.0:
   resolved "https://registry.yarnpkg.com/ag-charts-locale/-/ag-charts-locale-14.2.0.tgz#f36e06c274d933fc63153370b7934b228eef3211"
   integrity sha512-zoG9yxh193FKc7jvx9FFp8oWUTcYIzHJLNmq1+54KCIe0us9Ay5odkp31y7WJX5gDtty8hKq+uyOEBPXtE9GHw==
 
-ag-charts-types@13.0.1:
-  version "13.0.1"
-  resolved "https://registry.yarnpkg.com/ag-charts-types/-/ag-charts-types-13.0.1.tgz#a89677578d52fd3fef285034a33922c222201cba"
-  integrity sha512-qg9adyiAaeUaDtWZEEPF45dv55kdJTe6Ghi0EQXCS79h/7KvOd6dxhqGZjPL1zeFl/L9qEXuYgb+LkGStq4mgQ==
-
 ag-charts-types@14.2.0:
   version "14.2.0"
   resolved "https://registry.yarnpkg.com/ag-charts-types/-/ag-charts-types-14.2.0.tgz#95ba9a99a717ac284d9e317cd9814a5f716519b5"
   integrity sha512-4pDV6/4zbzPN7t607Gr1o6DO9RhmPafQGr+hIpTJBaerbaMoC+WOO3v/wkxFbvCNrHKOexEKSfNTH7PaAR4UzA==
 
-ag-grid-angular@~35.0.1:
-  version "35.0.1"
-  resolved "https://registry.yarnpkg.com/ag-grid-angular/-/ag-grid-angular-35.0.1.tgz#f11bfdf6d852f8ce31d56a7002a4e78213554644"
-  integrity sha512-+Y1K/ZxiEbd3GhZcRWzLf60yiP4ECNoTCCqI65EgHiiRGInz3g1pDueArR7hE7V+z5gluA3NMGB3VrOZYUBKLg==
+ag-grid-angular@~36.2.0:
+  version "36.2.0"
+  resolved "https://registry.yarnpkg.com/ag-grid-angular/-/ag-grid-angular-36.2.0.tgz#218c6202f621b2ec4a5eb51edd71ac131cc6cde5"
+  integrity sha512-efr4sZVLUX9y+5sLdwub9IV0vqpSpkKknZPLoLvF4+pRbCXUjneybiI9uiFTJCOk/xIvIFdNhUYPbVgb/rVceA==
   dependencies:
-    ag-grid-community "35.0.1"
-    tslib "^2.3.0"
-
-ag-grid-community@35.0.1:
-  version "35.0.1"
-  resolved "https://registry.yarnpkg.com/ag-grid-community/-/ag-grid-community-35.0.1.tgz#041a4a836b77e884fe45dea8ec94c1f741a191ed"
-  integrity sha512-fYYZdymWKsN9/tZv+R6uZRnuiWYEQr+GHl85ZrB0ixbFcE8opYK4NJI29NnMc9ShYiCBnAO9hj54IFa+FI4aDA==
-  dependencies:
-    ag-charts-types "13.0.1"
+    ag-grid-community "36.2.0"
+    tslib "^2.8.1"
 
 ag-grid-community@36.2.0, ag-grid-community@~36.2.0:
   version "36.2.0"
@@ -10286,12 +10274,12 @@ ag-grid-react@~36.2.0:
     ag-grid-community "36.2.0"
     prop-types "^15.8.1"
 
-ag-grid-vue3@~35.0.1:
-  version "35.0.1"
-  resolved "https://registry.yarnpkg.com/ag-grid-vue3/-/ag-grid-vue3-35.0.1.tgz#dc062ad0dda85b60145b9fbdbfad9da2c198548c"
-  integrity sha512-SE7wZPXiKHXfTSfzJDra+bnN/obmizLCkeri91b8v1Wy7ypza+NqApjMRiXAeZEUCaJqy2ZHv0r/oHIzxx7vJQ==
+ag-grid-vue3@~36.2.0:
+  version "36.2.0"
+  resolved "https://registry.yarnpkg.com/ag-grid-vue3/-/ag-grid-vue3-36.2.0.tgz#a98879b2fb2540bb8fbd5d47f422df9c9b837b4d"
+  integrity sha512-B6P5QHJGxY5g2LjHINAI904x1oMYb/VRlLWgmVylwEov0OicpowHSIxld28vgVkWkHGsdgqnbE4iDHQpVt4zPw==
   dependencies:
-    ag-grid-community "35.0.1"
+    ag-grid-community "36.2.0"
 
 ag-stack@36.2.0, ag-stack@~36.2.0:
   version "36.2.0"
