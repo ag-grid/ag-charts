@@ -641,6 +641,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     crossFilterSelected: scratch.crossFilterSelected,
                 });
             }
+            if (dst === undefined) {
+                ctx.nodeIndex++;
+            }
         }
 
         // Update span points for path rendering
@@ -730,9 +733,6 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
         for (let i = start; i < end; i += 1) {
             this.handleDatum(ctx, scratch, indices?.[i] ?? i, undefined);
-            if (scratch.yDatum != null) {
-                ctx.nodeIndex++;
-            }
         }
     }
 
