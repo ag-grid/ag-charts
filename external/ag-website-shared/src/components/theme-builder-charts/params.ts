@@ -91,8 +91,27 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'menuTextColor', label: 'Menu Text' },
             { key: 'menuBorder', label: 'Menu Border' },
             { key: 'menuBorderRadius', label: 'Menu Radius', icon: 'radius', min: 0, max: 24 },
+            { key: 'menuSeparatorColor', label: 'Menu Separator' },
             { key: 'panelBackgroundColor', label: 'Panel Background' },
             { key: 'panelSubtleTextColor', label: 'Panel Subtle Text' },
+            { key: 'dragHandleColor', label: 'Drag Handle' },
+            { key: 'colorPickerThumbSize', label: 'Color Picker Thumb Size', min: 8, max: 32 },
+            { key: 'colorPickerThumbBorderWidth', label: 'Color Picker Thumb Border', min: 0, max: 8 },
+            { key: 'colorPickerTrackSize', label: 'Color Picker Track Size', min: 4, max: 24 },
+            {
+                key: 'colorPickerTrackBorderRadius',
+                label: 'Color Picker Track Radius',
+                icon: 'radius',
+                min: 0,
+                max: 24,
+            },
+            {
+                key: 'colorPickerColorBorderRadius',
+                label: 'Color Picker Swatch Radius',
+                icon: 'radius',
+                min: 0,
+                max: 8,
+            },
         ],
     },
     {
@@ -119,6 +138,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'buttonFontWeight', label: 'Button Font Weight' },
             { key: 'inputBackgroundColor', label: 'Input Background' },
             { key: 'inputTextColor', label: 'Input Text' },
+            { key: 'inputPlaceholderTextColor', label: 'Input Placeholder Text' },
             { key: 'inputBorder', label: 'Input Border' },
             { key: 'inputBorderRadius', label: 'Input Radius', icon: 'radius', min: 0, max: 24 },
         ],
@@ -130,6 +150,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         params: [
             { key: 'focusShadow', label: 'Focus Shadow' },
             { key: 'popupShadow', label: 'Popup Shadow' },
+            { key: 'cardShadow', label: 'Card Shadow' },
         ],
     },
 ];
@@ -145,7 +166,7 @@ export const CURATED_KEYS = PARAM_GROUPS.flatMap((group) => group.params.map(({ 
 const isDerivedValue = (value: unknown): boolean => {
     if (typeof value === 'string') return value.includes('var(--ag-');
     if (typeof value !== 'object' || value == null || Array.isArray(value)) return false;
-    return 'ref' in value || Object.values(value).some(isDerivedValue);
+    return 'ref' in value || 'calc' in value || Object.values(value).some(isDerivedValue);
 };
 
 /** Which of a theme's params follow another one rather than standing alone. */
@@ -182,7 +203,11 @@ const collectSources = (value: unknown, found: string[]): void => {
     if (typeof value !== 'object' || value == null || Array.isArray(value)) {
         return;
     }
-    const { ref, onto } = value as { ref?: unknown; onto?: unknown };
+    const { ref, onto, calc } = value as { ref?: unknown; onto?: unknown; calc?: unknown };
+    if (typeof calc === 'string') {
+        found.push(...PUBLIC_PARAM_NAMES.filter((property) => new RegExp(`\\b${property}\\b`).test(calc)));
+        return;
+    }
     if (typeof ref === 'string') {
         found.push(ref);
         if (typeof onto === 'string') {

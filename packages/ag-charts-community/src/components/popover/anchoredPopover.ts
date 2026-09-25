@@ -38,11 +38,13 @@ export abstract class AnchoredPopover<
 
     protected override showWidget(controller: ExpansionControllerWidget, owns: ExpandableWidget, options: Options) {
         super.showWidget(controller, owns, options);
+        this.getPopoverElement()?.classList.add('ag-charts-popover--anchored');
         this.updateAfterShow(options);
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
         const popover = super.showWithChildren(children, options);
+        popover.classList.add('ag-charts-popover--anchored');
         this.updateAfterShow(options);
 
         return popover;

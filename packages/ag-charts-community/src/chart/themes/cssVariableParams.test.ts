@@ -32,7 +32,7 @@ const DARK_MODE_PARAMS: AgChartThemeParams = {
 };
 
 /** Neither is a plain colour, so neither can travel through a CSS variable. */
-const UNMAPPABLE_PROPERTIES = ['--ag-charts-popup-shadow', '--ag-charts-focus-color'];
+const UNMAPPABLE_PROPERTIES = ['--ag-charts-card-shadow', '--ag-charts-popup-shadow', '--ag-charts-focus-color'];
 
 /**
  * The palette entries `ag-default-dark` retunes. None can be driven from CSS - `theme.palette`

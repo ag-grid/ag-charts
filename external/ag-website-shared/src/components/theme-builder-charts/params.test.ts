@@ -101,6 +101,10 @@ describe('what a param inherits from', () => {
         expect(inheritedSourcesOf('1px solid var(--ag-not-a-param)')).toEqual([]);
     });
 
+    it('names the params a calculated length scales from', () => {
+        expect(inheritedSourcesOf({ calc: 'borderRadius * 0.5' })).toEqual(['borderRadius']);
+    });
+
     it('can say what every inherited param inherits from', () => {
         // The note's copy reads "Inherited from <name>", so a param with
         // nothing to name would render an unfinished sentence.
