@@ -149,6 +149,7 @@ interface MarkerNodeDatum extends SeriesNodeDatum {
 interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<TDatum, ISeriesOptions, unknown> {
     getNodeData(): { find(predicate: (elem: TDatum) => boolean): TDatum | undefined } | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number; shape?: AgMarkerShape };
+    applyFocusSize(markerBBox: BBox, style: NormalisedSeriesMarkerStyle, point: SizedPoint | undefined): void;
 }
 
 export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
@@ -170,6 +171,11 @@ export function computeMarkerFocusBoundsOfNodeDatum<TDatum extends MarkerNodeDat
     if (datum == null || point == null) return undefined;
 
     const style = series.getFormattedMarkerStyle(datum);
+    if (typeof style.shape === 'function') {
+        const bb = BBox.fromSizedPoint(point);
+        series.applyFocusSize(bb, style, point);
+    }
+
     const anchor = Marker.anchor(style.shape);
     const size = point.focusSize ?? style.size;
     const paddedSize = 4 + size; // AG-13067 Add 2px padding on all sides:
