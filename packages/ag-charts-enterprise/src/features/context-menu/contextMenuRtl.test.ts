@@ -2,7 +2,13 @@ import { afterEach, describe, expect, it, test } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
-import { contextMenuAction, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import {
+    contextMenuAction,
+    setupMockCanvas,
+    setupMockConsole,
+    setupMockPointerEvent,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
@@ -10,6 +16,7 @@ import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 describe('Context Menu RTL', () => {
     setupMockConsole();
     setupMockCanvas();
+    setupMockPointerEvent();
 
     let chart: any;
 
@@ -66,7 +73,6 @@ describe('Context Menu RTL', () => {
 
     let cx: number = 0;
     let cy: number = 0;
-    let tmpPointerEvent: typeof globalThis.PointerEvent;
 
     async function prepareChart(contextMenuOptions?: AgChartOptions['contextMenu'], baseOptions = EXAMPLE_OPTIONS) {
         const options: AgChartOptions = {
@@ -81,13 +87,7 @@ describe('Context Menu RTL', () => {
         await waitForChartStability(chart);
     }
 
-    beforeEach(() => {
-        tmpPointerEvent = globalThis.PointerEvent;
-        globalThis.PointerEvent = class extends MouseEvent {} as typeof globalThis.PointerEvent;
-    });
-
     afterEach(() => {
-        globalThis.PointerEvent = tmpPointerEvent;
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;

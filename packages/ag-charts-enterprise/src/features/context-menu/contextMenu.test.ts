@@ -12,6 +12,7 @@ import {
     longTapAction,
     setupMockCanvas,
     setupMockConsole,
+    setupMockPointerEvent,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection } from 'ag-charts-core';
@@ -24,6 +25,7 @@ import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 describe('Context Menu', () => {
     setupMockConsole();
     setupMockCanvas();
+    setupMockPointerEvent();
 
     let chart: any;
 
@@ -130,7 +132,6 @@ describe('Context Menu', () => {
 
     let cx: number = 0;
     let cy: number = 0;
-    let tmpPointerEvent: typeof globalThis.PointerEvent;
 
     async function prepareChart(contextMenuOptions?: AgChartOptions['contextMenu'], baseOptions = EXAMPLE_OPTIONS) {
         const options: AgChartOptions = {
@@ -148,15 +149,7 @@ describe('Context Menu', () => {
         await waitForChartStability(chart);
     }
 
-    beforeEach(() => {
-        // Node.js does not have a PointerEvent constructor (which is what we use to create synthetic 'contextmenu'
-        // events). So create custom class for it (Note: the standard PointerEvent class extends MouseEvent).
-        tmpPointerEvent = globalThis.PointerEvent;
-        globalThis.PointerEvent = class extends MouseEvent {} as typeof globalThis.PointerEvent;
-    });
-
     afterEach(() => {
-        globalThis.PointerEvent = tmpPointerEvent;
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
