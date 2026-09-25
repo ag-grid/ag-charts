@@ -35,6 +35,9 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         // A style guide for the controls themselves — none of them drive the chart.
         'examples-controls-tester': { skipCanvasUpdateCheck: true },
     },
+    'zoom-e2e': {
+        'zoom-range-cross-line': { frameworks: ['vanilla'] },
+    },
     'context-menu-e2e': {
         'captions-declarative': { frameworks: ['vanilla'] },
         'captions-dynamic': { frameworks: ['vanilla'] },

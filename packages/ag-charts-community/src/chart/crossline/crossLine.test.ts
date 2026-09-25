@@ -1262,7 +1262,7 @@ describe('CrossLine', () => {
     describe('range clamped to the domain', () => {
         const MONTHS = Array.from({ length: 6 }, (_, i) => new Date(2026, i, 1));
 
-        async function createBandChart(range: [Date, Date]) {
+        async function createBandChart(...ranges: Array<[Date, Date]>) {
             chart = await createChart({
                 data: MONTHS.map((date, i) => ({ date, value: i + 1 })),
                 series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
@@ -1271,7 +1271,11 @@ describe('CrossLine', () => {
                         type: 'unit-time',
                         position: 'bottom',
                         paddingOuter: 0,
-                        crossLines: [{ type: 'range', range, label: { text: 'Range' } }],
+                        crossLines: ranges.map((range) => ({
+                            type: 'range' as const,
+                            range,
+                            label: { text: 'Range' },
+                        })),
                     },
                     y: { type: 'number', position: 'left' },
                 },
@@ -1279,6 +1283,11 @@ describe('CrossLine', () => {
             const [crossLine] = getCrossLinesPlugin(chart.axes.findById('x')!)!.getInstances();
             return crossLine;
         }
+
+        test('renders ranges clamped at both ends of the domain', async () => {
+            await createBandChart([new Date(2025, 10, 1), MONTHS[0]], [new Date(2026, 5, 5), new Date(2026, 5, 20)]);
+            await compare();
+        });
 
         test('keeps the first band of a range that starts before the domain', async () => {
             const crossLine = await createBandChart([new Date(2025, 10, 1), MONTHS[0]]);

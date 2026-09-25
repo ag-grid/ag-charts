@@ -1702,7 +1702,11 @@ describe('Zoom', () => {
         const WEEKS = Array.from({ length: 52 }, (_, i) => new Date(2019, 0, 7 + i * 7));
         const WINDOW = 0.17;
 
-        async function prepareCrossLineChart(axisType: 'unit-time' | 'category', start: number) {
+        async function prepareCrossLineChart(
+            axisType: 'unit-time' | 'category',
+            start: number,
+            ranges: Array<[number, number]> = [[16, 25]]
+        ) {
             const toKey = (date: Date) => (axisType === 'category' ? date.toISOString() : date);
             const options: AgCartesianChartOptions = {
                 data: WEEKS.map((date, i) => ({ date: toKey(date), value: i % 7 })),
@@ -1711,9 +1715,11 @@ describe('Zoom', () => {
                     x: {
                         type: axisType,
                         position: 'bottom',
-                        crossLines: [
-                            { type: 'range', range: [toKey(WEEKS[16]), toKey(WEEKS[25])], label: { text: 'Peak' } },
-                        ],
+                        crossLines: ranges.map(([from, to]) => ({
+                            type: 'range' as const,
+                            range: [toKey(WEEKS[from]), toKey(WEEKS[to])],
+                            label: { text: 'Peak' },
+                        })),
                     },
                     y: { type: 'number', position: 'left' },
                 },
@@ -1727,6 +1733,14 @@ describe('Zoom', () => {
         }
 
         describe.each(['unit-time', 'category'] as const)('%s axis', (axisType) => {
+            it('renders ranges clipped by both edges', async () => {
+                await prepareCrossLineChart(axisType, 0.492, [
+                    [16, 25],
+                    [34, 40],
+                ]);
+                await compare();
+            });
+
             it.each([
                 ['left', 0.492],
                 ['right', 0.14],
