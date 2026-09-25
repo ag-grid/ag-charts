@@ -197,7 +197,11 @@ function checkPins() {
     }
     console.error(`check-seeds: framework ports must pin ag-charts-* ${describePin(pin)}.\n`);
     for (const line of describeDrift(drift)) console.error(`  ${line}`);
-    console.error(`\nFix with: ${PIN_COMMAND}`);
+    // Both, as a merge-back can leave the React seeds on a release the ports no longer pin: re-pinning
+    // the ports alone would fail the React check next.
+    console.error('\nFix with:');
+    console.error('  node packages/ag-charts-demos/tools/seeds/generate-react-seed.mjs --reset-pin');
+    console.error(`  ${PIN_COMMAND} --reset-pin`);
     console.error('then commit the result.');
     return 1;
 }
