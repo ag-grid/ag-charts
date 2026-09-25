@@ -89,9 +89,6 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
         opacity: 1,
         cornerRadius: { $ref: 'scrollbarThumbBorderRadius' },
         minSize: 20,
-        // A per-chart thumb style still drives the hover style, as it did before the hover params existed. A hover border
-        // member that does not resolve (a boolean hover border, or the default one over a boolean thumb border) derives
-        // from the thumb instead.
         hoverStyle: {
             fill: {
                 $isUserOption: [
@@ -120,7 +117,19 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
                     {
                         $if: [
                             { $isType: [{ $ref: 'scrollbarThumbHoverBorder' }, 'boolean'] },
-                            { $if: [{ $ref: 'scrollbarThumbHoverBorder' }, { $path: '../strokeWidth' }, 0] },
+                            {
+                                $if: [
+                                    { $ref: 'scrollbarThumbHoverBorder' },
+                                    {
+                                        $if: [
+                                            { $greaterThan: [{ $path: '../strokeWidth' }, 0] },
+                                            { $path: '../strokeWidth' },
+                                            1,
+                                        ],
+                                    },
+                                    0,
+                                ],
+                            },
                             {
                                 $if: [
                                     { $isType: [{ $ref: 'scrollbarThumbHoverBorder.width' }, 'number'] },
