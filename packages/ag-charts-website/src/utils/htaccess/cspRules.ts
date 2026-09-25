@@ -199,11 +199,11 @@ const GOOGLE_ADS_CONVERSION_HOSTS = [
 ];
 
 // Unanchored: the site sits under /charts and example runners appear at several depths, so
-// the segment has to match anywhere.
-export const EXAMPLES_PATH_CONDITION = '%{REQUEST_URI} =~ m#/(examples|archive)/#';
+// the segment has to match anywhere. `/examples/` alone is the demo page, which is an ordinary page.
+export const EXAMPLES_PATH_CONDITION = '%{REQUEST_URI} =~ m#/(examples/[^/?]|archive/)#';
 
 // Keep in sync with EXAMPLES_PATH_CONDITION; used by the dev- and preview-server middleware.
-export const EXAMPLES_PATH_REGEXP = /\/(examples|archive)\//;
+export const EXAMPLES_PATH_REGEXP = /\/(examples\/[^/?]|archive\/)/;
 
 // 'self' is charts-staging.ag-grid.com on staging, so cross-subdomain references to the
 // production host need an explicit allowance.

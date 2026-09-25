@@ -12,7 +12,7 @@ describe('htaccessRules CSP (AG-17134)', () => {
     const production = getHtaccessContent({ env: 'production' });
     const staging = getHtaccessContent({ env: 'staging' });
 
-    const ifOpen = '<If "%{REQUEST_URI} =~ m#/(examples|archive)/#">';
+    const ifOpen = '<If "%{REQUEST_URI} =~ m#/(examples/[^/?]|archive/)#">';
     const unconditionalLines = (content: string) => content.split('\n').filter((l) => !l.startsWith(' '));
     const extractIfBlock = (content: string) => {
         const start = content.indexOf(ifOpen);

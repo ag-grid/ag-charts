@@ -112,7 +112,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
         });
     }
 
-    const isExample = context.url.pathname.includes('/examples/');
+    const isExample = /\/examples\/[^/]/.test(context.url.pathname);
     if (!isExample || isBinary(context.url.pathname)) {
         return response;
     }
