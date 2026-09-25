@@ -11,6 +11,7 @@ import type {
     NormalisedSeriesMarkerStyle,
     Point,
     RequireOptional,
+    Writeable,
 } from 'ag-charts-core';
 import {
     AGGREGATION_INDEX_Y_MAX,
@@ -100,7 +101,7 @@ import type { CartesianAnimationDataOf, CartesianMarkerLikeContext } from './car
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     cartesianMarkerDrawMode,
-    computeMarkerFocusBounds,
+    computeLineAreaFocusBounds,
     getMarkerStyles,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
@@ -250,6 +251,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     override connectsToYAxis = true;
 
     private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
+    public nodeDatumContext: AreaSeriesCreateNodeDatumContext | undefined = undefined;
     private hideWithSize0 = false;
     private markerNodesPickable = true;
 
@@ -972,6 +974,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         xAxis: ChartAxis,
         yAxis: ChartAxis
     ): AreaSeriesCreateNodeDatumContext | undefined {
+        this.nodeDatumContext = undefined;
+
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
 
@@ -1010,7 +1014,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const markerSize = marker.enabled ? marker.size : 0;
         const labelContext = this.resolveLabelContext(marker.shape, markerSize);
 
-        return {
+        this.nodeDatumContext = {
             // Axes (from template method parameters)
             xAxis,
             yAxis,
@@ -1069,6 +1073,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelData: [],
             nodeIndex: 0,
         };
+        return this.nodeDatumContext;
     }
 
     /**
@@ -1100,10 +1105,11 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
      * Processes a single datum and updates the context's marker/label data.
      * Uses scratch object to avoid allocations in tight loops.
      */
-    private handleDatum(
+    public handleDatum(
         ctx: AreaSeriesCreateNodeDatumContext,
         scratch: AreaNodeDatumScratch,
-        datumIndex: number
+        datumIndex: number,
+        dst: Writeable<AreaSeriesTypes['datum']> | undefined
     ): void {
         // Populate scratch from context arrays
         scratch.xDatum = ctx.xValues[datumIndex];
@@ -1122,13 +1128,13 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
         // Marker data (using ctx.nodes to match base interface)
         if (scratch.validPoint) {
-            const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
+            const existingNode: typeof dst =
+                dst === undefined && ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length
+                    ? ctx.nodes[ctx.nodeIndex]
+                    : dst;
 
-            if (canReuseNode) {
+            if (existingNode) {
                 // Update existing node in place
-                const existingNode = ctx.nodes[ctx.nodeIndex] as {
-                    -readonly [K in keyof MarkerSelectionDatum]: MarkerSelectionDatum[K];
-                };
                 existingNode.datum = scratch.datum;
                 existingNode.datumIndex = datumIndex;
                 existingNode.midPoint = { x: scratch.x, y: scratch.y };
@@ -1158,7 +1164,9 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                     crossFilterSelected: scratch.crossFilterSelected,
                 });
             }
-            ctx.nodeIndex++;
+            if (dst === undefined) {
+                ctx.nodeIndex++;
+            }
         }
 
         // Label data (only if enabled - skip expensive getLabelText when disabled)
@@ -1201,14 +1209,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         }
     }
 
-    // Template Method Hooks
-
-    /**
-     * Populates the node data array by iterating over visible data.
-     */
-    protected override populateNodeData(ctx: AreaSeriesCreateNodeDatumContext): void {
-        // Pre-allocate scratch object for mutations
-        const scratch: AreaNodeDatumScratch = {
+    public allocDatumScratch(): AreaNodeDatumScratch {
+        return {
             datum: undefined,
             xDatum: undefined,
             yDatum: undefined,
@@ -1218,6 +1220,32 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             y: 0,
             validPoint: false,
         };
+    }
+
+    public allocDatumWriteable(ctx: AreaSeriesCreateNodeDatumContext): Writeable<AreaSeriesTypes['datum']> {
+        return {
+            series: this,
+            datum: undefined,
+            datumIndex: Number.NaN,
+            xKey: ctx.xKey,
+            xValue: undefined,
+            yKey: ctx.yKey,
+            yValue: undefined,
+            point: { x: Number.NaN, y: Number.NaN, size: Number.NaN },
+            strokeWidth: Number.NaN,
+            cumulativeValue: 0,
+            crossFilterSelected: undefined,
+        };
+    }
+
+    // Template Method Hooks
+
+    /**
+     * Populates the node data array by iterating over visible data.
+     */
+    protected override populateNodeData(ctx: AreaSeriesCreateNodeDatumContext): void {
+        // Pre-allocate scratch object for mutations
+        const scratch: AreaNodeDatumScratch = this.allocDatumScratch();
 
         // Calculate visible range
         let [startIndex, endIndex] = this.visibleRangeIndices('xValue', ctx.xAxis.range, ctx.indices);
@@ -1232,7 +1260,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         // Process visible datums
         for (let i = startIndex; i < endIndex; i += 1) {
             const datumIndex = ctx.indices?.[i] ?? i;
-            this.handleDatum(ctx, scratch, datumIndex);
+            this.handleDatum(ctx, scratch, datumIndex, undefined);
         }
     }
 
@@ -1931,7 +1959,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        return computeMarkerFocusBounds(this, opts);
+        return computeLineAreaFocusBounds(this, opts);
     }
 
     protected override hasItemStylers(): boolean {
