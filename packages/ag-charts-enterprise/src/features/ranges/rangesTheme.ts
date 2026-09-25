@@ -13,7 +13,7 @@ const YEAR = DAY * 365;
 
 const stylesTheme: WithThemeParams<AgRangesOptions> = {
     cornerRadius: { $ref: 'borderRadius' },
-    fill: { $ref: 'chromeBackgroundColor' },
+    fill: { $ref: 'buttonBackgroundColor' },
     fillOpacity: 1,
     fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'chromeFontSize'] },
     fontFamily: { $ref: 'chromeFontFamily' },
