@@ -62,6 +62,14 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         label: 'Axes & Grid',
         params: [
             { key: 'axisLineColor', label: 'Axis Line Color' },
+            { key: 'axisLabelColor', label: 'Label Color' },
+            { key: 'axisLabelFontFamily', label: 'Label Font Family' },
+            { key: 'axisLabelFontSize', label: 'Label Font Size', min: 8, max: 24 },
+            { key: 'axisLabelFontWeight', label: 'Label Font Weight' },
+            { key: 'axisTitleColor', label: 'Title Color' },
+            { key: 'axisTitleFontFamily', label: 'Title Font Family' },
+            { key: 'axisTitleFontSize', label: 'Title Font Size', min: 8, max: 24 },
+            { key: 'axisTitleFontWeight', label: 'Title Font Weight' },
             { key: 'gridLineColor', label: 'Grid Line Color' },
             { key: 'groupedCategoryLineColor', label: 'Grouped Category Line' },
             { key: 'crosshairLabelBackgroundColor', label: 'Crosshair Label Background' },
@@ -139,13 +147,14 @@ export const CURATED_KEYS = PARAM_GROUPS.flatMap((group) => group.params.map(({ 
 /**
  * Whether a param's default is derived from another param rather than chosen.
  * Covers every form a reference takes once translated - a bare `{ ref }`, a mix,
- * a composite whose members are references, and a raw CSS string naming a param
- * variable, which is how `focusShadow` tracks the accent colour.
+ * a `{ calc }` scaling another param, a composite whose members are references,
+ * and a raw CSS string naming a param variable, which is how `focusShadow` tracks
+ * the accent colour.
  */
 const isDerivedValue = (value: unknown): boolean => {
     if (typeof value === 'string') return value.includes('var(--ag-');
     if (typeof value !== 'object' || value == null || Array.isArray(value)) return false;
-    return 'ref' in value || Object.values(value).some(isDerivedValue);
+    return 'ref' in value || 'calc' in value || Object.values(value).some(isDerivedValue);
 };
 
 /** Which of a theme's params follow another one rather than standing alone. */
@@ -182,7 +191,11 @@ const collectSources = (value: unknown, found: string[]): void => {
     if (typeof value !== 'object' || value == null || Array.isArray(value)) {
         return;
     }
-    const { ref, onto } = value as { ref?: unknown; onto?: unknown };
+    const { ref, onto, calc } = value as { ref?: unknown; onto?: unknown; calc?: unknown };
+    if (typeof calc === 'string') {
+        found.push(...(calc.match(/[a-z][a-z\d]*/gi) ?? []).filter((name) => PUBLIC_PARAM_NAMES.includes(name)));
+        return;
+    }
     if (typeof ref === 'string') {
         found.push(ref);
         if (typeof onto === 'string') {

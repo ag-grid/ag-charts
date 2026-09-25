@@ -214,6 +214,15 @@ export class ChartTheme {
             chromeTextColor: { $ref: 'foregroundColor' },
             chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
 
+            axisLabelColor: { $ref: 'textColor' },
+            axisLabelFontFamily: { $ref: 'fontFamily' },
+            axisLabelFontSize: { $ref: 'fontSize' },
+            axisLabelFontWeight: { $ref: 'fontWeight' },
+            axisTitleColor: { $ref: 'textColor' },
+            axisTitleFontFamily: { $ref: 'fontFamily' },
+            axisTitleFontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
+            axisTitleFontWeight: { $ref: 'fontWeight' },
+
             buttonBackgroundColor: { $ref: 'backgroundColor' },
             buttonBorder: {
                 color: { $ref: 'borderColor' },

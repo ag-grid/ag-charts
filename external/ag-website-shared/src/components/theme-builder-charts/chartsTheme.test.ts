@@ -42,7 +42,7 @@ describe('AG Charts param translation', () => {
                 collectOperations(params[property], operations);
             }
         }
-        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$ref']);
+        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$ref', '$rem']);
     });
 
     describe('colour references', () => {
@@ -79,6 +79,15 @@ describe('AG Charts param translation', () => {
             expect(toStackParamValue('buttonBorder', { color: { $ref: 'borderColor' }, width: 1 })).toEqual({
                 color: { ref: 'borderColor' },
                 width: 1,
+            });
+        });
+    });
+
+    describe('font sizes', () => {
+        it('maps $rem to a calculation that scales the referenced font size', () => {
+            expect(toStackParamValue('axisTitleFontSize', { $rem: 1.5 })).toEqual({ calc: 'fontSize * 1.5' });
+            expect(toStackParamValue('axisTitleFontSize', { $rem: [1.5, 'chromeFontSize'] })).toEqual({
+                calc: 'chromeFontSize * 1.5',
             });
         });
     });
