@@ -212,7 +212,7 @@ exactly as the React output:
   (while open) and `data-state`, and `getByRole('option', { name })` with `aria-labelledby`,
   `aria-selected` (the value, while focused), `data-state` and `data-highlighted` for the range,
   `getByRole('button', { name: 'Add event' })`, `getByLabel('Event name')` (the label wraps the
-  input), `.wa-card-sub`, `.wa-chart-box-lg`, `.ag-center-cols-container .ag-row`,
+  input), `.wa-card-sub`, `.wa-chart-box-lg`, `.ag-row`,
   `.ag-overlay-no-rows-center`, `.ag-charts-wrapper`.
 
 Acceptable, invisible differences from reka-ui: `tabindex`, `dir`, `data-orientation`,

@@ -237,7 +237,7 @@ exactly as the React output:
   on their options, `role="dialog"` with `aria-label="Needs my attention"` on `.pc-alert-panel`,
   `aria-expanded`/`aria-controls` on `.pc-alert-trigger`, the `Clear selection` and `Resolve`
   button names, `.pc-attention-item`, `.pc-po-action-done`, `.pc-stamp`, `.pc-chip`,
-  `.ag-center-cols-container .pc-supplier-main`, `.ag-row.is-selected`, `.ag-charts-wrapper`.
+  `.ag-row .pc-supplier-main`, `.ag-row.is-selected`, `.ag-charts-wrapper`.
 
 Acceptable, invisible differences from reka-ui: `tabindex`, `dir`, `data-orientation`,
 `data-reka-collection-item`, `aria-required`, the `id`/`aria-controls` values reka-ui generates for
