@@ -143,6 +143,20 @@ export interface AgQuadrantRegionsLabelOptions extends Omit<
 export interface AgQuadrantRegionLabelOptions extends AgQuadrantRegionsLabelOptions {
     /** The text to show in the label. */
     text?: string;
+    /** The horizontal offset in pixels applied to this region's label, in addition to any offset `spacing` produces.
+     * Unlike `position` and `spacing`, this is not resolved relative to the region: positive values always move the
+     * label to the right.
+     *
+     * Default: `0`
+     */
+    xOffset?: PixelSize;
+    /** The vertical offset in pixels applied to this region's label, in addition to any offset `spacing` produces.
+     * Unlike `position` and `spacing`, this is not resolved relative to the region: positive values always move the
+     * label down.
+     *
+     * Default: `0`
+     */
+    yOffset?: PixelSize;
 }
 
 /** A region label placement, in which `inner` is towards the pivot, `outer` is towards the edge of the series area,
