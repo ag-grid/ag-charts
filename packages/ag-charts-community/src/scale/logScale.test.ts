@@ -127,7 +127,11 @@ describe('LogScale', () => {
             scale.range = [0, 600];
             scale.domain = scale.niceDomain(ticks, domain);
 
-            expect(scale.ticks(ticks)).toMatchSnapshot();
+            // Rounded so the snapshot doesn't depend on the last-place precision of the engine's Math.pow.
+            const result = scale.ticks(ticks);
+            expect(
+                result && { ...result, ticks: result.ticks.map((value) => Number(value.toPrecision(15))) }
+            ).toMatchSnapshot();
         });
     });
 
