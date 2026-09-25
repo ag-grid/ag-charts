@@ -72,7 +72,7 @@ describe('cspRules', () => {
         it('site scope authorises the (non-externalisable) Astro hydration scripts by hash', () => {
             // Astro's hydration scripts cannot be externalised; regenerate on an Astro bump.
             const scriptSrc = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
-            expect(scriptSrc).toContain("'sha256-BrDhGE1lwa85arfXcrBxSo+n37uVSX5CAROXnIM6Q+g='"); // <astro-island> runtime
+            expect(scriptSrc).toContain("'sha256-Ya0pUYrC7nM5Cn/056TyVuEiz6dFGrzmkWzgON0pF0U='"); // <astro-island> runtime
             expect(scriptSrc).toContain("'sha256-QzWFZi+FLIx23tnm9SBU4aEgx4x8DsuASP07mfqol/c='"); // client:load
             expect(scriptSrc).toContain("'sha256-BF0290pkb3jxQsE7z00xR8Imp8X34FLC88L0lkMnrGw='"); // client:idle
         });

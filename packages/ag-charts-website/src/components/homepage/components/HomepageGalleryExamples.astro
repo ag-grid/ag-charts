@@ -28,7 +28,8 @@ const loadingId = 'homepageGalleryLoading';
 const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWithBaseUrl('/homepage/examples.min.js');
 ---
 
-<script src={chartScriptEnterprisePath}></script>
+{/* is:inline: Astro 7's compiler processes a script whose only attribute is `src`, dropping the dynamic URL. */}
+<script is:inline src={chartScriptEnterprisePath}></script>
 <script src={examplesUrl} type="module"></script>
 
 <div class={styles.container}>
