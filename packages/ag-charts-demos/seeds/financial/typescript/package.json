@@ -11,7 +11,7 @@
   "dependencies": {
     "ag-charts-community": "latest",
     "ag-charts-enterprise": "latest",
-    "ag-grid-community": "~35.0.1"
+    "ag-grid-community": "~36.2.0"
   },
   "devDependencies": {
     "typescript": "~5.8.3",
