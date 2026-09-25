@@ -11,7 +11,7 @@
     }
 
     .ag-charts-toolbar__button[aria-disabled='true']
-        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active, :hover) {
+        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active, :hover, [aria-disabled='true']) {
         border-inline-start-color: var(--toolbar-button-border-color);
     }
 }
