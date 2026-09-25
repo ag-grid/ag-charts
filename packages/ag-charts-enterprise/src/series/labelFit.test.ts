@@ -562,8 +562,10 @@ describe('series label fit', () => {
                     const offset = labelBox.y + labelBox.height / 2 - (shapeBox.y + shapeBox.height / 2);
                     offCentre.set(text.datum.idValue, Math.abs(offset) / shapeBox.height);
                 });
-                expect(offCentre.get('North Dakota')).toBeLessThan(0.15);
-                expect(offCentre.get('South Dakota')).toBeLessThan(0.15);
+                const blocky = ['North Dakota', 'South Dakota', 'Colorado', 'Utah', 'Nevada', 'Kansas', 'Wyoming'];
+                expect(Object.fromEntries(blocky.map((id) => [id, offCentre.get(id)! < 0.15]))).toEqual(
+                    Object.fromEntries(blocky.map((id) => [id, true]))
+                );
                 expect(everyLineInsideItsShape()).toBeGreaterThan(0);
             });
 
