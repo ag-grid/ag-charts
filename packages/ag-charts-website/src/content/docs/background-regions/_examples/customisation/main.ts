@@ -5,11 +5,12 @@ import {
     ModuleRegistry,
     NumberAxisModule,
     ScatterSeriesModule,
+    SeriesAreaModule,
 } from 'ag-charts-enterprise';
 
 import { dealSeries } from './data';
 
-ModuleRegistry.registerModules([LegendModule, NumberAxisModule, ScatterSeriesModule]);
+ModuleRegistry.registerModules([LegendModule, NumberAxisModule, ScatterSeriesModule, SeriesAreaModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
