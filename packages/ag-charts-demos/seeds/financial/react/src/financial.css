@@ -570,6 +570,21 @@
 .fin-trending-grid .ag-row {
     cursor: pointer;
 }
+/* AG Grid 36 hides the last row's bottom border once the rows fill the grid, by toggling
+   ag-body-vertical-content-no-gap on the grid body. ag-grid-react 36.2.0 never applies that class,
+   so without this the React demo alone draws a line under the last row. Remove once it does. */
+.fin-watchlist-grid
+    .ag-layout-auto-height
+    > .ag-grid-scrolling-container
+    > .ag-row-last:not(.ag-full-width-row)
+    > .ag-grid-scrolling-cells,
+.fin-trending-grid
+    .ag-layout-auto-height
+    > .ag-grid-scrolling-container
+    > .ag-row-last:not(.ag-full-width-row)
+    > .ag-grid-scrolling-cells {
+    border-bottom-color: transparent;
+}
 .fin-watchlist-grid .ag-row.ag-row-selected,
 .fin-trending-grid .ag-row.ag-row-selected {
     box-shadow:

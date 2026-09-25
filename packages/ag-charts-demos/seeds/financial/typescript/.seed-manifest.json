@@ -1,8 +1,8 @@
 {
     "demo": "financial",
     "framework": "typescript",
-    "sourceHash": "sha256-1f8aea51f60df3328f6548fca2705c461d6f6a736a3663ff64dd0c761e122af8",
-    "sourceCommit": "c80146146c89c0abbb2dc8b51e71bd03c5d8886d",
+    "sourceHash": "sha256-0b7294fc8ec32e57ed4685e4f6c6a163ef79704fcfd65a0801f2e7d310df6031",
+    "sourceCommit": "4c7db660c2b4af906bf1aadd56d4d9a9a9ff5a4d",
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",
     "dist": "dist"
