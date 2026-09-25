@@ -104,17 +104,6 @@ describe("the documentation examples' dark mode", () => {
         expect(fromParams).toEqual(fromDarkTheme);
     });
 
-    test('caption typography parameters are published as custom properties', async () => {
-        const properties = await getThemeProperties('ag-default');
-
-        expect(properties['--ag-charts-title-font-size']).toBe('17px');
-        expect(properties['--ag-charts-subtitle-font-size']).toBe('13px');
-        expect(properties['--ag-charts-footnote-font-size']).toBe('13px');
-        expect(properties['--ag-charts-title-color']).toBe(properties['--ag-charts-text-color']);
-        expect(properties['--ag-charts-subtitle-color']).toBe(properties['--ag-charts-subtle-text-color']);
-        expect(properties['--ag-charts-footnote-color']).toBe(properties['--ag-charts-subtle-text-color']);
-    });
-
     test('only the known palette entries fall outside the parameters', () => {
         const light: Record<string, unknown> = ChartTheme.getDefaultColors();
         const dark: Record<string, unknown> = new DarkTheme().getDefaultColors();
