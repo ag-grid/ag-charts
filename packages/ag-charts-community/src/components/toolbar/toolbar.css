@@ -107,9 +107,14 @@
 
     /* Draw dividers on the next button's inline-start border: growing a button's own
        inline-end border is absorbed by min-width clamping, so the row shifts. */
-    .ag-charts-toolbar__button:hover:not(.ag-charts-toolbar__button--active)
+    .ag-charts-toolbar__button:hover:not(.ag-charts-toolbar__button--active, [aria-disabled='true'])
         + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active) {
         border-inline-start-color: var(--toolbar-button-border-color--hover);
+    }
+
+    .ag-charts-toolbar__button[aria-disabled='true']
+        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active, :hover) {
+        border-inline-start-color: var(--toolbar-button-border-color--disabled);
     }
 
     .ag-charts-toolbar__button--active + .ag-charts-toolbar__button {
