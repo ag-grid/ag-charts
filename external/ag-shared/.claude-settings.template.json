@@ -170,6 +170,7 @@
     "ag-eng@ag-dev": true,
     "ag-product@ag-dev": true,
     "${PRODUCT}@ag-dev": true,
+    "ag-website@ag-dev": true,
     "codex@openai-codex": true,
     "skill-creator@claude-plugins-official": true
   },
