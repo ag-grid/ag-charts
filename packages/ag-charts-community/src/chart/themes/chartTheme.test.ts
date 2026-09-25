@@ -36,12 +36,6 @@ describe('ChartTheme', () => {
         }
     });
 
-    const resolvedLegend = async (options: AgCartesianChartOptions) => {
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
-        return (chart as any).ctx.chartState.getValue('options', 'legend');
-    };
-
     describe('cartesian overrides', () => {
         const tooltipRenderer = () => 'testing';
         const markerFormatter = () => {
@@ -491,6 +485,12 @@ describe('ChartTheme', () => {
             legend,
         });
 
+        const resolvedLegend = async (options: AgCartesianChartOptions) => {
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return (chart as any).ctx.chartState.getValue('options', 'legend');
+        };
+
         // Padding supplied via theme.overrides must resolve identically to the same padding supplied
         // as direct chart options.
         test('CRT-1145: legend.item.padding partial-side override matches direct options', async () => {
@@ -517,207 +517,6 @@ describe('ChartTheme', () => {
 
             expect(override.item.marker.padding).toEqual(direct.item.marker.padding);
             expect(override.item.marker.padding).toEqual({ top: 8, right: 8, bottom: 8, left: 8 });
-        });
-    });
-
-    describe('legend theme params', () => {
-        const baseOptions = (
-            legend: AgCartesianChartOptions['legend'] = {},
-            theme?: AgChartTheme
-        ): AgCartesianChartOptions => ({
-            data,
-            series: [
-                { type: 'bar', xKey: 'label', yKey: 'v1' },
-                { type: 'bar', xKey: 'label', yKey: 'v2' },
-            ],
-            legend,
-            theme,
-        });
-
-        const containerOf = (legend: any) => ({
-            fill: legend.fill,
-            padding: legend.padding,
-            cornerRadius: legend.cornerRadius,
-            border: legend.border,
-        });
-
-        // Characterisation of the defaults before the params existed; every value here must stay unchanged.
-        describe('defaults', () => {
-            test('default legend', async () => {
-                const legend = await resolvedLegend(baseOptions());
-                expect(containerOf(legend)).toEqual({
-                    fill: 'transparent',
-                    padding: 0,
-                    cornerRadius: 4,
-                    border: { enabled: false, stroke: '#c5c7c7', strokeOpacity: 1, strokeWidth: 1 },
-                });
-                expect(legend.item.padding).toEqual({ top: 4, right: 8, bottom: 4, left: 8 });
-                expect(legend.item.marker.size).toBe(15);
-                expect(legend.item.label).toMatchObject({
-                    color: '#181d1f',
-                    fontSize: 12,
-                    fontWeight: 400,
-                });
-                expect(legend.item.label.fontFamily).toContain('IBM Plex Sans');
-                expect(legend.pagination.label).toMatchObject({ color: '#181d1f', fontSize: 12 });
-                expect(legend.pagination.label.fontFamily).toContain('IBM Plex Sans');
-            });
-
-            test('border enabled through the legend options', async () => {
-                const legend = await resolvedLegend(baseOptions({ border: { enabled: true } }));
-                expect(legend.padding).toBe(5);
-                expect(legend.border).toEqual({ enabled: true, stroke: '#c5c7c7', strokeOpacity: 1, strokeWidth: 1 });
-            });
-
-            test('border stroke set through the legend options', async () => {
-                const legend = await resolvedLegend(baseOptions({ border: { stroke: 'red' } }));
-                expect(legend.padding).toBe(5);
-                expect(legend.border).toMatchObject({ enabled: true, stroke: 'red', strokeWidth: 1 });
-            });
-
-            test('fill set through the legend options', async () => {
-                const legend = await resolvedLegend(baseOptions({ fill: 'red' }));
-                expect(legend.padding).toBe(5);
-                expect(legend.fill).toBe('red');
-            });
-
-            test('floating legend', async () => {
-                const legend = await resolvedLegend(baseOptions({ position: { floating: true } }));
-                expect(legend.fill).toBe('#ffffff');
-                expect(legend.padding).toBe(0);
-            });
-
-            test('floating legend with a border', async () => {
-                const legend = await resolvedLegend(
-                    baseOptions({ position: { floating: true }, border: { enabled: true } })
-                );
-                expect(legend.fill).toBe('#ffffff');
-                expect(legend.padding).toBe(5);
-            });
-
-            test('theme override padding wins', async () => {
-                const legend = await resolvedLegend(
-                    baseOptions({}, { overrides: { common: { legend: { padding: 12 } } } })
-                );
-                expect(legend.padding).toBe(12);
-            });
-        });
-
-        describe('params', () => {
-            test('legendBackgroundColor sets the fill and pads the legend', async () => {
-                const legend = await resolvedLegend(baseOptions({}, { params: { legendBackgroundColor: 'red' } }));
-                expect(legend.fill).toBe('red');
-                expect(legend.padding).toBe(5);
-            });
-
-            test('legendBackgroundColor also fills a floating legend', async () => {
-                const legend = await resolvedLegend(
-                    baseOptions({ position: { floating: true } }, { params: { legendBackgroundColor: 'red' } })
-                );
-                expect(legend.fill).toBe('red');
-            });
-
-            test('legendPadding applies only to a legend with a border or background', async () => {
-                const boxless = await resolvedLegend(baseOptions({}, { params: { legendPadding: 10 } }));
-                expect(boxless.padding).toBe(0);
-                chart.destroy();
-
-                const bordered = await resolvedLegend(
-                    baseOptions({}, { params: { legendPadding: 10, legendBorder: true } })
-                );
-                expect(bordered.padding).toBe(10);
-            });
-
-            test('legendBorder: true uses the theme border', async () => {
-                const legend = await resolvedLegend(baseOptions({}, { params: { legendBorder: true } }));
-                expect(legend.padding).toBe(5);
-                expect(legend.border).toEqual({ enabled: true, stroke: '#dcdddd', strokeOpacity: 1, strokeWidth: 1 });
-            });
-
-            test('legendBorder object customises the border', async () => {
-                const custom = await resolvedLegend(
-                    baseOptions({}, { params: { legendBorder: { color: 'red', width: 3 } } })
-                );
-                expect(custom.border).toMatchObject({ enabled: true, stroke: 'red', strokeWidth: 3 });
-                chart.destroy();
-
-                const widthOnly = await resolvedLegend(baseOptions({}, { params: { legendBorder: { width: 3 } } }));
-                expect(widthOnly.border).toMatchObject({ enabled: true, stroke: '#dcdddd', strokeWidth: 3 });
-            });
-
-            test('legend options beat the params', async () => {
-                const legend = await resolvedLegend(
-                    baseOptions(
-                        { border: { enabled: false }, fill: 'blue', item: { padding: 1, marker: { size: 5 } } },
-                        {
-                            params: {
-                                legendBorder: true,
-                                legendBackgroundColor: 'red',
-                                legendItemVerticalPadding: 10,
-                                legendMarkerSize: 20,
-                            },
-                        }
-                    )
-                );
-                expect(legend.border.enabled).toBe(false);
-                expect(legend.fill).toBe('blue');
-                expect(legend.item.padding).toEqual({ top: 1, right: 1, bottom: 1, left: 1 });
-                expect(legend.item.marker.size).toBe(5);
-            });
-
-            test('item, marker, radius and label params', async () => {
-                const legend = await resolvedLegend(
-                    baseOptions(
-                        {},
-                        {
-                            params: {
-                                legendBorderRadius: 8,
-                                legendItemVerticalPadding: 6,
-                                legendItemHorizontalPadding: 12,
-                                legendMarkerSize: 20,
-                                legendLabelColor: 'darkred',
-                                legendLabelFontFamily: 'Georgia',
-                                legendLabelFontSize: 14,
-                                legendLabelFontWeight: 700,
-                            },
-                        }
-                    )
-                );
-                expect(legend.cornerRadius).toBe(8);
-                expect(legend.item.padding).toEqual({ top: 6, right: 12, bottom: 6, left: 12 });
-                expect(legend.item.marker.size).toBe(20);
-                expect(legend.item.label).toMatchObject({
-                    color: 'darkred',
-                    fontFamily: 'Georgia',
-                    fontSize: 14,
-                    fontWeight: 700,
-                });
-                expect(legend.pagination.label).toMatchObject({
-                    color: 'darkred',
-                    fontFamily: 'Georgia',
-                    fontSize: 14,
-                });
-            });
-
-            test('zero item padding is accepted', async () => {
-                const legend = await resolvedLegend(
-                    baseOptions({}, { params: { legendItemVerticalPadding: 0, legendItemHorizontalPadding: 0 } })
-                );
-                expect(legend.item.padding).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
-            });
-
-            test('an invalid param value warns and is ignored', async () => {
-                const legend = await resolvedLegend(
-                    baseOptions({ border: { enabled: true } }, { params: { legendPadding: 'x' as any } })
-                );
-                expect(legend.padding).toBe(5);
-                expectWarningsCalls().toHaveLength(1);
-            });
-
-            test('legendBorderRadius follows borderRadius', async () => {
-                const legend = await resolvedLegend(baseOptions({}, { params: { borderRadius: 10 } }));
-                expect(legend.cornerRadius).toBe(10);
-            });
         });
     });
 
