@@ -43,6 +43,14 @@ describe('getSitemapConfig filter', () => {
         ${'https://www.ag-grid.com/charts/community/tools-extensions/'} | ${false}
         ${'https://www.ag-grid.com/charts/contact/'}                    | ${false}
         ${'https://www.ag-grid.com/charts/theme-builder/'}              | ${false}
+        ${'https://www.ag-grid.com/charts/react-charts/'}               | ${false}
+        ${'https://www.ag-grid.com/charts/angular-charts/'}             | ${false}
+        ${'https://www.ag-grid.com/charts/vue-charts/'}                 | ${false}
+        ${'https://www.ag-grid.com/charts/javascript/'}                 | ${false}
+        ${'https://www.ag-grid.com/charts/javascript-charts/'}          | ${true}
+        ${'https://www.ag-grid.com/charts/react/'}                      | ${true}
+        ${'https://www.ag-grid.com/charts/angular/'}                    | ${true}
+        ${'https://www.ag-grid.com/charts/vue/'}                        | ${true}
         ${'https://www.ag-grid.com/charts/license-pricing/'}            | ${true}
         ${'https://www.ag-grid.com/charts/gallery/'}                    | ${true}
     `('$page -> included: $included', ({ page, included }) => {
