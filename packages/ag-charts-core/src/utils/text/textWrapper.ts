@@ -212,8 +212,8 @@ function survivingCharacters(text: string) {
 }
 
 /** Where the top of a block of `height` sits against the anchor, kept inside the room the shape has. */
-function blockTopFor(align: RegionAlign, height: number, region: FitRegion, limit: number) {
-    if (height >= limit) return -region.extentAbove;
+function blockTopFor(align: RegionAlign, height: number, region: FitRegion) {
+    if (height >= region.extentAbove + region.extentBelow) return -region.extentAbove;
     let top = -height / 2;
     if (align === 'start') {
         top = 0;
@@ -262,7 +262,7 @@ function wrapBlockToRegion(
     boxed: boolean
 ) {
     const height = Math.min(lines * lineHeight, limit);
-    const blockTop = blockTopFor(align, height, region, limit);
+    const blockTop = blockTopFor(align, height, region);
     const bands: (readonly [number, number])[] = [];
     if (boxed) {
         bands.push([blockTop, blockTop + height] as const);
@@ -393,7 +393,7 @@ function refineSegmentsToRegion(
     let blockTop = 0;
     for (let i = 0; i < MAX_REGION_REFINEMENTS; i += 1) {
         const blockHeight = Math.min(height, limit);
-        blockTop = blockTopFor(align, blockHeight, region, limit);
+        blockTop = blockTopFor(align, blockHeight, region);
         result = wrapTextOrSegments(text, {
             ...options,
             lineHeight: height / lines,
