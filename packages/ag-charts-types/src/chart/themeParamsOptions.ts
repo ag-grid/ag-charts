@@ -203,9 +203,9 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /** Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object. */
     groupedCategoryLineColor?: AgCssColorOrRef;
     /**
-     * Background colour of the legend and the gradient legend. A colour string, or a theme-colour reference object.
+     * Background colour of a floating legend or gradient legend. A colour string, or a theme-colour reference object. A legend that is not floating has a transparent background.
      *
-     * While this is `'transparent'`, a floating legend is filled with the chart background colour.
+     * Default: `chartBackgroundColor`
      */
     legendBackgroundColor?: AgCssColorOrRef;
     /** Border around the legend and the gradient legend. `true` for the default border, `false` to disable, or an object to customise it. */
@@ -246,7 +246,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     legendLabelFontWeight?: FontWeight;
     /** Size of the legend item markers. Applies to the legend only, not the gradient legend. */
     legendMarkerSize?: PixelSize;
-    /** Padding inside the legend and the gradient legend. Applied only when the legend has a border or a background. */
+    /** Padding inside the legend and the gradient legend. Applied only when the legend has a border or a `fill` set in its options. */
     legendPadding?: PixelSize;
 }
 

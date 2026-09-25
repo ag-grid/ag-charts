@@ -256,14 +256,14 @@ export class ChartTheme {
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
 
-            legendBackgroundColor: 'transparent',
+            legendBackgroundColor: { $ref: 'chartBackgroundColor' },
             legendBorder: false,
             legendBorderRadius: { $ref: 'borderRadius' },
             legendItemHorizontalPadding: 8,
             legendItemVerticalPadding: 4,
             legendLabelColor: { $ref: 'textColor' },
             legendLabelFontFamily: { $ref: 'fontFamily' },
-            legendLabelFontSize: { $ref: 'fontSize' },
+            legendLabelFontSize: { $rem: FONT_SIZE_RATIO.SMALL },
             legendLabelFontWeight: { $ref: 'fontWeight' },
             legendMarkerSize: 15,
             legendPadding: 5,

@@ -1,6 +1,5 @@
 import {
     CARTESIAN_POSITION,
-    FONT_SIZE_RATIO,
     LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
     legendOptionsDefs,
@@ -82,7 +81,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                 showSeriesStroke: true,
                 label: {
                     color: { $ref: 'legendLabelColor' },
-                    fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'legendLabelFontSize'] },
+                    fontSize: { $ref: 'legendLabelFontSize' },
                     fontFamily: { $ref: 'legendLabelFontFamily' },
                     fontWeight: { $ref: 'legendLabelFontWeight' },
                 },
@@ -95,21 +94,12 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                 highlightStyle: { fill: { $ref: 'foregroundColor' }, strokeWidth: 1, strokeOpacity: 1 },
                 label: {
                     color: { $ref: 'legendLabelColor' },
-                    fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'legendLabelFontSize'] },
+                    fontSize: { $ref: 'legendLabelFontSize' },
                     fontFamily: { $ref: 'legendLabelFontFamily' },
                 },
             },
             fill: {
-                $if: [
-                    {
-                        $and: [
-                            { $path: ['./position/floating', false] },
-                            { $eq: [{ $ref: 'legendBackgroundColor' }, 'transparent'] },
-                        ],
-                    },
-                    { $ref: 'chartBackgroundColor' },
-                    { $ref: 'legendBackgroundColor' },
-                ],
+                $if: [{ $path: ['./position/floating', false] }, { $ref: 'legendBackgroundColor' }, 'transparent'],
             },
         },
 

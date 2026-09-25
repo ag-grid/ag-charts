@@ -44,7 +44,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
         fill: {
             $applySwitch: [
                 { $path: 'type' },
-                { $ref: 'legendBackgroundColor' },
+                { $if: [{ $path: ['./position/floating', false] }, { $ref: 'legendBackgroundColor' }, 'transparent'] },
                 ['gradient', FILL_GRADIENT_BLANK_DEFAULTS],
                 ['pattern', FILL_PATTERN_BLANK_DEFAULTS],
                 ['image', FILL_IMAGE_BLANK_DEFAULTS],

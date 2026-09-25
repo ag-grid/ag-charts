@@ -591,7 +591,6 @@ export const LEGEND_CONTAINER_THEME: any = {
                 $or: [
                     { $eq: [{ $path: './border/enabled' }, true] },
                     { $isUserOption: ['./fill', true, false] },
-                    { $not: { $eq: [{ $ref: 'legendBackgroundColor' }, 'transparent'] } },
                 ],
             },
             { $ref: 'legendPadding' },
