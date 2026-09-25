@@ -71,6 +71,12 @@ export const toStackParamValue = (property: string, value: ChartsParamValue): un
         return undefined;
     }
 
+    if ('$rem' in value) {
+        // `{ $rem: ratio }` or `{ $rem: [ratio, param] }` scales a font-size param, `fontSize` by default.
+        const [ratio, param = 'fontSize'] = [value.$rem].flat() as [number, string?];
+        return ratio === 1 ? { ref: param } : { calc: `${param} * ${ratio}` };
+    }
+
     // Composite params such as `buttonBorder: { color, width }`, whose members
     // are themselves operations.
     return Object.fromEntries(
