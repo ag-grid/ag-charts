@@ -59,7 +59,7 @@ export const EditorPanel = () => {
     const [expanded, setExpanded] = useApplicationConfigAtom('expandedEditors');
     const [palette, setPalette] = usePalette();
     const setEditedGroup = useSetEditedGroup();
-    const openSections = expanded || DEFAULT_OPEN_SECTIONS;
+    const openSections = expanded ?? DEFAULT_OPEN_SECTIONS;
 
     const toggleSection = (heading: string) => {
         setExpanded(

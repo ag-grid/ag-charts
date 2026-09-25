@@ -151,7 +151,7 @@ describe('preview chart types', () => {
 
     it('holds a feature off while what it needs is off, without forgetting it', () => {
         for (const { id, requires } of CHART_FEATURES) {
-            if (!requires) continue;
+            if (requires == null) continue;
             // Range buttons are a zoom, so the chart drops the row without one.
             // The checkbox has to say so rather than sit ticked over nothing.
             expect(isFeatureActive({ ...ALL_ON, [requires]: false }, id), id).toBe(false);
@@ -161,7 +161,7 @@ describe('preview chart types', () => {
         // Otherwise a requirement could name a feature its own type cannot show.
         for (const type of PREVIEW_CHART_TYPES) {
             for (const { id, requires } of CHART_FEATURES) {
-                if (!requires || !type.features.includes(id)) continue;
+                if (requires == null || !type.features.includes(id)) continue;
                 expect(type.features, `${type.id}: ${id}`).toContain(requires);
             }
         }
@@ -248,7 +248,7 @@ describe('preview chart types', () => {
         for (const type of PREVIEW_CHART_TYPES) {
             const { tooltipTarget } = type;
             if (!tooltipTarget) continue;
-            for (const count of type.countLabel ? SERIES_COUNT_OPTIONS : [DEFAULT_SERIES_COUNT]) {
+            for (const count of typeof type.countLabel === 'string' ? SERIES_COUNT_OPTIONS : [DEFAULT_SERIES_COUNT]) {
                 const options = type.buildOptions(count, ALL_ON);
                 const ids = seriesOf(options).map((series) => (series as { id?: string }).id);
                 expect(ids, `${type.id} @ ${count}`).toContain(tooltipTarget.seriesId);

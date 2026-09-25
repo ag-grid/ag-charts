@@ -1,5 +1,6 @@
-import { type AgChartThemeName, _Theme } from 'ag-charts-community';
 import { describe, expect, it } from 'vitest';
+
+import { type AgChartThemeName, _Theme } from 'ag-charts-community';
 
 import { PUBLIC_PARAM_NAMES, getStackParams } from './chartsTheme';
 import {
@@ -104,7 +105,7 @@ describe('what a param inherits from', () => {
     it('can say what every inherited param inherits from', () => {
         // The note's copy reads "Inherited from <name>", so a param with
         // nothing to name would render an unfinished sentence.
-        const unexplained = [...INHERITED_KEYS].filter((key) => !INHERITED_SOURCES[key]?.length);
+        const unexplained = [...INHERITED_KEYS].filter((key) => (INHERITED_SOURCES[key]?.length ?? 0) === 0);
         expect(unexplained).toEqual([]);
     });
 

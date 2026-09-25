@@ -58,7 +58,7 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
     }, []);
 
     return (
-        <Container ref={containerRef} style={height ? { height } : undefined}>
+        <Container ref={containerRef} style={{ height }}>
             <Menu className={renderedTheme._getParamsClassName()}>
                 <SidebarHeader>Theme Builder</SidebarHeader>
                 <EditorScroller>

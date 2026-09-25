@@ -1,7 +1,8 @@
-import { type AgChartThemeName, _Theme } from 'ag-charts-community';
+import { paramValueToCss } from '@ag-website-shared/theming/api';
 import { describe, expect, it } from 'vitest';
 
-import { paramValueToCss } from '../../theming/api';
+import { type AgChartThemeName, _Theme } from 'ag-charts-community';
+
 import {
     CHARTS_PARAM_DEFAULTS,
     PUBLIC_PARAM_NAMES,

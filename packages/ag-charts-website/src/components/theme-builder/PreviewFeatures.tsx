@@ -37,12 +37,13 @@ export const PreviewFeatures = ({ paneLabel, available, features, onChange }: Pr
                     {shown.map(({ id, label, hint, requires }) => {
                         // Held off rather than unticked, so switching the
                         // requirement back on returns what the user had chosen.
-                        const heldOffBy = requires && !isFeatureActive(features, requires) ? requires : undefined;
-                        const requirement = heldOffBy && CHART_FEATURES.find(({ id: other }) => other === heldOffBy);
+                        const heldOffBy =
+                            requires != null && !isFeatureActive(features, requires) ? requires : undefined;
+                        const requirement = CHART_FEATURES.find(({ id: other }) => other === heldOffBy);
                         return (
                             <Checkbox
                                 key={id}
-                                checked={isFeatureEnabled(features, id) && !heldOffBy}
+                                checked={isFeatureEnabled(features, id) && heldOffBy == null}
                                 disabled={heldOffBy != null}
                                 onChange={(checked) => onChange({ ...features, [id]: checked })}
                             >

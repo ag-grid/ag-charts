@@ -1,6 +1,7 @@
+import { type RefObject, useEffect, useRef } from 'react';
+
 import { AgCharts, ModuleRegistry } from 'ag-charts-enterprise';
 import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from 'ag-charts-enterprise';
-import { type RefObject, useEffect, useRef } from 'react';
 
 import type { PreviewChartOptions, PreviewPreset, PreviewTooltipTarget } from './chartTypes';
 import { PREVIEW_MODULES } from './previewModules';

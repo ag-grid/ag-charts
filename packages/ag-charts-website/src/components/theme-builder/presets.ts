@@ -1,5 +1,6 @@
 import type { Palette } from '@ag-website-shared/components/theme-builder/palette';
 import type { Preset } from '@ag-website-shared/theming/preset';
+
 import type { AgChartThemeName } from 'ag-charts-community';
 
 import { getPalette } from './chartsTheme';

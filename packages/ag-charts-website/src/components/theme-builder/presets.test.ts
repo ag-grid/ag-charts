@@ -1,5 +1,6 @@
-import { _Theme } from 'ag-charts-community';
 import { describe, expect, it } from 'vitest';
+
+import { _Theme } from 'ag-charts-community';
 
 import { PUBLIC_PARAM_NAMES } from './chartsTheme';
 import { CHARTS_FONT_FAMILY_OPTIONS } from './fonts';
