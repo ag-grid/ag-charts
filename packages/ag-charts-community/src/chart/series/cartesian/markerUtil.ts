@@ -171,8 +171,10 @@ export function computeMarkerFocusBoundsOfNodeDatum<TDatum extends MarkerNodeDat
     if (datum == null || point == null) return undefined;
 
     const style = series.getFormattedMarkerStyle(datum);
-    const bb = BBox.fromSizedPoint(point);
-    series.applyFocusSize(bb, style, point);
+    if (typeof style.shape === 'function') {
+        const bb = BBox.fromSizedPoint(point);
+        series.applyFocusSize(bb, style, point);
+    }
 
     const anchor = Marker.anchor(style.shape);
     const size = point.focusSize ?? style.size;
