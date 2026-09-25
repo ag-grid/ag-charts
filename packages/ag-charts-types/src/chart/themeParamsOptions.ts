@@ -196,6 +196,78 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * Default: `backgroundColor`
      */
     crosshairLabelTextColor?: AgCssColorOrRef;
+    /**
+     * Font size of the chart title. Follows fontSize, keeping the same proportion to it.
+     *
+     * Default: `17`
+     */
+    titleFontSize?: FontSize;
+    /**
+     * Font weight of the chart title.
+     *
+     * Default: `fontWeight`
+     */
+    titleFontWeight?: FontWeight;
+    /**
+     * Font family of the chart title. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    titleFontFamily?: FontFamilyFull;
+    /**
+     * Colour of the chart title text. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    titleColor?: AgCssColorOrRef;
+    /**
+     * Font size of the chart subtitle. Follows fontSize, keeping the same proportion to it.
+     *
+     * Default: `13`
+     */
+    subtitleFontSize?: FontSize;
+    /**
+     * Font weight of the chart subtitle.
+     *
+     * Default: `fontWeight`
+     */
+    subtitleFontWeight?: FontWeight;
+    /**
+     * Font family of the chart subtitle. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    subtitleFontFamily?: FontFamilyFull;
+    /**
+     * Colour of the chart subtitle text. A colour string, or a theme-colour reference object.
+     *
+     * Default: `subtleTextColor`
+     */
+    subtitleColor?: AgCssColorOrRef;
+    /**
+     * Font size of the chart footnote. Follows fontSize, keeping the same proportion to it.
+     *
+     * Default: `13`
+     */
+    footnoteFontSize?: FontSize;
+    /**
+     * Font weight of the chart footnote.
+     *
+     * Default: `fontWeight`
+     */
+    footnoteFontWeight?: FontWeight;
+    /**
+     * Font family of the chart footnote. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    footnoteFontFamily?: FontFamilyFull;
+    /**
+     * Colour of the chart footnote text. A colour string, or a theme-colour reference object.
+     *
+     * Default: `subtleTextColor`
+     */
+    footnoteColor?: AgCssColorOrRef;
     /** Default font weight used for all text. */
     fontWeight?: FontWeight;
     /** Default colour for grid lines. A colour string, or a theme-colour reference object. */

@@ -69,6 +69,25 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         ],
     },
     {
+        id: 'captions',
+        label: 'Titles and Captions',
+        collapsed: true,
+        params: [
+            { key: 'titleFontFamily', label: 'Title Font Family' },
+            { key: 'titleFontSize', label: 'Title Font Size', min: 8, max: 32 },
+            { key: 'titleFontWeight', label: 'Title Font Weight' },
+            { key: 'titleColor', label: 'Title Color' },
+            { key: 'subtitleFontFamily', label: 'Subtitle Font Family' },
+            { key: 'subtitleFontSize', label: 'Subtitle Font Size', min: 8, max: 32 },
+            { key: 'subtitleFontWeight', label: 'Subtitle Font Weight' },
+            { key: 'subtitleColor', label: 'Subtitle Color' },
+            { key: 'footnoteFontFamily', label: 'Footnote Font Family' },
+            { key: 'footnoteFontSize', label: 'Footnote Font Size', min: 8, max: 32 },
+            { key: 'footnoteFontWeight', label: 'Footnote Font Weight' },
+            { key: 'footnoteColor', label: 'Footnote Color' },
+        ],
+    },
+    {
         id: 'borders',
         label: 'Borders & Spacing',
         params: [
@@ -145,7 +164,7 @@ export const CURATED_KEYS = PARAM_GROUPS.flatMap((group) => group.params.map(({ 
 const isDerivedValue = (value: unknown): boolean => {
     if (typeof value === 'string') return value.includes('var(--ag-');
     if (typeof value !== 'object' || value == null || Array.isArray(value)) return false;
-    return 'ref' in value || Object.values(value).some(isDerivedValue);
+    return 'ref' in value || 'calc' in value || Object.values(value).some(isDerivedValue);
 };
 
 /** Which of a theme's params follow another one rather than standing alone. */
@@ -182,7 +201,11 @@ const collectSources = (value: unknown, found: string[]): void => {
     if (typeof value !== 'object' || value == null || Array.isArray(value)) {
         return;
     }
-    const { ref, onto } = value as { ref?: unknown; onto?: unknown };
+    const { ref, onto, calc } = value as { ref?: unknown; onto?: unknown; calc?: unknown };
+    if (typeof calc === 'string') {
+        found.push(...(calc.match(/[a-zA-Z]\w*/g) ?? []).filter((name) => PUBLIC_PARAM_NAMES.includes(name)));
+        return;
+    }
     if (typeof ref === 'string') {
         found.push(ref);
         if (typeof onto === 'string') {

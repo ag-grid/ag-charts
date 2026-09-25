@@ -42,7 +42,7 @@ describe('AG Charts param translation', () => {
                 collectOperations(params[property], operations);
             }
         }
-        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$ref']);
+        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$ref', '$rem']);
     });
 
     describe('colour references', () => {
@@ -67,6 +67,13 @@ describe('AG Charts param translation', () => {
                     $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38],
                 })
             ).toEqual({ ref: 'textColor', mix: 0.62, onto: 'chartBackgroundColor' });
+        });
+
+        it('maps $rem to a calculation from the font size it scales', () => {
+            expect(toStackParamValue('titleFontSize', { $rem: 1.5 })).toEqual({ calc: 'fontSize * 1.5' });
+            expect(toStackParamValue('titleFontSize', { $rem: [2, 'chromeFontSize'] })).toEqual({
+                calc: 'chromeFontSize * 2',
+            });
         });
 
         it('retargets AG Charts CSS variables so the editors can resolve them', () => {

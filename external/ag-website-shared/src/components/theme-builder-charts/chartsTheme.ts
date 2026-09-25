@@ -71,6 +71,17 @@ export const toStackParamValue = (property: string, value: ChartsParamValue): un
         return undefined;
     }
 
+    if ('$rem' in value) {
+        // A ratio of a font size param, `fontSize` unless named. ag-stack cannot
+        // round like `$rem` does, so the builder may show a fractional size.
+        const [ratio, param = 'fontSize'] = Array.isArray(value.$rem) ? value.$rem : [value.$rem];
+        if (typeof ratio === 'number' && typeof param === 'string') {
+            return { calc: `${param} * ${ratio}` };
+        }
+        console.warn(`[charts theme builder] cannot express $rem for "${property}" as a param calculation`);
+        return undefined;
+    }
+
     // Composite params such as `buttonBorder: { color, width }`, whose members
     // are themselves operations.
     return Object.fromEntries(

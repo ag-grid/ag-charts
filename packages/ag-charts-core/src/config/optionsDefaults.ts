@@ -108,6 +108,18 @@ const themeParams = [
     'tooltipSubtleTextColor',
     'crosshairLabelBackgroundColor',
     'crosshairLabelTextColor',
+    'titleFontSize',
+    'titleFontWeight',
+    'titleFontFamily',
+    'titleColor',
+    'subtitleFontSize',
+    'subtitleFontWeight',
+    'subtitleFontFamily',
+    'subtitleColor',
+    'footnoteFontSize',
+    'footnoteFontWeight',
+    'footnoteFontFamily',
+    'footnoteColor',
     'groupedCategoryLineColor',
 ];
 const themeParamsValidator = union(...themeParams);

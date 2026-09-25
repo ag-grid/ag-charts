@@ -49,6 +49,9 @@ describe('params with an inherited value', () => {
         expect(INHERITED_KEYS.has('tooltipBorder')).toBe(true);
         expect(INHERITED_KEYS.has('focusShadow')).toBe(true);
         expect(INHERITED_KEYS.has('popupShadow')).toBe(false);
+        // A size calculated from another param.
+        expect(INHERITED_KEYS.has('titleFontSize')).toBe(true);
+        expect(INHERITED_SOURCES.titleFontSize).toEqual(['fontSize']);
     });
 
     it('names only params the builder offers', () => {
