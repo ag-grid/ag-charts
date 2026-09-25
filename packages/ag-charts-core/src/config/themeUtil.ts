@@ -588,10 +588,7 @@ export const LEGEND_CONTAINER_THEME: any = {
     padding: {
         $if: [
             {
-                $or: [
-                    { $eq: [{ $path: './border/enabled' }, true] },
-                    { $isUserOption: ['./fill', true, false] },
-                ],
+                $or: [{ $eq: [{ $path: './border/enabled' }, true] }, { $isUserOption: ['./fill', true, false] }],
             },
             { $ref: 'legendPadding' },
             0,
