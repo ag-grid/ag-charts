@@ -119,7 +119,7 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.59.1",
-    "vite": "~5.4.19",
+    "vite": "^8.3.0",
     "vitest": "2.1.9",
     "wait-on": "^9.1.0",
     "yargs": "^18.2.0",
@@ -174,7 +174,7 @@
     "@angular-devkit/build-angular/**/cross-spawn": "7.0.6",
     "@swc/cli/**/bin-version/execa/cross-spawn": "7.0.6",
     "ng-packagr/**/cross-spawn": "7.0.6",
-    "vitest/**/vite": "6.3.5",
+    "vitest/**/vite": "6.4.3",
     "@modelcontextprotocol/sdk": "1.26.0",
     "@nx/devkit/**/ejs": "3.1.10",
     "@nx/devkit/**/ejs/jake": "10.9.4",
@@ -194,7 +194,6 @@
       "nx#20.3.1": true,
       "rulesync>fastmcp>mcp-proxy>pipenet>tldjs#2.3.2": true,
       "tsx>esbuild#0.27.7": true,
-      "vite>esbuild#0.21.5": true,
       "vitest>vite-node>vite>esbuild#0.25.0": true,
       "vitest>vite>esbuild#0.25.0": true
     }

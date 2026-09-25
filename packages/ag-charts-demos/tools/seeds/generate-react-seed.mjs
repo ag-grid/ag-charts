@@ -130,7 +130,7 @@ function renderPackageJson(demoId, { dependencies, devDependencies }) {
 const TSCONFIG = `{
   "compilerOptions": {
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "target": "esnext",
     "lib": ["es2023", "dom", "dom.iterable"],
     "jsx": "react-jsx",
@@ -151,9 +151,7 @@ const TSCONFIG = `{
 const VITE_CONFIG = `import { defineConfig } from 'vite';
 
 export default defineConfig({
-    // JSX is handled by Vite's built-in esbuild transform (automatic runtime), so
-    // @vitejs/plugin-react is not needed for this demo.
-    esbuild: { jsx: 'automatic', jsxImportSource: 'react' },
+    oxc: { jsx: { runtime: 'automatic', importSource: 'react' } },
 });
 `;
 
