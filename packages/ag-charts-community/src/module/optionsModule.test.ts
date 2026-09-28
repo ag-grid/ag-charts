@@ -4390,6 +4390,39 @@ describe('ChartOptions', () => {
             expect(googleFonts).toContain('Pacifico');
         });
 
+        it('converts array and google-font values of *FontFamily theme params to strings', () => {
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    loadGoogleFonts: true,
+                    title: { text: 'T' },
+                    subtitle: { text: 'S' },
+                    footnote: { text: 'F' },
+                    theme: {
+                        params: {
+                            titleFontFamily: ['Georgia', 'serif'],
+                            titleFontWeight: 'bold',
+                            subtitleFontFamily: { googleFont: 'Roboto' },
+                            footnoteFontFamily: [{ googleFont: 'Pacifico' }, 'cursive'],
+                        },
+                    },
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+            const { title, subtitle, footnote } = chartOptions.processedOptions as any;
+
+            expect(title.fontFamily).toBe('Georgia, serif');
+            expect(subtitle.fontFamily).toBe('Roboto');
+            expect(footnote.fontFamily).toBe('Pacifico, cursive');
+            expect(chartOptions.googleFonts).toEqual(new Set(['Roboto', 'Pacifico']));
+            expect(chartOptions.fonts).toContain('bold 16px Georgia');
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
         it('carries the referenced-font set through a fast-path delta update', () => {
             const baseOptions: AgChartOptions = {
                 data: [{ x: 'a', y: 1 }],
