@@ -379,6 +379,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const seriesArea = collision?.collideWith?.seriesArea ?? false;
         const collideWith = { ...resolveCollideWith(collision ?? { alwaysShow: true }), seriesArea };
         const { width, height } = box;
+        const candidateBox = { x: box.x - seriesRect.x, y: box.y - seriesRect.y, width, height };
         return {
             point: { x: 0, y: 0, size: 0 },
             label: { text: this.crossLineLabel.text ?? '', width, height },
@@ -392,16 +393,18 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             // Already the rotated footprint, so it carries no rotation for the engine to inflate it by again.
             positionedCandidates: [
                 {
-                    box: { x: box.x - seriesRect.x, y: box.y - seriesRect.y, width, height },
-                    region: keep ? undefined : this.labelRegion(seriesRect, seriesArea),
+                    box: candidateBox,
+                    region: keep ? undefined : this.labelRegion(seriesRect, seriesArea, candidateBox),
                     flushToRegion: false,
                 },
             ],
         };
     }
 
-    private labelRegion(seriesRect: BBox, seriesArea: boolean): BoxBounds | undefined {
+    private labelRegion(seriesRect: BBox, seriesArea: boolean, box: BoxBounds): BoxBounds | undefined {
         if (seriesArea) return { x: 0, y: 0, width: seriesRect.width, height: seriesRect.height };
+        // Laid out unpadded, a hidden label cannot fit the container, so it is tested for collisions alone until shown.
+        if (this.labelHidden && !this.paddedForLabel && this.labelPaddingSide != null) return box;
         const { containerBox } = this;
         if (containerBox == null) return;
         const { width, height } = containerBox;

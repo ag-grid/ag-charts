@@ -5,6 +5,7 @@ import {
     type CrossLineLabelOverflow,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
+    getDocument,
     mapValues,
 } from 'ag-charts-core';
 import type {
@@ -17,6 +18,7 @@ import type {
     AgCrossLineListeners,
 } from 'ag-charts-types';
 
+import { AgCharts } from '../../api/agCharts';
 import { BBox } from '../../scene/bbox';
 import { Transformable } from '../../scene/transformable';
 import type { Chart } from '../chart';
@@ -28,6 +30,7 @@ import {
     clickAction,
     compareImageSnapshot,
     createChart,
+    deproxy,
     doubleClickAction,
     expectWarningMessages,
     prepareTestOptions,
@@ -1733,7 +1736,13 @@ describe('CrossLine', () => {
             alwaysShow = false,
             stroke = 'blue',
             small = {},
-        }: { alwaysShow?: boolean; stroke?: string; small?: Partial<SmallLabel> } = {}): AgCartesianChartOptions {
+            values: [smallValue, largeValue] = [5, 5],
+        }: {
+            alwaysShow?: boolean;
+            stroke?: string;
+            small?: Partial<SmallLabel>;
+            values?: [number, number];
+        } = {}): AgCartesianChartOptions {
             return {
                 data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', stroke }],
@@ -1744,12 +1753,12 @@ describe('CrossLine', () => {
                         crossLines: [
                             {
                                 type: 'line',
-                                value: 5,
+                                value: smallValue,
                                 label: undocumentedLabel({ text: 'A', fontSize: 10, reserveSpace: true, ...small }),
                             },
                             {
                                 type: 'line',
-                                value: 5,
+                                value: largeValue,
                                 label: { text: 'LARGE LABEL', fontSize: 40, collision: { alwaysShow } },
                             },
                         ],
@@ -1878,6 +1887,33 @@ describe('CrossLine', () => {
 
             expect(hidden.shown).toEqual([true, false]);
             expect(hidden.calls).toBe(shown.calls);
+        });
+
+        it('shows a hidden label again once a resize clears what it collided with', async () => {
+            const container = getDocument().createElement('div');
+            getDocument().body.append(container);
+            const options = prepareTestOptions(collisionChart({ values: [3, 6] }), container);
+            delete options.width;
+            delete options.height;
+            chart = deproxy(AgCharts.create(options));
+
+            const resizeTo = async (width: number) => {
+                chart.ctx.domManager.containerSize = { width, height: 400, pixelRatio: 1 };
+                chart.ctx.eventsHub.emit('dom:resize', null);
+                await waitForChartStability(chart);
+            };
+
+            try {
+                await resizeTo(400);
+                expect(labelsShown()).toEqual([true, false]);
+                const hiddenTop = chart.seriesRect!.y;
+
+                await resizeTo(1200);
+                expect(labelsShown()).toEqual([true, true]);
+                expect(chart.seriesRect!.y).toBeGreaterThan(hiddenTop);
+            } finally {
+                container.remove();
+            }
         });
     });
 
