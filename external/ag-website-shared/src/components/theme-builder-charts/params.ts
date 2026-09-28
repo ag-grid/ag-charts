@@ -62,8 +62,11 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         label: 'Axes & Grid',
         params: [
             { key: 'axisLineColor', label: 'Axis Line Color' },
+            { key: 'axisLineWidth', label: 'Axis Line Width', min: 0, max: 8 },
             { key: 'gridLineColor', label: 'Grid Line Color' },
+            { key: 'gridLineWidth', label: 'Grid Line Width', min: 0, max: 8 },
             { key: 'groupedCategoryLineColor', label: 'Grouped Category Line' },
+            { key: 'bandHighlightColor', label: 'Band Highlight Color' },
             { key: 'crosshairLabelBackgroundColor', label: 'Crosshair Label Background' },
             { key: 'crosshairLabelTextColor', label: 'Crosshair Label Text' },
         ],

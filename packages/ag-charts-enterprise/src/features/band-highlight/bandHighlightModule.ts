@@ -20,7 +20,7 @@ export const BandHighlightModule: AxisPluginModuleDefinition<AgBandHighlightOpti
         strokeOpacity: 1,
         lineDash: [],
         lineDashOffset: 0,
-        fill: { $foregroundBackgroundMix: 0.05 },
+        fill: { $ref: 'bandHighlightColor' },
         fillOpacity: 1,
     },
 

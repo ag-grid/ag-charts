@@ -138,6 +138,14 @@ export interface AgBaseChartThemeParams {
 export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /** Default colour for axis lines and ticks. A colour string, or a theme-colour reference object. */
     axisLineColor?: AgCssColorOrRef;
+    /** Default width for axis lines. Does not apply to ticks. */
+    axisLineWidth?: PixelSize;
+    /**
+     * Colour of the band highlight. A colour string, or a theme-colour reference object.
+     *
+     * Default: `foregroundColor + backgroundColor`
+     */
+    bandHighlightColor?: AgCssColorOrRef;
     /**
      * Colour painted behind the chart. Follows backgroundColor, which is also blended into text, borders and other
      * backgrounds - so change that one to shift the whole theme, and this one to repaint the chart alone. A colour
@@ -200,6 +208,8 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     fontWeight?: FontWeight;
     /** Default colour for grid lines. A colour string, or a theme-colour reference object. */
     gridLineColor?: AgCssColorOrRef;
+    /** Default width for grid lines. */
+    gridLineWidth?: PixelSize;
     /** Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object. */
     groupedCategoryLineColor?: AgCssColorOrRef;
 }

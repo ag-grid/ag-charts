@@ -190,7 +190,9 @@ export class ChartTheme {
         return {
             accentColor: '#2196f3',
             axisLineColor: { $ref: 'borderColor' },
+            axisLineWidth: 1,
             backgroundColor: DEFAULT_BACKGROUND_FILL,
+            bandHighlightColor: { $foregroundBackgroundMix: 0.05 },
             borderColor: { $foregroundBackgroundMix: 0.15 },
             borderRadius: 4,
             borderWidth: 1,
@@ -203,6 +205,7 @@ export class ChartTheme {
             fontSize: BASE_FONT_SIZE,
             fontWeight: 400,
             gridLineColor: { $mix: [{ $ref: 'axisLineColor' }, { $ref: 'backgroundColor' }, 0.35] },
+            gridLineWidth: 1,
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },

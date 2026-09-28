@@ -248,7 +248,9 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     params: {
         accentColor: colorOrRef,
         axisLineColor: colorOrRef,
+        axisLineWidth: positiveNumber,
         backgroundColor: colorOrRef,
+        bandHighlightColor: colorOrRef,
         borderColor: colorOrRef,
         borderRadius: number,
         borderWidth: number,
@@ -260,6 +262,7 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         fontSize: number,
         fontWeight: fontWeight,
         gridLineColor: colorOrRef,
+        gridLineWidth: positiveNumber,
         popupShadow: string,
         subtleTextColor: colorOrRef,
         textColor: colorOrRef,

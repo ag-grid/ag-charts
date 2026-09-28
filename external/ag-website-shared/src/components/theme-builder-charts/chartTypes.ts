@@ -122,12 +122,13 @@ const markerStroke = (features: ChartFeatures) =>
 
 /**
  * Crosshairs default on for continuous axes only, so a category x-axis must ask
- * for one or there is no x label to carry `crosshairLabelBackgroundColor`.
+ * for one or there is no x label to carry `crosshairLabelBackgroundColor`. Band
+ * highlight follows the same switch so `bandHighlightColor` has a band to show.
  */
 const cartesianAxes = (features: ChartFeatures) => {
     const crosshair = { enabled: isFeatureActive(features, 'crosshairs') };
     return {
-        x: { ...CARTESIAN_AXES.x, crosshair },
+        x: { ...CARTESIAN_AXES.x, crosshair, bandHighlight: crosshair },
         y: { ...CARTESIAN_AXES.y, crosshair },
     };
 };
