@@ -4,9 +4,11 @@ import type { AgCartesianAxisPosition, AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
+import { ContinuousScale } from '../scale/continuousScale';
 import type { BBox } from '../scene/bbox';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import { CartesianAxis } from './axis/cartesianAxis';
+import { CategoryAxis } from './axis/categoryAxis';
 import { NumberAxis } from './axis/numberAxis';
 import { stackCartesianSeries } from './cartesianUtil';
 import type { TransferableResources } from './chart';
@@ -89,7 +91,10 @@ export class CartesianChart extends Chart {
 
         if (this.ctx != null) {
             this.ctx.zoomManager?.setAxes(
-                newValue.filter((axis) => !(axis.options as { ignoreZoom?: boolean }).ignoreZoom)
+                newValue.filter((axis) => {
+                    const { ignoreZoom, linkZoom } = axis.options as { ignoreZoom?: boolean; linkZoom?: string };
+                    return !ignoreZoom && linkZoom == null;
+                })
             );
         }
     }
@@ -623,9 +628,32 @@ export class CartesianChart extends Chart {
         }
 
         axis.range = [start, end];
-        axis.visibleRange = [min, max];
+        axis.visibleRange = this.linkedVisibleRange(axis, start, end) ?? [min, max];
         axis.gridLength = isLeftRight ? width : height;
         axis.lineRange = isLeftRight ? [height, 0] : [0, width];
+    }
+
+    // Centres each band of a `linkZoom` category axis on its category's value in the linked axis' scale,
+    // which already carries that axis' zoom. The linked axis must be laid out earlier in the same pass.
+    private linkedVisibleRange(axis: CartesianAxis, r0: number, r1: number): [number, number] | undefined {
+        const { linkZoom } = axis.options as { linkZoom?: string };
+        if (linkZoom == null || !CategoryAxis.is(axis)) return;
+
+        const axisIndex = this.axes.indexOf(axis);
+        const linked = this.axes.find((a, index) => index < axisIndex && a.userKey === linkZoom);
+        const { domain } = axis.dataDomain;
+        if (linked == null || !ContinuousScale.is(linked.scale) || domain.length < 2) return;
+
+        const first = linked.scale.convert(domain[0]);
+        const last = linked.scale.convert(domain.at(-1));
+        const step = (last - first) / (domain.length - 1);
+        if (!Number.isFinite(step) || step <= 0) return;
+
+        const { paddingInner = axis.scale.paddingInner, paddingOuter = axis.scale.paddingOuter } = axis.options;
+        const start = first - step * (paddingOuter + (1 - paddingInner) / 2);
+        const span = step * (domain.length - paddingInner + 2 * paddingOuter);
+        const min = (r0 - start) / span;
+        return [min, min + (r1 - r0) / span];
     }
 
     private positionAxes(opts: {
