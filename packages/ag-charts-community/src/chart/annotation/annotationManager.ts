@@ -29,7 +29,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     public restoreMemento(_version: string, _mementoVersion: string, memento: AnnotationsMemento | undefined) {
         // Migration from older versions can be implemented here.
 
-        this.annotations = this.validateAnnotations(this.cleanData(deleteNulls(memento ?? []))).map((annotation) => {
+        this.annotations = this.validateAnnotations(this.cleanData(memento ?? [])).map((annotation) => {
             const annotationTheme = this.getAnnotationTypeStyles(annotation.type);
             return mergeDefaults(annotation, annotationTheme);
         });
@@ -82,6 +82,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     }
 
     private cleanData(annotations: AnnotationsMemento) {
+        deleteNulls(annotations);
         // Strip text align from annotations as this is fixed by annotation type
         for (const annotation of annotations) {
             if (isObject(annotation) && 'textAlign' in annotation) {
