@@ -464,6 +464,19 @@ describe('OptionsGraph', () => {
                     axes: expect.any(Object),
                 });
             });
+
+            it.each([
+                ['common', { common: { legend: { fill: 'yellow' } } }],
+                ['series-type', { bar: { legend: { fill: 'yellow' } } }],
+            ])('should consider %s theme overrides of chart-level options as user options', (_, overrides) => {
+                const themeConfig = { bar: { legend: { padding: { $isUserOption: ['./fill', 5, 0] } } } };
+                const userOptions = prepareOptions({ series: [{ type: 'bar' }] });
+
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
+                expect(options.legend).toStrictEqual({ fill: 'yellow', padding: 5 });
+            });
         });
 
         describe('$palette', () => {

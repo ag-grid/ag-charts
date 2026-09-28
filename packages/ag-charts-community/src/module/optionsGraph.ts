@@ -37,6 +37,7 @@ import {
     USER_PARTIAL_OPTIONS_EDGE,
     getPathSafe,
     hasPathSafe,
+    hasTemplatePathSafe,
     setPathSafe,
 } from './optionsGraphUtils';
 import { OptionsPartialCache, hasUnmergedCssVariables } from './optionsPartialCache';
@@ -585,7 +586,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             return hasPathSafe(this.overrides, [seriesType, 'series', ...path.slice(2)]);
         }
 
-        return hasPathSafe(this.overrides, path);
+        return (
+            hasTemplatePathSafe(this.overrides, [this.seriesType, ...path]) ||
+            hasTemplatePathSafe(this.overrides, ['common', ...path]) ||
+            hasPathSafe(this.overrides, path)
+        );
     }
 
     getParamValue(pathString: string) {

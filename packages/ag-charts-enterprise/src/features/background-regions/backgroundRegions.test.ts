@@ -801,8 +801,11 @@ describe('Background Region label fitting', () => {
         }
     });
 
-    async function renderLabel(label: NonNullable<AgSeriesAreaBackgroundRegion['label']>) {
-        const options = fitLabelOptions(label);
+    async function renderLabel(
+        label: NonNullable<AgSeriesAreaBackgroundRegion['label']>,
+        theme?: AgCartesianChartOptions['theme']
+    ) {
+        const options = { ...fitLabelOptions(label), theme };
         prepareEnterpriseTestOptions(options);
 
         chart = AgCharts.create(options);
@@ -810,43 +813,58 @@ describe('Background Region label fitting', () => {
         expectWarningsCalls().toEqual([]);
 
         const regions = deproxy(chart).modulesManager.getModule<any>('background-regions');
-        const { text, fontSize } = regions.regions[0].instance.labelNode;
-        return { text: text as string, fontSize: fontSize as number };
+        const { labelNode } = regions.regions[0].instance;
+        return {
+            text: labelNode.text as string,
+            fontSize: labelNode.fontSize as number,
+            width: labelNode.getBBox().width as number,
+        };
     }
 
     it('renders an overlong label unchanged when no fit option is set', async () => {
-        expect(await renderLabel({})).toEqual({ text: LONG_LABEL, fontSize: 20 });
+        expect(await renderLabel({})).toMatchObject({ text: LONG_LABEL, fontSize: 20 });
     });
 
     it('does not derive a bound from the region', async () => {
         const label = await renderLabel({ wrapping: 'always', truncate: true, minimumFontSize: 8 });
-        expect(label).toEqual({ text: LONG_LABEL, fontSize: 20 });
+        expect(label).toMatchObject({ text: LONG_LABEL, fontSize: 20 });
     });
 
     it('wraps onto multiple lines within maxWidth', async () => {
-        const { text, fontSize } = await renderLabel({ maxWidth: 120, truncate: false });
+        const { text, fontSize, width } = await renderLabel({ maxWidth: 120, truncate: false });
         expect(text.split('\n').length).toBeGreaterThan(1);
         expect(text.replaceAll('\n', ' ')).toBe(LONG_LABEL);
         expect(fontSize).toBe(20);
+        expect(width).toBeLessThanOrEqual(120);
     });
 
     it('truncates with an ellipsis', async () => {
-        const { text } = await renderLabel({ maxWidth: 120, wrapping: 'never', truncate: true });
+        const { text, width } = await renderLabel({ maxWidth: 120, wrapping: 'never', truncate: true });
         expect(text).not.toContain('\n');
         expect(text.endsWith('…')).toBe(true);
+        expect(width).toBeLessThanOrEqual(120);
     });
 
     it('shrinks towards minimumFontSize before truncating', async () => {
-        const { text, fontSize } = await renderLabel({ maxWidth: 200, wrapping: 'never', minimumFontSize: 8 });
+        const { text, fontSize, width } = await renderLabel({ maxWidth: 200, wrapping: 'never', minimumFontSize: 8 });
         expect(text).toBe(LONG_LABEL);
         expect(fontSize).toBeLessThan(20);
         expect(fontSize).toBeGreaterThanOrEqual(8);
+        expect(width).toBeLessThanOrEqual(200);
     });
 
     it('truncates at minimumFontSize when the label still does not fit', async () => {
-        const { text, fontSize } = await renderLabel({ maxWidth: 60, wrapping: 'never', minimumFontSize: 12 });
+        const { text, fontSize, width } = await renderLabel({ maxWidth: 60, wrapping: 'never', minimumFontSize: 12 });
         expect(text.endsWith('…')).toBe(true);
         expect(fontSize).toBe(12);
+        expect(width).toBeLessThanOrEqual(60);
+    });
+
+    it('fits a label bounded through a theme override', async () => {
+        const theme = { overrides: { scatter: { seriesArea: { backgroundRegions: { label: { maxWidth: 120 } } } } } };
+        const { text, width } = await renderLabel({}, theme);
+        expect(text.split('\n').length).toBeGreaterThan(1);
+        expect(width).toBeLessThanOrEqual(120);
     });
 
     it('bounds a rotated label along its own text direction', async () => {
