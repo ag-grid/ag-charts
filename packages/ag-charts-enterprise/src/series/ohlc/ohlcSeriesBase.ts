@@ -211,6 +211,7 @@ export abstract class OhlcSeriesBase<
     }
 
     private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
+    private nodeDatumContext?: OhlcSeriesNodeDatumContext;
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -524,6 +525,29 @@ export abstract class OhlcSeriesBase<
         return scratch;
     }
 
+    private prepareOlhcAggregatedNodeDatum(
+        ctx: OhlcSeriesNodeDatumContext,
+        scratch: PreparedOhlcNodeDatumState,
+        datumIndex: number,
+        indexData: Uint32Array
+    ): number {
+        const aggIndex = datumIndex * SPAN;
+        const openIndex = indexData[aggIndex + OPEN];
+        const closeIndex = indexData[aggIndex + CLOSE];
+        const highIndex = indexData[aggIndex + HIGH];
+        const lowIndex = indexData[aggIndex + LOW];
+
+        scratch.openValue = ctx.openValues[openIndex];
+        scratch.closeValue = ctx.closeValues[closeIndex];
+        scratch.highValue = ctx.highValues[highIndex];
+        scratch.lowValue = ctx.lowValues[lowIndex];
+        scratch.isRising = scratch.closeValue > scratch.openValue;
+        scratch.itemType = scratch.isRising ? 'up' : 'down';
+
+        const width = Math.abs(ctx.xPosition(closeIndex) - ctx.xPosition(openIndex)) + ctx.barWidth;
+        return width;
+    }
+
     /**
      * Creates a skeleton OhlcNodeDatum from prepared state.
      * Takes pre-computed positioning and state from scratch object.
@@ -651,6 +675,7 @@ export abstract class OhlcSeriesBase<
     }
 
     override createNodeData() {
+        this.nodeDatumContext = undefined;
         const { visible } = this;
 
         const xAxis = this.getCategoryAxis();
@@ -659,6 +684,7 @@ export abstract class OhlcSeriesBase<
         if (!xAxis || !yAxis) return;
 
         const ctx = this.buildDatumContext(xAxis, yAxis);
+        this.nodeDatumContext = ctx;
 
         const resultContext = {
             itemId: this.options.xKey,
@@ -707,27 +733,14 @@ export abstract class OhlcSeriesBase<
             });
 
             for (let i = start; i < end; i += 1) {
-                const aggIndex = i * SPAN;
-                const openIndex = indexData[aggIndex + OPEN];
-                const closeIndex = indexData[aggIndex + CLOSE];
-                const highIndex = indexData[aggIndex + HIGH];
-                const lowIndex = indexData[aggIndex + LOW];
-
                 const midDatumIndex = midpointIndices[i];
                 if (midDatumIndex === -1) continue;
 
                 const prepared = this.prepareOhlcNodeDatumState(ctx, midDatumIndex);
                 if (!prepared) continue;
 
-                prepared.openValue = ctx.openValues[openIndex];
-                prepared.closeValue = ctx.closeValues[closeIndex];
-                prepared.highValue = ctx.highValues[highIndex];
-                prepared.lowValue = ctx.lowValues[lowIndex];
-                prepared.isRising = prepared.closeValue > prepared.openValue;
-                prepared.itemType = prepared.isRising ? 'up' : 'down';
-
                 const centerX = ctx.xPosition(midDatumIndex);
-                const width = Math.abs(ctx.xPosition(closeIndex) - ctx.xPosition(openIndex)) + ctx.barWidth;
+                const width = this.prepareOlhcAggregatedNodeDatum(ctx, prepared, i, indexData);
 
                 const canReuse = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length;
 
@@ -994,7 +1007,29 @@ export abstract class OhlcSeriesBase<
     }
 
     override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        const nodeDatum = this.getNodeData()?.at(opts.datumIndex);
+        const { datumIndex } = opts;
+        const ctx = this.nodeDatumContext;
+        if (!ctx) return undefined;
+
+        const prepared = this.prepareOhlcNodeDatumState(ctx, datumIndex);
+        if (!prepared) return undefined;
+
+        let nodeDatum: OhlcNodeDatum | undefined;
+        if (ctx?.dataAggregationFilter == null) {
+            const centerX = ctx.xPosition(datumIndex);
+            nodeDatum = this.createSkeletonNodeDatum(ctx, prepared, datumIndex, centerX, ctx.barWidth, ctx.crisp);
+            this.updateNodeDatum(ctx, nodeDatum, prepared, datumIndex, centerX, ctx.barWidth, ctx.crisp);
+        } else {
+            const { midpointIndices, indexData } = ctx.dataAggregationFilter;
+            const midDatumIndex = midpointIndices[datumIndex];
+            if (midDatumIndex === -1) return undefined;
+
+            const centerX = ctx.xPosition(midDatumIndex);
+            const width = this.prepareOlhcAggregatedNodeDatum(ctx, prepared, datumIndex, indexData);
+            nodeDatum = this.createSkeletonNodeDatum(ctx, prepared, datumIndex, centerX, width, false);
+            this.updateNodeDatum(ctx, nodeDatum, prepared, datumIndex, centerX, width, false);
+        }
+
         if (nodeDatum == null) return;
         const { centerX, y, width, height } = nodeDatum;
         const datum = {
