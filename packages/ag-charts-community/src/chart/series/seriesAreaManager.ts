@@ -682,7 +682,7 @@ export class SeriesAreaManager extends BaseManager {
         const pendingCrossLineCallbacks = this.emitSeriesAreaCanvasClickEvent(event, canvasPoint);
         const clickedCrossLine =
             this.checkCrossLineClick(event, pendingCrossLineCallbacks) &&
-            !(isSeriesWidget && this.isClickableNodeHit(event));
+            !(isSeriesWidget && this.isHandledNodeHit(event));
         if (clickedCrossLine) {
             // The cross line wins the event, but still reports the series nodes within `nodeClickRange`.
             const nodeParams = isSeriesWidget ? this.pickSeriesNodeHitParams(event) : [];
@@ -922,23 +922,29 @@ export class SeriesAreaManager extends BaseManager {
         return allMatchedParams.length > 0 && (axes.size > 0 || crossLines.size > 0 || chartListener != null);
     }
 
-    /** Whether the picked node reacts to a click, which is also when it shows the pointer cursor. */
+    /** Whether the picked node reacts to a click or double-click, which is when it shows the pointer cursor. */
     private isClickable(pick: PickedNodes | undefined): boolean {
+        return this.handlesNodeEvent(pick, 'click') || this.handlesNodeEvent(pick, 'dblclick');
+    }
+
+    /** Selection, built-in controls and tooltip pagination act on single clicks only. */
+    private handlesNodeEvent(pick: PickedNodes | undefined, type: ClickLikeEvent['type']): boolean {
         const found = pick?.matches[0];
         if (pick == null || found == null) return false;
         const { series } = found;
+        if (type === 'dblclick') return series.hasNodeListener('seriesNodeDoubleClick');
         return (
             (series.isSelectionEnabled() && series.isDatumSelectable(found.datumIndex)) ||
-            series.hasNodeClickListener() ||
+            series.hasNodeListener('seriesNodeClick') ||
             series.hasBuiltinListener(pick.target) ||
             (pick.matches.length > 1 && this.chart.tooltip.pagination)
         );
     }
 
-    /** A clickable node under the pointer beats an overlapping cross line; one only within `nodeClickRange` does not. */
-    private isClickableNodeHit(event: CurrentPoint): boolean {
+    /** Whether a node directly under the pointer handles the event, so it beats an overlapping cross line. */
+    private isHandledNodeHit(event: ClickLikeEvent & CurrentPoint): boolean {
         const pick = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
-        return pick?.distance === 0 && this.isClickable(pick);
+        return pick?.distance === 0 && this.handlesNodeEvent(pick, event.type);
     }
 
     private pickSeriesNodeHitParams(event: ClickLikeEvent & CurrentPoint): AgMatchedParams<unknown>[] {

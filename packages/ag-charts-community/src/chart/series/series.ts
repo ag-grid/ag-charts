@@ -1225,15 +1225,8 @@ export abstract class Series<
         return;
     }
 
-    hasNodeClickListener(): boolean {
-        const seriesListeners = this.options.listeners;
-        const chartListeners = this.ctx.chartService.listeners;
-        return (
-            seriesListeners?.seriesNodeClick != null ||
-            seriesListeners?.seriesNodeDoubleClick != null ||
-            chartListeners.seriesNodeClick != null ||
-            chartListeners.seriesNodeDoubleClick != null
-        );
+    hasNodeListener(type: 'seriesNodeClick' | 'seriesNodeDoubleClick'): boolean {
+        return this.options.listeners?.[type] != null || this.ctx.chartService.listeners[type] != null;
     }
 
     private callListeners(event: SeriesListenerEvent & { readonly defaultPrevented?: boolean }): boolean {

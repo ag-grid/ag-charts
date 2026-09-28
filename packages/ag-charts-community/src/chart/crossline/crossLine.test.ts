@@ -965,6 +965,34 @@ describe('CrossLine', () => {
                     })
                 );
             });
+            test.each([
+                { gesture: 'double-click', nodeListener: 'seriesNodeClick', crossLineListener: 'crossLineDoubleClick' },
+                { gesture: 'click', nodeListener: 'seriesNodeDoubleClick', crossLineListener: 'crossLineClick' },
+            ] as const)(
+                'a cross line wins a $gesture over a series node that only has a $nodeListener listener',
+                async ({ gesture, nodeListener, crossLineListener }) => {
+                    const crossLineListenerFn = vi.fn();
+                    chart.destroy();
+                    chart = await createChart({
+                        data: [{ x: 'May', y: 3 }],
+                        series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { [nodeListener]: vi.fn() } }],
+                        axes: {
+                            myX: {
+                                type: 'category',
+                                crossLines: [{ id: 'blue-line', type: 'line', value: 'May', strokeWidth: 2 }],
+                            },
+                            myY: { type: 'number' },
+                        },
+                        listeners: { [crossLineListener]: crossLineListenerFn },
+                    });
+                    const { x, y, width, height } = chart.seriesRect!;
+                    const action = gesture === 'click' ? clickAction : doubleClickAction;
+                    await action(x + width / 2, y + height - 10)(chart);
+                    expect(crossLineListenerFn).toHaveBeenCalledWith(
+                        expect.objectContaining({ type: crossLineListener, crossLineId: 'blue-line' })
+                    );
+                }
+            );
             test('a cross line wins over a series node only within `nodeClickRange`', async () => {
                 chart.destroy();
                 chart = await createChart({
