@@ -1,9 +1,9 @@
 import { TextualStartEndStateMachine } from '../states/textualStartEndState';
-import { CalloutProperties } from './calloutProperties';
+import { type CalloutDatum, calloutDatum } from './calloutDatum';
 import type { CalloutScene } from './calloutScene';
 
-export class CalloutStateMachine extends TextualStartEndStateMachine<CalloutProperties, CalloutScene> {
+export class CalloutStateMachine extends TextualStartEndStateMachine<CalloutDatum, CalloutScene> {
     protected override createDatum() {
-        return new CalloutProperties();
+        return calloutDatum.create();
     }
 }

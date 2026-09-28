@@ -438,6 +438,30 @@ describe('Navigator', () => {
         );
     });
 
+    describe('mini chart toggling', () => {
+        it('disables and re-enables the mini chart without errors', async () => {
+            const base: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                navigator: { enabled: true, miniChart: { enabled: true } },
+            };
+            prepareEnterpriseTestOptions(base);
+            chart = AgCharts.create(base);
+            await waitForChartStability(chart);
+            const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
+            expect(navigator.miniChart.axes.length).toBeGreaterThan(0);
+
+            await chart.update({ ...base, navigator: { enabled: true, miniChart: { enabled: false } } });
+            await waitForChartStability(chart);
+            expect(navigator.miniChart.axes.length).toBe(0);
+            expect(navigator.miniChart.series.length).toBe(0);
+
+            await chart.update({ ...base, navigator: { enabled: true, miniChart: { enabled: true } } });
+            await waitForChartStability(chart);
+            expect(navigator.miniChart.axes.length).toBeGreaterThan(0);
+            expectWarningsCalls().toEqual([]);
+        });
+    });
+
     describe('mini chart series validation', () => {
         it('validates an untyped mini chart series against the type the theme fills in', async () => {
             const options: AgCartesianChartOptions = {

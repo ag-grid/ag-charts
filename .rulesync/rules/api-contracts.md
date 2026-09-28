@@ -51,23 +51,21 @@ Undocumented series-level options:
 
 ## Documented Options on Chart
 
-When adding a **documented** chart-level option (one that exists in `ag-charts-types`), expose it as a `@Property` decorated field on the `Chart` class:
+When adding a **documented** chart-level option (one that exists in `ag-charts-types`), read it where it is used from the resolved options in chart state:
 
 ```typescript
-@Property
-dataIdKey: string | undefined = undefined;
+const dataIdKey = this.ctx.chartState.getValue('options', 'dataIdKey');
 ```
 
-This is automatically synced from `processedOptions` via `jsonApply()` in `applyOptions()`. Do **not** access `processedOptions` directly (e.g., `(this.chartOptions.processedOptions as any).foo`) — that bypasses the decorator infrastructure and is not reactive to option changes.
+Read it once into a local per scope, as each `getValue` call has a cost. Do **not** access `processedOptions` directly (e.g., `(this.chartOptions.processedOptions as any).foo`), and do not mirror the option onto a field or getter on `Chart`; chart state is the single reactive source.
 
 **Checklist for a new documented chart-level option:**
 
 1. Add type to `ag-charts-types` (e.g., `AgBaseChartOptions`)
 2. Add validator to all chart option defs in `chartOptionsDefs.ts`
-3. Add `@Property` field on `Chart` class — `jsonApply` handles the rest
+3. Read it through `ctx.chartState.getValue('options', …)`; if `ResolvedChartOptions` (`chart/chartState.ts`) omits it, extend that type rather than casting
 4. If the option affects the DataSet or other persistent state, ensure state is recreated when the option changes (not just when `data` changes)
 5. If the option includes a callback/renderer, use `TContext = ContextDefault` for the `context` parameter — never `any`. Thread `TContext` from the root chart options through all intermediate interfaces so user-supplied generics propagate to the renderer params.
-6. Nested `BaseProperties` sub-objects on a `BaseProperties` class **must** have the `@Property` decorator. Without it, `BaseProperties.set()` cannot find the property via `listDecoratedProperties()` and will reject it at runtime ("property is unknown").
 
 **Lint constraint**: The `aglint/require-explicit-generic` rule requires explicit type arguments on all generic type references in `ag-charts-types`. When making a previously non-generic interface generic, grep for all references and add explicit type args. Prefer `unknown` over `any` for type aliases that don't propagate a specific context.
 

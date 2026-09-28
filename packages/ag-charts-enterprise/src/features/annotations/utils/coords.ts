@@ -8,13 +8,15 @@ import { convertPoint, invertCoords } from './values';
 const { ContinuousScale, Transformable } = _ModuleSupport;
 type Node = _ModuleSupport.Node;
 
+export const SNAP_TO_ANGLE = 45;
+
 export function snapPoint(
     offset: Point,
     context: AnnotationContext,
     snapping: boolean = false,
     origin?: DataPoint,
     angleStep: number = 1
-) {
+): DataPoint {
     if (!snapping) return invertCoords(offset, context);
 
     const center = origin ? convertPoint(origin, context) : Vec2.origin();

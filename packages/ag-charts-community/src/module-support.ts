@@ -40,6 +40,7 @@ export {
     initialStatePickedOptionsDef,
 } from './chart/chartOptionsDefs';
 export {
+    annotationAxisLabelOptionsDef,
     annotationCalloutStylesDefs,
     annotationChannelTextDefs,
     annotationCommentStylesDefs,

@@ -1,9 +1,4 @@
 import * as Debug from '../logging/debugLogger';
-import {
-    addObserverToInstanceProperty,
-    extractDecoratedProperties,
-    listDecoratedProperties,
-} from '../utils/types/decorator';
 
 type StateDefinition<State extends string, Events extends Record<string, any>> = {
     [key in keyof Events]?: Destination<State, Events[key]>;
@@ -34,26 +29,22 @@ type HierarchyState = '__parent' | '__child';
 const debugColor = 'color: green';
 const debugQuietColor = 'color: grey';
 
-export function StateMachineProperty() {
-    return addObserverToInstanceProperty(() => {
-        // do nothing
-    });
-}
-
 function applyProperties(parentState: AbstractStateMachine<any>, childState: StateMachine<any, any>) {
-    const childProperties = listDecoratedProperties(childState);
-    if (childProperties.length === 0) return;
-
-    const properties = extractDecoratedProperties(parentState);
-    for (const property of childProperties) {
-        if (property in properties) {
-            (childState as any)[property] = properties[property];
+    const parentProperties = parentState.inheritedProperties();
+    for (const property of childState.inheritedProperties()) {
+        if (parentProperties.includes(property)) {
+            (childState as any)[property] = (parentState as any)[property] ?? null;
         }
     }
 }
 
 abstract class AbstractStateMachine<Events extends Record<string, any>> {
     public parent?: AbstractStateMachine<Events>;
+
+    /** Fields copied from the parent before each transition is forwarded to a child; an override replaces the list. */
+    inheritedProperties(): readonly string[] {
+        return [];
+    }
 
     abstract transition<Event extends keyof Events & string>(event: Event, data?: Events[Event]): void;
     abstract transitionAsync<Event extends keyof Events & string>(event: Event, data?: Events[Event]): void;

@@ -467,10 +467,7 @@ export interface AutoSizedLabelText {
     readonly fontSize?: number;
 }
 
-/**
- * `font` at `fontSize`, or `font` itself when the size is unchanged. Fields are copied by name because a
- * label's font is often a `@Property` instance, whose prototype accessors a spread would silently drop.
- */
+/** `font` at `fontSize`, or `font` itself when the size is unchanged. */
 export function fontWithSize(font: FontOptions, fontSize: number | undefined): FontOptions {
     if (fontSize == null || fontSize === font.fontSize) return font;
     return { fontSize, fontStyle: font.fontStyle, fontWeight: font.fontWeight, fontFamily: font.fontFamily };

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ParallelStateMachine, StateMachine, StateMachineProperty } from './stateMachine';
+import { ParallelStateMachine, StateMachine } from './stateMachine';
 
 describe('State Machine', () => {
     let state: any;
@@ -140,8 +140,11 @@ describe('State Machine', () => {
         let childProperty: any;
 
         class Parent extends StateMachine<'initial', { event: undefined }> {
-            @StateMachineProperty()
             testProperty = 'parent-value';
+
+            override inheritedProperties() {
+                return ['testProperty'] as const;
+            }
 
             constructor() {
                 super('initial', {
@@ -156,8 +159,11 @@ describe('State Machine', () => {
         }
 
         class Child extends StateMachine<'child-initial', { event: undefined }> {
-            @StateMachineProperty()
             testProperty = 'child-value';
+
+            override inheritedProperties() {
+                return ['testProperty'] as const;
+            }
 
             constructor() {
                 super('child-initial', {
@@ -171,6 +177,8 @@ describe('State Machine', () => {
             }
         }
 
+        class GrandChild extends Child {}
+
         beforeEach(() => {
             state = new Parent();
         });
@@ -179,6 +187,77 @@ describe('State Machine', () => {
             expect(childProperty).toBe('child-value');
             state.transition('event'); // parent
             state.transition('event'); // child
+            expect(childProperty).toBe('parent-value');
+        });
+
+        it('should pass properties through every level of nested state machines', () => {
+            let leafProperty: string | undefined;
+
+            class Leaf extends StateMachine<'leaf-initial', { event: undefined }> {
+                testProperty = 'leaf-value';
+
+                override inheritedProperties() {
+                    return ['testProperty'] as const;
+                }
+
+                constructor() {
+                    super('leaf-initial', {
+                        'leaf-initial': {
+                            event: () => {
+                                leafProperty = this.testProperty;
+                            },
+                        },
+                    });
+                }
+            }
+
+            class Middle extends StateMachine<'middle-initial', { event: undefined }> {
+                testProperty = 'middle-value';
+
+                override inheritedProperties() {
+                    return ['testProperty'] as const;
+                }
+
+                constructor() {
+                    super('middle-initial', { 'middle-initial': { event: { target: new Leaf() } } });
+                }
+            }
+
+            class Root extends StateMachine<'root-initial', { event: undefined }> {
+                testProperty = 'root-value';
+
+                override inheritedProperties() {
+                    return ['testProperty'] as const;
+                }
+
+                constructor() {
+                    super('root-initial', { 'root-initial': { event: { target: new Middle() } } });
+                }
+            }
+
+            state = new Root();
+            state.transition('event'); // root enters middle
+            state.transition('event'); // middle enters leaf
+            state.transition('event'); // leaf handles the event
+            expect(leafProperty).toBe('root-value');
+        });
+
+        it('should pass properties to a subclass that inherits its parent list', () => {
+            class SubclassParent extends StateMachine<'initial', { event: undefined }> {
+                testProperty = 'parent-value';
+
+                override inheritedProperties() {
+                    return ['testProperty'] as const;
+                }
+
+                constructor() {
+                    super('initial', { initial: { event: { target: new GrandChild(), action: initialEventNext } } });
+                }
+            }
+
+            state = new SubclassParent();
+            state.transition('event'); // parent
+            state.transition('event'); // grandchild
             expect(childProperty).toBe('parent-value');
         });
     });
