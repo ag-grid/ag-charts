@@ -9,6 +9,7 @@ import type {
     AgSelectionOptions,
     AgSelectionStyleOptions,
     AgSeriesSegmentation,
+    FontWeight,
     LabelBoxOptions,
     Operation,
     WithThemeParams,
@@ -429,6 +430,18 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     padding: 8,
     cornerRadius: { $ref: 'seriesLabelBorderRadius' },
 };
+
+/**
+ * Font weight for a series label whose default does not follow `fontWeight`. `seriesLabelFontWeight` applies only once it
+ * differs from `fontWeight`, so the label keeps `fallback` until a theme sets the series label weight.
+ */
+export const seriesLabelFontWeightOr = (fallback: FontWeight | undefined): Operation => ({
+    $if: [
+        { $eq: [{ $ref: 'seriesLabelFontWeight' }, { $ref: 'fontWeight' }] },
+        fallback,
+        { $ref: 'seriesLabelFontWeight' },
+    ],
+});
 
 /** `LABEL_BOXING_DEFAULTS` for a label that sits inside or outside its series shape, e.g. pie sector and callout labels. */
 export const PLACED_LABEL_BOXING_DEFAULTS = (placement: SeriesLabelPlacement): WithThemeParams<LabelBoxOptions> => ({

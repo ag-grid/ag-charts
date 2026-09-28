@@ -8,6 +8,7 @@ import {
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
+    seriesLabelFontWeightOr,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
@@ -101,7 +102,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     enabled: true,
                     color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,
-                    fontWeight: undefined,
+                    fontWeight: seriesLabelFontWeightOr(undefined),
                     fontSize: { $ref: 'seriesLabelFontSize' },
                     minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
