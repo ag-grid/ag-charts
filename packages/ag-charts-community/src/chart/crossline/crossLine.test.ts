@@ -1799,7 +1799,7 @@ describe('CrossLine', () => {
         });
 
         it('hides a label behind a series label that is always shown', async () => {
-            chart = await createChart({
+            const seriesLabelChart = (enabled: boolean): AgCartesianChartOptions => ({
                 data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50 })),
                 series: [
                     {
@@ -1807,7 +1807,7 @@ describe('CrossLine', () => {
                         xKey: 'x',
                         yKey: 'y',
                         marker: { enabled: false },
-                        label: { enabled: true, collision: { alwaysShow: true } },
+                        label: { enabled, collision: { alwaysShow: true } },
                     },
                 ],
                 axes: {
@@ -1831,6 +1831,11 @@ describe('CrossLine', () => {
                 },
             });
 
+            chart = await createChart(seriesLabelChart(false));
+            expect(labelsShown('y')).toEqual([true]);
+            chart.destroy();
+
+            chart = await createChart(seriesLabelChart(true));
             expect(labelsShown('y')).toEqual([false]);
         });
 
@@ -1844,6 +1849,18 @@ describe('CrossLine', () => {
             await waitForChartStability(chart);
 
             expect({ top: chart.seriesRect!.y, shown: labelsShown() }).toEqual(settled);
+        });
+
+        it('lets a label hidden by the re-layout keep the space it was padded', async () => {
+            chart = await createChart(collisionChart({ alwaysShow: true }));
+            const [, crossLine] = getCrossLinesPlugin(chart.axes.findById('x')!)!.getInstances();
+
+            crossLine.holdLabelPlacement!(true);
+            crossLine.applyLabelPlacement!(true);
+            crossLine.holdLabelPlacement!(false);
+
+            // A hover re-applies the same solve, which must not read as a flip needing another layout.
+            expect(crossLine.applyLabelPlacement!(true)).toBe(false);
         });
 
         it('lays a hidden label out once when it keeps its verdict', async () => {

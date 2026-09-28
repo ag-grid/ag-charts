@@ -200,6 +200,9 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     /** The last solve's verdict, which the next layout pads for. */
     private labelHidden = false;
     private paddedForLabel = false;
+    /** Hidden by a re-layout that padded for it, so later layouts keep that padding rather than flip again. */
+    private labelPadsHidden = false;
+    private relayingOut = false;
     private labelHeld = false;
 
     constructor() {
@@ -409,11 +412,21 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     applyLabelPlacement(hidden: boolean): boolean {
         this.labelHidden = hidden;
         this.crossLineLabel.visible = !hidden;
-        return this.paddedForLabel !== (!hidden && this.labelPaddingSide != null);
+        if (!hidden) {
+            this.labelPadsHidden = false;
+        } else if (this.relayingOut && this.paddedForLabel) {
+            this.labelPadsHidden = true;
+        }
+        return this.paddedForLabel !== (this.padsForLabel && this.labelPaddingSide != null);
+    }
+
+    private get padsForLabel(): boolean {
+        return !this.labelHidden || this.labelPadsHidden;
     }
 
     /** A held hidden label sits the re-layout out, as it was laid out unpadded. */
     holdLabelPlacement(hold: boolean) {
+        this.relayingOut = hold;
         this.labelHeld = hold && this.labelHidden;
     }
 
@@ -626,7 +639,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     calculatePadding(into: Partial<Record<AgCrossLineLabelPosition, number>>) {
         this.paddedForLabel = false;
-        if (this.labelHidden) return;
+        if (!this.padsForLabel) return;
 
         const side = this.labelPaddingSide;
         if (side == null) return;
