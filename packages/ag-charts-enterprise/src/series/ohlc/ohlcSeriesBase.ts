@@ -146,6 +146,7 @@ interface OhlcSeriesNodeDatumContext {
     nodeIndex: number;
 
     nodeData: OhlcNodeDatum[];
+    xPosition(index: number): number;
 }
 
 interface OhlcSeriesBaseNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<OhlcNodeDatum> {
@@ -461,7 +462,12 @@ export abstract class OhlcSeriesBase<
             },
             canIncrementallyUpdate,
             nodeIndex: 0,
-            nodeData: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
+            nodeData: canIncrementallyUpdate ? (this.contextNodeData.nodeData ?? []) : [],
+            xPosition(index: number): number {
+                const x = this.xScale.convert(this.xValues[index]);
+                if (!Number.isFinite(x)) return Number.NaN;
+                return x + this.groupOffset + (this.applyWidthOffset ? this.barOffset : 0);
+            },
         };
     }
 
@@ -666,17 +672,11 @@ export abstract class OhlcSeriesBase<
 
         if (!visible || !ctx) return resultContext;
 
-        const xPosition = (index: number) => {
-            const x = ctx.xScale.convert(ctx.xValues[index]);
-            if (!Number.isFinite(x)) return Number.NaN;
-            return x + ctx.groupOffset + (ctx.applyWidthOffset ? ctx.barOffset : 0);
-        };
-
         if (ctx.dataAggregationFilter == null) {
             const invalidData = this.processedData!.invalidData?.get(this.id);
             let [start, end] = visibleRangeIndices(1, ctx.rawData.length, ctx.xAxis.range, (index) => {
                 const xOffset = ctx.applyWidthOffset ? 0 : -ctx.barWidth / 2;
-                const x = xPosition(index) + xOffset;
+                const x = ctx.xPosition(index) + xOffset;
                 return [x, x + ctx.barWidth];
             });
             // @todo(AG-13575) Remove this if block
@@ -688,7 +688,7 @@ export abstract class OhlcSeriesBase<
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 if (invalidData?.[datumIndex] === true) continue;
 
-                const centerX = xPosition(datumIndex);
+                const centerX = ctx.xPosition(datumIndex);
                 this.upsertNodeDatum(ctx, datumIndex, centerX, ctx.barWidth, ctx.crisp);
             }
 
@@ -703,7 +703,7 @@ export abstract class OhlcSeriesBase<
                 const midDatumIndex = midpointIndices[index];
                 if (midDatumIndex === -1) return;
                 const xOffset = ctx.applyWidthOffset ? 0 : -ctx.barWidth / 2;
-                return [xPosition(midDatumIndex) + xOffset, xPosition(closeIndex) + xOffset + ctx.barWidth];
+                return [ctx.xPosition(midDatumIndex) + xOffset, ctx.xPosition(closeIndex) + xOffset + ctx.barWidth];
             });
 
             for (let i = start; i < end; i += 1) {
@@ -726,8 +726,8 @@ export abstract class OhlcSeriesBase<
                 prepared.isRising = prepared.closeValue > prepared.openValue;
                 prepared.itemType = prepared.isRising ? 'up' : 'down';
 
-                const centerX = xPosition(midDatumIndex);
-                const width = Math.abs(xPosition(closeIndex) - xPosition(openIndex)) + ctx.barWidth;
+                const centerX = ctx.xPosition(midDatumIndex);
+                const width = Math.abs(ctx.xPosition(closeIndex) - ctx.xPosition(openIndex)) + ctx.barWidth;
 
                 const canReuse = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length;
 
