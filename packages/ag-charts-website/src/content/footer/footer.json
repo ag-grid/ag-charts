@@ -60,6 +60,10 @@
             {
                 "name": "Security",
                 "url": "/r/security/"
+            },
+            {
+                "name": "Accessibility",
+                "url": "/r/accessibility/"
             }
         ]
     },
