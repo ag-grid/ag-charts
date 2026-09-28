@@ -266,13 +266,17 @@ runs:
           # Also skipped for `yarn_postinstall: false` in ro mode: the only install step for
           # `false` is gated on rw, so an ro+false job never installs and a restore would be
           # wasted (matters only on an inexact node_modules restore — a degraded path).
+          #
+          # The key carries runner.arch because saved caches are hollowed for the saving
+          # runner's architecture (see "Hollow yarn cache"): a runner on another arch would
+          # find its native packages present-but-empty and never re-download them.
           if: inputs.cache_mode != 'off' && inputs.yarn_postinstall != 'no-install' && (inputs.yarn_postinstall != 'false' || inputs.cache_mode == 'rw') && steps.cache_rw.outputs.cache-hit != 'true' && steps.cache_ro.outputs.cache-hit != 'true'
           id: yarn_cache
           uses: actions/cache/restore@v6
           with:
               path: ${{ steps.yarn_cache_dir.outputs.dir }}
-              key: yarn-cache-${{ runner.os }}-${{ inputs.node_modules_hash }}
-              restore-keys: yarn-cache-${{ runner.os }}-
+              key: yarn-cache-${{ runner.os }}-${{ runner.arch }}-${{ inputs.node_modules_hash }}
+              restore-keys: yarn-cache-${{ runner.os }}-${{ runner.arch }}-
 
         - name: yarn install
           if: inputs.yarn_postinstall == 'true'
@@ -353,6 +357,18 @@ runs:
               path: ${{ inputs.node_modules_paths }}
               key: node_modules-${{ runner.os }}-${{ steps.nx_config.outputs.release_branch && format('release-{0}-{1}', steps.nx_config.outputs.release_branch, inputs.node_modules_hash) || inputs.node_modules_hash }}
 
+        - name: Hollow yarn cache
+          # Shrink the download cache before saving it (~2.5 GB -> ~0.2 GB compressed).
+          # yarn v1 fetches every platform's optional native binaries and only checks
+          # os/cpu afterwards, so most of the cache is packages this runner never links.
+          # See hollow-yarn-cache.sh for why they are hollowed rather than deleted.
+          # Gated identically to "Save yarn cache".
+          if: inputs.cache_mode == 'rw' && inputs.yarn_postinstall != 'no-install' && steps.cache_rw.outputs.cache-hit != 'true' && steps.yarn_cache.outputs.cache-hit != 'true'
+          shell: bash
+          env:
+              YARN_CACHE_DIR: ${{ steps.yarn_cache_dir.outputs.dir }}
+          run: bash "${{ github.action_path }}/hollow-yarn-cache.sh" "${YARN_CACHE_DIR}"
+
         - name: Save yarn cache
           # Save the download cache warmed by yarn install (see "Restore yarn cache").
           # rw writers (e.g. the init job) warm it; ro readers (matrix jobs) only restore.
@@ -367,4 +383,4 @@ runs:
           uses: actions/cache/save@v6
           with:
               path: ${{ steps.yarn_cache_dir.outputs.dir }}
-              key: yarn-cache-${{ runner.os }}-${{ inputs.node_modules_hash }}
+              key: yarn-cache-${{ runner.os }}-${{ runner.arch }}-${{ inputs.node_modules_hash }}
