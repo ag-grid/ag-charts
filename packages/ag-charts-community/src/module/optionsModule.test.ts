@@ -4423,6 +4423,34 @@ describe('ChartOptions', () => {
             expect(console.error).not.toHaveBeenCalled();
         });
 
+        it.each([
+            { chromeFontFamily: { googleFont: 'Lato' }, expected: 'Lato', googleFonts: ['Lato'] },
+            {
+                chromeFontFamily: [{ googleFont: 'Lato' }, 'sans-serif'],
+                expected: 'Lato, sans-serif',
+                googleFonts: ['Lato'],
+            },
+            { chromeFontFamily: ['Verdana', 'sans-serif'], expected: 'Verdana, sans-serif', googleFonts: [] },
+        ])('converts chromeFontFamily $chromeFontFamily to a string', ({ chromeFontFamily, expected, googleFonts }) => {
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    loadGoogleFonts: true,
+                    theme: { params: { chromeFontFamily } },
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            // This param only feeds `--ag-charts-chrome-font-family`, so it must resolve to a CSS font-family string.
+            expect(chartOptions.themeParameters.chromeFontFamily).toBe(expected);
+            expect(chartOptions.googleFonts ?? new Set()).toEqual(new Set(googleFonts));
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
         it('carries the referenced-font set through a fast-path delta update', () => {
             const baseOptions: AgChartOptions = {
                 data: [{ x: 'a', y: 1 }],
