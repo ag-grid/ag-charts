@@ -69,6 +69,22 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         ],
     },
     {
+        id: 'seriesLabels',
+        label: 'Series Labels',
+        collapsed: true,
+        params: [
+            { key: 'seriesLabelFontFamily', label: 'Font Family' },
+            { key: 'seriesLabelFontSize', label: 'Font Size', min: 8, max: 24 },
+            { key: 'seriesLabelFontWeight', label: 'Font Weight' },
+            { key: 'seriesLabelInsideTextColor', label: 'Inside Text Color' },
+            { key: 'seriesLabelInsideBackgroundColor', label: 'Inside Background' },
+            { key: 'seriesLabelOutsideTextColor', label: 'Outside Text Color' },
+            { key: 'seriesLabelOutsideBackgroundColor', label: 'Outside Background' },
+            { key: 'seriesLabelBorder', label: 'Border' },
+            { key: 'seriesLabelBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
+        ],
+    },
+    {
         id: 'borders',
         label: 'Borders & Spacing',
         params: [

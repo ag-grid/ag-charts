@@ -56,9 +56,9 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
             ...LABEL_BOXING_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'textColor' },
             collision: {
                 threshold: 4,

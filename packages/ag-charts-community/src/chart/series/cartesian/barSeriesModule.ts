@@ -50,9 +50,9 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
-            fontWeight: { $ref: 'fontWeight' },
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
             spacing: 8,
             padding: 8,
             collision: {
@@ -60,8 +60,8 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
                 alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
                 ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
-            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
-            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
             placement: 'inside-center',
         },
         shadow: {

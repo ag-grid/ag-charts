@@ -255,6 +255,16 @@ export class ChartTheme {
             crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
+
+            seriesLabelBorder: false,
+            seriesLabelBorderRadius: 4,
+            seriesLabelFontFamily: { $ref: 'fontFamily' },
+            seriesLabelFontSize: { $ref: 'fontSize' },
+            seriesLabelFontWeight: { $ref: 'fontWeight' },
+            seriesLabelInsideBackgroundColor: 'transparent',
+            seriesLabelInsideTextColor: { $ref: 'chartBackgroundColor' },
+            seriesLabelOutsideBackgroundColor: 'transparent',
+            seriesLabelOutsideTextColor: { $ref: 'textColor' },
         };
     }
 

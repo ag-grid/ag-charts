@@ -182,9 +182,9 @@ const seriesLabelTheme = {
     ...LABEL_OVERFLOW_DEFAULTS,
     enabled: false,
     fontStyle: undefined,
-    fontWeight: { $ref: 'fontWeight' as const },
-    fontSize: { $ref: 'fontSize' as const },
-    fontFamily: { $ref: 'fontFamily' as const },
+    fontWeight: { $ref: 'seriesLabelFontWeight' as const },
+    fontSize: { $ref: 'seriesLabelFontSize' as const },
+    fontFamily: { $ref: 'seriesLabelFontFamily' as const },
     formatter: undefined,
     spacing: 6,
     padding: 6,
@@ -193,8 +193,8 @@ const seriesLabelTheme = {
         alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
         ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
     },
-    insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
-    outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+    insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
+    outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
     placement: 'outside-end' as const,
 };
 

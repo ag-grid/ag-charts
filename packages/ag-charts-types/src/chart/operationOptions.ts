@@ -48,6 +48,8 @@ type ThemeParam =
     | 'inputBorder.width'
     | 'menuBorder.color'
     | 'menuBorder.width'
+    | 'seriesLabelBorder.color'
+    | 'seriesLabelBorder.width'
     | 'tooltipBorder.color'
     | 'tooltipBorder.width';
 

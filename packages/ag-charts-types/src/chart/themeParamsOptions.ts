@@ -202,6 +202,60 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     gridLineColor?: AgCssColorOrRef;
     /** Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object. */
     groupedCategoryLineColor?: AgCssColorOrRef;
+    /**
+     * Border around series labels. A border otherwise shows only where a series enables `label.border`. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `false`
+     */
+    seriesLabelBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of series label backgrounds and borders.
+     *
+     * Default: `4`
+     */
+    seriesLabelBorderRadius?: PixelSize;
+    /**
+     * Font family used for series labels. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    seriesLabelFontFamily?: FontFamilyFull;
+    /**
+     * Font size used for series labels. Secondary series labels scale relative to it.
+     *
+     * Default: `fontSize`
+     */
+    seriesLabelFontSize?: FontSize;
+    /**
+     * Font weight used for series labels.
+     *
+     * Default: `fontWeight`
+     */
+    seriesLabelFontWeight?: FontWeight;
+    /**
+     * Background colour of series labels placed inside series shapes, such as bar labels with an `inside-*` placement and pie sector labels. `'transparent'` draws no background box; any other colour boxes the label, which adds padding and can hide labels that no longer fit. A colour string, or a theme-colour reference object.
+     *
+     * Default: `'transparent'`
+     */
+    seriesLabelInsideBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Colour for text of series labels placed inside series shapes, such as bar labels with an `inside-*` placement and pie sector labels. Range-area inside labels use `textColor` instead. A colour string, or a theme-colour reference object.
+     *
+     * Default: `chartBackgroundColor`
+     */
+    seriesLabelInsideTextColor?: AgCssColorOrRef;
+    /**
+     * Background colour of series labels placed outside series shapes, such as bar labels with an `outside-*` placement and pie callout labels. `'transparent'` draws no background box; any other colour boxes the label, which adds padding and can hide labels that no longer fit. A colour string, or a theme-colour reference object.
+     *
+     * Default: `'transparent'`
+     */
+    seriesLabelOutsideBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Colour for text of series labels placed outside series shapes, such as bar labels with an `outside-*` placement and pie callout labels. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    seriesLabelOutsideTextColor?: AgCssColorOrRef;
 }
 
 export interface AgChartPrivateThemeParams {
