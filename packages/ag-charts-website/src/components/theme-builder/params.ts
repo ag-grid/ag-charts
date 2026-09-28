@@ -150,11 +150,7 @@ const isDerivedValue = (value: unknown): boolean => {
 
 /** Which of a theme's params follow another one rather than standing alone. */
 export const inheritedKeysOf = (params: Record<string, unknown>): Set<string> =>
-    new Set(
-        Object.entries(params)
-            .filter(([, value]) => isDerivedValue(value))
-            .map(([key]) => key)
-    );
+    new Set(Object.keys(params).filter((key) => isDerivedValue(params[key])));
 
 /**
  * The params that follow another one rather than standing alone. Read from the
@@ -165,7 +161,7 @@ export const inheritedKeysOf = (params: Record<string, unknown>): Set<string> =>
 export const INHERITED_KEYS = inheritedKeysOf(CHARTS_PARAM_DEFAULTS);
 
 /** `--ag-accent-color` back to `accentColor`, for a default written as raw CSS. */
-const PARAM_BY_VARIABLE: Record<string, string> = Object.fromEntries(
+const PARAM_BY_VARIABLE: Record<string, string | undefined> = Object.fromEntries(
     PUBLIC_PARAM_NAMES.map((property) => [paramToVariableName(property), property])
 );
 
@@ -173,7 +169,7 @@ const collectSources = (value: unknown, found: string[]): void => {
     if (typeof value === 'string') {
         for (const [, variable] of value.matchAll(/var\((--ag-[a-z\d-]+)/g)) {
             const property = PARAM_BY_VARIABLE[variable];
-            if (property) {
+            if (property != null) {
                 found.push(property);
             }
         }
@@ -208,6 +204,6 @@ export const inheritedSourcesOf = (value: unknown): string[] => {
 };
 
 /** What each inherited param follows, for the editor panel's footnotes. */
-export const INHERITED_SOURCES: Record<string, string[]> = Object.fromEntries(
+export const INHERITED_SOURCES: Record<string, string[] | undefined> = Object.fromEntries(
     [...INHERITED_KEYS].map((key) => [key, inheritedSourcesOf(CHARTS_PARAM_DEFAULTS[key])])
 );

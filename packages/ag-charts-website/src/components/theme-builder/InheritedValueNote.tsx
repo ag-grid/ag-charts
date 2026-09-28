@@ -1,5 +1,4 @@
 import { ParamModel, useParamAtom } from '@ag-website-shared/theming/ParamModel';
-import type { ThemeParam } from '@ag-website-shared/theming/utils';
 import styled from '@emotion/styled';
 
 import { INHERITED_SOURCES } from './params';
@@ -10,14 +9,14 @@ import { INHERITED_SOURCES } from './params';
  * theme keeps in step looks the same as one pinned where it is.
  */
 export const InheritedValueNote = ({ param }: { param: string }) => {
-    const [value] = useParamAtom(ParamModel.for(param as ThemeParam));
+    const [value] = useParamAtom(ParamModel.for(param));
     const sources = INHERITED_SOURCES[param];
 
     if (value != null || !sources) {
         return null;
     }
 
-    return <Note>Inherited from {andList(sources.map((source) => ParamModel.for(source as ThemeParam).label))}</Note>;
+    return <Note>Inherited from {andList(sources.map((source) => ParamModel.for(source).label))}</Note>;
 };
 
 const andList = (items: string[]) =>

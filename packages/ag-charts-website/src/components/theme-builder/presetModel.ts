@@ -1,7 +1,8 @@
 import { atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
 import type { Store } from '@ag-website-shared/theming/store';
-import type { AgChartThemeName } from 'ag-charts-community';
 import { useAtomValue } from 'jotai';
+
+import type { AgChartThemeName } from 'ag-charts-community';
 
 /**
  * Which preset the current theme was started from. Persisted alongside the params

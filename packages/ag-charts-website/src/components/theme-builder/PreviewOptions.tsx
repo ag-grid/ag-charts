@@ -49,7 +49,7 @@ export const PreviewOptions = ({
                 triggerAriaLabel={`${paneLabel} preview chart type`}
             />
         </TypeField>
-        {chartType.countLabel && (
+        {chartType.countLabel != null && (
             <Field>
                 <Label aria-hidden="true">{chartType.countLabel}</Label>
                 <Select

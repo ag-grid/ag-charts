@@ -5,9 +5,10 @@ import {
     type SeriesColor,
     fromSeriesColors,
 } from '@ag-website-shared/components/theme-builder/palette';
+import { createPart, createSharedTheme } from 'ag-stack';
+
 import { _Theme } from 'ag-charts-community';
 import type { AgChartThemeName, AgPaletteColors } from 'ag-charts-community';
-import { createPart, createSharedTheme } from 'ag-stack';
 
 import { themeLogger } from './themeLogger';
 
@@ -67,6 +68,7 @@ export const toStackParamValue = (property: string, value: ChartsParamValue): un
             // Color.mix(a, b, t) lerps a -> b, so `a` carries a weight of 1 - t.
             return { ref, mix: 1 - t, onto };
         }
+        // eslint-disable-next-line no-console
         console.warn(`[charts theme builder] cannot express $mix for "${property}" as a param reference`);
         return undefined;
     }
@@ -74,7 +76,7 @@ export const toStackParamValue = (property: string, value: ChartsParamValue): un
     // Composite params such as `buttonBorder: { color, width }`, whose members
     // are themselves operations.
     return Object.fromEntries(
-        Object.entries(value).map(([key, member]) => [key, toStackParamValue(`${property}.${key}`, member)])
+        Object.keys(value).map((key) => [key, toStackParamValue(`${property}.${key}`, value[key])])
     );
 };
 
@@ -117,6 +119,7 @@ export const getPalette = (themeName: AgChartThemeName): Palette => {
     const series: SeriesColor[] = [];
     fills.forEach((fill, index) => {
         if (typeof fill !== 'string') {
+            // eslint-disable-next-line no-console
             console.warn(`[charts theme builder] Theme "${themeName}" palette fill ${index} is not a plain colour`);
             return;
         }
@@ -137,7 +140,7 @@ export const CHARTS_PARAM_DEFAULTS = getStackParams(DEFAULT_THEME_NAME);
  * so the catalogue is exactly AG Charts' params and nothing else.
  */
 export const chartsShadowTheme = createSharedTheme(themeLogger).withPart(
-    // Keyed by AG Charts' names, which ag-stack cannot type against its own
-    // catalogue; the values are validated at runtime through `themeLogger`.
-    createPart({ feature: 'agCharts', params: CHARTS_PARAM_DEFAULTS as never })
+    // Keyed by AG Charts' names rather than ag-stack's, so the values are
+    // validated at runtime through `themeLogger`.
+    createPart({ feature: 'agCharts', params: CHARTS_PARAM_DEFAULTS })
 );
