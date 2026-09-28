@@ -662,8 +662,7 @@ describe('AgCharts', () => {
                 await chart.waitForUpdate();
             });
 
-            // Only the report is asserted: with no series module in scope a separate, pre-existing error is
-            // also logged (chart-level theme defaults are unresolved), which is tracked out of scope.
+            // Only the report is asserted: a second, unrelated error is also logged when no series module is in scope.
             const messages = takeErrorMessages();
             expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
             expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);

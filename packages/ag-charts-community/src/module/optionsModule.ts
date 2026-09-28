@@ -832,9 +832,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const missingModules: ModulePlaceholder[] = [];
 
         if (seriesCount === 0) {
-            // With no `series` the chart resolves against a default series type that is in scope; only when no
-            // series module is in scope does the default go unresolved, which is the same defect as the explicit
-            // mismatch below. Presets supply their own.
+            // With no `series` the default series type is one in scope, so it can only be missing when no series
+            // module is in scope — the same defect as the explicit mismatch below. Presets supply their own.
             const defaultType = this.optionsType(options);
             const defaultPlaceholder = ExpectedModules.get(defaultType);
             if (
