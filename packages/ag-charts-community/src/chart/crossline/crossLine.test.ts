@@ -1723,6 +1723,84 @@ describe('CrossLine', () => {
         });
     });
 
+    describe('label collision', () => {
+        // Two labels above the same x value: a small reserved one, and a large one that overlaps it and
+        // pads the chart further.
+        function collisionChart(alwaysShow: boolean, stroke = 'blue', smallLabel = true): AgCartesianChartOptions {
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', stroke }],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 5,
+                                label: undocumentedLabel({
+                                    enabled: smallLabel,
+                                    text: 'A',
+                                    fontSize: 10,
+                                    reserveSpace: true,
+                                }),
+                            },
+                            {
+                                type: 'line',
+                                value: 5,
+                                label: { text: 'LARGE LABEL', fontSize: 40, collision: { alwaysShow } },
+                            },
+                        ],
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+        }
+
+        function labelsShown() {
+            const axis = chart.axes.findById('x')!;
+            return (getCrossLinesPlugin(axis)?.getInstances() ?? []).map((crossLine) => {
+                const [crossLineLabel] = crossLine.labelGroup.children() as any;
+                return crossLineLabel.visible as boolean;
+            });
+        }
+
+        it('hides a colliding label and releases the space it padded', async () => {
+            chart = await createChart(collisionChart(true));
+            const shownTop = chart.seriesRect!.y;
+            expect(labelsShown()).toEqual([true, true]);
+
+            await chart.publicApi!.update(collisionChart(false));
+            await waitForChartStability(chart);
+
+            expect(labelsShown()).toEqual([true, false]);
+            expect(chart.seriesRect!.y).toBeLessThan(shownTop);
+        });
+
+        it('renders a colliding label hidden without the space it would pad', async () => {
+            chart = await createChart(collisionChart(false));
+            await compare();
+        });
+
+        it('keeps a label outside the series area when nothing collides with it', async () => {
+            chart = await createChart(collisionChart(false, 'blue', false));
+
+            expect(labelsShown()[1]).toBe(true);
+        });
+
+        it('settles on the same result when laid out again', async () => {
+            chart = await createChart(collisionChart(false));
+            await chart.publicApi!.update(collisionChart(false, 'red'));
+            await waitForChartStability(chart);
+            const settled = { top: chart.seriesRect!.y, shown: labelsShown() };
+
+            await chart.publicApi!.update(collisionChart(false, 'green'));
+            await waitForChartStability(chart);
+
+            expect({ top: chart.seriesRect!.y, shown: labelsShown() }).toEqual(settled);
+        });
+    });
+
     describe('AG-8901: label space reservation', () => {
         // Every datum shares a y value, so the series labels form one row across the cross line's own
         // position — the arrangement that puts them in the way whenever the label is not reserved.
@@ -1836,12 +1914,12 @@ describe('CrossLine', () => {
             const axis = chart.axes.findById('y')!;
             const plugin = getCrossLinesPlugin(axis)!;
 
-            expect(plugin.getLabelObstacles(BBox.zero)).toHaveLength(1);
+            expect(plugin.getLabelData(BBox.zero)).toMatchObject([{ obstacle: true }]);
 
             const version = plugin.nodeDataVersion;
             plugin.setVisible(false);
 
-            expect(plugin.getLabelObstacles(BBox.zero)).toBeUndefined();
+            expect(plugin.getLabelData(BBox.zero)).toHaveLength(0);
             expect(plugin.nodeDataVersion).toBeGreaterThan(version);
         });
 

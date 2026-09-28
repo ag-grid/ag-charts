@@ -21,6 +21,7 @@ import type {
 import type { AgBandHighlightOptions } from './bandHighlightOptions';
 import type { Styler } from './callbackOptions';
 import type { AgBaseThemeableChartOptions, AgSeriesAreaOptions } from './chartOptions';
+import type { AgChartLabelCollisionOptions } from './collisionAvoidanceOptions';
 import type {
     AgBaseCrossLineLabelOptions,
     AgCrossLineLabelPosition,
@@ -584,6 +585,8 @@ export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOp
     position?: AgCrossLineLabelPosition;
     /** The rotation of the Cross Line label in degrees. */
     rotation?: Degree;
+    /** Configuration for how the Cross Line label behaves when it collides with other chart elements. */
+    collision?: AgChartLabelCollisionOptions;
 }
 
 export interface AgSeriesAreaBackgroundRegion extends FillOptions, StrokeOptions {

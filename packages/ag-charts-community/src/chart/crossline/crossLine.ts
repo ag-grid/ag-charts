@@ -5,6 +5,7 @@ import type {
     Forbid,
     NormalisedAxisCrossLineLabelOptions,
     NormalisedAxisCrossLineOptions,
+    PointLabelDatum,
     RequireOptional,
     Scale,
 } from 'ag-charts-core';
@@ -21,6 +22,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { PolarAxisLayout } from '../../module/axisContext';
+import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import { isValidScaleValue } from '../scaleValue';
 
@@ -110,10 +112,12 @@ export interface CrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> {
     fillOpacity?: number;
     gridLength: number;
     gridPadding: number;
-    /** Whether the label reserves its space from other labels. Cartesian cross lines only. */
-    readonly reservesLabelSpace?: boolean;
     /** The drawn label's footprint in canvas coordinates, or `undefined` when it draws no label. */
     getLabelBox?(): BoxBounds | undefined;
+    /** The label as a placement candidate in `seriesRect` space. Cartesian cross lines only. */
+    getLabelDatum?(seriesRect: BBox): PointLabelDatum | undefined;
+    applyLabelPlacement?(hidden: boolean): boolean;
+    holdLabelPlacement?(hold: boolean): void;
     /**
      * Chart container in canvas coordinates, bounding where a `'clip-text'` label may draw. Set on every
      * update, since the canvas can resize without the axis relaying out.

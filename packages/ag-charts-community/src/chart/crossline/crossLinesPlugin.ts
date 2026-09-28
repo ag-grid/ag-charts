@@ -4,10 +4,11 @@ import type {
     CanvasPoint,
     DynamicContext,
     Forbid,
-    LabelObstacle,
     NormalisedAxisCrossLineOptions,
+    PlacedLabel,
+    PointLabelDatum,
 } from 'ag-charts-core';
-import { AbstractModuleInstance, jsonDiff } from 'ag-charts-core';
+import { AbstractModuleInstance, ChartUpdateType, jsonDiff } from 'ag-charts-core';
 import type { AgCrossLineClickEvent } from 'ag-charts-types';
 
 import type { SeriesAreaCanvasClickEvent, SeriesAreaContextMenuEvent } from '../../core/eventsHub';
@@ -17,7 +18,7 @@ import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
-import type { LabelSource } from '../layout/labelManager';
+import type { PlacedLabelSource } from '../layout/labelManager';
 import type { CrossLine, CrossLineValuePick, PendingCrossLineCallbackParam, PolarCrossLine } from './crossLine';
 
 /**
@@ -45,12 +46,13 @@ import type { CrossLine, CrossLineValuePick, PendingCrossLineCallbackParam, Pola
  * scene-graph detach/recreate churn on no-op updates. Per invariant I1 the options array is
  * read-only — the plugin stores its own runtime state on the per-instance `CrossLine`s.
  */
-export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPluginModuleInstance, LabelSource {
+export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPluginModuleInstance, PlacedLabelSource {
     static readonly className = 'CrossLines';
 
     readonly id: string;
-    /** A reserved label never moves, so the plugin only ever contributes obstacles. */
-    readonly usesPlacedLabels = false;
+    get usesPlacedLabels(): boolean {
+        return this.instances.length > 0;
+    }
     /** Bumped whenever the label inputs change, so placement can skip an unchanged solve. */
     nodeDataVersion = 0;
 
@@ -63,6 +65,8 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private visible = true;
     private lastOptions: NormalisedAxisCrossLineOptions[] | undefined;
     private readonly removePointerListeners: (() => void)[];
+    private readonly labelDatums = new Map<CrossLine, PointLabelDatum>();
+    private holdingLabelPlacements = false;
 
     constructor(ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) {
         super();
@@ -250,33 +254,36 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         return this.instances;
     }
 
-    /**
-     * Reserved cross-line labels, as obstacles in placement space. Seeded before any label resolves, so
-     * every other label routes around them whatever order the sources are solved in.
-     */
-    getLabelObstacles(seriesRect: BBox): LabelObstacle[] | undefined {
-        if (!this.visible) return;
+    getLabelData(seriesRect: BBox): PointLabelDatum[] {
+        this.labelDatums.clear();
+        if (!this.visible) return [];
 
-        const obstacles: LabelObstacle[] = [];
         for (const crossLine of this.instances) {
-            if (crossLine.reservesLabelSpace !== true) continue;
-            const box = crossLine.getLabelBox?.();
-            if (box == null) continue;
-
-            obstacles.push({
-                kind: 'rect',
-                category: 'label',
-                // Already the rotated footprint, so it is inserted unrotated: a rotation here would have
-                // the engine inflate the footprint a second time.
-                box: {
-                    x: box.x - seriesRect.x,
-                    y: box.y - seriesRect.y,
-                    width: box.width,
-                    height: box.height,
-                },
-            });
+            const datum = crossLine.getLabelDatum?.(seriesRect);
+            if (datum != null) this.labelDatums.set(crossLine, datum);
         }
-        return obstacles.length > 0 ? obstacles : undefined;
+        return Array.from(this.labelDatums.values());
+    }
+
+    /**
+     * A verdict the layout did not pad for re-runs the layout once, holding every verdict so the second
+     * solve cannot flip one back and oscillate.
+     */
+    updatePlacedLabelData(labels: PlacedLabel[]): void {
+        const placed = new Set(labels.map((label) => label.datum));
+        let stale = false;
+        for (const [crossLine, datum] of this.labelDatums) {
+            stale = crossLine.applyLabelPlacement!(!placed.has(datum)) || stale;
+        }
+
+        const hold = !this.holdingLabelPlacements && stale;
+        this.holdingLabelPlacements = hold;
+        for (const crossLine of this.instances) {
+            crossLine.holdLabelPlacement?.(hold);
+        }
+        if (hold) {
+            this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+        }
     }
 
     override destroy(): void {

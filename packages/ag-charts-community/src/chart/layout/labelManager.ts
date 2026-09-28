@@ -141,15 +141,18 @@ export class LabelManager {
 
         // Every visible series can contribute entity obstacles (bar rects, sectors, markers) that
         // any labels must avoid, even series that don't place labels of their own.
-        const obstacles: LabelObstacle[] = [];
-        for (const source of allSources) {
-            const sourceObstacles = source.getLabelObstacles?.(seriesRect);
-            if (sourceObstacles == null) continue;
-            for (const obstacle of sourceObstacles) {
-                obstacles.push(obstacle);
+        function gatherObstacles() {
+            const obstacles: LabelObstacle[] = [];
+            for (const source of allSources) {
+                const sourceObstacles = source.getLabelObstacles?.(seriesRect);
+                if (sourceObstacles == null) continue;
+                for (const obstacle of sourceObstacles) {
+                    obstacles.push(obstacle);
+                }
             }
+            return obstacles;
         }
 
-        return placeLabels(this.labelData, bounds, 5, obstacles);
+        return placeLabels(this.labelData, bounds, 5, gatherObstacles);
     }
 }
