@@ -1,13 +1,18 @@
 ---
+import { getEntry, type CollectionEntry } from 'astro:content';
 import { DocsExampleRunner } from './DocsExampleRunner';
-import type { ExampleType } from '@components/example-generator/types';
+import { TYPESCRIPT_INTERNAL_FRAMEWORKS, type ExampleType } from '@components/example-generator/types';
 import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
 import ExampleRunnerSourceCode from '@components/example-runner/components/ExampleRunnerSourceCode.astro';
 import { getExampleViewerFiles } from '@components/example-runner/utils/exampleViewerFiles';
 import type { ExampleOptions } from '@components/example-runner/types';
 import { getGeneratedContents } from '@components/example-generator';
 import { DISABLE_EXAMPLE_SOURCE_EMBED } from '@constants';
-import { getInternalFramework } from '@utils/framework';
+import { getFrameworkDisplayText, getInternalFramework } from '@utils/framework';
+import { getIsArchive } from '@utils/env';
+import { getDocsPageUrl } from '@utils/docsStructuredData';
+import JsonLd from '@ag-website-shared/components/structured-data/JsonLd.astro';
+import { buildSoftwareSourceCode, getTechArticleId } from '@ag-website-shared/utils/structuredData';
 import { getFrameworkFromPath, getPageNameFromPath } from '../utils/urlPaths';
 
 interface Props {
@@ -44,6 +49,21 @@ const contents = await getGeneratedContents(generatedExampleParams);
 const hasExampleConsoleLog = contents?.hasExampleConsoleLog;
 const sourceCode =
     contents && !DISABLE_EXAMPLE_SOURCE_EMBED ? getExampleViewerFiles(contents, internalFramework) : undefined;
+
+let sourceCodeStructuredData: ReturnType<typeof buildSoftwareSourceCode> | undefined;
+// Layout.astro suppresses all structured data on archive builds; match that here too, since an
+// archived example would otherwise share its @id with the current one and misdescribe it.
+if (sourceCode && !getIsArchive()) {
+    const { data: metadata } = (await getEntry('metadata', 'metadata')) as CollectionEntry<'metadata'>;
+    const pageUrl = getDocsPageUrl({ canonicalUrlBase: metadata.canonicalUrlBase, framework, pageName });
+    sourceCodeStructuredData = buildSoftwareSourceCode({
+        pageUrl,
+        exampleName: name,
+        programmingLanguage: TYPESCRIPT_INTERNAL_FRAMEWORKS.includes(internalFramework) ? 'TypeScript' : 'JavaScript',
+        runtimePlatform: getFrameworkDisplayText(framework),
+        aboutEntityId: getTechArticleId(pageUrl),
+    });
+}
 ---
 
 <ExampleRunnerContainer
@@ -73,4 +93,5 @@ const sourceCode =
             />
         )
     }
+    {sourceCodeStructuredData && <JsonLd data={sourceCodeStructuredData} />}
 </ExampleRunnerContainer>
