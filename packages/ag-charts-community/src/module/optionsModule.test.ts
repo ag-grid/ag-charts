@@ -4424,14 +4424,25 @@ describe('ChartOptions', () => {
         });
 
         it.each([
-            { chromeFontFamily: { googleFont: 'Lato' }, expected: 'Lato', googleFonts: ['Lato'] },
             {
+                name: 'a google-font',
+                chromeFontFamily: { googleFont: 'Lato' },
+                expected: 'Lato',
+                googleFonts: ['Lato'],
+            },
+            {
+                name: 'a mixed array',
                 chromeFontFamily: [{ googleFont: 'Lato' }, 'sans-serif'],
                 expected: 'Lato, sans-serif',
                 googleFonts: ['Lato'],
             },
-            { chromeFontFamily: ['Verdana', 'sans-serif'], expected: 'Verdana, sans-serif', googleFonts: [] },
-        ])('converts chromeFontFamily $chromeFontFamily to a string', ({ chromeFontFamily, expected, googleFonts }) => {
+            {
+                name: 'a string-array',
+                chromeFontFamily: ['Verdana', 'sans-serif'],
+                expected: 'Verdana, sans-serif',
+                googleFonts: [],
+            },
+        ])('converts $name chromeFontFamily param to a string', ({ chromeFontFamily, expected, googleFonts }) => {
             const chartOptions = new ChartOptions(
                 {
                     data: [{ x: 'a', y: 1 }],
