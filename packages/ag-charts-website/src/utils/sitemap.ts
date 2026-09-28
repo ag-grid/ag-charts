@@ -1,4 +1,4 @@
-import { FRAMEWORK_LANDING_HUBS, FRAMEWORK_REDIRECT_PATH } from '../constants';
+import { FRAMEWORKS, FRAMEWORK_LANDING_HUBS, FRAMEWORK_REDIRECT_PATH } from '../constants';
 import { isCanonicalisedToGridSite } from './canonicalUrl';
 
 /**
@@ -67,11 +67,16 @@ export const isInternalPage = (page: string) => {
         page.endsWith('-test') ||
         page.endsWith('-e2e/') ||
         page.endsWith('-e2e') ||
+        page.endsWith('/benchmarks/') ||
         page.endsWith('/benchmarks')
     );
 };
 
-const filterIgnoredPages = (page: string, siteBasePath: string) => {
+const getHiddenDocsPageSuffixes = (hiddenDocsPageNames: string[]) => {
+    return FRAMEWORKS.flatMap((framework) => hiddenDocsPageNames.map((name) => `/${framework}/${name}/`));
+};
+
+const filterIgnoredPages = (page: string, siteBasePath: string, hiddenDocsPageSuffixes: string[]) => {
     return (
         !isExamplePage(page) &&
         !isDebugPage(page) &&
@@ -80,6 +85,7 @@ const filterIgnoredPages = (page: string, siteBasePath: string) => {
         !isRedirectPage(page) &&
         !isNonPublicContent(page) &&
         !isNoIndexedLandingPageCopy(page) &&
+        !hiddenDocsPageSuffixes.some((suffix) => page.endsWith(suffix)) &&
         // Copies of pages the grid site owns canonicalise there, so listing them here would
         // contradict the canonical the page itself emits.
         !isCanonicalisedToGridSite(page, siteBasePath)
@@ -103,9 +109,11 @@ const filterIgnoredPages = (page: string, siteBasePath: string) => {
  *
  * Check the sitemap locally at `http://localhost:4601/charts/sitemap-0.xml` and `http://localhost:4601/charts/sitemap`
  */
-export function getSitemapConfig(siteBasePath: string) {
+export function getSitemapConfig(siteBasePath: string, hiddenDocsPageNames: string[] = []) {
+    const hiddenDocsPageSuffixes = getHiddenDocsPageSuffixes(hiddenDocsPageNames);
+
     return {
-        filter: (page: string) => filterIgnoredPages(page, siteBasePath),
+        filter: (page: string) => filterIgnoredPages(page, siteBasePath, hiddenDocsPageSuffixes),
         lastmod: new Date(),
         namespaces: {
             news: false,
