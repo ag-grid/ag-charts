@@ -154,7 +154,14 @@ function itemTheme(
 function placementStyle(styleKey: 'insideStyle' | 'outsideStyle'): WithThemeParams<AgChartLabelPlacementStyleOptions> {
     return {
         color: { $isUserOption: ['../color', { $path: '../color' }, inherited(`${styleKey}/color`, 4)] },
-        fill: inherited(`${styleKey}/fill`, 4),
+        // The series placement fill may be a theme-param default, which must not beat an item-level `label.fill`.
+        fill: {
+            $isUserOption: [
+                seriesLabelPath(`${styleKey}/fill`, 4),
+                inherited(`${styleKey}/fill`, 4),
+                { $if: [{ $isUserOption: '../fill' }, undefined, inherited(`${styleKey}/fill`, 4)] },
+            ],
+        },
         fillOpacity: inherited(`${styleKey}/fillOpacity`, 4),
         cornerRadius: inherited(`${styleKey}/cornerRadius`, 4),
         padding: inherited(`${styleKey}/padding`, 4),
