@@ -80,6 +80,7 @@ export const toStackParamValue = (property: string, value: ChartsParamValue): un
         if (typeof ratio === 'number' && typeof param === 'string') {
             return { calc: `${param} * ${ratio}` };
         }
+        // eslint-disable-next-line no-console
         console.warn(`[charts theme builder] cannot express $rem for "${property}" as a param calculation`);
         return undefined;
     }
