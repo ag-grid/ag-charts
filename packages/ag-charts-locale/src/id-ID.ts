@@ -50,7 +50,7 @@ export const AG_CHARTS_LOCALE_ID_ID: Record<string, string> = {
     ariaLabelLegendPageNext: 'Halaman Legenda Berikutnya',
     ariaLabelLegendItem: '${label}, Item legenda ${index}[number] dari ${count}[number]',
     ariaLabelLegendItemUnknown: 'Item legenda tidak dikenal',
-    ariaLabelNavigator: 'Navigasi',
+    ariaLabelNavigator: 'Navigator',
     ariaLabelNavigatorRange: 'Rentang',
     ariaLabelScrollbarHorizontal: 'Bilah gulir sumbu-X',
     ariaLabelScrollbarVertical: 'Bilah gulir sumbu-Y',

@@ -94,7 +94,7 @@ export const AG_CHARTS_LOCALE_FIL_PH: Record<string, string> = {
     seriesHistogramTooltipFrequency: 'Dalas',
     seriesHistogramTooltipSum: '${yName} (kabuuan)',
     seriesHistogramTooltipCount: '${yName} (bilang)',
-    seriesHistogramTooltipMean: '${yName} (katamtaman)',
+    seriesHistogramTooltipMean: '${yName} (average)',
     toolbarSeriesTypeDropdown: 'Uri ng Tsart',
     toolbarSeriesTypeOHLC: 'OHLC',
     toolbarSeriesTypeHLC: 'HLC',
