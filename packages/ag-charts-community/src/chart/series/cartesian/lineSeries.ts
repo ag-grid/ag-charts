@@ -93,7 +93,7 @@ import {
 } from './lineUtil';
 import {
     cartesianMarkerDrawMode,
-    computeMarkerFocusBounds,
+    computeLineAreaFocusBounds,
     getMarkerStyles,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
@@ -180,6 +180,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
+    public nodeDatumContext: LineSeriesDatumContext | undefined = undefined;
     private hideWithSize0 = false;
     private markerNodesPickable = true;
 
@@ -471,6 +472,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
      * compute - cheap property lookups use `this` directly.
      */
     protected override createNodeDatumContext(xAxis: ChartAxis, yAxis: ChartAxis): LineSeriesDatumContext | undefined {
+        this.nodeDatumContext = undefined;
+
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
 
@@ -492,7 +495,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const markerSize = marker.enabled ? marker.size : 0;
         const labelContext = this.resolveLabelContext(marker.shape, markerSize);
 
-        return {
+        this.nodeDatumContext = {
             xAxis,
             yAxis,
             rawData,
@@ -542,13 +545,19 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             spanPoints: [],
             nodeIndex: 0,
         };
+        return this.nodeDatumContext;
     }
 
     /**
      * Processes a single datum and updates the context's nodes and spanPoints arrays.
      * Uses the scratch object to avoid per-iteration allocations.
      */
-    private handleDatum(ctx: LineSeriesDatumContext, scratch: LineNodeDatumScratch, datumIndex: number): void {
+    public handleDatum(
+        ctx: LineSeriesDatumContext,
+        scratch: LineNodeDatumScratch,
+        datumIndex: number,
+        dst: Writeable<LineNodeDatum> | undefined
+    ): void {
         // Populate scratch from context arrays
         scratch.datum = ctx.rawData[datumIndex];
         scratch.xDatum = ctx.xValues[datumIndex];
@@ -587,11 +596,13 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             // Markerless vertices still nudge their label clear of the line with a small fixed gap.
             const gap = ctx.size > 0 ? ctx.size / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 
-            const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
+            const existingNode: typeof dst =
+                dst === undefined && ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length
+                    ? ctx.nodes[ctx.nodeIndex]
+                    : dst;
 
-            if (canReuseNode) {
+            if (existingNode) {
                 // Update existing node datum in place
-                const existingNode: Writeable<LineNodeDatum> = ctx.nodes[ctx.nodeIndex];
                 existingNode.datum = scratch.datum;
                 existingNode.datumIndex = datumIndex;
                 existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.size };
@@ -631,7 +642,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     crossFilterSelected: scratch.crossFilterSelected,
                 });
             }
-            ctx.nodeIndex++;
+            if (dst === undefined) {
+                ctx.nodeIndex++;
+            }
         }
 
         // Update span points for path rendering
@@ -668,12 +681,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         }
     }
 
-    /**
-     * Populates node data by iterating over the visible range.
-     */
-    protected override populateNodeData(ctx: LineSeriesDatumContext): void {
-        // Reusable scratch object to avoid per-datum allocations
-        const scratch: LineNodeDatumScratch = {
+    public allocDatumScratch(): LineNodeDatumScratch {
+        return {
             datum: undefined,
             xDatum: undefined,
             yDatum: undefined,
@@ -682,6 +691,34 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             x: 0,
             y: 0,
         };
+    }
+
+    public allocDatumWriteable(ctx: LineSeriesDatumContext): Writeable<LineNodeDatum> {
+        return {
+            series: this,
+            datum: undefined,
+            datumIndex: Number.NaN,
+            xKey: ctx.xKey,
+            xValue: undefined,
+            yKey: ctx.yKey,
+            yValue: undefined,
+            point: { x: Number.NaN, y: Number.NaN, size: Number.NaN },
+            capDefaults: ctx.capDefaults,
+            label: ctx.emptyLabel,
+            anchor: ctx.labelAnchor,
+            insideOffset: ctx.labelInsideOffset,
+            insideSize: ctx.labelInsideSize,
+            placement: 'top',
+            crossFilterSelected: undefined,
+        };
+    }
+
+    /**
+     * Populates node data by iterating over the visible range.
+     */
+    protected override populateNodeData(ctx: LineSeriesDatumContext): void {
+        // Reusable scratch object to avoid per-datum allocations
+        const scratch: LineNodeDatumScratch = this.allocDatumScratch();
 
         // Compute visible range and iterate
         const indices = ctx.dataAggregationFilter?.indices;
@@ -696,7 +733,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         }
 
         for (let i = start; i < end; i += 1) {
-            this.handleDatum(ctx, scratch, indices?.[i] ?? i);
+            this.handleDatum(ctx, scratch, indices?.[i] ?? i, undefined);
         }
     }
 
@@ -1389,7 +1426,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        return computeMarkerFocusBounds(this, opts);
+        return computeLineAreaFocusBounds(this, opts);
     }
 
     protected override hasItemStylers(): boolean {
