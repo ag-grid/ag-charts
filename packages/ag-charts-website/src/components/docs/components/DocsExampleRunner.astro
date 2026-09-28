@@ -1,16 +1,16 @@
 ---
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { DocsExampleRunner } from './DocsExampleRunner';
-import { TYPESCRIPT_INTERNAL_FRAMEWORKS, type ExampleType } from '@components/example-generator/types';
+import type { ExampleType } from '@components/example-generator/types';
 import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
 import ExampleRunnerSourceCode from '@components/example-runner/components/ExampleRunnerSourceCode.astro';
 import { getExampleViewerFiles } from '@components/example-runner/utils/exampleViewerFiles';
 import type { ExampleOptions } from '@components/example-runner/types';
 import { getGeneratedContents } from '@components/example-generator';
 import { DISABLE_EXAMPLE_SOURCE_EMBED } from '@constants';
-import { getFrameworkDisplayText, getInternalFramework } from '@utils/framework';
+import { getInternalFramework } from '@utils/framework';
 import { getIsArchive } from '@utils/env';
-import { getDocsPageUrl } from '@utils/docsStructuredData';
+import { getDocsPageUrl, getExampleSourceCodeProperties } from '@utils/docsStructuredData';
 import JsonLd from '@ag-website-shared/components/structured-data/JsonLd.astro';
 import { buildSoftwareSourceCode, getTechArticleId } from '@ag-website-shared/utils/structuredData';
 import { getFrameworkFromPath, getPageNameFromPath } from '../utils/urlPaths';
@@ -59,8 +59,7 @@ if (sourceCode && !getIsArchive()) {
     sourceCodeStructuredData = buildSoftwareSourceCode({
         pageUrl,
         exampleName: name,
-        programmingLanguage: TYPESCRIPT_INTERNAL_FRAMEWORKS.includes(internalFramework) ? 'TypeScript' : 'JavaScript',
-        runtimePlatform: getFrameworkDisplayText(framework),
+        ...getExampleSourceCodeProperties(internalFramework),
         aboutEntityId: getTechArticleId(pageUrl),
     });
 }
