@@ -393,9 +393,8 @@ export type NormalisedAxisCrossLineLabelOptions = Normalised<
     positionAngle?: number;
 };
 
-// The cross-lines theme template applies `fill`/`fillOpacity` to every cross-line and always
-// supplies `label`, so the normalised shape carries them on both variants — via the morph, as they
-// are not common keys.
+// The theme applies `fill`/`fillOpacity` and `label` to every cross line, so both variants carry them;
+// `stroke` narrows the public colour-or-reference to the resolved colour.
 interface CrossLineLabelMorph {
     label: NormalisedAxisCrossLineLabelOptions;
     stroke?: CssColor;

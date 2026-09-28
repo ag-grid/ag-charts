@@ -7,6 +7,7 @@ import type {
 } from 'ag-charts-types';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
+import { getDefaultColor, getDefaultOpacity } from './annotationDatums';
 import {
     type AnnotationOptionsColorPickerType,
     type HasColorAnnotationType,
@@ -19,10 +20,10 @@ import {
     LINE_STYLE_TYPE_ITEMS,
     TEXT_SIZE_ITEMS,
 } from './annotationsMenuOptions';
-import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
+import type { AnnotationDatum, AnnotationScene } from './annotationsSuperTypes';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
-import { isTextType } from './utils/types';
+import { isFibonacciType, isTextType } from './utils/types';
 
 type ButtonInteractionOptions = Parameters<_ModuleSupport.ToolbarButtonWidget['update']>[1];
 
@@ -152,7 +153,7 @@ export class AnnotationOptionsToolbar {
 
     constructor(
         private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
-        private readonly getActiveDatum: () => AnnotationProperties | undefined
+        private readonly getActiveDatum: () => AnnotationDatum | undefined
     ) {
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
@@ -186,7 +187,7 @@ export class AnnotationOptionsToolbar {
         this.toolbar.hide();
     }
 
-    public updateButtons(datum: AnnotationProperties) {
+    public updateButtons(datum: AnnotationDatum) {
         if (!this.enabled) return;
 
         const visible = {
@@ -226,24 +227,24 @@ export class AnnotationOptionsToolbar {
         this.toolbar.clearActiveButton();
     }
 
-    private updateColors(datum: AnnotationProperties) {
+    private updateColors(datum: AnnotationDatum) {
         this.updateColorPickerColor(
             AnnotationOptions.LineColor,
-            datum.getDefaultColor(AnnotationOptions.LineColor),
-            datum.getDefaultOpacity(AnnotationOptions.LineColor),
-            'isMultiColor' in datum && datum?.isMultiColor
+            getDefaultColor(datum, AnnotationOptions.LineColor),
+            getDefaultOpacity(datum, AnnotationOptions.LineColor),
+            isFibonacciType(datum) && datum.isMultiColor
         );
         this.updateColorPickerColor(
             AnnotationOptions.FillColor,
-            datum.getDefaultColor(AnnotationOptions.FillColor),
-            datum.getDefaultOpacity(AnnotationOptions.FillColor),
-            'isMultiColor' in datum && datum?.isMultiColor
+            getDefaultColor(datum, AnnotationOptions.FillColor),
+            getDefaultOpacity(datum, AnnotationOptions.FillColor),
+            isFibonacciType(datum) && datum.isMultiColor
         );
         this.updateColorPickerColor(
             AnnotationOptions.TextColor,
-            datum.getDefaultColor(AnnotationOptions.TextColor),
-            datum.getDefaultOpacity(AnnotationOptions.TextColor),
-            'isMultiColor' in datum && datum?.isMultiColor
+            getDefaultColor(datum, AnnotationOptions.TextColor),
+            getDefaultOpacity(datum, AnnotationOptions.TextColor),
+            isFibonacciType(datum) && datum.isMultiColor
         );
     }
 
@@ -321,17 +322,17 @@ export class AnnotationOptionsToolbar {
             case AnnotationOptions.TextColor: {
                 this.toolbar.toggleActiveButtonByIndex(button.index);
                 this.colorPicker.show({
-                    color: datum?.getDefaultColor(button.value),
-                    opacity: datum?.getDefaultOpacity(button.value),
+                    color: getDefaultColor(datum, button.value),
+                    opacity: getDefaultOpacity(datum, button.value),
                     sourceEvent: event.sourceEvent,
-                    hasMultiColorOption: 'isMultiColor' in datum,
-                    isMultiColor: 'isMultiColor' in datum && datum?.isMultiColor,
+                    hasMultiColorOption: isFibonacciType(datum),
+                    isMultiColor: isFibonacciType(datum) && datum.isMultiColor,
                     onChange: datum == null ? undefined : this.onColorPickerChange.bind(this, button.value, datum),
                     onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
                         this.events.emit('saved-color', {
                             type: datum.type,
                             colorPickerType: button.value as AnnotationOptionsColorPickerType,
-                            color: datum.getDefaultColor(type),
+                            color: getDefaultColor(datum, type),
                         });
                     }).bind(this, button.value),
                 });
@@ -409,7 +410,7 @@ export class AnnotationOptionsToolbar {
 
     private onColorPickerChange(
         colorPickerType: AnnotationOptionsColorPickerType,
-        datum: AnnotationProperties,
+        datum: AnnotationDatum,
         colorOpacity: string,
         color: string,
         opacity: number,
@@ -426,7 +427,7 @@ export class AnnotationOptionsToolbar {
         this.updateColorPickerColor(colorPickerType, colorOpacity, opacity, isMultiColor);
     }
 
-    private onTextSizeMenuPress(item: _ModuleSupport.MenuItem<number>, datum?: AnnotationProperties) {
+    private onTextSizeMenuPress(item: _ModuleSupport.MenuItem<number>, datum?: AnnotationDatum) {
         if (!hasFontSize(datum)) return;
 
         const fontSize = item.value;
@@ -437,7 +438,7 @@ export class AnnotationOptionsToolbar {
 
     private onLineStyleTypeMenuPress(
         item: _ModuleSupport.MenuItem<AgAnnotationLineStyleType>,
-        datum?: AnnotationProperties
+        datum?: AnnotationDatum
     ) {
         if (!hasLineStyle(datum)) return;
 
@@ -447,7 +448,7 @@ export class AnnotationOptionsToolbar {
         this.updateLineStyleType(item);
     }
 
-    private onLineStrokeWidthMenuPress(item: _ModuleSupport.MenuItem<number>, datum?: AnnotationProperties) {
+    private onLineStrokeWidthMenuPress(item: _ModuleSupport.MenuItem<number>, datum?: AnnotationDatum) {
         if (!hasLineStyle(datum)) {
             return;
         }
@@ -458,7 +459,7 @@ export class AnnotationOptionsToolbar {
         this.updateStrokeWidth(item);
     }
 
-    private refreshButtons(datum: AnnotationProperties) {
+    private refreshButtons(datum: AnnotationDatum) {
         const locked = datum.locked ?? false;
 
         for (const [index, button] of this.visibleButtons.entries()) {
@@ -479,7 +480,7 @@ export class AnnotationOptionsToolbar {
         this.updateLineStyles(datum);
     }
 
-    private updateLineStyles(datum: AnnotationProperties) {
+    private updateLineStyles(datum: AnnotationDatum) {
         if (!hasLineStyle(datum)) return;
 
         const strokeWidth = datum.strokeWidth ?? 1;

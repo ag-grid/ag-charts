@@ -137,8 +137,8 @@ export class Navigator extends AbstractModuleInstance {
             layoutBox.shrink(top + bottom, 'bottom');
             this.y -= bottom;
 
-            this.miniChart.inset = this.mask.strokeWidth / 2;
-            this.miniChart.cornerRadius = this.mask.cornerRadius;
+            this.miniChart.seriesRoot.inset = this.mask.strokeWidth / 2;
+            this.miniChart.seriesRoot.cornerRadius = this.mask.cornerRadius;
         }
     }
 

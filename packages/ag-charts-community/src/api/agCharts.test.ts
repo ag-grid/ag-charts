@@ -194,6 +194,21 @@ describe('AgCharts', () => {
         });
     });
 
+    describe('chart instance', () => {
+        it('serialises without exposing the internal chart', async () => {
+            const options: AgChartOptions = {
+                data: [{ x: 'A', y: 1 }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await chart.waitForUpdate();
+
+            expect(() => JSON.stringify(chart)).not.toThrow();
+            expect(Object.keys(chart)).not.toContain('chart');
+        });
+    });
+
     describe('option mutability', () => {
         it('should handle deep options mutations', async () => {
             const options = {

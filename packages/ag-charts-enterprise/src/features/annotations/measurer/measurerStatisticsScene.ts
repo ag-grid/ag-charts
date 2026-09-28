@@ -1,11 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type BoxBounds, type DynamicContext, type Point, Vec4 } from 'ag-charts-core';
+import { type Bounds4, type BoxBounds, type Point, Vec4 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { type PositionedScene, layoutScenesColumn, layoutScenesRow } from '../../../utils/sceneLayout';
 import type { AnnotationContext } from '../annotationTypes';
 import { layoutAddX, layoutAddY } from '../utils/layout';
-import type { MeasurerTypeProperties, QuickDatePriceRangeProperties } from './measurerProperties';
+import type { MeasurerDatum, QuickDatePriceRangeDatum } from './measurerDatum';
 
 export interface Statistics {
     dateRange?: { bars: number; value: number };
@@ -48,17 +48,16 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
     }
 
     update(
-        datum: MeasurerTypeProperties,
+        datum: MeasurerDatum,
         stats: Statistics,
         anchor: Point,
         coords: Bounds4,
         context: AnnotationContext,
-        verticalDirection?: 'up' | 'down',
-        localeManager?: DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
+        verticalDirection?: 'up' | 'down'
     ) {
         this.verticalDirection = verticalDirection;
 
-        const scenes = this.updateStatistics(datum, stats, anchor, localeManager);
+        const scenes = this.updateStatistics(datum, stats, anchor, context.localeManager);
 
         const bbox = _ModuleSupport.Group.computeChildrenBBox(scenes.flat());
         const padding = 10;
@@ -69,16 +68,16 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         this.checkVisibility(datum, context, coords);
     }
 
-    private checkVisibility(datum: MeasurerTypeProperties, context: AnnotationContext, coords: Bounds4) {
+    private checkVisibility(datum: MeasurerDatum, context: AnnotationContext, coords: Bounds4) {
         const bounds = Vec4.from(context.seriesRect);
         this.visible = Vec4.collides(coords, bounds) && (datum.visible ?? true);
     }
 
     private updateStatistics(
-        datum: MeasurerTypeProperties,
+        datum: MeasurerDatum,
         stats: Statistics,
         anchor: Point,
-        localeManager?: DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
+        localeManager: _ModuleSupport.LocaleManager
     ) {
         const {
             dateRangeBarsText,
@@ -161,7 +160,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         return scenes;
     }
 
-    private updateBackground(datum: MeasurerTypeProperties, bbox: BoxBounds, padding: number) {
+    private updateBackground(datum: MeasurerDatum, bbox: BoxBounds, padding: number) {
         const styles = this.getBackgroundStyles(datum);
 
         this.background.setProperties({
@@ -203,7 +202,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         this.background.y += offsetY;
     }
 
-    protected getTextStyles(datum: MeasurerTypeProperties) {
+    protected getTextStyles(datum: MeasurerDatum) {
         return {
             fill: datum.statistics.color,
             fontFamily: datum.statistics.fontFamily,
@@ -215,7 +214,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         };
     }
 
-    protected getDividerStyles(datum: MeasurerTypeProperties) {
+    protected getDividerStyles(datum: MeasurerDatum) {
         return {
             stroke: datum.statistics.divider.stroke,
             strokeOpacity: datum.statistics.divider.strokeOpacity,
@@ -223,7 +222,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         };
     }
 
-    protected getBackgroundStyles(datum: MeasurerTypeProperties) {
+    protected getBackgroundStyles(datum: MeasurerDatum) {
         return {
             fill: datum.statistics.fill,
             stroke: datum.statistics.stroke,
@@ -233,11 +232,8 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         };
     }
 
-    private formatDateRangeBars(
-        bars: number,
-        localeManager?: DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
-    ) {
-        return localeManager?.t('measurerDateRangeBars', { value: bars }) ?? `${bars}`;
+    private formatDateRangeBars(bars: number, localeManager: _ModuleSupport.LocaleManager) {
+        return localeManager.t('measurerDateRangeBars', { value: bars });
     }
 
     private formatDateRangeValue(time: number) {
@@ -266,36 +262,27 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         return range.join(' ');
     }
 
-    private formatPriceRangeValue(
-        value: number,
-        localeManager?: DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
-    ) {
-        return localeManager?.t('measurerPriceRangeValue', { value: Number(value.toFixed(2)) }) ?? `${value}`;
+    private formatPriceRangeValue(value: number, localeManager: _ModuleSupport.LocaleManager) {
+        return localeManager.t('measurerPriceRangeValue', { value: Number(value.toFixed(2)) });
     }
 
-    private formatPriceRangePercentage(
-        percentage: number,
-        localeManager?: DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
-    ) {
-        return localeManager?.t('measurerPriceRangePercent', { value: percentage }) ?? `${percentage}`;
+    private formatPriceRangePercentage(percentage: number, localeManager: _ModuleSupport.LocaleManager) {
+        return localeManager.t('measurerPriceRangePercent', { value: percentage });
     }
 
-    private formatVolume(
-        volume: AgNumericValue,
-        localeManager?: DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
-    ) {
+    private formatVolume(volume: AgNumericValue, localeManager: _ModuleSupport.LocaleManager) {
         const isMissing = typeof volume === 'number' && Number.isNaN(volume);
         const volumeString = isMissing ? '' : this.volumeFormatter.format(volume);
-        return localeManager?.t('measurerVolume', { value: volumeString }) ?? volumeString;
+        return localeManager.t('measurerVolume', { value: volumeString });
     }
 }
 
 export class QuickMeasurerStatisticsScene extends MeasurerStatisticsScene {
-    private getDirectionStyles(datum: QuickDatePriceRangeProperties) {
+    private getDirectionStyles(datum: QuickDatePriceRangeDatum) {
         return this.verticalDirection === 'down' ? datum.down.statistics : datum.up.statistics;
     }
 
-    override getTextStyles(datum: QuickDatePriceRangeProperties) {
+    override getTextStyles(datum: QuickDatePriceRangeDatum) {
         const styles = this.getDirectionStyles(datum);
 
         return {
@@ -308,7 +295,7 @@ export class QuickMeasurerStatisticsScene extends MeasurerStatisticsScene {
         };
     }
 
-    override getDividerStyles(datum: QuickDatePriceRangeProperties) {
+    override getDividerStyles(datum: QuickDatePriceRangeDatum) {
         const styles = this.getDirectionStyles(datum);
 
         return {
@@ -318,7 +305,7 @@ export class QuickMeasurerStatisticsScene extends MeasurerStatisticsScene {
         };
     }
 
-    override getBackgroundStyles(datum: QuickDatePriceRangeProperties) {
+    override getBackgroundStyles(datum: QuickDatePriceRangeDatum) {
         const styles = this.getDirectionStyles(datum);
 
         return {

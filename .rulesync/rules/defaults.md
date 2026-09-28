@@ -19,10 +19,10 @@ User configuration
         ↓
 Theme template in *Module.ts   ⭐ the ACTUAL runtime default users see
         ↓
-@Property decorator in *Properties.ts   (fallback only, rarely what users experience)
+Code fallback (`??` at the read site, or a datum factory)   (rarely what users experience)
 ```
 
--   **Never document or test against a `@Property` initialiser** without first checking the series/feature `*Module.ts` `themeTemplate` — the theme value almost always overrides it. Document what users actually see, not the internal fallback.
+-   **Never document or test against a code fallback** without first checking the series/feature `*Module.ts` `themeTemplate` — the theme value almost always overrides it. Document what users actually see, not the internal fallback.
 -   **JSDoc `Default:` must be its own paragraph**, separated from the description by a blank `*` line. Inline (`/** Spacing. Default: \`20\` */`) renders as body text instead of a labelled default in the API reference. This applies to every option in `ag-charts-types`, however short the description.
 -   A `Default:` comment that disagrees with the theme template is **stale** — fix the comment, not the template.
 
