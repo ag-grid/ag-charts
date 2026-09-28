@@ -392,41 +392,34 @@ const labelBoxingFillDefaults = (placement?: SeriesLabelPlacement): WithThemePar
     },
 });
 
+// `false` keeps the subtle border shown when a series enables `label.border`; `true` and objects follow borderColor/borderWidth.
+const seriesLabelBorderValue = (
+    key: 'color' | 'width',
+    base: 'borderColor' | 'borderWidth',
+    offValue: Operation | number
+): Operation => ({
+    $isType: [
+        { $ref: 'seriesLabelBorder' },
+        'boolean',
+        { $if: [{ $ref: 'seriesLabelBorder' }, { $ref: base }, offValue] },
+        {
+            $isType: [
+                { $ref: `seriesLabelBorder.${key}` },
+                'nullish',
+                { $ref: base },
+                { $ref: `seriesLabelBorder.${key}` },
+            ],
+        },
+    ],
+});
+
 const LABEL_BOXING_BORDER_DEFAULTS: WithThemeParams<Pick<LabelBoxOptions, 'border'>> = {
     border: {
         enabled: {
             $or: [{ $isUserOption: '../border' }, { $not: { $eq: [{ $ref: 'seriesLabelBorder' }, false] } }],
         },
-        strokeWidth: {
-            $isType: [
-                { $ref: 'seriesLabelBorder' },
-                'boolean',
-                { $if: [{ $ref: 'seriesLabelBorder' }, { $ref: 'borderWidth' }, 1] },
-                {
-                    $isType: [
-                        { $ref: 'seriesLabelBorder.width' },
-                        'nullish',
-                        { $ref: 'borderWidth' },
-                        { $ref: 'seriesLabelBorder.width' },
-                    ],
-                },
-            ],
-        },
-        stroke: {
-            $isType: [
-                { $ref: 'seriesLabelBorder' },
-                'boolean',
-                { $if: [{ $ref: 'seriesLabelBorder' }, { $ref: 'borderColor' }, { $foregroundOpacity: 0.08 }] },
-                {
-                    $isType: [
-                        { $ref: 'seriesLabelBorder.color' },
-                        'nullish',
-                        { $ref: 'borderColor' },
-                        { $ref: 'seriesLabelBorder.color' },
-                    ],
-                },
-            ],
-        },
+        strokeWidth: seriesLabelBorderValue('width', 'borderWidth', 1),
+        stroke: seriesLabelBorderValue('color', 'borderColor', { $foregroundOpacity: 0.08 }),
     },
 };
 
