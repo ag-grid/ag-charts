@@ -626,7 +626,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private get labelPaddingSide(): 'left' | 'right' | 'top' | 'bottom' | undefined {
         const { anchor } = this;
         // The theme supplies the default, but a cross line built without one must still pad as it always did.
-        if ((this.label.overflow ?? 'pad-chart') !== 'pad-chart') return;
+        if ((this.label.overflow ?? 'pad-chart') !== 'pad-chart') return undefined;
 
         if (this.position === 'left' || this.position === 'right') {
             if (anchor.rangeH === -1 && anchor.labelH === 1) return 'left';
@@ -635,6 +635,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             if (anchor.rangeV === -1 && anchor.labelV === 1) return 'top';
             if (anchor.rangeV === 1 && anchor.labelV === -1) return 'bottom';
         }
+        return undefined;
     }
 
     calculatePadding(into: Partial<Record<AgCrossLineLabelPosition, number>>) {
