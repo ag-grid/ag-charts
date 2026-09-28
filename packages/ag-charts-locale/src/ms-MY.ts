@@ -90,7 +90,7 @@ export const AG_CHARTS_LOCALE_MS_MY: Record<string, string> = {
     overlayValidationDeprecationsHeading: 'Keusangan (${count}[number])',
     overlayValidationCopy: 'Salin',
     overlayValidationCopied: 'Disalin',
-    overlayValidationDismiss: 'Tolak',
+    overlayValidationDismiss: 'Ketepikan',
     seriesHistogramTooltipFrequency: 'Kekerapan',
     seriesHistogramTooltipSum: '${yName} (jumlah)',
     seriesHistogramTooltipCount: '${yName} (kiraan)',

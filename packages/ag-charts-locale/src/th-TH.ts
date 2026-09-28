@@ -128,7 +128,7 @@ export const AG_CHARTS_LOCALE_TH_TH: Record<string, string> = {
     toolbarAnnotationsTextAnnotations: 'คำอธิบายประกอบข้อความ',
     toolbarAnnotationsShapeAnnotations: 'ลูกศร',
     toolbarAnnotationsMeasurerAnnotations: 'เครื่องมือวัด',
-    toolbarAnnotationsCallout: 'คำโปรย',
+    toolbarAnnotationsCallout: 'คำบรรยายภาพ',
     toolbarAnnotationsComment: 'ความคิดเห็น',
     toolbarAnnotationsNote: 'บันทึกย่อ',
     toolbarAnnotationsText: 'ข้อความ',
