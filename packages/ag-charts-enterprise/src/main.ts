@@ -55,6 +55,7 @@ export { MapMarkerSeriesModule } from './series/map-marker/mapMarkerModule';
 export { MapShapeSeriesModule } from './series/map-shape/mapShapeModule';
 export { MapShapeBackgroundSeriesModule } from './series/map-shape-background/mapShapeBackgroundModule';
 export { NightingaleSeriesModule } from './series/nightingale/nightingaleModule';
+export { HlcSeriesModule } from './series/hlc/hlcModule';
 export { OhlcSeriesModule } from './series/ohlc/ohlcModule';
 export { PyramidSeriesModule } from './series/pyramid/pyramidModule';
 export { RadarAreaSeriesModule } from './series/radar-area/radarAreaModule';

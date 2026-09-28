@@ -8,6 +8,7 @@ import {
     commonIgnoredMiniChartProperties,
     heatmapIgnoredMiniChartProperties,
     histogramIgnoredMiniChartProperties,
+    hlcIgnoredMiniChartProperties,
     lineIgnoredMiniChartProperties,
     rangeAreaIgnoredMiniChartProperties,
     rangeBarIgnoredMiniChartProperties,
@@ -22,6 +23,7 @@ const validMiniChartSeriesTypes: AgMiniChartSeriesOptions['type'][] = [
     'candlestick',
     'heatmap',
     'histogram',
+    'hlc',
     'line',
     'ohlc',
     'range-area',
@@ -71,7 +73,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                 $switch: [
                     typePath,
                     {},
-                    [['area', 'line'], { marker: miniChartMarkerTheme }],
+                    [['area', 'hlc', 'line'], { marker: miniChartMarkerTheme }],
                     // Waterfall keeps its shadows under `item.*`, which `$omit` does not reach.
                     [
                         'waterfall',
@@ -107,6 +109,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                             ['bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties)],
                             ['heatmap', omitInheritedShadow(heatmapIgnoredMiniChartProperties)],
                             ['histogram', omitInheritedShadow(histogramIgnoredMiniChartProperties)],
+                            ['hlc', omitInheritedShadow(hlcIgnoredMiniChartProperties)],
                             // `priceVolumePresetIgnoredMiniChartProperties` already includes `shadow`.
                             [
                                 'line',
