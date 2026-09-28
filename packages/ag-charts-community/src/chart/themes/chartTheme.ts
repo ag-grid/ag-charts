@@ -211,7 +211,7 @@ export class ChartTheme {
             chromeFontFamily: { $ref: 'fontFamily' },
             chromeFontSize: { $ref: 'fontSize' },
             chromeFontWeight: { $ref: 'fontWeight' },
-            chromeTextColor: { $ref: 'foregroundColor' },
+            chromeTextColor: { $ref: 'textColor' },
             chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
 
             buttonBackgroundColor: { $ref: 'backgroundColor' },
