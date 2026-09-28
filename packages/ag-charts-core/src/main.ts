@@ -14,6 +14,7 @@ export * from './types/normalised-options/normalisedGradientLegendOptions';
 export * from './types/normalised-options/normalisedGaugeSeries';
 export * from './types/normalised-options/normalisedHeatmapSeries';
 export * from './types/normalised-options/normalisedHierarchySeries';
+export * from './types/normalised-options/normalisedHlcSeries';
 export * from './types/normalised-options/normalisedPieSeries';
 export * from './types/normalised-options/normalisedPyramidSeries';
 export * from './types/normalised-options/normalisedRangeAreaSeries';

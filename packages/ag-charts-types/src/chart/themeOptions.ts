@@ -12,6 +12,7 @@ import type { AgConeFunnelSeriesThemeableOptions } from '../series/cartesian/con
 import type { AgFunnelSeriesThemeableOptions } from '../series/cartesian/funnelOptions';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesThemeableOptions } from '../series/cartesian/histogramOptions';
+import type { AgHlcSeriesThemeableOptions } from '../series/cartesian/hlcOptions';
 import type { AgLineSeriesThemeableOptions } from '../series/cartesian/lineOptions';
 import type { AgOhlcSeriesThemeableOptions } from '../series/cartesian/ohlcOptions';
 import type { AgRangeAreaSeriesThemeableOptions } from '../series/cartesian/rangeAreaOptions';
@@ -184,6 +185,14 @@ export interface AgOhlcSeriesThemeOverrides<
 > extends AgBaseCartesianThemeOptions<TDatum, TContext> {
     /** Themeable options for OHLC series. */
     series?: AgOhlcSeriesThemeableOptions<TDatum, TContext>;
+}
+
+export interface AgHlcSeriesThemeOverrides<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseCartesianThemeOptions<TDatum, TContext> {
+    /** Themeable options for HLC series. */
+    series?: AgHlcSeriesThemeableOptions<TDatum, TContext>;
 }
 
 export interface AgHistogramSeriesThemeOverrides<
@@ -455,6 +464,8 @@ export interface AgChartThemeOverrides<TDatum = DatumDefault, TContext = Context
     funnel?: AgFunnelSeriesThemeOverrides<TDatum, TContext>;
     /** ohlc series theme overrides. */
     ohlc?: AgOhlcSeriesThemeOverrides<TDatum, TContext>;
+    /** HLC series theme overrides. */
+    hlc?: AgHlcSeriesThemeOverrides<TDatum, TContext>;
     /** Histogram series theme overrides. */
     histogram?: AgHistogramSeriesThemeOverrides<TDatum, TContext>;
     /** Heatmap series theme overrides. */

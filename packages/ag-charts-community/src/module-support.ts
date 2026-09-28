@@ -87,6 +87,7 @@ export {
     radialBarSeriesThemeableOptionsDef,
     radialColumnSeriesThemeableOptionsDef,
     rangeAreaSeriesThemeableOptionsDef,
+    hlcSeriesThemeableOptionsDef,
     rangeBarSeriesThemeableOptionsDef,
     sankeySeriesThemeableOptionsDef,
     sunburstSeriesThemeableOptionsDef,

@@ -8,6 +8,7 @@ import {
     commonIgnoredMiniChartProperties,
     heatmapIgnoredMiniChartProperties,
     histogramIgnoredMiniChartProperties,
+    hlcIgnoredMiniChartProperties,
     lineIgnoredMiniChartProperties,
     rangeAreaIgnoredMiniChartProperties,
     rangeBarIgnoredMiniChartProperties,
@@ -22,6 +23,7 @@ const validMiniChartSeriesTypes: AgMiniChartSeriesOptions['type'][] = [
     'candlestick',
     'heatmap',
     'histogram',
+    'hlc',
     'line',
     'ohlc',
     'range-area',
@@ -58,7 +60,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                     typePath,
                     {},
                     [
-                        ['area', 'line', 'range-area'],
+                        ['area', 'hlc', 'line', 'range-area'],
                         {
                             marker: {
                                 enabled: {
@@ -84,6 +86,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                             ['bubble', bubbleIgnoredMiniChartProperties],
                             ['heatmap', heatmapIgnoredMiniChartProperties],
                             ['histogram', histogramIgnoredMiniChartProperties],
+                            ['hlc', hlcIgnoredMiniChartProperties],
                             [
                                 'line',
                                 [...lineIgnoredMiniChartProperties, ...priceVolumePresetIgnoredMiniChartProperties],

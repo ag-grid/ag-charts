@@ -6,6 +6,7 @@ import { CandlestickSeriesModule } from '../series/candlestick/candlestickModule
 import { ConeFunnelSeriesModule } from '../series/cone-funnel/coneFunnelModule';
 import { FunnelSeriesModule } from '../series/funnel/funnelModule';
 import { HeatmapSeriesModule } from '../series/heatmap/heatmapModule';
+import { HlcSeriesModule } from '../series/hlc/hlcModule';
 import { OhlcSeriesModule } from '../series/ohlc/ohlcModule';
 import { RangeAreaSeriesModule } from '../series/range-area/rangeAreaModule';
 import { RangeBarSeriesModule } from '../series/range-bar/rangeBarModule';
@@ -18,6 +19,7 @@ export const AllCartesianSeriesModule: ModuleDefinition[] = [
     ConeFunnelSeriesModule,
     FunnelSeriesModule,
     HeatmapSeriesModule,
+    HlcSeriesModule,
     OhlcSeriesModule,
     RangeAreaSeriesModule,
     RangeBarSeriesModule,
