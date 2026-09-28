@@ -70,7 +70,7 @@ import {
     sanitizeThemeModules,
 } from '../chart/factory/processModuleOptions';
 import { getChartTheme } from '../chart/mapping/themes';
-import { detectChartType } from '../chart/mapping/types';
+import { detectChartType, resolveDefaultSeriesType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import {
     type ChartValidations,
@@ -832,8 +832,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const missingModules: ModulePlaceholder[] = [];
 
         if (seriesCount === 0) {
-            // With no `series` the chart still resolves against the default series type, so a missing
-            // module for it is the same defect as the explicit mismatch below. Presets supply their own.
+            // With no `series` the chart resolves against a default series type that is in scope; only when no
+            // series module is in scope does the default go unresolved, which is the same defect as the explicit
+            // mismatch below. Presets supply their own.
             const defaultType = this.optionsType(options);
             const defaultPlaceholder = ExpectedModules.get(defaultType);
             if (
@@ -983,7 +984,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private optionsType(options: Partial<T>) {
-        return options.series?.[0]?.type ?? 'line';
+        return options.series?.[0]?.type ?? resolveDefaultSeriesType(this.moduleRegistry);
     }
 
     private processSeriesOptions(options: T) {

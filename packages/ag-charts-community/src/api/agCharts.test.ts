@@ -1,11 +1,12 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { ModuleRegistry, getDocument } from 'ag-charts-core';
+import { type ModuleDefinition, ModuleRegistry, getDocument } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import { LineSeriesModule } from '../chart/series/cartesian/lineSeriesModule';
+import { PieSeriesModule } from '../chart/series/polar/pieSeriesModule';
 import {
     deproxy,
     expectErrorsCalls,
@@ -573,16 +574,20 @@ describe('AgCharts', () => {
     });
     describe('no registered series module for the lead series type', () => {
         // Restore by value: re-registering a bundle drops anything registered at collection time.
-        async function withOnlyBarRegistered(run: () => void | Promise<void>) {
+        async function withOnlyRegistered(modules: ModuleDefinition[], run: () => void | Promise<void>) {
             const registeredModules = [...ModuleRegistry.listModules()];
             ModuleRegistry.reset();
-            ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+            ModuleRegistry.registerModules(modules);
             try {
                 await run();
             } finally {
                 ModuleRegistry.reset();
                 ModuleRegistry.registerModules(registeredModules);
             }
+        }
+
+        function withOnlyBarRegistered(run: () => void | Promise<void>) {
+            return withOnlyRegistered([BarSeriesModule, CategoryAxisModule, NumberAxisModule], run);
         }
 
         function takeErrorMessages() {
@@ -601,7 +606,11 @@ describe('AgCharts', () => {
             expect(chartInstance.ctx.chartState.getValue('options', 'touch')).toBeDefined();
         }
 
-        it('reports the implicit `line` default and renders an empty chart', async () => {
+        function axisTypesByDirection() {
+            return Object.fromEntries(deproxy(chart).axes.map((axis) => [axis.direction, axis.type]));
+        }
+
+        it('falls back to a registered series type when no series are provided', async () => {
             await withOnlyBarRegistered(async () => {
                 expect(
                     () => (chart = AgCharts.create({ container, title: { text: 'Implicit' } } as AgChartOptions))
@@ -609,11 +618,55 @@ describe('AgCharts', () => {
                 await chart.waitForUpdate();
             });
 
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+            expectEmptyChartWithDefaults('Implicit');
+            expect(axisTypesByDirection()).toEqual({ x: 'category', y: 'number' });
+        });
+
+        it('renders the requested captions and default axes for an empty series array', async () => {
+            await withOnlyBarRegistered(async () => {
+                chart = AgCharts.create({
+                    container,
+                    title: { text: 'Empty' },
+                    subtitle: { text: 'No series' },
+                    data: [{ x: 'a', y: 1 }],
+                    series: [],
+                } as AgChartOptions);
+                await chart.waitForUpdate();
+            });
+
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+            expectEmptyChartWithDefaults('Empty');
+            expect(deproxy(chart).ctx.chartState.getValue('options', 'subtitle')?.text).toBe('No series');
+            expect(axisTypesByDirection()).toEqual({ x: 'category', y: 'number' });
+        });
+
+        it('creates a polar chart when only a polar series type is registered and no series are provided', async () => {
+            await withOnlyRegistered([PieSeriesModule], async () => {
+                expect(() => (chart = AgCharts.create({ container, series: [] } as AgChartOptions))).not.toThrow();
+                await chart.waitForUpdate();
+            });
+
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(deproxy(chart).getChartType()).toBe('polar');
+        });
+
+        it('reports the implicit `line` default when no series type is registered', async () => {
+            await withOnlyRegistered([CategoryAxisModule, NumberAxisModule], async () => {
+                expect(
+                    () => (chart = AgCharts.create({ container, title: { text: 'Implicit' } } as AgChartOptions))
+                ).not.toThrow();
+                await chart.waitForUpdate();
+            });
+
+            // Only the report is asserted: with no series module in scope the theme resolves no chart-level
+            // defaults, so the chart itself is not expected to be usable.
             const messages = takeErrorMessages();
             expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
             expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
-            expect(messages).toHaveLength(1);
-            expectEmptyChartWithDefaults('Implicit');
         });
 
         it('reports an explicit series type with no module and renders an empty chart', async () => {
