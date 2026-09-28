@@ -99,6 +99,38 @@ In this example:
 - An `inside` prefix places the label within the region.
 - `xOffset` and `yOffset` move the label from its position by the specified number of pixels.
 
+### Fitting Long Labels
+
+Set `maxWidth` or `maxHeight` to limit the space a label can take up. A label that does not fit is wrapped, truncated or shrunk.
+
+{% chartExampleRunner title="Fitting Long Labels" name="label-fitting" type="generated" /%}
+
+```js format="snippet"
+{
+    seriesArea: {
+        backgroundRegions: [
+            {
+                xRange: { start: new Date(2025, 5, 1), end: new Date(2025, 8, 1) },
+                yRange: { start: 20, end: 50 },
+                label: {
+                    text: 'Drought Risk: Water Restrictions in Place',
+                    position: 'inside-top',
+                    maxWidth: 120,
+                },
+            },
+        ],
+    },
+}
+```
+
+In this example:
+
+- Click the buttons to switch between wrapping, truncating and shrinking the label.
+- `maxWidth` limits the label to 120px wide, so by default the text wraps onto multiple lines.
+- `wrapping` sets how text wraps. Set it to `'never'` to keep the label on one line.
+- `truncate` controls whether text that still does not fit is truncated with an ellipsis.
+- `minimumFontSize` lets the label shrink from its `fontSize` to fit, before it is truncated.
+
 ## Multiple Axes
 
 On a chart with [multiple axes](./axes-secondary/) in one direction, use `axis` to specify the axis that the range is plotted against.

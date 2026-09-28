@@ -11,7 +11,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartOptions, AgSeriesAreaBackgroundRegion } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { anchors } from './cartesianBackgroundRegion';
@@ -625,6 +625,58 @@ const labelPositions = [
     'bottom-left',
     'bottom-right',
 ] as const;
+
+const LONG_LABEL = 'A region label that is too long';
+
+function fitLabelOptions(label: NonNullable<AgSeriesAreaBackgroundRegion['label']>): AgCartesianChartOptions {
+    return {
+        ...NUMERIC,
+        seriesArea: {
+            backgroundRegions: [
+                {
+                    fill: 'lightsalmon',
+                    fillOpacity: 0.8,
+                    xRange: { start: 20, end: 80 },
+                    yRange: { start: 20, end: 80 },
+                    label: { text: LONG_LABEL, fontSize: 20, position: 'inside-top', ...label },
+                },
+            ],
+        },
+    };
+}
+
+EXAMPLES.LABEL_FIT_WRAP = { options: fitLabelOptions({ maxWidth: 120 }), assertions };
+EXAMPLES.LABEL_FIT_TRUNCATE = {
+    options: fitLabelOptions({ maxWidth: 120, wrapping: 'never', truncate: true }),
+    assertions,
+};
+EXAMPLES.LABEL_FIT_SHRINK = {
+    options: fitLabelOptions({ maxWidth: 200, wrapping: 'never', truncate: false, minimumFontSize: 8 }),
+    assertions,
+};
+EXAMPLES.LABEL_FIT_ALL = {
+    options: fitLabelOptions({
+        maxWidth: 120,
+        maxHeight: 40,
+        minimumFontSize: 12,
+        wrapping: 'on-space',
+        truncate: true,
+    }),
+    assertions,
+};
+EXAMPLES.LABEL_FIT_ROTATED = {
+    options: fitLabelOptions({ maxWidth: 120, position: 'inside-left', rotation: 270 }),
+    assertions,
+};
+EXAMPLES.LABEL_FIT_BOXED = {
+    options: fitLabelOptions({ maxWidth: 120, fill: 'white', border: { enabled: true, stroke: 'black' } }),
+    assertions,
+};
+
+for (const position of labelPositions) {
+    EXAMPLES[`LABEL_FIT_${position}`] = { options: fitLabelOptions({ position, maxWidth: 120 }), assertions };
+}
+
 for (const position of labelPositions) {
     EXAMPLES[`LABEL_${position}`] = {
         options: {
@@ -732,6 +784,89 @@ describe('Background Regions removal', () => {
 
         expect(regions.regions).toHaveLength(0);
         expectWarningsCalls().toEqual([]);
+    });
+});
+
+describe('Background Region label fitting', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(async () => {
+        if (chart) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    async function renderLabel(label: NonNullable<AgSeriesAreaBackgroundRegion['label']>) {
+        const options = fitLabelOptions(label);
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        expectWarningsCalls().toEqual([]);
+
+        const regions = deproxy(chart).modulesManager.getModule<any>('background-regions');
+        const { text, fontSize } = regions.regions[0].instance.labelNode;
+        return { text: text as string, fontSize: fontSize as number };
+    }
+
+    it('renders an overlong label unchanged when no fit option is set', async () => {
+        expect(await renderLabel({})).toEqual({ text: LONG_LABEL, fontSize: 20 });
+    });
+
+    it('does not derive a bound from the region', async () => {
+        const label = await renderLabel({ wrapping: 'always', truncate: true, minimumFontSize: 8 });
+        expect(label).toEqual({ text: LONG_LABEL, fontSize: 20 });
+    });
+
+    it('wraps onto multiple lines within maxWidth', async () => {
+        const { text, fontSize } = await renderLabel({ maxWidth: 120, truncate: false });
+        expect(text.split('\n').length).toBeGreaterThan(1);
+        expect(text.replaceAll('\n', ' ')).toBe(LONG_LABEL);
+        expect(fontSize).toBe(20);
+    });
+
+    it('truncates with an ellipsis', async () => {
+        const { text } = await renderLabel({ maxWidth: 120, wrapping: 'never', truncate: true });
+        expect(text).not.toContain('\n');
+        expect(text.endsWith('…')).toBe(true);
+    });
+
+    it('shrinks towards minimumFontSize before truncating', async () => {
+        const { text, fontSize } = await renderLabel({ maxWidth: 200, wrapping: 'never', minimumFontSize: 8 });
+        expect(text).toBe(LONG_LABEL);
+        expect(fontSize).toBeLessThan(20);
+        expect(fontSize).toBeGreaterThanOrEqual(8);
+    });
+
+    it('truncates at minimumFontSize when the label still does not fit', async () => {
+        const { text, fontSize } = await renderLabel({ maxWidth: 60, wrapping: 'never', minimumFontSize: 12 });
+        expect(text.endsWith('…')).toBe(true);
+        expect(fontSize).toBe(12);
+    });
+
+    it('bounds a rotated label along its own text direction', async () => {
+        const { text } = await renderLabel({ maxWidth: 120, truncate: false, position: 'inside-left', rotation: 270 });
+        expect(text.split('\n').length).toBeGreaterThan(1);
+        expect(text.replaceAll('\n', ' ')).toBe(LONG_LABEL);
+    });
+
+    it('rejects a minimumFontSize above fontSize', async () => {
+        const options = fitLabelOptions({ maxWidth: 120, minimumFontSize: 30 });
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expectWarningsCalls().toEqual([
+            [
+                'AG Charts - Option `seriesArea.backgroundRegions[0].label.minimumFontSize` cannot be set to `30`; expecting a number greater than 0 and the value to be less than or equal to `fontSize`, ignoring.',
+            ],
+        ]);
     });
 });
 

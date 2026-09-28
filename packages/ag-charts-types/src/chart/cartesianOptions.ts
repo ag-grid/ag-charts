@@ -38,6 +38,7 @@ import type {
     DatumDefault,
     Degree,
     FontFamilyFull,
+    FontSize,
     PixelSize,
     Ratio,
     TextWrap,
@@ -623,6 +624,26 @@ export interface AgSeriesAreaBackgroundRegionLabel extends Omit<AgChartLabelStyl
      * Default: `0`
      */
     yOffset?: PixelSize;
+    /** Maximum width, in pixels, the label text may occupy before it is wrapped or truncated to fit. */
+    maxWidth?: PixelSize;
+    /** Maximum height, in pixels, the label text may occupy before it is truncated to fit. */
+    maxHeight?: PixelSize;
+    /**
+     * Text wrapping strategy applied when the label is constrained by `maxWidth` or `maxHeight`.
+     * - `'always'` will always wrap text to fit within the bounds.
+     * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the bounds, the text will be truncated.
+     * - `'never'` disables text wrapping.
+     */
+    wrapping?: TextWrap;
+    /** Whether to truncate the label with an ellipsis when it does not fit within `maxWidth` or `maxHeight`. */
+    truncate?: boolean;
+    /**
+     * If the label does not fit within `maxWidth` or `maxHeight`, setting this will allow the label to pick a font size
+     * between its normal `fontSize` and `minimumFontSize` to fit. The label is only truncated when it still does not fit
+     * at `minimumFontSize`.
+     */
+    minimumFontSize?: FontSize;
 }
 
 /** The position of a background region's label.
