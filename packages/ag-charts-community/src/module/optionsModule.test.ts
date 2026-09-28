@@ -547,18 +547,35 @@ describe('ChartOptions', () => {
             expect(message).toContain("'line'");
         });
 
-        it('reports the missing module for the default series type when no series are provided', () => {
-            // Restore exactly what was registered: the stacking/grouping suite below registers its own
-            // ad-hoc series definitions at collection time, which re-registering the bundle would drop.
+        // Restore exactly what was registered: the stacking/grouping suite below registers its own
+        // ad-hoc series definitions at collection time, which re-registering the bundle would drop.
+        function prepareOptionsWithOnly(modules: ModuleDefinition[], userOptions: AgChartOptions) {
             const registeredModules = [...ModuleRegistry.listModules()];
             ModuleRegistry.reset();
-            ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+            ModuleRegistry.registerModules(modules);
             try {
-                prepareOptions({} as AgChartOptions);
+                return prepareOptions(userOptions);
             } finally {
                 ModuleRegistry.reset();
                 ModuleRegistry.registerModules(registeredModules);
             }
+        }
+
+        it('defaults to a registered series type when no series are provided', () => {
+            const options = prepareOptionsWithOnly([BarSeriesModule, CategoryAxisModule, NumberAxisModule], {
+                series: [],
+            } as AgChartOptions);
+
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+            expect((options as any).axes).toMatchObject({
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            });
+        });
+
+        it('reports the missing module for the default series type when no series type is registered', () => {
+            prepareOptionsWithOnly([CategoryAxisModule, NumberAxisModule], {} as AgChartOptions);
 
             const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);

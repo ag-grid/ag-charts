@@ -16,6 +16,7 @@ import {
     without,
 } from 'ag-charts-core';
 
+import { resolveDefaultSeriesType } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { LocationOperation, type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
@@ -385,7 +386,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     // The theme only has entries for registered series types; any registered type shares the chart-level defaults.
     private resolveSeriesType(): string {
-        const seriesType = this.userOptions.series?.[0]?.type ?? 'line';
+        const seriesType = this.userOptions.series?.[0]?.type ?? resolveDefaultSeriesType(this.moduleRegistry);
         if (seriesType in this.config) return seriesType;
         const registeredTypes = Object.keys(this.config);
         return (
