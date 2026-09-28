@@ -29,6 +29,7 @@ import agHtaccessGen from './plugins/agHtaccessGen';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
 import { FRAMEWORKS, FRAMEWORK_REDIRECT_PATH } from './src/constants';
 import { getIsBenchmarkOnlyBuild } from './src/utils/env';
+import { getHiddenDocsPageNames } from './src/utils/hiddenDocsPages';
 import { getAstroRedirectRules } from './src/utils/htaccess/htaccessRules';
 import { getSitemapConfig } from './src/utils/sitemap';
 import { urlWithBaseUrl } from './src/utils/urlWithBaseUrl';
@@ -219,7 +220,12 @@ export default defineConfig({
         // Archive builds are fully noindex — omit sitemap generation and remove the /sitemap page.
         ...(!PUBLIC_BASE_URL?.includes('archive')
             ? [
-                  sitemap(getSitemapConfig(PUBLIC_BASE_URL)),
+                  sitemap(
+                      getSitemapConfig(
+                          PUBLIC_BASE_URL,
+                          getHiddenDocsPageNames(fileURLToPath(new URL('./src/content/docs', import.meta.url)))
+                      )
+                  ),
                   agSitemapFilterNoindex({ enabled: PRODUCTION_SITE_URLS.includes(PUBLIC_SITE_URL) }),
                   agSitemapLastmod(),
                   agCacheSitemap({ cacheFolder: SITEMAP_CACHE_DIR }),
