@@ -30,6 +30,17 @@ describe('Header', () => {
         expect(getHeadingHtml()).toContain('React Charts');
     });
 
+    it("links the framework name to the framework's landing hub", () => {
+        expect(getHeadingHtml()).toMatch(/<a [^>]*href="[^"]*\/react\/"[^>]*>React Charts<\/a>/);
+    });
+
+    it('leaves the framework name unlinked where the framework root forwards on to quick-start', () => {
+        const headingHtml = getHeadingHtml({ framework: 'javascript', path: '/javascript/quick-start/' });
+
+        expect(headingHtml).toContain('JavaScript Charts');
+        expect(headingHtml).not.toContain('<a ');
+    });
+
     it('omits the framework name from the h1 when it is suppressed', () => {
         const headingHtml = getHeadingHtml({ suppressFrameworkHeader: true });
 

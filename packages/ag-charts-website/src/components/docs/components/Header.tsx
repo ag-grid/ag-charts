@@ -2,8 +2,10 @@ import type { Framework, MenuItem } from '@ag-grid-types';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { MarkdownActions } from '@ag-website-shared/components/markdown-actions/MarkdownActions';
 import { FrameworkSelectorInsideDocs } from '@components/framework-selector-inside-doc/FrameworkSelectorInsideDocs';
+import { isFrameworkLandingHub } from '@constants';
 import { getFrameworkDisplayText } from '@utils/framework';
 import { useSyncFrameworkStoreState } from '@utils/hooks/useSyncFrameworkStoreState';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import type { FunctionComponent } from 'react';
 
 import styles from './Header.module.scss';
@@ -33,6 +35,9 @@ export const Header: FunctionComponent<Props> = ({
     // Done here, because it's run on all docs pages
     useSyncFrameworkStoreState(framework);
 
+    const frameworkName = `${getFrameworkDisplayText(framework)} Charts`;
+    const hasLandingHub = isFrameworkLandingHub(framework);
+
     return (
         <header className={styles.docsPageHeader}>
             {/* `#top` is the side navigation's scroll target, so it sits on the container rather than
@@ -43,7 +48,15 @@ export const Header: FunctionComponent<Props> = ({
                     how the Algolia indexer finds the page title within the heading. */}
                 <h1 className={styles.docsPageTitle}>
                     {!suppressFrameworkHeader && (
-                        <span className={styles.headerFramework}>{`${getFrameworkDisplayText(framework)} Charts`}</span>
+                        <span className={styles.headerFramework}>
+                            {hasLandingHub ? (
+                                <a className={styles.headerFrameworkLink} href={urlWithBaseUrl(`/${framework}/`)}>
+                                    {frameworkName}
+                                </a>
+                            ) : (
+                                frameworkName
+                            )}
+                        </span>
                     )}
                     <span className={styles.titleText} data-page-title>
                         {title}
