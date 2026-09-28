@@ -1,4 +1,4 @@
-import { FRAMEWORK_REDIRECT_PATH } from '../constants';
+import { FRAMEWORK_LANDING_HUBS, FRAMEWORK_REDIRECT_PATH } from '../constants';
 import { isCanonicalisedToGridSite } from './canonicalUrl';
 
 /**
@@ -29,10 +29,8 @@ const isRedirectPage = (page: string) => {
     return (
         page.endsWith('/documentation/') ||
         page.endsWith('/licensing/') ||
-        page.endsWith('/react/') ||
-        page.endsWith('/angular/') ||
+        // The other framework roots serve a landing hub, which belongs in the sitemap.
         page.endsWith('/javascript/') ||
-        page.endsWith('/vue/') ||
         page.includes(`/${FRAMEWORK_REDIRECT_PATH}/`)
     );
 };
@@ -48,6 +46,13 @@ const isNonPublicContent = (page: string) => {
         page.endsWith('/contact/failure/') ||
         page.endsWith('/contact/success/')
     );
+};
+
+/*
+ * Ad campaign copies of a landing hub: they carry a noindex, the hub being canonical.
+ */
+const isNoIndexedLandingPageCopy = (page: string) => {
+    return FRAMEWORK_LANDING_HUBS.some((framework) => page.endsWith(`/${framework}-charts/`));
 };
 
 /*
@@ -71,6 +76,7 @@ const filterIgnoredPages = (page: string, siteBasePath: string) => {
         !isInternalPage(page) &&
         !isRedirectPage(page) &&
         !isNonPublicContent(page) &&
+        !isNoIndexedLandingPageCopy(page) &&
         // Copies of pages the grid site owns canonicalise there, so listing them here would
         // contradict the canonical the page itself emits.
         !isCanonicalisedToGridSite(page, siteBasePath)
