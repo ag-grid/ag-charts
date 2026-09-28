@@ -40,7 +40,10 @@ export interface PlacedLabelSource<TLabel = unknown> extends LabelSource {
     getLabelDefaults?(): SeriesLabelDefaults | undefined;
     getLabelCandidateStyler?(): CandidateStyleResolver | undefined;
     getLabelCandidateResolver?(): PositionedCandidateResolver | undefined;
-    updatePlacedLabelData?(labels: PlacedLabel<TLabel>[], seriesRect: BBox): void;
+    /** Returns `true` when the placement invalidates the layout it was solved in. */
+    updatePlacedLabelData?(labels: PlacedLabel<TLabel>[], seriesRect: BBox): boolean | void;
+    /** Freezes what the re-layout for an invalidating placement must not decide again. */
+    holdLabelPlacements?(hold: boolean): void;
 }
 
 function placesLabels(source: LabelSource): source is PlacedLabelSource {
@@ -65,6 +68,7 @@ export class LabelManager {
     private lastPlacementSignature?: string;
     private lastPlacedLabels?: Map<string, PlacedLabel[]>;
     private readonly sources = new Map<string, LabelSource>();
+    private holdingPlacements = false;
 
     registerSource(source: LabelSource) {
         this.sources.set(source.id, source);
@@ -79,7 +83,12 @@ export class LabelManager {
         this.sources.delete(id);
     }
 
-    updateLabels(visibleSources: PlacedLabelSource[], padding: NormalisedPaddingOptions, seriesRect = BBox.zero) {
+    /** Returns whether the chart must lay out again for a placement that invalidated its layout. */
+    updateLabels(
+        visibleSources: PlacedLabelSource[],
+        padding: NormalisedPaddingOptions,
+        seriesRect = BBox.zero
+    ): boolean {
         const bounds = {
             x: -padding.left,
             y: -padding.top,
@@ -94,7 +103,8 @@ export class LabelManager {
             this.labelData.clear();
             this.lastPlacementSignature = undefined;
             this.lastPlacedLabels = undefined;
-            return;
+            this.holdingPlacements = false;
+            return false;
         }
 
         // SERIES_UPDATE also fires on hover/highlight, where the placement inputs are unchanged, so
@@ -107,9 +117,21 @@ export class LabelManager {
             this.lastPlacedLabels = placedLabels;
         }
 
+        let invalidated = false;
         for (const source of placedLabelSources) {
-            source.updatePlacedLabelData?.(placedLabels.get(source.id) ?? [], seriesRect);
+            invalidated =
+                source.updatePlacedLabelData?.(placedLabels.get(source.id) ?? [], seriesRect) === true || invalidated;
         }
+
+        // One re-layout per update, held across every source so that none can invalidate it again.
+        const hold = invalidated && !this.holdingPlacements;
+        if (hold || this.holdingPlacements) {
+            for (const source of placedLabelSources) {
+                source.holdLabelPlacements?.(hold);
+            }
+        }
+        this.holdingPlacements = hold;
+        return hold;
     }
 
     private computePlacement(

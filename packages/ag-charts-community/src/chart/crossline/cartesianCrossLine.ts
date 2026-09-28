@@ -5,6 +5,7 @@ import {
     findMinMax,
     fitLabelText,
     resolveCollideWith,
+    resolvePadding,
     toRadians,
 } from 'ag-charts-core';
 import type {
@@ -196,10 +197,10 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private data: NodeData | undefined = undefined;
     private startLine: boolean = false;
     private endLine: boolean = false;
+    /** The last solve's verdict, which the next layout pads for. */
     private labelHidden = false;
     private paddedForLabel = false;
-    /** The previous solve's verdict, held while the chart re-lays out for it so the next solve cannot flip it. */
-    private heldLabelHidden: boolean | undefined = undefined;
+    private labelHeld = false;
 
     constructor() {
         this.crossLineRange.pointerEvents = PointerEvents.None;
@@ -243,17 +244,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
         // The label is only rendered under the same conditions `updateNodes` applies, so an
         // unlabelled cross line must not report a hit on its zero-sized label node.
-        const { label } = this;
-        if (
-            !this.labelGroup.visible ||
-            !this.crossLineLabel.visible ||
-            label.enabled === false ||
-            label.text == null ||
-            label.text === ''
-        ) {
-            return false;
-        }
-        return Transformable.toCanvas(this.crossLineLabel).containsPoint(point.canvasX, point.canvasY);
+        return this.getLabelBox()?.containsPoint(point.canvasX, point.canvasY) ?? false;
     }
 
     private _isRange: boolean | undefined = undefined;
@@ -358,41 +349,48 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         if (this.label.enabled === false || this.label.text == null || this.label.text === '') return;
     }
 
-    /** Taken from the drawn node, so whatever `positionLabel` and `clipLabelText` settled on is reserved. */
-    getLabelBox(): BoxBounds | undefined {
-        const { crossLineLabel, label } = this;
-        if (label.enabled === false || label.text == null || label.text === '') return;
-        if (!this.labelGroup.visible || !crossLineLabel.visible) return;
+    getLabelBox(): BBox | undefined {
+        if (this.crossLineLabel.visible) return this.labelFootprint();
+    }
 
-        return Transformable.toCanvas(crossLineLabel);
+    /** Taken from the drawn node, so whatever `positionLabel` and `clipLabelText` settled on is reserved. */
+    private labelFootprint(): BBox | undefined {
+        const { label } = this;
+        if (label.enabled === false || label.text == null || label.text === '' || !this.labelGroup.visible) return;
+
+        return Transformable.toCanvas(this.crossLineLabel);
+    }
+
+    get keepsLabel(): boolean {
+        return this.label.collision?.alwaysShow ?? true;
     }
 
     getLabelDatum(seriesRect: BBox): PointLabelDatum | undefined {
-        const box = this.getLabelBox();
+        if (this.labelHeld) return;
+        const box = this.labelFootprint();
         if (box == null) return;
 
         const { collision, reserveSpace } = this.label;
+        const keep = this.keepsLabel;
         // Not themed, as the cross-line theme also reaches polar axes; outer labels sit outside the series area.
-        const collideWith = {
-            ...resolveCollideWith(collision ?? { alwaysShow: true }),
-            seriesArea: collision?.collideWith?.seriesArea ?? false,
-        };
-        const keep = this.heldLabelHidden === false || (collision?.alwaysShow ?? true);
+        const seriesArea = collision?.collideWith?.seriesArea ?? false;
+        const collideWith = { ...resolveCollideWith(collision ?? { alwaysShow: true }), seriesArea };
         const { width, height } = box;
         return {
             point: { x: 0, y: 0, size: 0 },
             label: { text: this.crossLineLabel.text ?? '', width, height },
             anchor: undefined,
             placement: undefined,
+            alwaysShow: keep ? undefined : false,
             neverDrop: keep,
-            obstacle: reserveSpace,
+            obstacle: keep ? reserveSpace : true,
             collideWith,
             threshold: collision?.threshold,
             // Already the rotated footprint, so it carries no rotation for the engine to inflate it by again.
             positionedCandidates: [
                 {
                     box: { x: box.x - seriesRect.x, y: box.y - seriesRect.y, width, height },
-                    region: keep ? undefined : this.labelRegion(seriesRect, collideWith.seriesArea === true),
+                    region: keep ? undefined : this.labelRegion(seriesRect, seriesArea),
                     flushToRegion: false,
                 },
             ],
@@ -414,8 +412,9 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         return this.paddedForLabel !== (!hidden && this.labelPaddingSide != null);
     }
 
+    /** A held hidden label sits the re-layout out, as it was laid out unpadded. */
     holdLabelPlacement(hold: boolean) {
-        this.heldLabelHidden = hold ? this.labelHidden : undefined;
+        this.labelHeld = hold && this.labelHidden;
     }
 
     private updateNodes() {
@@ -440,7 +439,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         this.updateRangeNode(bounds);
 
         const { label } = this;
-        this.crossLineLabel.visible = this.heldLabelHidden !== true;
+        this.crossLineLabel.visible = !this.labelHidden;
         if (label.enabled !== false && label.text != null && label.text !== '') {
             this.updateLabel();
             if (label.overflow === 'clip-text') {
@@ -627,7 +626,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     calculatePadding(into: Partial<Record<AgCrossLineLabelPosition, number>>) {
         this.paddedForLabel = false;
-        if (this.heldLabelHidden === true) return;
+        if (this.labelHidden) return;
 
         const side = this.labelPaddingSide;
         if (side == null) return;
@@ -635,15 +634,11 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const size = this.computeLabelSize();
         if (!size) return;
 
-        const { padding } = this.label;
-        let offset: number;
-        if (side === 'left' || side === 'right') {
-            const xPadding = typeof padding === 'number' ? padding * 2 : (padding.left ?? 0) + (padding.right ?? 0);
-            offset = xPadding + size.width;
-        } else {
-            const yPadding = typeof padding === 'number' ? padding * 2 : (padding.top ?? 0) + (padding.bottom ?? 0);
-            offset = yPadding + size.height;
-        }
+        const padding = resolvePadding(this.label.padding);
+        const offset =
+            side === 'left' || side === 'right'
+                ? padding.left + padding.right + size.width
+                : padding.top + padding.bottom + size.height;
         into[side] = Math.max(into[side] ?? 0, offset);
         this.paddedForLabel = true;
     }
