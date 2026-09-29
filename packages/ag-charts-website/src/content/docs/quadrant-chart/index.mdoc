@@ -153,6 +153,8 @@ There is also a shared `regions.label` property which each region can override a
 
 Callbacks such as `itemStyler`, `tooltip.renderer` and label callbacks receive the region of each point to allow for region specific styling.
 
+The `contextMenu.getItems` callback also receives a region, allowing menu items to vary by region. It is the region of the marker under the pointer, or the region the pointer falls in when there is no marker.
+
 ### Labels
 
 {% chartExampleRunner title="Regions" name="quadrant-chart-regions" type="generated" /%}
