@@ -28,7 +28,8 @@ import {
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
 } from '../../legend/legendDatum';
-import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, type PickFocusOutputs, SeriesNodePickMode } from '../pickTypes';
+import { Series } from '../series';
 import type { DatumIndex, ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
 
 export enum HierarchyHighlightState {

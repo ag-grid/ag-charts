@@ -21,17 +21,15 @@ const family = getFamilyExamples({ galleryData: galleryEntry.data, seriesName: s
 </p>
 
 <div class="cards">
-    {
-        family.examples.map(({ label, name }) => (
-            <GalleryExampleLink
-                client:visible
-                label={label}
-                exampleName={name}
-                enableDprScaling={GALLERY_IMAGE_DPR_ENHANCEMENT}
-                layout="fill"
-            />
-        ))
-    }
+    {family.examples.map(({ label, name }) => (
+        <GalleryExampleLink
+            client:visible
+            label={label}
+            exampleName={name}
+            enableDprScaling={GALLERY_IMAGE_DPR_ENHANCEMENT}
+            layout="fill"
+        />
+    ))}
 </div>
 
 <style lang="scss">

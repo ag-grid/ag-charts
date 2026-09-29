@@ -64,13 +64,7 @@ export interface FillCssOptions {
 }
 
 export type AgColorType =
-    | CssColor
-    | AgColorRef
-    | AgColorRefMixOnto
-    | AgColorRefMixOntoColor
-    | AgGradientColor
-    | AgPatternColor
-    | AgImageFill;
+    CssColor | AgColorRef | AgColorRefMixOnto | AgColorRefMixOntoColor | AgGradientColor | AgPatternColor | AgImageFill;
 export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 
 export type AgGradientColorMode = 'continuous' | 'discrete';

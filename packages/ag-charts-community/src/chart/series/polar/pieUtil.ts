@@ -10,7 +10,7 @@ import { Sector } from '../../../scene/shape/sector';
 import { Transformable } from '../../../scene/transformable';
 import { boxOverlapsSector } from '../../../scene/util/sector';
 import type { Marker } from '../../marker/marker';
-import type { PickNodesInBBoxPredicate, SeriesNodePickMatch } from '../series';
+import type { PickNodesInBBoxPredicate, SeriesNodePickMatch } from '../pickTypes';
 
 type AnimatableSectorDatum = {
     radius: number;

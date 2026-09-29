@@ -101,8 +101,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
         for (const vertex of vertices) {
             const children = this.neighboursWithEdgeValue(vertex, 'child') as
-                | Vertex<OrganizationVertex, OrganizationEdge>[]
-                | undefined;
+                Vertex<OrganizationVertex, OrganizationEdge>[] | undefined;
             const descendants = children ? this.computeDescendants(children) : 0;
             totalDescendants += descendants;
             this.addEdge(vertex, this.addVertex(descendants), 'descendants');

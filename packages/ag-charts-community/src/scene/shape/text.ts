@@ -431,7 +431,7 @@ export class Text<D = unknown> extends Shape<D> {
         const labelLeft = this.x - totalWidth / 2;
         let offsetY = 0;
 
-        for (let lineIndex = 0; lineIndex < lineMetrics.length; ) {
+        for (let lineIndex = 0; lineIndex < lineMetrics.length;) {
             const line = lineMetrics[lineIndex];
 
             if ((line.blockImages?.length ?? 0) > 0) {

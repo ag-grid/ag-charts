@@ -4,21 +4,24 @@ import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { TextualPointScene } from '../scenes/textualPointScene';
-import type { TextProperties } from './textProperties';
+import type { TextDatum } from './textDatum';
 
-export class TextScene extends TextualPointScene<TextProperties> {
+export class TextScene extends TextualPointScene<TextDatum> {
     static override is(value: unknown): value is TextScene {
         return AnnotationScene.isCheck(value, AnnotationType.Text);
     }
 
     type = AnnotationType.Text;
 
+    protected override readonly textPosition = 'bottom' as const;
+    protected override readonly textAlignment = 'left' as const;
+
     constructor() {
         super();
         this.append([this.label, this.handle]);
     }
 
-    protected override getHandleCoords(_datum: TextProperties, point: Point): Point {
+    protected override getHandleCoords(_datum: TextDatum, point: Point): Point {
         const halfSize = DivariantHandle.HANDLE_SIZE / 2;
         return {
             x: point.x + halfSize,

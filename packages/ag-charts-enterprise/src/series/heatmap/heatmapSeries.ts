@@ -290,8 +290,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
      * Overrides base to add heatmap-specific category axis validation.
      */
     protected override validateCreateNodeDataPreconditions():
-        | { xAxis: _ModuleSupport.ChartAxis; yAxis: _ModuleSupport.ChartAxis }
-        | undefined {
+        { xAxis: _ModuleSupport.ChartAxis; yAxis: _ModuleSupport.ChartAxis } | undefined {
         const result = super.validateCreateNodeDataPreconditions();
         if (!result) return undefined;
 

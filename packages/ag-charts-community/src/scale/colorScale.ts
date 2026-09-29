@@ -3,7 +3,6 @@ import { Color, clamp, toNumber } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { AbstractScale } from './abstractScale';
-import { Invalidating } from './invalidating';
 import { unpackDomainMinMax } from './scaleUtil';
 
 type OKLCHA = { l: number; c: number; h: number; a: number };
@@ -49,12 +48,35 @@ export class ColorScale extends AbstractScale<number, string> {
     readonly defaultTickCount = 0;
     protected invalid = true;
 
-    @Invalidating
-    domain = [0, 1];
-    @Invalidating
-    range = ['red', 'blue'];
-    @Invalidating
-    mode: 'continuous' | 'discrete' = 'continuous';
+    private _domain: number[] = [0, 1];
+    get domain(): number[] {
+        return this._domain;
+    }
+    set domain(value: number[]) {
+        if (value === this._domain) return;
+        this._domain = value;
+        this.invalid = true;
+    }
+
+    private _range: string[] = ['red', 'blue'];
+    get range(): string[] {
+        return this._range;
+    }
+    set range(value: string[]) {
+        if (value === this._range) return;
+        this._range = value;
+        this.invalid = true;
+    }
+
+    private _mode: 'continuous' | 'discrete' = 'continuous';
+    get mode() {
+        return this._mode;
+    }
+    set mode(value: 'continuous' | 'discrete') {
+        if (value === this._mode) return;
+        this._mode = value;
+        this.invalid = true;
+    }
     /**
      * User-visible axis domain for the gradient legend. Decoupled from
      * `domain` (which carries interpolation pivots) so that colour-stop

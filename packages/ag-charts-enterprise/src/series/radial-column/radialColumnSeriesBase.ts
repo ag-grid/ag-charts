@@ -82,8 +82,7 @@ interface RadialColumnSeriesNodeDataContext extends _ModuleSupport.DataModelSeri
 
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends
-        | _ModuleSupport.Sector<RadialColumnNodeDatum>
-        | _ModuleSupport.RadialColumnShape<RadialColumnNodeDatum>,
+        _ModuleSupport.Sector<RadialColumnNodeDatum> | _ModuleSupport.RadialColumnShape<RadialColumnNodeDatum>,
     TOptions extends NormalisedRadialColumnSeriesBaseOwnOptions = NormalisedRadialColumnSeriesBaseOwnOptions,
 > extends _ModuleSupport.PolarSeries<
     RadialColumnNodeDatum,

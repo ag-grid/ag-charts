@@ -107,6 +107,4 @@ export interface AgLineSparklinePreset<TDatum = DatumDefault>
 }
 
 export type AgSparklinePresets<TDatum = DatumDefault> =
-    | AgBarSparklinePreset<TDatum>
-    | AgLineSparklinePreset<TDatum>
-    | AgAreaSparklinePreset<TDatum>;
+    AgBarSparklinePreset<TDatum> | AgLineSparklinePreset<TDatum> | AgAreaSparklinePreset<TDatum>;

@@ -1,8 +1,8 @@
 import { LineTypeStateMachine } from '../line/lineState';
-import { FibonacciRetracementProperties } from './fibonacciRetracementProperties';
+import { type FibonacciRetracementDatum, fibonacciRetracementDatum } from './fibonacciRetracementDatum';
 
-export class FibonacciRetracementStateMachine extends LineTypeStateMachine<FibonacciRetracementProperties> {
+export class FibonacciRetracementStateMachine extends LineTypeStateMachine<FibonacciRetracementDatum> {
     override createDatum() {
-        return new FibonacciRetracementProperties();
+        return fibonacciRetracementDatum.create();
     }
 }

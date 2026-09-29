@@ -1,14 +1,26 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type Point, Vec4 } from 'ag-charts-core';
 
-import type { AnnotationContext } from '../annotationTypes';
-import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
-import { getBBox, updateTextNode } from '../text/util';
-import { convertLine } from '../utils/values';
+import type { TextInputLayout } from '../../text-input/textInput';
+import type { AnnotationContext, Padding } from '../annotationTypes';
+import type { TextualStartEndDatum } from '../datum/textualDatum';
+import {
+    type AnnotationTextAlignment,
+    type AnnotationTextPosition,
+    type TextOptions,
+    getAnnotationText,
+    getBBox,
+    uniformPadding,
+    updateTextNode,
+} from '../text/util';
+import { convertLine, convertPoint } from '../utils/values';
 import { StartEndScene } from './startEndScene';
 
-export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends StartEndScene<Datum> {
+export abstract class TextualStartEndScene<Datum extends TextualStartEndDatum> extends StartEndScene<Datum> {
     override activeHandle?: 'start' | 'end';
+
+    protected abstract readonly textPosition: AnnotationTextPosition;
+    protected abstract readonly textAlignment: AnnotationTextAlignment;
 
     protected readonly label = new _ModuleSupport.Text({ zIndex: 1 });
 
@@ -28,7 +40,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         const coords = convertLine(datum, context);
         if (coords == null) return;
 
-        const bbox = this.getTextBBox(datum, coords);
+        const bbox = this.getTextBBox(datum, coords, context);
 
         this.updateLabel(datum, bbox, coords, context);
         this.updateHandles(datum, coords, bbox);
@@ -46,21 +58,53 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         return super.getNodeAtCoords(x, y);
     }
 
-    protected getTextBBox(datum: Datum, coords: Bounds4) {
-        const { text } = datum.getText();
+    public getTextInputLayout(datum: TextualStartEndDatum, context: AnnotationContext): TextInputLayout {
+        return {
+            getTextInputCoords: (height) => this.getTextInputCoords(datum, context, height),
+            getTextPosition: () => this.textPosition,
+            alignment: this.textAlignment,
+            textAlign: datum.textAlign,
+        };
+    }
 
-        return getBBox(datum, text, Vec4.end(coords), this.textInputBBox);
+    public getPlaceholderColor(_datum: TextualStartEndDatum): string | undefined {
+        return undefined;
+    }
+
+    protected getTextInputCoords(datum: TextualStartEndDatum, context: AnnotationContext, _height: number): Point {
+        return convertPoint(datum.end, context);
+    }
+
+    protected getPadding(datum: TextualStartEndDatum): Padding {
+        return uniformPadding(datum.padding ?? 0);
+    }
+
+    protected getTextOptions(datum: TextualStartEndDatum): TextOptions {
+        const { fontFamily, fontSize, fontStyle, fontWeight, textAlign } = datum;
+        return { fontFamily, fontSize, fontStyle, fontWeight, textAlign, position: this.textPosition };
+    }
+
+    protected getTextBBox(datum: Datum, coords: Bounds4, context: AnnotationContext) {
+        const { text } = getAnnotationText(datum.text, context.localeManager);
+
+        return getBBox(this.getTextOptions(datum), text, Vec4.end(coords), this.textInputBBox);
     }
 
     protected updateLabel(datum: Datum, bbox: _ModuleSupport.BBox, coords: Bounds4, context: AnnotationContext) {
-        const { text, isPlaceholder } = datum.getText();
+        const { text, isPlaceholder } = getAnnotationText(datum.text, context.localeManager);
         const labelCoords = this.getLabelCoords(datum, bbox, coords);
 
         if (context.isRtl) {
             labelCoords.x += bbox.width;
         }
 
-        updateTextNode(this.label, text, isPlaceholder, datum, labelCoords);
+        const config = {
+            ...this.getTextOptions(datum),
+            visible: datum.visible,
+            color: datum.color,
+            placeholderColor: this.getPlaceholderColor(datum),
+        };
+        updateTextNode(this.label, text, isPlaceholder, config, labelCoords);
     }
 
     protected updateShape(_datum: Datum, _textBBox: _ModuleSupport.BBox, _coords: Bounds4) {

@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "14.2.0-beta.20260922",
+  "version": "14.2.0-beta.20260927",
   "scripts": {
     "ng": "ng",
     "build": "ng build",
@@ -33,7 +33,7 @@
   "module": "./dist/ag-charts-angular/fesm2022/ag-charts-angular.mjs",
   "typings": "./dist/ag-charts-angular/index.d.ts",
   "dependencies": {
-    "ag-charts-community": "14.2.0-beta.20260922",
+    "ag-charts-community": "14.2.0-beta.20260927",
     "tslib": "^2.8.1"
   },
   "devDependencies": {
@@ -48,7 +48,7 @@
     "@angular/platform-browser": "^20.0.0",
     "@angular/platform-browser-dynamic": "^20.0.0",
     "@angular/router": "^20.0.0",
-    "@types/jasmine": "~5.1.0",
+    "@types/jasmine": "~6.0.0",
     "@types/node": "^22.15.3",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.4",

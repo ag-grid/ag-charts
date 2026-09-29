@@ -101,14 +101,9 @@ import { Marker } from '../../marker/marker';
 import { type MarkerLabelRect, markerLabelRect, markerRowSpans } from '../../marker/markerLabelRect';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
-import {
-    type MarkerStyleApply,
-    type MarkerStyleCompute,
-    type PickFocusInputs,
-    type SeriesNodePickMatch,
-    SeriesNodePickMode,
-    type SeriesNodeStyleContext,
-} from '../series';
+import type { PickFocusInputs, SeriesNodePickMatch } from '../pickTypes';
+import { SeriesNodePickMode } from '../pickTypes';
+import type { MarkerStyleApply, MarkerStyleCompute, SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { markerDiameter } from '../seriesMarker';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
@@ -140,7 +135,7 @@ import type {
 } from './cartesianSeriesTypes';
 import { upsertNodeDatum } from './cartesianSeriesUtil';
 import {
-    computeMarkerFocusBounds,
+    computeMarkerFocusBoundsOfNodeDatum,
     getMarkerStyles,
     markerScaleInAnimation,
     maxMarkerStrokePickInflation,
@@ -410,6 +405,7 @@ export abstract class BubbleScatterSeries<
 
     private dataAggregation: BubbleAggregation | undefined = undefined;
     private aggregateIndexSet: Map<number, number[]> | undefined = undefined;
+    private nodeDatumContext: BubbleSeriesNodeDatumContext | undefined = undefined;
 
     private readonly sizeScale = new LinearScale();
     readonly colorScale = new ColorScale();
@@ -711,7 +707,7 @@ export abstract class BubbleScatterSeries<
 
         const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData, 'object');
 
-        return {
+        this.nodeDatumContext = {
             // Axes (from template method parameters)
             xAxis,
             yAxis,
@@ -785,6 +781,7 @@ export abstract class BubbleScatterSeries<
             nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
             nodeIndex: 0,
         };
+        return this.nodeDatumContext;
     }
 
     // Template method hooks.
@@ -804,22 +801,7 @@ export abstract class BubbleScatterSeries<
         this.sizeScale.range = this.getSizeRange();
 
         // Pre-allocate scratch object for datum state
-        const scratch: PreparedBubbleNodeDatumState = {
-            datum: undefined,
-            xDatum: undefined,
-            yDatum: undefined,
-            sizeValue: undefined,
-            colorValue: undefined,
-            x: 0,
-            y: 0,
-            crossFilterSelected: undefined,
-            nodeLabel: { text: '', width: 0, height: 0 },
-            nodeLabelFit: undefined,
-            markerSize: 0,
-            count: 1,
-            dilation: 1,
-            area: 0,
-        };
+        const scratch: PreparedBubbleNodeDatumState = this.createScratchNodeDatum();
 
         const { dataAggregation } = this;
         if (dataAggregation == null) {
@@ -1059,6 +1041,25 @@ export abstract class BubbleScatterSeries<
         // The marker container is per datum, so the fit the engine re-applies per candidate must carry
         // this datum's bound rather than the series-level policy.
         scratch.nodeLabelFit = placedLabelFit(labelText, ctx.label, ctx, boundedFit);
+    }
+
+    public createScratchNodeDatum(): PreparedBubbleNodeDatumState {
+        return {
+            datum: undefined,
+            xDatum: undefined,
+            yDatum: undefined,
+            sizeValue: undefined,
+            colorValue: undefined,
+            x: 0,
+            y: 0,
+            crossFilterSelected: undefined,
+            nodeLabel: { text: '', width: 0, height: 0 },
+            nodeLabelFit: undefined,
+            markerSize: 0,
+            count: 1,
+            dilation: 1,
+            area: 0,
+        };
     }
 
     /**
@@ -1897,8 +1898,17 @@ export abstract class BubbleScatterSeries<
         );
     }
 
-    protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
-        return computeMarkerFocusBounds(this, opts);
+    protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
+        const ctx = this.nodeDatumContext;
+        if (!ctx) return;
+
+        const scratch: PreparedBubbleNodeDatumState = this.createScratchNodeDatum();
+        if (!this.prepareNodeDatumState(ctx, scratch, datumIndex)) return;
+
+        const nodeDatum = this.createSkeletonNodeDatum(ctx, scratch, datumIndex);
+        this.updateNodeDatum(ctx, nodeDatum, scratch, datumIndex);
+
+        return computeMarkerFocusBoundsOfNodeDatum(this, nodeDatum);
     }
 
     protected override hasItemStylers(): boolean {

@@ -1,25 +1,22 @@
 import { AnnotationType } from '../annotationTypes';
 import type { AnnotationTypeConfig } from '../annotationsSuperTypes';
 import { DragStateMachine } from '../states/dragState';
-import { CommentProperties } from './commentProperties';
+import { type CommentDatum, commentDatum } from './commentDatum';
 import { CommentScene } from './commentScene';
 import { CommentStateMachine } from './commentState';
 
-export const commentConfig: AnnotationTypeConfig<CommentProperties, CommentScene> = {
-    type: AnnotationType.Comment,
-    datum: CommentProperties,
+export const commentConfig: AnnotationTypeConfig<CommentDatum, CommentScene> = {
     scene: CommentScene,
-    isDatum: CommentProperties.is,
     translate: (node, datum, translation, context) => {
-        if (CommentProperties.is(datum) && CommentScene.is(node)) node.translate(datum, translation, context);
+        if (commentDatum.is(datum) && CommentScene.is(node)) node.translate(datum, translation, context);
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (CommentProperties.is(datum) && CommentProperties.is(copiedDatum) && CommentScene.is(node)) {
+        if (commentDatum.is(datum) && commentDatum.is(copiedDatum) && CommentScene.is(node)) {
             return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (CommentProperties.is(datum) && CommentScene.is(node)) {
+        if (commentDatum.is(datum) && CommentScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -28,5 +25,5 @@ export const commentConfig: AnnotationTypeConfig<CommentProperties, CommentScene
             ...ctx,
             create: createDatum(AnnotationType.Comment),
         }),
-    dragState: (ctx) => new DragStateMachine<CommentProperties, CommentScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<CommentDatum, CommentScene>(ctx),
 };

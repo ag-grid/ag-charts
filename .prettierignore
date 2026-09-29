@@ -28,6 +28,9 @@ packages/ag-charts-website/src/components/example-runner/components/FrameworkTem
 .prettierrc
 tsconfig.base.json
 
+# Minified demo data: one copy ships in every seed, so it stays on one line
+packages/ag-charts-demos/**/purchase-orders.json
+
 # Files without Prettier parsers
 *.patch
 *.sh

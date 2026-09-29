@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { Padding, PaddingOptions } from 'ag-charts-types';
 
-import type { AxisLabelProperties } from '../annotationProperties';
+import type { AxisLabelDatum } from '../annotationDatum';
 import type { AnnotationAxisContext } from '../annotationTypes';
 
 const { calculateLabelTranslation } = _ModuleSupport;
@@ -19,7 +19,7 @@ type UpdateOpts = {
     x: number;
     y: number;
     value: any;
-    styles: Partial<AxisLabelProperties>;
+    styles: AxisLabelDatum;
     context: AnnotationAxisContext;
 };
 

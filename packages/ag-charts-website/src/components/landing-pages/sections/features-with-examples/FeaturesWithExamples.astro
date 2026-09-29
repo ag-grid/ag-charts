@@ -28,23 +28,21 @@ const { features, framework } = Astro.props;
 
         <!-- Example runners column -->
         <div class="landing-page-examples-column">
-            {
-                features.map((feature, index) => (
-                    <div
-                        class={`landing-page-example-panel ${index === 0 ? 'active' : ''}`}
-                        data-feature-id={feature.id}
-                        data-index={index}
-                    >
-                        <ExampleRunner
-                            title={feature.title}
-                            name={feature.example.exampleName}
-                            pageName={feature.example.pageName}
-                            exampleHeight={450}
-                            framework={framework}
-                        />
-                    </div>
-                ))
-            }
+            {features.map((feature, index) => (
+                <div
+                    class={`landing-page-example-panel ${index === 0 ? 'active' : ''}`}
+                    data-feature-id={feature.id}
+                    data-index={index}
+                >
+                    <ExampleRunner
+                        title={feature.title}
+                        name={feature.example.exampleName}
+                        pageName={feature.example.pageName}
+                        exampleHeight={450}
+                        framework={framework}
+                    />
+                </div>
+            ))}
         </div>
     </div>
 </div>
@@ -91,8 +89,6 @@ const { features, framework } = Astro.props;
     }
 </style>
 
-{
-    /* Externalised to a 'self' script so the site CSP can drop script-src
-    'unsafe-inline' — see public/scripts/landing-page-feature-tabs.js. */
-}
+{/* Externalised to a 'self' script so the site CSP can drop script-src
+    'unsafe-inline' — see public/scripts/landing-page-feature-tabs.js. */}
 <script is:inline src={urlWithBaseUrl('/scripts/landing-page-feature-tabs.js')} defer></script>

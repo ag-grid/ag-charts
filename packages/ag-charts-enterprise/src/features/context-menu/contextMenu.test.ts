@@ -12,6 +12,7 @@ import {
     longTapAction,
     setupMockCanvas,
     setupMockConsole,
+    setupMockPointerEvent,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection } from 'ag-charts-core';
@@ -24,6 +25,7 @@ import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 describe('Context Menu', () => {
     setupMockConsole();
     setupMockCanvas();
+    setupMockPointerEvent();
 
     let chart: any;
 
@@ -100,6 +102,13 @@ describe('Context Menu', () => {
     };
 
     // Canvas-space click points, read from the laid-out chart purely to place the pointer.
+    function datumCanvasPoint(datumIndex: number) {
+        const series = deproxy(chart).series[0] as any;
+        const node = series.getNodeData()[datumIndex];
+        expect(node).toBeDefined();
+        return _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
+    }
+
     function seriesAreaCentre() {
         const seriesRect = deproxy(chart).seriesRect;
         expect(seriesRect).toBeDefined();
@@ -130,7 +139,6 @@ describe('Context Menu', () => {
 
     let cx: number = 0;
     let cy: number = 0;
-    let tmpPointerEvent: typeof globalThis.PointerEvent;
 
     async function prepareChart(contextMenuOptions?: AgChartOptions['contextMenu'], baseOptions = EXAMPLE_OPTIONS) {
         const options: AgChartOptions = {
@@ -148,15 +156,7 @@ describe('Context Menu', () => {
         await waitForChartStability(chart);
     }
 
-    beforeEach(() => {
-        // Node.js does not have a PointerEvent constructor (which is what we use to create synthetic 'contextmenu'
-        // events). So create custom class for it (Note: the standard PointerEvent class extends MouseEvent).
-        tmpPointerEvent = globalThis.PointerEvent;
-        globalThis.PointerEvent = class extends MouseEvent {} as typeof globalThis.PointerEvent;
-    });
-
     afterEach(() => {
-        globalThis.PointerEvent = tmpPointerEvent;
         if (chart) {
             chart.destroy();
             (chart as unknown) = undefined;
@@ -296,19 +296,12 @@ describe('Context Menu', () => {
             series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } }],
         };
 
-        const nodeCanvasPoint = (datumIndex: number) => {
-            const series = deproxy(chart).series[0] as any;
-            const node = series.getNodeData()[datumIndex];
-            expect(node).toBeDefined();
-            return _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
-        };
-
         it('surfaces series-node items carrying the picked datum', async () => {
             const action = vi.fn();
             const items: AgContextMenuItem[] = [{ type: 'action', label: 'Node Item', showOn: 'series-node', action }];
             await prepareChart({ enabled: true, items }, MARKERLESS_LINE_OPTIONS);
 
-            const { canvasX: x, canvasY: y } = nodeCanvasPoint(4);
+            const { canvasX: x, canvasY: y } = datumCanvasPoint(4);
             await contextMenuAction(x, y)(chart);
             await waitForChartStability(chart);
 
@@ -331,7 +324,7 @@ describe('Context Menu', () => {
             const getItems = vi.fn((_params: any) => []);
             await prepareChart({ enabled: true, getItems }, MARKERLESS_LINE_OPTIONS);
 
-            const { canvasX: x, canvasY: y } = nodeCanvasPoint(4);
+            const { canvasX: x, canvasY: y } = datumCanvasPoint(4);
             await contextMenuAction(x, y)(chart);
             await waitForChartStability(chart);
 
@@ -560,6 +553,59 @@ describe('Context Menu', () => {
 
             expect(getItems).toHaveBeenCalledWith(expect.objectContaining({ showOn: 'always' }));
             expect(getItems).not.toHaveBeenCalledWith(threshold);
+        });
+    });
+
+    describe('series node overlapping a cross line', () => {
+        let getItems: ReturnType<typeof vi.fn>;
+
+        const overlapOptions = (nodeClickRange?: 'nearest'): AgChartOptions => ({
+            data: Array.from({ length: 4 }, (_, i) => ({ x: i, y: i * 2 })),
+            axes: {
+                x: { type: 'number', crossLines: [{ id: 'threshold', type: 'line', value: 1 }] },
+                y: { type: 'number' },
+            },
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', nodeClickRange }],
+        });
+
+        const crossLineParams = expect.objectContaining({ showOn: 'cross-line', crossLineId: 'threshold' });
+        const nodeParams = expect.objectContaining({ showOn: 'series-node', datum: { x: 1, y: 2 } });
+
+        beforeEach(() => {
+            getItems = vi.fn(({ defaultItems }) => defaultItems);
+        });
+
+        test('right-clicking a marker on the cross line offers the series node first', async () => {
+            await prepareChart({ enabled: true, getItems }, overlapOptions());
+            const { canvasX, canvasY } = datumCanvasPoint(1);
+            await contextMenuAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    showOn: 'series-node',
+                    datum: { x: 1, y: 2 },
+                    allShowOnParams: expect.arrayContaining([nodeParams, crossLineParams]),
+                })
+            );
+        });
+
+        test('right-clicking the cross line away from a marker within `nodeClickRange` offers the cross line first', async () => {
+            await prepareChart({ enabled: true, getItems }, overlapOptions('nearest'));
+            const { canvasX, canvasY } = datumCanvasPoint(1);
+            await contextMenuAction(canvasX, canvasY - 30)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    showOn: 'cross-line',
+                    crossLineId: 'threshold',
+                    allShowOnParams: expect.arrayContaining([
+                        crossLineParams,
+                        expect.objectContaining({ showOn: 'series-node' }),
+                    ]),
+                })
+            );
         });
     });
     // AG-18600: `getItems` receives the DOM event that opened the menu, as the very same object the

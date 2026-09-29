@@ -6,15 +6,7 @@ import type { PixelSize } from './types';
  * the marker, hiding or truncating it if it does not fit.
  */
 export type AgChartLabelCollisionPlacement =
-    | 'inside'
-    | 'top'
-    | 'bottom'
-    | 'left'
-    | 'right'
-    | 'top-left'
-    | 'top-right'
-    | 'bottom-left'
-    | 'bottom-right';
+    'inside' | 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 /** Placement of a label relative to a bounded region (a range-area band, a range-bar rect). */
 export type AgChartLabelRegionPlacement = 'inside' | 'outside';

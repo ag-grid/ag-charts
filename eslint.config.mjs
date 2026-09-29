@@ -29,9 +29,6 @@ const SANCTIONED_AMBIENT_LOGGING = [
     '/utils/data/numbers.ts',
     // Pure format-string parser, reached from the static `FormatManager.getFormatter` below.
     '/utils/format/numberFormat.ts',
-    // `BaseProperties.set()`, reached from programmatic property assignment with no chart to hand.
-    // Option-driven unknown properties are already reported as validation errors.
-    '/state/properties.ts',
     // Cycle detection in the generic JSON walker.
     '/utils/data/json.ts',
     // The unsupported-browser warning is a property of the environment, not of a chart: per-chart

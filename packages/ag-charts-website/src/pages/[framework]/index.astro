@@ -2,22 +2,36 @@
 import { getDocsFrameworkPages } from '@components/docs/utils/pageData';
 import { DOCS_FRAMEWORK_REDIRECT_PAGE } from '@components/docs/constants';
 import Layout from '@layouts/Layout.astro';
-import { FRAMEWORK_DISPLAY_TEXT } from '@constants';
+import LandingPage from '@components/landing-pages/LandingPage.astro';
+import { FRAMEWORK_DISPLAY_TEXT, isFrameworkLandingHub } from '@constants';
 import FrameworkRedirectPage from '@ag-website-shared/components/framework-redirect-page/FrameworkRedirectPage.astro';
+import { getEntry } from 'astro:content';
 
 export async function getStaticPaths() {
     return getDocsFrameworkPages();
 }
 
-const frameworkDisplay = FRAMEWORK_DISPLAY_TEXT[Astro.params?.framework];
+const framework = Astro.params?.framework;
+const frameworkDisplay = FRAMEWORK_DISPLAY_TEXT[framework];
+
+// The hub renders the ad campaign page's content; that copy carries a noindex so only this URL
+// competes for the framework's head term.
+const contentEntry = isFrameworkLandingHub(framework)
+    ? await getEntry('landingPages', `${framework}-charts`)
+    : undefined;
+const versionsEntry = contentEntry ? await getEntry('versions', 'ag-charts-versions') : undefined;
 ---
 
-<Layout
-    title=`AG Charts ${frameworkDisplay} Documentation`
-    description=`AG Charts ${frameworkDisplay} Documentation - This page will redirect to the landing page for ${frameworkDisplay} docs`
-    hideFooter={true}
->
-    <FrameworkRedirectPage framework={Astro.params.framework} redirectPageName={DOCS_FRAMEWORK_REDIRECT_PAGE}>
-        <h1>Redirecting to AG Charts {frameworkDisplay} Documentation...</h1>
-    </FrameworkRedirectPage>
-</Layout>
+{contentEntry ? (
+    <LandingPage content={contentEntry.data} versions={versionsEntry?.data} />
+) : (
+    <Layout
+        title=`AG Charts ${frameworkDisplay} Documentation`
+        description=`AG Charts ${frameworkDisplay} Documentation - This page will redirect to the landing page for ${frameworkDisplay} docs`
+        hideFooter={true}
+    >
+        <FrameworkRedirectPage framework={framework} redirectPageName={DOCS_FRAMEWORK_REDIRECT_PAGE}>
+            <h1>Redirecting to AG Charts {frameworkDisplay} Documentation...</h1>
+        </FrameworkRedirectPage>
+    </Layout>
+)}
