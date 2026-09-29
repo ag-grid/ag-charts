@@ -5,11 +5,15 @@ name: Optimise agentic context
 # `optimise-context` action from @ag-grid/dev-prompts.
 # See ag-dev-prompts docs/ai-workflow-optimise-context.md.
 #
+#   Schedule: weekly (see `schedule:`); scheduled runs open a PR
 #   Run now:  Actions → "Optimise agentic context" → Run workflow
 #             (a dispatch defaults to dry_run — no PR)
 #   Pause:    disable this workflow in the Actions UI
 
 on:
+    schedule:
+        # Mondays 04:00 UTC.
+        - cron: '0 4 * * 1'
     workflow_dispatch:
         inputs:
             dry_run:
