@@ -104,7 +104,7 @@ export const toStackParamValue = (
             }
             // A composite member has no variable to blend by reference, so the blend is written out as CSS.
             const memberCss = colorValueToCss(toStackParamValue(ref, member.value, params) as ColorValue);
-            if (memberCss) {
+            if (memberCss != null && memberCss !== '') {
                 return `color-mix(in srgb, ${colorValueToCss({ ref: onto })}, ${memberCss} ${(1 - t) * 100}%)`;
             }
         }
@@ -128,7 +128,7 @@ export const toStackParamValue = (
     // Composite params such as `buttonBorder: { color, width }`, whose members
     // are themselves operations.
     return Object.fromEntries(
-        Object.entries(value).map(([key, member]) => [key, toStackParamValue(`${property}.${key}`, member, params)])
+        Object.keys(value).map((key) => [key, toStackParamValue(`${property}.${key}`, value[key], params)])
     );
 };
 
