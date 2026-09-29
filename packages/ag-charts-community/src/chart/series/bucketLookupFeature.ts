@@ -65,15 +65,17 @@ interface BucketingInputs {
 
 /**
  * Per-render-frame reader cache shared by both extremes and split managers.
- * Holds both the bucket-selected hot-path reader and the range reader keyed
- * on (`processedData`, filter) — both are invalidated together because both
- * close over the same resolved bucketing context.
+ * Holds the bucket-selected hot-path reader, the range reader and the bucket
+ * reader keyed on (`processedData`, filter) — all are invalidated together
+ * because all close over the same resolved bucketing context.
  */
 class LookupCache<TFilter> {
     processedData?: ProcessedData<any>;
     filter?: TFilter;
     selectedReader?: (datumIndex: number) => boolean;
     rangeReader?: DatumRangeReader;
+    /** Returns the `indexData` offset (`bucket * AGGREGATION_SPAN`) of the bucket holding `datumIndex`, or -1. */
+    bucketOffsetReader?: (datumIndex: number) => number;
 
     has(processedData: ProcessedData<any>, filter: TFilter): boolean {
         return this.processedData === processedData && this.filter === filter && this.selectedReader !== undefined;
@@ -83,12 +85,14 @@ class LookupCache<TFilter> {
         processedData: ProcessedData<any>,
         filter: TFilter,
         selectedReader: (datumIndex: number) => boolean,
-        rangeReader: DatumRangeReader
+        rangeReader: DatumRangeReader,
+        bucketOffsetReader: (datumIndex: number) => number
     ): void {
         this.processedData = processedData;
         this.filter = filter;
         this.selectedReader = selectedReader;
         this.rangeReader = rangeReader;
+        this.bucketOffsetReader = bucketOffsetReader;
     }
 
     clear(): void {
@@ -96,6 +100,7 @@ class LookupCache<TFilter> {
         this.filter = undefined;
         this.selectedReader = undefined;
         this.rangeReader = undefined;
+        this.bucketOffsetReader = undefined;
     }
 }
 
@@ -220,6 +225,12 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
         return this.cache.rangeReader ?? this.ensureReaders()?.rangeReader;
     }
 
+    getBucketIndex(datumIndex: number): number | undefined {
+        const offset = (this.cache.bucketOffsetReader ?? this.ensureReaders()?.bucketOffsetReader)?.(datumIndex);
+        if (offset === undefined || offset < 0) return undefined;
+        return offset / AGGREGATION_SPAN;
+    }
+
     getIndexSet(_datumIndex: number): Iterable<number> | undefined {
         return undefined;
     }
@@ -322,7 +333,11 @@ export class BucketLookupManager<TFilter extends ExtremesFilter>
             return [indexData[bucket + AGGREGATION_INDEX_X_MIN], indexData[bucket + AGGREGATION_INDEX_X_MAX]];
         }
 
-        this.cache.set(processedData, filter, readSelectedExtremes, readRangeExtremes);
+        function readBucketOffset(datumIndex: number): number {
+            return aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, { xNeedsValueOf, xValuesLength });
+        }
+
+        this.cache.set(processedData, filter, readSelectedExtremes, readRangeExtremes, readBucketOffset);
         return this.cache;
     }
 }
@@ -455,7 +470,11 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
             return [data[bucket + AGGREGATION_INDEX_X_MIN], data[bucket + AGGREGATION_INDEX_X_MAX]];
         }
 
-        this.cache.set(processedData, filter, readSelectedSplit, readRangeSplit);
+        function readBucketOffset(datumIndex: number): number {
+            return aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, { xNeedsValueOf, xValuesLength });
+        }
+
+        this.cache.set(processedData, filter, readSelectedSplit, readRangeSplit, readBucketOffset);
         return this.cache;
     }
 }
@@ -497,6 +516,10 @@ export class IndexSetBucketLookupManager implements BucketLookupFeature {
     }
 
     getRangeReader(): DatumRangeReader | undefined {
+        return undefined;
+    }
+
+    getBucketIndex(): number | undefined {
         return undefined;
     }
 

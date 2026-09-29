@@ -528,10 +528,10 @@ export abstract class OhlcSeriesBase<
     private prepareOlhcAggregatedNodeDatum(
         ctx: OhlcSeriesNodeDatumContext,
         scratch: PreparedOhlcNodeDatumState,
-        datumIndex: number,
+        bucketIndex: number,
         indexData: Uint32Array
     ): number {
-        const aggIndex = datumIndex * SPAN;
+        const aggIndex = bucketIndex * SPAN;
         const openIndex = indexData[aggIndex + OPEN];
         const closeIndex = indexData[aggIndex + CLOSE];
         const highIndex = indexData[aggIndex + HIGH];
@@ -1011,26 +1011,29 @@ export abstract class OhlcSeriesBase<
         const ctx = this.nodeDatumContext;
         if (!ctx) return undefined;
 
-        const prepared = this.prepareOhlcNodeDatumState(ctx, datumIndex);
-        if (!prepared) return undefined;
+        let nodeDatum: OhlcNodeDatum;
+        const filter = ctx.dataAggregationFilter;
+        if (filter == null) {
+            const prepared = this.prepareOhlcNodeDatumState(ctx, datumIndex);
+            if (!prepared) return undefined;
 
-        let nodeDatum: OhlcNodeDatum | undefined;
-        if (ctx?.dataAggregationFilter == null) {
             const centerX = ctx.xPosition(datumIndex);
             nodeDatum = this.createSkeletonNodeDatum(ctx, prepared, datumIndex, centerX, ctx.barWidth, ctx.crisp);
-            this.updateNodeDatum(ctx, nodeDatum, prepared, datumIndex, centerX, ctx.barWidth, ctx.crisp);
         } else {
-            const { midpointIndices, indexData } = ctx.dataAggregationFilter;
-            const midDatumIndex = midpointIndices[datumIndex];
+            const bucketIndex = this.bucketLookup?.getBucketIndex(datumIndex);
+            if (bucketIndex == null || bucketIndex >= filter.maxRange) return undefined;
+
+            const midDatumIndex = filter.midpointIndices[bucketIndex];
             if (midDatumIndex === -1) return undefined;
 
+            const prepared = this.prepareOhlcNodeDatumState(ctx, midDatumIndex);
+            if (!prepared) return undefined;
+
             const centerX = ctx.xPosition(midDatumIndex);
-            const width = this.prepareOlhcAggregatedNodeDatum(ctx, prepared, datumIndex, indexData);
-            nodeDatum = this.createSkeletonNodeDatum(ctx, prepared, datumIndex, centerX, width, false);
-            this.updateNodeDatum(ctx, nodeDatum, prepared, datumIndex, centerX, width, false);
+            const width = this.prepareOlhcAggregatedNodeDatum(ctx, prepared, bucketIndex, filter.indexData);
+            nodeDatum = this.createSkeletonNodeDatum(ctx, prepared, midDatumIndex, centerX, width, false);
         }
 
-        if (nodeDatum == null) return;
         const { centerX, y, width, height } = nodeDatum;
         const datum = {
             x: centerX - width / 2,
