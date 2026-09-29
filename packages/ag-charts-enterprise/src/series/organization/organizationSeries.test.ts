@@ -2293,6 +2293,7 @@ describe('OrganizationSeries', () => {
                     { id: 'cfo', name: 'Carol Wu', job: 'Chief Financial Officer', parentId: 'ceo' },
                     { id: 'acc', name: 'Frank Cash', job: 'Accountant', parentId: 'cfo' },
                 ],
+                series: [{ ...SIMPLE_ORG_CHART.series[0], node: { title: { key: 'name' }, subtitle: { key: 'job' } } }],
             };
             prepareEnterpriseTestOptions(options);
 
