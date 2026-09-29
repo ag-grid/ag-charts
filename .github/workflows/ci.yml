@@ -57,6 +57,7 @@ jobs:
     detect-changes:
         runs-on: ubuntu-24.04
         name: Detect Changes
+        if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
         outputs:
             run_full_ci: ${{ steps.decide.outputs.run_full_ci }}
             locale: ${{ steps.filter.outputs.locale }}
@@ -126,6 +127,7 @@ jobs:
         # Deliberately does not wait for detect-changes (~20-30s off the critical path):
         # init consumes none of its outputs. On the rare docs-only PR this wastes one
         # init run — every downstream job is still gated by detect-changes.
+        if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
         permissions:
             contents: write
         env:
@@ -2221,7 +2223,8 @@ jobs:
         # Org-scoped GHA variable kill-switch: set SONARCLOUD_ENABLED=false to
         # skip the scan (e.g. during a SonarCloud infra outage). Absent/any other
         # value keeps it running. Sonar is advisory, so a skip is not a failure.
-        if: vars.SONARCLOUD_ENABLED != 'false'
+        if: vars.SONARCLOUD_ENABLED != 'false' &&
+            (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
         runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
