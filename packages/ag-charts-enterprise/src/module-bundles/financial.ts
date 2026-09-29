@@ -1,4 +1,4 @@
-import { BarSeriesModule, LineSeriesModule } from 'ag-charts-community';
+import { BarSeriesModule, CategoryAxisModule, LineSeriesModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
 import { NumberAxisModule, TimeAxisModule } from '../axes/cartesian/cartesianAxisModules';
@@ -49,6 +49,7 @@ export const FinancialChartModule: ModuleDefinition[] = [
     SyncModule,
     ZoomModule,
 
+    CategoryAxisModule,
     OrdinalTimeAxisModule,
     TimeAxisModule,
     NumberAxisModule,
