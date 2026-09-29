@@ -90,13 +90,7 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
         cornerRadius: { $ref: 'scrollbarThumbBorderRadius' },
         minSize: 20,
         hoverStyle: {
-            fill: {
-                $isUserOption: [
-                    '../fill',
-                    { $mix: [{ $path: '../fill' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
-                    { $ref: 'scrollbarThumbHoverBackgroundColor' },
-                ],
-            },
+            fill: { $ref: 'scrollbarThumbHoverBackgroundColor' },
             stroke: {
                 $isUserOption: [
                     '../stroke',
