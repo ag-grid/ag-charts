@@ -5,7 +5,7 @@
     "ng": "ng",
     "build": "ng build",
     "build-prod": "npm run build",
-    "lint": "# ng lint"
+    "lint": "true"
   },
   "repository": {
     "type": "git",
