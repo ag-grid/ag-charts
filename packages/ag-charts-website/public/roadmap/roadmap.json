@@ -1,5 +1,5 @@
 {
-    "lastUpdated": "2026-09-15",
+    "lastUpdated": "2026-09-28",
     "introTitle": "What we're building next",
     "introText": "Our Q3 2026 focus expands AG Charts with new timeline and quadrant chart types, smarter series label collision avoidance for dense data, broader event callbacks, and more flexible multi-chart synchronisation — adding more chart types, deeper integration, and a more polished experience.",
     "items": [
@@ -142,7 +142,7 @@
             "id": "AG-17983",
             "title": "Additional Financial Series Types",
             "q": 4,
-            "status": "planned",
+            "status": "in-progress",
             "why": "Delivers the most in-demand series types for financial and trading applications.",
             "desc": "Additional financial and trading chart series types.",
             "link": null
