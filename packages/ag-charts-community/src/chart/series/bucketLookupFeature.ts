@@ -7,8 +7,9 @@ import {
     AGGREGATION_SPAN,
     aggregationBucketForDatum,
     aggregationDatumMatchesIndex,
-    aggregationDomain,
     collectSparseSelection,
+    epochColumnForTimeScale,
+    narrowAggregationX,
     populateBucketSelectedFromSparse,
     populateBucketSelectedFromSparseSplit,
 } from 'ag-charts-core';
@@ -111,14 +112,23 @@ function resolveBucketingInputs(
     processedData: ProcessedData<any>,
     domainKey: 'value' | 'key'
 ): BucketingInputs {
+    const scale = xAxis.scale.type;
     const domainInput = dataModel.getDomain(series, 'xValue', domainKey, processedData);
-    const xValues =
+    const rawXValues =
         domainKey === 'key'
             ? dataModel.resolveKeysById(series, 'xValue', processedData)
             : dataModel.resolveColumnById(series, 'xValue', processedData, 'object');
-    const xNeedsValueOf =
-        domainKey === 'key' ? false : dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
-    const [d0, d1] = aggregationDomain(xAxis.scale.type, domainInput);
+    const rawXNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    // Mirror the aggregators' x preparation, so datums are bucketed in the same space the buckets were built in.
+    const { values: epochXValues, needsValueOf: xNeedsValueOf } = epochColumnForTimeScale(
+        scale,
+        rawXValues,
+        rawXNeedsValueOf
+    );
+    const {
+        xValues,
+        domain: [d0, d1],
+    } = narrowAggregationX(scale, epochXValues, domainInput);
     return { xValues, d0, d1, xNeedsValueOf };
 }
 
