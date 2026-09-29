@@ -9,7 +9,7 @@ globs: ['packages/ag-charts-community/src/**/series/**/*.ts', 'packages/ag-chart
 
 ## Architecture
 
-`Series` (base) → `CartesianSeries` (Line/Area/Bar…), `PolarSeries` (Pie/Donut, enterprise Radar/Radial…), `HierarchySeries` (Treemap/Sunburst…), `TopologySeries` (enterprise Sankey/Chord…). Enterprise series extend community counterparts and register via `registerModule()`.
+`Series` (base) → `CartesianSeries` (Line/Area/Bar…), `PolarSeries` (Pie/Donut, enterprise Radar/Radial…), `HierarchySeries` (Treemap/Sunburst…), enterprise `FlowProportionSeries` (Sankey/Chord) and `TopologySeries` (Map series). Enterprise series extend community base classes; every series ships as a module that users register with `ModuleRegistry.registerModules()`.
 
 **Key files:**
 
@@ -41,7 +41,7 @@ For any optimisation work — scene-change detection, batched property updates, 
 
 ## Module System Integration
 
-Series register via a `SeriesModule` definition (`type: 'series'`, `optionsKey: 'series[]'`, `packageType`, `chartTypes`, `identifier`, `moduleFactory`, `tooltipDefaults`, `themeTemplate`) in the series module file.
+Each series is a `SeriesModuleDefinition` (`packages/ag-charts-core/src/modules/moduleDefinition.ts`) in its `*SeriesModule.ts` file: `type: 'series'`, `name`, `version`, `chartType`, `options`, `themeTemplate`, `create` — see `barSeriesModule.ts`. What a module owns and how it is registered is covered by the `/module-definitions` skill.
 
 ## Testing
 

@@ -36,14 +36,14 @@ This pattern:
 
 ### Existing Examples
 
-Undocumented chart-level options in `chartDefaults.ts`:
+Undocumented chart-level options in `packages/ag-charts-core/src/config/chartDefaults.ts`:
 
--   `flashOnUpdate`
 -   `statusBar`
 -   `foreground`
 -   `overrideDevicePixelRatio`
--   `sync.domainMode`
 -   `displayNullData`
+-   `dataSource.requestThrottle`
+-   `ranges.minSize`
 
 Undocumented series-level options:
 

@@ -13,7 +13,7 @@ globs: ['**/*']
 
 ## Project Overview
 
-Build dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-locale` → `ag-charts-community` → `ag-charts-enterprise` → framework wrappers
+Build dependency chain: `ag-charts-types` → `ag-charts-core` → `ag-charts-community` (which also depends on `ag-charts-locale`) → `ag-charts-enterprise` → framework wrappers
 
 ## Critical Rules
 
@@ -21,7 +21,7 @@ Build dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-lo
 -   **Zero runtime dependencies:** Community and enterprise runtime bundles must have ZERO third-party dependencies beyond AG Charts packages.
 -   **Language conventions:** UK/British English for documentation text, comments, and JSDocs; US English for API option names.
 -   **Terminology:** never use "plot" or "plot area" — in prose, comments, identifiers and test-case names. Say "chart", or "series area" for the region bounded by the axes, matching the `seriesArea` option.
--   **Module ownership:** a module declares the option locations it owns (`contributes`); validation, missing-module reports, theme defaults and the generated module tables derive from it. Invoke the `/module-definitions` skill before adding or moving a module.
+-   **Module ownership:** a module owns the option location its type implies, plus any it declares in `contributes`; validation, missing-module reports, theme defaults and the generated module tables derive from that. Invoke the `/module-definitions` skill before adding or moving a module.
 
 ## Pre-Commit Requirements
 
@@ -43,7 +43,7 @@ After meaningful chart changes, also run:
 
 ## Review guidelines
 
--   **Hot-path impact:** a chart renders up to a million datums at 60Hz, so the same edit is free in one file and costs frame time in another. Gate with `node tools/hot-paths/detect.js --range <base>...<head>`; three dots make the range the fork point to the head, so nothing merged into the base since counts as part of the change. `--pr <number>` derives that range from a PR and `--base latest` scores the working tree including untracked files — prefer the explicit range when the revisions under review must not move mid-review. The detector is deterministic and sub-second. Output is JSON on stdout, with the schema in the `hot-paths` skill — read the `triggered` boolean, since the exit status is 0 whatever the verdict; add `--summary` for a human-readable form instead. When it reports `triggered`, load the `hot-paths` skill for the tiers, invariants, historical regression shapes, and how to evidence a claim. Do not assert a performance cost without naming the loop or caller that makes it hot.
+-   **Hot-path impact:** a chart renders up to a million datums at 60Hz, so the same edit is free in one file and costs frame time in another. Gate every review with `node tools/hot-paths/detect.js --range <base>...<head>` (sub-second); when it reports `triggered`, load the `hot-paths` skill, which also documents the detector's other modes and output. Do not assert a performance cost without naming the loop or caller that makes it hot.
 
 ## Tooling Health Check
 
@@ -77,7 +77,7 @@ bash /home/user/ag-charts/external/ag-shared/scripts/install-for-cloud/cloud-doc
 
 This is written here rather than delivered by the SessionStart hook because hook output does not reach the model in the web harness — verified in cloud sessions through both plain stdout and `hookSpecificOutput.additionalContext`.
 
-Two further cloud-only notes: with more than one repository attached the working directory is `/home/user`, not the repo, so use absolute paths or `cd /home/user/ag-charts` first (`$HOME` is `/root`, so `~/ag-charts` does not exist); and `$AG_CLOUD_CACHE_DIR/setup.log` — normally `/opt/ag-cloud/setup.log` — holds the environment build's log when a session comes up wrong.
+Two further cloud-only notes: with more than one repository attached the working directory is `/home/user`, not the repo, so use absolute paths under `/home/user/ag-charts` (`$HOME` is `/root`, so `~/ag-charts` does not exist); and `$AG_CLOUD_CACHE_DIR/setup.log` — normally `/opt/ag-cloud/setup.log` — holds the environment build's log when a session comes up wrong.
 
 ## Quick Reference
 
@@ -89,4 +89,4 @@ Two further cloud-only notes: with more than one repository attached the working
 -   **Dev server:** `yarn nx dev`
 -   **Clean:** `yarn nx clean` – purge dist folders when switching branches
 -   **Benchmark:** `tools/benchmark/run-browser-benchmarks.sh -- --examples <name>`. Browser-based runs are the only benchmark harness — there is no `nx benchmark` target.
--   **NX daemon:** Always use `NX_DAEMON=false` for nx commands to avoid pipe hangs (set automatically via SessionStart hook)
+-   **NX daemon:** Always use `NX_DAEMON=false` for nx commands to avoid pipe hangs. The Claude Code SessionStart hook exports it at startup when `CLAUDE_ENV_FILE` is available; otherwise prefix commands with it yourself

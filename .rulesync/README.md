@@ -15,13 +15,9 @@ Plugin content is mirrored into `.rulesync/` by `external/ag-shared/scripts/rule
 
 These live in this repo because they depend on ag-charts source layout or release process.
 
-**Skills** — `technology-stack` (AG Charts zero-runtime-dependencies constraint + package topology) and `animation-test-migration` (frame-trajectory harness migration).
+The local skills and rules describe architectural patterns (e.g., the `_ModuleSupport` barrel, `DataSet`, the series class hierarchy, module definitions) and test-harness contracts that evolve in the same PR as the code they describe, so keeping them adjacent avoids cross-repo coordination. There are no local commands or subagents. Everything else — chart-tooling guides, workflow guides, release skills, release-testing triage — lives in `ag-dev-prompts` and arrives via the plugin fetch.
 
-**Commands** — none. The previous `/release-summary` is now the `release-summary` skill in `ag-prodeng` and auto-triggers on release-branch discussion.
-
-**Rules** — the fourteen rules tightly coupled to ag-charts source code evolution: `ag-charts` (root), `animation-trajectory-tests`, `api-contracts`, `cartesian-series-types`, `data-model`, `defaults`, `dom-performance`, `entry-point-hygiene`, `module-support`, `numeric-values`, `series`, `server-side-rendering`, `test-harness-contracts`, `website-e2e-testing`. These describe architectural patterns (e.g., `_ModuleSupport` barrel, `DataSet`, series class hierarchy) and test-harness contracts that evolve in the same PR as the code they describe, so keeping them adjacent avoids cross-repo coordination. Everything else — chart-tooling guides, workflow guides, release skills, release-testing triage — now lives in `ag-dev-prompts` and arrives via the plugin fetch.
-
-`git ls-files .rulesync/` is the authoritative list: tracked means repo-native, untracked means plugin-staged. Check it rather than trusting this paragraph, which has gone stale before.
+The allowlist in `.rulesync/.gitignore` and `git ls-files .rulesync/` are the authoritative list: tracked means repo-native, untracked means plugin-staged. This README deliberately does not repeat the list, because hand-kept copies of it have gone stale.
 
 ## Editing
 

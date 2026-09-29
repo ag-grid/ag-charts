@@ -14,9 +14,6 @@ reserved for genuinely pixel-only behaviour: compositing (destination-out gaps, 
 fills) and painted clipping. Everything else — motion direction, phase timing, bounds, entry/exit
 fades, per-frame invariants — is asserted structurally over the whole animation.
 
-To migrate a series' animation tests wholesale, use the `animation-test-migration` skill; this rule
-covers day-to-day usage.
-
 ## Core APIs
 
 -   `const frames = spyOnAnimationFrames()` — declare at `describe` scope (it registers
