@@ -172,7 +172,7 @@ export function computeMarkerFocusBoundsOfNodeDatum<TDatum extends MarkerNodeDat
 
     const style = series.getFormattedMarkerStyle(datum);
     if (typeof style.shape === 'function') {
-        const bb = BBox.fromSizedPoint(point);
+        const bb = BBox.fromSizedPoint({ ...point, size: style.size });
         series.applyFocusSize(bb, style, point);
     }
 

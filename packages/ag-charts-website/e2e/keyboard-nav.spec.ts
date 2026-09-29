@@ -1,7 +1,8 @@
 import type { Locator, Page } from '@playwright/test';
 
-import type { AgInitialFocus } from 'ag-charts-types';
+import type { AgActiveChangeEvent, AgActiveState, AgInitialFocus } from 'ag-charts-types';
 
+import { PREVENT_DEFAULT_STUB, getChartState, popPreventables } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -840,5 +841,83 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('ArrowRight');
         await page.keyboard.up('Shift');
         await expect(page).toHaveScreenshot('CRT-1212-color-selection.png');
+    });
+
+    test.describe('AG-16824 marker with function-shape and itemStyler size', () => {
+        const datums = [
+            { id: 0, height: 174, weight: 65.6, age: 21 },
+            { id: 1, height: 175.3, weight: 71.8, age: 23 },
+            { id: 2, height: 193.5, weight: 80.7, age: 28 },
+        ] as const;
+        type D = (typeof datums)[number];
+
+        async function popEvents(page: Page): Promise<unknown> {
+            return popPreventables(page, 'popEvents');
+        }
+
+        async function getActive(page: Page): Promise<AgActiveState> {
+            return (await getChartState(page)).active;
+        }
+
+        function change(datum: D): AgActiveChangeEvent<D, unknown> {
+            return {
+                datum,
+                activeItem: {
+                    itemId: datum.id,
+                    seriesId: 'ScatterSeries-1',
+                    type: 'series-node',
+                },
+                dataIdKey: undefined,
+                defaultPrevented: false,
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            };
+        }
+
+        function state(datum: D): AgActiveState<D, unknown> {
+            return {
+                activeItem: { itemId: datum.id, seriesId: 'ScatterSeries-1', type: 'series-node' },
+                frozen: false,
+            };
+        }
+
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(
+                page,
+                toExamplePageUrl('accessibility-e2e', 'AG-16824-marker-function-itemStyler-size', 'vanilla').url
+            );
+            await page.keyboard.press('Tab');
+        });
+
+        test.describe('initial', () => {
+            test('screenshot', async ({ page }) => {
+                await expect(page).toHaveScreenshot('AG-16824-marker-function-shape-initial-focus.png');
+            });
+            test('popEvent', async ({ page }) => {
+                expect(await popEvents(page)).toEqual([change(datums[0])]);
+            });
+            test('state', async ({ page }) => {
+                expect(await getActive(page)).toEqual(state(datums[0]));
+            });
+        });
+
+        test.describe('focus on third datum', () => {
+            test.beforeEach(async ({ page }) => {
+                await popEvents(page);
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowRight');
+            });
+            test('screenshot', async ({ page }) => {
+                await expect(page).toHaveScreenshot('AG-16824-marker-function-shape-third-datum-focus.png');
+            });
+            test('popEvent', async ({ page }) => {
+                expect(await popEvents(page)).toEqual([change(datums[1]), change(datums[2])]);
+            });
+            test('state', async ({ page }) => {
+                expect(await getActive(page)).toEqual(state(datums[2]));
+            });
+        });
     });
 });
