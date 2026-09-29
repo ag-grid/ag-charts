@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgChartOptions,
+    AgOrganizationSeriesOptions,
     AgOrganizationSeriesOptionsNodeImagePosition,
     AgStandaloneChartOptions,
     TextAlign,
@@ -2204,6 +2205,57 @@ describe('OrganizationSeries', () => {
                 height: 1,
             };
             expect(pickedIndices(cardInterior).has(datumIndex)).toBe(true);
+        });
+    });
+
+    describe('node content key warnings', () => {
+        type OrgNodeOptions = NonNullable<AgOrganizationSeriesOptions['node']>;
+
+        const createWithNode = async (node: OrgNodeOptions, data = SIMPLE_ORG_CHART.data) => {
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'organization', id: 'org', idKey: 'id', parentIdKey: 'parentId', node }],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        const missingKeyWarning = (key: string) => [
+            `AG Charts - the key '${key}' was not found in any data element for org.`,
+        ];
+
+        it.each<[string, OrgNodeOptions]>([
+            ['title', { title: { key: 'nope' }, subtitle: { key: 'job' }, labels: [{ key: 'location' }] }],
+            ['subtitle', { title: { key: 'name' }, subtitle: { key: 'nope' }, labels: [{ key: 'location' }] }],
+            [
+                'image',
+                {
+                    image: { key: 'nope' },
+                    title: { key: 'name' },
+                    subtitle: { key: 'job' },
+                    labels: [{ key: 'location' }],
+                },
+            ],
+            ['labels[]', { title: { key: 'name' }, subtitle: { key: 'job' }, labels: [{ key: 'nope' }] }],
+        ])('should warn when node.%s.key is not found in any data element', async (_name, node) => {
+            await createWithNode(node);
+            expectWarningsCalls().toEqual([missingKeyWarning('nope')]);
+        });
+
+        it('should not warn when image and subtitle keys are left at their defaults and absent from the data', async () => {
+            await createWithNode(
+                { title: { key: 'name' } },
+                SIMPLE_ORG_CHART.data!.map(({ id, parentId, name }: any) => ({ id, parentId, name }))
+            );
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        it('should not warn when a key is present in only some data elements', async () => {
+            await createWithNode({ image: { key: 'avatar' }, title: { key: 'name' } });
+            chart.updateDelta({ data: SIMPLE_ORG_CHART.data!.slice(0, 4) });
+            await waitForChartStability(chart);
+            expect(console.warn).not.toHaveBeenCalled();
         });
     });
 
