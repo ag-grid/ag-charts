@@ -221,7 +221,11 @@ export interface AgQuadrantLabelFormatterParams<TDatum> extends AgScatterSeriesL
 }
 
 export interface AgQuadrantContextMenuParams {
-    /** The region in which the context menu was opened, undefined when not in a region. */
+    /**
+     * Either the region of the marker under the pointer, or the region the pointer falls in when there is no
+     * marker. Undefined when the click cannot be placed in a region, such as on an axis label crossing the series
+     * area.
+     */
     region?: AgQuadrantRegion;
 }
 
