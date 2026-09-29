@@ -1,0 +1,5 @@
+# React seeds are generated from src/demos by tools/seeds/generate-react-seed.mjs;
+# manifests are stamped by the seed tooling. Collapse both in GitHub diffs and
+# language statistics.
+packages/ag-charts-demos/seeds/*/react/** linguist-generated=true
+packages/ag-charts-demos/seeds/*/*/.seed-manifest.json linguist-generated=true

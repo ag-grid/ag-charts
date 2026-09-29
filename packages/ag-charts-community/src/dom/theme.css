@@ -64,6 +64,27 @@
     --ag-charts-crosshair-label-background-color: #fafafa;
     --ag-charts-crosshair-label-text-color: #181d1f;
 
+    --ag-charts-title-font-size: 17px;
+    --ag-charts-title-font-weight: 400;
+    --ag-charts-title-font-family:
+        'IBM Plex Sans', -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+        'Helvetica Neue', sans-serif;
+    --ag-charts-title-color: #181d1f;
+
+    --ag-charts-subtitle-font-size: 13px;
+    --ag-charts-subtitle-font-weight: 400;
+    --ag-charts-subtitle-font-family:
+        'IBM Plex Sans', -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+        'Helvetica Neue', sans-serif;
+    --ag-charts-subtitle-color: #8c8c8c;
+
+    --ag-charts-footnote-font-size: 13px;
+    --ag-charts-footnote-font-weight: 400;
+    --ag-charts-footnote-font-family:
+        'IBM Plex Sans', -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+        'Helvetica Neue', sans-serif;
+    --ag-charts-footnote-color: #8c8c8c;
+
     /* Future theme parameters, to be added to `theme.params`. */
     --ag-charts-spacing: 4px;
     --ag-charts-icon-size: 16px;

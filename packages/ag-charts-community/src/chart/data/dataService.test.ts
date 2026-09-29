@@ -42,7 +42,7 @@ describe('DataService', () => {
             testLogger
         );
         dataService = new DataService(eventsHub, {}, animationManager, testLogger);
-        dataService.requestThrottle = REQUEST_THROTTLE;
+        dataService.setRequestThrottle(REQUEST_THROTTLE);
     });
 
     afterEach(() => {

@@ -90,7 +90,10 @@ async function inspectCharts(page: Page, emptyOverlays: readonly string[]): Prom
     return page.evaluate((overlaySelectors) => {
         const describe = (el: Element): string => {
             const heading = el.closest('section, .fin-section, .wa-card')?.querySelector('h2, h3')?.textContent;
-            return heading?.trim() || (el.parentElement?.className ?? 'chart');
+            // An empty heading names nothing, so it falls back like a missing one.
+            const title = heading?.trim();
+            if (title != null && title !== '') return title;
+            return el.parentElement?.className ?? 'chart';
         };
         const isPainted = (wrapper: Element): boolean =>
             [...wrapper.querySelectorAll('canvas')].some((canvas) => {

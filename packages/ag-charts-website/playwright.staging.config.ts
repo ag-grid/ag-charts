@@ -68,6 +68,8 @@ export default defineConfig({
                   env: {
                       ...localE2eEnv,
                       PUBLIC_SITE_URL: 'http://localhost:4601',
+                      // Astro 7 detaches `astro dev` when an agent runs it; keep it in the foreground.
+                      ASTRO_DEV_BACKGROUND: process.env.ASTRO_DEV_BACKGROUND ?? '0',
                   },
                   command: 'npx astro dev --port=4601 --host',
                   url: 'http://localhost:4601/',

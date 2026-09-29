@@ -17,9 +17,12 @@ import type {
     AgRangeBarSeriesOptions,
     AgRangesOptions,
     AgThemeOverrides,
+    AgVolumeProfileOptions,
     AgZoomOptions,
     DatumDefault,
 } from 'ag-charts-types';
+
+import { inferVolumeProfileTickSize, normaliseVolumeProfile } from './priceVolumePresetUtils';
 
 type ChartTheme = _Theme.ChartTheme;
 
@@ -75,6 +78,7 @@ export function priceVolume(
         chartType = 'candlestick',
         navigator = false,
         volume = true,
+        volumeProfile = null,
         rangeButtons = true,
         statusBar = true,
         toolbar = true,
@@ -90,6 +94,7 @@ export function priceVolume(
 
     const priceSeries = createPriceSeries(chartType, dateKey, highKey, lowKey, openKey, closeKey, logger);
     const volumeSeries = createVolumeSeries(getTheme, dateKey, openKey, closeKey, volume, volumeKey);
+    const volumeProfileSeries = createVolumeProfileSeries(volumeProfile);
 
     const userToolbarButtons = themeOverrides?.common?.annotations?.toolbar?.buttons;
     const buttons = userToolbarButtons ?? toolbarButtons;
@@ -187,10 +192,37 @@ export function priceVolume(
           }
         : {};
 
+    const volumeProfileYAxis = volumeProfile
+        ? {
+              yVolumeProfile: {
+                  type: 'number',
+                  position: 'top',
+                  tick: { enabled: false },
+                  label: { enabled: false },
+                  nice: false,
+                  crosshair: { enabled: false },
+                  gridLine: { enabled: false },
+                  // @ts-expect-error undocumented option
+                  layoutConstraints: {
+                      stacked: false,
+                      width: 50,
+                      unit: 'percent',
+                      align: 'start',
+                  },
+                  ignoreZoom: true,
+              } satisfies AgNumberAxisOptions,
+          }
+        : {};
+
     return {
         animation: { enabled: false },
         legend: { enabled: false },
-        series: [...volumeSeries, ...priceSeries],
+        series: [
+            //
+            ...volumeSeries,
+            ...priceSeries,
+            ...volumeProfileSeries,
+        ],
         axes: {
             y: {
                 type: 'number',
@@ -207,7 +239,6 @@ export function priceVolume(
                     align: 'start',
                 },
             },
-            ...volumeAxis,
             x: {
                 type: 'ordinal-time',
                 position: 'bottom',
@@ -221,8 +252,10 @@ export function priceVolume(
                     enabled: true,
                 },
             },
+            ...volumeAxis,
+            ...volumeProfileYAxis,
         },
-        tooltip: { enabled: false },
+        tooltip: { enabled: true, mode: 'shared' },
         data,
         formatter,
         ...annotationOpts,
@@ -252,6 +285,7 @@ function createVolumeSeries(
             yKey: volumeKey,
             yKeyAxis: 'yVolume',
             tooltip: { enabled: false },
+            grouped: false,
             // @ts-expect-error undocumented options: simpleItemStyler, focusPriority
             simpleItemStyler(datum: any) {
                 const { up, down } = getTheme().palette;
@@ -263,10 +297,68 @@ function createVolumeSeries(
     ];
 }
 
+function createVolumeProfileSeries(volumeProfile: AgVolumeProfileOptions | null) {
+    if (!volumeProfile) return [];
+
+    const tickSize = volumeProfile.tickSize ?? inferVolumeProfileTickSize(volumeProfile.data) ?? 1;
+    const normalisedData = normaliseVolumeProfile(volumeProfile.data, tickSize);
+
+    return [
+        {
+            data: normalisedData,
+            type: 'bar',
+            direction: 'horizontal',
+            xKey: 'price',
+            xName: 'Price',
+            yKey: 'upVolume',
+            yName: 'Up Volume',
+            xKeyAxis: 'y',
+            yKeyAxis: 'yVolumeProfile',
+            stackGroup: 'volumeProfile',
+            fillOpacity: 1,
+            tooltip: {
+                enabled: true,
+                renderer: (params) => {
+                    return {
+                        symbol: { marker: { enabled: false } },
+                        data: [{ label: params.yName ?? params.yKey, value: params.datum[params.yKey] }],
+                    };
+                },
+            },
+        } satisfies AgBarSeriesOptions,
+        {
+            data: normalisedData,
+            type: 'bar',
+            direction: 'horizontal',
+            xKey: 'price',
+            xName: 'Price',
+            yKey: 'downVolume',
+            yName: 'Down Volume',
+            xKeyAxis: 'y',
+            yKeyAxis: 'yVolumeProfile',
+            stackGroup: 'volumeProfile',
+            fillOpacity: 1,
+            tooltip: {
+                enabled: true,
+                renderer: (params) => {
+                    return {
+                        symbol: { marker: { enabled: false } },
+                        data: [
+                            { label: params.yName ?? params.yKey, value: params.datum[params.yKey] },
+                            { label: 'Total', value: params.datum.total },
+                        ],
+                    };
+                },
+            },
+        } satisfies AgBarSeriesOptions,
+    ];
+}
+
 const RANGE_AREA_TYPE = 'range-area';
 
 interface PriceSeriesCommon {
     pickOutsideVisibleMinorAxis: boolean;
+    tooltip: { enabled: boolean };
 }
 
 interface PriceSeriesKeys {
@@ -303,6 +395,7 @@ function createPriceSeries(
         yKey: closeKey,
     };
     const common: PriceSeriesCommon = {
+        tooltip: { enabled: false },
         pickOutsideVisibleMinorAxis: true,
     };
 

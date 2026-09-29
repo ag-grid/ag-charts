@@ -1,4 +1,4 @@
-import { ActionOnSet, ChartUpdateType, Debug, Logger, stringifyValue, throttle } from 'ag-charts-core';
+import { ChartUpdateType, Debug, Logger, stringifyValue, throttle } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams, AgDataSourceRequestSource } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
@@ -70,19 +70,20 @@ export interface DataServiceRestoredData {
 export class DataService<D extends object> {
     public dispatchOnlyLatest = true;
 
-    @ActionOnSet<DataService<D>>({
-        newValue(dispatchThrottle) {
-            this.throttledDispatch = this.createThrottledDispatch(dispatchThrottle);
-        },
-    })
-    public dispatchThrottle = 0;
+    private dispatchThrottle = 0;
+    private requestThrottle = 300;
 
-    @ActionOnSet<DataService<D>>({
-        newValue(requestThrottle) {
-            this.throttledFetch = this.createThrottledFetch(requestThrottle);
-        },
-    })
-    public requestThrottle = 300;
+    setDispatchThrottle(dispatchThrottle: number) {
+        if (dispatchThrottle === this.dispatchThrottle) return;
+        this.dispatchThrottle = dispatchThrottle;
+        this.throttledDispatch = this.createThrottledDispatch(dispatchThrottle);
+    }
+
+    setRequestThrottle(requestThrottle: number) {
+        if (requestThrottle === this.requestThrottle) return;
+        this.requestThrottle = requestThrottle;
+        this.throttledFetch = this.createThrottledFetch(requestThrottle);
+    }
 
     private dataSourceCallback?: DataSourceCallback;
     private isLoadingInitialData = false;

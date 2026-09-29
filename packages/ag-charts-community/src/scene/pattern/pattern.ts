@@ -131,8 +131,8 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     }
 
     private _cache:
-        | { ctx: CanvasRenderingContext2D; pattern: CanvasPattern | undefined; pixelRatio: number }
-        | undefined = undefined;
+        { ctx: CanvasRenderingContext2D; pattern: CanvasPattern | undefined; pixelRatio: number } | undefined =
+        undefined;
     createPattern(ctx: CanvasRenderingContext2D, pixelRatio: number, logger: Logger): CanvasPattern | undefined {
         if (this._cache?.ctx === ctx && this._cache.pixelRatio === pixelRatio) {
             return this._cache.pattern;

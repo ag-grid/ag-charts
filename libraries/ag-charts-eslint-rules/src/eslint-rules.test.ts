@@ -6,7 +6,8 @@ function runRuleTest(ruleNameSuffix: string) {
     const eslintConfigFile = path.resolve(__dirname, `lint-${ruleNameSuffix}-eslint-config.mjs`);
     let stdout: string = '';
     let stderr: string = '';
-    const env: any = { ...process.env, NO_COLOR: '1' };
+    // npm 11 warns about the pnpm-only `shamefully-hoist` in `.npmrc` on every `npx` call.
+    const env: any = { ...process.env, NO_COLOR: '1', npm_config_loglevel: 'error' };
     delete env['FORCE_COLOR'];
 
     try {

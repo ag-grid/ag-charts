@@ -25,9 +25,7 @@ import { CrosshairLabel } from './crosshairLabel';
 
 const { Group, TranslatableGroup, Line, BBox, FormatManager, InteractionState } = _ModuleSupport;
 type HoverLikeEvent =
-    | _Widget.DragWidgetEvent
-    | _Widget.MouseWidgetEvent<'mousemove'>
-    | Extract<_Widget.ClickWidgetEvent, CurrentPoint>;
+    _Widget.DragWidgetEvent | _Widget.MouseWidgetEvent<'mousemove'> | Extract<_Widget.ClickWidgetEvent, CurrentPoint>;
 
 interface FormatterCache {
     type: string;

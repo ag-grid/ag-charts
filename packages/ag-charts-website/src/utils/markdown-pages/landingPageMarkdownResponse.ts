@@ -7,8 +7,11 @@ import { buildChartsLandingPageMarkdown } from './buildChartsLandingPageMarkdown
  * Shared body of the landing-page `.md` endpoints. Every landing page renders through the same
  * `LandingPage.astro` template from its `landingPages` collection entry, so its markdown twin is
  * the same builder over the same entry — only the slug differs.
+ *
+ * `pageUrl` defaults to the slug's own URL; the hubs override it, rendering an entry named for
+ * the ad campaign copy.
  */
-export async function landingPageMarkdownResponse(slug: string): Promise<Response> {
+export async function landingPageMarkdownResponse(slug: string, pageUrl = `/${slug}/`): Promise<Response> {
     if (DISABLE_MARKDOWN_DOCS) {
         return new Response(null, { status: 404 });
     }
@@ -22,7 +25,7 @@ export async function landingPageMarkdownResponse(slug: string): Promise<Respons
     const markdown = buildChartsLandingPageMarkdown({
         content: contentEntry.data,
         versions: versionsEntry?.data,
-        pageUrl: `/${slug}/`,
+        pageUrl,
         siteRoot: SITE_URL,
     });
 

@@ -33,13 +33,11 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
     <div class={styles.toolbar} data-gallery-toolbar>
         <div class:list={[styles.toolbarInner, 'layout-page-max-width']}>
             <div class={styles.toolbarCtas}>
-                {
-                    GALLERY_CTAS.map((cta) => (
-                        <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
-                            {cta.title} <Icon name="chevronRight" />
-                        </a>
-                    ))
-                }
+                {GALLERY_CTAS.map((cta) => (
+                    <a id={cta.id} href={urlWithBaseUrl(cta.url)} class="button-tertiary">
+                        {cta.title} <Icon name="chevronRight" />
+                    </a>
+                ))}
             </div>
             <div class={styles.toolbarThemeDropdown}>
                 <GalleryExampleThemeDropdown client:only="react" />
@@ -50,23 +48,21 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
     <div class="gallery-outer layout-grid text-sm">
         <div class="menu">
             <ul class="list-style-none">
-                {
-                    series.flat().map((series: GalleryExampleChartType) => (
-                        <li>
-                            <a href={getPageHashUrl({ chartSeriesName: series.seriesName, isRelative: true })}>
-                                <span class="seriesIcon">
-                                    <Icon client:only="react" name={series.icon as IconName} />
+                {series.flat().map((series: GalleryExampleChartType) => (
+                    <li>
+                        <a href={getPageHashUrl({ chartSeriesName: series.seriesName, isRelative: true })}>
+                            <span class="seriesIcon">
+                                <Icon client:only="react" name={series.icon as IconName} />
+                            </span>
+                            <span class="name">{series.title}</span>
+                            {series.enterprise && (
+                                <span class="enterpriseIcon">
+                                    <Icon client:only="react" name="enterprise" />
                                 </span>
-                                <span class="name">{series.title}</span>
-                                {series.enterprise && (
-                                    <span class="enterpriseIcon">
-                                        <Icon client:only="react" name="enterprise" />
-                                    </span>
-                                )}
-                            </a>
-                        </li>
-                    ))
-                }
+                            )}
+                        </a>
+                    </li>
+                ))}
             </ul>
             <div class="menu-scroll-indicator"></div>
         </div>
@@ -78,33 +74,31 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
             </div>
 
             <div class="gallery-grid">
-                {
-                    series.map((series: GalleryExampleChartType[]) => (
-                        <div class="chart-type">
-                            <div class="gallery-list">
-                                {series.map(({ title: familyTitle, seriesName, examples }) => (
-                                    <>
-                                        <h2 id={seriesName} class="gallery-list-title">
-                                            {galleryFamilyHeading(familyTitle)}
-                                            <LinkIcon client:visible href={`#${seriesName}`} />
-                                        </h2>
-                                        {examples
-                                            .filter(({ hidden }) => !hidden)
-                                            .map(({ title, name }: GalleryExample) => (
-                                                <GalleryExampleLink
-                                                    client:visible
-                                                    label={resolveGalleryH1(name)}
-                                                    exampleName={name}
-                                                    enableDprScaling={enableDprScaling}
-                                                    isModified={modifiedExamples.has(name)}
-                                                />
-                                            ))}
-                                    </>
-                                ))}
-                            </div>
+                {series.map((series: GalleryExampleChartType[]) => (
+                    <div class="chart-type">
+                        <div class="gallery-list">
+                            {series.map(({ title: familyTitle, seriesName, examples }) => (
+                                <>
+                                    <h2 id={seriesName} class="gallery-list-title">
+                                        {galleryFamilyHeading(familyTitle)}
+                                        <LinkIcon client:visible href={`#${seriesName}`} />
+                                    </h2>
+                                    {examples
+                                        .filter(({ hidden }) => !hidden)
+                                        .map(({ title, name }: GalleryExample) => (
+                                            <GalleryExampleLink
+                                                client:visible
+                                                label={resolveGalleryH1(name)}
+                                                exampleName={name}
+                                                enableDprScaling={enableDprScaling}
+                                                isModified={modifiedExamples.has(name)}
+                                            />
+                                        ))}
+                                </>
+                            ))}
                         </div>
-                    ))
-                }
+                    </div>
+                ))}
             </div>
         </div>
     </div>

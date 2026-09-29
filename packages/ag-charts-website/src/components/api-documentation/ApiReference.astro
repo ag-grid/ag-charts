@@ -18,28 +18,24 @@ const members = interfaceRef ? processMembers(interfaceRef, { prioritise, includ
 const description = interfaceRef && parseJsDocs(interfaceRef.docs);
 ---
 
-{
-    /*
+{/*
     Client-only, with a server-rendered fallback: the island's full reference comes from a
     client-side query, so hydrating against server output would fail whenever that query cache is
     already warm (every client-side navigation after the first reference has loaded). The fallback
     slot gives crawlers the top-level properties instead, and Astro drops it when the island mounts.
-*/
-}
+*/}
 <ApiReferenceWithContext client:only="react" isInline {...Astro.props}>
-    {
-        interfaceRef && (
-            <div slot="fallback" class="api-reference-fallback">
-                {!hideHeader &&
-                    (description ? (
-                        <p class="text-secondary">{description}</p>
-                    ) : (
-                        <p class="text-secondary">
-                            Properties available on the <code>{id}</code> interface.
-                        </p>
-                    ))}
-                <ApiReferenceFallbackList id={id} members={members} hideRequired={hideRequired} />
-            </div>
-        )
-    }
+    {interfaceRef && (
+        <div slot="fallback" class="api-reference-fallback">
+            {!hideHeader &&
+                (description ? (
+                    <p class="text-secondary">{description}</p>
+                ) : (
+                    <p class="text-secondary">
+                        Properties available on the <code>{id}</code> interface.
+                    </p>
+                ))}
+            <ApiReferenceFallbackList id={id} members={members} hideRequired={hideRequired} />
+        </div>
+    )}
 </ApiReferenceWithContext>

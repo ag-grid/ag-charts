@@ -1008,8 +1008,7 @@ describe('OrganizationSeries', () => {
 
     function getZoomRatios(c: any) {
         return c.getState()?.zoom as
-            | { ratioX?: { start?: number; end?: number }; ratioY?: { start?: number; end?: number } }
-            | undefined;
+            { ratioX?: { start?: number; end?: number }; ratioY?: { start?: number; end?: number } } | undefined;
     }
 
     // Bypasses the memento path's theme-template projection so the tests can assert exact zoom

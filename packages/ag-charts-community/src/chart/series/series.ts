@@ -23,9 +23,9 @@ import type {
     RequireOptional,
     SeriesLabelDefaults,
     SeriesPluginModuleInstance,
+    SizedPoint,
 } from 'ag-charts-core';
 import {
-    ActionOnSet,
     ChartAxisDirection,
     CleanupRegistry,
     EventEmitter,
@@ -255,12 +255,18 @@ export abstract class Series<
         return 'main';
     }
 
-    @ActionOnSet<Series<TDatum, TOpts, TLabel>>({
-        changeValue: function (newVal, oldVal) {
-            this.onSeriesGroupingChange(oldVal, newVal);
-        },
-    })
-    seriesGrouping: SeriesGrouping | undefined = undefined;
+    private _seriesGrouping: SeriesGrouping | undefined = undefined;
+
+    get seriesGrouping() {
+        return this._seriesGrouping;
+    }
+
+    setSeriesGrouping(seriesGrouping: SeriesGrouping | undefined) {
+        const previous = this._seriesGrouping;
+        if (seriesGrouping === previous) return;
+        this._seriesGrouping = seriesGrouping;
+        this.onSeriesGroupingChange(previous, seriesGrouping);
+    }
 
     readonly internalId = createId(this);
 
@@ -551,7 +557,7 @@ export abstract class Series<
         return hasDimmedOpacity(unhighlightedItem) || hasDimmedOpacity(unhighlightedSeries);
     }
 
-    /** The chart-level `highlight` options; the single-key read avoids a sub-path split on per-datum paths. */
+    /** The chart-level `highlight` options. */
     protected getChartHighlightOptions() {
         return this.ctx.chartState.getValue('options')?.highlight;
     }
@@ -1225,15 +1231,8 @@ export abstract class Series<
         return;
     }
 
-    hasNodeClickListener(): boolean {
-        const seriesListeners = this.options.listeners;
-        const chartListeners = this.ctx.chartService.listeners;
-        return (
-            seriesListeners?.seriesNodeClick != null ||
-            seriesListeners?.seriesNodeDoubleClick != null ||
-            chartListeners.seriesNodeClick != null ||
-            chartListeners.seriesNodeDoubleClick != null
-        );
+    hasNodeListener(type: 'seriesNodeClick' | 'seriesNodeDoubleClick'): boolean {
+        return this.options.listeners?.[type] != null || this.ctx.chartService.listeners[type] != null;
     }
 
     private callListeners(event: SeriesListenerEvent & { readonly defaultPrevented?: boolean }): boolean {
@@ -1612,7 +1611,7 @@ export abstract class Series<
     protected applyMarkerStyle(
         style: NormalisedSeriesMarkerStyle,
         markerNode: Marker,
-        point: { x: number; y: number; size?: number; focusSize?: number } | undefined,
+        point: SizedPoint | undefined,
         fillBBox: ShapeFillBBox | undefined,
         opts: {
             applyPosition?: boolean;
@@ -1648,13 +1647,17 @@ export abstract class Series<
 
             // Measure the built path so the focus indicator matches the custom marker's real size.
             const bb = markerNode.getBBox();
-            if (point != null && bb.isFinite()) {
-                const center = bb.computeCenter();
-                const [dx, dy] = (['x', 'y'] as const).map(
-                    (key) => (style.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
-                );
-                point.focusSize = Math.max(bb.width + dx, bb.height + dy);
-            }
+            this.applyFocusSize(bb, style, point);
+        }
+    }
+
+    public applyFocusSize(markerBBox: BBox, style: NormalisedSeriesMarkerStyle, point: SizedPoint | undefined) {
+        if (point != null && markerBBox.isFinite()) {
+            const center = markerBBox.computeCenter();
+            const [dx, dy] = (['x', 'y'] as const).map(
+                (key) => (style.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
+            );
+            point.focusSize = Math.max(markerBBox.width + dx, markerBBox.height + dy);
         }
     }
 

@@ -1,12 +1,14 @@
 import type { Point } from 'ag-charts-core';
 
 import { type AnnotationContext } from '../annotationTypes';
-import type { ShapePointProperties } from '../properties/shapePointProperties';
+import type { ShapePointDatum } from '../datum/shapePointDatum';
 import { convertPoint } from '../utils/values';
 import type { AnnotationShape } from './annotationShape';
 import { PointScene } from './pointScene';
 
-export abstract class ShapePointScene<Datum extends ShapePointProperties> extends PointScene<Datum> {
+export const SHAPE_SIZE = 32;
+
+export abstract class ShapePointScene<Datum extends ShapePointDatum> extends PointScene<Datum> {
     protected abstract shape: AnnotationShape;
 
     constructor() {
@@ -33,11 +35,11 @@ export abstract class ShapePointScene<Datum extends ShapePointProperties> extend
         shape.fillOpacity = datum.fillOpacity ?? 1;
     }
 
-    protected updateShapePath(datum: Datum, point: Point) {
+    protected updateShapePath(_datum: Datum, point: Point) {
         const { shape } = this;
         shape.x = point.x;
         shape.y = point.y;
-        shape.size = datum.size;
+        shape.size = SHAPE_SIZE;
     }
 
     override containsPoint(x: number, y: number) {

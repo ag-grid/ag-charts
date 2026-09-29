@@ -33,10 +33,8 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { from: '/angular/fonts', to: '/angular/text/' },
     { from: '/react/fonts', to: '/react/text/' },
     { from: '/vue/fonts', to: '/vue/text/' },
+    // The other frameworks serve a landing hub at their root - see FRAMEWORK_LANDING_HUBS.
     { fromPattern: '^/javascript/?$', to: '/javascript/quick-start/' },
-    { fromPattern: '^/react/?$', to: '/react/quick-start/' },
-    { fromPattern: '^/vue/?$', to: '/vue/quick-start/' },
-    { fromPattern: '^/angular/?$', to: '/angular/quick-start/' },
 
     // Legacy slug → renamed docs page.
     { from: '/javascript/toolbar/', to: '/javascript/financial-charts-toolbar/' },

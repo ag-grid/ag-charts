@@ -21,8 +21,7 @@ import { ToolbarWidget } from '../widget/toolbarWidget';
 import type { Widget } from '../widget/widget';
 
 type ParentProperties<T = NativeWidget<HTMLDivElement>> =
-    | { readonly parent: T }
-    | { readonly domManagerId: string; readonly where: 'beforebegin' | 'afterend' };
+    { readonly parent: T } | { readonly domManagerId: string; readonly where: 'beforebegin' | 'afterend' };
 
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;

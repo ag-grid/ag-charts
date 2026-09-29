@@ -551,8 +551,7 @@ describe('Caption', () => {
         function assertProxyBoundsMatchCanvas(caption: ChartCaption) {
             const canvasBBox = Transformable.toCanvas(caption.node);
             const proxyBBox = (caption as any).lastProxyBBox as
-                | { x: number; y: number; width: number; height: number }
-                | undefined;
+                { x: number; y: number; width: number; height: number } | undefined;
 
             expect(proxyBBox).toBeDefined();
             expect(proxyBBox!.x).toBeCloseTo(canvasBBox.x, 0);

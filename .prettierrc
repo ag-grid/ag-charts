@@ -32,6 +32,12 @@
             }
         },
         {
+            "files": "packages/ag-charts-demos/seeds/*/angular/src/**/*.ts",
+            "options": {
+                "htmlWhitespaceSensitivity": "strict"
+            }
+        },
+        {
             "files": "*.mdoc",
             "options": {
                 "parser": "markdown",

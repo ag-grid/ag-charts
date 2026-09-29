@@ -129,7 +129,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
     /** The series' post-theme options; replaced wholesale on every options update. */
     options: TOptions;
     events: { emit: (type: 'data-selection-change', event: null) => void };
-    hasNodeClickListener(): boolean;
+    hasNodeListener(type: 'seriesNodeClick' | 'seriesNodeDoubleClick'): boolean;
     /** Whether a click on `target` triggers a built-in interaction (e.g. the org-chart expander). */
     hasBuiltinListener(target: Node<unknown> | undefined): boolean;
     /**
