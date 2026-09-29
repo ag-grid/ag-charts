@@ -99,7 +99,7 @@ const options: AgCartesianChartOptions<DataType> = {
 const chart = AgCharts.create(options);
 let events: AgActiveChangeEvent<DataType, unknown>[] = [];
 
-function popEvents(): AgActiveChangeEvent[] {
+function popEvents(): AgActiveChangeEvent<DataType, unknown>[] {
     const result = events;
     events = [];
     return result;
