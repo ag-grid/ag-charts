@@ -77,7 +77,11 @@ export type NormalisedOrganizationSeriesLayoutOptions = Normalised<
 
 export type NormalisedOrganizationSeriesNodeImageOptions = Normalised<
     AgOrganizationSeriesOptionsNodeImage,
-    'cornerRadius' | 'enabled' | 'key' | 'height' | 'position' | 'spacing' | 'width'
+    'cornerRadius' | 'enabled' | 'key' | 'height' | 'position' | 'spacing' | 'width',
+    {
+        /** Undocumented: set by the theme when `key` was configured rather than left at its theme default. */
+        _isUserKey?: boolean;
+    }
 >;
 
 /** `fill`/`stroke` stay absent when unset, which is how the text tier reports "no backing box". */
@@ -96,7 +100,13 @@ export type NormalisedOrganizationSeriesNodeTextOptions = Normalised<
     | 'strokeWidth'
     | 'textAlign'
     | 'wrapping',
-    { color: CssColor; stroke?: CssColor; padding: NormalisedPaddingOptions }
+    {
+        color: CssColor;
+        stroke?: CssColor;
+        padding: NormalisedPaddingOptions;
+        /** Undocumented: set by the theme when `key` was configured rather than left at its theme default. */
+        _isUserKey?: boolean;
+    }
 >;
 
 export type NormalisedOrganizationSeriesNodeOptions = Normalised<

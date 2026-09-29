@@ -10,10 +10,6 @@ import {
 // Text tiers draw no backing box until `fill` or `stroke` is set; these keep the box geometry defined.
 const NODE_TEXT_BOX_DEFAULTS = { cornerRadius: 0, fillOpacity: 1, strokeOpacity: 1, strokeWidth: 0 } as const;
 
-export const DEFAULT_IMAGE_KEY = 'image';
-export const DEFAULT_TITLE_KEY = 'title';
-export const DEFAULT_SUBTITLE_KEY = 'subtitle';
-
 export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
     zoom: {
         enabled: true,
@@ -108,7 +104,9 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
             image: {
                 cornerRadius: 0,
                 enabled: true,
-                key: DEFAULT_IMAGE_KEY,
+                key: 'image',
+                // @ts-expect-error undocumented option
+                _isUserKey: { $isUserOption: './key' },
                 height: 50,
                 position: 'top',
                 spacing: 8,
@@ -122,7 +120,9 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
                 fontStyle: 'normal',
                 fontWeight: 'bold',
-                key: DEFAULT_TITLE_KEY,
+                key: 'title',
+                // @ts-expect-error undocumented option
+                _isUserKey: { $isUserOption: './key' },
                 overflowStrategy: 'ellipsis',
                 padding: { $applyPadding: 0 },
                 spacing: 4,
@@ -137,7 +137,9 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
                 fontStyle: 'normal',
                 fontWeight: 'normal',
-                key: DEFAULT_SUBTITLE_KEY,
+                key: 'subtitle',
+                // @ts-expect-error undocumented option
+                _isUserKey: { $isUserOption: './key' },
                 overflowStrategy: 'ellipsis',
                 padding: { $applyPadding: 0 },
                 spacing: 4,

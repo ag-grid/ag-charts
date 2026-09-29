@@ -43,7 +43,6 @@ import { NetworkTreeLayout, type NetworkTreeLayoutUpdateOptions } from '../netwo
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { OrganizationGraph } from './organizationGraph';
 import { OrganizationNode, OrganizationNodeTag } from './organizationNode';
-import { DEFAULT_IMAGE_KEY, DEFAULT_SUBTITLE_KEY, DEFAULT_TITLE_KEY } from './organizationSeriesTheme';
 import type {
     NormalisedOrganizationNodeStyle,
     NormalisedOrganizationNodeTextStyle,
@@ -140,16 +139,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             idKey,
             parentIdKey,
             node: {
-                image: { key: imageKey },
-                title: { key: titleKey },
-                subtitle: { key: subtitleKey },
+                image: { key: imageKey, _isUserKey: isUserImageKey },
+                title: { key: titleKey, _isUserKey: isUserTitleKey },
+                subtitle: { key: subtitleKey, _isUserKey: isUserSubtitleKey },
                 labels,
             },
         } = this.options;
 
-        // A key left at its theme default is usually absent from the data, so it must not warn when missing.
-        const defaultKeyOptions = (key: string, defaultKey: string) =>
-            key === defaultKey ? { missingValue: undefined } : {};
+        // A key left at its theme default is usually absent from the data, so only a configured key warns when missing.
+        const missingKeyOptions = (isUserKey?: boolean) => (isUserKey ? {} : { missingValue: undefined });
 
         const props = [
             keyProperty(idKey, undefined, { id: 'idValue' }),
@@ -157,17 +155,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             valueProperty(imageKey, undefined, {
                 id: 'imageValue',
                 allowNullKey: true,
-                ...defaultKeyOptions(imageKey, DEFAULT_IMAGE_KEY),
+                ...missingKeyOptions(isUserImageKey),
             }),
             valueProperty(titleKey, undefined, {
                 id: 'titleValue',
                 allowNullKey: true,
-                ...defaultKeyOptions(titleKey, DEFAULT_TITLE_KEY),
+                ...missingKeyOptions(isUserTitleKey),
             }),
             valueProperty(subtitleKey, undefined, {
                 id: 'subtitleValue',
                 allowNullKey: true,
-                ...defaultKeyOptions(subtitleKey, DEFAULT_SUBTITLE_KEY),
+                ...missingKeyOptions(isUserSubtitleKey),
             }),
         ];
 

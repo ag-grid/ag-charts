@@ -2251,6 +2251,37 @@ describe('OrganizationSeries', () => {
             expect(console.warn).not.toHaveBeenCalled();
         });
 
+        it.each(['image', 'subtitle'] as const)(
+            'should warn when node.%s.key is explicitly set to its default name and not found in any data element',
+            async (key) => {
+                await createWithNode(
+                    { title: { key: 'name' }, [key]: { key } },
+                    SIMPLE_ORG_CHART.data!.map(({ id, parentId, name }: any) => ({ id, parentId, name }))
+                );
+                expectWarningsCalls().toEqual([missingKeyWarning(key)]);
+            }
+        );
+
+        it('should warn when a theme override sets a key that is not found in any data element', async () => {
+            const options: AgChartOptions = {
+                data: SIMPLE_ORG_CHART.data!.map(({ id, parentId, name }: any) => ({ id, parentId, name })),
+                theme: { overrides: { organization: { series: { node: { subtitle: { key: 'subtitle' } } } } } },
+                series: [
+                    {
+                        type: 'organization',
+                        id: 'org',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: { title: { key: 'name' } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            expectWarningsCalls().toEqual([missingKeyWarning('subtitle')]);
+        });
+
         it('should not warn when a key is present in only some data elements', async () => {
             await createWithNode({ image: { key: 'avatar' }, title: { key: 'name' } });
             chart.updateDelta({ data: SIMPLE_ORG_CHART.data!.slice(0, 4) });
