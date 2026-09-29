@@ -139,22 +139,33 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             idKey,
             parentIdKey,
             node: {
-                image: { key: imageKey },
-                title: { key: titleKey },
-                subtitle: { key: subtitleKey },
+                image: { key: imageKey, _isUserKey: isUserImageKey },
+                title: { key: titleKey, _isUserKey: isUserTitleKey },
+                subtitle: { key: subtitleKey, _isUserKey: isUserSubtitleKey },
                 labels,
             },
         } = this.options;
 
+        // A key left at its theme default is usually absent from the data, so only a configured key warns when missing.
+        const missingKeyOptions = (isUserKey?: boolean) => (isUserKey ? {} : { missingValue: undefined });
+
         const props = [
             keyProperty(idKey, undefined, { id: 'idValue' }),
             valueProperty(parentIdKey, undefined, { id: 'parentIdValue', allowNullKey: true }),
-            valueProperty(imageKey, undefined, { id: 'imageValue', allowNullKey: true, missingValue: undefined }),
-            valueProperty(titleKey, undefined, { id: 'titleValue', allowNullKey: true, missingValue: undefined }),
+            valueProperty(imageKey, undefined, {
+                id: 'imageValue',
+                allowNullKey: true,
+                ...missingKeyOptions(isUserImageKey),
+            }),
+            valueProperty(titleKey, undefined, {
+                id: 'titleValue',
+                allowNullKey: true,
+                ...missingKeyOptions(isUserTitleKey),
+            }),
             valueProperty(subtitleKey, undefined, {
                 id: 'subtitleValue',
                 allowNullKey: true,
-                missingValue: undefined,
+                ...missingKeyOptions(isUserSubtitleKey),
             }),
         ];
 
@@ -163,13 +174,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             // Skip disabled tiers — without a `key` they crash `dataModel`. The slot is
             // preserved as `undefined` in `createGraphData` so tier indexing stays aligned.
             if (label.enabled) {
-                props.push(
-                    valueProperty(label.key, undefined, {
-                        id: `labelValue-${index}`,
-                        allowNullKey: true,
-                        missingValue: undefined,
-                    })
-                );
+                props.push(valueProperty(label.key, undefined, { id: `labelValue-${index}`, allowNullKey: true }));
             }
             index++;
         }
