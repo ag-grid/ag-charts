@@ -59,7 +59,11 @@ export interface VolumeProfileDatum {
 
 // Each price is snapped to its nearest multiple of `tickSize`; prices sharing a level are summed into one row, as
 // duplicate categories in a stack would otherwise draw over each other.
-function mergeVolumeProfileLevels(data: DatumDefault[], { priceKey, upKey, downKey }: VolumeProfileKeys, tickSize: number) {
+function mergeVolumeProfileLevels(
+    data: DatumDefault[],
+    { priceKey, upKey, downKey }: VolumeProfileKeys,
+    tickSize: number
+) {
     const byLevel = new Map<number, { upVolume: number; downVolume: number }>();
     for (const d of data) {
         const price = d[priceKey];
