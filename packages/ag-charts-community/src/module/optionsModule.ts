@@ -111,6 +111,31 @@ function newFontAccumulator(): FontAccumulator {
 }
 
 /**
+ * Convert a `FontFamilyFull` value (string, `{ googleFont }` or an array of either) into the
+ * comma-separated string text measurement expects, recording the fonts it references.
+ */
+function normaliseFontFamily(fontFamily: unknown, fontWeight: unknown, fontStyle: unknown, acc: FontAccumulator) {
+    // A `$ref` or other unresolved param value carries no weight/style to key a font file on.
+    const weight = typeof fontWeight === 'object' ? undefined : fontWeight;
+    const style = typeof fontStyle === 'object' ? undefined : fontStyle;
+    const addFamily = (family: unknown) => {
+        if (isObject(family) && 'googleFont' in family) {
+            const googleFont = family.googleFont as string;
+            acc.googleFonts.add(googleFont);
+            addReferencedFonts(acc.fonts, { fontFamily: googleFont, fontWeight: weight, fontStyle: style });
+            return googleFont;
+        }
+        addReferencedFonts(acc.fonts, { fontFamily: family, fontWeight: weight, fontStyle: style });
+        return family;
+    };
+
+    if (Array.isArray(fontFamily)) {
+        return fontFamily.map(addFamily).join(', ');
+    }
+    return addFamily(fontFamily);
+}
+
+/**
  * Collect FontFaceSet shorthands for each concrete family in a node's `fontFamily`, carrying the
  * node's weight/style so weight-specific font files are loaded. CSS generic keywords
  * (`sans-serif`, etc.) are never web fonts, so there is nothing to wait for.
@@ -591,7 +616,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // TODO: Chicken-or-egg, ideally should pass themeParameters in here, but this processing needs to happen
         // first. Practically, it likely doesn't matter. Either way, this should be moved to a "plugin" on the
         // graph.
-        let fontAccumulator = this.processFonts(activeTheme.params);
+        let fontAccumulator = this.processParamFonts(activeTheme.params);
         fontAccumulator = this.processFonts(options, fontAccumulator);
         const { googleFonts } = fontAccumulator;
 
@@ -1660,27 +1685,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static processFontOptions(this: void, node: any, acc: FontAccumulator = newFontAccumulator()) {
         if (typeof node === 'object' && 'fontFamily' in node) {
-            const { fontWeight, fontStyle } = node;
-            if (Array.isArray(node.fontFamily)) {
-                const fontFamily = [];
-                for (const font of node.fontFamily) {
-                    if (typeof font === 'object' && 'googleFont' in font) {
-                        fontFamily.push(font.googleFont);
-                        acc.googleFonts.add(font.googleFont);
-                        addReferencedFonts(acc.fonts, { fontFamily: font.googleFont, fontWeight, fontStyle });
-                    } else {
-                        fontFamily.push(font);
-                        addReferencedFonts(acc.fonts, { fontFamily: font, fontWeight, fontStyle });
-                    }
-                }
-                node.fontFamily = fontFamily.join(', ');
-            } else if (typeof node.fontFamily === 'object' && 'googleFont' in node.fontFamily) {
-                node.fontFamily = node.fontFamily.googleFont;
-                acc.googleFonts.add(node.fontFamily);
-                addReferencedFonts(acc.fonts, { fontFamily: node.fontFamily, fontWeight, fontStyle });
-            } else if (typeof node.fontFamily === 'string') {
-                addReferencedFonts(acc.fonts, { fontFamily: node.fontFamily, fontWeight, fontStyle });
-            }
+            node.fontFamily = normaliseFontFamily(node.fontFamily, node.fontWeight, node.fontStyle, acc);
         }
         return acc;
     }
@@ -1689,6 +1694,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // `jsonWalk` threads its accumulator via a different parameter slot than this visitor
         // expects, so close over `acc` directly to collect fonts from every nested node.
         jsonWalk(options, (node) => ChartOptions.processFontOptions(node, acc), new Set(['data', 'theme']));
+        return acc;
+    }
+
+    /**
+     * Theme params carry a family per element (`titleFontFamily`, `axisLabelFontFamily`, ...) as well as
+     * `fontFamily`, and options `$ref` them, so each must reach the options as a plain string.
+     */
+    private processParamFonts(params: Record<string, any>, acc: FontAccumulator = newFontAccumulator()) {
+        for (const key of Object.keys(params)) {
+            if (key !== 'fontFamily' && !key.endsWith('FontFamily')) continue;
+            const prefix = key.slice(0, -'FontFamily'.length);
+            const weightKey = prefix === '' ? 'fontWeight' : `${prefix}FontWeight`;
+            const styleKey = prefix === '' ? 'fontStyle' : `${prefix}FontStyle`;
+            params[key] = normaliseFontFamily(params[key], params[weightKey], params[styleKey], acc);
+        }
         return acc;
     }
 
