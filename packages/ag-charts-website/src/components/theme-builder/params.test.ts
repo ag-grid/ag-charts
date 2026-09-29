@@ -53,6 +53,8 @@ describe('params with an inherited value', () => {
         // A size calculated from another param.
         expect(INHERITED_KEYS.has('titleFontSize')).toBe(true);
         expect(INHERITED_SOURCES.titleFontSize).toEqual(['fontSize']);
+        expect(INHERITED_KEYS.has('axisTitleFontSize')).toBe(true);
+        expect(INHERITED_SOURCES.axisTitleFontSize).toEqual(['fontSize']);
     });
 
     it('names only params the builder offers', () => {

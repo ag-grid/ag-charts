@@ -272,6 +272,15 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         chromeSubtleTextColor: colorOrRef,
         chromeTextColor: colorOrRef,
 
+        axisLabelColor: colorOrRef,
+        axisLabelFontFamily: fontFamilyFull,
+        axisLabelFontSize: number,
+        axisLabelFontWeight: fontWeight,
+        axisTitleColor: colorOrRef,
+        axisTitleFontFamily: fontFamilyFull,
+        axisTitleFontSize: number,
+        axisTitleFontWeight: fontWeight,
+
         buttonBackgroundColor: colorOrRef,
         buttonBorder: or(boolean, themeParamBorder),
         buttonBorderRadius: number,
