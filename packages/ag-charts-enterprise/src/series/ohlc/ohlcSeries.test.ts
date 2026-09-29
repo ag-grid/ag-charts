@@ -615,6 +615,14 @@ describe('OhlcSeries', () => {
             await waitForChartStability(chart);
         }
 
+        // Tab lands on the swap-chain's active announcer, which initialises the series focus.
+        async function tabIntoChart() {
+            const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[tabindex="0"]');
+            expect(announcer).not.toBeNull();
+            announcer!.focus();
+            await waitForChartStability(chart!);
+        }
+
         // The series-area widget handles keyboard navigation.
         async function pressKey(key: string) {
             const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
@@ -683,6 +691,7 @@ describe('OhlcSeries', () => {
             });
             await createChart(options);
 
+            await tabIntoChart();
             await pressKey('ArrowRight');
             const candle = getCandleCentre(1);
             expect(getFocusIndicatorCanvasBBox().containsPoint(candle.canvasX, candle.canvasY)).toBe(true);
@@ -715,6 +724,7 @@ describe('OhlcSeries', () => {
             });
             await createChart(options);
 
+            await tabIntoChart();
             await pressKey('ArrowRight');
             const candle = getCandleCentre(1);
             expect(getFocusIndicatorCanvasBBox().containsPoint(candle.canvasX, candle.canvasY)).toBe(true);
@@ -747,6 +757,7 @@ describe('OhlcSeries', () => {
             });
             await createChart(options);
 
+            await tabIntoChart();
             await pressKey('ArrowRight');
             const candle = getCandleCentre(1);
             expect(getFocusIndicatorCanvasBBox().containsPoint(candle.canvasX, candle.canvasY)).toBe(true);
