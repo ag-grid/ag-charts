@@ -62,9 +62,15 @@ jobs:
               with:
                   node-version-file: package.json
 
+            # GitHub-hosted runners ship corepack but not enabled, so a bare `yarn`
+            # would otherwise resolve to the runner image's preinstalled Yarn Classic
+            # instead of this repo's "packageManager"-pinned Yarn 4.
+            - name: Enable corepack
+              run: corepack enable
+
             - name: Yarn
               run: |
-                  yarn install --ci
+                  yarn install --immutable
 
             - name: Build
               run: |

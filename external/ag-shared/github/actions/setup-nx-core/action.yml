@@ -231,6 +231,15 @@ runs:
           with:
               node-version-file: package.json
 
+        - name: Enable corepack
+          # GitHub-hosted runners ship corepack but not enabled, so a bare `yarn`
+          # resolves to the runner image's preinstalled Yarn Classic, silently
+          # ignoring this repo's "packageManager" pin (Yarn 4). Must run after
+          # Setup Node.js (corepack is installed alongside Node) and before any
+          # `yarn` invocation below.
+          shell: bash
+          run: corepack enable
+
         - name: Tidy Nx Cache
           uses: ./external/ag-shared/github/actions/tidy-nx-cache
           if: inputs.cache_mode == 'rw' && inputs.nx_restore != 'false' && inputs.tidy_nx_cache != 'false'
@@ -239,14 +248,18 @@ runs:
 
         - name: Resolve yarn cache dir
           # Ask yarn where its download cache lives rather than hard-coding the default
-          # location, so a relocated cache folder (YARN_CACHE_FOLDER, or a .yarnrc
-          # cache-folder) cannot silently point restore/save at the wrong (empty) path.
-          # Gated to the cases where the yarn cache restore/save can run. Runners are
-          # Linux-only, so no cross-OS path handling is needed.
+          # location, so a relocated cache folder (YARN_CACHE_FOLDER env, or a
+          # .yarnrc.yml cacheFolder key) cannot silently point restore/save at the
+          # wrong (empty) path. `yarn cache dir` was Yarn 1 only and no longer exists
+          # under Yarn 4 (Berry) — `yarn config get cacheFolder` is the equivalent, and
+          # by default resolves to a per-user global path (enableGlobalCache: true),
+          # not a repo-relative one, which is exactly why this is resolved dynamically
+          # rather than assumed. Gated to the cases where the yarn cache restore/save
+          # can run. Runners are Linux-only, so no cross-OS path handling is needed.
           if: inputs.cache_mode != 'off'
           id: yarn_cache_dir
           shell: bash
-          run: echo "dir=$(yarn cache dir)" >> "$GITHUB_OUTPUT"
+          run: echo "dir=$(yarn config get cacheFolder)" >> "$GITHUB_OUTPUT"
 
         - name: Restore yarn cache
           # Persist the yarn v1 download cache so `yarn install --prefer-offline` serves
@@ -292,6 +305,16 @@ runs:
               NODE_MODULES_PATHS: ${{ inputs.node_modules_paths }}
               SKIP_PLUGIN_BUILD_ENV: ${{ inputs.skip_plugin_build == 'true' && 'AG_SKIP_PLUGIN_BUILD=1' || '' }}
           run: |
+              # Yarn 1's `yarn check --integrity` (a read-only lockfile/tree consistency
+              # check) plus a conditional `yarn install --ci --prefer-offline` doesn't
+              # exist the same way under Yarn 4 (Berry): there is no standalone integrity
+              # check command. `yarn install --immutable` is the Berry equivalent —
+              # fails the step if the lockfile would need to change, and otherwise
+              # reconciles node_modules to match it. Measured ~2s on an exact cache hit
+              # with nothing to do, so it is cheap enough to always run rather than
+              # gate behind a separate check step, unlike the old two-step dance.
+              # `env` is required: an assignment produced by variable expansion is not
+              # parsed as an assignment prefix by the shell.
               if [[ "${EXACT_CACHE_HIT}" != "true" ]] ; then
                 # Fallback restore: wipe node_modules so install rebuilds hoisting from this
                 # lockfile, avoiding stale-layout cache poisoning. Reuse the newline-delimited
@@ -301,33 +324,15 @@ runs:
                 if [[ -n "${NODE_MODULES_PATHS//[[:space:]]/}" ]] ; then
                   rm -rf ${NODE_MODULES_PATHS}
                 fi
-                yarn install --ci --prefer-offline
-                yarn check --integrity
-              elif (yarn check --integrity) ; then
-                # Exact-hit caches are only saved after a fully-scripted install, so
-                # dependency lifecycle scripts (allow-scripts) have already run in this
-                # tree — skip them and run only the repo's own postinstall steps.
-                # skip_plugin_build additionally skips the ~60s plugin-build pass; only
-                # safe for jobs whose own nx run materialises all needed outputs anyway
-                # (plugin-build also side-effect-builds plugin deps like package dist/types,
-                # which e.g. type-aware lint relies on).
-                # `env` is required: an assignment produced by variable expansion is not
-                # parsed as an assignment prefix by the shell.
-                env ALLOW_SCRIPTS_RUNNING=1 ${SKIP_PLUGIN_BUILD_ENV} yarn postinstall
-              else
-                yarn install --ci --prefer-offline
-
-                # Ensure that the integrity check passes after install to avoid
-                # cache polution with entries that will fail future integrity checks.
-                yarn check --integrity
               fi
+              env ALLOW_SCRIPTS_RUNNING=1 ${SKIP_PLUGIN_BUILD_ENV} yarn install --immutable
 
         - name: yarn install (skipping postinstall)
           if: inputs.cache_mode == 'rw' && inputs.yarn_postinstall == 'false'
           id: yarn_install_fast
           shell: bash
           run: |
-              yarn check --integrity || yarn install --ci --prefer-offline
+              YARN_ENABLE_SCRIPTS=false yarn install --immutable
 
         - name: yarn install (skipping postinstall)
           # Covers both cache modes deliberately. The previous `cache_mode == 'rw'` guard left
@@ -337,19 +342,12 @@ runs:
           if: inputs.yarn_postinstall == 'no-install'
           id: yarn_install_check
           shell: bash
-          env:
-              # 'true' only on an exact key hit; an inexact restore-keys fallback can carry a
-              # node_modules tree that predates this lockfile.
-              EXACT_CACHE_HIT: ${{ steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true' }}
           run: |
-              if [[ "${EXACT_CACHE_HIT}" == "true" ]] ; then
-                yarn check --integrity
-              else
-                # Fallback restore: reconcile the tree against this lockfile before any build
-                # reads it. Installing under cache_mode:ro is safe — nothing is saved.
-                yarn install --ci --prefer-offline
-                yarn check --integrity
-              fi
+              # Always run: `yarn install --immutable` is the Berry replacement for Yarn
+              # 1's `yarn check --integrity` (see the "yarn install" step above for why
+              # there's no separate cheap check-only command any more). Installing under
+              # cache_mode:ro is safe — nothing is saved.
+              YARN_ENABLE_SCRIPTS=false yarn install --immutable
 
         - name: Save node_modules
           # Explicit save of the freshly installed tree (see "Restore node_modules" for

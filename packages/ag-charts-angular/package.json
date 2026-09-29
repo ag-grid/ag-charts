@@ -29,7 +29,6 @@
     "url": "https://github.com/ag-grid/ag-charts/issues"
   },
   "homepage": "https://www.ag-grid.com/charts/",
-  "private": false,
   "module": "./dist/ag-charts-angular/fesm2022/ag-charts-angular.mjs",
   "typings": "./dist/ag-charts-angular/index.d.ts",
   "dependencies": {
@@ -38,11 +37,11 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^20.0.0",
-    "@angular/cli": "^20.0.0",
-    "@angular/compiler-cli": "^20.0.0",
     "@angular/animations": "^20.0.0",
+    "@angular/cli": "^20.0.0",
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",
+    "@angular/compiler-cli": "^20.0.0",
     "@angular/core": "^20.0.0",
     "@angular/forms": "^20.0.0",
     "@angular/platform-browser": "^20.0.0",

@@ -44,17 +44,20 @@
     "ag-charts-community": "14.2.0-beta.20260927"
   },
   "devDependencies": {
-    "ag-charts-community": "14.2.0-beta.20260927",
-    "@types/node": "18.19.130",
-    "typescript": "~5.8.3",
-    "vue": "^3.5.43",
     "@babel/types": "7.29.0",
-    "rimraf": "3.0.2"
+    "@types/node": "18.19.130",
+    "ag-charts-community": "14.2.0-beta.20260927",
+    "rimraf": "3.0.2",
+    "typescript": "~5.8.3",
+    "vue": "^3.5.43"
   },
   "peerDependencies": {
     "vue": "^3.5.0"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "installConfig": {
+    "hoistingLimits": "workspaces"
   }
 }
