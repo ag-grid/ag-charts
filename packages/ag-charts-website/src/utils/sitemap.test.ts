@@ -9,6 +9,7 @@ describe('isInternalPage', () => {
         ${'/react/sync-e2e'}              | ${true}
         ${'/javascript/active-e2e-test/'} | ${true}
         ${'/charts/benchmarks'}           | ${true}
+        ${'/react/benchmarks/'}           | ${true}
         ${'/javascript/bar-series/'}      | ${false}
         ${'/javascript/tooltips/'}        | ${false}
         ${'/javascript/latest/'}          | ${false}
@@ -43,8 +44,35 @@ describe('getSitemapConfig filter', () => {
         ${'https://www.ag-grid.com/charts/community/tools-extensions/'} | ${false}
         ${'https://www.ag-grid.com/charts/contact/'}                    | ${false}
         ${'https://www.ag-grid.com/charts/theme-builder/'}              | ${false}
+        ${'https://www.ag-grid.com/charts/react-charts/'}               | ${false}
+        ${'https://www.ag-grid.com/charts/angular-charts/'}             | ${false}
+        ${'https://www.ag-grid.com/charts/vue-charts/'}                 | ${false}
+        ${'https://www.ag-grid.com/charts/javascript/'}                 | ${false}
+        ${'https://www.ag-grid.com/charts/javascript-charts/'}          | ${true}
+        ${'https://www.ag-grid.com/charts/react/benchmarks/'}           | ${false}
+        ${'https://www.ag-grid.com/charts/react/bar-series-test/'}      | ${false}
+        ${'https://www.ag-grid.com/charts/react/sync-e2e/'}             | ${false}
+        ${'https://www.ag-grid.com/charts/react/'}                      | ${true}
+        ${'https://www.ag-grid.com/charts/angular/'}                    | ${true}
+        ${'https://www.ag-grid.com/charts/vue/'}                        | ${true}
         ${'https://www.ag-grid.com/charts/license-pricing/'}            | ${true}
         ${'https://www.ag-grid.com/charts/gallery/'}                    | ${true}
+    `('$page -> included: $included', ({ page, included }) => {
+        expect(filter(page)).toBe(included);
+    });
+});
+
+describe('getSitemapConfig filter with hidden docs pages', () => {
+    const { filter } = getSitemapConfig('/charts', ['sparklines']);
+
+    test.each`
+        page                                                        | included
+        ${'https://www.ag-grid.com/charts/react/sparklines/'}       | ${false}
+        ${'https://www.ag-grid.com/charts/angular/sparklines/'}     | ${false}
+        ${'https://www.ag-grid.com/charts/vue/sparklines/'}         | ${false}
+        ${'https://www.ag-grid.com/charts/javascript/sparklines/'}  | ${false}
+        ${'https://www.ag-grid.com/charts/gallery/sparklines/'}     | ${true}
+        ${'https://www.ag-grid.com/charts/react/sparkline-series/'} | ${true}
     `('$page -> included: $included', ({ page, included }) => {
         expect(filter(page)).toBe(included);
     });

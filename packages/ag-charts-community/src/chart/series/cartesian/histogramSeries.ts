@@ -102,12 +102,9 @@ import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil'
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import {
-    type PickFocusInputs,
-    type SeriesNodePickMatch,
-    SeriesNodePickMode,
-    type SeriesNodeStyleContext,
-} from '../series';
+import type { PickFocusInputs, SeriesNodePickMatch } from '../pickTypes';
+import { SeriesNodePickMode } from '../pickTypes';
+import type { SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString } from '../seriesProperties';
 import { HighlightState } from '../seriesTypes';

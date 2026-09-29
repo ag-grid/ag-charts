@@ -40,12 +40,7 @@ export type NormalisedGaugeSeriesStyle = Normalised<
 >;
 
 type GaugeStyleRequiredKeys =
-    | 'fillOpacity'
-    | 'stroke'
-    | 'strokeWidth'
-    | 'strokeOpacity'
-    | 'lineDash'
-    | 'lineDashOffset';
+    'fillOpacity' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset';
 
 export type NormalisedGaugeColorStop = Normalised<AgGaugeColorStop, never, { color?: CssColor }>;
 
@@ -228,15 +223,7 @@ export type NormalisedLinearGaugeDefaultTargetOptions = Normalised<
 };
 
 type LinearGaugeRequiredKeys =
-    | 'value'
-    | 'direction'
-    | 'thickness'
-    | 'cornerRadius'
-    | 'cornerMode'
-    | 'segmentation'
-    | 'scale'
-    | 'bar'
-    | 'label';
+    'value' | 'direction' | 'thickness' | 'cornerRadius' | 'cornerMode' | 'segmentation' | 'scale' | 'bar' | 'label';
 
 /** Linear gauge options the series owns, before the common series keys are layered on. */
 export type NormalisedLinearGaugeSeriesOwnOptions = Normalised<

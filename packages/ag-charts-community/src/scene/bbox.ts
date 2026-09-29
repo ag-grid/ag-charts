@@ -1,4 +1,4 @@
-import type { DistantObject, NearestResult } from 'ag-charts-core';
+import type { DistantObject, NearestResult, SizedPoint } from 'ag-charts-core';
 import { type BoxBounds, Vec4, boxContains, boxesEqual, clamp, nearestSquared } from 'ag-charts-core';
 
 import { type Interpolating, interpolate } from '../util/interpolating';
@@ -26,6 +26,11 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
 
     static fromObject({ x, y, width, height }: BoxBounds) {
         return new BBox(x, y, width, height);
+    }
+
+    static fromSizedPoint({ x, y, size }: SizedPoint): BBox {
+        const radius = size / 2;
+        return new BBox(x - radius, y - radius, size, size);
     }
 
     static merge(boxes: Iterable<BoxBounds>) {

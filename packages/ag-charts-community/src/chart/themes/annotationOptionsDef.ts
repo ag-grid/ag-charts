@@ -78,7 +78,7 @@ export const annotationChannelTextDefs: OptionsDefs<AgChannelAnnotationTextStyle
     ...fontOptionsDef,
 };
 
-const annotationAxisLabelOptionsDef: OptionsDefs<AgAnnotationAxisLabel> = {
+export const annotationAxisLabelOptionsDef: OptionsDefs<AgAnnotationAxisLabel> = {
     enabled: boolean,
     cornerRadius: positiveNumber,
     padding: padding,

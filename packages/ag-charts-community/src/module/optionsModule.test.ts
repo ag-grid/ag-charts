@@ -547,18 +547,35 @@ describe('ChartOptions', () => {
             expect(message).toContain("'line'");
         });
 
-        it('reports the missing module for the default series type when no series are provided', () => {
-            // Restore exactly what was registered: the stacking/grouping suite below registers its own
-            // ad-hoc series definitions at collection time, which re-registering the bundle would drop.
+        // Restore exactly what was registered: the stacking/grouping suite below registers its own
+        // ad-hoc series definitions at collection time, which re-registering the bundle would drop.
+        function prepareOptionsWithOnly(modules: ModuleDefinition[], userOptions: AgChartOptions) {
             const registeredModules = [...ModuleRegistry.listModules()];
             ModuleRegistry.reset();
-            ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+            ModuleRegistry.registerModules(modules);
             try {
-                prepareOptions({} as AgChartOptions);
+                return prepareOptions(userOptions);
             } finally {
                 ModuleRegistry.reset();
                 ModuleRegistry.registerModules(registeredModules);
             }
+        }
+
+        it('defaults to a registered series type when no series are provided', () => {
+            const options = prepareOptionsWithOnly([BarSeriesModule, CategoryAxisModule, NumberAxisModule], {
+                series: [],
+            } as AgChartOptions);
+
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+            expect((options as any).axes).toMatchObject({
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            });
+        });
+
+        it('reports the missing module for the default series type when no series type is registered', () => {
+            prepareOptionsWithOnly([CategoryAxisModule, NumberAxisModule], {} as AgChartOptions);
 
             const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
@@ -4371,6 +4388,78 @@ describe('ChartOptions', () => {
             } as AgChartOptions);
 
             expect(googleFonts).toContain('Pacifico');
+        });
+
+        it('converts array and google-font values of *FontFamily theme params to strings', () => {
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    loadGoogleFonts: true,
+                    title: { text: 'T' },
+                    subtitle: { text: 'S' },
+                    footnote: { text: 'F' },
+                    theme: {
+                        params: {
+                            titleFontFamily: ['Georgia', 'serif'],
+                            titleFontWeight: 'bold',
+                            subtitleFontFamily: { googleFont: 'Roboto' },
+                            footnoteFontFamily: [{ googleFont: 'Pacifico' }, 'cursive'],
+                        },
+                    },
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+            const { title, subtitle, footnote } = chartOptions.processedOptions as any;
+
+            expect(title.fontFamily).toBe('Georgia, serif');
+            expect(subtitle.fontFamily).toBe('Roboto');
+            expect(footnote.fontFamily).toBe('Pacifico, cursive');
+            expect(chartOptions.googleFonts).toEqual(new Set(['Roboto', 'Pacifico']));
+            expect(chartOptions.fonts).toContain('bold 16px Georgia');
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            {
+                name: 'a google-font',
+                chromeFontFamily: { googleFont: 'Lato' },
+                expected: 'Lato',
+                googleFonts: ['Lato'],
+            },
+            {
+                name: 'a mixed array',
+                chromeFontFamily: [{ googleFont: 'Lato' }, 'sans-serif'],
+                expected: 'Lato, sans-serif',
+                googleFonts: ['Lato'],
+            },
+            {
+                name: 'a string-array',
+                chromeFontFamily: ['Verdana', 'sans-serif'],
+                expected: 'Verdana, sans-serif',
+                googleFonts: [],
+            },
+        ])('converts $name chromeFontFamily param to a string', ({ chromeFontFamily, expected, googleFonts }) => {
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    loadGoogleFonts: true,
+                    theme: { params: { chromeFontFamily } },
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            // This param only feeds `--ag-charts-chrome-font-family`, so it must resolve to a CSS font-family string.
+            expect(chartOptions.themeParameters.chromeFontFamily).toBe(expected);
+            expect(chartOptions.googleFonts ?? new Set()).toEqual(new Set(googleFonts));
+            expect(console.error).not.toHaveBeenCalled();
         });
 
         it('carries the referenced-font set through a fast-path delta update', () => {

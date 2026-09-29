@@ -1,6 +1,6 @@
 /*
- * Demo page stage behaviour: each demo card is a "preview → launch" stage,
- * non-interactive until clicked, then expanded to fill the viewport. Externalised
+ * Demo page behaviour: the seed "open in" menus, and each demo card's "preview → launch" stage,
+ * which is non-interactive until clicked, then expanded to fill the viewport. Externalised
  * from an Astro <script> so the site Content-Security-Policy can drop script-src
  * 'unsafe-inline' — Astro inlines a hoisted script this small into the HTML rather
  * than emitting a bundle, which the enforced 'site' policy blocks. Static, served
@@ -35,6 +35,40 @@
         },
         { once: true }
     );
+
+    // Seed "open in" menus are native <details>, so they open and close without this script. What
+    // it adds is closing the open one on Escape (returning focus to its button), on a click outside
+    // it, and once one of its links has been chosen.
+    const menus = Array.from(document.querySelectorAll('[data-open-in-menu]'));
+    if (menus.length > 0) {
+        const openMenu = () => menus.find((menu) => menu.open);
+        menus.forEach((menu) => {
+            menu.querySelectorAll('a').forEach((link) => {
+                link.addEventListener('click', () => (menu.open = false), { signal });
+            });
+        });
+        document.addEventListener(
+            'click',
+            (event) => {
+                const menu = openMenu();
+                if (menu && !menu.contains(event.target)) {
+                    menu.open = false;
+                }
+            },
+            { signal }
+        );
+        document.addEventListener(
+            'keydown',
+            (event) => {
+                const menu = openMenu();
+                if (event.key === 'Escape' && menu) {
+                    menu.open = false;
+                    menu.querySelector('summary')?.focus();
+                }
+            },
+            { signal }
+        );
+    }
 
     document.querySelectorAll('[data-demo-stage]').forEach((stage) => {
         const viewport = stage.querySelector('[data-stage-viewport]');

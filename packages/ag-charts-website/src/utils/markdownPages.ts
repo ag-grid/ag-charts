@@ -1,7 +1,7 @@
 // Type-only import: erased at runtime, so this module stays loadable under plain node (the
 // htaccess test harness runs it through `tsx`, where the shared subrepo resolves as CJS).
 import type { MarkdownPageGroup } from '../../../../external/ag-website-shared/src/markdown-pages/markdownPageRegistry';
-import { FRAMEWORKS, SITE_BASE_URL } from '../constants';
+import { FRAMEWORKS, FRAMEWORK_LANDING_HUBS, SITE_BASE_URL } from '../constants';
 
 /**
  * Every AG Charts page that ships a markdown (`.md`) twin, declared once.
@@ -25,6 +25,10 @@ export const CHARTS_MARKDOWN_PAGE_GROUPS: MarkdownPageGroup[] = [
     {
         describes: 'Every docs page, once per framework — the bulk of the twins.',
         pattern: `(?:${FRAMEWORKS.join('|')})/[^/.]+`,
+    },
+    {
+        describes: 'The framework landing hubs, at their own root - see FRAMEWORK_LANDING_HUBS.',
+        pattern: `(?:${FRAMEWORK_LANDING_HUBS.join('|')})`,
     },
     {
         describes: 'Top-level content pages.',

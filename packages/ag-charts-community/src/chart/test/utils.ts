@@ -1568,9 +1568,7 @@ export type PhasedPropertyExpectation = {
     settlesAt?: number;
 };
 export type ScenePropertyExpectation =
-    | TrajectoryExpectation
-    | readonly TrajectoryExpectation[]
-    | PhasedPropertyExpectation;
+    TrajectoryExpectation | readonly TrajectoryExpectation[] | PhasedPropertyExpectation;
 export type SceneNodeExpectation = 'constant' | 'any' | Partial<Record<string, ScenePropertyExpectation>>;
 export type PhasedTrajectory = { phaseIntervals: AnimationPhase[][] };
 
@@ -2079,8 +2077,8 @@ export function computeLegendBBox(chart: Chart): BBox {
 export interface LegendTestItemNode {
     datum?: { id: string; itemId?: string | number };
     opacity?: number;
-    labelOpacity?: number;
-    symbolsOpacity?: number;
+    label: { opacity?: number };
+    symbolsGroup: { opacity?: number };
     marker?: { fill?: string; fillOpacity?: number; stroke?: string; strokeOpacity?: number; strokeWidth?: number };
     line?: { stroke?: string; strokeOpacity?: number; lineDash?: number[] };
 }

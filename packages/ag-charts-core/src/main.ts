@@ -79,7 +79,6 @@ export * from './types/text';
 
 // Core utilities
 export * from './state/callbackCache';
-export * from './utils/types/decorator';
 export * from './utils/dom/agDocument';
 export * from './utils/dom/domUtil';
 export * from './utils/geometry/math';
@@ -117,8 +116,6 @@ export * from './utils/data/numberArray';
 export * from './utils/data/numbers';
 export * from './utils/data/object';
 export * from './utils/geometry/placement';
-export * from './state/properties';
-export * from './state/proxy';
 export * from './utils/data/strings';
 export * from './state/stateMachine';
 export * from './rendering/textMeasurer';

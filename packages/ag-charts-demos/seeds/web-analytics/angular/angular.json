@@ -1,0 +1,49 @@
+{
+    "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+    "version": 1,
+    "newProjectRoot": "projects",
+    "projects": {
+        "web-analytics": {
+            "projectType": "application",
+            "root": "",
+            "sourceRoot": "src",
+            "prefix": "wa",
+            "architect": {
+                "build": {
+                    "builder": "@angular/build:application",
+                    "options": {
+                        "outputPath": { "base": "dist", "browser": "" },
+                        "index": "src/index.html",
+                        "browser": "src/main.ts",
+                        "polyfills": ["zone.js"],
+                        "tsConfig": "tsconfig.app.json",
+                        "styles": ["src/styles.css", "src/web-analytics.css"],
+                        "loader": { ".png": "file", ".svg": "file" },
+                        "outputHashing": "all",
+                        "budgets": []
+                    },
+                    "configurations": {
+                        "production": {
+                            "optimization": {
+                                "scripts": true,
+                                "styles": { "minify": true, "inlineCritical": false },
+                                "fonts": false
+                            },
+                            "sourceMap": false
+                        },
+                        "development": { "optimization": false, "sourceMap": true, "extractLicenses": false }
+                    },
+                    "defaultConfiguration": "production"
+                },
+                "serve": {
+                    "builder": "@angular/build:dev-server",
+                    "configurations": {
+                        "production": { "buildTarget": "web-analytics:build:production" },
+                        "development": { "buildTarget": "web-analytics:build:development" }
+                    },
+                    "defaultConfiguration": "development"
+                }
+            }
+        }
+    }
+}

@@ -482,8 +482,7 @@ export function barLabelPropsUsePositionedCandidates(label: BarLabelRoutingOptio
 /** A baked bar-family label paired with the label config that governs its orientation and font. */
 export interface BarLabelSource {
     readonly label:
-        | (OrientationAnchor & { text: NormalisedTextOrSegments; region?: BoxBounds } & BarLabelTarget)
-        | undefined;
+        (OrientationAnchor & { text: NormalisedTextOrSegments; region?: BoxBounds } & BarLabelTarget) | undefined;
     readonly config: FontOptions & { orientation?: LabelOrientationOption };
     /** Pre-measured footprint (text plus box padding/border); falls back to measuring `label.text` with `config`. */
     readonly size?: { width: number; height: number };
@@ -555,8 +554,7 @@ export function rectLabelObstacles(nodeData: readonly RectObstacleSource[] | und
 /** A baked bar-family label paired with the config and per-side box extent that size its footprint. */
 export interface BakedLabelSource {
     readonly label:
-        | (OrientationAnchor & { text: NormalisedTextOrSegments; rotation: number; hidden?: boolean })
-        | undefined;
+        (OrientationAnchor & { text: NormalisedTextOrSegments; rotation: number; hidden?: boolean }) | undefined;
     /** Font config for glyph measurement. */
     readonly config: FontOptions;
     /** Per-side drawn-box extent (padding plus any border). */

@@ -1,7 +1,7 @@
 {
     "meta": {
-        "title": "AG Charts: High-Performance Angular Charts Library",
-        "description": "Build interactive, high-performance Angular charts with AG Charts. 30+ chart types, financial charts, maps, and more. Free to use with enterprise features available."
+        "title": "Angular Charts - JavaScript Charting Library | AG Charts",
+        "description": "Build interactive Angular charts with AG Charts. Bar, line, pie, area and financial charts with Angular components, live examples and code to copy."
     },
     "productName": "AG Charts",
     "internalFramework": "angular",

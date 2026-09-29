@@ -107,12 +107,7 @@ type Bounds = {
 export type BesideBarLabelPlacement = `beside-${'before' | 'after'}-${'start' | 'center' | 'end'}`;
 
 export type BarLabelPlacement =
-    | 'inside-center'
-    | 'inside-start'
-    | 'inside-end'
-    | 'outside-start'
-    | 'outside-end'
-    | BesideBarLabelPlacement;
+    'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end' | BesideBarLabelPlacement;
 
 /** A label's resolved inside/outside placement, selecting which placement-style overrides apply. */
 export type ResolvedLabelPlacement = 'inside' | 'outside';

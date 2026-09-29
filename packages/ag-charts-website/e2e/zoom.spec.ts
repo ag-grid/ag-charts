@@ -300,4 +300,18 @@ test.describe('zoom', () => {
             });
         });
     });
+
+    test('keeps range cross lines visible while panned partly past either edge', async ({ page }) => {
+        const { url } = toExamplePageUrl('zoom-e2e', 'zoom-range-cross-line', 'vanilla');
+        await gotoExample(page, url);
+
+        const { width, height } = await locateCanvas(page);
+        await hoverCanvas(page, { x: Math.round(width / 2), y: Math.round(height / 2) });
+        const panRight = page.getByTitle('Pan right');
+        for (let click = 0; click < 3; click++) {
+            await panRight.click();
+            await waitForAllChartUpdates(page);
+        }
+        await expectChartScreenshot(page, page, 'zoom-range-cross-line-clipped.png', { animations: 'disabled' });
+    });
 });

@@ -46,52 +46,50 @@ if (id) {
 ---
 
 <!doctype html>
-{
-    !id ? (
-        <html lang="en">
-            <head>
-                <meta charset="utf-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <meta name="robots" content="noindex" />
-                <title>Demos</title>
-                {/* Partial routes get no auto-injected client, so the Vite HMR client that
+{!id ? (
+    <html lang="en">
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <meta name="robots" content="noindex" />
+            <title>Demos</title>
+            {/* Partial routes get no auto-injected client, so the Vite HMR client that
                     carries the watch loop's reload signal has to be pulled in by hand. */}
-                {import.meta.env.DEV && <script type="module" src="/@vite/client" />}
-            </head>
-            <body style="margin: 0; padding: 24px; font-family: system-ui, sans-serif;">
-                <h1>AG Charts demo apps</h1>
-                {demoIds.length ? (
-                    <ul>
-                        {demoIds.map((demoId) => (
-                            <li>
-                                <a href={`${base}/demos/${demoId}/`}>{demoId}</a>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>No demo apps are registered.</p>
-                )}
-            </body>
-        </html>
-    ) : (
-        <html lang="en" style="height: 100%;">
-            <head>
-                <meta charset="utf-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <meta name="robots" content="noindex" />
-                <title>{`Demo: ${id}`}</title>
-                {/* Partial routes get no auto-injected client, so the Vite HMR client that
+            {import.meta.env.DEV && <script type="module" src="/@vite/client"></script>}
+        </head>
+        <body style="margin: 0; padding: 24px; font-family: system-ui, sans-serif;">
+            <h1>AG Charts demo apps</h1>
+            {demoIds.length ? (
+                <ul>
+                    {demoIds.map((demoId) => (
+                        <li>
+                            <a href={`${base}/demos/${demoId}/`}>{demoId}</a>
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <p>No demo apps are registered.</p>
+            )}
+        </body>
+    </html>
+) : (
+    <html lang="en" style="height: 100%;">
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <meta name="robots" content="noindex" />
+            <title>{`Demo: ${id}`}</title>
+            {/* Partial routes get no auto-injected client, so the Vite HMR client that
                     carries the watch loop's reload signal has to be pulled in by hand. */}
-                {import.meta.env.DEV && <script type="module" src="/@vite/client" />}
-            </head>
-            <body style="margin: 0; height: 100%;">
-                <div id="root" data-demo-id={id} />
-                {entrySrc ? (
-                    <script type="module" src={entrySrc} />
-                ) : (
-                    <p>The demos bundle has not been built yet. Wait for `nx dev` to finish building, then reload.</p>
-                )}
-            </body>
-        </html>
-    )
-}
+            {import.meta.env.DEV && <script type="module" src="/@vite/client"></script>}
+        </head>
+        <body style="margin: 0; height: 100%;">
+            <div id="root" data-demo-id={id} />
+            {entrySrc ? (
+                <script type="module" src={entrySrc}></script>
+            ) : (
+                <p>The demos bundle has not been built yet. Wait for `nx dev` to finish building, then reload.</p>
+            )}
+        </body>
+    </html>
+)}

@@ -22,13 +22,7 @@ export type AgContextMenuItemLiteral =
     | 'separator';
 
 export type AgContextMenuItemShowOn =
-    | 'always'
-    | 'axis'
-    | 'caption'
-    | 'cross-line'
-    | 'series-area'
-    | 'series-node'
-    | 'legend-item';
+    'always' | 'axis' | 'caption' | 'cross-line' | 'series-area' | 'series-node' | 'legend-item';
 
 export type AgContextMenuItemType = 'action' | 'separator';
 
@@ -89,7 +83,7 @@ export interface AgContextMenuItemCrossLine<TDatum = DatumDefault, TContext = Co
     TContext
 > {
     /**
-     * Which clicked element this menu item should be shown for. `'cross-line'` menu items are shown when right-clicking a cross line's line or fill.
+     * Which clicked element this menu item should be shown for. `'cross-line'` menu items are shown when right-clicking a cross line's line, fill or label.
      */
     showOn: 'cross-line';
     /** Function called when clicking on this menu item. */

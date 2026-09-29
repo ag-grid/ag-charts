@@ -13,10 +13,7 @@ export const highlightStates = [
 ];
 
 export type HighlightStyleOptionKey =
-    | 'highlightedItem'
-    | 'unhighlightedItem'
-    | 'highlightedSeries'
-    | 'unhighlightedSeries';
+    'highlightedItem' | 'unhighlightedItem' | 'highlightedSeries' | 'unhighlightedSeries';
 
 export type SelectionStyleOptionKey = 'selectedItem' | 'unselectedItem' | 'unselectedSeries';
 
