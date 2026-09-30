@@ -25,11 +25,11 @@ Code fallback (`??` at the read site, or a datum factory)   (rarely what users e
 -   **JSDoc `Default:` must be its own paragraph**, separated from the description by a blank `*` line. Inline (`/** Spacing. Default: \`20\` */`) renders as body text instead of a labelled default in the API reference. This applies to every option in `ag-charts-types`, however short the description.
 -   A `Default:` comment that disagrees with the theme template is **stale** — fix the comment, not the template.
 
-For the full lookup procedure — locating the module file, the verification steps, and the module-path table covering series, axes, legend, annotations and global themes — invoke the `/chart-defaults` skill.
+For the full lookup procedure — locating the module file, the verification steps, and the module-path table covering series, axes, legend, annotations and shared theme parts — invoke the `/chart-defaults` skill.
 
 ## Key Files
 
-| Layer            | Pattern                                                           |
-| ---------------- | ----------------------------------------------------------------- |
-| Theme templates  | `packages/ag-charts-{community,enterprise}/src/**/*Module.ts`      |
-| Global themes    | `packages/ag-charts-community/src/chart/themes/`                   |
+| Layer              | Pattern                                                       |
+| ------------------ | ------------------------------------------------------------- |
+| Theme templates    | `packages/ag-charts-{community,enterprise}/src/**/*Module.ts` |
+| Shared theme parts | `packages/ag-charts-community/src/chart/themes/`              |
