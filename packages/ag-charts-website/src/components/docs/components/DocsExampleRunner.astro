@@ -43,12 +43,15 @@ const generatedExampleParams = {
 };
 // NOTE: The island still fetches the contents at runtime rather than taking them as props, so the
 // page only carries the source once: in the crawlable panel below, which the island removes once
-// it has mounted.
+// it has mounted. Only the main file is embedded; see ExampleRunnerSourceCode.
 const contents = await getGeneratedContents(generatedExampleParams);
 // Resolved at build time so the console log can be shown on page load.
 const hasExampleConsoleLog = contents?.hasExampleConsoleLog;
-const sourceCode =
+const viewerFiles =
     contents && !DISABLE_EXAMPLE_SOURCE_EMBED ? getExampleViewerFiles(contents, internalFramework) : undefined;
+const mainFileCode = viewerFiles?.files[viewerFiles.mainFileName];
+const sourceCode =
+    viewerFiles && mainFileCode !== undefined ? { fileName: viewerFiles.mainFileName, code: mainFileCode } : undefined;
 
 let sourceCodeStructuredData: ReturnType<typeof buildSoftwareSourceCode> | undefined;
 // Layout.astro suppresses all structured data on archive builds; match that here too, since an
@@ -86,8 +89,8 @@ if (sourceCode && !getIsArchive()) {
     {sourceCode && (
         <ExampleRunnerSourceCode
             internalFramework={internalFramework}
-            files={sourceCode.files}
-            mainFileName={sourceCode.mainFileName}
+            fileName={sourceCode.fileName}
+            code={sourceCode.code}
         />
     )}
     {sourceCodeStructuredData && <JsonLd data={sourceCodeStructuredData} />}
