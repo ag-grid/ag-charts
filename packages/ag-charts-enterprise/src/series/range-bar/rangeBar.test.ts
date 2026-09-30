@@ -37,15 +37,18 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
+    focusIndicatorContainsCanvasPoint,
     getSeriesAggregationInternals,
     hoverAction,
     isoEpochPair,
     magnitudePair,
     newFreezableMock,
+    pressKey,
     scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
+    tabIntoChart,
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -2212,22 +2215,6 @@ describe('RangeBarSeries', () => {
             await waitForChartStability(chart);
         }
 
-        // Tab lands on the swap-chain's active announcer, which initialises the series focus.
-        async function tabIntoChart() {
-            const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[tabindex="0"]');
-            expect(announcer).not.toBeNull();
-            announcer!.focus();
-            await waitForChartStability(chart);
-        }
-
-        // The series-area widget handles keyboard navigation.
-        async function pressKey(key: string) {
-            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
-            expect(seriesArea).not.toBeNull();
-            seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
-            await waitForChartStability(chart);
-        }
-
         function getBarCentre(seriesIndex: number, nodeIndex: number) {
             const series = new Caster(deproxy(chart))
                 .accessProperty('series')
@@ -2250,23 +2237,6 @@ describe('RangeBarSeries', () => {
             await waitForChartStability(chart);
         }
 
-        // The indicator is positioned relative to the series rect.
-        function getFocusIndicatorCanvasBBox() {
-            const indicator = document.querySelector<HTMLElement>('.ag-charts-focus-indicator > div');
-            expect(indicator).not.toBeNull();
-            const seriesRect = new Caster(deproxy(chart))
-                .accessProperty('seriesAreaManager')
-                .accessProperty('seriesRect')
-                .cast(_ModuleSupport.BBox).value;
-            const { left, top, width, height } = indicator!.style;
-            return new _ModuleSupport.BBox(
-                seriesRect.x + Number.parseFloat(left),
-                seriesRect.y + Number.parseFloat(top),
-                Number.parseFloat(width),
-                Number.parseFloat(height)
-            );
-        }
-
         it('ArrowRight focuses the second bar with numeric time x values', async () => {
             const options = prepareEnterpriseTestOptions({
                 data: Array.from({ length: 20_000 }, (_row, index) => ({
@@ -2281,12 +2251,12 @@ describe('RangeBarSeries', () => {
             });
             await createChart(options);
 
-            await tabIntoChart();
-            await pressKey('ArrowRight');
+            await tabIntoChart(chart);
+            await pressKey(chart, 'ArrowRight');
             const bar = getBarCentre(0, 1);
-            expect(getFocusIndicatorCanvasBBox().containsPoint(bar.canvasX, bar.canvasY)).toBe(true);
+            expect(focusIndicatorContainsCanvasPoint(chart, bar)).toBe(true);
 
-            await pressKey('Enter');
+            await pressKey(chart, 'Enter');
             await clickBar(0, 1);
             expect(seriesNodeClick).toHaveBeenCalledTimes(2);
             expect(seriesNodeClick.mock.calls[0][0].datum.index).toBe(29); // keyboard
@@ -2307,12 +2277,12 @@ describe('RangeBarSeries', () => {
             });
             await createChart(options);
 
-            await tabIntoChart();
-            await pressKey('ArrowRight');
+            await tabIntoChart(chart);
+            await pressKey(chart, 'ArrowRight');
             const bar = getBarCentre(0, 1);
-            expect(getFocusIndicatorCanvasBBox().containsPoint(bar.canvasX, bar.canvasY)).toBe(true);
+            expect(focusIndicatorContainsCanvasPoint(chart, bar)).toBe(true);
 
-            await pressKey('Enter');
+            await pressKey(chart, 'Enter');
             await clickBar(0, 1);
             expect(seriesNodeClick).toHaveBeenCalledTimes(2);
             expect(seriesNodeClick.mock.calls[0][0].datum.index).toBe(29); // keyboard
@@ -2333,13 +2303,13 @@ describe('RangeBarSeries', () => {
             });
             await createChart(options);
 
-            await tabIntoChart();
-            await pressKey('ArrowRight');
+            await tabIntoChart(chart);
+            await pressKey(chart, 'ArrowRight');
             const bar = getBarCentre(0, 1);
-            expect(getFocusIndicatorCanvasBBox().containsPoint(bar.canvasX, bar.canvasY)).toBe(true);
+            expect(focusIndicatorContainsCanvasPoint(chart, bar)).toBe(true);
 
             // Bars overlap on a number x axis, so a mouse click cannot single out bar 1 for comparison.
-            await pressKey('Enter');
+            await pressKey(chart, 'Enter');
             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
             expect(seriesNodeClick.mock.calls[0][0].datum.index).toBe(29);
         });
@@ -2370,13 +2340,13 @@ describe('RangeBarSeries', () => {
             });
             await createChart(options);
 
-            await tabIntoChart();
-            await pressKey('ArrowDown');
-            await pressKey('ArrowRight');
+            await tabIntoChart(chart);
+            await pressKey(chart, 'ArrowDown');
+            await pressKey(chart, 'ArrowRight');
             const bar = getBarCentre(1, 1);
-            expect(getFocusIndicatorCanvasBBox().containsPoint(bar.canvasX, bar.canvasY)).toBe(true);
+            expect(focusIndicatorContainsCanvasPoint(chart, bar)).toBe(true);
 
-            await pressKey('Enter');
+            await pressKey(chart, 'Enter');
             await clickBar(1, 1);
             expect(seriesNodeClick).toHaveBeenCalledTimes(2);
             expect(seriesNodeClick.mock.calls[0][0]).toMatchObject({ seriesId: 'second', datum: { index: 29 } }); // keyboard
