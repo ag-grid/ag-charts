@@ -2,19 +2,14 @@ import { AdvancedParamSelector } from '@ag-website-shared/components/theme-build
 import { CollapsibleSection } from '@ag-website-shared/components/theme-builder/CollapsibleSection';
 import { PaletteEditor } from '@ag-website-shared/components/theme-builder/PaletteEditor';
 import { ParamEditor } from '@ag-website-shared/components/theme-builder/ParamEditor';
-import {
-    horizontalSpacingIcon,
-    radiusIcon,
-    verticalSpacingIcon,
-} from '@ag-website-shared/components/theme-builder/icons';
+import { iconFor } from '@ag-website-shared/components/theme-builder/icons';
 import { useApplicationConfigAtom } from '@ag-website-shared/theming/application-config';
 import styled from '@emotion/styled';
-import type { ReactNode } from 'react';
 
 import { InheritedValueNote } from './InheritedValueNote';
 import { useSetEditedGroup } from './editedGroup';
 import { usePalette } from './paletteModel';
-import { type ChartsParamConfig, type LengthIcon, PARAM_GROUPS } from './params';
+import { type ChartsParamConfig, PARAM_GROUPS } from './params';
 
 const PALETTE_SECTION = 'Palette';
 const ALL_PARAMS_SECTION = 'All Parameters';
@@ -25,19 +20,6 @@ const DEFAULT_OPEN_SECTIONS = [
     // A param pinned here was asked for explicitly; a closed section would hide it.
     ALL_PARAMS_SECTION,
 ];
-
-const iconFor = (icon?: LengthIcon): ReactNode => {
-    switch (icon) {
-        case 'radius':
-            return radiusIcon;
-        case 'verticalSpacing':
-            return verticalSpacingIcon;
-        case 'horizontalSpacing':
-            return horizontalSpacingIcon;
-        default:
-            return undefined;
-    }
-};
 
 const paramEditor = (param: ChartsParamConfig) => (
     <ParamEditor

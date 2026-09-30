@@ -4,11 +4,10 @@
  * exactly one group, which `params.test.ts` asserts so that a new API param
  * cannot quietly go missing from the builder.
  */
+import type { LengthIcon } from '@ag-website-shared/components/theme-builder/icons';
 import { paramToVariableName } from '@ag-website-shared/theming/utils';
 
 import { CHARTS_PARAM_DEFAULTS, PUBLIC_PARAM_NAMES } from './chartsTheme';
-
-export type LengthIcon = 'radius' | 'verticalSpacing' | 'horizontalSpacing';
 
 /** Named because the preview watches for it, to hold a tooltip open. See `editedGroup.ts`. */
 export const TOOLTIPS_GROUP_ID = 'tooltips';
