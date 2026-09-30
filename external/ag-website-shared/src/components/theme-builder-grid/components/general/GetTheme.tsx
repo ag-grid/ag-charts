@@ -1,8 +1,9 @@
+import { ThemeImportExportDialog } from '@ag-website-shared/components/theme-builder/ThemeImportExportDialog';
 import { UIPopupButton } from '@ag-website-shared/components/theme-builder/UIPopupButton';
 import { replaceHistoryUrl } from '@ag-website-shared/utils/historyUrl';
 import styled from '@emotion/styled';
 
-import { ThemeImportExportDialog } from './ThemeImportExportDialog';
+const IMPORT_PLACEHOLDER = 'Paste your theme code here:\n\nconst myTheme = themeQuartz.withParams({...});';
 
 const hasImportHash = () => typeof window !== 'undefined' && window.location.hash === '#import';
 
@@ -11,7 +12,12 @@ export const GetThemeButton = () => (
         <UIPopupButton
             allowedPlacements={['right-end']}
             dropdownContent={(close) => (
-                <ThemeImportExportDialog close={close} initialTab={hasImportHash() ? 'Import' : 'Export'} />
+                <ThemeImportExportDialog
+                    close={close}
+                    initialTab={hasImportHash() ? 'Import' : 'Export'}
+                    downloadFileName="ag-grid-theme-builder.js"
+                    importPlaceholder={IMPORT_PLACEHOLDER}
+                />
             )}
             variant="primary"
             initialOpen={hasImportHash()}

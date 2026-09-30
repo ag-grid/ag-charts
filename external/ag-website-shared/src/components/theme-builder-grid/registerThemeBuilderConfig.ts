@@ -1,6 +1,7 @@
-import { setThemeBuilderDocsUrl } from '@ag-website-shared/components/theme-builder-grid/components/general/ThemeImportExportDialog';
 import { setFontFamilyOptions } from '@ag-website-shared/components/theme-builder/FontFamilyValueEditor';
 import { setImageValuesDocsUrl } from '@ag-website-shared/components/theme-builder/ImageValueEditor';
+import { setThemeBuilderDocsUrl } from '@ag-website-shared/components/theme-builder/ThemeImportExportDialog';
+import { setThemeCodeConfig } from '@ag-website-shared/components/theme-builder/themeImport';
 import { setNonAdvancedParams } from '@ag-website-shared/theming/ParamModel';
 import { FeatureModel, setFeatureModels } from '@ag-website-shared/theming/PartModel';
 import { setBaseTheme } from '@ag-website-shared/theming/base-theme';
@@ -30,6 +31,8 @@ import {
 } from 'ag-grid-community';
 
 setBaseTheme(themeQuartz);
+
+setThemeCodeConfig({ themeVariable: 'themeQuartz', importSource: 'ag-grid-community' });
 
 setFeatureModels(() => [
     new FeatureModel('colorScheme', {
