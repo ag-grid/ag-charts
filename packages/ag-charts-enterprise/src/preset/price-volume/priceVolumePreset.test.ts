@@ -21,7 +21,7 @@ import type {
 
 import { setupEnterpriseModules } from '../../setup';
 import { getStockData } from '../test/stockData';
-import { getRegularVolumeProfile } from '../test/volumeProfileData';
+import { getIrregularVolumeProfile, getRegularVolumeProfile } from '../test/volumeProfileData';
 import { priceVolume } from './priceVolumePreset';
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
@@ -180,11 +180,13 @@ describe('priceVolumePreset', () => {
             default: { data: getStockData(), volumeProfile },
             'placement right': { data: getStockData(), volumeProfile: { ...volumeProfile, placement: 'right' } },
             'width ratio': { data: getStockData(), volumeProfile: { ...volumeProfile, widthRatio: 0.25 } },
-        };
-
-        const render = async (options: AgFinancialChartOptions) => {
-            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions(options));
-            return snapshot();
+            'smaller tick size': { data: getStockData(), volumeProfile, tickSize: 1 },
+            'matching tick size': { data: getStockData(), volumeProfile, tickSize: 2.5 },
+            'larger tick size': { data: getStockData(), volumeProfile, tickSize: 5 },
+            'irregular data': {
+                data: getStockData(),
+                volumeProfile: { ...volumeProfile, data: getIrregularVolumeProfile() },
+            },
         };
 
         it.each(Object.entries(VOLUME_PROFILE_EXAMPLES))(
@@ -196,27 +198,28 @@ describe('priceVolumePreset', () => {
         );
 
         it('should render no volume profile when enabled is false', async () => {
-            const reference = await render({ data: getStockData() });
-            chart.destroy();
-
-            const actual = await render({ data: getStockData(), volumeProfile: { ...volumeProfile, enabled: false } });
-            expect(actual).toMatchImage(reference);
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({
+                    data: getStockData(),
+                    volumeProfile: { ...volumeProfile, enabled: false },
+                })
+            );
+            await compare();
         });
 
         it('should read the price, up and down values from the given keys', async () => {
-            const reference = await render({ data: getStockData(), volumeProfile });
-            chart.destroy();
-
             const data = getRegularVolumeProfile().map(({ price, upVolume, downVolume }) => ({
                 level: price,
                 buys: upVolume,
                 sells: downVolume,
             }));
-            const actual = await render({
-                data: getStockData(),
-                volumeProfile: { data, priceKey: 'level', upKey: 'buys', downKey: 'sells' },
-            });
-            expect(actual).toMatchImage(reference);
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({
+                    data: getStockData(),
+                    volumeProfile: { data, priceKey: 'level', upKey: 'buys', downKey: 'sells' },
+                })
+            );
+            await compare();
         });
     });
 

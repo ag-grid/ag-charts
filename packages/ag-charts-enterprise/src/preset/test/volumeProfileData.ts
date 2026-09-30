@@ -29,3 +29,35 @@ export function getRegularVolumeProfile() {
         { price: 205, upVolume: 6052217, downVolume: 3128552, total: 9180769 },
     ];
 }
+
+export function getIrregularVolumeProfile() {
+    return [
+        { price: 135.45, upVolume: 3167349, downVolume: 4444412, total: 7611761 },
+        { price: 137.95, upVolume: 15119264, downVolume: 19167463, total: 34286727 },
+        { price: 140.75, upVolume: 33362432, downVolume: 32859552, total: 66221984 },
+        { price: 143.25, upVolume: 52877611, downVolume: 51917224, total: 104794835 },
+        { price: 145.45, upVolume: 113936972, downVolume: 103939217, total: 217876189 },
+        { price: 149.2, upVolume: 150023158, downVolume: 169220143, total: 319243301 },
+        { price: 155.45, upVolume: 58901039, downVolume: 50749247, total: 109650286 },
+        { price: 157.3, upVolume: 42080069, downVolume: 37317660, total: 79397729 },
+        { price: 158.55, upVolume: 12493133, downVolume: 12571690, total: 25064823 },
+        { price: 160.45, upVolume: 14012260, downVolume: 7839630, total: 21851890 },
+        { price: 162.95, upVolume: 14999208, downVolume: 9430303, total: 24429511 },
+        { price: 169.45, upVolume: 49052719, downVolume: 44936481, total: 93989200 },
+        { price: 171.95, upVolume: 49032303, downVolume: 48174391, total: 97206694 },
+        { price: 174.45, upVolume: 42825091, downVolume: 42281749, total: 85106840 },
+        { price: 177.55, upVolume: 16146488, downVolume: 15464332, total: 31610820 },
+        { price: 180.3, upVolume: 15287767, downVolume: 15054577, total: 30342344 },
+        { price: 182.45, upVolume: 28895555, downVolume: 29302209, total: 58197764 },
+        { price: 184.95, upVolume: 30848900, downVolume: 34371896, total: 65220796 },
+        { price: 187.45, upVolume: 30462468, downVolume: 27001617, total: 57464085 },
+        { price: 189.32, upVolume: 15820904, downVolume: 14426810, total: 30247714 },
+        { price: 190.57, upVolume: 14283693, downVolume: 11762467, total: 26046160 },
+        { price: 192.45, upVolume: 56180799, downVolume: 52980167, total: 109160966 },
+        { price: 194.95, upVolume: 42240117, downVolume: 48301220, total: 90541337 },
+        { price: 197.85, upVolume: 117085946, downVolume: 128908376, total: 245994322 },
+        { price: 200.6, upVolume: 39526614, downVolume: 31750676, total: 71277290 },
+        { price: 202.95, upVolume: 17153474, downVolume: 14547556, total: 31701030 },
+        { price: 205.25, upVolume: 3036619, downVolume: 2820527, total: 5857146 },
+    ];
+}
