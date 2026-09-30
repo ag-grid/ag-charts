@@ -1,9 +1,15 @@
 import { isFiniteNumber } from 'ag-charts-core';
 import type { DatumDefault } from 'ag-charts-types';
 
-export function inferVolumeProfileTickSize(data: DatumDefault[]): number | undefined {
+export interface VolumeProfileKeys {
+    priceKey: string;
+    upKey: string;
+    downKey: string;
+}
+
+export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: string): number | undefined {
     const prices = data
-        .map((d) => d.price)
+        .map((d) => d[priceKey])
         .filter((price) => isFiniteNumber(price))
         .sort((a, b) => a - b);
 
@@ -17,8 +23,12 @@ export function inferVolumeProfileTickSize(data: DatumDefault[]): number | undef
     return canonical(smallest);
 }
 
-export function normaliseVolumeProfile(data: DatumDefault[], tickSize: number): VolumeProfileDatum[] {
-    const byLevel = mergeVolumeProfileLevels(data, tickSize);
+export function normaliseVolumeProfile(
+    data: DatumDefault[],
+    keys: VolumeProfileKeys,
+    tickSize: number
+): VolumeProfileDatum[] {
+    const byLevel = mergeVolumeProfileLevels(data, keys, tickSize);
     if (byLevel.size === 0) return [];
 
     let lowest = Infinity;
@@ -40,7 +50,7 @@ export function normaliseVolumeProfile(data: DatumDefault[], tickSize: number): 
     return levels;
 }
 
-interface VolumeProfileDatum {
+export interface VolumeProfileDatum {
     price: number;
     upVolume: number;
     downVolume: number;
@@ -49,14 +59,19 @@ interface VolumeProfileDatum {
 
 // Each price is snapped to its nearest multiple of `tickSize`; prices sharing a level are summed into one row, as
 // duplicate categories in a stack would otherwise draw over each other.
-function mergeVolumeProfileLevels(data: DatumDefault[], tickSize: number) {
+function mergeVolumeProfileLevels(
+    data: DatumDefault[],
+    { priceKey, upKey, downKey }: VolumeProfileKeys,
+    tickSize: number
+) {
     const byLevel = new Map<number, { upVolume: number; downVolume: number }>();
     for (const d of data) {
-        if (!isFiniteNumber(d.price)) continue;
-        const index = Math.round(canonical(d.price / tickSize));
+        const price = d[priceKey];
+        if (!isFiniteNumber(price)) continue;
+        const index = Math.round(canonical(price / tickSize));
         const level = byLevel.get(index) ?? { upVolume: 0, downVolume: 0 };
-        level.upVolume += d.upVolume ?? 0;
-        level.downVolume += d.downVolume ?? 0;
+        level.upVolume += d[upKey] ?? 0;
+        level.downVolume += d[downKey] ?? 0;
         byLevel.set(index, level);
     }
     return byLevel;
