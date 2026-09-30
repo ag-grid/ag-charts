@@ -1,9 +1,9 @@
 import { TextualPointStateMachine } from '../states/textualPointState';
-import { NoteProperties } from './noteProperties';
+import { type NoteDatum, noteDatum } from './noteDatum';
 import type { NoteScene } from './noteScene';
 
-export class NoteStateMachine extends TextualPointStateMachine<NoteProperties, NoteScene> {
+export class NoteStateMachine extends TextualPointStateMachine<NoteDatum, NoteScene> {
     protected override createDatum() {
-        return new NoteProperties();
+        return noteDatum.create();
     }
 }

@@ -59,15 +59,13 @@ describe('seedLinks', () => {
     test('getSeedGithubUrl points at the seed folder at the release tag in production', () => {
         expect(
             getSeedGithubUrl({ demoId: 'financial', framework: 'react', version: '14.2.0', isProduction: true })
-        ).toBe(
-            'https://github.com/ag-grid/ag-charts/tree/release-14.2.0/packages/ag-charts-demos/seeds/financial/react'
-        );
+        ).toBe('https://github.com/ag-grid/ag-charts-demos/tree/release-14.2.0/financial/react');
     });
 
     test('getSeedGithubUrl points at the seed folder on latest outside production', () => {
         expect(
             getSeedGithubUrl({ demoId: 'financial', framework: 'react', version: '14.2.0', isProduction: false })
-        ).toBe('https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-demos/seeds/financial/react');
+        ).toBe('https://github.com/ag-grid/ag-charts-demos/tree/latest/financial/react');
     });
 
     test('getSeedStackBlitzUrl opens the same folder with an encoded project title', () => {
@@ -80,7 +78,7 @@ describe('seedLinks', () => {
                 isProduction: true,
             })
         ).toBe(
-            'https://stackblitz.com/github/ag-grid/ag-charts/tree/release-14.2.0/packages/ag-charts-demos/seeds/web-analytics/react?title=AG%20Charts%20Web%20Analytics%20(React)'
+            'https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/release-14.2.0/web-analytics/react?title=AG%20Charts%20Web%20Analytics%20(React)'
         );
     });
 
@@ -125,15 +123,13 @@ describe('seedLinks', () => {
             expect(links.map((link) => link.framework)).toEqual(['React', 'Angular', 'Vue', 'TypeScript']);
             expect(links[0]).toEqual({
                 framework: 'React',
-                href: 'https://stackblitz.com/github/ag-grid/ag-charts/tree/release-14.2.0/packages/ag-charts-demos/seeds/financial/react?title=AG%20Charts%20Trading%20Terminal%20(React)',
-                sourceHref:
-                    'https://github.com/ag-grid/ag-charts/tree/release-14.2.0/packages/ag-charts-demos/seeds/financial/react',
+                href: 'https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/release-14.2.0/financial/react?title=AG%20Charts%20Trading%20Terminal%20(React)',
+                sourceHref: 'https://github.com/ag-grid/ag-charts-demos/tree/release-14.2.0/financial/react',
             });
             expect(links[3]).toEqual({
                 framework: 'TypeScript',
-                href: 'https://stackblitz.com/github/ag-grid/ag-charts/tree/release-14.2.0/packages/ag-charts-demos/seeds/financial/typescript?title=AG%20Charts%20Trading%20Terminal%20(TypeScript)',
-                sourceHref:
-                    'https://github.com/ag-grid/ag-charts/tree/release-14.2.0/packages/ag-charts-demos/seeds/financial/typescript',
+                href: 'https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/release-14.2.0/financial/typescript?title=AG%20Charts%20Trading%20Terminal%20(TypeScript)',
+                sourceHref: 'https://github.com/ag-grid/ag-charts-demos/tree/release-14.2.0/financial/typescript',
             });
         });
 
@@ -149,9 +145,8 @@ describe('seedLinks', () => {
             ).toEqual([
                 {
                     framework: 'React',
-                    href: 'https://stackblitz.com/github/ag-grid/ag-charts/tree/release-14.2.0/packages/ag-charts-demos/seeds/web-analytics/react?title=AG%20Charts%20Web%20Analytics%20(React)',
-                    sourceHref:
-                        'https://github.com/ag-grid/ag-charts/tree/release-14.2.0/packages/ag-charts-demos/seeds/web-analytics/react',
+                    href: 'https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/release-14.2.0/web-analytics/react?title=AG%20Charts%20Web%20Analytics%20(React)',
+                    sourceHref: 'https://github.com/ag-grid/ag-charts-demos/tree/release-14.2.0/web-analytics/react',
                 },
             ]);
         });
@@ -177,11 +172,9 @@ describe('seedLinks', () => {
                 manifests: MANIFESTS,
             });
             expect(react.href).toBe(
-                'https://stackblitz.com/github/ag-grid/ag-charts/tree/latest/packages/ag-charts-demos/seeds/web-analytics/react?title=AG%20Charts%20Web%20Analytics%20(React)'
+                'https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/latest/web-analytics/react?title=AG%20Charts%20Web%20Analytics%20(React)'
             );
-            expect(react.sourceHref).toBe(
-                'https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-demos/seeds/web-analytics/react'
-            );
+            expect(react.sourceHref).toBe('https://github.com/ag-grid/ag-charts-demos/tree/latest/web-analytics/react');
         });
     });
 

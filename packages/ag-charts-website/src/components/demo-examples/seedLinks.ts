@@ -25,7 +25,14 @@ export const SEED_FRAMEWORK_DISPLAY_TEXT: Record<SeedFramework, string> = {
 /** Every framework a seed can be written in, in the order the page lists them. */
 export const SEED_FRAMEWORK_ORDER: readonly SeedFramework[] = ['react', 'angular', 'vue', 'typescript'];
 
-const REPOSITORY = 'ag-grid/ag-charts';
+/**
+ * The repository the seed links open. `.github/workflows/demo-seeds-mirror.yml` copies every seed
+ * there as the folder `<demo>/<framework>`, with the same refs as this repository. StackBlitz
+ * imports a folder by downloading its whole repository, so a small mirror opens in seconds where
+ * this monorepo takes minutes.
+ */
+const SEED_REPOSITORY = 'ag-grid/ag-charts-demos';
+/** Where the seeds live in this checkout; only used to find them on disk. */
 const SEEDS_PATH = 'packages/ag-charts-demos/seeds';
 const MANIFEST_FILENAME = '.seed-manifest.json';
 
@@ -132,10 +139,10 @@ export function getSeedReleaseTag(version: string): string {
 }
 
 /**
- * The git ref a seed link targets. Production links the release tag matching the site's version,
- * so the seed a reader opens is the one that shipped. Every other build (dev, staging, preview)
- * links the `latest` branch, which has the seeds as soon as they merge, so those links never 404
- * while a release is still pending.
+ * The git ref of the mirror a seed link targets. Production links the release tag matching the
+ * site's version, so the seed a reader opens is the one that shipped. Every other build (dev,
+ * staging, preview) links the `latest` branch, which the mirror syncs on every push to this
+ * repository's `latest`, so those links never 404 while a release is still pending.
  */
 export function getSeedGitRef({ version, isProduction }: Required<SeedRefParams>): string {
     return isProduction ? getSeedReleaseTag(version) : SEED_DEVELOPMENT_REF;
@@ -145,23 +152,23 @@ function resolveSeedGitRef({ version = agChartsVersion, isProduction = getIsProd
     return getSeedGitRef({ version, isProduction });
 }
 
-/** Folder of the seed inside the repository, relative to its root. */
+/** Folder of the seed inside the mirror, relative to its root. */
 export function getSeedPath(demoId: string, framework: SeedFramework): string {
-    return `${SEEDS_PATH}/${demoId}/${framework}`;
+    return `${demoId}/${framework}`;
 }
 
-/** The seed's source folder on GitHub at the ref for this build. */
+/** The seed's folder in the mirror on GitHub, at the ref for this build. */
 export function getSeedGithubUrl({ demoId, framework, ...ref }: SeedLinkParams): string {
-    return `https://github.com/${REPOSITORY}/tree/${resolveSeedGitRef(ref)}/${getSeedPath(demoId, framework)}`;
+    return `https://github.com/${SEED_REPOSITORY}/tree/${resolveSeedGitRef(ref)}/${getSeedPath(demoId, framework)}`;
 }
 
 /**
- * Opens the seed in StackBlitz straight from GitHub. StackBlitz imports only the sub-folder,
- * runs `npm install` and starts the `dev` script; `title` names the resulting project.
+ * Opens the seed in StackBlitz straight from the mirror on GitHub. StackBlitz imports the
+ * sub-folder, runs `npm install` and starts the `dev` script; `title` names the resulting project.
  */
 export function getSeedStackBlitzUrl({ demoId, framework, title, ...ref }: SeedLinkParams & { title: string }): string {
     const projectTitle = `AG Charts ${title} (${SEED_FRAMEWORK_DISPLAY_TEXT[framework]})`;
-    return `https://stackblitz.com/github/${REPOSITORY}/tree/${resolveSeedGitRef(ref)}/${getSeedPath(demoId, framework)}?title=${encodeURIComponent(projectTitle)}`;
+    return `https://stackblitz.com/github/${SEED_REPOSITORY}/tree/${resolveSeedGitRef(ref)}/${getSeedPath(demoId, framework)}?title=${encodeURIComponent(projectTitle)}`;
 }
 
 /**

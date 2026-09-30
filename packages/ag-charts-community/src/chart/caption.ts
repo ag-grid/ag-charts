@@ -1,7 +1,6 @@
 import type { AxisID, DynamicContext, NormalisedAxisTitleOptions, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
     FONT_SIZE,
-    callWithContext,
     createId,
     isArray,
     isSegmentTruncated,
@@ -11,7 +10,7 @@ import {
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type { AgCaptionTooltipRendererParams, FontStyle, FontWeight, Renderer, TextWrap } from 'ag-charts-types';
+import type { FontStyle, FontWeight, TextWrap } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -34,12 +33,6 @@ type CaptionNodeDatum = {
     rotation: number;
 };
 
-interface CaptionTooltipOptions {
-    visible?: 'auto' | 'always' | 'never';
-    text?: string;
-    renderer?: Renderer<AgCaptionTooltipRendererParams, never>;
-}
-
 export class Caption implements CaptionLike {
     static readonly className = 'Caption';
 
@@ -47,6 +40,7 @@ export class Caption implements CaptionLike {
     readonly node = new RotatableText<CaptionNodeDatum>({ zIndex: 1 }).setProperties({
         textAlign: 'center',
         pointerEvents: PointerEvents.None,
+        visible: false,
     });
 
     enabled: boolean = false;
@@ -61,7 +55,6 @@ export class Caption implements CaptionLike {
     wrapping: TextWrap = 'always';
     truncate: boolean = true;
     padding: number = 0;
-    readonly tooltip: CaptionTooltipOptions = {};
 
     applyTitle(title: NormalisedAxisTitleOptions) {
         const { node } = this;
@@ -156,37 +149,10 @@ export class Caption implements CaptionLike {
         }
     }
 
-    private getEffectiveTooltipVisible(): 'auto' | 'always' | 'never' {
-        const { visible, text, renderer } = this.tooltip;
-        if (visible != null) return visible;
-        return text != null || renderer != null ? 'always' : 'auto';
-    }
-
-    private getTooltipContent(moduleCtx: DynamicContext<ChartRegistry>): TooltipContent | undefined {
-        const captionText = toPlainText(this.text);
-        const { renderer, text } = this.tooltip;
-
-        if (renderer != null) {
-            const params: AgCaptionTooltipRendererParams = { text: captionText };
-            const result = callWithContext(moduleCtx.chartService, renderer, params);
-            if (result === '') return undefined;
-            if (result != null) return { type: 'raw', rawHtmlString: toTextString(result) };
-        }
-
-        const displayText = text ?? captionText;
-        return { type: 'structured', title: displayText };
-    }
-
     private showTooltip(moduleCtx: DynamicContext<ChartRegistry>, canvasX: number, canvasY: number) {
-        if (!this.enabled) return;
+        if (!this.enabled || !this.truncated) return;
 
-        const effectiveVisible = this.getEffectiveTooltipVisible();
-        if (effectiveVisible === 'never') return;
-        if (effectiveVisible === 'auto' && !this.truncated) return;
-
-        const content = this.getTooltipContent(moduleCtx);
-        if (content == null) return;
-
+        const content: TooltipContent = { type: 'structured', title: toPlainText(this.text) };
         moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [content]);
     }
 

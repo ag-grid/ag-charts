@@ -22,7 +22,7 @@ globs:
 -   Never special-case a module name or option key in `processModuleOptions.ts`, `chartTheme.ts`,
     `chart.ts` or the ESLint rule. Add the location to the owning module instead.
 -   Do not add feature hooks to `enterpriseRegistry`; a community/enterprise pair shares a `name` and
-    the enterprise definition replaces the community one.
+    `version`, and the enterprise definition replaces the community one.
 -   A feature nested under another module's option key (`seriesArea.backgroundRegions`) is its own
     module that `contributes` the nested path and attaches to the host through a service; it does not
     override the host module.

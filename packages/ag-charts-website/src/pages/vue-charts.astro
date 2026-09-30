@@ -3,6 +3,8 @@
  * Vue Charts Landing Page
  *
  * Content is defined in: src/content/landing-pages/vue-charts.json
+ *
+ * Ad traffic only: the same content is canonical at /vue/, so this copy carries a noindex.
  */
 
 import LandingPage from '@components/landing-pages/LandingPage.astro';
@@ -15,4 +17,4 @@ const content = contentEntry?.data;
 const versions = versionsEntry?.data;
 ---
 
-{content && <LandingPage content={content} versions={versions} />}
+{content && <LandingPage content={content} versions={versions} noIndex={true} />}

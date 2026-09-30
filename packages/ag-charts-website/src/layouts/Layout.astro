@@ -308,9 +308,18 @@ const structuredData: JsonLdObject[] = includeStructuredData
                 min-width: 0px;
             }
 
-            .mainContainer {
-                width: 100%;
+            // Sticky footer: the footer sits outside .mainContainer, so the page column holds it down.
+            body {
+                display: flex;
+                flex-direction: column;
                 min-height: 100vh;
+            }
+
+            .mainContainer {
+                display: flex;
+                flex-direction: column;
+                flex: 1 0 auto;
+                width: 100%;
                 padding: 0;
             }
         </style>

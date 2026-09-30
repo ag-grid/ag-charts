@@ -55,6 +55,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-24T14:42:23.797Z
   SNYK-JS-BRACES-19963945:
+    - eslint-plugin-check-file@3.3.2 > micromatch@4.0.8 > braces@3.0.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-28T09:37:46.963Z
     - madge@8.0.0 > dependency-tree@11.0.1 > precinct@12.1.2 > detective-typescript@13.0.0 > @typescript-eslint/typescript-estree@7.18.0 > globby@11.1.0 > fast-glob@3.3.2 > micromatch@4.0.8 > braces@3.0.3:
         reason: >-
             Used in build & dev - not included in final production build
@@ -235,6 +240,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-09-02T00:00:00.000Z'
   SNYK-JS-POSTCSS-18313038:
+    - vitest@2.1.9 > vite@6.4.3 > postcss@8.5.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-28T09:37:46.963Z
     - postcss@8.5.12:
         reason: >-
             Used in build & dev - not included in final production build
@@ -261,6 +271,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T10:17:20.102Z
   SNYK-JS-POSTCSS-18313036:
+    - vitest@2.1.9 > vite@6.4.3 > postcss@8.5.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-28T09:37:46.963Z
     - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
         reason: >-
             Used in build & dev - not included in final production build
@@ -282,6 +297,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T10:16:26.656Z
   SNYK-JS-ESBUILD-17750822:
+    - vitest@2.1.9 > vite@6.4.3 > esbuild@0.25.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-28T09:37:46.963Z
     - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
         reason: Test dependency - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
@@ -736,6 +756,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-04-15T11:47:26.448Z
   SNYK-JS-PICOMATCH-15765511:
+    - eslint-plugin-check-file@3.3.2 > micromatch@4.0.8 > picomatch@2.3.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-28T09:37:46.963Z
     - sucrase@3.35.1 > tinyglobby@0.2.15 > picomatch@4.0.3:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
@@ -928,6 +953,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
   SNYK-JS-ROLLUP-15340920:
+    - vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-09-28T09:37:46.963Z
     - vitest@2.1.9 > vite@6.3.5 > rollup@4.42.0:
         reason: Used in testing - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
@@ -1778,6 +1808,15 @@ patch: {}
 # future finding in it would also be hidden. Accepted because the tool is local-only
 # dev tooling. Revisit if it ever becomes something that runs outside a developer
 # machine.
+#
+# packages/ag-charts-demos/e2e/parity/serve-dist.mjs is a localhost static server
+# that the demo port parity e2e specs start against a built dist folder. It is
+# never built, shipped or deployed. Snyk Code reports a javascript/PT finding on its
+# createReadStream() call, but the requested path is normalised with join() and
+# rejected with a 403 unless it resolves inside the served directory, so the
+# finding is a false positive. The same trade-off as above applies: a genuine
+# future finding in this file would also be hidden.
 exclude:
   code:
     - external/ag-shared/scripts/snyk-viewer/index.mjs
+    - packages/ag-charts-demos/e2e/parity/serve-dist.mjs

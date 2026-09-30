@@ -136,7 +136,6 @@ function availableExtent(anchorAt: number, labelDir: AnchorDirection, pad: numbe
 export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions & {
     position?: CrossLineLabelPosition;
     reserveSpace: boolean;
-    parallel?: boolean;
 };
 
 type NodeData = [number, number];
@@ -274,9 +273,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
         const { bandwidth, rangePadding } = bandRangeExpansion(scale);
 
-        let [clippedRange0, clippedRange1] = findMinMax(clippedRange);
-        clippedRange0 -= bandwidth;
-        clippedRange1 += bandwidth;
+        const [clipMin, clipMax] = findMinMax(clippedRange);
 
         let yStart: number;
         let yEnd: number;
@@ -289,7 +286,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             clampedYStart = scale.convert(value as any, { clamp: true }) + offset;
             clampedYEnd = Number.NaN;
 
-            if (yStart > clippedRange1 || yStart < clippedRange0) {
+            if (yStart > clipMax + bandwidth || yStart < clipMin - bandwidth) {
                 return;
             }
         } else if (range) {
@@ -306,7 +303,9 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
                 [yStart, yEnd] = [yEnd, yStart];
             }
 
-            if (clampedYStart >= clippedRange1 || clampedYEnd <= clippedRange0) {
+            // Both ends clamped onto the same scale bound means the range lies wholly outside the domain.
+            const clampedAway = clampedYStart === clampedYEnd && clampedYStart !== yStart && clampedYEnd !== yEnd;
+            if (clampedAway) {
                 return;
             }
 
@@ -317,6 +316,10 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             if (Number.isFinite(yEnd)) {
                 yEnd += bandwidth;
                 clampedYEnd += bandwidth + rangePadding;
+            }
+
+            if (clampedYStart >= clipMax || clampedYEnd <= clipMin) {
+                return;
             }
         } else {
             return;

@@ -105,6 +105,8 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 cornerRadius: 0,
                 enabled: true,
                 key: 'image',
+                // @ts-expect-error undocumented option
+                _isUserKey: { $isUserOption: './key' },
                 height: 50,
                 position: 'top',
                 spacing: 8,
@@ -119,6 +121,8 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 fontStyle: 'normal',
                 fontWeight: 'bold',
                 key: 'title',
+                // @ts-expect-error undocumented option
+                _isUserKey: { $isUserOption: './key' },
                 overflowStrategy: 'ellipsis',
                 padding: { $applyPadding: 0 },
                 spacing: 4,
@@ -134,6 +138,8 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 fontStyle: 'normal',
                 fontWeight: 'normal',
                 key: 'subtitle',
+                // @ts-expect-error undocumented option
+                _isUserKey: { $isUserOption: './key' },
                 overflowStrategy: 'ellipsis',
                 padding: { $applyPadding: 0 },
                 spacing: 4,

@@ -1,17 +1,20 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
+import { Debug, StateMachine } from 'ag-charts-core';
 
 import type { AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
-import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
+import type { TextualStartEndDatum } from '../datum/textualDatum';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
 import { maybeWrapText } from '../text/util';
+import { applyAnnotationOptions } from '../utils/datum';
 import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
-interface TextualStartEndStateMachineContext<Datum extends TextualStartEndProperties> extends Omit<
+const INHERITED_PROPERTIES = ['datum', 'node'] as const;
+
+interface TextualStartEndStateMachineContext<Datum extends TextualStartEndDatum> extends Omit<
     AnnotationsStateMachineContext,
     'create' | 'delete' | 'datum' | 'node' | 'showTextInput'
 > {
@@ -23,7 +26,7 @@ interface TextualStartEndStateMachineContext<Datum extends TextualStartEndProper
 }
 
 export abstract class TextualStartEndStateMachine<
-    Datum extends TextualStartEndProperties,
+    Datum extends TextualStartEndDatum,
     Node extends TextualStartEndScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit' | 'end',
@@ -47,16 +50,18 @@ export abstract class TextualStartEndStateMachine<
 > {
     override debug = Debug.create(true, 'annotations');
 
-    @StateMachineProperty()
     protected datum?: Datum;
 
-    @StateMachineProperty()
     protected node?: Node;
+
+    override inheritedProperties() {
+        return INHERITED_PROPERTIES;
+    }
 
     constructor(ctx: TextualStartEndStateMachineContext<Datum>) {
         const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
-            datum.set({ start: point, end: point, visible: true });
+            applyAnnotationOptions(datum, { start: point, end: point, visible: true });
             ctx.create(datum);
         };
 
@@ -85,7 +90,7 @@ export abstract class TextualStartEndStateMachine<
 
         const onEndHover = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
-            datum?.set({ end: point });
+            if (datum) applyAnnotationOptions(datum, { end: point });
             node?.toggleActive(true);
             node?.toggleHandles({ end: false });
             ctx.update();
@@ -110,12 +115,12 @@ export abstract class TextualStartEndStateMachine<
             isMultiColor: boolean;
         }) => {
             const { datum } = this;
-            if (!datum) return;
+            if (!isTextType(datum)) return;
 
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            setColor(datum as any, colorPickerType, colorOpacity, color, opacity, isMultiColor);
+            setColor(datum, colorPickerType, colorOpacity, color, opacity, isMultiColor);
             ctx.update();
         };
 
@@ -140,10 +145,10 @@ export abstract class TextualStartEndStateMachine<
                 }
 
                 const wrappedText = maybeWrapText(datum, textInputValue, bbox.width);
-                datum?.set({ text: wrappedText });
+                datum.text = wrappedText;
 
                 ctx.update();
-                ctx.recordAction(`Create ${datum?.type} annotation`);
+                ctx.recordAction(`Create ${datum.type} annotation`);
             } else {
                 ctx.delete();
             }

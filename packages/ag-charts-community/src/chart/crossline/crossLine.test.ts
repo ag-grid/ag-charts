@@ -917,35 +917,124 @@ describe('CrossLine', () => {
                     })
                 );
             });
-            test('AC4i: a cross-line win reports the series node it covers', async () => {
+            test('a series node under the pointer wins over the cross lines it overlaps', async () => {
                 // The May bar sits under the blue line and inside the grey range band.
                 await clickAction(505, 470)(chart);
+                const expected = expect.objectContaining({
+                    type: 'seriesNodeClick',
+                    datum: { x: 'May', y: 3 },
+                    allMatchedParams: [
+                        expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'May', y: 3 } }),
+                        expect.objectContaining({ type: 'crossLineClick', crossLineId: 'blue-line', value: 'May' }),
+                        expect.objectContaining({
+                            type: 'crossLineClick',
+                            crossLineId: 'grey-range',
+                            range: ['Mar', 'Jul'],
+                        }),
+                    ],
+                });
+                expect(seriesSeriesNodeClick).toHaveBeenCalledWith(expected);
+                expect(chartSeriesNodeClick).toHaveBeenCalledWith(expected);
+                expect(chartCrossLineClick).toHaveBeenCalledTimes(0);
+                expect(chartClick).toHaveBeenCalledTimes(0);
+            });
+            test('a cross line wins over a series node under the pointer that nothing listens to', async () => {
+                chart.destroy();
+                chart = await createChart({
+                    data: [{ x: 'May', y: 3 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        myX: {
+                            type: 'category',
+                            crossLines: [{ id: 'blue-line', type: 'line', value: 'May', strokeWidth: 2 }],
+                        },
+                        myY: { type: 'number' },
+                    },
+                    listeners: { crossLineClick: chartCrossLineClick },
+                });
+                const { x, y, width, height } = chart.seriesRect!;
+                await clickAction(x + width / 2, y + height - 10)(chart);
                 expect(chartCrossLineClick).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        // The cross line still wins the event, so it carries the root params.
                         type: 'crossLineClick',
                         crossLineId: 'blue-line',
                         allMatchedParams: [
-                            expect.objectContaining({
-                                type: 'crossLineClick',
-                                crossLineId: 'blue-line',
-                                value: 'May',
-                            }),
-                            expect.objectContaining({
-                                type: 'crossLineClick',
-                                crossLineId: 'grey-range',
-                                range: ['Mar', 'Jul'],
-                            }),
-                            expect.objectContaining({
-                                type: 'seriesNodeClick',
-                                datum: { x: 'May', y: 3 },
-                            }),
+                            expect.objectContaining({ type: 'crossLineClick', crossLineId: 'blue-line' }),
+                            expect.objectContaining({ type: 'seriesNodeClick', datum: { x: 'May', y: 3 } }),
                         ],
                     })
                 );
-                // One event, not two: the series-node listeners stay silent as before.
-                expect(chartCrossLineClick).toHaveBeenCalledTimes(1);
-                expect(chartClick).toHaveBeenCalledTimes(0);
+            });
+            test.each([
+                { gesture: 'double-click', nodeListener: 'seriesNodeClick', crossLineListener: 'crossLineDoubleClick' },
+                { gesture: 'click', nodeListener: 'seriesNodeDoubleClick', crossLineListener: 'crossLineClick' },
+            ] as const)(
+                'a cross line wins a $gesture over a series node that only has a $nodeListener listener',
+                async ({ gesture, nodeListener, crossLineListener }) => {
+                    const crossLineListenerFn = vi.fn();
+                    chart.destroy();
+                    chart = await createChart({
+                        data: [{ x: 'May', y: 3 }],
+                        series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { [nodeListener]: vi.fn() } }],
+                        axes: {
+                            myX: {
+                                type: 'category',
+                                crossLines: [{ id: 'blue-line', type: 'line', value: 'May', strokeWidth: 2 }],
+                            },
+                            myY: { type: 'number' },
+                        },
+                        listeners: { [crossLineListener]: crossLineListenerFn },
+                    });
+                    const { x, y, width, height } = chart.seriesRect!;
+                    const action = gesture === 'click' ? clickAction : doubleClickAction;
+                    await action(x + width / 2, y + height - 10)(chart);
+                    expect(crossLineListenerFn).toHaveBeenCalledWith(
+                        expect.objectContaining({ type: crossLineListener, crossLineId: 'blue-line' })
+                    );
+                }
+            );
+            test('a cross line wins over a series node only within `nodeClickRange`', async () => {
+                chart.destroy();
+                chart = await createChart({
+                    data: [
+                        { x: 'Jan', y: 8 },
+                        { x: 'Mar', y: 6 },
+                        { x: 'May', y: 3 },
+                        { x: 'Jul', y: 9 },
+                    ],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            nodeClickRange: 'nearest',
+                            listeners: { seriesNodeClick: seriesSeriesNodeClick },
+                        },
+                    ],
+                    axes: {
+                        myX: {
+                            type: 'category',
+                            crossAt: { value: 0 },
+                            crossLines: [
+                                { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
+                            ],
+                        },
+                        myY: { type: 'number' },
+                    },
+                    listeners: { crossLineClick: chartCrossLineClick, seriesNodeClick: chartSeriesNodeClick },
+                });
+                // Above the May bar, on the blue line.
+                await clickAction(505, 130)(chart);
+                expect(chartCrossLineClick).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        type: 'crossLineClick',
+                        crossLineId: 'blue-line',
+                        allMatchedParams: [
+                            expect.objectContaining({ type: 'crossLineClick', crossLineId: 'blue-line' }),
+                            expect.objectContaining({ type: 'seriesNodeClick' }),
+                        ],
+                    })
+                );
                 expect(chartSeriesNodeClick).toHaveBeenCalledTimes(0);
                 expect(seriesSeriesNodeClick).toHaveBeenCalledTimes(0);
             });
@@ -1261,6 +1350,64 @@ describe('CrossLine', () => {
 
             expect(first).not.toHaveBeenCalled();
             expect(second).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('range clamped to the domain', () => {
+        const MONTHS = Array.from({ length: 6 }, (_, i) => new Date(2026, i, 1));
+
+        async function createBandChart(...ranges: Array<[Date, Date]>) {
+            chart = await createChart({
+                data: MONTHS.map((date, i) => ({ date, value: i + 1 })),
+                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                axes: {
+                    x: {
+                        type: 'unit-time',
+                        position: 'bottom',
+                        paddingOuter: 0,
+                        crossLines: ranges.map((range) => ({
+                            type: 'range' as const,
+                            range,
+                            label: { text: 'Range' },
+                        })),
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+            const [crossLine] = getCrossLinesPlugin(chart.axes.findById('x')!)!.getInstances();
+            return crossLine;
+        }
+
+        test('renders ranges clamped at both ends of the domain', async () => {
+            await createBandChart([new Date(2025, 10, 1), MONTHS[0]], [new Date(2026, 5, 5), new Date(2026, 5, 20)]);
+            await compare();
+        });
+
+        test('keeps the first band of a range that starts before the domain', async () => {
+            const crossLine = await createBandChart([new Date(2025, 10, 1), MONTHS[0]]);
+
+            expect(crossLine.rangeGroup.visible).toBe(true);
+            const [rangeNode] = crossLine.rangeGroup.children();
+            const box = Transformable.toCanvas(rangeNode);
+            expect(box.x).toBeCloseTo(chart.seriesRect!.x);
+            expect(box.width).toBeGreaterThanOrEqual(crossLine.scale!.bandwidth!);
+        });
+
+        test('keeps a range that lies inside the last band', async () => {
+            const crossLine = await createBandChart([new Date(2026, 5, 5), new Date(2026, 5, 20)]);
+
+            expect(crossLine.rangeGroup.visible).toBe(true);
+            const [rangeNode] = crossLine.rangeGroup.children();
+            const box = Transformable.toCanvas(rangeNode);
+            expect(box.x + box.width).toBeCloseTo(chart.seriesRect!.x + chart.seriesRect!.width);
+            expect(box.width).toBeGreaterThanOrEqual(crossLine.scale!.bandwidth!);
+        });
+
+        test('hides a range that ends before the domain', async () => {
+            const crossLine = await createBandChart([new Date(2025, 9, 1), new Date(2025, 10, 1)]);
+
+            expect(crossLine.rangeGroup.visible).toBe(false);
+            expect(crossLine.labelGroup.visible).toBe(false);
         });
     });
 

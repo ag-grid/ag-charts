@@ -1,5 +1,4 @@
-import { ObserveChanges, ProxyPropertyOnWrite, SceneChangeDetection } from 'ag-charts-core';
-import type { FontStyle, FontWeight } from 'ag-charts-types';
+import { SceneChangeDetection } from 'ag-charts-core';
 
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -13,14 +12,14 @@ import type { CategoryLegendDatum } from './legendDatum';
 export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGroup<D> {
     static readonly className = 'MarkerLabel';
 
-    private readonly symbolsGroup: Group = this.appendChild(
+    readonly symbolsGroup: Group = this.appendChild(
         new Group({
             name: 'legend-markerLabel-symbols',
             renderToOffscreenCanvas: true,
             optimizeForInfrequentRedraws: true,
         })
     );
-    private readonly label = this.appendChild(new Text());
+    readonly label = this.appendChild(new Text());
 
     constructor() {
         super({ name: 'markerLabelGroup' });
@@ -39,41 +38,12 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
 
     pageIndex: number = Number.NaN;
 
-    @ProxyPropertyOnWrite('label')
-    text?: string;
-
-    @ProxyPropertyOnWrite('label')
-    fontStyle?: FontStyle;
-
-    @ProxyPropertyOnWrite('label')
-    fontWeight?: FontWeight;
-
-    @ProxyPropertyOnWrite('label')
-    fontSize?: number;
-
-    @ProxyPropertyOnWrite('label')
-    fontFamily?: string;
-
-    @ProxyPropertyOnWrite('label', 'fill')
-    color?: string;
-
-    @ProxyPropertyOnWrite('label', 'opacity')
-    labelOpacity: number = 1;
-
-    @ProxyPropertyOnWrite('symbolsGroup', 'opacity')
-    symbolsOpacity: number = 1;
-
-    @ObserveChanges<LegendMarkerLabel>((target) => target.layoutLabel())
     spacing: number = 0;
-
-    @ObserveChanges<LegendMarkerLabel>((target) => target.layoutLabel())
     length: number = 0;
+    isRtl: boolean = false;
 
     @SceneChangeDetection()
     isCustomMarker: boolean = false;
-
-    @ObserveChanges<LegendMarkerLabel>((target) => target.layoutLabel())
-    isRtl: boolean = false;
 
     public readonly marker = this.symbolsGroup.appendChild(new Marker({ zIndex: 1 }));
     public readonly line = this.symbolsGroup.appendChild(new Line({ zIndex: 0 }));
@@ -84,7 +54,10 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
     }
 
     private layout() {
-        const { marker, line, length } = this;
+        const { marker, line, length, spacing, isRtl } = this;
+
+        this.label.x = isRtl ? -spacing : length + spacing;
+        this.label.textAlign = isRtl ? 'right' : 'left';
 
         let centerTranslateX = 0;
         let centerTranslateY = 0;
@@ -113,12 +86,6 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
         const out = super.preRender(renderCtx);
         this.layout();
         return out;
-    }
-
-    private layoutLabel() {
-        const { length, spacing, isRtl } = this;
-        this.label.x = isRtl ? -spacing : length + spacing;
-        this.label.textAlign = isRtl ? 'right' : 'left';
     }
 
     protected override computeBBox(): BBox | undefined {

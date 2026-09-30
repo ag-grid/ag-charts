@@ -4,6 +4,7 @@ import type {
     Point,
     Scale,
     SizedPoint,
+    Writeable,
 } from 'ag-charts-core';
 import { ChartAxisDirection, clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
 import type { AgDrawingMode, AgMarkerShape } from 'ag-charts-types';
@@ -148,6 +149,7 @@ interface MarkerNodeDatum extends SeriesNodeDatum {
 interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<TDatum, ISeriesOptions, unknown> {
     getNodeData(): { find(predicate: (elem: TDatum) => boolean): TDatum | undefined } | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number; shape?: AgMarkerShape };
+    applyFocusSize(markerBBox: BBox, style: NormalisedSeriesMarkerStyle, point: SizedPoint | undefined): void;
 }
 
 export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
@@ -169,6 +171,11 @@ export function computeMarkerFocusBoundsOfNodeDatum<TDatum extends MarkerNodeDat
     if (datum == null || point == null) return undefined;
 
     const style = series.getFormattedMarkerStyle(datum);
+    if (typeof style.shape === 'function') {
+        const bb = BBox.fromSizedPoint({ ...point, size: style.size });
+        series.applyFocusSize(bb, style, point);
+    }
+
     const anchor = Marker.anchor(style.shape);
     const size = point.focusSize ?? style.size;
     const paddedSize = 4 + size; // AG-13067 Add 2px padding on all sides:
@@ -178,6 +185,28 @@ export function computeMarkerFocusBoundsOfNodeDatum<TDatum extends MarkerNodeDat
     const x = datum.point.x - paddedRadius - anchorX;
     const y = datum.point.y - paddedRadius - anchorY;
     return Transformable.toCanvas(series.contentGroup, new BBox(x, y, paddedSize, paddedSize));
+}
+
+export function computeLineAreaFocusBounds<D extends MarkerNodeDatum, Ctx, Scratch extends { yDatum: unknown }>(
+    series: MarkerSeries<D> & {
+        nodeDatumContext?: Ctx;
+        allocDatumScratch(): Scratch;
+        allocDatumWriteable(ctx: Ctx): Writeable<D>;
+        handleDatum(ctx: Ctx, scratch: Scratch, datumIndex: number, dst: Writeable<D>): void;
+    },
+    opts: PickFocusInputs
+) {
+    const ctx = series.nodeDatumContext;
+    if (ctx === undefined) return undefined;
+
+    const scratch = series.allocDatumScratch();
+    const nodeDatum = series.allocDatumWriteable(ctx);
+    series.handleDatum(ctx, scratch, opts.datumIndex, nodeDatum);
+
+    const { x, y, size, focusSize } = nodeDatum.point;
+    if ([x, y, size, focusSize].some((n) => Number.isNaN(n))) return undefined;
+
+    return computeMarkerFocusBoundsOfNodeDatum(series, nodeDatum);
 }
 
 function markerEnabled(

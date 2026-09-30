@@ -1,5 +1,4 @@
 import type { Intersection, PlainObject } from '../../types/global';
-import { isDecoratedObject, listDecoratedProperties } from '../types/decorator';
 import { isArray, isObject, isPlainObject } from '../types/typeGuards';
 import { entries } from './iterators';
 
@@ -81,7 +80,7 @@ function mergeSources(sources: ArrayLike<unknown>, opaquePrefix?: string): Plain
         const source = sources[i];
         if (!isObject(source)) continue;
 
-        const keys = isDecoratedObject(source) ? listDecoratedProperties(source) : Object.keys(source);
+        const keys = Object.keys(source);
 
         for (const key of keys) {
             const targetValue = target[key];
@@ -112,7 +111,7 @@ export function merge<TSource extends PlainObject, TArgs extends (TSource | Fals
     for (const source of sources) {
         if (!isObject(source)) continue;
 
-        const keys = isDecoratedObject(source) ? listDecoratedProperties(source) : Object.keys(source);
+        const keys = Object.keys(source);
 
         for (const key of keys) {
             if (isPlainObject(target[key]) && isPlainObject(source[key])) {

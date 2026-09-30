@@ -104,6 +104,20 @@ export function hasPathSafe(object: PlainObject, path: string[]) {
     return true;
 }
 
+/** As {@link hasPathSafe}, but an object found where a list index is expected is a template for every item. */
+export function hasTemplatePathSafe(object: PlainObject, path: string[]) {
+    let result: unknown = object;
+    for (const part of path) {
+        if (result == null || typeof result !== 'object') return false;
+        if (!(part in result)) {
+            if (Array.isArray(result) || !/^\d+$/.test(part)) return false;
+            continue;
+        }
+        result = (result as PlainObject)[part];
+    }
+    return true;
+}
+
 export function getPathSafe(object: PlainObject, path: string[]) {
     let result = object;
     for (const part of path) {

@@ -1,13 +1,13 @@
 {
   "name": "ag-charts-demos",
-  "version": "14.2.0-beta.20260922",
+  "version": "14.2.0-beta.20260927",
   "license": "MIT",
   "private": true,
   "scripts": {},
   "dependencies": {
-    "ag-charts-community": "14.2.0-beta.20260922",
-    "ag-charts-enterprise": "14.2.0-beta.20260922",
-    "ag-charts-react": "14.2.0-beta.20260922",
+    "ag-charts-community": "14.2.0-beta.20260927",
+    "ag-charts-enterprise": "14.2.0-beta.20260927",
+    "ag-charts-react": "14.2.0-beta.20260927",
     "@radix-ui/react-label": "^2.1.12",
     "@radix-ui/react-tabs": "^1.1.0",
     "@radix-ui/react-select": "^2.0.0",
@@ -20,7 +20,7 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@angular/build": "20.3.27",
+    "@angular/build": "20.3.37",
     "@angular/cdk": "^20.2.0",
     "@angular/cli": "^20.0.0",
     "@angular/common": "^20.0.0",
@@ -33,8 +33,8 @@
     "@types/pngjs": "6.0.5",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
-    "@vitejs/plugin-vue": "^5.2.4",
-    "ag-charts-vue3": "14.2.0-beta.20260922",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "ag-charts-vue3": "14.2.0-beta.20260927",
     "ag-grid-angular": "~36.2.0",
     "ag-grid-vue3": "~36.2.0",
     "pixelmatch": "^5.2.1",
@@ -42,7 +42,7 @@
     "reka-ui": "^2.10.5",
     "rxjs": "~7.8.2",
     "tslib": "^2.8.1",
-    "vite": "5.4.20",
+    "vite": "^8.3.0",
     "vue": "^3.5.13",
     "vue-tsc": "^3.3.11",
     "zone.js": "~0.15.0"

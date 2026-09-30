@@ -1,3 +1,5 @@
+import { AnnotationType } from './annotationTypes';
+import type { AnnotationDatum, AnnotationScene, AnnotationTypeConfig } from './annotationsSuperTypes';
 import { arrowDownConfig } from './arrow-down/arrowDownConfig';
 import { arrowUpConfig } from './arrow-up/arrowUpConfig';
 import { calloutConfig } from './callout/calloutConfig';
@@ -17,42 +19,34 @@ import { noteConfig } from './note/noteConfig';
 import { parallelChannelConfig } from './parallel-channel/parallelChannelConfig';
 import { textConfig } from './text/textConfig';
 
-export const annotationConfigs = {
+export const annotationConfigs: Record<AnnotationType, AnnotationTypeConfig<AnnotationDatum, AnnotationScene>> = {
     // Lines
-    [lineConfig.type]: lineConfig,
-    [horizontalLineConfig.type]: horizontalLineConfig,
-    [verticalLineConfig.type]: verticalLineConfig,
+    [AnnotationType.Line]: lineConfig,
+    [AnnotationType.HorizontalLine]: horizontalLineConfig,
+    [AnnotationType.VerticalLine]: verticalLineConfig,
 
     // Channels
-    [parallelChannelConfig.type]: parallelChannelConfig,
-    [disjointChannelConfig.type]: disjointChannelConfig,
+    [AnnotationType.ParallelChannel]: parallelChannelConfig,
+    [AnnotationType.DisjointChannel]: disjointChannelConfig,
 
     // Fibonaccis
-    [fibonacciRetracementConfig.type]: fibonacciRetracementConfig,
-    [fibonacciRetracementTrendBasedConfig.type]: fibonacciRetracementTrendBasedConfig,
+    [AnnotationType.FibonacciRetracement]: fibonacciRetracementConfig,
+    [AnnotationType.FibonacciRetracementTrendBased]: fibonacciRetracementTrendBasedConfig,
 
     // Texts
-    [calloutConfig.type]: calloutConfig,
-    [commentConfig.type]: commentConfig,
-    [noteConfig.type]: noteConfig,
-    [textConfig.type]: textConfig,
+    [AnnotationType.Callout]: calloutConfig,
+    [AnnotationType.Comment]: commentConfig,
+    [AnnotationType.Note]: noteConfig,
+    [AnnotationType.Text]: textConfig,
 
     // Shapes
-    [arrowConfig.type]: arrowConfig,
-    [arrowUpConfig.type]: arrowUpConfig,
-    [arrowDownConfig.type]: arrowDownConfig,
+    [AnnotationType.Arrow]: arrowConfig,
+    [AnnotationType.ArrowUp]: arrowUpConfig,
+    [AnnotationType.ArrowDown]: arrowDownConfig,
 
     // Measurers
-    [dateRangeConfig.type]: dateRangeConfig,
-    [priceRangeConfig.type]: priceRangeConfig,
-    [datePriceRangeConfig.type]: datePriceRangeConfig,
-    [quickDatePriceRangeConfig.type]: quickDatePriceRangeConfig,
+    [AnnotationType.DateRange]: dateRangeConfig,
+    [AnnotationType.PriceRange]: priceRangeConfig,
+    [AnnotationType.DatePriceRange]: datePriceRangeConfig,
+    [AnnotationType.QuickDatePriceRange]: quickDatePriceRangeConfig,
 };
-
-export function getTypedDatum(datum: unknown) {
-    for (const { isDatum } of Object.values(annotationConfigs)) {
-        if (isDatum(datum)) {
-            return datum;
-        }
-    }
-}

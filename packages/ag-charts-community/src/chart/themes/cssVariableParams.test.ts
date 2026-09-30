@@ -28,14 +28,17 @@ const DARK_MODE_PARAMS: AgChartThemeParams = {
     foregroundColor: '#fff',
     gridLineColor: '#545b67',
     groupedCategoryLineColor: '#7e838c',
+    scrollbarThumbBorder: { color: '#6d727c', width: 1 },
+    scrollbarTrackBorder: { color: '#424956', width: 1 },
     subtleTextColor: '#7c818a',
 };
 
 /**
- * The shadow is not a plain colour, and the focus, hover and active colours use a different accent mix in the dark
+ * The shadows are not plain colours, and the focus, hover and active colours use a different accent mix in the dark
  * theme, so none of these can travel through a CSS variable.
  */
 const UNMAPPABLE_PROPERTIES = [
+    '--ag-charts-card-shadow',
     '--ag-charts-popup-shadow',
     '--ag-charts-focus-color',
     '--ag-charts-button-hover-background-color',

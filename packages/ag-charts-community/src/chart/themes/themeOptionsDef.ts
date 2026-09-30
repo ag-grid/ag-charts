@@ -17,6 +17,8 @@ import {
     isFunction,
     isObject,
     isSymbol,
+    labelAutoFontSizeOptionsDefs,
+    labelFitOptionsDefs,
     lineDashOptionsDef,
     linearGaugeSeriesThemeableOptionsDef,
     linearGaugeTargetOptionsDef,
@@ -195,6 +197,7 @@ const scrollbarThumbOptionsDef = {
     hoverStyle: {
         fill: fillOptionsDef.fill,
         stroke: strokeOptionsDef.stroke,
+        strokeWidth: strokeOptionsDef.strokeWidth,
     },
 };
 
@@ -279,6 +282,8 @@ export const seriesAreaBackgroundRegionLabelDef: OptionsDefs<AgSeriesAreaBackgro
     text: string,
     xOffset: number,
     yOffset: number,
+    ...labelFitOptionsDefs,
+    ...labelAutoFontSizeOptionsDefs,
 };
 
 const cartesianChartOptionsDefs: OptionsDefs<Omit<AgBaseCartesianThemeOptions, 'axes' | 'navigator'>> = {

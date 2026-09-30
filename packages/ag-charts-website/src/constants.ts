@@ -31,6 +31,16 @@ export const FRAMEWORK_DISPLAY_TEXT: Record<Framework, string> = {
     vue: 'Vue',
 };
 
+/**
+ * Frameworks whose `/<framework>/` root serves a landing hub. JavaScript is absent by design: its
+ * root forwards on to quick-start, so it has no sitemap entry and no markdown twin.
+ */
+export const FRAMEWORK_LANDING_HUBS: readonly Framework[] = ['react', 'angular', 'vue'] as const;
+
+/** Whether this framework's root serves a landing hub - see {@link FRAMEWORK_LANDING_HUBS}. */
+export const isFrameworkLandingHub = (framework?: string): framework is Framework =>
+    FRAMEWORK_LANDING_HUBS.some((hub) => hub === framework);
+
 export const agChartsVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
 export const agChartsReactVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
 export const agChartsAngularVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';

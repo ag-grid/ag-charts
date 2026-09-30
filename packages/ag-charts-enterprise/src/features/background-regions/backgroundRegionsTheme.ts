@@ -1,9 +1,12 @@
+import { LABEL_OVERFLOW_DEFAULTS } from 'ag-charts-core';
+
 export const backgroundRegionStyle = {
     fill: { $ref: 'foregroundColor' },
     fillOpacity: 0.08,
     stroke: { $ref: 'backgroundColor' },
     strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
     label: {
+        ...LABEL_OVERFLOW_DEFAULTS,
         fontSize: { $ref: 'fontSize' },
         fontFamily: { $ref: 'fontFamily' },
         fontWeight: { $ref: 'fontWeight' },

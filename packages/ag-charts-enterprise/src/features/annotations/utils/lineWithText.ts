@@ -1,7 +1,7 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type Point, Vec2 } from 'ag-charts-core';
 
-import type { ChannelTextProperties, LineTextProperties } from '../annotationProperties';
+import type { ChannelTextDatum, LineTextDatum } from '../annotationDatum';
 import type { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle } from '../scenes/handle';
@@ -19,7 +19,7 @@ export function updateLineText(
     id: string,
     line: CollidableLine<unknown>,
     coords: Bounds4,
-    textProperties?: Partial<LineTextProperties>,
+    textProperties?: LineTextDatum,
     textNode?: CollidableText<unknown>,
     text?: string,
     lineWidth?: number
@@ -56,7 +56,7 @@ export function updateChannelText(
     top: Bounds4,
     bottom: Bounds4,
 
-    textProperties: ChannelTextProperties,
+    textProperties: ChannelTextDatum,
     lineWidth?: number,
 
     textNode?: CollidableText<never>,
@@ -138,7 +138,7 @@ function positionAndAlignment(
 function setProperties(
     scene: _ModuleSupport.TransformableText,
     text: string,
-    textProperties: Partial<LineTextProperties> | Partial<ChannelTextProperties>,
+    textProperties: LineTextDatum | ChannelTextDatum,
     point: Point,
     angle: number,
     textBaseline: CanvasTextBaseline

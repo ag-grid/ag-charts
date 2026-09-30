@@ -38,6 +38,7 @@ import {
     textAlign,
     textOrSegments,
     textWrap,
+    undocumented,
     union,
 } from 'ag-charts-core';
 
@@ -127,13 +128,23 @@ const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeTitle | AgOrganizatio
     key: string,
 };
 
+// Theme-resolved: whether `key` was configured rather than left at its theme default.
+const nodeImageOptions: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = { ...nodeImage };
+// @ts-expect-error undocumented option
+nodeImageOptions._isUserKey = undocumented(boolean);
+const nodeTextOptions: OptionsDefs<AgOrganizationSeriesOptionsNodeTitle | AgOrganizationSeriesOptionsNodeSubtitle> = {
+    ...nodeText,
+};
+// @ts-expect-error undocumented option
+nodeTextOptions._isUserKey = undocumented(boolean);
+
 const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     ...fillOptionsDef,
     ...lineDashOptionsDef,
     ...strokeOptionsDef,
     cornerRadius: positiveNumber,
     height: number,
-    image: nodeImage,
+    image: nodeImageOptions,
     itemStyler: callbackDefs<AgOrganizationSeriesNodeStyle>({
         ...fillOptionsDef,
         ...lineDashOptionsDef,
@@ -150,8 +161,8 @@ const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     maxHeight: number,
     maxWidth: number,
     padding: padding,
-    title: nodeText,
-    subtitle: nodeText,
+    title: nodeTextOptions,
+    subtitle: nodeTextOptions,
     width: number,
     clickToExpand: boolean,
 };

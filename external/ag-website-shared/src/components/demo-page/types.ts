@@ -41,7 +41,8 @@ export interface DemoPageHero {
     secondaryCta: DemoPageCta;
     /**
      * Seed projects for the current demo, one per framework, rendered beneath the CTAs as an
-     * "Open in StackBlitz" button and a "See on GitHub" link each. Omitted when the demo has none.
+     * "Open in StackBlitz" and a "See on GitHub" button that each list the frameworks, in this
+     * order. Omitted when the demo has none.
      */
     openIn?: DemoPageOpenIn[];
 }

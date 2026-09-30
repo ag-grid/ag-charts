@@ -1,25 +1,22 @@
 import { AnnotationType } from '../annotationTypes';
 import type { AnnotationTypeConfig } from '../annotationsSuperTypes';
 import { DragStateMachine } from '../states/dragState';
-import { NoteProperties } from './noteProperties';
+import { type NoteDatum, noteDatum } from './noteDatum';
 import { NoteScene } from './noteScene';
 import { NoteStateMachine } from './noteState';
 
-export const noteConfig: AnnotationTypeConfig<NoteProperties, NoteScene> = {
-    type: AnnotationType.Note,
-    datum: NoteProperties,
+export const noteConfig: AnnotationTypeConfig<NoteDatum, NoteScene> = {
     scene: NoteScene,
-    isDatum: NoteProperties.is,
     translate: (node, datum, transition, context) => {
-        if (NoteProperties.is(datum) && NoteScene.is(node)) node.translate(datum, transition, context);
+        if (noteDatum.is(datum) && NoteScene.is(node)) node.translate(datum, transition, context);
     },
     copy: (node, datum, copiedDatum, context) => {
-        if (NoteProperties.is(datum) && NoteProperties.is(copiedDatum) && NoteScene.is(node)) {
+        if (noteDatum.is(datum) && noteDatum.is(copiedDatum) && NoteScene.is(node)) {
             return node.copy(datum, copiedDatum, context);
         }
     },
     update: (node, datum, context) => {
-        if (NoteProperties.is(datum) && NoteScene.is(node)) {
+        if (noteDatum.is(datum) && NoteScene.is(node)) {
             node.update(datum, context);
         }
     },
@@ -28,5 +25,5 @@ export const noteConfig: AnnotationTypeConfig<NoteProperties, NoteScene> = {
             ...ctx,
             create: createDatum(AnnotationType.Note),
         }),
-    dragState: (ctx) => new DragStateMachine<NoteProperties, NoteScene>(ctx),
+    dragState: (ctx) => new DragStateMachine<NoteDatum, NoteScene>(ctx),
 };

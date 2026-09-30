@@ -79,9 +79,11 @@ interface Props {
         version: string;
         landingPageHighlight?: string;
     }>;
+    /** Keep this URL out of the index where the same content is canonical somewhere else. */
+    noIndex?: boolean;
 }
 
-const { content, versions } = Astro.props;
+const { content, versions, noIndex } = Astro.props;
 const latestVersion = versions?.find((v) => v.landingPageHighlight) ?? versions?.[0];
 
 // For framework pages, add logo to headings (only for specific framework landing pages)
@@ -98,7 +100,13 @@ const frameworkKey = isFrameworkLandingPage ? content.internalFramework : '';
 const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
 ---
 
-<Layout title={content.meta.title} description={content.meta.description} showDocsNav={false} showSearchBar={true}>
+<Layout
+    title={content.meta.title}
+    description={content.meta.description}
+    showDocsNav={false}
+    showSearchBar={true}
+    noIndex={noIndex}
+>
     {content.sections.map((section) => {
         switch (section.type) {
             case 'hero':

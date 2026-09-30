@@ -7,6 +7,9 @@ ErrorDocument 404 /charts/404.html
 # add MIME types for serving example files
 AddType text/javascript mjs ts jsx
 
+# Apache has no built-in .webp type, so without this the images are served with no Content-Type.
+AddType image/webp .webp
+
 # serve the per-page LLM markdown files as markdown
 AddType text/markdown md
 # ...as UTF-8, so glyphs like ✓/✗ in generated tables aren't mojibaked by a
@@ -45,7 +48,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
     RewriteEngine On
 
     RewriteCond %{HTTP_ACCEPT} text/markdown
-    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/.]+|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?))/?$
+    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/.]+|(?:react|angular|vue)|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?))/?$
     RewriteCond %{DOCUMENT_ROOT}/%1.md -f
     RewriteRule ^ /%1.md [L]
 
@@ -60,7 +63,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths (incl. the homepage) so the rest of the site keeps
 # its default.
-<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
+<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|(?:react|angular|vue)|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
     Header append Vary Accept
 </If>
 
@@ -73,9 +76,6 @@ Redirect 301 /charts/angular/fonts /charts/angular/text/
 Redirect 301 /charts/react/fonts /charts/react/text/
 Redirect 301 /charts/vue/fonts /charts/vue/text/
 RedirectMatch 301 "^/charts/javascript/?$" "/charts/javascript/quick-start/"
-RedirectMatch 301 "^/charts/react/?$" "/charts/react/quick-start/"
-RedirectMatch 301 "^/charts/vue/?$" "/charts/vue/quick-start/"
-RedirectMatch 301 "^/charts/angular/?$" "/charts/angular/quick-start/"
 Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-toolbar/
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
@@ -110,9 +110,6 @@ Redirect 301 /charts/angular/fonts /charts/angular/text/
 Redirect 301 /charts/react/fonts /charts/react/text/
 Redirect 301 /charts/vue/fonts /charts/vue/text/
 RedirectMatch 301 "^/charts/javascript/?$" "/charts/javascript/quick-start/"
-RedirectMatch 301 "^/charts/react/?$" "/charts/react/quick-start/"
-RedirectMatch 301 "^/charts/vue/?$" "/charts/vue/quick-start/"
-RedirectMatch 301 "^/charts/angular/?$" "/charts/angular/quick-start/"
 Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-toolbar/
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
@@ -140,6 +137,9 @@ ErrorDocument 404 /charts/404.html
 
 # add MIME types for serving example files
 AddType text/javascript mjs ts jsx
+
+# Apache has no built-in .webp type, so without this the images are served with no Content-Type.
+AddType image/webp .webp
 
 # serve the per-page LLM markdown files as markdown
 AddType text/markdown md
@@ -171,7 +171,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
     RewriteEngine On
 
     RewriteCond %{HTTP_ACCEPT} text/markdown
-    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/.]+|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?))/?$
+    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/.]+|(?:react|angular|vue)|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?))/?$
     RewriteCond %{DOCUMENT_ROOT}/%1.md -f
     RewriteRule ^ /%1.md [L]
 
@@ -186,7 +186,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths (incl. the homepage) so the rest of the site keeps
 # its default.
-<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
+<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|(?:react|angular|vue)|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
     Header append Vary Accept
 </If>
 
@@ -199,9 +199,6 @@ Redirect 301 /charts/angular/fonts /charts/angular/text/
 Redirect 301 /charts/react/fonts /charts/react/text/
 Redirect 301 /charts/vue/fonts /charts/vue/text/
 RedirectMatch 301 "^/charts/javascript/?$" "/charts/javascript/quick-start/"
-RedirectMatch 301 "^/charts/react/?$" "/charts/react/quick-start/"
-RedirectMatch 301 "^/charts/vue/?$" "/charts/vue/quick-start/"
-RedirectMatch 301 "^/charts/angular/?$" "/charts/angular/quick-start/"
 Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-toolbar/
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/

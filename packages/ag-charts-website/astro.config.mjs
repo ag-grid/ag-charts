@@ -22,6 +22,7 @@ import agAutoRedirect from './plugins/agAutoRedirect';
 import agCssAsString from './plugins/agCssAsString';
 import agDemosStatic from './plugins/agDemosStatic';
 import agDevCsp from './plugins/agDevCsp';
+import agDevImportMapOrder from './plugins/agDevImportMapOrder';
 import agDevMarkdownNegotiation from './plugins/agDevMarkdownNegotiation';
 import agGallerySeoChecker from './plugins/agGallerySeoChecker';
 import agHotModuleReload from './plugins/agHotModuleReload';
@@ -30,6 +31,7 @@ import agHtmlAsString from './plugins/agHtmlAsString';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
 import { FRAMEWORKS, FRAMEWORK_REDIRECT_PATH } from './src/constants';
 import { getIsBenchmarkOnlyBuild } from './src/utils/env';
+import { getHiddenDocsPageNames } from './src/utils/hiddenDocsPages';
 import { getAstroRedirectRules } from './src/utils/htaccess/htaccessRules';
 import { getSitemapConfig } from './src/utils/sitemap';
 import { urlWithBaseUrl } from './src/utils/urlWithBaseUrl';
@@ -103,6 +105,7 @@ const plugins = [
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
     agDevCsp(),
+    agDevImportMapOrder(),
     agDemosStatic(),
     agDevMarkdownNegotiation(),
 ];
@@ -227,7 +230,12 @@ export default defineConfig({
         // Archive builds are fully noindex — omit sitemap generation and remove the /sitemap page.
         ...(!PUBLIC_BASE_URL?.includes('archive')
             ? [
-                  sitemap(getSitemapConfig(PUBLIC_BASE_URL)),
+                  sitemap(
+                      getSitemapConfig(
+                          PUBLIC_BASE_URL,
+                          getHiddenDocsPageNames(fileURLToPath(new URL('./src/content/docs', import.meta.url)))
+                      )
+                  ),
                   agSitemapFilterNoindex({ enabled: PRODUCTION_SITE_URLS.includes(PUBLIC_SITE_URL) }),
                   agSitemapLastmod(),
                   agCacheSitemap({ cacheFolder: SITEMAP_CACHE_DIR }),
