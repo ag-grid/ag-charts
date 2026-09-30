@@ -81,7 +81,7 @@ const options = computed<AgCartesianChartOptions<BurnUpPoint>>(() => {
                         label: {
                             enabled: true,
                             text: `${fmtCurrencyCompact(budget)} allocation`,
-                            position: 'top-left',
+                            placement: 'top-left',
                             color: 'var(--pc-accent)',
                             fontSize: 11,
                         },

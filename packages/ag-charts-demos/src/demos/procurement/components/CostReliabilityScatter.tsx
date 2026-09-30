@@ -112,7 +112,7 @@ export function CostReliabilityScatter({
                             label: {
                                 enabled: true,
                                 text: `${fmtPct(ON_TIME_TARGET)} target`,
-                                position: 'top-left',
+                                placement: 'top-left',
                                 color: 'var(--pc-muted)',
                                 fontSize: 11,
                             },

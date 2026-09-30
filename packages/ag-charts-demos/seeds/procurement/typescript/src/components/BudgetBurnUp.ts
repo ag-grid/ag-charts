@@ -86,7 +86,7 @@ export function createBudgetBurnUp(props: BudgetBurnUpProps): BudgetBurnUp {
                             label: {
                                 enabled: true,
                                 text: `${fmtCurrencyCompact(budget)} allocation`,
-                                position: 'top-left',
+                                placement: 'top-left',
                                 color: 'var(--pc-accent)',
                                 fontSize: 11,
                             },

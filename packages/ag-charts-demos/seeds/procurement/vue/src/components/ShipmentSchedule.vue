@@ -145,7 +145,7 @@ const options = computed<AgCartesianChartOptions<Leg>>(() => {
                         label: {
                             enabled: true,
                             text: 'Today',
-                            position: 'top',
+                            placement: 'top',
                             color: 'var(--pc-text)',
                             fontSize: 11,
                         },

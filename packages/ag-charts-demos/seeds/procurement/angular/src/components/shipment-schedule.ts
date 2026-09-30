@@ -146,7 +146,7 @@ export class ShipmentSchedule {
                             label: {
                                 enabled: true,
                                 text: 'Today',
-                                position: 'top',
+                                placement: 'top',
                                 color: 'var(--pc-text)',
                                 fontSize: 11,
                             },
