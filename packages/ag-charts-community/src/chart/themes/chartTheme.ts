@@ -242,7 +242,7 @@ export class ChartTheme {
                 $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
             },
             buttonDisabledBorder: { $ref: 'buttonBorder' },
-            buttonDisabledTextColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'chromeTextColor' }, 0.5] },
+            buttonDisabledTextColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'buttonTextColor' }, 0.5] },
             buttonHorizontalPadding: 8,
             buttonVerticalPadding: 8,
 

@@ -260,6 +260,15 @@ describe('Ranges', () => {
             expect(ranges.button.hover.textColor).toBe('red');
         });
 
+        it('disabled button text fades buttonTextColor, not chromeTextColor', async () => {
+            const { textColor } = (await resolvedRanges({ buttonTextColor: 'red', chromeTextColor: 'blue' })).button
+                .disabled;
+            chart.destroy();
+            const expected = (await resolvedRanges({ chromeTextColor: 'red' })).button.disabled.textColor;
+
+            expect(textColor).toBe(expected);
+        });
+
         it('button text falls back to chromeTextColor when buttonTextColor is unset', async () => {
             const ranges = await resolvedRanges({ chromeTextColor: 'blue' });
 

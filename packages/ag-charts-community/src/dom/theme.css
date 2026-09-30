@@ -144,7 +144,7 @@
     --ag-charts-button-disabled-text-color: color-mix(
         in srgb,
         var(--ag-charts-chrome-background-color),
-        var(--ag-charts-chrome-text-color) 50%
+        var(--ag-charts-button-text-color) 50%
     );
 
     /* Checkboxes */
