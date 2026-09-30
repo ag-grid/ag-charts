@@ -306,12 +306,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         this.candidateIndices.clear();
         for (const index of indices) {
             const anchor = this.anchorAt(index);
-            const offset = this.labelOffset(anchor);
+            const footprint = this.footprintAt(index, box);
             const candidateBox = {
-                x: box.x + offset.x - seriesRect.x,
-                y: box.y + offset.y - seriesRect.y,
-                width,
-                height,
+                x: footprint.x - seriesRect.x,
+                y: footprint.y - seriesRect.y,
+                width: footprint.width,
+                height: footprint.height,
             };
             // Already the rotated footprint, so it carries no rotation for the engine to inflate it by again.
             const candidate = {
@@ -364,6 +364,23 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         if (side === 'left') region.x -= extent;
         if (side === 'top') region.y -= extent;
         return region;
+    }
+
+    /** A `'clip-text'` label shortens to the room at its anchor, so another placement is laid out to measure it. */
+    private footprintAt(index: number, box: BBox): BoxBounds {
+        if (index === this.chosen) return box;
+        if (this.label.overflow !== 'clip-text') {
+            const offset = this.labelOffset(this.anchorAt(index));
+            return { x: box.x + offset.x, y: box.y + offset.y, width: box.width, height: box.height };
+        }
+
+        const { chosen } = this;
+        this.chosen = index;
+        this.layoutLabel();
+        const footprint = Transformable.toCanvas(this.crossLineLabel);
+        this.chosen = chosen;
+        this.layoutLabel();
+        return footprint;
     }
 
     /** Canvas offset of the label drawn at `anchor` from where it is drawn now. */

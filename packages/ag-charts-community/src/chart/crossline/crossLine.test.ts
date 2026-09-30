@@ -2051,6 +2051,27 @@ describe('CrossLine', () => {
             expect(box!.x).toBeGreaterThan(seriesRect.x + seriesRect.width / 2);
         });
 
+        it('tests a clip-text fallback with the text it renders at that placement', async () => {
+            const label = {
+                text: 'A cross line label far too long to fit beside the chart',
+                overflow: 'clip-text',
+            } as const;
+            chart = await createChart(placementChart(undocumentedLabel({ ...label, placement: 'inside-left' })));
+            const rendered = placedLabelBox()!;
+            chart.destroy();
+
+            chart = await createChart(
+                placementChart(undocumentedLabel({ ...label, placement: ['right', 'inside-left'] }))
+            );
+            const seriesRect = chart.seriesRect!;
+            const crossLine = getCrossLinesPlugin(chart.axes.findById('y')!)!.getInstances().at(-1)!;
+            const [atRight, atInsideLeft] = crossLine.getLabelDatum!(seriesRect)!.positionedCandidates!;
+
+            expect(atRight.box.width).toBeLessThan(rendered.width);
+            expect(atInsideLeft.box.x + seriesRect.x).toBeCloseTo(rendered.x);
+            expect(atInsideLeft.box.width).toBeCloseTo(rendered.width);
+        });
+
         it('settles on the same placement when laid out again', async () => {
             const options = placementChart({ text: 'PLACED', fontSize: 20, placement: ['inside-left', 'right'] }, [
                 'inside-left',
