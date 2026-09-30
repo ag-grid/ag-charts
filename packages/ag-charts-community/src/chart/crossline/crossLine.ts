@@ -6,6 +6,7 @@ import type {
     NormalisedAxisCrossLineLabelOptions,
     NormalisedAxisCrossLineOptions,
     PointLabelDatum,
+    PositionedLabelCandidate,
     RequireOptional,
     Scale,
 } from 'ag-charts-core';
@@ -118,7 +119,7 @@ export interface CrossLine<LabelType = NormalisedAxisCrossLineLabelOptions> {
     readonly keepsLabel?: boolean;
     /** The label as a placement candidate in `seriesRect` space. Cartesian cross lines only. */
     getLabelDatum?(seriesRect: BBox): PointLabelDatum | undefined;
-    applyLabelPlacement?(hidden: boolean): boolean;
+    applyLabelPlacement?(hidden: boolean, candidate?: PositionedLabelCandidate): boolean;
     holdLabelPlacement?(hold: boolean): void;
     /**
      * Chart container in canvas coordinates, bounding where a `'clip-text'` label may draw. Set on every

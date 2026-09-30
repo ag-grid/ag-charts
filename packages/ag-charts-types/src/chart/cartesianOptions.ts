@@ -492,19 +492,19 @@ export interface AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType = AgBas
 
 export interface AgCartesianAxesTheme<TContext = ContextDefault> {
     /** This extends the common axis configuration with options specific to number axes. */
-    number?: AgNumberAxisThemeOptions<AgBaseCrossLineLabelOptions, TContext>;
+    number?: AgNumberAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
     /** This extends the common axis configuration with options specific to number axes. */
-    log?: AgLogAxisThemeOptions<AgBaseCrossLineLabelOptions, TContext>;
+    log?: AgLogAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
     /** This extends the common axis configuration with options specific to category axes. */
-    category?: AgCategoryAxisThemeOptions<AgBaseCrossLineLabelOptions, TContext>;
+    category?: AgCategoryAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
     /** This extends the common axis configuration with options specific to time axes. */
-    time?: AgContinuousTimeAxisThemeOptions<AgBaseCrossLineLabelOptions, TContext>;
+    time?: AgContinuousTimeAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
     /** This extends the common axis configuration with options specific to ordinal-time axes. */
-    'ordinal-time'?: AgOrdinalTimeAxisThemeOptions<AgBaseCrossLineLabelOptions, TContext>;
+    'ordinal-time'?: AgOrdinalTimeAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
     /** This extends the common axis configuration with options specific to grouped-category axes. */
-    'grouped-category'?: AgGroupedCategoryAxisThemeOptions<AgBaseCrossLineLabelOptions, TContext>;
+    'grouped-category'?: AgGroupedCategoryAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
     /** This extends the common axis configuration with options specific to unit-time axes. */
-    'unit-time'?: AgUnitTimeAxisThemeOptions<AgBaseCrossLineLabelOptions, TContext>;
+    'unit-time'?: AgUnitTimeAxisThemeOptions<AgCartesianCrossLineLabelOptions, TContext>;
 }
 
 export type AgContinuousCartesianAxesTheme<TContext = ContextDefault> = Pick<
@@ -565,13 +565,64 @@ export interface AgUnitTimeAxisThemeOptions<CrossLineLabelType = AgBaseCrossLine
         AgCartesianAxisThemeOptions<AgUnitTimeAxisOptions<TContext>>,
         AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType> {}
 
-/** A Cartesian axis Cross Line rendered as a single line at `value`. The label supports `position` and `rotation`. */
+/**
+ * Where a Cross Line label sits. The first token names the edge the label sits against, outside a range's band
+ * unless prefixed with `inside`; the second positions it along that edge. `start` and `end` follow the chart's
+ * text direction. Which values apply depends on the Cross Line type and its axis:
+ *
+ * - On a y-axis line: `top`, `top-left`, `top-right`, `bottom`, `bottom-left`, `bottom-right`, `left`, `right`,
+ *   `inside`, `inside-left`, `inside-right`, and their `start`/`end` twins.
+ * - On an x-axis line: `top`, `bottom`, `left`, `left-top`, `left-bottom`, `right`, `right-top`, `right-bottom`,
+ *   `inside`, `inside-top`, `inside-bottom`, and their `start`/`end` twins. `inside-start` and `inside-end` are the
+ *   same as `inside-top` and `inside-bottom`, whatever the text direction.
+ * - On a range: every value.
+ */
+export type AgCartesianCrossLineLabelPlacement =
+    | 'top'
+    | 'bottom'
+    | 'left'
+    | 'right'
+    | 'start'
+    | 'end'
+    | 'top-left'
+    | 'top-right'
+    | 'top-start'
+    | 'top-end'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'bottom-start'
+    | 'bottom-end'
+    | 'left-top'
+    | 'left-bottom'
+    | 'right-top'
+    | 'right-bottom'
+    | 'start-top'
+    | 'start-bottom'
+    | 'end-top'
+    | 'end-bottom'
+    | 'inside'
+    | 'inside-top'
+    | 'inside-bottom'
+    | 'inside-left'
+    | 'inside-right'
+    | 'inside-start'
+    | 'inside-end'
+    | 'inside-top-left'
+    | 'inside-top-right'
+    | 'inside-top-start'
+    | 'inside-top-end'
+    | 'inside-bottom-left'
+    | 'inside-bottom-right'
+    | 'inside-bottom-start'
+    | 'inside-bottom-end';
+
+/** A Cartesian axis Cross Line rendered as a single line at `value`. The label supports `placement` and `rotation`. */
 export interface AgCartesianLineCrossLineOptions<
     TValue = AxisValue,
     TContext = ContextDefault,
 > extends AgLineCrossLineOptions<TValue, AgCartesianCrossLineLabelOptions, TContext> {}
 
-/** A Cartesian axis Cross Line rendered as a shaded band spanning `range`. The label supports `position` and `rotation`. */
+/** A Cartesian axis Cross Line rendered as a shaded band spanning `range`. The label supports `placement` and `rotation`. */
 export interface AgCartesianRangeCrossLineOptions<
     TValue = AxisValue,
     TContext = ContextDefault,
@@ -581,8 +632,18 @@ export type AgCartesianCrossLineOptions<TValue = AxisValue, TContext = ContextDe
     AgCartesianLineCrossLineOptions<TValue, TContext> | AgCartesianRangeCrossLineOptions<TValue, TContext>;
 
 export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
-    /** The position of the Cross Line label. */
+    /**
+     * The position of the Cross Line label.
+     *
+     * @deprecated v14.3.0 Use `placement` instead.
+     */
     position?: AgCrossLineLabelPosition;
+    /**
+     * Where to place the label. An array is tried in order, and the first placement that fits is used.
+     *
+     * Default: `'top'`
+     */
+    placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
     /** The rotation of the Cross Line label in degrees. */
     rotation?: Degree;
     /** Configuration for how the Cross Line label behaves when it collides with other chart elements. */

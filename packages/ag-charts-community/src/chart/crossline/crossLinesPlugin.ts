@@ -52,10 +52,11 @@ class CrossLineLabelSource implements PlacedLabelSource {
     }
 
     updatePlacedLabelData(labels: PlacedLabel[]): boolean {
-        const placed = new Set(labels.map((label) => label.datum));
+        const placed = new Map(labels.map((label) => [label.datum, label]));
         let invalidated = false;
         for (const [crossLine, datum] of this.datums) {
-            invalidated = crossLine.applyLabelPlacement?.(!placed.has(datum)) === true || invalidated;
+            const label = placed.get(datum);
+            invalidated = crossLine.applyLabelPlacement?.(label == null, label?.candidate) === true || invalidated;
         }
         return invalidated;
     }

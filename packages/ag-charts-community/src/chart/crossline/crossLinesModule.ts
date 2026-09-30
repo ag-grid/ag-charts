@@ -1,6 +1,8 @@
-import { type AxisPluginModuleDefinition, undocumentedThemeOptions } from 'ag-charts-core';
+import { type AxisPluginModuleDefinition, type DynamicContext, undocumentedThemeOptions } from 'ag-charts-core';
 import type { AgBaseCrossLineOptions } from 'ag-charts-types';
 
+import type { AxisContext } from '../../module/axisContext';
+import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { communityModule } from '../../module/moduleIdentity';
 import { VERSION } from '../../version';
 import { CartesianCrossLine } from './cartesianCrossLine';
@@ -58,8 +60,8 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
         ],
     },
 
-    register: (ctx) => {
-        ctx.factory('crossLine', () => new CartesianCrossLine());
+    register: (ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) => {
+        ctx.factory('crossLine', (c) => new CartesianCrossLine(c));
     },
     create: (ctx) => new CrossLinesPlugin(ctx),
 });
