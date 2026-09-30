@@ -33,7 +33,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "commands": ["tsc --noEmit -p tsconfig.json"]
+        "commands": ["tsc --noEmit -p tsconfig.json", "tsc --noEmit -p tsconfig.e2e.json"]
       }
     },
     "test": {
@@ -78,6 +78,34 @@
       "command": "playwright test",
       "options": {
         "cwd": "{projectRoot}"
+      }
+    },
+    "test:e2e:parity": {
+      "dependsOn": ["build"],
+      "inputs": ["{projectRoot}/playwright.parity.config.ts", "{projectRoot}/e2e/**", "production"],
+      "outputs": [],
+      "cache": false,
+      "parallelism": false,
+      "command": "playwright test -c playwright.parity.config.ts",
+      "options": {
+        "cwd": "{projectRoot}"
+      }
+    },
+    "generate-seeds": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "node tools/seeds/generate-react-seed.mjs"
+      }
+    },
+    "check-seeds": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "cache": false,
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "node tools/seeds/check-seeds.mjs --react --pins"
       }
     },
     "lint:eslint": {},

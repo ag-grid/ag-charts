@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-import { Logger, type ScaleTickParams, ambientLogger } from 'ag-charts-core';
+import { Logger, ScaleAlignment, type ScaleTickParams, ambientLogger } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { UnitTimeScale } from './unitTimeScale';
@@ -81,6 +81,32 @@ describe('UnitTimeScale', () => {
             scale.interval = 'day';
 
             expect(scale.convert(new Date(2024, 0, 5))).toBeNaN();
+        });
+    });
+
+    describe('clamped convert', () => {
+        const createMonthlyScale = () => createScale([new Date(2022, 0, 1), new Date(2022, 11, 1)], 'month');
+
+        it('keeps a value inside the final band on that band', () => {
+            const scale = createMonthlyScale();
+
+            expect(scale.convert(new Date(2022, 11, 15), { clamp: true })).toBeCloseTo(
+                scale.convert(new Date(2022, 11, 1))
+            );
+        });
+
+        it('clamps a value past the final band to the range end', () => {
+            const scale = createMonthlyScale();
+
+            expect(scale.convert(new Date(2023, 0, 1), { clamp: true })).toBe(100);
+        });
+
+        it('clamps a trailing-aligned value inside the final band to the range end', () => {
+            const scale = createMonthlyScale();
+
+            expect(scale.convert(new Date(2022, 11, 15), { clamp: true, alignment: ScaleAlignment.Trailing })).toBe(
+                100
+            );
         });
     });
 

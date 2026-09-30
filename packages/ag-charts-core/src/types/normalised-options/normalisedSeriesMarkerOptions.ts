@@ -13,14 +13,7 @@ export type NormalisedSeriesMarkerStylerParams<TDatum, TContext> = Normalised<
 >;
 
 type MarkerRequiredKeys =
-    | 'enabled'
-    | 'shape'
-    | 'size'
-    | 'fillOpacity'
-    | 'strokeWidth'
-    | 'strokeOpacity'
-    | 'lineDash'
-    | 'lineDashOffset';
+    'enabled' | 'shape' | 'size' | 'fillOpacity' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset';
 
 export type NormalisedSeriesMarkerOptions<TParams = never> = Normalised<
     AgSeriesMarkerOptions<unknown, unknown, unknown>,

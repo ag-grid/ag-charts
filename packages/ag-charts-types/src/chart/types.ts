@@ -10,16 +10,7 @@ export interface GoogleFontFamily {
 }
 
 export type AgMarkerShape =
-    | 'circle'
-    | 'cross'
-    | 'diamond'
-    | 'heart'
-    | 'plus'
-    | 'pin'
-    | 'square'
-    | 'star'
-    | 'triangle'
-    | AgMarkerShapeFn;
+    'circle' | 'cross' | 'diamond' | 'heart' | 'plus' | 'pin' | 'square' | 'star' | 'triangle' | AgMarkerShapeFn;
 
 export interface AgPath {
     readonly moveTo: (x: number, y: number) => void;

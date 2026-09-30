@@ -1,13 +1,9 @@
 import type { Point } from 'ag-charts-core';
 
-import type { PointProperties } from '../annotationProperties';
 import type { AnnotationAxisContext, AnnotationContext, DataPoint } from '../annotationTypes';
 import { getGrouping } from './scale';
 
-export function convertLine(
-    datum: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> },
-    context: AnnotationContext
-) {
+export function convertLine(datum: { start: DataPoint; end: DataPoint }, context: AnnotationContext) {
     if (datum.start == null || datum.end == null) return;
 
     const start = convertPoint(datum.start, context);

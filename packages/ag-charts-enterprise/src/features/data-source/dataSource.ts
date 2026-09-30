@@ -28,11 +28,11 @@ export class DataSource extends AbstractModuleInstance {
             }),
             ctx.chartState.observe((get) => {
                 const requestThrottle = get('options', 'dataSource.requestThrottle');
-                if (requestThrottle != null) dataService.requestThrottle = requestThrottle;
+                if (requestThrottle != null) dataService.setRequestThrottle(requestThrottle);
             }),
             ctx.chartState.observe((get) => {
                 const updateThrottle = get('options', 'dataSource.updateThrottle');
-                if (updateThrottle != null) dataService.dispatchThrottle = updateThrottle;
+                if (updateThrottle != null) dataService.setDispatchThrottle(updateThrottle);
             }),
             ctx.chartState.observe((get) => {
                 const updateDuringInteraction = get('options', 'dataSource.updateDuringInteraction');

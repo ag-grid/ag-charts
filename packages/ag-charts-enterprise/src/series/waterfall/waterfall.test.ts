@@ -1207,8 +1207,7 @@ describe('WaterfallSeries', () => {
             await hoverAction(cx, cy)(chart);
             await waitForChartStability(chart);
             const el = chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')[0] as
-                | HTMLElement
-                | undefined;
+                HTMLElement | undefined;
             const html = el?.innerHTML ?? '';
             expect(html).not.toBe('');
             return html;
@@ -1331,8 +1330,7 @@ describe('WaterfallSeries', () => {
 
         const getNodeData = (series: WaterfallSeries) => {
             const nodeData = series['contextNodeData']?.nodeData as
-                | { itemType: string; datum: unknown; datumIndex: number; itemId?: string }[]
-                | undefined;
+                { itemType: string; datum: unknown; datumIndex: number; itemId?: string }[] | undefined;
             expect(nodeData).toBeDefined();
             return nodeData!;
         };

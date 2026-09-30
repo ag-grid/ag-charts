@@ -16,6 +16,7 @@ import {
     without,
 } from 'ag-charts-core';
 
+import { resolveDefaultSeriesType } from '../chart/mapping/types';
 import type { ChartTheme } from '../chart/themes/chartTheme';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { LocationOperation, type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
@@ -37,6 +38,7 @@ import {
     USER_PARTIAL_OPTIONS_EDGE,
     getPathSafe,
     hasPathSafe,
+    hasTemplatePathSafe,
     setPathSafe,
 } from './optionsGraphUtils';
 import { OptionsPartialCache, hasUnmergedCssVariables } from './optionsPartialCache';
@@ -385,7 +387,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     // The theme only has entries for registered series types; any registered type shares the chart-level defaults.
     private resolveSeriesType(): string {
-        const seriesType = this.userOptions.series?.[0]?.type ?? 'line';
+        const seriesType = this.userOptions.series?.[0]?.type ?? resolveDefaultSeriesType(this.moduleRegistry);
         if (seriesType in this.config) return seriesType;
         const registeredTypes = Object.keys(this.config);
         return (
@@ -585,7 +587,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             return hasPathSafe(this.overrides, [seriesType, 'series', ...path.slice(2)]);
         }
 
-        return hasPathSafe(this.overrides, path);
+        return (
+            hasTemplatePathSafe(this.overrides, [this.seriesType, ...path]) ||
+            hasTemplatePathSafe(this.overrides, ['common', ...path]) ||
+            hasPathSafe(this.overrides, path)
+        );
     }
 
     getParamValue(pathString: string) {
@@ -1220,14 +1226,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         const pathVertex = this.findVertexAtPath(pathArray);
         const defaultsEnabled = this.findNeighbourValue(autoEnableValueVertex, DEFAULTS_EDGE) as
-            | PlainObject
-            | undefined;
+            PlainObject | undefined;
         const overridesEnabled = this.findNeighbourValue(autoEnableValueVertex, OVERRIDES_EDGE) as
-            | PlainObject
-            | undefined;
+            PlainObject | undefined;
         const userOptionsEnabled = this.findNeighbourValue(autoEnableValueVertex, USER_OPTIONS_EDGE) as
-            | PlainObject
-            | undefined;
+            PlainObject | undefined;
 
         // If `enabled` has been explicitly set in the user options then ignore the auto-enable value of userPartial.
         const hasUserOptionEnabled = pathVertex && this.findNeighbour(pathVertex, USER_OPTIONS_EDGE) != null;

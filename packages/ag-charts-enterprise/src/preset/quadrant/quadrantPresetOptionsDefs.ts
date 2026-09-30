@@ -36,6 +36,9 @@ const regionLabelOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChar
     fontWeight: defined,
     fill: defined,
     fillOpacity: defined,
+    maxHeight: defined,
+    maxWidth: defined,
+    minimumFontSize: defined,
     padding: defined,
     position: union(
         'outside-outer',
@@ -53,6 +56,8 @@ const regionLabelOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChar
     ),
     rotation: defined,
     spacing: number,
+    truncate: defined,
+    wrapping: defined,
 };
 
 const regionOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOptions['regions']>['topLeft']>> = {

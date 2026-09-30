@@ -11,12 +11,10 @@ import { ColorScale } from '../../scale/colorScale';
 function getDefaultColorStops(defaultColorStops: string[], fillMode: ColorScaleMode) {
     const stopOffset = fillMode === 'discrete' ? 1 : 0;
 
-    const colorStops = defaultColorStops.map(
-        (color, index, { length }): GradientColorStop => ({
-            stop: (index + stopOffset) / (length - 1 + stopOffset),
-            color,
-        })
-    );
+    const colorStops = defaultColorStops.map((color, index, { length }): GradientColorStop => ({
+        stop: (index + stopOffset) / (length - 1 + stopOffset),
+        color,
+    }));
 
     return fillMode === 'discrete' ? discreteColorStops(colorStops) : colorStops;
 }

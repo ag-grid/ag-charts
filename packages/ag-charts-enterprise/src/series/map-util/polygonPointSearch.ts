@@ -24,7 +24,8 @@ export function polygonPointSearch(
     ) => {
         distance: number;
         maxDistance: number;
-    }
+    },
+    { pullFromCentroid = false }: { pullFromCentroid?: boolean } = {}
 ): { x: number; y: number; distance: number } | undefined {
     const bbox = polygonBbox(polygons[0], undefined);
     if (bbox == null) return;
@@ -36,12 +37,13 @@ export function polygonPointSearch(
 
     const centroid = polygonCentroid(polygons[0])!;
     const [cx, cy] = centroid;
-    const centroidDistanceToPolygon = -polygonDistance(polygons, cx, cy);
+    // Without `pullFromCentroid`, drift inside the centroid's inscribed circle is free, so near-equal scores there tie.
+    const freeDriftRadius = pullFromCentroid ? 0 : -polygonDistance(polygons, cx, cy);
     let bestResult: LabelPlacement | undefined;
 
     const cellValue = (distanceToPolygon: number, distanceToCentroid: number) => {
         const centroidDriftFactor = 0.5; // Increase to pull labels closer towards 'center'
-        const centroidDrift = Math.max(distanceToCentroid - centroidDistanceToPolygon, 0);
+        const centroidDrift = Math.max(distanceToCentroid - freeDriftRadius, 0);
         return distanceToPolygon - centroidDriftFactor * centroidDrift;
     };
 

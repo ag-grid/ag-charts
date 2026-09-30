@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgChartOptions,
+    AgOrganizationSeriesOptions,
     AgOrganizationSeriesOptionsNodeImagePosition,
     AgStandaloneChartOptions,
     TextAlign,
@@ -1008,8 +1009,7 @@ describe('OrganizationSeries', () => {
 
     function getZoomRatios(c: any) {
         return c.getState()?.zoom as
-            | { ratioX?: { start?: number; end?: number }; ratioY?: { start?: number; end?: number } }
-            | undefined;
+            { ratioX?: { start?: number; end?: number }; ratioY?: { start?: number; end?: number } } | undefined;
     }
 
     // Bypasses the memento path's theme-template projection so the tests can assert exact zoom
@@ -2208,6 +2208,88 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    describe('node content key warnings', () => {
+        type OrgNodeOptions = NonNullable<AgOrganizationSeriesOptions['node']>;
+
+        const createWithNode = async (node: OrgNodeOptions, data = SIMPLE_ORG_CHART.data) => {
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'organization', id: 'org', idKey: 'id', parentIdKey: 'parentId', node }],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        const missingKeyWarning = (key: string) => [
+            `AG Charts - the key '${key}' was not found in any data element for org.`,
+        ];
+
+        it.each<[string, OrgNodeOptions]>([
+            ['title', { title: { key: 'nope' }, subtitle: { key: 'job' }, labels: [{ key: 'location' }] }],
+            ['subtitle', { title: { key: 'name' }, subtitle: { key: 'nope' }, labels: [{ key: 'location' }] }],
+            [
+                'image',
+                {
+                    image: { key: 'nope' },
+                    title: { key: 'name' },
+                    subtitle: { key: 'job' },
+                    labels: [{ key: 'location' }],
+                },
+            ],
+            ['labels[]', { title: { key: 'name' }, subtitle: { key: 'job' }, labels: [{ key: 'nope' }] }],
+        ])('should warn when node.%s.key is not found in any data element', async (_name, node) => {
+            await createWithNode(node);
+            expectWarningsCalls().toEqual([missingKeyWarning('nope')]);
+        });
+
+        it('should not warn when image and subtitle keys are left at their defaults and absent from the data', async () => {
+            await createWithNode(
+                { title: { key: 'name' } },
+                SIMPLE_ORG_CHART.data!.map(({ id, parentId, name }: any) => ({ id, parentId, name }))
+            );
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        it.each(['image', 'subtitle'] as const)(
+            'should warn when node.%s.key is explicitly set to its default name and not found in any data element',
+            async (key) => {
+                await createWithNode(
+                    { title: { key: 'name' }, [key]: { key } },
+                    SIMPLE_ORG_CHART.data!.map(({ id, parentId, name }: any) => ({ id, parentId, name }))
+                );
+                expectWarningsCalls().toEqual([missingKeyWarning(key)]);
+            }
+        );
+
+        it('should warn when a theme override sets a key that is not found in any data element', async () => {
+            const options: AgChartOptions = {
+                data: SIMPLE_ORG_CHART.data!.map(({ id, parentId, name }: any) => ({ id, parentId, name })),
+                theme: { overrides: { organization: { series: { node: { subtitle: { key: 'subtitle' } } } } } },
+                series: [
+                    {
+                        type: 'organization',
+                        id: 'org',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: { title: { key: 'name' } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            expectWarningsCalls().toEqual([missingKeyWarning('subtitle')]);
+        });
+
+        it('should not warn when a key is present in only some data elements', async () => {
+            await createWithNode({ image: { key: 'avatar' }, title: { key: 'name' } });
+            chart.updateDelta({ data: SIMPLE_ORG_CHART.data!.slice(0, 4) });
+            await waitForChartStability(chart);
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+    });
+
     describe('layout', () => {
         it('should treat the deprecated verticalSpacing as depthSpacing', async () => {
             const parentChildGap = async (spacing: { depthSpacing?: number; verticalSpacing?: number }) => {
@@ -2242,6 +2324,7 @@ describe('OrganizationSeries', () => {
                     { id: 'cfo', name: 'Carol Wu', job: 'Chief Financial Officer', parentId: 'ceo' },
                     { id: 'acc', name: 'Frank Cash', job: 'Accountant', parentId: 'cfo' },
                 ],
+                series: [{ ...SIMPLE_ORG_CHART.series[0], node: { title: { key: 'name' }, subtitle: { key: 'job' } } }],
             };
             prepareEnterpriseTestOptions(options);
 

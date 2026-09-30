@@ -320,17 +320,17 @@ export class Legend {
         const { isRtl } = this.ctx.domManager;
 
         this.itemSelection.each((markerLabel, datum) => {
-            markerLabel.fontStyle = fontStyle;
-            markerLabel.fontWeight = fontWeight;
-            markerLabel.fontSize = fontSize;
-            markerLabel.fontFamily = fontFamily;
+            markerLabel.label.fontStyle = fontStyle;
+            markerLabel.label.fontWeight = fontWeight;
+            markerLabel.label.fontSize = fontSize;
+            markerLabel.label.fontFamily = fontFamily;
             markerLabel.isRtl = isRtl;
 
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled, item);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = toPlainText(labelText, '<unknown>').replace(LineSplitter, ' ');
-            markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, measurer, id);
+            markerLabel.label.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, measurer, id);
 
             bboxes.push(markerLabel.getTextMeasureBBox());
         });
@@ -784,10 +784,10 @@ export class Legend {
         const disabledOpacity = this.disabledOpacities();
 
         this.itemSelection.each((markerLabel, datum) => {
-            markerLabel.color = datum.enabled ? color : (disabledStyle?.color ?? color);
+            markerLabel.label.fill = datum.enabled ? color : (disabledStyle?.color ?? color);
             markerLabel.opacity = datum.enabled ? 1 : disabledOpacity.item;
-            markerLabel.symbolsOpacity = datum.enabled ? 1 : disabledOpacity.symbols;
-            markerLabel.labelOpacity = datum.enabled ? 1 : disabledOpacity.label;
+            markerLabel.symbolsGroup.opacity = datum.enabled ? 1 : disabledOpacity.symbols;
+            markerLabel.label.opacity = datum.enabled ? 1 : disabledOpacity.label;
         });
 
         this.updateContextMenu();

@@ -107,12 +107,11 @@ async function collectEnterpriseExports(): Promise<PackageExports> {
     expect(statements).toHaveLength(source.match(/^export \{/gm)?.length ?? 0);
     for (const match of statements) {
         const imported = await import(resolve(here, `${match[2]}.ts`));
-        for (const name of match[1].split(',').map(
-            (part) =>
-                part
-                    .trim()
-                    .split(/\s+as\s+/)
-                    .at(-1)!
+        for (const name of match[1].split(',').map((part) =>
+            part
+                .trim()
+                .split(/\s+as\s+/)
+                .at(-1)!
         )) {
             if (name.length > 0) namespace[name] = imported[name];
         }

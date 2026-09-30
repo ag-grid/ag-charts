@@ -18,7 +18,7 @@ import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { fixNumericExtent } from '../../data/dataModel';
-import type { SeriesNodePickMatch } from '../series';
+import type { SeriesNodePickMatch } from '../pickTypes';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { type CartesianAnimationData, CartesianSeries } from './cartesianSeries';
 import type {

@@ -1,0 +1,48 @@
+{
+    "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+    "version": 1,
+    "newProjectRoot": "projects",
+    "projects": {
+        "procurement": {
+            "projectType": "application",
+            "root": "",
+            "sourceRoot": "src",
+            "prefix": "pc",
+            "architect": {
+                "build": {
+                    "builder": "@angular/build:application",
+                    "options": {
+                        "outputPath": { "base": "dist", "browser": "" },
+                        "index": "src/index.html",
+                        "browser": "src/main.ts",
+                        "polyfills": ["zone.js"],
+                        "tsConfig": "tsconfig.app.json",
+                        "styles": ["src/styles.css", "src/procurement.css"],
+                        "outputHashing": "all",
+                        "budgets": []
+                    },
+                    "configurations": {
+                        "production": {
+                            "optimization": {
+                                "scripts": true,
+                                "styles": { "minify": true, "inlineCritical": false },
+                                "fonts": true
+                            },
+                            "sourceMap": false
+                        },
+                        "development": { "optimization": false, "sourceMap": true, "extractLicenses": false }
+                    },
+                    "defaultConfiguration": "production"
+                },
+                "serve": {
+                    "builder": "@angular/build:dev-server",
+                    "configurations": {
+                        "production": { "buildTarget": "procurement:build:production" },
+                        "development": { "buildTarget": "procurement:build:development" }
+                    },
+                    "defaultConfiguration": "development"
+                }
+            }
+        }
+    }
+}

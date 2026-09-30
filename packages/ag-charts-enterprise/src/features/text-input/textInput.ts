@@ -17,7 +17,7 @@ import textInputTemplate from './textInputTemplate.html';
 const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
-interface Layout {
+export interface TextInputLayout {
     getTextInputCoords: (height: number) => Point;
     getTextPosition: () => AnnotationTextPosition;
     alignment: 'left' | 'center' | 'right';
@@ -28,7 +28,7 @@ interface Layout {
 export class TextInput {
     private readonly cleanup = new CleanupRegistry();
     private readonly element: HTMLElement;
-    private layout: Layout = {
+    private layout: TextInputLayout = {
         getTextInputCoords: () => ({ x: 0, y: 0 }),
         getTextPosition: () => 'center',
         alignment: 'center',
@@ -52,7 +52,7 @@ export class TextInput {
         text?: string;
         placeholderText?: string;
         styles?: NormalisedTextOptions & { placeholderColor?: string };
-        layout?: Layout;
+        layout?: TextInputLayout;
         onChange?: (text: string, bbox: _ModuleSupport.BBox) => void;
         onClose?: (text: string) => void;
     }) {

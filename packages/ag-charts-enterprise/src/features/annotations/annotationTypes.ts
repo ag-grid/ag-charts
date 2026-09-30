@@ -1,5 +1,6 @@
 import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 import type { Logger } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { PointType } from './utils/scale';
 
@@ -38,16 +39,10 @@ export enum AnnotationType {
 }
 
 type TextualAnnotationType =
-    | AnnotationType.Callout
-    | AnnotationType.Comment
-    | AnnotationType.Note
-    | AnnotationType.Text;
+    AnnotationType.Callout | AnnotationType.Comment | AnnotationType.Note | AnnotationType.Text;
 
 type LineAnnotationType =
-    | AnnotationType.Line
-    | AnnotationType.HorizontalLine
-    | AnnotationType.VerticalLine
-    | AnnotationType.Arrow;
+    AnnotationType.Line | AnnotationType.HorizontalLine | AnnotationType.VerticalLine | AnnotationType.Arrow;
 
 type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationType.ParallelChannel;
 
@@ -60,8 +55,7 @@ type MeasurerAnnotationType =
 type EphemeralAnnotationType = AnnotationType.QuickDatePriceRange;
 
 export type FibonacciAnnotationType =
-    | AnnotationType.FibonacciRetracement
-    | AnnotationType.FibonacciRetracementTrendBased;
+    AnnotationType.FibonacciRetracement | AnnotationType.FibonacciRetracementTrendBased;
 
 export type HasColorAnnotationType = AnnotationType;
 export type HasLineStyleAnnotationType = Exclude<
@@ -120,10 +114,12 @@ export interface AnnotationAxisContext extends Pick<
 
 export interface AnnotationContext {
     logger: Logger;
+    localeManager: _ModuleSupport.LocaleManager;
     seriesRect: _ModuleSupport.BBox;
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
     isRtl: boolean;
+    getVolume(from: DataPoint['x'], to: DataPoint['x']): AgNumericValue | undefined;
 }
 
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';

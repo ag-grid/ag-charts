@@ -9,6 +9,8 @@ import {
     defined,
     interpolationThemeTemplate,
     positiveNumber,
+    positiveNumberNonZero,
+    required,
     string,
     undocumented,
     union,
@@ -33,6 +35,12 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     volumeKey: string,
     navigator: boolean,
     volume: boolean,
+    volumeProfile: {
+        data: required(array),
+        placement: union('left', 'right'),
+        tickSize: positiveNumberNonZero,
+        width: positiveNumberNonZero,
+    },
     rangeButtons: boolean,
     statusBar: boolean,
     toolbar: boolean,
@@ -127,6 +135,8 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                 },
                 category: {
                     gridLine: { enabled: true },
+                    paddingInner: 0.3,
+                    paddingOuter: 0.15,
                 },
                 time: {
                     gridLine: { enabled: true },

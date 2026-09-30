@@ -7,6 +7,18 @@
                 "url": "/documentation/"
             },
             {
+                "name": "React Charts",
+                "url": "/react/"
+            },
+            {
+                "name": "Angular Charts",
+                "url": "/angular/"
+            },
+            {
+                "name": "Vue Charts",
+                "url": "/vue/"
+            },
+            {
                 "name": "Roadmap",
                 "url": "/roadmap/"
             },
@@ -48,6 +60,10 @@
             {
                 "name": "Security",
                 "url": "/r/security/"
+            },
+            {
+                "name": "Accessibility",
+                "url": "/r/accessibility/"
             }
         ]
     },

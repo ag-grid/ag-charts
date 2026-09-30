@@ -6,6 +6,7 @@ import { DEMO_PAGE_HERO } from './demoPageContent';
 import type { DemoExampleId } from './exampleRegistry';
 import { DEMO_EXAMPLES, getDemoExample } from './exampleRegistry';
 import MobileNotice from './MobileNotice.astro';
+import { getDemoOpenInLinks } from './seedLinks';
 
 interface Props {
     currentId: DemoExampleId;
@@ -14,9 +15,10 @@ interface Props {
 const { currentId } = Astro.props;
 
 const current = getDemoExample(currentId);
+const openIn = getDemoOpenInLinks({ demoId: current.demoAppId, title: current.title });
 ---
 
-<SharedDemoPage currentId={currentId} examples={DEMO_EXAMPLES} {...DEMO_PAGE_HERO}>
+<SharedDemoPage currentId={currentId} examples={DEMO_EXAMPLES} {...DEMO_PAGE_HERO} openIn={openIn}>
     <MobileNotice slot="mobile-notice" />
     <DemoFrame demoAppId={current.demoAppId} title={current.title} />
 </SharedDemoPage>

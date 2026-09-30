@@ -1,66 +1,78 @@
-import { isObject } from 'ag-charts-core';
-
 import type {
-    AnnotationProperties,
-    ChannelPropertiesType,
-    EphemeralPropertiesType,
-    LinePropertiesType,
-    MeasurerPropertiesType,
-    TextualPropertiesType,
+    AnnotationDatum,
+    ChannelDatumType,
+    EphemeralDatumType,
+    LineDatumType,
+    MeasurerDatumType,
+    ShapeDatumType,
+    TextualDatumType,
 } from '../annotationsSuperTypes';
-import { CalloutProperties } from '../callout/calloutProperties';
-import { CommentProperties } from '../comment/commentProperties';
-import { QuickDatePriceRangeProperties } from '../measurer/measurerProperties';
-import { NoteProperties } from '../note/noteProperties';
-import { ShapePointProperties } from '../properties/shapePointProperties';
-import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './types';
+import { type CalloutDatum, calloutDatum } from '../callout/calloutDatum';
+import { type CommentDatum, commentDatum } from '../comment/commentDatum';
+import type { CrossLineDatum } from '../cross-line/crossLineDatum';
+import { quickDatePriceRangeDatum } from '../measurer/measurerDatum';
+import { type NoteDatum, noteDatum } from '../note/noteDatum';
+import { type TextDatum, textDatum } from '../text/textDatum';
+import { isChannelType, isCrossLineType, isLineType, isMeasurerType, isShapeType, isTextType } from './types';
 
-export function hasFontSize(datum?: AnnotationProperties): datum is Exclude<TextualPropertiesType, NoteProperties> {
-    return isTextType(datum) && !NoteProperties.is(datum);
+type StyledLineDatumType = Exclude<LineDatumType | ChannelDatumType | MeasurerDatumType, EphemeralDatumType>;
+
+export function hasFontSize(datum?: AnnotationDatum): datum is Exclude<TextualDatumType, NoteDatum> {
+    return isTextType(datum) && !noteDatum.is(datum);
 }
 
-export function hasLineStyle(
-    datum?: AnnotationProperties
-): datum is Exclude<LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType, EphemeralPropertiesType> {
-    return (
-        isLineType(datum) || isChannelType(datum) || (isMeasurerType(datum) && !QuickDatePriceRangeProperties.is(datum))
-    );
+export function hasLineStyle(datum?: AnnotationDatum): datum is StyledLineDatumType {
+    return isLineType(datum) || isChannelType(datum) || (isMeasurerType(datum) && !quickDatePriceRangeDatum.is(datum));
 }
 
-export function hasLineColor(datum?: AnnotationProperties) {
+export function hasLineColor(datum?: AnnotationDatum) {
     return (
         isLineType(datum) ||
         isChannelType(datum) ||
         isMeasurerType(datum) ||
-        CalloutProperties.is(datum) ||
-        NoteProperties.is(datum)
+        calloutDatum.is(datum) ||
+        noteDatum.is(datum)
     );
 }
 
-export function hasIconColor(datum?: AnnotationProperties) {
-    return NoteProperties.is(datum);
+export function hasIconColor(datum?: AnnotationDatum) {
+    return noteDatum.is(datum);
 }
 
-export function hasFillColor(datum?: AnnotationProperties) {
+export function hasFillColor(datum?: AnnotationDatum) {
     return (
         isChannelType(datum) ||
         isMeasurerType(datum) ||
-        CalloutProperties.is(datum) ||
-        CommentProperties.is(datum) ||
-        ShapePointProperties.is(datum)
+        calloutDatum.is(datum) ||
+        commentDatum.is(datum) ||
+        isShapeType(datum)
     );
 }
 
-export function hasTextColor(datum?: AnnotationProperties) {
-    return isTextType(datum) && !NoteProperties.is(datum);
+export function hasFillField(
+    datum: AnnotationDatum
+): datum is ShapeDatumType | CommentDatum | CalloutDatum | NoteDatum {
+    return isShapeType(datum) || commentDatum.is(datum) || calloutDatum.is(datum) || noteDatum.is(datum);
 }
 
-export function hasLineText(
-    datum?: AnnotationProperties
-): datum is Exclude<LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType, EphemeralPropertiesType> {
-    return (
-        (isLineType(datum) || isChannelType(datum) || isMeasurerType(datum)) &&
-        !isEphemeralType(datum) &&
-        isObject(datum.text)
-    );
+export function hasBackground(datum: AnnotationDatum): datum is ChannelDatumType | MeasurerDatumType {
+    return isChannelType(datum) || isMeasurerType(datum);
+}
+
+export function hasStroke(datum: AnnotationDatum): datum is Exclude<AnnotationDatum, ShapeDatumType | TextDatum> {
+    return !isShapeType(datum) && !textDatum.is(datum);
+}
+
+export function hasExtendable(
+    datum: AnnotationDatum
+): datum is Exclude<LineDatumType, CrossLineDatum> | ChannelDatumType {
+    return (isLineType(datum) && !isCrossLineType(datum)) || isChannelType(datum);
+}
+
+export function hasTextColor(datum?: AnnotationDatum) {
+    return isTextType(datum) && !noteDatum.is(datum);
+}
+
+export function hasLineText(datum?: AnnotationDatum): datum is StyledLineDatumType {
+    return hasLineStyle(datum);
 }

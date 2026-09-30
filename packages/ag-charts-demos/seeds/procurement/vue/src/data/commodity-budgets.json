@@ -1,0 +1,32 @@
+[
+    {
+        "commodity": "Steel & Metals",
+        "annual": 62400000,
+        "quarterly": 8100000
+    },
+    {
+        "commodity": "Electronics & Components",
+        "annual": 9500000,
+        "quarterly": 1300000
+    },
+    {
+        "commodity": "Plastics & Polymers",
+        "annual": 4400000,
+        "quarterly": 950000
+    },
+    {
+        "commodity": "Packaging Materials",
+        "annual": 2400000,
+        "quarterly": 600000
+    },
+    {
+        "commodity": "Chemicals & Coatings",
+        "annual": 3600000,
+        "quarterly": 950000
+    },
+    {
+        "commodity": "Fasteners & Hardware",
+        "annual": 2100000,
+        "quarterly": 850000
+    }
+]

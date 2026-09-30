@@ -1,9 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import type { AgCartesianChartOptions } from 'ag-charts-community';
 import {
     clickAction,
-    compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
     hoverAction,
@@ -13,39 +12,26 @@ import {
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    ANNOTATIONS_EXAMPLE_OPTIONS,
+    compareAnnotationsSnapshot,
+    createAnnotationsChart,
+    restoreAnnotations,
+} from './test/fixture';
 
 describe('Annotations', () => {
     setupMockConsole();
     let chart: any;
     const ctx = setupMockCanvas();
 
-    const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
-        data: [
-            { x: new Date('2024-01-05'), y: 5 },
-            { x: new Date('2024-06-15'), y: 50 },
-            { x: new Date('2024-12-25'), y: 95 },
-        ],
-        series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-        axes: { y: { type: 'number' }, x: { type: 'time' } },
-        annotations: {
-            enabled: true,
-            toolbar: {
-                enabled: false,
-            },
-        },
-    };
-
     async function prepareChart(
         initialStateOptions?: AgCartesianChartOptions['initialState'],
-        baseOptions = EXAMPLE_OPTIONS
+        baseOptions = ANNOTATIONS_EXAMPLE_OPTIONS
     ) {
-        const options: AgCartesianChartOptions = {
+        chart = await createAnnotationsChart({
             ...baseOptions,
             initialState: { ...baseOptions.initialState, ...(initialStateOptions ?? {}) },
-        };
-        prepareEnterpriseTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        });
     }
 
     afterEach(() => {
@@ -55,20 +41,8 @@ describe('Annotations', () => {
         }
     });
 
-    const compare = async () => {
-        await compareImageSnapshot(chart, ctx, {
-            failureThreshold: 0,
-            failureThresholdType: 'percent',
-        });
-    };
-
-    // Applies annotations to the SAME chart via setState — the mock canvas only tracks the first
-    // chart per test, so cross-create snapshots would compare a stale canvas against itself.
-    const applyAnnotations = async (annotations: object[]) => {
-        await chart.setState({ ...chart.getState(), annotations });
-        await waitForChartStability(chart);
-        return ctx.snapshot();
-    };
+    const compare = () => compareAnnotationsSnapshot(chart, ctx);
+    const applyAnnotations = (annotations: object[]) => restoreAnnotations(chart, ctx, annotations);
 
     describe('initial', () => {
         it('should render a line annotation', async () => {
@@ -99,7 +73,7 @@ describe('Annotations', () => {
 
             expectWarningsCalls().toEqual([
                 [
-                    'AG Charts - Annotation property [color] cannot be set to [lab(50% 40 59.5)]; expecting a supported color string, ignoring.',
+                    'AG Charts - Option `annotations[0][type=callout].color` cannot be set to `"lab(50% 40 59.5)"`; expecting a supported color string (hex, rgb(), hsl(), oklch() or a CSS color name) or a color ref and where a color ref with [onto] or [ontoColor] must also have [mix], ignoring.',
                 ],
             ]);
         });
@@ -856,7 +830,7 @@ describe('Annotations', () => {
     describe('toolbar options', () => {
         const annotationsModule = () => deproxy(chart).modulesManager.getModule<any>('annotations');
         const withAnnotations = (annotations: AgCartesianChartOptions['annotations']): AgCartesianChartOptions => ({
-            ...EXAMPLE_OPTIONS,
+            ...ANNOTATIONS_EXAMPLE_OPTIONS,
             annotations,
         });
 
@@ -913,9 +887,9 @@ describe('Annotations', () => {
             await prepareChart(
                 { annotations: [{ type: 'horizontal-line', value: 50, locked: true }] },
                 {
-                    ...EXAMPLE_OPTIONS,
+                    ...ANNOTATIONS_EXAMPLE_OPTIONS,
                     annotations: {
-                        ...EXAMPLE_OPTIONS.annotations,
+                        ...ANNOTATIONS_EXAMPLE_OPTIONS.annotations,
                         optionsToolbar: {
                             buttons: [
                                 {
@@ -1019,7 +993,7 @@ describe('Annotations', () => {
 
         it('accepts padding from a theme override', async () => {
             await prepareChart(undefined, {
-                ...EXAMPLE_OPTIONS,
+                ...ANNOTATIONS_EXAMPLE_OPTIONS,
                 theme: {
                     overrides: {
                         common: {
@@ -1039,7 +1013,7 @@ describe('Annotations', () => {
         // A horizontal-line annotation's axis label belongs to the y axis, so its distance from the
         // axis line has to come from the y axis's own layout, not the x axis's.
         const withLabelSpacing = (ySpacing: number, xSpacing: number): AgCartesianChartOptions => ({
-            ...EXAMPLE_OPTIONS,
+            ...ANNOTATIONS_EXAMPLE_OPTIONS,
             axes: {
                 y: { type: 'number', label: { spacing: ySpacing } },
                 x: { type: 'time', label: { spacing: xSpacing } },
@@ -1087,7 +1061,7 @@ describe('Annotations', () => {
         // An axis offsets a boxed tick label - one with a `fill` or a bordered stroke - so its box,
         // rather than its text, keeps the label spacing. The annotation label has to take that offset too.
         const withAxisLabel = (position: 'left' | 'right', label: object): AgCartesianChartOptions => ({
-            ...EXAMPLE_OPTIONS,
+            ...ANNOTATIONS_EXAMPLE_OPTIONS,
             axes: {
                 y: { type: 'number', position, label },
                 x: { type: 'time' },
