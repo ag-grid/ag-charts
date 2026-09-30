@@ -1,7 +1,6 @@
-import { _asThemeImpl } from 'ag-stack';
+import { type Part, _asThemeImpl } from 'ag-stack';
 import { atom, useAtom } from 'jotai';
 
-import type { Part } from 'ag-grid-community';
 import {
     colorSchemeDark,
     colorSchemeDarkBlue,

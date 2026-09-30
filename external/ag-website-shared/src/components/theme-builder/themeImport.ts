@@ -1,4 +1,4 @@
-import type { Part } from 'ag-grid-community';
+import type { Part } from 'ag-stack';
 
 import { allParamModels } from '../../theming/ParamModel';
 import { allFeatureModels } from '../../theming/PartModel';

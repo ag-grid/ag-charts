@@ -1,6 +1,6 @@
+import type { Part } from 'ag-stack';
 import { expect, test } from 'vitest';
 
-import type { Part } from 'ag-grid-community';
 import { iconSetAlpine, iconSetMaterial, tabStyleMaterial } from 'ag-grid-community';
 
 import { type ParseThemeResult, parseThemeCode, validateAndConvertToPreset } from './parseThemeCode';

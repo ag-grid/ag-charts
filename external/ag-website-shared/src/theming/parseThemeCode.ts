@@ -1,4 +1,4 @@
-import type { Part } from 'ag-grid-community';
+import type { Part } from 'ag-stack';
 
 import { RGBAColor } from './RGBAColor';
 import { paramValueToCss } from './api';
