@@ -88,6 +88,7 @@ export class DarkTheme extends ChartTheme {
             focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.22] },
             foregroundColor: '#fff',
             gridLineColor: { $foregroundBackgroundMix: 0.257 },
+            cardShadow: '0 0 16px rgba(0, 0, 0, 0.33)',
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.33)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.57] },
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.44 },

@@ -252,6 +252,7 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         borderColor: colorOrRef,
         borderRadius: number,
         borderWidth: number,
+        cardShadow: string,
         chartBackgroundColor: colorOrRef,
         chartPadding: positiveNumber,
         focusShadow: string,
@@ -290,11 +291,13 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         inputBackgroundColor: colorOrRef,
         inputBorder: or(boolean, themeParamBorder),
         inputBorderRadius: number,
+        inputPlaceholderTextColor: colorOrRef,
         inputTextColor: colorOrRef,
 
         menuBackgroundColor: colorOrRef,
         menuBorder: or(boolean, themeParamBorder),
         menuBorderRadius: number,
+        menuSeparatorColor: colorOrRef,
         menuTextColor: colorOrRef,
 
         panelBackgroundColor: colorOrRef,
@@ -305,6 +308,13 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         tooltipBorderRadius: number,
         tooltipTextColor: colorOrRef,
         tooltipSubtleTextColor: colorOrRef,
+
+        colorPickerColorBorderRadius: number,
+        colorPickerThumbBorderWidth: number,
+        colorPickerThumbSize: number,
+        colorPickerTrackBorderRadius: number,
+        colorPickerTrackSize: number,
+        dragHandleColor: colorOrRef,
 
         crosshairLabelBackgroundColor: colorOrRef,
         crosshairLabelTextColor: colorOrRef,

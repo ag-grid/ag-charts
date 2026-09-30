@@ -70,6 +70,28 @@ export interface AgBaseChartThemeParams {
     buttonFontWeight?: FontWeight;
     /** Text colour of standard action buttons. A colour string, or a theme-colour reference object. */
     buttonTextColor?: AgCssColorOrRef;
+    /**
+     * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
+     * dropdown menus of the toolbars and the colour picker. The value must be a valid CSS box-shadow.
+     */
+    cardShadow?: CssShadow;
+    /** Corner radius of the colour swatch in the colour picker. Defaults to half of `borderRadius`. */
+    colorPickerColorBorderRadius?: PixelSize;
+    /** Width of the ring drawn around the draggable thumbs of the colour picker. */
+    colorPickerThumbBorderWidth?: PixelSize;
+    /** Size of the draggable thumbs of the colour picker. */
+    colorPickerThumbSize?: PixelSize;
+    /** Corner radius of the hue and opacity tracks of the colour picker. Defaults to 99 times `borderRadius`. */
+    colorPickerTrackBorderRadius?: PixelSize;
+    /** Height of the hue and opacity tracks of the colour picker. */
+    colorPickerTrackSize?: PixelSize;
+    /**
+     * Colour of the drag handle icons on dialogs and floating toolbars. The icon is drawn at half the opacity of this
+     * colour. A colour string, or a theme-colour reference object.
+     *
+     * Default: `chromeTextColor`
+     */
+    dragHandleColor?: AgCssColorOrRef;
     /** Shadow around UI controls that have focus e.g. text inputs and buttons. The value must be a valid CSS box-shadow. */
     focusShadow?: CssShadow;
     /**
@@ -92,6 +114,12 @@ export interface AgBaseChartThemeParams {
     /** Corner radius for inputs. */
     inputBorderRadius?: PixelSize;
     /**
+     * Colour of placeholder text in text inputs. A colour string, or a theme-colour reference object.
+     *
+     * Default: `inputTextColor + inputBackgroundColor`
+     */
+    inputPlaceholderTextColor?: AgCssColorOrRef;
+    /**
      * Colour of text within text inputs. A colour string, or a theme-colour reference object.
      *
      * Default: `textColor`
@@ -103,13 +131,20 @@ export interface AgBaseChartThemeParams {
     menuBorder?: boolean | AgBorderThemeParam;
     /** Corner radius for menus. */
     menuBorderRadius?: PixelSize;
+    /**
+     * Colour of the separator lines between groups of items in menus, e.g. right-click context menus. A colour string,
+     * or a theme-colour reference object.
+     *
+     * Default: `borderColor`
+     */
+    menuSeparatorColor?: AgCssColorOrRef;
     /** Text colour for menus. A colour string, or a theme-colour reference object. */
     menuTextColor?: AgCssColorOrRef;
     /** Background colour for panels and dialogs. A colour string, or a theme-colour reference object. */
     panelBackgroundColor?: AgCssColorOrRef;
     /** Colour of text that should stand out less in panels and dialogs. A colour string, or a theme-colour reference object. */
     panelSubtleTextColor?: AgCssColorOrRef;
-    /** Default shadow for elements that float above the chart and are intended to appear separated from it, e.g. dialogs and menus. */
+    /** Default shadow for elements that float above the chart and are intended to appear separated from it, e.g. dialogs, floating toolbars and context menus. */
     popupShadow?: CssShadow;
     /**
      * Colour of text that should stand out less than the default. A colour string, or a theme-colour reference object.

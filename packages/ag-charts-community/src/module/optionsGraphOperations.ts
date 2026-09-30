@@ -1325,10 +1325,12 @@ function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 
 enum NumericOperation {
     IsEven = '$isEven',
+    Multiply = '$multiply',
 }
 
 const numericOperations: Record<NumericOperation, OperationFns> = {
     $isEven: isEvenOperation,
+    $multiply: multiplyOperation,
 };
 
 function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -1336,6 +1338,22 @@ function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
     const value = graph.resolveVertexValue(vertex, valueVertex);
     if (Number.isNaN(Number(value))) return false;
     return Number(value) % 2 === 0;
+}
+
+function multiplyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [aVertex, bVertex] = values;
+    const a = graph.resolveVertexValue(vertex, aVertex);
+    const b = graph.resolveVertexValue(vertex, bVertex);
+
+    if (typeof a === 'number' && typeof b === 'number') {
+        return a * b;
+    }
+
+    Debug.inDevelopmentMode(() =>
+        graph.warnOnce(
+            `\`$multiply\` json operation failed on [${String(a)}, ${String(b)}] at [${graph.getPathArray(vertex).join('.')}], expecting two numbers.`
+        )
+    );
 }
 
 // --- EXPORTS ---

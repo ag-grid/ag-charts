@@ -11,9 +11,10 @@
     --color: #000;
     --color-a: #000;
 
-    --thumb-size: 18px;
+    --thumb-size: var(--ag-charts-color-picker-thumb-size);
+    --thumb-border-width: var(--ag-charts-color-picker-thumb-border-width);
     --inner-width: 172px;
-    --track-height: 12px;
+    --track-height: var(--ag-charts-color-picker-track-size);
     --palette-height: 136px;
     --checker: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect x="0" y="0" width="4" height="4" fill="%23fff"/><path d="M0 0H2V4H4V2H0Z" fill="%23b2b2b2"/></svg>');
     --multi-color: linear-gradient(
@@ -61,7 +62,8 @@
     height: var(--thumb-size);
     border-radius: calc(var(--ag-charts-border-radius) * 99);
     box-shadow: var(--box-shadow);
-    --box-shadow: inset 0 0 0 3px white, inset 0 0 1px 3px #0006, 0 0 5px #00000038;
+    --box-shadow:
+        inset 0 0 0 var(--thumb-border-width) white, inset 0 0 1px var(--thumb-border-width) #0006, 0 0 5px #00000038;
 }
 
 .ag-charts-color-picker__palette:focus-visible::after {
@@ -102,7 +104,8 @@
     height: var(--thumb-size);
     border-radius: calc(var(--ag-charts-border-radius) * 99);
     box-shadow: var(--box-shadow);
-    --box-shadow: inset 0 0 0 3px white, inset 0 0 1px 3px #0006, 0 0 5px #00000038;
+    --box-shadow:
+        inset 0 0 0 var(--thumb-border-width) white, inset 0 0 1px var(--thumb-border-width) #0006, 0 0 5px #00000038;
 }
 
 .ag-charts-color-picker__hue-input::-webkit-slider-thumb,
@@ -113,7 +116,8 @@
     height: var(--thumb-size);
     border-radius: calc(var(--ag-charts-border-radius) * 99);
     box-shadow: var(--box-shadow);
-    --box-shadow: inset 0 0 0 3px white, inset 0 0 1px 3px #0006, 0 0 5px #00000038;
+    --box-shadow:
+        inset 0 0 0 var(--thumb-border-width) white, inset 0 0 1px var(--thumb-border-width) #0006, 0 0 5px #00000038;
     /* Safari needs this element to have its own stacking context */
     transform: translate3d(0, 0, 0);
 }
@@ -168,7 +172,7 @@
     left: var(--inset);
     right: var(--inset);
     height: var(--track-height);
-    border-radius: calc(var(--ag-charts-border-radius) * 99);
+    border-radius: var(--ag-charts-color-picker-track-border-radius);
     box-shadow: inset 0 0 0 1px #0003;
 }
 
@@ -181,7 +185,7 @@
     left: var(--inset);
     right: var(--inset);
     height: var(--track-height);
-    border-radius: calc(var(--ag-charts-border-radius) * 99);
+    border-radius: var(--ag-charts-color-picker-track-border-radius);
     box-shadow: inset 0 0 0 1px #0003;
 }
 
@@ -189,7 +193,7 @@
     width: 36px;
     margin-left: var(--inset);
     height: var(--track-height);
-    border-radius: calc(var(--ag-charts-border-radius) * 99);
+    border-radius: var(--ag-charts-color-picker-track-border-radius);
     border: 0;
     background: var(--multi-color);
     box-shadow: inset 0 0 0 1px #0003;
@@ -282,7 +286,7 @@
     background:
         linear-gradient(to right, var(--color-a), var(--color-a)),
         var(--checker) top left / 4px 4px;
-    border-radius: calc(var(--ag-charts-border-radius) / 2);
+    border-radius: var(--ag-charts-color-picker-color-border-radius);
     box-shadow: inset 0 0 0 1px #0003;
 }
 

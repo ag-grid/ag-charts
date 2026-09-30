@@ -194,6 +194,7 @@ export class ChartTheme {
             borderColor: { $foregroundBackgroundMix: 0.15 },
             borderRadius: 4,
             borderWidth: 1,
+            cardShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             chartBackgroundColor: { $ref: 'backgroundColor' },
             chartPadding: 20,
             focusShadow: '0 0 0 3px color-mix(in srgb, var(--ag-charts-accent-color) 50%, transparent)',
@@ -238,6 +239,7 @@ export class ChartTheme {
                 width: { $ref: 'borderWidth' },
             },
             inputBorderRadius: { $ref: 'borderRadius' },
+            inputPlaceholderTextColor: { $mix: [{ $ref: 'inputTextColor' }, { $ref: 'inputBackgroundColor' }, 0.4] },
             inputTextColor: { $ref: 'textColor' },
 
             menuBackgroundColor: { $ref: 'chromeBackgroundColor' },
@@ -246,6 +248,7 @@ export class ChartTheme {
                 width: { $ref: 'borderWidth' },
             },
             menuBorderRadius: { $ref: 'borderRadius' },
+            menuSeparatorColor: { $ref: 'borderColor' },
             menuTextColor: { $ref: 'chromeTextColor' },
 
             panelBackgroundColor: { $ref: 'chromeBackgroundColor' },
@@ -277,6 +280,13 @@ export class ChartTheme {
             footnoteColor: { $ref: 'subtleTextColor' },
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
+
+            colorPickerColorBorderRadius: { $multiply: [0.5, { $ref: 'borderRadius' }] },
+            colorPickerThumbBorderWidth: 3,
+            colorPickerThumbSize: 18,
+            colorPickerTrackBorderRadius: { $multiply: [99, { $ref: 'borderRadius' }] },
+            colorPickerTrackSize: 12,
+            dragHandleColor: { $ref: 'chromeTextColor' },
 
             // The border mixes reproduce the scrollbar colours that predate these params.
             scrollbarThickness: 12,

@@ -118,8 +118,27 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'menuTextColor', label: 'Menu Text' },
             { key: 'menuBorder', label: 'Menu Border' },
             { key: 'menuBorderRadius', label: 'Menu Radius', icon: 'radius', min: 0, max: 24 },
+            { key: 'menuSeparatorColor', label: 'Menu Separator' },
             { key: 'panelBackgroundColor', label: 'Panel Background' },
             { key: 'panelSubtleTextColor', label: 'Panel Subtle Text' },
+            { key: 'dragHandleColor', label: 'Drag Handle' },
+            { key: 'colorPickerThumbSize', label: 'Color Picker Thumb Size', min: 8, max: 32 },
+            { key: 'colorPickerThumbBorderWidth', label: 'Color Picker Thumb Border', min: 0, max: 8 },
+            { key: 'colorPickerTrackSize', label: 'Color Picker Track Size', min: 4, max: 24 },
+            {
+                key: 'colorPickerTrackBorderRadius',
+                label: 'Color Picker Track Radius',
+                icon: 'radius',
+                min: 0,
+                max: 24,
+            },
+            {
+                key: 'colorPickerColorBorderRadius',
+                label: 'Color Picker Swatch Radius',
+                icon: 'radius',
+                min: 0,
+                max: 8,
+            },
         ],
     },
     {
@@ -146,6 +165,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'buttonFontWeight', label: 'Button Font Weight' },
             { key: 'inputBackgroundColor', label: 'Input Background' },
             { key: 'inputTextColor', label: 'Input Text' },
+            { key: 'inputPlaceholderTextColor', label: 'Input Placeholder Text' },
             { key: 'inputBorder', label: 'Input Border' },
             { key: 'inputBorderRadius', label: 'Input Radius', icon: 'radius', min: 0, max: 24 },
         ],
@@ -173,6 +193,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         params: [
             { key: 'focusShadow', label: 'Focus Shadow' },
             { key: 'popupShadow', label: 'Popup Shadow' },
+            { key: 'cardShadow', label: 'Card Shadow' },
         ],
     },
 ];
