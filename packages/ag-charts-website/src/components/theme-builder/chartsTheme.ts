@@ -5,7 +5,7 @@ import {
     type SeriesColor,
     fromSeriesColors,
 } from '@ag-website-shared/components/theme-builder/palette';
-import { type ColorValue, colorValueToCss, createPart, createSharedTheme } from 'ag-stack';
+import { createPart, createSharedTheme } from 'ag-stack';
 
 import { _Theme } from 'ag-charts-community';
 import type { AgChartThemeName, AgPaletteColors } from 'ag-charts-community';
@@ -30,18 +30,6 @@ const refName = (value: unknown): string | undefined =>
     isOperation(value) && typeof value.$ref === 'string' ? value.$ref : undefined;
 
 /**
- * ag-stack writes a composite param as one shorthand variable, so a reference
- * to one of its members (`scrollbarThumbBorder.color`) has no variable to point
- * at. Such a reference is inlined as the member's own default instead.
- */
-const memberOf = (ref: string, params: Record<string, unknown>): { value: unknown } | undefined => {
-    const [property, key, ...rest] = ref.split('.');
-    const composite = params[property];
-    if (key == null || rest.length > 0 || !isOperation(composite) || !(key in composite)) return;
-    return { value: composite[key] };
-};
-
-/**
  * AG Charts writes its variables as `--ag-charts-*` where the shadow theme
  * declares ag-stack's `--ag-*`, so a raw-CSS default referencing the former
  * (e.g. `focusShadow`) resolves to nothing in the editors unless retargeted.
@@ -53,11 +41,7 @@ const retargetCssVariables = (value: string) => value.replaceAll('var(--ag-chart
  * Unknown operations are dropped with a warning, so a new one surfaces as a
  * missing default rather than a wrong colour.
  */
-export const toStackParamValue = (
-    property: string,
-    value: ChartsParamValue,
-    params: Record<string, unknown> = {}
-): unknown => {
+export const toStackParamValue = (property: string, value: ChartsParamValue): unknown => {
     if (typeof value === 'string') {
         return retargetCssVariables(value);
     }
@@ -67,23 +51,7 @@ export const toStackParamValue = (
     }
 
     if ('$ref' in value) {
-        const member = memberOf(value.$ref, params);
-        return member ? toStackParamValue(value.$ref, member.value, params) : { ref: value.$ref };
-    }
-
-    if ('$if' in value) {
-        // The only condition in the param defaults tests whether a composite param is a boolean, so the branch
-        // is chosen from that param's own value.
-        const [condition, whenTrue, whenFalse] = value.$if as [unknown, unknown, unknown];
-        const tested = isOperation(condition) ? condition.$isType : undefined;
-        const testedParam = Array.isArray(tested) && tested[1] === 'boolean' ? refName(tested[0]) : undefined;
-        if (testedParam != null) {
-            const branch = typeof params[testedParam] === 'boolean' ? whenTrue : whenFalse;
-            return toStackParamValue(property, branch, params);
-        }
-        // eslint-disable-next-line no-console
-        console.warn(`[charts theme builder] cannot express $if for "${property}"`);
-        return undefined;
+        return { ref: value.$ref };
     }
 
     if ('$foregroundBackgroundMix' in value) {
@@ -97,16 +65,8 @@ export const toStackParamValue = (
         const ref = refName(a);
         const onto = refName(b);
         if (ref != null && onto != null) {
-            const member = memberOf(ref, params);
-            if (!member) {
-                // Color.mix(a, b, t) lerps a -> b, so `a` carries a weight of 1 - t.
-                return { ref, mix: 1 - t, onto };
-            }
-            // A composite member has no variable to blend by reference, so the blend is written out as CSS.
-            const memberCss = colorValueToCss(toStackParamValue(ref, member.value, params) as ColorValue);
-            if (memberCss != null && memberCss !== '') {
-                return `color-mix(in srgb, ${colorValueToCss({ ref: onto })}, ${memberCss} ${(1 - t) * 100}%)`;
-            }
+            // Color.mix(a, b, t) lerps a -> b, so `a` carries a weight of 1 - t.
+            return { ref, mix: 1 - t, onto };
         }
         // eslint-disable-next-line no-console
         console.warn(`[charts theme builder] cannot express $mix for "${property}" as a param reference`);
@@ -128,7 +88,7 @@ export const toStackParamValue = (
     // Composite params such as `buttonBorder: { color, width }`, whose members
     // are themselves operations.
     return Object.fromEntries(
-        Object.keys(value).map((key) => [key, toStackParamValue(`${property}.${key}`, value[key], params)])
+        Object.keys(value).map((key) => [key, toStackParamValue(`${property}.${key}`, value[key])])
     );
 };
 
@@ -137,6 +97,16 @@ export const toStackParamValue = (
  * instance, whose `params` also carry private ones such as `focusColor`.
  */
 export const PUBLIC_PARAM_NAMES = Object.keys(_Theme.ChartTheme.getDefaultPublicParameters());
+
+/**
+ * Edited only as on/off toggles, so a stock theme reads them as `true`. The
+ * builder does not model their colour and width members.
+ */
+export const TOGGLE_ONLY_BORDER_PARAMS = new Set([
+    'scrollbarTrackBorder',
+    'scrollbarThumbBorder',
+    'scrollbarThumbHoverBorder',
+]);
 
 const getThemeInstance = (themeName: AgChartThemeName) => {
     const theme = _Theme.themes[themeName]?.();
@@ -151,7 +121,10 @@ export const getStackParams = (themeName: AgChartThemeName): Record<string, unkn
     // Read through the public catalogue, `params` including private ones.
     const params = getThemeInstance(themeName).params as Record<string, unknown>;
     return Object.fromEntries(
-        PUBLIC_PARAM_NAMES.map((property) => [property, toStackParamValue(property, params[property], params)])
+        PUBLIC_PARAM_NAMES.map((property) => [
+            property,
+            TOGGLE_ONLY_BORDER_PARAMS.has(property) ? true : toStackParamValue(property, params[property]),
+        ])
     );
 };
 
