@@ -1765,7 +1765,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             const midDatumIndex = filter.midpointIndices[bucketIndex];
             if (midDatumIndex === -1) return undefined;
 
-            this.prepareAggregatedNodeDatum(ctx, scratch, datumIndex, bucketIndex, filter.indexData);
+            this.prepareAggregatedNodeDatum(ctx, scratch, midDatumIndex, bucketIndex, filter.indexData);
 
             nodeDatum = this.createNodeDatum(ctx, scratch);
         }

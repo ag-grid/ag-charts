@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -8,6 +8,7 @@ import {
     type AgRangeBarSeriesLabelPlacement,
     type AgRangeBarSeriesStyle,
     type AgRangeBarSeriesStylerParams,
+    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     BIG,
@@ -25,6 +26,7 @@ import {
     type SceneGeometrySample,
     type SceneNodeExpectation,
     type TrajectoryExpectation,
+    clickAction,
     compareImageSnapshot,
     createSceneGeometrySampler,
     deproxy,
@@ -48,6 +50,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { roundTo } from 'ag-charts-core';
+import { Caster } from 'ag-charts-test';
 
 import {
     createEnterpriseChart,
@@ -55,6 +58,7 @@ import {
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
 } from '../../test/utils';
+import { RangeBarSeries } from './rangeBarSeries';
 
 describe('RangeBarSeries', () => {
     setupMockConsole();
@@ -2194,6 +2198,189 @@ describe('RangeBarSeries', () => {
                     ])
                 )
             );
+        });
+    });
+    describe('keyboard navigation on aggregated data (AG-16824)', () => {
+        let seriesNodeClick: Mock;
+
+        beforeEach(() => {
+            seriesNodeClick = vi.fn();
+        });
+
+        async function createChart(options: AgChartOptions) {
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        }
+
+        // Tab lands on the swap-chain's active announcer, which initialises the series focus.
+        async function tabIntoChart() {
+            const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[tabindex="0"]');
+            expect(announcer).not.toBeNull();
+            announcer!.focus();
+            await waitForChartStability(chart);
+        }
+
+        // The series-area widget handles keyboard navigation.
+        async function pressKey(key: string) {
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
+            expect(seriesArea).not.toBeNull();
+            seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+            await waitForChartStability(chart);
+        }
+
+        function getBarCentre(seriesIndex: number, nodeIndex: number) {
+            const series = new Caster(deproxy(chart))
+                .accessProperty('series')
+                .accessProperty(`${seriesIndex}`)
+                .cast(RangeBarSeries).value;
+            const nodeData = series.getNodeData();
+            expect(nodeData).toBeDefined();
+            const node = nodeData![nodeIndex];
+            expect(node).toBeDefined();
+            return _ModuleSupport.Transformable.toCanvasPoint(
+                series.contentGroup,
+                node.x + node.width / 2,
+                node.y + node.height / 2
+            );
+        }
+
+        async function clickBar(seriesIndex: number, nodeIndex: number) {
+            const { canvasX, canvasY } = getBarCentre(seriesIndex, nodeIndex);
+            await clickAction(canvasX, canvasY)(chart);
+            await waitForChartStability(chart);
+        }
+
+        // The indicator is positioned relative to the series rect.
+        function getFocusIndicatorCanvasBBox() {
+            const indicator = document.querySelector<HTMLElement>('.ag-charts-focus-indicator > div');
+            expect(indicator).not.toBeNull();
+            const seriesRect = new Caster(deproxy(chart))
+                .accessProperty('seriesAreaManager')
+                .accessProperty('seriesRect')
+                .cast(_ModuleSupport.BBox).value;
+            const { left, top, width, height } = indicator!.style;
+            return new _ModuleSupport.BBox(
+                seriesRect.x + Number.parseFloat(left),
+                seriesRect.y + Number.parseFloat(top),
+                Number.parseFloat(width),
+                Number.parseFloat(height)
+            );
+        }
+
+        it('ArrowRight focuses the second bar with numeric time x values', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20_000 }, (_row, index) => ({
+                    index,
+                    time: Date.UTC(2024, 0, 1) + index * 60_000,
+                    low: 10 + Math.sin(index / 50),
+                    high: 20 + Math.cos(index / 50),
+                })),
+                axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+                series: [{ type: 'range-bar', xKey: 'time', yLowKey: 'low', yHighKey: 'high' }],
+                listeners: { seriesNodeClick },
+            });
+            await createChart(options);
+
+            await tabIntoChart();
+            await pressKey('ArrowRight');
+            const bar = getBarCentre(0, 1);
+            expect(getFocusIndicatorCanvasBBox().containsPoint(bar.canvasX, bar.canvasY)).toBe(true);
+
+            await pressKey('Enter');
+            await clickBar(0, 1);
+            expect(seriesNodeClick).toHaveBeenCalledTimes(2);
+            expect(seriesNodeClick.mock.calls[0][0].datum.index).toBe(29); // keyboard
+            expect(seriesNodeClick.mock.calls[1][0].datum.index).toBe(29); // mouse
+        });
+
+        it('ArrowRight focuses the second bar with ISO-string x values', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20_000 }, (_row, index) => ({
+                    index,
+                    time: new Date(Date.UTC(2024, 0, 1) + index * 60_000).toISOString(),
+                    low: 10 + Math.sin(index / 50),
+                    high: 20 + Math.cos(index / 50),
+                })),
+                axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+                series: [{ type: 'range-bar', xKey: 'time', yLowKey: 'low', yHighKey: 'high' }],
+                listeners: { seriesNodeClick },
+            });
+            await createChart(options);
+
+            await tabIntoChart();
+            await pressKey('ArrowRight');
+            const bar = getBarCentre(0, 1);
+            expect(getFocusIndicatorCanvasBBox().containsPoint(bar.canvasX, bar.canvasY)).toBe(true);
+
+            await pressKey('Enter');
+            await clickBar(0, 1);
+            expect(seriesNodeClick).toHaveBeenCalledTimes(2);
+            expect(seriesNodeClick.mock.calls[0][0].datum.index).toBe(29); // keyboard
+            expect(seriesNodeClick.mock.calls[1][0].datum.index).toBe(29); // mouse
+        });
+
+        it('ArrowRight focuses the second bar with bigint x values', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20_000 }, (_row, index) => ({
+                    index,
+                    x: 2n ** 60n + BigInt(index) * 1_000_000_000n,
+                    low: 10 + Math.sin(index / 50),
+                    high: 20 + Math.cos(index / 50),
+                })),
+                axes: { x: { type: 'number' }, y: { type: 'number' } },
+                series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'low', yHighKey: 'high' }],
+                listeners: { seriesNodeClick },
+            });
+            await createChart(options);
+
+            await tabIntoChart();
+            await pressKey('ArrowRight');
+            const bar = getBarCentre(0, 1);
+            expect(getFocusIndicatorCanvasBBox().containsPoint(bar.canvasX, bar.canvasY)).toBe(true);
+
+            // Bars overlap on a number x axis, so a mouse click cannot single out bar 1 for comparison.
+            await pressKey('Enter');
+            expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            expect(seriesNodeClick.mock.calls[0][0].datum.index).toBe(29);
+        });
+
+        it('ArrowDown then ArrowRight focuses the second bar of the second grouped series', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20_000 }, (_row, index) => ({
+                    index,
+                    time: Date.UTC(2024, 0, 1) + index * 60_000,
+                    low1: 10 + Math.sin(index / 50),
+                    high1: 20 + Math.cos(index / 50),
+                    low2: 5 + Math.cos(index / 50),
+                    high2: 15 + Math.sin(index / 50),
+                })),
+                axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+                series: [
+                    { id: 'first', type: 'range-bar', xKey: 'time', yLowKey: 'low1', yHighKey: 'high1', grouped: true },
+                    {
+                        id: 'second',
+                        type: 'range-bar',
+                        xKey: 'time',
+                        yLowKey: 'low2',
+                        yHighKey: 'high2',
+                        grouped: true,
+                    },
+                ],
+                listeners: { seriesNodeClick },
+            });
+            await createChart(options);
+
+            await tabIntoChart();
+            await pressKey('ArrowDown');
+            await pressKey('ArrowRight');
+            const bar = getBarCentre(1, 1);
+            expect(getFocusIndicatorCanvasBBox().containsPoint(bar.canvasX, bar.canvasY)).toBe(true);
+
+            await pressKey('Enter');
+            await clickBar(1, 1);
+            expect(seriesNodeClick).toHaveBeenCalledTimes(2);
+            expect(seriesNodeClick.mock.calls[0][0]).toMatchObject({ seriesId: 'second', datum: { index: 29 } }); // keyboard
+            expect(seriesNodeClick.mock.calls[1][0]).toMatchObject({ seriesId: 'second', datum: { index: 29 } }); // mouse
         });
     });
 });
