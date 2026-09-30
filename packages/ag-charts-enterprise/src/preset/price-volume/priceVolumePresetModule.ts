@@ -73,6 +73,15 @@ priceVolumeOptionsDef.overrideDevicePixelRatio = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
 priceVolumeOptionsDef.foreground = undocumented(defined);
 
+const VOLUME_PROFILE_ENABLED = { $and: [{ $preset: 'volumeProfile' }, { $preset: ['volumeProfile/enabled', true] }] };
+const HLC_UP_BAND_INDEX = {
+    $if: [
+        { $preset: ['volume', true] },
+        { $if: [VOLUME_PROFILE_ENABLED, 3, 1] },
+        { $if: [VOLUME_PROFILE_ENABLED, 2, 0] },
+    ],
+};
+
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
     type: 'preset',
     name: 'price-volume',
@@ -242,7 +251,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                             'hlc',
                             {
                                 $if: [
-                                    { $eq: [{ $value: '$index' }, 1] },
+                                    { $eq: [{ $value: '$index' }, HLC_UP_BAND_INDEX] },
                                     { $palette: 'up.fill' },
                                     { $palette: 'down.fill' },
                                 ],
@@ -258,7 +267,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                             'hlc',
                             {
                                 $if: [
-                                    { $eq: [{ $value: '$index' }, 1] },
+                                    { $eq: [{ $value: '$index' }, HLC_UP_BAND_INDEX] },
                                     { $palette: 'up.stroke' },
                                     { $palette: 'down.stroke' },
                                 ],
