@@ -91,7 +91,13 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
                     {
                         $if: [
                             { $ref: 'scrollbarThumbHoverBorder' },
-                            { $if: [{ $greaterThan: [{ $path: '../strokeWidth' }, 0] }, { $path: '../strokeWidth' }, 1] },
+                            {
+                                $if: [
+                                    { $greaterThan: [{ $path: '../strokeWidth' }, 0] },
+                                    { $path: '../strokeWidth' },
+                                    1,
+                                ],
+                            },
                             0,
                         ],
                     },
