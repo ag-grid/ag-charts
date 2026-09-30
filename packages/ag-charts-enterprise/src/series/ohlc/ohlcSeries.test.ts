@@ -24,12 +24,15 @@ import {
     expectNoAnimation,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
+    focusIndicatorContainsCanvasPoint,
     isoEpochPair,
     magnitudePair,
+    pressKey,
     scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
+    tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { Caster } from 'ag-charts-test';
@@ -598,7 +601,7 @@ describe('OhlcSeries', () => {
     });
 
     describe('keyboard navigation on aggregated data (AG-16824)', () => {
-        let chart: AgChartInstance | undefined;
+        let chart: AgChartInstance;
         let seriesNodeClick: Mock;
 
         beforeEach(() => {
@@ -607,28 +610,12 @@ describe('OhlcSeries', () => {
 
         afterEach(() => {
             chart?.destroy();
-            chart = undefined;
+            (chart as any) = undefined;
         });
 
         async function createChart(options: AgChartOptions) {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-        }
-
-        // Tab lands on the swap-chain's active announcer, which initialises the series focus.
-        async function tabIntoChart() {
-            const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[tabindex="0"]');
-            expect(announcer).not.toBeNull();
-            announcer!.focus();
-            await waitForChartStability(chart!);
-        }
-
-        // The series-area widget handles keyboard navigation.
-        async function pressKey(key: string) {
-            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
-            expect(seriesArea).not.toBeNull();
-            seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
-            await waitForChartStability(chart!);
         }
 
         function getCandleCentre(nodeIndex: number) {
@@ -653,23 +640,6 @@ describe('OhlcSeries', () => {
             await waitForChartStability(chart!);
         }
 
-        // The indicator is positioned relative to the series rect.
-        function getFocusIndicatorCanvasBBox() {
-            const indicator = document.querySelector<HTMLElement>('.ag-charts-focus-indicator > div');
-            expect(indicator).not.toBeNull();
-            const seriesRect = new Caster(deproxy(chart!))
-                .accessProperty('seriesAreaManager')
-                .accessProperty('seriesRect')
-                .cast(_ModuleSupport.BBox).value;
-            const { left, top, width, height } = indicator!.style;
-            return new _ModuleSupport.BBox(
-                seriesRect.x + Number.parseFloat(left),
-                seriesRect.y + Number.parseFloat(top),
-                Number.parseFloat(width),
-                Number.parseFloat(height)
-            );
-        }
-
         it('ArrowRight focuses the second candle with numeric time x values', async () => {
             const options = prepareEnterpriseTestOptions({
                 data: Array.from({ length: 20_000 }, (_row, index) => {
@@ -691,12 +661,12 @@ describe('OhlcSeries', () => {
             });
             await createChart(options);
 
-            await tabIntoChart();
-            await pressKey('ArrowRight');
+            await tabIntoChart(chart);
+            await pressKey(chart, 'ArrowRight');
             const candle = getCandleCentre(1);
-            expect(getFocusIndicatorCanvasBBox().containsPoint(candle.canvasX, candle.canvasY)).toBe(true);
+            expect(focusIndicatorContainsCanvasPoint(chart, candle)).toBe(true);
 
-            await pressKey('Enter');
+            await pressKey(chart, 'Enter');
             await clickCandle(1);
             expect(seriesNodeClick).toHaveBeenCalledTimes(2);
             expect(seriesNodeClick.mock.calls[0][0].datum.index).toBe(29); // keyboard
@@ -724,12 +694,12 @@ describe('OhlcSeries', () => {
             });
             await createChart(options);
 
-            await tabIntoChart();
-            await pressKey('ArrowRight');
+            await tabIntoChart(chart);
+            await pressKey(chart, 'ArrowRight');
             const candle = getCandleCentre(1);
-            expect(getFocusIndicatorCanvasBBox().containsPoint(candle.canvasX, candle.canvasY)).toBe(true);
+            expect(focusIndicatorContainsCanvasPoint(chart, candle)).toBe(true);
 
-            await pressKey('Enter');
+            await pressKey(chart, 'Enter');
             await clickCandle(1);
             expect(seriesNodeClick).toHaveBeenCalledTimes(2);
             expect(seriesNodeClick.mock.calls[0][0].datum.index).toBe(29); // keyboard
@@ -757,13 +727,13 @@ describe('OhlcSeries', () => {
             });
             await createChart(options);
 
-            await tabIntoChart();
-            await pressKey('ArrowRight');
+            await tabIntoChart(chart);
+            await pressKey(chart, 'ArrowRight');
             const candle = getCandleCentre(1);
-            expect(getFocusIndicatorCanvasBBox().containsPoint(candle.canvasX, candle.canvasY)).toBe(true);
+            expect(focusIndicatorContainsCanvasPoint(chart, candle)).toBe(true);
 
             // Candles overlap on a number x axis, so a mouse click cannot single out candle 1 for comparison.
-            await pressKey('Enter');
+            await pressKey(chart, 'Enter');
             expect(seriesNodeClick).toHaveBeenCalledTimes(1);
             expect(seriesNodeClick.mock.calls[0][0].datum.index).toBe(29);
         });
