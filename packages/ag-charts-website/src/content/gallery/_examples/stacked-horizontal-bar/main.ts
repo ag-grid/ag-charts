@@ -148,7 +148,7 @@ const options: AgChartOptions<DataType> = {
                     fillOpacity: 0,
                     label: {
                         text: 'LOSSES',
-                        position: 'top',
+                        placement: 'top',
                     },
                 },
                 {
@@ -158,7 +158,7 @@ const options: AgChartOptions<DataType> = {
                     fillOpacity: 0,
                     label: {
                         text: 'WINS',
-                        position: 'top',
+                        placement: 'top',
                     },
                 },
             ],

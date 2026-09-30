@@ -19,12 +19,12 @@ const options: AgCartesianChartOptions = {
                 {
                     type: 'range',
                     range: [new Date(2019, 3, 29), new Date(2019, 6, 1)],
-                    label: { text: 'Price Peak', position: 'top' },
+                    label: { text: 'Price Peak', placement: 'top' },
                 },
                 {
                     type: 'range',
                     range: [new Date(2019, 8, 2), new Date(2019, 9, 14)],
-                    label: { text: 'Autumn', position: 'top' },
+                    label: { text: 'Autumn', placement: 'top' },
                 },
             ],
         },

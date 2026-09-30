@@ -111,7 +111,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     value: 2020,
                     label: {
                         text: 'China overtakes EU',
-                        position: 'top',
+                        placement: 'top',
                         fontStyle: 'italic',
                     },
                     lineDash: [2, 4],

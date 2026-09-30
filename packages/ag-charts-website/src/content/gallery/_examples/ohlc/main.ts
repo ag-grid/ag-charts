@@ -107,7 +107,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     strokeWidth: 1.5,
                     label: {
                         text: 'Avg: 0.8016',
-                        position: 'top-left',
+                        placement: 'top-left',
                         padding: 4,
                     },
                 },

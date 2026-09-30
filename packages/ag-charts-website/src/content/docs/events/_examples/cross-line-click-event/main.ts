@@ -126,7 +126,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     lineDash: [8, 4],
                     label: {
                         text: 'ICU capacity (700 beds)',
-                        position: 'top-right',
+                        placement: 'top-right',
                     },
                     listeners: {
                         click: (event) => console.log('[capacity click]', event),
