@@ -362,6 +362,11 @@ describe('htaccessRules markdown content negotiation', () => {
         expect(production).toContain('AddCharset utf-8 .md');
         expect(staging).toContain('AddCharset utf-8 .md');
     });
+
+    it('registers the webp MIME type so the images are not served without a Content-Type', () => {
+        expect(production).toContain('AddType image/webp .webp');
+        expect(staging).toContain('AddType image/webp .webp');
+    });
 });
 
 describe('generated redirect rules snapshot', () => {
