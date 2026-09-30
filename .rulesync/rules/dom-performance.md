@@ -45,7 +45,7 @@ Use `DOMElementProxy` (from `ag-charts-community/src/dom/domElementProxy.ts`) as
 Never construct `DOMElementProxy` directly outside of `DOMManager`. Use the factory methods instead:
 
 -   **`addProxyChild(domElementClass, id)`** — creates an immediate-mode proxy with the shared `SizeMonitor` injected.
--   **`addDeferredProxyChild(domElementClass, id)`** — creates a deferred proxy that buffers DOM writes until `postRenderUpdate()`. Also injects the shared `SizeMonitor`.
+-   **`addDeferredProxyChild(domElementClass, id)`** — creates a deferred proxy that buffers DOM writes and flushes them when the chart's update cycle calls `DOMManager.setDeferring(false)`, or via a `scheduleFlush` timeout for writes made outside the cycle. Also injects the shared `SizeMonitor`.
 -   These factories ensure proxies share the `DOMManager`'s `SizeMonitor` instance, avoiding redundant `ResizeObserver` registrations.
 -   When a proxy consumer needs resize observation, call **`proxy.addResizeListener(cb)`** which returns an unsubscribe function. Never bypass the proxy to obtain the raw element for a separate `SizeMonitor`.
 -   Use deferred mode for elements whose writes happen during the render cycle (tooltip, crosshair labels) to batch DOM mutations and avoid interleaving reads/writes.
