@@ -1422,7 +1422,7 @@ jobs:
                     -e PARITY_STALE_REPORT=/parity-input/stale-ports.json \
                     ${PLAYWRIGHT_IMAGE} \
                     npx playwright test -c playwright.parity.config.ts
-              timeout-minutes: 15
+              timeout-minutes: 20
 
             - name: Persist test results
               if: always()

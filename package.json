@@ -168,7 +168,9 @@
     "ejs": "3.1.10",
     "jake": "10.9.4",
     "@svgr/**/lru-cache": "5.1.1",
-    "rulesync/js-yaml": "4.3.2"
+    "rulesync/js-yaml": "4.3.2",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "lavamoat": {
     "allowScripts": {
