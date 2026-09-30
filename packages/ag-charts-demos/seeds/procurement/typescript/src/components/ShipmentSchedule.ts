@@ -144,7 +144,7 @@ export function createShipmentSchedule({ onSelect, ...props }: ShipmentScheduleP
                             label: {
                                 enabled: true,
                                 text: 'Today',
-                                placement: 'top',
+                                position: 'top',
                                 color: 'var(--pc-text)',
                                 fontSize: 11,
                             },

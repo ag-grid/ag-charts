@@ -121,7 +121,7 @@ export function createCostReliabilityScatter({
                                 label: {
                                     enabled: true,
                                     text: `${fmtPct(ON_TIME_TARGET)} target`,
-                                    placement: 'top-left',
+                                    position: 'top-left',
                                     color: 'var(--pc-muted)',
                                     fontSize: 11,
                                 },
