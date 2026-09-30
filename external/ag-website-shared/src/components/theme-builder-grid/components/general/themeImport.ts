@@ -7,6 +7,9 @@ import type { Part } from 'ag-grid-community';
 
 import { type Preset, applyPreset } from '../presets/presets';
 
+const NO_THEME_ERROR =
+    'Could not find any theme parameters. Expected code like: themeQuartz.withParams({ backgroundColor: "#fff" })';
+
 // Grid themes can swap out whole parts (icon sets, tab styles, ...), unlike a
 // plain param. Match any identifier in the pasted code against each part's
 // known export name, keeping the last one seen per feature.
@@ -48,6 +51,7 @@ export function validateThemeCode(code: string): ValidationResult {
     const parseResult = parseThemeCode(code, {
         isRecognizedParam: (key) => validParamKeys.has(key),
         extractParts,
+        noParamsError: NO_THEME_ERROR,
     });
     if (!parseResult.success) {
         return { status: 'error', validParamCount: 0, error: parseResult.error };
@@ -60,10 +64,7 @@ export function validateThemeCode(code: string): ValidationResult {
         return {
             status: 'error',
             validParamCount: 0,
-            error:
-                warnings.length > 0
-                    ? warnings.join('\n')
-                    : 'Could not find any theme parameters. Expected code like: themeQuartz.withParams({ backgroundColor: "#fff" })',
+            error: warnings.length > 0 ? warnings.join('\n') : NO_THEME_ERROR,
         };
     }
 
