@@ -600,7 +600,11 @@ export class DOMManager extends BaseManager {
 
             if (
                 !Number.isNaN(Number(value)) &&
-                (key.endsWith('Size') || key.endsWith('Radius') || key.endsWith('Width') || numericKeys?.includes(key))
+                (key.endsWith('Size') ||
+                    key.endsWith('Radius') ||
+                    key.endsWith('Width') ||
+                    key.endsWith('Thickness') ||
+                    numericKeys?.includes(key))
             ) {
                 formattedValue = `${value}px`;
             } else if (key.endsWith('Border') && typeof value === 'boolean') {

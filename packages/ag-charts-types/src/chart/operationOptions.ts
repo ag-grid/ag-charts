@@ -48,6 +48,12 @@ type ThemeParam =
     | 'inputBorder.width'
     | 'menuBorder.color'
     | 'menuBorder.width'
+    | 'scrollbarThumbBorder.color'
+    | 'scrollbarThumbBorder.width'
+    | 'scrollbarThumbHoverBorder.color'
+    | 'scrollbarThumbHoverBorder.width'
+    | 'scrollbarTrackBorder.color'
+    | 'scrollbarTrackBorder.width'
     | 'tooltipBorder.color'
     | 'tooltipBorder.width';
 

@@ -129,6 +129,12 @@ const themeParams = [
     'footnoteFontFamily',
     'footnoteColor',
     'groupedCategoryLineColor',
+    'scrollbarTrackBackgroundColor',
+    'scrollbarTrackBorder',
+    'scrollbarThumbBackgroundColor',
+    'scrollbarThumbBorder',
+    'scrollbarThumbHoverBackgroundColor',
+    'scrollbarThumbHoverBorder',
 ];
 const themeParamsValidator = union(...themeParams);
 // A complete `var(--…)` expression: `var(` … balanced parens … `)` with no trailing text, so a prefix-only match like

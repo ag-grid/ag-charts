@@ -98,6 +98,16 @@ export const toStackParamValue = (property: string, value: ChartsParamValue): un
  */
 export const PUBLIC_PARAM_NAMES = Object.keys(_Theme.ChartTheme.getDefaultPublicParameters());
 
+/**
+ * Edited only as on/off toggles, so a stock theme reads them as `true`. The
+ * builder does not model their colour and width members.
+ */
+export const TOGGLE_ONLY_BORDER_PARAMS = new Set([
+    'scrollbarTrackBorder',
+    'scrollbarThumbBorder',
+    'scrollbarThumbHoverBorder',
+]);
+
 const getThemeInstance = (themeName: AgChartThemeName) => {
     const theme = _Theme.themes[themeName]?.();
     if (!theme) {
@@ -111,7 +121,10 @@ export const getStackParams = (themeName: AgChartThemeName): Record<string, unkn
     // Read through the public catalogue, `params` including private ones.
     const params = getThemeInstance(themeName).params as Record<string, unknown>;
     return Object.fromEntries(
-        PUBLIC_PARAM_NAMES.map((property) => [property, toStackParamValue(property, params[property])])
+        PUBLIC_PARAM_NAMES.map((property) => [
+            property,
+            TOGGLE_ONLY_BORDER_PARAMS.has(property) ? true : toStackParamValue(property, params[property]),
+        ])
     );
 };
 

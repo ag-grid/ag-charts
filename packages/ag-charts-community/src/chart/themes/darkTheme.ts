@@ -93,6 +93,16 @@ export class DarkTheme extends ChartTheme {
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.44 },
 
             crosshairLabelBackgroundColor: { $foregroundBackgroundMix: 0.65 },
+
+            // The dark borderColor is darker than the track border and lighter than the thumb border it replaces.
+            scrollbarTrackBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'backgroundColor' }, 0.184] },
+                width: { $ref: 'borderWidth' },
+            },
+            scrollbarThumbBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.187] },
+                width: { $ref: 'borderWidth' },
+            },
         };
     }
 
