@@ -19,14 +19,14 @@ if (window && window.location.hash.includes('e2e=true')) {
         }
         if (isAgThemeOrUndefined(theme)) {
             nextOptions.theme = {
-                baseTheme: preset === 'price-volume' ? 'ag-financial' : theme,
+                baseTheme: preset === 'price-volume' || preset === 'volume-profile' ? 'ag-financial' : theme,
                 params: overrides,
             };
         } else if (typeof theme === 'object' && isAgThemeOrUndefined(theme.baseTheme)) {
             nextOptions.theme = {
                 ...options.theme,
                 params: { ...(options.theme.params || {}), ...overrides },
-                baseTheme: preset === 'price-volume' ? 'ag-financial' : theme,
+                baseTheme: preset === 'price-volume' || preset === 'volume-profile' ? 'ag-financial' : theme,
             };
         }
 

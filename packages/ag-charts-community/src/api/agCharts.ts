@@ -20,6 +20,7 @@ import type {
     AgGaugeOptions,
     AgQuadrantChartOptions,
     AgSparklineOptions,
+    AgVolumeProfileChartOptions,
     ContextDefault,
     DatumDefault,
 } from 'ag-charts-types';
@@ -245,6 +246,19 @@ export abstract class AgCharts {
                 presetType: 'quadrant',
                 modules: params?.modules,
             }) as AgChartInstance<AgQuadrantChartOptions<TDatum, any>>;
+        });
+    }
+
+    public static createVolumeProfileChart(
+        options: AgVolumeProfileChartOptions,
+        params?: AgChartParams
+    ): AgChartInstance<AgVolumeProfileChartOptions> {
+        options = withOptionsArgumentIssue(options, 'AgCharts.createVolumeProfileChart()');
+        return debug.group('AgCharts.createVolumeProfileChart()', () => {
+            return this.createInternal(options as any, {
+                presetType: 'volume-profile',
+                modules: params?.modules,
+            }) as any;
         });
     }
 
