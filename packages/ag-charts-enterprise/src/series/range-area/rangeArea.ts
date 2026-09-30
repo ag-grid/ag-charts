@@ -1892,7 +1892,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             const hiOverride: AgNumericValue | undefined = ctx.yHighValues[hiIndex];
             const loOverride: AgNumericValue | undefined = ctx.yLowValues[loIndex];
 
-            if (midDatumIndex !== AGGREGATION_INDEX_UNSET && hiOverride !== undefined && loOverride === undefined) {
+            if (midDatumIndex !== AGGREGATION_INDEX_UNSET && hiOverride !== undefined && loOverride !== undefined) {
                 this.handleDatumPoint(ctx, scratch, midDatumIndex, hiNode, loNode, hiOverride, loOverride);
             }
         }
