@@ -37,7 +37,7 @@ function parse(code: string): ParseThemeResult {
     return parseThemeCode(code, {
         isRecognizedParam: (key) => TEST_PARAM_KEYS.has(key),
         extractParts: testExtractParts,
-        noParamsError: NO_PARAMS_ERROR,
+        noParamsError: () => NO_PARAMS_ERROR,
     });
 }
 
@@ -247,7 +247,7 @@ test('detects parts anywhere in code with last-wins for same feature', () => {
 test('parseThemeCode with no extractParts option never returns parts', () => {
     const result = parseThemeCode(`{ fontSize: 14 }`, {
         isRecognizedParam: (key) => TEST_PARAM_KEYS.has(key),
-        noParamsError: NO_PARAMS_ERROR,
+        noParamsError: () => NO_PARAMS_ERROR,
     });
     expect(result).toEqual({
         success: true,

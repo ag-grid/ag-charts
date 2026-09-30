@@ -3,7 +3,7 @@ import type { Part } from 'ag-stack';
 import { allParamModels } from '../../theming/ParamModel';
 import { allFeatureModels } from '../../theming/PartModel';
 import { parseThemeCode, validateAndConvertToPreset } from '../../theming/parseThemeCode';
-import { type Preset, applyPreset } from '../../theming/preset';
+import { applyPreset } from '../../theming/preset';
 import type { RenderedThemeInfo } from '../../theming/rendered-theme';
 import type { Store } from '../../theming/store';
 
@@ -82,7 +82,7 @@ export function validateThemeCode(code: string): ValidationResult {
     const parseResult = parseThemeCode(code, {
         isRecognizedParam: (key) => validParamKeys.has(key),
         extractParts,
-        noParamsError: noParamsError(),
+        noParamsError,
     });
     if (!parseResult.success) {
         return { status: 'error', validParamCount: 0, error: parseResult.error };
@@ -99,11 +99,7 @@ export function validateThemeCode(code: string): ValidationResult {
         };
     }
 
-    // validateAndConvertToPreset only validates each param value against the
-    // theming engine, so its params bag is a plain Record rather than the
-    // stricter Partial<ThemeParams> - safe to widen here.
-    const preset = parsedPreset as Preset;
-    const apply = (store: Store) => applyPreset(store, preset);
+    const apply = (store: Store) => applyPreset(store, parsedPreset);
 
     if (warnings.length === 0) {
         return { status: 'success', validParamCount, apply };

@@ -31,8 +31,8 @@ export type ParseThemeCodeOptions = {
      * can omit this - parts will always be empty.
      */
     extractParts?: (identifiers: string[]) => Part<any>[];
-    /** What to say when the code holds nothing this host recognises. */
-    noParamsError: string;
+    /** What to say when the code holds nothing this host recognises. Called only on that branch. */
+    noParamsError: () => string;
 };
 
 export function parseThemeCode(code: string, options: ParseThemeCodeOptions): ParseThemeResult {
@@ -69,7 +69,7 @@ export function parseThemeCode(code: string, options: ParseThemeCodeOptions): Pa
     if (Object.keys(params).length + parts.length === 0) {
         return {
             success: false,
-            error: variableWarnings.length > 0 ? variableWarnings.join('\n') : noParamsError,
+            error: variableWarnings.length > 0 ? variableWarnings.join('\n') : noParamsError(),
             params: undefined,
             parts: undefined,
             variableWarnings: undefined,
