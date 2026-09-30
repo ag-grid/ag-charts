@@ -17,6 +17,8 @@ import {
     isFunction,
     isObject,
     isSymbol,
+    labelAutoFontSizeOptionsDefs,
+    labelFitOptionsDefs,
     lineDashOptionsDef,
     linearGaugeSeriesThemeableOptionsDef,
     linearGaugeTargetOptionsDef,
@@ -279,6 +281,8 @@ export const seriesAreaBackgroundRegionLabelDef: OptionsDefs<AgSeriesAreaBackgro
     text: string,
     xOffset: number,
     yOffset: number,
+    ...labelFitOptionsDefs,
+    ...labelAutoFontSizeOptionsDefs,
 };
 
 const cartesianChartOptionsDefs: OptionsDefs<Omit<AgBaseCartesianThemeOptions, 'axes' | 'navigator'>> = {
