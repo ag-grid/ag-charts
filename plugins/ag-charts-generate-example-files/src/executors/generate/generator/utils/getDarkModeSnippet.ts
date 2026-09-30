@@ -51,6 +51,8 @@ const DEFAULT_THEME_PARAMS = {
     foregroundColor: 'var(--ag-example-chart-foreground-color)',
     gridLineColor: 'var(--ag-example-chart-grid-line-color)',
     groupedCategoryLineColor: 'var(--ag-example-chart-grouped-category-line-color)',
+    scrollbarThumbBorder: { color: 'var(--ag-example-chart-scrollbar-thumb-border-color)', width: 1 },
+    scrollbarTrackBorder: { color: 'var(--ag-example-chart-scrollbar-track-border-color)', width: 1 },
     subtleTextColor: 'var(--ag-example-chart-subtle-text-color)',
 };
 

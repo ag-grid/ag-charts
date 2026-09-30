@@ -10,8 +10,9 @@ import {
     parseThemeCode,
     validateAndConvertToPreset,
 } from '@ag-website-shared/theming/parseThemeCode';
-import { type Preset, applyPreset } from '@ag-website-shared/theming/preset';
+import { applyPreset } from '@ag-website-shared/theming/preset';
 import type { Store } from '@ag-website-shared/theming/store';
+
 import { _Theme } from 'ag-charts-community';
 import type { AgChartThemeName } from 'ag-charts-community';
 
@@ -120,7 +121,7 @@ const andList = (items: string[]) =>
  * and the summary names what was found rather than counting params alone.
  */
 export const validateChartsThemeCode = (code: string): ValidationResult => {
-    if (!code.trim()) {
+    if (code.trim() === '') {
         return { status: 'empty', validParamCount: 0 };
     }
 
@@ -154,7 +155,7 @@ export const validateChartsThemeCode = (code: string): ValidationResult => {
     const found = [
         ...(paramCount > 0 ? [countedParams(paramCount)] : []),
         ...(palette ? ['a palette'] : []),
-        ...(baseTheme ? [`the ${baseTheme} base theme`] : []),
+        ...(typeof baseTheme === 'string' ? [`the ${baseTheme} base theme`] : []),
     ];
 
     const allWarnings = [...warnings, ...ownWarnings];
@@ -169,7 +170,7 @@ export const validateChartsThemeCode = (code: string): ValidationResult => {
     const apply = (store: Store) => {
         // `applyPreset` clears every param the theme does not name - what makes this
         // an import rather than a merge - and the three below go the same way.
-        applyPreset(store, preset as Preset);
+        applyPreset(store, preset);
         setStoredPalette(store, palette);
         setImportedBaseTheme(store, baseTheme);
         setSelectedPresetId(store, null);

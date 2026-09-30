@@ -1,4 +1,5 @@
 import { type Palette, paletteIsEmpty, toThemePalette } from '@ag-website-shared/components/theme-builder/palette';
+
 import type { AgChartTheme, AgChartThemeName, AgChartThemePalette, AgChartThemeParams } from 'ag-charts-community';
 
 /**
@@ -17,7 +18,7 @@ const toPixelSize = (value: string): number | string => {
 const isPlainObject = (value: unknown): value is Record<string, any> =>
     typeof value === 'object' && value != null && !Array.isArray(value);
 
-const LENGTH_SUFFIXES = ['Radius', 'Width', 'Size', 'Padding', 'Spacing'];
+const LENGTH_SUFFIXES = ['Radius', 'Width', 'Size', 'Padding', 'Spacing', 'Thickness'];
 const isLengthParam = (property: string) => LENGTH_SUFFIXES.some((suffix) => property.endsWith(suffix));
 
 const toChartParamValue = (property: string, value: unknown): unknown => {
@@ -38,9 +39,9 @@ const toChartParamValue = (property: string, value: unknown): unknown => {
         // treatment. `style` has no AG Charts equivalent, so it is dropped.
         if ('ref' in value) return value;
         return Object.fromEntries(
-            Object.entries(value)
-                .filter(([key]) => key !== 'style')
-                .map(([key, member]) => [key, toChartParamValue(key === 'width' ? `${key}Width` : key, member)])
+            Object.keys(value)
+                .filter((key) => key !== 'style')
+                .map((key) => [key, toChartParamValue(key === 'width' ? `${key}Width` : key, value[key])])
         );
     }
 
@@ -53,10 +54,10 @@ const toChartParamValue = (property: string, value: unknown): unknown => {
  */
 const toChartThemeParams = (overriddenParams: Record<string, unknown>): AgChartThemeParams =>
     Object.fromEntries(
-        Object.entries(overriddenParams)
-            .filter(([, value]) => value != null)
-            .map(([property, value]) => [property, toChartParamValue(property, value)])
-    ) as AgChartThemeParams;
+        Object.keys(overriddenParams)
+            .filter((property) => overriddenParams[property] != null)
+            .map((property) => [property, toChartParamValue(property, overriddenParams[property])])
+    );
 
 /**
  * A base theme, params and a palette. `overrides` is dropped because it carries

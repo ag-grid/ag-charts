@@ -38,7 +38,7 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     volumeProfile: {
         data: required(array),
         placement: union('left', 'right'),
-        tickSize: positiveNumber,
+        tickSize: positiveNumberNonZero,
         width: positiveNumberNonZero,
     },
     rangeButtons: boolean,
@@ -135,6 +135,8 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                 },
                 category: {
                     gridLine: { enabled: true },
+                    paddingInner: 0.3,
+                    paddingOuter: 0.15,
                 },
                 time: {
                     gridLine: { enabled: true },

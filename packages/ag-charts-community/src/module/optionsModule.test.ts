@@ -4390,6 +4390,78 @@ describe('ChartOptions', () => {
             expect(googleFonts).toContain('Pacifico');
         });
 
+        it('converts array and google-font values of *FontFamily theme params to strings', () => {
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    loadGoogleFonts: true,
+                    title: { text: 'T' },
+                    subtitle: { text: 'S' },
+                    footnote: { text: 'F' },
+                    theme: {
+                        params: {
+                            titleFontFamily: ['Georgia', 'serif'],
+                            titleFontWeight: 'bold',
+                            subtitleFontFamily: { googleFont: 'Roboto' },
+                            footnoteFontFamily: [{ googleFont: 'Pacifico' }, 'cursive'],
+                        },
+                    },
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+            const { title, subtitle, footnote } = chartOptions.processedOptions as any;
+
+            expect(title.fontFamily).toBe('Georgia, serif');
+            expect(subtitle.fontFamily).toBe('Roboto');
+            expect(footnote.fontFamily).toBe('Pacifico, cursive');
+            expect(chartOptions.googleFonts).toEqual(new Set(['Roboto', 'Pacifico']));
+            expect(chartOptions.fonts).toContain('bold 16px Georgia');
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            {
+                name: 'a google-font',
+                chromeFontFamily: { googleFont: 'Lato' },
+                expected: 'Lato',
+                googleFonts: ['Lato'],
+            },
+            {
+                name: 'a mixed array',
+                chromeFontFamily: [{ googleFont: 'Lato' }, 'sans-serif'],
+                expected: 'Lato, sans-serif',
+                googleFonts: ['Lato'],
+            },
+            {
+                name: 'a string-array',
+                chromeFontFamily: ['Verdana', 'sans-serif'],
+                expected: 'Verdana, sans-serif',
+                googleFonts: [],
+            },
+        ])('converts $name chromeFontFamily param to a string', ({ chromeFontFamily, expected, googleFonts }) => {
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    loadGoogleFonts: true,
+                    theme: { params: { chromeFontFamily } },
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            // This param only feeds `--ag-charts-chrome-font-family`, so it must resolve to a CSS font-family string.
+            expect(chartOptions.themeParameters.chromeFontFamily).toBe(expected);
+            expect(chartOptions.googleFonts ?? new Set()).toEqual(new Set(googleFonts));
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
         it('carries the referenced-font set through a fast-path delta update', () => {
             const baseOptions: AgChartOptions = {
                 data: [{ x: 'a', y: 1 }],

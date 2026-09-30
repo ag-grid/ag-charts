@@ -276,6 +276,9 @@ commonAxisOptionsDefs.layoutConstraints = undocumented({
 // @ts-expect-error undocumented option
 commonAxisOptionsDefs.ignoreZoom = undocumented(boolean);
 
+// @ts-expect-error undocumented option
+commonAxisOptionsDefs.linkZoom = undocumented(string);
+
 export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
     enabled: boolean,
     text: textOrSegments,

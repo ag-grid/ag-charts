@@ -1,10 +1,12 @@
-import { type AgChartThemeName, _Theme } from 'ag-charts-community';
+import { paramValueToCss } from '@ag-website-shared/theming/api';
 import { describe, expect, it } from 'vitest';
 
-import { paramValueToCss } from '../../theming/api';
+import { type AgChartThemeName, _Theme } from 'ag-charts-community';
+
 import {
     CHARTS_PARAM_DEFAULTS,
     PUBLIC_PARAM_NAMES,
+    TOGGLE_ONLY_BORDER_PARAMS,
     getPalette,
     getStackParams,
     toStackParamValue,
@@ -39,10 +41,11 @@ describe('AG Charts param translation', () => {
         for (const [, createTheme] of STOCK_THEMES) {
             const params = createTheme().params as Record<string, unknown>;
             for (const property of PUBLIC_PARAM_NAMES) {
+                if (TOGGLE_ONLY_BORDER_PARAMS.has(property)) continue;
                 collectOperations(params[property], operations);
             }
         }
-        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$ref']);
+        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$ref', '$rem']);
     });
 
     describe('colour references', () => {
@@ -67,6 +70,13 @@ describe('AG Charts param translation', () => {
                     $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38],
                 })
             ).toEqual({ ref: 'textColor', mix: 0.62, onto: 'chartBackgroundColor' });
+        });
+
+        it('maps $rem to a calculation from the font size it scales', () => {
+            expect(toStackParamValue('titleFontSize', { $rem: 1.5 })).toEqual({ calc: 'fontSize * 1.5' });
+            expect(toStackParamValue('titleFontSize', { $rem: [2, 'chromeFontSize'] })).toEqual({
+                calc: 'chromeFontSize * 2',
+            });
         });
 
         it('retargets AG Charts CSS variables so the editors can resolve them', () => {
@@ -97,6 +107,15 @@ describe('AG Charts param translation', () => {
                 // No stock theme uses a gradient or pattern fill, so nothing is
                 // dropped by the narrowing in `getPalette`.
                 expect(palette.fills).toHaveLength(createTheme().palette.fills.length);
+            }
+        });
+
+        it('reads the scrollbar borders as on/off toggles', () => {
+            for (const [themeName] of STOCK_THEMES) {
+                const params = getStackParams(themeName);
+                for (const property of TOGGLE_ONLY_BORDER_PARAMS) {
+                    expect(params[property]).toBe(true);
+                }
             }
         });
     });

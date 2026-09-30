@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { getPathLastIndex, getPathLastIndexIndex, getPathSafe, resolvePath, setPathSafe } from './optionsGraphUtils';
+import {
+    getPathLastIndex,
+    getPathLastIndexIndex,
+    getPathSafe,
+    hasTemplatePathSafe,
+    resolvePath,
+    setPathSafe,
+} from './optionsGraphUtils';
 
 describe('OptionsGraph Utils', () => {
     it('getPathSafe', () => {
@@ -8,6 +15,15 @@ describe('OptionsGraph Utils', () => {
         expect(getPathSafe(object, ['one', 'two', 'three'])).toEqual('value');
         expect(getPathSafe(object, ['one', 'two'])).toEqual({ three: 'value' });
         expect(getPathSafe(object, ['one', 'two', 'four'])).toEqual(undefined);
+    });
+
+    it('hasTemplatePathSafe', () => {
+        const object = { items: { label: { text: 'value' } }, list: [{ text: 'value' }] };
+        expect(hasTemplatePathSafe(object, ['items', '2', 'label', 'text'])).toBe(true);
+        expect(hasTemplatePathSafe(object, ['items', '2', 'label', 'other'])).toBe(false);
+        expect(hasTemplatePathSafe(object, ['items', 'key', 'label'])).toBe(false);
+        expect(hasTemplatePathSafe(object, ['list', '0', 'text'])).toBe(true);
+        expect(hasTemplatePathSafe(object, ['list', '1', 'text'])).toBe(false);
     });
 
     it('setPathSafe', () => {

@@ -62,10 +62,37 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         label: 'Axes & Grid',
         params: [
             { key: 'axisLineColor', label: 'Axis Line Color' },
+            { key: 'axisLabelColor', label: 'Axis Label Color' },
+            { key: 'axisLabelFontFamily', label: 'Axis Label Font Family' },
+            { key: 'axisLabelFontSize', label: 'Axis Label Font Size', min: 8, max: 24 },
+            { key: 'axisLabelFontWeight', label: 'Axis Label Font Weight' },
+            { key: 'axisTitleColor', label: 'Axis Title Color' },
+            { key: 'axisTitleFontFamily', label: 'Axis Title Font Family' },
+            { key: 'axisTitleFontSize', label: 'Axis Title Font Size', min: 8, max: 24 },
+            { key: 'axisTitleFontWeight', label: 'Axis Title Font Weight' },
             { key: 'gridLineColor', label: 'Grid Line Color' },
             { key: 'groupedCategoryLineColor', label: 'Grouped Category Line' },
             { key: 'crosshairLabelBackgroundColor', label: 'Crosshair Label Background' },
             { key: 'crosshairLabelTextColor', label: 'Crosshair Label Text' },
+        ],
+    },
+    {
+        id: 'captions',
+        label: 'Titles and Captions',
+        collapsed: true,
+        params: [
+            { key: 'titleFontFamily', label: 'Title Font Family' },
+            { key: 'titleFontSize', label: 'Title Font Size', min: 8, max: 32 },
+            { key: 'titleFontWeight', label: 'Title Font Weight' },
+            { key: 'titleColor', label: 'Title Color' },
+            { key: 'subtitleFontFamily', label: 'Subtitle Font Family' },
+            { key: 'subtitleFontSize', label: 'Subtitle Font Size', min: 8, max: 32 },
+            { key: 'subtitleFontWeight', label: 'Subtitle Font Weight' },
+            { key: 'subtitleColor', label: 'Subtitle Color' },
+            { key: 'footnoteFontFamily', label: 'Footnote Font Family' },
+            { key: 'footnoteFontSize', label: 'Footnote Font Size', min: 8, max: 32 },
+            { key: 'footnoteFontWeight', label: 'Footnote Font Weight' },
+            { key: 'footnoteColor', label: 'Footnote Color' },
         ],
     },
     {
@@ -124,6 +151,22 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         ],
     },
     {
+        id: 'scrollbar',
+        label: 'Scrollbar',
+        collapsed: true,
+        params: [
+            { key: 'scrollbarThickness', label: 'Thickness', min: 4, max: 32 },
+            { key: 'scrollbarTrackBackgroundColor', label: 'Track Background' },
+            { key: 'scrollbarTrackBorder', label: 'Track Border' },
+            { key: 'scrollbarTrackBorderRadius', label: 'Track Radius', icon: 'radius', min: 0, max: 16 },
+            { key: 'scrollbarThumbBackgroundColor', label: 'Thumb Background' },
+            { key: 'scrollbarThumbBorder', label: 'Thumb Border' },
+            { key: 'scrollbarThumbBorderRadius', label: 'Thumb Radius', icon: 'radius', min: 0, max: 16 },
+            { key: 'scrollbarThumbHoverBackgroundColor', label: 'Thumb Hover Background' },
+            { key: 'scrollbarThumbHoverBorder', label: 'Thumb Hover Border' },
+        ],
+    },
+    {
         id: 'effects',
         label: 'Effects',
         collapsed: true,
@@ -145,16 +188,12 @@ export const CURATED_KEYS = PARAM_GROUPS.flatMap((group) => group.params.map(({ 
 const isDerivedValue = (value: unknown): boolean => {
     if (typeof value === 'string') return value.includes('var(--ag-');
     if (typeof value !== 'object' || value == null || Array.isArray(value)) return false;
-    return 'ref' in value || Object.values(value).some(isDerivedValue);
+    return 'ref' in value || 'calc' in value || Object.values(value).some(isDerivedValue);
 };
 
 /** Which of a theme's params follow another one rather than standing alone. */
 export const inheritedKeysOf = (params: Record<string, unknown>): Set<string> =>
-    new Set(
-        Object.entries(params)
-            .filter(([, value]) => isDerivedValue(value))
-            .map(([key]) => key)
-    );
+    new Set(Object.keys(params).filter((key) => isDerivedValue(params[key])));
 
 /**
  * The params that follow another one rather than standing alone. Read from the
@@ -165,7 +204,7 @@ export const inheritedKeysOf = (params: Record<string, unknown>): Set<string> =>
 export const INHERITED_KEYS = inheritedKeysOf(CHARTS_PARAM_DEFAULTS);
 
 /** `--ag-accent-color` back to `accentColor`, for a default written as raw CSS. */
-const PARAM_BY_VARIABLE: Record<string, string> = Object.fromEntries(
+const PARAM_BY_VARIABLE: Record<string, string | undefined> = Object.fromEntries(
     PUBLIC_PARAM_NAMES.map((property) => [paramToVariableName(property), property])
 );
 
@@ -173,7 +212,7 @@ const collectSources = (value: unknown, found: string[]): void => {
     if (typeof value === 'string') {
         for (const [, variable] of value.matchAll(/var\((--ag-[a-z\d-]+)/g)) {
             const property = PARAM_BY_VARIABLE[variable];
-            if (property) {
+            if (property != null) {
                 found.push(property);
             }
         }
@@ -182,7 +221,11 @@ const collectSources = (value: unknown, found: string[]): void => {
     if (typeof value !== 'object' || value == null || Array.isArray(value)) {
         return;
     }
-    const { ref, onto } = value as { ref?: unknown; onto?: unknown };
+    const { ref, onto, calc } = value as { ref?: unknown; onto?: unknown; calc?: unknown };
+    if (typeof calc === 'string') {
+        found.push(...(calc.match(/[a-zA-Z]\w*/g) ?? []).filter((name) => PUBLIC_PARAM_NAMES.includes(name)));
+        return;
+    }
     if (typeof ref === 'string') {
         found.push(ref);
         if (typeof onto === 'string') {
@@ -208,6 +251,6 @@ export const inheritedSourcesOf = (value: unknown): string[] => {
 };
 
 /** What each inherited param follows, for the editor panel's footnotes. */
-export const INHERITED_SOURCES: Record<string, string[]> = Object.fromEntries(
+export const INHERITED_SOURCES: Record<string, string[] | undefined> = Object.fromEntries(
     [...INHERITED_KEYS].map((key) => [key, inheritedSourcesOf(CHARTS_PARAM_DEFAULTS[key])])
 );

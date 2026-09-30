@@ -7,6 +7,7 @@ import type {
     AgBaseFinancialPresetOptions,
     AgCandlestickSeriesOptions,
     AgCartesianChartOptions,
+    AgCategoryAxisOptions,
     AgChartSyncOptions,
     AgLineSeriesOptions,
     AgNavigatorOptions,
@@ -192,7 +193,7 @@ export function priceVolume(
           }
         : {};
 
-    const volumeProfileYAxis = volumeProfile
+    const volumeProfileAxes = volumeProfile
         ? {
               yVolumeProfile: {
                   type: 'number',
@@ -211,6 +212,23 @@ export function priceVolume(
                   },
                   ignoreZoom: true,
               } satisfies AgNumberAxisOptions,
+              xVolumeProfilePrice: {
+                  type: 'category',
+                  position: 'right',
+                  tick: { enabled: false },
+                  label: { enabled: false },
+                  line: { enabled: false },
+                  crosshair: { enabled: false },
+                  gridLine: { enabled: false },
+                  // @ts-expect-error undocumented options
+                  layoutConstraints: {
+                      stacked: false,
+                      width: 100,
+                      unit: 'percent',
+                      align: 'start',
+                  },
+                  linkZoom: 'y',
+              } satisfies AgCategoryAxisOptions,
           }
         : {};
 
@@ -253,7 +271,7 @@ export function priceVolume(
                 },
             },
             ...volumeAxis,
-            ...volumeProfileYAxis,
+            ...volumeProfileAxes,
         },
         tooltip: { enabled: true, mode: 'shared' },
         data,
@@ -312,7 +330,7 @@ function createVolumeProfileSeries(volumeProfile: AgVolumeProfileOptions | null)
             xName: 'Price',
             yKey: 'upVolume',
             yName: 'Up Volume',
-            xKeyAxis: 'y',
+            xKeyAxis: 'xVolumeProfilePrice',
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
             fillOpacity: 1,
@@ -334,7 +352,7 @@ function createVolumeProfileSeries(volumeProfile: AgVolumeProfileOptions | null)
             xName: 'Price',
             yKey: 'downVolume',
             yName: 'Down Volume',
-            xKeyAxis: 'y',
+            xKeyAxis: 'xVolumeProfilePrice',
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
             fillOpacity: 1,

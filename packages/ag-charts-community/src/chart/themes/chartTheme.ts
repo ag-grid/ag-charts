@@ -214,6 +214,15 @@ export class ChartTheme {
             chromeTextColor: { $ref: 'textColor' },
             chromeSubtleTextColor: { $mix: [{ $ref: 'chromeTextColor' }, { $ref: 'backgroundColor' }, 0.38] },
 
+            axisLabelColor: { $ref: 'textColor' },
+            axisLabelFontFamily: { $ref: 'fontFamily' },
+            axisLabelFontSize: { $ref: 'fontSize' },
+            axisLabelFontWeight: { $ref: 'fontWeight' },
+            axisTitleColor: { $ref: 'textColor' },
+            axisTitleFontFamily: { $ref: 'fontFamily' },
+            axisTitleFontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
+            axisTitleFontWeight: { $ref: 'fontWeight' },
+
             buttonBackgroundColor: { $ref: 'backgroundColor' },
             buttonBorder: {
                 color: { $ref: 'borderColor' },
@@ -254,7 +263,49 @@ export class ChartTheme {
             crosshairLabelBackgroundColor: { $ref: 'foregroundColor' },
             crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
 
+            titleFontSize: { $rem: FONT_SIZE_RATIO.LARGEST },
+            titleFontWeight: { $ref: 'fontWeight' },
+            titleFontFamily: { $ref: 'fontFamily' },
+            titleColor: { $ref: 'textColor' },
+            subtitleFontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
+            subtitleFontWeight: { $ref: 'fontWeight' },
+            subtitleFontFamily: { $ref: 'fontFamily' },
+            subtitleColor: { $ref: 'subtleTextColor' },
+            footnoteFontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
+            footnoteFontWeight: { $ref: 'fontWeight' },
+            footnoteFontFamily: { $ref: 'fontFamily' },
+            footnoteColor: { $ref: 'subtleTextColor' },
+
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
+
+            // The border mixes reproduce the scrollbar colours that predate these params.
+            scrollbarThickness: 12,
+            scrollbarTrackBackgroundColor: { $foregroundBackgroundMix: 0.03 },
+            scrollbarTrackBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.031] },
+                width: { $ref: 'borderWidth' },
+            },
+            scrollbarTrackBorderRadius: 6,
+            scrollbarThumbBackgroundColor: { $foregroundBackgroundMix: 0.125 },
+            scrollbarThumbBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.2513] },
+                width: { $ref: 'borderWidth' },
+            },
+            scrollbarThumbBorderRadius: 6,
+            scrollbarThumbHoverBackgroundColor: {
+                $mix: [{ $ref: 'scrollbarThumbBackgroundColor' }, { $ref: 'foregroundColor' }, 0.075],
+            },
+            scrollbarThumbHoverBorder: {
+                // A boolean scrollbarThumbBorder has no members, and its thumb border uses borderColor.
+                color: {
+                    $if: [
+                        { $isType: [{ $ref: 'scrollbarThumbBorder' }, 'boolean'] },
+                        { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.075] },
+                        { $mix: [{ $ref: 'scrollbarThumbBorder.color' }, { $ref: 'foregroundColor' }, 0.075] },
+                    ],
+                },
+                width: { $ref: 'scrollbarThumbBorder.width' },
+            },
         };
     }
 
@@ -285,10 +336,10 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Title',
                 spacing: { $if: [{ $path: '../subtitle/enabled' }, 10, 20] },
-                fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $rem: FONT_SIZE_RATIO.LARGEST },
-                fontFamily: { $ref: 'fontFamily' },
-                color: { $ref: 'textColor' },
+                fontWeight: { $ref: 'titleFontWeight' },
+                fontSize: { $ref: 'titleFontSize' },
+                fontFamily: { $ref: 'titleFontFamily' },
+                color: { $ref: 'titleColor' },
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
@@ -298,10 +349,10 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Subtitle',
                 spacing: 20,
-                fontWeight: { $ref: 'fontWeight' },
-                fontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
-                fontFamily: { $ref: 'fontFamily' },
-                color: { $ref: 'subtleTextColor' },
+                fontWeight: { $ref: 'subtitleFontWeight' },
+                fontSize: { $ref: 'subtitleFontSize' },
+                fontFamily: { $ref: 'subtitleFontFamily' },
+                color: { $ref: 'subtitleColor' },
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
@@ -311,10 +362,10 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Footnote',
                 spacing: 20,
-                fontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'subtleTextColor' },
+                fontSize: { $ref: 'footnoteFontSize' },
+                fontFamily: { $ref: 'footnoteFontFamily' },
+                fontWeight: { $ref: 'footnoteFontWeight' },
+                color: { $ref: 'footnoteColor' },
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,

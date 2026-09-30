@@ -1,6 +1,7 @@
 import styled from '@emotion/styled';
-import type { AgChartOptions } from 'ag-charts-community';
 import { memo, useLayoutEffect, useMemo } from 'react';
+
+import type { AgChartOptions } from 'ag-charts-community';
 
 import { THUMBNAIL_OPTIONS } from './chartTypes';
 import { toChartTheme } from './chartsThemeOutput';

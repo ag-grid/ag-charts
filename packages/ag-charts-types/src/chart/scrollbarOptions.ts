@@ -18,6 +18,8 @@ export interface AgScrollbarThumbHoverStyle {
     fill?: FillOptions['fill'];
     /** The colour for the hovered thumb stroke. */
     stroke?: StrokeOptions['stroke'];
+    /** The width in pixels of the hovered thumb stroke. */
+    strokeWidth?: PixelSize;
 }
 
 export interface AgScrollbarThumbStyle extends AgScrollbarStyle {

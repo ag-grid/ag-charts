@@ -1,12 +1,13 @@
 import type { IconName } from '@ag-website-shared/components/icon/Icon';
 import { type PersistentAtom, atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
+import { useAtom } from 'jotai';
+
 import type {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgChartOptions,
     AgFinancialChartOptions,
 } from 'ag-charts-community';
-import { useAtom } from 'jotai';
 
 import { type ChartFeatureId, type ChartFeatures, DEFAULT_CHART_FEATURES, isFeatureActive } from './chartFeatures';
 import {
