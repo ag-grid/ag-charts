@@ -590,7 +590,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             itemType: undefined as unknown as 'high' | 'low',
             datum: scratch.datum,
             datumIndex: Number.NaN,
-            midPoint: undefined as unknown as Readonly<Point>,
+            midPoint: undefined,
             yHighValue: scratch.yHighValue,
             yLowValue: scratch.yLowValue,
             xValue: scratch.xValue,
@@ -1876,8 +1876,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         if (!ctx) return undefined;
 
         const scratch = this.createNodeDatumScratch();
-        let hiNode: RangeAreaMarkerDatum = this.createSkeletonNodeDatum(ctx, scratch);
-        let loNode: RangeAreaMarkerDatum = this.createSkeletonNodeDatum(ctx, scratch);
+        const hiNode: RangeAreaMarkerDatum = this.createSkeletonNodeDatum(ctx, scratch);
+        const loNode: RangeAreaMarkerDatum = this.createSkeletonNodeDatum(ctx, scratch);
 
         const filter = ctx.dataAggregationFilter;
         if (filter == null) {
