@@ -93,7 +93,7 @@
         }
     }
 
-    .ag-charts-toolbar__button:hover:not(.ag-charts-toolbar__button--active) {
+    .ag-charts-toolbar__button:hover:not(.ag-charts-toolbar__button--active, [aria-disabled='true']) {
         border-inline-start-color: var(--toolbar-button-border-color--hover);
     }
 }
