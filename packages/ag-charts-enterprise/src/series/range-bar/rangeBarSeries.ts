@@ -613,14 +613,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
      */
     private createNodeDatum(
         ctx: RangeBarSeriesNodeDatumContext,
-        params: NodeDatumParams,
-        strokeWidth: number
+        params: NodeDatumParams
     ): RangeBarNodeDatum | undefined {
         const prepared = this.prepareNodeDatumState(ctx, params.nodeDatumScratch, params.datumIndex);
         if (!prepared) return undefined;
 
         const nodeData = this.createSkeletonNodeDatum(ctx, params);
-        this.updateNodeDatum(ctx, nodeData, params, strokeWidth, prepared);
+        this.updateNodeDatum(ctx, nodeData, params, prepared);
 
         return nodeData;
     }
@@ -633,7 +632,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         ctx: RangeBarSeriesNodeDatumContext,
         node: RangeBarNodeDatum,
         params: NodeDatumParams,
-        strokeWidth: number,
         prepared?: PreparedRangeBarNodeDatumState
     ): void {
         prepared ??= this.prepareNodeDatumState(ctx, params.nodeDatumScratch, params.datumIndex);
@@ -651,7 +649,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const y = Math.round(ctx.yScale.convert(params.yHigh));
         const bottomY = Math.round(ctx.yScale.convert(params.yLow));
-        const height = Math.max(strokeWidth, Math.abs(bottomY - y));
+        const height = Math.max(this.options.strokeWidth, Math.abs(bottomY - y));
 
         const rect = {
             x: ctx.barAlongX ? Math.min(y, bottomY) : params.x,
@@ -700,7 +698,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         ctx: RangeBarSeriesNodeDatumContext,
         xPosition: (index: number) => number,
         nodeDatumParamsScratch: NodeDatumParams,
-        strokeWidth: number,
         dataAggregationFilter: RangeBarSeriesDataAggregationFilter
     ): void {
         const { maxRange, indexData, midpointIndices } = dataAggregationFilter;
@@ -736,8 +733,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             upsertNodeDatum(
                 ctx,
                 nodeDatumParamsScratch,
-                (c, p) => this.createNodeDatum(c, p, strokeWidth),
-                (c, n, p) => this.updateNodeDatum(c, n, p, strokeWidth)
+                (c, p) => this.createNodeDatum(c, p),
+                (c, n, p) => this.updateNodeDatum(c, n, p)
             );
         }
     }
@@ -749,7 +746,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         ctx: RangeBarSeriesNodeDatumContext,
         xPosition: (index: number) => number,
         nodeDatumParamsScratch: NodeDatumParams,
-        strokeWidth: number,
         processedData: _ModuleSupport.ProcessedData<any>
     ): void {
         const invalidData = processedData.invalidData?.get(this.id);
@@ -774,8 +770,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             upsertNodeDatum(
                 ctx,
                 nodeDatumParamsScratch,
-                (c, p) => this.createNodeDatum(c, p, strokeWidth),
-                (c, n, p) => this.updateNodeDatum(c, n, p, strokeWidth)
+                (c, p) => this.createNodeDatum(c, p),
+                (c, n, p) => this.updateNodeDatum(c, n, p)
             );
         }
     }
@@ -786,8 +782,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     private createNodeDataGrouped(
         ctx: RangeBarSeriesNodeDatumContext,
         xPosition: (index: number) => number,
-        nodeDatumParamsScratch: NodeDatumParams,
-        strokeWidth: number
+        nodeDatumParamsScratch: NodeDatumParams
     ): void {
         const processedData = this.processedData! as _ModuleSupport.GroupedData<any>;
         for (const { datumIndex, groupIndex: groupDataIndex } of this.dataModel!.forEachGroupDatum(
@@ -805,8 +800,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             upsertNodeDatum(
                 ctx,
                 nodeDatumParamsScratch,
-                (c, p) => this.createNodeDatum(c, p, strokeWidth),
-                (c, n, p) => this.updateNodeDatum(c, n, p, strokeWidth)
+                (c, p) => this.createNodeDatum(c, p),
+                (c, n, p) => this.updateNodeDatum(c, n, p)
             );
         }
     }
@@ -814,8 +809,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     protected override populateNodeData(ctx: RangeBarSeriesNodeDatumContext): void {
         const { processedData } = this;
         if (!processedData) return;
-
-        const { strokeWidth } = this.options;
 
         const xPosition = (datumIndex: number) => {
             const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
@@ -854,17 +847,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         };
 
         if (ctx.dataAggregationFilter != null) {
-            this.createNodeDataWithAggregation(
-                ctx,
-                xPosition,
-                nodeDatumParamsScratch,
-                strokeWidth,
-                ctx.dataAggregationFilter
-            );
+            this.createNodeDataWithAggregation(ctx, xPosition, nodeDatumParamsScratch, ctx.dataAggregationFilter);
         } else if (processedData.type === 'ungrouped') {
-            this.createNodeDataSimple(ctx, xPosition, nodeDatumParamsScratch, strokeWidth, processedData);
+            this.createNodeDataSimple(ctx, xPosition, nodeDatumParamsScratch, processedData);
         } else {
-            this.createNodeDataGrouped(ctx, xPosition, nodeDatumParamsScratch, strokeWidth);
+            this.createNodeDataGrouped(ctx, xPosition, nodeDatumParamsScratch);
         }
     }
 
