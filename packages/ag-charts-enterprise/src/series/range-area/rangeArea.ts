@@ -36,6 +36,8 @@ import {
     type Point,
     type RequireOptional,
     type SeriesLabelDefaults,
+    type SizedPoint,
+    type Writeable,
     cachedTextMeasurer,
     extent,
     findMinMax,
@@ -188,6 +190,8 @@ interface RangeAreaSeriesNodeDatumContext
     // Mutable state for building node data
     labelData: RangeAreaLabelDatum[];
     spanPoints: Array<RangeAreaSpanPointDatum[] | { skip: number }>;
+
+    readonly xPosition: (index: number) => number;
 }
 
 /** `high` faces up when placed outside the band and down when inside; `low` mirrors it. */
@@ -304,6 +308,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
+    private nodeDatumContext?: RangeAreaSeriesNodeDatumContext;
     private hideWithSize0 = false;
     private markerNodesPickable = true;
 
@@ -439,6 +444,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         xAxis: _ModuleSupport.ChartAxis,
         yAxis: _ModuleSupport.ChartAxis
     ): RangeAreaSeriesNodeDatumContext | undefined {
+        this.nodeDatumContext = undefined;
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
 
@@ -472,7 +478,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             return marker.enabled ? marker.size : 0;
         };
 
-        return {
+        this.nodeDatumContext = {
             xAxis,
             yAxis,
             rawData,
@@ -509,7 +515,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             labelData: [],
             spanPoints: [],
             nodeIndex: 0,
+            xPosition(index: number): number {
+                return this.xScale.convert(this.xValues[index]) + this.xOffset;
+            },
         };
+        return this.nodeDatumContext;
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
@@ -557,6 +567,41 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         return [toNumber(y0), toNumber(y1)];
     }
 
+    private createNodeDatumScratch(): RangeAreaNodeDatumScratch {
+        return {
+            datum: undefined,
+            xValue: undefined,
+            yHighValue: 0,
+            yLowValue: 0,
+            x: 0,
+            yHighCoordinate: 0,
+            yLowCoordinate: 0,
+            inverted: false,
+        };
+    }
+
+    private createSkeletonNodeDatum(
+        ctx: RangeAreaSeriesNodeDatumContext,
+        scratch: RangeAreaNodeDatumScratch
+    ): RangeAreaMarkerDatum {
+        return {
+            index: Number.NaN,
+            series: this,
+            itemType: undefined as unknown as 'high' | 'low',
+            datum: scratch.datum,
+            datumIndex: Number.NaN,
+            midPoint: undefined as unknown as Readonly<Point>,
+            yHighValue: scratch.yHighValue,
+            yLowValue: scratch.yLowValue,
+            xValue: scratch.xValue,
+            xKey: ctx.xKey,
+            yLowKey: ctx.yLowKey,
+            yHighKey: ctx.yHighKey,
+            point: undefined as unknown as Readonly<SizedPoint>,
+            enabled: true,
+        };
+    }
+
     /**
      * Processes a single datum and updates the context's marker, label, and span arrays.
      * Uses the scratch object to avoid per-iteration allocations.
@@ -569,6 +614,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         ctx: RangeAreaSeriesNodeDatumContext,
         scratch: RangeAreaNodeDatumScratch,
         datumIndex: number,
+        hDst: Writeable<RangeAreaMarkerDatum> | undefined,
+        lDst: Writeable<RangeAreaMarkerDatum> | undefined,
         yHighValueOverride?: AgNumericValue,
         yLowValueOverride?: AgNumericValue
     ): void {
@@ -591,9 +638,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             scratch.yLowCoordinate = ctx.yScale.convert(scratch.yLowValue);
 
             // Create/update marker and label data for high boundary
-            this.upsertMarkerDatum(ctx, scratch, datumIndex, 'high', scratch.yHighValue, scratch.yHighCoordinate);
+            this.upsertMarkerDatum(ctx, scratch, datumIndex, 'high', scratch.yHighValue, scratch.yHighCoordinate, hDst);
             // Create/update marker and label data for low boundary
-            this.upsertMarkerDatum(ctx, scratch, datumIndex, 'low', scratch.yLowValue, scratch.yLowCoordinate);
+            this.upsertMarkerDatum(ctx, scratch, datumIndex, 'low', scratch.yLowValue, scratch.yLowCoordinate, lDst);
 
             // Update span points for path rendering
             const spanPoint: RangeAreaSpanPointDatum = {
@@ -660,16 +707,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         datumIndex: number,
         itemType: 'high' | 'low',
         yValue: AgNumericValue,
-        y: number
+        y: number,
+        dst: Writeable<RangeAreaMarkerDatum> | undefined
     ): void {
         const { size } = ctx.item[itemType].marker;
-        const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
+        const existingNode: typeof dst =
+            dst === undefined && ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length
+                ? ctx.nodes[ctx.nodeIndex]
+                : dst;
 
-        if (canReuseNode) {
+        if (existingNode) {
             // Update existing marker datum in place to avoid allocation
-            const existingNode = ctx.nodes[ctx.nodeIndex] as {
-                -readonly [K in keyof RangeAreaMarkerDatum]: RangeAreaMarkerDatum[K];
-            };
             existingNode.index = datumIndex;
             existingNode.itemType = itemType;
             existingNode.datum = scratch.datum;
@@ -697,7 +745,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 enabled: true,
             });
         }
-        ctx.nodeIndex++;
+        if (dst === undefined) {
+            ctx.nodeIndex++;
+        }
 
         // Skip label creation if labels are disabled
         if (ctx.labelsEnabled) {
@@ -719,24 +769,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         if (!processedData) return;
 
         // Reusable scratch object to avoid per-datum allocations
-        const scratch: RangeAreaNodeDatumScratch = {
-            datum: undefined,
-            xValue: undefined,
-            yHighValue: 0,
-            yLowValue: 0,
-            x: 0,
-            yHighCoordinate: 0,
-            yLowCoordinate: 0,
-            inverted: false,
-        };
-
-        const xPosition = (index: number) => ctx.xScale.convert(ctx.xValues[index]) + ctx.xOffset;
+        const scratch: RangeAreaNodeDatumScratch = this.createNodeDatumScratch();
 
         // @todo(AG-13575) Remove this if block
         if (processedData.input.count < 1e3 || ctx.dataAggregationFilter == null) {
             // No aggregation - iterate only visible data points
             let [start, end] = visibleRangeIndices(1, ctx.xValues.length, ctx.xAxisRange, (index) => {
-                const x = xPosition(index);
+                const x = ctx.xPosition(index);
                 return [x, x];
             });
             // @todo(AG-13575) Remove this if block
@@ -749,7 +788,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             end = Math.min(end + 1, ctx.xValues.length);
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
-                this.handleDatumPoint(ctx, scratch, datumIndex);
+                this.handleDatumPoint(ctx, scratch, datumIndex, undefined, undefined);
             }
         } else {
             // With aggregation - iterate only visible buckets
@@ -758,7 +797,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             const [start, end] = visibleRangeIndices(1, maxRange, ctx.xAxisRange, (index) => {
                 const midDatumIndex = midpointIndices[index];
                 if (midDatumIndex === AGGREGATION_INDEX_UNSET) return;
-                return [xPosition(midDatumIndex), xPosition(midDatumIndex)];
+                return [ctx.xPosition(midDatumIndex), ctx.xPosition(midDatumIndex)];
             });
 
             let prevEndDatumIndex = -1;
@@ -792,6 +831,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                     ctx,
                     scratch,
                     yHighDatumIndex,
+                    undefined,
+                    undefined,
                     ctx.yHighValues[yHighDatumIndex],
                     ctx.yLowValues[yLowDatumIndex]
                 );
@@ -1831,13 +1872,33 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        const nodeData = this.contextNodeData?.nodeData;
-        if (nodeData == null) return undefined;
+        const ctx = this.nodeDatumContext;
+        if (!ctx) return undefined;
 
-        const hiIndex = nodeData.findIndex((node) => node.datumIndex === opts.datumIndex);
-        const loIndex = hiIndex === -1 ? -1 : hiIndex + 1;
-        const hiBox = computeMarkerFocusBoundsOfNodeDatum(this, nodeData[hiIndex]);
-        const loBox = computeMarkerFocusBoundsOfNodeDatum(this, nodeData[loIndex]);
+        const scratch = this.createNodeDatumScratch();
+        let hiNode: RangeAreaMarkerDatum = this.createSkeletonNodeDatum(ctx, scratch);
+        let loNode: RangeAreaMarkerDatum = this.createSkeletonNodeDatum(ctx, scratch);
+
+        const filter = ctx.dataAggregationFilter;
+        if (filter == null) {
+            this.handleDatumPoint(ctx, scratch, opts.datumIndex, hiNode, loNode);
+        } else {
+            const bucketIndex = this.bucketLookup?.getBucketIndex(opts.datumIndex);
+            if (bucketIndex === undefined) return undefined;
+
+            const midDatumIndex = filter.midpointIndices[bucketIndex];
+            const hiIndex = filter.indexData[bucketIndex * SPAN + HIGH];
+            const loIndex = filter.indexData[bucketIndex * SPAN + LOW];
+            const hiOverride: AgNumericValue | undefined = ctx.yHighValues[hiIndex];
+            const loOverride: AgNumericValue | undefined = ctx.yLowValues[loIndex];
+
+            if (midDatumIndex !== AGGREGATION_INDEX_UNSET && hiOverride !== undefined && loOverride === undefined) {
+                this.handleDatumPoint(ctx, scratch, midDatumIndex, hiNode, loNode, hiOverride, loOverride);
+            }
+        }
+
+        const hiBox = computeMarkerFocusBoundsOfNodeDatum(this, hiNode);
+        const loBox = computeMarkerFocusBoundsOfNodeDatum(this, loNode);
         if (hiBox && loBox) {
             return BBox.merge([hiBox, loBox]);
         }
