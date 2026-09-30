@@ -645,37 +645,63 @@ function fitLabelOptions(label: NonNullable<AgSeriesAreaBackgroundRegion['label'
     };
 }
 
-EXAMPLES.LABEL_FIT_WRAP = { options: fitLabelOptions({ maxWidth: 120 }), assertions };
-EXAMPLES.LABEL_FIT_TRUNCATE = {
-    options: fitLabelOptions({ maxWidth: 120, wrapping: 'never', truncate: true }),
-    assertions,
-};
-EXAMPLES.LABEL_FIT_SHRINK = {
-    options: fitLabelOptions({ maxWidth: 200, wrapping: 'never', truncate: false, minimumFontSize: 8 }),
-    assertions,
-};
-EXAMPLES.LABEL_FIT_ALL = {
-    options: fitLabelOptions({
-        maxWidth: 120,
-        maxHeight: 40,
-        minimumFontSize: 12,
-        wrapping: 'on-space',
-        truncate: true,
-    }),
-    assertions,
-};
-EXAMPLES.LABEL_FIT_ROTATED = {
-    options: fitLabelOptions({ maxWidth: 120, position: 'inside-left', rotation: 270 }),
-    assertions,
-};
-EXAMPLES.LABEL_FIT_BOXED = {
-    options: fitLabelOptions({ maxWidth: 120, fill: 'white', border: { enabled: true, stroke: 'black' } }),
+function fitRegion(
+    x: number,
+    y: number,
+    label: NonNullable<AgSeriesAreaBackgroundRegion['label']>
+): AgSeriesAreaBackgroundRegion {
+    return {
+        fill: 'lightsalmon',
+        fillOpacity: 0.8,
+        xRange: { start: x, end: x + 30 },
+        yRange: { start: y, end: y + 45 },
+        label: { text: LONG_LABEL, fontSize: 16, position: 'inside-top', ...label },
+    };
+}
+
+EXAMPLES.LABEL_FIT_MODES = {
+    options: {
+        ...NUMERIC,
+        seriesArea: {
+            backgroundRegions: [
+                fitRegion(0, 55, {}),
+                fitRegion(35, 55, { wrapping: 'never', truncate: true }),
+                fitRegion(70, 55, { maxWidth: 180, wrapping: 'never', minimumFontSize: 8 }),
+                fitRegion(0, 0, { maxHeight: 20, minimumFontSize: 12 }),
+                fitRegion(35, 0, { position: 'inside-left', rotation: 270 }),
+                fitRegion(70, 0, { fill: 'white', border: { enabled: true, stroke: 'black' } }),
+            ],
+        },
+        theme: { overrides: { scatter: { seriesArea: { backgroundRegions: { label: { maxWidth: 120 } } } } } },
+    },
     assertions,
 };
 
-for (const position of labelPositions) {
-    EXAMPLES[`LABEL_FIT_${position}`] = { options: fitLabelOptions({ position, maxWidth: 120 }), assertions };
-}
+const FIT_POSITIONS = [
+    'top-left',
+    'right',
+    'left-bottom',
+    'bottom',
+    'inside',
+    'inside-top-left',
+    'inside-bottom-right',
+] as const;
+
+EXAMPLES.LABEL_FIT_POSITIONS = {
+    options: {
+        ...NUMERIC,
+        seriesArea: {
+            backgroundRegions: FIT_POSITIONS.map((position, index) => ({
+                fill: 'lightsalmon',
+                fillOpacity: index === 0 ? 0.8 : 0,
+                xRange: { start: 30, end: 70 },
+                yRange: { start: 30, end: 70 },
+                label: { text: 'Wrapped region label', fontSize: 12, maxWidth: 70, position },
+            })),
+        },
+    },
+    assertions,
+};
 
 for (const position of labelPositions) {
     EXAMPLES[`LABEL_${position}`] = {
