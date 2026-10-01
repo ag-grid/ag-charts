@@ -522,6 +522,27 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         });
     }
 
+    /**
+     * Resolves the theme and arms `validations` from it. The theme validates itself while it resolves, before
+     * its own `validations` are known, so what it reports is held back and replayed under the armed settings.
+     */
+    private resolveThemeAndArmValidations(optionsTheme: unknown, presetName: string | undefined) {
+        const themeIssues: LogIssue[] = [];
+        const themeLogger = new Logger();
+        themeLogger.setEnabledLevels([]);
+        themeLogger.onIssue((issue) => themeIssues.push(issue));
+
+        const activeTheme = sanitizeThemeModules(
+            getChartTheme(optionsTheme, themeLogger, presetName, this.moduleRegistry),
+            this.moduleRegistry
+        );
+        this.armValidations(activeTheme);
+        for (const issue of themeIssues) {
+            this.replay(issue, true);
+        }
+        return activeTheme;
+    }
+
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
         // Minimal-mode structural-output cache fast path.
         const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
@@ -554,11 +575,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             missingPresetModule = presetDef == null ? ExpectedModules.get(presetType) : undefined;
         }
 
-        const activeTheme = sanitizeThemeModules(
-            getChartTheme(optionsTheme, this.logger, presetDefName, this.moduleRegistry),
-            this.moduleRegistry
-        );
-        this.armValidations(activeTheme);
+        const activeTheme = this.resolveThemeAndArmValidations(optionsTheme, presetDefName);
 
         if (presetDef) {
             const { validate: validatePreset = validate } = presetDef;
@@ -739,11 +756,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Must resolve the theme exactly as `slowSetup` does, or a cached chart is styled differently
         // from the one that populated the cache.
         const optionsTheme = (this.userOptions as any).theme ?? presetDef?.baseTheme;
-        const activeTheme = sanitizeThemeModules(
-            getChartTheme(optionsTheme, this.logger, presetDef?.name, this.moduleRegistry),
-            this.moduleRegistry
-        );
-        this.armValidations(activeTheme);
+        const activeTheme = this.resolveThemeAndArmValidations(optionsTheme, presetDef?.name);
         this.chartDef = cached.chartDef;
 
         // A cache hit skips the validation loops, so what they logged is replayed for this chart's console
@@ -803,17 +816,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         runtime.validations.configure(getValidations(this.processedOptions));
     }
 
-    private replay({ severity, message, detail }: LogIssue) {
+    private replay({ severity, message, detail }: LogIssue, once = false) {
         const logContent = detail == null ? [] : [detail];
         switch (severity) {
             case 'error':
-                this.logger.error(message, ...logContent);
+                if (once) this.logger.errorOnce(message, ...logContent);
+                else this.logger.error(message, ...logContent);
                 break;
             case 'warning':
-                this.logger.warn(message, ...logContent);
+                if (once) this.logger.warnOnce(message, ...logContent);
+                else this.logger.warn(message, ...logContent);
                 break;
             case 'deprecation':
-                this.logger.deprecation(message, ...logContent);
+                if (once) this.logger.deprecationOnce(message, ...logContent);
+                else this.logger.deprecation(message, ...logContent);
                 break;
         }
     }

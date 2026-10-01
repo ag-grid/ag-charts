@@ -4952,6 +4952,50 @@ describe('ChartOptions', () => {
             expect(strokeWidthCalls).toHaveLength(1);
         });
 
+        describe('for issues inside the theme itself', () => {
+            const validChart = (theme: object) =>
+                ({ series: [{ type: 'line', xKey: 'x', yKey: 'y' }], theme }) as AgChartOptions;
+            const invalidTheme = (validations?: object) => ({
+                ...themeValidations(validations),
+                params: { borderRadius: 'notround' as any },
+            });
+            const isThemeIssue = (message: unknown) => String(message).includes('notround');
+            const themeWarnings = () => (console.warn as Mock).mock.calls.filter(([m]) => isThemeIssue(m));
+
+            it('honours the theme `consoleOn: []` while still recording the issue', () => {
+                const chartOptions = construct(validChart(invalidTheme({ consoleOn: [] })));
+
+                expect(themeWarnings()).toHaveLength(0);
+                expect(chartOptions.issues.some((issue) => isThemeIssue(issue.message))).toBe(true);
+            });
+
+            it('still prints the issue when the theme sets no `validations`', () => {
+                construct(validChart(invalidTheme()));
+
+                expect(themeWarnings()).toHaveLength(1);
+            });
+
+            it('tells the theme `issueRaised` listener', () => {
+                const issueRaised = vi.fn();
+                construct(validChart(invalidTheme({ issueRaised })));
+
+                expect(issueRaised).toHaveBeenCalledWith(
+                    expect.objectContaining({ severity: 'warning', message: expect.stringContaining('notround') })
+                );
+            });
+
+            it("applies the updated theme's settings rather than the previous theme's", () => {
+                const runtime = createProvisionalRuntime(new Logger());
+                const update = (base: ChartOptions | undefined, userOptions: AgChartOptions) =>
+                    new ChartOptions(base, userOptions, {}, {}, {}, undefined, false, false, undefined, runtime);
+
+                const base = update(undefined, validChart(themeValidations()));
+                update(base, validChart(invalidTheme({ consoleOn: [] })));
+
+                expect(themeWarnings()).toHaveLength(0);
+            });
+        });
+
         it('resolves a theme `showOverlayOn` into the processed options', () => {
             const chartOptions = construct(invalidOptions({ theme: themeValidations({ showOverlayOn: ['error'] }) }));
 
@@ -5037,6 +5081,20 @@ describe('ChartOptions', () => {
 
                 construct(invalidOptions({ theme }), base);
                 expect(await uncaughtMessages()).toHaveLength(1);
+            });
+
+            it('throws uncaught for an issue inside the theme itself', async () => {
+                construct({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    theme: {
+                        ...themeValidations({ throwOn: ['warning'] }),
+                        params: { borderRadius: 'notround' as any },
+                    },
+                } as AgChartOptions);
+
+                expect(await uncaughtMessages()).toEqual([
+                    expect.stringMatching(/^Error: AG Charts - validations\.throwOn: warning - .*notround/),
+                ]);
             });
 
             it('throws for each chart served from the structural cache', async () => {
