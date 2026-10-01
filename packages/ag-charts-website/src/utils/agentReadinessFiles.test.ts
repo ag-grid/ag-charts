@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { buildAgentsMd, buildLlmsTxt } from './agentReadinessFiles';
+import { createSiteRouteResolver } from './test/siteRoutes';
 
 const INPUT = {
     siteRoot: 'https://www.ag-grid.com/charts/',
@@ -131,5 +132,28 @@ describe('buildAgentsMd', () => {
         const disabled = buildAgentsMd({ ...INPUT, includeMarkdownDocs: false });
         expect(disabled).not.toContain('.md');
         expect(disabled).not.toContain('Markdown for LLMs');
+    });
+});
+
+describe('agent-readiness links (waf-finding §13, B16)', () => {
+    const isSitePage = createSiteRouteResolver();
+    // Every URL on this site the files name, as a markdown link target or inline.
+    const siteLinks = (text: string) =>
+        [...text.matchAll(/https:\/\/www\.ag-grid\.com\/charts(\/[^\s)`,]*)/g)].map((m) => m[1].replace(/\.$/, ''));
+
+    test.each([
+        ['llms.txt', buildLlmsTxt(INPUT)],
+        ['AGENTS.md', buildAgentsMd(INPUT)],
+    ])('%s links only pages that the site builds', (_, text) => {
+        const links = siteLinks(text);
+        expect(links.length).toBeGreaterThan(5);
+        for (const link of links) {
+            expect(isSitePage(link), `${link} is not a page of this site`).toBe(true);
+        }
+    });
+
+    test('points the options reference at the framework-agnostic options page', () => {
+        expect(buildLlmsTxt(INPUT)).toContain('[Options reference](https://www.ag-grid.com/charts/options/)');
+        expect(buildAgentsMd(INPUT)).toContain('[options reference](https://www.ag-grid.com/charts/options/)');
     });
 });
