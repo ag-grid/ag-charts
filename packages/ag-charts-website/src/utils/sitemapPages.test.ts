@@ -2,8 +2,10 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { getSitemapConfig } from './sitemap';
 import { getIgnoredPages, getSitemapIgnorePaths } from './sitemapPages';
 import { aiCrawlerGroup, isAllowed, wildcardGroup } from './test/robotsMatcher';
+import { enumerablePageFiles } from './test/siteRoutes';
 
 // The disallow list is published as /charts/robots-disallow.json with the production base, which
 // the grid root robots.txt prints verbatim, so the paths are asserted under `/charts`.
@@ -124,6 +126,18 @@ describe('getSitemapIgnorePaths, as the root robots.txt applies it', () => {
         ]) {
             expect(blockedForSearch(url), url).toBe(false);
             expect(blockedForAi(url), url).toBe(false);
+        }
+    });
+
+    test('never blocks a page the sitemap submits, which Search Console reports as an error', () => {
+        const { filter } = getSitemapConfig('/charts', HIDDEN_DOCS);
+        const pages = enumerablePageFiles('/charts')
+            .filter((file) => file.endsWith('/index.html'))
+            .map((file) => file.replace(/index\.html$/, ''));
+        const submitted = pages.filter((page) => filter(`https://www.ag-grid.com${page}`));
+        expect(submitted.length).toBeGreaterThan(100);
+        for (const page of submitted) {
+            expect(blockedForSearch(page), page).toBe(false);
         }
     });
 
