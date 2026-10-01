@@ -1,3 +1,5 @@
+import { FRAMEWORKS } from '../../constants';
+
 export type SimpleRedirectRule = {
     from: string;
     to: string;
@@ -24,18 +26,68 @@ export const REDIRECTS_FILE = 'packages/ag-charts-website/src/utils/htaccess/red
 // index.html; sitemap-0.xml is a flat file, so it must be excluded from that check.
 export const IGNORE_PAGES = ['/sitemap-0.xml'];
 
+/** A legacy docs prefix whose pages now live, under the same slugs, below `currentPrefix`. */
+export type LegacyDocsPrefix = { legacyPrefix: string; currentPrefix: string };
+
+const legacyDocsPrefix = (legacyPrefix: string, currentPrefix: string): LegacyDocsPrefix => ({
+    legacyPrefix,
+    currentPrefix,
+});
+
+const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 /**
  * A page-preserving legacy redirect from one docs prefix to another, in one hop from either slash
  * form. A last segment with a dot is a file (index.html, a .md twin, an asset) and keeps its path
  * as-is; anything else is a page slug, captured without its trailing slash and given one. The
  * slug must be non-empty, or the rule would target the bare prefix root.
  */
-const pagePreservingRedirects = (fromPrefix: string, toPrefix: string): RedirectMatchRule[] => [
-    { fromPattern: `^${fromPrefix}(.*\\.[^/]*)$`, to: `${toPrefix}$1` },
-    { fromPattern: `^${fromPrefix}(.+?)/?$`, to: `${toPrefix}$1/` },
+const pagePreservingRedirects = ({ legacyPrefix, currentPrefix }: LegacyDocsPrefix): RedirectMatchRule[] => [
+    { fromPattern: `^${legacyPrefix}(.*\\.[^/]*)$`, to: `${currentPrefix}$1` },
+    { fromPattern: `^${legacyPrefix}(.+?)/?$`, to: `${currentPrefix}$1/` },
 ];
 
-export const SITE_301_REDIRECTS: Redirect[] = [
+/**
+ * `rule` moved below `legacyPrefix`, for a rule whose source is a page below `currentPrefix`: the
+ * legacy URL of a renamed page, sent straight to the renamed page's target. Without it the
+ * page-preserving rule would send it to the current URL first, which then redirects again.
+ * Emitted as a pattern rule, so Astro does not build a redirect page for every legacy spelling.
+ */
+function underLegacyPrefix({ legacyPrefix, currentPrefix }: LegacyDocsPrefix, rule: Redirect): Redirect[] {
+    if ('from' in rule) {
+        const { from, ...target } = rule;
+        if (!from.startsWith(currentPrefix) || from === currentPrefix) {
+            return [];
+        }
+        const legacyPage = `${legacyPrefix}${from.slice(currentPrefix.length)}`.replace(/\/$/, '');
+        return [{ ...target, fromPattern: `^${escapeRegExp(legacyPage)}/?$` }];
+    }
+    const { fromPattern, ...target } = rule;
+    const currentPattern = `^${escapeRegExp(currentPrefix)}`;
+    const below = fromPattern.slice(currentPattern.length);
+    // Only a rule for a slug below the prefix: not the prefix root (`$`), nor one whose last
+    // character the remainder quantifies (`^/javascript/?$`).
+    if (!fromPattern.startsWith(currentPattern) || below === '$' || /^[?*+{]/.test(below)) {
+        return [];
+    }
+    return [{ ...target, fromPattern: `^${escapeRegExp(legacyPrefix)}${below}` }];
+}
+
+/**
+ * Every legacy prefix's redirects: first a rule for each renamed page below its current prefix,
+ * aimed at that page's final target and listed in the order Apache would have tried the renames on
+ * the second hop, then the broad page-preserving rules.
+ */
+function withLegacyDocsPrefixes(rules: Array<Redirect | LegacyDocsPrefix>): Redirect[] {
+    const renames = rules.filter((rule): rule is Redirect => !('legacyPrefix' in rule));
+    return rules.flatMap((rule) =>
+        'legacyPrefix' in rule
+            ? [...renames.flatMap((rename) => underLegacyPrefix(rule, rename)), ...pagePreservingRedirects(rule)]
+            : [rule]
+    );
+}
+
+const RULES: Array<Redirect | LegacyDocsPrefix> = [
     { from: '/javascript/bullet-series', to: '/javascript/linear-gauge/#bullet-series' },
     { from: '/angular/bullet-series', to: '/angular/linear-gauge/#bullet-series' },
     { from: '/react/bullet-series', to: '/react/linear-gauge/#bullet-series' },
@@ -73,12 +125,12 @@ export const SITE_301_REDIRECTS: Redirect[] = [
 
     // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>". The slug must be
     // non-empty, or this would target the bare "{fw}/" root and chain into the "^/{fw}/?$" rule.
-    ...pagePreservingRedirects('/javascript-charts/javascript/', '/javascript/'),
-    ...pagePreservingRedirects('/angular-charts/angular/', '/angular/'),
-    ...pagePreservingRedirects('/react-charts/react/', '/react/'),
-    ...pagePreservingRedirects('/vue-charts/vue/', '/vue/'),
+    legacyDocsPrefix('/javascript-charts/javascript/', '/javascript/'),
+    legacyDocsPrefix('/angular-charts/angular/', '/angular/'),
+    legacyDocsPrefix('/react-charts/react/', '/react/'),
+    legacyDocsPrefix('/vue-charts/vue/', '/vue/'),
     // Legacy enterprise framework docs (security, accessibility, …) → react docs.
-    ...pagePreservingRedirects('/enterprise-charts/react/', '/react/'),
+    legacyDocsPrefix('/enterprise-charts/react/', '/react/'),
 
     // Legacy "{fw}-charts/gallery|options/..." → framework-agnostic section landing.
     { fromPattern: '^/[a-z]+-charts/gallery(/.*)?$', to: '/gallery/' },
@@ -89,13 +141,25 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     // Framework-agnostic legacy layouts: core = main docs, side = side-nav docs. The bare layout
     // root goes straight to quick-start; via "/javascript/" it would take a second hop.
     { fromPattern: '^/(?:core|side)/?$', to: '/javascript/quick-start/' },
-    ...pagePreservingRedirects('/core/', '/javascript/'),
-    ...pagePreservingRedirects('/side/', '/javascript/'),
+    legacyDocsPrefix('/core/', '/javascript/'),
+    legacyDocsPrefix('/side/', '/javascript/'),
 
     // Framework-agnostic "server-side-rendering" is a docs slug → framework-scoped page.
     { fromPattern: '^/server-side-rendering(/.*)?$', to: '/javascript/server-side-rendering/' },
 
     // Legacy aggregate index pages with no current equivalent → first page of the matching nav section.
-    { fromPattern: '^/(javascript|angular|react|vue)/series(/.*)?$', to: '/$1/bar-series/' },
-    { fromPattern: '^/(javascript|angular|react|vue)/axes(/.*)?$', to: '/$1/axes-configuration/' },
+    // One rule per framework, so each sits literally below its framework prefix for the legacy
+    // prefixes to resolve.
+    ...FRAMEWORKS.map((framework) => ({
+        fromPattern: `^/${framework}/series(/.*)?$`,
+        to: `/${framework}/bar-series/`,
+    })),
+    ...FRAMEWORKS.map((framework) => ({
+        fromPattern: `^/${framework}/axes(/.*)?$`,
+        to: `/${framework}/axes-configuration/`,
+    })),
 ];
+
+export const LEGACY_DOCS_PREFIXES = RULES.filter((rule): rule is LegacyDocsPrefix => 'legacyPrefix' in rule);
+
+export const SITE_301_REDIRECTS: Redirect[] = withLegacyDocsPrefixes(RULES);
