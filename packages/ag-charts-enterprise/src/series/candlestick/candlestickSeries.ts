@@ -75,7 +75,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
             const style = (datum.style ??
                 contextNodeData.styles[datum.itemType][highlightState]) as NormalisedCandlestickStyle;
 
-            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
+            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp, shadow);
 
             node.setStyleProperties(style, fillBBox);
 
@@ -89,7 +89,6 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
             );
 
             node.wickStrokeAlignment = baseStyle.wick?.strokeWidth ?? baseStyle.strokeWidth;
-            node.fillShadow = shadow;
         });
     }
 

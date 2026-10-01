@@ -370,11 +370,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.restore();
     }
 
-    /**
-     * Strokes that a shape draws apart from its main path, such as wicks styled differently from the body. They have
-     * to be cast into the {@link ShapeShadowMode silhouette} shadow with the rest of the shape. Runs in the same
-     * off-canvas pre-pass, so it must only draw.
-     */
+    /** Draws strokes the shape paints apart from its main path, so the silhouette pre-pass casts them too. */
     protected renderSilhouetteExtras(_ctx: CanvasContext) {
         // Nothing to do by default.
     }

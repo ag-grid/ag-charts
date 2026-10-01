@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { DistantObject } from 'ag-charts-core';
+import type { DistantObject, NormalisedDropShadowOptions } from 'ag-charts-core';
 import { DeclaredSceneChangeDetection } from 'ag-charts-core';
 
 const { Path, BBox } = _ModuleSupport;
@@ -52,7 +52,8 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
         height: number,
         yOpen: number,
         yClose: number,
-        crisp: boolean
+        crisp: boolean,
+        fillShadow: NormalisedDropShadowOptions | undefined = this.__fillShadow
     ): void {
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__centerX = centerX;
@@ -62,6 +63,7 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
         this.__yOpen = yOpen;
         this.__yClose = yClose;
         this.__crisp = crisp;
+        this.__fillShadow = fillShadow;
 
         // Mark path as dirty since crisp affects path rendering
         this.dirtyPath = true;

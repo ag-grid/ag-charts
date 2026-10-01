@@ -9,8 +9,10 @@ import {
     deproxy,
     extractImageData,
     prepareTestOptions,
+    setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { testLogger } from 'ag-charts-test';
 
 import { setupEnterpriseModules } from '../setup';
 
@@ -136,3 +138,76 @@ export function collectShapes(root: _Scene.Group): _Scene.Shape[] {
 
 /** The theme-resolved `shadow` defaults of a fill series: present but disabled. */
 export const DEFAULT_DISABLED_SHADOW = { enabled: false, xOffset: 3, yOffset: 3, blur: 5, color: '#00000080' };
+
+/** The shadow the series tests turn on. */
+export const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
+
+/** A red shadow with no offset or blur, so a node test sees the shadow as exactly the node's own pixels. */
+export const RED_SHADOW = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+
+export const shadowedShapes = (group: _Scene.Group) =>
+    collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
+
+/** The drawn item nodes of the first series, typed loosely so tests can read node-specific fields. */
+export const itemNodes = (chart: any): any[] => collectShapes(chart.series[0].contentGroup);
+
+type MockCanvas = ReturnType<typeof setupMockCanvas>;
+
+/** Renders `node` over a white background, at `pixelRatio` when the mock canvas is sized in device pixels. */
+export function renderNode(canvasCtx: MockCanvas, node: _Scene.Shape, pixelRatio = 1) {
+    const { width, height } = canvasCtx.nodeCanvas;
+    const ctx = canvasCtx.getRenderContext2D();
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, width, height);
+
+    if (pixelRatio !== 1) {
+        const layerManager = { canvas: { pixelRatio, width: width / pixelRatio, height: height / pixelRatio } };
+        Object.defineProperty(node, 'layerManager', { get: () => layerManager, configurable: true });
+    }
+
+    const renderCtx = {
+        ctx,
+        direction: 'ltr' as const,
+        width,
+        height,
+        devicePixelRatio: pixelRatio,
+        logger: testLogger,
+        debugNodes: {},
+    };
+    ctx.save();
+    ctx.scale(pixelRatio, pixelRatio);
+    node.preRender(renderCtx);
+    node.render(renderCtx);
+    ctx.restore();
+}
+
+/** The device-pixel columns that hold at least one opaque black pixel. */
+export function blackColumns(canvasCtx: MockCanvas) {
+    const { width, height } = canvasCtx.nodeCanvas;
+    const { data } = canvasCtx.getRenderContext2D().getImageData(0, 0, width, height);
+    const columns = new Set<number>();
+    for (let i = 0; i < data.length; i += 4) {
+        if (data[i] === 0 && data[i + 1] === 0 && data[i + 2] === 0 && data[i + 3] === 255) {
+            columns.add((i / 4) % width);
+        }
+    }
+    return [...columns].sort((a, b) => a - b);
+}
+
+/** Whether the leftmost `columns` device-pixel columns are all still the opaque white background. */
+export function leftEdgeIsWhite(canvasCtx: MockCanvas, columns = 2) {
+    const { width, height } = canvasCtx.nodeCanvas;
+    const { data } = canvasCtx.getRenderContext2D().getImageData(0, 0, width, height);
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < columns; x++) {
+            const i = (y * width + x) * 4;
+            if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255 || data[i + 3] !== 255) return false;
+        }
+    }
+    return true;
+}
+
+/** The RGBA of the device pixel at (`x`, `y`). */
+export function pixelAt(canvasCtx: MockCanvas, x: number, y: number) {
+    return [...canvasCtx.getRenderContext2D().getImageData(x, y, 1, 1).data];
+}

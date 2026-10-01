@@ -58,7 +58,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const baseStyle = datum.isRising ? up : down;
 
-            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
+            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp, shadow);
 
             const style = (datum.style ??
                 contextNodeData.styles[datum.itemType][
@@ -68,7 +68,6 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
             node.setStyleProperties(style);
 
             node.strokeAlignment = baseStyle.strokeWidth;
-            node.fillShadow = shadow;
         });
     }
 

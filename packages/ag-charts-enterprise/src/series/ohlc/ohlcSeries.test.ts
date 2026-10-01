@@ -39,10 +39,12 @@ import { Caster } from 'ag-charts-test';
 
 import {
     DEFAULT_DISABLED_SHADOW,
-    collectShapes,
+    SHADOW,
     createEnterpriseChart,
+    itemNodes,
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
+    shadowedShapes,
 } from '../../test/utils';
 import { OhlcSeries } from './ohlcSeries';
 
@@ -64,8 +66,6 @@ const OHLC_OPTIONS: AgChartOptions = {
         },
     ],
 };
-
-const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
 
 describe('OhlcSeries', () => {
     setupMockConsole();
@@ -344,30 +344,26 @@ describe('OhlcSeries', () => {
             prepareEnterpriseTestOptions(options as any);
             return options;
         };
-        const shadowedShapes = (group: any) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
 
         it('defaults to a disabled shadow', async () => {
-            const chart: any = deproxy(AgCharts.create(buildOptions()));
-            await waitForChartStability(chart);
+            const chart: any = await createEnterpriseChart(buildOptions());
 
             expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const chart: any = deproxy(AgCharts.create(buildOptions()));
-            await waitForChartStability(chart);
+            const chart: any = await createEnterpriseChart(buildOptions());
 
-            expect(collectShapes(chart.series[0].contentGroup)).toHaveLength(4);
+            expect(itemNodes(chart)).toHaveLength(4);
             expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
             chart.destroy();
         });
 
         it('casts the shadow from the stroke of every item, whichever direction', async () => {
-            const chart: any = deproxy(AgCharts.create(buildOptions(SHADOW)));
-            await waitForChartStability(chart);
+            const chart: any = await createEnterpriseChart(buildOptions(SHADOW));
 
-            const shapes = collectShapes(chart.series[0].contentGroup);
+            const shapes = itemNodes(chart);
             expect(shapes).toHaveLength(4);
             for (const shape of shapes) {
                 expect(shape.shadowMode).toBe('stroke');

@@ -1,103 +1,117 @@
 import { describe, expect, it } from 'vitest';
 
 import { setupMockCanvas } from 'ag-charts-community-test';
-import { testLogger } from 'ag-charts-test';
 
+import { RED_SHADOW, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../../test/utils';
 import { BoxPlotNode } from './boxPlotNode';
+
+const boxPlot = (mixin: Partial<BoxPlotNode>) => {
+    const node = new BoxPlotNode();
+    Object.assign(node, {
+        horizontal: true,
+        center: 110,
+        thickness: 60,
+        min: 150,
+        q1: 200,
+        median: 240,
+        q3: 280,
+        max: 360,
+        fill: 'black',
+        stroke: 'black',
+        strokeWidth: 4,
+        crisp: false,
+        fillShadow: RED_SHADOW,
+        ...mixin,
+    });
+    return node;
+};
 
 describe('BoxPlotNode', () => {
     describe('silhouette shadow', () => {
         const canvasCtx = setupMockCanvas({ width: 400, height: 220 });
 
-        const render = (node: BoxPlotNode) => {
-            const ctx = canvasCtx.getRenderContext2D();
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width, canvasCtx.nodeCanvas.height);
-
-            const renderCtx = {
-                ctx,
-                direction: 'ltr' as const,
-                width: canvasCtx.nodeCanvas.width,
-                height: canvasCtx.nodeCanvas.height,
-                devicePixelRatio: 1,
-                logger: testLogger,
-                debugNodes: {},
-            };
-            ctx.save();
-            node.preRender(renderCtx);
-            node.render(renderCtx);
-            ctx.restore();
-            return ctx;
-        };
-
-        /** The device-pixel columns that hold at least one black pixel. */
-        const blackColumns = () => {
-            const { width, height } = canvasCtx.nodeCanvas;
-            const { data } = canvasCtx.getRenderContext2D().getImageData(0, 0, width, height);
-            const columns = new Set<number>();
-            for (let i = 0; i < data.length; i += 4) {
-                if (data[i] === 0 && data[i + 1] === 0 && data[i + 2] === 0 && data[i + 3] === 255) {
-                    columns.add((i / 4) % width);
-                }
-            }
-            return [...columns].sort((a, b) => a - b);
-        };
-
-        const boxPlot = (mixin: Partial<BoxPlotNode>) => {
-            const node = new BoxPlotNode();
-            Object.assign(node, {
-                horizontal: true,
-                center: 110,
-                thickness: 60,
-                min: 150,
-                q1: 200,
-                median: 240,
-                q3: 280,
-                max: 360,
-                fill: 'black',
-                stroke: 'black',
-                strokeWidth: 4,
-                crisp: false,
-                // No offset or blur, so the silhouette shadow is exactly the node's own pixels and nothing else.
-                fillShadow: { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 },
-                ...mixin,
-            });
-            return node;
-        };
-
         it('should not leave a copy of separately styled whiskers at the left edge of a horizontal box plot', () => {
             const node = boxPlot({ wickStrokeWidth: 2 });
-            render(node);
+            renderNode(canvasCtx, node);
 
-            // The whiskers run from 150 to 360 and are drawn once, in place. The extent that sizes the pre-pass has to
-            // cover the whiskers as well as the box, or the off-canvas copy that casts their shadow lands on the canvas.
             expect(node['wickPath'].isEmpty()).toBe(false);
-            const columns = blackColumns();
-            expect(columns[0]).toBeGreaterThanOrEqual(148);
-            expect(columns.at(-1)).toBeLessThanOrEqual(361);
+            const columns = blackColumns(canvasCtx);
+            // The 2px caps are centred on the whisker ends, so they take the column on either side.
+            expect(columns[0]).toBe(149);
+            expect(columns.at(-1)).toBe(360);
         });
 
         it('should not leave a copy of whiskers wider than the box stroke at the left edge', () => {
             const node = boxPlot({ strokeWidth: 2, wickStrokeWidth: 20 });
-            render(node);
+            renderNode(canvasCtx, node);
 
             // The caps are 20px wide, so they reach 10px past the whisker ends at 150 and 360.
             expect(node['wickPath'].isEmpty()).toBe(false);
-            const columns = blackColumns();
-            expect(columns[0]).toBeGreaterThanOrEqual(139);
-            expect(columns.at(-1)).toBeLessThanOrEqual(371);
+            const columns = blackColumns(canvasCtx);
+            expect(columns[0]).toBe(140);
+            expect(columns.at(-1)).toBe(369);
         });
 
         it('should draw the same pixels as a box plot whose whiskers share the box style', () => {
-            render(boxPlot({}));
-            const shared = blackColumns();
+            renderNode(canvasCtx, boxPlot({}));
+            const shared = blackColumns(canvasCtx);
 
             // Same colour in a different spelling, so the whiskers take the separate path but look the same.
             const separate = boxPlot({ wickStroke: 'rgb(0, 0, 0)' });
-            render(separate);
+            renderNode(canvasCtx, separate);
             expect(separate['wickPath'].isEmpty()).toBe(false);
-            expect(blackColumns()).toEqual(shared);
+            expect(blackColumns(canvasCtx)).toEqual(shared);
             expect(shared[0]).toBeGreaterThanOrEqual(148);
+        });
+
+        it('should cast a shadow beside a separately styled whisker', () => {
+            const node = boxPlot({
+                horizontal: false,
+                min: 20,
+                q1: 70,
+                median: 100,
+                q3: 130,
+                max: 190,
+                wickStroke: 'rgb(0, 0, 0)',
+                fillShadow: { ...RED_SHADOW, xOffset: 100 },
+            });
+            renderNode(canvasCtx, node);
+
+            expect(node['wickPath'].isEmpty()).toBe(false);
+            // The lower whisker runs from 20 to 70 at x = 110, so its shadow lands at x = 210, clear of the box shadow.
+            expect(pixelAt(canvasCtx, 210, 45)).toEqual([255, 0, 0, 255]);
+        });
+
+        it('should not leave a sliver on the left edge for a crisp horizontal box plot with a hard shadow', () => {
+            const node = boxPlot({
+                crisp: true,
+                strokeWidth: 1,
+                strokeAlignment: 0.5,
+                wickStrokeWidth: 1,
+                wickStrokeAlignment: 1,
+                max: 360.5,
+            });
+            renderNode(canvasCtx, node);
+
+            expect(leftEdgeIsWhite(canvasCtx)).toBe(true);
+        });
+    });
+
+    describe.each([1, 2, 3])('silhouette shadow at a device pixel ratio of %i', (pixelRatio) => {
+        const canvasCtx = setupMockCanvas({ width: 400 * pixelRatio, height: 220 * pixelRatio });
+
+        it('should not leave a sliver on the left edge for a crisp box plot with theme default strokes', () => {
+            const node = boxPlot({
+                max: 360.5,
+                strokeAlignment: 1,
+                wickStrokeWidth: 2,
+                wickStrokeAlignment: 2,
+                strokeWidth: 2,
+                crisp: true,
+            });
+            renderNode(canvasCtx, node, pixelRatio);
+
+            expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
         });
     });
 });

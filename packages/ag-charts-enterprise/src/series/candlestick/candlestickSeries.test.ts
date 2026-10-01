@@ -15,7 +15,14 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    SHADOW,
+    createEnterpriseChart,
+    itemNodes,
+    prepareEnterpriseTestOptions,
+    shadowedShapes,
+} from '../../test/utils';
 
 const CANDLESTICK_OPTIONS: AgChartOptions = {
     data: [
@@ -35,8 +42,6 @@ const CANDLESTICK_OPTIONS: AgChartOptions = {
         },
     ],
 };
-
-const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
 
 describe('CandlestickSeries', () => {
     setupMockConsole();
@@ -368,32 +373,24 @@ describe('CandlestickSeries', () => {
             prepareEnterpriseTestOptions(options as any);
             return options;
         };
-        const shadowedShapes = (group: any) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
-        // Typed loosely so the tests can read the node-specific wick and orientation fields.
-        const itemNodes = (chart: any): any[] => collectShapes(chart.series[0].contentGroup);
-        const create = async (options: AgChartOptions) => {
-            const chart: any = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
-            return chart;
-        };
 
         it('defaults to a disabled shadow', async () => {
-            const chart = await create(buildOptions());
+            const chart: any = await createEnterpriseChart(buildOptions());
 
             expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             chart.destroy();
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const chart = await create(buildOptions());
+            const chart: any = await createEnterpriseChart(buildOptions());
 
-            expect(collectShapes(chart.series[0].contentGroup)).toHaveLength(4);
+            expect(itemNodes(chart)).toHaveLength(4);
             expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
             chart.destroy();
         });
 
         it('casts one silhouette shadow over the body and wicks of up and down items alike', async () => {
-            const chart = await create(buildOptions(SHADOW));
+            const chart: any = await createEnterpriseChart(buildOptions(SHADOW));
 
             const shapes = itemNodes(chart);
             expect(shapes).toHaveLength(4);
@@ -410,14 +407,16 @@ describe('CandlestickSeries', () => {
         });
 
         it('keeps shared wicks on the body path and styled wicks on their own path', async () => {
-            const shared = await create(buildOptions(SHADOW));
+            const shared: any = await createEnterpriseChart(buildOptions(SHADOW));
             for (const node of itemNodes(shared)) {
                 expect(node['wickPath'].isEmpty()).toBe(true);
             }
             shared.destroy();
 
             // The styled wicks are drawn apart from the body, so they reach the shadow through renderSilhouetteExtras.
-            const styled = await create(buildOptions(SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS }));
+            const styled: any = await createEnterpriseChart(
+                buildOptions(SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS })
+            );
             for (const node of itemNodes(styled)) {
                 expect(node['wickPath'].isEmpty()).toBe(false);
                 expect(node.shadowMode).toBe('silhouette');
