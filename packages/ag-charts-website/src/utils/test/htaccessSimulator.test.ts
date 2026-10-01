@@ -4,7 +4,8 @@ import { followRedirects, simulateRequest } from './htaccessSimulator';
 // behaviour observed on a real Apache 2.4 serving the generated files: the per-directory pattern,
 // AllowNoSlash, mod_rewrite's own Vary, [NE], mod_dir's index.html internal redirect, the
 // ErrorDocument and the always/onsuccess header tables.
-const site = (htaccess: string, files: string[] = []) => ({ htaccess, basePath: '/base', files });
+const raw = (htaccess: string, files: string[] = []) => ({ htaccess, basePath: '/base', files });
+const site = (rules: string, files: string[] = []) => raw(`RewriteEngine On\n${rules}`, files);
 
 describe('htaccessSimulator', () => {
     it('matches rule patterns against the path below the .htaccess directory', () => {
@@ -121,6 +122,28 @@ describe('htaccessSimulator', () => {
         expect(() => simulateRequest(site('Redirect 301 /a /b'), { uri: '/base/a' })).toThrow(/Unsupported directive/);
         expect(() => simulateRequest(site('RewriteRule ^a$ /b [QSA,L]'), { uri: '/base/a' })).toThrow(/flag/);
         expect(() => simulateRequest(site('<Files "x">\n</Files>'), { uri: '/base/a' })).toThrow(/section/);
+    });
+
+    it('runs the rewrite rules only while the RewriteEngine is On, the last RewriteEngine winning', () => {
+        const rule = 'RewriteRule ^a$ /base/b [R=301,L]';
+        expect(simulateRequest(raw(`RewriteEngine On\n${rule}`), { uri: '/base/a' }).status).toBe(301);
+        expect(simulateRequest(raw(`RewriteEngine Off\n${rule}`), { uri: '/base/a' }).status).toBe(404);
+        expect(simulateRequest(raw(`RewriteEngine On\n${rule}\nRewriteEngine Off`), { uri: '/base/a' }).status).toBe(
+            404
+        );
+    });
+
+    it('rejects rewrite directives with no RewriteEngine, whose state would come from the parent .htaccess', () => {
+        expect(() => simulateRequest(raw('RewriteRule ^a$ /base/b [R=301,L]'), { uri: '/base/a' })).toThrow(
+            /RewriteEngine/
+        );
+        expect(() => simulateRequest(raw('RewriteOptions AllowNoSlash'), { uri: '/base/a' })).toThrow(/RewriteEngine/);
+    });
+
+    it('rejects a misspelt directive or an unmodelled argument rather than ignoring it', () => {
+        expect(() => simulateRequest(raw('RewriteEngin On'), { uri: '/base/a' })).toThrow(/Unsupported directive/);
+        expect(() => simulateRequest(raw('RewriteEngine Maybe'), { uri: '/base/a' })).toThrow(/RewriteEngine/);
+        expect(() => simulateRequest(raw('Options +Indexes'), { uri: '/base/a' })).toThrow(/Options/);
     });
 
     it('follows redirects across hosts and counts the hops', () => {

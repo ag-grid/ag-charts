@@ -18,6 +18,8 @@
  * - `Header` without `always` applies to 2xx and ErrorDocument responses only; `always` applies to
  *   every response, redirects included. `<If>` sections apply after every other directive in the
  *   file, whatever their position (Apache's section merge order).
+ * - The rewrite rules run only while the file's last `RewriteEngine` is On. With `RewriteEngine`
+ *   absent, Apache takes the parent's engine state, so rewrite directives without it throw.
  *
  * Only the child `.htaccess` is evaluated. Directives the grid root `.htaccess` adds for this path
  * (its own headers, archive caching) are out of scope, and are the root's to test. Any directive
@@ -92,6 +94,8 @@ interface HeaderDirective {
 }
 
 interface ParsedHtaccess {
+    /** Whether the rewrite rules run: the file's last `RewriteEngine` directive. */
+    rewriteEngineOn: boolean;
     rules: Rule[];
     allowNoSlash: boolean;
     errorDocuments: Map<number, string>;
@@ -171,6 +175,7 @@ function parseHeader(args: string[], line: string): HeaderDirective {
 
 function parseHtaccess(htaccess: string): ParsedHtaccess {
     const parsed: ParsedHtaccess = {
+        rewriteEngineOn: false,
         rules: [],
         allowNoSlash: false,
         errorDocuments: new Map(),
@@ -180,6 +185,8 @@ function parseHtaccess(htaccess: string): ParsedHtaccess {
         ifSections: [],
     };
     let pendingConditions: Condition[] = [];
+    let rewriteEngineSet = false;
+    let hasRewriteDirectives = false;
     let currentIf: { expr: string; headers: HeaderDirective[] } | undefined;
     const containers: string[] = [];
 
@@ -220,9 +227,22 @@ function parseHtaccess(htaccess: string): ParsedHtaccess {
         if (currentIf && directive !== 'Header') {
             throw new Error(`Only Header directives are supported inside <If>: ${line}`);
         }
+        if (directive.startsWith('Rewrite')) {
+            hasRewriteDirectives = true;
+        }
         switch (directive) {
             case 'RewriteEngine':
+                if (args.length !== 1 || !/^(on|off)$/i.test(args[0])) {
+                    throw new Error(`Unsupported RewriteEngine: ${line}`);
+                }
+                parsed.rewriteEngineOn = args[0].toLowerCase() === 'on';
+                rewriteEngineSet = true;
+                break;
             case 'Options':
+                // Only directory listings off is modelled: a directory without an index is a 403.
+                if (args.join(' ') !== '-Indexes') {
+                    throw new Error(`Unsupported Options: ${line}`);
+                }
                 break;
             case 'RewriteOptions':
                 if (args.join(' ') !== 'AllowNoSlash') {
@@ -264,6 +284,11 @@ function parseHtaccess(htaccess: string): ParsedHtaccess {
     }
     if (containers.length > 0 || pendingConditions.length > 0) {
         throw new Error('Unterminated section or RewriteCond without a RewriteRule');
+    }
+    if (hasRewriteDirectives && !rewriteEngineSet) {
+        // A child .htaccess with rewrite directives but no RewriteEngine takes the parent's engine
+        // state (Apache 2.4), which this single-file model cannot know.
+        throw new Error('Rewrite directives without a RewriteEngine directive are not modelled');
     }
     return parsed;
 }
@@ -421,7 +446,7 @@ function runRewrite(
     } else if (uri.startsWith(`${basePath}/`)) {
         relative = uri.slice(basePath.length + 1);
     }
-    if (relative == null) {
+    if (relative == null || !parsed.rewriteEngineOn) {
         return { kind: 'none' };
     }
 
