@@ -37,6 +37,7 @@ import {
 } from '../test/utils';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import type { CrossLineType } from './crossLine';
+import { CROSS_LINE_TYPES } from './crossLinesModule';
 import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 import * as examples from './test/examples';
 
@@ -2257,6 +2258,12 @@ describe('CrossLine theme overrides', () => {
         chart = await createChart(typedChart(LINE_AND_RANGE, { line: { strokeWidth: 5 } }, 'line'));
 
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.strokeWidth)).toEqual([5, 1]);
+    });
+
+    it('styles by every cross line type', () => {
+        const types: Record<AgCartesianCrossLineOptions['type'], true> = { line: true, range: true };
+
+        expect(new Set(CROSS_LINE_TYPES)).toEqual(new Set(Object.keys(types)));
     });
 
     it('rejects a fill on line cross lines', async () => {
