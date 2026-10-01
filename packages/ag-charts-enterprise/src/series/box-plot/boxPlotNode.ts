@@ -75,6 +75,14 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
             : new BBox(center - thickness / 2, Math.min(min, max), thickness, Math.abs(max - min));
     }
 
+    /**
+     * Whiskers styled apart from the box live in `wickPath`, so the path's own bounds miss them. The silhouette shadow
+     * sizes its off-canvas pre-pass from these bounds, and a horizontal whisker would stick out past them.
+     */
+    override computeBBoxWithoutTransforms(): _ModuleSupport.BBox | undefined {
+        return this.computeBBox();
+    }
+
     override computeDefaultGradientFillBBox(): _ModuleSupport.BBox {
         const { horizontal, center, thickness, q1, q3 } = this;
         return horizontal
