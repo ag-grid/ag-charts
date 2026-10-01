@@ -23,7 +23,7 @@ import type {
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import type { Chart } from './chart';
 import type { DataServiceRestoredData } from './data/dataService';
-import { deepCloneDataSet } from './data/dataSetUtil';
+import { replaceDataSet } from './data/dataSetUtil';
 import { findExpectedModuleName } from './factory/expectedModules';
 import { InteractionState } from './interaction/interactionManager';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
@@ -173,9 +173,16 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         return debug.group('AgChartInstance.applyTransaction()', async () => {
             if (!chart.isDataTransactionSupported()) {
-                // Avoid mutating original data set; it will be compared with in options processing.
+                // Start from the latest pending data, so calls made before earlier ones apply build on them, or else
+                // from the chart's data, which a data source load or an update without data leaves out of the options.
+                // The copy also avoids mutating the data that options processing compares against.
+                const pending = chart.queuedChartOptions.findLast(
+                    ({ userDeltaKeys, userOptions }) => userDeltaKeys?.has('data') ?? userOptions.data !== undefined
+                );
+                const data = pending?.userOptions.data ?? chart.data.data;
+                const { dataIdKey } = chart.getOptions();
                 const service = chart.ctx.dataSelectionService;
-                const dataSet = deepCloneDataSet(service, chart.data, chart.ctx.logger);
+                const dataSet = replaceDataSet(service, chart.data, [...data], dataIdKey, chart.ctx.logger);
                 dataSet.addTransaction(transaction);
                 dataSet.commitPendingTransactions(service);
                 return this.updateDelta({ data: dataSet.data });
