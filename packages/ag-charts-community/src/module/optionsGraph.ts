@@ -30,6 +30,7 @@ import {
     OPERATION_VALUE_EDGE,
     OVERRIDES_EDGE,
     type OptionsGraphInterface,
+    type OverrideTypeKeys,
     PATH_ARRAY_EDGE,
     PATH_EDGE,
     PRUNE_EDGE,
@@ -92,6 +93,39 @@ function resolveSeriesThemeDefaults(
     optionsGraph.clearSafe();
     return Array.isArray(series) && isPlainObject(series[0]) ? series[0] : {};
 }
+
+/** Only an object under a type key is a type block; any other value there stays a shared option. */
+function withoutTypeKeys(overrides: PlainObject, types: ReadonlyArray<string>): PlainObject {
+    const typeKeys = types.filter((type) => isPlainObject(overrides[type]));
+    return typeKeys.length === 0 ? overrides : without(overrides, typeKeys);
+}
+
+/** An `$apply` given override paths applies those overrides to each item itself, so it must list every namespace. */
+function appliesOverridesPerItem(config: unknown): boolean {
+    return isPlainObject(config) && Array.isArray(config.$apply) && config.$apply.length > 2;
+}
+
+/** Drops the overrides that `config` applies per item, so they are not also built onto the array as an object. */
+function withoutPerItemOverrides(overrides: PlainObject, config: unknown): PlainObject {
+    if (!isPlainObject(config)) return overrides;
+
+    let result: PlainObject | undefined;
+    for (const key of Object.keys(overrides)) {
+        const value = overrides[key];
+        if (appliesOverridesPerItem(config[key])) {
+            result ??= { ...overrides };
+            delete result[key];
+        } else if (isPlainObject(value)) {
+            const filtered = withoutPerItemOverrides(value, config[key]);
+            if (filtered !== value) {
+                result ??= { ...overrides };
+                result[key] = filtered;
+            }
+        }
+    }
+    return result ?? overrides;
+}
+
 export function createOptionsGraph(
     theme: ChartTheme,
     options: PlainObject,
@@ -282,13 +316,18 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         this.buildGraphFromObject(this.root, DEFAULTS_EDGE, without(config[seriesType], OptionsGraph.COMPLEX_KEYS));
 
         // Build series overrides before common overrides as series take priority
-        const seriesOverrides = overrides ? without(overrides[seriesType], OptionsGraph.COMPLEX_KEYS) : {};
+        const seriesConfig = config[seriesType];
+        const seriesOverrides = overrides
+            ? withoutPerItemOverrides(without(overrides[seriesType], OptionsGraph.COMPLEX_KEYS), seriesConfig)
+            : {};
         if (Object.keys(seriesOverrides).length > 0) {
             debug('build series overrides');
             this.buildGraphFromObject(this.root, OVERRIDES_EDGE, seriesOverrides);
         }
 
-        const commonOverrides = overrides ? without(overrides.common, OptionsGraph.COMPLEX_KEYS) : {};
+        const commonOverrides = overrides
+            ? withoutPerItemOverrides(without(overrides.common, OptionsGraph.COMPLEX_KEYS), seriesConfig)
+            : {};
         if (Object.keys(commonOverrides).length > 0) {
             debug('build common overrides');
             this.buildGraphFromObject(
@@ -700,11 +739,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         if (this.overrides) {
             const targetOverridesObject = getPathSafe(this.overrides, configPathArray);
-            if (isObject(targetOverridesObject)) {
+            if (isPlainObject(targetOverridesObject)) {
                 this.buildGraphFromObject(
                     target,
                     OVERRIDES_EDGE,
-                    targetOverridesObject,
+                    withoutPerItemOverrides(targetOverridesObject, targetConfigObject),
                     targetPathArrayVertex,
                     undefined,
                     ignorePaths
@@ -712,11 +751,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             }
 
             const commonOverridesObject = getPathSafe(this.overrides, ['common', ...configPathArray.slice(1)]);
-            if (isObject(commonOverridesObject)) {
+            if (isPlainObject(commonOverridesObject)) {
                 this.buildGraphFromObject(
                     target,
                     OVERRIDES_EDGE,
-                    commonOverridesObject,
+                    withoutPerItemOverrides(commonOverridesObject, targetConfigObject),
                     targetPathArrayVertex,
                     undefined,
                     ignorePaths
@@ -734,18 +773,34 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         target: Vertex<unknown>,
         object: PlainObject,
         overridesPathArrays?: Array<Array<string> | undefined>,
-        edgeValue = this.graftEdge
+        edgeValue = this.graftEdge,
+        typeKeys?: OverrideTypeKeys
     ) {
         const pathArrayVertex = this.findNeighbour(target, PATH_ARRAY_EDGE);
         this.buildGraphFromObject(target, edgeValue, object, pathArrayVertex);
 
         if (this.overrides && overridesPathArrays) {
+            const overridesList: PlainObject[] = [];
             for (const overridePathArray of overridesPathArrays) {
                 if (overridePathArray == null) continue;
                 const overrides = getPathSafe(this.overrides, overridePathArray);
-                if (overrides) {
-                    this.buildGraphFromObject(target, OVERRIDES_EDGE, overrides, pathArrayVertex);
+                if (overrides) overridesList.push(overrides);
+            }
+
+            // First added wins on an edge, so each type's overrides go in ahead of the shared ones.
+            const type = typeKeys?.type;
+            if (type != null && typeKeys?.types.includes(type)) {
+                for (const overrides of overridesList) {
+                    const typeOverrides = overrides[type];
+                    if (isPlainObject(typeOverrides)) {
+                        this.buildGraphFromObject(target, OVERRIDES_EDGE, typeOverrides, pathArrayVertex);
+                    }
                 }
+            }
+
+            for (const overrides of overridesList) {
+                const sharedOverrides = typeKeys ? withoutTypeKeys(overrides, typeKeys.types) : overrides;
+                this.buildGraphFromObject(target, OVERRIDES_EDGE, sharedOverrides, pathArrayVertex);
             }
         }
 

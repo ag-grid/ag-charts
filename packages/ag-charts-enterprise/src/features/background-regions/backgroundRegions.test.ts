@@ -1073,3 +1073,35 @@ describe('Background Regions under the enterprise registry', () => {
         expectWarningsCalls().toEqual([]);
     });
 });
+
+describe('Background Regions theme overrides', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(async () => {
+        if (chart) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    it('applies nothing to a chart without background regions', async () => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 1, y: 1 },
+                { x: 2, y: 2 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            theme: { overrides: { line: { seriesArea: { backgroundRegions: { fill: 'lightsalmon' } } } } },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expect(deproxy(chart).chartOptions.processedOptions.seriesArea ?? {}).not.toHaveProperty('backgroundRegions');
+    });
+});
