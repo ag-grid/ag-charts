@@ -358,7 +358,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /** Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object. */
     groupedCategoryLineColor?: AgCssColorOrRef;
     /**
-     * Background colour of a floating legend or gradient legend. A colour string, or a theme-colour reference object. A legend that is not floating has a transparent background.
+     * Background colour of the legend and the gradient legend. A colour string, or a theme-colour reference object.
      *
      * Default: `chartBackgroundColor`
      */
