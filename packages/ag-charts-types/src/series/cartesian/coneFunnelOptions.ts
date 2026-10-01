@@ -71,7 +71,7 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = DatumDefault, TCont
     strokeOpacity?: Opacity;
     /** The width in pixels of the stroke for the drop-offs. */
     strokeWidth?: PixelSize;
-    /** Configuration for the shadow used behind the drop-offs and the dividers between them. */
+    /** Configuration for the shadow used behind the drop-offs. */
     shadow?: AgDropShadowOptions;
     /** Bar rendering direction. */
     direction?: 'horizontal' | 'vertical';

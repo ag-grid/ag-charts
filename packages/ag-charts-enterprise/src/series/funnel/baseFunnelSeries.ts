@@ -287,7 +287,10 @@ export abstract class BaseFunnelSeries<
     protected abstract connectorStyle(index: number): RequireOptional<AgFunnelSeriesStyle> & { opacity: number };
 
     private connectionFactory() {
-        return new FunnelConnector<FunnelConnectorDatum>();
+        const connector = new FunnelConnector<FunnelConnectorDatum>();
+        // Silhouette casts the fill and stroke as one shadow, so stroke-only connectors still cast.
+        connector.shadowMode = 'silhouette';
+        return connector;
     }
 
     override getKeyAxis(direction: ChartAxisDirection): string | undefined {

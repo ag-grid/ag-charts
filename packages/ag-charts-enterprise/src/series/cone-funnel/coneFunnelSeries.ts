@@ -90,9 +90,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
     }
 
     protected override nodeFactory(): _ModuleSupport.Line<FunnelNodeDatum> {
-        const line = new Line<FunnelNodeDatum>();
-        line.shadowMode = 'stroke';
-        return line;
+        return new Line<FunnelNodeDatum>();
     }
 
     protected override defaultLabelPlacement(): AgConeFunnelSeriesLabelPlacement {
@@ -121,11 +119,9 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         isHighlight: boolean;
     }) {
         const highlightStyle = this.getHighlightStyle(opts.isHighlight);
-        const { shadow } = this.options;
 
         opts.datumSelection.each((line, datum) => {
             line.setProperties(resetLineSelectionsFn(line, datum));
-            line.fillShadow = shadow;
             line.stroke = highlightStyle?.stroke;
             line.strokeWidth = highlightStyle?.strokeWidth ?? 0;
             line.strokeOpacity = highlightStyle?.strokeOpacity ?? 1;

@@ -27,6 +27,7 @@ import {
 
 import {
     DEFAULT_DISABLED_SHADOW,
+    SHADOW,
     funnelLabelFadeIn,
     funnelLabelOpacities,
     funnelPathReveal,
@@ -54,8 +55,6 @@ const CONE_FUNNEL_EXAMPLE: AgChartOptions = {
         enabled: true,
     },
 };
-
-const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
 
 describe('ConeFunnelSeries', () => {
     setupMockConsole();
@@ -306,11 +305,6 @@ describe('ConeFunnelSeries', () => {
             await waitForChartStability(chart);
             return chart.series[0];
         };
-        const highlightFirstDivider = async () => {
-            const node = chart.series[0].contextNodeData.nodeData[0];
-            (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, node);
-            await waitForChartStability(chart);
-        };
         const nodesOf = (series: any, selection: string): any[] => series[selection].nodes();
 
         it('defaults to a disabled shadow', async () => {
@@ -327,48 +321,41 @@ describe('ConeFunnelSeries', () => {
             expect(shapes.filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
         });
 
-        it('shadows the fill of the connectors and the stroke of the dividers', async () => {
+        it('casts one silhouette shadow from each connector and none from the dividers', async () => {
             const series = await create(SHADOW);
 
             const connectors = nodesOf(series, 'connectorSelection');
             expect(connectors).toHaveLength(3);
             for (const connector of connectors) {
-                expect(connector.shadowMode).toBe('fill');
+                expect(connector.shadowMode).toBe('silhouette');
                 expect(connector.fillShadow).toMatchObject(SHADOW);
             }
 
             const dividers = nodesOf(series, 'datumSelection');
             expect(dividers).toHaveLength(4);
             for (const divider of dividers) {
-                expect(divider.shadowMode).toBe('stroke');
-                expect(divider.fillShadow).toMatchObject(SHADOW);
+                expect(divider.fillShadow?.enabled).not.toBe(true);
             }
         });
 
-        it('shows the divider shadow only while the divider is highlighted', async () => {
-            const series = await create(SHADOW);
+        it('keeps the connector shadow when the connectors are stroked with no fill', async () => {
+            const options = buildOptions(SHADOW);
+            Object.assign(options.series![0], { fillOpacity: 0, strokes: ['navy'], strokeWidth: 3 });
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
 
-            // Dividers have no stroke until highlighted, so there is nothing for the stroke shadow to be cast from.
-            for (const divider of nodesOf(series, 'datumSelection')) {
-                expect(divider.strokeWidth).toBe(0);
+            const connectors = nodesOf(chart.series[0], 'connectorSelection');
+            expect(connectors).toHaveLength(3);
+            for (const connector of connectors) {
+                expect(connector.fillOpacity).toBe(0);
+                expect(connector.strokeWidth).toBe(3);
+                expect(connector.shadowMode).toBe('silhouette');
+                expect(connector.fillShadow).toMatchObject(SHADOW);
             }
-
-            await highlightFirstDivider();
-            const highlighted = nodesOf(series, 'highlightSelection');
-            expect(highlighted).toHaveLength(1);
-            expect(highlighted[0].strokeWidth).toBeGreaterThan(0);
-            expect(highlighted[0].shadowMode).toBe('stroke');
-            expect(highlighted[0].fillShadow).toMatchObject(SHADOW);
         });
 
         it('should render a cone funnel chart with a shadow', async () => {
             await create(SHADOW);
-            await compare();
-        });
-
-        it('should render a cone funnel chart with a shadow and a highlighted divider', async () => {
-            await create(SHADOW);
-            await highlightFirstDivider();
             await compare();
         });
     });
