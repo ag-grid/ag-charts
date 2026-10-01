@@ -161,8 +161,29 @@ const PATTERN_SAMPLES: [string, string | 410][] = [
     ['/side/axes-types/', '/javascript/axes-types/'],
     ['/server-side-rendering/', '/javascript/server-side-rendering/'],
     ['/vue/series/', '/vue/bar-series/'],
+    ['/react/series', '/react/bar-series/'],
+    ['/angular/series/pie-series/', '/angular/bar-series/'],
+    ['/javascript/series/', '/javascript/bar-series/'],
     ['/angular/axes', '/angular/axes-configuration/'],
+    ['/react/axes/', '/react/axes-configuration/'],
+    ['/vue/axes/time/', '/vue/axes-configuration/'],
+    ['/javascript/axes', '/javascript/axes-configuration/'],
 ];
+
+// A file below a legacy page path (the page's own index.html, its .md twin, an asset) and the file
+// it must land on in one hop: page-preserving rules keep a file's path rather than slashing it.
+const FILE_SAMPLES: [string, string][] = [
+    ['/javascript-charts/javascript/quick-start/index.html', '/javascript/quick-start/index.html'],
+    ['/react-charts/react/bar-series.md', '/react/bar-series.md'],
+    ['/angular-charts/angular/area-series/index.html', '/angular/area-series/index.html'],
+    ['/vue-charts/vue/line-series.md', '/vue/line-series.md'],
+    ['/enterprise-charts/react/security.md', '/react/security.md'],
+    ['/core/bar-series/index.html', '/javascript/bar-series/index.html'],
+    ['/side/axes-types.md', '/javascript/axes-types.md'],
+    ['/react-charts/react/bar-series/chart.png', '/react/bar-series/chart.png'],
+];
+// Stands in for any static asset below a docs page directory; the page tree cannot enumerate those.
+const SAMPLE_ASSET = '/react/bar-series/chart.png';
 
 // Each legacy docs prefix in front of each renamed page below its current prefix: both slash forms
 // of every renamed slug, and URLs inside each renamed aggregate section (a pattern rule, so it has no
@@ -312,9 +333,10 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         for (const pattern of patterns) {
             const re = new RegExp(pattern);
             expect(
-                [...PATTERN_SAMPLES.map(([uri]) => uri), ...LEGACY_RENAMED_CASES.map(({ legacy }) => legacy)].some(
-                    (uri) => re.test(uri)
-                ),
+                [
+                    ...[...PATTERN_SAMPLES, ...FILE_SAMPLES].map(([uri]) => uri),
+                    ...LEGACY_RENAMED_CASES.map(({ legacy }) => legacy),
+                ].some((uri) => re.test(uri)),
                 `no sample for ${pattern}`
             ).toBe(true);
         }
@@ -334,6 +356,17 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
                     status: 200,
                     servedFile: `${base}${expected}index.html`,
                 });
+            }
+        }
+    });
+
+    it('lands every legacy file URL on the same file in one hop, from any host, rather than slashing it into a 404', () => {
+        const withAsset = { ...site, files: [...siteFiles(BASE), `${base}${SAMPLE_ASSET}`] };
+        for (const host of [CANONICAL_HOST, ...NON_CANONICAL_HOSTS]) {
+            for (const [uri, expected] of FILE_SAMPLES) {
+                const { hops, final } = followRedirects(withAsset, { host, uri: `${base}${uri}` });
+                expect(hops, `${host}${uri}`).toEqual([`${CANONICAL}${base}${expected}`]);
+                expect(final, `${host}${uri}`).toMatchObject({ status: 200, servedFile: `${base}${expected}` });
             }
         }
     });
