@@ -205,6 +205,22 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         redirectsTo(`${base}/javascript-charts/javascript/bar-series`, `${CANONICAL}${base}/javascript/bar-series/`);
     });
 
+    it('keeps a file path as-is under the page-preserving legacy rules, rather than slashing it into a 404', () => {
+        // A last segment with a dot is a file (index.html, a .md twin, an asset), not a page slug.
+        redirectsTo(
+            `${base}/javascript-charts/javascript/quick-start/index.html`,
+            `${CANONICAL}${base}/javascript/quick-start/index.html`
+        );
+        redirectsTo(`${base}/react-charts/react/bar-series.md`, `${CANONICAL}${base}/react/bar-series.md`);
+        redirectsTo(`${base}/vue-charts/vue/bar-series/index.html`, `${CANONICAL}${base}/vue/bar-series/index.html`);
+        redirectsTo(`${base}/angular-charts/angular/area-series.md`, `${CANONICAL}${base}/angular/area-series.md`);
+        redirectsTo(`${base}/enterprise-charts/react/security.md`, `${CANONICAL}${base}/react/security.md`);
+        redirectsTo(`${base}/core/bar-series/index.html`, `${CANONICAL}${base}/javascript/bar-series/index.html`);
+        redirectsTo(`${base}/side/axes-types.md`, `${CANONICAL}${base}/javascript/axes-types.md`);
+        // A dotted directory segment is not the last one, so the page still gains its slash.
+        redirectsTo(`${base}/react-charts/react/v1.0/bar-series`, `${CANONICAL}${base}/react/v1.0/bar-series/`);
+    });
+
     it('does not redirect an empty {fw}-charts/{fw}/ docs root (no broad fallback for these frameworks)', () => {
         expect(onWww(`${base}/react-charts/react/`)).toBeUndefined();
     });
