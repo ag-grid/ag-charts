@@ -403,6 +403,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     legendMarkerSize?: PixelSize;
     /** Padding inside the legend and the gradient legend. Applied only when the legend has a border or a `fill` set in its options. */
     legendPadding?: PixelSize;
+    /**
      * Thickness of the scrollbar track.
      *
      * Default: `12`
