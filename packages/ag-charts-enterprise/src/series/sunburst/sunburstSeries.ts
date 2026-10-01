@@ -4,6 +4,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type BoxBounds,
     type CallbackParamRules,
     type DynamicContext,
     type NormalisedSunburstInnerLabelOptions,
@@ -871,6 +872,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     protected override pickNodesInBBoxPredicate() {
         return _ModuleSupport.pickSectorsInBBoxPredicate(this);
+    }
+
+    /**
+     * Sectors are drawn in depth order, but a box selection reports them in datum (pre-order) order,
+     * which is the order `getSelection()` returns them in.
+     */
+    public override *pickNodesInBBox(selectionBox: BoxBounds): Iterable<SunburstNode> {
+        yield* Array.from(super.pickNodesInBBox(selectionBox)).sort((a, b) => a.datumIndex - b.datumIndex);
     }
 
     protected override animateEmptyUpdateReady() {
