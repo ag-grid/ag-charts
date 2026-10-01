@@ -55,6 +55,25 @@ describe('volumeProfilePreset', () => {
         }
     );
 
+    it('should update the profile on an add transaction', async () => {
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
+        await waitForChartStability(chart);
+        await chart.applyTransaction({ add: [{ price: 210, upVolume: 50e6, downVolume: 40e6 }] });
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+    });
+
+    it('should update the profile on an update transaction', async () => {
+        // Own rows, as the update mutates one in place.
+        chart = AgCharts.createVolumeProfileChart(
+            prepareFinancialTestOptions({ ...volumeProfile, data: getRegularVolumeProfile() })
+        );
+        await waitForChartStability(chart);
+        const datum = chart.getOptions().data!.at(-1)!;
+        datum.upVolume = 150e6;
+        await chart.applyTransaction({ update: [datum] });
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+    });
+
     it('should read the price, up and down values from the given keys', async () => {
         const data = getRegularVolumeProfile().map(({ price, upVolume, downVolume }) => ({
             level: price,
