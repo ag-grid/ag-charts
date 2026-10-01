@@ -5,6 +5,12 @@ export function markerDiameter(marker: { size: number; strokeWidth: number }): n
     return marker.size + marker.strokeWidth;
 }
 
+/** The marker `shadow` is a render option, not a public styler or tooltip param: strip it before spreading a marker style into those. */
+export function omitMarkerShadow<T extends { shadow?: unknown }>(style: T): Omit<T, 'shadow'> {
+    const { shadow: _shadow, ...rest } = style;
+    return rest;
+}
+
 /** Highlight/selection styles carry an extra `opacity` field via HighlightOptions's StyleMixins. */
 export type MergeMarkerStyleSource = NormalisedSeriesMarkerNodeStyle & { opacity?: number };
 type MergeMarkerStyleResult = NormalisedSeriesMarkerNodeStyle & { size: number; opacity?: number };

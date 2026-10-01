@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { NormalisedDropShadowOptions } from 'ag-charts-core';
+import type { NormalisedDropShadowOptions, NormalisedSeriesMarkerNodeStyle } from 'ag-charts-core';
 
 import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 
@@ -13,7 +13,7 @@ const shadow = (overrides: Partial<NormalisedDropShadowOptions> = {}): Normalise
     ...overrides,
 });
 
-const BASE_MARKER = {
+const BASE_MARKER: NormalisedSeriesMarkerNodeStyle = {
     shape: 'circle',
     size: 7,
     fill: 'red',
@@ -23,7 +23,7 @@ const BASE_MARKER = {
     strokeOpacity: 1,
     lineDash: [0],
     lineDashOffset: 0,
-} as const;
+};
 
 describe('seriesMarker', () => {
     describe('mergeMarkerStyles', () => {

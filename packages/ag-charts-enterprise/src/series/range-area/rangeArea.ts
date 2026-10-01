@@ -107,6 +107,7 @@ const {
     processedDataIsAnimatable,
     cartesianMarkerDrawMode,
     getMarkerStyles,
+    omitMarkerShadow,
     calculateSegments,
     toHighlightString,
     toSelectionString,
@@ -1591,12 +1592,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(itemType);
-        const format = this.getMarkerStyle(
-            this.itemMarkers[itemType],
-            { datumIndex, datum },
-            params,
-            { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
-            stylerStyle.item[itemType].marker
+        const format = omitMarkerShadow(
+            this.getMarkerStyle(
+                this.itemMarkers[itemType],
+                { datumIndex, datum },
+                params,
+                { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
+                stylerStyle.item[itemType].marker
+            )
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;

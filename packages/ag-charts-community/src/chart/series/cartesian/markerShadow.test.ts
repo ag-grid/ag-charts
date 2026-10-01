@@ -148,7 +148,7 @@ describe('marker shadow', () => {
 
                 expect(received.length).toBeGreaterThan(0);
                 for (const params of received) {
-                    expect(params.shadow).toBeUndefined();
+                    expect(params).not.toHaveProperty('shadow');
                 }
 
                 const markers = visibleMarkers();
@@ -170,6 +170,30 @@ describe('marker shadow', () => {
                 expect(marker.fillShadow).toMatchObject(SHADOW);
             }
         });
+    });
+
+    describe('tooltip renderer', () => {
+        it.each(['scatter', 'bubble', 'line', 'area'] as const)(
+            '%s does not receive the marker shadow in its params',
+            async (type) => {
+                const received: any[] = [];
+                const renderer = (params: any) => {
+                    received.push(params);
+                    return {};
+                };
+
+                await create({
+                    data: SCATTER_DATA,
+                    series: [{ ...markerSeriesOptions[type]({ shape: 'square' }, SHADOW), tooltip: { renderer } }],
+                } as AgCartesianChartOptions);
+
+                (deproxy(chart).series[0] as any).getTooltipContent(0, undefined);
+
+                expect(received).toHaveLength(1);
+                expect(received[0]).toMatchObject({ seriesId: expect.any(String), fill: expect.anything() });
+                expect(received[0]).not.toHaveProperty('shadow');
+            }
+        );
     });
 
     describe('area', () => {

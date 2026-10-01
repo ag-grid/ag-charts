@@ -99,7 +99,7 @@ import type {
     SeriesNodePickMatch,
 } from './pickTypes';
 import { SeriesNodePickMode } from './pickTypes';
-import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
+import { mergeMarkerStyles, mergeMarkerStylesPair, omitMarkerShadow } from './seriesMarker';
 import {
     getHighlightStyle,
     getSelectionStyle,
@@ -1591,12 +1591,10 @@ export abstract class Series<
             const selectionStateString = selectionState === undefined ? undefined : toSelectionString(selectionState);
             const candidateStateString = candidateState === undefined ? undefined : toSelectionString(candidateState);
             const fill = this.filterItemStylerFillParams(markerStyle.fill);
-
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
-                ...markerStyle,
                 // `shadow` is a marker option, not part of the `itemStyler` params.
-                shadow: undefined,
+                ...omitMarkerShadow(markerStyle),
                 fill,
                 ...params,
                 highlightState: highlightStateString,
@@ -1632,7 +1630,7 @@ export abstract class Series<
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
         markerNode.setStyleProperties(style, fillBBox);
-        markerNode.fillShadow = isSupportedMarkerShape(shape) ? style.shadow : undefined;
+        markerNode.fillShadow = style.shadow?.enabled && isSupportedMarkerShape(shape) ? style.shadow : undefined;
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
         // The floor covers the highlight states; `style` covers this datum's own stroke, including an
         // `itemStyler`'s. The guard is exact, as `markerStrokePickInflation` never exceeds `sw / 2`.

@@ -105,7 +105,7 @@ import type { PickFocusInputs, SeriesNodePickMatch } from '../pickTypes';
 import { SeriesNodePickMode } from '../pickTypes';
 import type { MarkerStyleApply, MarkerStyleCompute, SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { markerDiameter } from '../seriesMarker';
+import { markerDiameter, omitMarkerShadow } from '../seriesMarker';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import {
     type BucketLookupFeature,
@@ -1706,11 +1706,13 @@ export abstract class BubbleScatterSeries<
             }
         }
 
-        const activeStyle = this.getMarkerStyle<BubbleScatterMarkerParams>(
-            marker,
-            { datum, datumIndex },
-            { xKey, yKey, sizeKey, labelKey, colorKey },
-            { resolveMarkerSubPath: [] }
+        const activeStyle = omitMarkerShadow(
+            this.getMarkerStyle<BubbleScatterMarkerParams>(
+                marker,
+                { datum, datumIndex },
+                { xKey, yKey, sizeKey, labelKey, colorKey },
+                { resolveMarkerSubPath: [] }
+            )
         );
         if (resolvedColorFill != null) {
             // `getMarkerStyle` omits the colour-scale fill, so apply it here to match the on-canvas marker.

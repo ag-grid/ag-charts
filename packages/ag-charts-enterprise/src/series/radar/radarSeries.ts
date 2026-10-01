@@ -54,6 +54,7 @@ const {
     Marker,
     updateLabelNode,
     getMarkerStyles,
+    omitMarkerShadow,
     createDatumId,
     processedDataIsAnimatable,
 } = _ModuleSupport;
@@ -601,9 +602,11 @@ export abstract class RadarSeries<
         const allowNullKeys = this.options.allowNullKeys ?? false;
         if (angleValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const activeStyle = this.getMarkerStyle(marker, { datum, datumIndex }, this.getDatumStylerProperties(datum), {
-            isHighlight: false,
-        });
+        const activeStyle = omitMarkerShadow(
+            this.getMarkerStyle(marker, { datum, datumIndex }, this.getDatumStylerProperties(datum), {
+                isHighlight: false,
+            })
+        );
 
         return this.formatTooltipWithContext(
             tooltip,

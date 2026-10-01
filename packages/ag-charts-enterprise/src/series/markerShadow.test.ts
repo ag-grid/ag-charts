@@ -157,4 +157,23 @@ describe('marker shadow', () => {
             }
         });
     });
+
+    describe.each(CASES.filter((c) => c.name !== 'map-marker'))('$name tooltip renderer', (testCase) => {
+        it('does not receive the marker shadow in its params', async () => {
+            const received: any[] = [];
+            const options = testCase.options('square', SHADOW) as any;
+            options.series[0].tooltip = {
+                renderer: (params: unknown) => {
+                    received.push(params);
+                    return {};
+                },
+            };
+            await create(options);
+
+            (chart!.series[0] as any).getTooltipContent(0, undefined);
+
+            expect(received).toHaveLength(1);
+            expect(received[0]).not.toHaveProperty('shadow');
+        });
+    });
 });

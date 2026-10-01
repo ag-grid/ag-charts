@@ -940,7 +940,10 @@ export class MapMarkerSeries
 
             marker.setStyleProperties(style, fillBBox);
             // Custom function shapes get no shadow.
-            marker.fillShadow = _ModuleSupport.isSupportedMarkerShape(style.shape) ? this.options.shadow : undefined;
+            marker.fillShadow =
+                this.options.shadow?.enabled && _ModuleSupport.isSupportedMarkerShape(style.shape)
+                    ? this.options.shadow
+                    : undefined;
 
             marker.x = point.x;
             marker.y = point.y;
