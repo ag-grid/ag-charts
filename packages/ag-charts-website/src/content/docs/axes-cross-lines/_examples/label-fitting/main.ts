@@ -21,7 +21,7 @@ const rangeLabel: AgCartesianCrossLineLabelOptions = {
 
 const lineLabel: AgCartesianCrossLineLabelOptions = {
     text: 'Annual Revenue Target: £250k per Month',
-    placement: 'inside-top-left',
+    placement: 'top-left',
     maxWidth: 120,
 };
 
