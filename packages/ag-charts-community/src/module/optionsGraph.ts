@@ -94,13 +94,13 @@ function resolveSeriesThemeDefaults(
     return Array.isArray(series) && isPlainObject(series[0]) ? series[0] : {};
 }
 
-/** A type key's value is an object, so an option sharing its name, such as a cross line's `range`, is still shared. */
+/** Only an object under a type key is a type block; any other value there stays a shared option. */
 function withoutTypeKeys(overrides: PlainObject, types: ReadonlyArray<string>): PlainObject {
     const typeKeys = types.filter((type) => isPlainObject(overrides[type]));
     return typeKeys.length === 0 ? overrides : without(overrides, typeKeys);
 }
 
-/** An `$apply` given override paths applies those overrides to each item itself. */
+/** An `$apply` given override paths applies those overrides to each item itself, so it must list every namespace. */
 function appliesOverridesPerItem(config: unknown): boolean {
     return isPlainObject(config) && Array.isArray(config.$apply) && config.$apply.length > 2;
 }
@@ -789,7 +789,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
             // First added wins on an edge, so each type's overrides go in ahead of the shared ones.
             const type = typeKeys?.type;
-            if (typeof type === 'string' && typeKeys?.types.includes(type)) {
+            if (type != null && typeKeys?.types.includes(type)) {
                 for (const overrides of overridesList) {
                     const typeOverrides = overrides[type];
                     if (isPlainObject(typeOverrides)) {

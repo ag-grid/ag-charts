@@ -1001,22 +1001,17 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
             ? undefined
             : (graph.resolveVertexValue(vertex, overridesPathVertex2) as Array<string>);
 
+    const overridesPaths = [overridesPath1, overridesPath2];
     const types = typesVertex == null ? undefined : (graph.getVertexValue(typesVertex) as ReadonlyArray<string>);
 
     if (!hasChildren && defaultValue != null) {
         if (getOperation(defaultValue, graph)) {
             const resolvedDefaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
             if (isPlainObject(resolvedDefaultValue)) {
-                graph.graftObject(
-                    vertex,
-                    resolvedDefaultValue,
-                    [overridesPath1, overridesPath2],
-                    undefined,
-                    types && { types }
-                );
+                graph.graftObject(vertex, resolvedDefaultValue, overridesPaths, undefined, types && { types });
             }
         } else {
-            graph.graftObject(vertex, defaultValue, [overridesPath1, overridesPath2], undefined, types && { types });
+            graph.graftObject(vertex, defaultValue, overridesPaths, undefined, types && { types });
         }
     }
 
@@ -1030,7 +1025,8 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
             graph.addEdge(child, stubVertex, DEFAULTS_EDGE);
         } else {
             const type = types && graph.dangerouslyGetUserOption([...graph.getPathArray(child), 'type']);
-            graph.graftObject(child, object, [overridesPath1, overridesPath2], undefined, types && { types, type });
+            const typeKeys = types && { types, type: typeof type === 'string' ? type : undefined };
+            graph.graftObject(child, object, overridesPaths, undefined, typeKeys);
         }
     }
 

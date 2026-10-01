@@ -7,7 +7,7 @@ export interface VertexInterface {}
 /** Override keys that style only the items whose `type` matches, ahead of the overrides shared by every item. */
 export interface OverrideTypeKeys {
     types: ReadonlyArray<string>;
-    type?: unknown;
+    type?: string;
 }
 
 export interface OptionsGraphInterface {

@@ -2260,6 +2260,30 @@ describe('CrossLine theme overrides', () => {
         expect(crossLineInstancesOf(chart, 'y').map((c) => c.strokeWidth)).toEqual([5, 1]);
     });
 
+    it('merges the label options of a type with the shared label options', async () => {
+        chart = await createChart(
+            typedChart(LINE_AND_RANGE, { label: { fontSize: 20, color: 'red' }, range: { label: { color: 'blue' } } })
+        );
+
+        const labels = crossLineInstancesOf(chart, 'y').map((c) => c.label);
+        expect(labels.map((l) => l.color)).toEqual(['red', 'blue']);
+        expect(labels.map((l) => l.fontSize)).toEqual([20, 20]);
+    });
+
+    it('lets a type in either namespace beat the shared options of both', async () => {
+        chart = await createChart({
+            ...typedChart(LINE_AND_RANGE, {}),
+            theme: {
+                overrides: {
+                    common: { axes: { number: { crossLines: { line: { stroke: 'blue' } } } } },
+                    line: { axes: { number: { crossLines: { stroke: 'red', range: { stroke: 'green' } } } } },
+                },
+            },
+        });
+
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.stroke)).toEqual(['blue', 'green']);
+    });
+
     it('styles by every cross line type', () => {
         const types: Record<AgCartesianCrossLineOptions['type'], true> = { line: true, range: true };
 
@@ -2272,6 +2296,6 @@ describe('CrossLine theme overrides', () => {
         expectWarningMessages([
             'AG Charts - Unknown option `theme.overrides.common.axes.number.crossLines.line.fill`; Did you mean `stroke`? Ignoring.',
         ]);
-        expect(crossLineInstancesOf(chart, 'y')[1].fill).not.toBe('red');
+        expect(crossLineInstancesOf(chart, 'y')[0].fill).not.toBe('red');
     });
 });

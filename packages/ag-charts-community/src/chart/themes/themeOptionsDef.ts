@@ -239,12 +239,8 @@ export const scrollbarOptionsDef: OptionsDefs<AgScrollbarOptions> = {
 };
 
 function crossLineThemeOptionsDefs<LabelDefs>(label: LabelDefs) {
-    return {
-        ...crossLineStyleOptionsDefs,
-        label,
-        line: { ...crossLineCommonStyleOptionsDefs, label },
-        range: { ...crossLineStyleOptionsDefs, label },
-    };
+    const range = { ...crossLineStyleOptionsDefs, label };
+    return { ...range, line: { ...crossLineCommonStyleOptionsDefs, label }, range };
 }
 
 const cartesianCrossLineThemeableOptionsDefs = crossLineThemeOptionsDefs(cartesianCrossLineLabelOptionsDefs);
