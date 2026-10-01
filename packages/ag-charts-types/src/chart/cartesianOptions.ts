@@ -31,7 +31,7 @@ import type {
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
 import type { AgNumericValue, AgTimeValue } from './dataValues';
 import type { AgAxisListeners } from './eventOptions';
-import type { AgChartLabelStyleOptions } from './labelOptions';
+import type { AgChartLabelAutoFontSizeOptions, AgChartLabelFitOptions, AgChartLabelStyleOptions } from './labelOptions';
 import type {
     AxisValue,
     ContextDefault,
@@ -577,8 +577,7 @@ export interface AgCartesianRangeCrossLineOptions<
 > extends AgRangeCrossLineOptions<TValue, AgCartesianCrossLineLabelOptions, TContext> {}
 
 export type AgCartesianCrossLineOptions<TValue = AxisValue, TContext = ContextDefault> =
-    | AgCartesianLineCrossLineOptions<TValue, TContext>
-    | AgCartesianRangeCrossLineOptions<TValue, TContext>;
+    AgCartesianLineCrossLineOptions<TValue, TContext> | AgCartesianRangeCrossLineOptions<TValue, TContext>;
 
 export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
     /** The position of the Cross Line label. */
@@ -605,7 +604,8 @@ export interface AgSeriesAreaBackgroundRegionRange {
     end?: AxisValue;
 }
 
-export interface AgSeriesAreaBackgroundRegionLabel extends Omit<AgChartLabelStyleOptions, 'fontFamily'> {
+export interface AgSeriesAreaBackgroundRegionLabel
+    extends Omit<AgChartLabelStyleOptions, 'fontFamily'>, AgChartLabelFitOptions, AgChartLabelAutoFontSizeOptions {
     /** The font family to use for the label. A single family name, or an array of names used as fallbacks. */
     fontFamily?: FontFamilyFull;
     /** The position of the Background Region label. */

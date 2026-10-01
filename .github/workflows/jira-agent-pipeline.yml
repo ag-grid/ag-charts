@@ -229,6 +229,7 @@ jobs:
               with:
                   cache_mode: ro
                   fetch_base: skip
+                  free_disk_space: 'false'
 
             - name: Install @ag-grid/dev-prompts
               uses: ./external/ag-shared/github/actions/install-ag-dev-prompts

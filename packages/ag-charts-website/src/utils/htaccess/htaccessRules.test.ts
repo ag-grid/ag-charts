@@ -12,7 +12,7 @@ describe('htaccessRules CSP (AG-17134)', () => {
     const production = getHtaccessContent({ env: 'production' });
     const staging = getHtaccessContent({ env: 'staging' });
 
-    const ifOpen = '<If "%{REQUEST_URI} =~ m#/(examples|archive)/#">';
+    const ifOpen = '<If "%{REQUEST_URI} =~ m#/(examples/[^/?]|archive/)#">';
     const unconditionalLines = (content: string) => content.split('\n').filter((l) => !l.startsWith(' '));
     const extractIfBlock = (content: string) => {
         const start = content.indexOf(ifOpen);
@@ -240,6 +240,9 @@ describe('htaccessRules markdown content negotiation', () => {
     const negotiablePaths = [
         '/charts/react/axes-types/',
         '/charts/javascript/quick-start/',
+        '/charts/react/',
+        '/charts/angular/',
+        '/charts/vue/',
         '/charts/changelog/',
         '/charts/contact/',
         '/charts/documentation-archive/',
@@ -271,7 +274,7 @@ describe('htaccessRules markdown content negotiation', () => {
     // No `.md` twin: rewriting these would 404, or loop into `.md.md` for a twin itself.
     const nonNegotiablePaths = [
         '/charts/react/axes-types.md', // the twin itself — final segments exclude dots
-        '/charts/react/', // framework landing page, a redirect stub
+        '/charts/javascript/', // the one framework root forwarding on to quick-start
         '/charts/documentation/', // redirect stub, sitemap-excluded
         '/charts/licensing/', // redirect stub, sitemap-excluded
         '/charts/style-guide/', // non-public, sitemap-excluded
@@ -358,6 +361,11 @@ describe('htaccessRules markdown content negotiation', () => {
     it('serves .md as UTF-8 so table glyphs (✓/✗) are not mojibaked', () => {
         expect(production).toContain('AddCharset utf-8 .md');
         expect(staging).toContain('AddCharset utf-8 .md');
+    });
+
+    it('registers the webp MIME type so the images are not served without a Content-Type', () => {
+        expect(production).toContain('AddType image/webp .webp');
+        expect(staging).toContain('AddType image/webp .webp');
     });
 });
 

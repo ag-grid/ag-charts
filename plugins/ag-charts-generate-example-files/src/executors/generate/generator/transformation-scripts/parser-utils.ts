@@ -730,7 +730,7 @@ export function addGenericInterfaceImport(imports: string[], tData: string, bind
     }
 }
 
-export type ChartAPI = 'financial' | 'gauge' | 'quadrant' | 'sparkline' | 'vanilla';
+export type ChartAPI = 'financial' | 'gauge' | 'quadrant' | 'sparkline' | 'vanilla' | 'volume-profile';
 
 export function chartApi(bindings: any): ChartAPI {
     const typeStr = bindings.optionsTypeInfo?.typeStr;
@@ -746,6 +746,8 @@ export function chartApi(bindings: any): ChartAPI {
         return 'quadrant';
     } else if (typeStr === 'AgSparklineOptions') {
         return 'sparkline';
+    } else if (typeStr === 'AgVolumeProfileChartOptions') {
+        return 'volume-profile';
     }
     return 'vanilla';
 }

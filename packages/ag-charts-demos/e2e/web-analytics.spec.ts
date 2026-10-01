@@ -1,6 +1,13 @@
 import { type Page, expect, test } from '@playwright/test';
 
 import {
+    expectIdLinkagesResolve,
+    expectPopoverContract,
+    expectSelectClosedTypeahead,
+    expectSelectOpenTypeahead,
+    expectTabsContract,
+} from './a11y-assertions';
+import {
     expectChartPopulation,
     expectEveryChartHasData,
     waitForAllChartUpdates,
@@ -20,6 +27,19 @@ const TABS = [
     // Sankey, funnel, duration histogram, page performance, page treemap.
     { name: 'Behavior', charts: 5 },
 ] as const;
+
+// The Radix controls of the top bar, whose accessibility contract every framework port reproduces by hand.
+const VIEWS = {
+    name: 'Analytics views',
+    tabs: TABS.map((tab) => tab.name),
+    initial: 'Overview',
+    orientation: 'horizontal',
+} as const;
+const RANGE = {
+    name: 'Date range',
+    options: ['Last 7 days', 'Last 14 days', 'Last 30 days', 'Last 90 days'],
+    initial: 'Last 30 days',
+};
 
 /** Switch to a tab, then wait for its charts to mount and settle. */
 async function openTab(page: Page, { name, charts }: { name: string; charts: number }) {
@@ -142,6 +162,32 @@ test.describe(DEMO_ID, () => {
 
         // The selected day is still inside the wider range, so it survives the rebuild.
         await expect(page.locator('.wa-card-sub')).toHaveText(selected!);
+    });
+
+    test.describe('accessibility contract of the Radix controls', () => {
+        test('every aria-labelledby, aria-controls and label for names an element', async ({ page }) => {
+            // The container shows before the lazily loaded demo has rendered; wait for its controls.
+            await expect(page.getByRole('tablist', { name: VIEWS.name, exact: true })).toBeVisible();
+            await expectIdLinkagesResolve(page);
+        });
+
+        test('the view tabs link to their panels and rove focus', async ({ page }) => {
+            await expectTabsContract(page, VIEWS);
+        });
+
+        test('typing on the closed range select changes its value', async ({ page }) => {
+            await expectSelectClosedTypeahead(page, RANGE);
+        });
+
+        test('typing in the open range select moves focus to the match', async ({ page }) => {
+            await expectSelectOpenTypeahead(page, RANGE);
+        });
+
+        test('the add-event trigger controls the dialog it opens', async ({ page }) => {
+            await waitForAllChartUpdates(page);
+            // The form the popover opens has an "Add event" submit button of its own.
+            await expectPopoverContract(page, page.locator('button[aria-haspopup="dialog"]', { hasText: 'Add event' }));
+        });
     });
 
     test.describe('on a phone-sized viewport', () => {

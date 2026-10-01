@@ -208,7 +208,8 @@ function PropertyName({
 function wbrInject(text: string, splitRegex: RegExp) {
     return text
         .split(splitRegex)
-        .reduce<
-            ReactNode[]
-        >((result, part, index) => result.concat(index === 0 ? part : [<wbr key={index} />, part]), []);
+        .reduce<ReactNode[]>(
+            (result, part, index) => result.concat(index === 0 ? part : [<wbr key={index} />, part]),
+            []
+        );
 }

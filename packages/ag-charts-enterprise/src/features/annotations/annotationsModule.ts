@@ -3,6 +3,7 @@ import { type PluginModuleDefinition } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { SharedToolbar } from '../shared-toolbar/sharedToolbar';
+import { createAnnotationStateDefs } from './annotationStateDefs';
 import { Annotations } from './annotations';
 import { annotationsTheme } from './annotationsTheme';
 
@@ -20,7 +21,10 @@ export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions, _Mo
     create: (ctx) => new Annotations(ctx),
     register: (ctx) => {
         if (!ctx.has('annotationManager')) {
-            ctx.service('annotationManager', (c) => new _ModuleSupport.AnnotationManager(c));
+            ctx.service(
+                'annotationManager',
+                (c) => new _ModuleSupport.AnnotationManager(c, createAnnotationStateDefs())
+            );
         }
         if (!ctx.has('sharedToolbar')) {
             ctx.service('sharedToolbar', (c) => new SharedToolbar(c));

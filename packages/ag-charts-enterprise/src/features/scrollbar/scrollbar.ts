@@ -26,7 +26,7 @@ type NormalisedScrollbarTrackStyle = Normalised<AgScrollbarTrackStyle, never, Fi
 type NormalisedScrollbarThumbStyle = Normalised<
     AgScrollbarThumbStyle,
     never,
-    FillStrokeMorph & { hoverStyle?: FillStrokeMorph }
+    FillStrokeMorph & { hoverStyle?: FillStrokeMorph & { strokeWidth?: number } }
 >;
 
 interface ScrollbarOrientationState {
@@ -271,6 +271,9 @@ export class Scrollbar extends AbstractModuleInstance {
 
         thumb.fill = hovered ? (hoverStyle?.fill ?? thumbStyle.fill) : thumbStyle.fill;
         thumb.stroke = hovered ? (hoverStyle?.stroke ?? thumbStyle.stroke) : thumbStyle.stroke;
+        if (hovered && hoverStyle?.strokeWidth != null) {
+            thumb.strokeWidth = hoverStyle.strokeWidth;
+        }
     }
 
     private updateTrack(state: ScrollbarOrientationState, bounds: _ModuleSupport.BBox) {

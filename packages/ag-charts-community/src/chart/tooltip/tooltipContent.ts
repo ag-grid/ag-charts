@@ -41,8 +41,7 @@ export type TooltipStructuredContent = {
 };
 
 export type TooltipContent =
-    | ({ type: 'structured' } & TooltipStructuredContent)
-    | { type: 'raw'; rawHtmlString: string };
+    ({ type: 'structured' } & TooltipStructuredContent) | { type: 'raw'; rawHtmlString: string };
 
 export interface TooltipPaginationState {
     index: number;
@@ -55,8 +54,7 @@ interface GroupedStructuredContent {
 }
 
 type GroupedTooltipContent =
-    | ({ type: 'structured' } & GroupedStructuredContent)
-    | { type: 'raw'; rawHtmlString: string };
+    ({ type: 'structured' } & GroupedStructuredContent) | { type: 'raw'; rawHtmlString: string };
 
 function textOrSegmentsIsDefined(value: NormalisedTextOrSegments | undefined): value is NormalisedTextOrSegments {
     if (value == null) {

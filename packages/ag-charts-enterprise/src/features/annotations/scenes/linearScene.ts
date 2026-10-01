@@ -1,19 +1,20 @@
 import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
-import type { PointProperties } from '../annotationProperties';
-import type { AnnotationContext } from '../annotationTypes';
+import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import { getDragStartState, translate } from '../utils/coords';
+import { isWriteable } from '../utils/datum';
 import { boundsIntersections } from '../utils/line';
 import { convertLine, convertPoint } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 
 export abstract class LinearScene<
     Datum extends {
-        start: Pick<PointProperties, 'x' | 'y'>;
-        end: Pick<PointProperties, 'x' | 'y'>;
+        start: DataPoint;
+        end: DataPoint;
         extendStart?: boolean;
         extendEnd?: boolean;
-        isWriteable: () => boolean;
+        locked?: boolean;
+        readOnly?: boolean;
     },
 > extends AnnotationScene<Datum> {
     protected dragState?: {
@@ -67,7 +68,7 @@ export abstract class LinearScene<
     }
 
     public drag(datum: Datum, target: Point, context: AnnotationContext, snapping: boolean) {
-        if (!datum.isWriteable()) return;
+        if (!isWriteable(datum)) return;
 
         if (this.activeHandle == null) {
             this.dragAll(datum, target, context);
@@ -87,7 +88,7 @@ export abstract class LinearScene<
     }
 
     public translate(datum: Datum, translation: Point, context: AnnotationContext) {
-        if (!datum.isWriteable()) return;
+        if (!isWriteable(datum)) return;
 
         this.translatePoints(
             datum,
@@ -98,7 +99,7 @@ export abstract class LinearScene<
         );
     }
 
-    public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext) {
+    public copy<D extends Datum>(datum: D, copiedDatum: D, context: AnnotationContext): D | undefined {
         const coords = convertLine(datum, context);
 
         if (!coords) {

@@ -978,7 +978,7 @@ const transformOperations: Record<TransformOperation, OperationFns> = {
 };
 
 function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [objectVertex, defaultValueVertex, overridesPathVertex1, overridesPathVertex2] = values;
+    const [objectVertex, defaultValueVertex, overridesPathVertex1, overridesPathVertex2, typesVertex] = values;
 
     const object = graph.getVertexValue(objectVertex);
     if (!isPlainObject(object)) return;
@@ -1001,14 +1001,17 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
             ? undefined
             : (graph.resolveVertexValue(vertex, overridesPathVertex2) as Array<string>);
 
+    const overridesPaths = [overridesPath1, overridesPath2];
+    const types = typesVertex == null ? undefined : (graph.getVertexValue(typesVertex) as ReadonlyArray<string>);
+
     if (!hasChildren && defaultValue != null) {
         if (getOperation(defaultValue, graph)) {
             const resolvedDefaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
             if (isPlainObject(resolvedDefaultValue)) {
-                graph.graftObject(vertex, resolvedDefaultValue, [overridesPath1, overridesPath2]);
+                graph.graftObject(vertex, resolvedDefaultValue, overridesPaths, undefined, types && { types });
             }
         } else {
-            graph.graftObject(vertex, defaultValue, [overridesPath1, overridesPath2]);
+            graph.graftObject(vertex, defaultValue, overridesPaths, undefined, types && { types });
         }
     }
 
@@ -1021,7 +1024,9 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
             const stubVertex = graph.addVertex({});
             graph.addEdge(child, stubVertex, DEFAULTS_EDGE);
         } else {
-            graph.graftObject(child, object, [overridesPath1, overridesPath2]);
+            const type = types && graph.dangerouslyGetUserOption([...graph.getPathArray(child), 'type']);
+            const typeKeys = types && { types, type: typeof type === 'string' ? type : undefined };
+            graph.graftObject(child, object, overridesPaths, undefined, typeKeys);
         }
     }
 
@@ -1325,10 +1330,12 @@ function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 
 enum NumericOperation {
     IsEven = '$isEven',
+    Multiply = '$multiply',
 }
 
 const numericOperations: Record<NumericOperation, OperationFns> = {
     $isEven: isEvenOperation,
+    $multiply: multiplyOperation,
 };
 
 function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -1336,6 +1343,22 @@ function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
     const value = graph.resolveVertexValue(vertex, valueVertex);
     if (Number.isNaN(Number(value))) return false;
     return Number(value) % 2 === 0;
+}
+
+function multiplyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [aVertex, bVertex] = values;
+    const a = graph.resolveVertexValue(vertex, aVertex);
+    const b = graph.resolveVertexValue(vertex, bVertex);
+
+    if (typeof a === 'number' && typeof b === 'number') {
+        return a * b;
+    }
+
+    Debug.inDevelopmentMode(() =>
+        graph.warnOnce(
+            `\`$multiply\` json operation failed on [${String(a)}, ${String(b)}] at [${graph.getPathArray(vertex).join('.')}], expecting two numbers.`
+        )
+    );
 }
 
 // --- EXPORTS ---

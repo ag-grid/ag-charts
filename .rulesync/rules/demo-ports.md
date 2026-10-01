@@ -1,0 +1,15 @@
+---
+root: false
+targets: ['*']
+description: 'Where the framework ports of the showcase demos come from and which files are generated'
+globs: ['**/ag-charts-demos/seeds/**', '**/ag-charts-demos/src/demos/**']
+---
+
+# Showcase Demo Seeds and Ports
+
+`packages/ag-charts-demos/seeds/<demo>/<framework>/` holds one standalone project per framework for each showcase demo. The React demo under `src/demos/<demo>/` is the golden master; the other frameworks are hand-maintained ports of it.
+
+-   **`react/` is generated.** Never edit it by hand: change `src/demos/<demo>/` and run `yarn nx run ag-charts-demos:generate-seeds`.
+-   **Before touching a port, read `seeds/<demo>/<framework>.PORTING.md`.** It records how each React construct maps to the framework, the invariants the port keeps (the `<main data-demo-id>` wrapper, selectors the functional specs depend on, accessibility linkages) and which shared modules are byte copies of the React source. Keep it current when the mapping changes.
+-   **Shared modules are copies, not rewrites.** Files listed as copied in `PORTING.md` (data, types, CSS) must stay identical to the React source; re-copy rather than edit.
+-   **To align a stale port, restamp its manifest, or prove parity,** use the `/port-showcases` skill — it holds the order of work, the commands and the gates. Background: `packages/ag-charts-demos/tools/seeds/README.md`.

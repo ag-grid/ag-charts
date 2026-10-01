@@ -53,7 +53,9 @@ const {
         <Fragment set:html={headFragment} />
     </head>
     <body>
-        <div id="app"><my-component></my-component></div>
+        <div id="app">
+            <my-component></my-component>
+        </div>
 
         <Scripts baseUrl={appLocation} files={scriptFiles} />
         <ExampleModules

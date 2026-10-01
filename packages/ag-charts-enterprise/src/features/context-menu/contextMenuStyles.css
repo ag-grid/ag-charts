@@ -112,5 +112,5 @@
 .ag-charts-context-menu__divider::after {
     content: '';
     display: block;
-    border-top: 1px solid var(--ag-charts-border-color);
+    border-top: 1px solid var(--ag-charts-menu-separator-color);
 }

@@ -23,12 +23,10 @@ const description = interfaceRef && parseJsDocs(interfaceRef.docs);
 const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
 ---
 
-{
-    /*
+{/*
     Server-rendered reference content for crawlers that don't execute JavaScript, replaced once the
     <ApiReferencePage> island hydrates. Deliberately flat, to keep the served HTML small.
-*/
-}
+*/}
 <div class="api-reference-fallback layout-grid">
     {/* Reserves the left-nav width so the page does not shift horizontally on hydration. */}
     <div class={styles.navPlaceholder} aria-hidden="true"></div>
@@ -36,17 +34,15 @@ const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
     <div class={styles.referenceContent}>
         <header>
             <h1 class="text-3xl">
-                {
-                    title.type ? (
-                        <>
-                            {title.name}
-                            {title.name === 'axes' && <span class={styles.recordAlias}>.key</span>}[type='
-                            <span class={styles.unionDiscriminator}>{title.type}</span>']
-                        </>
-                    ) : (
-                        title.name
-                    )
-                }
+                {title.type ? (
+                    <>
+                        {title.name}
+                        {title.name === 'axes' && <span class={styles.recordAlias}>.key</span>}[type='
+                        <span class={styles.unionDiscriminator}>{title.type}</span>']
+                    </>
+                ) : (
+                    title.name
+                )}
             </h1>
             {description && <p class="text-secondary">{description}</p>}
         </header>

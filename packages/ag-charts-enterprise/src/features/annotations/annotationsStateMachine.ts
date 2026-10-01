@@ -1,18 +1,11 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    ActionOnSet,
-    Debug,
-    ParallelStateMachine,
-    type Point,
-    StateMachine,
-    StateMachineProperty,
-} from 'ag-charts-core';
+import { Debug, ParallelStateMachine, type Point, StateMachine } from 'ag-charts-core';
 
 import { type AnnotationLineStyle, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
-import { annotationConfigs, getTypedDatum } from './annotationsConfig';
+import { annotationConfigs } from './annotationsConfig';
 import type {
-    AnnotationProperties,
+    AnnotationDatum,
     AnnotationScene,
     AnnotationsStateMachineContext,
     AnnotationsStateMachineHelperFns,
@@ -21,9 +14,21 @@ import type { LinearSettingsDialogTextChangeProps } from './settings-dialog/sett
 import type { AnnotationStateEvents } from './states/stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { maybeWrapText } from './text/util';
+import { applyAnnotationOptions, isWriteable } from './utils/datum';
 import { hasLineStyle, hasLineText } from './utils/has';
-import { setColor, setLineStyle } from './utils/styles';
-import { isChannelType, isEphemeralType, isTextType } from './utils/types';
+import { setColor, setLineStyle, setLineTextPosition } from './utils/styles';
+import { isEphemeralType, isTextType } from './utils/types';
+
+const ANNOTATIONS_STATE_MACHINE_INHERITED_PROPERTIES = ['snapping', 'datum', 'node'] as const;
+const ANNOTATIONS_MAIN_STATE_MACHINE_INHERITED_PROPERTIES = [
+    'active',
+    'hovered',
+    'hoverCoords',
+    'copied',
+    'snapping',
+    'datum',
+    'node',
+] as const;
 
 enum States {
     Idle = 'idle',
@@ -45,14 +50,15 @@ export class AnnotationsStateMachine extends ParallelStateMachine<States, Annota
     // TODO: remove this leak
     private active?: number;
 
-    @StateMachineProperty()
     protected snapping: boolean = false;
 
-    @StateMachineProperty()
-    protected datum?: AnnotationProperties;
+    protected datum?: AnnotationDatum;
 
-    @StateMachineProperty()
     protected node?: AnnotationScene;
+
+    override inheritedProperties() {
+        return ANNOTATIONS_STATE_MACHINE_INHERITED_PROPERTIES;
+    }
 
     constructor(ctx: AnnotationsStateMachineContext) {
         super(
@@ -123,46 +129,44 @@ class UpdateMachine extends StateMachine<States, AnnotationStateEvents> {
 class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEvents> {
     override debug = Debug.create(true, 'annotations');
 
-    @ActionOnSet<AnnotationsMainStateMachine>({
-        changeValue(newValue?: number) {
-            this.setActive(newValue);
-        },
-    })
-    @StateMachineProperty()
     protected active?: number;
 
-    @StateMachineProperty()
     protected hovered?: number;
 
-    @StateMachineProperty()
+    private updateActive(index: number | undefined) {
+        if (index === this.active) return;
+        this.active = index;
+        this.setActive(index);
+    }
+
     protected hoverCoords?: Point;
 
-    @StateMachineProperty()
-    protected copied?: AnnotationProperties;
+    protected copied?: AnnotationDatum;
 
-    @StateMachineProperty()
     protected snapping: boolean = false;
 
-    @StateMachineProperty()
-    protected datum?: AnnotationProperties;
+    protected datum?: AnnotationDatum;
 
-    @StateMachineProperty()
     protected node?: AnnotationScene;
+
+    override inheritedProperties() {
+        return ANNOTATIONS_MAIN_STATE_MACHINE_INHERITED_PROPERTIES;
+    }
 
     constructor(
         ctx: AnnotationsStateMachineContext,
         private readonly setActive: (index?: number) => void
     ) {
         const createDatum =
-            <T extends AnnotationProperties>(type: AnnotationType) =>
+            <T extends AnnotationDatum>(type: AnnotationType) =>
             (datum: T) => {
                 ctx.create(type, datum);
-                this.active = ctx.selectLast();
+                this.updateActive(ctx.selectLast());
             };
 
         const deleteDatum = () => {
             if (this.active != null) ctx.delete(this.active);
-            this.active = undefined;
+            this.updateActive(undefined);
             ctx.select();
         };
 
@@ -178,7 +182,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             },
             deselect: () => {
                 const prevActive = this.active;
-                this.active = undefined;
+                this.updateActive(undefined);
                 this.hovered = undefined;
                 ctx.select(this.active, prevActive);
             },
@@ -259,7 +263,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 }
 
                 const wrappedText = maybeWrapText(datum, textInputValue, bbox.width);
-                datum.set({ text: wrappedText });
+                datum.text = wrappedText;
 
                 ctx.update();
                 ctx.recordAction(`Change ${datum.type} annotation text`);
@@ -279,7 +283,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             const { active, datum } = this;
             if (active == null) return false;
             if (!datum) return false;
-            return hasLineText(datum) && datum.isWriteable();
+            return hasLineText(datum) && isWriteable(datum);
         };
         const guardActiveNotEphemeral = () => this.active != null && !isEphemeralType(this.datum);
         const guardHovered = () => this.hovered != null;
@@ -333,7 +337,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
 
                 selectLast: () => {
                     const previousActive = this.active;
-                    this.active = ctx.selectLast();
+                    this.updateActive(ctx.selectLast());
                     ctx.select(this.active, previousActive);
                 },
 
@@ -343,14 +347,14 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                             const { active, hovered, datum } = this;
                             if (active == null || hovered !== active) return false;
                             if (!datum) return false;
-                            return isTextType(datum) && datum.isWriteable();
+                            return isTextType(datum) && isWriteable(datum);
                         },
                         target: States.TextInput,
                     },
                     {
                         action: () => {
                             const prevActive = this.active;
-                            this.active = this.hovered;
+                            this.updateActive(this.hovered);
                             ctx.select(this.active, prevActive);
                         },
                     },
@@ -370,7 +374,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                         target: States.Dragging,
                         action: () => {
                             const prevActive = this.active;
-                            this.active = this.hovered;
+                            this.updateActive(this.hovered);
                             ctx.select(this.active, prevActive);
                             ctx.startInteracting();
                         },
@@ -378,7 +382,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     {
                         action: () => {
                             const prevActive = this.active;
-                            this.active = this.hovered;
+                            this.updateActive(this.hovered);
                             ctx.select(this.active, prevActive);
                         },
                     },
@@ -397,8 +401,8 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 lineProps: {
                     guard: guardActive,
                     action: (props) => {
-                        const datum = getTypedDatum(this.datum);
-                        datum?.set(props);
+                        const { datum } = this;
+                        if (datum) applyAnnotationOptions(datum, props);
                         ctx.update();
                         ctx.recordAction(
                             `Change ${datum?.type} ${Object.entries(props)
@@ -416,12 +420,11 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 lineText: {
                     guard: guardActive,
                     action: (props: LinearSettingsDialogTextChangeProps) => {
-                        const datum = getTypedDatum(this.datum);
+                        const { datum } = this;
                         if (!hasLineText(datum)) return;
-                        if (isChannelType(datum) && props.position === 'center') {
-                            props.position = 'inside';
-                        }
-                        datum.text.set(props);
+                        const { position, ...textProps } = props;
+                        applyAnnotationOptions(datum.text, textProps);
+                        if (position != null) setLineTextPosition(datum, position);
                         ctx.update();
                     },
                 },
@@ -444,7 +447,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     }
 
                     this.hovered = undefined;
-                    this.active = undefined;
+                    this.updateActive(undefined);
 
                     ctx.select();
                     ctx.resetToIdle();
@@ -506,8 +509,8 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 onEnter: () => {
                     if (this.active == null) return;
 
-                    const datum = getTypedDatum(this.datum);
-                    if (!datum || !('getTextInputCoords' in datum)) return;
+                    const { datum } = this;
+                    if (!isTextType(datum)) return;
 
                     ctx.startInteracting();
                     ctx.showTextInput(this.active);
@@ -569,7 +572,8 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     ctx.hideTextInput();
 
                     const wasActive = this.active;
-                    this.active = this.hovered = undefined;
+                    this.hovered = undefined;
+                    this.updateActive(undefined);
                     ctx.select(this.active, wasActive);
 
                     if (wasActive == null) return;

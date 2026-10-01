@@ -83,8 +83,7 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
         if (removedFocusedChild) {
             // Fall back to `focusChildIndex - 1` (if the child at the end of the array is removed)
             const newFocusChild = (children[focusedChildIndex] ?? children[focusedChildIndex - 1]) as
-                | RovingChildWidgets
-                | undefined;
+                RovingChildWidgets | undefined;
             if (newFocusChild == null) {
                 this.focusedChildIndex = 0; // this happens when this.children ends up empty
             } else {

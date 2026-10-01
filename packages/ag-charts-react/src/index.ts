@@ -19,6 +19,7 @@ import {
     AgFinancialChartOptions,
     AgGaugeOptions,
     AgQuadrantChartOptions,
+    AgVolumeProfileChartOptions,
 } from 'ag-charts-community';
 
 interface BaseChartProps {
@@ -140,4 +141,17 @@ export interface AgQuadrantChartProps {
 export const AgQuadrantChart = /*#__PURE__*/ ChartWithConstructor<AgQuadrantChartProps>(
     (options, params) => AgChartsAPI.createQuadrantChart(options, params),
     'AgQuadrantChart'
+);
+
+export interface AgVolumeProfileChartProps {
+    options: AgVolumeProfileChartOptions;
+    /** Modules registered for this chart only, in addition to any registered globally. Read when the chart is created. */
+    modules?: AgChartModule[];
+    style?: CSSProperties;
+    className?: string;
+}
+
+export const AgVolumeProfileChart = /*#__PURE__*/ ChartWithConstructor<AgVolumeProfileChartProps>(
+    (options, params) => AgChartsAPI.createVolumeProfileChart(options, params),
+    'AgVolumeProfileChart'
 );

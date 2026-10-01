@@ -482,6 +482,7 @@ export const bundleContents = new Map([
             'BarSeriesModule',
             'CandlestickSeriesModule',
             'CartesianChartModule',
+            'CategoryAxisModule',
             'ChartToolbarModule',
             'ContextMenuModule',
             'CrosshairModule',

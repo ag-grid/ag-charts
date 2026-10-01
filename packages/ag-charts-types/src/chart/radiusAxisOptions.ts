@@ -94,8 +94,7 @@ export interface AgRadiusRangeCrossLineOptions<TValue = AxisValue> extends AgRan
 > {}
 
 export type AgRadiusCrossLineOptions<TValue = AxisValue> =
-    | AgRadiusLineCrossLineOptions<TValue>
-    | AgRadiusRangeCrossLineOptions<TValue>;
+    AgRadiusLineCrossLineOptions<TValue> | AgRadiusRangeCrossLineOptions<TValue>;
 export interface AgRadiusCrossLineThemeOptions extends AgCrossLineThemeOptions<AgRadiusCrossLineLabelOptions> {}
 
 export interface AgRadiusAxesCrossLineThemeOptions {

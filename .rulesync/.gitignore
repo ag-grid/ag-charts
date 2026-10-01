@@ -7,11 +7,11 @@ mcp.json
 
 # Plugin-delivered skills — allowlist local-only skills
 /skills/*
-!/skills/animation-test-migration/
 !/skills/chart-defaults/
 !/skills/technology-stack/
 !/skills/hot-paths/
 !/skills/module-definitions/
+!/skills/port-showcases/
 
 # Plugin-delivered agents — all agents live in plugins
 /subagents/*.md
@@ -28,6 +28,7 @@ mcp.json
 !/rules/cartesian-series-types.md
 !/rules/data-model.md
 !/rules/defaults.md
+!/rules/demo-ports.md
 !/rules/dom-performance.md
 !/rules/entry-point-hygiene.md
 !/rules/module-definitions.md

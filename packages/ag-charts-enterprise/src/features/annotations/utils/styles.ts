@@ -1,35 +1,51 @@
-import type { AnnotationLineStyle, AnnotationOptionsColorPickerType } from '../annotationTypes';
 import type {
-    AnnotationProperties,
-    ChannelPropertiesType,
-    LinePropertiesType,
-    MeasurerPropertiesType,
+    AnnotationLineStyle,
+    AnnotationOptionsColorPickerType,
+    ChannelTextPosition,
+    LineTextPosition,
+} from '../annotationTypes';
+import type {
+    AnnotationDatum,
+    ChannelDatumType,
+    EphemeralDatumType,
+    LineDatumType,
+    MeasurerDatumType,
 } from '../annotationsSuperTypes';
-import { hasIconColor, hasLineText } from './has';
-import { getComputedLineDash, getLineStyle } from './line';
+import { hasBackground, hasFillField, hasIconColor, hasLineText, hasStroke } from './has';
+import { getLineStyle } from './line';
+import { isChannelType, isCrossLineType, isFibonacciType, isTextType } from './types';
 
-export function setFontSize(datum: AnnotationProperties, fontSize: number) {
-    if ('fontSize' in datum) datum.fontSize = fontSize;
+export function setFontSize(datum: AnnotationDatum, fontSize: number) {
+    if (isTextType(datum)) datum.fontSize = fontSize;
     if (hasLineText(datum)) datum.text.fontSize = fontSize;
 }
 
 export function setLineStyle(
-    datum: LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
+    datum: Exclude<LineDatumType | ChannelDatumType | MeasurerDatumType, EphemeralDatumType>,
     style?: AnnotationLineStyle
 ) {
-    const strokeWidth = style?.strokeWidth ?? datum.strokeWidth ?? 1;
     const lineType = style?.type ?? datum.lineStyle;
-    const lineStyle = lineType ?? getLineStyle(datum.lineDash, lineType);
-    const computedLineDash = getComputedLineDash(strokeWidth, lineStyle);
 
-    datum.strokeWidth = strokeWidth;
-    datum.computedLineDash = computedLineDash;
-    datum.lineStyle = lineStyle;
-    datum.lineCap = lineStyle === 'dotted' ? 'round' : undefined;
+    datum.strokeWidth = style?.strokeWidth ?? datum.strokeWidth ?? 1;
+    datum.lineStyle = lineType ?? getLineStyle(datum.lineDash, lineType);
+
+    // An explicit style choice replaces any custom dash pattern.
+    if (style?.type != null) datum.lineDash = undefined;
+}
+
+export function setLineTextPosition(
+    datum: Exclude<LineDatumType | ChannelDatumType | MeasurerDatumType, EphemeralDatumType>,
+    position: LineTextPosition | ChannelTextPosition
+) {
+    if (isChannelType(datum)) {
+        datum.text.position = position === 'center' ? 'inside' : position;
+    } else {
+        datum.text.position = position === 'inside' ? 'center' : position;
+    }
 }
 
 export function setColor(
-    datum: AnnotationProperties,
+    datum: AnnotationDatum,
     colorPickerType: AnnotationOptionsColorPickerType,
     colorOpacity: string,
     color: string,
@@ -38,9 +54,11 @@ export function setColor(
 ) {
     switch (colorPickerType) {
         case `fill-color`: {
-            if ('fill' in datum) datum.fill = color;
-            if ('fillOpacity' in datum) datum.fillOpacity = opacity;
-            if ('background' in datum) {
+            if (hasFillField(datum)) {
+                datum.fill = color;
+                datum.fillOpacity = opacity;
+            }
+            if (hasBackground(datum)) {
                 datum.background.fill = color;
                 datum.background.fillOpacity = opacity;
             }
@@ -48,22 +66,22 @@ export function setColor(
         }
 
         case `line-color`: {
-            if ('axisLabel' in datum) {
+            if (isCrossLineType(datum)) {
                 datum.axisLabel.fill = color;
                 datum.axisLabel.fillOpacity = opacity;
                 datum.axisLabel.stroke = color;
                 datum.axisLabel.strokeOpacity = opacity;
             }
 
-            if ('fill' in datum && 'fillOpacity' in datum && hasIconColor(datum)) {
+            if (hasIconColor(datum)) {
                 datum.fill = color;
                 datum.fillOpacity = opacity;
-            } else {
-                if ('strokeOpacity' in datum) datum.strokeOpacity = opacity;
-                if ('isMultiColor' in datum && 'rangeStroke' in datum) {
+            } else if (hasStroke(datum)) {
+                datum.strokeOpacity = opacity;
+                if (isFibonacciType(datum)) {
                     datum.isMultiColor = isMultiColor;
                     datum.rangeStroke = color;
-                } else if ('stroke' in datum) {
+                } else {
                     datum.stroke = color;
                 }
             }
@@ -72,7 +90,7 @@ export function setColor(
         }
 
         case `text-color`: {
-            if ('color' in datum) datum.color = colorOpacity;
+            if (isTextType(datum)) datum.color = colorOpacity;
             if (hasLineText(datum)) datum.text.color = color;
             break;
         }

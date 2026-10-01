@@ -2,7 +2,7 @@
 version: v1.25.1
 ignore:
   SNYK-JS-LODASH-15869625:
-    - jest-image-snapshot@6.4.0 > lodash@4.17.21:
+    - 'jest-image-snapshot@6.5.2 > lodash@4.17.21':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-04-15T13:32:58.751Z

@@ -34,6 +34,7 @@ const ROOT_TYPES = [
     'AgGaugeOptions',
     'AgQuadrantChartOptions',
     'AgSparklineOptions',
+    'AgVolumeProfileChartOptions',
 ];
 const CARRIES_CALLBACKS_DEPTH = 3;
 // Render-path callbacks by convention; not intended to mutate state, so never zone-wrapped.

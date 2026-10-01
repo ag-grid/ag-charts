@@ -229,6 +229,10 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return this._domainBoundaries;
     }
 
+    protected override get lastBandEnd(): number {
+        return this.getDomainBoundaries()?.dNext ?? super.lastBandEnd;
+    }
+
     /** Get linear params for O(1) index calculation and scaling metadata */
     public getLinearParams(): { firstBandTime: number; intervalMs: number } | undefined {
         if (this._linearParams === undefined) {

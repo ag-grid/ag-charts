@@ -66,28 +66,26 @@ const chartTypesWithExamples = filteredChartTypes
     showBackgroundGradient={section.showBackgroundGradient}
 >
     <div class={styles.chartTypesGrid}>
-        {
-            chartTypesWithExamples.map((chartType) => (
-                <a
-                    href={chartType.docsUrl}
-                    class:list={[
-                        styles.chartTypeCard,
-                        `plausible-event-name=${pageContent.analyticsPrefix}-charttype-${chartType.seriesName}`,
-                    ]}
-                >
-                    <div class={styles.chartTypeImageWrapper}>
-                        <GalleryExampleImage
-                            client:visible
-                            exampleName={chartType.exampleName}
-                            label={chartType.title}
-                            enableDprScaling={true}
-                            className={styles.chartTypeImage}
-                        />
-                    </div>
-                    <span class={styles.chartTypeTitle}>{chartType.title}</span>
-                    {chartType.enterprise && <span class={styles.chartTypeEnterpriseBadge}>Enterprise</span>}
-                </a>
-            ))
-        }
+        {chartTypesWithExamples.map((chartType) => (
+            <a
+                href={chartType.docsUrl}
+                class:list={[
+                    styles.chartTypeCard,
+                    `plausible-event-name=${pageContent.analyticsPrefix}-charttype-${chartType.seriesName}`,
+                ]}
+            >
+                <div class={styles.chartTypeImageWrapper}>
+                    <GalleryExampleImage
+                        client:visible
+                        exampleName={chartType.exampleName}
+                        label={chartType.title}
+                        enableDprScaling={true}
+                        className={styles.chartTypeImage}
+                    />
+                </div>
+                <span class={styles.chartTypeTitle}>{chartType.title}</span>
+                {chartType.enterprise && <span class={styles.chartTypeEnterpriseBadge}>Enterprise</span>}
+            </a>
+        ))}
     </div>
 </LandingPageSection>

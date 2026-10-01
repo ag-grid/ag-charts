@@ -1,4 +1,3 @@
-import { ThemeBuilder } from '@ag-website-shared/components/theme-builder-charts/ThemeBuilder';
 import { setParamDocsProvider, setParamDocsUrlProvider } from '@ag-website-shared/theming/ParamModel';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
@@ -6,6 +5,8 @@ import { useStore } from '@nanostores/react';
 import { $darkmode } from '@stores/darkmodeStore';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { useMemo } from 'react';
+
+import { ThemeBuilder } from './ThemeBuilder';
 
 /**
  * AG Charts host for the shared theme builder. The shared layer owns the model

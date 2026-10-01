@@ -88,11 +88,22 @@ export class DarkTheme extends ChartTheme {
             focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.22] },
             foregroundColor: '#fff',
             gridLineColor: { $foregroundBackgroundMix: 0.257 },
+            cardShadow: '0 0 16px rgba(0, 0, 0, 0.33)',
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.33)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.57] },
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.44 },
 
             crosshairLabelBackgroundColor: { $foregroundBackgroundMix: 0.65 },
+
+            // The dark borderColor is darker than the track border and lighter than the thumb border it replaces.
+            scrollbarTrackBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'backgroundColor' }, 0.184] },
+                width: { $ref: 'borderWidth' },
+            },
+            scrollbarThumbBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.187] },
+                width: { $ref: 'borderWidth' },
+            },
         };
     }
 

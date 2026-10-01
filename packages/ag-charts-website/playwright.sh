@@ -90,6 +90,9 @@ function start_astro {
     exit 1
   fi
 
+  # Astro 7 detaches `astro dev` when an agent runs it, which would orphan the server from ${astro_pid}.
+  export ASTRO_DEV_BACKGROUND=${ASTRO_DEV_BACKGROUND-0}
+
   set -m
   if [ "${1:-}" == "--detached" ] ; then
     nohup ./node_modules/.bin/astro dev --port=${astro_port} --host \

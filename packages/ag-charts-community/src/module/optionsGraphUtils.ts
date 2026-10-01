@@ -4,6 +4,12 @@ import type { PaletteType } from './coreModulesTypes';
 
 export interface VertexInterface {}
 
+/** Override keys that style only the items whose `type` matches, ahead of the overrides shared by every item. */
+export interface OverrideTypeKeys {
+    types: ReadonlyArray<string>;
+    type?: string;
+}
+
 export interface OptionsGraphInterface {
     readonly palette: PlainObject;
     readonly paletteType: PaletteType;
@@ -37,7 +43,8 @@ export interface OptionsGraphInterface {
         target: VertexInterface,
         object: PlainObject,
         overridesPathArrays?: Array<Array<string> | undefined>,
-        edgeValue?: string
+        edgeValue?: string,
+        typeKeys?: OverrideTypeKeys
     ): void;
     graftValue(target: VertexInterface, path: string, ontoObject: unknown, value: unknown, edgeValue?: string): void;
     hasThemeOverride(path: Array<string>): boolean;
@@ -100,6 +107,20 @@ export function hasPathSafe(object: PlainObject, path: string[]) {
             part in result;
         if (!isPartKey) return false;
         result = result[part as any];
+    }
+    return true;
+}
+
+/** As {@link hasPathSafe}, but an object found where a list index is expected is a template for every item. */
+export function hasTemplatePathSafe(object: PlainObject, path: string[]) {
+    let result: unknown = object;
+    for (const part of path) {
+        if (result == null || typeof result !== 'object') return false;
+        if (!(part in result)) {
+            if (Array.isArray(result) || !/^\d+$/.test(part)) return false;
+            continue;
+        }
+        result = (result as PlainObject)[part];
     }
     return true;
 }

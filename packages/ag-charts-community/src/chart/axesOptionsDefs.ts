@@ -68,7 +68,6 @@ import type {
     AgCommonCrossLineOptions,
     AgContinuousAxisOptions,
     AgCrossLineListeners,
-    AgCrossLineThemeOptions,
     AgCrosshairLabel,
     AgCrosshairLabelRendererResult,
     AgCrosshairOptions,
@@ -77,6 +76,7 @@ import type {
     AgLogAxisOptions,
     AgNumberAxisOptions,
     AgRadiusCrossLineLabelOptions,
+    AgRangeCrossLineThemeOptions,
     AgTimeAxisFormattableLabelFormat,
     AgTimeAxisFormattableLabelUnitFormat,
     AgTimeAxisOptions,
@@ -101,7 +101,7 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
 commonCrossLineLabelOptionsDefs.overflow = undocumented(union('pad-chart', 'realign-text', 'clip-text'));
 
 // `fill`/`fillOpacity` belong to the `range` variant only, and `id` identifies rather than styles a cross line.
-const crossLineCommonStyleOptionsDefs: OptionsDefs<
+export const crossLineCommonStyleOptionsDefs: OptionsDefs<
     Omit<AgCommonCrossLineOptions<AgBaseCrossLineLabelOptions, unknown>, 'label' | 'id' | 'listeners'>
 > = {
     enabled: boolean,
@@ -115,7 +115,7 @@ const crossLineListenersOptionsDefs: OptionsDefs<AgCrossLineListeners<unknown>> 
 };
 
 // Theme overrides apply to both variants, so `fill`/`fillOpacity` are valid here.
-export const crossLineStyleOptionsDefs: OptionsDefs<Omit<AgCrossLineThemeOptions, 'label'>> = {
+export const crossLineStyleOptionsDefs: OptionsDefs<Omit<AgRangeCrossLineThemeOptions, 'label'>> = {
     ...crossLineCommonStyleOptionsDefs,
     fill: colorOrRef,
     fillOpacity: ratio,
@@ -272,6 +272,12 @@ commonAxisOptionsDefs.layoutConstraints = undocumented({
     unit: required(union('percent', 'px')),
     width: required(positiveNumber),
 });
+
+// @ts-expect-error undocumented option
+commonAxisOptionsDefs.ignoreZoom = undocumented(boolean);
+
+// @ts-expect-error undocumented option
+commonAxisOptionsDefs.linkZoom = undocumented(string);
 
 export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
     enabled: boolean,

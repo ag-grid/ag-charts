@@ -6,6 +6,8 @@ import { VERSION } from '../../version';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import { CrossLinesPlugin } from './crossLinesPlugin';
 
+export const CROSS_LINE_TYPES = ['line', 'range'] as const satisfies ReadonlyArray<AgBaseCrossLineOptions['type']>;
+
 export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions[]> = /* #__PURE__ */ communityModule({
     type: 'axis:plugin',
     name: 'crossLines',
@@ -52,6 +54,7 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
                     },
                 ],
             },
+            CROSS_LINE_TYPES,
         ],
     },
 

@@ -78,9 +78,7 @@ export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventTy
 };
 
 export type ClickWidgetEvent =
-    | MouseWidgetEvent<'click'>
-    | KeyboardSyntheticWidgetEvent<'click'>
-    | PointerSyntheticWidgetEvent<'click'>;
+    MouseWidgetEvent<'click'> | KeyboardSyntheticWidgetEvent<'click'> | PointerSyntheticWidgetEvent<'click'>;
 export type DblClickWidgetEvent = MouseWidgetEvent<'dblclick'> | PointerSyntheticWidgetEvent<'dblclick'>;
 
 export type WheelWidgetEvent = {

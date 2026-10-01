@@ -1,0 +1,3 @@
+/* Positioning for the Angular CDK overlay that hosts the speed select's listbox (the Radix portal in
+   React). financial.css is the demo's own stylesheet, copied unchanged, and stays separate. */
+@import '@angular/cdk/overlay-prebuilt.css';
