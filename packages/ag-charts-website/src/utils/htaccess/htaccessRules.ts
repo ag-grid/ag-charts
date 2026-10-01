@@ -40,8 +40,21 @@ ${getCspContent(env)}
 ${getRedirectRules(env)}
 
 ${getMarkdownNegotiationRules()}
-
+${getArchiveMarkdownIndexingRules()}
 Options -Indexes
+`;
+}
+
+// Archived docs stay out of search: their HTML carries a noindex meta tag, which a markdown twin
+// cannot, so an archive build says it in a header instead. Keyed on the content type, so the twin
+// is covered whether it is requested by name or negotiated. Caching is the root .htaccess's: it
+// gives live markdown `no-cache` and archives their long cache, and this file sets no Cache-Control.
+function getArchiveMarkdownIndexingRules(): string {
+    if (!isArchiveBuild()) {
+        return '';
+    }
+    return `# Archived markdown twins are noindex, as the archived HTML is.
+Header set X-Robots-Tag "noindex" "expr=%{CONTENT_TYPE} =~ m#^text/markdown#"
 `;
 }
 
