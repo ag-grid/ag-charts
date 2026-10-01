@@ -4,6 +4,12 @@ import type { PaletteType } from './coreModulesTypes';
 
 export interface VertexInterface {}
 
+/** Override keys that style only the items whose `type` matches, ahead of the overrides shared by every item. */
+export interface OverrideTypeKeys {
+    types: ReadonlyArray<string>;
+    type?: unknown;
+}
+
 export interface OptionsGraphInterface {
     readonly palette: PlainObject;
     readonly paletteType: PaletteType;
@@ -37,7 +43,8 @@ export interface OptionsGraphInterface {
         target: VertexInterface,
         object: PlainObject,
         overridesPathArrays?: Array<Array<string> | undefined>,
-        edgeValue?: string
+        edgeValue?: string,
+        typeKeys?: OverrideTypeKeys
     ): void;
     graftValue(target: VertexInterface, path: string, ontoObject: unknown, value: unknown, edgeValue?: string): void;
     hasThemeOverride(path: Array<string>): boolean;

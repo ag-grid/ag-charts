@@ -2058,6 +2058,12 @@ describe('CrossLine', () => {
     });
 });
 
+function crossLineInstancesOf(chart: Chart, axisId: string) {
+    const axis = chart.axes.findById(axisId);
+    const plugin = axis ? getCrossLinesPlugin(axis) : undefined;
+    return plugin?.getInstances() ?? [];
+}
+
 describe('CrossLine theme colour references', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -2072,12 +2078,6 @@ describe('CrossLine theme colour references', () => {
             (chart as unknown) = undefined;
         }
     });
-
-    const crossLineInstances = (axisId: string) => {
-        const axis = chart.axes.findById(axisId);
-        const plugin = axis ? getCrossLinesPlugin(axis) : undefined;
-        return plugin?.getInstances() ?? [];
-    };
 
     const chartOptions = (
         crossLines: AgCartesianCrossLineOptions[],
@@ -2098,7 +2098,7 @@ describe('CrossLine theme colour references', () => {
     it('resolves a plain param reference on a range fill', async () => {
         chart = await createChart(chartOptions([{ type: 'range', range: [1, 3], fill: { ref: 'foregroundColor' } }]));
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
     });
 
     it('resolves a reference blended onto another param', async () => {
@@ -2108,7 +2108,7 @@ describe('CrossLine theme colour references', () => {
             ])
         );
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#33cc00']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#33cc00']);
     });
 
     it('resolves a reference blended onto a literal colour', async () => {
@@ -2118,7 +2118,7 @@ describe('CrossLine theme colour references', () => {
             ])
         );
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#40bf00']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#40bf00']);
     });
 
     it('resolves references on the stroke of both cross line variants', async () => {
@@ -2129,7 +2129,7 @@ describe('CrossLine theme colour references', () => {
             ])
         );
 
-        expect(crossLineInstances('y').map((c) => c.stroke)).toEqual(['#00ff00', 'rgba(255, 0, 0, 0.5)']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.stroke)).toEqual(['#00ff00', 'rgba(255, 0, 0, 0.5)']);
     });
 
     it('resolves a reference supplied through a theme override', async () => {
@@ -2140,7 +2140,7 @@ describe('CrossLine theme colour references', () => {
             })
         );
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
     });
 
     it('re-resolves the fill when the referenced param changes', async () => {
@@ -2149,14 +2149,14 @@ describe('CrossLine theme colour references', () => {
         ];
         chart = await createChart(chartOptions(crossLines));
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
 
         await chart.publicApi!.update(
             prepareTestOptions(chartOptions(crossLines, { params: { ...PARAMS, foregroundColor: '#0000ff' } }))
         );
         await waitForChartStability(chart);
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#0000ff']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#0000ff']);
     });
 
     it('ignores malformed reference members and still resolves the reference', async () => {
@@ -2174,6 +2174,97 @@ describe('CrossLine theme colour references', () => {
             'AG Charts - Option `axes.y.crossLines[0][type=range].fill.mix` cannot be set to `"backgroundColor"`; expecting a number greater than or equal to 0, ignoring.',
             'AG Charts - Unknown option `axes.y.crossLines[0][type=range].fill.ratio`, ignoring.',
         ]);
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
+    });
+});
+
+describe('CrossLine theme overrides', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    it('styles only the axes that have cross lines', async () => {
+        chart = await createChart({
+            data: [
+                { x: 1, y: 1 },
+                { x: 2, y: 2 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', crossLines: [{ type: 'line', value: 1 }] },
+            },
+            theme: { overrides: { common: { axes: { number: { crossLines: { label: { color: 'red' } } } } } } },
+        });
+
+        expect(crossLineInstancesOf(chart, 'x')).toHaveLength(0);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.label.color)).toEqual(['red']);
+    });
+
+    const typedChart = (
+        crossLines: AgCartesianCrossLineOptions[],
+        crossLineOverrides: object,
+        namespace: 'common' | 'line' = 'common'
+    ): AgCartesianChartOptions => ({
+        data: [
+            { x: 1, y: 1 },
+            { x: 2, y: 3 },
+        ],
+        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+        axes: {
+            x: { type: 'number', position: 'bottom' },
+            y: { type: 'number', position: 'left', min: 0, max: 4, crossLines },
+        },
+        theme: { overrides: { [namespace]: { axes: { number: { crossLines: crossLineOverrides } } } } },
+    });
+
+    const LINE_AND_RANGE: AgCartesianCrossLineOptions[] = [
+        { type: 'line', value: 2 },
+        { type: 'range', range: [1, 3] },
+    ];
+
+    it('styles each cross line by its type ahead of the shared options', async () => {
+        chart = await createChart(
+            typedChart(LINE_AND_RANGE, {
+                stroke: 'red',
+                strokeWidth: 3,
+                line: { stroke: 'blue' },
+                range: { stroke: 'green', fill: 'yellow' },
+            })
+        );
+
+        const instances = crossLineInstancesOf(chart, 'y');
+        expect(instances.map((c) => c.stroke)).toEqual(['blue', 'green']);
+        expect(instances.map((c) => c.strokeWidth)).toEqual([3, 3]);
+        expect(instances[1].fill).toBe('yellow');
+    });
+
+    it('lets the options of a cross line beat its type', async () => {
+        chart = await createChart(
+            typedChart([{ type: 'range', range: [1, 3], stroke: 'black' }], { range: { stroke: 'green' } })
+        );
+
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.stroke)).toEqual(['black']);
+    });
+
+    it('styles by type from the series-type namespace', async () => {
+        chart = await createChart(typedChart(LINE_AND_RANGE, { line: { strokeWidth: 5 } }, 'line'));
+
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.strokeWidth)).toEqual([5, 1]);
+    });
+
+    it('rejects a fill on line cross lines', async () => {
+        chart = await createChart(typedChart(LINE_AND_RANGE, { line: { fill: 'red' } }));
+
+        expectWarningMessages([
+            'AG Charts - Unknown option `theme.overrides.common.axes.number.crossLines.line.fill`; Did you mean `stroke`? Ignoring.',
+        ]);
+        expect(crossLineInstancesOf(chart, 'y')[1].fill).not.toBe('red');
     });
 });

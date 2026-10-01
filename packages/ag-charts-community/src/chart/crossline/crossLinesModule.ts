@@ -6,6 +6,12 @@ import { VERSION } from '../../version';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import { CrossLinesPlugin } from './crossLinesPlugin';
 
+// Keys the theme styles each type by; the `Record` keeps it in step with the `type` union.
+const CROSS_LINE_TYPES = Object.keys({ line: true, range: true } satisfies Record<
+    AgBaseCrossLineOptions['type'],
+    true
+>);
+
 export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions[]> = /* #__PURE__ */ communityModule({
     type: 'axis:plugin',
     name: 'crossLines',
@@ -52,6 +58,7 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
                     },
                 ],
             },
+            CROSS_LINE_TYPES,
         ],
     },
 

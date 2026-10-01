@@ -978,7 +978,7 @@ const transformOperations: Record<TransformOperation, OperationFns> = {
 };
 
 function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [objectVertex, defaultValueVertex, overridesPathVertex1, overridesPathVertex2] = values;
+    const [objectVertex, defaultValueVertex, overridesPathVertex1, overridesPathVertex2, typesVertex] = values;
 
     const object = graph.getVertexValue(objectVertex);
     if (!isPlainObject(object)) return;
@@ -1001,14 +1001,22 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
             ? undefined
             : (graph.resolveVertexValue(vertex, overridesPathVertex2) as Array<string>);
 
+    const types = typesVertex == null ? undefined : (graph.getVertexValue(typesVertex) as ReadonlyArray<string>);
+
     if (!hasChildren && defaultValue != null) {
         if (getOperation(defaultValue, graph)) {
             const resolvedDefaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
             if (isPlainObject(resolvedDefaultValue)) {
-                graph.graftObject(vertex, resolvedDefaultValue, [overridesPath1, overridesPath2]);
+                graph.graftObject(
+                    vertex,
+                    resolvedDefaultValue,
+                    [overridesPath1, overridesPath2],
+                    undefined,
+                    types && { types }
+                );
             }
         } else {
-            graph.graftObject(vertex, defaultValue, [overridesPath1, overridesPath2]);
+            graph.graftObject(vertex, defaultValue, [overridesPath1, overridesPath2], undefined, types && { types });
         }
     }
 
@@ -1021,7 +1029,8 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
             const stubVertex = graph.addVertex({});
             graph.addEdge(child, stubVertex, DEFAULTS_EDGE);
         } else {
-            graph.graftObject(child, object, [overridesPath1, overridesPath2]);
+            const type = types && graph.dangerouslyGetUserOption([...graph.getPathArray(child), 'type']);
+            graph.graftObject(child, object, [overridesPath1, overridesPath2], undefined, types && { types, type });
         }
     }
 
