@@ -7,7 +7,7 @@
     --toolbar-button-border-color: var(--ag-charts-button-border-color);
     --toolbar-button-border-width: var(--ag-charts-button-border-width);
     --toolbar-button-gap: 0;
-    --toolbar-button-padding: var(--ag-charts-button-horizontal-padding); /* @todo Breaking Change: vertical padding */
+    --toolbar-button-padding: var(--ag-charts-button-vertical-padding); /* @todo Breaking Change: horizontal padding */
     --toolbar-button-text-color: var(--ag-charts-button-text-color);
 
     --toolbar-button-background-color--active: var(--ag-charts-button-active-background-color);

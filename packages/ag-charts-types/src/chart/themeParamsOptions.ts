@@ -100,11 +100,11 @@ export interface AgBaseChartThemeParams {
     buttonDisabledBorder?: boolean | AgBorderThemeParam;
     /** Text colour of disabled buttons. A colour string, or a theme-colour reference object. */
     buttonDisabledTextColor?: AgCssColorOrRef;
-    /**
-     * Horizontal padding inside buttons, including range buttons. Toolbar buttons apply it on all four sides.
-     */
+    /** Horizontal padding inside buttons, including range buttons. Toolbar buttons do not use it. */
     buttonHorizontalPadding?: PixelSize;
-    /** Vertical padding inside buttons, including range buttons. Toolbar buttons do not use it. */
+    /**
+     * Vertical padding inside buttons, including range buttons. Toolbar buttons apply it on all four sides.
+     */
     buttonVerticalPadding?: PixelSize;
     /**
      * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
