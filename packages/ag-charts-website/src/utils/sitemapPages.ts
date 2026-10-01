@@ -13,12 +13,16 @@ const getDocsExamplePaths = () => {
     return [urlWithBaseUrl('/*/*/examples/')];
 };
 
+// A docs page's markdown twin is built beside its directory (`<page>.md`), not inside it, so a
+// `Disallow: <page>/` leaves the twin crawlable. Every disallowed docs page disallows its twin too.
+const withMarkdownTwin = (docsPagePath: string) => [docsPagePath, `${docsPagePath.replace(/\/$/, '')}.md`];
+
 const getInternalPages = () => {
     return [
         // SE-182: NOT /*/*-test/ or /demos/ — a Disallow would hide their own noindex/canonical signal.
-        urlWithBaseUrl('/*/*-e2e/'),
+        ...withMarkdownTwin(urlWithBaseUrl('/*/*-e2e/')),
         urlWithBaseUrl('/gallery-test'),
-        urlWithBaseUrl('/*/benchmarks/'),
+        ...withMarkdownTwin(urlWithBaseUrl('/*/benchmarks/')),
         urlWithBaseUrl('/internal-demos/'),
     ];
 };
@@ -27,9 +31,9 @@ const getHiddenPages = async () => {
     const pages = await getCollection('docs');
     const docsHiddenPages = getDocsPages(pages)
         .filter(({ props }) => props.page.data.hidden)
-        .map((p) => {
+        .flatMap((p) => {
             const { framework, pageName } = p.params;
-            return getExamplePageUrl({ framework, path: pageName });
+            return withMarkdownTwin(getExamplePageUrl({ framework, path: pageName }));
         });
 
     return docsHiddenPages;
