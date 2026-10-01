@@ -155,6 +155,7 @@ const MARKER_REBUILD_KEYS = [
     'strokeWidth',
     'strokeOpacity',
     'itemStyler',
+    'shadow',
     'size',
     'minSize',
     'maxSize',
@@ -394,6 +395,7 @@ export abstract class BubbleScatterSeries<
             lineDash: options.lineDash,
             lineDashOffset: options.lineDashOffset,
             itemStyler: options.itemStyler,
+            shadow: options.shadow,
         };
         if (optionsDiff == null || markerStyleChanged(optionsDiff)) {
             this.markerDirty = true;

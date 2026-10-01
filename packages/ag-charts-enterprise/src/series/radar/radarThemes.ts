@@ -9,6 +9,7 @@ import {
     POLAR_AXIS_TYPE,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -30,6 +31,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
         },
         marker: {
             enabled: true,
+            shadow: SHADOW_THEME_DEFAULTS,
             fill: {
                 $applySwitch: [
                     { $path: 'type' },

@@ -9,6 +9,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_RANGE2_OPERATION,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     ValidationError,
@@ -66,6 +67,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
             fillOpacity: 0.5,
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
+            shadow: SHADOW_THEME_DEFAULTS,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,

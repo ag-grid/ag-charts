@@ -11,6 +11,7 @@ import type {
     DynamicContext,
     NormalisedChartLabelCollisionOptions,
     NormalisedColorType,
+    NormalisedSeriesMarkerNodeStyle,
     NormalisedSeriesMarkerOptions,
     NormalisedSeriesMarkerStyle,
     NormalisedSeriesOptions,
@@ -85,6 +86,7 @@ import { type FormatterCache, type LabelFormatSource, LabelValueFormatter } from
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import { markerStrokePickInflation } from '../marker/marker';
+import { isSupportedMarkerShape } from '../marker/util';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import type {
@@ -1524,10 +1526,10 @@ export abstract class Series<
             resolveStyler?: boolean;
             hideWithSize0?: boolean;
         },
-        defaultOverrideStyle: NormalisedSeriesMarkerStyle & { size: number } = {
+        defaultOverrideStyle: NormalisedSeriesMarkerNodeStyle & { size: number } = {
             size: point?.size ?? marker.size ?? 0,
         },
-        inheritedStyle?: NormalisedSeriesMarkerStyle
+        inheritedStyle?: NormalisedSeriesMarkerNodeStyle
     ) {
         const { itemStyler } = marker;
         const {
@@ -1562,10 +1564,10 @@ export abstract class Series<
             }
         }
 
-        const highlightStyle: NormalisedSeriesMarkerStyle | undefined = checkForHighlight
+        const highlightStyle: NormalisedSeriesMarkerNodeStyle | undefined = checkForHighlight
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
-        const selectionStyle: NormalisedSeriesMarkerStyle | undefined =
+        const selectionStyle: NormalisedSeriesMarkerNodeStyle | undefined =
             checkForHighlight && this.isSelectionEnabled()
                 ? this.getSelectionStyle(datumIndex, selectionState, candidateState)
                 : undefined;
@@ -1593,6 +1595,8 @@ export abstract class Series<
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
                 ...markerStyle,
+                // `shadow` is a marker option, not part of the `itemStyler` params.
+                shadow: undefined,
                 fill,
                 ...params,
                 highlightState: highlightStateString,
@@ -1609,7 +1613,7 @@ export abstract class Series<
     }
 
     protected applyMarkerStyle(
-        style: NormalisedSeriesMarkerStyle,
+        style: NormalisedSeriesMarkerNodeStyle,
         markerNode: Marker,
         point: SizedPoint | undefined,
         fillBBox: ShapeFillBBox | undefined,
@@ -1628,6 +1632,7 @@ export abstract class Series<
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
         markerNode.setStyleProperties(style, fillBBox);
+        markerNode.fillShadow = isSupportedMarkerShape(shape) ? style.shadow : undefined;
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
         // The floor covers the highlight states; `style` covers this datum's own stroke, including an
         // `itemStyler`'s. The guard is exact, as `markerStrokePickInflation` never exceeds `sw / 2`.

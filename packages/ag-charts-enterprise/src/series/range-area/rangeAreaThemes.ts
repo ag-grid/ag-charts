@@ -14,6 +14,7 @@ import {
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
@@ -96,6 +97,13 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         lineDashOffset: {
             $path: '/series/$index/marker/lineDashOffset',
         },
+        shadow: {
+            enabled: { $path: '/series/$index/marker/shadow/enabled' },
+            color: { $path: '/series/$index/marker/shadow/color' },
+            xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
+            yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
+            blur: { $path: '/series/$index/marker/shadow/blur' },
+        },
         shape: {
             $path: '/series/$index/marker/shape',
         },
@@ -131,6 +139,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         ...STROKE_STYLE_THEME_DEFAULTS,
         marker: {
             enabled: false,
+            shadow: SHADOW_THEME_DEFAULTS,
             fill: {
                 $applySwitch: [
                     { $path: 'type' },

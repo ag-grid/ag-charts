@@ -21,7 +21,7 @@ import type {
 
 import type { FeatureCollection } from '../geojson';
 import type { Normalised } from './normalise';
-import type { FillStrokeMorph, NormalisedColorType } from './normalisedCommonOptions';
+import type { FillStrokeMorph, NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions, NormalisedSeriesLabelOptions } from './normalisedLabelOptions';
 import type { NormalisedColorScaleOptions } from './normalisedScatterSeries';
 
@@ -97,11 +97,13 @@ export type NormalisedMapMarkerSeriesOwnOptions = Normalised<
     | 'fillOpacity'
     | TopologyStrokeRequiredKeys
     | 'label'
+    | 'shadow'
     | 'colorScale',
     {
         topology?: FeatureCollection;
         fill: NormalisedColorType;
         stroke: CssColor;
+        shadow: NormalisedDropShadowOptions;
         label: NormalisedMapMarkerSeriesLabelOptions;
         colorScale: NormalisedColorScaleOptions;
         itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<unknown, unknown>, AgMapMarkerSeriesStyle>;

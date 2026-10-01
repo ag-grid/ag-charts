@@ -15,6 +15,7 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
@@ -38,6 +39,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
         interpolation: interpolationThemeTemplate(),
         marker: {
             enabled: true,
+            shadow: SHADOW_THEME_DEFAULTS,
             shape: 'circle',
             size: 7,
             fillOpacity: 1,
