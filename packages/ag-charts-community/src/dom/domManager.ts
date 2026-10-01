@@ -39,6 +39,11 @@ const DOM_ELEMENT_CLASSES = [
     'tooltip-container',
     'style-sensors',
 ] as const;
+// Theme params without a `Size`/`Radius`/`Width` suffix that are still emitted as pixel lengths.
+const BUTTON_PADDING_KEYS = ['buttonHorizontalPadding', 'buttonVerticalPadding'];
+// State borders keep the base border width, so `false` must hide the colour rather than the width.
+const BUTTON_STATE_BORDER_KEYS = new Set(['buttonHoverBorder', 'buttonActiveBorder', 'buttonDisabledBorder']);
+
 const MINIMAL_DOM_ELEMENT_ROLES = new Set(['styles', 'canvas-container', 'canvas', 'tooltip-container']);
 const CONTAINER_MODIFIERS = {
     safeHorizontal: 'ag-charts-wrapper--safe-horizontal',
@@ -565,6 +570,10 @@ export class DOMManager extends BaseManager {
 
         // Flatten theme params into a single object ready for the css variables
         for (const [key, value] of entries(params as Record<string, any>)) {
+            if (value === false && BUTTON_STATE_BORDER_KEYS.has(key)) {
+                variables[`${key}Color`] = 'transparent';
+                continue;
+            }
             if (!isObject(value)) {
                 variables[key] = value;
                 continue;
@@ -574,7 +583,7 @@ export class DOMManager extends BaseManager {
             }
         }
 
-        this.setCSSVariables('--ag-charts', undefined, undefined, variables);
+        this.setCSSVariables('--ag-charts', undefined, undefined, variables, BUTTON_PADDING_KEYS);
         this.eventsHub.emit('theme:params-change', null);
     }
 

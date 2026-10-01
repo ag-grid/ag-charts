@@ -232,6 +232,19 @@ export class ChartTheme {
             buttonBorderRadius: { $ref: 'borderRadius' },
             buttonFontWeight: 400,
             buttonTextColor: { $ref: 'chromeTextColor' },
+            buttonHoverBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
+            buttonHoverBorder: { $ref: 'buttonBorder' },
+            buttonHoverTextColor: { $ref: 'buttonTextColor' },
+            buttonActiveBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
+            buttonActiveBorder: { color: { $ref: 'accentColor' } },
+            buttonActiveTextColor: { $ref: 'accentColor' },
+            buttonDisabledBackgroundColor: {
+                $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
+            },
+            buttonDisabledBorder: { $ref: 'buttonBorder' },
+            buttonDisabledTextColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'buttonTextColor' }, 0.5] },
+            buttonHorizontalPadding: 9,
+            buttonVerticalPadding: 6,
 
             inputBackgroundColor: { $ref: 'backgroundColor' },
             inputBorder: {

@@ -70,6 +70,42 @@ export interface AgBaseChartThemeParams {
     buttonFontWeight?: FontWeight;
     /** Text colour of standard action buttons. A colour string, or a theme-colour reference object. */
     buttonTextColor?: AgCssColorOrRef;
+    /** Background colour of buttons when hovered. A colour string, or a theme-colour reference object. */
+    buttonHoverBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border colour of buttons when hovered. `true` for the default border colour, `false` for no visible border, or an
+     * object to customise it. The border width always follows `buttonBorder`.
+     */
+    buttonHoverBorder?: boolean | AgBorderThemeParam;
+    /** Text colour of buttons when hovered. A colour string, or a theme-colour reference object. */
+    buttonHoverTextColor?: AgCssColorOrRef;
+    /**
+     * Background colour of buttons in the active (toggled or selected) state, such as a toggled toolbar button or a
+     * selected menu item. A colour string, or a theme-colour reference object.
+     */
+    buttonActiveBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border colour of buttons in the active (toggled or selected) state. `true` for the default border colour, `false`
+     * for no visible border, or an object to customise it. The border width always follows `buttonBorder`.
+     */
+    buttonActiveBorder?: boolean | AgBorderThemeParam;
+    /** Text colour of buttons in the active (toggled or selected) state. A colour string, or a theme-colour reference object. */
+    buttonActiveTextColor?: AgCssColorOrRef;
+    /** Background colour of disabled buttons. A colour string, or a theme-colour reference object. */
+    buttonDisabledBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border colour of disabled buttons. `true` for the default border colour, `false` for no visible border, or an
+     * object to customise it. The border width always follows `buttonBorder`.
+     */
+    buttonDisabledBorder?: boolean | AgBorderThemeParam;
+    /** Text colour of disabled buttons. A colour string, or a theme-colour reference object. */
+    buttonDisabledTextColor?: AgCssColorOrRef;
+    /** Horizontal padding inside buttons, including range buttons. Toolbar buttons do not use it. */
+    buttonHorizontalPadding?: PixelSize;
+    /**
+     * Vertical padding inside buttons, including range buttons. Toolbar buttons apply it on all four sides.
+     */
+    buttonVerticalPadding?: PixelSize;
     /**
      * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
      * dropdown menus of the toolbars and the colour picker. The value must be a valid CSS box-shadow.

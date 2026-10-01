@@ -1,8 +1,8 @@
 {
     "demo": "financial",
     "framework": "angular",
-    "sourceHash": "sha256-0b7294fc8ec32e57ed4685e4f6c6a163ef79704fcfd65a0801f2e7d310df6031",
-    "sourceCommit": "4c7db660c2b4af906bf1aadd56d4d9a9a9ff5a4d",
+    "sourceHash": "sha256-c1b10c07f4d7269add2ff8bdb1eb48cff9d45b3bbcbe02e584249412e66b338b",
+    "sourceCommit": "bcaef1635243ba5cad3a532f3d01416d047b5538",
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",
     "dist": "dist"
