@@ -7,6 +7,7 @@ import type { AgPatternName } from 'ag-charts-types';
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
+import { BarShape } from './barShape';
 import { Line } from './line';
 import { Path } from './path';
 import { Rect } from './rect';
@@ -917,6 +918,49 @@ describe('Shape', () => {
             expect(pixel(300, 90)).toEqual([255, 255, 255, 255]);
         });
 
+        it('should not paint a silhouette node past the right edge back on to the canvas', () => {
+            clearCanvas();
+            const width = canvasCtx.nodeCanvas.width;
+            // Between one and two canvas widths to the right: a shift of one canvas width would land it back on-screen.
+            const unshadowed = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+            renderNode(
+                whiskerPath('silhouette', width + 40, { fill: 'black', stroke: 'black', fillShadow: unshadowed })
+            );
+            // Same node, with a shadow offset that brings only its shadow back on-screen.
+            renderNode(
+                whiskerPath('silhouette', width + 40, {
+                    fill: 'black',
+                    stroke: 'black',
+                    fillShadow: { ...unshadowed, xOffset: -(width + 20) },
+                })
+            );
+
+            const { data } = canvasCtx.getRenderContext2D().getImageData(0, 0, width, canvasCtx.nodeCanvas.height);
+            let black = 0;
+            let red = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i] === 0 && data[i + 1] === 0 && data[i + 2] === 0) black++;
+                if (data[i] === 255 && data[i + 1] === 0) red++;
+            }
+            // The node is off-canvas, so its own pixels never reach the canvas; only the offset shadow does.
+            expect(black).toBe(0);
+            expect(red).toBeGreaterThan(0);
+        });
+
+        describe('on a Rect', () => {
+            it.each<ShapeShadowMode>(['stroke', 'silhouette'])('falls back to fill when set to %s', (mode) => {
+                const rect = new Rect();
+                rect.shadowMode = mode;
+                expect(rect.shadowMode).toBe('fill');
+            });
+
+            it('falls back to fill on a BarShape', () => {
+                const bar = new BarShape();
+                bar.shadowMode = 'silhouette';
+                expect(bar.shadowMode).toBe('fill');
+            });
+        });
+
         describe('draw order', () => {
             const record = (node: Line | Path) => {
                 const ctx = canvasCtx.getRenderContext2D();
@@ -967,12 +1011,19 @@ describe('Shape', () => {
                 ]);
             });
 
-            it('bounds the silhouette offset by the canvas width plus blur and stroke width', () => {
+            it('bounds the silhouette offset by how far right the shape reaches, plus blur and stroke width', () => {
                 const calls = record(whiskerPath('silhouette', 40));
                 const offset = Number(calls[0].split(':')[2]);
-                const canvasWidth = canvasCtx.nodeCanvas.width;
-                // distance + xOffset, with distance = canvas + blur + strokeWidth.
-                expect(offset).toBe(canvasWidth + SHADOW.blur + 4 + SHADOW.xOffset);
+                // distance + xOffset, with distance = right edge of the shape (40 + 60) + blur + strokeWidth.
+                expect(offset).toBe(100 + SHADOW.blur + 4 + SHADOW.xOffset);
+            });
+
+            it('skips the silhouette pre-pass for a shape whose shadow is nowhere near the canvas', () => {
+                const calls = record(whiskerPath('silhouette', 700));
+                expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([
+                    ['fill', false],
+                    ['stroke', false],
+                ]);
             });
         });
     });

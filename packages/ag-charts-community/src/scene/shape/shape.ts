@@ -48,7 +48,7 @@ export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
  * - `silhouette`: the fill and stroke together do, for mixed nodes whose strokes stick out past the fill.
  *
  * `stroke` and `silhouette` go through {@link Shape.renderStroke}, so shapes that replace it with their own stroke
- * pass (`Rect`, `BarShape`) must stay on `fill`.
+ * pass (`Rect`, `BarShape`) only support `fill`, and fall back to it when set to anything else.
  */
 export type ShapeShadowMode = 'fill' | 'stroke' | 'silhouette';
 
@@ -61,8 +61,46 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasTransform &
     CanvasState;
 
-function hasCanvas(ctx: CanvasContext): ctx is CanvasContext & { canvas: { width: number } } {
+function hasCanvas(ctx: CanvasContext): ctx is CanvasContext & { canvas: { width: number; height: number } } {
     return 'canvas' in ctx;
+}
+
+/** The device-space size of the canvas being painted, if it can be found. */
+function getDeviceCanvasSize(
+    layerCanvas: { width: number; height: number; pixelRatio: number } | undefined,
+    ctx: CanvasContext
+) {
+    if (layerCanvas != null) {
+        const { width, height, pixelRatio } = layerCanvas;
+        return { width: deviceDimension(pixelRatio, width), height: deviceDimension(pixelRatio, height) };
+    }
+    if (hasCanvas(ctx)) {
+        return { width: ctx.canvas.width, height: ctx.canvas.height };
+    }
+    return undefined;
+}
+
+/** The device-space extent of a local-space box under a transform. */
+function transformedExtent(bbox: BBox, { a, b, c, d, e, f }: DOMMatrix) {
+    const { x, y, width, height } = bbox;
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const [px, py] of [
+        [x, y],
+        [x + width, y],
+        [x, y + height],
+        [x + width, y + height],
+    ]) {
+        const dx = a * px + c * py + e;
+        const dy = b * px + d * py + f;
+        minX = Math.min(minX, dx);
+        maxX = Math.max(maxX, dx);
+        minY = Math.min(minY, dy);
+        maxY = Math.max(maxY, dy);
+    }
+    return { minX, maxX, minY, maxY };
 }
 
 export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
@@ -235,9 +273,14 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     fillShadow: NormalisedDropShadowOptions | undefined;
     declare __fillShadow: NormalisedDropShadowOptions | undefined; // optimised field accessor
 
-    @DeclaredSceneChangeDetection()
+    @DeclaredSceneChangeDetection({ changeCb: (s: Shape) => s.onShadowModeChange() })
     shadowMode: ShapeShadowMode = 'fill';
     declare __shadowMode: ShapeShadowMode; // optimised field accessor
+
+    /** Lets a shape that can't honour every {@link ShapeShadowMode} fall back to a supported one. */
+    protected onShadowModeChange() {
+        // Nothing to do by default.
+    }
 
     @DeclaredSceneObjectChangeDetection({ equals: boxesEqual, changeCb: (s) => s.onFillChange() })
     fillBBox?: BBox;
@@ -278,6 +321,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /**
      * Casts the shadow of the fill and stroke together, ahead of painting the shape. The shape is drawn
      * off-canvas and `shadowOffsetX` brings only its shadow back, so the stroke's shadow never lands on the fill.
+     *
+     * The shift is just enough to clear the right edge of the shape's own reach, so a shape that is itself off to the
+     * right of the canvas can't have its source copy shifted back on to it. A shape whose shadow can't reach the
+     * canvas is skipped.
      */
     private renderSilhouetteShadow(
         ctx: CanvasContext,
@@ -289,18 +336,37 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const { __fillShadow: shadow, __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
         if (shadow?.enabled !== true) return;
 
-        const canvas = this.layerManager?.canvas;
-        const pixelRatio = canvas?.pixelRatio ?? 1;
-        const canvasWidth = canvas ? deviceDimension(pixelRatio, canvas.width) : hasCanvas(ctx) ? ctx.canvas.width : 0;
-        // Device space, so rotated or scaled parents don't matter; far enough that the shape and blur clear the canvas.
-        const distance = Math.ceil(canvasWidth + (shadow.blur + this.__strokeWidth) * pixelRatio);
+        const layerCanvas = this.layerManager?.canvas;
+        const pixelRatio = layerCanvas?.pixelRatio ?? 1;
+        const canvasSize = getDeviceCanvasSize(layerCanvas, ctx);
+        // Anything the shadow's blur or the stroke can add beyond the shape's own geometry.
+        const reach = (shadow.blur + this.__strokeWidth) * pixelRatio;
+        const shadowX = shadow.xOffset * pixelRatio;
+        const shadowY = shadow.yOffset * pixelRatio;
+
+        // Device space, so rotated or scaled parents don't matter.
+        const localBBox: BBox | undefined = this.getBBox();
+        const extent = localBBox == null ? undefined : transformedExtent(localBBox, ctx.getTransform());
+        if (extent != null && canvasSize != null) {
+            const offCanvas =
+                extent.maxX + shadowX + reach < 0 ||
+                extent.minX + shadowX - reach > canvasSize.width ||
+                extent.maxY + shadowY + reach < 0 ||
+                extent.minY + shadowY - reach > canvasSize.height;
+            if (offCanvas) return;
+        }
+
+        // Far enough that the shape and its blur clear the left edge of the canvas. Without bounds for the shape, fall
+        // back to the canvas width, which is as far as a shape that is on the canvas can reach.
+        const rightmost = extent?.maxX ?? canvasSize?.width ?? 0;
+        const distance = Math.max(0, Math.ceil(rightmost + reach));
 
         const { a, b, c, d, e, f } = ctx.getTransform();
         ctx.save();
         ctx.setTransform(a, b, c, d, e - distance, f);
         ctx.shadowColor = shadow.color;
-        ctx.shadowOffsetX = distance + shadow.xOffset * pixelRatio;
-        ctx.shadowOffsetY = shadow.yOffset * pixelRatio;
+        ctx.shadowOffsetX = distance + shadowX;
+        ctx.shadowOffsetY = shadowY;
         ctx.shadowBlur = shadow.blur * pixelRatio;
 
         if (fill != null && fill !== 'none' && fillOpacity > 0) {

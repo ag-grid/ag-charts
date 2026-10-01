@@ -593,6 +593,14 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         ctx.globalAlpha *= this.microPixelEffectOpacity;
     }
 
+    /**
+     * `Rect` replaces {@link Shape.renderStroke} with its own stroke pass, which the `stroke` and `silhouette` shadow
+     * modes rely on, so a shadow can only be cast from the fill. Any other mode falls back to `fill`.
+     */
+    protected override onShadowModeChange() {
+        this.__shadowMode = 'fill';
+    }
+
     protected override applyStrokeAndAlpha(ctx: CanvasContext): void {
         super.applyStrokeAndAlpha(ctx);
         ctx.globalAlpha *= this.microPixelEffectOpacity;
