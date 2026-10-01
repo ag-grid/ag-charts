@@ -1867,6 +1867,54 @@ describe('placeLabels positioned candidates', () => {
     });
 });
 
+describe('placeLabels sole positioned candidate', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+    const fixedBox: BoxBounds = { x: 40, y: 40, width: 20, height: 10 };
+
+    const fixedLabel = (obstacle?: boolean): PointLabelDatum => ({
+        point: { x: 0, y: 0, size: 0 },
+        label: { text: 'fixed', width: 20, height: 10 },
+        anchor: undefined,
+        placement: undefined,
+        neverDrop: true,
+        obstacle,
+        positionedCandidates: [{ box: fixedBox }],
+    });
+
+    // Droppable, so it queries the index: its first candidate sits on the fixed label, its second is clear.
+    const movableLabel = (): PointLabelDatum => ({
+        point: { x: 0, y: 0, size: 0 },
+        label: { text: 'movable', width: 20, height: 10 },
+        anchor: undefined,
+        placement: undefined,
+        positionedCandidates: [{ box: { ...fixedBox } }, { box: { x: 120, y: 120, width: 20, height: 10 } }],
+    });
+
+    it('keeps its own box through an obstacle without gathering obstacles', () => {
+        const gather = vi.fn((): LabelObstacle[] => [{ kind: 'rect', category: 'seriesItem', box: bounds }]);
+        const placed = placeLabels(new Map([['fixed', seriesLabels([fixedLabel()])]]), bounds, 5, gather).get('fixed');
+
+        expect(gather).not.toHaveBeenCalled();
+        expect(placed).toHaveLength(1);
+        expect(placed![0]).toMatchObject({ x: fixedBox.x, y: fixedBox.y, width: 20, height: 10 });
+    });
+
+    it('is avoided by later labels unless it opts out of being an obstacle', () => {
+        const place = (obstacle?: boolean) =>
+            placeLabels(
+                new Map([
+                    ['fixed', seriesLabels([fixedLabel(obstacle)])],
+                    ['movable', seriesLabels([movableLabel()], { alwaysShow: false })],
+                ]),
+                bounds,
+                5
+            ).get('movable')![0];
+
+        expect(place()).toMatchObject({ x: 120, y: 120 });
+        expect(place(false)).toMatchObject({ x: fixedBox.x, y: fixedBox.y });
+    });
+});
+
 describe('resolveLabelFit', () => {
     it('returns undefined (show) when there is no overflow strategy and no wrapping', () => {
         expect(resolveLabelFit({})).toBeUndefined();

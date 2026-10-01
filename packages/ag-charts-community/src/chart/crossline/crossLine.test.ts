@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    ChartUpdateType,
     type CrossLineLabelOverflow,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
+    getDocument,
     mapValues,
 } from 'ag-charts-core';
 import type {
@@ -16,6 +18,7 @@ import type {
     AgCrossLineListeners,
 } from 'ag-charts-types';
 
+import { AgCharts } from '../../api/agCharts';
 import { BBox } from '../../scene/bbox';
 import { Transformable } from '../../scene/transformable';
 import type { Chart } from '../chart';
@@ -27,6 +30,7 @@ import {
     clickAction,
     compareImageSnapshot,
     createChart,
+    deproxy,
     doubleClickAction,
     expectWarningMessages,
     prepareTestOptions,
@@ -1723,6 +1727,196 @@ describe('CrossLine', () => {
         });
     });
 
+    describe('label collision', () => {
+        type SmallLabel = Parameters<typeof undocumentedLabel>[0];
+
+        // Two labels above the same x value: a small one, reserved unless overridden, and a large one
+        // that overlaps it and pads the chart further.
+        function collisionChart({
+            alwaysShow = false,
+            stroke = 'blue',
+            small = {},
+            values: [smallValue, largeValue] = [5, 5],
+        }: {
+            alwaysShow?: boolean;
+            stroke?: string;
+            small?: Partial<SmallLabel>;
+            values?: [number, number];
+        } = {}): AgCartesianChartOptions {
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', stroke }],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: smallValue,
+                                label: undocumentedLabel({ text: 'A', fontSize: 10, reserveSpace: true, ...small }),
+                            },
+                            {
+                                type: 'line',
+                                value: largeValue,
+                                label: { text: 'LARGE LABEL', fontSize: 40, collision: { alwaysShow } },
+                            },
+                        ],
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+        }
+
+        function labelsShown(axisId = 'x') {
+            const axis = chart.axes.findById(axisId)!;
+            return (getCrossLinesPlugin(axis)?.getInstances() ?? []).map((crossLine) => {
+                const [crossLineLabel] = crossLine.labelGroup.children() as any;
+                return crossLineLabel.visible as boolean;
+            });
+        }
+
+        it('hides a colliding label and releases the space it padded', async () => {
+            chart = await createChart(collisionChart({ alwaysShow: true }));
+            const shownTop = chart.seriesRect!.y;
+            expect(labelsShown()).toEqual([true, true]);
+
+            await chart.publicApi!.update(collisionChart());
+            await waitForChartStability(chart);
+
+            expect(labelsShown()).toEqual([true, false]);
+            expect(chart.seriesRect!.y).toBeLessThan(shownTop);
+        });
+
+        it('renders a colliding label hidden without the space it would pad', async () => {
+            chart = await createChart(collisionChart());
+            await compare();
+        });
+
+        it('keeps a label outside the series area when nothing collides with it', async () => {
+            chart = await createChart(collisionChart({ small: { enabled: false } }));
+
+            expect(labelsShown()[1]).toBe(true);
+        });
+
+        it('hides a label behind another droppable cross line label', async () => {
+            chart = await createChart(
+                collisionChart({ small: { reserveSpace: false, collision: { alwaysShow: false } } })
+            );
+
+            expect(labelsShown()).toEqual([true, false]);
+        });
+
+        it('hides a label behind a series label that is always shown', async () => {
+            const seriesLabelChart = (enabled: boolean): AgCartesianChartOptions => ({
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50 })),
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: false },
+                        label: { enabled, collision: { alwaysShow: true } },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 50,
+                                label: undocumentedLabel({
+                                    position: 'inside',
+                                    text: 'CROSSLINE LABEL',
+                                    fontSize: 40,
+                                    collision: { alwaysShow: false },
+                                }),
+                            },
+                        ],
+                    },
+                },
+            });
+
+            chart = await createChart(seriesLabelChart(false));
+            expect(labelsShown('y')).toEqual([true]);
+            chart.destroy();
+
+            chart = await createChart(seriesLabelChart(true));
+            expect(labelsShown('y')).toEqual([false]);
+        });
+
+        it('settles on the same result when laid out again', async () => {
+            chart = await createChart(collisionChart());
+            await chart.publicApi!.update(collisionChart({ stroke: 'red' }));
+            await waitForChartStability(chart);
+            const settled = { top: chart.seriesRect!.y, shown: labelsShown() };
+
+            await chart.publicApi!.update(collisionChart({ stroke: 'green' }));
+            await waitForChartStability(chart);
+
+            expect({ top: chart.seriesRect!.y, shown: labelsShown() }).toEqual(settled);
+        });
+
+        it('lets a label hidden by the re-layout keep the space it was padded', async () => {
+            chart = await createChart(collisionChart({ alwaysShow: true }));
+            const [, crossLine] = getCrossLinesPlugin(chart.axes.findById('x')!)!.getInstances();
+
+            crossLine.holdLabelPlacement!(true);
+            crossLine.applyLabelPlacement!(true);
+            crossLine.holdLabelPlacement!(false);
+
+            // A hover re-applies the same solve, which must not read as a flip needing another layout.
+            expect(crossLine.applyLabelPlacement!(true)).toBe(false);
+        });
+
+        it('lays a hidden label out once when it keeps its verdict', async () => {
+            async function updateLabelsCallsOnLayout(options: AgCartesianChartOptions) {
+                chart = await createChart(options);
+                const updateLabels = vi.spyOn(chart.ctx.labelManager, 'updateLabels');
+                chart.update(ChartUpdateType.PERFORM_LAYOUT);
+                await waitForChartStability(chart);
+                return { calls: updateLabels.mock.calls.length, shown: labelsShown() };
+            }
+
+            const shown = await updateLabelsCallsOnLayout(collisionChart({ alwaysShow: true }));
+            chart.destroy();
+            const hidden = await updateLabelsCallsOnLayout(collisionChart());
+
+            expect(hidden.shown).toEqual([true, false]);
+            expect(hidden.calls).toBe(shown.calls);
+        });
+
+        it('shows a hidden label again once a resize clears what it collided with', async () => {
+            const container = getDocument().createElement('div');
+            getDocument().body.append(container);
+            const options = prepareTestOptions(collisionChart({ values: [3, 6] }), container);
+            delete options.width;
+            delete options.height;
+            chart = deproxy(AgCharts.create(options));
+
+            const resizeTo = async (width: number) => {
+                chart.ctx.domManager.containerSize = { width, height: 400, pixelRatio: 1 };
+                chart.ctx.eventsHub.emit('dom:resize', null);
+                await waitForChartStability(chart);
+            };
+
+            try {
+                await resizeTo(400);
+                expect(labelsShown()).toEqual([true, false]);
+                const hiddenTop = chart.seriesRect!.y;
+
+                await resizeTo(1200);
+                expect(labelsShown()).toEqual([true, true]);
+                expect(chart.seriesRect!.y).toBeGreaterThan(hiddenTop);
+            } finally {
+                container.remove();
+            }
+        });
+    });
+
     describe('AG-8901: label space reservation', () => {
         // Every datum shares a y value, so the series labels form one row across the cross line's own
         // position — the arrangement that puts them in the way whenever the label is not reserved.
@@ -1836,12 +2030,12 @@ describe('CrossLine', () => {
             const axis = chart.axes.findById('y')!;
             const plugin = getCrossLinesPlugin(axis)!;
 
-            expect(plugin.getLabelObstacles(BBox.zero)).toHaveLength(1);
+            expect(plugin.labelSources[0].getLabelData(BBox.zero)).toMatchObject([{ obstacle: true }]);
 
             const version = plugin.nodeDataVersion;
             plugin.setVisible(false);
 
-            expect(plugin.getLabelObstacles(BBox.zero)).toBeUndefined();
+            expect(plugin.labelSources[0].getLabelData(BBox.zero)).toHaveLength(0);
             expect(plugin.nodeDataVersion).toBeGreaterThan(version);
         });
 

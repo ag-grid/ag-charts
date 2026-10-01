@@ -11,6 +11,7 @@ import {
     callback,
     callbackDefs,
     callbackOf,
+    collisionOptionsDef,
     colorOrRef,
     constant,
     date,
@@ -174,6 +175,7 @@ export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLin
         'inside-bottom-right'
     ),
     rotation: number,
+    collision: collisionOptionsDef,
 };
 
 // @ts-expect-error undocumented option

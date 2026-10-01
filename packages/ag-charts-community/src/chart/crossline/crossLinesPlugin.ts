@@ -4,8 +4,9 @@ import type {
     CanvasPoint,
     DynamicContext,
     Forbid,
-    LabelObstacle,
     NormalisedAxisCrossLineOptions,
+    PlacedLabel,
+    PointLabelDatum,
 } from 'ag-charts-core';
 import { AbstractModuleInstance, jsonDiff } from 'ag-charts-core';
 import type { AgCrossLineClickEvent } from 'ag-charts-types';
@@ -17,8 +18,54 @@ import type { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
-import type { LabelSource } from '../layout/labelManager';
+import type { PlacedLabelSource } from '../layout/labelManager';
 import type { CrossLine, CrossLineValuePick, PendingCrossLineCallbackParam, PolarCrossLine } from './crossLine';
+
+/** One solve group of an axis's cross line labels: kept labels resolve before series labels, droppable ones after. */
+class CrossLineLabelSource implements PlacedLabelSource {
+    private readonly datums = new Map<CrossLine, PointLabelDatum>();
+
+    constructor(
+        readonly id: string,
+        private readonly plugin: CrossLinesPlugin,
+        private readonly keep: boolean
+    ) {}
+
+    get usesPlacedLabels(): boolean {
+        return this.plugin.getInstances().some((crossLine) => crossLine.keepsLabel === this.keep);
+    }
+
+    get nodeDataVersion(): number {
+        return this.plugin.nodeDataVersion;
+    }
+
+    getLabelData(seriesRect: BBox): PointLabelDatum[] {
+        this.datums.clear();
+        if (!this.plugin.isVisible()) return [];
+
+        for (const crossLine of this.plugin.getInstances()) {
+            if (crossLine.keepsLabel !== this.keep) continue;
+            const datum = crossLine.getLabelDatum?.(seriesRect);
+            if (datum != null) this.datums.set(crossLine, datum);
+        }
+        return Array.from(this.datums.values());
+    }
+
+    updatePlacedLabelData(labels: PlacedLabel[]): boolean {
+        const placed = new Set(labels.map((label) => label.datum));
+        let invalidated = false;
+        for (const [crossLine, datum] of this.datums) {
+            invalidated = crossLine.applyLabelPlacement?.(!placed.has(datum)) === true || invalidated;
+        }
+        return invalidated;
+    }
+
+    holdLabelPlacements(hold: boolean): void {
+        for (const crossLine of this.plugin.getInstances()) {
+            if (crossLine.keepsLabel === this.keep) crossLine.holdLabelPlacement?.(hold);
+        }
+    }
+}
 
 /**
  * Axis plugin that owns a per-axis runtime list of {@link CrossLine} instances along with the
@@ -45,12 +92,10 @@ import type { CrossLine, CrossLineValuePick, PendingCrossLineCallbackParam, Pola
  * scene-graph detach/recreate churn on no-op updates. Per invariant I1 the options array is
  * read-only — the plugin stores its own runtime state on the per-instance `CrossLine`s.
  */
-export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPluginModuleInstance, LabelSource {
+export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPluginModuleInstance {
     static readonly className = 'CrossLines';
 
     readonly id: string;
-    /** A reserved label never moves, so the plugin only ever contributes obstacles. */
-    readonly usesPlacedLabels = false;
     /** Bumped whenever the label inputs change, so placement can skip an unchanged solve. */
     nodeDataVersion = 0;
 
@@ -63,13 +108,20 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private visible = true;
     private lastOptions: NormalisedAxisCrossLineOptions[] | undefined;
     private readonly removePointerListeners: (() => void)[];
+    readonly labelSources: readonly CrossLineLabelSource[];
 
     constructor(ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) {
         super();
         this.ctx = ctx;
         this.axisCtx = ctx.parent;
         this.id = `crossLines:${this.axisCtx.axisId}`;
-        this.ctx.labelManager.registerSource(this);
+        this.labelSources = [
+            new CrossLineLabelSource(this.id, this, true),
+            new CrossLineLabelSource(`${this.id}:drop`, this, false),
+        ];
+        for (const source of this.labelSources) {
+            this.ctx.labelManager.registerSource(source);
+        }
         this.axisCtx.attachAxisOverlay(this.rangeGroup, 'low');
         this.axisCtx.attachAxisOverlay(this.lineGroup, 'mid');
         this.axisCtx.attachAxisOverlay(this.labelGroup, 'high');
@@ -250,37 +302,14 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         return this.instances;
     }
 
-    /**
-     * Reserved cross-line labels, as obstacles in placement space. Seeded before any label resolves, so
-     * every other label routes around them whatever order the sources are solved in.
-     */
-    getLabelObstacles(seriesRect: BBox): LabelObstacle[] | undefined {
-        if (!this.visible) return;
-
-        const obstacles: LabelObstacle[] = [];
-        for (const crossLine of this.instances) {
-            if (crossLine.reservesLabelSpace !== true) continue;
-            const box = crossLine.getLabelBox?.();
-            if (box == null) continue;
-
-            obstacles.push({
-                kind: 'rect',
-                category: 'label',
-                // Already the rotated footprint, so it is inserted unrotated: a rotation here would have
-                // the engine inflate the footprint a second time.
-                box: {
-                    x: box.x - seriesRect.x,
-                    y: box.y - seriesRect.y,
-                    width: box.width,
-                    height: box.height,
-                },
-            });
-        }
-        return obstacles.length > 0 ? obstacles : undefined;
+    isVisible(): boolean {
+        return this.visible;
     }
 
     override destroy(): void {
-        this.ctx.labelManager.unregisterSource(this.id, this);
+        for (const source of this.labelSources) {
+            this.ctx.labelManager.unregisterSource(source.id, source);
+        }
         for (const removeListener of this.removePointerListeners) {
             removeListener();
         }

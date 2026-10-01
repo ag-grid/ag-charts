@@ -1645,11 +1645,14 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         await Promise.all(seriesToUpdate.map(seriesUpdate).filter((p): p is Promise<void> => p != null));
 
-        this.ctx.labelManager.updateLabels(
+        const relayout = this.ctx.labelManager.updateLabels(
             this.series.filter((s) => s.visible),
             this.ctx.chartState.getValue('options', 'padding'),
             this.seriesRect
         );
+        if (relayout) {
+            this.update(ChartUpdateType.PERFORM_LAYOUT);
+        }
     }
 
     private readonly seriesGroupingChanged = (event: SeriesGroupingChangedEvent) => {

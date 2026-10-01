@@ -47,6 +47,7 @@ import type {
 
 import type { Normalised } from './normalise';
 import type { NormalisedBorderOptions, NormalisedColorType } from './normalisedCommonOptions';
+import type { NormalisedChartLabelCollisionOptions } from './normalisedLabelOptions';
 
 // --- Label normalised shapes ---
 // `mirrored`/`parallel` are axis-instance state managed by `Axis.updateDirection()`, not user-facing options.
@@ -389,6 +390,8 @@ export type NormalisedAxisCrossLineLabelOptions = Normalised<
     position?: AgCrossLineLabelPosition;
     /** Cartesian cross lines only. */
     rotation?: number;
+    /** Cartesian cross lines only. */
+    collision?: NormalisedChartLabelCollisionOptions;
     /** Radius cross lines only. */
     positionAngle?: number;
 };
