@@ -35,7 +35,7 @@ import {
 } from 'ag-charts-community-test';
 import { deepClone } from 'ag-charts-core';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { DEFAULT_DISABLED_SHADOW, prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
 
 describe('TreemapSeries', () => {
@@ -1444,6 +1444,118 @@ describe('TreemapSeries', () => {
 
         chart = deproxy(AgCharts.create(options));
         await compare();
+    });
+
+    describe('shadow', () => {
+        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 8, yOffset: 8, blur: 8 };
+        const data = [
+            {
+                name: 'Root',
+                children: [
+                    {
+                        name: 'A',
+                        children: [
+                            { name: 'A1', size: 10 },
+                            { name: 'A2', size: 6 },
+                        ],
+                    },
+                    {
+                        name: 'B',
+                        children: [
+                            { name: 'B1', size: 8 },
+                            { name: 'B2', size: 4 },
+                        ],
+                    },
+                ],
+            },
+        ];
+        const shadowOptions = (parts: { group?: typeof shadow; tile?: typeof shadow } = {}): AgChartOptions => ({
+            data,
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    fills: ['#c3dafe', '#fbd38d'],
+                    group: { shadow: parts.group, gap: 12, padding: 10 },
+                    tile: { shadow: parts.tile },
+                },
+            ],
+            legend: { enabled: false },
+            animation: { enabled: false },
+        });
+        const createChart = async (options: AgChartOptions) => {
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as TreemapSeries;
+            const rects: { isLeaf: boolean; rect: _ModuleSupport.Rect }[] = [];
+            series['datumSelection'].each((rect, node) => {
+                // The synthetic root node has a rect that is never shown.
+                if (rect.visible) rects.push({ isLeaf: node.children.length === 0, rect });
+            });
+            return { series, rects, leaves: rects.filter((r) => r.isLeaf), groups: rects.filter((r) => !r.isLeaf) };
+        };
+
+        it('defaults to disabled group and tile shadows', async () => {
+            const { series } = await createChart(shadowOptions());
+
+            expect(series['options'].group.shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(series['options'].tile.shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            const { rects, leaves, groups } = await createChart(shadowOptions());
+
+            expect(leaves).toHaveLength(4);
+            expect(groups).toHaveLength(3);
+            expect(rects.filter(({ rect }) => rect.fillShadow?.enabled)).toEqual([]);
+        });
+
+        it('shadows only the groups when only group.shadow is enabled', async () => {
+            const { leaves, groups } = await createChart(shadowOptions({ group: shadow }));
+
+            expect(groups).toHaveLength(3);
+            for (const { rect } of groups) {
+                expect(rect.fillShadow).toMatchObject(shadow);
+            }
+            expect(leaves.filter(({ rect }) => rect.fillShadow?.enabled)).toEqual([]);
+        });
+
+        it('shadows only the tiles when only tile.shadow is enabled', async () => {
+            const { leaves, groups } = await createChart(shadowOptions({ tile: shadow }));
+
+            expect(leaves).toHaveLength(4);
+            for (const { rect } of leaves) {
+                expect(rect.fillShadow).toMatchObject(shadow);
+            }
+            expect(groups.filter(({ rect }) => rect.fillShadow?.enabled)).toEqual([]);
+        });
+
+        it('renders with group.shadow enabled', async () => {
+            await createChart(shadowOptions({ group: shadow }));
+            await compare();
+        });
+
+        it('renders with tile.shadow enabled', async () => {
+            await createChart(shadowOptions({ tile: shadow }));
+            await compare();
+        });
+
+        it('renders with group.shadow and tile.shadow enabled', async () => {
+            await createChart(shadowOptions({ group: shadow, tile: shadow }));
+            await compare();
+        });
+
+        it('clips tiles of a leaf-only group to their own bounds', async () => {
+            // The tile rect spans its parent group's content area but is clipped to the tile's own bbox. The clip is
+            // applied to the rect geometry, so the shadow is still cast beyond it (see the tile.shadow snapshot).
+            const { leaves } = await createChart(shadowOptions({ tile: shadow }));
+
+            for (const { rect } of leaves) {
+                expect(rect.clipBBox).toBeDefined();
+            }
+        });
     });
 
     describe('AG-15448', () => {

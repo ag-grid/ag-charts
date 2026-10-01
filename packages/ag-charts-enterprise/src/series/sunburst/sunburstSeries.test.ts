@@ -38,7 +38,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions } from '../../test/utils';
 import type { SunburstSeries } from './sunburstSeries';
 
 describe('SunburstSeries', () => {
@@ -1199,6 +1199,78 @@ describe('SunburstSeries', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
+    describe('shadow', () => {
+        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 8 };
+        const data = [
+            {
+                name: 'Root',
+                children: [
+                    {
+                        name: 'A',
+                        children: [
+                            { name: 'A1', size: 10 },
+                            { name: 'A2', size: 6 },
+                        ],
+                    },
+                    {
+                        name: 'B',
+                        children: [
+                            { name: 'B1', size: 8 },
+                            { name: 'B2', size: 4 },
+                        ],
+                    },
+                ],
+            },
+        ];
+        const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
+            data,
+            series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', shadow: seriesShadow }],
+            legend: { enabled: false },
+            animation: { enabled: false },
+        });
+        const createChart = async (seriesShadow?: typeof shadow) => {
+            const options = shadowOptions(seriesShadow);
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.series[0] as SunburstSeries;
+        };
+        const sectors = (series: SunburstSeries) => {
+            const nodes: _ModuleSupport.Sector[] = [];
+            // The synthetic root node has a sector that is never shown.
+            series.datumSelection.each((sector) => sector.visible && nodes.push(sector));
+            return nodes;
+        };
+
+        it('defaults to a disabled shadow', async () => {
+            const series = await createChart();
+
+            expect(series['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            const series = await createChart();
+
+            expect(sectors(series)).toHaveLength(7);
+            expect(collectShapes(series.contentGroup).filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
+        });
+
+        it('applies an enabled shadow to every sector', async () => {
+            const series = await createChart(shadow);
+
+            const nodes = sectors(series);
+            expect(nodes).toHaveLength(7);
+            for (const sector of nodes) {
+                expect(sector.fillShadow).toMatchObject(shadow);
+            }
+        });
+
+        it('renders with the shadow enabled', async () => {
+            await createChart(shadow);
             await compare();
         });
     });

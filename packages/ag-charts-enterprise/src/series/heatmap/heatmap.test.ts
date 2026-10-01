@@ -26,7 +26,13 @@ import {
 } from 'ag-charts-community-test';
 import { classCast } from 'ag-charts-test';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    collectShapes,
+    createEnterpriseChart,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
 import { HeatmapSeries } from './heatmapSeries';
 
 // Resolves nodeData fresh on every call so it stays valid across `proxy.update(...)` rebuilds.
@@ -1405,6 +1411,57 @@ describe('HeatmapSeries', () => {
             for (const rect of rects) {
                 expect(rect.topLeftCornerRadius).toBe(0);
             }
+        });
+    });
+
+    describe('shadow', () => {
+        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
+        const buildOptions = (seriesShadow?: typeof shadow) =>
+            prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
+                        shadow: seriesShadow,
+                    },
+                ],
+                legend: { enabled: false },
+            });
+
+        it('defaults to a disabled shadow', async () => {
+            chart = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+
+            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            chart = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+
+            const shapes = collectShapes(chart.series[0].contentGroup);
+            expect(shapes).toHaveLength(9);
+            expect(shapes.filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
+        });
+
+        it('applies an enabled shadow to every cell', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(shadow)));
+            await waitForChartStability(chart);
+
+            const shapes = collectShapes(chart.series[0].contentGroup);
+            expect(shapes).toHaveLength(9);
+            for (const shape of shapes) {
+                expect(shape.fillShadow).toMatchObject(shadow);
+            }
+        });
+
+        it('renders with the shadow enabled', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(shadow)));
+            await compare();
         });
     });
 
