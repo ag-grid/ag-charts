@@ -8,6 +8,7 @@ import type {
     AgCandlestickSeriesOptions,
     AgCartesianChartOptions,
     AgChartSyncOptions,
+    AgHlcSeriesOptions,
     AgLineSeriesOptions,
     AgNavigatorOptions,
     AgNumberAxisOptions,
@@ -15,7 +16,6 @@ import type {
     AgOrdinalTimeAxisOptions,
     AgPriceVolumeChartType,
     AgPriceVolumePreset,
-    AgRangeAreaSeriesOptions,
     AgRangeBarSeriesOptions,
     AgRangesOptions,
     AgThemeOverrides,
@@ -125,8 +125,6 @@ export function priceVolume(
     } satisfies AgCartesianChartOptions<DatumDefault, never>;
 }
 
-const RANGE_AREA_TYPE = 'range-area';
-
 interface PriceSeriesCommon {
     pickOutsideVisibleMinorAxis: boolean;
     tooltip: { enabled: boolean };
@@ -162,7 +160,7 @@ function createPriceSeries(chartType: AgPriceVolumeChartType, keys: PriceSeriesK
         case 'step-line':
             return createPriceSeriesLine(common, singleKeys);
         case 'hlc':
-            return createPriceSeriesHLC(common, singleKeys, keys);
+            return createPriceSeriesHLC(common, keys);
         case 'high-low':
             return createPriceSeriesHighLow(common, keys);
         case 'candlestick':
@@ -198,35 +196,18 @@ function createPriceSeriesLine(common: PriceSeriesCommon, singleKeys: PriceSerie
     ];
 }
 
-function createPriceSeriesHLC(
-    common: PriceSeriesCommon,
-    singleKeys: PriceSeriesSingleKeys,
-    { xKey, highKey, closeKey, lowKey }: PriceSeriesKeys
-) {
+function createPriceSeriesHLC(common: PriceSeriesCommon, { xKey, highKey, lowKey, closeKey }: PriceSeriesKeys) {
     return [
         {
-            type: RANGE_AREA_TYPE,
+            type: 'hlc',
             // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             xKey,
-            yHighKey: highKey,
-            yLowKey: closeKey,
-        } satisfies AgRangeAreaSeriesOptions,
-        {
-            type: RANGE_AREA_TYPE,
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
-            ...common,
-            xKey,
-            yHighKey: closeKey,
-            yLowKey: lowKey,
-        } satisfies AgRangeAreaSeriesOptions,
-        {
-            type: 'line',
-            ...common,
-            ...singleKeys,
-        } satisfies AgLineSeriesOptions,
+            highKey,
+            lowKey,
+            closeKey,
+        } satisfies AgHlcSeriesOptions,
     ];
 }
 

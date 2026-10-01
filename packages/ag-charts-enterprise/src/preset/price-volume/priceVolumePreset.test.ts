@@ -223,6 +223,46 @@ describe('priceVolumePreset', () => {
         });
     });
 
+    describe('hlc chart type', () => {
+        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
+
+        const HLC_EXAMPLES: Record<string, AgFinancialChartOptions> = {
+            'volume and volume profile': { volume: true, volumeProfile },
+            'volume only': { volume: true },
+            'volume profile only': { volume: false, volumeProfile },
+            'neither volume nor volume profile': { volume: false },
+        };
+
+        it.each(Object.entries(HLC_EXAMPLES))(
+            'with %s it should render a single hlc series',
+            async (_exampleName, example) => {
+                chart = AgCharts.createFinancialChart(
+                    prepareFinancialTestOptions({ chartType: 'hlc', data: getStockData(), ...example })
+                );
+                await compare();
+
+                const { series } = deproxy(chart).chartOptions.processedOptions as {
+                    series: Array<{
+                        type: string;
+                        xKey?: string;
+                        highKey?: string;
+                        lowKey?: string;
+                        closeKey?: string;
+                    }>;
+                };
+                const hlcSeries = series.filter((s) => s.type === 'hlc');
+                expect(hlcSeries).toHaveLength(1);
+                expect(hlcSeries[0]).toMatchObject({
+                    xKey: 'date',
+                    highKey: 'high',
+                    lowKey: 'low',
+                    closeKey: 'close',
+                });
+                expect(series.filter((s) => s.type === 'range-area' || s.type === 'line')).toHaveLength(0);
+            }
+        );
+    });
+
     describe('toolbar button theme override (AG-17364)', () => {
         const userButtons: AgAnnotationsToolbarButton[] = [
             { icon: 'trend-line-drawing', tooltip: 'toolbarAnnotationsLineAnnotations', value: 'line-menu' },
