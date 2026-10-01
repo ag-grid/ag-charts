@@ -281,6 +281,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sectorSpacing,
             padding,
             cornerRadius,
+            shadow,
             childrenKey,
             colorKey,
             colorName,
@@ -554,6 +555,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
+            sector.fillShadow = shadow;
             sector.centerX = 0;
             sector.centerY = 0;
             sector.innerRadius = hole + depth * radiusScale;
