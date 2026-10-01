@@ -1356,6 +1356,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const crispCentreDirection = this.getCategoryCrispDirection();
 
         const fillBBox = this.getShapeFillBBox();
+        const { shadow } = this.options;
 
         const series = this;
         datumSelection.each(function updateRangeBarNode(rect, datum) {
@@ -1373,7 +1374,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 style.cornerRadius ?? 0,
                 categoryAlongX ? datum.width > 0 : datum.height > 0,
                 datum.crisp,
-                undefined
+                shadow
             );
             rect.crispCentreDirection = crispCentreDirection;
         });

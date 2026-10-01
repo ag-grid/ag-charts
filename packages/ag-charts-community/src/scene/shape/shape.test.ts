@@ -7,7 +7,10 @@ import type { AgPatternName } from 'ag-charts-types';
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
+import { Line } from './line';
+import { Path } from './path';
 import { Rect } from './rect';
+import type { ShapeShadowMode } from './shape';
 
 describe('Shape', () => {
     setupMockConsole();
@@ -793,6 +796,184 @@ describe('Shape', () => {
 
             expect(scoped).toHaveBeenCalledWith('Pattern fill is too small to render, ignoring.');
             expect(unrelated).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('shadow modes', () => {
+        const canvasCtx = setupMockCanvas({ width: 400, height: 220 });
+
+        const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 4 };
+
+        const renderNode = (node: Line | Path, ctx = canvasCtx.getRenderContext2D()) => {
+            const renderCtx = {
+                ctx,
+                direction: 'ltr' as const,
+                width: canvasCtx.nodeCanvas.width,
+                height: canvasCtx.nodeCanvas.height,
+                devicePixelRatio: 1,
+                logger: testLogger,
+                debugNodes: {},
+            };
+            ctx.save();
+            node.preRender(renderCtx);
+            node.render(renderCtx);
+            ctx.restore();
+        };
+
+        const lineNode = (shadowMode: ShapeShadowMode, y: number, strokeWidth = 8) => {
+            const line = new Line();
+            Object.assign(line, {
+                x1: 20,
+                y1: y,
+                x2: 120,
+                y2: y + 30,
+                stroke: 'red',
+                strokeWidth,
+                fillShadow: SHADOW,
+                shadowMode,
+            });
+            return line;
+        };
+
+        /** A filled box with whiskers sticking out above and below, as in a box plot. */
+        const whiskerPath = (shadowMode: ShapeShadowMode, x: number, mixin: Partial<Path> = {}) => {
+            const path = new Path();
+            Object.assign(path, {
+                fill: 'gold',
+                stroke: 'navy',
+                strokeWidth: 4,
+                fillShadow: SHADOW,
+                shadowMode,
+                ...mixin,
+            });
+            const { path: p } = path;
+            p.moveTo(x, 40);
+            p.lineTo(x + 60, 40);
+            p.lineTo(x + 60, 140);
+            p.lineTo(x, 140);
+            p.closePath();
+            p.moveTo(x + 30, 10);
+            p.lineTo(x + 30, 40);
+            p.moveTo(x + 30, 140);
+            p.lineTo(x + 30, 190);
+            return path;
+        };
+
+        const clearCanvas = () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
+        };
+
+        it('should render a stroke-only line and path with a stroke shadow', () => {
+            clearCanvas();
+            renderNode(lineNode('stroke', 20));
+            renderNode(lineNode('stroke', 100, 3));
+
+            const open = new Path();
+            Object.assign(open, {
+                fill: undefined,
+                stroke: 'green',
+                strokeWidth: 6,
+                lineJoin: 'round',
+                fillShadow: SHADOW,
+                shadowMode: 'stroke',
+            });
+            open.path.moveTo(200, 160);
+            open.path.lineTo(250, 40);
+            open.path.lineTo(300, 160);
+            open.path.lineTo(350, 40);
+            renderNode(open);
+
+            expect(extractImageData(canvasCtx)).toMatchImageSnapshot();
+        });
+
+        it('should render a mixed path with open subpaths with a silhouette shadow', () => {
+            clearCanvas();
+            renderNode(whiskerPath('silhouette', 40));
+            renderNode(
+                whiskerPath('silhouette', 200, { fill: { type: 'pattern', pattern: 'circles', width: 10, height: 10 } })
+            );
+
+            expect(extractImageData(canvasCtx)).toMatchImageSnapshot();
+        });
+
+        it('should not paint the silhouette source off-canvas on to the canvas', () => {
+            clearCanvas();
+            // No shadow offset or blur, so a silhouette shadow is exactly the shape's own pixels.
+            const path = whiskerPath('silhouette', 40, {
+                fill: 'black',
+                stroke: 'black',
+                fillShadow: { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 },
+            });
+            renderNode(path);
+
+            const ctx = canvasCtx.getRenderContext2D();
+            const pixel = (x: number, y: number) => Array.from(ctx.getImageData(x, y, 1, 1).data);
+            // Inside the body: black fill on top of the shadow. On the whisker: black stroke on top.
+            expect(pixel(70, 90)).toEqual([0, 0, 0, 255]);
+            expect(pixel(70, 20)).toEqual([0, 0, 0, 255]);
+            // Nothing is drawn away from the shape, including the far right where the shifted source would land.
+            expect(pixel(300, 90)).toEqual([255, 255, 255, 255]);
+        });
+
+        describe('draw order', () => {
+            const record = (node: Line | Path) => {
+                const ctx = canvasCtx.getRenderContext2D();
+                const calls: string[] = [];
+                const wrap = (name: 'fill' | 'stroke') => {
+                    const original = ctx[name].bind(ctx) as (...args: unknown[]) => void;
+                    vi.spyOn(ctx, name).mockImplementation((...args: unknown[]) => {
+                        calls.push(`${name}:${ctx.shadowColor}:${ctx.shadowOffsetX}`);
+                        original(...args);
+                    });
+                };
+                wrap('fill');
+                wrap('stroke');
+                renderNode(node, ctx);
+                return calls;
+            };
+
+            // The mock canvas normalises the 0.7 alpha to 8-bit precision.
+            const SHADOWED = /^(fill|stroke):rgba\(0, 0, 0, 0\.7\d*\):/;
+
+            afterEach(() => {
+                vi.restoreAllMocks();
+            });
+
+            it('shadows only the fill in fill mode', () => {
+                const calls = record(whiskerPath('fill', 40));
+                expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([
+                    ['fill', true],
+                    ['stroke', false],
+                ]);
+            });
+
+            it('shadows only the stroke in stroke mode', () => {
+                const calls = record(whiskerPath('stroke', 40));
+                expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([
+                    ['fill', false],
+                    ['stroke', true],
+                ]);
+            });
+
+            it('shadows a pre-pass of fill then stroke in silhouette mode, then paints unshadowed', () => {
+                const calls = record(whiskerPath('silhouette', 40));
+                expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([
+                    ['fill', true],
+                    ['stroke', true],
+                    ['fill', false],
+                    ['stroke', false],
+                ]);
+            });
+
+            it('bounds the silhouette offset by the canvas width plus blur and stroke width', () => {
+                const calls = record(whiskerPath('silhouette', 40));
+                const offset = Number(calls[0].split(':')[2]);
+                const canvasWidth = canvasCtx.nodeCanvas.width;
+                // distance + xOffset, with distance = canvas + blur + strokeWidth.
+                expect(offset).toBe(canvasWidth + SHADOW.blur + 4 + SHADOW.xOffset);
+            });
         });
     });
 });

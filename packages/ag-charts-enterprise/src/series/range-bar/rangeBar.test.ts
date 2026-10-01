@@ -299,6 +299,22 @@ describe('RangeBarSeries', () => {
         await compare();
     });
 
+    it(`should render a range-bar chart with a shadow`, async () => {
+        const options: AgChartOptions = {
+            ...RANGE_COLUMN_OPTIONS,
+            series: [
+                {
+                    ...RANGE_COLUMN_OPTIONS.series![0],
+                    shadow: { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 },
+                },
+            ],
+        } as AgChartOptions;
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await compare();
+    });
+
     it(`should render a range-bar chart with Date x values as expected`, async () => {
         const options: AgChartOptions = { ...RANGE_COLUMN_OPTIONS, data: CONTINUOUS_DATE_DATA };
         prepareEnterpriseTestOptions(options as any);

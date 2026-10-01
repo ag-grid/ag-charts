@@ -34,11 +34,23 @@ import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { type AlignedInterval, align, alignCentre, centreSnapApplies } from '../util/pixel';
+import { type AlignedInterval, align, alignCentre, centreSnapApplies, deviceDimension } from '../util/pixel';
 import { setSvgLineDashAttributes, setSvgStrokeAttributes } from './svgUtils';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
+
+/**
+ * Which part of a shape casts its {@link Shape.fillShadow}:
+ * - `fill`: the fill does, and the stroke is drawn over the shadow. This is the default.
+ * - `stroke`: the stroke does, for stroke-only nodes. A canvas shadow lands on top of anything already painted, so
+ *   shadowing the fill as well would draw the stroke's shadow across the shape's own fill.
+ * - `silhouette`: the fill and stroke together do, for mixed nodes whose strokes stick out past the fill.
+ *
+ * `stroke` and `silhouette` go through {@link Shape.renderStroke}, so shapes that replace it with their own stroke
+ * pass (`Rect`, `BarShape`) must stay on `fill`.
+ */
+export type ShapeShadowMode = 'fill' | 'stroke' | 'silhouette';
 
 export type CanvasContext = CanvasFillStrokeStyles &
     CanvasCompositing &
@@ -48,6 +60,10 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasPath &
     CanvasTransform &
     CanvasState;
+
+function hasCanvas(ctx: CanvasContext): ctx is CanvasContext & { canvas: { width: number } } {
+    return 'canvas' in ctx;
+}
 
 export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
 
@@ -219,6 +235,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     fillShadow: NormalisedDropShadowOptions | undefined;
     declare __fillShadow: NormalisedDropShadowOptions | undefined; // optimised field accessor
 
+    @DeclaredSceneChangeDetection()
+    shadowMode: ShapeShadowMode = 'fill';
+    declare __shadowMode: ShapeShadowMode; // optimised field accessor
+
     @DeclaredSceneObjectChangeDetection({ equals: boxesEqual, changeCb: (s) => s.onFillChange() })
     fillBBox?: BBox;
     declare __fillBBox: BBox | undefined; // optimised field accessor
@@ -247,8 +267,51 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             ctx.globalCompositeOperation = 'source-over';
         }
 
+        if (this.__shadowMode === 'silhouette') {
+            this.renderSilhouetteShadow(ctx, logger, path, bboxOverride, fillBBoxOverride);
+        }
+
         this.renderFill(ctx, logger, path, bboxOverride, fillBBoxOverride);
         this.renderStroke(ctx, path, bboxOverride);
+    }
+
+    /**
+     * Casts the shadow of the fill and stroke together, ahead of painting the shape. The shape is drawn
+     * off-canvas and `shadowOffsetX` brings only its shadow back, so the stroke's shadow never lands on the fill.
+     */
+    private renderSilhouetteShadow(
+        ctx: CanvasContext,
+        logger: Logger,
+        path?: Path2D,
+        bboxOverride?: BBox,
+        fillBBoxOverride?: BBox
+    ) {
+        const { __fillShadow: shadow, __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
+        if (shadow?.enabled !== true) return;
+
+        const canvas = this.layerManager?.canvas;
+        const pixelRatio = canvas?.pixelRatio ?? 1;
+        const canvasWidth = canvas ? deviceDimension(pixelRatio, canvas.width) : hasCanvas(ctx) ? ctx.canvas.width : 0;
+        // Device space, so rotated or scaled parents don't matter; far enough that the shape and blur clear the canvas.
+        const distance = Math.ceil(canvasWidth + (shadow.blur + this.__strokeWidth) * pixelRatio);
+
+        const { a, b, c, d, e, f } = ctx.getTransform();
+        ctx.save();
+        ctx.setTransform(a, b, c, d, e - distance, f);
+        ctx.shadowColor = shadow.color;
+        ctx.shadowOffsetX = distance + shadow.xOffset * pixelRatio;
+        ctx.shadowOffsetY = shadow.yOffset * pixelRatio;
+        ctx.shadowBlur = shadow.blur * pixelRatio;
+
+        if (fill != null && fill !== 'none' && fillOpacity > 0) {
+            const globalAlpha = ctx.globalAlpha;
+            this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
+            this.executeFill(ctx, path);
+            ctx.globalAlpha = globalAlpha;
+        }
+        this.renderStroke(ctx, path, bboxOverride);
+
+        ctx.restore();
     }
 
     protected renderFill(
@@ -270,10 +333,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
 
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
-            this.applyShadow(ctx);
+            const shadowed = this.__shadowMode === 'fill' && this.__fillShadow?.enabled === true;
+            if (shadowed) {
+                this.applyShadow(ctx);
+            }
             this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
-            if (this.fillShadow?.enabled) {
+            if (shadowed) {
                 ctx.shadowColor = 'rgba(0, 0, 0, 0)';
             }
         }
@@ -396,8 +462,15 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 ctx.miterLimit = miterLimit;
             }
 
+            const shadowed = this.__shadowMode === 'stroke' && this.__fillShadow?.enabled === true;
+            if (shadowed) {
+                this.applyShadow(ctx);
+            }
             this.executeStroke(ctx, path);
             ctx.globalAlpha = globalAlpha;
+            if (shadowed) {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+            }
         }
     }
 
