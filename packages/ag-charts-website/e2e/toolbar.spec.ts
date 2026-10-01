@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import { test } from './fixture';
+import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
@@ -287,5 +287,46 @@ test.describe('toolbar', () => {
 
         await repeat(12, async () => await page.keyboard.press('ArrowDown'));
         await expectChartScreenshot(page, page, 'AG-16815-horizontal-line-moved-down.png', { animations: 'disabled' });
+    });
+
+    test('AG-17497 colour picker tracks taller than the thumb do not overlap', async ({ page }) => {
+        await gotoExample(page, url);
+
+        await page.getByTitle('Fibonacci').click();
+        await page.getByText('Fib Retracement').click();
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: 250 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 250 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 350, y: 100 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 350, y: 100 } });
+        await page.getByTitle('Line Color').click();
+
+        // Equivalent to `colorPickerThumbSize: 12` and `colorPickerTrackSize: 40` in the theme params.
+        const picker = page.locator('.ag-charts-color-picker');
+        await picker.evaluate((el: HTMLElement) => {
+            el.style.setProperty('--ag-charts-color-picker-thumb-size', '12px');
+            el.style.setProperty('--ag-charts-color-picker-track-size', '40px');
+        });
+
+        // The tracks are drawn by the inputs' `::before`, centred on inputs that are only thumb-size tall.
+        const bounds = await picker.evaluate((el) => {
+            const box = (selector: string) => el.querySelector(selector)!.getBoundingClientRect();
+            const track = (selector: string) => {
+                const { top } = box(selector);
+                const style = getComputedStyle(el.querySelector(selector)!, '::before');
+                const trackTop = top + Number.parseFloat(style.top);
+                return { top: trackTop, bottom: trackTop + Number.parseFloat(style.height) };
+            };
+            return {
+                palette: box('.ag-charts-color-picker__palette'),
+                hue: track('.ag-charts-color-picker__hue-input'),
+                alpha: track('.ag-charts-color-picker__alpha-input'),
+                colorField: box('.ag-charts-color-picker__color-field'),
+            };
+        });
+
+        expect(bounds.hue.bottom - bounds.hue.top).toBe(40);
+        expect(bounds.hue.top).toBeGreaterThanOrEqual(bounds.palette.bottom);
+        expect(bounds.alpha.top).toBeGreaterThanOrEqual(bounds.hue.bottom);
+        expect(bounds.colorField.top).toBeGreaterThanOrEqual(bounds.alpha.bottom);
     });
 });
