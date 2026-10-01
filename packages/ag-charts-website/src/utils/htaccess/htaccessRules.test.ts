@@ -1,6 +1,8 @@
 import { SITE_BASE_URL } from '../../constants';
+import { type SimulatedResponse, followRedirects, simulateRequest } from '../test/htaccessSimulator';
+import { createSiteRouteResolver, enumerablePageFiles } from '../test/siteRoutes';
 import { PRODUCTION_CSP_PHASE, getAstroRedirectRules, getHtaccessContent, getRedirectRules } from './htaccessRules';
-import { LEGACY_DOCS_PREFIXES, SITE_301_REDIRECTS } from './redirects';
+import { LEGACY_DOCS_PREFIXES, type Redirect, SITE_301_REDIRECTS } from './redirects';
 
 // Pin the base to the production `/charts` value; the ambient test env resolves it to `/`,
 // which would make the snapshots below env-dependent.
@@ -10,13 +12,6 @@ vi.mock('../../constants', async (importActual) => {
 });
 
 const ARCHIVE_BASE = '/charts/archive/14.2.0';
-
-// The `m#…#` expressions in the <If> that scopes `Header append Vary Accept`.
-const varyPatterns = (content: string): RegExp[] => {
-    const ifLine = content.split('\n').find((l, i, all) => l.startsWith('<If ') && all[i + 1]?.includes('Vary Accept'));
-    expect(ifLine).toBeDefined();
-    return [...ifLine!.matchAll(/m#(.+?)#/g)].map((m) => new RegExp(m[1]));
-};
 
 describe('htaccessRules CSP (AG-17134)', () => {
     const production = getHtaccessContent({ env: 'production' });
@@ -91,6 +86,7 @@ describe('htaccessRules CSP (AG-17134)', () => {
 
 const CANONICAL = 'https://www.ag-grid.com';
 const CANONICAL_HOST = 'www.ag-grid.com';
+const BASE = (SITE_BASE_URL ?? '').replace(/\/$/, '');
 
 // Every host besides www that this docroot answers for: each must 301 straight to the final www URL.
 const NON_CANONICAL_HOSTS = [
@@ -105,81 +101,91 @@ const NON_CANONICAL_HOSTS = [
     'www.angulargrid.com',
 ];
 
-type RewriteOutcome = { status: number; location?: string } | undefined;
-
-/**
- * A minimal evaluator for the mod_rewrite subset these .htaccess files emit, so redirects are
- * asserted by behaviour (status, target, hop count) rather than by restating their text. The
- * RewriteRule pattern is matched against the path below the .htaccess directory (the deployed
- * base), as Apache does per-directory. Conditions on Accept or the filesystem never hold, which
- * models a browser request for a page that has no markdown twin on disk. The real-Apache harness
- * remains the authority on ordering against mod_dir and the grid root.
- */
-function simulateRewrite(htaccess: string, basePath: string, host: string, uri: string): RewriteOutcome {
-    const unquote = (v: string) => v.replace(/^"(.*)"$/, '$1');
-    const flagsOf = (f: string | undefined) => (f == null ? [] : f.split(','));
-    let conds: { test: string; pattern: string; flags: string[] }[] = [];
-    const vars = (v: string) => v.replace(/%\{HTTP_HOST\}/g, host).replace(/%\{REQUEST_URI\}/g, uri);
-    const condHolds = ({ test, pattern, flags }: (typeof conds)[number]) => {
-        if (/HTTP_ACCEPT|DOCUMENT_ROOT|REQUEST_FILENAME/.test(test)) {
-            return false;
-        }
-        const negate = pattern.startsWith('!');
-        const re = new RegExp(negate ? pattern.slice(1) : pattern, flags.includes('NC') ? 'i' : '');
-        return re.test(vars(test)) !== negate;
-    };
-    let relative: string | null = null;
-    if (uri === basePath) {
-        relative = '';
-    } else if (uri.startsWith(`${basePath}/`)) {
-        relative = uri.slice(basePath.length + 1);
+// The deployed docroot, as far as the page tree can enumerate it: every static page and endpoint and
+// every docs page per framework, each with the `.md` twin its route builds, plus the 404 document.
+const filesByBase = new Map<string, string[]>();
+const siteFiles = (basePath: string) => {
+    if (!filesByBase.has(basePath)) {
+        // Archive builds omit the sitemap integration, so only the current site has its files.
+        const sitemaps = basePath.includes('/archive/')
+            ? []
+            : [`${basePath}/sitemap-index.xml`, `${basePath}/sitemap-0.xml`];
+        filesByBase.set(basePath, [...enumerablePageFiles(basePath), ...sitemaps]);
     }
-    for (const raw of htaccess.split('\n')) {
-        const line = raw.trim();
-        const cond = line.match(/^RewriteCond (\S+) ("[^"]*"|\S+)(?: \[([^\]]+)\])?$/);
-        if (cond) {
-            conds.push({ test: cond[1], pattern: unquote(cond[2]), flags: flagsOf(cond[3]) });
-            continue;
-        }
-        const rule = line.match(/^RewriteRule ("[^"]*"|\S+) ("[^"]*"|\S+)(?: \[([^\]]+)\])?$/);
-        if (!rule) {
-            continue;
-        }
-        const ruleConds = conds;
-        conds = [];
-        const match = relative == null ? null : relative.match(new RegExp(unquote(rule[1])));
-        if (!match) {
-            continue;
-        }
-        // Consecutive [OR] conditions form one group; every group must hold.
-        let ok = true;
-        let groupHolds = false;
-        for (const c of ruleConds) {
-            groupHolds = groupHolds || condHolds(c);
-            if (!c.flags.includes('OR')) {
-                ok = ok && groupHolds;
-                groupHolds = false;
-            }
-        }
-        if (!ok) {
-            continue;
-        }
-        const flags = flagsOf(rule[3]);
-        if (flags.includes('G')) {
-            return { status: 410 };
-        }
-        const redirect = flags.find((f) => f.startsWith('R='));
-        if (redirect != null) {
-            const location = vars(unquote(rule[2])).replace(/\$(\d)/g, (_, n) => match[Number(n)] ?? '');
-            return { status: Number(redirect.slice(2)), location };
-        }
+    return filesByBase.get(basePath)!;
+};
+const isSitePage = createSiteRouteResolver();
+
+type Outcome = { status: number; location?: string } | undefined;
+
+/** The redirect or 410 a request gets, or undefined when the request is served (or 404s). */
+const outcomeOf = (response: SimulatedResponse): Outcome => {
+    if (response.status === 410) {
+        return { status: 410 };
+    }
+    if (response.status >= 300 && response.status < 400) {
+        return { status: response.status, location: response.location };
     }
     return undefined;
-}
+};
+
+const simulateRewrite = (htaccess: string, basePath: string, host: string, uri: string): Outcome =>
+    outcomeOf(simulateRequest({ htaccess, basePath, files: siteFiles(basePath) }, { host, uri }));
+
+const hasRegexTarget = (to: string) => /\$\d/.test(to);
+const literalRedirects = (redirects: Redirect[]) =>
+    redirects.filter((r): r is Redirect & { to: string } => 'to' in r && !hasRegexTarget(r.to));
+const fromRedirects = SITE_301_REDIRECTS.filter(
+    (r): r is Redirect & { from: string; to: string } => 'from' in r && 'to' in r
+);
+
+// One legacy URL per pattern rule (base-relative), and the page it must land on in one hop - or 410.
+const PATTERN_SAMPLES: [string, string | 410][] = [
+    ['/javascript', '/javascript/quick-start/'],
+    ['/javascript/', '/javascript/quick-start/'],
+    ['/archive', '/documentation-archive/'],
+    ['/archive/', '/documentation-archive/'],
+    ['/privacy', 410],
+    ['/privacy/cookies/', 410],
+    ['/javascript-charts/javascript/bar-series', '/javascript/bar-series/'],
+    ['/angular-charts/angular/bar-series/', '/angular/bar-series/'],
+    ['/react-charts/react/area-series/', '/react/area-series/'],
+    ['/vue-charts/vue/line-series', '/vue/line-series/'],
+    ['/enterprise-charts/react/security/', '/react/security/'],
+    ['/react-charts/gallery/simple-bar/', '/gallery/'],
+    ['/vue-charts/options/axes/', '/options/'],
+    ['/enterprise-charts/license-pricing', '/enterprise-charts/'],
+    ['/core/', '/javascript/quick-start/'],
+    ['/side', '/javascript/quick-start/'],
+    ['/core/bar-series', '/javascript/bar-series/'],
+    ['/side/axes-types/', '/javascript/axes-types/'],
+    ['/server-side-rendering/', '/javascript/server-side-rendering/'],
+    ['/vue/series/', '/vue/bar-series/'],
+    ['/angular/axes', '/angular/axes-configuration/'],
+];
+
+// Each legacy docs prefix in front of each renamed page below its current prefix: both slash forms
+// of every renamed slug, and URLs inside each renamed aggregate section (a pattern rule, so it has no
+// `from` to read). The legacy URL must land where the current one finally does, in one hop.
+const AGGREGATE_SECTIONS = ['series', 'axes'];
+const renamedBelow = (currentPrefix: string) => [
+    ...fromRedirects
+        .filter(({ from }) => from.startsWith(currentPrefix) && from !== currentPrefix)
+        .map(({ from }) => from.slice(currentPrefix.length).replace(/\/$/, ''))
+        .flatMap((slug) => [slug, `${slug}/`]),
+    ...AGGREGATE_SECTIONS.flatMap((section) => [section, `${section}/`, `${section}/pie-series/`]),
+];
+const LEGACY_RENAMED_CASES = LEGACY_DOCS_PREFIXES.flatMap(({ legacyPrefix, currentPrefix }) =>
+    renamedBelow(currentPrefix).map((slug) => ({
+        legacy: `${legacyPrefix}${slug}`,
+        current: `${currentPrefix}${slug}`,
+    }))
+);
 
 describe('htaccessRules redirects (SE-60/SE-61)', () => {
     const production = getHtaccessContent({ env: 'production' });
-    const base = (SITE_BASE_URL ?? '').replace(/\/$/, '');
+    const site = { htaccess: production, basePath: BASE, files: siteFiles(BASE) };
+    const base = BASE;
     const onWww = (uri: string) => simulateRewrite(production, base, CANONICAL_HOST, uri);
     const redirectsTo = (uri: string, location: string) => expect(onWww(uri)).toEqual({ status: 301, location });
 
@@ -197,6 +203,12 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         expect(onWww(`${base}/privacy`)).toEqual({ status: 410 });
         expect(onWww(`${base}/privacy/`)).toEqual({ status: 410 });
         expect(onWww(`${base}/privacy/cookies/`)).toEqual({ status: 410 });
+    });
+
+    it('answers a gone path with 410 on every host, rather than first redirecting it to www', () => {
+        for (const host of [CANONICAL_HOST, ...NON_CANONICAL_HOSTS]) {
+            expect(simulateRewrite(production, base, host, `${base}/privacy/`), host).toEqual({ status: 410 });
+        }
     });
 
     it('rewrites legacy {fw}-charts/{fw}/<page> to the current {fw}/<page> scheme in one hop', () => {
@@ -246,10 +258,12 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
 
     it('enterprise-charts fallback redirects sub-paths only, never the live landing page', () => {
         redirectsTo(`${base}/enterprise-charts/license-pricing`, `${CANONICAL}${base}/enterprise-charts/`);
-        expect(onWww(`${base}/enterprise-charts/`)).toBeUndefined();
-        // mod_dir resolves a bare directory request through an internal sub-request for
-        // index.html, which the rules see again, so matching it would loop on the landing page.
-        expect(onWww(`${base}/enterprise-charts/index.html`)).toBeUndefined();
+        // mod_dir serves the landing page through an internal redirect to index.html, which the
+        // rules see again, so matching that form would loop the landing page onto itself.
+        expect(simulateRequest(site, { uri: `${base}/enterprise-charts/` })).toMatchObject({
+            status: 200,
+            servedFile: `${base}/enterprise-charts/index.html`,
+        });
     });
 
     it('emits the SE-60 renamed-slug redirects, in one hop from either slash form', () => {
@@ -258,22 +272,30 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         redirectsTo(`${base}/react/toolbar/`, `${CANONICAL}${base}/react/financial-charts-toolbar/`);
     });
 
-    it('matches a renamed page exactly, never as a prefix that appends the remainder to the target', () => {
-        // mod_alias `Redirect` is a prefix match: /fonts/ became /text// and /bullet-series/ an
-        // anchor with a slash appended, and /fonts-x/ would have redirected too.
-        redirectsTo(`${base}/react/fonts/`, `${CANONICAL}${base}/react/text/`);
-        redirectsTo(`${base}/react/fonts`, `${CANONICAL}${base}/react/text/`);
-        redirectsTo(`${base}/react/bullet-series/`, `${CANONICAL}${base}/react/linear-gauge/#bullet-series`);
-        redirectsTo(`${base}/react/bullet-series`, `${CANONICAL}${base}/react/linear-gauge/#bullet-series`);
-        expect(onWww(`${base}/react/fonts-and-text/`)).toBeUndefined();
-        expect(onWww(`${base}/react/bullet-series/index.html`)).toBeUndefined();
+    it('redirects every renamed page from both slash forms, and matches it exactly rather than as a prefix', () => {
+        expect(fromRedirects.length).toBeGreaterThan(5);
+        for (const { from, to } of fromRedirects) {
+            const page = `${base}${from.replace(/\/$/, '')}`;
+            for (const uri of [page, `${page}/`]) {
+                expect(onWww(uri), uri).toEqual({ status: 301, location: `${CANONICAL}${base}${to}` });
+            }
+            // mod_alias `Redirect` is a prefix match: /fonts/ became /text// and /bullet-series/ an
+            // anchor with a slash appended, and /fonts-x/ would have redirected too.
+            for (const uri of [`${page}-x/`, `${page}/x/`, `${page}/index.html`]) {
+                expect(onWww(uri), uri).toBeUndefined();
+            }
+        }
     });
 
-    it('emits fragment targets with [NE], or Apache escapes the # into a broken path', () => {
-        const fragmentRules = production.split('\n').filter((l) => /^\s*RewriteRule .*#/.test(l));
-        expect(fragmentRules.length).toBeGreaterThan(0);
-        for (const rule of fragmentRules) {
-            expect(rule).toMatch(/\[R=301,NE,L\]$/);
+    it('keeps a fragment target intact ([NE]) instead of escaping its # into a broken path', () => {
+        const fragmentTargets = literalRedirects(SITE_301_REDIRECTS).filter(({ to }) => to.includes('#'));
+        expect(fragmentTargets.length).toBeGreaterThan(0);
+        redirectsTo(`${base}/react/bullet-series/`, `${CANONICAL}${base}/react/linear-gauge/#bullet-series`);
+        redirectsTo(`${base}/react/bullet-series`, `${CANONICAL}${base}/react/linear-gauge/#bullet-series`);
+        for (const host of NON_CANONICAL_HOSTS) {
+            expect(simulateRewrite(production, base, host, `${base}/vue/bullet-series`)?.location, host).toBe(
+                `${CANONICAL}${base}/vue/linear-gauge/#bullet-series`
+            );
         }
     });
 
@@ -281,19 +303,49 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         redirectsTo(`${base}/javascript/`, `${CANONICAL}${base}/javascript/quick-start/`);
         redirectsTo(`${base}/javascript`, `${CANONICAL}${base}/javascript/quick-start/`);
         for (const hub of ['react', 'angular', 'vue']) {
-            expect(onWww(`${base}/${hub}/`), hub).toBeUndefined();
+            expect(simulateRequest(site, { uri: `${base}/${hub}/` }), hub).toMatchObject({ status: 200 });
         }
     });
 
-    it('lands every literal redirect target on a URL no other rule redirects (single hop)', () => {
-        const targets = production
-            .split('\n')
-            .map((l) => l.trim().match(/^RewriteRule \S+ "(https:\/\/www\.ag-grid\.com[^"$%]*)" \[R=301/)?.[1])
-            .filter((t): t is string => t != null);
+    it('exercises every pattern rule with a legacy URL below', () => {
+        const patterns = SITE_301_REDIRECTS.flatMap((r) => ('fromPattern' in r ? [r.fromPattern] : []));
+        for (const pattern of patterns) {
+            const re = new RegExp(pattern);
+            expect(
+                [...PATTERN_SAMPLES.map(([uri]) => uri), ...LEGACY_RENAMED_CASES.map(({ legacy }) => legacy)].some(
+                    (uri) => re.test(uri)
+                ),
+                `no sample for ${pattern}`
+            ).toBe(true);
+        }
+    });
+
+    it('lands every legacy URL on a real page in one hop, from any host', () => {
+        for (const host of [CANONICAL_HOST, ...NON_CANONICAL_HOSTS]) {
+            for (const [uri, expected] of PATTERN_SAMPLES) {
+                const { hops, final } = followRedirects(site, { host, uri: `${base}${uri}` });
+                if (expected === 410) {
+                    expect(final.status, `${host}${uri}`).toBe(410);
+                    continue;
+                }
+                expect(hops, `${host}${uri}`).toEqual([`${CANONICAL}${base}${expected}`]);
+                expect(isSitePage(expected), expected).toBe(true);
+                expect(final, `${host}${uri}`).toMatchObject({
+                    status: 200,
+                    servedFile: `${base}${expected}index.html`,
+                });
+            }
+        }
+    });
+
+    it('sends every literal redirect target to a real page that is served without a further redirect', () => {
+        const targets = literalRedirects(SITE_301_REDIRECTS);
         expect(targets.length).toBeGreaterThan(10);
-        for (const target of targets) {
-            const path = target.slice(CANONICAL.length).split('#')[0];
-            expect(onWww(path), target).toBeUndefined();
+        for (const { to } of targets) {
+            const path = to.split('#')[0];
+            expect(isSitePage(path), `${to} is not a page of this site`).toBe(true);
+            const response = simulateRequest(site, { uri: `${base}${path}` });
+            expect(response.status, to).toBe(200);
         }
     });
 
@@ -312,41 +364,8 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
 });
 
 describe('htaccessRules legacy docs prefixes in front of a renamed page', () => {
-    const production = getHtaccessContent({ env: 'production' });
-    const base = (SITE_BASE_URL ?? '').replace(/\/$/, '');
-    const onHost = (host: string, uri: string) => simulateRewrite(production, base, host, uri);
-
-    /** The URL a www request finally lands on, following every redirect on the way. */
-    const finalUrlOf = (uri: string) => {
-        let url = `${CANONICAL}${uri}`;
-        for (let hop = 0; hop < 5; hop++) {
-            const outcome = onHost(CANONICAL_HOST, url.slice(CANONICAL.length).split('#')[0]);
-            if (outcome?.status !== 301) {
-                return url;
-            }
-            url = outcome.location!;
-        }
-        throw new Error(`${uri} redirects more than 5 times`);
-    };
-
-    // The renamed pages below a current docs prefix, as both slash forms of each renamed slug, plus
-    // a URL inside each renamed aggregate section (a pattern rule, so it has no `from` to read).
-    const AGGREGATE_SECTIONS = ['series', 'axes'];
-    const renamedBelow = (currentPrefix: string) => [
-        ...SITE_301_REDIRECTS.flatMap((redirect) =>
-            'from' in redirect && redirect.from.startsWith(currentPrefix) && redirect.from !== currentPrefix
-                ? [redirect.from.slice(currentPrefix.length).replace(/\/$/, '')]
-                : []
-        ).flatMap((slug) => [slug, `${slug}/`]),
-        ...AGGREGATE_SECTIONS.flatMap((section) => [section, `${section}/`, `${section}/pie-series/`]),
-    ];
-
-    const CASES = LEGACY_DOCS_PREFIXES.flatMap(({ legacyPrefix, currentPrefix }) =>
-        renamedBelow(currentPrefix).map((slug) => ({
-            legacy: `${base}${legacyPrefix}${slug}`,
-            current: `${base}${currentPrefix}${slug}`,
-        }))
-    );
+    const base = BASE;
+    const site = { htaccess: getHtaccessContent({ env: 'production' }), basePath: base, files: siteFiles(base) };
 
     it('covers every legacy prefix, and every pattern rule renaming a page below a framework', () => {
         expect(LEGACY_DOCS_PREFIXES.map(({ legacyPrefix }) => legacyPrefix)).toEqual(
@@ -367,21 +386,32 @@ describe('htaccessRules legacy docs prefixes in front of a renamed page', () => 
         }
     });
 
-    it.each(CASES)('$legacy lands where $current does, in one hop, from every host', ({ legacy, current }) => {
-        const final = finalUrlOf(current);
-        // The current URL is itself redirected, or this would not test a renamed page.
-        expect(final, current).not.toBe(`${CANONICAL}${current}`);
-        for (const host of [CANONICAL_HOST, ...NON_CANONICAL_HOSTS]) {
-            expect(onHost(host, legacy), `${host}${legacy}`).toEqual({ status: 301, location: final });
+    it.each(LEGACY_RENAMED_CASES)(
+        '$legacy lands on the page $current finally reaches, in one hop, from every host',
+        ({ legacy, current }) => {
+            const { hops: currentHops } = followRedirects(site, { uri: `${base}${current}` });
+            // The current URL is itself redirected, or this would not test a renamed page.
+            expect(currentHops.length, current).toBeGreaterThan(0);
+            const target = currentHops[currentHops.length - 1];
+            const page = target.slice(`${CANONICAL}${base}`.length).split('#')[0];
+            expect(isSitePage(page), `${page} is not a page of this site`).toBe(true);
+            for (const host of [CANONICAL_HOST, ...NON_CANONICAL_HOSTS]) {
+                const { hops, final } = followRedirects(site, { host, uri: `${base}${legacy}` });
+                expect(hops, `${host}${legacy}`).toEqual([target]);
+                expect(final, `${host}${legacy}`).toMatchObject({
+                    status: 200,
+                    servedFile: `${base}${page}index.html`,
+                });
+            }
         }
-        expect(onHost(CANONICAL_HOST, final.slice(CANONICAL.length).split('#')[0]), final).toBeUndefined();
-    });
+    );
 });
 
 describe('htaccessRules canonical host', () => {
     const production = getHtaccessContent({ env: 'production' });
     const staging = getHtaccessContent({ env: 'staging' });
-    const base = (SITE_BASE_URL ?? '').replace(/\/$/, '');
+    const base = BASE;
+    const site = { htaccess: production, basePath: base, files: siteFiles(base) };
 
     // [request path, final www URL]. Each must be reached in ONE hop from any non-canonical host.
     const cases: [string, string][] = [
@@ -389,6 +419,9 @@ describe('htaccessRules canonical host', () => {
         [base, `${base}/`],
         [`${base}/react/bar-series/`, `${base}/react/bar-series/`],
         [`${base}/react/bar-series`, `${base}/react/bar-series/`],
+        [`${base}/react/bar-series.md`, `${base}/react/bar-series.md`],
+        [`${base}/index.md`, `${base}/index.md`],
+        [`${base}/llms.txt`, `${base}/llms.txt`],
         [`${base}/debug/versions.json`, `${base}/debug/versions.json`],
         [`${base}/react/bullet-series`, `${base}/react/linear-gauge/#bullet-series`],
         [`${base}/react/fonts/`, `${base}/react/text/`],
@@ -410,6 +443,15 @@ describe('htaccessRules canonical host', () => {
         }
     });
 
+    it('sends every renamed page on every non-canonical host to its final www page in one hop', () => {
+        for (const host of NON_CANONICAL_HOSTS) {
+            for (const { from, to } of fromRedirects) {
+                const { hops } = followRedirects(site, { host, uri: `${base}${from}` });
+                expect(hops, `${host}${from}`).toEqual([`${CANONICAL}${base}${to}`]);
+            }
+        }
+    });
+
     it('sends a slash-less www URL straight to its slashed form on the canonical origin', () => {
         expect(simulateRewrite(production, base, CANONICAL_HOST, `${base}/react/bar-series`)).toEqual({
             status: 301,
@@ -419,7 +461,7 @@ describe('htaccessRules canonical host', () => {
 
     it('serves live pages on www without a redirect', () => {
         for (const uri of [`${base}/`, `${base}/react/`, `${base}/react/quick-start/`, `${base}/gallery/`]) {
-            expect(simulateRewrite(production, base, CANONICAL_HOST, uri), uri).toBeUndefined();
+            expect(simulateRequest(site, { uri }), uri).toMatchObject({ status: 200 });
         }
     });
 
@@ -439,9 +481,25 @@ describe('htaccessRules canonical host', () => {
             location: `${base}/react/text/`,
         });
     });
+
+    it('keeps every staging redirect relative, so it lands on the staging host itself', () => {
+        const host = 'charts-staging.ag-grid.com';
+        for (const { from, to } of fromRedirects) {
+            expect(simulateRewrite(staging, base, host, `${base}${from}`), from).toEqual({
+                status: 301,
+                location: `${base}${to}`,
+            });
+        }
+        for (const [uri, expected] of PATTERN_SAMPLES) {
+            const outcome = simulateRewrite(staging, base, host, `${base}${uri}`);
+            expect(outcome, uri).toEqual(
+                expected === 410 ? { status: 410 } : { status: 301, location: `${base}${expected}` }
+            );
+        }
+    });
 });
 
-describe('htaccessRules redirects (SE-186): archive builds never generate sitemap-0.xml', () => {
+describe('htaccessRules archive builds', () => {
     // Archive builds omit the `sitemap()` integration (see astro.config.mjs), so a redirect
     // whose target is that generated file must not be emitted there either — it would 301 to a
     // file the archive build never produces, and the link checker (correctly) flags the
@@ -458,68 +516,94 @@ describe('htaccessRules redirects (SE-186): archive builds never generate sitema
         vi.doUnmock('../../constants');
     });
 
-    it('drops the sitemap.xml redirect from the generated .htaccess', async () => {
-        const archiveHtaccessRules = await import('./htaccessRules');
-        expect(archiveHtaccessRules.getRedirectRules()).not.toContain('sitemap.xml');
+    const archiveHtaccess = async () => (await import('./htaccessRules')).getHtaccessContent({ env: 'production' });
+    const archiveSite = async () => ({
+        htaccess: await archiveHtaccess(),
+        basePath: ARCHIVE_BASE,
+        files: siteFiles(ARCHIVE_BASE),
     });
 
-    it('drops the sitemap.xml redirect from the Astro redirect map', async () => {
+    it('drops the sitemap.xml redirect from the generated .htaccess (SE-186)', async () => {
+        const archiveHtaccessRules = await import('./htaccessRules');
+        expect(archiveHtaccessRules.getRedirectRules()).not.toContain('sitemap.xml');
+        const site = await archiveSite();
+        expect(simulateRequest(site, { uri: `${ARCHIVE_BASE}/sitemap.xml` }).status).toBe(404);
+    });
+
+    it('drops the sitemap.xml redirect from the Astro redirect map (SE-186)', async () => {
         const archiveHtaccessRules = await import('./htaccessRules');
         expect(archiveHtaccessRules.getAstroRedirectRules()).not.toHaveProperty('/sitemap.xml');
     });
 
-    it('keeps unrelated redirects, pointed at the archive rather than the current site', async () => {
-        const archiveHtaccessRules = await import('./htaccessRules');
-        const archive = archiveHtaccessRules.getHtaccessContent({ env: 'production' });
-        expect(simulateRewrite(archive, ARCHIVE_BASE, CANONICAL_HOST, `${ARCHIVE_BASE}/react/line/`)).toEqual({
-            status: 301,
-            location: `${CANONICAL}${ARCHIVE_BASE}/react/line-series/`,
-        });
+    it('keeps every other redirect, pointed at the same page inside the archive', async () => {
+        const site = await archiveSite();
+        for (const { from, to } of fromRedirects.filter((r) => !('skipForArchive' in r))) {
+            const { hops, final } = followRedirects(site, { uri: `${ARCHIVE_BASE}${from}` });
+            expect(hops, from).toEqual([`${CANONICAL}${ARCHIVE_BASE}${to}`]);
+            expect(final.status, from).toBe(200);
+        }
+        for (const [uri, expected] of PATTERN_SAMPLES) {
+            const { hops, final } = followRedirects(site, { uri: `${ARCHIVE_BASE}${uri}` });
+            if (expected === 410) {
+                expect(final.status, uri).toBe(410);
+            } else {
+                expect(hops, uri).toEqual([`${CANONICAL}${ARCHIVE_BASE}${expected}`]);
+            }
+        }
     });
 
     it('301s every non-canonical host to the same archive URL on www, in one hop', async () => {
-        const archiveHtaccessRules = await import('./htaccessRules');
-        const archive = archiveHtaccessRules.getHtaccessContent({ env: 'production' });
+        const site = await archiveSite();
         for (const host of NON_CANONICAL_HOSTS) {
             for (const [uri, final] of [
+                [ARCHIVE_BASE, `${ARCHIVE_BASE}/`],
                 [`${ARCHIVE_BASE}/`, `${ARCHIVE_BASE}/`],
                 [`${ARCHIVE_BASE}/react/bar-series/`, `${ARCHIVE_BASE}/react/bar-series/`],
                 [`${ARCHIVE_BASE}/react/bar-series`, `${ARCHIVE_BASE}/react/bar-series/`],
+                [`${ARCHIVE_BASE}/react/bar-series.md`, `${ARCHIVE_BASE}/react/bar-series.md`],
+                [`${ARCHIVE_BASE}/react/fonts`, `${ARCHIVE_BASE}/react/text/`],
             ]) {
-                expect(simulateRewrite(archive, ARCHIVE_BASE, host, uri), `${host}${uri}`).toEqual({
-                    status: 301,
-                    location: `${CANONICAL}${final}`,
-                });
+                const { hops } = followRedirects(site, { host, uri });
+                expect(hops, `${host}${uri}`).toEqual([`${CANONICAL}${final}`]);
             }
         }
-        expect(
-            simulateRewrite(archive, ARCHIVE_BASE, CANONICAL_HOST, `${ARCHIVE_BASE}/react/bar-series/`)
-        ).toBeUndefined();
+        expect(simulateRequest(site, { uri: `${ARCHIVE_BASE}/react/bar-series/` }).status).toBe(200);
     });
 
     it('treats the version dots in the base as literals, not regex wildcards', async () => {
-        const archiveHtaccessRules = await import('./htaccessRules');
-        const archive = archiveHtaccessRules.getHtaccessContent({ env: 'production' });
-        expect(archive).not.toMatch(/archive\/14\.2\.0[^/]*\/\(/);
-        expect(archive).toContain('archive/14\\.2\\.0');
-        const vary = varyPatterns(archive);
-        expect(vary.some((re) => re.test(`${ARCHIVE_BASE}/react/bar-series/index.html`))).toBe(true);
-        expect(vary.some((re) => re.test('/charts/archive/14x2y0/react/bar-series/index.html'))).toBe(false);
+        const htaccess = await archiveHtaccess();
+        // A lookalike directory holding real pages and twins: only the -f guard would stop a
+        // wildcard match there, so put the twin on disk too.
+        const lookalike = '/charts/archive/14x2y0';
+        const site = {
+            htaccess,
+            basePath: lookalike,
+            files: [`${lookalike}/react/bar-series/index.html`, `${lookalike}/react/bar-series.md`],
+        };
+        const response = simulateRequest(site, { uri: `${lookalike}/react/bar-series/`, accept: 'text/markdown' });
+        expect(response.servedFile).toBe(`${lookalike}/react/bar-series/index.html`);
+        expect(response.headers.vary).toBeUndefined();
+    });
+
+    it('serves an archive 404 from the archive 404 page', async () => {
+        // The root .htaccess caches /charts/archive/<v>/* responses for a year, and this error
+        // document lives under that prefix, so the root's archive cache rule must be gated on
+        // REQUEST_STATUS == 200 or every archive 404 is cached too (waf-finding §4). That rule is
+        // the root's to fix and test; this file only chooses where the 404 page lives.
+        const site = await archiveSite();
+        expect(simulateRequest(site, { uri: `${ARCHIVE_BASE}/react/missing/` })).toMatchObject({
+            status: 404,
+            servedFile: `${ARCHIVE_BASE}/404.html`,
+            contentType: 'text/html',
+        });
     });
 });
 
 describe('htaccessRules markdown content negotiation', () => {
     const production = getHtaccessContent({ env: 'production' });
     const staging = getHtaccessContent({ env: 'staging' });
-    // Assert on which URLs the generated pattern matches rather than on its literal text, which
-    // would only restate CHARTS_MARKDOWN_PAGE_GROUPS.
-    const extractNegotiationPattern = (content: string) => {
-        const match = content.match(/RewriteCond %\{REQUEST_URI\} \^\/\((.+)\)\/\?\$/);
-        expect(match).not.toBeNull();
-        return new RegExp(`^/(${match![1]})/?$`);
-    };
-
-    const carriesVary = (content: string, path: string) => varyPatterns(content).some((re) => re.test(path));
+    const MARKDOWN = 'text/markdown';
+    const BROWSER = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8';
 
     // One representative URL per registry group, so a group with no matching pattern shows up.
     const negotiablePaths = [
@@ -540,6 +624,8 @@ describe('htaccessRules markdown content negotiation', () => {
         '/charts/community/events/',
         '/charts/community/beyond-the-prompt/',
         '/charts/session/opening-keynote/',
+        '/charts/examples/',
+        '/charts/examples-web-analytics/',
         '/charts/gallery/',
         '/charts/gallery/simple-bar/',
         '/charts/javascript-charts/',
@@ -556,108 +642,237 @@ describe('htaccessRules markdown content negotiation', () => {
         '/charts/themes-api/overrides/bar/',
     ];
 
-    // No `.md` twin: rewriting these would 404, or loop into `.md.md` for a twin itself.
+    // Pages with no `.md` twin, each given one on disk anyway: rewriting these would serve a twin
+    // the build never makes, or loop into `.md.md` for a twin itself.
     const nonNegotiablePaths = [
-        '/charts/react/axes-types.md', // the twin itself — final segments exclude dots
-        '/charts/javascript/', // the one framework root forwarding on to quick-start
         '/charts/documentation/', // redirect stub, sitemap-excluded
         '/charts/licensing/', // redirect stub, sitemap-excluded
         '/charts/style-guide/', // non-public, sitemap-excluded
         '/charts/contact/success/', // form result, sitemap-excluded
         '/charts/contact/failure/',
-        '/charts/options/series/bar.md', // the twin itself
         '/charts/options/series/', // the member path alone is not a page
         '/charts/themes-api/overrides/', // likewise
         '/charts/gallery-test/',
-        '/charts/javascript/quick-start/examples/create-a-chart/',
-        '/charts/debug/versions.json',
-        '/charts/sitemap-0.xml',
-        '/charts/sitemap-index.xml',
+        '/charts/react/quick-start/examples/create-a-chart/',
+        '/charts/archive/13.0.0/react/bar-series/', // another build's tree
     ];
 
-    it('serves the per-page .md variant when Accept: text/markdown, gated by an on-disk check', () => {
-        for (const content of [production, staging]) {
-            expect(content).toContain('<IfModule mod_rewrite.c>');
-            expect(content).toContain('RewriteEngine On');
-            expect(content).toContain('RewriteCond %{HTTP_ACCEPT} text/markdown');
-            expect(content).toContain('RewriteCond %{DOCUMENT_ROOT}/%1.md -f');
-            expect(content).toContain('RewriteRule ^ /%1.md [L]');
-        }
-    });
+    const twinOf = (page: string) => (page === '/charts/' ? '/charts/index.md' : `${page.replace(/\/$/, '')}.md`);
+    const withTwins = (pages: string[]) => pages.flatMap((page) => [`${page}index.html`, twinOf(page)]);
+    const productionSite = { htaccess: production, basePath: BASE, files: withTwins(['/charts/', ...negotiablePaths]) };
+    const stagingSite = { ...productionSite, htaccess: staging };
 
-    it('negotiates exactly the same set of paths in both environments', () => {
-        expect(extractNegotiationPattern(staging).source).toBe(extractNegotiationPattern(production).source);
-    });
-
-    it('negotiates every page group in the registry, with and without a trailing slash', () => {
-        const pattern = extractNegotiationPattern(production);
-        for (const path of negotiablePaths) {
-            expect(pattern.test(path), `${path} should negotiate`).toBe(true);
-            expect(pattern.test(path.replace(/\/$/, '')), `${path} (no trailing slash)`).toBe(true);
-        }
-    });
-
-    it('leaves pages without a .md twin untouched', () => {
-        const pattern = extractNegotiationPattern(production);
-        for (const path of nonNegotiablePaths) {
-            expect(pattern.test(path), `${path} should not negotiate`).toBe(false);
-        }
-    });
-
-    it('captures the base-relative page path in %1 so the -f guard and rewrite target resolve under /charts', () => {
-        const pattern = extractNegotiationPattern(production);
-        // %1 is reused as `%1.md` in both guard and target, so it must carry the base without
-        // the leading slash.
-        expect('/charts/community/events/'.match(pattern)?.[1]).toBe('charts/community/events');
-        expect('/charts/react/axes-types/'.match(pattern)?.[1]).toBe('charts/react/axes-types');
-        expect('/charts/gallery/simple-bar'.match(pattern)?.[1]).toBe('charts/gallery/simple-bar');
-    });
-
-    it('adds Vary: Accept for exactly the negotiated paths (both envs) so shared caches key on the negotiated representation', () => {
-        for (const content of [production, staging]) {
-            expect(content).toContain('Header append Vary Accept');
-            // Narrower and a cache could serve markdown to a browser; wider and unrelated pages
-            // lose cache keying.
-            for (const path of negotiablePaths) {
-                expect(carriesVary(content, path), `${path} should carry Vary: Accept`).toBe(true);
-                // mod_dir has already rewritten REQUEST_URI to the index document by the time the
-                // HTML variant's headers are set, so that form must carry it too.
-                expect(carriesVary(content, `${path}index.html`), `${path}index.html should carry Vary`).toBe(true);
+    it('serves the twin to Accept: text/markdown on every page group, keyed with Vary: Accept', () => {
+        for (const site of [productionSite, stagingSite]) {
+            for (const page of ['/charts/', ...negotiablePaths]) {
+                expect(simulateRequest(site, { uri: page, accept: MARKDOWN }), page).toEqual({
+                    status: 200,
+                    servedFile: twinOf(page),
+                    contentType: 'text/markdown; charset=utf-8',
+                    headers: expect.objectContaining({ vary: 'Accept' }),
+                });
             }
-            for (const path of nonNegotiablePaths) {
-                expect(carriesVary(content, path), `${path} should not carry Vary: Accept`).toBe(false);
-                if (path.endsWith('/')) {
-                    expect(carriesVary(content, `${path}index.html`), `${path}index.html`).toBe(false);
+        }
+    });
+
+    it('serves HTML to a browser on every negotiated page, also keyed with Vary: Accept', () => {
+        // mod_dir has already rewritten REQUEST_URI to the index document by the time the HTML
+        // variant's headers are set, so the Vary scope must take that form: otherwise a shared
+        // cache holding the HTML would hand it to agents.
+        for (const site of [productionSite, stagingSite]) {
+            for (const page of ['/charts/', ...negotiablePaths]) {
+                for (const accept of [BROWSER, undefined]) {
+                    expect(simulateRequest(site, { uri: page, accept }), page).toEqual({
+                        status: 200,
+                        servedFile: `${page}index.html`,
+                        contentType: 'text/html',
+                        headers: expect.objectContaining({ vary: 'Accept' }),
+                    });
                 }
             }
         }
     });
 
-    it('negotiates the homepage (site root) to its index.md twin', () => {
-        for (const content of [production, staging]) {
-            expect(content).toContain('RewriteCond %{REQUEST_URI} ^/charts/?$');
-            expect(content).toContain('RewriteCond %{DOCUMENT_ROOT}/charts/index.md -f');
-            expect(content).toContain('RewriteRule ^ /charts/index.md [L]');
-            // The Vary <If> also keys the site root on Accept, including mod_dir's index form.
-            expect(carriesVary(content, '/charts/')).toBe(true);
-            expect(carriesVary(content, '/charts/index.html')).toBe(true);
+    it('negotiates a slash-less URL on staging, and via its one slash redirect in production', () => {
+        for (const page of negotiablePaths) {
+            const slashless = page.replace(/\/$/, '');
+            expect(simulateRequest(stagingSite, { uri: slashless, accept: MARKDOWN }).servedFile, slashless).toBe(
+                twinOf(page)
+            );
+            // Production adds the slash on the canonical host first (waf-finding §11: two requests
+            // to reach the markdown), then negotiates the slashed URL.
+            const { hops, final } = followRedirects(productionSite, { uri: slashless, accept: MARKDOWN });
+            expect(hops, slashless).toEqual([`${CANONICAL}${page}`]);
+            expect(final.servedFile, slashless).toBe(twinOf(page));
+        }
+        const { hops, final } = followRedirects(productionSite, { uri: '/charts', accept: MARKDOWN });
+        expect(hops).toEqual([`${CANONICAL}/charts/`]);
+        expect(final.servedFile).toBe('/charts/index.md');
+    });
+
+    it('falls back to the HTML when a negotiable page has no twin on disk, still keyed on Accept', () => {
+        const site = { htaccess: production, basePath: BASE, files: ['/charts/react/new-page/index.html'] };
+        expect(simulateRequest(site, { uri: '/charts/react/new-page/', accept: MARKDOWN })).toEqual({
+            status: 200,
+            servedFile: '/charts/react/new-page/index.html',
+            contentType: 'text/html',
+            headers: expect.objectContaining({ vary: 'Accept' }),
+        });
+    });
+
+    it('never negotiates, or varies, a page outside the registry, even with a .md beside it', () => {
+        for (const site of [production, staging]) {
+            const s = { htaccess: site, basePath: BASE, files: withTwins(nonNegotiablePaths) };
+            for (const page of nonNegotiablePaths) {
+                const response = simulateRequest(s, { uri: page, accept: MARKDOWN });
+                expect(response.servedFile, page).toBe(`${page}index.html`);
+                expect(response.headers.vary, page).toBeUndefined();
+            }
         }
     });
 
-    it('registers the markdown MIME type so the .md files are served as text/markdown', () => {
-        expect(production).toContain('AddType text/markdown md');
-        expect(staging).toContain('AddType text/markdown md');
+    it('serves a twin requested by name as UTF-8 markdown, without negotiating it again', () => {
+        for (const site of [productionSite, stagingSite]) {
+            for (const accept of [MARKDOWN, BROWSER]) {
+                const response = simulateRequest(site, { uri: '/charts/react/axes-types.md', accept });
+                expect(response).toMatchObject({
+                    status: 200,
+                    servedFile: '/charts/react/axes-types.md',
+                    contentType: 'text/markdown; charset=utf-8',
+                });
+                expect(response.headers.vary).toBeUndefined();
+            }
+        }
     });
 
-    it('serves .md as UTF-8 so table glyphs (✓/✗) are not mojibaked', () => {
-        expect(production).toContain('AddCharset utf-8 .md');
-        expect(staging).toContain('AddCharset utf-8 .md');
+    it('does not vary assets, example runners or data files', () => {
+        const files = [
+            '/charts/_astro/index.AbCdEf12.js',
+            '/charts/images/ag-charts-social.png',
+            '/charts/debug/versions.json',
+            '/charts/sitemap-0.xml',
+            '/charts/react/quick-start/examples/create-a-chart/index.html',
+        ];
+        const site = { htaccess: production, basePath: BASE, files };
+        for (const file of files) {
+            const uri = file.replace(/index\.html$/, '');
+            expect(simulateRequest(site, { uri, accept: MARKDOWN }).headers.vary, uri).toBeUndefined();
+        }
     });
 
-    it('registers the webp MIME type so the images are not served without a Content-Type', () => {
-        expect(production).toContain('AddType image/webp .webp');
-        expect(staging).toContain('AddType image/webp .webp');
+    it('negotiates inside an archive build, under its own base', async () => {
+        vi.resetModules();
+        vi.doMock('../../constants', async (importActual) => {
+            const actual = await importActual<typeof import('../../constants')>();
+            return { ...actual, SITE_BASE_URL: `${ARCHIVE_BASE}/` };
+        });
+        try {
+            const htaccess = (await import('./htaccessRules')).getHtaccessContent({ env: 'production' });
+            const page = `${ARCHIVE_BASE}/react/bar-series/`;
+            const site = {
+                htaccess,
+                basePath: ARCHIVE_BASE,
+                files: [
+                    `${page}index.html`,
+                    `${ARCHIVE_BASE}/react/bar-series.md`,
+                    `${ARCHIVE_BASE}/index.html`,
+                    `${ARCHIVE_BASE}/index.md`,
+                ],
+            };
+            expect(simulateRequest(site, { uri: page, accept: MARKDOWN })).toMatchObject({
+                servedFile: `${ARCHIVE_BASE}/react/bar-series.md`,
+                headers: { vary: 'Accept' },
+            });
+            expect(simulateRequest(site, { uri: page })).toMatchObject({
+                servedFile: `${page}index.html`,
+                headers: { vary: 'Accept' },
+            });
+            expect(simulateRequest(site, { uri: `${ARCHIVE_BASE}/`, accept: MARKDOWN }).servedFile).toBe(
+                `${ARCHIVE_BASE}/index.md`
+            );
+        } finally {
+            vi.doUnmock('../../constants');
+        }
     });
+
+    it.todo('ignores Accept: text/markdown;q=0, which declines markdown (waf-finding §11: substring match)');
+});
+
+describe('htaccessRules response headers', () => {
+    const production = getHtaccessContent({ env: 'production' });
+    const staging = getHtaccessContent({ env: 'staging' });
+    const files = [
+        ...siteFiles(BASE),
+        '/charts/_astro/index.AbCdEf12.js',
+        '/charts/images/ag-charts-social.png',
+        '/charts/react/quick-start/examples/create-a-chart/index.html',
+    ];
+
+    it('serves a missing page from the charts 404 page with a 404 status', () => {
+        for (const htaccess of [production, staging]) {
+            expect(
+                simulateRequest({ htaccess, basePath: BASE, files }, { uri: '/charts/react/missing/' })
+            ).toMatchObject({
+                status: 404,
+                servedFile: '/charts/404.html',
+                contentType: 'text/html',
+            });
+        }
+    });
+
+    it('sets no Cache-Control on any response, leaving caching to the root .htaccess', () => {
+        // Hashed assets, documents, markdown twins (waf-finding §11: they get no Cache-Control at
+        // all today), 404s and redirects alike: this file has no caching rules, so none can match
+        // an unhashed archive URL either. The root owns caching for /charts and its archives.
+        const uris = [
+            '/charts/react/bar-series/',
+            '/charts/react/bar-series.md',
+            '/charts/_astro/index.AbCdEf12.js',
+            '/charts/images/ag-charts-social.png',
+            '/charts/react/missing/',
+            '/charts/react/fonts/',
+            '/charts/privacy/',
+        ];
+        for (const htaccess of [production, staging]) {
+            for (const uri of uris) {
+                for (const accept of [undefined, 'text/markdown']) {
+                    const response = simulateRequest({ htaccess, basePath: BASE, files }, { uri, accept });
+                    expect(response.headers['cache-control'], uri).toBeUndefined();
+                }
+            }
+        }
+    });
+
+    it('allows eval only in example runners, with exactly one enforced CSP on every response', () => {
+        const site = { htaccess: production, basePath: BASE, files };
+        const csp = (uri: string) => simulateRequest(site, { uri }).headers['content-security-policy'];
+        for (const uri of ['/charts/react/bar-series/', '/charts/', '/charts/react/missing/', '/charts/react/fonts/']) {
+            expect(csp(uri), uri).toBeDefined();
+            expect(csp(uri), uri).not.toContain("'unsafe-eval'");
+            expect(csp(uri).match(/default-src/g), uri).toHaveLength(1);
+        }
+        const example = csp('/charts/react/quick-start/examples/create-a-chart/');
+        expect(example).toContain("'unsafe-eval'");
+        expect(example.match(/default-src/g)).toHaveLength(1);
+    });
+
+    it('registers the MIME types the static files need', () => {
+        const site = {
+            htaccess: production,
+            basePath: BASE,
+            files: ['/charts/a.webp', '/charts/a.mjs', '/charts/a.ts', '/charts/a.jsx', '/charts/a.md'],
+        };
+        expect(simulateRequest(site, { uri: '/charts/a.webp' }).contentType).toBe('image/webp');
+        for (const uri of ['/charts/a.mjs', '/charts/a.ts', '/charts/a.jsx']) {
+            expect(simulateRequest(site, { uri }).contentType, uri).toBe('text/javascript');
+        }
+        // UTF-8, so glyphs like ✓/✗ in generated tables aren't mojibaked.
+        expect(simulateRequest(site, { uri: '/charts/a.md' }).contentType).toBe('text/markdown; charset=utf-8');
+    });
+
+    it.todo(
+        "advertises charts' own llms.txt and sitemap in the Link header, not the grid's (waf-finding §13: the root's SE-81 Link applies site-wide)"
+    );
 });
 
 describe('generated redirect rules snapshot', () => {
