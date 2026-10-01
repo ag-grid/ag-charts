@@ -12,7 +12,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { NormalisedColorType } from './normalisedCommonOptions';
+import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions } from './normalisedLabelOptions';
 
 export type NormalisedRadialSeriesLabelOptions =
@@ -58,18 +58,18 @@ export type NormalisedRadialColumnSeriesBaseOwnOptions = Normalised<
     RadialRequiredKeys,
     RadialOverrides
 > &
-    RadialAxisKeys;
+    RadialAxisKeys & { shadow: NormalisedDropShadowOptions };
 
 export type NormalisedRadialColumnSeriesOwnOptions = Normalised<
     AgRadialColumnSeriesOptions,
-    RadialRequiredKeys | 'columnWidthRatio' | 'maxColumnWidthRatio',
-    RadialOverrides
+    RadialRequiredKeys | 'columnWidthRatio' | 'maxColumnWidthRatio' | 'shadow',
+    RadialOverrides & { shadow: NormalisedDropShadowOptions }
 > &
     RadialAxisKeys;
 
 export type NormalisedNightingaleSeriesOwnOptions = Normalised<
     AgNightingaleSeriesOptions,
-    RadialRequiredKeys,
-    RadialOverrides
+    RadialRequiredKeys | 'shadow',
+    RadialOverrides & { shadow: NormalisedDropShadowOptions }
 > &
     RadialAxisKeys;

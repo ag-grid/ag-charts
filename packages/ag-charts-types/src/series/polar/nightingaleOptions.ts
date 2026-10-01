@@ -1,3 +1,4 @@
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { ContextDefault, DatumDefault, PixelSize } from '../../chart/types';
 import type { AgBaseRadialColumnSeriesOptions } from './radialColumnOptions';
 import type { AgBaseRadialSeriesThemeableOptions } from './radialOptions';
@@ -5,7 +6,10 @@ import type { AgBaseRadialSeriesThemeableOptions } from './radialOptions';
 export interface AgNightingaleSeriesThemeableOptions<
     TDatum = DatumDefault,
     TContext = ContextDefault,
-> extends AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {}
+> extends AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {
+    /** Configuration for the shadow used behind the series items. */
+    shadow?: AgDropShadowOptions;
+}
 
 export interface AgNightingaleSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgNightingaleSeriesThemeableOptions<TDatum, TContext>, AgBaseRadialColumnSeriesOptions<TDatum, TContext> {
