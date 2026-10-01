@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-import { expect, test } from './fixture';
+import { test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
@@ -307,26 +307,6 @@ test.describe('toolbar', () => {
             el.style.setProperty('--ag-charts-color-picker-track-size', '40px');
         });
 
-        // The tracks are drawn by the inputs' `::before`, centred on inputs that are only thumb-size tall.
-        const bounds = await picker.evaluate((el) => {
-            const box = (selector: string) => el.querySelector(selector)!.getBoundingClientRect();
-            const track = (selector: string) => {
-                const { top } = box(selector);
-                const style = getComputedStyle(el.querySelector(selector)!, '::before');
-                const trackTop = top + Number.parseFloat(style.top);
-                return { top: trackTop, bottom: trackTop + Number.parseFloat(style.height) };
-            };
-            return {
-                palette: box('.ag-charts-color-picker__palette'),
-                hue: track('.ag-charts-color-picker__hue-input'),
-                alpha: track('.ag-charts-color-picker__alpha-input'),
-                colorField: box('.ag-charts-color-picker__color-field'),
-            };
-        });
-
-        expect(bounds.hue.bottom - bounds.hue.top).toBe(40);
-        expect(bounds.hue.top).toBeGreaterThanOrEqual(bounds.palette.bottom);
-        expect(bounds.alpha.top).toBeGreaterThanOrEqual(bounds.hue.bottom);
-        expect(bounds.colorField.top).toBeGreaterThanOrEqual(bounds.alpha.bottom);
+        await expectChartScreenshot(page, page, 'AG-17497-colour-picker-tall-tracks.png', { animations: 'disabled' });
     });
 });
