@@ -14,6 +14,7 @@ import type {
     Normalised,
     NormalisedBaseFunnelSeriesOwnOptions,
     NormalisedChartLabelPlacementStyleOptions,
+    NormalisedDropShadowOptions,
     NormalisedTextOrSegments,
     PlacedLabel,
     Point,
@@ -273,6 +274,10 @@ export abstract class BaseFunnelSeries<
     }
 
     protected abstract connectorEnabled(): boolean;
+
+    protected connectorShadow(): NormalisedDropShadowOptions | undefined {
+        return undefined;
+    }
 
     /** Radius of the segment corners the drop-off connectors have to butt up against. */
     protected connectorCornerRadius(): number {
@@ -736,6 +741,7 @@ export abstract class BaseFunnelSeries<
     }) {
         const fillBBox = this.getShapeFillBBox();
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
+        const shadow = this.connectorShadow();
 
         opts.connectorSelection.each((connector, datum) => {
             // Colour refs are resolved during theme-merge, so the style is already normalised by render.
@@ -749,6 +755,7 @@ export abstract class BaseFunnelSeries<
             connector.capsAlongX = barAlongX;
             connector.startCornerRadius = datum.startCornerRadius;
             connector.endCornerRadius = datum.endCornerRadius;
+            connector.fillShadow = shadow;
 
             connector.setStyleProperties(
                 {

@@ -9,6 +9,11 @@ const { Path, Scalable, ExtendedPath2D, BBox, clippedRoundRect: baseClippedRound
 export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     private readonly wickPath = new ExtendedPath2D();
 
+    constructor() {
+        super();
+        this.shadowMode = 'silhouette';
+    }
+
     @SceneChangeDetection()
     horizontal: boolean = false;
 
@@ -217,6 +222,14 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger) {
         super.drawPath(ctx, logger);
 
+        this.strokeWicks(ctx);
+    }
+
+    protected override renderSilhouetteExtras(ctx: _ModuleSupport.CanvasContext) {
+        this.strokeWicks(ctx);
+    }
+
+    private strokeWicks(ctx: _ModuleSupport.CanvasContext) {
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
 

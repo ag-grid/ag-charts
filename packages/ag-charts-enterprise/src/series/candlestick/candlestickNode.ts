@@ -9,6 +9,11 @@ const { ExtendedPath2D, BBox } = _ModuleSupport;
 export class CandlestickNode<D> extends OhlcBaseNode<D> {
     private readonly wickPath = new ExtendedPath2D();
 
+    constructor() {
+        super();
+        this.shadowMode = 'silhouette';
+    }
+
     @DeclaredSceneChangeDetection()
     wickStroke: string | undefined = undefined;
     declare __wickStroke: string | undefined;
@@ -143,6 +148,14 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
     override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger) {
         super.drawPath(ctx, logger);
 
+        this.strokeWicks(ctx);
+    }
+
+    protected override renderSilhouetteExtras(ctx: _ModuleSupport.CanvasContext) {
+        this.strokeWicks(ctx);
+    }
+
+    private strokeWicks(ctx: _ModuleSupport.CanvasContext) {
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
 

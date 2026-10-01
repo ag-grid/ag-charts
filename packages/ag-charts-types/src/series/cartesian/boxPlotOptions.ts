@@ -6,6 +6,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, Ratio } from '../../chart/types';
 import type {
@@ -104,6 +105,8 @@ export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDa
 
 export interface AgBoxPlotSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeableOptions<TDatum, TContext>, AgBoxPlotSeriesStyle {
+    /** Configuration for the shadow used behind the series items, including the whiskers and caps. */
+    shadow?: AgDropShadowOptions;
     /**
      * Bar rendering direction.
      *

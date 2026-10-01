@@ -3,7 +3,12 @@ import {
     type AgConeFunnelSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DynamicContext, NormalisedConeFunnelSeriesOwnOptions, RequireOptional } from 'ag-charts-core';
+import type {
+    DynamicContext,
+    NormalisedConeFunnelSeriesOwnOptions,
+    NormalisedDropShadowOptions,
+    RequireOptional,
+} from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -69,6 +74,10 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         return true;
     }
 
+    protected override connectorShadow(): NormalisedDropShadowOptions {
+        return this.options.shadow;
+    }
+
     protected getItemStyle(
         { datumIndex }: Pick<FunnelNodeDatum, 'datumIndex'>,
         _isHighlight: boolean
@@ -81,7 +90,9 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
     }
 
     protected override nodeFactory(): _ModuleSupport.Line<FunnelNodeDatum> {
-        return new Line<FunnelNodeDatum>();
+        const line = new Line<FunnelNodeDatum>();
+        line.shadowMode = 'stroke';
+        return line;
     }
 
     protected override defaultLabelPlacement(): AgConeFunnelSeriesLabelPlacement {
@@ -110,9 +121,11 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         isHighlight: boolean;
     }) {
         const highlightStyle = this.getHighlightStyle(opts.isHighlight);
+        const { shadow } = this.options;
 
         opts.datumSelection.each((line, datum) => {
             line.setProperties(resetLineSelectionsFn(line, datum));
+            line.fillShadow = shadow;
             line.stroke = highlightStyle?.stroke;
             line.strokeWidth = highlightStyle?.strokeWidth ?? 0;
             line.strokeOpacity = highlightStyle?.strokeOpacity ?? 1;

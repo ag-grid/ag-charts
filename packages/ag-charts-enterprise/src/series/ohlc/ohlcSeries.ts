@@ -51,6 +51,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const { up, down } = options.item;
+        const { shadow } = options;
 
         const series = this;
         datumSelection.each(function updateOhlcNode(node, datum) {
@@ -67,6 +68,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
             node.setStyleProperties(style);
 
             node.strokeAlignment = baseStyle.strokeWidth;
+            node.fillShadow = shadow;
         });
     }
 

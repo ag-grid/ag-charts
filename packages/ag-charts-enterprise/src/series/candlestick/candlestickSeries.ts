@@ -63,6 +63,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const { up, down } = options.item;
+        const { shadow } = options;
 
         const fillBBox = this.getShapeFillBBox();
 
@@ -88,6 +89,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
             );
 
             node.wickStrokeAlignment = baseStyle.wick?.strokeWidth ?? baseStyle.strokeWidth;
+            node.fillShadow = shadow;
         });
     }
 
