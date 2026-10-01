@@ -641,6 +641,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             this.upsertMarkerDatum(ctx, scratch, datumIndex, 'high', scratch.yHighValue, scratch.yHighCoordinate, hDst);
             // Create/update marker and label data for low boundary
             this.upsertMarkerDatum(ctx, scratch, datumIndex, 'low', scratch.yLowValue, scratch.yLowCoordinate, lDst);
+            // Do not mutate render-data when called from computeFocusBounds
+            if (hDst || lDst) return;
 
             // Update span points for path rendering
             const spanPoint: RangeAreaSpanPointDatum = {
@@ -665,6 +667,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 ctx.spanPoints.push([spanPoint]);
             }
         } else if (!ctx.connectMissingData) {
+            if (hDst || lDst) return;
             if (Array.isArray(currentSpanPoints) || currentSpanPoints == null) {
                 ctx.spanPoints.push({ skip: 0 });
             } else {
@@ -745,9 +748,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 enabled: true,
             });
         }
-        if (dst === undefined) {
-            ctx.nodeIndex++;
-        }
+        // Do not mutate render-data when called from computeFocusBounds
+        if (dst !== undefined) return;
+
+        ctx.nodeIndex++;
 
         // Skip label creation if labels are disabled
         if (ctx.labelsEnabled) {
