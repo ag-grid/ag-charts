@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,7 +17,10 @@ vi.mock('../constants', async (importActual) => {
 // The docs collection as the build sees it: every page, with its `hidden` frontmatter flag.
 const { docsEntries } = vi.hoisted(() => ({ docsEntries: [] as { id: string; data: { hidden: boolean } }[] }));
 const DOCS_DIR = fileURLToPath(new URL('../content/docs', import.meta.url));
-for (const id of readdirSync(DOCS_DIR).filter((name) => !name.startsWith('_'))) {
+// A directory without an index.mdoc (such as api-explorer, which holds only notes) is not a page.
+for (const id of readdirSync(DOCS_DIR).filter(
+    (name) => !name.startsWith('_') && existsSync(join(DOCS_DIR, name, 'index.mdoc'))
+)) {
     const frontmatter = readFileSync(join(DOCS_DIR, id, 'index.mdoc'), 'utf8').split(/^---$/m)[1] ?? '';
     docsEntries.push({ id, data: { hidden: /^hidden:\s*true\s*$/m.test(frontmatter) } });
 }
