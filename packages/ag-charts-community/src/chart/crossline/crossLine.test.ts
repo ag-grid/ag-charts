@@ -2219,6 +2219,30 @@ describe('CrossLine', () => {
                 'AG Charts - Placement `inside-top` is deprecated on a line cross line on a y axis. Use `top` instead.',
             ]);
         });
+
+        it.each([
+            ['x', 'left-top'],
+            ['y', 'top-left'],
+        ] as const)('keeps a %s-axis placement on the same side when the axis is reversed', async (axis, placement) => {
+            const labelBox = async (reverse: boolean) => {
+                const crossLines = [{ type: 'line' as const, value: 5, label: { text: 'PLACED', placement } }];
+                chart = await createChart({
+                    data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'number', position: 'bottom', ...(axis === 'x' && { reverse, crossLines }) },
+                        y: { type: 'number', position: 'left', ...(axis === 'y' && { reverse, crossLines }) },
+                    },
+                });
+                const box = getCrossLinesPlugin(chart.axes.findById(axis)!)!.getInstances()[0].getLabelBox?.();
+                chart.destroy();
+                return box;
+            };
+
+            const box = await labelBox(false);
+            expect(box).toBeDefined();
+            expect(await labelBox(true)).toEqual(box);
+        });
     });
 
     describe('AG-8901: label space reservation', () => {
