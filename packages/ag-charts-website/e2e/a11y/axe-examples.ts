@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import type { Page } from '@playwright/test';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import glob from 'glob';
 import { dirname, join, resolve } from 'path';
 
@@ -45,6 +45,20 @@ const POC_EXAMPLES: ReadonlyArray<[pageName: string, example: string]> = [
 const GENERATED_EXAMPLES_ROOT = resolve(__dirname, '../../../../dist/generated-examples/ag-charts-website');
 const IGNORED_PAGES = new Set(['benchmarks']);
 
+/** Gallery examples that have a route; mirrors the `hidden` filter in `getGalleryExamples()` (filesData.ts). */
+function getRoutableGalleryExamples(): Set<string> {
+    const data = JSON.parse(readFileSync(resolve(__dirname, '../../src/content/gallery/data.json'), 'utf-8'));
+    const names = new Set<string>();
+    for (const group of data.series as Array<Array<{ examples?: Array<{ name: string; hidden?: boolean }> }>>) {
+        for (const chartType of group) {
+            for (const ex of chartType.examples ?? []) {
+                if (ex.hidden !== true) names.add(ex.name);
+            }
+        }
+    }
+    return names;
+}
+
 function docsExample(pageName: string, example: string): A11yExample {
     return { pageName, example, url: toExamplePageUrl(pageName, example, 'vanilla').url };
 }
@@ -57,6 +71,7 @@ function getAllGeneratedExamples(): A11yExample[] {
         );
     }
 
+    const routableGallery = getRoutableGalleryExamples();
     const examples: A11yExample[] = [];
     for (const file of glob.sync('**/_examples/*/plain/vanilla/contents.json', { cwd: GENERATED_EXAMPLES_ROOT })) {
         if (existsSync(join(GENERATED_EXAMPLES_ROOT, dirname(file), 'error.txt'))) continue;
@@ -64,6 +79,7 @@ function getAllGeneratedExamples(): A11yExample[] {
         const [pagePath, examplePath] = file.split('/_examples/');
         const example = examplePath.split('/')[0];
         if (pagePath === 'gallery') {
+            if (!routableGallery.has(example)) continue;
             examples.push({ pageName: 'gallery', example, url: toGalleryPageUrls(example)[0].url });
             continue;
         }

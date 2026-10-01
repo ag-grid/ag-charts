@@ -31,12 +31,16 @@ async function runPass(pass: AxePassName, action: () => Promise<Omit<AxePassResu
     }
 }
 
+/** Focuses the series area (falling back to the chart's first focusable element) and moves to the first datum. */
 async function focusChart(page: Page) {
-    const focusTarget = page.locator(SELECTORS.wrapper).first().locator('[tabindex="0"]').first();
+    const wrapper = page.locator(SELECTORS.wrapper).first();
+    const seriesTarget = wrapper.locator(`${SELECTORS.seriesArea} [tabindex="0"]`).first();
+    const focusTarget = (await seriesTarget.count()) > 0 ? seriesTarget : wrapper.locator('[tabindex="0"]').first();
     if ((await focusTarget.count()) > 0) {
         await focusTarget.focus();
+    } else {
+        await page.keyboard.press('Tab');
     }
-    await page.keyboard.press('Tab');
     await page.keyboard.press('ArrowRight');
     await waitForAllChartUpdates(page);
 }
