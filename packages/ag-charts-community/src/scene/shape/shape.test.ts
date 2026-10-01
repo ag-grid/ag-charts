@@ -988,6 +988,29 @@ describe('Shape', () => {
                 expect(columns.at(-1)).toBe(149);
             });
 
+            it('should scale the stroke reach of a Scalable Path with the node', () => {
+                class ScalablePath extends Scalable(Path) {}
+
+                clearCanvas();
+                const node = new ScalablePath();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: 'black',
+                    strokeWidth: 10,
+                    fillShadow: unshadowed,
+                    shadowMode: 'silhouette',
+                    scalingX: 4,
+                });
+                // 20 to 30 in local space, 80 to 120 on screen. The stroke is scaled too, so it adds 20px on each side.
+                node.path.rect(20, 40, 10, 100);
+                renderNode(node);
+
+                // The source copy is shifted clear of the canvas by the scaled stroke, so none of it lands at the left.
+                const columns = columnsOf(BLACK);
+                expect(columns[0]).toBe(60);
+                expect(columns.at(-1)).toBe(139);
+            });
+
             it('should not skip the silhouette of a marker drawn in a translated context', () => {
                 clearCanvas();
                 const marker = new Marker();

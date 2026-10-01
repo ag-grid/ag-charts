@@ -322,8 +322,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const layerCanvas = this.layerManager?.canvas;
         const pixelRatio = layerCanvas?.pixelRatio ?? 1;
         const canvasSize = getDeviceCanvasSize(layerCanvas, ctx);
-        // Anything the shadow's blur or the stroke can add beyond the shape's own geometry.
-        const reach = (shadow.blur + this.__strokeWidth) * pixelRatio;
+        // Anything the shadow's blur can add beyond the shape's own geometry and stroke.
+        const reach = shadow.blur * pixelRatio;
         const shadowX = shadow.xOffset * pixelRatio;
         const shadowY = shadow.yOffset * pixelRatio;
 
@@ -336,8 +336,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         // canvas can reach.
         let maxX = canvasSize?.width ?? 0;
         if (localBBox != null) {
-            const halfWidth = localBBox.width / 2;
-            const halfHeight = localBBox.height / 2;
+            // Pad by half the stroke in local space, so it scales with the node like the stroke itself does.
+            const halfStroke = this.__strokeWidth / 2;
+            const halfWidth = localBBox.width / 2 + halfStroke;
+            const halfHeight = localBBox.height / 2 + halfStroke;
             const centreX = localBBox.x + halfWidth;
             const centreY = localBBox.y + halfHeight;
             const deviceCentreX = a * centreX + c * centreY + e;
