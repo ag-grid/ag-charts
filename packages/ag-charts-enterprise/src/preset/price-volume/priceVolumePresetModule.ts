@@ -21,7 +21,6 @@ import type { AgBaseFinancialPresetOptions, AgPriceVolumePreset } from 'ag-chart
 import { ChartToolbarModule } from '../../features/chart-toolbar/chartToolbarModule';
 import { StatusBarModule } from '../../features/status-bar/statusBarModule';
 import { CandlestickSeriesModule } from '../../series/candlestick/candlestickModule';
-import { RangeAreaSeriesModule } from '../../series/range-area/rangeAreaModule';
 import { RangeBarSeriesModule } from '../../series/range-bar/rangeBarModule';
 import { priceVolume } from './priceVolumePreset';
 import { annotationsTheme } from './priceVolumePresetTheme';
@@ -72,15 +71,6 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
 priceVolumeOptionsDef.overrideDevicePixelRatio = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
 priceVolumeOptionsDef.foreground = undocumented(defined);
-
-const VOLUME_PROFILE_ENABLED = { $and: [{ $preset: 'volumeProfile' }, { $preset: ['volumeProfile/enabled', true] }] };
-const HLC_UP_BAND_INDEX = {
-    $if: [
-        { $preset: ['volume', true] },
-        { $if: [VOLUME_PROFILE_ENABLED, 3, 1] },
-        { $if: [VOLUME_PROFILE_ENABLED, 2, 0] },
-    ],
-};
 
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
     type: 'preset',
@@ -209,16 +199,8 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                     $switch: [
                         { $preset: 'chartType' },
                         (LineSeriesModule as any).themeTemplate.series.stroke,
-                        ['hlc', { $palette: 'altNeutral.stroke' }],
                         ['line', { $palette: 'neutral.stroke' }],
                         ['step-line', { $palette: 'neutral.stroke' }],
-                    ],
-                },
-                strokeWidth: {
-                    $switch: [
-                        { $preset: 'chartType' },
-                        (LineSeriesModule as any).themeTemplate.series.strokeWidth,
-                        ['hlc', 2],
                     ],
                 },
                 interpolation: interpolationThemeTemplate({
@@ -226,7 +208,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                 }),
             },
         },
-        ohlc: {
+        hlc: {
             series: {
                 highlight: {
                     unhighlightedItem: { opacity: 1 },
@@ -234,46 +216,11 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                 },
             },
         },
-        'range-area': {
+        ohlc: {
             series: {
-                fillOpacity: 0.3,
-                strokeWidth: 2,
                 highlight: {
-                    bringToFront: false,
                     unhighlightedItem: { opacity: 1 },
                     unhighlightedSeries: { opacity: 1 },
-                },
-                fill: {
-                    $switch: [
-                        { $preset: 'chartType' },
-                        (RangeAreaSeriesModule as any).themeTemplate.series.fill,
-                        [
-                            'hlc',
-                            {
-                                $if: [
-                                    { $eq: [{ $value: '$index' }, HLC_UP_BAND_INDEX] },
-                                    { $palette: 'up.fill' },
-                                    { $palette: 'down.fill' },
-                                ],
-                            },
-                        ],
-                    ],
-                },
-                stroke: {
-                    $switch: [
-                        { $preset: 'chartType' },
-                        (RangeAreaSeriesModule as any).themeTemplate.series.stroke,
-                        [
-                            'hlc',
-                            {
-                                $if: [
-                                    { $eq: [{ $value: '$index' }, HLC_UP_BAND_INDEX] },
-                                    { $palette: 'up.stroke' },
-                                    { $palette: 'down.stroke' },
-                                ],
-                            },
-                        ],
-                    ],
                 },
             },
         },

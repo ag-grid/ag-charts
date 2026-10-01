@@ -223,6 +223,27 @@ describe('priceVolumePreset', () => {
         });
     });
 
+    describe('hlc band colours', () => {
+        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
+
+        const HLC_EXAMPLES: Record<string, AgFinancialChartOptions> = {
+            'volume and volume profile': { volume: true, volumeProfile },
+            'volume only': { volume: true },
+            'volume profile only': { volume: false, volumeProfile },
+            'neither volume nor volume profile': { volume: false },
+        };
+
+        it.each(Object.entries(HLC_EXAMPLES))(
+            'with %s it should keep the up and down band colours',
+            async (_exampleName, example) => {
+                chart = AgCharts.createFinancialChart(
+                    prepareFinancialTestOptions({ chartType: 'hlc', data: getStockData(), ...example })
+                );
+                await compare();
+            }
+        );
+    });
+
     describe('toolbar button theme override (AG-17364)', () => {
         const userButtons: AgAnnotationsToolbarButton[] = [
             { icon: 'trend-line-drawing', tooltip: 'toolbarAnnotationsLineAnnotations', value: 'line-menu' },
