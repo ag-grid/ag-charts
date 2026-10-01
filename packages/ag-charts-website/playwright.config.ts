@@ -47,6 +47,7 @@ export default defineConfig({
         ['junit', { outputFile: '../../reports/ag-charts-website-e2e.xml' }],
         ['line'],
         ['json', { outputFile: '../../reports/ag-charts-website-e2e.json' }],
+        ['./e2e/a11y/axe-reporter.ts'],
     ],
     outputDir: '../../reports/ag-charts-website-e2e-reports/',
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
