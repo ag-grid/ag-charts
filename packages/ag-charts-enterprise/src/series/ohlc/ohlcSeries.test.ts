@@ -37,7 +37,13 @@ import {
 } from 'ag-charts-community-test';
 import { Caster } from 'ag-charts-test';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    collectShapes,
+    createEnterpriseChart,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
 import { OhlcSeries } from './ohlcSeries';
 
 const OHLC_OPTIONS: AgChartOptions = {
@@ -58,6 +64,8 @@ const OHLC_OPTIONS: AgChartOptions = {
         },
     ],
 };
+
+const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
 
 describe('OhlcSeries', () => {
     setupMockConsole();
@@ -327,6 +335,49 @@ describe('OhlcSeries', () => {
                 ...ohlcOptions(),
                 data: barData().slice(0, 2),
             });
+        });
+    });
+
+    describe('shadow', () => {
+        const buildOptions = (shadow?: typeof SHADOW): AgChartOptions => {
+            const options = { ...OHLC_OPTIONS, series: [{ ...OHLC_OPTIONS.series![0], shadow }] } as AgChartOptions;
+            prepareEnterpriseTestOptions(options as any);
+            return options;
+        };
+        const shadowedShapes = (group: any) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
+
+        it('defaults to a disabled shadow', async () => {
+            const chart: any = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+
+            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            chart.destroy();
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            const chart: any = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+
+            expect(collectShapes(chart.series[0].contentGroup)).toHaveLength(4);
+            expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
+            chart.destroy();
+        });
+
+        it('casts the shadow from the stroke of every item, whichever direction', async () => {
+            const chart: any = deproxy(AgCharts.create(buildOptions(SHADOW)));
+            await waitForChartStability(chart);
+
+            const shapes = collectShapes(chart.series[0].contentGroup);
+            expect(shapes).toHaveLength(4);
+            for (const shape of shapes) {
+                expect(shape.shadowMode).toBe('stroke');
+                expect(shape.fillShadow).toMatchObject(SHADOW);
+            }
+            chart.destroy();
+        });
+
+        it('should render an ohlc chart with a shadow', async () => {
+            await compareSnapshot(AgCharts.create(buildOptions(SHADOW)));
         });
     });
 

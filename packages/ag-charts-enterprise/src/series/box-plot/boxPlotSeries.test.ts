@@ -36,7 +36,13 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    collectShapes,
+    createEnterpriseChart,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
 
 const BOX_PLOT_BAR_OPTIONS: AgChartOptions = {
     data: [
@@ -74,6 +80,8 @@ function switchSeriesType<T extends AgCartesianChartOptions>(opts: T, direction:
         })),
     };
 }
+
+const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
 
 describe('BoxPlotSeries', () => {
     setupMockConsole();
@@ -390,6 +398,93 @@ describe('BoxPlotSeries', () => {
             };
             prepareEnterpriseTestOptions(options as any);
             await compareSnapshot(AgCharts.create(options as AgChartOptions));
+        });
+    });
+
+    describe('shadow', () => {
+        const STYLED_WHISKERS = { stroke: 'navy', strokeWidth: 3 };
+        const buildOptions = (
+            shadow?: typeof SHADOW,
+            seriesOptions?: Record<string, unknown>,
+            direction: 'horizontal' | 'vertical' = 'vertical'
+        ): AgChartOptions => {
+            const options = switchSeriesType(
+                {
+                    ...BOX_PLOT_BAR_OPTIONS,
+                    series: [{ ...BOX_PLOT_BAR_OPTIONS.series![0], shadow, ...seriesOptions }],
+                } as AgCartesianChartOptions,
+                direction
+            ) as AgChartOptions;
+            prepareEnterpriseTestOptions(options as any);
+            return options;
+        };
+        const shadowedShapes = (group: any) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
+        // Typed loosely so the tests can read the node-specific wick and orientation fields.
+        const itemNodes = (chart: any): any[] => collectShapes(chart.series[0].contentGroup);
+        const create = async (options: AgChartOptions) => {
+            const chart: any = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart;
+        };
+
+        it('defaults to a disabled shadow', async () => {
+            const chart = await create(buildOptions());
+
+            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            chart.destroy();
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            const chart = await create(buildOptions());
+
+            expect(collectShapes(chart.series[0].contentGroup)).toHaveLength(4);
+            expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
+            chart.destroy();
+        });
+
+        it.each(['vertical', 'horizontal'] as const)(
+            'casts one silhouette shadow over each %s box, whiskers and caps',
+            async (direction) => {
+                const chart = await create(buildOptions(SHADOW, undefined, direction));
+
+                const shapes = itemNodes(chart);
+                expect(shapes).toHaveLength(4);
+                for (const shape of shapes) {
+                    expect(shape.shadowMode).toBe('silhouette');
+                    expect(shape.fillShadow).toMatchObject(SHADOW);
+                    expect(shape['horizontal']).toBe(direction === 'horizontal');
+                }
+                chart.destroy();
+            }
+        );
+
+        it('keeps shared whiskers on the box path and styled whiskers on their own path', async () => {
+            const shared = await create(buildOptions(SHADOW));
+            for (const node of itemNodes(shared)) {
+                expect(node['wickPath'].isEmpty()).toBe(true);
+            }
+            shared.destroy();
+
+            // The styled whiskers are drawn apart from the box, so they reach the shadow through renderSilhouetteExtras.
+            const styled = await create(buildOptions(SHADOW, { whisker: STYLED_WHISKERS }));
+            for (const node of itemNodes(styled)) {
+                expect(node['wickPath'].isEmpty()).toBe(false);
+                expect(node.shadowMode).toBe('silhouette');
+                expect(node.fillShadow).toMatchObject(SHADOW);
+            }
+            styled.destroy();
+        });
+
+        it('should render a box-plot chart with a shadow and shared whisker styling', async () => {
+            await compareSnapshot(AgCharts.create(buildOptions(SHADOW)));
+        });
+
+        it('should render a box-plot chart with a shadow and separately styled whiskers', async () => {
+            await compareSnapshot(AgCharts.create(buildOptions(SHADOW, { whisker: STYLED_WHISKERS })));
+        });
+
+        it('should render a horizontal box-plot chart with a shadow and separately styled whiskers', async () => {
+            await compareSnapshot(AgCharts.create(buildOptions(SHADOW, { whisker: STYLED_WHISKERS }, 'horizontal')));
         });
     });
 

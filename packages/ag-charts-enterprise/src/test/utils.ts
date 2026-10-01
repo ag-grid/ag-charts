@@ -1,4 +1,4 @@
-import { type AgChartOptions, AgCharts, type AgGaugeOptions } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, type AgGaugeOptions, _Scene } from 'ag-charts-community';
 import {
     type Chart,
     type PhasedPropertyExpectation,
@@ -117,3 +117,22 @@ export function mockCssVarColorSupport(container: HTMLElement, vars: Record<stri
         view.getComputedStyle = originalGetComputedStyle;
     };
 }
+
+/**
+ * Every `Shape` under `root`, for checking the drop shadow a series applies to its drawn shapes.
+ * Kept `expect`-free since enterprise `src/test` is linted as shippable source.
+ */
+export function collectShapes(root: _Scene.Group): _Scene.Shape[] {
+    const shapes: _Scene.Shape[] = [];
+    const visit = (node: unknown) => {
+        if (node instanceof _Scene.Shape) shapes.push(node);
+        if (node instanceof _Scene.Group) {
+            for (const child of node.children()) visit(child);
+        }
+    };
+    visit(root);
+    return shapes;
+}
+
+/** The theme-resolved `shadow` defaults of a fill series: present but disabled. */
+export const DEFAULT_DISABLED_SHADOW = { enabled: false, xOffset: 3, yOffset: 3, blur: 5, color: '#00000080' };
