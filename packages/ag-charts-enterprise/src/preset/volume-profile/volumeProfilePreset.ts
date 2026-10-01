@@ -30,6 +30,7 @@ export function volumeProfileChart(
     } = opts;
 
     return {
+        data,
         animation: { enabled: false },
         legend: { enabled: false },
         series: createVolumeProfileSeries(getTheme, { data, priceKey, upKey, downKey }, tickSize, 'x'),

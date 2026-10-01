@@ -407,7 +407,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     isDataTransactionSupported() {
-        return true;
+        const { moduleRegistry, optionMetadata } = this.chartOptions;
+        if (optionMetadata.presetType == null) return true;
+        return moduleRegistry.getPresetModule(optionMetadata.presetType)?.dataTransactions !== false;
     }
 
     protected createDataSet(data: unknown[]): DataSet {

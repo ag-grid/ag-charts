@@ -54,6 +54,7 @@ export const VolumeProfilePresetModule: PresetModuleDefinition<
     options: volumeProfileChartOptionsDef,
 
     create: volumeProfileChart,
+    dataTransactions: false,
 
     baseTheme: 'ag-financial',
     themeTemplate: {
