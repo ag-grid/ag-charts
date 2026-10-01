@@ -78,11 +78,7 @@ export interface AgChartLabelOptions<TDatum, TParams, TContext = ContextDefault>
     itemStyler?: Styler<AgChartLabelStylerParams<TDatum, TContext> & TParams, AgChartLabelStyleOptions>;
 }
 
-/**
- * Controls how a series label is fitted to the region produced by its placement: bounding its size
- * and wrapping or truncating overflow. Only series that reserve a region for their labels honour
- * these options.
- */
+/** Controls how a label is fitted to its bounds: bounding its size and wrapping or truncating overflow. */
 export interface AgChartLabelFitOptions {
     /** Maximum width, in pixels, the label may occupy before it is wrapped or truncated to fit. */
     maxWidth?: PixelSize;
@@ -100,7 +96,7 @@ export interface AgChartLabelFitOptions {
     truncate?: boolean;
 }
 
-/** Font reduction applied to a label that does not fit the region produced by its placement. */
+/** Font reduction applied to a label that does not fit its bounds. */
 export interface AgChartLabelAutoFontSizeOptions {
     /**
      * If the label does not fit within its bounds, setting this will allow the label to pick a font size

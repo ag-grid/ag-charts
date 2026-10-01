@@ -2820,4 +2820,313 @@ describe('CrossLine theme overrides', () => {
         ]);
         expect(crossLineInstancesOf(chart, 'y')[0].fill).not.toBe('red');
     });
+
+    it.each([
+        ['the shared options', { label: { maxWidth: 40 } }, 'common'],
+        ['the shared options of the series type', { label: { maxWidth: 40 } }, 'line'],
+        ['the options of a type', { line: { label: { maxWidth: 40 } }, range: { label: { maxWidth: 40 } } }, 'common'],
+    ] as const)('fits a label bounded through %s', async (_, overrides, namespace) => {
+        chart = await createChart(typedChart(LINE_AND_RANGE, overrides, namespace));
+
+        const labels = crossLineInstancesOf(chart, 'y').map((c) => c.label);
+        expect(labels.map((l) => [l.maxWidth, l.wrapping, l.truncate])).toEqual([
+            [40, 'on-space', true],
+            [40, 'on-space', true],
+        ]);
+    });
+});
+
+describe('CrossLine label fitting', () => {
+    setupMockConsole();
+    const ctx = setupMockCanvas();
+
+    let chart: Chart;
+
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    const LONG_TEXT = 'A cross line label long enough to need fitting';
+
+    function fitChart(
+        crossLine: AgCartesianCrossLineOptions,
+        axisId: 'x' | 'y' = 'y',
+        theme?: AgCartesianChartOptions['theme']
+    ): AgCartesianChartOptions {
+        return prepareTestOptions({
+            data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom', crossLines: axisId === 'x' ? [crossLine] : [] },
+                y: { type: 'number', position: 'left', crossLines: axisId === 'y' ? [crossLine] : [] },
+            },
+            theme,
+        });
+    }
+
+    const lineWith = (label: AgCartesianCrossLineLabelOptions): AgCartesianCrossLineOptions => ({
+        type: 'line',
+        value: 5,
+        label: { text: LONG_TEXT, ...label },
+    });
+
+    function renderedLabel(axisId: 'x' | 'y' = 'y') {
+        const [crossLine] = crossLineInstancesOf(chart, axisId);
+        const [node] = crossLine.labelGroup.children() as any;
+        const { width, height } = node.getBBox();
+        return {
+            text: node.text as string,
+            fontSize: node.fontSize as number,
+            width: width as number,
+            height: height as number,
+            footprint: Transformable.toCanvas(crossLine.labelGroup),
+            crossLine,
+        };
+    }
+
+    it.each([
+        ['nothing', {}],
+        ['an array placement', { placement: ['left', 'right'] }],
+    ] as const)('renders the label whole with %s set', async (_, label) => {
+        chart = await createChart(fitChart(lineWith(label as AgCartesianCrossLineLabelOptions)));
+
+        const rendered = renderedLabel();
+        expect(rendered.text).toBe(LONG_TEXT);
+        expect(rendered.fontSize).toBe(12);
+    });
+
+    it.each([
+        ['line', 'y', lineWith({ maxWidth: 80 })],
+        ['range', 'x', { type: 'range', range: [2, 4], label: { text: LONG_TEXT, maxWidth: 80 } }],
+    ] as const)('wraps a %s label within maxWidth', async (_, axisId, crossLine) => {
+        chart = await createChart(fitChart(crossLine as AgCartesianCrossLineOptions, axisId));
+
+        const rendered = renderedLabel(axisId);
+        expect(rendered.text.split('\n').length).toBeGreaterThan(1);
+        expect(rendered.text.replaceAll('\n', ' ')).toBe(LONG_TEXT);
+        expect(rendered.width).toBeLessThanOrEqual(80);
+    });
+
+    it.each(['always', 'hyphenate', 'on-space', 'never'] as const)(
+        'keeps a label wrapped %s within maxWidth',
+        async (wrapping) => {
+            chart = await createChart(fitChart(lineWith({ maxWidth: 80, wrapping })));
+
+            const rendered = renderedLabel();
+            expect(rendered.width).toBeLessThanOrEqual(80);
+            expect(rendered.text.includes('\n')).toBe(wrapping !== 'never');
+        }
+    );
+
+    it.each([
+        ['maxWidth', { maxWidth: 80, wrapping: 'never' }],
+        ['maxHeight', { maxWidth: 80, maxHeight: 20 }],
+    ] as const)('ellipsises a label bounded by %s', async (_, label: AgCartesianCrossLineLabelOptions) => {
+        chart = await createChart(fitChart(lineWith({ ...label, truncate: true })));
+
+        const rendered = renderedLabel();
+        expect(rendered.text.endsWith('…')).toBe(true);
+        expect(rendered.width).toBeLessThanOrEqual(80);
+        expect(rendered.height).toBeLessThanOrEqual(label.maxHeight ?? Infinity);
+    });
+
+    it('lets a label that does not fit overflow when truncate is disabled', async () => {
+        chart = await createChart(fitChart(lineWith({ maxWidth: 80, wrapping: 'never', truncate: false })));
+
+        const rendered = renderedLabel();
+        expect(rendered.text).toBe(LONG_TEXT);
+        expect(rendered.width).toBeGreaterThan(80);
+    });
+
+    it('shrinks a label towards minimumFontSize before truncating it', async () => {
+        const text = 'Target value';
+        const label = { text, fontSize: 20, wrapping: 'never', minimumFontSize: 8 } as const;
+        chart = await createChart(fitChart(lineWith({ ...label, maxWidth: 1e3 })));
+        const fullWidth = renderedLabel().width;
+        chart.destroy();
+
+        chart = await createChart(fitChart(lineWith({ ...label, maxWidth: fullWidth * 0.75 })));
+        const shrunk = renderedLabel();
+        expect(shrunk.text).toBe(text);
+        expect(shrunk.fontSize).toBeLessThan(20);
+        expect(shrunk.fontSize).toBeGreaterThanOrEqual(8);
+        chart.destroy();
+
+        chart = await createChart(fitChart(lineWith({ ...label, maxWidth: fullWidth * 0.2 })));
+        const truncated = renderedLabel();
+        expect(truncated.fontSize).toBe(8);
+        expect(truncated.text.endsWith('…')).toBe(true);
+    });
+
+    it('bounds the label before rotating it', async () => {
+        chart = await createChart(fitChart(lineWith({ maxWidth: 80, rotation: 90, padding: 0 }), 'x'));
+
+        const rendered = renderedLabel('x');
+        expect(rendered.text.includes('\n')).toBe(true);
+        expect(rendered.footprint.height).toBeLessThanOrEqual(80 + 1);
+    });
+
+    it('pads the chart for the fitted label', async () => {
+        const options = (label: AgCartesianCrossLineLabelOptions) =>
+            fitChart(lineWith({ placement: 'left', ...label }));
+        chart = await createChart(options({}));
+        const unfittedWidth = chart.seriesRect!.width;
+        chart.destroy();
+
+        chart = await createChart(options({ maxWidth: 80 }));
+
+        const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
+        renderedLabel().crossLine.calculatePadding!(into);
+        expect(chart.seriesRect!.width).toBeGreaterThan(unfittedWidth);
+        expect(into.left).toBeLessThanOrEqual(80 + 10);
+    });
+
+    it('ellipsises a wrapped clip-text label once, within the chart', async () => {
+        const label = undocumentedLabel({
+            text: `${LONG_TEXT} ${LONG_TEXT}`,
+            placement: 'left',
+            overflow: 'clip-text',
+            maxWidth: 2000,
+            wrapping: 'always',
+        });
+        chart = await createChart({ ...fitChart(lineWith(label)), width: 300, height: 300 });
+
+        const rendered = renderedLabel();
+        expect(rendered.text.split('…')).toHaveLength(2);
+        expect(rendered.text.endsWith('…')).toBe(true);
+        expect(rendered.footprint.x).toBeGreaterThanOrEqual(0);
+    });
+
+    it('moves a fitted range label out of its band once the band is too narrow for it', async () => {
+        const options = (max: number) => {
+            const base = fitChart(
+                {
+                    type: 'range',
+                    range: [4, 5],
+                    label: { text: 'Target band', maxWidth: 60, placement: ['inside-top', 'top'] },
+                },
+                'x'
+            );
+            return { ...base, axes: { ...base.axes, x: { ...(base.axes as any).x, min: 3, max } } };
+        };
+        const labelInsideBand = () => {
+            const { crossLine, footprint } = renderedLabel('x');
+            const band = Transformable.toCanvas(crossLine.rangeGroup);
+            return footprint.y >= band.y;
+        };
+
+        chart = await createChart(options(6));
+        const zoomedIn = renderedLabel('x').text;
+        expect(labelInsideBand()).toBe(true);
+
+        await chart.publicApi!.update(options(100));
+        await waitForChartStability(chart);
+        expect(labelInsideBand()).toBe(false);
+        expect(renderedLabel('x').text).toBe(zoomedIn);
+    });
+
+    it.each(['number', 'log', 'category', 'time', 'unit-time', 'grouped-category'] as const)(
+        'fits a label bounded through a %s axis theme override',
+        async (axisType) => {
+            const isCategory = axisType === 'category' || axisType === 'grouped-category';
+            const isTime = axisType === 'time' || axisType === 'unit-time';
+            const xValue = (i: number) => {
+                if (isCategory) return `C${i}`;
+                if (isTime) return new Date(Date.UTC(2024, 0, i + 1));
+                return i + 1;
+            };
+            const value = xValue(2);
+            chart = await createChart(
+                prepareTestOptions({
+                    data: Array.from({ length: 5 }, (_, i) => ({ x: xValue(i), y: i })),
+                    series: [{ type: axisType === 'log' ? 'line' : 'bar', xKey: 'x', yKey: 'y' } as any],
+                    axes: {
+                        x: { type: axisType, position: 'bottom', crossLines: [{ type: 'line', value }] } as any,
+                        y: { type: 'number', position: 'left' },
+                    },
+                    theme: {
+                        overrides: {
+                            common: {
+                                axes: { [axisType]: { crossLines: { label: { text: LONG_TEXT, maxWidth: 40 } } } },
+                            },
+                        },
+                    },
+                })
+            );
+
+            const rendered = renderedLabel('x');
+            expect(rendered.text.includes('\n')).toBe(true);
+            expect(rendered.width).toBeLessThanOrEqual(40);
+        }
+    );
+
+    describe('minimumFontSize validation', () => {
+        const MINIMUM_FONT_SIZE_WARNING =
+            'AG Charts - Option `axes.y.crossLines[0][type=line].label.minimumFontSize` cannot be set to `14`; expecting a number greater than 0 and the value to be less than or equal to `fontSize`, ignoring.';
+
+        it('warns when minimumFontSize exceeds the label fontSize', async () => {
+            chart = await createChart(fitChart(lineWith({ fontSize: 10, minimumFontSize: 14, maxWidth: 80 })));
+
+            expectWarningMessages([MINIMUM_FONT_SIZE_WARNING]);
+        });
+
+        it('warns when minimumFontSize exceeds the themed fontSize', async () => {
+            chart = await createChart(fitChart(lineWith({ minimumFontSize: 14, maxWidth: 80 })));
+
+            expectWarningMessages([MINIMUM_FONT_SIZE_WARNING]);
+        });
+
+        it('accepts a minimumFontSize below a themed fontSize', async () => {
+            const theme = { overrides: { common: { axes: { number: { crossLines: { label: { fontSize: 30 } } } } } } };
+            chart = await createChart(fitChart(lineWith({ minimumFontSize: 20, maxWidth: 80 }), 'y', theme));
+
+            expect(renderedLabel().fontSize).toBeLessThanOrEqual(30);
+        });
+    });
+
+    it('renders fitted labels', async () => {
+        const base = fitChart(lineWith({}));
+        chart = await createChart({
+            ...base,
+            axes: {
+                x: {
+                    type: 'number',
+                    position: 'bottom',
+                    crossLines: [
+                        {
+                            type: 'range',
+                            range: [1, 3],
+                            label: { text: LONG_TEXT, maxWidth: 70, placement: 'inside-top' },
+                        },
+                        {
+                            type: 'line',
+                            value: 7,
+                            label: {
+                                text: LONG_TEXT,
+                                maxWidth: 90,
+                                rotation: 90,
+                                fill: 'lightyellow',
+                                placement: 'left',
+                            },
+                        },
+                    ],
+                },
+                y: {
+                    type: 'number',
+                    position: 'left',
+                    crossLines: [
+                        { type: 'line', value: 8, label: { text: LONG_TEXT, maxWidth: 90, wrapping: 'never' } },
+                        {
+                            type: 'line',
+                            value: 4,
+                            label: { text: LONG_TEXT, fontSize: 16, maxWidth: 120, maxHeight: 24, minimumFontSize: 9 },
+                        },
+                    ],
+                },
+            },
+        });
+
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+    });
 });

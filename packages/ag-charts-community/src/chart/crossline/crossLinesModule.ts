@@ -1,4 +1,9 @@
-import { type AxisPluginModuleDefinition, type DynamicContext, undocumentedThemeOptions } from 'ag-charts-core';
+import {
+    type AxisPluginModuleDefinition,
+    type DynamicContext,
+    LABEL_OVERFLOW_DEFAULTS,
+    undocumentedThemeOptions,
+} from 'ag-charts-core';
 import type { AgBaseCrossLineOptions } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -28,6 +33,7 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
                 stroke: { $ref: 'foregroundColor' },
                 strokeWidth: 1,
                 label: {
+                    ...LABEL_OVERFLOW_DEFAULTS,
                     ...undocumentedThemeOptions({ overflow: 'pad-chart' }),
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },

@@ -224,6 +224,28 @@ describe('PolarCrossLine theme overrides', () => {
         expect(crossLineInstances(chart, 'angle').map((c) => c.stroke)).toEqual(['blue']);
         expect(crossLineInstances(chart, 'radius').map((c) => c.stroke)).toEqual(['blue', 'green']);
     });
+
+    it('rejects the cartesian label fit options', async () => {
+        const options: AgPolarChartOptions = {
+            data: [
+                { quarter: "Q1'22", revenue: 1 },
+                { quarter: "Q2'22", revenue: 3 },
+            ],
+            series: [{ type: 'radar-line', angleKey: 'quarter', radiusKey: 'revenue' }],
+            axes: {
+                angle: { type: 'angle-category' },
+                radius: {
+                    type: 'radius-number',
+                    crossLines: [{ type: 'line', value: 1, label: { text: 'Target', maxWidth: 40 } as any }],
+                },
+            },
+        };
+        chart = await createEnterpriseChart(options);
+
+        expectWarningMessages([
+            'AG Charts - Unknown option `axes.radius.crossLines[0][type=line].label.maxWidth`, ignoring.',
+        ]);
+    });
 });
 
 describe('PolarCrossLine listeners', () => {

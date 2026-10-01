@@ -613,12 +613,12 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         if (path[0] === 'axes' && path.length > 1) {
             const axisType = this.getResolvedPath(['axes', path[1], 'type']) as string;
-            if (hasPathSafe(this.overrides, ['common', 'axes', axisType, ...path.slice(2)])) {
+            if (this.hasTypedTemplateOverride(['common', 'axes', axisType], path, 2)) {
                 return true;
             }
 
             const seriesType = this.getResolvedPath(['series', '0', 'type']) as string;
-            return hasPathSafe(this.overrides, [seriesType, 'axes', axisType, ...path.slice(2)]);
+            return this.hasTypedTemplateOverride([seriesType, 'axes', axisType], path, 2);
         }
 
         if (path[0] === 'series' && path.length > 1) {
@@ -631,6 +631,24 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             hasTemplatePathSafe(this.overrides, ['common', ...path]) ||
             hasPathSafe(this.overrides, path)
         );
+    }
+
+    /**
+     * As {@link hasTemplatePathSafe} on `path` from index `from` under `namespace`, also matching the overrides keyed by
+     * the `type` of the first list item the path passes through, as the type-keyed cross line overrides are.
+     */
+    private hasTypedTemplateOverride(namespace: string[], path: string[], from: number) {
+        const overrides = this.overrides!;
+        const rest = path.slice(from);
+        if (hasTemplatePathSafe(overrides, [...namespace, ...rest])) return true;
+
+        const index = rest.findIndex((part) => /^\d+$/.test(part));
+        if (index === -1) return false;
+
+        const type = this.dangerouslyGetUserOption([...path.slice(0, from + index + 1), 'type']);
+        if (typeof type !== 'string') return false;
+
+        return hasTemplatePathSafe(overrides, [...namespace, ...rest.slice(0, index), type, ...rest.slice(index + 1)]);
     }
 
     getParamValue(pathString: string) {

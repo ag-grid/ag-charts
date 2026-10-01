@@ -44,6 +44,7 @@ import type {
     ContextDefault,
     CssColor,
     Opacity,
+    TextWrap,
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
@@ -395,6 +396,16 @@ export type NormalisedAxisCrossLineLabelOptions = Normalised<
     rotation?: number;
     /** Cartesian cross lines only. */
     collision?: NormalisedChartLabelCollisionOptions;
+    /** Cartesian cross lines only. */
+    maxWidth?: number;
+    /** Cartesian cross lines only. */
+    maxHeight?: number;
+    /** Cartesian cross lines only. */
+    wrapping?: TextWrap;
+    /** Cartesian cross lines only. */
+    truncate?: boolean;
+    /** Cartesian cross lines only. */
+    minimumFontSize?: number;
     /** Radius cross lines only. */
     positionAngle?: number;
 };

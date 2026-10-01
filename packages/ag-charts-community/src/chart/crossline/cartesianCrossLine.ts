@@ -4,7 +4,9 @@ import {
     createId,
     findMinMax,
     fitLabelText,
+    fitLabelTextAutoSize,
     resolveCollideWith,
+    resolveLabelFit,
     resolvePadding,
     toRadians,
 } from 'ag-charts-core';
@@ -121,6 +123,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private chosen = 0;
     private readonly candidateIndices = new Map<PositionedLabelCandidate, number>();
     private labelBounds: BBox | undefined = undefined;
+    private fitted: { text: string; fontSize: number } | undefined = undefined;
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         this.crossLineRange.pointerEvents = PointerEvents.None;
@@ -142,6 +145,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         this.lineDash = lineDash;
         this.listeners = listeners;
         this.label = { reserveSpace: false, ...options.label };
+        this.fitted = undefined;
         this.anchors = undefined;
         this.chosen = 0;
     }
@@ -496,13 +500,29 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
         if (label.text == null || label.text === '') return;
 
+        const { text, fontSize } = this.fittedLabel();
         crossLineLabel.fill = label.color;
-        crossLineLabel.text = label.text;
+        crossLineLabel.text = text;
         crossLineLabel.rotation = toRadians(label.rotation ?? 0);
         crossLineLabel.textAlign = 'center';
         crossLineLabel.textBaseline = 'middle';
         crossLineLabel.setFont(label);
+        crossLineLabel.fontSize = fontSize;
         crossLineLabel.setBoxing(label);
+    }
+
+    /** The label fitted to its own `maxWidth`/`maxHeight`, which do not depend on where it is placed. */
+    private fittedLabel(): { text: string; fontSize: number } {
+        if (this.fitted == null) {
+            const { label } = this;
+            const text = label.text ?? '';
+            const fitted = fitLabelTextAutoSize(text, resolveLabelFit(label), label);
+            this.fitted = {
+                text: typeof fitted.text === 'string' ? fitted.text : text,
+                fontSize: fitted.fontSize ?? label.fontSize,
+            };
+        }
+        return this.fitted;
     }
 
     private get horizontal(): boolean {
@@ -575,7 +595,9 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
         // The rotated footprint's extent is affine in the text width, so solving for that width keeps the
         // boxing padding out of the arithmetic entirely.
-        const textWidth = cachedTextMeasurer(label).measureLines(text).width;
+        const { text: fittedText, fontSize } = this.fittedLabel();
+        const font = { ...label, fontSize };
+        const textWidth = cachedTextMeasurer(font).measureLines(fittedText).width;
         const cos = Math.abs(Math.cos(crossLineLabel.rotation));
         const sin = Math.abs(Math.sin(crossLineLabel.rotation));
         // Only a direction the text actually extends along can bound it; the bound is not floored before
@@ -589,8 +611,9 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         }
         if (maxWidth >= textWidth) return;
 
+        // Refit the source text on one line: the affine solve above cannot bound the lines wrapping adds.
         const fit = { maxWidth: Math.max(maxWidth, 0), wrapping: 'never', overflowStrategy: 'ellipsis' } as const;
-        const fitted = fitLabelText(text, fit, label);
+        const fitted = fitLabelText(text, fit, font);
         if (typeof fitted === 'string') {
             crossLineLabel.text = fitted;
         }
@@ -622,12 +645,13 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private computeLabelSize(): { width: number; height: number } | undefined {
         const { label } = this;
         if (label.enabled === false || label.text == null || label.text === '') return;
+        const { text, fontSize } = this.fittedLabel();
         const tempText = new TransformableText();
         tempText.fontFamily = label.fontFamily;
-        tempText.fontSize = label.fontSize;
+        tempText.fontSize = fontSize;
         tempText.fontStyle = label.fontStyle;
         tempText.fontWeight = label.fontWeight;
-        tempText.text = label.text;
+        tempText.text = text;
         tempText.rotation = toRadians(label.rotation ?? 0);
         tempText.textBaseline = 'middle';
         tempText.textAlign = 'center';
