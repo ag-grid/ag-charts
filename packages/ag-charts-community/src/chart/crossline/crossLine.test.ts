@@ -6,6 +6,7 @@ import {
     type DynamicContext,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
+    cachedTextMeasurer,
     getDocument,
     mapValues,
 } from 'ag-charts-core';
@@ -2980,6 +2981,18 @@ describe('CrossLine label fitting', () => {
         renderedLabel().crossLine.calculatePadding!(into);
         expect(chart.seriesRect!.width).toBeGreaterThan(unfittedWidth);
         expect(into.left).toBeLessThanOrEqual(80 + 10);
+    });
+
+    it('refits the label once a web font loads', async () => {
+        chart = await createChart(fitChart(lineWith({ maxWidth: 80 })));
+        const { crossLine } = renderedLabel();
+        const fittedBeforeLoad = (crossLine as any).fitted;
+
+        cachedTextMeasurer.clear();
+        chart.ctx.eventsHub.emit('font:load', null);
+        await waitForChartStability(chart);
+
+        expect((crossLine as any).fitted).not.toBe(fittedBeforeLoad);
     });
 
     it('ellipsises a wrapped clip-text label once, within the chart', async () => {

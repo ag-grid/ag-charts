@@ -1,4 +1,5 @@
 import {
+    type TextMeasurer,
     cachedTextMeasurer,
     clampArray,
     createId,
@@ -123,7 +124,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private chosen = 0;
     private readonly candidateIndices = new Map<PositionedLabelCandidate, number>();
     private labelBounds: BBox | undefined = undefined;
-    private fitted: { text: string; fontSize: number } | undefined = undefined;
+    private fitted: { text: string; fontSize: number; measurer: TextMeasurer } | undefined = undefined;
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         this.crossLineRange.pointerEvents = PointerEvents.None;
@@ -511,15 +512,20 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         crossLineLabel.setBoxing(label);
     }
 
-    /** The label fitted to its own `maxWidth`/`maxHeight`, which do not depend on where it is placed. */
+    /**
+     * The label fitted to its own `maxWidth`/`maxHeight`, which do not depend on where it is placed. Keyed on
+     * the measurer, which a web font load replaces.
+     */
     private fittedLabel(): { text: string; fontSize: number } {
-        if (this.fitted == null) {
-            const { label } = this;
+        const { label } = this;
+        const measurer = cachedTextMeasurer(label);
+        if (this.fitted?.measurer !== measurer) {
             const text = label.text ?? '';
             const fitted = fitLabelTextAutoSize(text, resolveLabelFit(label), label);
             this.fitted = {
                 text: typeof fitted.text === 'string' ? fitted.text : text,
                 fontSize: fitted.fontSize ?? label.fontSize,
+                measurer,
             };
         }
         return this.fitted;
