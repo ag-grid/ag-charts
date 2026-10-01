@@ -27,7 +27,7 @@ import {
 } from 'ag-charts-community-test';
 import { ambientLogger } from 'ag-charts-core';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
 import ukTopology from '../map-test/ukTopology.json';
 import { usData } from '../map-test/usData';
@@ -98,6 +98,106 @@ describe('MapShapeSeries', () => {
             highlightManager.updateHighlight(chart.id, node);
             await compare({
                 failureThreshold: 1,
+            });
+        });
+    });
+
+    describe('shadow', () => {
+        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
+        const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
+            ...SIMPLIFIED_EXAMPLE,
+            series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
+        });
+
+        it('defaults to a disabled shadow', async () => {
+            const options = shadowOptions();
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            const options = shadowOptions();
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const shapes = collectShapes(chart.series[0].contentGroup);
+            expect(shapes.length).toBeGreaterThan(0);
+            expect(shapes.filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
+        });
+
+        it('applies an enabled shadow to every shape', async () => {
+            const options = shadowOptions(shadow);
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const shapes = collectShapes(chart.series[0].contentGroup);
+            expect(shapes.length).toBeGreaterThan(0);
+            for (const shape of shapes) {
+                expect(shape.fillShadow).toMatchObject(shadow);
+            }
+        });
+
+        it('should render a chart with the shadow enabled', async () => {
+            const options = shadowOptions(shadow);
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        describe('cutout drawing mode', () => {
+            const highlightFirstShape = async (options: AgChartOptions) => {
+                prepareEnterpriseTestOptions(options);
+
+                chart = deproxy(AgCharts.create(options));
+                await waitForChartStability(chart);
+
+                const seriesImpl = chart.series[0] as MapShapeSeries;
+                const node = seriesImpl?.['contextNodeData']?.nodeData[0];
+                (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, node);
+                await waitForChartStability(chart);
+            };
+
+            // The cutout erases the shape beneath the highlight before it is drawn again, so a
+            // translucent highlight fill makes the erase visible and the shadow must survive it.
+            const cutoutOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
+                ...shadowOptions(seriesShadow),
+                highlight: { drawingMode: 'cutout' },
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        shadow: seriesShadow,
+                        highlight: { highlightedItem: { fill: 'blue', fillOpacity: 0.4 } },
+                    },
+                ],
+            });
+
+            it('draws the highlighted shape with its shadow after the cutout', async () => {
+                await highlightFirstShape(cutoutOptions(shadow));
+
+                const [highlighted, ...others] = collectShapes(chart.series[0].highlightNodeGroup);
+                expect(others).toEqual([]);
+                expect(highlighted.drawingMode).toBe('cutout');
+                expect(highlighted.fillShadow).toMatchObject(shadow);
+                await compare({ failureThreshold: 1 });
+            });
+
+            it('draws the highlighted shape without a shadow after the cutout when no shadow is set', async () => {
+                await highlightFirstShape(cutoutOptions());
+
+                const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);
+                expect(highlighted.drawingMode).toBe('cutout');
+                expect(highlighted.fillShadow?.enabled).toBe(false);
+                await compare({ failureThreshold: 1 });
             });
         });
     });

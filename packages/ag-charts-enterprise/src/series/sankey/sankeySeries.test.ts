@@ -28,7 +28,12 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    collectShapes,
+    mockCssVarColorSupport,
+    prepareEnterpriseTestOptions,
+} from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
 describe('SankeySeries', () => {
@@ -368,6 +373,73 @@ describe('SankeySeries', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
+    describe('shadow', () => {
+        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
+        const data = [
+            { from: 'A', to: 'C', size: 8 },
+            { from: 'A', to: 'D', size: 4 },
+            { from: 'B', to: 'C', size: 5 },
+            { from: 'B', to: 'D', size: 7 },
+        ];
+        const shadowOptions = (parts: { link?: typeof shadow; node?: typeof shadow } = {}): AgChartOptions => ({
+            data,
+            series: [
+                {
+                    type: 'sankey',
+                    fromKey: 'from',
+                    toKey: 'to',
+                    sizeKey: 'size',
+                    link: { shadow: parts.link },
+                    node: { shadow: parts.node },
+                },
+            ],
+            legend: { enabled: false },
+        });
+        const createChart = async (options: AgChartOptions) => {
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.series[0];
+        };
+        const shadowedShapes = (group: any) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
+
+        it('defaults to disabled link and node shadows', async () => {
+            const series = await createChart(shadowOptions());
+
+            expect(series['options'].link.shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            expect(series['options'].node.shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            const series = await createChart(shadowOptions());
+
+            expect(collectShapes(series.linkGroup)).toHaveLength(data.length);
+            expect(collectShapes(series.nodeGroup)).toHaveLength(4);
+            expect(shadowedShapes(series.contentGroup)).toEqual([]);
+        });
+
+        it.each(['link', 'node'] as const)(
+            'shadows only the %s shapes when only that shadow is enabled',
+            async (part) => {
+                const series = await createChart(shadowOptions({ [part]: shadow }));
+
+                const [shadowedGroup, plainGroup] =
+                    part === 'link' ? [series.linkGroup, series.nodeGroup] : [series.nodeGroup, series.linkGroup];
+                const shapes = collectShapes(shadowedGroup);
+                expect(shapes.length).toBeGreaterThan(0);
+                for (const shape of shapes) {
+                    expect(shape.fillShadow).toMatchObject(shadow);
+                }
+                expect(shadowedShapes(plainGroup)).toEqual([]);
+            }
+        );
+
+        it('should render a chart with link and node shadows enabled', async () => {
+            await createChart(shadowOptions({ link: shadow, node: shadow }));
             await compare();
         });
     });
