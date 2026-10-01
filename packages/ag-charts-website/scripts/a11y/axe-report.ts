@@ -13,17 +13,14 @@ export interface CompactNode {
 export interface CompactViolation {
     id: string;
     impact: AxeImpact | null;
-    description: string;
     help: string;
     helpUrl: string;
-    tags: string[];
     nodes: CompactNode[];
 }
 
 export interface AxePassResult {
     pass: AxePassName;
     violations?: CompactViolation[];
-    incomplete?: Array<{ id: string; nodes: number }>;
     axeVersion?: string;
     error?: string;
 }

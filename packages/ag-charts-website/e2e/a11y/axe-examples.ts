@@ -118,17 +118,11 @@ export async function runAxeScan(page: Page) {
         violations.push({
             id: violation.id,
             impact: violation.impact ?? null,
-            description: violation.description,
             help: violation.help,
             helpUrl: violation.helpUrl,
-            tags: violation.tags,
             nodes,
         });
     }
 
-    return {
-        violations,
-        incomplete: results.incomplete.map((r) => ({ id: r.id, nodes: r.nodes.length })),
-        axeVersion: results.testEngine.version,
-    };
+    return { violations, axeVersion: results.testEngine.version };
 }

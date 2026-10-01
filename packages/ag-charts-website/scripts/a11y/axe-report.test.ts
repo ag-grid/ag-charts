@@ -6,10 +6,8 @@ function violation(id: string, impact: CompactViolation['impact'], inChart: Arra
     return {
         id,
         impact,
-        description: `${id} description`,
         help: `${id} help`,
         helpUrl: `https://example.com/${id}`,
-        tags: ['wcag2a'],
         nodes: inChart.map((value, i) => ({ target: [`#node-${i}`], html: `<div id="node-${i}">`, inChart: value })),
     };
 }
