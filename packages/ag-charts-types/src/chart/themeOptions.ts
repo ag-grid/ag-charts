@@ -45,7 +45,7 @@ import type {
     AgCartesianAxesTheme,
     AgContinuousCartesianAxesTheme,
 } from './cartesianOptions';
-import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
+import type { AgBaseChartOptions, AgBaseThemeableChartOptions, AgChartValidationsOptions } from './chartOptions';
 import type { AgChartToolbarThemeableOptions } from './chartToolbarOptions';
 import type { AgBasePolarThemeOptions, AgPolarAxesTheme, AgPolarSeriesOptions } from './polarOptions';
 import type { AgChartThemeParams } from './themeParamsOptions';
@@ -429,6 +429,8 @@ export interface AgCommonThemeableChartOptions<
     chartToolbar?: AgChartToolbarThemeableOptions;
     /** Themeable options for the initial state. */
     initialState?: AgInitialStateThemeableOptions;
+    /** Themeable options for how the chart reports invalid configuration and runtime problems. Options set directly on the chart take precedence. */
+    validations?: AgChartValidationsOptions;
 }
 
 export interface AgChartThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault> {
