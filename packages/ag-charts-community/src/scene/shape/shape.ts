@@ -340,8 +340,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             const halfStroke = this.__strokeWidth / 2;
             const halfWidth = localBBox.width / 2 + halfStroke;
             const halfHeight = localBBox.height / 2 + halfStroke;
-            const centreX = localBBox.x + halfWidth;
-            const centreY = localBBox.y + halfHeight;
+            // The centre comes from the unpadded box, as the padding is symmetric around it.
+            const centreX = localBBox.x + localBBox.width / 2;
+            const centreY = localBBox.y + localBBox.height / 2;
             const deviceCentreX = a * centreX + c * centreY + e;
             const deviceCentreY = b * centreX + d * centreY + f;
             const reachX = Math.abs(a) * halfWidth + Math.abs(c) * halfHeight;

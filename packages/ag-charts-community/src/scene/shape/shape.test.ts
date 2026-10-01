@@ -1011,6 +1011,56 @@ describe('Shape', () => {
                 expect(columns.at(-1)).toBe(139);
             });
 
+            it('should place the silhouette source clear of the canvas when the node is mirrored', () => {
+                class ScalablePath extends Scalable(Path) {}
+
+                clearCanvas();
+                const node = new ScalablePath();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: 'black',
+                    strokeWidth: 10,
+                    fillShadow: unshadowed,
+                    shadowMode: 'silhouette',
+                    scalingX: -1,
+                    scalingCenterX: 100,
+                });
+                // 20 to 30 in local space, 170 to 180 on screen once mirrored around x = 100, and the stroke adds 5px.
+                node.path.rect(20, 40, 10, 100);
+                renderNode(node);
+
+                const columns = columnsOf(BLACK);
+                expect(columns[0]).toBe(165);
+                expect(columns.at(-1)).toBe(184);
+            });
+
+            it('should not skip the silhouette of a node whose stroke is the only part on the canvas', () => {
+                const node = new Path();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: 'black',
+                    strokeWidth: 10,
+                    fillShadow: unshadowed,
+                    shadowMode: 'silhouette',
+                });
+                // The geometry starts at x = 403, past the right edge of the 400px canvas, but its stroke starts at 398.
+                node.path.rect(403, 40, 10, 100);
+
+                const ctx = canvasCtx.getRenderContext2D();
+                const shadowedStrokes: unknown[] = [];
+                const stroke = ctx.stroke.bind(ctx);
+                vi.spyOn(ctx, 'stroke').mockImplementation((...args: Parameters<typeof stroke>) => {
+                    if (ctx.shadowColor !== 'rgba(0, 0, 0, 0)') shadowedStrokes.push(ctx.shadowColor);
+                    stroke(...args);
+                });
+                clearCanvas();
+                renderNode(node, ctx);
+                vi.restoreAllMocks();
+
+                expect(shadowedStrokes).toHaveLength(1);
+                expect(columnsOf(BLACK)).toEqual([398, 399]);
+            });
+
             it('should not skip the silhouette of a marker drawn in a translated context', () => {
                 clearCanvas();
                 const marker = new Marker();
@@ -1117,11 +1167,11 @@ describe('Shape', () => {
                 ]);
             });
 
-            it('bounds the silhouette offset by how far right the shape reaches, plus blur and stroke width', () => {
+            it('bounds the silhouette offset by how far right the shape reaches, plus blur and half the stroke width', () => {
                 const calls = record(whiskerPath('silhouette', 40));
                 const offset = Number(calls[0].split(':')[2]);
-                // distance + xOffset, with distance = right edge of the shape (40 + 60) + blur + strokeWidth.
-                expect(offset).toBe(100 + SHADOW.blur + 4 + SHADOW.xOffset);
+                // distance + xOffset, with distance = right edge of the shape (40 + 60) + blur + strokeWidth / 2.
+                expect(offset).toBe(100 + SHADOW.blur + 4 / 2 + SHADOW.xOffset);
             });
 
             it('skips the silhouette pre-pass for a shape whose shadow is nowhere near the canvas', () => {
