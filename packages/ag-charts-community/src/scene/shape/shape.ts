@@ -80,27 +80,9 @@ function getDeviceCanvasSize(
     return undefined;
 }
 
-/** The device-space extent of a local-space box under a transform. */
-function transformedExtent(bbox: BBox, { a, b, c, d, e, f }: DOMMatrix) {
-    const { x, y, width, height } = bbox;
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
-    for (const [px, py] of [
-        [x, y],
-        [x + width, y],
-        [x, y + height],
-        [x + width, y + height],
-    ]) {
-        const dx = a * px + c * py + e;
-        const dy = b * px + d * py + f;
-        minX = Math.min(minX, dx);
-        maxX = Math.max(maxX, dx);
-        minY = Math.min(minY, dy);
-        maxY = Math.max(maxY, dy);
-    }
-    return { minX, maxX, minY, maxY };
+/** Nodes with their own transform matrix, whose `getBBox()` is in parent space rather than the space they draw in. */
+function hasLocalTransform(node: Node): node is Node & { computeBBoxWithoutTransforms(): BBox | undefined } {
+    return 'computeBBoxWithoutTransforms' in node;
 }
 
 export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
@@ -310,7 +292,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             ctx.globalCompositeOperation = 'source-over';
         }
 
-        if (this.__shadowMode === 'silhouette') {
+        // Without a Path2D (e.g. Line) the pre-pass can't be moved by the transform, so renderStroke shadows instead.
+        if (this.__shadowMode === 'silhouette' && path != null) {
             this.renderSilhouetteShadow(ctx, logger, path, bboxOverride, fillBBoxOverride);
         }
 
@@ -329,7 +312,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     private renderSilhouetteShadow(
         ctx: CanvasContext,
         logger: Logger,
-        path?: Path2D,
+        path: Path2D,
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
@@ -344,24 +327,39 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const shadowX = shadow.xOffset * pixelRatio;
         const shadowY = shadow.yOffset * pixelRatio;
 
-        // Device space, so rotated or scaled parents don't matter.
-        const localBBox: BBox | undefined = this.getBBox();
-        const extent = localBBox == null ? undefined : transformedExtent(localBBox, ctx.getTransform());
-        if (extent != null && canvasSize != null) {
-            const offCanvas =
-                extent.maxX + shadowX + reach < 0 ||
-                extent.minX + shadowX - reach > canvasSize.width ||
-                extent.maxY + shadowY + reach < 0 ||
-                extent.minY + shadowY - reach > canvasSize.height;
-            if (offCanvas) return;
+        // The shape's geometry in the space it is drawn in, which `ctx` already has the shape's own transform applied
+        // to. The bbox is then taken to device space through `ctx`, so rotated or scaled parents don't matter.
+        const { a, b, c, d, e, f } = ctx.getTransform();
+        const localBBox: BBox | undefined =
+            bboxOverride ?? (hasLocalTransform(this) ? this.computeBBoxWithoutTransforms() : this.getBBox());
+        // Without bounds for the shape, fall back to the canvas width, which is as far right as a shape that is on the
+        // canvas can reach.
+        let maxX = canvasSize?.width ?? 0;
+        if (localBBox != null) {
+            const halfWidth = localBBox.width / 2;
+            const halfHeight = localBBox.height / 2;
+            const centreX = localBBox.x + halfWidth;
+            const centreY = localBBox.y + halfHeight;
+            const deviceCentreX = a * centreX + c * centreY + e;
+            const deviceCentreY = b * centreX + d * centreY + f;
+            const reachX = Math.abs(a) * halfWidth + Math.abs(c) * halfHeight;
+            const reachY = Math.abs(b) * halfWidth + Math.abs(d) * halfHeight;
+            const minX = deviceCentreX - reachX;
+            maxX = deviceCentreX + reachX;
+
+            if (canvasSize != null) {
+                const offCanvas =
+                    maxX + shadowX + reach < 0 ||
+                    minX + shadowX - reach > canvasSize.width ||
+                    deviceCentreY + reachY + shadowY + reach < 0 ||
+                    deviceCentreY - reachY + shadowY - reach > canvasSize.height;
+                if (offCanvas) return;
+            }
         }
 
-        // Far enough that the shape and its blur clear the left edge of the canvas. Without bounds for the shape, fall
-        // back to the canvas width, which is as far as a shape that is on the canvas can reach.
-        const rightmost = extent?.maxX ?? canvasSize?.width ?? 0;
-        const distance = Math.max(0, Math.ceil(rightmost + reach));
+        // Far enough that the shape and its blur clear the left edge of the canvas.
+        const distance = Math.max(0, Math.ceil(maxX + reach));
 
-        const { a, b, c, d, e, f } = ctx.getTransform();
         ctx.save();
         ctx.setTransform(a, b, c, d, e - distance, f);
         ctx.shadowColor = shadow.color;
@@ -528,7 +526,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 ctx.miterLimit = miterLimit;
             }
 
-            const shadowed = this.__shadowMode === 'stroke' && this.__fillShadow?.enabled === true;
+            // Silhouette mode without a Path2D has no pre-pass, so the stroke casts the shadow.
+            const mode = this.__shadowMode;
+            const shadowed =
+                (mode === 'stroke' || (mode === 'silhouette' && path == null)) && this.__fillShadow?.enabled === true;
             if (shadowed) {
                 this.applyShadow(ctx);
             }

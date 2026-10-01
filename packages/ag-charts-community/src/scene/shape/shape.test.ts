@@ -4,9 +4,11 @@ import { Logger } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type { AgPatternName } from 'ag-charts-types';
 
+import { Marker } from '../../chart/marker/marker';
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
+import { Scalable } from '../transformable';
 import { BarShape } from './barShape';
 import { Line } from './line';
 import { Path } from './path';
@@ -945,6 +947,87 @@ describe('Shape', () => {
             // The node is off-canvas, so its own pixels never reach the canvas; only the offset shadow does.
             expect(black).toBe(0);
             expect(red).toBeGreaterThan(0);
+        });
+
+        describe('extent coordinate spaces', () => {
+            const BLACK = [0, 0, 0, 255];
+            const unshadowed = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+
+            /** The device-pixel columns that hold at least one pixel of the given colour. */
+            const columnsOf = (colour: number[]) => {
+                const { width, height } = canvasCtx.nodeCanvas;
+                const { data } = canvasCtx.getRenderContext2D().getImageData(0, 0, width, height);
+                const columns = new Set<number>();
+                for (let i = 0; i < data.length; i += 4) {
+                    if (colour.every((v, k) => data[i + k] === v)) columns.add((i / 4) % width);
+                }
+                return [...columns].sort((a, b) => a - b);
+            };
+
+            it('should place the silhouette source by the scaled geometry of a Scalable Path', () => {
+                class ScalablePath extends Scalable(Path) {}
+
+                clearCanvas();
+                const node = new ScalablePath();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: 'black',
+                    strokeWidth: 0,
+                    fillShadow: unshadowed,
+                    shadowMode: 'silhouette',
+                    scalingX: 0.5,
+                });
+                // 200 to 300 in local space, 100 to 150 on screen once scaled.
+                node.path.rect(200, 40, 100, 100);
+                renderNode(node);
+
+                // Only the node's own pixels reach the canvas. The source copy used to be shifted by too little and
+                // land at the left edge, because the scale was applied to the bbox twice.
+                const columns = columnsOf(BLACK);
+                expect(columns[0]).toBe(100);
+                expect(columns.at(-1)).toBe(149);
+            });
+
+            it('should not skip the silhouette of a marker drawn in a translated context', () => {
+                clearCanvas();
+                const marker = new Marker();
+                // More than half way across the canvas, so a bbox that is translated twice lands off it.
+                Object.assign(marker, {
+                    x: 300,
+                    y: 100,
+                    size: 40,
+                    shape: 'square',
+                    fill: 'black',
+                    strokeWidth: 0,
+                    // Nothing but the shadow reaches the canvas to the right of the marker.
+                    fillShadow: { ...unshadowed, xOffset: 30 },
+                    shadowMode: 'silhouette',
+                });
+                renderNode(marker);
+
+                const ctx = canvasCtx.getRenderContext2D();
+                const pixel = (x: number, y: number) => Array.from(ctx.getImageData(x, y, 1, 1).data);
+                expect(pixel(300, 100)).toEqual(BLACK);
+                expect(pixel(335, 100)).toEqual([255, 0, 0, 255]);
+                // The pre-pass source never lands on the canvas.
+                expect(columnsOf(BLACK).at(-1)).toBeLessThan(321);
+            });
+
+            it('should shadow a Line with its stroke, where it is drawn', () => {
+                clearCanvas();
+                const line = lineNode('silhouette', 20, 8);
+                line.fillShadow = { ...unshadowed, color: 'rgba(0, 0, 255, 1)', yOffset: 60 };
+                renderNode(line);
+
+                const ctx = canvasCtx.getRenderContext2D();
+                const pixel = (x: number, y: number) => Array.from(ctx.getImageData(x, y, 1, 1).data);
+                // The line runs from (20, 20) to (120, 50). Its shadow is the same line, 60px lower.
+                expect(pixel(70, 35)).toEqual([255, 0, 0, 255]);
+                expect(pixel(70, 95)).toEqual([0, 0, 255, 255]);
+                // No second copy of the line, and no shadow, to the right of it.
+                expect(columnsOf([0, 0, 255, 255]).at(-1)).toBeLessThan(125);
+                expect(columnsOf([255, 0, 0, 255]).at(-1)).toBeLessThan(125);
+            });
         });
 
         describe('on a Rect', () => {
