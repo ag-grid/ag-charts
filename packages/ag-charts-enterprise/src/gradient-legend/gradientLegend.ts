@@ -8,6 +8,7 @@ import {
     ZIndexMap,
     createId,
     expandLegendPosition,
+    legendContainerZIndex,
 } from 'ag-charts-core';
 import type { CssColor } from 'ag-charts-types';
 
@@ -20,8 +21,10 @@ const ITEM_SPACING = 16;
 export class GradientLegend extends AbstractModuleInstance {
     readonly id = createId(this);
 
+    // Created before `legendGroup` so that, when both share a z-index, the box draws beneath the items.
+    private readonly containerGroup = new TranslatableGroup({ name: 'legend-background', zIndex: ZIndexMap.LEGEND });
     private readonly legendGroup = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
-    private readonly containerNode = this.legendGroup.appendChild(new Rect({ name: 'legend-container' }));
+    private readonly containerNode = this.containerGroup.appendChild(new Rect({ name: 'legend-container' }));
     private readonly gradientRectSelection = Selection.select(this.legendGroup, Rect);
     private readonly arrowSelection = Selection.select(this.legendGroup, () => new Marker({ shape: 'triangle' }));
     private readonly ticksGroupSelection = Selection.select(
@@ -65,11 +68,13 @@ export class GradientLegend extends AbstractModuleInstance {
                     ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
                 }
             }),
-            () => this.legendGroup.remove()
+            () => this.legendGroup.remove(),
+            () => this.containerGroup.remove()
         );
     }
 
     attachLegend(scene: _ModuleSupport.Scene) {
+        scene.appendChild(this.containerGroup);
         scene.appendChild(this.legendGroup);
     }
 
@@ -79,6 +84,7 @@ export class GradientLegend extends AbstractModuleInstance {
 
         if (!this.enabled || this.enabledData.length === 0) {
             this.legendGroup.visible = false;
+            this.containerGroup.visible = false;
             return;
         }
 
@@ -126,6 +132,10 @@ export class GradientLegend extends AbstractModuleInstance {
         this.legendGroup.visible = true;
         this.legendGroup.translationX = left;
         this.legendGroup.translationY = top;
+        this.containerGroup.visible = true;
+        this.containerGroup.translationX = left;
+        this.containerGroup.translationY = top;
+        this.containerGroup.zIndex = legendContainerZIndex(expandLegendPosition(this.opts.position).floating);
     }
 
     private updateGradientRect(
