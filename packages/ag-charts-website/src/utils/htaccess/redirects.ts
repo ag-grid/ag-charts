@@ -46,8 +46,9 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     // generate sitemap-0.xml either (see skipForArchive doc), so this redirect is dropped there.
     { from: '/sitemap.xml', to: '/sitemap-0.xml', skipForArchive: true },
 
-    // Rules are base-relative; getRedirectRules() splices in the /charts base.
-    // RedirectMatch is first-match-wins, so order is load-bearing: specific before broad.
+    // Rules are base-relative: getRedirectRules() matches them below the deployed base. Each `to`
+    // must be a final page, never another rule's source, or the redirect takes an extra hop.
+    // First match wins, so order is load-bearing: specific before broad.
 
     // Do NOT broaden this to `^/archive(/.*)?$`: `/archive/<version>/` holds live, indexed
     // archived docs, not QA artifacts.
@@ -61,12 +62,14 @@ export const SITE_301_REDIRECTS: Redirect[] = [
 
     // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>". The slug must be
     // non-empty, or this would target the bare "{fw}/" root and chain into the "^/{fw}/?$" rule.
-    { fromPattern: '^/javascript-charts/javascript/(.+)$', to: '/javascript/$1' },
-    { fromPattern: '^/angular-charts/angular/(.+)$', to: '/angular/$1' },
-    { fromPattern: '^/react-charts/react/(.+)$', to: '/react/$1' },
-    { fromPattern: '^/vue-charts/vue/(.+)$', to: '/vue/$1' },
+    // Page-preserving rules capture the slug without its trailing slash and always add one, so
+    // both slash forms land on the canonical page in one hop rather than via a slash redirect.
+    { fromPattern: '^/javascript-charts/javascript/(.+?)/?$', to: '/javascript/$1/' },
+    { fromPattern: '^/angular-charts/angular/(.+?)/?$', to: '/angular/$1/' },
+    { fromPattern: '^/react-charts/react/(.+?)/?$', to: '/react/$1/' },
+    { fromPattern: '^/vue-charts/vue/(.+?)/?$', to: '/vue/$1/' },
     // Legacy enterprise framework docs (security, accessibility, …) → react docs.
-    { fromPattern: '^/enterprise-charts/react/(.+)$', to: '/react/$1' },
+    { fromPattern: '^/enterprise-charts/react/(.+?)/?$', to: '/react/$1/' },
 
     // Legacy "{fw}-charts/gallery|options/..." → framework-agnostic section landing.
     { fromPattern: '^/[a-z]+-charts/gallery(/.*)?$', to: '/gallery/' },
@@ -74,9 +77,11 @@ export const SITE_301_REDIRECTS: Redirect[] = [
 
     { fromPattern: '^/enterprise-charts/(?!index\\.html$).+$', to: '/enterprise-charts/' },
 
-    // Framework-agnostic legacy layouts: core = main docs, side = side-nav docs.
-    { fromPattern: '^/core/(.*)', to: '/javascript/$1' },
-    { fromPattern: '^/side/(.*)', to: '/javascript/$1' },
+    // Framework-agnostic legacy layouts: core = main docs, side = side-nav docs. The bare layout
+    // root goes straight to quick-start; via "/javascript/" it would take a second hop.
+    { fromPattern: '^/(?:core|side)/?$', to: '/javascript/quick-start/' },
+    { fromPattern: '^/core/(.+?)/?$', to: '/javascript/$1/' },
+    { fromPattern: '^/side/(.+?)/?$', to: '/javascript/$1/' },
 
     // Framework-agnostic "server-side-rendering" is a docs slug → framework-scoped page.
     { fromPattern: '^/server-side-rendering(/.*)?$', to: '/javascript/server-side-rendering/' },
