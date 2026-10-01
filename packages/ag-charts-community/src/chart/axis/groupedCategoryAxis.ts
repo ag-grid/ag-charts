@@ -11,6 +11,7 @@ import {
     isArray,
     isObject,
     isTruncated,
+    labelExceedsBand,
     normalizeAngle360FromDegrees,
     sortBasedOnArray,
     toArray,
@@ -338,7 +339,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 const { width, height } = tempText.getBBox();
                 const labelSize = horizontal ? width : height;
                 const availableRange = isLeaf ? step : datum.leafCount * step;
-                if (labelSize > availableRange) {
+                if (labelExceedsBand(labelSize, availableRange)) {
                     labelBBoxes.delete(index);
                     continue;
                 }

@@ -2550,4 +2550,54 @@ describe('label collision avoidance', () => {
             expect(placementsByText()).toEqual(before);
         });
     });
+
+    describe('axis label obstacles', () => {
+        // The x axis crosses the series area at y = 0, so a label placed below a point on that line sits on
+        // the axis' own tick labels.
+        const axisLabelOptions = (collideWith?: object) => ({
+            data: [
+                { x: 0, y: 10 },
+                { x: 2, y: 0 },
+                { x: 4, y: 0 },
+                { x: 6, y: 0 },
+                { x: 8, y: -10 },
+            ],
+            legend: { enabled: false },
+            axes: {
+                x: { position: 'bottom', type: 'number', crossAt: { value: 0 }, interval: { step: 2 } },
+                y: { position: 'left', type: 'number' },
+            },
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { enabled: true, size: 6 },
+                    label: {
+                        enabled: true,
+                        formatter: ({ datum }: any) => `x${datum.x}`,
+                        placement: ['bottom', 'top'],
+                        collision: { alwaysShow: false, ...(collideWith == null ? {} : { collideWith }) },
+                        truncate: false,
+                    },
+                },
+            ],
+        });
+
+        const placementsOnAxis = async (collideWith?: object) => {
+            chart = AgCharts.create(prepareTestOptions(axisLabelOptions(collideWith) as any));
+            await waitForChartStability(chart);
+            return placedLabelPlacements()
+                .filter((label: any) => label.datum.datum.y === 0)
+                .map((label) => label.placement);
+        };
+
+        it('ignores axis labels by default', async () => {
+            expect(await placementsOnAxis()).toEqual(['bottom', 'bottom', 'bottom']);
+        });
+
+        it('moves labels off the axis labels when collideWith.axisLabels is on', async () => {
+            expect(await placementsOnAxis({ axisLabels: true })).toEqual(['top', 'top', 'top']);
+        });
+    });
 });

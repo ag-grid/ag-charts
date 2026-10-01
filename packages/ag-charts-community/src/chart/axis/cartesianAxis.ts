@@ -17,6 +17,7 @@ import {
     diffArrays,
     findMinMax,
     isPlainObject,
+    resolveEdgeLabelOverflow,
     resolveTextAlign,
 } from 'ag-charts-core';
 import type {
@@ -47,6 +48,7 @@ import { Caption } from '../caption';
 import type { ChartLayout } from '../chartAxis';
 import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
+import { AxisLabelSource } from '../layout/axisLabelSource';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
 import {
@@ -219,6 +221,7 @@ export abstract class CartesianAxis<
     protected gridFillGroupSelection = Selection.select<Rect<AxisFillDatum>>(this.gridFillGroup, Rect, false);
 
     private readonly tempText = new TransformableText({ debugDirty: false });
+    private readonly labelSource = new AxisLabelSource(`axisLabels:${this.id}`, () => this.getTickLabelCanvasBoxes());
     private readonly tempCaption = new Caption();
 
     protected readonly animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
@@ -259,8 +262,10 @@ export abstract class CartesianAxis<
                 }
                 previousSize = size;
             }),
-            this.caption.registerInteraction(this.moduleCtx, this.id)
+            this.caption.registerInteraction(this.moduleCtx, this.id),
+            () => moduleCtx.labelManager.unregisterSource(this.labelSource.id, this.labelSource)
         );
+        moduleCtx.labelManager.registerSource(this.labelSource);
     }
 
     /**
@@ -436,35 +441,29 @@ export abstract class CartesianAxis<
                 );
                 return { leading: leading + bandEdgeOffset, trailing: trailing + bandEdgeOffset };
             };
-            const removeOverflowThreshold = this.chartLayout?.padding.right ?? 0;
+            const padding = this.chartLayout?.padding;
             const lastTick = tickData.ticks.at(-1);
-            const fullVisibleRange = visibleRange[0] === 0 && visibleRange[1] === 1;
-            if (
-                lastTick?.tickLabel != null &&
-                lastTick.translation + labelEdges(lastTick.textMetrics.width).trailing >
-                    range[1] + removeOverflowThreshold
-            ) {
-                lastTick.tickLabel = undefined;
-                if (fullVisibleRange) {
-                    tickData.ticks[0].tickLabel = undefined;
-                }
-            }
-
-            // The leading edge can only overflow once the override pushes the label past the start
-            // of the range, so the centre-anchored case has nothing to check.
             const firstTick = tickData.ticks[0];
-            if (
-                alignmentOverride != null &&
-                firstTick?.tickLabel != null &&
-                firstTick.translation + labelEdges(firstTick.textMetrics.width).leading <
-                    range[0] - (this.chartLayout?.padding.left ?? 0)
-            ) {
+            const { hideFirst, hideLast } = resolveEdgeLabelOverflow({
+                // The leading edge can only overflow once the override pushes the label past the start
+                // of the range, so the centre-anchored case has nothing to check.
+                firstStart:
+                    alignmentOverride != null && firstTick?.tickLabel != null
+                        ? firstTick.translation + labelEdges(firstTick.textMetrics.width).leading
+                        : undefined,
+                lastEnd:
+                    lastTick?.tickLabel == null
+                        ? undefined
+                        : lastTick.translation + labelEdges(lastTick.textMetrics.width).trailing,
+                start: range[0] - (padding?.left ?? 0),
+                end: range[1] + (padding?.right ?? 0),
+                pairEnds: visibleRange[0] === 0 && visibleRange[1] === 1,
+            });
+            if (hideFirst) {
                 firstTick.tickLabel = undefined;
-                // Both endpoints go together over the full range, mirroring the trailing branch, so
-                // an outward alignment cannot leave one end labelled and the other bare.
-                if (fullVisibleRange && lastTick != null) {
-                    lastTick.tickLabel = undefined;
-                }
+            }
+            if (hideLast && lastTick != null) {
+                lastTick.tickLabel = undefined;
             }
         }
 
@@ -604,6 +603,7 @@ export abstract class CartesianAxis<
 
     override update() {
         this.updateDirection();
+        this.labelSource.nodeDataVersion++;
 
         const previousTicksIds = Array.from(this.tickLabelGroupSelection.nodes(), (node) => node.unsafeDatum.tickId);
 
@@ -689,6 +689,7 @@ export abstract class CartesianAxis<
     }
 
     setAxisVisible(visible: boolean) {
+        this.labelSource.nodeDataVersion++;
         this.tickLineGroup.visible = visible && (this.options.tick.enabled || (this.primaryTick?.enabled ?? false));
         this.tickLabelGroup.visible = visible && (this.options.label.enabled || (this.primaryTick?.enabled ?? false));
         this.lineNodeGroup.visible = visible;
@@ -811,6 +812,25 @@ export abstract class CartesianAxis<
         }
 
         return { spacing, scrollbarLayout };
+    }
+
+    private getTickLabelCanvasBoxes(): BBox[] {
+        const { tickLayout, tickLabelGroup, tempText } = this;
+        const translation = tickLabelGroup.datum;
+        if (!this.options.label.enabled || !tickLabelGroup.visible || tickLayout == null || translation == null) {
+            return [];
+        }
+
+        const boxes: BBox[] = [];
+        for (const datum of tickLayout.labels) {
+            if (!datum.visible) continue;
+            tempText.setProperties(datum);
+            const box = tempText.getBBox();
+            if (box != null) {
+                boxes.push(box.clone().translate(translation.translationX, translation.translationY));
+            }
+        }
+        return boxes;
     }
 
     private measureAxisLayout(

@@ -674,6 +674,36 @@ describe('placeLabels', () => {
         expect(disabledResult.some((l) => l.datum === disabled)).toBe(true);
     });
 
+    describe('axis label obstacles', () => {
+        const axisLabel: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 80, y: 90, width: 40, height: 20 },
+            category: 'axisLabel',
+        };
+        const label = (collideWith?: PointLabelDatum['collideWith']): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'X', width: 30, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            gap: 0,
+            collideWith,
+        });
+        const place = (datum: PointLabelDatum) =>
+            placeLabels(new Map([['s', seriesLabels([datum], { alwaysShow: false })]]), bounds, 5, [axisLabel]).get(
+                's'
+            )!;
+
+        it('ignores axis labels unless the label opts in', () => {
+            expect(place(label())).toHaveLength(1);
+            expect(place(label({ marker: true, label: true, seriesItem: true }))).toHaveLength(1);
+        });
+
+        it('avoids axis labels when collideWith enables them', () => {
+            expect(place(label({ axisLabel: true }))).toHaveLength(0);
+        });
+    });
+
     // Places `label` (series 's') against `marker` (a separate series) at the given threshold.
     const placeAgainstOtherMarker = (marker: PointLabelDatum, label: PointLabelDatum, threshold: number) =>
         placeLabels(
@@ -2667,7 +2697,8 @@ function obstacleExcludedOracle(o: LabelObstacle, d: PointLabelDatum): boolean {
     ) {
         return true;
     }
-    return d.collideWith?.[category] === false;
+    const enabled = d.collideWith?.[category];
+    return category === 'axisLabel' ? enabled !== true : enabled === false;
 }
 
 function clampAxisOracle(pos: number, size: number, min: number, extent: number): number {
