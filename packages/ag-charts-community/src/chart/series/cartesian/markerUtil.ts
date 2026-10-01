@@ -168,7 +168,7 @@ export function computeMarkerFocusBoundsOfNodeDatum<TDatum extends MarkerNodeDat
     datum: TDatum | undefined
 ): BBox | undefined {
     const { point } = datum ?? {};
-    if (datum == null || point == null) return undefined;
+    if (datum == null || point == null || Number.isNaN(datum.datumIndex)) return undefined;
 
     const style = series.getFormattedMarkerStyle(datum);
     if (typeof style.shape === 'function') {
