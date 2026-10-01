@@ -151,6 +151,21 @@ ${redirects}
 ${env === 'production' ? getHostCanonicalizationRules() : ''}</IfModule>`;
 }
 
+// An archive deployed by an older generator has a child .htaccess with no rewrite directives, so
+// Apache runs this live file's rewrite rules for it. Its own mod_alias redirects run after them, so
+// a slash added here first would be a second hop, and would break a fragment target. Anchored on
+// `<base>/archive/`, so a live path that merely starts with `archive` keeps its slash. An archive
+// build has its own rewrite block, which replaces this file's, so it emits no exclusion.
+function getArchiveSlashExclusion(): string {
+    if (isArchiveBuild()) {
+        return '';
+    }
+    return `
+    # Not below an archive: one deployed without rewrite rules of its own runs these instead, and
+    # its own redirects must see the URL as requested.
+    RewriteCond %{REQUEST_URI} !^${getBasePattern()}/archive/`;
+}
+
 // Production only: the redirects above have already sent legacy URLs to their final page, so these
 // only add a missing trailing slash and swap the host - together, in one hop. Both use the full
 // REQUEST_URI, so an archived version keeps its own path.
@@ -160,14 +175,16 @@ function getHostCanonicalizationRules(): string {
     # mod_dir, whose slash redirect stays on the requesting host - a second hop from any other host.
     RewriteOptions AllowNoSlash
 
-    # A directory URL without its trailing slash goes straight to the slashed canonical URL, rather
-    # than via mod_dir's slash redirect on the requesting host. A path whose last segment has a dot
-    # is taken for a file unless it is a real directory (an archive version such as 14.2.0).
+    # Every slash-less path goes straight to its slashed canonical URL, as on the grid root, rather
+    # than via mod_dir's slash redirect on the requesting host. That holds whether or not the path
+    # is a page: one that is not then 404s at the slashed URL. The exception is a path whose last
+    # segment has a dot, taken for a file unless it is a real directory (an archive version such as
+    # 14.2.0).
     RewriteCond %{HTTP_HOST} ^www\\.ag-grid\\.com$ [NC,OR]
     RewriteCond %{HTTP_HOST} ${NON_CANONICAL_HOSTS} [NC]
     RewriteCond %{REQUEST_URI} /+[^.]+$ [OR]
     RewriteCond %{REQUEST_FILENAME} -d
-    RewriteCond %{REQUEST_URI} [^/]$
+    RewriteCond %{REQUEST_URI} [^/]$${getArchiveSlashExclusion()}
     RewriteRule ^ ${CANONICAL_ORIGIN}%{REQUEST_URI}/ [R=301,L]
 
     # Canonical host is www.ag-grid.com; no other host may serve pages directly.

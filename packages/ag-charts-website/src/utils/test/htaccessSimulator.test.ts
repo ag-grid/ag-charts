@@ -18,7 +18,7 @@ describe('htaccessSimulator', () => {
         const rules = 'RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI}/ [R=301,L]';
         expect(simulateRequest(site(rules, ['/base/index.html']), { uri: '/base' })).toMatchObject({
             status: 301,
-            location: 'http://www.ag-grid.com/base/', // mod_dir's slash redirect, not the rule
+            location: 'https://www.ag-grid.com/base/', // mod_dir's slash redirect, not the rule
         });
         expect(
             simulateRequest(site(`RewriteOptions AllowNoSlash\n${rules}`, ['/base/index.html']), { uri: '/base' })
@@ -119,7 +119,8 @@ describe('htaccessSimulator', () => {
     });
 
     it('rejects directives and flags outside the modelled subset, rather than ignoring them', () => {
-        expect(() => simulateRequest(site('Redirect 301 /a /b'), { uri: '/base/a' })).toThrow(/Unsupported directive/);
+        expect(() => simulateRequest(site('Alias /a /b'), { uri: '/base/a' })).toThrow(/Unsupported directive/);
+        expect(() => simulateRequest(site('Redirect permanent /a /b'), { uri: '/base/a' })).toThrow(/Redirect/);
         expect(() => simulateRequest(site('RewriteRule ^a$ /b [QSA,L]'), { uri: '/base/a' })).toThrow(/flag/);
         expect(() => simulateRequest(site('<Files "x">\n</Files>'), { uri: '/base/a' })).toThrow(/section/);
     });
@@ -144,6 +145,40 @@ describe('htaccessSimulator', () => {
         expect(() => simulateRequest(raw('RewriteEngin On'), { uri: '/base/a' })).toThrow(/Unsupported directive/);
         expect(() => simulateRequest(raw('RewriteEngine Maybe'), { uri: '/base/a' })).toThrow(/RewriteEngine/);
         expect(() => simulateRequest(raw('Options +Indexes'), { uri: '/base/a' })).toThrow(/Options/);
+    });
+
+    it("runs the parent's rewrite rules for a file with none of its own, matched below the parent's directory", () => {
+        const parent = {
+            htaccess: 'RewriteEngine On\nRewriteRule "^child/a$" "/base/child/b" [R=301,L]',
+            basePath: '/base',
+        };
+        const child = { htaccess: 'ErrorDocument 404 /base/child/404.html', basePath: '/base/child', parent };
+        expect(simulateRequest(child, { uri: '/base/child/a' })).toMatchObject({
+            status: 301,
+            location: '/base/child/b',
+        });
+        // A RewriteEngine of its own replaces the parent's rules rather than adding to them.
+        const own = { ...child, htaccess: 'RewriteEngine On' };
+        expect(simulateRequest(own, { uri: '/base/child/a' }).status).toBe(404);
+    });
+
+    it('applies Redirect by whole path segment and RedirectMatch by regex, after the rewrite rules', () => {
+        const s = site(
+            [
+                'RewriteRule "^first$" "/base/rewritten" [R=301,L]',
+                'Redirect 301 /base/first /base/aliased',
+                'Redirect 301 /base/old /base/new/#frag',
+                'Redirect 410 /base/gone',
+                'RedirectMatch 301 "^/base/(x+)/?$" "/base/$1/y/"',
+            ].join('\n')
+        );
+        expect(simulateRequest(s, { uri: '/base/first' }).location).toBe('/base/rewritten');
+        // The remainder past the matched segments is appended to the target, fragment and all.
+        expect(simulateRequest(s, { host: 'a.com', uri: '/base/old' }).location).toBe('https://a.com/base/new/#frag');
+        expect(simulateRequest(s, { uri: '/base/old/' }).location).toBe('https://www.ag-grid.com/base/new/#frag/');
+        expect(simulateRequest(s, { uri: '/base/older' }).status).toBe(404);
+        expect(simulateRequest(s, { uri: '/base/gone/x' }).status).toBe(410);
+        expect(simulateRequest(s, { uri: '/base/xx/' }).location).toBe('https://www.ag-grid.com/base/xx/y/');
     });
 
     it('follows redirects across hosts and counts the hops', () => {

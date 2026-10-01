@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+
 import { SITE_BASE_URL } from '../../constants';
 import { type SimulatedResponse, followRedirects, simulateRequest } from '../test/htaccessSimulator';
 import { createSiteRouteResolver, enumerablePageFiles } from '../test/siteRoutes';
@@ -532,6 +534,59 @@ describe('htaccessRules canonical host', () => {
     });
 });
 
+describe('htaccessRules under an archive deployed by an older generator', () => {
+    // The .htaccess charts 14.0.0 was deployed with, as every archive up to 14.0.0 was: mod_alias
+    // redirects and no rewrite directives, so Apache runs this live file's rewrite rules for it.
+    const OLD_ARCHIVE = '/charts/archive/14.0.0';
+    const live = { htaccess: getHtaccessContent({ env: 'production' }), basePath: BASE };
+    const site = {
+        htaccess: readFileSync(new URL('./__fixtures__/charts-14.0.0.htaccess', import.meta.url), 'utf8'),
+        basePath: OLD_ARCHIVE,
+        files: ['react/bar-series', 'react/linear-gauge', 'javascript/quick-start'].map(
+            (page) => `${OLD_ARCHIVE}/${page}/index.html`
+        ),
+        parent: live,
+    };
+    const hopsOf = (host: string, uri: string) => followRedirects(site, { host, uri }).hops;
+
+    it("leaves a legacy URL to the archive's own redirect, one hop with its fragment intact", () => {
+        expect(hopsOf(CANONICAL_HOST, `${OLD_ARCHIVE}/react/bullet-series`)).toEqual([
+            `${CANONICAL}${OLD_ARCHIVE}/react/linear-gauge/#bullet-series`,
+        ]);
+        expect(hopsOf(CANONICAL_HOST, `${OLD_ARCHIVE}/javascript`)).toEqual([
+            `${CANONICAL}${OLD_ARCHIVE}/javascript/quick-start/`,
+        ]);
+    });
+
+    it("adds no slash of its own below the archive, leaving a page's to mod_dir as before", () => {
+        expect(hopsOf(CANONICAL_HOST, `${OLD_ARCHIVE}/react/bar-series`)).toEqual([
+            `${CANONICAL}${OLD_ARCHIVE}/react/bar-series/`,
+        ]);
+        expect(simulateRequest(site, { uri: `${OLD_ARCHIVE}/react/missing` }).status).toBe(404);
+    });
+
+    it('still sends every non-canonical host to the same archive URL on www', () => {
+        for (const host of NON_CANONICAL_HOSTS) {
+            expect(hopsOf(host, `${OLD_ARCHIVE}/react/bar-series/`), host).toEqual([
+                `${CANONICAL}${OLD_ARCHIVE}/react/bar-series/`,
+            ]);
+            expect(hopsOf(host, `${OLD_ARCHIVE}/react/bullet-series`), host).toEqual([
+                `${CANONICAL}${OLD_ARCHIVE}/react/bullet-series`,
+                `${CANONICAL}${OLD_ARCHIVE}/react/linear-gauge/#bullet-series`,
+            ]);
+        }
+    });
+
+    it('still slashes a live path that only looks like an archive', () => {
+        for (const uri of [`${BASE}/archive-like-name`, `${BASE}/archived/x`, `${BASE}/react/archive/x`]) {
+            expect(simulateRewrite(live.htaccess, BASE, CANONICAL_HOST, uri), uri).toEqual({
+                status: 301,
+                location: `${CANONICAL}${uri}/`,
+            });
+        }
+    });
+});
+
 describe('htaccessRules archive builds', () => {
     // Archive builds omit the `sitemap()` integration (see astro.config.mjs), so a redirect
     // whose target is that generated file must not be emitted there either — it would 301 to a
@@ -601,6 +656,20 @@ describe('htaccessRules archive builds', () => {
             }
         }
         expect(simulateRequest(site, { uri: `${ARCHIVE_BASE}/react/bar-series/` }).status).toBe(200);
+    });
+
+    it("runs its own rules in place of the live file's, so the live archive exclusion does not reach it", async () => {
+        const site = {
+            ...(await archiveSite()),
+            parent: { htaccess: getHtaccessContent({ env: 'production' }), basePath: BASE },
+        };
+        expect(site.htaccess).not.toContain('!^/charts/archive/');
+        expect(followRedirects(site, { uri: `${ARCHIVE_BASE}/react/bar-series` }).hops).toEqual([
+            `${CANONICAL}${ARCHIVE_BASE}/react/bar-series/`,
+        ]);
+        expect(followRedirects(site, { uri: `${ARCHIVE_BASE}/react/fonts` }).hops).toEqual([
+            `${CANONICAL}${ARCHIVE_BASE}/react/text/`,
+        ]);
     });
 
     it('treats the version dots in the base as literals, not regex wildcards', async () => {

@@ -121,14 +121,19 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
     # mod_dir, whose slash redirect stays on the requesting host - a second hop from any other host.
     RewriteOptions AllowNoSlash
 
-    # A directory URL without its trailing slash goes straight to the slashed canonical URL, rather
-    # than via mod_dir's slash redirect on the requesting host. A path whose last segment has a dot
-    # is taken for a file unless it is a real directory (an archive version such as 14.2.0).
+    # Every slash-less path goes straight to its slashed canonical URL, as on the grid root, rather
+    # than via mod_dir's slash redirect on the requesting host. That holds whether or not the path
+    # is a page: one that is not then 404s at the slashed URL. The exception is a path whose last
+    # segment has a dot, taken for a file unless it is a real directory (an archive version such as
+    # 14.2.0).
     RewriteCond %{HTTP_HOST} ^www\\.ag-grid\\.com$ [NC,OR]
     RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$ [NC]
     RewriteCond %{REQUEST_URI} /+[^.]+$ [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteCond %{REQUEST_URI} [^/]$
+    # Not below an archive: one deployed without rewrite rules of its own runs these instead, and
+    # its own redirects must see the URL as requested.
+    RewriteCond %{REQUEST_URI} !^/charts/archive/
     RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI}/ [R=301,L]
 
     # Canonical host is www.ag-grid.com; no other host may serve pages directly.
@@ -249,14 +254,19 @@ exports[`generated redirect rules snapshot > redirect rules output is unchanged 
     # mod_dir, whose slash redirect stays on the requesting host - a second hop from any other host.
     RewriteOptions AllowNoSlash
 
-    # A directory URL without its trailing slash goes straight to the slashed canonical URL, rather
-    # than via mod_dir's slash redirect on the requesting host. A path whose last segment has a dot
-    # is taken for a file unless it is a real directory (an archive version such as 14.2.0).
+    # Every slash-less path goes straight to its slashed canonical URL, as on the grid root, rather
+    # than via mod_dir's slash redirect on the requesting host. That holds whether or not the path
+    # is a page: one that is not then 404s at the slashed URL. The exception is a path whose last
+    # segment has a dot, taken for a file unless it is a real directory (an archive version such as
+    # 14.2.0).
     RewriteCond %{HTTP_HOST} ^www\\.ag-grid\\.com$ [NC,OR]
     RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$ [NC]
     RewriteCond %{REQUEST_URI} /+[^.]+$ [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteCond %{REQUEST_URI} [^/]$
+    # Not below an archive: one deployed without rewrite rules of its own runs these instead, and
+    # its own redirects must see the URL as requested.
+    RewriteCond %{REQUEST_URI} !^/charts/archive/
     RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI}/ [R=301,L]
 
     # Canonical host is www.ag-grid.com; no other host may serve pages directly.
