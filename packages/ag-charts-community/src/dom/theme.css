@@ -132,8 +132,8 @@
     --ag-charts-button-active-border-color: var(--ag-charts-accent-color);
     --ag-charts-button-active-text-color: var(--ag-charts-accent-color);
 
-    --ag-charts-button-horizontal-padding: 8px;
-    --ag-charts-button-vertical-padding: 8px;
+    --ag-charts-button-horizontal-padding: 9px;
+    --ag-charts-button-vertical-padding: 6px;
 
     --ag-charts-button-disabled-background-color: color-mix(
         in srgb,

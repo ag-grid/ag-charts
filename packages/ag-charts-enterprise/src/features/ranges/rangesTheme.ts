@@ -18,7 +18,14 @@ const stylesTheme: WithThemeParams<AgRangesOptions> = {
     fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'chromeFontSize'] },
     fontFamily: { $ref: 'chromeFontFamily' },
     fontWeight: { $ref: 'chromeFontWeight' },
-    padding: { $shallow: { top: 6, right: 9, bottom: 6, left: 9 } } as any,
+    padding: {
+        $shallow: {
+            top: { $ref: 'buttonVerticalPadding' },
+            right: { $ref: 'buttonHorizontalPadding' },
+            bottom: { $ref: 'buttonVerticalPadding' },
+            left: { $ref: 'buttonHorizontalPadding' },
+        },
+    } as any,
     stroke: {
         $if: [
             { $isType: [{ $ref: 'buttonBorder' }, 'boolean'] },

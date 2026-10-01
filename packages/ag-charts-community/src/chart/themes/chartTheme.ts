@@ -243,8 +243,8 @@ export class ChartTheme {
             },
             buttonDisabledBorder: { $ref: 'buttonBorder' },
             buttonDisabledTextColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'buttonTextColor' }, 0.5] },
-            buttonHorizontalPadding: 8,
-            buttonVerticalPadding: 8,
+            buttonHorizontalPadding: 9,
+            buttonVerticalPadding: 6,
 
             inputBackgroundColor: { $ref: 'backgroundColor' },
             inputBorder: {
