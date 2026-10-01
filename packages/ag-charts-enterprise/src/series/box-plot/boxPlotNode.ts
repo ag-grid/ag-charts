@@ -83,6 +83,10 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         return this.computeBBox();
     }
 
+    protected override getSilhouetteStrokeWidth(): number {
+        return Math.max(this.strokeWidth, this.wickStrokeWidth ?? 0);
+    }
+
     override computeDefaultGradientFillBBox(): _ModuleSupport.BBox {
         const { horizontal, center, thickness, q1, q3 } = this;
         return horizontal

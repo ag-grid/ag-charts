@@ -316,7 +316,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         let maxX = canvasWidth ?? 0;
         if (localBBox != null) {
             // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
-            const halfStroke = this.__strokeWidth / 2;
+            const halfStroke = this.getSilhouetteStrokeWidth() / 2;
             const strokeReach =
                 (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * (this.__miterLimit ?? 10) : halfStroke;
             const halfWidth = localBBox.width / 2 + strokeReach;
@@ -377,6 +377,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      */
     protected renderSilhouetteExtras(_ctx: CanvasContext) {
         // Nothing to do by default.
+    }
+
+    /** The widest stroke cast into the silhouette shadow, which the shape's off-canvas pre-pass has to clear. */
+    protected getSilhouetteStrokeWidth(): number {
+        return this.__strokeWidth;
     }
 
     protected renderFill(

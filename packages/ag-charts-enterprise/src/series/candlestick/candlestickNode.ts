@@ -151,6 +151,10 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         this.strokeWicks(ctx);
     }
 
+    protected override getSilhouetteStrokeWidth(): number {
+        return Math.max(this.__strokeWidth, this.__wickStrokeWidth ?? 0);
+    }
+
     protected override renderSilhouetteExtras(ctx: _ModuleSupport.CanvasContext) {
         this.strokeWicks(ctx);
     }
