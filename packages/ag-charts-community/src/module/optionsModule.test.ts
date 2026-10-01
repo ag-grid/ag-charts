@@ -4937,6 +4937,21 @@ describe('ChartOptions', () => {
             );
         });
 
+        it('does not tell a theme `issueRaised` listener again about an issue re-raised by an update', () => {
+            const issueRaised = vi.fn();
+            const theme = themeValidations({ issueRaised });
+            const runtime = createProvisionalRuntime(new Logger());
+            const update = (base: ChartOptions | undefined, userOptions: AgChartOptions) =>
+                new ChartOptions(base, userOptions, {}, {}, {}, undefined, false, false, undefined, runtime);
+
+            const base = update(undefined, invalidOptions({ theme }));
+            const secondSeries = { type: 'line', xKey: 'x', yKey: 'z' };
+            update(base, invalidOptions({ theme, series: [...(invalidOptions().series as any[]), secondSeries] }));
+
+            const strokeWidthCalls = issueRaised.mock.calls.filter(([issue]) => issue.message.includes('notanumber'));
+            expect(strokeWidthCalls).toHaveLength(1);
+        });
+
         it('resolves a theme `showOverlayOn` into the processed options', () => {
             const chartOptions = construct(invalidOptions({ theme: themeValidations({ showOverlayOn: ['error'] }) }));
 
@@ -5006,13 +5021,13 @@ describe('ChartOptions', () => {
                 construct(
                     invalidOptions({
                         theme: {
-                            baseTheme: themeValidations({ throwOn: ['warning'] }),
-                            ...themeValidations({ throwOn: ['error'] }),
+                            baseTheme: themeValidations({ throwOn: ['error'] }),
+                            ...themeValidations({ throwOn: ['warning'] }),
                         },
                     })
                 );
 
-                expect(await uncaughtMessages()).toEqual([]);
+                expect(await uncaughtMessages()).toHaveLength(1);
             });
 
             it('keeps throwing on a warm update that re-validates', async () => {

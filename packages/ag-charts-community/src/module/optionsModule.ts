@@ -356,8 +356,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
-        // Nothing may validate before the setup paths re-arm with the resolved theme.
-        this.armValidations();
+        // The base chart's theme stands in until `slowSetup` resolves this pass's theme; `fastSetup` reuses it.
+        this.armValidations(baseChartOptions?.activeTheme);
 
         let activeTheme,
             processedOptions,
