@@ -1,5 +1,6 @@
 import { SITE_BASE_URL } from '../../constants';
 import { PRODUCTION_CSP_PHASE, getAstroRedirectRules, getHtaccessContent, getRedirectRules } from './htaccessRules';
+import { LEGACY_DOCS_PREFIXES, SITE_301_REDIRECTS } from './redirects';
 
 // Pin the base to the production `/charts` value; the ambient test env resolves it to `/`,
 // which would make the snapshots below env-dependent.
@@ -307,6 +308,73 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
     it('emits the SE-186 sitemap.xml redirect for a normal (non-archive) build', () => {
         redirectsTo(`${base}/sitemap.xml`, `${CANONICAL}${base}/sitemap-0.xml`);
         expect(getAstroRedirectRules()).toMatchObject({ '/sitemap.xml': `${base}/sitemap-0.xml` });
+    });
+});
+
+describe('htaccessRules legacy docs prefixes in front of a renamed page', () => {
+    const production = getHtaccessContent({ env: 'production' });
+    const base = (SITE_BASE_URL ?? '').replace(/\/$/, '');
+    const onHost = (host: string, uri: string) => simulateRewrite(production, base, host, uri);
+
+    /** The URL a www request finally lands on, following every redirect on the way. */
+    const finalUrlOf = (uri: string) => {
+        let url = `${CANONICAL}${uri}`;
+        for (let hop = 0; hop < 5; hop++) {
+            const outcome = onHost(CANONICAL_HOST, url.slice(CANONICAL.length).split('#')[0]);
+            if (outcome?.status !== 301) {
+                return url;
+            }
+            url = outcome.location!;
+        }
+        throw new Error(`${uri} redirects more than 5 times`);
+    };
+
+    // The renamed pages below a current docs prefix, as both slash forms of each renamed slug, plus
+    // a URL inside each renamed aggregate section (a pattern rule, so it has no `from` to read).
+    const AGGREGATE_SECTIONS = ['series', 'axes'];
+    const renamedBelow = (currentPrefix: string) => [
+        ...SITE_301_REDIRECTS.flatMap((redirect) =>
+            'from' in redirect && redirect.from.startsWith(currentPrefix) && redirect.from !== currentPrefix
+                ? [redirect.from.slice(currentPrefix.length).replace(/\/$/, '')]
+                : []
+        ).flatMap((slug) => [slug, `${slug}/`]),
+        ...AGGREGATE_SECTIONS.flatMap((section) => [section, `${section}/`, `${section}/pie-series/`]),
+    ];
+
+    const CASES = LEGACY_DOCS_PREFIXES.flatMap(({ legacyPrefix, currentPrefix }) =>
+        renamedBelow(currentPrefix).map((slug) => ({
+            legacy: `${base}${legacyPrefix}${slug}`,
+            current: `${base}${currentPrefix}${slug}`,
+        }))
+    );
+
+    it('covers every legacy prefix, and every pattern rule renaming a page below a framework', () => {
+        expect(LEGACY_DOCS_PREFIXES.map(({ legacyPrefix }) => legacyPrefix)).toEqual(
+            expect.arrayContaining(['/react-charts/react/', '/enterprise-charts/react/', '/core/', '/side/'])
+        );
+        const frameworkPatterns = SITE_301_REDIRECTS.flatMap((redirect) =>
+            'fromPattern' in redirect && /^\^\/(javascript|angular|react|vue)\/\w/.test(redirect.fromPattern)
+                ? [redirect.fromPattern]
+                : []
+        );
+        expect(frameworkPatterns.length).toBeGreaterThan(0);
+        for (const pattern of frameworkPatterns) {
+            const framework = pattern.split('/')[1];
+            expect(
+                AGGREGATE_SECTIONS.some((section) => new RegExp(pattern).test(`/${framework}/${section}/`)),
+                pattern
+            ).toBe(true);
+        }
+    });
+
+    it.each(CASES)('$legacy lands where $current does, in one hop, from every host', ({ legacy, current }) => {
+        const final = finalUrlOf(current);
+        // The current URL is itself redirected, or this would not test a renamed page.
+        expect(final, current).not.toBe(`${CANONICAL}${current}`);
+        for (const host of [CANONICAL_HOST, ...NON_CANONICAL_HOSTS]) {
+            expect(onHost(host, legacy), `${host}${legacy}`).toEqual({ status: 301, location: final });
+        }
+        expect(onHost(CANONICAL_HOST, final.slice(CANONICAL.length).split('#')[0]), final).toBeUndefined();
     });
 });
 
