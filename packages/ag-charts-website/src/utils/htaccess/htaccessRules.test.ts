@@ -585,6 +585,41 @@ describe('htaccessRules archive builds', () => {
         expect(response.headers.vary).toBeUndefined();
     });
 
+    it('marks archived markdown noindex, requested by name or negotiated, as the archived HTML is', async () => {
+        const site = await archiveSite();
+        const twin = `${ARCHIVE_BASE}/react/bar-series.md`;
+        expect(simulateRequest(site, { uri: twin }).headers['x-robots-tag']).toBe('noindex');
+        expect(simulateRequest(site, { uri: `${ARCHIVE_BASE}/index.md` }).headers['x-robots-tag']).toBe('noindex');
+        expect(
+            simulateRequest(site, { uri: `${ARCHIVE_BASE}/react/bar-series/`, accept: 'text/markdown' })
+        ).toMatchObject({ servedFile: twin, headers: { 'x-robots-tag': 'noindex' } });
+        // The HTML carries its own noindex meta tag; redirects and 404s are not documents.
+        for (const uri of [
+            `${ARCHIVE_BASE}/react/bar-series/`,
+            `${ARCHIVE_BASE}/react/fonts/`,
+            `${ARCHIVE_BASE}/react/missing/`,
+        ]) {
+            expect(simulateRequest(site, { uri }).headers['x-robots-tag'], uri).toBeUndefined();
+        }
+    });
+
+    it('sets no Cache-Control, so the root decides archive caching for markdown and redirects alike', async () => {
+        // The root .htaccess gives archive markdown the long archive cache and every 3xx no-cache;
+        // a Cache-Control here would override it for the whole archive.
+        const site = await archiveSite();
+        for (const uri of [
+            `${ARCHIVE_BASE}/react/bar-series/`,
+            `${ARCHIVE_BASE}/react/bar-series.md`,
+            `${ARCHIVE_BASE}/react/bar-series`,
+            `${ARCHIVE_BASE}/react/fonts/`,
+            `${ARCHIVE_BASE}/react/missing/`,
+        ]) {
+            for (const accept of [undefined, 'text/markdown']) {
+                expect(simulateRequest(site, { uri, accept }).headers['cache-control'], uri).toBeUndefined();
+            }
+        }
+    });
+
     it('serves an archive 404 from the archive 404 page', async () => {
         // The root .htaccess caches /charts/archive/<v>/* responses for a year, and this error
         // document lives under that prefix, so the root's archive cache rule must be gated on
@@ -821,9 +856,9 @@ describe('htaccessRules response headers', () => {
     });
 
     it('sets no Cache-Control on any response, leaving caching to the root .htaccess', () => {
-        // Hashed assets, documents, markdown twins (waf-finding §11: they get no Cache-Control at
-        // all today), 404s and redirects alike: this file has no caching rules, so none can match
-        // an unhashed archive URL either. The root owns caching for /charts and its archives.
+        // The root gives live markdown twins no-cache, every 3xx no-cache and hashed assets their
+        // long cache; a Cache-Control set here would override it for every /charts response. So
+        // this file has no caching rules, and none can match an unhashed archive URL either.
         const uris = [
             '/charts/react/bar-series/',
             '/charts/react/bar-series.md',
@@ -840,6 +875,17 @@ describe('htaccessRules response headers', () => {
                     expect(response.headers['cache-control'], uri).toBeUndefined();
                 }
             }
+        }
+    });
+
+    it('leaves live markdown twins indexable: only archived ones are noindex', () => {
+        const site = { htaccess: production, basePath: BASE, files };
+        for (const [uri, accept] of [
+            ['/charts/react/bar-series.md', undefined],
+            ['/charts/react/bar-series/', 'text/markdown'],
+            ['/charts/index.md', undefined],
+        ] as const) {
+            expect(simulateRequest(site, { uri, accept }).headers['x-robots-tag'], uri).toBeUndefined();
         }
     });
 
