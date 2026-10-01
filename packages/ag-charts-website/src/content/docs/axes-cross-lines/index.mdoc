@@ -124,15 +124,17 @@ Polar Cross Lines are not included in `CrossLinesModule`. Register `PolarCrossLi
 [Theme overrides](./themes/#overrides) style every Cross Line on an axis type. Add a `line` or `range` object to style only the Cross Lines of that type.
 
 ```js format="snippet"
-theme: {
-    overrides: {
-        common: {
-            axes: {
-                number: {
-                    crossLines: {
-                        strokeWidth: 2,
-                        line: { stroke: '#d62728', lineDash: [4, 4] },
-                        range: { fill: '#7290C4', fillOpacity: 0.2 },
+{
+    theme: {
+        overrides: {
+            common: {
+                axes: {
+                    number: {
+                        crossLines: {
+                            strokeWidth: 2,
+                            line: { stroke: '#d62728', lineDash: [4, 4] },
+                            range: { fill: '#7290C4', fillOpacity: 0.2 },
+                        },
                     },
                 },
             },
