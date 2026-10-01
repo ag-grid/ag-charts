@@ -2250,7 +2250,7 @@ function placeAvoidingLabel(
  * candidate's geometry, so no placement maths happens here beyond resizing a candidate's box around
  * text it had to truncate. A truncated-but-fitting candidate is remembered and the cascade continues, so
  * the least-truncated one wins; when none fits at all, a {@link PointLabelDatum.neverDrop} datum keeps
- * the least region-overflowing candidate and any other is dropped (`undefined`).
+ * the least buried candidate, then the least region-overflowing one, and any other is dropped (`undefined`).
  */
 function placeFromPositionedCandidates(
     d: PointLabelDatum,
@@ -2366,7 +2366,16 @@ function placeFromPositionedCandidates(
         }
         if (d.neverDrop === true) {
             const overflow = regionOverflow(region, x, y, cw, ch);
-            recordBestChoice(TIER_OVERFLOWING, overflow, text, width, height, rotation, offsetX, offsetY, undefined, c);
+            let tier = TIER_OVERFLOWING;
+            let score = overflow;
+            // Ranking colliding candidates by how buried they are only matters when there is one to choose.
+            if (overflow === 0 && ln > 1) {
+                candidateWorstOverlap = 0;
+                obstacleIndex.query(queryBox, worstObstacleOverlap);
+                tier = TIER_COLLIDING;
+                score = candidateWorstOverlap;
+            }
+            recordBestChoice(tier, score, text, width, height, rotation, offsetX, offsetY, undefined, c);
         }
         // Ungated on containment, unlike the compass path: `measureShrinkReduction` seeds the region's own
         // overflow here, so a candidate carrying more text than its region holds is still recoverable.

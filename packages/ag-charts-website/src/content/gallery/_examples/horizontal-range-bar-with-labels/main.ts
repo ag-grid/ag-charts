@@ -138,7 +138,7 @@ const options: AgCartesianChartOptions = {
                     label: {
                         text: '2022 Average',
                         padding: 4,
-                        position: 'bottom',
+                        placement: 'bottom',
                     },
                 },
             ],

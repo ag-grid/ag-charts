@@ -105,7 +105,7 @@ const options: AgCartesianChartOptions = {
                     range: [new Date(2019, 6, 1), new Date(2019, 6, 31)],
                     label: {
                         text: 'Peak Season\nJuly-August',
-                        position: 'top',
+                        placement: 'top',
                     },
                 },
             ],

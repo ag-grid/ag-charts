@@ -50,7 +50,7 @@ const options: AgCartesianChartOptions = {
                     value: 0,
                     label: {
                         text: 'North',
-                        position: 'top',
+                        placement: 'top',
                     },
                 },
             ],
@@ -69,7 +69,7 @@ const options: AgCartesianChartOptions = {
                     value: 0,
                     label: {
                         text: 'East',
-                        position: 'right',
+                        placement: 'right',
                     },
                 },
             ],
