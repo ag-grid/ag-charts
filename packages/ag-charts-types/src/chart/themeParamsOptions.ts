@@ -72,7 +72,8 @@ export interface AgBaseChartThemeParams {
     buttonTextColor?: AgCssColorOrRef;
     /**
      * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
-     * dropdown menus of the toolbars and the colour picker. The value must be a valid CSS box-shadow.
+     * dropdown menus of the toolbars and the colour picker. Defaults to `popupShadow`. The value must be a valid CSS
+     * box-shadow.
      */
     cardShadow?: CssShadow;
     /** Corner radius of the colour swatch in the colour picker. Defaults to half of `borderRadius`. */
@@ -144,7 +145,11 @@ export interface AgBaseChartThemeParams {
     panelBackgroundColor?: AgCssColorOrRef;
     /** Colour of text that should stand out less in panels and dialogs. A colour string, or a theme-colour reference object. */
     panelSubtleTextColor?: AgCssColorOrRef;
-    /** Default shadow for elements that float above the chart and are intended to appear separated from it, e.g. dialogs, floating toolbars and context menus. */
+    /**
+     * Default shadow for elements that float above the chart and are intended to appear separated from it, e.g. dialogs,
+     * floating toolbars and context menus. Also applies to toolbar dropdown menus and the colour picker unless
+     * `cardShadow` is set. The value must be a valid CSS box-shadow.
+     */
     popupShadow?: CssShadow;
     /**
      * Colour of text that should stand out less than the default. A colour string, or a theme-colour reference object.

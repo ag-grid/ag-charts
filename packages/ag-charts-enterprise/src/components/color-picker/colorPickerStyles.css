@@ -88,12 +88,14 @@
     display: block;
     position: relative;
     padding: 0;
-    margin: 0 calc(var(--inset) * -1);
+    margin: var(--track-overflow) calc(var(--inset) * -1);
     border: 0;
     height: var(--thumb-size);
     width: auto;
     background: transparent;
     --inset: calc((var(--thumb-size) - var(--track-height)) / 2);
+    /* A track taller than the thumb overflows the input; reserve that space so the tracks do not overlap. */
+    --track-overflow: max(0px, calc(var(--inset) * -1));
 }
 
 .ag-charts-color-picker__hue-input::-moz-range-thumb,
@@ -247,7 +249,7 @@
 }
 
 .ag-charts-color-picker__alpha-input {
-    margin-bottom: 7px;
+    margin-bottom: calc(7px + var(--track-overflow));
 }
 
 /* Firefox: cannot be combined with the following rules — keep in sync. */
