@@ -356,12 +356,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
-        // Must precede the first validation pass, which can be silenced, aborted or listened to by these
-        // options. A user key wins over the override's by presence, so an explicit `null` still warns.
-        this.validations.configure({
-            ...getValidations(this.processedOverrides),
-            ...getValidations(this.userOptions),
-        });
+        // Nothing may validate before the setup paths re-arm with the resolved theme.
+        this.armValidations();
 
         let activeTheme,
             processedOptions,
@@ -515,6 +511,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
+    // Must precede the first validation pass, which can be silenced, aborted or listened to by these
+    // options. Each key is taken by presence from the highest of user > overrides > theme, so an explicit
+    // `null` still warns.
+    private armValidations(activeTheme?: ChartTheme) {
+        this.validations.configure({
+            ...getValidations(activeTheme?.overrides?.common),
+            ...getValidations(this.processedOverrides),
+            ...getValidations(this.userOptions),
+        });
+    }
+
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
         // Minimal-mode structural-output cache fast path.
         const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
@@ -551,6 +558,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             getChartTheme(optionsTheme, this.logger, presetDefName, this.moduleRegistry),
             this.moduleRegistry
         );
+        this.armValidations(activeTheme);
 
         if (presetDef) {
             const { validate: validatePreset = validate } = presetDef;
@@ -735,6 +743,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             getChartTheme(optionsTheme, this.logger, presetDef?.name, this.moduleRegistry),
             this.moduleRegistry
         );
+        this.armValidations(activeTheme);
         this.chartDef = cached.chartDef;
 
         // A cache hit skips the validation loops, so what they logged is replayed for this chart's console

@@ -171,9 +171,9 @@ export function createOptionsGraph(
 // them (e.g. `context` holding a self-referential object) cannot overflow an options walk.
 export const SHALLOW_OPTION_KEYS = new Set<string>(['context', 'data', 'topology']);
 
-// Array values here are ordered fallback lists, so a user array replaces the theme default
-// wholesale rather than merging index-by-index. Non-array values are still descended.
-const ATOMIC_LIST_OPTION_KEYS = new Set<string>(['placement', 'orientation']);
+// Array values here are ordered fallback lists or severity sets, so a user array replaces the theme
+// default wholesale rather than merging index-by-index. Non-array values are still descended.
+const ATOMIC_LIST_OPTION_KEYS = new Set<string>(['placement', 'orientation', 'consoleOn', 'showOverlayOn', 'throwOn']);
 
 /**
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then

@@ -29,6 +29,7 @@ import type {
     AgCartesianChartOptions,
     AgCartesianSeriesAreaThemableOptions,
     AgChartValidationSeverity,
+    AgChartValidationsOptions,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
     AgStandaloneChartOptions,
@@ -61,17 +62,19 @@ const validationSeverities = arrayOf(
     "an array of validation severities ('error', 'warning' or 'deprecation')"
 );
 
+export const validationsOptionsDef: OptionsDefs<AgChartValidationsOptions> = {
+    showOverlayOn: validationSeverities,
+    consoleOn: validationSeverities,
+    throwOn: validationSeverities,
+    issueRaised: callback,
+};
+
 // These options are being validated by other modules
 export const commonChartOptions = {
     mode: undocumented(union('integrated', 'standalone')),
     withinStudio: undocumented(boolean),
     loading: boolean,
-    validations: {
-        showOverlayOn: validationSeverities,
-        consoleOn: validationSeverities,
-        throwOn: validationSeverities,
-        issueRaised: callback,
-    },
+    validations: validationsOptionsDef,
     container: htmlElement,
     context: () => true,
     theme: defined,

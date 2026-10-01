@@ -33,6 +33,7 @@ import type {
 import { CrossLinesModule } from '../chart/crossline/crossLinesModule';
 import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expectedModules';
 import { removeUnregisteredModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
+import { __clearChartThemeCacheForTests } from '../chart/mapping/themes';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
 import { captureUncaught } from '../chart/test/utils';
@@ -4796,6 +4797,8 @@ describe('ChartOptions', () => {
             ? new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {})
             : new ChartOptions(base, userOptions, {}, {}, {});
 
+    const themeValidations = (validations?: object) => ({ overrides: { common: { validations } } });
+
     describe('validations.consoleOn', () => {
         it('honours an explicit `[]`, silencing first-render warnings without silencing validation itself', () => {
             const chartOptions = construct(invalidOptions({ validations: { consoleOn: [] } }));
@@ -4883,6 +4886,64 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('validations supplied by a theme', () => {
+        beforeEach(__clearChartThemeCacheForTests);
+
+        it('accepts `theme.overrides.common.validations` without reporting it as an unknown option', () => {
+            const chartOptions = construct(invalidOptions({ theme: themeValidations({ consoleOn: ['error'] }) }));
+
+            expect(chartOptions.issues.some((issue) => issue.message.includes('theme.overrides.common'))).toBe(false);
+            expect((chartOptions.processedOptions as any).validations.consoleOn).toEqual(['error']);
+        });
+
+        it('honours a theme `consoleOn: []` for first-render warnings, while still recording the issues', () => {
+            const chartOptions = construct(invalidOptions({ theme: themeValidations({ consoleOn: [] }) }));
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
+        });
+
+        it("honours a theme `consoleOn: ['error']`, silencing warning-severity output", () => {
+            construct(invalidOptions({ theme: themeValidations({ consoleOn: ['error'] }) }));
+
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        it('gives a chart option `consoleOn` precedence over the theme value', () => {
+            construct(
+                invalidOptions({
+                    theme: themeValidations({ consoleOn: [] }),
+                    validations: { consoleOn: ['error', 'warning', 'deprecation'] },
+                })
+            );
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+        });
+
+        it('reports an explicit null chart option `consoleOn` rather than deferring to a silencing theme', () => {
+            construct(invalidOptions({ theme: themeValidations({ consoleOn: [] }), validations: { consoleOn: null } }));
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+        });
+
+        it('tells a theme `issueRaised` listener about first-render issues', () => {
+            const issueRaised = vi.fn();
+            construct(invalidOptions({ theme: themeValidations({ issueRaised }) }));
+
+            expect(issueRaised).toHaveBeenCalledWith(
+                expect.objectContaining({ severity: 'warning', message: expect.stringContaining('notanumber') })
+            );
+        });
+
+        it('resolves a theme `showOverlayOn` into the processed options', () => {
+            const chartOptions = construct(invalidOptions({ theme: themeValidations({ showOverlayOn: ['error'] }) }));
+
+            expect((chartOptions.processedOptions as any).validations.showOverlayOn).toEqual(['error']);
+        });
+    });
+
     describe('validations.throwOn', () => {
         let capture: ReturnType<typeof captureUncaught>;
         beforeEach(() => {
@@ -4894,6 +4955,92 @@ describe('ChartOptions', () => {
             await capture.settle();
             return capture.uncaught.map(String);
         };
+
+        describe('supplied by a theme', () => {
+            beforeEach(() => {
+                __clearChartThemeCacheForTests();
+                __clearStructuralCacheForTests();
+            });
+
+            it('throws uncaught for a warning-severity option error, exactly as the chart option does', async () => {
+                const chartOptions = construct(invalidOptions({ theme: themeValidations({ throwOn: ['warning'] }) }));
+
+                expect(await uncaughtMessages()).toEqual([
+                    expect.stringMatching(
+                        /^Error: AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set/
+                    ),
+                ]);
+                expect(chartOptions.issues.some((issue) => issue.message.includes('theme.overrides.common'))).toBe(
+                    false
+                );
+            });
+
+            it('does not throw when the theme sets no `validations`', async () => {
+                construct(invalidOptions({ theme: themeValidations() }));
+
+                expect(await uncaughtMessages()).toEqual([]);
+            });
+
+            it('gives a chart option `throwOn: []` precedence over the theme value', async () => {
+                const chartOptions = construct(
+                    invalidOptions({ theme: themeValidations({ throwOn: ['warning'] }), validations: { throwOn: [] } })
+                );
+
+                expect(await uncaughtMessages()).toEqual([]);
+                expect((chartOptions.processedOptions as any).validations.throwOn).toEqual([]);
+            });
+
+            it("replaces the theme's array wholesale with the chart option's, rather than merging by index", async () => {
+                const chartOptions = construct(
+                    invalidOptions({
+                        theme: themeValidations({ throwOn: ['warning', 'deprecation'] }),
+                        validations: { throwOn: ['error'] },
+                    })
+                );
+
+                expect(await uncaughtMessages()).toEqual([]);
+                expect((chartOptions.processedOptions as any).validations.throwOn).toEqual(['error']);
+            });
+
+            it("lets a theme's own `throwOn` take precedence over its `baseTheme`'s", async () => {
+                construct(
+                    invalidOptions({
+                        theme: {
+                            baseTheme: themeValidations({ throwOn: ['warning'] }),
+                            ...themeValidations({ throwOn: ['error'] }),
+                        },
+                    })
+                );
+
+                expect(await uncaughtMessages()).toEqual([]);
+            });
+
+            it('keeps throwing on a warm update that re-validates', async () => {
+                const theme = themeValidations({ throwOn: ['warning'] });
+                const base = construct({ series: [{ type: 'line', xKey: 'x', yKey: 'y' }], theme } as AgChartOptions);
+                expect(await uncaughtMessages()).toEqual([]);
+
+                construct(invalidOptions({ theme }), base);
+                expect(await uncaughtMessages()).toHaveLength(1);
+            });
+
+            it('throws for each chart served from the structural cache', async () => {
+                const themed = () =>
+                    new ChartOptions(
+                        invalidOptions({ theme: themeValidations({ throwOn: ['warning'] }) }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        { domMode: 'minimal' }
+                    );
+
+                themed();
+                expect(await uncaughtMessages()).toHaveLength(1);
+
+                themed();
+                expect(await uncaughtMessages()).toHaveLength(2);
+            });
+        });
 
         it('does not throw for the default (option absent), and still logs the existing warning', async () => {
             const chartOptions = construct(invalidOptions());

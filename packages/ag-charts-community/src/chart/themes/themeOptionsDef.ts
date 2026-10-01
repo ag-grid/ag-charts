@@ -81,6 +81,7 @@ import {
     radiusCategoryAxisOptionsDefs,
     radiusNumberAxisOptionsDefs,
 } from '../axesOptionsEnterpriseDefs';
+import { validationsOptionsDef } from '../chartOptionsDefs';
 import { areaSeriesThemeableOptionsDef } from '../series/cartesian/areaSeriesOptionsDef';
 import { barSeriesThemeableOptionsDef } from '../series/cartesian/barSeriesOptionsDef';
 import { bubbleSeriesThemeableOptionsDef } from '../series/cartesian/bubbleSeriesOptionsDef';
@@ -451,6 +452,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
                 autoScaledAxes: arrayOf(constant('y')),
             },
         },
+        validations: validationsOptionsDef,
     },
     line: {
         ...cartesianChartOptionsDefs,
