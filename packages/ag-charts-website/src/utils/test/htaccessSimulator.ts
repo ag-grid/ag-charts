@@ -20,10 +20,19 @@
  *   file, whatever their position (Apache's section merge order).
  * - The rewrite rules run only while the file's last `RewriteEngine` is On. With `RewriteEngine`
  *   absent, Apache takes the parent's engine state, so rewrite directives without it throw.
+ * - A file with no rewrite directives at all runs its parent's rewrite rules instead, matched
+ *   below the parent's directory: Apache keeps the parent's mod_rewrite configuration whole for a
+ *   directory that sets none of its own. This is how an archive deployed by an older generator,
+ *   whose `.htaccess` has only mod_alias redirects, runs the live site's rules.
+ * - mod_alias `Redirect` (a prefix match on whole path segments, the remainder appended) and
+ *   `RedirectMatch` (a regex on the full path), first match wins, the file's own before its
+ *   parent's. They run after mod_rewrite, whose fixup hook comes first. A relative target stays
+ *   on the requesting host.
  *
- * Only the child `.htaccess` is evaluated. Directives the grid root `.htaccess` adds for this path
- * (its own headers, archive caching) are out of scope, and are the root's to test. Any directive
- * or flag outside the supported subset throws, so a new kind of rule cannot pass unexamined.
+ * Only the site's own `.htaccess` is evaluated, with its parent for nothing but the rewrite rules
+ * and redirects above. Directives the grid root `.htaccess` adds for this path (its own headers,
+ * archive caching) are out of scope, and are the root's to test. Any directive or flag outside the
+ * supported subset throws, so a new kind of rule cannot pass unexamined.
  */
 
 export interface SimulatedRequest {
@@ -41,6 +50,8 @@ export interface SimulatedSite {
     basePath: string;
     /** Document-root-relative paths of the files on disk, e.g. `/charts/react/bar-series/index.html`. */
     files?: Iterable<string>;
+    /** The `.htaccess` of a directory above, e.g. the live site's for an archive deployed below it. */
+    parent?: { htaccess: string; basePath: string };
 }
 
 export interface SimulatedResponse {
@@ -85,6 +96,13 @@ interface Rule {
     conditions: Condition[];
 }
 
+interface AliasRedirect {
+    kind: 'Redirect' | 'RedirectMatch';
+    status: number;
+    from: string;
+    to?: string;
+}
+
 interface HeaderDirective {
     always: boolean;
     action: 'set' | 'append' | 'unset' | 'merge';
@@ -94,10 +112,13 @@ interface HeaderDirective {
 }
 
 interface ParsedHtaccess {
+    /** Whether the file sets any mod_rewrite directive, so does not run its parent's rules. */
+    hasRewriteDirectives: boolean;
     /** Whether the rewrite rules run: the file's last `RewriteEngine` directive. */
     rewriteEngineOn: boolean;
     rules: Rule[];
     allowNoSlash: boolean;
+    aliasRedirects: AliasRedirect[];
     errorDocuments: Map<number, string>;
     types: Map<string, string>;
     charsets: Map<string, string>;
@@ -175,9 +196,11 @@ function parseHeader(args: string[], line: string): HeaderDirective {
 
 function parseHtaccess(htaccess: string): ParsedHtaccess {
     const parsed: ParsedHtaccess = {
+        hasRewriteDirectives: false,
         rewriteEngineOn: false,
         rules: [],
         allowNoSlash: false,
+        aliasRedirects: [],
         errorDocuments: new Map(),
         types: new Map(),
         charsets: new Map(),
@@ -186,7 +209,6 @@ function parseHtaccess(htaccess: string): ParsedHtaccess {
     };
     let pendingConditions: Condition[] = [];
     let rewriteEngineSet = false;
-    let hasRewriteDirectives = false;
     let currentIf: { expr: string; headers: HeaderDirective[] } | undefined;
     const containers: string[] = [];
 
@@ -228,7 +250,7 @@ function parseHtaccess(htaccess: string): ParsedHtaccess {
             throw new Error(`Only Header directives are supported inside <If>: ${line}`);
         }
         if (directive.startsWith('Rewrite')) {
-            hasRewriteDirectives = true;
+            parsed.hasRewriteDirectives = true;
         }
         switch (directive) {
             case 'RewriteEngine':
@@ -262,6 +284,17 @@ function parseHtaccess(htaccess: string): ParsedHtaccess {
                 });
                 pendingConditions = [];
                 break;
+            case 'Redirect':
+            case 'RedirectMatch': {
+                // A 3xx with its target, or a 410 Gone without one.
+                const status = Number(args[0]);
+                const hasTarget = /^30[12378]$/.test(args[0]);
+                if (!(hasTarget || args[0] === '410') || args.length !== (hasTarget ? 3 : 2)) {
+                    throw new Error(`Unsupported ${directive}: ${line}`);
+                }
+                parsed.aliasRedirects.push({ kind: directive, status, from: args[1], to: args[2] });
+                break;
+            }
             case 'ErrorDocument':
                 parsed.errorDocuments.set(Number(args[0]), args[1]);
                 break;
@@ -285,7 +318,7 @@ function parseHtaccess(htaccess: string): ParsedHtaccess {
     if (containers.length > 0 || pendingConditions.length > 0) {
         throw new Error('Unterminated section or RewriteCond without a RewriteRule');
     }
-    if (hasRewriteDirectives && !rewriteEngineSet) {
+    if (parsed.hasRewriteDirectives && !rewriteEngineSet) {
         // A child .htaccess with rewrite directives but no RewriteEngine takes the parent's engine
         // state (Apache 2.4), which this single-file model cannot know.
         throw new Error('Rewrite directives without a RewriteEngine directive are not modelled');
@@ -560,6 +593,41 @@ function runRewrite(
 }
 
 // ---------------------------------------------------------------------------------------------
+// mod_alias
+
+// A path Apache makes absolute itself (mod_dir's slash, a relative mod_alias target) keeps the
+// requesting host, on the HTTPS vhost that serves the site.
+const onRequestingHost = (host: string, path: string) => `https://${host}${path}`;
+
+function runAliasRedirects(redirects: AliasRedirect[], host: string, uri: string): RewriteResult {
+    for (const redirect of redirects) {
+        let target: string | undefined;
+        if (redirect.kind === 'Redirect') {
+            const prefix = redirect.from.endsWith('/') ? redirect.from : `${redirect.from}/`;
+            if (uri !== redirect.from && !uri.startsWith(prefix)) {
+                continue;
+            }
+            target = redirect.to == null ? undefined : redirect.to + uri.slice(redirect.from.length);
+        } else {
+            const match = uri.match(new RegExp(redirect.from));
+            if (!match) {
+                continue;
+            }
+            target = redirect.to?.replace(/\$(\d)/g, (_, n: string) => match[Number(n)] ?? '');
+        }
+        if (target == null) {
+            return { kind: 'gone' };
+        }
+        return {
+            kind: 'redirect',
+            status: redirect.status,
+            location: target.startsWith('/') ? onRequestingHost(host, target) : target,
+        };
+    }
+    return { kind: 'none' };
+}
+
+// ---------------------------------------------------------------------------------------------
 
 class SimulatedFs {
     private readonly files: Set<string>;
@@ -623,6 +691,10 @@ const MAX_INTERNAL_REDIRECTS = 10;
 /** Evaluate one request against the site's `.htaccess`. */
 export function simulateRequest(site: SimulatedSite, request: SimulatedRequest): SimulatedResponse {
     const parsed = parseHtaccess(site.htaccess);
+    const parent = site.parent && { ...site.parent, parsed: parseHtaccess(site.parent.htaccess) };
+    // The rewrite rules that run here, and the directory their patterns are matched below.
+    const rewrite = parent == null || parsed.hasRewriteDirectives ? { parsed, basePath: site.basePath } : parent;
+    const aliasRedirects = [...parsed.aliasRedirects, ...(parent?.parsed.aliasRedirects ?? [])];
     const fs = new SimulatedFs(site.files);
     const fullRequest = { ...request, host: request.host ?? DEFAULT_HOST };
     const varyHeaders = new Set<string>();
@@ -637,7 +709,10 @@ export function simulateRequest(site: SimulatedSite, request: SimulatedRequest):
         if (round > MAX_INTERNAL_REDIRECTS) {
             throw new Error(`Internal redirect loop for ${request.uri}`);
         }
-        const result = runRewrite(parsed, site.basePath, fullRequest, uri, fs, varyHeaders);
+        let result = runRewrite(rewrite.parsed, rewrite.basePath, fullRequest, uri, fs, varyHeaders);
+        if (result.kind === 'none') {
+            result = runAliasRedirects(aliasRedirects, fullRequest.host, uri);
+        }
         if (result.kind === 'internal') {
             uri = result.uri;
             continue;
@@ -664,7 +739,7 @@ export function simulateRequest(site: SimulatedSite, request: SimulatedRequest):
         } else if (fs.isDirectory(uri)) {
             // mod_dir's DirectorySlash redirect, which stays on the requesting host.
             status = 301;
-            location = `http://${fullRequest.host}${uri}/`;
+            location = onRequestingHost(fullRequest.host, `${uri}/`);
             generatedByApache = true;
         } else {
             status = 404;
