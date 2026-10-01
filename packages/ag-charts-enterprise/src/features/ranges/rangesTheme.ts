@@ -18,12 +18,16 @@ const stylesTheme: WithThemeParams<AgRangesOptions> = {
     fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'chromeFontSize'] },
     fontFamily: { $ref: 'chromeFontFamily' },
     fontWeight: { $ref: 'chromeFontWeight' },
+    // `$shallow` keeps a user-set padding (number or partial object) as authored; `$applyPadding` resolves the
+    // param references in the default.
     padding: {
         $shallow: {
-            top: { $ref: 'buttonVerticalPadding' },
-            right: { $ref: 'buttonHorizontalPadding' },
-            bottom: { $ref: 'buttonVerticalPadding' },
-            left: { $ref: 'buttonHorizontalPadding' },
+            $applyPadding: {
+                top: { $ref: 'buttonVerticalPadding' },
+                right: { $ref: 'buttonHorizontalPadding' },
+                bottom: { $ref: 'buttonVerticalPadding' },
+                left: { $ref: 'buttonHorizontalPadding' },
+            },
         },
     } as any,
     stroke: {

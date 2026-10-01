@@ -369,18 +369,24 @@ describe('Ranges', () => {
             expect(ranges.button.padding).toEqual({ top: 3, right: 12, bottom: 3, left: 12 });
         });
 
-        it('a user-set padding replaces the button padding params', async () => {
+        const resolvedUserPadding = async (padding: unknown) => {
             const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                ranges: { enabled: true, padding: 4, buttons: [{ label: 'All', value: [0, 19] }] },
+                ranges: { enabled: true, padding, buttons: [{ label: 'All', value: [0, 19] }] },
                 theme: { params: { buttonHorizontalPadding: 12 } },
             } as any);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+            return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges').button.padding;
+        };
 
-            expect(ranges.button.padding).toBe(4);
+        it('a user-set padding number replaces the button padding params', async () => {
+            expect(await resolvedUserPadding(4)).toBe(4);
+        });
+
+        it('a user-set partial padding object replaces the button padding params', async () => {
+            expect(await resolvedUserPadding({ top: 2 })).toEqual({ top: 2 });
         });
     });
 });
