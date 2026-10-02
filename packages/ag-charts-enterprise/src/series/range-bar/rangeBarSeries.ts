@@ -1374,7 +1374,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 style.cornerRadius ?? 0,
                 categoryAlongX ? datum.width > 0 : datum.height > 0,
                 datum.crisp,
-                shadow
+                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex)
             );
             rect.crispCentreDirection = crispCentreDirection;
         });
