@@ -492,6 +492,98 @@ describe('Navigator', () => {
         });
     });
 
+    describe('mini chart shadow inheritance', () => {
+        const SHADOW = { enabled: true, color: '#000000', xOffset: 3, yOffset: 3, blur: 5 };
+        const ohlcData = Array.from({ length: 8 }, (_, i) => ({
+            date: new Date(2024, 0, i + 1),
+            open: 10 + i,
+            high: 15 + i,
+            low: 8 + i,
+            close: 12 + i,
+        }));
+        const candleKeys = { xKey: 'date', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' };
+        const barData = Array.from({ length: 8 }, (_, i) => ({ x: `c${i}`, y: i + 1 }));
+
+        const shadowedNodes = (root: any): string[] => {
+            const found: string[] = [];
+            const walk = (node: any) => {
+                if (node.fillShadow?.enabled) found.push(node.constructor.name);
+                if (typeof node.children === 'function') for (const child of node.children()) walk(child);
+            };
+            walk(root);
+            return found;
+        };
+
+        const create = async (options: AgCartesianChartOptions) => {
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return deproxy(chart).modulesManager.getModule<any>('navigator').miniChart;
+        };
+
+        const seriesCases: [string, object][] = [
+            ['candlestick', { type: 'candlestick', ...candleKeys, data: ohlcData, shadow: SHADOW }],
+            ['ohlc', { type: 'ohlc', ...candleKeys, data: ohlcData, shadow: SHADOW }],
+            ['bar', { type: 'bar', xKey: 'x', yKey: 'y', data: barData, shadow: SHADOW }],
+            [
+                'area',
+                {
+                    type: 'area',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: barData,
+                    shadow: SHADOW,
+                    marker: { enabled: true, shadow: SHADOW },
+                },
+            ],
+            ['line', { type: 'line', xKey: 'x', yKey: 'y', data: barData, marker: { enabled: true, shadow: SHADOW } }],
+            [
+                'range-area',
+                {
+                    type: 'range-area',
+                    xKey: 'x',
+                    yHighKey: 'yHigh',
+                    yLowKey: 'yLow',
+                    data: barData.map((d) => ({ ...d, yHigh: d.y + 2, yLow: d.y - 2 })),
+                    shadow: SHADOW,
+                    marker: { enabled: true, shadow: SHADOW },
+                },
+            ],
+            ['scatter', { type: 'scatter', xKey: 'y', yKey: 'y', data: barData, shadow: SHADOW }],
+        ];
+
+        it.each(seriesCases)('does not draw the %s series shadow in the mini chart', async (_type, series) => {
+            const miniChart = await create({
+                series: [series],
+                navigator: { enabled: true, miniChart: { enabled: true } },
+            } as AgCartesianChartOptions);
+
+            expect(miniChart.series.length).toBe(1);
+            expect(shadowedNodes(miniChart.root).join()).toBe('');
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it.each(seriesCases)('still draws the %s shadow in the main chart', async (_type, series) => {
+            await create({
+                series: [series],
+                navigator: { enabled: true, miniChart: { enabled: true } },
+            } as AgCartesianChartOptions);
+
+            const mainSeries = deproxy(chart).series[0] as any;
+            expect(shadowedNodes(mainSeries.contentGroup).length).toBeGreaterThan(0);
+        });
+
+        it('honours an explicit navigator.miniChart.series shadow', async () => {
+            const miniChart = await create({
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', data: barData, shadow: SHADOW }],
+                navigator: { enabled: true, miniChart: { enabled: true, series: [{ type: 'bar', shadow: SHADOW }] } },
+            } as AgCartesianChartOptions);
+
+            expect(shadowedNodes(miniChart.root).length).toBeGreaterThan(0);
+            expectWarningsCalls().toEqual([]);
+        });
+    });
+
     describe('AG-17456 mini-chart axis nice', () => {
         const getMiniChartAxes = (c: any) => {
             const miniChart = deproxy(c).modulesManager.getModule<any>('navigator').miniChart;
