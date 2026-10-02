@@ -1105,6 +1105,15 @@ export async function tabIntoChart(chart: ChartOrProxy) {
     await waitForChartStability(chart);
 }
 
+// The swap-chain's visible announcer is labelled by the text read out for the focused datum.
+export function getSwapChainText() {
+    const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[aria-hidden="false"]');
+    expect(announcer).not.toBeNull();
+    const label = document.getElementById(announcer!.getAttribute('aria-labelledby') ?? '');
+    expect(label).not.toBeNull();
+    return label!.textContent;
+}
+
 // The series-area widget handles keyboard navigation.
 export async function pressKey(chart: ChartOrProxy, key: string) {
     const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
