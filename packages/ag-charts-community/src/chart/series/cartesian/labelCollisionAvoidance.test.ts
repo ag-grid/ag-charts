@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { Transformable } from '../../../scene/transformable';
 import { expectPixelIdenticalAcrossUpdate } from '../../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -2598,6 +2599,115 @@ describe('label collision avoidance', () => {
 
         it('moves labels off the axis labels when collideWith.axisLabels is on', async () => {
             expect(await placementsOnAxis({ axisLabels: true })).toEqual(['top', 'top', 'top']);
+        });
+
+        type CanvasNode = Parameters<typeof Transformable.toCanvas>[0] & { visible: boolean; text?: unknown };
+        const visibleCanvasBoxes = (nodes: Iterable<CanvasNode>) =>
+            Array.from(nodes)
+                .filter((node) => node.visible && node.text !== '')
+                .map((node) => Transformable.toCanvas(node));
+
+        // Renders the chart, then requires every visible series label to clear every axis tick label.
+        const expectSeriesLabelsClearAxisLabels = async (options: object) => {
+            prepareTestOptions(options as any);
+            chart = AgCharts.create(options as any);
+            await waitForChartStability(chart);
+
+            const { axes, series } = deproxy(chart as any) as any;
+            const axisBoxes = axes.flatMap((axis: any) => visibleCanvasBoxes(axis.tickLabelGroupSelection.nodes()));
+            const labelBoxes = series.flatMap((s: any) => visibleCanvasBoxes(s.labelSelection.nodes()));
+            expect(axisBoxes.length).toBeGreaterThan(0);
+            expect(labelBoxes.length).toBeGreaterThan(0);
+
+            const overlaps = labelBoxes.filter((label: LabelBox) =>
+                axisBoxes.some((axis: LabelBox) => boxesOverlap(label, axis))
+            );
+            expect(overlaps).toEqual([]);
+            await compareImageSnapshot(chart, ctx);
+        };
+
+        const boxesOverlap = (a: LabelBox, b: LabelBox) =>
+            a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+        const optedIn = { alwaysShow: false, collideWith: { axisLabels: true } };
+
+        it('moves bubble labels off the labels of axes crossing the series area', async () => {
+            const bubbleLabel = (placement: string[]) => ({
+                enabled: true,
+                formatter: ({ datum }: any) => `(${datum.x}, ${datum.y})`,
+                placement,
+                collision: optedIn,
+            });
+            // Bubbles at the even ticks label straight onto a tick label; the odd ones fall between them.
+            const steps = [-9, -8, -7, -6, -5, -4, -3, -2, 2, 3, 4, 5, 6, 7, 8, 9];
+            const onX = steps.map((x) => ({ x, y: 0, size: 1 + (Math.abs(x) % 3) }));
+            const onY = steps.map((y) => ({ x: 0, y, size: 1 + (Math.abs(y) % 3) }));
+            await expectSeriesLabelsClearAxisLabels({
+                legend: { enabled: false },
+                axes: {
+                    x: {
+                        position: 'bottom',
+                        type: 'number',
+                        crossAt: { value: 0 },
+                        min: -10,
+                        max: 10,
+                        interval: { step: 2 },
+                    },
+                    y: {
+                        position: 'left',
+                        type: 'number',
+                        crossAt: { value: 0 },
+                        min: -10,
+                        max: 10,
+                        interval: { step: 2 },
+                    },
+                },
+                series: [
+                    {
+                        type: 'bubble',
+                        data: onX,
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'size',
+                        maxSize: 14,
+                        label: bubbleLabel(['bottom', 'top']),
+                    },
+                    {
+                        type: 'bubble',
+                        data: onY,
+                        xKey: 'x',
+                        yKey: 'y',
+                        yName: 'onY',
+                        sizeKey: 'size',
+                        maxSize: 14,
+                        label: bubbleLabel(['left', 'right']),
+                    },
+                ],
+            });
+        });
+
+        it('moves line labels off the labels of axes crossing the series area', async () => {
+            // Every other point sits on the x axis at a tick, so its bottom label would cover the tick label.
+            const zigzag = (amplitude: number) =>
+                Array.from({ length: 21 }, (_, i) => ({ x: i - 10, y: i % 2 === 0 ? 0 : amplitude }));
+            const lineLabel = (prefix: string) => ({
+                enabled: true,
+                formatter: ({ datum }: any) => `${prefix}${datum.x}`,
+                placement: ['bottom', 'top'],
+                collision: optedIn,
+                truncate: false,
+            });
+            await expectSeriesLabelsClearAxisLabels({
+                legend: { enabled: false },
+                axes: {
+                    x: { position: 'bottom', type: 'number', crossAt: { value: 0 }, interval: { step: 2 } },
+                    y: { position: 'left', type: 'number', crossAt: { value: 0 }, min: -10, max: 10 },
+                },
+                series: [
+                    { type: 'line', data: zigzag(6), xKey: 'x', yKey: 'y', label: lineLabel('A') },
+                    { type: 'line', data: zigzag(-6), xKey: 'x', yKey: 'y', yName: 'B', label: lineLabel('B') },
+                ],
+            });
         });
     });
 });
