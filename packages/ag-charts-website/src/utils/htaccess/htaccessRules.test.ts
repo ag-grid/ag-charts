@@ -1023,6 +1023,117 @@ describe('htaccessRules response headers', () => {
     );
 });
 
+// Browsers may cache nothing for more than 7 days; CloudFront's s-maxage is exempt. This file sets no
+// caching today (the grid root does), so this guards against a directive arriving here unchecked.
+const MAX_BROWSER_LIFETIME = 604800;
+const EXPIRES_UNITS: Record<string, number> = {
+    year: 31536000,
+    month: 2592000,
+    week: 604800,
+    day: 86400,
+    hour: 3600,
+    minute: 60,
+    second: 1,
+};
+
+/** The browser lifetime a mod_expires time spec gives, e.g. "access plus 1 month" or "A604800". */
+function expiresSeconds(spec: string): number {
+    const code = spec.match(/^[AM](\d+)$/);
+    if (code) {
+        return Number(code[1]);
+    }
+    const words = spec.match(/^(?:access|now|modification)\s+(?:plus\s+)?(.+)$/i);
+    if (!words) {
+        throw new Error(`Unrecognised Expires time spec: ${spec}`);
+    }
+    let total = 0;
+    for (const [, amount, unit] of words[1].matchAll(/(\d+)\s+(year|month|week|day|hour|minute|second)s?/gi)) {
+        total += Number(amount) * EXPIRES_UNITS[unit.toLowerCase()];
+    }
+    return total;
+}
+
+/** Every directive that would let a browser cache for longer than the cap, as its line. */
+function browserCacheViolations(htaccess: string): string[] {
+    const violations: string[] = [];
+    for (const line of htaccess.split('\n').map((l) => l.trim())) {
+        if (line.startsWith('#')) {
+            continue;
+        }
+        if (/^(?:Request)?Header\b.*\bCache-Control\b/i.test(line)) {
+            // s-maxage is CloudFront's, not the browser's, so only a bare max-age counts.
+            for (const [, seconds] of line.matchAll(/(?<![-\w])max-age=(\d+)/gi)) {
+                if (Number(seconds) > MAX_BROWSER_LIFETIME) {
+                    violations.push(line);
+                }
+            }
+        } else if (/^Header\b.*\bExpires\b/i.test(line)) {
+            // An absolute Expires date has no bound the generator could keep.
+            violations.push(line);
+        } else if (/^Expires(?:Default|ByType)\b/i.test(line)) {
+            // The time spec is the last argument, quoted when it has spaces.
+            const last = line.match(/(?:"([^"]+)"|(\S+))\s*$/);
+            const spec = last?.[1] ?? last?.[2] ?? '';
+            if (expiresSeconds(spec) > MAX_BROWSER_LIFETIME) {
+                violations.push(line);
+            }
+        }
+    }
+    return violations;
+}
+
+describe('htaccessRules browser cache lifetime', () => {
+    beforeEach(() => {
+        vi.resetModules();
+        vi.doMock('../../constants', async (importActual) => {
+            const actual = await importActual<typeof import('../../constants')>();
+            return { ...actual, SITE_BASE_URL: `${ARCHIVE_BASE}/` };
+        });
+    });
+
+    afterEach(() => {
+        vi.doUnmock('../../constants');
+    });
+
+    it('lets no browser cache anything for more than 7 days, live or archived, in either environment', async () => {
+        const archive = await import('./htaccessRules');
+        const generated = {
+            production: getHtaccessContent({ env: 'production' }),
+            staging: getHtaccessContent({ env: 'staging' }),
+            'archive production': archive.getHtaccessContent({ env: 'production' }),
+            'archive staging': archive.getHtaccessContent({ env: 'staging' }),
+        };
+        for (const [name, htaccess] of Object.entries(generated)) {
+            expect(browserCacheViolations(htaccess), name).toEqual([]);
+        }
+    });
+
+    it('catches a directive over the cap, and ignores the CDN-only s-maxage', () => {
+        const flagged = [
+            'Header set Cache-Control "public, max-age=31536000"',
+            'Header always set Cache-Control "max-age=604801" "expr=%{REQUEST_URI} =~ m#^/x#"',
+            'ExpiresDefault "access plus 1 year"',
+            'ExpiresByType text/css "access plus 1 month"',
+            'ExpiresByType image/png A691200',
+            'Header set Expires "Thu, 01 Jan 2099 00:00:00 GMT"',
+        ];
+        for (const line of flagged) {
+            const htaccess = `${getHtaccessContent({ env: 'production' })}\n${line}\n`;
+            expect(browserCacheViolations(htaccess), line).toEqual([line]);
+        }
+        const allowed = [
+            'Header set Cache-Control "public, max-age=604800, s-maxage=31536000"',
+            'Header set Cache-Control "no-cache"',
+            'ExpiresByType text/html "access plus 7 days"',
+            'ExpiresDefault "access plus 1 week"',
+            '# Header set Cache-Control "max-age=31536000"',
+        ];
+        for (const line of allowed) {
+            expect(browserCacheViolations(line), line).toEqual([]);
+        }
+    });
+});
+
 describe('generated redirect rules snapshot', () => {
     // Snapshots render under the pinned `/charts` base, so they carry the production prefix.
     it('redirect rules output is unchanged', () => {
