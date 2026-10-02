@@ -34,9 +34,9 @@ export const RADIAL_COLUMN_SERIES_THEME: ExtensibleSeriesTheme<'radial-column'> 
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'textColor' },
         },
         tooltip: { interaction: { enabled: false } },

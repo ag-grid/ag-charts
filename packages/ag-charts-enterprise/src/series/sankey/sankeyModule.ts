@@ -47,9 +47,9 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
-                fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $ref: 'fontSize' },
-                fontWeight: { $ref: 'fontWeight' },
+                fontFamily: { $ref: 'seriesLabelFontFamily' },
+                fontSize: { $ref: 'seriesLabelFontSize' },
+                fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 10,
             },

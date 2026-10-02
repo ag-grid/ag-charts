@@ -362,6 +362,16 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         footnoteFontWeight: fontWeight,
         footnoteFontFamily: fontFamilyFull,
         footnoteColor: colorOrRef,
+
+        seriesLabelBorder: or(boolean, themeParamBorder),
+        seriesLabelBorderRadius: number,
+        seriesLabelFontFamily: fontFamilyFull,
+        seriesLabelFontSize: number,
+        seriesLabelFontWeight: fontWeight,
+        seriesLabelInsideBackgroundColor: colorOrRef,
+        seriesLabelInsideTextColor: colorOrRef,
+        seriesLabelOutsideBackgroundColor: colorOrRef,
+        seriesLabelOutsideTextColor: colorOrRef,
     },
     palette: {
         fills: arrayOf(simpleColorUnion),

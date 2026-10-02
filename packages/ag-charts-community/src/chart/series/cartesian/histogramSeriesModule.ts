@@ -49,9 +49,9 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             spacing: 8,
             padding: 8,
             collision: {
@@ -59,8 +59,8 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
                 alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
                 ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
-            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
-            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
             placement: 'inside-center',
         },
         shadow: {

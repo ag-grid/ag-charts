@@ -31,9 +31,9 @@ export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
         },
         tooltip: { interaction: { enabled: false } },

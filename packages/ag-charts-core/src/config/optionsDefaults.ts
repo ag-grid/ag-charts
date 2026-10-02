@@ -158,6 +158,14 @@ const themeParams = [
     'scrollbarThumbBorder',
     'scrollbarThumbHoverBackgroundColor',
     'scrollbarThumbHoverBorder',
+    'seriesLabelBorder',
+    'seriesLabelFontFamily',
+    'seriesLabelFontSize',
+    'seriesLabelFontWeight',
+    'seriesLabelInsideBackgroundColor',
+    'seriesLabelInsideTextColor',
+    'seriesLabelOutsideBackgroundColor',
+    'seriesLabelOutsideTextColor',
 ];
 const themeParamsValidator = union(...themeParams);
 // A complete `var(--…)` expression: `var(` … balanced parens … `)` with no trailing text, so a prefix-only match like

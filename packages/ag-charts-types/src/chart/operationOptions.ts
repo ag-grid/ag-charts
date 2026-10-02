@@ -60,6 +60,8 @@ type ThemeParam =
     | 'scrollbarThumbHoverBorder.width'
     | 'scrollbarTrackBorder.color'
     | 'scrollbarTrackBorder.width'
+    | 'seriesLabelBorder.color'
+    | 'seriesLabelBorder.width'
     | 'tooltipBorder.color'
     | 'tooltipBorder.width';
 

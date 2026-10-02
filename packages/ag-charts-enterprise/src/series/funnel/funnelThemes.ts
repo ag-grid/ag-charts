@@ -100,9 +100,9 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             padding: 8,
             spacing: 8,
             collision: {
@@ -111,8 +111,8 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
                 // A value label must avoid the neighbouring stages; its own stage is excluded separately.
                 ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
-            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
-            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
             placement: 'inside-center',
         },
         dropOff: {
