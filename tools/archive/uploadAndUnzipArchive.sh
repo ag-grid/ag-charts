@@ -95,10 +95,13 @@ then
     # one that was fetched, so a grid in-flight mark or a docs deploy landing in between is kept
     # rather than overwritten, and only with the bytes that were built here. The check through the mv
     # holds an exclusive lock on .htaccess.lock beside the live file, which the grid patcher takes
-    # too, so two patchers cannot both pass the check. The same protocol as ag-grid's
-    # patchUncachedArchives.sh. The timestamped copy makes a bad patch one cp to undo.
+    # too, as do the deploys that replace the root .htaccess, so two writers cannot both pass the
+    # check. A production switch replaces the whole docroot, so after the wait the lock must still be
+    # the live docroot's. The same protocol as ag-grid's patchUncachedArchives.sh. The timestamped
+    # copy makes a bad patch one cp to undo.
     SWAP="cd $GRID_ROOT_DIR || exit 5; \
         exec 9>>.htaccess.lock && flock -w 60 9 || { echo 'could not lock .htaccess.lock'; exit 6; }; \
+        [ .htaccess.lock -ef $GRID_ROOT_DIR/.htaccess.lock ] || { echo 'the docroot was replaced while waiting'; exit 3; }; \
         [ \"\$(sha256sum < $REMOTE | cut -d' ' -f1)\" = $SNAPSHOT_SHA ] || { echo 'live file changed since it was fetched'; exit 3; }; \
         [ \"\$(sha256sum < $STAGED | cut -d' ' -f1)\" = $PATCHED_SHA ] || { echo 'uploaded file does not match the patched one'; exit 4; }; \
         cp -p $REMOTE $BACKUP && chmod 644 $STAGED && mv $STAGED $REMOTE"
