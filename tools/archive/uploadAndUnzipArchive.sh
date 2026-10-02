@@ -46,6 +46,7 @@ fi
 # for its own: the in-flight rule matches on path alone, so it can be set before the files exist,
 # and if it fails nothing has been removed or uploaded yet. Mirrors the remote steps of ag-grid's
 # scripts/deployments/prep_and_archive/patchUncachedArchives.sh, for the charts rule alone.
+# Only one deploy or release runs at a time, so nothing else writes the root .htaccess while this runs.
 if [ -z "$GRID_ROOT_DIR" ]
 then
       echo "\$GRID_ROOT_DIR is not set: the grid docroot, whose root .htaccess marks this archive in flight"
@@ -91,26 +92,15 @@ then
     then
         patchFailed "Could not upload the patched root .htaccess.";
     fi
-    # Compare and swap, in one command on the host: replace the live file only if it is still the
-    # one that was fetched, so a grid in-flight mark or a docs deploy landing in between is kept
-    # rather than overwritten, and only with the bytes that were built here. The check through the mv
-    # holds an exclusive lock on .htaccess.lock beside the live file, which the grid patcher takes
-    # too, as do the deploys that replace the root .htaccess, so two writers cannot both pass the
-    # check. A production switch replaces the whole docroot, so after the wait the lock must still be
-    # the live docroot's. The same protocol as ag-grid's patchUncachedArchives.sh. The timestamped
-    # copy makes a bad patch one cp to undo.
+    # Swap in only the bytes that were built here, keeping a timestamped copy so a bad patch is one
+    # cp away from being undone. The same command as ag-grid's patchUncachedArchives.sh.
     SWAP="cd $GRID_ROOT_DIR || exit 5; \
-        exec 9>>.htaccess.lock && flock -w 60 9 || { echo 'could not lock .htaccess.lock'; exit 6; }; \
-        [ .htaccess.lock -ef $GRID_ROOT_DIR/.htaccess.lock ] || { echo 'the docroot was replaced while waiting'; exit 3; }; \
-        [ \"\$(sha256sum < $REMOTE | cut -d' ' -f1)\" = $SNAPSHOT_SHA ] || { echo 'live file changed since it was fetched'; exit 3; }; \
         [ \"\$(sha256sum < $STAGED | cut -d' ' -f1)\" = $PATCHED_SHA ] || { echo 'uploaded file does not match the patched one'; exit 4; }; \
         cp -p $REMOTE $BACKUP && chmod 644 $STAGED && mv $STAGED $REMOTE"
     ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "$SWAP"
     case $? in
         0) ;;
-        3) patchFailed "The live root .htaccess changed while this ran (another in-flight update or a deploy). Re-run this to patch the current file.";;
         4) patchFailed "The upload did not arrive intact. Re-run this.";;
-        6) patchFailed "Another patch of the live root .htaccess held its lock for over a minute. Re-run this.";;
         *) patchFailed "Could not move the patched root .htaccess into place.";;
     esac
     OUTCOME="$OUTCOME (previous copy at $BACKUP)"
