@@ -1,11 +1,11 @@
 /**
  * Report-only axe-core accessibility scan of docs examples. Findings never fail a test: they are
  * attached to each test and aggregated by `e2e/a11y/axe-reporter.ts` into
- * `reports/a11y/axe-report.{json,html}` (in CI, only the shard that ran this spec carries it).
+ * `reports/a11y/axe-report.{json,html}` plus a markdown summary for the CI job summary.
  *
- * The default run covers a representative set; `AG_A11Y_ALL_EXAMPLES=1` (or
- * `yarn nx test:e2e ag-charts-website --configuration=a11y-all`) scans every generated docs and
- * gallery example. axe only sees the DOM layer: canvas content, in-chart colour contrast and
+ * Runs only from `playwright.a11y.config.ts`: `yarn nx test:e2e ag-charts-website --configuration=a11y`
+ * scans a representative set, and `--configuration=a11y-all` scans every generated docs and gallery
+ * example. axe only sees the DOM layer: canvas content, in-chart colour contrast and
  * screen-reader comprehension still need manual checks.
  */
 import type { Page } from '@playwright/test';

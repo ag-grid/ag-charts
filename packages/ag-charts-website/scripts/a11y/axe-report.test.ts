@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { type AxeExampleResult, type CompactViolation, groupAxeResults, renderAxeReportHtml } from './axe-report';
+import {
+    type AxeExampleResult,
+    type CompactViolation,
+    groupAxeResults,
+    renderAxeReportHtml,
+    renderAxeReportMarkdown,
+} from './axe-report';
 
 function violation(id: string, impact: CompactViolation['impact'], inChart: Array<boolean | null>): CompactViolation {
     return {
@@ -91,5 +97,29 @@ describe('renderAxeReportHtml', () => {
         expect(html).not.toContain('<script>');
         expect(html).toContain('&lt;script&gt;');
         expect(html).toContain('&lt;div id=&quot;node-0&quot;&gt;');
+    });
+});
+
+describe('renderAxeReportMarkdown', () => {
+    it('summarises rules and scan errors as a table and list', () => {
+        const markdown = renderAxeReportMarkdown(
+            groupAxeResults([
+                entry('bar-series', [
+                    { pass: 'load', violations: [violation('region', 'moderate', [false, true])], axeVersion: '4.13.0' },
+                    { pass: 'focus', error: 'Timed out | after\n35000ms' },
+                ]),
+            ])
+        );
+
+        expect(markdown).toContain('1 examples scanned, 1 rules violated, 1 scan errors (axe 4.13.0)');
+        expect(markdown).toContain('| [region](https://example.com/region) | moderate | 1 | 2 | 1 / 1 |');
+        expect(markdown).toContain('- bar-series/simple (focus): Timed out \\| after 35000ms');
+    });
+
+    it('omits the table and error list when there is nothing to report', () => {
+        const markdown = renderAxeReportMarkdown(groupAxeResults([entry('bar-series', [{ pass: 'load', violations: [] }])]));
+
+        expect(markdown).not.toContain('| Rule |');
+        expect(markdown).not.toContain('### Scan errors');
     });
 });

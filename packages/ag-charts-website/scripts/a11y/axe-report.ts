@@ -204,3 +204,38 @@ ${report.rules.map(renderRule).join('\n')}
 </html>
 `;
 }
+
+function escapeMarkdownCell(value: unknown) {
+    return String(value).replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
+}
+
+/** A short summary for a CI job summary page; the HTML report carries the per-node detail. */
+export function renderAxeReportMarkdown(report: AxeGroupedReport) {
+    const lines = [
+        '## AG Charts axe accessibility report',
+        '',
+        `${report.examplesScanned} examples scanned, ${report.rules.length} rules violated, ${report.scanErrors.length} scan errors (axe ${escapeMarkdownCell(report.axeVersion ?? 'unknown')}). Report-only: findings do not fail CI.`,
+    ];
+    if (report.rules.length > 0) {
+        lines.push(
+            '',
+            '| Rule | Impact | Examples | Nodes | In chart / outside |',
+            '| --- | --- | --- | --- | --- |',
+            ...report.rules.map(
+                (rule) =>
+                    `| [${escapeMarkdownCell(rule.id)}](${rule.helpUrl}) | ${escapeMarkdownCell(rule.impact ?? 'unknown')} | ${rule.exampleCount} | ${rule.nodeCount} | ${rule.inChartNodes} / ${rule.outsideChartNodes} |`
+            )
+        );
+    }
+    if (report.scanErrors.length > 0) {
+        lines.push(
+            '',
+            '### Scan errors',
+            '',
+            ...report.scanErrors.map(
+                (err) => `- ${escapeMarkdownCell(`${err.page}/${err.example}`)} (${err.pass}): ${escapeMarkdownCell(err.error)}`
+            )
+        );
+    }
+    return `${lines.join('\n')}\n`;
+}

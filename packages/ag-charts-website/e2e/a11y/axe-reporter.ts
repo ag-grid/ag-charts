@@ -2,7 +2,12 @@ import type { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
 import { mkdirSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 
-import { type AxeExampleResult, groupAxeResults, renderAxeReportHtml } from '../../scripts/a11y/axe-report';
+import {
+    type AxeExampleResult,
+    groupAxeResults,
+    renderAxeReportHtml,
+    renderAxeReportMarkdown,
+} from '../../scripts/a11y/axe-report';
 
 const REPORT_DIR = resolve(__dirname, '../../../../reports/a11y');
 
@@ -23,6 +28,7 @@ export default class AxeReporter implements Reporter {
         mkdirSync(REPORT_DIR, { recursive: true });
         writeFileSync(join(REPORT_DIR, 'axe-report.json'), JSON.stringify(report, null, 2));
         writeFileSync(join(REPORT_DIR, 'axe-report.html'), renderAxeReportHtml(report));
+        writeFileSync(join(REPORT_DIR, 'axe-summary.md'), renderAxeReportMarkdown(report));
 
         // eslint-disable-next-line no-console
         console.log(
