@@ -9,6 +9,7 @@ import {
     boxesEqual,
     clamp,
     generateUUID,
+    isFiniteNumber,
     isGradientFill,
     isImageFill,
     isPatternFill,
@@ -41,14 +42,9 @@ export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
 /**
- * Which part of a shape casts its {@link Shape.fillShadow}:
- * - `fill`: the fill does, and the stroke is drawn over the shadow. This is the default.
- * - `stroke`: the stroke does, for stroke-only nodes. A canvas shadow lands on top of anything already painted, so
- *   shadowing the fill as well would draw the stroke's shadow across the shape's own fill.
- * - `silhouette`: the fill and stroke together do, for mixed nodes whose strokes stick out past the fill.
- *
- * `stroke` and `silhouette` go through {@link Shape.renderStroke}, so shapes that replace it with their own stroke
- * pass (`Rect`, `BarShape`) only support `fill`, and fall back to it when set to anything else.
+ * Which part of a shape casts its {@link Shape.fillShadow}: `fill` (default), `stroke`, or `silhouette` (both).
+ * `silhouette` isn't a true union: overlapping fill and stroke shadows stack. `Path`, `Line` and `Marker` support it;
+ * `Rect` and `BarShape` fall back to `fill`.
  */
 export type ShapeShadowMode = 'fill' | 'stroke' | 'silhouette';
 
@@ -63,21 +59,6 @@ export type CanvasContext = CanvasFillStrokeStyles &
 
 function hasCanvas(ctx: CanvasContext): ctx is CanvasContext & { canvas: { width: number; height: number } } {
     return 'canvas' in ctx;
-}
-
-/** The device-space size of the canvas being painted, if it can be found. */
-function getDeviceCanvasSize(
-    layerCanvas: { width: number; height: number; pixelRatio: number } | undefined,
-    ctx: CanvasContext
-) {
-    if (layerCanvas != null) {
-        const { width, height, pixelRatio } = layerCanvas;
-        return { width: deviceDimension(pixelRatio, width), height: deviceDimension(pixelRatio, height) };
-    }
-    if (hasCanvas(ctx)) {
-        return { width: ctx.canvas.width, height: ctx.canvas.height };
-    }
-    return undefined;
 }
 
 /** Nodes with their own transform matrix, whose `getBBox()` is in parent space rather than the space they draw in. */
@@ -301,14 +282,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         this.renderStroke(ctx, path, bboxOverride);
     }
 
-    /**
-     * Casts the shadow of the fill and stroke together, ahead of painting the shape. The shape is drawn
-     * off-canvas and `shadowOffsetX` brings only its shadow back, so the stroke's shadow never lands on the fill.
-     *
-     * The shift is just enough to clear the right edge of the shape's own reach, so a shape that is itself off to the
-     * right of the canvas can't have its source copy shifted back on to it. A shape whose shadow can't reach the
-     * canvas is skipped.
-     */
+    /** Draws the shape off-canvas and shifts only its shadow back, so the stroke's shadow never lands on the fill. */
     private renderSilhouetteShadow(
         ctx: CanvasContext,
         logger: Logger,
@@ -321,26 +295,32 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         const layerCanvas = this.layerManager?.canvas;
         const pixelRatio = layerCanvas?.pixelRatio ?? 1;
-        const canvasSize = getDeviceCanvasSize(layerCanvas, ctx);
-        // Anything the shadow's blur can add beyond the shape's own geometry and stroke.
+        let canvasWidth: number | undefined;
+        let canvasHeight: number | undefined;
+        if (layerCanvas != null) {
+            canvasWidth = deviceDimension(pixelRatio, layerCanvas.width);
+            canvasHeight = deviceDimension(pixelRatio, layerCanvas.height);
+        } else if (hasCanvas(ctx)) {
+            canvasWidth = ctx.canvas.width;
+            canvasHeight = ctx.canvas.height;
+        }
         const reach = shadow.blur * pixelRatio;
         const shadowX = shadow.xOffset * pixelRatio;
         const shadowY = shadow.yOffset * pixelRatio;
 
-        // The shape's geometry in the space it is drawn in, which `ctx` already has the shape's own transform applied
-        // to. The bbox is then taken to device space through `ctx`, so rotated or scaled parents don't matter.
+        // `ctx` already has the shape's own transform, so the local bbox is taken to device space through it.
         const { a, b, c, d, e, f } = ctx.getTransform();
         const localBBox: BBox | undefined =
             bboxOverride ?? (hasLocalTransform(this) ? this.computeBBoxWithoutTransforms() : this.getBBox());
-        // Without bounds for the shape, fall back to the canvas width, which is as far right as a shape that is on the
-        // canvas can reach.
-        let maxX = canvasSize?.width ?? 0;
+        // Without bounds, the canvas width is as far right as a shape that is on the canvas can reach.
+        let maxX = canvasWidth ?? 0;
         if (localBBox != null) {
-            // Pad by half the stroke in local space, so it scales with the node like the stroke itself does.
+            // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
             const halfStroke = this.__strokeWidth / 2;
-            const halfWidth = localBBox.width / 2 + halfStroke;
-            const halfHeight = localBBox.height / 2 + halfStroke;
-            // The centre comes from the unpadded box, as the padding is symmetric around it.
+            const strokeReach =
+                (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * (this.__miterLimit ?? 10) : halfStroke;
+            const halfWidth = localBBox.width / 2 + strokeReach;
+            const halfHeight = localBBox.height / 2 + strokeReach;
             const centreX = localBBox.x + localBBox.width / 2;
             const centreY = localBBox.y + localBBox.height / 2;
             const deviceCentreX = a * centreX + c * centreY + e;
@@ -350,25 +330,33 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             const minX = deviceCentreX - reachX;
             maxX = deviceCentreX + reachX;
 
-            if (canvasSize != null) {
+            if (canvasWidth != null && canvasHeight != null) {
+                // The visible blur extends to about 1.5 × `blur`.
+                const blurReach = reach * 1.5;
                 const offCanvas =
-                    maxX + shadowX + reach < 0 ||
-                    minX + shadowX - reach > canvasSize.width ||
-                    deviceCentreY + reachY + shadowY + reach < 0 ||
-                    deviceCentreY - reachY + shadowY - reach > canvasSize.height;
+                    maxX + shadowX + blurReach < 0 ||
+                    minX + shadowX - blurReach > canvasWidth ||
+                    deviceCentreY + reachY + shadowY + blurReach < 0 ||
+                    deviceCentreY - reachY + shadowY - blurReach > canvasHeight;
                 if (offCanvas) return;
             }
         }
 
-        // Far enough that the shape and its blur clear the left edge of the canvas.
+        // The source copy is never blurred; `reach` is only slack to keep it clear of the left edge.
         const distance = Math.max(0, Math.ceil(maxX + reach));
+        if (
+            !isFiniteNumber(reach) ||
+            !isFiniteNumber(distance) ||
+            !isFiniteNumber(shadowX) ||
+            !isFiniteNumber(shadowY)
+        ) {
+            return;
+        }
 
         ctx.save();
         ctx.setTransform(a, b, c, d, e - distance, f);
-        ctx.shadowColor = shadow.color;
-        ctx.shadowOffsetX = distance + shadowX;
-        ctx.shadowOffsetY = shadowY;
-        ctx.shadowBlur = shadow.blur * pixelRatio;
+        this.applyShadow(ctx);
+        ctx.shadowOffsetX += distance;
 
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
             const globalAlpha = ctx.globalAlpha;

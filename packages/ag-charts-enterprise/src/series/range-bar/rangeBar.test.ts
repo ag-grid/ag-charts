@@ -315,6 +315,30 @@ describe('RangeBarSeries', () => {
         await compare();
     });
 
+    it(`should apply the default shadow styling when only shadow.enabled is set`, async () => {
+        const options: AgChartOptions = {
+            ...RANGE_COLUMN_OPTIONS,
+            series: [{ ...RANGE_COLUMN_OPTIONS.series![0], shadow: { enabled: true } }],
+        } as AgChartOptions;
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const series: any = deproxy(chart).series[0];
+        const nodes = series.datumSelection.nodes();
+        expect(nodes.length).toBeGreaterThan(0);
+        for (const node of nodes) {
+            expect(node.fillShadow).toEqual({
+                enabled: true,
+                color: expect.any(String),
+                xOffset: 3,
+                yOffset: 3,
+                blur: 5,
+            });
+        }
+    });
+
     it(`should render a range-bar chart with Date x values as expected`, async () => {
         const options: AgChartOptions = { ...RANGE_COLUMN_OPTIONS, data: CONTINUOUS_DATE_DATA };
         prepareEnterpriseTestOptions(options as any);

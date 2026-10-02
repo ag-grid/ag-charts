@@ -949,6 +949,37 @@ describe('Shape', () => {
             expect(red).toBeGreaterThan(0);
         });
 
+        it('should scale the silhouette shadow offset by the device pixel ratio of the layer', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const node = new Path();
+            Object.assign(node, {
+                fill: 'black',
+                stroke: undefined,
+                strokeWidth: 0,
+                fillShadow: { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 5, yOffset: 5, blur: 0 },
+                shadowMode: 'silhouette',
+            });
+            node.path.rect(20, 20, 30, 50);
+            // A 200x110 layer at a pixel ratio of 2 is the 400x220 canvas.
+            vi.spyOn(node, 'layerManager', 'get').mockReturnValue({
+                canvas: { width: 200, height: 110, pixelRatio: 2 },
+            } as any);
+
+            clearCanvas();
+            ctx.save();
+            ctx.scale(2, 2);
+            renderNode(node, ctx);
+            ctx.restore();
+            vi.restoreAllMocks();
+
+            const pixel = (x: number, y: number) => Array.from(ctx.getImageData(x, y, 1, 1).data);
+            expect(pixel(70, 90)).toEqual([0, 0, 0, 255]);
+            // The node spans 40 to 100 on the canvas, and its shadow another 10 to the right.
+            expect(pixel(108, 100)).toEqual([255, 0, 0, 255]);
+            expect(pixel(112, 100)).toEqual([255, 255, 255, 255]);
+            expect(pixel(300, 100)).toEqual([255, 255, 255, 255]);
+        });
+
         describe('extent coordinate spaces', () => {
             const BLACK = [0, 0, 0, 255];
             const unshadowed = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
@@ -981,8 +1012,7 @@ describe('Shape', () => {
                 node.path.rect(200, 40, 100, 100);
                 renderNode(node);
 
-                // Only the node's own pixels reach the canvas. The source copy used to be shifted by too little and
-                // land at the left edge, because the scale was applied to the bbox twice.
+                // Only the node's own pixels reach the canvas.
                 const columns = columnsOf(BLACK);
                 expect(columns[0]).toBe(100);
                 expect(columns.at(-1)).toBe(149);
@@ -1168,10 +1198,32 @@ describe('Shape', () => {
             });
 
             it('bounds the silhouette offset by how far right the shape reaches, plus blur and half the stroke width', () => {
-                const calls = record(whiskerPath('silhouette', 40));
+                const calls = record(whiskerPath('silhouette', 40, { lineJoin: 'round' }));
                 const offset = Number(calls[0].split(':')[2]);
                 // distance + xOffset, with distance = right edge of the shape (40 + 60) + blur + strokeWidth / 2.
                 expect(offset).toBe(100 + SHADOW.blur + 4 / 2 + SHADOW.xOffset);
+            });
+
+            it('pads the silhouette offset by the miter reach of the stroke', () => {
+                const calls = record(whiskerPath('silhouette', 40, { lineJoin: 'miter', miterLimit: 3 }));
+                const offset = Number(calls[0].split(':')[2]);
+                // As above, with the stroke reaching miterLimit * strokeWidth / 2 past the shape.
+                expect(offset).toBe(100 + SHADOW.blur + 3 * (4 / 2) + SHADOW.xOffset);
+            });
+
+            it('keeps a silhouette whose visible blur just reaches the canvas', () => {
+                const fillShadow = { ...SHADOW, blur: 10 };
+                const calls = record(whiskerPath('silhouette', -80, { lineJoin: 'round', fillShadow }));
+                // The shadow's edge is 2px short of the canvas, but the blur fades out about 1.5 * blur from it.
+                expect(calls).toHaveLength(4);
+            });
+
+            it('skips the silhouette pre-pass when the shadow is not finite', () => {
+                const calls = record(whiskerPath('silhouette', 40, { fillShadow: { ...SHADOW, blur: Number.NaN } }));
+                expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([
+                    ['fill', false],
+                    ['stroke', false],
+                ]);
             });
 
             it('skips the silhouette pre-pass for a shape whose shadow is nowhere near the canvas', () => {
