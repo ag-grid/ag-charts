@@ -9,5 +9,8 @@
         "command": "node --test tools/archive/*.test.mjs"
       }
     }
-  }
+  },
+  "tags": [
+    "no-sharding"
+  ]
 }
