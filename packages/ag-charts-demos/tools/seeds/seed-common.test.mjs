@@ -236,7 +236,7 @@ describe('readPinnedChartsVersion', () => {
 
     /** Every seed of two demos pinning `version` throughout, as a merge-back or a bump leaves them. */
     function writeSeeds(version, pinSource) {
-        for (const seed of ['trading-terminal/react', 'trading-terminal/angular', 'procurement/vue']) {
+        for (const seed of ['trading-terminal/react', 'trading-terminal/angular', 'web-analytics/vue']) {
             const pins = { 'ag-charts-community': version, 'ag-charts-enterprise': version };
             writeSeed(seed, { pins, pinnedVersion: version, pinSource });
         }
@@ -307,7 +307,7 @@ describe('readPinnedChartsVersion', () => {
 
     it('pins the dist-tag, naming what each seed carries, when the seeds mix a release with the dist-tag', () => {
         writeSeeds('latest', 'dist-tag');
-        writeSeed('procurement/vue', {
+        writeSeed('web-analytics/vue', {
             pins: { 'ag-charts-vue3': '14.2.0', 'ag-charts-enterprise': '14.2.0' },
             pinnedVersion: '14.2.0',
             pinSource: 'release',
@@ -316,33 +316,33 @@ describe('readPinnedChartsVersion', () => {
         const pin = pinFor(BETA);
         expect(pin).toMatchObject({ pinnedVersion: 'latest', pinSource: 'dist-tag' });
         expect(pin.reason).toBe(
-            `npm dist-tag: workspace version ${BETA} is a pre-release, which public npm does not have; a release carried in by a merge-back is kept only when every seed pins the same plain X.Y.Z, but the seeds pin latest with pinSource dist-tag in trading-terminal/angular, trading-terminal/react; 14.2.0 with pinSource release in procurement/vue`
+            `npm dist-tag: workspace version ${BETA} is a pre-release, which public npm does not have; a release carried in by a merge-back is kept only when every seed pins the same plain X.Y.Z, but the seeds pin latest with pinSource dist-tag in trading-terminal/angular, trading-terminal/react; 14.2.0 with pinSource release in web-analytics/vue`
         );
     });
 
     it('keeps no release that the seeds disagree on, or that one seed pins only in part', () => {
         writeSeeds('14.2.0', 'release');
-        writeSeed('procurement/vue', {
+        writeSeed('web-analytics/vue', {
             pins: { 'ag-charts-vue3': 'latest', 'ag-charts-enterprise': 'latest' },
             pinnedVersion: 'latest',
             pinSource: 'dist-tag',
         });
         expect(pinFor(BETA).pinnedVersion).toBe('latest');
 
-        writeSeed('procurement/vue', {
+        writeSeed('web-analytics/vue', {
             pins: { 'ag-charts-vue3': '14.2.1', 'ag-charts-enterprise': '14.2.1' },
             pinnedVersion: '14.2.1',
             pinSource: 'release',
         });
         expect(pinFor(BETA).pinnedVersion).toBe('latest');
 
-        writeSeed('procurement/vue', {
+        writeSeed('web-analytics/vue', {
             pins: { 'ag-charts-vue3': '14.2.0', 'ag-charts-enterprise': 'latest' },
             pinnedVersion: '14.2.0',
             pinSource: 'release',
         });
         expect(pinFor(BETA).reason).toMatch(
-            /but the seeds pin .*; 14\.2\.0 and latest with pinSource release in procurement\/vue$/
+            /but the seeds pin .*; 14\.2\.0 and latest with pinSource release in web-analytics\/vue$/
         );
     });
 
