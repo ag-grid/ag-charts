@@ -1017,22 +1017,26 @@ export abstract class Series<
         highlightState?: HighlightState
     ): NormalisedDropShadowOptions | undefined {
         const highlightShadow = this.getHighlightedItemShadow();
-        const merged = () =>
-            highlightShadow == null
-                ? shadow
-                : mergeDefaults<NormalisedDropShadowOptions>(highlightShadow as any, shadow);
+        // Per-datum hot path: with nothing to cast or replace, every copy keeps the series' shadow.
+        if (highlightShadow == null && shadow?.enabled !== true) return shadow;
 
-        if (!this.isItemShadowOnHighlightLayer()) {
-            // A shadow that is not enabled casts nothing, so it is passed through rather than replaced.
-            return isHighlight && shadow?.enabled === true ? undefined : shadow;
-        }
-        if (isHighlight) return merged();
+        if (!this.isItemShadowOnHighlightLayer()) return isHighlight ? undefined : shadow;
+        if (isHighlight) return this.mergeHighlightedItemShadow(shadow, highlightShadow);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         if (datumIndex != null && this.getRedrawnDatumIndex(highlightedDatum) === datumIndex) return undefined;
 
         const state = highlightState ?? this.getHighlightState(highlightedDatum, false, datumIndex);
-        return state === HighlightState.Item ? merged() : shadow;
+        return state === HighlightState.Item ? this.mergeHighlightedItemShadow(shadow, highlightShadow) : shadow;
+    }
+
+    private mergeHighlightedItemShadow(
+        shadow: NormalisedDropShadowOptions | undefined,
+        highlightShadow: DeepPartial<NormalisedDropShadowOptions> | undefined
+    ): NormalisedDropShadowOptions | undefined {
+        return highlightShadow == null
+            ? shadow
+            : mergeDefaults<NormalisedDropShadowOptions>(highlightShadow as any, shadow);
     }
 
     protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datumIndex?: DatumIndex) {
