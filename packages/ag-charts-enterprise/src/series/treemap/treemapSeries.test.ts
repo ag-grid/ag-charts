@@ -1507,6 +1507,8 @@ describe('TreemapSeries', () => {
 
             expect(leaves).toHaveLength(4);
             for (const { rect } of leaves) {
+                // The tile rect is clipped to the tile's own bbox, yet still casts its shadow.
+                expect(rect.clipBBox).toBeDefined();
                 expect(rect.fillShadow).toMatchObject(shadow);
             }
             expect(groups.filter(({ rect }) => rect.fillShadow?.enabled)).toEqual([]);
@@ -1525,18 +1527,6 @@ describe('TreemapSeries', () => {
         it('renders with group.shadow and tile.shadow enabled', async () => {
             await createChart(shadowOptions({ group: shadow, tile: shadow }));
             await compare();
-        });
-
-        it('casts the tile shadow from clipped leaves', async () => {
-            // The tile rect spans its parent group's content area but is clipped to the tile's own bbox. The clip is
-            // applied to the rect geometry, so the shadow is still cast beyond it (see the tile.shadow snapshot).
-            const { leaves } = await createChart(shadowOptions({ tile: shadow }));
-
-            expect(leaves).toHaveLength(4);
-            for (const { rect } of leaves) {
-                expect(rect.clipBBox).toBeDefined();
-                expect(rect.fillShadow).toMatchObject(shadow);
-            }
         });
     });
 
