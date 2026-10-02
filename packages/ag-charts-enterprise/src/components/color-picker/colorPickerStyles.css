@@ -193,7 +193,8 @@
 
 .ag-charts-color-picker__multi-color-button {
     width: 36px;
-    margin-left: var(--inset);
+    /* A track taller than the thumb gives a negative inset; clamp it so the button stays inside the picker. */
+    margin-left: max(0px, var(--inset));
     height: var(--track-height);
     border-radius: var(--ag-charts-color-picker-track-border-radius);
     border: 0;
