@@ -550,6 +550,16 @@ describe('Navigator', () => {
                 },
             ],
             ['scatter', { type: 'scatter', xKey: 'y', yKey: 'y', data: barData, shadow: SHADOW }],
+            [
+                'waterfall',
+                {
+                    type: 'waterfall',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: barData.map((d, i) => ({ ...d, y: i % 2 === 0 ? d.y : -d.y })),
+                    item: { positive: { shadow: SHADOW }, negative: { shadow: SHADOW }, total: { shadow: SHADOW } },
+                },
+            ],
         ];
 
         it.each(seriesCases)('does not draw the %s series shadow in the mini chart', async (_type, series) => {

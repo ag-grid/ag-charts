@@ -50,9 +50,7 @@ const priceVolumePresetIgnoredMiniChartProperties = [
     'strokeWidth',
 ];
 
-// The mini chart strip is 40px high, so an inherited series shadow costs blur work for no visible benefit. This is kept
-// out of the shared `*IgnoredMiniChartProperties` lists because those also drive the options defs and mirror the public
-// `*IgnoredProperties` types, which would stop `navigator.miniChart.series[]` accepting an explicit `shadow`.
+// Not in the shared ignore lists: those drive the options defs, so `series[]` would reject `shadow`.
 function omitInheritedShadow(ignoredProperties: readonly string[]) {
     return [...ignoredProperties, 'shadow'];
 }
@@ -74,6 +72,17 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                     typePath,
                     {},
                     [['area', 'line'], { marker: miniChartMarkerTheme }],
+                    // Waterfall keeps its shadows under `item.*`, which `$omit` does not reach.
+                    [
+                        'waterfall',
+                        {
+                            item: {
+                                positive: { shadow: { enabled: false } },
+                                negative: { shadow: { enabled: false } },
+                                total: { shadow: { enabled: false } },
+                            },
+                        },
+                    ],
                     [
                         'range-area',
                         {
@@ -98,12 +107,10 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                             ['bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties)],
                             ['heatmap', omitInheritedShadow(heatmapIgnoredMiniChartProperties)],
                             ['histogram', omitInheritedShadow(histogramIgnoredMiniChartProperties)],
+                            // `priceVolumePresetIgnoredMiniChartProperties` already includes `shadow`.
                             [
                                 'line',
-                                omitInheritedShadow([
-                                    ...lineIgnoredMiniChartProperties,
-                                    ...priceVolumePresetIgnoredMiniChartProperties,
-                                ]),
+                                [...lineIgnoredMiniChartProperties, ...priceVolumePresetIgnoredMiniChartProperties],
                             ],
                             ['range-area', omitInheritedShadow(rangeAreaIgnoredMiniChartProperties)],
                             ['range-bar', omitInheritedShadow(rangeBarIgnoredMiniChartProperties)],
