@@ -194,6 +194,7 @@ export class ChartTheme {
             borderColor: { $foregroundBackgroundMix: 0.15 },
             borderRadius: 4,
             borderWidth: 1,
+            cardShadow: { $ref: 'popupShadow' },
             chartBackgroundColor: { $ref: 'backgroundColor' },
             chartPadding: 20,
             focusShadow: '0 0 0 3px color-mix(in srgb, var(--ag-charts-accent-color) 50%, transparent)',
@@ -231,6 +232,19 @@ export class ChartTheme {
             buttonBorderRadius: { $ref: 'borderRadius' },
             buttonFontWeight: 400,
             buttonTextColor: { $ref: 'chromeTextColor' },
+            buttonHoverBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
+            buttonHoverBorder: { $ref: 'buttonBorder' },
+            buttonHoverTextColor: { $ref: 'buttonTextColor' },
+            buttonActiveBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
+            buttonActiveBorder: { color: { $ref: 'accentColor' } },
+            buttonActiveTextColor: { $ref: 'accentColor' },
+            buttonDisabledBackgroundColor: {
+                $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
+            },
+            buttonDisabledBorder: { $ref: 'buttonBorder' },
+            buttonDisabledTextColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'buttonTextColor' }, 0.5] },
+            buttonHorizontalPadding: 9,
+            buttonVerticalPadding: 6,
 
             inputBackgroundColor: { $ref: 'backgroundColor' },
             inputBorder: {
@@ -238,6 +252,7 @@ export class ChartTheme {
                 width: { $ref: 'borderWidth' },
             },
             inputBorderRadius: { $ref: 'borderRadius' },
+            inputPlaceholderTextColor: { $mix: [{ $ref: 'inputTextColor' }, { $ref: 'inputBackgroundColor' }, 0.4] },
             inputTextColor: { $ref: 'textColor' },
 
             menuBackgroundColor: { $ref: 'chromeBackgroundColor' },
@@ -246,6 +261,7 @@ export class ChartTheme {
                 width: { $ref: 'borderWidth' },
             },
             menuBorderRadius: { $ref: 'borderRadius' },
+            menuSeparatorColor: { $ref: 'borderColor' },
             menuTextColor: { $ref: 'chromeTextColor' },
 
             panelBackgroundColor: { $ref: 'chromeBackgroundColor' },
@@ -277,6 +293,52 @@ export class ChartTheme {
             footnoteColor: { $ref: 'subtleTextColor' },
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
+
+            legendBorder: false,
+            legendBorderRadius: { $ref: 'borderRadius' },
+            legendItemHorizontalPadding: 8,
+            legendItemVerticalPadding: 4,
+            legendLabelColor: { $ref: 'textColor' },
+            legendLabelFontFamily: { $ref: 'fontFamily' },
+            legendLabelFontSize: { $rem: FONT_SIZE_RATIO.SMALL },
+            legendLabelFontWeight: { $ref: 'fontWeight' },
+            legendMarkerSize: 15,
+            legendPadding: 5,
+            colorPickerColorBorderRadius: { $multiply: [0.5, { $ref: 'borderRadius' }] },
+            colorPickerThumbBorderWidth: 3,
+            colorPickerThumbSize: 18,
+            colorPickerTrackBorderRadius: { $multiply: [99, { $ref: 'borderRadius' }] },
+            colorPickerTrackSize: 12,
+            dragHandleColor: { $ref: 'chromeTextColor' },
+
+            // The border mixes reproduce the scrollbar colours that predate these params.
+            scrollbarThickness: 12,
+            scrollbarTrackBackgroundColor: { $foregroundBackgroundMix: 0.03 },
+            scrollbarTrackBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.031] },
+                width: { $ref: 'borderWidth' },
+            },
+            scrollbarTrackBorderRadius: 6,
+            scrollbarThumbBackgroundColor: { $foregroundBackgroundMix: 0.125 },
+            scrollbarThumbBorder: {
+                color: { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.2513] },
+                width: { $ref: 'borderWidth' },
+            },
+            scrollbarThumbBorderRadius: 6,
+            scrollbarThumbHoverBackgroundColor: {
+                $mix: [{ $ref: 'scrollbarThumbBackgroundColor' }, { $ref: 'foregroundColor' }, 0.075],
+            },
+            scrollbarThumbHoverBorder: {
+                // A boolean scrollbarThumbBorder has no members, and its thumb border uses borderColor.
+                color: {
+                    $if: [
+                        { $isType: [{ $ref: 'scrollbarThumbBorder' }, 'boolean'] },
+                        { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.075] },
+                        { $mix: [{ $ref: 'scrollbarThumbBorder.color' }, { $ref: 'foregroundColor' }, 0.075] },
+                    ],
+                },
+                width: { $ref: 'scrollbarThumbBorder.width' },
+            },
         };
     }
 

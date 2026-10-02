@@ -15,11 +15,21 @@ import { getIsProduction, getIsArchive, getIsStaging, getIsDev } from '@utils/en
 import { isDynamicFrameworkPath, isDynamicFrameworkPathMatch, replaceDynamicFrameworkPath } from '@utils/framework';
 import Plausible from '../components/Plausible.astro';
 import { DARK_MODE_INIT_SCRIPT, KBD_PLATFORM_INIT_SCRIPT } from '@utils/csp/inlineScripts';
-import { FRAMEWORKS, SITE_BASE_URL, PUBLIC_GTM_ID, PUBLIC_GTM_AUTH, PUBLIC_GTM_PREVIEW, agChartsVersion } from '@constants';
+import {
+    FRAMEWORKS,
+    SITE_BASE_URL,
+    PUBLIC_GTM_ID,
+    PUBLIC_GTM_AUTH,
+    PUBLIC_GTM_PREVIEW,
+    PUBLIC_DASH0_ENDPOINT_URL,
+    PUBLIC_DASH0_AUTH_TOKEN,
+    agChartsVersion,
+} from '@constants';
 import { DevTools } from '@ag-website-shared/components/dev-tools/DevTools';
 import GoogleTagManager from '@ag-website-shared/components/google-tag-manager/GoogleTagManager.astro';
 import GoogleTagManagerBody from '@ag-website-shared/components/google-tag-manager/GoogleTagManagerBody.astro';
 import JsonLd from '@ag-website-shared/components/structured-data/JsonLd.astro';
+import WebsiteMonitoring from '@ag-website-shared/components/website-monitoring/WebsiteMonitoring.astro';
 import AnnouncementBanner from '@ag-website-shared/components/announcement-banner/AnnouncementBanner.astro';
 import {
     buildAgGridOrganization,
@@ -205,6 +215,19 @@ const structuredData: JsonLdObject[] = includeStructuredData
         <meta name="twitter:image" content={socialImage}>
 
         {structuredData.length > 0 && <JsonLd data={structuredData} />}
+
+        {/* Ahead of Google Tag Manager, so CSP violations from its tags are reported */}
+        {
+            !getIsDev() && PUBLIC_DASH0_ENDPOINT_URL && PUBLIC_DASH0_AUTH_TOKEN && (
+                <WebsiteMonitoring
+                    serviceName="ag-charts-website"
+                    serviceVersion={agChartsVersion}
+                    environment={isArchive ? 'archive' : isProduction ? 'production' : isStaging ? 'staging' : 'testing'}
+                    endpointUrl={PUBLIC_DASH0_ENDPOINT_URL}
+                    authToken={PUBLIC_DASH0_AUTH_TOKEN}
+                />
+            )
+        }
 
         {
             !getIsDev() && (

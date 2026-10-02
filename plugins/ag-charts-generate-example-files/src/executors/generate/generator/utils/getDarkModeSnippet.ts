@@ -51,6 +51,8 @@ const DEFAULT_THEME_PARAMS = {
     foregroundColor: 'var(--ag-example-chart-foreground-color)',
     gridLineColor: 'var(--ag-example-chart-grid-line-color)',
     groupedCategoryLineColor: 'var(--ag-example-chart-grouped-category-line-color)',
+    scrollbarThumbBorder: { color: 'var(--ag-example-chart-scrollbar-thumb-border-color)', width: 1 },
+    scrollbarTrackBorder: { color: 'var(--ag-example-chart-scrollbar-track-border-color)', width: 1 },
     subtleTextColor: 'var(--ag-example-chart-subtle-text-color)',
 };
 
@@ -63,7 +65,7 @@ const canResolveVars = (container) =>
     getComputedStyle(container).getPropertyValue('--ag-example-chart-background-color').trim() !== '';
 
 const getDarkmodeTheme = (theme = 'ag-default', preset) => {
-    const baseTheme = preset === 'price-volume' ? 'ag-financial' : theme.replace(/-dark$/, '');
+    const baseTheme = preset === 'price-volume' || preset === 'volume-profile' ? 'ag-financial' : theme.replace(/-dark$/, '');
     return isDarkmode() ? baseTheme + '-dark' : baseTheme;
 };
 

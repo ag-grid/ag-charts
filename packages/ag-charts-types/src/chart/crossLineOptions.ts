@@ -65,14 +65,27 @@ export type AgBaseCrossLineOptions<
 
 // `id` and `listeners` identify and act on a single Cross Line, so they are deliberately absent from
 // the themeable surface.
-export interface AgCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions> extends Omit<
+export interface AgLineCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions> extends Omit<
     AgCommonCrossLineOptions<LabelType, ContextDefault>,
     'id' | 'listeners'
-> {
+> {}
+
+export interface AgRangeCrossLineThemeOptions<
+    LabelType = AgBaseCrossLineLabelOptions,
+> extends AgLineCrossLineThemeOptions<LabelType> {
     /** The colour to use for the fill of the range. A colour string, or a theme-colour reference object. */
     fill?: AgCssColorOrRef;
     /** The opacity of the fill for the range. */
     fillOpacity?: Opacity;
+}
+
+export interface AgCrossLineThemeOptions<
+    LabelType = AgBaseCrossLineLabelOptions,
+> extends AgRangeCrossLineThemeOptions<LabelType> {
+    /** Theme options for `line` Cross Lines only, taking precedence over the options for every Cross Line. */
+    line?: AgLineCrossLineThemeOptions<LabelType>;
+    /** Theme options for `range` Cross Lines only, taking precedence over the options for every Cross Line. */
+    range?: AgRangeCrossLineThemeOptions<LabelType>;
 }
 
 export interface AgBaseCrossLineLabelOptions extends Omit<AgChartLabelStyleOptions, 'fontFamily'> {

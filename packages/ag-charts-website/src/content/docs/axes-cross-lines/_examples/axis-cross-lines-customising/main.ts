@@ -50,7 +50,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0.4,
                     label: {
                         text: 'Price Peak',
-                        position: 'top',
+                        placement: 'top',
                         fontSize: 14,
                         fill: '#7290C4',
                         fillOpacity: 0.4,
@@ -75,7 +75,7 @@ const options: AgChartOptions = {
                     lineDash: [6, 12],
                     label: {
                         text: '142.4',
-                        position: 'right',
+                        placement: 'right',
                         fontSize: 12,
                         color: '#000000',
                     },
@@ -87,7 +87,7 @@ const options: AgChartOptions = {
                     lineDash: [6, 12],
                     label: {
                         text: '133.8',
-                        position: 'right',
+                        placement: 'right',
                         fontSize: 12,
                         color: '#01c185',
                     },
@@ -99,7 +99,7 @@ const options: AgChartOptions = {
                     lineDash: [2, 4],
                     label: {
                         text: '135.3',
-                        position: 'right',
+                        placement: 'right',
                         fontSize: 12,
                         color: '#000000',
                     },
@@ -111,7 +111,7 @@ const options: AgChartOptions = {
                     lineDash: [2, 4],
                     label: {
                         text: '124.0',
-                        position: 'right',
+                        placement: 'right',
                         fontSize: 12,
                         color: '#01c185',
                     },

@@ -6,6 +6,7 @@ import { type AgChartThemeName, _Theme } from 'ag-charts-community';
 import {
     CHARTS_PARAM_DEFAULTS,
     PUBLIC_PARAM_NAMES,
+    TOGGLE_ONLY_BORDER_PARAMS,
     getPalette,
     getStackParams,
     toStackParamValue,
@@ -40,10 +41,11 @@ describe('AG Charts param translation', () => {
         for (const [, createTheme] of STOCK_THEMES) {
             const params = createTheme().params as Record<string, unknown>;
             for (const property of PUBLIC_PARAM_NAMES) {
+                if (TOGGLE_ONLY_BORDER_PARAMS.has(property)) continue;
                 collectOperations(params[property], operations);
             }
         }
-        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$ref', '$rem']);
+        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$multiply', '$ref', '$rem']);
     });
 
     describe('colour references', () => {
@@ -83,6 +85,12 @@ describe('AG Charts param translation', () => {
             );
         });
 
+        it('maps $multiply to a calculated length', () => {
+            expect(
+                toStackParamValue('colorPickerColorBorderRadius', { $multiply: [0.5, { $ref: 'borderRadius' }] })
+            ).toEqual({ calc: 'borderRadius * 0.5' });
+        });
+
         it('translates the members of a composite param', () => {
             expect(toStackParamValue('buttonBorder', { color: { $ref: 'borderColor' }, width: 1 })).toEqual({
                 color: { ref: 'borderColor' },
@@ -105,6 +113,15 @@ describe('AG Charts param translation', () => {
                 // No stock theme uses a gradient or pattern fill, so nothing is
                 // dropped by the narrowing in `getPalette`.
                 expect(palette.fills).toHaveLength(createTheme().palette.fills.length);
+            }
+        });
+
+        it('reads the scrollbar borders as on/off toggles', () => {
+            for (const [themeName] of STOCK_THEMES) {
+                const params = getStackParams(themeName);
+                for (const property of TOGGLE_ONLY_BORDER_PARAMS) {
+                    expect(params[property]).toBe(true);
+                }
             }
         });
     });

@@ -77,7 +77,7 @@ const options: AgChartOptions = {
                     strokeOpacity: 0.7,
                     label: {
                         text: 'Centromere',
-                        position: 'left',
+                        placement: 'left',
                     },
                 },
                 {
@@ -87,7 +87,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'Long Arm',
-                        position: 'left',
+                        placement: 'left',
                         rotation: -90,
                         padding: 75,
                     },
@@ -99,7 +99,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'Short Arm',
-                        position: 'left',
+                        placement: 'left',
                         rotation: -90,
                         padding: 75,
                     },

@@ -178,6 +178,54 @@ describe('CrossLine colour references', () => {
     });
 });
 
+describe('PolarCrossLine theme overrides', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    it('styles angle and radius cross lines by type', async () => {
+        const typedOverrides = { stroke: 'red', line: { stroke: 'blue' }, range: { stroke: 'green' } };
+        const options: AgPolarChartOptions = {
+            data: [
+                { quarter: "Q1'22", revenue: 1 },
+                { quarter: "Q2'22", revenue: 3 },
+            ],
+            series: [{ type: 'radar-line', angleKey: 'quarter', radiusKey: 'revenue' }],
+            axes: {
+                angle: { type: 'angle-category', crossLines: [{ type: 'line', value: "Q1'22" }] },
+                radius: {
+                    type: 'radius-number',
+                    crossLines: [
+                        { type: 'line', value: 1 },
+                        { type: 'range', range: [1, 2] },
+                    ],
+                },
+            },
+            theme: {
+                overrides: {
+                    common: {
+                        axes: {
+                            'angle-category': { crossLines: typedOverrides },
+                            'radius-number': { crossLines: typedOverrides },
+                        },
+                    },
+                },
+            },
+        };
+        chart = deproxy(AgCharts.create(prepareEnterpriseTestOptions(options)));
+        await waitForChartStability(chart);
+
+        expect(crossLineInstances(chart, 'angle').map((c) => c.stroke)).toEqual(['blue']);
+        expect(crossLineInstances(chart, 'radius').map((c) => c.stroke)).toEqual(['blue', 'green']);
+    });
+});
+
 describe('PolarCrossLine listeners', () => {
     setupMockConsole();
     setupMockCanvas();

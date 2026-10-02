@@ -21,7 +21,7 @@ Check whether the export can live in `ag-charts-core` instead. Only add to `modu
 
 1. **Pure utility functions** with no community-package dependencies → place in `ag-charts-core` and import directly with `import { fn } from 'ag-charts-core'`
 2. **Functions/classes that depend on community internals** (e.g., `ColorScale`, `Selection`) → must stay in community; add to `module-support.ts` only if needed by enterprise
-3. **Type-only exports** → use `import type` from the source file directly; type-only imports are erased at compile time and do not affect bundling
+3. **Type-only exports owned by `ag-charts-core` or `ag-charts-types`** → `import type` from that package directly; type-only imports are erased at compile time and do not affect bundling. Community-owned types that enterprise needs go through `_ModuleSupport` (see `entry-point-hygiene.md`)
 
 ## Examples
 

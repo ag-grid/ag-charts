@@ -28,16 +28,24 @@ interface FakeSeriesOptions {
     datums?: PointLabelDatum[];
     obstacles?: LabelObstacle[];
     usesPlacedLabels?: boolean;
+    invalidatesLayout?: boolean;
 }
 
-function fakeSeries({ id, datums = [], obstacles, usesPlacedLabels = true }: FakeSeriesOptions) {
+function fakeSeries({
+    id,
+    datums = [],
+    obstacles,
+    usesPlacedLabels = true,
+    invalidatesLayout = false,
+}: FakeSeriesOptions) {
     const series = {
         id,
         nodeDataVersion: 1,
         usesPlacedLabels,
         getLabelData: vi.fn((): PointLabelDatum[] => datums),
         getLabelObstacles: vi.fn((): LabelObstacle[] | undefined => obstacles),
-        updatePlacedLabelData: vi.fn((_labels: PlacedLabel[]) => {}),
+        updatePlacedLabelData: vi.fn((_labels: PlacedLabel[]) => invalidatesLayout),
+        holdLabelPlacements: vi.fn((_hold: boolean) => {}),
     };
     return series as typeof series & AnySeries;
 }
@@ -305,6 +313,34 @@ describe('LabelManager', () => {
             manager.updateLabels([line], NO_PADDING, RECT);
 
             expect(placedTexts(line)).toEqual([]);
+        });
+    });
+
+    describe('layout invalidation', () => {
+        it('asks for one re-layout per update, holding every source through it', () => {
+            const manager = new LabelManager();
+            const x = fakeSeries({ id: 'crossLines:x', datums: [labelDatum(50, 50, 'x')], invalidatesLayout: true });
+            const y = fakeSeries({ id: 'crossLines:y', datums: [labelDatum(150, 150, 'y')] });
+            manager.registerSource(x);
+            manager.registerSource(y);
+
+            expect(manager.updateLabels([], NO_PADDING, RECT)).toBe(true);
+            expect(x.holdLabelPlacements).toHaveBeenLastCalledWith(true);
+            expect(y.holdLabelPlacements).toHaveBeenLastCalledWith(true);
+
+            // The redo invalidates again, and must not be allowed to request another.
+            x.nodeDataVersion += 1;
+            expect(manager.updateLabels([], NO_PADDING, RECT)).toBe(false);
+            expect(x.holdLabelPlacements).toHaveBeenLastCalledWith(false);
+            expect(y.holdLabelPlacements).toHaveBeenLastCalledWith(false);
+        });
+
+        it('asks for no re-layout while every placement matches its layout', () => {
+            const manager = new LabelManager();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+
+            expect(manager.updateLabels([series], NO_PADDING, RECT)).toBe(false);
+            expect(series.holdLabelPlacements).not.toHaveBeenCalled();
         });
     });
 });

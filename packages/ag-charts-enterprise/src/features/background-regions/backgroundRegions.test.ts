@@ -11,7 +11,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartOptions, AgSeriesAreaBackgroundRegion } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { anchors } from './cartesianBackgroundRegion';
@@ -625,6 +625,84 @@ const labelPositions = [
     'bottom-left',
     'bottom-right',
 ] as const;
+
+const LONG_LABEL = 'A region label that is too long';
+
+function fitLabelOptions(label: NonNullable<AgSeriesAreaBackgroundRegion['label']>): AgCartesianChartOptions {
+    return {
+        ...NUMERIC,
+        seriesArea: {
+            backgroundRegions: [
+                {
+                    fill: 'lightsalmon',
+                    fillOpacity: 0.8,
+                    xRange: { start: 20, end: 80 },
+                    yRange: { start: 20, end: 80 },
+                    label: { text: LONG_LABEL, fontSize: 20, position: 'inside-top', ...label },
+                },
+            ],
+        },
+    };
+}
+
+function fitRegion(
+    x: number,
+    y: number,
+    label: NonNullable<AgSeriesAreaBackgroundRegion['label']>
+): AgSeriesAreaBackgroundRegion {
+    return {
+        fill: 'lightsalmon',
+        fillOpacity: 0.8,
+        xRange: { start: x, end: x + 30 },
+        yRange: { start: y, end: y + 45 },
+        label: { text: LONG_LABEL, fontSize: 16, position: 'inside-top', ...label },
+    };
+}
+
+EXAMPLES.LABEL_FIT_MODES = {
+    options: {
+        ...NUMERIC,
+        seriesArea: {
+            backgroundRegions: [
+                fitRegion(0, 55, {}),
+                fitRegion(35, 55, { wrapping: 'never', truncate: true }),
+                fitRegion(70, 55, { maxWidth: 180, wrapping: 'never', minimumFontSize: 8 }),
+                fitRegion(0, 0, { maxHeight: 20, minimumFontSize: 12 }),
+                fitRegion(35, 0, { position: 'inside-left', rotation: 270 }),
+                fitRegion(70, 0, { fill: 'white', border: { enabled: true, stroke: 'black' } }),
+            ],
+        },
+        theme: { overrides: { scatter: { seriesArea: { backgroundRegions: { label: { maxWidth: 120 } } } } } },
+    },
+    assertions,
+};
+
+const FIT_POSITIONS = [
+    'top-left',
+    'right',
+    'left-bottom',
+    'bottom',
+    'inside',
+    'inside-top-left',
+    'inside-bottom-right',
+] as const;
+
+EXAMPLES.LABEL_FIT_POSITIONS = {
+    options: {
+        ...NUMERIC,
+        seriesArea: {
+            backgroundRegions: FIT_POSITIONS.map((position, index) => ({
+                fill: 'lightsalmon',
+                fillOpacity: index === 0 ? 0.8 : 0,
+                xRange: { start: 30, end: 70 },
+                yRange: { start: 30, end: 70 },
+                label: { text: 'Wrapped region label', fontSize: 12, maxWidth: 70, position },
+            })),
+        },
+    },
+    assertions,
+};
+
 for (const position of labelPositions) {
     EXAMPLES[`LABEL_${position}`] = {
         options: {
@@ -732,6 +810,107 @@ describe('Background Regions removal', () => {
 
         expect(regions.regions).toHaveLength(0);
         expectWarningsCalls().toEqual([]);
+    });
+});
+
+describe('Background Region label fitting', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(async () => {
+        if (chart) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    async function renderLabel(
+        label: NonNullable<AgSeriesAreaBackgroundRegion['label']>,
+        theme?: AgCartesianChartOptions['theme']
+    ) {
+        const options = { ...fitLabelOptions(label), theme };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        expectWarningsCalls().toEqual([]);
+
+        const regions = deproxy(chart).modulesManager.getModule<any>('background-regions');
+        const { labelNode } = regions.regions[0].instance;
+        return {
+            text: labelNode.text as string,
+            fontSize: labelNode.fontSize as number,
+            width: labelNode.getBBox().width as number,
+        };
+    }
+
+    it('renders an overlong label unchanged when no fit option is set', async () => {
+        expect(await renderLabel({})).toMatchObject({ text: LONG_LABEL, fontSize: 20 });
+    });
+
+    it('does not derive a bound from the region', async () => {
+        const label = await renderLabel({ wrapping: 'always', truncate: true, minimumFontSize: 8 });
+        expect(label).toMatchObject({ text: LONG_LABEL, fontSize: 20 });
+    });
+
+    it('wraps onto multiple lines within maxWidth', async () => {
+        const { text, fontSize, width } = await renderLabel({ maxWidth: 120, truncate: false });
+        expect(text.split('\n').length).toBeGreaterThan(1);
+        expect(text.replaceAll('\n', ' ')).toBe(LONG_LABEL);
+        expect(fontSize).toBe(20);
+        expect(width).toBeLessThanOrEqual(120);
+    });
+
+    it('truncates with an ellipsis', async () => {
+        const { text, width } = await renderLabel({ maxWidth: 120, wrapping: 'never', truncate: true });
+        expect(text).not.toContain('\n');
+        expect(text.endsWith('…')).toBe(true);
+        expect(width).toBeLessThanOrEqual(120);
+    });
+
+    it('shrinks towards minimumFontSize before truncating', async () => {
+        const { text, fontSize, width } = await renderLabel({ maxWidth: 200, wrapping: 'never', minimumFontSize: 8 });
+        expect(text).toBe(LONG_LABEL);
+        expect(fontSize).toBeLessThan(20);
+        expect(fontSize).toBeGreaterThanOrEqual(8);
+        expect(width).toBeLessThanOrEqual(200);
+    });
+
+    it('truncates at minimumFontSize when the label still does not fit', async () => {
+        const { text, fontSize, width } = await renderLabel({ maxWidth: 60, wrapping: 'never', minimumFontSize: 12 });
+        expect(text.endsWith('…')).toBe(true);
+        expect(fontSize).toBe(12);
+        expect(width).toBeLessThanOrEqual(60);
+    });
+
+    it('fits a label bounded through a theme override', async () => {
+        const theme = { overrides: { scatter: { seriesArea: { backgroundRegions: { label: { maxWidth: 120 } } } } } };
+        const { text, width } = await renderLabel({}, theme);
+        expect(text.split('\n').length).toBeGreaterThan(1);
+        expect(width).toBeLessThanOrEqual(120);
+    });
+
+    it('bounds a rotated label along its own text direction', async () => {
+        const { text } = await renderLabel({ maxWidth: 120, truncate: false, position: 'inside-left', rotation: 270 });
+        expect(text.split('\n').length).toBeGreaterThan(1);
+        expect(text.replaceAll('\n', ' ')).toBe(LONG_LABEL);
+    });
+
+    it('rejects a minimumFontSize above fontSize', async () => {
+        const options = fitLabelOptions({ maxWidth: 120, minimumFontSize: 30 });
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expectWarningsCalls().toEqual([
+            [
+                'AG Charts - Option `seriesArea.backgroundRegions[0].label.minimumFontSize` cannot be set to `30`; expecting a number greater than 0 and the value to be less than or equal to `fontSize`, ignoring.',
+            ],
+        ]);
     });
 });
 
@@ -892,5 +1071,37 @@ describe('Background Regions under the enterprise registry', () => {
         await waitForChartStability(chart);
 
         expectWarningsCalls().toEqual([]);
+    });
+});
+
+describe('Background Regions theme overrides', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(async () => {
+        if (chart) {
+            await waitForChartStability(chart);
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    it('applies nothing to a chart without background regions', async () => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 1, y: 1 },
+                { x: 2, y: 2 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            theme: { overrides: { line: { seriesArea: { backgroundRegions: { fill: 'lightsalmon' } } } } },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expect(deproxy(chart).chartOptions.processedOptions.seriesArea ?? {}).not.toHaveProperty('backgroundRegions');
     });
 });

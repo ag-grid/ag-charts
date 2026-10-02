@@ -61,7 +61,7 @@ In this configuration:
             fillOpacity: 0.4,
             label: {
                 text: 'Price Peak',
-                position: 'top',
+                placement: 'top',
                 fontSize: 14,
             },
         },
@@ -72,7 +72,72 @@ In this configuration:
 In this configuration:
 
 - Properties such as `stroke`, `strokeWidth`, and `fill` are used to customise the Cross Line.
-- A label is added, customised and positioned in relation to the Cross Line.
+- A label is added, customised and placed in relation to the Cross Line. See [Label Placement](#label-placement) for more details.
+
+## Label Placement
+
+Use `label.placement` to choose where a label sits relative to its Cross Line. The available placements depend on the Cross Line type and on the axis it belongs to, and the default is `top`.
+
+```js format="snippet"
+{
+    crossLines: [
+        {
+            type: 'line',
+            value: 142.45,
+            label: {
+                text: 'Target',
+                placement: ['inside-end', 'end'],
+            },
+        },
+    ],
+}
+```
+
+In this configuration:
+
+- `inside-end` places the label on the line itself, at its end.
+- `end` is used instead if the label doesn't fit there, placing it beyond the end of the line.
+
+The first part of a placement names the edge or end the label sits against, and the second part positions the label along it. For example, `top-left` sits above the Cross Line aligned to its left, while `left-top` sits beside its left edge aligned to its top.
+
+### Line Cross Lines
+
+A `line` on a y axis runs horizontally and accepts the following placements:
+
+- `top`, `bottom`, `top-left`, `top-right`, `bottom-left` and `bottom-right` sit above or below the line, inside the series area.
+- `left` and `right` sit beyond the ends of the line, outside the series area.
+- `inside` sits on the line at its midpoint, and `inside-left` and `inside-right` sit on the line at that end.
+
+A `line` on an x axis runs vertically and accepts the following placements:
+
+- `left`, `right`, `left-top`, `left-bottom`, `right-top` and `right-bottom` sit beside the line, inside the series area.
+- `top` and `bottom` sit beyond the ends of the line, outside the series area.
+- `inside` sits on the line at its midpoint, and `inside-top` and `inside-bottom` sit on the line at that end.
+
+### Range Cross Lines
+
+A `range` accepts every placement on either axis:
+
+- `top`, `bottom`, `left` and `right` sit outside the band, centred on that edge.
+- `top-left`, `top-right`, `bottom-left` and `bottom-right` sit outside the band's top or bottom edge, aligned to the named side.
+- `left-top`, `left-bottom`, `right-top` and `right-bottom` sit outside the band's left or right edge, aligned to the named side.
+- `inside` sits in the centre of the band, and `inside-top`, `inside-bottom`, `inside-left`, `inside-right`, `inside-top-left`, `inside-top-right`, `inside-bottom-left` and `inside-bottom-right` sit inside the band against that edge or corner.
+
+### Text Direction
+
+Every placement that names `left` or `right` has a twin that names `start` or `end` instead, such as `top-start` or `inside-end`:
+
+- `start` and `end` resolve to `left` and `right` in a left-to-right chart, and are mirrored when [RTL Layout](./rtl/) is enabled.
+- Placements that name `left` or `right` are not mirrored.
+- On an x-axis `line`, `inside-start` and `inside-end` are the same as `inside-top` and `inside-bottom`, and are not mirrored.
+
+### Fallback Placements
+
+Providing `placement` as an ordered array lets the label fall back to the next placement when an earlier one collides with another element or doesn't fit in the chart:
+
+- The first placement that fits is used.
+- If none fits, the label uses the placement where it is least obstructed, preferring earlier placements when they are equally obstructed.
+- A placement that doesn't apply to the Cross Line type and axis is ignored, and a warning lists the placements that do.
 
 ## Polar Axes Cross Lines
 
@@ -118,6 +183,35 @@ Polar Cross Lines are not included in `CrossLinesModule`. Register `PolarCrossLi
     },
 }
 ```
+
+## Theming Cross Lines
+
+[Theme overrides](./themes/#overrides) style every Cross Line on an axis type. Add a `line` or `range` object to style only the Cross Lines of that type.
+
+```js format="snippet"
+{
+    theme: {
+        overrides: {
+            common: {
+                axes: {
+                    number: {
+                        crossLines: {
+                            strokeWidth: 2,
+                            line: { stroke: '#d62728', lineDash: [4, 4] },
+                            range: { fill: '#7290C4', fillOpacity: 0.2 },
+                        },
+                    },
+                },
+            },
+        },
+    },
+}
+```
+
+In this configuration:
+
+- `strokeWidth` applies to every Cross Line.
+- The `line` and `range` options take precedence over the options for every Cross Line, and options set on a Cross Line take precedence over both.
 
 ## API Reference
 

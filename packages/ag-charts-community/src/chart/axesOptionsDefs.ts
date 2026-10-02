@@ -11,6 +11,7 @@ import {
     callback,
     callbackDefs,
     callbackOf,
+    collisionOptionsDef,
     colorOrRef,
     constant,
     date,
@@ -45,6 +46,7 @@ import {
     typeUnion,
     undocumented,
     union,
+    unionOrArray,
     verticalAlign,
 } from 'ag-charts-core';
 import type {
@@ -64,11 +66,11 @@ import type {
     AgCartesianAxisCaptionOptions,
     AgCartesianAxisLabelOptions,
     AgCartesianCrossLineLabelOptions,
+    AgCartesianCrossLineLabelPlacement,
     AgCategoryAxisOptions,
     AgCommonCrossLineOptions,
     AgContinuousAxisOptions,
     AgCrossLineListeners,
-    AgCrossLineThemeOptions,
     AgCrosshairLabel,
     AgCrosshairLabelRendererResult,
     AgCrosshairOptions,
@@ -77,6 +79,7 @@ import type {
     AgLogAxisOptions,
     AgNumberAxisOptions,
     AgRadiusCrossLineLabelOptions,
+    AgRangeCrossLineThemeOptions,
     AgTimeAxisFormattableLabelFormat,
     AgTimeAxisFormattableLabelUnitFormat,
     AgTimeAxisOptions,
@@ -101,7 +104,7 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
 commonCrossLineLabelOptionsDefs.overflow = undocumented(union('pad-chart', 'realign-text', 'clip-text'));
 
 // `fill`/`fillOpacity` belong to the `range` variant only, and `id` identifies rather than styles a cross line.
-const crossLineCommonStyleOptionsDefs: OptionsDefs<
+export const crossLineCommonStyleOptionsDefs: OptionsDefs<
     Omit<AgCommonCrossLineOptions<AgBaseCrossLineLabelOptions, unknown>, 'label' | 'id' | 'listeners'>
 > = {
     enabled: boolean,
@@ -115,7 +118,7 @@ const crossLineListenersOptionsDefs: OptionsDefs<AgCrossLineListeners<unknown>> 
 };
 
 // Theme overrides apply to both variants, so `fill`/`fillOpacity` are valid here.
-export const crossLineStyleOptionsDefs: OptionsDefs<Omit<AgCrossLineThemeOptions, 'label'>> = {
+export const crossLineStyleOptionsDefs: OptionsDefs<Omit<AgRangeCrossLineThemeOptions, 'label'>> = {
     ...crossLineCommonStyleOptionsDefs,
     fill: colorOrRef,
     fillOpacity: ratio,
@@ -152,28 +155,74 @@ export function crossLineOptionsDefs(
     );
 }
 
+const crossLineLabelPlacements: Record<AgCartesianCrossLineLabelPlacement, AgCartesianCrossLineLabelPlacement> = {
+    top: 'top',
+    bottom: 'bottom',
+    left: 'left',
+    right: 'right',
+    start: 'start',
+    end: 'end',
+    'top-left': 'top-left',
+    'top-right': 'top-right',
+    'top-start': 'top-start',
+    'top-end': 'top-end',
+    'bottom-left': 'bottom-left',
+    'bottom-right': 'bottom-right',
+    'bottom-start': 'bottom-start',
+    'bottom-end': 'bottom-end',
+    'left-top': 'left-top',
+    'left-bottom': 'left-bottom',
+    'right-top': 'right-top',
+    'right-bottom': 'right-bottom',
+    'start-top': 'start-top',
+    'start-bottom': 'start-bottom',
+    'end-top': 'end-top',
+    'end-bottom': 'end-bottom',
+    inside: 'inside',
+    'inside-top': 'inside-top',
+    'inside-bottom': 'inside-bottom',
+    'inside-left': 'inside-left',
+    'inside-right': 'inside-right',
+    'inside-start': 'inside-start',
+    'inside-end': 'inside-end',
+    'inside-top-left': 'inside-top-left',
+    'inside-top-right': 'inside-top-right',
+    'inside-top-start': 'inside-top-start',
+    'inside-top-end': 'inside-top-end',
+    'inside-bottom-left': 'inside-bottom-left',
+    'inside-bottom-right': 'inside-bottom-right',
+    'inside-bottom-start': 'inside-bottom-start',
+    'inside-bottom-end': 'inside-bottom-end',
+};
+
 export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLineLabelOptions> = {
     ...commonCrossLineLabelOptionsDefs,
-    position: union(
-        'top',
-        'left',
-        'right',
-        'bottom',
-        'top-left',
-        'top-right',
-        'bottom-left',
-        'bottom-right',
-        'inside',
-        'inside-left',
-        'inside-right',
-        'inside-top',
-        'inside-bottom',
-        'inside-top-left',
-        'inside-bottom-left',
-        'inside-top-right',
-        'inside-bottom-right'
+    position: deprecated(
+        union(
+            'top',
+            'left',
+            'right',
+            'bottom',
+            'top-left',
+            'top-right',
+            'bottom-left',
+            'bottom-right',
+            'inside',
+            'inside-left',
+            'inside-right',
+            'inside-top',
+            'inside-bottom',
+            'inside-top-left',
+            'inside-bottom-left',
+            'inside-top-right',
+            'inside-bottom-right'
+        ),
+        'Use `placement` instead.'
     ),
+    // Which values apply depends on the cross line's type and axis, so they are checked when it is laid out.
+    placement: unionOrArray(crossLineLabelPlacements),
     rotation: number,
+    collision: collisionOptionsDef,
 };
 
 // @ts-expect-error undocumented option
@@ -275,6 +324,9 @@ commonAxisOptionsDefs.layoutConstraints = undocumented({
 
 // @ts-expect-error undocumented option
 commonAxisOptionsDefs.ignoreZoom = undocumented(boolean);
+
+// @ts-expect-error undocumented option
+commonAxisOptionsDefs.linkZoom = undocumented(string);
 
 export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
     enabled: boolean,

@@ -10,6 +10,7 @@ import {
     interpolationThemeTemplate,
     positiveNumber,
     positiveNumberNonZero,
+    ratio,
     required,
     string,
     undocumented,
@@ -36,11 +37,15 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     navigator: boolean,
     volume: boolean,
     volumeProfile: {
+        enabled: boolean,
         data: required(array),
+        priceKey: string,
+        upKey: required(string),
+        downKey: required(string),
         placement: union('left', 'right'),
-        tickSize: positiveNumber,
-        width: positiveNumberNonZero,
+        widthRatio: ratio,
     },
+    tickSize: positiveNumberNonZero,
     rangeButtons: boolean,
     statusBar: boolean,
     toolbar: boolean,
@@ -67,6 +72,15 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
 priceVolumeOptionsDef.overrideDevicePixelRatio = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
 priceVolumeOptionsDef.foreground = undocumented(defined);
+
+const VOLUME_PROFILE_ENABLED = { $and: [{ $preset: 'volumeProfile' }, { $preset: ['volumeProfile/enabled', true] }] };
+const HLC_UP_BAND_INDEX = {
+    $if: [
+        { $preset: ['volume', true] },
+        { $if: [VOLUME_PROFILE_ENABLED, 3, 1] },
+        { $if: [VOLUME_PROFILE_ENABLED, 2, 0] },
+    ],
+};
 
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
     type: 'preset',
@@ -135,6 +149,8 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                 },
                 category: {
                     gridLine: { enabled: true },
+                    paddingInner: 0.3,
+                    paddingOuter: 0.15,
                 },
                 time: {
                     gridLine: { enabled: true },
@@ -235,7 +251,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                             'hlc',
                             {
                                 $if: [
-                                    { $eq: [{ $value: '$index' }, 1] },
+                                    { $eq: [{ $value: '$index' }, HLC_UP_BAND_INDEX] },
                                     { $palette: 'up.fill' },
                                     { $palette: 'down.fill' },
                                 ],
@@ -251,7 +267,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                             'hlc',
                             {
                                 $if: [
-                                    { $eq: [{ $value: '$index' }, 1] },
+                                    { $eq: [{ $value: '$index' }, HLC_UP_BAND_INDEX] },
                                     { $palette: 'up.stroke' },
                                     { $palette: 'down.stroke' },
                                 ],

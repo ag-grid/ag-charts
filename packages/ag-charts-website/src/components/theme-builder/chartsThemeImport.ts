@@ -127,7 +127,7 @@ export const validateChartsThemeCode = (code: string): ValidationResult => {
 
     const parseResult = parseThemeCode(code, {
         isRecognizedParam: (key) => PARAM_NAMES.has(key) || key === PALETTE_KEY || key === BASE_THEME_KEY,
-        noParamsError: NO_THEME_ERROR,
+        noParamsError: () => NO_THEME_ERROR,
     });
     if (!parseResult.success) {
         return { status: 'error', validParamCount: 0, error: parseResult.error };

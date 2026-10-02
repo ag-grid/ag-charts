@@ -261,6 +261,8 @@ export interface PointLabelDatum {
      * baked first orientation and overflow the bar. Droppable point labels leave it unset.
      */
     readonly neverDrop?: boolean;
+    /** When `false`, the placed label is not an obstacle for the labels resolved after it. */
+    readonly obstacle?: boolean;
     /**
      * Authoritative pre-positioned candidates, tried in order; each carries its own region. When
      * present the engine cascades over these opaque boxes and never computes a placement itself
@@ -443,6 +445,9 @@ export type LabelObstacle =
           readonly sourceId?: string;
           readonly entityIndex?: number;
       };
+
+/** External obstacles, or a function producing them so a solve that never queries the index skips gathering. */
+export type LabelObstacles = readonly LabelObstacle[] | (() => readonly LabelObstacle[]);
 
 function circleOverlapsBox(cx: number, cy: number, r: number, x: number, y: number, w: number, h: number): boolean {
     if (r <= 0) {
@@ -1146,26 +1151,44 @@ function orderKeepFirst(data: Map<string, SeriesLabels>): [string, SeriesLabels]
  * sole-candidate: it has a second answer to an obstacle beyond moving, which is to shrink into the room
  * the obstacle leaves.
  */
-function isSoleCandidateKeep(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): boolean {
+function isSoleCandidateKeep(
+    d: PointLabelDatum,
+    defaults: SeriesLabelDefaults | undefined,
+    resolvesCandidates: boolean
+): boolean {
+    if (d.positionedCandidates != null) return isSolePositionedKeep(d, resolvesCandidates);
     const alwaysShow = d.alwaysShow ?? defaults?.alwaysShow ?? true;
-    if (!alwaysShow || d.positionedCandidates != null || d.neverDrop === true || d.fit != null) return false;
+    if (!alwaysShow || d.neverDrop === true || d.fit != null) return false;
     const placements = d.placements ?? defaults?.placements;
     return (placements?.length ?? 1) <= 1 && (orientationsOf(d)?.length ?? 1) <= 1;
 }
 
+/**
+ * A kept label with one pre-positioned candidate that nothing can move, refit or restyle: the cascade could
+ * only settle on that candidate's own box, whether it collides or not.
+ */
+function isSolePositionedKeep(d: PointLabelDatum, resolvesCandidates: boolean): boolean {
+    const candidates = d.positionedCandidates!;
+    if (candidates.length !== 1 || d.neverDrop !== true || d.fit != null || resolvesCandidates) return false;
+    const [candidate] = candidates;
+    return candidate.region == null && candidate.hidden !== true;
+}
+
 /** True when no label anywhere will query the obstacle index, so the index need not be built. */
 function noLabelQueriesIndex(data: Map<string, SeriesLabels>): boolean {
-    for (const { datums, defaults } of data.values()) {
+    for (const { datums, defaults, resolveCandidate } of data.values()) {
+        const resolvesCandidates = resolveCandidate != null;
         for (const d of datums) {
             if (d.label.text === '') continue;
-            if (!isSoleCandidateKeep(d, defaults)) return false;
+            if (!isSoleCandidateKeep(d, defaults, resolvesCandidates)) return false;
         }
     }
     return true;
 }
 
 /** Resets the shared obstacle index and populates it with external obstacles and marker circles. */
-function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacles: readonly LabelObstacle[], bounds: BoxBounds) {
+function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacleSource: LabelObstacles, bounds: BoxBounds) {
+    const obstacles = typeof obstacleSource === 'function' ? obstacleSource() : obstacleSource;
     obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
     for (const o of obstacles) {
         obstacleIndex.insert(o.box, o);
@@ -1180,13 +1203,14 @@ function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacles: readonly
  * @param padding
  * @param obstacles External obstacles (e.g. bar rects, pie sectors) every label must avoid, in
  * addition to markers and already-placed labels. All obstacles block all labels, regardless of order.
+ * A function is only called when some label will query the obstacle index.
  * @returns Placed labels for all series.
  */
 export function placeLabels(
     data: Map<string, SeriesLabels>,
     bounds: BoxBounds,
     padding = 5,
-    obstacles: readonly LabelObstacle[] = []
+    obstacles: LabelObstacles = []
 ) {
     const result: Map<string, PlacedLabel[]> = new Map();
 
@@ -1227,7 +1251,7 @@ export function placeLabels(
             const placed = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle, resolveCandidate);
             if (placed != null) {
                 labels.push(placed);
-                if (useIndex) {
+                if (useIndex && d.obstacle !== false) {
                     // Every placed label is a fixed obstacle for the labels resolved after it.
                     labelObstacleCount = insertLabelObstacle(placed, labelObstacleCount);
                 }
@@ -1831,7 +1855,8 @@ function tryPlaceLabel(
 
     // Sole-candidate keep-forever: one placement, kept on overflow, never dropped. The obstacle query
     // could only ever return this same placement, so skip it and take the placement unconditionally.
-    if (isSoleCandidateKeep(d, defaults)) {
+    if (isSoleCandidateKeep(d, defaults, resolveCandidate != null)) {
+        if (d.positionedCandidates != null) return placeSolePositioned(d, index);
         const placement = candidateAt(placements, d.placement, 0);
         const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
         const rotation = orientation == null ? 0 : orientationAngles[orientation];
@@ -1869,6 +1894,25 @@ function tryPlaceLabel(
         resolveCandidateStyle,
         resolveCandidate
     );
+}
+
+function placeSolePositioned(d: PointLabelDatum, index: number): PlacedLabel {
+    const candidate = d.positionedCandidates![0];
+    const { width, height } = candidate.size ?? d.label;
+    return {
+        index,
+        text: d.label.text,
+        x: candidate.box.x,
+        y: candidate.box.y,
+        width,
+        height,
+        datum: d,
+        placement: undefined,
+        rotation: candidate.rotation,
+        offsetX: 0,
+        offsetY: 0,
+        candidate,
+    };
 }
 
 /** Total horizontal extent the drawn box adds around the glyph. */
@@ -2206,7 +2250,7 @@ function placeAvoidingLabel(
  * candidate's geometry, so no placement maths happens here beyond resizing a candidate's box around
  * text it had to truncate. A truncated-but-fitting candidate is remembered and the cascade continues, so
  * the least-truncated one wins; when none fits at all, a {@link PointLabelDatum.neverDrop} datum keeps
- * the least region-overflowing candidate and any other is dropped (`undefined`).
+ * the least buried candidate, then the least region-overflowing one, and any other is dropped (`undefined`).
  */
 function placeFromPositionedCandidates(
     d: PointLabelDatum,
@@ -2322,7 +2366,16 @@ function placeFromPositionedCandidates(
         }
         if (d.neverDrop === true) {
             const overflow = regionOverflow(region, x, y, cw, ch);
-            recordBestChoice(TIER_OVERFLOWING, overflow, text, width, height, rotation, offsetX, offsetY, undefined, c);
+            let tier = TIER_OVERFLOWING;
+            let score = overflow;
+            // Ranking colliding candidates by how buried they are only matters when there is one to choose.
+            if (overflow === 0 && ln > 1) {
+                candidateWorstOverlap = 0;
+                obstacleIndex.query(queryBox, worstObstacleOverlap);
+                tier = TIER_COLLIDING;
+                score = candidateWorstOverlap;
+            }
+            recordBestChoice(tier, score, text, width, height, rotation, offsetX, offsetY, undefined, c);
         }
         // Ungated on containment, unlike the compass path: `measureShrinkReduction` seeds the region's own
         // overflow here, so a candidate carrying more text than its region holds is still recoverable.

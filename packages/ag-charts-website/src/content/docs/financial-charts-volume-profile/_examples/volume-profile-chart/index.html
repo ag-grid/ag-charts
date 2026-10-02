@@ -1,0 +1,34 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <span>Data:</span>
+        <div class="button-group" role="group" aria-label="Data">
+            <input type="radio" id="data-regular" name="data" value="regular" checked onchange="changeData(event)" />
+            <label for="data-regular">Regular</label>
+            <input type="radio" id="data-irregular" name="data" value="irregular" onchange="changeData(event)" />
+            <label for="data-irregular">Irregular</label>
+        </div>
+        <span class="gap-left">Tick Size:</span>
+        <div class="button-group" role="group" aria-label="Tick Size">
+            <input
+                type="radio"
+                id="tick-off"
+                name="tick-enabled"
+                value="off"
+                checked
+                onchange="toggleTickSize(event)"
+            />
+            <label for="tick-off">Off</label>
+            <input type="radio" id="tick-on" name="tick-enabled" value="on" onchange="toggleTickSize(event)" />
+            <label for="tick-on">On</label>
+        </div>
+        <div class="button-group gap-left" role="group" aria-label="Tick Size Value">
+            <input type="radio" id="tick-1" name="tick-size" value="1" onchange="changeTickSize(event)" />
+            <label for="tick-1">1</label>
+            <input type="radio" id="tick-2-5" name="tick-size" value="2.5" checked onchange="changeTickSize(event)" />
+            <label for="tick-2-5">2.5</label>
+            <input type="radio" id="tick-5" name="tick-size" value="5" onchange="changeTickSize(event)" />
+            <label for="tick-5">5</label>
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>

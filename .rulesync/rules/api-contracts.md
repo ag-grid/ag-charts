@@ -36,18 +36,21 @@ This pattern:
 
 ### Existing Examples
 
-Undocumented chart-level options in `chartDefaults.ts`:
+Examples from `packages/ag-charts-core/src/config/chartDefaults.ts` (for the full set, run `grep -n "undocumented(" packages/ag-charts-core/src/config/chartDefaults.ts`).
 
--   `flashOnUpdate`
+Chart-level:
+
 -   `statusBar`
 -   `foreground`
 -   `overrideDevicePixelRatio`
--   `sync.domainMode`
 -   `displayNullData`
+-   `dataSource.requestThrottle`, `dataSource.updateThrottle`, `dataSource.updateDuringInteraction`
+-   `ranges.minSize`
 
-Undocumented series-level options:
+Series-level:
 
 -   `allowNullKeys` - allows null/undefined as discrete category keys
+-   `seriesGrouping`
 
 ## Documented Options on Chart
 

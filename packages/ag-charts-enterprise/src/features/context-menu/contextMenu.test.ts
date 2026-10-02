@@ -91,7 +91,7 @@ describe('Context Menu', () => {
                         type: 'line',
                         value: 1.5,
                         // `top` sits the label above the series area, on the container widget.
-                        label: { text: 'Threshold', position: 'top' },
+                        label: { text: 'Threshold', placement: 'top' },
                     },
                 ],
             },

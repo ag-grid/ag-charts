@@ -21,6 +21,7 @@ import type {
 
 import { setupEnterpriseModules } from '../../setup';
 import { getStockData } from '../test/stockData';
+import { getIrregularVolumeProfile, getRegularVolumeProfile } from '../test/volumeProfileData';
 import { priceVolume } from './priceVolumePreset';
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
@@ -170,6 +171,56 @@ describe('priceVolumePreset', () => {
                 await compareImageDataUrl();
             }
         );
+    });
+
+    describe('volumeProfile', () => {
+        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
+
+        const VOLUME_PROFILE_EXAMPLES: Record<string, AgFinancialChartOptions> = {
+            default: { data: getStockData(), volumeProfile },
+            'placement right': { data: getStockData(), volumeProfile: { ...volumeProfile, placement: 'right' } },
+            'width ratio': { data: getStockData(), volumeProfile: { ...volumeProfile, widthRatio: 0.25 } },
+            'smaller tick size': { data: getStockData(), volumeProfile, tickSize: 1 },
+            'matching tick size': { data: getStockData(), volumeProfile, tickSize: 2.5 },
+            'larger tick size': { data: getStockData(), volumeProfile, tickSize: 5 },
+            'irregular data': {
+                data: getStockData(),
+                volumeProfile: { ...volumeProfile, data: getIrregularVolumeProfile() },
+            },
+        };
+
+        it.each(Object.entries(VOLUME_PROFILE_EXAMPLES))(
+            'for %s it should render to canvas as expected',
+            async (_exampleName, example) => {
+                chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ ...example }));
+                await compare();
+            }
+        );
+
+        it('should render no volume profile when enabled is false', async () => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({
+                    data: getStockData(),
+                    volumeProfile: { ...volumeProfile, enabled: false },
+                })
+            );
+            await compare();
+        });
+
+        it('should read the price, up and down values from the given keys', async () => {
+            const data = getRegularVolumeProfile().map(({ price, upVolume, downVolume }) => ({
+                level: price,
+                buys: upVolume,
+                sells: downVolume,
+            }));
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({
+                    data: getStockData(),
+                    volumeProfile: { data, priceKey: 'level', upKey: 'buys', downKey: 'sells' },
+                })
+            );
+            await compare();
+        });
     });
 
     describe('toolbar button theme override (AG-17364)', () => {

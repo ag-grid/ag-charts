@@ -144,7 +144,7 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                     lineDash: [6, 4],
                     label: {
                         text: 'Break Even',
-                        position: 'bottom',
+                        placement: 'bottom',
                     },
                 },
                 {
@@ -152,7 +152,7 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                     range: [-2, 0],
                     fillOpacity: 0.05,
                     label: {
-                        position: 'inside-bottom',
+                        placement: 'inside-bottom',
                         text: 'Acceptable Loss Zone',
                     },
                 },
@@ -161,7 +161,7 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                     range: [0, 1],
                     fillOpacity: 0.05,
                     label: {
-                        position: 'inside-top',
+                        placement: 'inside-top',
                         text: 'Gain Zone',
                     },
                 },

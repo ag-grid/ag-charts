@@ -276,7 +276,7 @@ export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
                     range: [10, 30],
                     label: {
                         text: '10 - 30',
-                        position: 'right',
+                        placement: 'right',
                     },
                     ...yAxisCrossLineStyle,
                 },
@@ -285,7 +285,7 @@ export const SCATTER_CROSSLINES: AgCartesianChartOptions = {
                     value: 60,
                     label: {
                         text: '60',
-                        position: 'right',
+                        placement: 'right',
                     },
                     ...yAxisLineCrossLineStyle,
                 },
@@ -346,7 +346,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                     range: [1, 13],
                     label: {
                         text: '1 - 13',
-                        position: 'top',
+                        placement: 'top',
                     },
                     ...xAxisCrossLineStyle,
                 },
@@ -355,7 +355,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                     range: [34, 45],
                     label: {
                         text: '34 - 45',
-                        position: 'top',
+                        placement: 'top',
                     },
                     ...xAxisCrossLineStyle,
                 },
@@ -364,7 +364,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                     value: 27,
                     label: {
                         text: '27',
-                        position: 'top',
+                        placement: 'top',
                     },
                     ...xAxisLineCrossLineStyle,
                 },
@@ -385,7 +385,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                     range: [0.25, 0.33],
                     label: {
                         text: '0.25 - 0.33',
-                        position: 'inside-left',
+                        placement: 'inside-left',
                         padding: 10,
                     },
                     ...yAxisCrossLineStyle,
@@ -395,7 +395,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                     value: 0.87,
                     label: {
                         text: '0.87',
-                        position: 'top-right',
+                        placement: 'top-right',
                     },
                     ...yAxisLineCrossLineStyle,
                 },
@@ -441,7 +441,7 @@ export const AREA_CROSSLINES: AgCartesianChartOptions = {
                     range: [800, 1000],
                     label: {
                         text: '800 - 1000',
-                        position: 'inside-bottom-left',
+                        placement: 'inside-bottom-left',
                     },
                     ...yAxisCrossLineStyle,
                 },
@@ -450,7 +450,7 @@ export const AREA_CROSSLINES: AgCartesianChartOptions = {
                     value: -700,
                     label: {
                         text: '-700',
-                        position: 'top-left',
+                        placement: 'top-left',
                     },
                     ...yAxisLineCrossLineStyle,
                 },
@@ -501,7 +501,7 @@ export const COLUMN_CROSSLINES: AgCartesianChartOptions = {
                     range: [7000, 8000],
                     label: {
                         text: '7000 - 8000',
-                        position: 'right',
+                        placement: 'right',
                         rotation: -90,
                     },
                     ...yAxisCrossLineStyle,
@@ -511,7 +511,7 @@ export const COLUMN_CROSSLINES: AgCartesianChartOptions = {
                     value: 3500,
                     label: {
                         text: '3500',
-                        position: 'right',
+                        placement: 'right',
                         rotation: -90,
                     },
                     ...yAxisLineCrossLineStyle,
@@ -533,7 +533,7 @@ export const BAR_CROSSLINES: AgCartesianChartOptions = {
                     range: ['Whole economy', 'Public sector'],
                     label: {
                         text: 'Whole economy - Public sector',
-                        position: 'right',
+                        placement: 'right',
                         rotation: -90,
                     },
                     ...yAxisCrossLineStyle,
@@ -543,7 +543,7 @@ export const BAR_CROSSLINES: AgCartesianChartOptions = {
                     value: 'Manufacturing',
                     label: {
                         text: 'Manufacturing',
-                        position: 'right',
+                        placement: 'right',
                         rotation: -90,
                     },
                     ...yAxisLineCrossLineStyle,
@@ -619,7 +619,7 @@ export const DUAL_LEFT_AXES_CROSSLINE_LINE: AgCartesianChartOptions = {
                 {
                     type: 'line',
                     value: 130,
-                    label: { text: 'Price threshold', position: 'right' },
+                    label: { text: 'Price threshold', placement: 'right' },
                     ...yAxisLineCrossLineStyle,
                 },
             ],
@@ -641,7 +641,7 @@ export const DUAL_LEFT_AXES_CROSSLINE_RANGE: AgCartesianChartOptions = {
                 {
                     type: 'range',
                     range: [128, 134],
-                    label: { text: '128 - 134', position: 'inside-top' },
+                    label: { text: '128 - 134', placement: 'inside-top' },
                     ...yAxisCrossLineStyle,
                 },
             ],
@@ -664,13 +664,13 @@ export const LEFT_RIGHT_AXES_CROSSLINE: AgCartesianChartOptions = {
                 {
                     type: 'line',
                     value: 1300,
-                    label: { text: 'Volume threshold', position: 'left' },
+                    label: { text: 'Volume threshold', placement: 'left' },
                     ...yAxisLineCrossLineStyle,
                 },
                 {
                     type: 'range',
                     range: [1280, 1340],
-                    label: { text: '1280 - 1340', position: 'inside-top' },
+                    label: { text: '1280 - 1340', placement: 'inside-top' },
                     ...yAxisCrossLineStyle,
                 },
             ],
@@ -691,7 +691,7 @@ export const DUAL_RIGHT_AXES_CROSSLINE: AgCartesianChartOptions = {
                 {
                     type: 'line',
                     value: 130,
-                    label: { text: 'Price threshold', position: 'left' },
+                    label: { text: 'Price threshold', placement: 'left' },
                     ...yAxisLineCrossLineStyle,
                 },
             ],
@@ -726,7 +726,7 @@ export const DUAL_BOTTOM_AXES_CROSSLINE: AgCartesianChartOptions = {
                 {
                     type: 'line',
                     value: new Date(2019, 6, 1),
-                    label: { text: 'Jul 2019', position: 'top' },
+                    label: { text: 'Jul 2019', placement: 'top' },
                     ...xAxisLineCrossLineStyle,
                 },
             ],
@@ -763,19 +763,19 @@ export const DOMAIN_EXTREME_LINE_CROSSLINES: AgCartesianChartOptions = {
                 {
                     type: 'line',
                     value: new Date(Date.UTC(2024, 0, 1)),
-                    label: { text: 'First', position: 'top' },
+                    label: { text: 'First', placement: 'top' },
                     ...xAxisLineCrossLineStyle,
                 },
                 {
                     type: 'line',
                     value: new Date(Date.UTC(2024, 1, 1)),
-                    label: { text: 'Second', position: 'top' },
+                    label: { text: 'Second', placement: 'top' },
                     ...xAxisLineCrossLineStyle,
                 },
                 {
                     type: 'line',
                     value: new Date(Date.UTC(2024, 11, 1)),
-                    label: { text: 'Last', position: 'top' },
+                    label: { text: 'Last', placement: 'top' },
                     ...xAxisLineCrossLineStyle,
                 },
             ],
@@ -786,9 +786,9 @@ export const DOMAIN_EXTREME_LINE_CROSSLINES: AgCartesianChartOptions = {
             min: 1,
             max: 5,
             crossLines: [
-                { type: 'line', value: 1, label: { text: 'Min', position: 'right' }, ...yAxisLineCrossLineStyle },
-                { type: 'line', value: 3, label: { text: 'Mid', position: 'right' }, ...yAxisLineCrossLineStyle },
-                { type: 'line', value: 5, label: { text: 'Max', position: 'right' }, ...yAxisLineCrossLineStyle },
+                { type: 'line', value: 1, label: { text: 'Min', placement: 'right' }, ...yAxisLineCrossLineStyle },
+                { type: 'line', value: 3, label: { text: 'Mid', placement: 'right' }, ...yAxisLineCrossLineStyle },
+                { type: 'line', value: 5, label: { text: 'Max', placement: 'right' }, ...yAxisLineCrossLineStyle },
             ],
         },
     },
@@ -810,13 +810,13 @@ export const OUTSIDE_DOMAIN_LINE_CROSSLINES: AgCartesianChartOptions = {
                 {
                     type: 'line',
                     value: new Date(Date.UTC(2023, 11, 1)),
-                    label: { text: 'Before first', position: 'top' },
+                    label: { text: 'Before first', placement: 'top' },
                     ...xAxisLineCrossLineStyle,
                 },
                 {
                     type: 'line',
                     value: new Date(Date.UTC(2025, 0, 1)),
-                    label: { text: 'After last', position: 'top' },
+                    label: { text: 'After last', placement: 'top' },
                     ...xAxisLineCrossLineStyle,
                 },
             ],
@@ -827,8 +827,18 @@ export const OUTSIDE_DOMAIN_LINE_CROSSLINES: AgCartesianChartOptions = {
             min: 1,
             max: 5,
             crossLines: [
-                { type: 'line', value: 0, label: { text: 'Below min', position: 'right' }, ...yAxisLineCrossLineStyle },
-                { type: 'line', value: 6, label: { text: 'Above max', position: 'right' }, ...yAxisLineCrossLineStyle },
+                {
+                    type: 'line',
+                    value: 0,
+                    label: { text: 'Below min', placement: 'right' },
+                    ...yAxisLineCrossLineStyle,
+                },
+                {
+                    type: 'line',
+                    value: 6,
+                    label: { text: 'Above max', placement: 'right' },
+                    ...yAxisLineCrossLineStyle,
+                },
             ],
         },
     },

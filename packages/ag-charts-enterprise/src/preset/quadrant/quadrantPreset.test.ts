@@ -278,6 +278,18 @@ const EXAMPLES: Record<string, QuadrantTestCase> = {
         options: regionLabelOptions('inside-outer-outer', { bottomRight: { position: 'inside-inner-inner' } }),
         assertions,
     },
+    REGION_LABEL_FIT: {
+        options: regionLabelOptions(
+            'inside-inner-inner',
+            {
+                topLeft: { text: 'A top left label that wraps' },
+                topRight: { text: 'A top right label that truncates', wrapping: 'never' },
+                bottomLeft: { text: 'A bottom left label that shrinks', wrapping: 'never', truncate: false },
+            },
+            { maxWidth: 90, minimumFontSize: 8 }
+        ),
+        assertions,
+    },
 };
 
 for (const position of REGION_LABEL_POSITIONS) {

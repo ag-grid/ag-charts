@@ -1,10 +1,14 @@
-import { type AxisPluginModuleDefinition, undocumentedThemeOptions } from 'ag-charts-core';
+import { type AxisPluginModuleDefinition, type DynamicContext, undocumentedThemeOptions } from 'ag-charts-core';
 import type { AgBaseCrossLineOptions } from 'ag-charts-types';
 
+import type { AxisContext } from '../../module/axisContext';
+import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { communityModule } from '../../module/moduleIdentity';
 import { VERSION } from '../../version';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import { CrossLinesPlugin } from './crossLinesPlugin';
+
+export const CROSS_LINE_TYPES = ['line', 'range'] as const satisfies ReadonlyArray<AgBaseCrossLineOptions['type']>;
 
 export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions[]> = /* #__PURE__ */ communityModule({
     type: 'axis:plugin',
@@ -52,11 +56,12 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
                     },
                 ],
             },
+            CROSS_LINE_TYPES,
         ],
     },
 
-    register: (ctx) => {
-        ctx.factory('crossLine', () => new CartesianCrossLine());
+    register: (ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) => {
+        ctx.factory('crossLine', (c) => new CartesianCrossLine(c));
     },
     create: (ctx) => new CrossLinesPlugin(ctx),
 });
