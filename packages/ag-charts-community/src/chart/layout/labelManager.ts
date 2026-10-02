@@ -112,10 +112,14 @@ export class LabelManager {
 
         // SERIES_UPDATE also fires on hover/highlight, where the placement inputs are unchanged, so
         // reuse the cached solve; it is still re-applied below to refresh per-datum highlight styling.
-        const signature = placementSignature(allSources, bounds, this.avoidsAxisLabels);
+        const { avoidsAxisLabels } = this;
+        let signature = placementSignature(allSources, bounds, avoidsAxisLabels);
         let placedLabels = this.lastPlacedLabels;
         if (placedLabels == null || signature !== this.lastPlacementSignature) {
             placedLabels = this.computePlacement(placedLabelSources, allSources, bounds, seriesRect);
+            if (this.avoidsAxisLabels !== avoidsAxisLabels) {
+                signature = placementSignature(allSources, bounds, this.avoidsAxisLabels);
+            }
             this.lastPlacementSignature = signature;
             this.lastPlacedLabels = placedLabels;
         }

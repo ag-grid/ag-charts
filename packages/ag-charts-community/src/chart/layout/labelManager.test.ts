@@ -379,9 +379,11 @@ describe('LabelManager', () => {
             expect(placedTexts(series)).toEqual([]);
 
             manager.updateLabels([series], NO_PADDING, RECT);
+            expect(series.getLabelData).toHaveBeenCalledTimes(1);
+
             source.nodeDataVersion++;
             manager.updateLabels([series], NO_PADDING, RECT);
-            expect(series.getLabelData).toHaveBeenCalledTimes(3);
+            expect(series.getLabelData).toHaveBeenCalledTimes(2);
         });
     });
 });

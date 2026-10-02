@@ -657,6 +657,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
      */
     override update() {
         if (!this.computedLayout) return;
+        this.labelSource.nodeDataVersion++;
 
         // Skip animations only when the domain changes (not on initial load or other updates)
         if (!this.scale.animatable) {
@@ -743,6 +744,10 @@ export class GroupedCategoryAxis extends CategoryAxis<
         this.updateTitle(this.scale.domain, spacing);
         this.notifyAxisPlugins('onAxisUpdate');
         this.resetSelectionNodes();
+    }
+
+    protected override getDrawnTickLabels() {
+        return this.computedLayout?.tickLabelLayout;
     }
 
     override calculateLayout(_primaryTickCount?: AxisPrimaryTickCount, chartLayout?: ChartLayout) {

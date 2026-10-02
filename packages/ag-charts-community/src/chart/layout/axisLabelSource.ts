@@ -11,15 +11,16 @@ export class AxisLabelSource implements LabelSource {
 
     constructor(
         readonly id: string,
-        private readonly getCanvasBoxes: () => readonly BoxBounds[]
+        /** Boxes in the space placement works in, offset from the canvas by `seriesRect`. */
+        private readonly getBoxes: (seriesRect: BBox) => readonly BoxBounds[]
     ) {}
 
     getLabelObstacles(seriesRect: BBox): LabelObstacle[] {
-        const obstacles: LabelObstacle[] = [];
-        for (const { x, y, width, height } of this.getCanvasBoxes()) {
-            const box = { x: x - seriesRect.x, y: y - seriesRect.y, width, height };
-            obstacles.push({ kind: 'rect', box, category: 'axisLabel', sourceId: this.id });
-        }
-        return obstacles;
+        return this.getBoxes(seriesRect).map((box): LabelObstacle => ({
+            kind: 'rect',
+            box,
+            category: 'axisLabel',
+            sourceId: this.id,
+        }));
     }
 }

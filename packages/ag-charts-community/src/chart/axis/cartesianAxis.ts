@@ -221,7 +221,9 @@ export abstract class CartesianAxis<
     protected gridFillGroupSelection = Selection.select<Rect<AxisFillDatum>>(this.gridFillGroup, Rect, false);
 
     private readonly tempText = new TransformableText({ debugDirty: false });
-    readonly labelSource = new AxisLabelSource(`axisLabels:${this.id}`, () => this.getTickLabelCanvasBoxes());
+    readonly labelSource = new AxisLabelSource(`axisLabels:${this.id}`, (seriesRect) =>
+        this.getTickLabelBoxes(seriesRect)
+    );
     private readonly tempCaption = new Caption();
 
     protected readonly animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
@@ -813,23 +815,42 @@ export abstract class CartesianAxis<
         return { spacing, scrollbarLayout };
     }
 
-    private getTickLabelCanvasBoxes(): BBox[] {
-        const { tickLayout, tickLabelGroup, tempText } = this;
+    /** The tick labels this axis draws, or `undefined` when it draws none. */
+    protected getDrawnTickLabels(): readonly LabelNodeDatum[] | undefined {
+        const labelsEnabled = this.options.label.enabled || (this.primaryLabel?.enabled ?? false);
+        return labelsEnabled ? this.tickLayout?.labels : undefined;
+    }
+
+    private getTickLabelBoxes(seriesRect: BBox): BBox[] {
+        const { tickLabelGroup } = this;
         const translation = tickLabelGroup.datum;
-        if (!this.options.label.enabled || !tickLabelGroup.visible || tickLayout == null || translation == null) {
+        const labels = this.getDrawnTickLabels();
+        if (!tickLabelGroup.visible || labels == null || translation == null) {
             return [];
         }
 
         const boxes: BBox[] = [];
-        for (const datum of tickLayout.labels) {
+        this.measureTickLabels(
+            labels,
+            boxes,
+            translation.translationX - seriesRect.x,
+            translation.translationY - seriesRect.y
+        );
+        return boxes;
+    }
+
+    private measureTickLabels(labels: readonly LabelNodeDatum[], boxes: BBox[], offsetX = 0, offsetY = 0) {
+        const { tempText } = this;
+        for (const datum of labels) {
             if (!datum.visible) continue;
+
             tempText.setProperties(datum);
+
             const box = tempText.getBBox();
             if (box != null) {
-                boxes.push(box.clone().translate(translation.translationX, translation.translationY));
+                boxes.push(offsetX === 0 && offsetY === 0 ? box : box.clone().translate(offsetX, offsetY));
             }
         }
-        return boxes;
     }
 
     private measureAxisLayout(
@@ -853,18 +874,8 @@ export abstract class CartesianAxis<
             }
         }
 
-        const { tempText } = this;
         if (label.enabled) {
-            for (const datum of labels) {
-                if (!datum.visible) continue;
-
-                tempText.setProperties(datum);
-
-                const box = tempText.getBBox();
-                if (box != null) {
-                    boxes.push(box);
-                }
-            }
+            this.measureTickLabels(labels, boxes);
         }
 
         if (primaryLabel?.enabled && position === 'bottom') {
