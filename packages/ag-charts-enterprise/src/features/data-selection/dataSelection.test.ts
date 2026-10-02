@@ -5434,6 +5434,66 @@ describe('DataSelection', () => {
         });
     });
 
+    describe('box selection order with mixed-depth leaves', () => {
+        type D = { name: string; size?: number; children?: D[] };
+
+        // Leaves sit at depths 2, 3 and 4, so the scene graph's depth ordering differs from datum order.
+        const data: D[] = [
+            {
+                name: 'a/',
+                children: [
+                    { name: 'a1', size: 10 },
+                    {
+                        name: 'a2/',
+                        children: [
+                            { name: 'a2x', size: 6 },
+                            { name: 'a2y', size: 6 },
+                        ],
+                    },
+                ],
+            },
+            { name: 'b', size: 15 },
+            { name: 'c/', children: [{ name: 'c1', size: 12 }] },
+        ];
+
+        // Treemap groups aren't selectable, so only the leaves a1, a2x, a2y, b and c1 are reported; sunburst reports
+        // every sector.
+        describe.each([
+            { type: 'treemap', expectedItemIds: [1, 3, 4, 5, 7] },
+            { type: 'sunburst', expectedItemIds: [0, 1, 2, 3, 4, 5, 6, 7] },
+        ] as const)('$type', ({ type, expectedItemIds }) => {
+            let selectionChange: SelectionChangeRecorder<D, unknown>;
+
+            const hoverPoint: CanvasPoint = { canvasX: 400, canvasY: 300 };
+            const start: CanvasPoint = { canvasX: 20, canvasY: 20 };
+            const end: CanvasPoint = { canvasX: 780, canvasY: 580 };
+
+            beforeEach(async () => {
+                selectionChange = createSelectionChangeRecorder();
+                chart = await createChartInstance({
+                    data,
+                    series: [{ type, labelKey: 'name', sizeKey: 'size' }],
+                    selection: { enabled: true, enableClick: false, enableDrag: true },
+                    listeners: { selectionChange },
+                });
+            });
+
+            test('selectionChange reports `added` in datum order, once per item', async () => {
+                // Hover a tile first, so the highlight node exists while the box is dragged.
+                await mouseMove(hoverPoint);
+                await mouseDown(start);
+                await mouseMove(end);
+                await mouseUp(end);
+
+                const events = selectionChange.popEvents();
+                expect(events).toHaveLength(1);
+                const added = events[0].added.map((item) => item.itemId);
+                expect(added).toEqual(expectedItemIds);
+                expect(getChartSelectionArray().map((item) => item.itemId)).toEqual(added);
+            });
+        });
+    });
+
     describe('datum removal', () => {
         // Removing every selected datum must reset the selection count to 0; a stale count leaves unselected
         // datums dimmed, which the "removal all" screenshots below catch.
