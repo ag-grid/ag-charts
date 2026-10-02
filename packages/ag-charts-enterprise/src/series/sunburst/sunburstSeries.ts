@@ -4,7 +4,6 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    type BoxBounds,
     type CallbackParamRules,
     type DynamicContext,
     type NormalisedSunburstInnerLabelOptions,
@@ -872,16 +871,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     protected override pickNodesInBBoxPredicate() {
         return _ModuleSupport.pickSectorsInBBoxPredicate(this);
-    }
-
-    /** Yields in datum order, as `getSelection()` does; the base scene walk would yield in depth order. */
-    public override *pickNodesInBBox(selectionBox: BoxBounds): Iterable<SunburstNode> {
-        const predicate = this.pickNodesInBBoxPredicate();
-        for (const sector of this.datumSelection.nodes()) {
-            if (sector.visible && sector.pointerEvents !== PointerEvents.None && predicate(selectionBox, sector)) {
-                yield sector.unsafeDatum;
-            }
-        }
     }
 
     protected override animateEmptyUpdateReady() {

@@ -1,5 +1,6 @@
 import type { ChartAnimationPhase, DynamicContext, NormalisedHierarchySeriesKeys } from 'ag-charts-core';
 import {
+    type BoxBounds,
     type Point,
     StateMachine,
     arraysEqual,
@@ -16,7 +17,7 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import { configureColorScale } from '../../../scale/colorScaleUtil';
 import { BBox } from '../../../scene/bbox';
-import type { Node } from '../../../scene/node';
+import { type Node, PointerEvents } from '../../../scene/node';
 import type { Selection, SelectionInterface } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import { createDatumId } from '../../data/processors';
@@ -431,6 +432,19 @@ export abstract class HierarchySeries<
     }
 
     protected abstract datumSelection: SelectionInterface<TNodeClass, TNode>;
+
+    /**
+     * Yields in datum order, as `getSelection()` does; the base scene walk would yield in depth order, and would
+     * also yield a highlighted node a second time where its highlight node shares the group with the tiles.
+     */
+    public override *pickNodesInBBox(selectionBox: BoxBounds): Iterable<TNodeClass> {
+        const predicate = this.pickNodesInBBoxPredicate();
+        for (const node of this.datumSelection.nodes()) {
+            if (node.visible && node.pointerEvents !== PointerEvents.None && predicate(selectionBox, node)) {
+                yield node.unsafeDatum;
+            }
+        }
+    }
 
     protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
 
