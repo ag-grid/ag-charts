@@ -78,12 +78,12 @@ function sha256 {
     if command -v sha256sum > /dev/null; then sha256sum | cut -d' ' -f1; else shasum -a 256 | cut -d' ' -f1; fi
 }
 
-BEFORE_SUM=$(sha256 < "$LIVE_HTACCESS")
+SNAPSHOT_SHA=$(sha256 < "$LIVE_HTACCESS")
 OUTCOME=$(node "$PATCHER" "$LIVE_HTACCESS" "$VERSION") || patchFailed "Patching failed."
-AFTER_SUM=$(sha256 < "$LIVE_HTACCESS")
+PATCHED_SHA=$(sha256 < "$LIVE_HTACCESS")
 
 # Already in flight: leave the live file alone rather than uploading the same bytes back.
-if [ "$AFTER_SUM" != "$BEFORE_SUM" ]
+if [ "$PATCHED_SHA" != "$SNAPSHOT_SHA" ]
 then
     # Upload beside the live file and rename over it: mv within a directory is atomic, so a reader
     # sees either the old file or the new one, never a truncated transfer.
@@ -95,10 +95,17 @@ then
     # one that was fetched, so a grid in-flight mark or a docs deploy landing in between is kept
     # rather than overwritten, and only with the bytes that were built here. The same protocol as
     # ag-grid's patchUncachedArchives.sh. The timestamped copy makes a bad patch one cp to undo.
-    if ! ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "cd $GRID_ROOT_DIR && if [ \"\$(sha256sum < $REMOTE | cut -d' ' -f1)\" != $BEFORE_SUM ]; then echo 'The live root .htaccess changed after it was fetched.'; exit 3; fi && if [ \"\$(sha256sum < $STAGED | cut -d' ' -f1)\" != $AFTER_SUM ]; then echo 'The uploaded copy is not the one that was built.'; exit 4; fi && cp $REMOTE $BACKUP && chmod 644 $STAGED && mv $STAGED $REMOTE"
-    then
-        patchFailed "Could not swap the patched root .htaccess into place - re-run to patch the current file.";
-    fi
+    SWAP="cd $GRID_ROOT_DIR || exit 5; \
+        [ \"\$(sha256sum < $REMOTE | cut -d' ' -f1)\" = $SNAPSHOT_SHA ] || { echo 'live file changed since it was fetched'; exit 3; }; \
+        [ \"\$(sha256sum < $STAGED | cut -d' ' -f1)\" = $PATCHED_SHA ] || { echo 'uploaded file does not match the patched one'; exit 4; }; \
+        cp -p $REMOTE $BACKUP && chmod 644 $STAGED && mv $STAGED $REMOTE"
+    ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "$SWAP"
+    case $? in
+        0) ;;
+        3) patchFailed "The live root .htaccess changed while this ran (another in-flight update or a deploy). Re-run this to patch the current file.";;
+        4) patchFailed "The upload did not arrive intact. Re-run this.";;
+        *) patchFailed "Could not move the patched root .htaccess into place.";;
+    esac
     OUTCOME="$OUTCOME (previous copy at $BACKUP)"
 fi
 rm -f "$LIVE_HTACCESS"
