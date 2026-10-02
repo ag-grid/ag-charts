@@ -153,8 +153,8 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     // derived from it (see {@link transformSeriesData}); they then replace the data with a full update.
     dataTransactions?: boolean;
     // Maps the chart's data to the rows its series read; the chart's own data, which transactions and
-    // data source loads apply to, keeps the user's rows. The options are the user's, not yet validated.
-    transformSeriesData?(this: void, data: unknown[], options: TOptions): unknown[];
+    // data source loads apply to, keeps the user's rows. The options are those `create` receives, less `data`.
+    transformSeriesData?(this: void, data: unknown[], options: Omit<TOptions, 'data'>): unknown[];
 }
 
 export interface AxisModuleDefinition<

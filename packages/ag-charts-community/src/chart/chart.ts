@@ -1432,14 +1432,14 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private seriesData: { source: DataSet; options: ChartOptions; data: DataSet } | undefined = undefined;
     private getSeriesData() {
         const { data, chartOptions } = this;
-        const { presetType } = chartOptions.optionMetadata;
-        if (presetType == null) return data;
+        const { optionMetadata, presetOptions } = chartOptions;
+        if (optionMetadata.presetType == null || presetOptions == null) return data;
 
-        const transform = chartOptions.moduleRegistry.getPresetModule(presetType)?.transformSeriesData;
+        const transform = chartOptions.moduleRegistry.getPresetModule(optionMetadata.presetType)?.transformSeriesData;
         if (transform == null) return data;
 
         if (this.seriesData?.source !== data || this.seriesData.options !== chartOptions) {
-            const seriesData = DataSet.wrap(transform(data.data, chartOptions.userOptions), this.ctx.logger);
+            const seriesData = DataSet.wrap(transform(data.data, presetOptions), this.ctx.logger);
             this.seriesData = { source: data, options: chartOptions, data: seriesData };
         }
         return this.seriesData.data;

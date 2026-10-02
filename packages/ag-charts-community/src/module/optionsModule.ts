@@ -48,6 +48,7 @@ import {
     unique,
     validate,
     visitOptionsPath,
+    without,
 } from 'ag-charts-core';
 import {
     type AgChartModule,
@@ -275,6 +276,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     optionsProcessingTime?: number;
     optionsGraph?: OptionsGraphAccessor;
     remappedAxisKeys?: Map<string, AxisID>;
+    /** The preset's options as validation cleared them for its `create`, less `data`. */
+    presetOptions?: object;
     seriesWithUserVisibility?: {
         identifiers: Set<string>;
         indices: Set<number>;
@@ -371,7 +374,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             googleFonts,
             fonts,
             optionsGraph,
-            remappedAxisKeys;
+            remappedAxisKeys,
+            presetOptions;
 
         const stopCapture = this.logger.onIssue((issue) => this.issues.push(issue));
         let rejected = false;
@@ -404,6 +408,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 annotationThemes = baseChartOptions.annotationThemes;
                 // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
                 fonts = baseChartOptions.fonts;
+                // A fast-path delta changes no preset options but `fastUpdateKeys`, which `create` maps itself.
+                presetOptions = baseChartOptions.presetOptions;
                 // The fast path doesn't re-validate, so carry forward the issues from the previous options.
                 this.issues.push(...baseChartOptions.issues);
                 this.revalidated = false;
@@ -418,6 +424,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     fonts,
                     optionsGraph,
                     remappedAxisKeys,
+                    presetOptions,
                 } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
             }
         } catch (error) {
@@ -445,6 +452,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.fonts = fonts;
         this.optionsGraph = optionsGraph;
         this.remappedAxisKeys = remappedAxisKeys;
+        this.presetOptions = presetOptions;
 
         // Capture options processing time for debug stats
         if (apiStartTime !== undefined && typeof apiStartTime === 'number' && !Number.isNaN(apiStartTime)) {
@@ -674,6 +682,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const { fonts } = fontAccumulator;
+        const clearedPresetOptions = presetOptions == null ? undefined : without(presetOptions, ['data']);
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
@@ -694,6 +703,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     chartDef: this.chartDef,
                     issues: [...this.issues],
                     remappedAxisKeys,
+                    presetOptions: clearedPresetOptions,
                 },
                 this.moduleRegistry
             );
@@ -708,6 +718,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             fonts,
             optionsGraph,
             remappedAxisKeys,
+            presetOptions: clearedPresetOptions,
         };
     }
 
@@ -779,6 +790,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             fonts: cached.fonts ? new Set(cached.fonts) : undefined,
             optionsGraph,
             remappedAxisKeys: cached.remappedAxisKeys,
+            presetOptions: cached.presetOptions,
         };
     }
 

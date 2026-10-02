@@ -131,12 +131,14 @@ describe('volumeProfilePreset', () => {
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
         });
 
-        it('should infer the tick size in place of an invalid one', async () => {
-            createWithDataSource(getRegularVolumeProfile, { tickSize: 0 });
+        it('should group the loaded data by the validated options', async () => {
+            // @ts-expect-error invalid `priceKey`
+            createWithDataSource(getRegularVolumeProfile, { priceKey: null, tickSize: 0 });
             await settleUntil(() => loadedRows() === 27, 'the load');
-            // The levels of the inferred 2.5 tick size, from 135 to 205.
+            // The levels of the default `priceKey` at the inferred 2.5 tick size, from 135 to 205.
             expect(deproxy(chart).series[0].data?.data).toHaveLength(29);
             expectWarningsCalls().toEqual([
+                ['AG Charts - Option `priceKey` cannot be set to `null`; expecting a string, ignoring.'],
                 ['AG Charts - Option `tickSize` cannot be set to `0`; expecting a number greater than 0, ignoring.'],
             ]);
         });

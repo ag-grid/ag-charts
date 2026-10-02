@@ -1,5 +1,4 @@
 import { _Theme } from 'ag-charts-community';
-import { isFiniteNumber } from 'ag-charts-core';
 import type {
     AgBarSeriesOptions,
     AgCategoryAxisOptions,
@@ -17,12 +16,10 @@ export function groupVolumeProfile(
     { priceKey = 'price', upKey, downKey }: Pick<AgVolumeProfileOptions, 'priceKey' | 'upKey' | 'downKey'>,
     tickSize: number | undefined
 ) {
-    // Validation would clear an invalid tick size, which `transformSeriesData` receives unvalidated.
-    const validTickSize = isFiniteNumber(tickSize) && tickSize > 0 ? tickSize : undefined;
     return normaliseVolumeProfile(
         data,
         { priceKey, upKey, downKey },
-        validTickSize ?? inferVolumeProfileTickSize(data, priceKey) ?? 1
+        tickSize ?? inferVolumeProfileTickSize(data, priceKey) ?? 1
     );
 }
 
