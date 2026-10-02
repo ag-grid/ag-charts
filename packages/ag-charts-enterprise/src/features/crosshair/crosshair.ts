@@ -87,8 +87,8 @@ export class Crosshair
             ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onMouseOut()),
             ctx.eventsHub.on('dom:series-blurred', () => this.onSeriesBlurred()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
-            ctx.eventsHub.on('zoom:pan-start', () => this.onMouseOut()),
-            ctx.eventsHub.on('zoom:change-complete', () => this.onMouseOut()),
+            ctx.eventsHub.on('viewport:pan-start', () => this.onMouseOut()),
+            ctx.eventsHub.on('viewport:change-complete', () => this.onMouseOut()),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.layout(event)),
             ctx.eventsHub.on('annotations:axis-label-drag-start', (event) =>

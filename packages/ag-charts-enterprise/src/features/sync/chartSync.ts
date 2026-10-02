@@ -164,10 +164,10 @@ export class ChartSync extends AbstractModuleInstance {
     private enabledZoomSync() {
         const { eventsHub } = this.moduleContext;
         this.disableZoomSync?.();
-        this.disableZoomSync = eventsHub.on('zoom:change-complete', (e) => this.onZoom(e));
+        this.disableZoomSync = eventsHub.on('viewport:change-complete', (e) => this.onZoom(e));
     }
 
-    private onZoom(e: _ModuleSupport.ZoomChangeCompleteEvent) {
+    private onZoom(e: _ModuleSupport.ViewportChangeCompleteEvent) {
         const { syncManager } = this.moduleContext;
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
             const syncModule = chart.modulesManager.getModule<ChartSync>('sync');

@@ -37,8 +37,8 @@ import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
 import type { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
+import { ViewportManager } from './interaction/viewportManager';
 import { WidgetSet } from './interaction/widgetSet';
-import { ZoomManager } from './interaction/zoomManager';
 import { LabelManager } from './layout/labelManager';
 import { LayoutManager } from './layout/layoutManager';
 import { OptionsGraphService } from './optionsGraphService';
@@ -141,7 +141,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('fontManager', (c) => new FontManager(c))
         .service('tooltipManager', (c) => new TooltipManager(c.eventsHub, c.localeManager, c.domManager, chart.tooltip))
         .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager, c.logger))
-        .service('zoomManager', (c) => new ZoomManager(c));
+        .service('viewportManager', (c) => new ViewportManager(c));
 
     // A scene transferred from a previous chart still points at that chart's logger.
     if (vars.scene) scene.setLogger(vars.logger);

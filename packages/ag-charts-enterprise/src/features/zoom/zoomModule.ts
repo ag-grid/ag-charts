@@ -111,12 +111,12 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions, _ModuleSupport.Ch
         },
     },
 
-    // `register()` runs first and guarantees `zoomManager` is present, so we narrow
+    // `register()` runs first and guarantees `viewportManager` is present, so we narrow
     // the ctx type to ZoomCtx at the boundary and avoid `!` assertions inside Zoom.
     create: (ctx) => new Zoom(ctx as ZoomCtx),
     register: (ctx) => {
-        if (ctx.has('zoomManager')) return;
-        ctx.service('zoomManager', (c) => new _ModuleSupport.ZoomManager(c));
+        if (ctx.has('viewportManager')) return;
+        ctx.service('viewportManager', (c) => new _ModuleSupport.ViewportManager(c));
     },
 };
 

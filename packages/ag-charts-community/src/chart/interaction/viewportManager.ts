@@ -37,8 +37,8 @@ import type {
 import type { AgZoomEventSource } from 'ag-charts-types';
 
 import type {
-    ZoomChangeRequestEvent,
-    ZoomChangeState,
+    ViewportChangeRequestEvent,
+    ViewportChangeState,
     ZoomEventSourceDetail,
     ZoomMemento,
     ZoomMementoRange,
@@ -52,9 +52,9 @@ import { PanToBBoxScalingModeEnum, calcPanToBBoxRatios } from '../../util/panToB
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 
-type CoreZoomEntry = ZoomMinMax & { direction: CartesianAxisDirection };
-export type CoreZoomState = Record<AxisID, CoreZoomEntry>;
-export type CoreZoomStateSafeRetrieval = { readonly [K in AxisID]: CoreZoomEntry | undefined };
+type CoreViewportEntry = ZoomMinMax & { direction: CartesianAxisDirection };
+export type CoreViewportState = Record<AxisID, CoreViewportEntry>;
+export type CoreViewportStateSafeRetrieval = { readonly [K in AxisID]: CoreViewportEntry | undefined };
 
 export type SimpleAxis = {
     id: AxisID;
@@ -71,7 +71,7 @@ export type CartesianAxisLike = SimpleAxis & {
     // numeric bounds (e.g. category) leave `options` shaped without these keys.
     options?: { min?: number; max?: number };
     // Axis-local zoom. `CartesianAxis` implements these; `SimpleAxis` literals (e.g. topologyChart) do
-    // not, so ZoomManager must guard with `'setZoom' in axis`.
+    // not, so ViewportManager must guard with `'setZoom' in axis`.
     getZoom(): ZoomMinMax;
     setZoom(zoom: ZoomMinMax): void;
 };
@@ -83,7 +83,7 @@ const rangeValidator = (axis?: CartesianAxisLike) =>
         return value < options.end;
     }, `to be less than end`);
 
-function validateChanges(changes: UpdateZoomChanges, logger: Logger): void {
+function validateChanges(changes: UpdateViewportChanges, logger: Logger): void {
     for (const axisId of strictObjectKeys(changes)) {
         const zoom = changes[axisId];
         if (!zoom) continue;
@@ -100,17 +100,17 @@ function validateChanges(changes: UpdateZoomChanges, logger: Logger): void {
     }
 }
 
-export type UpdateZoomSourcing = {
+export type UpdateViewportSourcing = {
     source: AgZoomEventSource;
     sourceDetail: ZoomEventSourceDetail;
 };
-export type UpdateZoomChanges = Record<AxisID, ZoomMinMax | undefined>;
-export type UpdateZoomParams = UpdateZoomSourcing & {
+export type UpdateViewportChanges = Record<AxisID, ZoomMinMax | undefined>;
+export type UpdateViewportParams = UpdateViewportSourcing & {
     isReset: boolean;
-    changes: UpdateZoomChanges;
+    changes: UpdateViewportChanges;
 };
 
-export interface UpdateZoomWithParams {
+export interface UpdateViewportWithParams {
     start: Date | number;
     end: Date | number;
     windowStart: Date | number;
@@ -118,12 +118,15 @@ export interface UpdateZoomWithParams {
     source: AgZoomEventSource;
 }
 
-export type UpdateZoomWithFunction = (
-    params: UpdateZoomWithParams
+export type UpdateViewportWithFunction = (
+    params: UpdateViewportWithParams
 ) => [Date | number | undefined, Date | number | undefined];
 
-function refreshCoreState(nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>, state: CoreZoomStateSafeRetrieval) {
-    const result: CoreZoomState = {};
+function refreshCoreState(
+    nextAxes: Array<CartesianAxisLike> | Array<SimpleAxis>,
+    state: CoreViewportStateSafeRetrieval
+) {
+    const result: CoreViewportState = {};
     for (const { id, direction } of nextAxes) {
         const { min, max } = state[id] ?? { min: 0, max: 1 };
         result[id] = { min, max, direction };
@@ -135,9 +138,9 @@ function isExactNumber(a: number, b: number) {
     return a === b;
 }
 
-function compareCoreZooms(
-    p: CoreZoomStateSafeRetrieval,
-    q: CoreZoomStateSafeRetrieval,
+function compareCoreViewports(
+    p: CoreViewportStateSafeRetrieval,
+    q: CoreViewportStateSafeRetrieval,
     equalNumbers: (a: number, b: number) => boolean
 ) {
     const pKeys = strictObjectKeys(p);
@@ -164,13 +167,13 @@ function compareCoreZooms(
     return true;
 }
 
-function areEqualCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRetrieval) {
-    return compareCoreZooms(p, q, isExactNumber);
+function areEqualCoreViewports(p: CoreViewportStateSafeRetrieval, q: CoreViewportStateSafeRetrieval) {
+    return compareCoreViewports(p, q, isExactNumber);
 }
 
 /** Ratios differing only by float round-trip noise describe the same window, so no zoom has occurred. */
-function areEquivalentCoreZooms(p: CoreZoomStateSafeRetrieval, q: CoreZoomStateSafeRetrieval) {
-    return compareCoreZooms(p, q, isNumberEqual);
+function areEquivalentCoreViewports(p: CoreViewportStateSafeRetrieval, q: CoreViewportStateSafeRetrieval) {
+    return compareCoreViewports(p, q, isNumberEqual);
 }
 
 export function userInteraction<D extends ZoomEventSourceDetail>(sourceDetail: D) {
@@ -192,14 +195,14 @@ function isGrouping(d: ZoomMementoRange['start' | 'end']) {
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
  */
-export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMemento> {
+export class ViewportManager extends BaseManager implements MementoOriginator<ZoomMemento> {
     public mementoOriginatorKey = 'zoom' as const;
 
-    private get state(): CoreZoomStateSafeRetrieval {
+    private get state(): CoreViewportStateSafeRetrieval {
         // Rich axes own their zoom via getZoom(); simple axes (topologyChart) fall back to the
         // direction zoom in chartState since they cannot carry per-axis state.
         const directionZoom = this.ctx.chartState.getValue('zoom');
-        const result: CoreZoomState = {};
+        const result: CoreViewportState = {};
         for (const axis of this.allAxes) {
             const rich = this.axes.find((a) => a.id === axis.id);
             let min: number;
@@ -216,7 +219,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return result;
     }
 
-    private set state(value: CoreZoomStateSafeRetrieval) {
+    private set state(value: CoreViewportStateSafeRetrieval) {
         const realAxisIds = new Set<string>();
         for (const axis of this.axes) {
             const entry = value[axis.id];
@@ -228,7 +231,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const syntheticIds = this.allAxes.filter((a) => !realAxisIds.has(a.id));
         if (syntheticIds.length === 0) return;
 
-        const syntheticState: CoreZoomState = {};
+        const syntheticState: CoreViewportState = {};
         for (const axis of syntheticIds) {
             const entry = value[axis.id];
             if (entry) {
@@ -244,7 +247,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private readonly axes: CartesianAxisLike[] = [];
     private readonly allAxes: SimpleAxis[] = [];
     private didLayoutAxes = false;
-    private pendingZoomEventSource?: AgZoomEventSource;
+    private pendingViewportEventSource?: AgZoomEventSource;
 
     private lastRestoredRequiredRange?: number; // The ratio (_requiredRange / dimension) last applied to zoom
     private lastRestoredRequiredRangeDirection?: CartesianAxisDirection;
@@ -271,8 +274,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         super();
 
         this.cleanup.register(
-            ctx.eventsHub.on('zoom:change-request', (event) => {
-                this.constrainZoomToRequiredWidth(event);
+            ctx.eventsHub.on('viewport:change-request', (event) => {
+                this.constrainViewportToRequiredWidth(event);
             }),
             ctx.eventsHub.on('update:pre-series', ({ requiredRangeRatio, requiredRangeDirection, requiredRange }) => {
                 this.didLayoutAxes = true;
@@ -284,26 +287,26 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                     this.restoreRequiredRange(requiredRangeRatio, requiredRangeDirection, requiredRange);
                 }
 
-                // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
-                this.updateZoom({
+                // Maybe fire 'viewport:change-request' if the zoom-state has changed in this redraw:
+                this.updateViewport({
                     source: 'chart-update',
                     sourceDetail: 'unspecified',
                 });
             }),
             ctx.eventsHub.on('update:complete', ({ wasShortcut }) => {
                 if (wasShortcut) return;
-                if (this.pendingZoomEventSource != null) {
-                    const source = this.pendingZoomEventSource;
+                if (this.pendingViewportEventSource != null) {
+                    const source = this.pendingViewportEventSource;
                     this.ctx.chartService.callListener({ type: 'zoom', source, ...this.getMementoRanges() });
-                    this.pendingZoomEventSource = undefined;
+                    this.pendingViewportEventSource = undefined;
                 }
             })
         );
     }
 
     // FIXME: should be private
-    public toCoreZoomState(axisZoom: DeepReadonly<ZoomState>): CoreZoomState {
-        const result: CoreZoomState = {};
+    public toCoreViewportState(axisViewport: DeepReadonly<ZoomState>): CoreViewportState {
+        const result: CoreViewportState = {};
         let ids: AxisID[];
         const { state } = this;
 
@@ -320,7 +323,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         for (const id of ids) {
             const { direction } = state[id] ?? {};
             if (direction != undefined) {
-                const zoom = axisZoom[direction];
+                const zoom = axisViewport[direction];
                 if (zoom) {
                     const { min, max } = zoom;
                     result[id] = { min, max, direction };
@@ -387,9 +390,9 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         }
 
         const { navigatorModule, zoomModule } = this;
-        this.ctx.eventsHub.emit('zoom:load-memento', { zoom, memento, navigatorModule, zoomModule });
+        this.ctx.eventsHub.emit('viewport:load-memento', { zoom, memento, navigatorModule, zoomModule });
 
-        const changes = this.toCoreZoomState(zoom);
+        const changes = this.toCoreViewportState(zoom);
         this.writeInitialZoom(toZoomState(changes));
         this.updateChanges({
             source: 'state-change',
@@ -437,7 +440,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             }
         }
 
-        const adjustedOldState: Record<AxisID, CoreZoomEntry | undefined> = { ...oldState };
+        const adjustedOldState: Record<AxisID, CoreViewportEntry | undefined> = { ...oldState };
         for (const axis of axes) {
             const prevType = previousTypeByAxisId.get(axis.id);
             if (prevType !== undefined && prevType !== axis.type) {
@@ -471,12 +474,12 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return this.zoomModule;
     }
 
-    public updateZoom({ source, sourceDetail }: UpdateZoomSourcing, newZoom?: ZoomState): boolean {
-        const changes = this.toCoreZoomState(newZoom ?? {});
+    public updateViewport({ source, sourceDetail }: UpdateViewportSourcing, newViewport?: ZoomState): boolean {
+        const changes = this.toCoreViewportState(newViewport ?? {});
         return this.updateChanges({ source, sourceDetail, changes, isReset: false });
     }
 
-    private computeChangedAxesIds(newState: UpdateZoomChanges): readonly AxisID[] {
+    private computeChangedAxesIds(newState: UpdateViewportChanges): readonly AxisID[] {
         const result: AxisID[] = [];
         const oldState = this.state;
         for (const id of strictObjectKeys(newState)) {
@@ -489,13 +492,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return result;
     }
 
-    public updateChanges(params: UpdateZoomParams): boolean {
+    public updateChanges(params: UpdateViewportParams): boolean {
         const { source, sourceDetail, isReset, changes } = params;
         validateChanges(changes, this.ctx.logger);
 
         const changedAxes = this.computeChangedAxesIds(changes);
-        const oldState: CoreZoomStateSafeRetrieval = deepClone(this.state);
-        const newState: CoreZoomStateSafeRetrieval = deepClone(this.state);
+        const oldState: CoreViewportStateSafeRetrieval = deepClone(this.state);
+        const newState: CoreViewportStateSafeRetrieval = deepClone(this.state);
 
         for (const id of changedAxes) {
             const axis = newState[id];
@@ -509,9 +512,9 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return this.dispatch(source, sourceDetail, changedAxes, isReset, oldState);
     }
 
-    public resetZoom({ source, sourceDetail }: UpdateZoomSourcing) {
+    public resetViewport({ source, sourceDetail }: UpdateViewportSourcing) {
         const initial = this.ctx.chartState.getValue('initialZoom');
-        const changes: UpdateZoomChanges = {};
+        const changes: UpdateViewportChanges = {};
         for (const axis of this.allAxes) {
             const directionZoom = pickDirectionZoom(initial, axis.direction);
             changes[axis.id] = directionZoom ? { min: directionZoom.min, max: directionZoom.max } : { min: 0, max: 1 };
@@ -519,7 +522,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         this.updateChanges({ source, sourceDetail, changes, isReset: true });
     }
 
-    public resetAxisZoom({ source, sourceDetail }: UpdateZoomSourcing, axisId: AxisID) {
+    public resetAxisViewport({ source, sourceDetail }: UpdateViewportSourcing, axisId: AxisID) {
         const axis = this.allAxes.find((a) => a.id === axisId);
         if (!axis) return;
         const initial = this.ctx.chartState.getValue('initialZoom');
@@ -551,8 +554,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             return false;
         }
 
-        const newZoom: ZoomState = calcPanToBBoxRatios(panToBBoxScalingMode, seriesRect, zoom, target);
-        const changes = this.toCoreZoomState(newZoom);
+        const newViewport: ZoomState = calcPanToBBoxRatios(panToBBoxScalingMode, seriesRect, zoom, target);
+        const changes = this.toCoreViewportState(newViewport);
         return this.updateChanges({
             source: 'user-interaction',
             sourceDetail: 'internal-panToBBox',
@@ -562,14 +565,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
-    public fireZoomPanStartEvent(callerId: 'navigator' | 'zoom') {
-        this.ctx.eventsHub.emit('zoom:pan-start', { callerId });
+    public fireViewportPanStartEvent(callerId: 'navigator' | 'zoom') {
+        this.ctx.eventsHub.emit('viewport:pan-start', { callerId });
     }
 
     public updateWith(
-        { source, sourceDetail }: UpdateZoomSourcing,
+        { source, sourceDetail }: UpdateViewportSourcing,
         direction: CartesianAxisDirection,
-        fn: UpdateZoomWithFunction
+        fn: UpdateViewportWithFunction
     ) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return;
@@ -592,7 +595,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             source,
         });
         if (!this.isValidUpdateWithResult(result)) {
-            this.resetZoom({ source, sourceDetail });
+            this.resetViewport({ source, sourceDetail });
             return;
         }
         const [start, end] = result;
@@ -603,7 +606,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         this.updateChanges({ source, sourceDetail, changes: { [direction]: ratio }, isReset: false });
     }
 
-    public isValidUpdateWith(direction: CartesianAxisDirection, fn: UpdateZoomWithFunction, source: AgZoomEventSource) {
+    public isValidUpdateWith(
+        direction: CartesianAxisDirection,
+        fn: UpdateViewportWithFunction,
+        source: AgZoomEventSource
+    ) {
         const axis = this.getPrimaryAxis(direction);
         if (!axis) return true;
 
@@ -649,11 +656,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
      * consumers (panner, scroller, toolbar independent-axes branch). New code should prefer reading
      * `chartState.zoom` (per-direction) or `axis.getZoom()` (per-axis).
      */
-    public getAxisZooms(): CoreZoomStateSafeRetrieval {
+    public getAxisViewports(): CoreViewportStateSafeRetrieval {
         return this.state;
     }
 
-    public getAxisZoom(axisId: AxisID): ZoomMinMax {
+    public getAxisViewport(axisId: AxisID): ZoomMinMax {
         return this.state[axisId] ?? { min: 0, max: 1 };
     }
 
@@ -684,7 +691,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return boundSeries;
     }
 
-    public constrainZoomToItemCount(
+    public constrainViewportToItemCount(
         zoom: DefinedZoomState,
         minVisibleItems: number,
         shouldAutoscale: boolean
@@ -741,7 +748,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             autoScaledAxes: undefined,
         };
 
-        this.ctx.eventsHub.emit('zoom:save-memento', { memento });
+        this.ctx.eventsHub.emit('viewport:save-memento', { memento });
         return memento;
     }
 
@@ -788,7 +795,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const crossAxisId = this.getPrimaryAxisId(requiredRangeDirection);
         if (!crossAxisId) return;
 
-        const crossAxisZoom = this.state[crossAxisId] ?? { min: 0, max: 1 };
+        const crossAxisViewport = this.state[crossAxisId] ?? { min: 0, max: 1 };
 
         let min = 0;
         let max = 1;
@@ -796,10 +803,10 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         // For vertical bars, pin to the left and extend right until the right reaches max, then extend left.
         // For horizontal bars, pin to the top and extend down until the bottom reaches max, then extend up.
         if (requiredRangeDirection === ChartAxisDirection.X) {
-            min = clamp(0, 1 - requiredZoom, crossAxisZoom.min);
+            min = clamp(0, 1 - requiredZoom, crossAxisViewport.min);
             max = clamp(0, min + requiredZoom, 1);
         } else {
-            max = Math.min(1, crossAxisZoom.max);
+            max = Math.min(1, crossAxisViewport.max);
             min = max - requiredZoom;
             if (min < 0) {
                 max -= min;
@@ -813,7 +820,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         this.lastRestoredRequiredRangeDirection = requiredRangeDirection;
 
         const zoom = { [requiredRangeDirection]: { min, max } };
-        const changes = this.toCoreZoomState(zoom);
+        const changes = this.toCoreViewportState(zoom);
         this.writeInitialZoom(toZoomState(changes));
 
         this.updateChanges({
@@ -824,7 +831,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         });
     }
 
-    private constrainZoomToRequiredWidth(event: ZoomChangeRequestEvent) {
+    private constrainViewportToRequiredWidth(event: ViewportChangeRequestEvent) {
         if (this.lastRestoredRequiredRange == null || this.lastRestoredRequiredRangeDirection == null) return;
 
         const crossAxisId = this.getPrimaryAxisId(this.lastRestoredRequiredRangeDirection);
@@ -852,14 +859,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         sourceDetail: ZoomEventSourceDetail,
         changedAxes: readonly AxisID[],
         isReset: boolean,
-        oldState: CoreZoomStateSafeRetrieval
+        oldState: CoreViewportStateSafeRetrieval
     ): boolean {
         const { x, y } = toZoomState(this.state) ?? {};
         const state = this.state;
         let constrainedState: typeof state | undefined;
 
         const debug = this.debug;
-        const zoomManager = this;
+        const viewportManager = this;
         const event = {
             source,
             sourceDetail,
@@ -873,11 +880,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                 return definedZoomState(toZoomState(event.state));
             },
             constrainZoom(restrictions: ZoomState): void {
-                this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
+                this.constrainChanges(viewportManager.toCoreViewportState(restrictions));
             },
-            constrainChanges(restrictions: ZoomChangeState): void {
+            constrainChanges(restrictions: ViewportChangeState): void {
                 if (debug.check()) {
-                    debug('ZoomManager.constrainChanges()', state, '->', restrictions, new Error().stack);
+                    debug('ViewportManager.constrainChanges()', state, '->', restrictions, new Error().stack);
                 }
                 constrainedState ??= deepClone(state);
                 for (const id of strictObjectKeys(restrictions)) {
@@ -890,11 +897,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                 }
                 event.state = constrainedState;
             },
-        } satisfies ZoomChangeRequestEvent;
+        } satisfies ViewportChangeRequestEvent;
 
-        this.ctx.eventsHub.emit('zoom:change-request', event);
+        this.ctx.eventsHub.emit('viewport:change-request', event);
 
-        if (constrainedState && !areEqualCoreZooms(state, constrainedState)) {
+        if (constrainedState && !areEqualCoreViewports(state, constrainedState)) {
             this.state = constrainedState;
         }
 
@@ -905,10 +912,10 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             this.ctx.chartState.setValue('zoom', acceptedZoom);
         }
 
-        const changeAccepted: boolean = !areEquivalentCoreZooms(oldState, this.state);
+        const changeAccepted: boolean = !areEquivalentCoreViewports(oldState, this.state);
         if (changeAccepted) {
-            this.ctx.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom?.x });
-            this.pendingZoomEventSource = source; // emit API AgZoomEvent when the redraw completes
+            this.ctx.eventsHub.emit('viewport:change-complete', { source, sourceDetail, x: acceptedZoom?.x });
+            this.pendingViewportEventSource = source; // emit API AgZoomEvent when the redraw completes
         }
         return changeAccepted;
     }

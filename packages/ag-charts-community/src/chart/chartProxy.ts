@@ -26,7 +26,7 @@ import type { DataServiceRestoredData } from './data/dataService';
 import { replaceDataSet } from './data/dataSetUtil';
 import { findExpectedModuleName } from './factory/expectedModules';
 import { InteractionState } from './interaction/interactionManager';
-import type { UpdateZoomSourcing } from './interaction/zoomManager';
+import type { UpdateViewportSourcing } from './interaction/viewportManager';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
 
 const debug = Debug.create(true, 'opts');
@@ -233,7 +233,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
     async setState(state: AgChartState) {
         if (!this.chart) return;
 
-        const { interactionManager, legendManager, zoomManager } = this.chart.ctx;
+        const { interactionManager, legendManager, viewportManager } = this.chart.ctx;
         const originators = this.getEnabledOriginators();
         const originatorsSet = new Set(originators);
 
@@ -241,10 +241,15 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         // TODO: CRT-633 - The zoom state depends on the legend state and so must be restored after the legend state
         // has updated the axis scale domains.
-        if (legendManager && zoomManager && originatorsSet.has(legendManager) && originatorsSet.has(zoomManager)) {
-            originatorsSet.delete(zoomManager);
+        if (
+            legendManager &&
+            viewportManager &&
+            originatorsSet.has(legendManager) &&
+            originatorsSet.has(viewportManager)
+        ) {
+            originatorsSet.delete(viewportManager);
             await this.setStateOriginators(state, Array.from(originatorsSet));
-            await this.setStateOriginators(state, [zoomManager]);
+            await this.setStateOriginators(state, [viewportManager]);
         } else {
             await this.setStateOriginators(state, originators);
         }
@@ -347,8 +352,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
         await cloneProxy.setState(state);
 
         // sync zoom
-        const sourcing: UpdateZoomSourcing = { source: 'chart-update', sourceDetail: 'internal-prepareResizedChart' };
-        cloneProxy.chart?.ctx.zoomManager?.updateZoom(sourcing, chart.ctx.chartState.getValue('zoom'));
+        const sourcing: UpdateViewportSourcing = {
+            source: 'chart-update',
+            sourceDetail: 'internal-prepareResizedChart',
+        };
+        cloneProxy.chart?.ctx.viewportManager?.updateViewport(sourcing, chart.ctx.chartState.getValue('zoom'));
 
         cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
         await cloneProxy.waitForUpdate();
@@ -390,7 +398,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         const {
             chartOptions: { processedOptions, optionMetadata },
-            ctx: { annotationManager, chartTypeOriginator, zoomManager, legendManager },
+            ctx: { annotationManager, chartTypeOriginator, viewportManager, legendManager },
             modulesManager,
         } = this.chart;
 
@@ -405,8 +413,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
             originators.push(chartTypeOriginator);
         }
 
-        if ((processedOptions.navigator?.enabled || processedOptions.zoom?.enabled) && zoomManager) {
-            originators.push(zoomManager);
+        if ((processedOptions.navigator?.enabled || processedOptions.zoom?.enabled) && viewportManager) {
+            originators.push(viewportManager);
         }
 
         const legendEnabled = modulesManager.isEnabled('legend') && processedOptions.legend?.enabled !== false;

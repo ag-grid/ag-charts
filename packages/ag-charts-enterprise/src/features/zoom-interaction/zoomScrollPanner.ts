@@ -4,8 +4,8 @@ import type { BoxBounds } from 'ag-charts-core';
 
 import { constrainZoom, dx, dy, pointToRatio, translateZoom } from '../zoom/zoomUtils';
 
-type State = _ModuleSupport.CoreZoomState;
-type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
+type State = _ModuleSupport.CoreViewportState;
+type StateRetrieval = _ModuleSupport.CoreViewportStateSafeRetrieval;
 
 const DELTA_SCALE = 200;
 

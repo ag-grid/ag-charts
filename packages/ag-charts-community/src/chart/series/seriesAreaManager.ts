@@ -22,7 +22,7 @@ import type {
     SeriesAreaHoverEvent,
     SeriesKeyNavPanXEvent,
     UpdateOpts,
-    ZoomChangeCompleteEvent,
+    ViewportChangeCompleteEvent,
 } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
@@ -158,7 +158,7 @@ function primaryContextMenuRegion(
     return 'series-area';
 }
 
-function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
+function computePendingViewportFocus(event: ViewportChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
     switch (event.sourceDetail) {
         case 'keyboard-page(1)':
         case 'keyboard-page(-1)':
@@ -298,7 +298,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.eventsHub.on('update:pre-scene-render', () => this.preSceneRender()),
             chart.ctx.eventsHub.on('update:complete', () => this.updateComplete()),
-            chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
+            chart.ctx.eventsHub.on('viewport:change-complete', (event) => this.onViewportChangeComplete(event)),
             chart.ctx.eventsHub.on('collapsed:change', () => {
                 // Re-announce the focused node after a toggle. Gated so background changes
                 // (memento restore, off-screen series) don't trigger spurious announcements.
@@ -306,7 +306,7 @@ export class SeriesAreaManager extends BaseManager {
                     this.announceMode = 'always';
                 }
             }),
-            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll()),
+            chart.ctx.eventsHub.on('viewport:pan-start', () => this.clearAll()),
             chart.ctx.eventsHub.on('legend:item-hover', (event) => this.onLegendHover(event))
         );
         if (seriesDragInterpreter) {
@@ -461,7 +461,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private onZoomChangeComplete(event: ZoomChangeCompleteEvent): void {
+    private onViewportChangeComplete(event: ViewportChangeCompleteEvent): void {
         this.clearAll();
         this.focus.pendingViewportFocus = computePendingViewportFocus(event);
     }
@@ -1170,7 +1170,7 @@ export class SeriesAreaManager extends BaseManager {
 
             if (!hoverRect.containsPoint(x, y)) {
                 const panTarget = focus.series.mapFocusBBoxToPanTarget(hoverRect, focusBBox);
-                const panSuccess = this.chart.ctx.zoomManager?.panToBBox(hoverRect, panTarget);
+                const panSuccess = this.chart.ctx.viewportManager?.panToBBox(hoverRect, panTarget);
                 if (panSuccess) {
                     // Wait for an update to ensure that we show the tooltip/highlight correctly.
                     return PickedFocusStatus.PAN_REQUIRED;

@@ -132,13 +132,13 @@ export type {
     ZoomInteractionAxisMouseEvent,
     ZoomInteractionAxisWheelEvent,
     ZoomInteractionWheelEvent,
-    ZoomChangeCompleteEvent,
-    ZoomChangeRequestEvent,
-    ZoomChangeState,
+    ViewportChangeCompleteEvent,
+    ViewportChangeRequestEvent,
+    ViewportChangeState,
     ZoomEventSourceDetail,
-    ZoomLoadMementoEvent,
-    ZoomPanStartEvent,
-    ZoomSaveMementoEvent,
+    ViewportLoadMementoEvent,
+    ViewportPanStartEvent,
+    ViewportSaveMementoEvent,
 } from './core/eventsHub';
 export { ChartOptions } from './module/optionsModule';
 export type {
@@ -232,11 +232,15 @@ export { InteractionManager, InteractionState } from './chart/interaction/intera
 export { TooltipManager } from './chart/interaction/tooltipManager';
 export {
     userInteraction,
-    type UpdateZoomSourcing,
-    type UpdateZoomWithFunction,
-    ZoomManager,
-} from './chart/interaction/zoomManager';
-export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
+    type UpdateViewportSourcing,
+    type UpdateViewportWithFunction,
+    ViewportManager,
+} from './chart/interaction/viewportManager';
+export type {
+    CoreViewportState,
+    CoreViewportStateSafeRetrieval,
+    UpdateViewportChanges,
+} from './chart/interaction/viewportManager';
 export { PanToBBoxScalingModeEnum } from './util/panToBBox';
 export { getItemId } from './chart/series/pickManager';
 export { Series } from './chart/series/series';

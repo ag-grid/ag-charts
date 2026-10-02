@@ -195,20 +195,20 @@ export interface EventsHubMap {
     'validation:issue': LogIssue;
     /** The validation overlay's visible content may have changed: issues, selection or dismissal. */
     'validation:change': null;
-    'zoom:save-memento': ZoomSaveMementoEvent;
-    'zoom:load-memento': ZoomLoadMementoEvent;
+    'viewport:save-memento': ViewportSaveMementoEvent;
+    'viewport:load-memento': ViewportLoadMementoEvent;
     /**
-     * `change-request` means that something has requested the `ZoomManager` to update the zoom state in some way. The
+     * `change-request` means that something has requested the `ViewportManager` to update the zoom state in some way. The
      * changes might be modified, constrained, rejected or ignored depending on what options/listeners are registered.
      */
-    'zoom:change-request': ZoomChangeRequestEvent;
+    'viewport:change-request': ViewportChangeRequestEvent;
     /**
-     * `change-complete` is dispatched when an effective `change-request` was processed, and the `ZoomManager`
+     * `change-complete` is dispatched when an effective `change-request` was processed, and the `ViewportManager`
      * internal state has been updated (but no redraw has occurred yet). `change-request` that are "no-op" (i.e. nothing
      * has changed) are not followed by a `change-complete`.
      */
-    'zoom:change-complete': ZoomChangeCompleteEvent;
-    'zoom:pan-start': ZoomPanStartEvent;
+    'viewport:change-complete': ViewportChangeCompleteEvent;
+    'viewport:pan-start': ViewportPanStartEvent;
     'zoom-interaction:request-axis-wheel': ZoomInteractionRequestAxisWheelEvent;
     'zoom-interaction:scrollbar:wheel': ZoomInteractionWheelEvent;
     'zoom-interaction:zoom:wheel': ZoomInteractionWheelEvent;
@@ -379,13 +379,13 @@ export interface ZoomMementoRatio {
     end?: number;
 }
 
-export interface ZoomSaveMementoEvent {
+export interface ViewportSaveMementoEvent {
     // Note: `memento` is intentionally mutable. At the time of writing, only one feature (autoScaling) writes to the
     // memento state.
     memento: ZoomMemento;
 }
 
-export interface ZoomLoadMementoEvent {
+export interface ViewportLoadMementoEvent {
     // `zoom` is intentionally mutable: autoScaling is the sole consumer, so there are no competing writers.
     zoom: DefinedZoomState;
     readonly memento: DeepReadonly<ZoomMemento> | undefined;
@@ -393,7 +393,7 @@ export interface ZoomLoadMementoEvent {
     readonly zoomModule: boolean;
 }
 
-export type ZoomChangeState = {
+export type ViewportChangeState = {
     readonly [K in AxisID]: Readonly<ZoomMinMaxDirection> | undefined;
 };
 
@@ -435,27 +435,27 @@ export type ZoomEventSourceDetail =
     | `zoom-seriesarea-wheel`
     | `scrollbar`;
 
-export interface ZoomChangeRequestEvent {
+export interface ViewportChangeRequestEvent {
     readonly source: AgZoomEventSource;
     readonly sourceDetail: ZoomEventSourceDetail;
     readonly isReset: boolean;
     readonly changedAxes: readonly AxisID[];
-    readonly state: ZoomChangeState;
-    readonly oldState: ZoomChangeState;
+    readonly state: ViewportChangeState;
+    readonly oldState: ViewportChangeState;
     readonly x?: Readonly<ZoomMinMax>;
     readonly y?: Readonly<ZoomMinMax>;
     stateAsDefinedZoom(): DefinedZoomState; // do not use (legacy zoom-state)
     constrainZoom(zoom: ZoomState): void; // do not use (legacy zoom-state)
-    constrainChanges(changes: ZoomChangeState): void;
+    constrainChanges(changes: ViewportChangeState): void;
 }
 
-export interface ZoomChangeCompleteEvent {
+export interface ViewportChangeCompleteEvent {
     readonly source: AgZoomEventSource;
     readonly sourceDetail: ZoomEventSourceDetail;
     readonly x?: Readonly<ZoomMinMax>;
 }
 
-export interface ZoomPanStartEvent {
+export interface ViewportPanStartEvent {
     readonly callerId: string;
 }
 

@@ -36,8 +36,8 @@ export class AxisButton extends AbstractModuleInstance {
             ctx.widgets.seriesDragInterpreter?.events.on('click', (e) => this.onClick(e)),
             ctx.eventsHub.on('dom:series-blurred', () => this.hide()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
-            ctx.eventsHub.on('zoom:pan-start', () => this.hide()),
-            ctx.eventsHub.on('zoom:change-complete', () => this.hide()),
+            ctx.eventsHub.on('viewport:pan-start', () => this.hide()),
+            ctx.eventsHub.on('viewport:change-complete', () => this.hide()),
             () => this.destroyElements(),
             () => this.button.destroy()
         );
