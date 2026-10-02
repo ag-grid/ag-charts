@@ -28,8 +28,6 @@ interface SeriesCase {
     layers?: (series: any) => { inPlace: _Scene.Shape[]; highlighted: _Scene.Shape[] };
     /** How many copies of the hovered item the highlight layer draws; range-area lights both its low and high marker. */
     hoveredCopies?: number;
-    /** Set when the series reads its item highlight from somewhere `highlightedItem.shadow` does not reach yet. */
-    noHighlightedItemShadow?: boolean;
     /** The datum to hover; defaults to the first of the series' node data. */
     hover?: (series: any) => unknown;
 }
@@ -45,10 +43,22 @@ const FIRST_LEAF = (series: any) => {
     while (node.children?.length) node = node.children[0];
     return node;
 };
+const FIRST_GROUP = (series: any) => series.rootNode.children[0];
 const SELECTION_LAYERS = (series: any) => ({
     inPlace: [...series.datumSelection.nodes()] as _Scene.Shape[],
     highlighted: [...series.highlightSelection.nodes()] as _Scene.Shape[],
 });
+// Only groups cast in the group case, so the leaf rects that share the selection are left out.
+const GROUP_LAYERS = (series: any) => {
+    const groups = (selection: any) => {
+        const nodes: _Scene.Shape[] = [];
+        selection.each((node: _Scene.Shape, datum: any) => {
+            if (datum.children.length > 0) nodes.push(node);
+        });
+        return nodes;
+    };
+    return { inPlace: groups(series.datumSelection), highlighted: groups(series.highlightSelection) };
+};
 // A flow series redraws the hovered node's neighbours on a focus layer; the highlight layer holds the node itself.
 const FLOW_LAYERS = (series: any) => ({
     inPlace: collectShapes(series.contentGroup),
@@ -117,19 +127,31 @@ const SERIES: SeriesCase[] = [
         }),
     },
     {
-        name: 'treemap',
+        // Tile and group highlights live under `tile.highlight` and `group.highlight`, not the series' `highlight`.
+        name: 'treemap tiles',
         data: HIERARCHY_SHADOW_DATA,
         kind: _Scene.Rect,
         hover: FIRST_LEAF,
         layers: SELECTION_LAYERS,
-        // Tile and group highlights live under `tile.highlight` and `group.highlight`, which `Series.getHighlightedItemShadow` does not read.
-        noHighlightedItemShadow: true,
-        series: (shadow) => ({
+        series: (shadow, highlight) => ({
             type: 'treemap',
             labelKey: 'name',
             sizeKey: 'size',
             group: { shadow, gap: 12, padding: 10 },
-            tile: { shadow },
+            tile: { shadow, highlight },
+        }),
+    },
+    {
+        name: 'treemap groups',
+        data: HIERARCHY_SHADOW_DATA,
+        kind: _Scene.Rect,
+        hover: FIRST_GROUP,
+        layers: GROUP_LAYERS,
+        series: (shadow, highlight) => ({
+            type: 'treemap',
+            labelKey: 'name',
+            sizeKey: 'size',
+            group: { shadow, gap: 12, padding: 10, interactive: true, highlight },
         }),
     },
     {
@@ -323,7 +345,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
         });
     });
 
-    describe.each(SERIES.filter((testCase) => !testCase.noHighlightedItemShadow))('$name', (testCase) => {
+    describe.each(SERIES)('$name', (testCase) => {
         it('replaces the series shadow on the hovered item with highlightedItem.shadow', async () => {
             const { inPlace, highlighted } = await hoverItem(testCase, SHADOW, {
                 highlightedItem: { shadow: HIGHLIGHT_SHADOW },

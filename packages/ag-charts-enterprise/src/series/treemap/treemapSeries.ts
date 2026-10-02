@@ -517,6 +517,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return highlightedNode;
     }
 
+    /** Whether either tile or group sets one, for the series-wide check; each item resolves its own in `updateNodes`. */
+    protected override getHighlightedItemShadow() {
+        const { tile, group } = this.options;
+        return tile.highlight.highlightedItem?.shadow ?? group.highlight.highlightedItem?.shadow;
+    }
+
     updateNodes() {
         const { rootNode, data } = this;
         const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName, tile, group } =
@@ -729,7 +735,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
             rect.setStyleProperties(style, fillBBox);
 
-            rect.fillShadow = this.resolveItemShadow(isLeaf ? tile.shadow : group.shadow, isHighlight, node.datumIndex);
+            // Tile and group highlights sit under `tile.highlight` and `group.highlight`, not the series' `highlight`.
+            const itemOptions = isLeaf ? tile : group;
+            rect.fillShadow = this.resolveItemShadowWith(
+                itemOptions.highlight.highlightedItem?.shadow,
+                itemOptions.shadow,
+                isHighlight,
+                node.datumIndex
+            );
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];
 
