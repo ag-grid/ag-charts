@@ -218,6 +218,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
         ...seriesLabelOptionsDefs,
     },
     link: {
+        shadow: shadowOptionsDefs,
         tension: ratio,
         itemStyler: callbackDefs<AgChordSeriesLinkStyle>({
             ...fillOptionsDef,
@@ -230,6 +231,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
         ...lineDashOptionsDef,
     },
     node: {
+        shadow: shadowOptionsDefs,
         width: positiveNumber,
         spacing: positiveNumber,
         cornerRadius: positiveNumber,
@@ -449,6 +451,7 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
         overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
     },
     tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
@@ -476,6 +479,7 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
     itemStyler: radialSeriesStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
@@ -599,6 +603,7 @@ export const radialColumnSeriesThemeableOptionsDef: OptionsDefs<AgRadialColumnSe
     itemStyler: radialSeriesStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
     ...strokeOptionsDef,
@@ -719,6 +724,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         edgePlacement: union('inside', 'outside'),
     },
     link: {
+        shadow: shadowOptionsDefs,
         itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
             ...fillOptionsDef,
             ...strokeOptionsDef,
@@ -729,6 +735,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         ...lineDashOptionsDef,
     },
     node: {
+        shadow: shadowOptionsDefs,
         width: positiveNumber,
         spacing: positiveNumber,
         minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),

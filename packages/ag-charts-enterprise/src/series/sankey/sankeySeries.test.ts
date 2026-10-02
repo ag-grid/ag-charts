@@ -28,6 +28,11 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
+import {
+    FLOW_PROPORTION_SHADOW,
+    describeFlowProportionShadow,
+    flowProportionShadowOptions,
+} from '../../test/flowProportionShadowTests';
 import { mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
@@ -368,6 +373,36 @@ describe('SankeySeries', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
+    describeFlowProportionShadow({
+        type: 'sankey',
+        setChart: (created) => {
+            chart = created;
+        },
+        compare,
+    });
+
+    describe('shadow highlight', () => {
+        // Records today's behaviour: the highlighted node is redrawn above the dimmed layer, casting its shadow again.
+        it('should render a highlighted node with shadows enabled', async () => {
+            const options = flowProportionShadowOptions('sankey', {
+                link: FLOW_PROPORTION_SHADOW,
+                node: FLOW_PROPORTION_SHADOW,
+            });
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const node = chart.series[0].contextNodeData.nodeData.find(
+                (n: any) => n.type === FlowProportionDatumType.Node
+            );
+
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+            highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
     });

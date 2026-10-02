@@ -62,11 +62,13 @@ export type NormalisedMapShapeSeriesOwnOptions = Normalised<
     | TopologyStrokeRequiredKeys
     | 'padding'
     | 'label'
-    | 'colorScale',
+    | 'colorScale'
+    | 'shadow',
     {
         topology?: FeatureCollection;
         fill: NormalisedColorType;
         stroke: CssColor;
+        shadow: NormalisedDropShadowOptions;
         label: NormalisedMapShapeSeriesLabelOptions;
         colorScale: NormalisedColorScaleOptions;
         itemStyler?: Styler<AgMapShapeSeriesItemStylerParams<unknown, unknown>, AgMapShapeSeriesStyle>;

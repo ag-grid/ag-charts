@@ -30,6 +30,7 @@ import type { BivariantCallback, Normalised } from './normalise';
 import type {
     FillStrokeMorph,
     NormalisedColorType,
+    NormalisedDropShadowOptions,
     RequiredInternalAgGradientColor,
     RequiredInternalAgImageFill,
     RequiredInternalAgPatternColor,
@@ -88,10 +89,11 @@ export type NormalisedSankeySeriesLabelOptions =
 /** Link styling; `fill`/`stroke` fall back to the series palette cycled by source node at render time. */
 export type NormalisedSankeySeriesLinkOptions = Normalised<
     AgSankeySeriesLinkOptions<unknown, unknown>,
-    FlowStyleRequiredKeys,
+    FlowStyleRequiredKeys | 'shadow',
     {
         fill?: NormalisedColorType;
         stroke?: CssColor;
+        shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<unknown>, AgSankeySeriesLinkStyle>;
     }
 >;
@@ -105,10 +107,12 @@ export type NormalisedSankeySeriesNodeOptions = Normalised<
     | 'cornerRadius'
     | 'alignment'
     | 'verticalAlignment'
-    | 'sort',
+    | 'sort'
+    | 'shadow',
     {
         fill?: NormalisedColorType;
         stroke?: CssColor;
+        shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<unknown>, AgSankeySeriesNodeStyle>;
     }
 >;
@@ -146,20 +150,22 @@ export type NormalisedChordSeriesLabelOptions =
 /** Link styling; `fill`/`stroke` fall back to the series palette cycled by source node at render time. */
 export type NormalisedChordSeriesLinkOptions = Normalised<
     AgChordSeriesLinkOptions<unknown, unknown>,
-    FlowStyleRequiredKeys | 'tension',
+    FlowStyleRequiredKeys | 'tension' | 'shadow',
     {
         fill?: NormalisedColorType;
         stroke?: CssColor;
+        shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
     }
 >;
 
 export type NormalisedChordSeriesNodeOptions = Normalised<
     AgChordSeriesNodeOptions<unknown, unknown>,
-    FlowStyleRequiredKeys | 'spacing' | 'width' | 'cornerRadius',
+    FlowStyleRequiredKeys | 'spacing' | 'width' | 'cornerRadius' | 'shadow',
     {
         fill?: NormalisedColorType;
         stroke?: CssColor;
+        shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
     }
 >;

@@ -288,7 +288,7 @@ export abstract class BaseFunnelSeries<
 
     private connectionFactory() {
         const connector = new FunnelConnector<FunnelConnectorDatum>();
-        // Silhouette casts the fill and stroke as one shadow, so stroke-only connectors still cast.
+        // Silhouette casts both the fill and the stroke, so stroke-only connectors still cast.
         connector.shadowMode = 'silhouette';
         return connector;
     }
