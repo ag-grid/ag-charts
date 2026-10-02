@@ -101,6 +101,40 @@ In the above example we provided the same `highlight` for all of the series, but
 
 For simplicity, we provided the `highlight` once within a chart [Theme](./themes/), rather than repeating it on each series.
 
+### Highlighted Item Shadow
+
+Use `highlightedItem.shadow` to cast a drop shadow behind the highlighted item, so it appears lifted off the chart.
+
+{% chartExampleRunner title="Highlighted Item Shadow" name="highlight-shadow" type="generated" /%}
+
+```js format="snippet"
+{
+    highlight: {
+        highlightedItem: {
+            shadow: {
+                enabled: true,
+                color: 'rgba(0, 0, 0, 0.5)',
+                xOffset: 3,
+                yOffset: 3,
+                blur: 8,
+            },
+        },
+    },
+}
+```
+
+In this example:
+
+- Hovering a bar casts a shadow behind that bar only. The other bars have no shadow.
+- The `Shadow Off` button sets `shadow.enabled` to `false`, which removes the highlight shadow.
+
+The `shadow` option takes `enabled`, `color`, `xOffset`, `yOffset` and `blur` (see the API reference), and works as follows:
+
+- It applies to the highlighted item only. It is not available on `highlightedSeries`, `unhighlightedItem` or `unhighlightedSeries`.
+- It is off unless configured, so highlighting looks the same as before until you set it.
+- While an item is highlighted, its `highlightedItem.shadow` replaces the series `shadow`. When it is not set, the highlighted item keeps the series `shadow`.
+- It is available on every series that supports `shadow`. Area, radar area and range area series fills are not redrawn when highlighted, so `highlightedItem.shadow` only changes the shadow on their markers.
+
 ## Stylers
 
 All [Styler](./stylers/) callbacks receive a `param.highlightState`
