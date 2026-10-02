@@ -23,10 +23,11 @@ export interface AgMultiSeriesHighlightOptions<
 export interface AgItemHighlightStyleOptions {
     /**
      * Configuration for the shadow used behind the highlighted item. While the item is highlighted, it is merged with
-     * the series' own `shadow` field by field, so any field left unset comes from the series' `shadow`. For example,
-     * `{ color }` without `enabled: true` stays off if the series' `shadow` is off.
+     * the item's normal `shadow` field by field, so any field left unset comes from that shadow. For example,
+     * `{ color }` without `enabled: true` stays off if the normal `shadow` is off. The normal `shadow` is the series'
+     * `shadow`, or for some series another one, such as `marker.shadow`, `node.shadow` or `link.shadow`.
      *
-     * Default: no highlight shadow, so the highlighted item keeps the series' `shadow`.
+     * Default: no highlight shadow, so the highlighted item keeps its normal `shadow`.
      */
     shadow?: AgDropShadowOptions;
 }
