@@ -113,5 +113,24 @@ describe('BoxPlotNode', () => {
 
             expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
         });
+
+        it('should not leave a sliver on the left edge for a crisp vertical box plot without a stroke', () => {
+            const node = boxPlot({
+                horizontal: false,
+                crisp: true,
+                strokeWidth: 0,
+                center: 100.5,
+                thickness: 5,
+                min: 20,
+                q1: 70,
+                median: 100,
+                q3: 130,
+                max: 190,
+                fillShadow: { ...RED_SHADOW, blur: 0 },
+            });
+            renderNode(canvasCtx, node, pixelRatio);
+
+            expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
+        });
     });
 });

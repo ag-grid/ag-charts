@@ -81,7 +81,8 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     }
 
     protected override getSilhouetteStrokeWidth(): number {
-        return Math.max(this.__strokeWidth, this.wickStrokeWidth ?? 0);
+        // A crisp body can snap up to a device pixel past its bounds, so pad it even without a stroke.
+        return Math.max(this.__strokeWidth, this.wickStrokeWidth ?? 0, this.crisp ? 2 : 0);
     }
 
     override computeDefaultGradientFillBBox(): _ModuleSupport.BBox {
