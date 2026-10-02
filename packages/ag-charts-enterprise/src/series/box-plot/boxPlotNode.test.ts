@@ -126,7 +126,7 @@ describe('BoxPlotNode', () => {
                 median: 100,
                 q3: 130,
                 max: 190,
-                fillShadow: { ...RED_SHADOW, blur: 0 },
+                fillShadow: RED_SHADOW,
             });
             renderNode(canvasCtx, node, pixelRatio);
 
