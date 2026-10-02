@@ -1426,7 +1426,23 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     updateData() {
-        this.ctx.eventsHub.emit('data:update', this.data);
+        this.ctx.eventsHub.emit('data:update', this.getSeriesData());
+    }
+
+    private seriesData: { source: DataSet; options: ChartOptions; data: DataSet } | undefined = undefined;
+    private getSeriesData() {
+        const { data, chartOptions } = this;
+        const { presetType } = chartOptions.optionMetadata;
+        if (presetType == null) return data;
+
+        const transform = chartOptions.moduleRegistry.getPresetModule(presetType)?.transformSeriesData;
+        if (transform == null) return data;
+
+        if (this.seriesData?.source !== data || this.seriesData.options !== chartOptions) {
+            const seriesData = DataSet.wrap(transform(data.data, chartOptions.userOptions), this.ctx.logger);
+            this.seriesData = { source: data, options: chartOptions, data: seriesData };
+        }
+        return this.seriesData.data;
     }
 
     private _cachedData: CachedData | undefined = undefined;

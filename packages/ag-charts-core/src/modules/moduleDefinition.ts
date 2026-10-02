@@ -149,9 +149,12 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     // Maps a fast-path delta's preset-owned root keys (see {@link fastUpdateKeys}) onto the
     // internal options shape `create` would produce, so the generic merge can apply it directly.
     processFastUpdate?(this: void, delta: Record<string, unknown>): Record<string, unknown>;
-    // False when `create` derives its series from `data`, so every data change, transactions included,
-    // must re-run it rather than take the fast path or apply to the chart's data in place.
+    // False when transactions can't apply to the chart's data in place, e.g. because its series read data
+    // derived from it (see {@link transformSeriesData}); they then replace the data with a full update.
     dataTransactions?: boolean;
+    // Maps the chart's data to the rows its series read; the chart's own data, which transactions and
+    // data source loads apply to, keeps the user's rows. The options are the user's, not yet validated.
+    transformSeriesData?(this: void, data: unknown[], options: TOptions): unknown[];
 }
 
 export interface AxisModuleDefinition<
