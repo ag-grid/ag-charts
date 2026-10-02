@@ -248,6 +248,12 @@ export abstract class DataModelSeries<
             }
         }
 
+        // If the user is changing the focus to another series type that missing the current datumIndex, then fallback
+        // to either lower or upper bound:
+        if ((opts.otherIndexDelta satisfies number) !== 0 && nextNodeIndex === undefined) {
+            nextNodeIndex = lower ?? upper;
+        }
+
         if (nextNodeIndex === undefined) {
             return { datum: SeriesNodeDatumSentinel.CULLED, datumIndex: clampedDatumIndex };
         } else {
