@@ -5,8 +5,8 @@ import type { BoxBounds, DefinedZoomState } from 'ag-charts-core';
 import type { ZoomProperties } from './zoomTypes';
 import { constrainAxis, constrainZoom, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
 
-type State = _ModuleSupport.CoreZoomState;
-type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
+type State = _ModuleSupport.CoreViewportState;
+type StateRetrieval = _ModuleSupport.CoreViewportStateSafeRetrieval;
 
 export class ZoomScroller {
     updateAxes(event: _Widget.WheelWidgetEvent, props: ZoomProperties, bbox: BoxBounds, zooms: StateRetrieval): State {

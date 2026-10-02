@@ -601,7 +601,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
                 ctx.domManager.setDataBoolean('animating', false);
                 ctx.domManager.setDataNumber('animationTimeMs', ctx.animationManager.getCumulativeAnimationTime());
             }),
-            ctx.eventsHub.on('zoom:change-complete', () => {
+            ctx.eventsHub.on('viewport:change-complete', () => {
                 const initialPhase = this.chartAnimationPhase === 'initial';
                 for (const s of this.series) {
                     (s as any).animationState?.transition('updateData');
@@ -1827,7 +1827,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         if (!this.hasViewportSupport()) {
             // reset zoom to initial state
-            this.ctx.viewportManager?.updateZoom(
+            this.ctx.viewportManager?.updateViewport(
                 { source: 'chart-update', sourceDetail: 'internal-applyOptions' },
                 { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } }
             );

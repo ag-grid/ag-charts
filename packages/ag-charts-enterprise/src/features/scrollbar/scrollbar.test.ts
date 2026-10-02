@@ -497,7 +497,7 @@ describe('Scrollbar visibility on barWidth change', () => {
         await clickAction(cx, cy)(proxy);
 
         const viewportManager = (deproxy(proxy) as any).ctx.viewportManager;
-        const updateZoomSpy = vi.spyOn(viewportManager, 'updateZoom');
+        const updateViewportSpy = vi.spyOn(viewportManager, 'updateViewport');
 
         // Sustained horizontal scroll in one direction, then partially back — the reported gesture.
         await scrollAction(cx, cy, 0, 50, WheelDeltaMode.Pixels, 30)(proxy);
@@ -507,7 +507,7 @@ describe('Scrollbar visibility on barWidth change', () => {
         await waitForChartStability(proxy);
 
         // No zoom update is issued at the extent, so no dirty span can reach the scrollbar.
-        expect(updateZoomSpy).not.toHaveBeenCalled();
+        expect(updateViewportSpy).not.toHaveBeenCalled();
         expect(getZoomX()?.min).toBe(0);
         expect(getZoomX()?.max).toBe(1);
     });

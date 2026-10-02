@@ -495,7 +495,7 @@ export class Annotations extends AbstractModuleInstance {
             ctx.eventsHub.on('annotations:restore', this.onRestoreAnnotations.bind(this)),
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.eventsHub.on('update:pre-scene-render', this.onPreRender.bind(this)),
-            ctx.eventsHub.on('zoom:change-complete', () => this.onResize()),
+            ctx.eventsHub.on('viewport:change-complete', () => this.onResize()),
             ctx.eventsHub.on('dom:resize', () => this.onResize()),
 
             // Toolbar

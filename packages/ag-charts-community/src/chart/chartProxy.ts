@@ -26,7 +26,7 @@ import type { DataServiceRestoredData } from './data/dataService';
 import { deepCloneDataSet } from './data/dataSetUtil';
 import { findExpectedModuleName } from './factory/expectedModules';
 import { InteractionState } from './interaction/interactionManager';
-import type { UpdateZoomSourcing } from './interaction/viewportManager';
+import type { UpdateViewportSourcing } from './interaction/viewportManager';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
 
 const debug = Debug.create(true, 'opts');
@@ -345,8 +345,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
         await cloneProxy.setState(state);
 
         // sync zoom
-        const sourcing: UpdateZoomSourcing = { source: 'chart-update', sourceDetail: 'internal-prepareResizedChart' };
-        cloneProxy.chart?.ctx.viewportManager?.updateZoom(sourcing, chart.ctx.chartState.getValue('zoom'));
+        const sourcing: UpdateViewportSourcing = {
+            source: 'chart-update',
+            sourceDetail: 'internal-prepareResizedChart',
+        };
+        cloneProxy.chart?.ctx.viewportManager?.updateViewport(sourcing, chart.ctx.chartState.getValue('zoom'));
 
         cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
         await cloneProxy.waitForUpdate();

@@ -8,7 +8,7 @@ import {
 import type { DynamicContext, ZoomMinMax } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams, AgZoomEventSource } from 'ag-charts-types';
 
-import type { UpdateCompleteEvent, ZoomChangeCompleteEvent } from '../../core/eventsHub';
+import type { UpdateCompleteEvent, ViewportChangeCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
@@ -43,7 +43,7 @@ export class DataWindowProcessor implements UpdateProcessor {
             ctx.eventsHub.on('data:error', (e) => this.onDataError(e)),
             ctx.eventsHub.on('data:render-verdict', (e) => this.onRenderVerdict(e)),
             ctx.eventsHub.on('update:complete', (e) => this.onUpdateComplete(e)),
-            ctx.eventsHub.on('zoom:change-complete', (e) => this.onZoomChange(e))
+            ctx.eventsHub.on('viewport:change-complete', (e) => this.onViewportChange(e))
         );
     }
 
@@ -112,7 +112,7 @@ export class DataWindowProcessor implements UpdateProcessor {
         this.updateWindow(event);
     }
 
-    private onZoomChange(event: ZoomChangeCompleteEvent) {
+    private onViewportChange(event: ViewportChangeCompleteEvent) {
         this.dirtyZoom = true;
         this.zoomSource = event.source;
     }

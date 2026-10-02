@@ -96,7 +96,7 @@ export class NavigatorDOMProxy {
         const { _min: min, _max: max } = this;
         if (min == null || max == null) return;
 
-        this.ctx.viewportManager?.updateZoom(
+        this.ctx.viewportManager?.updateViewport(
             { source: 'user-interaction', sourceDetail: 'navigatorDOM' },
             { x: { min, max } }
         );

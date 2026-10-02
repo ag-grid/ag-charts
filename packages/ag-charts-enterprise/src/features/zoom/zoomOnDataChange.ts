@@ -11,7 +11,7 @@ import { ChartAxisDirection, clamp, definedZoomState, isNumericValue, toNumber }
 
 const { userInteraction } = _ModuleSupport;
 
-type ZoomChangeState = _ModuleSupport.ZoomChangeState;
+type ViewportChangeState = _ModuleSupport.ViewportChangeState;
 
 // Every scale type can express its domain bounds as a number (category: indices, time: timestamps), so
 // preserveDomain interpolates ratios in that space: `toVisibleMinMax` on data change, `fromVisibleMinMax` after.
@@ -67,7 +67,7 @@ export interface ZoomOnDataChangeCtx extends Pick<
     // Optional on ChartRegistry, but the zoom module is the only instantiator and guarantees it.
     readonly viewportManager: _ModuleSupport.ViewportManager;
     readonly cleanup: CleanupRegistry;
-    readonly onConstrainChanges: (e: _ModuleSupport.ZoomChangeRequestEvent) => void;
+    readonly onConstrainChanges: (e: _ModuleSupport.ViewportChangeRequestEvent) => void;
     // Reactive option access delegated from parent via getter property.
     readonly opts: NormalisedZoomOnDataChange;
 }
@@ -88,7 +88,7 @@ export class ZoomOnDataChange {
         };
         cleanup.register(
             eventsHub.on('layout:complete', onFirstDraw),
-            eventsHub.on('zoom:change-request', (e) => this.onZoomChangeRequest(e))
+            eventsHub.on('viewport:change-request', (e) => this.onViewportChangeRequest(e))
         );
     }
 
@@ -100,7 +100,7 @@ export class ZoomOnDataChange {
         this.performUpdateStrategy();
     }
 
-    private onZoomChangeRequest(e: _ModuleSupport.ZoomChangeRequestEvent): void {
+    private onViewportChangeRequest(e: _ModuleSupport.ViewportChangeRequestEvent): void {
         if (e.sourceDetail === 'internal-requiredWidth') {
             this.desiredChanges = undefined;
         }
@@ -138,7 +138,7 @@ export class ZoomOnDataChange {
         return domainMinMax;
     }
 
-    private popDesiredChanges(): ZoomChangeState | undefined {
+    private popDesiredChanges(): ViewportChangeState | undefined {
         const { desiredChanges } = this;
         if (!desiredChanges) return;
         this.desiredChanges = undefined;
@@ -185,7 +185,7 @@ export class ZoomOnDataChange {
         const { strategy } = this.ctx.opts;
         switch (strategy) {
             case 'reset':
-                return this.ctx.viewportManager.resetZoom(userInteraction('onDataChange-reset'));
+                return this.ctx.viewportManager.resetViewport(userInteraction('onDataChange-reset'));
             case 'preserveRatios':
                 return; // do nothing (keep ViewportManager min/max ratios unchanged).
             case 'preserveDomain':
@@ -197,12 +197,12 @@ export class ZoomOnDataChange {
     }
 
     private performPreserveDomain(): void {
-        // Data has changes, remember the current domain for all X axes. We'll constrain the next zoom:change-request
+        // Data has changes, remember the current domain for all X axes. We'll constrain the next viewport:change-request
         // event to these domain:
         this.desiredChanges = { type: 'domain', domains: [] };
         const xaxes = this.ctx.viewportManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
         for (const { id: axisId } of xaxes) {
-            const ratios = this.ctx.viewportManager.getAxisZoom(axisId);
+            const ratios = this.ctx.viewportManager.getAxisViewport(axisId);
             // Skip fully zoomed-out axes — avoids snapshotting a placeholder [0,1] domain on a
             // freshly-recreated axis and collapsing the zoom when re-interpolated against the real domain.
             if (ratios.min === 0 && ratios.max === 1) continue;
@@ -221,7 +221,7 @@ export class ZoomOnDataChange {
         const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
         if (!domainMinMax) return;
 
-        const ratios = this.ctx.viewportManager.getAxisZoom(axisId);
+        const ratios = this.ctx.viewportManager.getAxisViewport(axisId);
         const { visibleMin, visibleMax } = toVisibleMinMax(axisId, domainMinMax, ratios);
         const difference = visibleMax - visibleMin;
         this.desiredChanges = { type: 'stickToEnd', axisId, difference };

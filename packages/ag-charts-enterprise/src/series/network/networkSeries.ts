@@ -205,8 +205,8 @@ export abstract class AbstractNetworkSeries<
             ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClick(event)),
             ctx.eventsHub.on('series:keynav-expand', (event) => this.onSeriesAreaKeynavExpand(event)),
             ctx.eventsHub.on('series:keynav-collapse', (event) => this.onSeriesAreaKeynavCollapse(event)),
-            ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequest(event)),
-            ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event))
+            ctx.eventsHub.on('viewport:change-request', (event) => this.onViewportChangeRequest(event)),
+            ctx.eventsHub.on('viewport:change-complete', (event) => this.onViewportChangeComplete(event))
         );
     }
 
@@ -744,7 +744,7 @@ export abstract class AbstractNetworkSeries<
             this.pendingView = undefined;
         }
         this.hasCentredContent = true;
-        this.ctx.viewportManager?.updateZoom(
+        this.ctx.viewportManager?.updateViewport(
             { source: 'chart-update', sourceDetail: 'internal-networkSeriesFocusChange' },
             zoom
         );
@@ -796,12 +796,12 @@ export abstract class AbstractNetworkSeries<
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
     }
 
-    private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
+    private onViewportChangeRequest(event: _ModuleSupport.ViewportChangeRequestEvent) {
         if (event.isReset) return;
         this.constrainZoomWindow(event);
     }
 
-    private onZoomChangeComplete(event: _ModuleSupport.ZoomChangeCompleteEvent) {
+    private onViewportChangeComplete(event: _ModuleSupport.ViewportChangeCompleteEvent) {
         // A user gesture takes precedence over any centring not yet applied.
         if (event.source === 'user-interaction') {
             this.pendingView = undefined;
@@ -844,7 +844,7 @@ export abstract class AbstractNetworkSeries<
         return Math.min(Math.max(scale, minScale), 1);
     }
 
-    private getStateWindowSizes(state: _ModuleSupport.ZoomChangeState) {
+    private getStateWindowSizes(state: _ModuleSupport.ViewportChangeState) {
         let x;
         let y;
 
@@ -867,7 +867,11 @@ export abstract class AbstractNetworkSeries<
      * cursor-anchored midpoint to be applied — which reads as a pan. Such a request is dropped rather
      * than constrained. Pans are unaffected, as they do not change the window size.
      */
-    private isZoomAtLimit(event: _ModuleSupport.ZoomChangeRequestEvent, requested: WindowSizes, sizes: WindowSizes) {
+    private isZoomAtLimit(
+        event: _ModuleSupport.ViewportChangeRequestEvent,
+        requested: WindowSizes,
+        sizes: WindowSizes
+    ) {
         const previous = this.getStateWindowSizes(event.oldState);
         if (!previous) return false;
 
@@ -879,8 +883,8 @@ export abstract class AbstractNetworkSeries<
         );
     }
 
-    private restoreZoomWindow(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        const restored: _ModuleSupport.CoreZoomState = {};
+    private restoreZoomWindow(event: _ModuleSupport.ViewportChangeRequestEvent) {
+        const restored: _ModuleSupport.CoreViewportState = {};
 
         for (const id of strictObjectKeys(event.oldState)) {
             const entry = event.oldState[id];
@@ -898,7 +902,7 @@ export abstract class AbstractNetworkSeries<
 
     // Holds the zoom to a single shared scale between the content fitting the viewport and native
     // pixel size, then slides each window back inside `[0, 1]`.
-    private constrainZoomWindow(event: _ModuleSupport.ZoomChangeRequestEvent) {
+    private constrainZoomWindow(event: _ModuleSupport.ViewportChangeRequestEvent) {
         const requested = this.getStateWindowSizes(event.state);
         if (!requested) return;
 
@@ -913,7 +917,7 @@ export abstract class AbstractNetworkSeries<
             return;
         }
 
-        const constrained: _ModuleSupport.CoreZoomState = {};
+        const constrained: _ModuleSupport.CoreViewportState = {};
         let didConstrain = false;
 
         for (const id of strictObjectKeys(event.state)) {

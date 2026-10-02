@@ -5,8 +5,8 @@ import { ChartAxisDirection, UNIT_MAX, UNIT_MIN, definedZoomState, entries } fro
 import type { ZoomCoords } from './zoomTypes';
 import { constrainZoom, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
 
-type State = _ModuleSupport.CoreZoomState;
-type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
+type State = _ModuleSupport.CoreViewportState;
+type StateRetrieval = _ModuleSupport.CoreViewportStateSafeRetrieval;
 
 export interface ZoomPanUpdate {
     type: 'update';

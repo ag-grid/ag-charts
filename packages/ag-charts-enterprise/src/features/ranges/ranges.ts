@@ -98,7 +98,7 @@ export class Ranges extends AbstractModuleInstance {
             ctx.layoutManager.registerElement(LayoutElement.ToolbarBottom, this.onLayoutStart.bind(this)),
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.widgets.chartWidget.addListener('click', this.onChartWidgetClick.bind(this)),
-            ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
+            ctx.eventsHub.on('viewport:change-complete', this.onViewportChanged.bind(this)),
             ctx.eventsHub.on('font:load', () => this.invalidateToolbarHeightCache()),
             ctx.eventsHub.on('theme:params-change', () => this.invalidateToolbarHeightCache()),
             ctx.chartState.observe((get) => {
@@ -397,7 +397,7 @@ export class Ranges extends AbstractModuleInstance {
         return fillOpacityColor.toString();
     }
 
-    private onZoomChanged() {
+    private onViewportChanged() {
         this.buttonsToolbar?.clearActiveButton();
 
         if (this.isDropdown) {
@@ -487,7 +487,7 @@ export class Ranges extends AbstractModuleInstance {
         const updateWithFn = this.getUpdateWithFn(value);
 
         if (updateWithFn.valid === false || updateWithFn.fn == null) {
-            viewportManager.resetZoom(sourcing);
+            viewportManager.resetViewport(sourcing);
         } else {
             viewportManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn.fn);
         }
@@ -496,7 +496,7 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private getUpdateWithFn(value: AgRangesButtonValue): {
-        fn?: _ModuleSupport.UpdateZoomWithFunction;
+        fn?: _ModuleSupport.UpdateViewportWithFunction;
         valid: boolean;
     } {
         if (value == null) return { valid: true };

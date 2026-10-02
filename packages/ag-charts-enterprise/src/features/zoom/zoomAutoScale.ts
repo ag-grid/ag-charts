@@ -26,9 +26,9 @@ export interface ZoomAutoScalerCtx {
 export class ZoomAutoScaler {
     constructor(private readonly ctx: ZoomAutoScalerCtx) {
         ctx.cleanup.register(
-            ctx.eventsHub.on('zoom:save-memento', (e) => this.onSaveMemento(e)),
-            ctx.eventsHub.on('zoom:load-memento', (e) => this.onLoadMemento(e)),
-            ctx.eventsHub.on('zoom:change-request', (e) => this.onChangeRequest(e))
+            ctx.eventsHub.on('viewport:save-memento', (e) => this.onSaveMemento(e)),
+            ctx.eventsHub.on('viewport:load-memento', (e) => this.onLoadMemento(e)),
+            ctx.eventsHub.on('viewport:change-request', (e) => this.onChangeRequest(e))
         );
     }
 
@@ -52,7 +52,7 @@ export class ZoomAutoScaler {
         }
     }
 
-    private onChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
+    private onChangeRequest(event: _ModuleSupport.ViewportChangeRequestEvent) {
         const hasYAxisChange = this.hasYAxisChange(event);
         if (event.sourceDetail === 'scrollbar' && hasYAxisChange) {
             this.manuallyAdjusted = true;
@@ -68,7 +68,7 @@ export class ZoomAutoScaler {
         }
     }
 
-    private hasYAxisChange(event: _ModuleSupport.ZoomChangeRequestEvent): boolean {
+    private hasYAxisChange(event: _ModuleSupport.ViewportChangeRequestEvent): boolean {
         for (const id of event.changedAxes) {
             if (event.state[id]?.direction === ChartAxisDirection.Y) {
                 return true;
@@ -77,11 +77,11 @@ export class ZoomAutoScaler {
         return false;
     }
 
-    private onSaveMemento(event: _ModuleSupport.ZoomSaveMementoEvent) {
+    private onSaveMemento(event: _ModuleSupport.ViewportSaveMementoEvent) {
         event.memento.autoScaledAxes = this.enabled ? ['y'] : undefined;
     }
 
-    private onLoadMemento(event: _ModuleSupport.ZoomLoadMementoEvent) {
+    private onLoadMemento(event: _ModuleSupport.ViewportLoadMementoEvent) {
         const { zoom, memento, navigatorModule, zoomModule } = event;
         // Do not adjust the y-axis zoom if the navigator module is enabled by itself
         if (!navigatorModule || zoomModule) {
@@ -129,11 +129,13 @@ export class ZoomAutoScaler {
         }
     }
 
-    private autoScaleYZoom(changes?: _ModuleSupport.UpdateZoomChanges): _ModuleSupport.CoreZoomState | undefined {
+    private autoScaleYZoom(
+        changes?: _ModuleSupport.UpdateViewportChanges
+    ): _ModuleSupport.CoreViewportState | undefined {
         const zoom = { ...this.ctx.chartState.getValue('zoom') };
         if (changes) {
             // The `zoom` is outdated, let's patch in the updates from `changes`.
-            const state = this.viewportManager.getAxisZooms();
+            const state = this.viewportManager.getAxisViewports();
             for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y] as const) {
                 for (const id of strictObjectKeys(changes)) {
                     if (state[id]?.direction === dir) {
@@ -148,7 +150,7 @@ export class ZoomAutoScaler {
         const zoomY = this.getAutoScaleYZoom(zoom.x);
         if (zoomY == null || objectsEqual(zoom.y, zoomY)) return;
 
-        return this.viewportManager.toCoreZoomState({ x: zoom.x, y: zoomY });
+        return this.viewportManager.toCoreViewportState({ x: zoom.x, y: zoomY });
     }
 
     private zoomBounds(

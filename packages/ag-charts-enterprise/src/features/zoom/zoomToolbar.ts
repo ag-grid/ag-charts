@@ -74,9 +74,9 @@ export class ZoomToolbar {
     constructor(
         private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
+        private readonly updateZoom: (sourcing: _ModuleSupport.UpdateViewportSourcing, zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (
-            sourcing: _ModuleSupport.UpdateZoomSourcing,
+            sourcing: _ModuleSupport.UpdateViewportSourcing,
             axisId: AxisID,
             direction: CartesianAxisDirection,
             partialZoom: ZoomMinMax | undefined
@@ -276,8 +276,8 @@ export class ZoomToolbar {
         const props = this.getModuleProperties();
 
         if (props.independentAxes && button.value !== 'reset') {
-            const axisZooms = this.ctx.viewportManager!.getAxisZooms();
-            for (const [axisId, value] of entries(axisZooms)) {
+            const axisViewports = this.ctx.viewportManager!.getAxisViewports();
+            for (const [axisId, value] of entries(axisViewports)) {
                 if (value == null) continue;
                 const { direction, min, max } = value;
                 this.onButtonPressAxis(button, props, axisId, direction, { min, max });

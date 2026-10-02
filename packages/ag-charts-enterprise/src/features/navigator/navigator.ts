@@ -58,7 +58,7 @@ export class Navigator extends AbstractModuleInstance {
             ctx.eventsHub.on('locale:change', () => this.updateZoom()),
             ctx.layoutManager.registerElement(_ModuleSupport.LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChange(event)),
+            ctx.eventsHub.on('viewport:change-complete', (event) => this.onViewportChange(event)),
             ctx.chartState.observe((get) => {
                 const enabled = get('options', 'navigator.enabled') ?? false;
                 ctx.viewportManager?.setNavigatorEnabled(Boolean(enabled));
@@ -171,7 +171,7 @@ export class Navigator extends AbstractModuleInstance {
             this.panStart = (offsetX - this.x) / this.width - this.domProxy._min;
         }
 
-        this.ctx.viewportManager?.fireZoomPanStartEvent('navigator');
+        this.ctx.viewportManager?.fireViewportPanStartEvent('navigator');
     }
 
     onDrag(dragging: NavigatorButtonType, { offsetX }: { offsetX: number }) {
@@ -203,7 +203,7 @@ export class Navigator extends AbstractModuleInstance {
         this.updateZoom();
     }
 
-    private onZoomChange(event: _ModuleSupport.ZoomChangeCompleteEvent) {
+    private onViewportChange(event: _ModuleSupport.ViewportChangeCompleteEvent) {
         const { x: xZoom } = event;
         if (!xZoom) return;
 

@@ -1015,7 +1015,7 @@ describe('OrganizationSeries', () => {
     // Bypasses the memento path's theme-template projection so the tests can assert exact zoom
     // states; `chart.setState({zoom: ...})` exercises the full state-restore pipeline instead.
     function setZoom(c: any, xMin: number, xMax: number, yMin: number, yMax: number) {
-        deproxy(c).ctx.viewportManager?.updateZoom(
+        deproxy(c).ctx.viewportManager?.updateViewport(
             { source: 'state-change', sourceDetail: 'unspecified' },
             { x: { min: xMin, max: xMax }, y: { min: yMin, max: yMax } }
         );

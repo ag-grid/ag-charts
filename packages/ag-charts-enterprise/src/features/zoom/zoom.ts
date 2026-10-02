@@ -139,8 +139,8 @@ export class Zoom extends AbstractModuleInstance {
             this.isZoomValid.bind(this)
         );
 
-        // FIXME: `minVisibleItems` should have its own zoom:change-request handling
-        const minVisibleItemsCallback = (event: _ModuleSupport.ZoomChangeRequestEvent): void => {
+        // FIXME: `minVisibleItems` should have its own viewport:change-request handling
+        const minVisibleItemsCallback = (event: _ModuleSupport.ViewportChangeRequestEvent): void => {
             if (this.opts.minVisibleItems > 0) {
                 const restrictions = event.stateAsDefinedZoom();
                 event.constrainZoom(this.constrainZoom(restrictions));
@@ -188,13 +188,13 @@ export class Zoom extends AbstractModuleInstance {
             ctx.widgets.seriesWidget.addListener('touchcancel', (event) => this.onTouchEnd(event)),
             ctx.eventsHub.on('update:process-data', (event) => this.onProcessData(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
-            ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequested(event)),
-            ctx.eventsHub.on('zoom:pan-start', (event) => this.onZoomPanStart(event)),
+            ctx.eventsHub.on('viewport:change-request', (event) => this.onViewportChangeRequested(event)),
+            ctx.eventsHub.on('viewport:pan-start', (event) => this.onViewportPanStart(event)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event)),
             () => this.teardown()
         );
 
-        // Init last, because we want `autoScaling` to be the last listener for `zoom:change-event` events:
+        // Init last, because we want `autoScaling` to be the last listener for `viewport:change-request` events:
         this.autoScaler = new ZoomAutoScaler({
             viewportManager: ctx.viewportManager,
             eventsHub: ctx.eventsHub,
@@ -233,7 +233,7 @@ export class Zoom extends AbstractModuleInstance {
 
                 this.refreshTouchAction();
             }),
-            ctx.eventsHub.on('zoom:change-complete', () => this.refreshTouchAction()),
+            ctx.eventsHub.on('viewport:change-complete', () => this.refreshTouchAction()),
             () => ctx.widgets.seriesWidget.setTouchAction(undefined)
         );
     }
@@ -328,7 +328,7 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         if ((this.dragState = newDragState) !== DragState.None) {
-            viewportManager.fireZoomPanStartEvent('zoom');
+            viewportManager.fireViewportPanStartEvent('zoom');
         }
     }
 
@@ -482,7 +482,7 @@ export class Zoom extends AbstractModuleInstance {
         if (!enabled || !enableDoubleClickToReset || !this.isState(InteractionState.ZoomClickable)) return;
 
         this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
-        viewportManager.resetAxisZoom({ source: 'user-interaction', sourceDetail: 'zoom-axis-dblclick' }, id);
+        viewportManager.resetAxisViewport({ source: 'user-interaction', sourceDetail: 'zoom-axis-dblclick' }, id);
     }
 
     private onAxisDragStart(direction: ChartAxisDirection) {
@@ -499,7 +499,7 @@ export class Zoom extends AbstractModuleInstance {
             this.dragState = DragState.Pan;
             this.panner.start(direction);
 
-            viewportManager.fireZoomPanStartEvent('zoom');
+            viewportManager.fireViewportPanStartEvent('zoom');
         } else {
             const resizeCursor = direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize';
             this.ctx.domManager.lockCursor(DRAG_CURSOR_ID, resizeCursor);
@@ -529,7 +529,7 @@ export class Zoom extends AbstractModuleInstance {
         } else {
             let anchor = direction === ChartAxisDirection.X ? anchorPointX : anchorPointY;
             if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
-            const axisZoom = this.ctx.viewportManager.getAxisZoom(axisId);
+            const axisZoom = this.ctx.viewportManager.getAxisViewport(axisId);
             const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
             this.autoScaler.onManualAdjustment(direction);
             this.updateAxisZoom(
@@ -657,7 +657,7 @@ export class Zoom extends AbstractModuleInstance {
             scrollingStep,
             scrollingMode,
             seriesRect,
-            viewportManager.getAxisZooms()
+            viewportManager.getAxisViewports()
         );
         this.updateChanges(userInteraction('zoom-seriesarea-wheel'), newZooms);
 
@@ -719,7 +719,7 @@ export class Zoom extends AbstractModuleInstance {
 
         const sourcing = userInteraction('zoom-axis-wheel');
         if (this.opts.enableIndependentAxes === true) {
-            const newZooms = scroller.updateAxes(event, props, seriesRect, viewportManager.getAxisZooms());
+            const newZooms = scroller.updateAxes(event, props, seriesRect, viewportManager.getAxisViewports());
             for (const [axisId, { direction, min, max }] of entries(newZooms)) {
                 const constrainedZoom =
                     direction === ChartAxisDirection.X
@@ -783,7 +783,7 @@ export class Zoom extends AbstractModuleInstance {
         this.paddedRect = event.series.paddedRect;
     }
 
-    private onZoomChangeRequested(event: _ModuleSupport.ZoomChangeRequestEvent) {
+    private onViewportChangeRequested(event: _ModuleSupport.ViewportChangeRequestEvent) {
         if (event.sourceDetail !== 'zoom-seriesarea-panner') {
             this.panner.stopInteractions();
         }
@@ -792,7 +792,7 @@ export class Zoom extends AbstractModuleInstance {
         this.buttons.toggleVisibleZoomed(isMaxZoom(zoom));
     }
 
-    private onZoomPanStart(event: _ModuleSupport.ZoomPanStartEvent): void {
+    private onViewportPanStart(event: _ModuleSupport.ViewportPanStartEvent): void {
         if (event.callerId === 'zoom') {
             this.panner.stopInteractions();
         }
@@ -809,7 +809,12 @@ export class Zoom extends AbstractModuleInstance {
 
         if (!seriesRect) return;
 
-        const newZooms = panner.translateZooms(seriesRect, viewportManager.getAxisZooms(), event.deltaX, event.deltaY);
+        const newZooms = panner.translateZooms(
+            seriesRect,
+            viewportManager.getAxisViewports(),
+            event.deltaX,
+            event.deltaY
+        );
         this.updateChanges(userInteraction('zoom-seriesarea-panner'), newZooms);
         if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
             tooltipManager.updateTooltip(TOOLTIP_ID);
@@ -840,7 +845,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private constrainZoom(newZoom: DefinedZoomState) {
-        return this.ctx.viewportManager.constrainZoomToItemCount(
+        return this.ctx.viewportManager.constrainViewportToItemCount(
             newZoom,
             this.opts.minVisibleItems,
             this.autoScaler.enabled
@@ -928,15 +933,15 @@ export class Zoom extends AbstractModuleInstance {
     private resetZoom(sourceDetail: _ModuleSupport.ZoomEventSourceDetail) {
         this.previousZoomValid = true;
         this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
-        this.ctx.viewportManager.resetZoom({ source: 'user-interaction', sourceDetail });
+        this.ctx.viewportManager.resetViewport({ source: 'user-interaction', sourceDetail });
     }
 
     public updateSyncZoom(zoom: DefinedZoomState) {
         this.updateZoom({ source: 'sync', sourceDetail: 'internal-updateSyncZoom' }, zoom);
     }
 
-    private updateChanges(sourcing: _ModuleSupport.UpdateZoomSourcing, changes: _ModuleSupport.CoreZoomState) {
-        // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedZoomState.
+    private updateChanges(sourcing: _ModuleSupport.UpdateViewportSourcing, changes: _ModuleSupport.CoreViewportState) {
+        // TODO: constrainZoom should operate on a partial CoreViewportState instead of DefinedZoomState.
         const partialZoom = toZoomState(changes) ?? {};
         const currentZoom = this.getZoom();
         this.updateZoom(sourcing, {
@@ -945,7 +950,7 @@ export class Zoom extends AbstractModuleInstance {
         });
     }
 
-    private updateZoom(sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) {
+    private updateZoom(sourcing: _ModuleSupport.UpdateViewportSourcing, zoom: DefinedZoomState) {
         if (this.opts.enableIndependentAxes) {
             this.updatePrimaryAxisZooms(sourcing, zoom);
         } else {
@@ -954,7 +959,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private updateUnifiedZoom(
-        sourcing: _ModuleSupport.UpdateZoomSourcing,
+        sourcing: _ModuleSupport.UpdateViewportSourcing,
         zoom: DefinedZoomState,
         validOptions?: { directional?: boolean }
     ) {
@@ -969,17 +974,17 @@ export class Zoom extends AbstractModuleInstance {
             return false;
         }
 
-        this.ctx.viewportManager.updateZoom(sourcing, zoom);
+        this.ctx.viewportManager.updateViewport(sourcing, zoom);
         return true;
     }
 
-    private updatePrimaryAxisZooms(sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) {
+    private updatePrimaryAxisZooms(sourcing: _ModuleSupport.UpdateViewportSourcing, zoom: DefinedZoomState) {
         this.updatePrimaryAxisZoom(sourcing, zoom, ChartAxisDirection.X);
         this.updatePrimaryAxisZoom(sourcing, zoom, ChartAxisDirection.Y);
     }
 
     private updatePrimaryAxisZoom(
-        sourcing: _ModuleSupport.UpdateZoomSourcing,
+        sourcing: _ModuleSupport.UpdateViewportSourcing,
         zoom: DefinedZoomState,
         direction: CartesianAxisDirection
     ) {
@@ -989,7 +994,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private updateAxisZoom(
-        sourcing: _ModuleSupport.UpdateZoomSourcing,
+        sourcing: _ModuleSupport.UpdateViewportSourcing,
         axisId: AxisID,
         direction: CartesianAxisDirection,
         axisZoom: ZoomMinMax | undefined,

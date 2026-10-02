@@ -75,7 +75,7 @@ export class Scrollbar extends AbstractModuleInstance {
             ctx.scene.attachNode(this.state.vertical.group),
             ctx.layoutManager.registerElement(LayoutElement.Scrollbar, (e) => this.onLayoutStart(e)),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.eventsHub.on('zoom:change-complete', () => this.updateThumbs()),
+            ctx.eventsHub.on('viewport:change-complete', () => this.updateThumbs()),
             ctx.eventsHub.on('zoom-interaction:scrollbar:wheel', (event) => this.onWheel(event)),
             ctx.eventsHub.on('zoom-interaction:scrollbar:axis-wheel', (event) => this.onAxisWheel(event)),
             ctx.eventsHub.on('zoom-interaction:scrollbar:scrollbar-wheel', (event) => this.onScrollbarWheel(event))
@@ -375,7 +375,7 @@ export class Scrollbar extends AbstractModuleInstance {
         }
 
         const zoom = isHorizontal ? { x: { min, max } } : { y: { min, max } };
-        this.ctx.viewportManager?.updateZoom(
+        this.ctx.viewportManager?.updateViewport(
             {
                 source: 'user-interaction',
                 sourceDetail: 'scrollbar',
@@ -435,20 +435,20 @@ export class Scrollbar extends AbstractModuleInstance {
             SCROLLING_STEP,
             SCROLLING_MODE,
             seriesRect,
-            viewportManager.getAxisZooms()
+            viewportManager.getAxisViewports()
         );
 
         // At the extent the pan is a no-op; committing it would leave a span marginally below 1 from
         // floating-point noise, tripping the `span < 1` auto-visibility check. Report capped instead.
         const next = newAxisZooms[axisId];
-        const current = viewportManager.getAxisZoom(axisId);
+        const current = viewportManager.getAxisViewport(axisId);
         if (isNumberEqual(next.min, current.min) && isNumberEqual(next.max, current.max)) {
             baseEvent.capped();
             return;
         }
 
         const newZoom = { [direction]: { min: next.min, max: next.max } };
-        viewportManager.updateZoom({ source: 'user-interaction', sourceDetail: 'scrollbar' }, newZoom);
+        viewportManager.updateViewport({ source: 'user-interaction', sourceDetail: 'scrollbar' }, newZoom);
 
         const zoom = this.getZoom();
         const isZoomCapped =
