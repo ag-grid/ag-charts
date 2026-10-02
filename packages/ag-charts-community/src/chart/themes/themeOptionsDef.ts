@@ -721,9 +721,8 @@ export const themeOverridesOptionsWithOperatorsDef = mapValues(
     themeOverridesOptionsDef,
     function themeOperatorMapper(value: unknown, key: string | number | symbol): any {
         if (isSymbol(key)) return value;
-        // TODO remove isSymbol from validators after theme symbols have been removed
         if (isFunction(value)) {
-            return or(value as Validator, themeOperator, isSymbol);
+            return or(value as Validator, themeOperator);
         } else if (isObject(value)) {
             return or(
                 optionsDefs(
@@ -731,8 +730,7 @@ export const themeOverridesOptionsWithOperatorsDef = mapValues(
                         ? mapValues(value, (val) => (isObject(val) ? mapValues(val, themeOperatorMapper) : val))
                         : mapValues(value, themeOperatorMapper)
                 ),
-                themeOperator,
-                isSymbol
+                themeOperator
             );
         }
         throw new Error(`Invalid theme override value: ${String(value)}`);

@@ -1,19 +1,4 @@
-import {
-    DEFAULT_ANNOTATION_HANDLE_FILL,
-    DEFAULT_ANNOTATION_STATISTICS_COLOR,
-    DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
-    DEFAULT_ANNOTATION_STATISTICS_FILL,
-    DEFAULT_ANNOTATION_STATISTICS_STROKE,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_POLAR_SERIES_STROKE,
-    DEFAULT_TEXTBOX_COLOR,
-    DEFAULT_TEXTBOX_FILL,
-    DEFAULT_TEXTBOX_STROKE,
-    DEFAULT_TEXT_ANNOTATION_COLOR,
-    IS_DARK_THEME,
-    getSequentialColors,
-} from 'ag-charts-core';
+import { getSequentialColors } from 'ag-charts-core';
 import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
@@ -49,6 +34,8 @@ const DEFAULT_DARK_STROKES = {
 };
 
 export class DarkTheme extends ChartTheme {
+    override readonly isDark = true;
+
     override getDefaultColors(): DefaultColors {
         return {
             fills: DEFAULT_DARK_FILLS,
@@ -106,27 +93,5 @@ export class DarkTheme extends ChartTheme {
                 width: { $ref: 'borderWidth' },
             },
         };
-    }
-
-    override getTemplateParameters() {
-        const params = super.getTemplateParameters();
-
-        params.set(IS_DARK_THEME, true);
-        params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
-
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, DEFAULT_DARK_FILLS.BLUE);
-        params.set(DEFAULT_TEXT_ANNOTATION_COLOR, '#fff');
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, DEFAULT_DARK_FILLS.BLUE);
-        params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_DARK_BACKGROUND_FILL);
-        params.set(DEFAULT_ANNOTATION_STATISTICS_FILL, '#28313e');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_STROKE, '#4b525d');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_COLOR, '#fff');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE, '#fff');
-
-        params.set(DEFAULT_TEXTBOX_FILL, '#28313e');
-        params.set(DEFAULT_TEXTBOX_STROKE, '#4b525d');
-        params.set(DEFAULT_TEXTBOX_COLOR, '#fff');
-
-        return params;
     }
 }
