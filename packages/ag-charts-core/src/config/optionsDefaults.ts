@@ -71,6 +71,7 @@ const themeParams = [
     'accentColor',
     'axisLineColor',
     'backgroundColor',
+    'bandHighlightColor',
     'borderColor',
     'borderRadius',
     'cardShadow',

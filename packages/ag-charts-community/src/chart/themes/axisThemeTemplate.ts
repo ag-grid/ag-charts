@@ -90,7 +90,8 @@ export const commonAxisThemeTemplate = {
         // that can set it — a direct user option, a type-level theme override and a positional
         // one — while a user-set `strokeWidth` still wins on edge priority. Mirrors the
         // `gridLine.style[].strokeWidth: { $path: '../../width' }` derivation below.
-        width: 1,
+        // Move the `axisLineWidth` ref to `strokeWidth` when `width` is removed.
+        width: { $ref: 'axisLineWidth' },
         strokeWidth: { $path: './width' },
         strokeOpacity: 1,
         lineDash: [],
@@ -104,7 +105,7 @@ export const commonAxisThemeTemplate = {
     },
     gridLine: {
         enabled: true,
-        width: 1,
+        width: { $ref: 'gridLineWidth' },
         style: {
             $apply: [
                 {
