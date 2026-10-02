@@ -1,4 +1,5 @@
 ---
+import { getEntry, type CollectionEntry } from 'astro:content';
 import { DocsExampleRunner } from './DocsExampleRunner';
 import type { ExampleType } from '@components/example-generator/types';
 import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
@@ -8,6 +9,10 @@ import type { ExampleOptions } from '@components/example-runner/types';
 import { getGeneratedContents } from '@components/example-generator';
 import { DISABLE_EXAMPLE_SOURCE_EMBED } from '@constants';
 import { getInternalFramework } from '@utils/framework';
+import { getIsArchive } from '@utils/env';
+import { getDocsPageUrl, getExampleSourceCodeProperties } from '@utils/docsStructuredData';
+import JsonLd from '@ag-website-shared/components/structured-data/JsonLd.astro';
+import { buildSoftwareSourceCode, getTechArticleId } from '@ag-website-shared/utils/structuredData';
 import { getFrameworkFromPath, getPageNameFromPath } from '../utils/urlPaths';
 
 interface Props {
@@ -38,12 +43,29 @@ const generatedExampleParams = {
 };
 // NOTE: The island still fetches the contents at runtime rather than taking them as props, so the
 // page only carries the source once: in the crawlable panel below, which the island removes once
-// it has mounted.
+// it has mounted. Only the main file is embedded; see ExampleRunnerSourceCode.
 const contents = await getGeneratedContents(generatedExampleParams);
 // Resolved at build time so the console log can be shown on page load.
 const hasExampleConsoleLog = contents?.hasExampleConsoleLog;
-const sourceCode =
+const viewerFiles =
     contents && !DISABLE_EXAMPLE_SOURCE_EMBED ? getExampleViewerFiles(contents, internalFramework) : undefined;
+const mainFileCode = viewerFiles?.files[viewerFiles.mainFileName];
+const sourceCode =
+    viewerFiles && mainFileCode !== undefined ? { fileName: viewerFiles.mainFileName, code: mainFileCode } : undefined;
+
+let sourceCodeStructuredData: ReturnType<typeof buildSoftwareSourceCode> | undefined;
+// Layout.astro suppresses all structured data on archive builds; match that here too, since an
+// archived example would otherwise share its @id with the current one and misdescribe it.
+if (sourceCode && !getIsArchive()) {
+    const { data: metadata } = (await getEntry('metadata', 'metadata')) as CollectionEntry<'metadata'>;
+    const pageUrl = getDocsPageUrl({ canonicalUrlBase: metadata.canonicalUrlBase, framework, pageName });
+    sourceCodeStructuredData = buildSoftwareSourceCode({
+        pageUrl,
+        exampleName: name,
+        ...getExampleSourceCodeProperties(internalFramework),
+        aboutEntityId: getTechArticleId(pageUrl),
+    });
+}
 ---
 
 <ExampleRunnerContainer
@@ -67,8 +89,9 @@ const sourceCode =
     {sourceCode && (
         <ExampleRunnerSourceCode
             internalFramework={internalFramework}
-            files={sourceCode.files}
-            mainFileName={sourceCode.mainFileName}
+            fileName={sourceCode.fileName}
+            code={sourceCode.code}
         />
     )}
+    {sourceCodeStructuredData && <JsonLd data={sourceCodeStructuredData} />}
 </ExampleRunnerContainer>

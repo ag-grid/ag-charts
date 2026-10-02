@@ -168,6 +168,14 @@ export abstract class DataModelSeries<
         return !missing && enabled && focusable;
     }
 
+    private isInBucket(node: TDatum, datumIndex: number): boolean {
+        const nodeBucketIndex = this.bucketLookup?.getBucketIndex(node.datumIndex);
+        if (nodeBucketIndex === undefined) return false;
+
+        const targetBucketIndex = this.bucketLookup?.getBucketIndex(datumIndex);
+        return targetBucketIndex === nodeBucketIndex;
+    }
+
     private findNodeDataIndexBounds(targetDatumIndex: number, nodeData: TDatum[]) {
         if (nodeData.length === 0) return [undefined, undefined];
 
@@ -212,21 +220,31 @@ export abstract class DataModelSeries<
             }
             return nodeDatumIndex === nodeData.length ? undefined : nodeDatumIndex;
         };
+        const matchesBoundary = (
+            nodeBoundaryIndex: number | undefined,
+            desiredDatumIndex: number
+        ): nodeBoundaryIndex is number => {
+            if (nodeBoundaryIndex === undefined) return false;
+            const node: TDatum | undefined = nodeData[nodeBoundaryIndex];
+            return node.datumIndex === desiredDatumIndex || this.isInBucket(node, desiredDatumIndex);
+        };
 
         let nextNodeIndex: number | undefined;
         // Search forward or backwards depending on the delta direction.
-        if (lower !== undefined && upper !== undefined) {
-            if (opts.datumIndexDelta < 0) {
+        if (opts.datumIndexDelta < 0) {
+            if (lower !== undefined) {
                 nextNodeIndex = searchBackward(lower, opts.datumIndexDelta);
-            } else if (opts.datumIndexDelta > 0) {
+            }
+        } else if (opts.datumIndexDelta > 0) {
+            if (upper !== undefined) {
                 nextNodeIndex = searchForward(upper, opts.datumIndexDelta);
-            } /* opts.datumIndexDelta === 0 */ else {
-                if (nodeData[lower].datumIndex === clampedDatumIndex) {
-                    nextNodeIndex = lower;
-                }
-                if (nodeData[upper].datumIndex === clampedDatumIndex) {
-                    nextNodeIndex = upper;
-                }
+            }
+        } /* opts.datumIndexDelta === 0 */ else {
+            if (matchesBoundary(lower, clampedDatumIndex)) {
+                nextNodeIndex = lower;
+            }
+            if (matchesBoundary(upper, clampedDatumIndex)) {
+                nextNodeIndex = upper;
             }
         }
 

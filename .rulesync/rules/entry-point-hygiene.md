@@ -26,7 +26,7 @@ Route internals through the restricted barrel, not `main.ts`:
 - **Community internals** → `module-support.ts` (re-exported as `_ModuleSupport`). See `module-support.md` for the bundle-cost discipline on that barrel.
 - **Enterprise internals** → the enterprise equivalent barrel.
 
-Type-only exports belong in `_ModuleSupport` too (`export type { ... }`). Direct-import ergonomics or type-identity concerns are not a reason to elevate a type to the default surface — the `_ModuleSupport` namespace preserves structural identity equally well.
+Community-owned type-only exports belong in `_ModuleSupport` too (`export type { ... }`); types owned by `ag-charts-core` or `ag-charts-types` are imported from those packages directly (see `module-support.md`). Direct-import ergonomics or type-identity concerns are not a reason to elevate a type to the default surface — the `_ModuleSupport` namespace preserves structural identity equally well.
 
 ## Examples
 

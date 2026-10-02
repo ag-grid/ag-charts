@@ -111,6 +111,31 @@ function newFontAccumulator(): FontAccumulator {
 }
 
 /**
+ * Convert a `FontFamilyFull` value (string, `{ googleFont }` or an array of either) into the
+ * comma-separated string text measurement expects, recording the fonts it references.
+ */
+function normaliseFontFamily(fontFamily: unknown, fontWeight: unknown, fontStyle: unknown, acc: FontAccumulator) {
+    // A `$ref` or other unresolved param value carries no weight/style to key a font file on.
+    const weight = typeof fontWeight === 'object' ? undefined : fontWeight;
+    const style = typeof fontStyle === 'object' ? undefined : fontStyle;
+    const addFamily = (family: unknown) => {
+        if (isObject(family) && 'googleFont' in family) {
+            const googleFont = family.googleFont as string;
+            acc.googleFonts.add(googleFont);
+            addReferencedFonts(acc.fonts, { fontFamily: googleFont, fontWeight: weight, fontStyle: style });
+            return googleFont;
+        }
+        addReferencedFonts(acc.fonts, { fontFamily: family, fontWeight: weight, fontStyle: style });
+        return family;
+    };
+
+    if (Array.isArray(fontFamily)) {
+        return fontFamily.map(addFamily).join(', ');
+    }
+    return addFamily(fontFamily);
+}
+
+/**
  * Collect FontFaceSet shorthands for each concrete family in a node's `fontFamily`, carrying the
  * node's weight/style so weight-specific font files are loaded. CSS generic keywords
  * (`sans-serif`, etc.) are never web fonts, so there is nothing to wait for.
@@ -144,7 +169,7 @@ export interface ChartSpecialOverrides {
 }
 
 export interface ChartInternalOptionMetadata {
-    presetType?: 'price-volume' | 'gauge-preset' | 'sparkline' | 'quadrant';
+    presetType?: 'price-volume' | 'gauge-preset' | 'sparkline' | 'quadrant' | 'volume-profile';
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
     withDragInterpretation?: boolean;
@@ -331,12 +356,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
-        // Must precede the first validation pass, which can be silenced, aborted or listened to by these
-        // options. A user key wins over the override's by presence, so an explicit `null` still warns.
-        this.validations.configure({
-            ...getValidations(this.processedOverrides),
-            ...getValidations(this.userOptions),
-        });
+        // The base chart's theme stands in until `slowSetup` resolves this pass's theme; `fastSetup` reuses it.
+        this.armValidations(baseChartOptions?.activeTheme);
 
         let activeTheme,
             processedOptions,
@@ -372,7 +393,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 deltaOptions !== undefined &&
                 ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
                 baseChartOptions != null &&
-                !dataChangedLength
+                !dataChangedLength &&
+                !(presetDef?.dataTransactions === false && deltaOptions?.data !== undefined)
             ) {
                 ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
                 themeParameters = baseChartOptions.themeParameters;
@@ -490,6 +512,38 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
+    // Must precede the first validation pass, which can be silenced, aborted or listened to by these
+    // options. Each key is taken by presence from the highest of user > overrides > theme, so an explicit
+    // `null` still warns.
+    private armValidations(activeTheme?: ChartTheme) {
+        this.validations.configure({
+            ...getValidations(activeTheme?.overrides?.common),
+            ...getValidations(this.processedOverrides),
+            ...getValidations(this.userOptions),
+        });
+    }
+
+    /**
+     * Resolves the theme and arms `validations` from it. The theme validates itself while it resolves, before
+     * its own `validations` are known, so what it reports is held back and replayed under the armed settings.
+     */
+    private resolveThemeAndArmValidations(optionsTheme: unknown, presetName: string | undefined) {
+        const themeIssues: LogIssue[] = [];
+        const themeLogger = new Logger();
+        themeLogger.setEnabledLevels([]);
+        themeLogger.onIssue((issue) => themeIssues.push(issue));
+
+        const activeTheme = sanitizeThemeModules(
+            getChartTheme(optionsTheme, themeLogger, presetName, this.moduleRegistry),
+            this.moduleRegistry
+        );
+        this.armValidations(activeTheme);
+        for (const issue of themeIssues) {
+            this.replay(issue, true);
+        }
+        return activeTheme;
+    }
+
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
         // Minimal-mode structural-output cache fast path.
         const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
@@ -522,10 +576,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             missingPresetModule = presetDef == null ? ExpectedModules.get(presetType) : undefined;
         }
 
-        const activeTheme = sanitizeThemeModules(
-            getChartTheme(optionsTheme, this.logger, presetDefName, this.moduleRegistry),
-            this.moduleRegistry
-        );
+        const activeTheme = this.resolveThemeAndArmValidations(optionsTheme, presetDefName);
 
         if (presetDef) {
             const { validate: validatePreset = validate } = presetDef;
@@ -591,7 +642,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // TODO: Chicken-or-egg, ideally should pass themeParameters in here, but this processing needs to happen
         // first. Practically, it likely doesn't matter. Either way, this should be moved to a "plugin" on the
         // graph.
-        let fontAccumulator = this.processFonts(activeTheme.params);
+        let fontAccumulator = this.processParamFonts(activeTheme.params);
         fontAccumulator = this.processFonts(options, fontAccumulator);
         const { googleFonts } = fontAccumulator;
 
@@ -706,10 +757,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Must resolve the theme exactly as `slowSetup` does, or a cached chart is styled differently
         // from the one that populated the cache.
         const optionsTheme = (this.userOptions as any).theme ?? presetDef?.baseTheme;
-        const activeTheme = sanitizeThemeModules(
-            getChartTheme(optionsTheme, this.logger, presetDef?.name, this.moduleRegistry),
-            this.moduleRegistry
-        );
+        const activeTheme = this.resolveThemeAndArmValidations(optionsTheme, presetDef?.name);
         this.chartDef = cached.chartDef;
 
         // A cache hit skips the validation loops, so what they logged is replayed for this chart's console
@@ -769,17 +817,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         runtime.validations.configure(getValidations(this.processedOptions));
     }
 
-    private replay({ severity, message, detail }: LogIssue) {
+    private replay({ severity, message, detail }: LogIssue, once = false) {
         const logContent = detail == null ? [] : [detail];
         switch (severity) {
             case 'error':
-                this.logger.error(message, ...logContent);
+                if (once) this.logger.errorOnce(message, ...logContent);
+                else this.logger.error(message, ...logContent);
                 break;
             case 'warning':
-                this.logger.warn(message, ...logContent);
+                if (once) this.logger.warnOnce(message, ...logContent);
+                else this.logger.warn(message, ...logContent);
                 break;
             case 'deprecation':
-                this.logger.deprecation(message, ...logContent);
+                if (once) this.logger.deprecationOnce(message, ...logContent);
+                else this.logger.deprecation(message, ...logContent);
                 break;
         }
     }
@@ -1660,27 +1711,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static processFontOptions(this: void, node: any, acc: FontAccumulator = newFontAccumulator()) {
         if (typeof node === 'object' && 'fontFamily' in node) {
-            const { fontWeight, fontStyle } = node;
-            if (Array.isArray(node.fontFamily)) {
-                const fontFamily = [];
-                for (const font of node.fontFamily) {
-                    if (typeof font === 'object' && 'googleFont' in font) {
-                        fontFamily.push(font.googleFont);
-                        acc.googleFonts.add(font.googleFont);
-                        addReferencedFonts(acc.fonts, { fontFamily: font.googleFont, fontWeight, fontStyle });
-                    } else {
-                        fontFamily.push(font);
-                        addReferencedFonts(acc.fonts, { fontFamily: font, fontWeight, fontStyle });
-                    }
-                }
-                node.fontFamily = fontFamily.join(', ');
-            } else if (typeof node.fontFamily === 'object' && 'googleFont' in node.fontFamily) {
-                node.fontFamily = node.fontFamily.googleFont;
-                acc.googleFonts.add(node.fontFamily);
-                addReferencedFonts(acc.fonts, { fontFamily: node.fontFamily, fontWeight, fontStyle });
-            } else if (typeof node.fontFamily === 'string') {
-                addReferencedFonts(acc.fonts, { fontFamily: node.fontFamily, fontWeight, fontStyle });
-            }
+            node.fontFamily = normaliseFontFamily(node.fontFamily, node.fontWeight, node.fontStyle, acc);
         }
         return acc;
     }
@@ -1689,6 +1720,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // `jsonWalk` threads its accumulator via a different parameter slot than this visitor
         // expects, so close over `acc` directly to collect fonts from every nested node.
         jsonWalk(options, (node) => ChartOptions.processFontOptions(node, acc), new Set(['data', 'theme']));
+        return acc;
+    }
+
+    /**
+     * Theme params carry a family per element (`titleFontFamily`, `axisLabelFontFamily`, ...) as well as
+     * `fontFamily`, and options `$ref` them, so each must reach the options as a plain string.
+     */
+    private processParamFonts(params: Record<string, any>, acc: FontAccumulator = newFontAccumulator()) {
+        for (const key of Object.keys(params)) {
+            if (key !== 'fontFamily' && !key.endsWith('FontFamily')) continue;
+            const prefix = key.slice(0, -'FontFamily'.length);
+            const weightKey = prefix === '' ? 'fontWeight' : `${prefix}FontWeight`;
+            const styleKey = prefix === '' ? 'fontStyle' : `${prefix}FontStyle`;
+            params[key] = normaliseFontFamily(params[key], params[weightKey], params[styleKey], acc);
+        }
         return acc;
     }
 

@@ -3,10 +3,11 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
-import { type OffsetPoint, fromPairs, getDocument, mapValues } from 'ag-charts-core';
+import { type CanvasPoint, type OffsetPoint, fromPairs, getDocument, mapValues } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
+    Caster,
     type MockEvent,
     type MockTouch,
     type MockTouchTypes,
@@ -238,7 +239,10 @@ export async function delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function prepareFinancialTestOptions(options: AgFinancialChartOptions, container = getDocument('body')) {
+export function prepareFinancialTestOptions<T extends AgFinancialChartOptions>(
+    options: T,
+    container = getDocument('body')
+): T {
     options.width = CANVAS_WIDTH;
     options.height = CANVAS_HEIGHT;
     options.container = container;
@@ -865,6 +869,20 @@ export function contextMenuAction(
     };
 }
 
+// jsdom has no PointerEvent constructor, which the synthetic 'contextmenu' events need.
+export function setupMockPointerEvent() {
+    let originalPointerEvent: typeof globalThis.PointerEvent;
+
+    beforeEach(() => {
+        originalPointerEvent = globalThis.PointerEvent;
+        globalThis.PointerEvent = class extends MouseEvent {} as typeof globalThis.PointerEvent;
+    });
+
+    afterEach(() => {
+        globalThis.PointerEvent = originalPointerEvent;
+    });
+}
+
 export function dragAction(
     from: { x: number; y: number },
     to: { x: number; y: number }
@@ -1079,11 +1097,48 @@ export function keyDownAction(
     };
 }
 
+// Tab lands on the swap-chain's active announcer, which initialises the series focus.
+export async function tabIntoChart(chart: ChartOrProxy) {
+    const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[tabindex="0"]');
+    expect(announcer).not.toBeNull();
+    announcer!.focus();
+    await waitForChartStability(chart);
+}
+
+// The series-area widget handles keyboard navigation.
+export async function pressKey(chart: ChartOrProxy, key: string) {
+    const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
+    expect(seriesArea).not.toBeNull();
+    seriesArea!.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+    await waitForChartStability(chart);
+}
+
 export async function createChart(options: AgChartOptions<any, any>) {
     options = prepareTestOptions({ ...options });
     const chart = deproxy(AgCharts.create(options) as AgChartProxy);
     await waitForChartStability(chart);
     return chart;
+}
+
+// The indicator is positioned relative to the series rect.
+function getFocusIndicatorCanvasBBox(chart: ChartOrProxy) {
+    const indicator = document.querySelector<HTMLElement>('.ag-charts-focus-indicator > div');
+    expect(indicator).not.toBeNull();
+    const seriesRect = new Caster(deproxy(chart))
+        .accessProperty('seriesAreaManager')
+        .accessProperty('seriesRect')
+        .cast(BBox).value;
+    const { left, top, width, height } = indicator!.style;
+    return new BBox(
+        seriesRect.x + Number.parseFloat(left),
+        seriesRect.y + Number.parseFloat(top),
+        Number.parseFloat(width),
+        Number.parseFloat(height)
+    );
+}
+
+export function focusIndicatorContainsCanvasPoint(chart: ChartOrProxy, point: Readonly<CanvasPoint>): boolean {
+    return getFocusIndicatorCanvasBBox(chart).containsPoint(point.canvasX, point.canvasY);
 }
 
 // Minimum delays for delayed removal features (100ms delay + 50ms buffer)

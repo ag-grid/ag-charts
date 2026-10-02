@@ -18,7 +18,18 @@ const stylesTheme: WithThemeParams<AgRangesOptions> = {
     fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'chromeFontSize'] },
     fontFamily: { $ref: 'chromeFontFamily' },
     fontWeight: { $ref: 'chromeFontWeight' },
-    padding: { $shallow: { top: 6, right: 9, bottom: 6, left: 9 } } as any,
+    // `$shallow` keeps a user-set padding (number or partial object) as authored; `$applyPadding` resolves the
+    // param references in the default.
+    padding: {
+        $shallow: {
+            $applyPadding: {
+                top: { $ref: 'buttonVerticalPadding' },
+                right: { $ref: 'buttonHorizontalPadding' },
+                bottom: { $ref: 'buttonVerticalPadding' },
+                left: { $ref: 'buttonHorizontalPadding' },
+            },
+        },
+    } as any,
     stroke: {
         $if: [
             { $isType: [{ $ref: 'buttonBorder' }, 'boolean'] },
@@ -74,20 +85,51 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
     ...stylesTheme,
     active: {
         ...stateTheme,
-        fill: { $ref: 'focusColor' },
-        stroke: { $ref: 'accentColor' },
-        textColor: { $ref: 'accentColor' },
+        fill: { $ref: 'buttonActiveBackgroundColor' },
+        stroke: {
+            $if: [
+                { $isType: [{ $ref: 'buttonActiveBorder' }, 'boolean'] },
+                { $if: [{ $ref: 'buttonActiveBorder' }, { $ref: 'borderColor' }, 'transparent'] },
+                { $ref: 'buttonActiveBorder.color' },
+            ],
+        },
+        textColor: { $ref: 'buttonActiveTextColor' },
     },
     disabled: {
         ...stateTheme,
-        fill: {
-            $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
+        fill: { $ref: 'buttonDisabledBackgroundColor' },
+        stroke: {
+            $isUserOption: [
+                '../stroke',
+                { $path: '../stroke' },
+                {
+                    $if: [
+                        { $isType: [{ $ref: 'buttonDisabledBorder' }, 'boolean'] },
+                        { $if: [{ $ref: 'buttonDisabledBorder' }, { $ref: 'borderColor' }, 'transparent'] },
+                        { $ref: 'buttonDisabledBorder.color' },
+                    ],
+                },
+            ],
         },
-        textColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'chromeTextColor' }, 0.5] },
+        textColor: { $ref: 'buttonDisabledTextColor' },
     },
     hover: {
         ...stateTheme,
-        fill: { $ref: 'focusColor' },
+        fill: { $ref: 'buttonHoverBackgroundColor' },
+        stroke: {
+            $isUserOption: [
+                '../stroke',
+                { $path: '../stroke' },
+                {
+                    $if: [
+                        { $isType: [{ $ref: 'buttonHoverBorder' }, 'boolean'] },
+                        { $if: [{ $ref: 'buttonHoverBorder' }, { $ref: 'borderColor' }, 'transparent'] },
+                        { $ref: 'buttonHoverBorder.color' },
+                    ],
+                },
+            ],
+        },
+        textColor: { $isUserOption: ['../textColor', { $path: '../textColor' }, { $ref: 'buttonHoverTextColor' }] },
     },
     button: {
         active: { ...componentStateTheme('active') },

@@ -9,6 +9,8 @@ import {
     Vec4,
     clampArray,
     createId,
+    fitLabelTextAutoSize,
+    resolveLabelFit,
     toRadians,
 } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegionLabelPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
@@ -120,11 +122,14 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
 
         if (label.text == null || label.text === '') return;
 
+        const { text, fontSize } = fitLabelTextAutoSize(label.text, resolveLabelFit(label), label);
+
         labelNode.fill = label.color;
-        labelNode.text = label.text;
+        labelNode.text = text;
         labelNode.textAlign = 'center';
         labelNode.textBaseline = 'middle';
         labelNode.setFont(label);
+        labelNode.fontSize = fontSize ?? label.fontSize;
         labelNode.setBoxing(label);
     }
 

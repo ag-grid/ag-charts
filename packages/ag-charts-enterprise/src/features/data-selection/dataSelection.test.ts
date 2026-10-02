@@ -5565,6 +5565,53 @@ describe('DataSelection', () => {
             await mouseClick({ canvasX: 496, canvasY: 223 }, { ctrlKey }); // "vid2.mp4"
             await compareExact('diskusage-treemap-styling');
         });
+
+        describe('AG-18614 selection style takes priority over highlight style', () => {
+            for (const seriesType of ['bar', 'line'] as const) {
+                test(`${seriesType} series keeps the selected stroke while the selected item is highlighted`, async () => {
+                    const options: AgCartesianChartOptions = {
+                        data: [
+                            { quarter: 'Q1', revenue: 184 },
+                            { quarter: 'Q2', revenue: 212 },
+                            { quarter: 'Q3', revenue: 198 },
+                            { quarter: 'Q4', revenue: 245 },
+                        ],
+                        selection: { enabled: true },
+                        series: [
+                            {
+                                type: seriesType,
+                                xKey: 'quarter',
+                                yKey: 'revenue',
+                                selection: { enabled: true, selectedItem: { stroke: 'green' } },
+                                highlight: { enabled: true, highlightedItem: { fill: 'red', stroke: 'red' } },
+                            } as any,
+                        ],
+                        axes: { x: { type: 'category' }, y: { type: 'number' } },
+                    };
+                    prepareEnterpriseTestOptions(options);
+                    chart = AgCharts.create(options);
+                    await waitForChartStability(chart);
+
+                    const chartInstance = deproxy(chart) as any;
+                    const series = chartInstance.series[0];
+                    chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
+                    await waitForChartStability(chart);
+
+                    chartInstance.ctx.highlightManager.updateHighlight(
+                        chartInstance.id,
+                        series.contextNodeData.nodeData[2]
+                    );
+                    await waitForChartStability(chart);
+
+                    const [node] = series.highlightSelection.nodes();
+                    expect(node.datum.datumIndex).toBe(2);
+                    // The highlight style applies where it does not conflict with the selection style...
+                    expect(node.fill).toBe('red');
+                    // ...and the selection style wins where it does.
+                    expect(node.stroke).toBe('green');
+                });
+            }
+        });
     });
 
     describe('AG-17570 series-level selection.enabled option overrides chart-level selection.enabled option', () => {

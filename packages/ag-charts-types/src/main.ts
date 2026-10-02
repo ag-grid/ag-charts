@@ -45,6 +45,7 @@ export * from './chartBuilderOptions';
 export * from './integratedCharts';
 export * from './presets/financial/financialOptions';
 export * from './presets/financial/priceVolumeOptions';
+export * from './presets/financial/volumeProfileChartOptions';
 export * from './presets/gauge/commonOptions';
 export * from './presets/gauge/gaugeOptions';
 export * from './presets/gauge/linearGaugeOptions';

@@ -92,7 +92,7 @@ const options: AgCartesianChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'Launch Phase',
-                        position: 'inside-bottom',
+                        placement: 'inside-bottom',
                     },
                 },
                 {
@@ -104,7 +104,7 @@ const options: AgCartesianChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'Product-Market Fit',
-                        position: 'inside-bottom',
+                        placement: 'inside-bottom',
                     },
                 },
                 {
@@ -116,7 +116,7 @@ const options: AgCartesianChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'Funding &\nDownturn',
-                        position: 'inside-bottom',
+                        placement: 'inside-bottom',
                     },
                 },
                 {
@@ -128,7 +128,7 @@ const options: AgCartesianChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'Scale & Profitability',
-                        position: 'inside-bottom',
+                        placement: 'inside-bottom',
                     },
                 },
                 {
@@ -138,7 +138,7 @@ const options: AgCartesianChartOptions = {
                     lineDash: [6, 4],
                     label: {
                         text: 'Break Even',
-                        position: 'top',
+                        placement: 'top',
                     },
                 },
             ],

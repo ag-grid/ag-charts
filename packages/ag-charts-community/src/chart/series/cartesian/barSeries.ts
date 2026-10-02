@@ -1778,8 +1778,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         }
 
         let style = mergeDefaults(
-            highlightStyle,
             selectionStyle,
+            highlightStyle,
             this.getStyle(datumIndex === undefined, highlightState, selectionState, candidateState)
         );
 

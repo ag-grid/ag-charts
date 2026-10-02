@@ -33,6 +33,7 @@ import type {
 import { CrossLinesModule } from '../chart/crossline/crossLinesModule';
 import { ExpectedModules, type ModulePlaceholder } from '../chart/factory/expectedModules';
 import { removeUnregisteredModuleOptions, sanitizeThemeModules } from '../chart/factory/processModuleOptions';
+import { __clearChartThemeCacheForTests } from '../chart/mapping/themes';
 import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
 import { captureUncaught } from '../chart/test/utils';
@@ -4390,6 +4391,78 @@ describe('ChartOptions', () => {
             expect(googleFonts).toContain('Pacifico');
         });
 
+        it('converts array and google-font values of *FontFamily theme params to strings', () => {
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    loadGoogleFonts: true,
+                    title: { text: 'T' },
+                    subtitle: { text: 'S' },
+                    footnote: { text: 'F' },
+                    theme: {
+                        params: {
+                            titleFontFamily: ['Georgia', 'serif'],
+                            titleFontWeight: 'bold',
+                            subtitleFontFamily: { googleFont: 'Roboto' },
+                            footnoteFontFamily: [{ googleFont: 'Pacifico' }, 'cursive'],
+                        },
+                    },
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+            const { title, subtitle, footnote } = chartOptions.processedOptions as any;
+
+            expect(title.fontFamily).toBe('Georgia, serif');
+            expect(subtitle.fontFamily).toBe('Roboto');
+            expect(footnote.fontFamily).toBe('Pacifico, cursive');
+            expect(chartOptions.googleFonts).toEqual(new Set(['Roboto', 'Pacifico']));
+            expect(chartOptions.fonts).toContain('bold 16px Georgia');
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            {
+                name: 'a google-font',
+                chromeFontFamily: { googleFont: 'Lato' },
+                expected: 'Lato',
+                googleFonts: ['Lato'],
+            },
+            {
+                name: 'a mixed array',
+                chromeFontFamily: [{ googleFont: 'Lato' }, 'sans-serif'],
+                expected: 'Lato, sans-serif',
+                googleFonts: ['Lato'],
+            },
+            {
+                name: 'a string-array',
+                chromeFontFamily: ['Verdana', 'sans-serif'],
+                expected: 'Verdana, sans-serif',
+                googleFonts: [],
+            },
+        ])('converts $name chromeFontFamily param to a string', ({ chromeFontFamily, expected, googleFonts }) => {
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    loadGoogleFonts: true,
+                    theme: { params: { chromeFontFamily } },
+                } as AgChartOptions,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            // This param only feeds `--ag-charts-chrome-font-family`, so it must resolve to a CSS font-family string.
+            expect(chartOptions.themeParameters.chromeFontFamily).toBe(expected);
+            expect(chartOptions.googleFonts ?? new Set()).toEqual(new Set(googleFonts));
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
         it('carries the referenced-font set through a fast-path delta update', () => {
             const baseOptions: AgChartOptions = {
                 data: [{ x: 'a', y: 1 }],
@@ -4724,6 +4797,8 @@ describe('ChartOptions', () => {
             ? new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {})
             : new ChartOptions(base, userOptions, {}, {}, {});
 
+    const themeValidations = (validations?: object) => ({ overrides: { common: { validations } } });
+
     describe('validations.consoleOn', () => {
         it('honours an explicit `[]`, silencing first-render warnings without silencing validation itself', () => {
             const chartOptions = construct(invalidOptions({ validations: { consoleOn: [] } }));
@@ -4811,6 +4886,123 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('validations supplied by a theme', () => {
+        beforeEach(__clearChartThemeCacheForTests);
+
+        it('accepts `theme.overrides.common.validations` without reporting it as an unknown option', () => {
+            const chartOptions = construct(invalidOptions({ theme: themeValidations({ consoleOn: ['error'] }) }));
+
+            expect(chartOptions.issues.some((issue) => issue.message.includes('theme.overrides.common'))).toBe(false);
+            expect((chartOptions.processedOptions as any).validations.consoleOn).toEqual(['error']);
+        });
+
+        it('honours a theme `consoleOn: []` for first-render warnings, while still recording the issues', () => {
+            const chartOptions = construct(invalidOptions({ theme: themeValidations({ consoleOn: [] }) }));
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(chartOptions.issues.length).toBeGreaterThan(0);
+        });
+
+        it("honours a theme `consoleOn: ['error']`, silencing warning-severity output", () => {
+            construct(invalidOptions({ theme: themeValidations({ consoleOn: ['error'] }) }));
+
+            expect(console.warn).not.toHaveBeenCalled();
+        });
+
+        it('gives a chart option `consoleOn` precedence over the theme value', () => {
+            construct(
+                invalidOptions({
+                    theme: themeValidations({ consoleOn: [] }),
+                    validations: { consoleOn: ['error', 'warning', 'deprecation'] },
+                })
+            );
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+        });
+
+        it('reports an explicit null chart option `consoleOn` rather than deferring to a silencing theme', () => {
+            construct(invalidOptions({ theme: themeValidations({ consoleOn: [] }), validations: { consoleOn: null } }));
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+        });
+
+        it('tells a theme `issueRaised` listener about first-render issues', () => {
+            const issueRaised = vi.fn();
+            construct(invalidOptions({ theme: themeValidations({ issueRaised }) }));
+
+            expect(issueRaised).toHaveBeenCalledWith(
+                expect.objectContaining({ severity: 'warning', message: expect.stringContaining('notanumber') })
+            );
+        });
+
+        it('does not tell a theme `issueRaised` listener again about an issue re-raised by an update', () => {
+            const issueRaised = vi.fn();
+            const theme = themeValidations({ issueRaised });
+            const runtime = createProvisionalRuntime(new Logger());
+            const update = (base: ChartOptions | undefined, userOptions: AgChartOptions) =>
+                new ChartOptions(base, userOptions, {}, {}, {}, undefined, false, false, undefined, runtime);
+
+            const base = update(undefined, invalidOptions({ theme }));
+            const secondSeries = { type: 'line', xKey: 'x', yKey: 'z' };
+            update(base, invalidOptions({ theme, series: [...(invalidOptions().series as any[]), secondSeries] }));
+
+            const strokeWidthCalls = issueRaised.mock.calls.filter(([issue]) => issue.message.includes('notanumber'));
+            expect(strokeWidthCalls).toHaveLength(1);
+        });
+
+        describe('for issues inside the theme itself', () => {
+            const validChart = (theme: object) =>
+                ({ series: [{ type: 'line', xKey: 'x', yKey: 'y' }], theme }) as AgChartOptions;
+            const invalidTheme = (validations?: object) => ({
+                ...themeValidations(validations),
+                params: { borderRadius: 'notround' as any },
+            });
+            const isThemeIssue = (message: unknown) => String(message).includes('notround');
+            const themeWarnings = () => (console.warn as Mock).mock.calls.filter(([m]) => isThemeIssue(m));
+
+            it('honours the theme `consoleOn: []` while still recording the issue', () => {
+                const chartOptions = construct(validChart(invalidTheme({ consoleOn: [] })));
+
+                expect(themeWarnings()).toHaveLength(0);
+                expect(chartOptions.issues.some((issue) => isThemeIssue(issue.message))).toBe(true);
+            });
+
+            it('still prints the issue when the theme sets no `validations`', () => {
+                construct(validChart(invalidTheme()));
+
+                expect(themeWarnings()).toHaveLength(1);
+            });
+
+            it('tells the theme `issueRaised` listener', () => {
+                const issueRaised = vi.fn();
+                construct(validChart(invalidTheme({ issueRaised })));
+
+                expect(issueRaised).toHaveBeenCalledWith(
+                    expect.objectContaining({ severity: 'warning', message: expect.stringContaining('notround') })
+                );
+            });
+
+            it("applies the updated theme's settings rather than the previous theme's", () => {
+                const runtime = createProvisionalRuntime(new Logger());
+                const update = (base: ChartOptions | undefined, userOptions: AgChartOptions) =>
+                    new ChartOptions(base, userOptions, {}, {}, {}, undefined, false, false, undefined, runtime);
+
+                const base = update(undefined, validChart(themeValidations()));
+                update(base, validChart(invalidTheme({ consoleOn: [] })));
+
+                expect(themeWarnings()).toHaveLength(0);
+            });
+        });
+
+        it('resolves a theme `showOverlayOn` into the processed options', () => {
+            const chartOptions = construct(invalidOptions({ theme: themeValidations({ showOverlayOn: ['error'] }) }));
+
+            expect((chartOptions.processedOptions as any).validations.showOverlayOn).toEqual(['error']);
+        });
+    });
+
     describe('validations.throwOn', () => {
         let capture: ReturnType<typeof captureUncaught>;
         beforeEach(() => {
@@ -4822,6 +5014,106 @@ describe('ChartOptions', () => {
             await capture.settle();
             return capture.uncaught.map(String);
         };
+
+        describe('supplied by a theme', () => {
+            beforeEach(() => {
+                __clearChartThemeCacheForTests();
+                __clearStructuralCacheForTests();
+            });
+
+            it('throws uncaught for a warning-severity option error, exactly as the chart option does', async () => {
+                const chartOptions = construct(invalidOptions({ theme: themeValidations({ throwOn: ['warning'] }) }));
+
+                expect(await uncaughtMessages()).toEqual([
+                    expect.stringMatching(
+                        /^Error: AG Charts - validations\.throwOn: warning - Option `series\[0\]\.strokeWidth` cannot be set/
+                    ),
+                ]);
+                expect(chartOptions.issues.some((issue) => issue.message.includes('theme.overrides.common'))).toBe(
+                    false
+                );
+            });
+
+            it('does not throw when the theme sets no `validations`', async () => {
+                construct(invalidOptions({ theme: themeValidations() }));
+
+                expect(await uncaughtMessages()).toEqual([]);
+            });
+
+            it('gives a chart option `throwOn: []` precedence over the theme value', async () => {
+                const chartOptions = construct(
+                    invalidOptions({ theme: themeValidations({ throwOn: ['warning'] }), validations: { throwOn: [] } })
+                );
+
+                expect(await uncaughtMessages()).toEqual([]);
+                expect((chartOptions.processedOptions as any).validations.throwOn).toEqual([]);
+            });
+
+            it("replaces the theme's array wholesale with the chart option's, rather than merging by index", async () => {
+                const chartOptions = construct(
+                    invalidOptions({
+                        theme: themeValidations({ throwOn: ['warning', 'deprecation'] }),
+                        validations: { throwOn: ['error'] },
+                    })
+                );
+
+                expect(await uncaughtMessages()).toEqual([]);
+                expect((chartOptions.processedOptions as any).validations.throwOn).toEqual(['error']);
+            });
+
+            it("lets a theme's own `throwOn` take precedence over its `baseTheme`'s", async () => {
+                construct(
+                    invalidOptions({
+                        theme: {
+                            baseTheme: themeValidations({ throwOn: ['error'] }),
+                            ...themeValidations({ throwOn: ['warning'] }),
+                        },
+                    })
+                );
+
+                expect(await uncaughtMessages()).toHaveLength(1);
+            });
+
+            it('keeps throwing on a warm update that re-validates', async () => {
+                const theme = themeValidations({ throwOn: ['warning'] });
+                const base = construct({ series: [{ type: 'line', xKey: 'x', yKey: 'y' }], theme } as AgChartOptions);
+                expect(await uncaughtMessages()).toEqual([]);
+
+                construct(invalidOptions({ theme }), base);
+                expect(await uncaughtMessages()).toHaveLength(1);
+            });
+
+            it('throws uncaught for an issue inside the theme itself', async () => {
+                construct({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    theme: {
+                        ...themeValidations({ throwOn: ['warning'] }),
+                        params: { borderRadius: 'notround' as any },
+                    },
+                } as AgChartOptions);
+
+                expect(await uncaughtMessages()).toEqual([
+                    expect.stringMatching(/^Error: AG Charts - validations\.throwOn: warning - .*notround/),
+                ]);
+            });
+
+            it('throws for each chart served from the structural cache', async () => {
+                const themed = () =>
+                    new ChartOptions(
+                        invalidOptions({ theme: themeValidations({ throwOn: ['warning'] }) }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        { domMode: 'minimal' }
+                    );
+
+                themed();
+                expect(await uncaughtMessages()).toHaveLength(1);
+
+                themed();
+                expect(await uncaughtMessages()).toHaveLength(2);
+            });
+        });
 
         it('does not throw for the default (option absent), and still logs the existing warning', async () => {
             const chartOptions = construct(invalidOptions());

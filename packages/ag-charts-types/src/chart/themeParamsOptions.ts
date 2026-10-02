@@ -70,6 +70,65 @@ export interface AgBaseChartThemeParams {
     buttonFontWeight?: FontWeight;
     /** Text colour of standard action buttons. A colour string, or a theme-colour reference object. */
     buttonTextColor?: AgCssColorOrRef;
+    /** Background colour of buttons when hovered. A colour string, or a theme-colour reference object. */
+    buttonHoverBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border colour of buttons when hovered. `true` for the default border colour, `false` for no visible border, or an
+     * object to customise it. The border width always follows `buttonBorder`.
+     */
+    buttonHoverBorder?: boolean | AgBorderThemeParam;
+    /** Text colour of buttons when hovered. A colour string, or a theme-colour reference object. */
+    buttonHoverTextColor?: AgCssColorOrRef;
+    /**
+     * Background colour of buttons in the active (toggled or selected) state, such as a toggled toolbar button or a
+     * selected menu item. A colour string, or a theme-colour reference object.
+     */
+    buttonActiveBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border colour of buttons in the active (toggled or selected) state. `true` for the default border colour, `false`
+     * for no visible border, or an object to customise it. The border width always follows `buttonBorder`.
+     */
+    buttonActiveBorder?: boolean | AgBorderThemeParam;
+    /** Text colour of buttons in the active (toggled or selected) state. A colour string, or a theme-colour reference object. */
+    buttonActiveTextColor?: AgCssColorOrRef;
+    /** Background colour of disabled buttons. A colour string, or a theme-colour reference object. */
+    buttonDisabledBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border colour of disabled buttons. `true` for the default border colour, `false` for no visible border, or an
+     * object to customise it. The border width always follows `buttonBorder`.
+     */
+    buttonDisabledBorder?: boolean | AgBorderThemeParam;
+    /** Text colour of disabled buttons. A colour string, or a theme-colour reference object. */
+    buttonDisabledTextColor?: AgCssColorOrRef;
+    /** Horizontal padding inside buttons, including range buttons. Toolbar buttons do not use it. */
+    buttonHorizontalPadding?: PixelSize;
+    /**
+     * Vertical padding inside buttons, including range buttons. Toolbar buttons apply it on all four sides.
+     */
+    buttonVerticalPadding?: PixelSize;
+    /**
+     * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
+     * dropdown menus of the toolbars and the colour picker. Defaults to `popupShadow`. The value must be a valid CSS
+     * box-shadow.
+     */
+    cardShadow?: CssShadow;
+    /** Corner radius of the colour swatch in the colour picker. Defaults to half of `borderRadius`. */
+    colorPickerColorBorderRadius?: PixelSize;
+    /** Width of the ring drawn around the draggable thumbs of the colour picker. */
+    colorPickerThumbBorderWidth?: PixelSize;
+    /** Size of the draggable thumbs of the colour picker. */
+    colorPickerThumbSize?: PixelSize;
+    /** Corner radius of the hue and opacity tracks of the colour picker. Defaults to 99 times `borderRadius`. */
+    colorPickerTrackBorderRadius?: PixelSize;
+    /** Height of the hue and opacity tracks of the colour picker. */
+    colorPickerTrackSize?: PixelSize;
+    /**
+     * Colour of the drag handle icons on dialogs and floating toolbars. The icon is drawn at half the opacity of this
+     * colour. A colour string, or a theme-colour reference object.
+     *
+     * Default: `chromeTextColor`
+     */
+    dragHandleColor?: AgCssColorOrRef;
     /** Shadow around UI controls that have focus e.g. text inputs and buttons. The value must be a valid CSS box-shadow. */
     focusShadow?: CssShadow;
     /**
@@ -92,6 +151,12 @@ export interface AgBaseChartThemeParams {
     /** Corner radius for inputs. */
     inputBorderRadius?: PixelSize;
     /**
+     * Colour of placeholder text in text inputs. A colour string, or a theme-colour reference object.
+     *
+     * Default: `inputTextColor + inputBackgroundColor`
+     */
+    inputPlaceholderTextColor?: AgCssColorOrRef;
+    /**
      * Colour of text within text inputs. A colour string, or a theme-colour reference object.
      *
      * Default: `textColor`
@@ -103,13 +168,20 @@ export interface AgBaseChartThemeParams {
     menuBorder?: boolean | AgBorderThemeParam;
     /** Corner radius for menus. */
     menuBorderRadius?: PixelSize;
+    /**
+     * Colour of the separator lines between groups of items in menus, e.g. right-click context menus. A colour string,
+     * or a theme-colour reference object.
+     *
+     * Default: `borderColor`
+     */
+    menuSeparatorColor?: AgCssColorOrRef;
     /** Text colour for menus. A colour string, or a theme-colour reference object. */
     menuTextColor?: AgCssColorOrRef;
     /** Background colour for panels and dialogs. A colour string, or a theme-colour reference object. */
     panelBackgroundColor?: AgCssColorOrRef;
     /** Colour of text that should stand out less in panels and dialogs. A colour string, or a theme-colour reference object. */
     panelSubtleTextColor?: AgCssColorOrRef;
-    /** Default shadow for elements that float above the chart and are intended to appear separated from it, e.g. dialogs and menus. */
+    /** Default shadow for elements that float above the chart and are intended to appear separated from it, e.g. dialogs, floating toolbars and context menus. */
     popupShadow?: CssShadow;
     /**
      * Colour of text that should stand out less than the default. A colour string, or a theme-colour reference object.
@@ -136,8 +208,56 @@ export interface AgBaseChartThemeParams {
 }
 
 export interface AgChartThemeParams extends AgBaseChartThemeParams {
+    /**
+     * Colour of axis tick labels. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    axisLabelColor?: AgCssColorOrRef;
+    /**
+     * Font family of axis tick labels. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    axisLabelFontFamily?: FontFamilyFull;
+    /**
+     * Font size of axis tick labels.
+     *
+     * Default: `fontSize`
+     */
+    axisLabelFontSize?: FontSize;
+    /**
+     * Font weight of axis tick labels.
+     *
+     * Default: `fontWeight`
+     */
+    axisLabelFontWeight?: FontWeight;
     /** Default colour for axis lines and ticks. A colour string, or a theme-colour reference object. */
     axisLineColor?: AgCssColorOrRef;
+    /**
+     * Colour of axis titles. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    axisTitleColor?: AgCssColorOrRef;
+    /**
+     * Font family of axis titles. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    axisTitleFontFamily?: FontFamilyFull;
+    /**
+     * Font size of axis titles. Follows fontSize, keeping the same proportion to it.
+     *
+     * Default: `13`
+     */
+    axisTitleFontSize?: FontSize;
+    /**
+     * Font weight of axis titles.
+     *
+     * Default: `fontWeight`
+     */
+    axisTitleFontWeight?: FontWeight;
     /**
      * Colour painted behind the chart. Follows backgroundColor, which is also blended into text, borders and other
      * backgrounds - so change that one to shift the whole theme, and this one to repaint the chart alone. A colour
@@ -196,12 +316,178 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * Default: `backgroundColor`
      */
     crosshairLabelTextColor?: AgCssColorOrRef;
+    /**
+     * Font size of the chart title. Follows fontSize, keeping the same proportion to it.
+     *
+     * Default: `17`
+     */
+    titleFontSize?: FontSize;
+    /**
+     * Font weight of the chart title.
+     *
+     * Default: `fontWeight`
+     */
+    titleFontWeight?: FontWeight;
+    /**
+     * Font family of the chart title. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    titleFontFamily?: FontFamilyFull;
+    /**
+     * Colour of the chart title text. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    titleColor?: AgCssColorOrRef;
+    /**
+     * Font size of the chart subtitle. Follows fontSize, keeping the same proportion to it.
+     *
+     * Default: `13`
+     */
+    subtitleFontSize?: FontSize;
+    /**
+     * Font weight of the chart subtitle.
+     *
+     * Default: `fontWeight`
+     */
+    subtitleFontWeight?: FontWeight;
+    /**
+     * Font family of the chart subtitle. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    subtitleFontFamily?: FontFamilyFull;
+    /**
+     * Colour of the chart subtitle text. A colour string, or a theme-colour reference object.
+     *
+     * Default: `subtleTextColor`
+     */
+    subtitleColor?: AgCssColorOrRef;
+    /**
+     * Font size of the chart footnote. Follows fontSize, keeping the same proportion to it.
+     *
+     * Default: `13`
+     */
+    footnoteFontSize?: FontSize;
+    /**
+     * Font weight of the chart footnote.
+     *
+     * Default: `fontWeight`
+     */
+    footnoteFontWeight?: FontWeight;
+    /**
+     * Font family of the chart footnote. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    footnoteFontFamily?: FontFamilyFull;
+    /**
+     * Colour of the chart footnote text. A colour string, or a theme-colour reference object.
+     *
+     * Default: `subtleTextColor`
+     */
+    footnoteColor?: AgCssColorOrRef;
     /** Default font weight used for all text. */
     fontWeight?: FontWeight;
     /** Default colour for grid lines. A colour string, or a theme-colour reference object. */
     gridLineColor?: AgCssColorOrRef;
     /** Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object. */
     groupedCategoryLineColor?: AgCssColorOrRef;
+    /** Border around the legend and the gradient legend. `true` for the default border, `false` to disable, or an object to customise it. */
+    legendBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the legend and the gradient legend.
+     *
+     * Default: `borderRadius`
+     */
+    legendBorderRadius?: PixelSize;
+    /** Horizontal padding around each legend item. Applies to the legend only, not the gradient legend. */
+    legendItemHorizontalPadding?: PixelSize;
+    /** Vertical padding around each legend item. Applies to the legend only, not the gradient legend. */
+    legendItemVerticalPadding?: PixelSize;
+    /**
+     * Colour of the legend item labels, the legend pagination label and the gradient legend scale labels. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    legendLabelColor?: AgCssColorOrRef;
+    /**
+     * Font family of the legend item labels, the legend pagination label and the gradient legend scale labels. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    legendLabelFontFamily?: FontFamilyFull;
+    /**
+     * Font size of the legend item labels, the legend pagination label and the gradient legend scale labels.
+     *
+     * Default: `fontSize`
+     */
+    legendLabelFontSize?: FontSize;
+    /**
+     * Font weight of the legend item labels and the gradient legend scale labels.
+     *
+     * Default: `fontWeight`
+     */
+    legendLabelFontWeight?: FontWeight;
+    /** Size of the legend item markers. Applies to the legend only, not the gradient legend. */
+    legendMarkerSize?: PixelSize;
+    /** Padding inside the legend and the gradient legend. Applied only when the legend has a border or a `fill` set in its options. */
+    legendPadding?: PixelSize;
+    /**
+     * Thickness of the scrollbar track.
+     *
+     * Default: `12`
+     */
+    scrollbarThickness?: PixelSize;
+    /**
+     * Background colour of the scrollbar track. A colour string, or a theme-colour reference object.
+     *
+     * Default: `foregroundColor + backgroundColor`
+     */
+    scrollbarTrackBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the scrollbar track. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `borderColor + foregroundColor`
+     */
+    scrollbarTrackBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the scrollbar track.
+     *
+     * Default: `6`
+     */
+    scrollbarTrackBorderRadius?: PixelSize;
+    /**
+     * Background colour of the scrollbar thumb. A colour string, or a theme-colour reference object.
+     *
+     * Default: `foregroundColor + backgroundColor`
+     */
+    scrollbarThumbBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the scrollbar thumb. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `borderColor + foregroundColor`
+     */
+    scrollbarThumbBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the scrollbar thumb.
+     *
+     * Default: `6`
+     */
+    scrollbarThumbBorderRadius?: PixelSize;
+    /**
+     * Background colour of the scrollbar thumb when hovered. A colour string, or a theme-colour reference object.
+     *
+     * Default: `scrollbarThumbBackgroundColor + foregroundColor`
+     */
+    scrollbarThumbHoverBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the scrollbar thumb when hovered. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `scrollbarThumbBorder + foregroundColor`
+     */
+    scrollbarThumbHoverBorder?: boolean | AgBorderThemeParam;
     /**
      * Border around series labels. A border otherwise shows only where a series enables `label.border`. `true` for the default border, `false` to disable, or an object to customise it.
      *

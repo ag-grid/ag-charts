@@ -19,6 +19,7 @@ import type {
     AgBaseCrosshairLabel,
     AgCartesianAxisCaptionOptions,
     AgCartesianAxisLabelOptions,
+    AgCartesianCrossLineLabelPlacement,
     AgCartesianTimeAxisLabelOptions,
     AgCategoryAxisOptions,
     AgCrossLineLabelPosition,
@@ -47,6 +48,7 @@ import type {
 
 import type { Normalised } from './normalise';
 import type { NormalisedBorderOptions, NormalisedColorType } from './normalisedCommonOptions';
+import type { NormalisedChartLabelCollisionOptions } from './normalisedLabelOptions';
 
 // --- Label normalised shapes ---
 // `mirrored`/`parallel` are axis-instance state managed by `Axis.updateDirection()`, not user-facing options.
@@ -388,7 +390,11 @@ export type NormalisedAxisCrossLineLabelOptions = Normalised<
     /** Cartesian cross lines only. */
     position?: AgCrossLineLabelPosition;
     /** Cartesian cross lines only. */
+    placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
+    /** Cartesian cross lines only. */
     rotation?: number;
+    /** Cartesian cross lines only. */
+    collision?: NormalisedChartLabelCollisionOptions;
     /** Radius cross lines only. */
     positionAngle?: number;
 };

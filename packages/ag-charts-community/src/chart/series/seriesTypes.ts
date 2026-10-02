@@ -77,6 +77,14 @@ export interface BucketLookupFeature {
     /** Build a {@link DatumRangeReader} for the active aggregation level. */
     getRangeReader(): DatumRangeReader | undefined;
     /**
+     * Index of the bucket containing `datumIndex` at the active aggregation
+     * level, i.e. the `i` in `indexData[i * AGGREGATION_SPAN + …]` and
+     * `midpointIndices[i]`. `undefined` when no aggregation level is active,
+     * the datum has no bucket, or the aggregation model isn't bucket-based
+     * (clusters).
+     */
+    getBucketIndex(datumIndex: number): number | undefined;
+    /**
      * Underlying datum indices for the cluster represented by `datumIndex`,
      * or `undefined` when the active aggregation model doesn't expose an
      * index set (extremes/split managers) or no clustering is active for

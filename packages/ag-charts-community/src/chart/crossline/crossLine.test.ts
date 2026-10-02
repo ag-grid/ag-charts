@@ -1,11 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    ChartUpdateType,
     type CrossLineLabelOverflow,
+    type DynamicContext,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
+    getDocument,
     mapValues,
 } from 'ag-charts-core';
+import { expectWarningsCalls } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineLabelOptions,
@@ -14,8 +18,11 @@ import type {
     AgCrossLineClickParams,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
+    AgNumberAxisOptions,
 } from 'ag-charts-types';
 
+import { AgCharts } from '../../api/agCharts';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Transformable } from '../../scene/transformable';
 import type { Chart } from '../chart';
@@ -27,6 +34,7 @@ import {
     clickAction,
     compareImageSnapshot,
     createChart,
+    deproxy,
     doubleClickAction,
     expectWarningMessages,
     prepareTestOptions,
@@ -37,6 +45,7 @@ import {
 } from '../test/utils';
 import { CartesianCrossLine } from './cartesianCrossLine';
 import type { CrossLineType } from './crossLine';
+import { CROSS_LINE_TYPES } from './crossLinesModule';
 import { getCrossLinesPlugin } from './getCrossLinesPlugin';
 import * as examples from './test/examples';
 
@@ -171,13 +180,26 @@ const mixinLabelPositionCases = (example: CartesianTestCase): Record<string, Car
     return result;
 };
 
-const CROSSLINES_LABEL_POSITION_EXAMPLES: Record<string, CartesianTestCase> = mixinLabelPositionCases({
+// Every case but the default sets the deprecated `position`, pinning the rendering it keeps.
+const LABEL_POSITION_EXAMPLES = mixinLabelPositionCases({
     options: examples.DEFAULT_LABEL_POSITION_CROSSLINES,
     assertions: cartesianChartAssertions({
         axisTypes: { x: 'unit-time', y: 'number' },
         seriesTypes: repeat('line', 2),
     }),
 });
+
+function positionDeprecations(options: AgCartesianChartOptions): string[] {
+    return Object.entries(options.axes ?? {}).flatMap(([key, axis]) =>
+        (axis?.crossLines ?? []).flatMap((crossLine, index) =>
+            crossLine.label?.position == null
+                ? []
+                : [
+                      `AG Charts - Option \`axes.${key}.crossLines[${index}].label.position\` is deprecated. Use \`placement\` instead.`,
+                  ]
+        )
+    );
+}
 
 const CROSSLINES_RANGE_EXAMPLES: Record<string, CartesianTestCase> = mixinFlippedRangeCases({
     VALID_RANGE_CROSSLINES: {
@@ -219,7 +241,7 @@ const CROSSLINES_RANGE_EXAMPLES: Record<string, CartesianTestCase> = mixinFlippe
 
 const EXAMPLES: Record<string, CartesianTestCase> = {
     ...CROSSLINES_RANGE_EXAMPLES,
-    ...CROSSLINES_LABEL_POSITION_EXAMPLES,
+    ...LABEL_POSITION_EXAMPLES,
     SCATTER_CROSSLINES: {
         options: examples.SCATTER_CROSSLINES,
         assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
@@ -458,6 +480,7 @@ describe('CrossLine', () => {
             async (_exampleName, example) => {
                 chart = await createChart({ ...example.options });
                 await example.assertions(chart);
+                expectWarningMessages(positionDeprecations(example.options));
             }
         );
 
@@ -466,6 +489,7 @@ describe('CrossLine', () => {
             async (_exampleName, example) => {
                 chart = await createChart({ ...example.options });
                 await compare();
+                expectWarningMessages(positionDeprecations(example.options));
             }
         );
     });
@@ -702,7 +726,7 @@ describe('CrossLine', () => {
                                     id: 'threshold',
                                     type: 'line',
                                     value: 5,
-                                    label: { text: labelText, position: 'top' },
+                                    label: { text: labelText, placement: 'top' },
                                     listeners: { click },
                                 },
                             ],
@@ -745,7 +769,7 @@ describe('CrossLine', () => {
                                     id: 'threshold',
                                     type: 'line',
                                     value: 5,
-                                    label: { text: labelText, position: 'right' },
+                                    label: { text: labelText, placement: 'right' },
                                     listeners: { click },
                                 },
                             ],
@@ -1435,12 +1459,17 @@ describe('CrossLine', () => {
                 : { ...style, type, range: [0, 1], label: fullLabel };
         }
 
+        function unitCrossLine() {
+            const chartCtx = { domManager: { isRtl: false }, logger: { warnOnce() {}, deprecationOnce() {} } };
+            return new CartesianCrossLine(chartCtx as unknown as DynamicContext<ChartRegistry>);
+        }
+
         function crossLineWith(
             overflow: CrossLineLabelOverflow,
             position: AgCrossLineLabelPosition,
             type: CrossLineType
         ) {
-            const crossLine = new CartesianCrossLine();
+            const crossLine = unitCrossLine();
             crossLine.applyOptions(crossLineOptions(type, { overflow, position }));
             crossLine.position = 'bottom';
             return crossLine;
@@ -1466,7 +1495,7 @@ describe('CrossLine', () => {
         );
 
         it('an unset overflow pads as pad-chart does', () => {
-            const crossLine = new CartesianCrossLine();
+            const crossLine = unitCrossLine();
             crossLine.applyOptions(crossLineOptions('line', { position: 'top' }));
             crossLine.position = 'bottom';
 
@@ -1499,7 +1528,7 @@ describe('CrossLine', () => {
                               ...axis,
                               crossLines: axis.crossLines.map((c: any) => ({
                                   ...c,
-                                  label: { ...c.label, text: 'A long enough label', position: 'top', overflow },
+                                  label: { ...c.label, text: 'A long enough label', placement: 'top', overflow },
                               })),
                           }
                         : axis
@@ -1517,7 +1546,7 @@ describe('CrossLine', () => {
         });
 
         it('renders the chart when a label demands more room than is spare', async () => {
-            // `position: 'left'` on the left-hand axis pads horizontally, so a very wide label is what
+            // `placement: 'left'` on the left-hand axis pads horizontally, so a very wide label is what
             // outgrows the space available.
             const veryLongLabel = 'A'.repeat(400);
             const { x, y } = examples.LINE_CROSSLINES.axes as any;
@@ -1528,7 +1557,7 @@ describe('CrossLine', () => {
                     x,
                     y: {
                         ...y,
-                        crossLines: [{ type: 'line', value: 0.87, label: { text: veryLongLabel, position: 'left' } }],
+                        crossLines: [{ type: 'line', value: 0.87, label: { text: veryLongLabel, placement: 'left' } }],
                     },
                 },
             });
@@ -1553,7 +1582,7 @@ describe('CrossLine', () => {
                             {
                                 type: 'line',
                                 value: 0.87,
-                                label: undocumentedLabel({ text: veryLongLabel, position: 'left', overflow }),
+                                label: undocumentedLabel({ text: veryLongLabel, placement: 'left', overflow }),
                             },
                         ],
                     },
@@ -1590,7 +1619,7 @@ describe('CrossLine', () => {
                                 value: 5,
                                 label: undocumentedLabel({
                                     text: 'A cross line label',
-                                    position: 'top',
+                                    placement: 'top',
                                     overflow: 'clip-text',
                                     rotation: 90,
                                     padding,
@@ -1642,7 +1671,7 @@ describe('CrossLine', () => {
                                 strokeWidth: 1,
                                 label: undocumentedLabel({
                                     text: xLine.label ?? 'x line top',
-                                    position: 'top',
+                                    placement: 'top',
                                     fontSize: 24,
                                     overflow: xLine.overflow,
                                 }),
@@ -1656,7 +1685,7 @@ describe('CrossLine', () => {
                                 fillOpacity: 0.2,
                                 label: undocumentedLabel({
                                     text: xRange.label ?? 'x range bottom',
-                                    position: 'bottom',
+                                    placement: 'bottom',
                                     fontSize: 24,
                                     overflow: xRange.overflow,
                                 }),
@@ -1674,7 +1703,7 @@ describe('CrossLine', () => {
                                 strokeWidth: 1,
                                 label: undocumentedLabel({
                                     text: yLine.label ?? 'y-axis line cross line',
-                                    position: 'left',
+                                    placement: 'left',
                                     overflow: yLine.overflow,
                                 }),
                             },
@@ -1687,7 +1716,7 @@ describe('CrossLine', () => {
                                 fillOpacity: 0.2,
                                 label: undocumentedLabel({
                                     text: yRange.label ?? 'y-axis range cross line',
-                                    position: 'right',
+                                    placement: 'right',
                                     overflow: yRange.overflow,
                                 }),
                             },
@@ -1722,6 +1751,500 @@ describe('CrossLine', () => {
         });
     });
 
+    describe('label collision', () => {
+        type SmallLabel = Parameters<typeof undocumentedLabel>[0];
+
+        // Two labels above the same x value: a small one, reserved unless overridden, and a large one
+        // that overlaps it and pads the chart further.
+        function collisionChart({
+            alwaysShow = false,
+            stroke = 'blue',
+            small = {},
+            values: [smallValue, largeValue] = [5, 5],
+        }: {
+            alwaysShow?: boolean;
+            stroke?: string;
+            small?: Partial<SmallLabel>;
+            values?: [number, number];
+        } = {}): AgCartesianChartOptions {
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', stroke }],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: smallValue,
+                                label: undocumentedLabel({ text: 'A', fontSize: 10, reserveSpace: true, ...small }),
+                            },
+                            {
+                                type: 'line',
+                                value: largeValue,
+                                label: { text: 'LARGE LABEL', fontSize: 40, collision: { alwaysShow } },
+                            },
+                        ],
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+        }
+
+        function labelsShown(axisId = 'x') {
+            const axis = chart.axes.findById(axisId)!;
+            return (getCrossLinesPlugin(axis)?.getInstances() ?? []).map((crossLine) => {
+                const [crossLineLabel] = crossLine.labelGroup.children() as any;
+                return crossLineLabel.visible as boolean;
+            });
+        }
+
+        it('hides a colliding label and releases the space it padded', async () => {
+            chart = await createChart(collisionChart({ alwaysShow: true }));
+            const shownTop = chart.seriesRect!.y;
+            expect(labelsShown()).toEqual([true, true]);
+
+            await chart.publicApi!.update(collisionChart());
+            await waitForChartStability(chart);
+
+            expect(labelsShown()).toEqual([true, false]);
+            expect(chart.seriesRect!.y).toBeLessThan(shownTop);
+        });
+
+        it('renders a colliding label hidden without the space it would pad', async () => {
+            chart = await createChart(collisionChart());
+            await compare();
+        });
+
+        it('keeps a label outside the series area when nothing collides with it', async () => {
+            chart = await createChart(collisionChart({ small: { enabled: false } }));
+
+            expect(labelsShown()[1]).toBe(true);
+        });
+
+        it('hides a label behind another droppable cross line label', async () => {
+            chart = await createChart(
+                collisionChart({ small: { reserveSpace: false, collision: { alwaysShow: false } } })
+            );
+
+            expect(labelsShown()).toEqual([true, false]);
+        });
+
+        it('hides a label behind a series label that is always shown', async () => {
+            const seriesLabelChart = (enabled: boolean): AgCartesianChartOptions => ({
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: 50 })),
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: false },
+                        label: { enabled, collision: { alwaysShow: true } },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 50,
+                                label: undocumentedLabel({
+                                    placement: 'inside',
+                                    text: 'CROSSLINE LABEL',
+                                    fontSize: 40,
+                                    collision: { alwaysShow: false },
+                                }),
+                            },
+                        ],
+                    },
+                },
+            });
+
+            chart = await createChart(seriesLabelChart(false));
+            expect(labelsShown('y')).toEqual([true]);
+            chart.destroy();
+
+            chart = await createChart(seriesLabelChart(true));
+            expect(labelsShown('y')).toEqual([false]);
+        });
+
+        it('settles on the same result when laid out again', async () => {
+            chart = await createChart(collisionChart());
+            await chart.publicApi!.update(collisionChart({ stroke: 'red' }));
+            await waitForChartStability(chart);
+            const settled = { top: chart.seriesRect!.y, shown: labelsShown() };
+
+            await chart.publicApi!.update(collisionChart({ stroke: 'green' }));
+            await waitForChartStability(chart);
+
+            expect({ top: chart.seriesRect!.y, shown: labelsShown() }).toEqual(settled);
+        });
+
+        it('lets a label hidden by the re-layout keep the space it was padded', async () => {
+            chart = await createChart(collisionChart({ alwaysShow: true }));
+            const [, crossLine] = getCrossLinesPlugin(chart.axes.findById('x')!)!.getInstances();
+
+            crossLine.holdLabelPlacement!(true);
+            crossLine.applyLabelPlacement!(true);
+            crossLine.holdLabelPlacement!(false);
+
+            // A hover re-applies the same solve, which must not read as a flip needing another layout.
+            expect(crossLine.applyLabelPlacement!(true)).toBe(false);
+        });
+
+        it('lays a hidden label out once when it keeps its verdict', async () => {
+            async function updateLabelsCallsOnLayout(options: AgCartesianChartOptions) {
+                chart = await createChart(options);
+                const updateLabels = vi.spyOn(chart.ctx.labelManager, 'updateLabels');
+                chart.update(ChartUpdateType.PERFORM_LAYOUT);
+                await waitForChartStability(chart);
+                return { calls: updateLabels.mock.calls.length, shown: labelsShown() };
+            }
+
+            const shown = await updateLabelsCallsOnLayout(collisionChart({ alwaysShow: true }));
+            chart.destroy();
+            const hidden = await updateLabelsCallsOnLayout(collisionChart());
+
+            expect(hidden.shown).toEqual([true, false]);
+            expect(hidden.calls).toBe(shown.calls);
+        });
+
+        it('shows a hidden label again once a resize clears what it collided with', async () => {
+            const container = getDocument().createElement('div');
+            getDocument().body.append(container);
+            const options = prepareTestOptions(collisionChart({ values: [3, 6] }), container);
+            delete options.width;
+            delete options.height;
+            chart = deproxy(AgCharts.create(options));
+
+            const resizeTo = async (width: number) => {
+                chart.ctx.domManager.containerSize = { width, height: 400, pixelRatio: 1 };
+                chart.ctx.eventsHub.emit('dom:resize', null);
+                await waitForChartStability(chart);
+            };
+
+            try {
+                await resizeTo(400);
+                expect(labelsShown()).toEqual([true, false]);
+                const hiddenTop = chart.seriesRect!.y;
+
+                await resizeTo(1200);
+                expect(labelsShown()).toEqual([true, true]);
+                expect(chart.seriesRect!.y).toBeGreaterThan(hiddenTop);
+            } finally {
+                container.remove();
+            }
+        });
+    });
+
+    describe('label placement', () => {
+        type PlacedLabelOptions = Parameters<typeof undocumentedLabel>[0];
+
+        // Blockers reserve their space on a y-axis line, so the label under test must avoid them.
+        function placementChart(
+            placed: PlacedLabelOptions | undefined,
+            blockers: PlacedLabelOptions['placement'][] = []
+        ): AgCartesianChartOptions {
+            const blockerLines = blockers.map((placement) => ({
+                type: 'line' as const,
+                value: 5,
+                label: undocumentedLabel({ text: 'BLOCKER', fontSize: 20, placement, reserveSpace: true }),
+            }));
+            const placedLine = placed == null ? [] : [{ type: 'line' as const, value: 5, label: placed }];
+            return {
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', crossLines: [...blockerLines, ...placedLine] },
+                },
+            };
+        }
+
+        function placedLabelBox() {
+            const crossLines = getCrossLinesPlugin(chart.axes.findById('y')!)!.getInstances();
+            return crossLines.at(-1)!.getLabelBox?.();
+        }
+
+        it.each([
+            ['dropped', { alwaysShow: false }],
+            ['kept', { alwaysShow: true }],
+        ])('moves a %s label to the next placement when the first collides', async (_, collision) => {
+            chart = await createChart(
+                placementChart({ text: 'PLACED', fontSize: 20, placement: ['right', 'inside-left'], collision }, [
+                    'right',
+                ])
+            );
+
+            const box = placedLabelBox();
+            const seriesRect = chart.seriesRect!;
+            expect(box).toBeDefined();
+            expect(box!.x).toBeGreaterThanOrEqual(seriesRect.x);
+            expect(box!.x + box!.width).toBeLessThan(seriesRect.x + seriesRect.width / 2);
+        });
+
+        it('pads the chart for the placement chosen', async () => {
+            chart = await createChart(placementChart(undefined, ['inside-left']));
+            const unpaddedWidth = chart.seriesRect!.width;
+            chart.destroy();
+
+            chart = await createChart(
+                placementChart({ text: 'PLACED', fontSize: 20, placement: ['inside-left', 'right'] }, ['inside-left'])
+            );
+
+            const box = placedLabelBox();
+            const seriesRect = chart.seriesRect!;
+            expect(box).toBeDefined();
+            expect(seriesRect.width).toBeLessThan(unpaddedWidth);
+            expect(box!.x).toBeGreaterThanOrEqual(seriesRect.x + seriesRect.width);
+            expect(box!.x + box!.width).toBeLessThanOrEqual(chart.ctx.scene.width);
+        });
+
+        it('keeps a label equally blocked at every placement at its first', async () => {
+            chart = await createChart(
+                placementChart({ text: 'PLACED', fontSize: 20, placement: ['inside-left', 'inside-right'] }, [
+                    'inside-left',
+                    'inside-right',
+                ])
+            );
+
+            const box = placedLabelBox();
+            const seriesRect = chart.seriesRect!;
+            expect(box).toBeDefined();
+            expect(box!.x + box!.width).toBeLessThan(seriesRect.x + seriesRect.width / 2);
+        });
+
+        it('keeps a label that fits nowhere at its least blocked placement', async () => {
+            const blocker = (text: string, fontSize: number, placement: 'inside-left' | 'inside-right') => ({
+                type: 'line' as const,
+                value: 5,
+                label: undocumentedLabel({ text, fontSize, placement, reserveSpace: true }),
+            });
+            const options = placementChart({
+                text: 'PLACED',
+                fontSize: 20,
+                placement: ['inside-left', 'inside-right'],
+            });
+            const y = options.axes!.y as AgNumberAxisOptions;
+            chart = await createChart({
+                ...options,
+                axes: {
+                    ...options.axes,
+                    y: {
+                        ...y,
+                        crossLines: [
+                            blocker('BLOCKER BLOCKER', 20, 'inside-left'),
+                            blocker('B', 8, 'inside-right'),
+                            ...y.crossLines!,
+                        ],
+                    },
+                },
+            });
+
+            const box = placedLabelBox();
+            const seriesRect = chart.seriesRect!;
+            expect(box).toBeDefined();
+            expect(box!.x).toBeGreaterThan(seriesRect.x + seriesRect.width / 2);
+        });
+
+        it('tests a clip-text fallback with the text it renders at that placement', async () => {
+            const label = {
+                text: 'A cross line label far too long to fit beside the chart',
+                overflow: 'clip-text',
+            } as const;
+            chart = await createChart(placementChart(undocumentedLabel({ ...label, placement: 'inside-left' })));
+            const rendered = placedLabelBox()!;
+            chart.destroy();
+
+            chart = await createChart(
+                placementChart(undocumentedLabel({ ...label, placement: ['right', 'inside-left'] }))
+            );
+            const seriesRect = chart.seriesRect!;
+            const crossLine = getCrossLinesPlugin(chart.axes.findById('y')!)!.getInstances().at(-1)!;
+            const [atRight, atInsideLeft] = crossLine.getLabelDatum!(seriesRect)!.positionedCandidates!;
+
+            expect(atRight.box.width).toBeLessThan(rendered.width);
+            expect(atInsideLeft.box.x + seriesRect.x).toBeCloseTo(rendered.x);
+            expect(atInsideLeft.box.width).toBeCloseTo(rendered.width);
+        });
+
+        it('settles on the same placement when laid out again', async () => {
+            const options = placementChart({ text: 'PLACED', fontSize: 20, placement: ['inside-left', 'right'] }, [
+                'inside-left',
+            ]);
+            chart = await createChart(options);
+            const settled = { seriesRect: chart.seriesRect!.clone(), box: placedLabelBox() };
+
+            await chart.publicApi!.update(prepareTestOptions({ ...options, title: { text: 'Again' } }));
+            await waitForChartStability(chart);
+            const again = placedLabelBox();
+
+            expect(again!.x - chart.seriesRect!.x).toBeCloseTo(settled.box!.x - settled.seriesRect.x);
+            expect(chart.seriesRect!.width).toBeCloseTo(settled.seriesRect.width);
+        });
+
+        it('places an `end` label right of the series area in a left-to-right chart', async () => {
+            chart = await createChart(placementChart({ text: 'PLACED', placement: 'end' }));
+
+            const box = placedLabelBox();
+            expect(box).toBeDefined();
+            expect(box!.x).toBeGreaterThanOrEqual(chart.seriesRect!.x + chart.seriesRect!.width);
+        });
+
+        it('places an `end` label left of the series area in a right-to-left chart', async () => {
+            chart = await createChart({ ...placementChart({ text: 'PLACED', placement: 'end' }), enableRtl: true });
+
+            const box = placedLabelBox();
+            expect(box).toBeDefined();
+            expect(box!.x + box!.width).toBeLessThanOrEqual(chart.seriesRect!.x);
+        });
+
+        it('resolves a placement array supplied through a theme override', async () => {
+            const options = placementChart({ text: 'PLACED', fontSize: 20 }, ['right']);
+            chart = await createChart({
+                ...options,
+                axes: { ...options.axes, x: { ...options.axes!.x, crossLines: [] } },
+                theme: {
+                    overrides: {
+                        common: {
+                            axes: { number: { crossLines: { label: { placement: ['right', 'inside-left'] } } } },
+                        },
+                    },
+                },
+            });
+
+            const box = placedLabelBox();
+            const seriesRect = chart.seriesRect!;
+            expect(box).toBeDefined();
+            expect(box!.x).toBeGreaterThanOrEqual(seriesRect.x);
+            expect(box!.x + box!.width).toBeLessThan(seriesRect.x + seriesRect.width / 2);
+        });
+
+        it('places a label by the physical side whichever way the axis runs', async () => {
+            const options = placementChart({ text: 'PLACED', placement: 'right' });
+            chart = await createChart({
+                ...options,
+                axes: { ...options.axes, x: { ...options.axes!.x, reverse: true } },
+            });
+
+            const box = placedLabelBox();
+            expect(box).toBeDefined();
+            expect(box!.x).toBeGreaterThanOrEqual(chart.seriesRect!.x + chart.seriesRect!.width);
+        });
+
+        it('keeps the fallback placement across layouts when the first overflows the chart', async () => {
+            chart = await createChart({
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 0,
+                                label: {
+                                    text: 'A LONG CROSS LINE LABEL',
+                                    fontSize: 20,
+                                    placement: ['top', 'right-top'],
+                                },
+                            },
+                        ],
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+            const labelBox = () => getCrossLinesPlugin(chart.axes.findById('x')!)!.getInstances()[0].getLabelBox?.();
+            const settled = labelBox();
+            expect(settled).toBeDefined();
+            expect(settled!.x).toBeGreaterThanOrEqual(chart.seriesRect!.x);
+
+            for (let layout = 0; layout < 2; layout++) {
+                chart.update(ChartUpdateType.PERFORM_LAYOUT);
+                await waitForChartStability(chart);
+                const again = labelBox();
+                expect(again!.x).toBeCloseTo(settled!.x);
+                expect(again!.y).toBeCloseTo(settled!.y);
+            }
+        });
+
+        it('renders a deprecated x-axis range corner where its replacement renders', async () => {
+            const rangeChart = (label: AgCartesianCrossLineLabelOptions): AgCartesianChartOptions => ({
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        crossLines: [{ type: 'range', range: [3, 6], label: { text: 'RANGE', ...label } }],
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            });
+
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createChart,
+                rangeChart({ placement: 'left-top' }),
+                rangeChart({ position: 'top-left' })
+            );
+            expectWarningMessages([
+                'AG Charts - Option `axes.x.crossLines[0].label.position` is deprecated. Use `placement` instead.',
+            ]);
+        });
+
+        it('ignores a placement that does not apply to the axis, with a warning', async () => {
+            chart = await createChart(placementChart({ text: 'PLACED', placement: ['left-top', 'right'] }));
+
+            const box = placedLabelBox();
+            expect(box!.x).toBeGreaterThanOrEqual(chart.seriesRect!.x + chart.seriesRect!.width);
+            expectWarningsCalls().toEqual([
+                [
+                    expect.stringMatching(
+                        /^AG Charts - Placement `left-top` does not apply to a line cross line on a y axis and is ignored; expecting one of `top`/
+                    ),
+                ],
+            ]);
+        });
+
+        it('aliases a deprecated line placement to its replacement, with a warning', async () => {
+            chart = await createChart(placementChart({ text: 'PLACED', placement: 'inside-top' }));
+
+            expectWarningMessages([
+                'AG Charts - Placement `inside-top` is deprecated on a line cross line on a y axis. Use `top` instead.',
+            ]);
+        });
+
+        it.each([
+            ['x', 'left-top'],
+            ['y', 'top-left'],
+        ] as const)('keeps a %s-axis placement on the same side when the axis is reversed', async (axis, placement) => {
+            const labelBox = async (reverse: boolean) => {
+                const crossLines = [{ type: 'line' as const, value: 5, label: { text: 'PLACED', placement } }];
+                chart = await createChart({
+                    data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'number', position: 'bottom', ...(axis === 'x' && { reverse, crossLines }) },
+                        y: { type: 'number', position: 'left', ...(axis === 'y' && { reverse, crossLines }) },
+                    },
+                });
+                const box = getCrossLinesPlugin(chart.axes.findById(axis)!)!.getInstances()[0].getLabelBox?.();
+                chart.destroy();
+                return box;
+            };
+
+            const box = await labelBox(false);
+            expect(box).toBeDefined();
+            expect(await labelBox(true)).toEqual(box);
+        });
+    });
+
     describe('AG-8901: label space reservation', () => {
         // Every datum shares a y value, so the series labels form one row across the cross line's own
         // position — the arrangement that puts them in the way whenever the label is not reserved.
@@ -1743,7 +2266,7 @@ describe('CrossLine', () => {
                             {
                                 type: 'line',
                                 value: 50,
-                                label: undocumentedLabel({ position: 'inside', ...label, reserveSpace }),
+                                label: undocumentedLabel({ placement: 'inside', ...label, reserveSpace }),
                             },
                         ],
                     },
@@ -1835,12 +2358,12 @@ describe('CrossLine', () => {
             const axis = chart.axes.findById('y')!;
             const plugin = getCrossLinesPlugin(axis)!;
 
-            expect(plugin.getLabelObstacles(BBox.zero)).toHaveLength(1);
+            expect(plugin.labelSources[0].getLabelData(BBox.zero)).toMatchObject([{ obstacle: true }]);
 
             const version = plugin.nodeDataVersion;
             plugin.setVisible(false);
 
-            expect(plugin.getLabelObstacles(BBox.zero)).toBeUndefined();
+            expect(plugin.labelSources[0].getLabelData(BBox.zero)).toHaveLength(0);
             expect(plugin.nodeDataVersion).toBeGreaterThan(version);
         });
 
@@ -1874,7 +2397,7 @@ describe('CrossLine', () => {
                                     text: 'ROTATED RESERVED',
                                     fontSize: 40,
                                     rotation: 90,
-                                    position: 'inside-top',
+                                    placement: 'inside-top',
                                     reserveSpace,
                                 }),
                             },
@@ -1895,7 +2418,7 @@ describe('CrossLine', () => {
                                 label: undocumentedLabel({
                                     text: 'RESERVED',
                                     fontSize: 40,
-                                    position: 'inside',
+                                    placement: 'inside',
                                     reserveSpace,
                                 }),
                             },
@@ -1904,7 +2427,7 @@ describe('CrossLine', () => {
                                 value: 80,
                                 stroke: 'blue',
                                 strokeWidth: 1,
-                                label: { text: 'NEVER RESERVED', fontSize: 24, position: 'inside' },
+                                label: { text: 'NEVER RESERVED', fontSize: 24, placement: 'inside' },
                             },
                         ],
                     },
@@ -2058,6 +2581,12 @@ describe('CrossLine', () => {
     });
 });
 
+function crossLineInstancesOf(chart: Chart, axisId: string) {
+    const axis = chart.axes.findById(axisId);
+    const plugin = axis ? getCrossLinesPlugin(axis) : undefined;
+    return plugin?.getInstances() ?? [];
+}
+
 describe('CrossLine theme colour references', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -2072,12 +2601,6 @@ describe('CrossLine theme colour references', () => {
             (chart as unknown) = undefined;
         }
     });
-
-    const crossLineInstances = (axisId: string) => {
-        const axis = chart.axes.findById(axisId);
-        const plugin = axis ? getCrossLinesPlugin(axis) : undefined;
-        return plugin?.getInstances() ?? [];
-    };
 
     const chartOptions = (
         crossLines: AgCartesianCrossLineOptions[],
@@ -2098,7 +2621,7 @@ describe('CrossLine theme colour references', () => {
     it('resolves a plain param reference on a range fill', async () => {
         chart = await createChart(chartOptions([{ type: 'range', range: [1, 3], fill: { ref: 'foregroundColor' } }]));
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
     });
 
     it('resolves a reference blended onto another param', async () => {
@@ -2108,7 +2631,7 @@ describe('CrossLine theme colour references', () => {
             ])
         );
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#33cc00']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#33cc00']);
     });
 
     it('resolves a reference blended onto a literal colour', async () => {
@@ -2118,7 +2641,7 @@ describe('CrossLine theme colour references', () => {
             ])
         );
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#40bf00']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#40bf00']);
     });
 
     it('resolves references on the stroke of both cross line variants', async () => {
@@ -2129,7 +2652,7 @@ describe('CrossLine theme colour references', () => {
             ])
         );
 
-        expect(crossLineInstances('y').map((c) => c.stroke)).toEqual(['#00ff00', 'rgba(255, 0, 0, 0.5)']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.stroke)).toEqual(['#00ff00', 'rgba(255, 0, 0, 0.5)']);
     });
 
     it('resolves a reference supplied through a theme override', async () => {
@@ -2140,7 +2663,7 @@ describe('CrossLine theme colour references', () => {
             })
         );
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
     });
 
     it('re-resolves the fill when the referenced param changes', async () => {
@@ -2149,14 +2672,14 @@ describe('CrossLine theme colour references', () => {
         ];
         chart = await createChart(chartOptions(crossLines));
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
 
         await chart.publicApi!.update(
             prepareTestOptions(chartOptions(crossLines, { params: { ...PARAMS, foregroundColor: '#0000ff' } }))
         );
         await waitForChartStability(chart);
 
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#0000ff']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#0000ff']);
     });
 
     it('ignores malformed reference members and still resolves the reference', async () => {
@@ -2174,6 +2697,127 @@ describe('CrossLine theme colour references', () => {
             'AG Charts - Option `axes.y.crossLines[0][type=range].fill.mix` cannot be set to `"backgroundColor"`; expecting a number greater than or equal to 0, ignoring.',
             'AG Charts - Unknown option `axes.y.crossLines[0][type=range].fill.ratio`, ignoring.',
         ]);
-        expect(crossLineInstances('y').map((c) => c.fill)).toEqual(['#ff0000']);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.fill)).toEqual(['#ff0000']);
+    });
+});
+
+describe('CrossLine theme overrides', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+
+    afterEach(() => {
+        chart?.destroy();
+        (chart as unknown) = undefined;
+    });
+
+    it('styles only the axes that have cross lines', async () => {
+        chart = await createChart({
+            data: [
+                { x: 1, y: 1 },
+                { x: 2, y: 2 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', crossLines: [{ type: 'line', value: 1 }] },
+            },
+            theme: { overrides: { common: { axes: { number: { crossLines: { label: { color: 'red' } } } } } } },
+        });
+
+        expect(crossLineInstancesOf(chart, 'x')).toHaveLength(0);
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.label.color)).toEqual(['red']);
+    });
+
+    const typedChart = (
+        crossLines: AgCartesianCrossLineOptions[],
+        crossLineOverrides: object,
+        namespace: 'common' | 'line' = 'common'
+    ): AgCartesianChartOptions => ({
+        data: [
+            { x: 1, y: 1 },
+            { x: 2, y: 3 },
+        ],
+        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+        axes: {
+            x: { type: 'number', position: 'bottom' },
+            y: { type: 'number', position: 'left', min: 0, max: 4, crossLines },
+        },
+        theme: { overrides: { [namespace]: { axes: { number: { crossLines: crossLineOverrides } } } } },
+    });
+
+    const LINE_AND_RANGE: AgCartesianCrossLineOptions[] = [
+        { type: 'line', value: 2 },
+        { type: 'range', range: [1, 3] },
+    ];
+
+    it('styles each cross line by its type ahead of the shared options', async () => {
+        chart = await createChart(
+            typedChart(LINE_AND_RANGE, {
+                stroke: 'red',
+                strokeWidth: 3,
+                line: { stroke: 'blue' },
+                range: { stroke: 'green', fill: 'yellow' },
+            })
+        );
+
+        const instances = crossLineInstancesOf(chart, 'y');
+        expect(instances.map((c) => c.stroke)).toEqual(['blue', 'green']);
+        expect(instances.map((c) => c.strokeWidth)).toEqual([3, 3]);
+        expect(instances[1].fill).toBe('yellow');
+    });
+
+    it('lets the options of a cross line beat its type', async () => {
+        chart = await createChart(
+            typedChart([{ type: 'range', range: [1, 3], stroke: 'black' }], { range: { stroke: 'green' } })
+        );
+
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.stroke)).toEqual(['black']);
+    });
+
+    it('styles by type from the series-type namespace', async () => {
+        chart = await createChart(typedChart(LINE_AND_RANGE, { line: { strokeWidth: 5 } }, 'line'));
+
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.strokeWidth)).toEqual([5, 1]);
+    });
+
+    it('merges the label options of a type with the shared label options', async () => {
+        chart = await createChart(
+            typedChart(LINE_AND_RANGE, { label: { fontSize: 20, color: 'red' }, range: { label: { color: 'blue' } } })
+        );
+
+        const labels = crossLineInstancesOf(chart, 'y').map((c) => c.label);
+        expect(labels.map((l) => l.color)).toEqual(['red', 'blue']);
+        expect(labels.map((l) => l.fontSize)).toEqual([20, 20]);
+    });
+
+    it('lets a type in either namespace beat the shared options of both', async () => {
+        chart = await createChart({
+            ...typedChart(LINE_AND_RANGE, {}),
+            theme: {
+                overrides: {
+                    common: { axes: { number: { crossLines: { line: { stroke: 'blue' } } } } },
+                    line: { axes: { number: { crossLines: { stroke: 'red', range: { stroke: 'green' } } } } },
+                },
+            },
+        });
+
+        expect(crossLineInstancesOf(chart, 'y').map((c) => c.stroke)).toEqual(['blue', 'green']);
+    });
+
+    it('styles by every cross line type', () => {
+        const types: Record<AgCartesianCrossLineOptions['type'], true> = { line: true, range: true };
+
+        expect(new Set(CROSS_LINE_TYPES)).toEqual(new Set(Object.keys(types)));
+    });
+
+    it('rejects a fill on line cross lines', async () => {
+        chart = await createChart(typedChart(LINE_AND_RANGE, { line: { fill: 'red' } }));
+
+        expectWarningMessages([
+            'AG Charts - Unknown option `theme.overrides.common.axes.number.crossLines.line.fill`; Did you mean `stroke`? Ignoring.',
+        ]);
+        expect(crossLineInstancesOf(chart, 'y')[0].fill).not.toBe('red');
     });
 });

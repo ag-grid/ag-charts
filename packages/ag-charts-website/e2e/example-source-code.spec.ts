@@ -41,6 +41,8 @@ test.describe('Example source embedded for crawlers', () => {
             expect(panelHtml).toContain(' hidden');
             expect(panelHtml).toContain(`<figcaption>${embeddedMainFile}</figcaption>`);
             expect(panelHtml).toContain(`<code data-file-name="${embeddedMainFile}">`);
+            // Only the main file is embedded; the Code button fetches the rest at runtime
+            expect(panelHtml.match(/<figure>/g)).toHaveLength(1);
             // The quick start example charts ice cream sales, whichever framework renders it
             expect(panelHtml).toContain('iceCreamSales');
             // The generator's harness is not part of what the Code button shows
@@ -64,4 +66,17 @@ test.describe('Example source embedded for crawlers', () => {
             await expect(container.locator('pre.code')).toContainText('iceCreamSales');
         });
     }
+
+    // Each Map Lines example has a topology.ts of up to ~680KB, which took the page past the 2MB
+    // Googlebot reads when every file was embedded
+    test('leaves data files out of the embedded source', async ({ request }) => {
+        const response = await request.get(toPageUrl('javascript/map-lines/'));
+        expect(response.ok()).toBe(true);
+        const body = await response.body();
+        const html = body.toString();
+
+        expect(html).toContain('<code data-file-name="main.ts">');
+        expect(html).not.toContain('data-file-name="topology.ts"');
+        expect(body.byteLength).toBeLessThan(2 * 1024 * 1024);
+    });
 });

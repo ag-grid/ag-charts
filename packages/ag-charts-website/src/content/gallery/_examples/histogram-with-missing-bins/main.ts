@@ -83,7 +83,7 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Large Engines',
                         fontStyle: 'italic',
-                        position: 'inside-bottom-right',
+                        placement: 'right-bottom',
                     },
                 },
             ],
@@ -113,7 +113,7 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Typical Range',
                         fontStyle: 'italic',
-                        position: 'inside-bottom-right',
+                        placement: 'inside-bottom-right',
                     },
                 },
             ],
