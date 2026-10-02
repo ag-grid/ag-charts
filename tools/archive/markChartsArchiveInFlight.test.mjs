@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-// Run with: node --test tools/archive/*.test.mjs
+// Run with: yarn nx test tools-archive (CI runs it with the other projects' test targets).
 
 // Each fixture is an excerpt of the root .htaccess, verbatim from the grid's generator: its
 // in-flight block empty, with a grid release candidate, with a charts one, and with both.
