@@ -997,6 +997,8 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 hideWithSize0,
                 pickInflation,
                 shadow,
+                isHighlight,
+                datumIndex: datum.datumIndex,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);

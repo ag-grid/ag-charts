@@ -13,7 +13,7 @@ const { heatmapSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
     ...without(heatmapSeriesThemeableOptionsDef, ['showInLegend']),
-    ...without(commonSeriesOptionsDefs, ['showInLegend']),
+    ...without(commonSeriesOptionsDefs, ['showInLegend', 'highlight']),
     type: required(constant('heatmap')),
     xKey: required(string),
     yKey: required(string),

@@ -164,9 +164,14 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;
-            rect.fillShadow = shadow;
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
             rect.cornerRadius = cornerRadius;
         });
+    }
+
+    /** A legend highlight carries no datum and draws no highlight copy, so the in-place stage keeps its shadow. */
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        return highlightedDatum?.datum == null ? undefined : super.getRedrawnDatumIndex(highlightedDatum);
     }
 
     protected tooltipStyle(datum: unknown, datumIndex: number) {

@@ -16,7 +16,7 @@ import {
     labelBoxOptionsDef,
     labelFitOptionsDefs,
     lineDashOptionsDef,
-    multiSeriesHighlightOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
     positiveNumber,
     ratio,
@@ -41,7 +41,7 @@ import type {
     AgSelectionStyleOptions,
 } from 'ag-charts-types';
 
-const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
+const highlight = multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
 const selection: OptionsDefs<AgSelectionOptions<AgSelectionStyleOptions>> = {
     ...selectionOptionsDef(shapeHighlightOptionsDef),
 };

@@ -75,7 +75,16 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
             const style = (datum.style ??
                 contextNodeData.styles[datum.itemType][highlightState]) as NormalisedCandlestickStyle;
 
-            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp, shadow);
+            node.setStaticProperties(
+                centerX,
+                width,
+                y,
+                height,
+                yOpen,
+                yClose,
+                crisp,
+                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex)
+            );
 
             node.setStyleProperties(style, fillBBox);
 

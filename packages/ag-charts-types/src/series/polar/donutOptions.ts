@@ -29,7 +29,7 @@ import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
     AgHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesShadowHighlightOptions,
 } from '../seriesOptions';
 
 export interface AgDonutSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
@@ -169,7 +169,7 @@ export interface AgDonutSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     /** A styler function for adjusting the styling of the Donut sectors. */
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum, TContext>, AgDonutSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesShadowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgDonutSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

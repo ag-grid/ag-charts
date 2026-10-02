@@ -10,7 +10,7 @@ import {
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
     markerOptionsDefs,
-    multiSeriesHighlightOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
     placedSeriesLabelOptionsDefs,
     required,
@@ -36,7 +36,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     colorScale: enterprise(colorScaleOptionsDef),
 };
 
@@ -56,7 +56,7 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     xKeyAxis: string,
     yKeyAxis: string,
     errorBar: errorBarOptionsDefs,
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 // WARNING: internal cross-filtering option, unrelated to the public data-selection API. Do not use.

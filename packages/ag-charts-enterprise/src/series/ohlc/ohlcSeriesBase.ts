@@ -188,7 +188,8 @@ function resetOhlcSelectionsDirect<D extends OhlcNodeDatum>(
                     datum.height,
                     datum.yOpen,
                     datum.yClose,
-                    datum.crisp
+                    datum.crisp,
+                    node.fillShadow
                 );
             }
             selection.cleanup();

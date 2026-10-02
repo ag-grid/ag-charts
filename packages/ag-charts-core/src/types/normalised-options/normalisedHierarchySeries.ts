@@ -21,6 +21,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
+import type { DeepPartial } from '../global';
 import type { Normalised } from './normalise';
 import type {
     FillStrokeMorph,
@@ -57,11 +58,16 @@ export type NormalisedTreemapGroupHighlightStyle = Normalised<
 
 export type NormalisedTreemapTileHighlightStyle = Normalised<AgTreemapSeriesTileHighlightStyle, never, FillStrokeMorph>;
 
+/** The `shadow` `highlightedItem` accepts, which the style types above leave out. */
+interface NormalisedItemHighlightShadow {
+    shadow?: DeepPartial<NormalisedDropShadowOptions>;
+}
+
 export type NormalisedTreemapGroupHighlightOptions = Normalised<
     AgTreemapSeriesGroupHighlightOptions,
     'enabled',
     {
-        highlightedItem?: NormalisedTreemapGroupHighlightStyle;
+        highlightedItem?: NormalisedTreemapGroupHighlightStyle & NormalisedItemHighlightShadow;
         unhighlightedItem?: NormalisedTreemapGroupHighlightStyle;
     }
 >;
@@ -71,7 +77,7 @@ export type NormalisedTreemapTileHighlightOptions = Normalised<
     'enabled',
     {
         highlightedBranch?: NormalisedTreemapTileHighlightStyle;
-        highlightedItem?: NormalisedTreemapTileHighlightStyle;
+        highlightedItem?: NormalisedTreemapTileHighlightStyle & NormalisedItemHighlightShadow;
         unhighlightedItem?: NormalisedTreemapTileHighlightStyle;
         unhighlightedBranch?: NormalisedTreemapTileHighlightStyle;
     }

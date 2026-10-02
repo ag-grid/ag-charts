@@ -1262,6 +1262,15 @@ describe('SunburstSeries', () => {
             await compare();
         });
 
+        // The hovered sector is redrawn on the highlight layer; only that copy casts its shadow.
+        it('renders a hovered sector with a single shadow', async () => {
+            const series = await createChart(shadow);
+
+            const leaf = (series as any).rootNode.children[0].children[0];
+            (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, leaf);
+            await compare();
+        });
+
         describe('box selection', () => {
             const wholeChart = { x: 0, y: 0, width: 10_000, height: 10_000 };
             const pickedIndices = (series: SunburstSeries) =>

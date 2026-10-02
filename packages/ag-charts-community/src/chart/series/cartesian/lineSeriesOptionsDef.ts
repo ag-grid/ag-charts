@@ -13,7 +13,7 @@ import {
     lineSegmentation,
     markerOptionsDefs,
     markerStyleOptionsDefs,
-    multiSeriesHighlightOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
     placedSeriesLabelOptionsDefs,
     required,
@@ -25,7 +25,7 @@ import {
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, AgLineSeriesStylerResult, AgLineSeriesThemeableOptions } from 'ag-charts-types';
 
-const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef);
+const highlight = multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef);
 
 const lineStyler = callbackDefs<AgLineSeriesStylerResult>({
     ...strokeOptionsDef,
