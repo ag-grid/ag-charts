@@ -6,6 +6,7 @@ import type { LabelSource } from './labelManager';
 /** Contributes an axis's drawn tick labels as obstacles that labels opting into `collideWith.axisLabels` avoid. */
 export class AxisLabelSource implements LabelSource {
     readonly usesPlacedLabels = false;
+    readonly axisLabelObstacles = true;
     nodeDataVersion = 0;
 
     constructor(

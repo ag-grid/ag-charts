@@ -221,7 +221,7 @@ export abstract class CartesianAxis<
     protected gridFillGroupSelection = Selection.select<Rect<AxisFillDatum>>(this.gridFillGroup, Rect, false);
 
     private readonly tempText = new TransformableText({ debugDirty: false });
-    private readonly labelSource = new AxisLabelSource(`axisLabels:${this.id}`, () => this.getTickLabelCanvasBoxes());
+    readonly labelSource = new AxisLabelSource(`axisLabels:${this.id}`, () => this.getTickLabelCanvasBoxes());
     private readonly tempCaption = new Caption();
 
     protected readonly animationState: StateMachine<AxisAnimationState, AxisAnimationEvent>;
@@ -265,7 +265,6 @@ export abstract class CartesianAxis<
             this.caption.registerInteraction(this.moduleCtx, this.id),
             () => moduleCtx.labelManager.unregisterSource(this.labelSource.id, this.labelSource)
         );
-        moduleCtx.labelManager.registerSource(this.labelSource);
     }
 
     /**

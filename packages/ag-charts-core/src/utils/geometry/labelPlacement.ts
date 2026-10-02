@@ -363,6 +363,21 @@ export interface SeriesLabels {
     readonly resolveCandidate?: PositionedCandidateResolver;
 }
 
+/** Whether any label opts in to avoiding axis labels, so a solve without one can skip gathering them. */
+export function labelsAvoidAxisLabels(labelData: ReadonlyMap<string, SeriesLabels>): boolean {
+    for (const { datums, defaults } of labelData.values()) {
+        // OPTIMIZATION: series share one `collideWith` across their datums, so test each object once.
+        let tested: CollideWith | undefined;
+        for (const d of datums) {
+            const collideWith = d.collideWith ?? defaults?.collideWith;
+            if (collideWith === tested) continue;
+            if (collideWith?.axisLabel === true) return true;
+            tested = collideWith;
+        }
+    }
+    return false;
+}
+
 /** Resolves the user-facing `collideWith` flags into the engine's {@link CollideWith}, applying the defaults. */
 export function resolveCollideWith(collision: NormalisedChartLabelCollisionOptions): CollideWith {
     const { markers, labels, seriesItems, seriesArea, axisLabels } = collision.collideWith ?? {};

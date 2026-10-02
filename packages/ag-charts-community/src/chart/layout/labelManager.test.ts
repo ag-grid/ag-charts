@@ -4,6 +4,7 @@ import type { LabelObstacle, PlacedLabel, PointLabelDatum } from 'ag-charts-core
 
 import { BBox } from '../../scene/bbox';
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
+import { AxisLabelSource } from './axisLabelSource';
 import { LabelManager } from './labelManager';
 
 type AnySeries = ISeries<SeriesNodeDatum, ISeriesOptions, unknown>;
@@ -341,6 +342,46 @@ describe('LabelManager', () => {
 
             expect(manager.updateLabels([series], NO_PADDING, RECT)).toBe(false);
             expect(series.holdLabelPlacements).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('axis label sources', () => {
+        const OPTED_IN = { marker: true, label: true, seriesItem: true, seriesArea: false, axisLabel: true };
+
+        function axisSource() {
+            const boxes = vi.fn(() => [new BBox(30, 40, 40, 20)]);
+            return { source: new AxisLabelSource('axisLabels:x', boxes), boxes };
+        }
+
+        it('skips axis labels, and their invalidations, while no label avoids them', () => {
+            const manager = new LabelManager();
+            const { source, boxes } = axisSource();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one')] });
+            manager.registerSource(source);
+
+            manager.updateLabels([series], NO_PADDING, RECT);
+            source.nodeDataVersion++;
+            manager.updateLabels([series], NO_PADDING, RECT);
+
+            expect(boxes).not.toHaveBeenCalled();
+            expect(series.getLabelData).toHaveBeenCalledTimes(1);
+            expect(placedTexts(series)).toEqual(['one']);
+        });
+
+        it('gathers axis labels, and re-solves on their invalidation, once a label avoids them', () => {
+            const manager = new LabelManager();
+            const { source, boxes } = axisSource();
+            const series = fakeSeries({ id: 'a', datums: [labelDatum(50, 50, 'one', { collideWith: OPTED_IN })] });
+            manager.registerSource(source);
+
+            manager.updateLabels([series], NO_PADDING, RECT);
+            expect(boxes).toHaveBeenCalled();
+            expect(placedTexts(series)).toEqual([]);
+
+            manager.updateLabels([series], NO_PADDING, RECT);
+            source.nodeDataVersion++;
+            manager.updateLabels([series], NO_PADDING, RECT);
+            expect(series.getLabelData).toHaveBeenCalledTimes(3);
         });
     });
 });

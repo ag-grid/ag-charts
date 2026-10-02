@@ -35,6 +35,7 @@ import {
     type SeriesLabelDefaults,
     type SeriesLabels,
     labelGlyphCentre,
+    labelsAvoidAxisLabels,
     measureLabelText,
     placeLabels,
     resolveLabelFit,
@@ -701,6 +702,17 @@ describe('placeLabels', () => {
 
         it('avoids axis labels when collideWith enables them', () => {
             expect(place(label({ axisLabel: true }))).toHaveLength(0);
+        });
+
+        it('reports whether any label opts in, per datum or through its series defaults', () => {
+            const avoids = (datums: PointLabelDatum[], defaults?: SeriesLabelDefaults) =>
+                labelsAvoidAxisLabels(new Map([['s', seriesLabels(datums, defaults)]]));
+            const shared = { marker: true };
+
+            expect(avoids([label(), label(shared), label(shared)])).toBe(false);
+            expect(avoids([label(shared), label({ axisLabel: true })])).toBe(true);
+            expect(avoids([label()], { collideWith: { axisLabel: true } })).toBe(true);
+            expect(avoids([label({ axisLabel: false })], { collideWith: { axisLabel: true } })).toBe(false);
         });
     });
 

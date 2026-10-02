@@ -460,6 +460,51 @@ describe('Navigator', () => {
             expect(navigator.miniChart.axes.length).toBeGreaterThan(0);
             expectWarningsCalls().toEqual([]);
         });
+
+        it('keeps the main axis labels as label obstacles while the mini chart shares their axis ids', async () => {
+            const options = (miniChartEnabled: boolean): AgCartesianChartOptions => ({
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 2, y: 0 },
+                    { x: 4, y: 0 },
+                    { x: 6, y: 0 },
+                    { x: 8, y: -10 },
+                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number', crossAt: { value: 0 }, interval: { step: 2 } },
+                    y: { position: 'left', type: 'number' },
+                },
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            enabled: true,
+                            formatter: ({ datum }: any) => `x${datum.x}`,
+                            placement: ['bottom', 'top'],
+                            collision: { alwaysShow: false, collideWith: { axisLabels: true } },
+                            truncate: false,
+                        },
+                    } as any,
+                ],
+                navigator: { enabled: true, miniChart: { enabled: miniChartEnabled } },
+            });
+            const placementsOnAxis = () =>
+                (deproxy(chart).series[0] as any).placedLabelData
+                    .filter((label: any) => label.datum.datum.y === 0)
+                    .map((label: any) => label.placement);
+
+            const base = options(true);
+            prepareEnterpriseTestOptions(base);
+            chart = AgCharts.create(base);
+            await waitForChartStability(chart);
+            expect(placementsOnAxis()).toEqual(['top', 'top', 'top']);
+
+            await chart.update(prepareEnterpriseTestOptions(options(false)));
+            await waitForChartStability(chart);
+            expect(placementsOnAxis()).toEqual(['top', 'top', 'top']);
+        });
     });
 
     describe('mini chart series validation', () => {
