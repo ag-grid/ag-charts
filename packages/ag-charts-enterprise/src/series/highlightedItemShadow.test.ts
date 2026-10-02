@@ -11,8 +11,12 @@ import {
     collectShapes,
     prepareEnterpriseTestOptions,
 } from '../test/utils';
+import { CandlestickNode } from './candlestick/candlestickNode';
 import { FlowProportionDatumType } from './flow-proportion/flowDatumIndex';
 import { FunnelConnector } from './funnel/funnelConnector';
+import { ukData } from './map-test/ukData';
+import ukTopology from './map-test/ukTopology.json';
+import { OhlcNode } from './ohlc/ohlcNode';
 
 type Shadow = typeof SHADOW;
 
@@ -88,6 +92,11 @@ const RANGE_DATA = [
     { x: 'Q1', low: 2, high: 5 },
     { x: 'Q2', low: 3, high: 8 },
     { x: 'Q3', low: 1, high: 3 },
+];
+const OHLC_DATA = [
+    { x: 'Q1', open: 6, high: 7, low: 3, close: 4 },
+    { x: 'Q2', open: 5, high: 7, low: 4, close: 6 },
+    { x: 'Q3', open: 4, high: 5, low: 4, close: 4.5 },
 ];
 const WATERFALL_DATA = [
     { x: 'Start', y: 10 },
@@ -249,6 +258,56 @@ const SERIES: SeriesCase[] = [
             highlight,
         }),
     },
+    {
+        name: 'candlestick',
+        data: OHLC_DATA,
+        kind: CandlestickNode,
+        series: (shadow, highlight) => ({
+            type: 'candlestick',
+            xKey: 'x',
+            openKey: 'open',
+            highKey: 'high',
+            lowKey: 'low',
+            closeKey: 'close',
+            shadow,
+            highlight,
+        }),
+    },
+    {
+        name: 'ohlc',
+        data: OHLC_DATA,
+        kind: OhlcNode,
+        series: (shadow, highlight) => ({
+            type: 'ohlc',
+            xKey: 'x',
+            openKey: 'open',
+            highKey: 'high',
+            lowKey: 'low',
+            closeKey: 'close',
+            shadow,
+            highlight,
+        }),
+    },
+    {
+        name: 'range-bar',
+        data: RANGE_DATA,
+        kind: _Scene.Rect,
+        series: (shadow, highlight) => ({
+            type: 'range-bar',
+            xKey: 'x',
+            yLowKey: 'low',
+            yHighKey: 'high',
+            shadow,
+            highlight,
+        }),
+    },
+    {
+        name: 'map-marker',
+        data: ukData,
+        kind: _Scene.Marker,
+        chartOptions: { topology: ukTopology },
+        series: (shadow, highlight) => ({ type: 'map-marker', idKey: 'name', shadow, highlight }),
+    },
 ];
 
 describe('highlightedItem.shadow (enterprise series)', () => {
@@ -289,6 +348,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
             animation: { enabled: false },
             legend: { enabled: false },
             highlight: { drawingMode },
+            ...testCase.chartOptions,
             series: [testCase.series(shadow, highlight)],
         } as AgChartOptions;
         prepareEnterpriseTestOptions(options);

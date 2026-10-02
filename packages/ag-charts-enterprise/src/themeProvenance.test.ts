@@ -12,8 +12,9 @@ const DATA = [
 ];
 
 /**
- * See the community suite for what `coverage` pins and how to update it. Each `maxSkipped` but radial-bar's is one
- * higher for the new `highlight.highlightedItem.shadow`, which the theme leaves unset.
+ * See the community suite for what `coverage` pins and how to update it. Each `maxSkipped` counts
+ * `highlight.highlightedItem.shadow`, which the theme leaves unset, except radial-bar's and cone-funnel's: neither
+ * series has the option.
  */
 const CASES: Array<ProvenanceCase> = [
     {
@@ -91,7 +92,7 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'cone-funnel',
         series: { stageKey: 'category', valueKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 58, maxSkipped: 9, maxRejected: 8, maxIneffective: 0, minContainers: 3 },
+        coverage: { minChecked: 58, maxSkipped: 8, maxRejected: 8, maxIneffective: 0, minContainers: 3 },
     },
     {
         seriesType: 'pyramid',

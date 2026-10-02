@@ -16,6 +16,7 @@ import {
     deprecatedValue,
     fillOptionsDef,
     fontOptionsDef,
+    highlightOptionsDef,
     interpolationOptionsDefs,
     labelAutoFontSizeOptionsDefs,
     labelBoxOptionsDef,
@@ -304,7 +305,7 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     ...lineDashOptionsDef,
-    highlight: shadowHighlightOptionsDef(lineHighlightOptionsDef),
+    highlight: highlightOptionsDef(lineHighlightOptionsDef),
 };
 
 export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeableOptions> = {

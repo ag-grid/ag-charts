@@ -13,8 +13,8 @@ const DATA = [
  * option of a type the harness cannot supply a value for raises `skipped` or `rejected` and fails here on
  * purpose, so losing coverage is a decision rather than a silent drift. Each run logs the current counts.
  * The `maxIneffective` allowances cover `errorBar`, whose module is enterprise and so strips on both routes
- * here — nothing this suite can demonstrate. Each `maxSkipped` is one higher for the new
- * `highlight.highlightedItem.shadow`, which the theme leaves unset.
+ * here — nothing this suite can demonstrate. Each `maxSkipped` counts `highlight.highlightedItem.shadow`, which the
+ * theme leaves unset, so there is no themed value to compare.
  */
 const CASES: Array<ProvenanceCase> = [
     {
