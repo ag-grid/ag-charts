@@ -5,22 +5,34 @@ import { gotoUrl, toPageUrl } from './util';
 
 const BUTTONS = ['Open in StackBlitz', 'See on GitHub'] as const;
 
+interface ViewportCase {
+    name: string;
+    width: number;
+    height: number;
+    // The hero layout, where a list flipped above its button reaches up towards the sticky site header.
+    hero?: true;
+    // Click the first link as well as measuring the list.
+    click?: true;
+    // Show the announcement banner, whatever the content's schedule says today.
+    banner?: true;
+}
+
 // Viewports that put the buttons near an edge: wide and short, the hero's own scrolling column,
 // and the stacked layout at 200% zoom of a laptop screen (1280x720 becomes 640x360).
-const VIEWPORTS = [
+const VIEWPORTS: ViewportCase[] = [
     { name: 'wide', width: 1600, height: 900 },
     { name: 'short', width: 1400, height: 420 },
-    { name: 'short, sticky header', width: 1400, height: 380 },
-    { name: 'shorter, sticky header', width: 1280, height: 360 },
-    { name: 'mid-height, sticky header', width: 1280, height: 500 },
-    { name: '200% zoom', width: 640, height: 360 },
+    { name: 'short, sticky header', width: 1400, height: 380, hero: true, click: true },
+    { name: 'shorter, sticky header', width: 1280, height: 360, hero: true, click: true },
+    { name: 'mid-height, sticky header', width: 1280, height: 500, hero: true, click: true },
+    { name: 'very short, sticky header, banner', width: 1400, height: 280, hero: true, click: true, banner: true },
+    { name: '200% zoom', width: 640, height: 360, click: true },
     { name: 'narrow', width: 360, height: 640 },
-] as const;
+];
 
-// The hero layouts where a list flipped above its button reaches up towards the sticky site header.
-const HERO_VIEWPORTS = VIEWPORTS.filter((viewport) => viewport.name.endsWith('sticky header'));
+const HERO_VIEWPORTS = VIEWPORTS.filter((viewport) => viewport.hero);
 
-const CLICK_VIEWPORTS = [...HERO_VIEWPORTS, ...VIEWPORTS.filter((viewport) => viewport.name === '200% zoom')];
+const CLICK_VIEWPORTS = VIEWPORTS.filter((viewport) => viewport.click);
 
 // Either seat the button on the bottom edge of what is visible, the reported failure, or leave it
 // wherever the page loads it, which is mid-hero on the taller viewports.
@@ -60,7 +72,7 @@ async function seatButton(summary: Locator, scroll: Scroll) {
 }
 
 // Inside the viewport. The list may be raised over the sticky header, so being on screen is not enough:
-// see topmostAtEveryLinkCentre for the check that the header does not cover it.
+// see topmostAtEveryLinkPoint for the check that the header does not cover it.
 async function expectWithinViewport(page: Page, box: Box) {
     const viewport = await viewportOf(page);
     expect(box.left).toBeGreaterThanOrEqual(0);
@@ -69,15 +81,31 @@ async function expectWithinViewport(page: Page, box: Box) {
     expect(box.bottom).toBeLessThanOrEqual(viewport.height);
 }
 
-// Nothing, the sticky header included, covers a link: the topmost element at its centre is the link itself.
-const topmostAtEveryLinkCentre = (list: Locator) =>
+// Nothing, the sticky header and announcement banner included, covers a link: the topmost element
+// at the centre of each link and just inside its top edge is the link itself. The top edge is where
+// something stacked above the list's upper end shows first.
+const topmostAtEveryLinkPoint = (list: Locator) =>
     list.evaluate((element) =>
-        Array.from(element.querySelectorAll('a')).map((link) => {
+        Array.from(element.querySelectorAll('a')).flatMap((link) => {
             const { left, top, width, height } = link.getBoundingClientRect();
-            const hit = document.elementFromPoint(left + width / 2, top + height / 2);
-            return hit != null && link.contains(hit);
+            return [top + height / 2, top + 1].map((y) => {
+                const hit = document.elementFromPoint(left + width / 2, y);
+                return hit != null && link.contains(hit);
+            });
         })
     );
+
+// Shows the announcement banner where the viewport case asks for it, and returns its bottom edge.
+async function showBanner(page: Page, viewport: ViewportCase) {
+    if (viewport.banner !== true) return 0;
+    const banner = page.locator('[data-announcement-banner]');
+    test.skip((await banner.count()) === 0, 'The announcement banner is disabled in the site content');
+    await page.evaluate(() => {
+        document.documentElement.dataset.showAnnouncement = 'true';
+    });
+    await expect(banner).toBeVisible();
+    return (await boxOf(banner)).bottom;
+}
 
 test.describe('demo page open-in menus', () => {
     for (const viewport of VIEWPORTS) {
@@ -88,6 +116,7 @@ test.describe('demo page open-in menus', () => {
                 }) => {
                     await page.setViewportSize({ width: viewport.width, height: viewport.height });
                     await gotoUrl(page, toPageUrl('examples/'));
+                    await showBanner(page, viewport);
 
                     const menu = openInMenu(page, label);
                     const summary = menu.locator('summary');
@@ -103,7 +132,7 @@ test.describe('demo page open-in menus', () => {
                     await expectWithinViewport(page, listBox);
 
                     // Every link can be reached, none hidden under the header or anything else.
-                    const reachable = await topmostAtEveryLinkCentre(list);
+                    const reachable = await topmostAtEveryLinkPoint(list);
                     expect(reachable.length).toBeGreaterThan(0);
                     expect(reachable.every(Boolean)).toBe(true);
 
@@ -129,7 +158,7 @@ test.describe('demo page open-in menus', () => {
         const summaryBox = await boxOf(menu.locator('summary'));
         const listBox = await boxOf(menu.locator('ul'));
         expect(listBox.top).toBeGreaterThanOrEqual(summaryBox.bottom);
-        // Aligned to the button's left edge, as the list always was.
+        // Aligned to the button's left edge.
         expect(Math.abs(listBox.left - summaryBox.left)).toBeLessThanOrEqual(1);
     });
 
@@ -159,6 +188,7 @@ test.describe('demo page open-in menus', () => {
                     .context()
                     .route(/^https:\/\/(stackblitz|github)\.com\//, (route) => route.fulfill({ body: '' }));
                 await gotoUrl(page, toPageUrl('examples/'));
+                await showBanner(page, viewport);
 
                 const menu = openInMenu(page, BUTTONS[0]);
                 const summary = menu.locator('summary');
@@ -175,11 +205,12 @@ test.describe('demo page open-in menus', () => {
     }
 
     for (const viewport of HERO_VIEWPORTS) {
-        test(`a list flipped above its button is not covered by the sticky header at ${viewport.name} (${viewport.width}x${viewport.height})`, async ({
+        test(`a list flipped above its button is not covered by the sticky header or banner at ${viewport.name} (${viewport.width}x${viewport.height})`, async ({
             page,
         }) => {
             await page.setViewportSize({ width: viewport.width, height: viewport.height });
             await gotoUrl(page, toPageUrl('examples/'));
+            const bannerBottom = await showBanner(page, viewport);
 
             const menu = openInMenu(page, BUTTONS[1]);
             const summary = menu.locator('summary');
@@ -190,9 +221,13 @@ test.describe('demo page open-in menus', () => {
             const listBox = await boxOf(menu.locator('ul'));
             // The case only means something while the header is sticky over the hero.
             expect(await stickyHeaderBottomOf(page)).toBeGreaterThan(0);
+            // And, where the banner is shown, while the list reaches up into the banner's band.
+            if (viewport.banner === true) expect(listBox.top).toBeLessThan(bannerBottom);
             expect(listBox.bottom).toBeLessThanOrEqual(summaryBox.top);
             await expectWithinViewport(page, listBox);
-            expect((await topmostAtEveryLinkCentre(menu.locator('ul'))).every(Boolean)).toBe(true);
+            const reachable = await topmostAtEveryLinkPoint(menu.locator('ul'));
+            expect(reachable.length).toBeGreaterThan(0);
+            expect(reachable.every(Boolean)).toBe(true);
         });
     }
 });
