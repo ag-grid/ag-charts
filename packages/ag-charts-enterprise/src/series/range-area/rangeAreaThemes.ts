@@ -2,6 +2,7 @@ import { type AgChartThemeOverrides, type WithThemeParams } from 'ag-charts-comm
 import {
     CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -96,6 +97,13 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         lineDashOffset: {
             $path: '/series/$index/marker/lineDashOffset',
         },
+        shadow: {
+            enabled: { $path: '/series/$index/marker/shadow/enabled' },
+            color: { $path: '/series/$index/marker/shadow/color' },
+            xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
+            yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
+            blur: { $path: '/series/$index/marker/shadow/blur' },
+        },
         shape: {
             $path: '/series/$index/marker/shape',
         },
@@ -131,6 +139,13 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         ...STROKE_STYLE_THEME_DEFAULTS,
         marker: {
             enabled: false,
+            shadow: {
+                enabled: false,
+                color: DEFAULT_SHADOW_COLOUR,
+                xOffset: 3,
+                yOffset: 3,
+                blur: 5,
+            },
             fill: {
                 $applySwitch: [
                     { $path: 'type' },

@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../chart/dropShadowOptions';
 import type { AgMarkerShape, ContextDefault, DatumDefault, PixelSize } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
@@ -19,6 +20,8 @@ export interface AgSeriesMarkerStyle extends FillOptions, StrokeOptions, LineDas
 export interface AgSeriesMarkerOptions<TDatum, TParams, TContext = ContextDefault> extends AgSeriesMarkerStyle {
     /** Whether to show markers. */
     enabled?: boolean;
+    /** Configuration for the shadow used behind the markers. Not applied to custom marker shapes. */
+    shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual markers, based on the supplied information.*/
     itemStyler?: Styler<AgSeriesMarkerStylerParams<TDatum, TContext> & TParams, AgSeriesMarkerStyle>;
 }

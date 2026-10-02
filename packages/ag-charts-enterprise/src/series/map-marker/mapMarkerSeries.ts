@@ -939,6 +939,10 @@ export class MapMarkerSeries
             marker.size = style.size;
 
             marker.setStyleProperties(style, fillBBox);
+            marker.fillShadow =
+                this.options.shadow?.enabled && _ModuleSupport.isSupportedMarkerShape(style.shape)
+                    ? this.options.shadow
+                    : undefined;
 
             marker.x = point.x;
             marker.y = point.y;

@@ -617,6 +617,7 @@ const rangeAreaSeriesItemLineThemeableOptionsDef: OptionsDefs<
 > = {
     marker: {
         enabled: boolean,
+        shadow: shadowOptionsDefs,
         ...markerStyleOptionsDefs,
     },
     ...strokeOptionsDef,

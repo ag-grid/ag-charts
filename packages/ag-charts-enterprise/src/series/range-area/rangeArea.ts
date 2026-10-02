@@ -1331,6 +1331,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             maxMarkerStrokePickInflation(contextNodeData.styles.low),
             maxMarkerStrokePickInflation(contextNodeData.styles.high)
         );
+        const shadows = { low: this.itemMarkers.low.shadow, high: this.itemMarkers.high.shadow };
 
         datumSelection.each((node, datum) => {
             const { itemType } = datum;
@@ -1343,6 +1344,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, {
                 hideWithSize0,
                 pickInflation,
+                shadow: shadows[itemType],
             });
             node.drawingMode = drawingMode;
         });

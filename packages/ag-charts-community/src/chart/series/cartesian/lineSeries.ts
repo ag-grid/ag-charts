@@ -983,6 +983,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+        const { shadow } = this.options.marker;
 
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
@@ -995,6 +996,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 crossFilterSelected: datum.crossFilterSelected,
                 hideWithSize0,
                 pickInflation,
+                shadow,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);
