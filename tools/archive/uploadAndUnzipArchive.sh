@@ -73,26 +73,31 @@ then
     patchFailed "Could not fetch the live root .htaccess.";
 fi
 
-BEFORE=$(cksum < "$LIVE_HTACCESS")
+# sha256sum on the hosts and CI agents; shasum where it is missing (macOS).
+function sha256 {
+    if command -v sha256sum > /dev/null; then sha256sum | cut -d' ' -f1; else shasum -a 256 | cut -d' ' -f1; fi
+}
+
+BEFORE_SUM=$(sha256 < "$LIVE_HTACCESS")
 OUTCOME=$(node "$PATCHER" "$LIVE_HTACCESS" "$VERSION") || patchFailed "Patching failed."
+AFTER_SUM=$(sha256 < "$LIVE_HTACCESS")
 
 # Already in flight: leave the live file alone rather than uploading the same bytes back.
-if [ "$(cksum < "$LIVE_HTACCESS")" != "$BEFORE" ]
+if [ "$AFTER_SUM" != "$BEFORE_SUM" ]
 then
-    # Keep a timestamped copy on the box, so a bad patch is one cp away from being undone.
-    if ! ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "cp $GRID_ROOT_DIR/$REMOTE $BACKUP"
-    then
-        patchFailed "Could not back up the live root .htaccess.";
-    fi
     # Upload beside the live file and rename over it: mv within a directory is atomic, so a reader
     # sees either the old file or the new one, never a truncated transfer.
     if ! scp -i $SSH_LOCATION -P $SSH_PORT "$LIVE_HTACCESS" $CURRENT_HOST:$STAGED
     then
         patchFailed "Could not upload the patched root .htaccess.";
     fi
-    if ! ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "chmod 644 $STAGED && mv $STAGED $GRID_ROOT_DIR/$REMOTE"
+    # Compare and swap, in one command on the host: replace the live file only if it is still the
+    # one that was fetched, so a grid in-flight mark or a docs deploy landing in between is kept
+    # rather than overwritten, and only with the bytes that were built here. The same protocol as
+    # ag-grid's patchUncachedArchives.sh. The timestamped copy makes a bad patch one cp to undo.
+    if ! ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "cd $GRID_ROOT_DIR && if [ \"\$(sha256sum < $REMOTE | cut -d' ' -f1)\" != $BEFORE_SUM ]; then echo 'The live root .htaccess changed after it was fetched.'; exit 3; fi && if [ \"\$(sha256sum < $STAGED | cut -d' ' -f1)\" != $AFTER_SUM ]; then echo 'The uploaded copy is not the one that was built.'; exit 4; fi && cp $REMOTE $BACKUP && chmod 644 $STAGED && mv $STAGED $REMOTE"
     then
-        patchFailed "Could not move the patched root .htaccess into place.";
+        patchFailed "Could not swap the patched root .htaccess into place - re-run to patch the current file.";
     fi
     OUTCOME="$OUTCOME (previous copy at $BACKUP)"
 fi
