@@ -20,7 +20,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     private currentItem: ActiveItem;
     private updateable: boolean = true;
 
-    // FIXME: same pattern as `ZoomManager`. Perhaps an architectural rewrite is warranted.
+    // FIXME: same pattern as `ViewportManager`. Perhaps an architectural rewrite is warranted.
     private didLayout = false;
     private pendingMemento:
         | {

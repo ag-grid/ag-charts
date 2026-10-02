@@ -496,8 +496,8 @@ describe('Scrollbar visibility on barWidth change', () => {
         const cy = options.height! / 2;
         await clickAction(cx, cy)(proxy);
 
-        const zoomManager = (deproxy(proxy) as any).ctx.zoomManager;
-        const updateZoomSpy = vi.spyOn(zoomManager, 'updateZoom');
+        const viewportManager = (deproxy(proxy) as any).ctx.viewportManager;
+        const updateZoomSpy = vi.spyOn(viewportManager, 'updateZoom');
 
         // Sustained horizontal scroll in one direction, then partially back — the reported gesture.
         await scrollAction(cx, cy, 0, 50, WheelDeltaMode.Pixels, 30)(proxy);

@@ -85,7 +85,7 @@ export class CartesianChart extends Chart {
         this.syncAxisChanges(newValue, oldValue);
 
         if (this.ctx != null) {
-            this.ctx.zoomManager?.setAxes(
+            this.ctx.viewportManager?.setAxes(
                 newValue.filter((axis) => {
                     const { ignoreZoom, linkZoom } = axis.options as { ignoreZoom?: boolean; linkZoom?: string };
                     return !ignoreZoom && linkZoom == null;

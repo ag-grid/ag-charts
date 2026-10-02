@@ -23,7 +23,7 @@ export class ZoomContextMenu {
         private readonly eventsHub: _ModuleSupport.EventsHub,
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry | undefined,
         private readonly chartState: ReactiveState<_ModuleSupport.ChartState>,
-        private readonly zoomManager: _ModuleSupport.ZoomManager,
+        private readonly viewportManager: _ModuleSupport.ViewportManager,
         private readonly getModuleProperties: () => ZoomProperties,
         private readonly getRect: () => BoxBounds | undefined,
         private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
@@ -118,7 +118,7 @@ export class ZoomContextMenu {
     }
 
     private onResetZoom(_actionEvent: AgSeriesAreaContextMenuActionEvent) {
-        this.zoomManager.resetZoom(userInteraction('contextmenu-reset'));
+        this.viewportManager.resetZoom(userInteraction('contextmenu-reset'));
     }
 
     private iterateFindNextZoomAtPoint(origin: Point) {

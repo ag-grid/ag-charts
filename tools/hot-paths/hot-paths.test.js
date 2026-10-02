@@ -81,7 +81,7 @@ test('benchmark map: scale paths do not leak into series tags', () => {
 });
 
 test('benchmark map: a zoom change can select the dynamic zoom examples', () => {
-    const { examples } = recommend(['packages/ag-charts-community/src/chart/interaction/zoomManager.ts']);
+    const { examples } = recommend(['packages/ag-charts-community/src/chart/interaction/viewportManager.ts']);
     assert.ok(
         examples.some((e) => e.name.startsWith('data-selection-zoom-')),
         'the data-selection-zoom examples measure zoom and must be selectable by a zoom-tagged change'

@@ -71,7 +71,7 @@ export type CartesianAxisLike = SimpleAxis & {
     // numeric bounds (e.g. category) leave `options` shaped without these keys.
     options?: { min?: number; max?: number };
     // Axis-local zoom. `CartesianAxis` implements these; `SimpleAxis` literals (e.g. topologyChart) do
-    // not, so ZoomManager must guard with `'setZoom' in axis`.
+    // not, so ViewportManager must guard with `'setZoom' in axis`.
     getZoom(): ZoomMinMax;
     setZoom(zoom: ZoomMinMax): void;
 };
@@ -192,7 +192,7 @@ function isGrouping(d: ZoomMementoRange['start' | 'end']) {
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
  */
-export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMemento> {
+export class ViewportManager extends BaseManager implements MementoOriginator<ZoomMemento> {
     public mementoOriginatorKey = 'zoom' as const;
 
     private get state(): CoreZoomStateSafeRetrieval {
@@ -859,7 +859,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         let constrainedState: typeof state | undefined;
 
         const debug = this.debug;
-        const zoomManager = this;
+        const viewportManager = this;
         const event = {
             source,
             sourceDetail,
@@ -873,11 +873,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                 return definedZoomState(toZoomState(event.state));
             },
             constrainZoom(restrictions: ZoomState): void {
-                this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
+                this.constrainChanges(viewportManager.toCoreZoomState(restrictions));
             },
             constrainChanges(restrictions: ZoomChangeState): void {
                 if (debug.check()) {
-                    debug('ZoomManager.constrainChanges()', state, '->', restrictions, new Error().stack);
+                    debug('ViewportManager.constrainChanges()', state, '->', restrictions, new Error().stack);
                 }
                 constrainedState ??= deepClone(state);
                 for (const id of strictObjectKeys(restrictions)) {

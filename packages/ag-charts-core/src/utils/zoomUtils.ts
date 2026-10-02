@@ -45,7 +45,7 @@ type CoreZoomLike = Readonly<Record<string, Readonly<ZoomMinMaxDirection> | unde
 /**
  * Projects a per-axis zoom map onto the `{ x?, y? }` shape used by the public zoom API. Takes the
  * primary (first) entry in each direction. Used at the boundary between the internal per-axis
- * representation (still present in ZoomManager as a transient compatibility layer) and the public
+ * representation (still present in ViewportManager as a transient compatibility layer) and the public
  * per-direction state in ChartState.
  */
 export function toZoomState(coreZoom: CoreZoomLike): ZoomState | undefined {

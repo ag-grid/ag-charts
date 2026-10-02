@@ -65,7 +65,7 @@ export interface ZoomOnDataChangeCtx extends Pick<
     'chartState' | 'eventsHub' | 'axisManager' | 'logger'
 > {
     // Optional on ChartRegistry, but the zoom module is the only instantiator and guarantees it.
-    readonly zoomManager: _ModuleSupport.ZoomManager;
+    readonly viewportManager: _ModuleSupport.ViewportManager;
     readonly cleanup: CleanupRegistry;
     readonly onConstrainChanges: (e: _ModuleSupport.ZoomChangeRequestEvent) => void;
     // Reactive option access delegated from parent via getter property.
@@ -185,9 +185,9 @@ export class ZoomOnDataChange {
         const { strategy } = this.ctx.opts;
         switch (strategy) {
             case 'reset':
-                return this.ctx.zoomManager.resetZoom(userInteraction('onDataChange-reset'));
+                return this.ctx.viewportManager.resetZoom(userInteraction('onDataChange-reset'));
             case 'preserveRatios':
-                return; // do nothing (keep ZoomManager min/max ratios unchanged).
+                return; // do nothing (keep ViewportManager min/max ratios unchanged).
             case 'preserveDomain':
                 return this.performPreserveDomain();
             default:
@@ -200,9 +200,9 @@ export class ZoomOnDataChange {
         // Data has changes, remember the current domain for all X axes. We'll constrain the next zoom:change-request
         // event to these domain:
         this.desiredChanges = { type: 'domain', domains: [] };
-        const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
+        const xaxes = this.ctx.viewportManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
         for (const { id: axisId } of xaxes) {
-            const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
+            const ratios = this.ctx.viewportManager.getAxisZoom(axisId);
             // Skip fully zoomed-out axes — avoids snapshotting a placeholder [0,1] domain on a
             // freshly-recreated axis and collapsing the zoom when re-interpolated against the real domain.
             if (ratios.min === 0 && ratios.max === 1) continue;
@@ -215,13 +215,13 @@ export class ZoomOnDataChange {
     }
 
     private performStickToEnd(): void {
-        const axisId = this.ctx.zoomManager.getPrimaryAxisId(ChartAxisDirection.X);
+        const axisId = this.ctx.viewportManager.getPrimaryAxisId(ChartAxisDirection.X);
         if (!axisId) return;
 
         const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
         if (!domainMinMax) return;
 
-        const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
+        const ratios = this.ctx.viewportManager.getAxisZoom(axisId);
         const { visibleMin, visibleMax } = toVisibleMinMax(axisId, domainMinMax, ratios);
         const difference = visibleMax - visibleMin;
         this.desiredChanges = { type: 'stickToEnd', axisId, difference };

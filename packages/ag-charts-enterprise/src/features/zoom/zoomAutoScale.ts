@@ -8,10 +8,10 @@ import type {
 } from 'ag-charts-core';
 import { ChartAxisDirection, isFiniteNumber, objectsEqual, strictObjectKeys } from 'ag-charts-core';
 
-type CartesianAxisLike = ReturnType<_ModuleSupport.ZoomManager['getAxes']>[number];
+type CartesianAxisLike = ReturnType<_ModuleSupport.ViewportManager['getAxes']>[number];
 
 export interface ZoomAutoScalerCtx {
-    readonly zoomManager: _ModuleSupport.ZoomManager;
+    readonly viewportManager: _ModuleSupport.ViewportManager;
     readonly eventsHub: _ModuleSupport.EventsHub;
     readonly chartState: ReactiveState<_ModuleSupport.ChartState>;
     readonly cleanup: CleanupRegistry;
@@ -32,8 +32,8 @@ export class ZoomAutoScaler {
         );
     }
 
-    private get zoomManager() {
-        return this.ctx.zoomManager;
+    private get viewportManager() {
+        return this.ctx.viewportManager;
     }
 
     private get autoScalingOpts(): NormalisedZoomAutoScaling {
@@ -88,7 +88,7 @@ export class ZoomAutoScaler {
             let yAutoScale: boolean | undefined = memento?.autoScaledAxes?.includes('y');
             if (memento?.rangeY) {
                 yAutoScale ??= false;
-                zoom.y = this.zoomManager.rangeToRatioDirection(ChartAxisDirection.Y, memento.rangeY) ?? {
+                zoom.y = this.viewportManager.rangeToRatioDirection(ChartAxisDirection.Y, memento.rangeY) ?? {
                     min: 0,
                     max: 1,
                 };
@@ -133,7 +133,7 @@ export class ZoomAutoScaler {
         const zoom = { ...this.ctx.chartState.getValue('zoom') };
         if (changes) {
             // The `zoom` is outdated, let's patch in the updates from `changes`.
-            const state = this.zoomManager.getAxisZooms();
+            const state = this.viewportManager.getAxisZooms();
             for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y] as const) {
                 for (const id of strictObjectKeys(changes)) {
                     if (state[id]?.direction === dir) {
@@ -148,7 +148,7 @@ export class ZoomAutoScaler {
         const zoomY = this.getAutoScaleYZoom(zoom.x);
         if (zoomY == null || objectsEqual(zoom.y, zoomY)) return;
 
-        return this.zoomManager.toCoreZoomState({ x: zoom.x, y: zoomY });
+        return this.viewportManager.toCoreZoomState({ x: zoom.x, y: zoomY });
     }
 
     private zoomBounds(
@@ -240,8 +240,8 @@ export class ZoomAutoScaler {
     ): ZoomMinMax | undefined {
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
-        const xAxis = this.zoomManager.getPrimaryAxis(crossDirection);
-        const yAxis = this.zoomManager.getPrimaryAxis(direction);
+        const xAxis = this.viewportManager.getPrimaryAxis(crossDirection);
+        const yAxis = this.viewportManager.getPrimaryAxis(direction);
 
         if (xAxis == null || yAxis == null) return;
 
@@ -253,7 +253,7 @@ export class ZoomAutoScaler {
         zoom: ZoomMinMax,
         { padding = 0 } = {}
     ): ZoomMinMax | undefined {
-        const axes = this.zoomManager.getAxes();
+        const axes = this.viewportManager.getAxes();
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
         const seriesXAxes = new Map<any, CartesianAxisLike>();

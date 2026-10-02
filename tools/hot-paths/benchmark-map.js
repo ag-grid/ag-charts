@@ -167,7 +167,7 @@ const RULES = [
         re: /\/chart\/data\/|dataSet|dataChangeDescription|dataModel/i,
         cases: ['append-batch', 'remove-batch', 'rolling-window'],
     },
-    { re: /\/chart\/interaction\/|zoomManager|zoomUtils|dragInterpreter/i, cases: ['zoom'] },
+    { re: /\/chart\/interaction\/|viewportManager|zoomUtils|dragInterpreter/i, cases: ['zoom'] },
     {
         re: /\/scene\/|\/motion\/|\/chart\/marker\//,
         names: ['high-perf-bar', 'high-perf-line', 'high-freq-line', 'large-dataset', 'simple-sparkline'],

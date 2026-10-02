@@ -276,7 +276,7 @@ export class ZoomToolbar {
         const props = this.getModuleProperties();
 
         if (props.independentAxes && button.value !== 'reset') {
-            const axisZooms = this.ctx.zoomManager!.getAxisZooms();
+            const axisZooms = this.ctx.viewportManager!.getAxisZooms();
             for (const [axisId, value] of entries(axisZooms)) {
                 if (value == null) continue;
                 const { direction, min, max } = value;

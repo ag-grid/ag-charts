@@ -1509,7 +1509,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (Object.keys(chartRanges).length === 0) {
             this._requiredRange = 0;
         } else {
-            // Set only during PROCESS_RANGE: zoomManager's oscillation guard needs this stable across
+            // Set only during PROCESS_RANGE: viewportManager's oscillation guard needs this stable across
             // re-layouts to tell option changes from layout-triggered dimension changes.
             this._requiredRange = Math.ceil(Math.max(...Object.values(chartRanges)));
         }
@@ -1827,7 +1827,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
         if (!this.hasViewportSupport()) {
             // reset zoom to initial state
-            this.ctx.zoomManager?.updateZoom(
+            this.ctx.viewportManager?.updateZoom(
                 { source: 'chart-update', sourceDetail: 'internal-applyOptions' },
                 { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } }
             );
@@ -1881,7 +1881,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private applyInitialState(options: AgChartOptions) {
-        const { activeManager, annotationManager, chartTypeOriginator, historyManager, stateManager, zoomManager } =
+        const { activeManager, annotationManager, chartTypeOriginator, historyManager, stateManager, viewportManager } =
             this.ctx;
         const { initialState } = options;
 
@@ -1903,8 +1903,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
             stateManager.setState(chartTypeOriginator, initialState.chartType);
         }
 
-        if (this.needsViewportSupport(options) && initialState?.zoom != null && zoomManager) {
-            stateManager.setState(zoomManager, initialState.zoom);
+        if (this.needsViewportSupport(options) && initialState?.zoom != null && viewportManager) {
+            stateManager.setState(viewportManager, initialState.zoom);
         }
 
         if (initialState?.active != null) {

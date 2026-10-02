@@ -623,7 +623,7 @@ export abstract class AbstractNetworkSeries<
         };
     }
 
-    // ZoomManager's `panToBBox()` only brings the bbox into view, whereas a centring request must end
+    // ViewportManager's `panToBBox()` only brings the bbox into view, whereas a centring request must end
     // up at the middle of the viewport.
     private getPendingViewCentre(padded: PaddedBounds) {
         if (this.pendingView?.intent === 'reveal') return;
@@ -744,7 +744,7 @@ export abstract class AbstractNetworkSeries<
             this.pendingView = undefined;
         }
         this.hasCentredContent = true;
-        this.ctx.zoomManager?.updateZoom(
+        this.ctx.viewportManager?.updateZoom(
             { source: 'chart-update', sourceDetail: 'internal-networkSeriesFocusChange' },
             zoom
         );

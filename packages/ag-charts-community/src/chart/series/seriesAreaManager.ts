@@ -1170,7 +1170,7 @@ export class SeriesAreaManager extends BaseManager {
 
             if (!hoverRect.containsPoint(x, y)) {
                 const panTarget = focus.series.mapFocusBBoxToPanTarget(hoverRect, focusBBox);
-                const panSuccess = this.chart.ctx.zoomManager?.panToBBox(hoverRect, panTarget);
+                const panSuccess = this.chart.ctx.viewportManager?.panToBBox(hoverRect, panTarget);
                 if (panSuccess) {
                     // Wait for an update to ensure that we show the tooltip/highlight correctly.
                     return PickedFocusStatus.PAN_REQUIRED;

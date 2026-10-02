@@ -198,12 +198,12 @@ export interface EventsHubMap {
     'zoom:save-memento': ZoomSaveMementoEvent;
     'zoom:load-memento': ZoomLoadMementoEvent;
     /**
-     * `change-request` means that something has requested the `ZoomManager` to update the zoom state in some way. The
+     * `change-request` means that something has requested the `ViewportManager` to update the zoom state in some way. The
      * changes might be modified, constrained, rejected or ignored depending on what options/listeners are registered.
      */
     'zoom:change-request': ZoomChangeRequestEvent;
     /**
-     * `change-complete` is dispatched when an effective `change-request` was processed, and the `ZoomManager`
+     * `change-complete` is dispatched when an effective `change-request` was processed, and the `ViewportManager`
      * internal state has been updated (but no redraw has occurred yet). `change-request` that are "no-op" (i.e. nothing
      * has changed) are not followed by a `change-complete`.
      */

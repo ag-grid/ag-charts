@@ -475,8 +475,8 @@ export class Ranges extends AbstractModuleInstance {
     }
 
     private updateZoomWithButtonIndex(index: number) {
-        const zoomManager = this.ctx.zoomManager;
-        if (!zoomManager) return;
+        const viewportManager = this.ctx.viewportManager;
+        if (!viewportManager) return;
 
         const button = this.opts.buttons.at(index);
         if (!button) return;
@@ -487,9 +487,9 @@ export class Ranges extends AbstractModuleInstance {
         const updateWithFn = this.getUpdateWithFn(value);
 
         if (updateWithFn.valid === false || updateWithFn.fn == null) {
-            zoomManager.resetZoom(sourcing);
+            viewportManager.resetZoom(sourcing);
         } else {
-            zoomManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn.fn);
+            viewportManager.updateWith(sourcing, ChartAxisDirection.X, updateWithFn.fn);
         }
 
         this.buttonsToolbar?.toggleActiveButtonByIndex(index);
@@ -531,7 +531,7 @@ export class Ranges extends AbstractModuleInstance {
 
     private getButtonEnabled(button: AgRangesButton) {
         const enableOutOfRange = this.opts.enableOutOfRange;
-        const zoomManager = this.ctx.zoomManager;
+        const viewportManager = this.ctx.viewportManager;
 
         let buttonEnabled = button.enabled ?? enableOutOfRange;
 
@@ -540,9 +540,9 @@ export class Ranges extends AbstractModuleInstance {
             if (updateWithFn.valid === false) return false;
 
             buttonEnabled =
-                updateWithFn.fn == null || zoomManager == null
+                updateWithFn.fn == null || viewportManager == null
                     ? true
-                    : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn.fn, 'range-check');
+                    : viewportManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn.fn, 'range-check');
         }
 
         return buttonEnabled;

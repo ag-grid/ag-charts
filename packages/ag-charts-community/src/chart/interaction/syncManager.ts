@@ -7,7 +7,7 @@ import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesT
 import type { TooltipContent } from '../tooltip/tooltip';
 import type { HighlightManager } from './highlightManager';
 import type { TooltipManager } from './tooltipManager';
-import type { ZoomManager } from './zoomManager';
+import type { ViewportManager } from './viewportManager';
 
 type GroupId = string | symbol;
 
@@ -36,7 +36,7 @@ export type SyncChartLike = {
         eventsHub: EventEmitter<EventsHubMap>;
         highlightManager: HighlightManager;
         tooltipManager: TooltipManager;
-        zoomManager?: ZoomManager;
+        viewportManager?: ViewportManager;
     };
     getTooltipContent(
         series: ISeries<SeriesNodeDatum, ISeriesOptions, unknown>,

@@ -20,8 +20,8 @@ import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
 import type { SyncManager } from '../chart/interaction/syncManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
+import type { ViewportManager } from '../chart/interaction/viewportManager';
 import type { WidgetSet } from '../chart/interaction/widgetSet';
-import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LabelManager } from '../chart/layout/labelManager';
 import type { LayoutManager } from '../chart/layout/layoutManager';
 import type { LegendManager } from '../chart/legend/legendManager';
@@ -95,7 +95,7 @@ export interface ChartRegistry {
     readonly tooltipManager: TooltipManager;
     readonly validations: ChartValidations;
     readonly widgets: WidgetSet;
-    readonly zoomManager?: ZoomManager;
+    readonly viewportManager?: ViewportManager;
 
     readonly sharedToolbar?: SharedToolbarLike;
 }

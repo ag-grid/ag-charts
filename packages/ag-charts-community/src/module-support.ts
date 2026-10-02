@@ -234,9 +234,9 @@ export {
     userInteraction,
     type UpdateZoomSourcing,
     type UpdateZoomWithFunction,
-    ZoomManager,
-} from './chart/interaction/zoomManager';
-export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
+    ViewportManager,
+} from './chart/interaction/viewportManager';
+export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/viewportManager';
 export { PanToBBoxScalingModeEnum } from './util/panToBBox';
 export { getItemId } from './chart/series/pickManager';
 export { Series } from './chart/series/series';

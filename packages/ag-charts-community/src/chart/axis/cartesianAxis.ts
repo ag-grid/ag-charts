@@ -190,7 +190,7 @@ export abstract class CartesianAxis<
     // Used to define the range the axis line will occupy, e.g. when bandAlignment is not 'justify'.
     lineRange?: [number, number];
 
-    // Axis-local zoom. Managed by ZoomManager via setZoom(). Defaults to the full range; diverges
+    // Axis-local zoom. Managed by ViewportManager via setZoom(). Defaults to the full range; diverges
     // from the direction primary only in independent-axes mode.
     private zoom: ZoomMinMax = { min: 0, max: 1 };
 

@@ -18,8 +18,8 @@ export class StandaloneChart extends Chart {
     constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
         super(options, resources);
 
-        if (this.ctx.zoomManager) {
-            this.ctx.zoomManager.panToBBoxScalingMode =
+        if (this.ctx.viewportManager) {
+            this.ctx.viewportManager.panToBBoxScalingMode =
                 _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
         }
     }
@@ -40,13 +40,13 @@ export class StandaloneChart extends Chart {
     // Lazy because `this.series` is empty at construction; the flag tracks state across
     // hot-swaps so axes register when an opt-in series joins and unregister when it leaves.
     private refreshStandaloneZoomRegistration() {
-        const { zoomManager } = this.ctx;
-        if (!zoomManager) return;
+        const { viewportManager } = this.ctx;
+        if (!viewportManager) return;
 
         const wantsZoom = this.series.some((s) => s.supportsStandaloneZoom);
         if (wantsZoom === this.standaloneZoomRegistered) return;
 
-        zoomManager.setAxes(wantsZoom ? [this.xAxis, this.yAxis] : []);
+        viewportManager.setAxes(wantsZoom ? [this.xAxis, this.yAxis] : []);
         this.standaloneZoomRegistered = wantsZoom;
     }
 
