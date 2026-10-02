@@ -35,7 +35,7 @@ import {
 } from 'ag-charts-community-test';
 import { deepClone } from 'ag-charts-core';
 
-import { DEFAULT_DISABLED_SHADOW, prepareEnterpriseTestOptions } from '../../test/utils';
+import { DEFAULT_DISABLED_SHADOW, HIERARCHY_SHADOW_DATA, prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
 
 describe('TreemapSeries', () => {
@@ -1448,27 +1448,7 @@ describe('TreemapSeries', () => {
 
     describe('shadow', () => {
         const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 8, yOffset: 8, blur: 8 };
-        const data = [
-            {
-                name: 'Root',
-                children: [
-                    {
-                        name: 'A',
-                        children: [
-                            { name: 'A1', size: 10 },
-                            { name: 'A2', size: 6 },
-                        ],
-                    },
-                    {
-                        name: 'B',
-                        children: [
-                            { name: 'B1', size: 8 },
-                            { name: 'B2', size: 4 },
-                        ],
-                    },
-                ],
-            },
-        ];
+        const data = HIERARCHY_SHADOW_DATA;
         const shadowOptions = (parts: { group?: typeof shadow; tile?: typeof shadow } = {}): AgChartOptions => ({
             data,
             series: [
@@ -1547,13 +1527,15 @@ describe('TreemapSeries', () => {
             await compare();
         });
 
-        it('clips tiles of a leaf-only group to their own bounds', async () => {
+        it('casts the tile shadow from clipped leaves', async () => {
             // The tile rect spans its parent group's content area but is clipped to the tile's own bbox. The clip is
             // applied to the rect geometry, so the shadow is still cast beyond it (see the tile.shadow snapshot).
             const { leaves } = await createChart(shadowOptions({ tile: shadow }));
 
+            expect(leaves).toHaveLength(4);
             for (const { rect } of leaves) {
                 expect(rect.clipBBox).toBeDefined();
+                expect(rect.fillShadow).toMatchObject(shadow);
             }
         });
     });

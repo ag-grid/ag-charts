@@ -874,12 +874,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         return _ModuleSupport.pickSectorsInBBoxPredicate(this);
     }
 
-    /**
-     * Sectors are drawn in depth order, but a box selection reports them in datum (pre-order) order,
-     * which is the order `getSelection()` returns them in.
-     */
+    /** Yields in datum order, as `getSelection()` does; the base scene walk would yield in depth order. */
     public override *pickNodesInBBox(selectionBox: BoxBounds): Iterable<SunburstNode> {
-        yield* Array.from(super.pickNodesInBBox(selectionBox)).sort((a, b) => a.datumIndex - b.datumIndex);
+        const predicate = this.pickNodesInBBoxPredicate();
+        for (const sector of this.datumSelection.nodes()) {
+            if (sector.visible && sector.pointerEvents !== PointerEvents.None && predicate(selectionBox, sector)) {
+                yield sector.unsafeDatum;
+            }
+        }
     }
 
     protected override animateEmptyUpdateReady() {

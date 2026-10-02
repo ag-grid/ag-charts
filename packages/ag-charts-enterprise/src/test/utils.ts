@@ -211,3 +211,26 @@ export function leftEdgeIsWhite(canvasCtx: MockCanvas, columns = 2) {
 export function pixelAt(canvasCtx: MockCanvas, x: number, y: number) {
     return [...canvasCtx.getRenderContext2D().getImageData(x, y, 1, 1).data];
 }
+
+/** A `Root > A, B > leaves` hierarchy with sizes, shared by the treemap and sunburst shadow suites. */
+export const HIERARCHY_SHADOW_DATA = [
+    {
+        name: 'Root',
+        children: [
+            {
+                name: 'A',
+                children: [
+                    { name: 'A1', size: 10 },
+                    { name: 'A2', size: 6 },
+                ],
+            },
+            {
+                name: 'B',
+                children: [
+                    { name: 'B1', size: 8 },
+                    { name: 'B2', size: 4 },
+                ],
+            },
+        ],
+    },
+];
