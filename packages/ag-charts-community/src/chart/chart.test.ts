@@ -2011,6 +2011,52 @@ describe('Chart', () => {
                     expect(item.value).toBeGreaterThan(0);
                 }
             });
+
+            it('should apply transactions made without waiting for each other', async () => {
+                const [itemToRemove, itemToUpdate] = pieChartProxy.getOptions().data!;
+                itemToUpdate.value = 25;
+
+                await Promise.all([
+                    pieChartProxy.applyTransaction({ add: [{ category: 'D', value: 40 }] }),
+                    pieChartProxy.applyTransaction({ remove: [itemToRemove] }),
+                    pieChartProxy.applyTransaction({ update: [itemToUpdate] }),
+                ]);
+                await waitForChartStability(pieChart);
+
+                expect(pieChart.data.data).toEqual([
+                    { category: 'B', value: 25 },
+                    { category: 'C', value: 30 },
+                    { category: 'D', value: 40 },
+                ]);
+            });
+
+            it('should apply a transaction made while a data update is pending', async () => {
+                await Promise.all([
+                    pieChartProxy.applyTransaction({ add: [{ category: 'D', value: 40 }] }),
+                    pieChartProxy.updateDelta({ data: [{ category: 'E', value: 50 }] }),
+                    pieChartProxy.applyTransaction({ add: [{ category: 'F', value: 60 }] }),
+                ]);
+                await waitForChartStability(pieChart);
+
+                expect(pieChart.data.data).toEqual([
+                    { category: 'E', value: 50 },
+                    { category: 'F', value: 60 },
+                ]);
+            });
+
+            it('should apply a transaction to the chart data after an update without data', async () => {
+                const { data: _data, ...options } = pieChartProxy.getOptions();
+                await pieChartProxy.update(options);
+                await pieChartProxy.applyTransaction({ add: [{ category: 'D', value: 40 }] });
+                await waitForChartStability(pieChart);
+
+                expect(pieChart.data.data).toEqual([
+                    { category: 'A', value: 10 },
+                    { category: 'B', value: 20 },
+                    { category: 'C', value: 30 },
+                    { category: 'D', value: 40 },
+                ]);
+            });
         });
     });
 
