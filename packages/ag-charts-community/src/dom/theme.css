@@ -19,6 +19,7 @@
         'Helvetica Neue', sans-serif;
     --ag-charts-font-size: 12px;
     --ag-charts-font-weight: 400;
+    --ag-charts-card-shadow: 0 0 16px rgba(0, 0, 0, 0.15);
     --ag-charts-popup-shadow: 0 0 16px rgba(0, 0, 0, 0.15);
     --ag-charts-subtle-text-color: #8c8c8c;
     --ag-charts-text-color: #181d1f;
@@ -31,6 +32,7 @@
     --ag-charts-chrome-font-weight: 400;
     --ag-charts-chrome-subtle-text-color: #8c8c8c;
     --ag-charts-chrome-text-color: #181d1f;
+    --ag-charts-drag-handle-color: #181d1f;
 
     --ag-charts-button-background-color: #fff;
     --ag-charts-button-border-color: #dddddd;
@@ -43,12 +45,14 @@
     --ag-charts-input-border-color: #dddddd;
     --ag-charts-input-border-radius: 4px;
     --ag-charts-input-border-width: 1px;
+    --ag-charts-input-placeholder-text-color: #747779;
     --ag-charts-input-text-color: #181d1f;
 
     --ag-charts-menu-background-color: #fafafa;
     --ag-charts-menu-border-color: #dddddd;
     --ag-charts-menu-border-radius: 4px;
     --ag-charts-menu-border-width: 1px;
+    --ag-charts-menu-separator-color: #dddddd;
     --ag-charts-menu-text-color: #181d1f;
 
     --ag-charts-panel-background-color: #fafafa;
@@ -63,6 +67,33 @@
 
     --ag-charts-crosshair-label-background-color: #fafafa;
     --ag-charts-crosshair-label-text-color: #181d1f;
+
+    --ag-charts-color-picker-color-border-radius: 2px;
+    --ag-charts-color-picker-thumb-border-width: 3px;
+    --ag-charts-color-picker-thumb-size: 18px;
+    --ag-charts-color-picker-track-border-radius: 396px;
+    --ag-charts-color-picker-track-size: 12px;
+
+    --ag-charts-title-font-size: 17px;
+    --ag-charts-title-font-weight: 400;
+    --ag-charts-title-font-family:
+        'IBM Plex Sans', -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+        'Helvetica Neue', sans-serif;
+    --ag-charts-title-color: #181d1f;
+
+    --ag-charts-subtitle-font-size: 13px;
+    --ag-charts-subtitle-font-weight: 400;
+    --ag-charts-subtitle-font-family:
+        'IBM Plex Sans', -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+        'Helvetica Neue', sans-serif;
+    --ag-charts-subtitle-color: #8c8c8c;
+
+    --ag-charts-footnote-font-size: 13px;
+    --ag-charts-footnote-font-weight: 400;
+    --ag-charts-footnote-font-family:
+        'IBM Plex Sans', -apple-system, 'system-ui', 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+        'Helvetica Neue', sans-serif;
+    --ag-charts-footnote-color: #8c8c8c;
 
     /* Future theme parameters, to be added to `theme.params`. */
     --ag-charts-spacing: 4px;
@@ -84,12 +115,6 @@
         var(--ag-charts-input-text-color) 50%
     );
 
-    --ag-charts-input-placeholder-text-color: color-mix(
-        in srgb,
-        var(--ag-charts-input-background-color),
-        var(--ag-charts-input-text-color) 60%
-    );
-
     /* Buttons */
     --ag-charts-button-focus-background-color: color-mix(
         in srgb,
@@ -99,16 +124,27 @@
     --ag-charts-button-focus-border-color: var(--ag-charts-accent-color);
     --ag-charts-button-focus-text-color: var(--ag-charts-accent-color);
 
+    --ag-charts-button-hover-background-color: var(--ag-charts-focus-color);
+    --ag-charts-button-hover-border-color: var(--ag-charts-button-border-color);
+    --ag-charts-button-hover-text-color: var(--ag-charts-button-text-color);
+
+    --ag-charts-button-active-background-color: var(--ag-charts-focus-color);
+    --ag-charts-button-active-border-color: var(--ag-charts-accent-color);
+    --ag-charts-button-active-text-color: var(--ag-charts-accent-color);
+
+    --ag-charts-button-horizontal-padding: 9px;
+    --ag-charts-button-vertical-padding: 6px;
+
     --ag-charts-button-disabled-background-color: color-mix(
         in srgb,
         var(--ag-charts-chrome-background-color),
         var(--ag-charts-foreground-color) 6%
     );
-    --ag-charts-button-disabled-border-color: var(--ag-charts-border-color);
+    --ag-charts-button-disabled-border-color: var(--ag-charts-button-border-color);
     --ag-charts-button-disabled-text-color: color-mix(
         in srgb,
         var(--ag-charts-chrome-background-color),
-        var(--ag-charts-chrome-text-color) 50%
+        var(--ag-charts-button-text-color) 50%
     );
 
     /* Checkboxes */

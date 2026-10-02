@@ -13,6 +13,7 @@ export const SELECTORS = {
     canvasProxy: '.ag-charts-canvas-proxy',
     canvasCenter: '.ag-charts-canvas-center',
     seriesArea: '.ag-charts-series-area',
+    seriesAreaBounds: '.ag-charts-series-area-bounds',
     legendItems: 'button[role="switch"][class="ag-charts-proxy-elem"]',
     axisButton: '.ag-charts-annotations__axis-button',
     axisProxy: '.ag-charts-proxy-elem[role="region"]',

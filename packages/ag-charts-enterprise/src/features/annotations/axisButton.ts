@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import type { CurrentPoint, DynamicContext, Point } from 'ag-charts-core';
-import { AbstractModuleInstance, ChartAxisDirection, getIconClassNames } from 'ag-charts-core';
+import { AbstractModuleInstance, ChartAxisDirection, clamp, getIconClassNames } from 'ag-charts-core';
 
 import { convert, invert } from './utils/values';
 
@@ -126,14 +126,14 @@ export class AxisButton extends AbstractModuleInstance {
             const crosshairLabelPadding = 5;
             const offset = buttonHeight - Math.max(0, padding - crosshairLabelPadding);
 
-            x = x - buttonWidth / 2;
+            x = clamp(minX, x - buttonWidth / 2, Math.max(minX, maxX - buttonWidth));
             y = position === 'top' ? minY - buttonHeight + offset : maxY - offset;
         } else {
             const crosshairLabelPadding = 9;
             const offset = buttonWidth - Math.max(0, padding - crosshairLabelPadding);
 
             x = position === 'left' ? minX - buttonWidth + offset : maxX - offset;
-            y = y - buttonHeight / 2;
+            y = clamp(minY, y - buttonHeight / 2, Math.max(minY, maxY - buttonHeight));
         }
 
         return { x, y };

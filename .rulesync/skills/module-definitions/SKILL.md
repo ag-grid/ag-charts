@@ -117,7 +117,8 @@ generated tables.
 ## Checklist for a new module
 
 1. Write the definition with `type`, `name`, `version`, `create`, and `options`/`themeTemplate`.
-2. Declare `contributes` only if the implied location is wrong or incomplete.
+2. Declare `contributes` only if the implied location is wrong or incomplete. It replaces the
+   implied location, so when adding locations, list the implied one alongside them.
 3. Export it from the package `main.ts` and add it to the relevant `module-bundles/*.ts`.
 4. Regenerate the tables and run `yarn nx test ag-charts-community -- optionsModule` so the
    parametrised contract test covers the new contribution.

@@ -111,7 +111,7 @@ const options: AgCartesianChartOptions = {
                     lineDash: [6, 4],
                     label: {
                         text: `Company Median: £${(overallMedian / 1000).toFixed(0)}k`,
-                        position: 'top',
+                        placement: 'top',
                         padding: 8,
                     },
                 },
@@ -122,7 +122,7 @@ const options: AgCartesianChartOptions = {
                     fillOpacity: 0.03,
                     label: {
                         text: 'Entry Level',
-                        position: 'inside-top-left',
+                        placement: 'inside-top-left',
                         padding: 4,
                     },
                 },
@@ -133,7 +133,7 @@ const options: AgCartesianChartOptions = {
                     fillOpacity: 0.03,
                     label: {
                         text: 'Senior Level',
-                        position: 'inside-top-right',
+                        placement: 'inside-top-right',
                         padding: 4,
                     },
                 },

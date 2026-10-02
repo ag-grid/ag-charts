@@ -142,7 +142,7 @@ const options: AgCartesianChartOptions<DataType> = {
                             style: 'currency',
                             currency: 'GBP',
                         })})`,
-                        position: 'left',
+                        placement: 'left',
                     },
                 },
             ],

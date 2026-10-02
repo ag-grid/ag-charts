@@ -29,6 +29,7 @@ const scrollbarThumbOptionsDef = {
     hoverStyle: {
         fill: fillOptionsDef.fill,
         stroke: strokeOptionsDef.stroke,
+        strokeWidth: strokeOptionsDef.strokeWidth,
     },
 };
 

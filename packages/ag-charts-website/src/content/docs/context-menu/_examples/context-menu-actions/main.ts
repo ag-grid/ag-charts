@@ -120,7 +120,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     value: 53,
                     label: {
                         text: 'Target',
-                        position: 'top-right',
+                        placement: 'top-right',
                         fontStyle: 'italic',
                     },
                     lineDash: [2, 4],

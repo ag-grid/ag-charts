@@ -1,0 +1,331 @@
+/**
+ * The curated editor layout. Value type and default are derived by the shared
+ * layer, so only presentation hints live here. Every public param must appear in
+ * exactly one group, which `params.test.ts` asserts so that a new API param
+ * cannot quietly go missing from the builder.
+ */
+import type { LengthIcon } from '@ag-website-shared/components/theme-builder/icons';
+import { paramToVariableName } from '@ag-website-shared/theming/utils';
+
+import { CHARTS_PARAM_DEFAULTS, PUBLIC_PARAM_NAMES } from './chartsTheme';
+
+/** Named because the preview watches for it, to hold a tooltip open. See `editedGroup.ts`. */
+export const TOOLTIPS_GROUP_ID = 'tooltips';
+
+export interface ChartsParamConfig {
+    key: string;
+    label: string;
+    icon?: LengthIcon;
+    swipeAdjustmentDivisor?: number;
+    /** Clamp for length editors (px). Colour and font params ignore these. */
+    min?: number;
+    max?: number;
+}
+
+export interface ChartsParamGroup {
+    id: string;
+    label: string;
+    /** Groups past the essentials start collapsed to keep the panel scannable. */
+    collapsed?: boolean;
+    params: ChartsParamConfig[];
+}
+
+export const PARAM_GROUPS: ChartsParamGroup[] = [
+    {
+        id: 'general',
+        label: 'General',
+        params: [
+            { key: 'fontFamily', label: 'Font Family' },
+            { key: 'fontSize', label: 'Font Size', min: 8, max: 24 },
+            { key: 'fontWeight', label: 'Font Weight' },
+            { key: 'backgroundColor', label: 'Background Color' },
+            { key: 'foregroundColor', label: 'Foreground Color' },
+            { key: 'accentColor', label: 'Accent Color' },
+            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
+            {
+                key: 'borderRadius',
+                label: 'Border Radius',
+                icon: 'radius',
+                swipeAdjustmentDivisor: 20,
+                min: 0,
+                max: 24,
+            },
+            { key: 'textColor', label: 'Text Color' },
+            { key: 'subtleTextColor', label: 'Subtle Text Color' },
+            // Follows the background colour by default, so it sits beside it.
+            { key: 'chartBackgroundColor', label: 'Chart Background' },
+        ],
+    },
+    {
+        id: 'axes',
+        label: 'Axes & Grid',
+        params: [
+            { key: 'axisLineColor', label: 'Axis Line Color' },
+            { key: 'axisLineWidth', label: 'Axis Line Width', min: 0, max: 8 },
+            { key: 'axisLabelColor', label: 'Axis Label Color' },
+            { key: 'axisLabelFontFamily', label: 'Axis Label Font Family' },
+            { key: 'axisLabelFontSize', label: 'Axis Label Font Size', min: 8, max: 24 },
+            { key: 'axisLabelFontWeight', label: 'Axis Label Font Weight' },
+            { key: 'axisTitleColor', label: 'Axis Title Color' },
+            { key: 'axisTitleFontFamily', label: 'Axis Title Font Family' },
+            { key: 'axisTitleFontSize', label: 'Axis Title Font Size', min: 8, max: 24 },
+            { key: 'axisTitleFontWeight', label: 'Axis Title Font Weight' },
+            { key: 'gridLineColor', label: 'Grid Line Color' },
+            { key: 'gridLineWidth', label: 'Grid Line Width', min: 0, max: 8 },
+            { key: 'groupedCategoryLineColor', label: 'Grouped Category Line' },
+            { key: 'bandHighlightColor', label: 'Band Highlight Color' },
+            { key: 'crosshairLabelBackgroundColor', label: 'Crosshair Label Background' },
+            { key: 'crosshairLabelTextColor', label: 'Crosshair Label Text' },
+        ],
+    },
+    {
+        id: 'captions',
+        label: 'Titles and Captions',
+        collapsed: true,
+        params: [
+            { key: 'titleFontFamily', label: 'Title Font Family' },
+            { key: 'titleFontSize', label: 'Title Font Size', min: 8, max: 32 },
+            { key: 'titleFontWeight', label: 'Title Font Weight' },
+            { key: 'titleColor', label: 'Title Color' },
+            { key: 'subtitleFontFamily', label: 'Subtitle Font Family' },
+            { key: 'subtitleFontSize', label: 'Subtitle Font Size', min: 8, max: 32 },
+            { key: 'subtitleFontWeight', label: 'Subtitle Font Weight' },
+            { key: 'subtitleColor', label: 'Subtitle Color' },
+            { key: 'footnoteFontFamily', label: 'Footnote Font Family' },
+            { key: 'footnoteFontSize', label: 'Footnote Font Size', min: 8, max: 32 },
+            { key: 'footnoteFontWeight', label: 'Footnote Font Weight' },
+            { key: 'footnoteColor', label: 'Footnote Color' },
+        ],
+    },
+    {
+        id: 'borders',
+        label: 'Borders & Spacing',
+        params: [
+            { key: 'borderColor', label: 'Border Color' },
+            { key: 'borderWidth', label: 'Border Width', min: 0, max: 8 },
+        ],
+    },
+    {
+        id: 'ui',
+        label: 'UI Elements',
+        collapsed: true,
+        params: [
+            { key: 'chromeBackgroundColor', label: 'Background Color' },
+            { key: 'chromeTextColor', label: 'Text Color' },
+            { key: 'chromeSubtleTextColor', label: 'Subtle Text Color' },
+            { key: 'chromeFontFamily', label: 'Font Family' },
+            { key: 'chromeFontSize', label: 'Font Size', min: 8, max: 24 },
+            { key: 'chromeFontWeight', label: 'Font Weight' },
+            { key: 'menuBackgroundColor', label: 'Menu Background' },
+            { key: 'menuTextColor', label: 'Menu Text' },
+            { key: 'menuBorder', label: 'Menu Border' },
+            { key: 'menuBorderRadius', label: 'Menu Radius', icon: 'radius', min: 0, max: 24 },
+            { key: 'menuSeparatorColor', label: 'Menu Separator' },
+            { key: 'panelBackgroundColor', label: 'Panel Background' },
+            { key: 'panelSubtleTextColor', label: 'Panel Subtle Text' },
+            { key: 'dragHandleColor', label: 'Drag Handle' },
+            { key: 'colorPickerThumbSize', label: 'Color Picker Thumb Size', min: 8, max: 32 },
+            { key: 'colorPickerThumbBorderWidth', label: 'Color Picker Thumb Border', min: 0, max: 8 },
+            { key: 'colorPickerTrackSize', label: 'Color Picker Track Size', min: 4, max: 24 },
+            {
+                key: 'colorPickerTrackBorderRadius',
+                label: 'Color Picker Track Radius',
+                icon: 'radius',
+                min: 0,
+                max: 24,
+            },
+            {
+                key: 'colorPickerColorBorderRadius',
+                label: 'Color Picker Swatch Radius',
+                icon: 'radius',
+                min: 0,
+                max: 8,
+            },
+        ],
+    },
+    {
+        id: TOOLTIPS_GROUP_ID,
+        label: 'Tooltips',
+        collapsed: true,
+        params: [
+            { key: 'tooltipBackgroundColor', label: 'Background Color' },
+            { key: 'tooltipTextColor', label: 'Text Color' },
+            { key: 'tooltipSubtleTextColor', label: 'Subtle Text Color' },
+            { key: 'tooltipBorder', label: 'Border' },
+            { key: 'tooltipBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
+        ],
+    },
+    {
+        id: 'legend',
+        label: 'Legend',
+        collapsed: true,
+        params: [
+            { key: 'legendBorder', label: 'Border' },
+            { key: 'legendBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
+            { key: 'legendPadding', label: 'Padding', icon: 'horizontalSpacing', min: 0, max: 40 },
+            {
+                key: 'legendItemVerticalPadding',
+                label: 'Item Vertical Padding',
+                icon: 'verticalSpacing',
+                min: 0,
+                max: 40,
+            },
+            {
+                key: 'legendItemHorizontalPadding',
+                label: 'Item Horizontal Padding',
+                icon: 'horizontalSpacing',
+                min: 0,
+                max: 40,
+            },
+            { key: 'legendLabelColor', label: 'Label Color' },
+            { key: 'legendLabelFontFamily', label: 'Label Font Family' },
+            { key: 'legendLabelFontSize', label: 'Label Font Size', min: 8, max: 24 },
+            { key: 'legendLabelFontWeight', label: 'Label Font Weight' },
+            { key: 'legendMarkerSize', label: 'Marker Size', min: 4, max: 40 },
+        ],
+    },
+    {
+        id: 'controls',
+        label: 'Buttons & Inputs',
+        collapsed: true,
+        params: [
+            { key: 'buttonBackgroundColor', label: 'Button Background' },
+            { key: 'buttonTextColor', label: 'Button Text' },
+            { key: 'buttonBorder', label: 'Button Border' },
+            { key: 'buttonBorderRadius', label: 'Button Radius', icon: 'radius', min: 0, max: 24 },
+            { key: 'buttonFontWeight', label: 'Button Font Weight' },
+            { key: 'buttonHoverBackgroundColor', label: 'Button Hover Background' },
+            { key: 'buttonHoverTextColor', label: 'Button Hover Text' },
+            { key: 'buttonHoverBorder', label: 'Button Hover Border' },
+            { key: 'buttonActiveBackgroundColor', label: 'Button Active Background' },
+            { key: 'buttonActiveTextColor', label: 'Button Active Text' },
+            { key: 'buttonActiveBorder', label: 'Button Active Border' },
+            { key: 'buttonDisabledBackgroundColor', label: 'Button Disabled Background' },
+            { key: 'buttonDisabledTextColor', label: 'Button Disabled Text' },
+            { key: 'buttonDisabledBorder', label: 'Button Disabled Border' },
+            {
+                key: 'buttonHorizontalPadding',
+                label: 'Button Horizontal Padding',
+                icon: 'horizontalSpacing',
+                min: 0,
+                max: 32,
+            },
+            {
+                key: 'buttonVerticalPadding',
+                label: 'Button Vertical Padding',
+                icon: 'verticalSpacing',
+                min: 0,
+                max: 32,
+            },
+            { key: 'inputBackgroundColor', label: 'Input Background' },
+            { key: 'inputTextColor', label: 'Input Text' },
+            { key: 'inputPlaceholderTextColor', label: 'Input Placeholder Text' },
+            { key: 'inputBorder', label: 'Input Border' },
+            { key: 'inputBorderRadius', label: 'Input Radius', icon: 'radius', min: 0, max: 24 },
+        ],
+    },
+    {
+        id: 'scrollbar',
+        label: 'Scrollbar',
+        collapsed: true,
+        params: [
+            { key: 'scrollbarThickness', label: 'Thickness', min: 4, max: 32 },
+            { key: 'scrollbarTrackBackgroundColor', label: 'Track Background' },
+            { key: 'scrollbarTrackBorder', label: 'Track Border' },
+            { key: 'scrollbarTrackBorderRadius', label: 'Track Radius', icon: 'radius', min: 0, max: 16 },
+            { key: 'scrollbarThumbBackgroundColor', label: 'Thumb Background' },
+            { key: 'scrollbarThumbBorder', label: 'Thumb Border' },
+            { key: 'scrollbarThumbBorderRadius', label: 'Thumb Radius', icon: 'radius', min: 0, max: 16 },
+            { key: 'scrollbarThumbHoverBackgroundColor', label: 'Thumb Hover Background' },
+            { key: 'scrollbarThumbHoverBorder', label: 'Thumb Hover Border' },
+        ],
+    },
+    {
+        id: 'effects',
+        label: 'Effects',
+        collapsed: true,
+        params: [
+            { key: 'focusShadow', label: 'Focus Shadow' },
+            { key: 'popupShadow', label: 'Popup Shadow' },
+            { key: 'cardShadow', label: 'Card Shadow' },
+        ],
+    },
+];
+
+export const CURATED_KEYS = PARAM_GROUPS.flatMap((group) => group.params.map(({ key }) => key));
+
+/**
+ * Whether a param's default is derived from another param rather than chosen.
+ * Covers every form a reference takes once translated - a bare `{ ref }`, a mix,
+ * a composite whose members are references, and a raw CSS string naming a param
+ * variable, which is how `focusShadow` tracks the accent colour.
+ */
+const isDerivedValue = (value: unknown): boolean => {
+    if (typeof value === 'string') return value.includes('var(--ag-');
+    if (typeof value !== 'object' || value == null || Array.isArray(value)) return false;
+    return 'ref' in value || 'calc' in value || Object.values(value).some(isDerivedValue);
+};
+
+/** Which of a theme's params follow another one rather than standing alone. */
+export const inheritedKeysOf = (params: Record<string, unknown>): Set<string> =>
+    new Set(Object.keys(params).filter((key) => isDerivedValue(params[key])));
+
+/**
+ * The params that follow another one rather than standing alone. Read from the
+ * defaults rather than listed here, so a param whose default becomes a reference
+ * - or stops being one - changes side on its own. `params.test.ts` asserts the
+ * classification holds for every stock theme.
+ */
+export const INHERITED_KEYS = inheritedKeysOf(CHARTS_PARAM_DEFAULTS);
+
+/** `--ag-accent-color` back to `accentColor`, for a default written as raw CSS. */
+const PARAM_BY_VARIABLE: Record<string, string | undefined> = Object.fromEntries(
+    PUBLIC_PARAM_NAMES.map((property) => [paramToVariableName(property), property])
+);
+
+const collectSources = (value: unknown, found: string[]): void => {
+    if (typeof value === 'string') {
+        for (const [, variable] of value.matchAll(/var\((--ag-[a-z\d-]+)/g)) {
+            const property = PARAM_BY_VARIABLE[variable];
+            if (property != null) {
+                found.push(property);
+            }
+        }
+        return;
+    }
+    if (typeof value !== 'object' || value == null || Array.isArray(value)) {
+        return;
+    }
+    const { ref, onto, calc } = value as { ref?: unknown; onto?: unknown; calc?: unknown };
+    if (typeof calc === 'string') {
+        found.push(...(calc.match(/[a-zA-Z]\w*/g) ?? []).filter((name) => PUBLIC_PARAM_NAMES.includes(name)));
+        return;
+    }
+    if (typeof ref === 'string') {
+        found.push(ref);
+        if (typeof onto === 'string') {
+            found.push(onto);
+        }
+        return;
+    }
+    // A composite - a border's colour and width - each member of which may be a
+    // reference of its own.
+    for (const member of Object.values(value)) {
+        collectSources(member, found);
+    }
+};
+
+/**
+ * Which params a default follows, in the order it names them, so the panel can
+ * say what an unset param inherits from rather than only that it inherits.
+ */
+export const inheritedSourcesOf = (value: unknown): string[] => {
+    const found: string[] = [];
+    collectSources(value, found);
+    return [...new Set(found)];
+};
+
+/** What each inherited param follows, for the editor panel's footnotes. */
+export const INHERITED_SOURCES: Record<string, string[] | undefined> = Object.fromEntries(
+    [...INHERITED_KEYS].map((key) => [key, inheritedSourcesOf(CHARTS_PARAM_DEFAULTS[key])])
+);

@@ -7,18 +7,18 @@ const PAGE_URL = 'javascript/axes-cross-lines/';
 
 const CARTESIAN = {
     labelType: 'AgCartesianCrossLineLabelOptions',
-    present: ['position', 'rotation'],
-    absent: ['positionAngle'],
+    present: ['placement', 'rotation'],
+    absent: ['position', 'positionAngle'],
 };
 const ANGLE = {
     labelType: 'AgBaseCrossLineLabelOptions',
     present: ['text'],
-    absent: ['position', 'rotation', 'positionAngle'],
+    absent: ['position', 'placement', 'rotation', 'positionAngle'],
 };
 const RADIUS = {
     labelType: 'AgRadiusCrossLineLabelOptions',
     present: ['positionAngle'],
-    absent: ['position', 'rotation'],
+    absent: ['position', 'placement', 'rotation'],
 };
 
 const TABS = [

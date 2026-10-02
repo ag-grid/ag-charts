@@ -883,6 +883,78 @@ describe('Annotations', () => {
             expect(annotationsModule().yAxis?.button != null).toBe(true);
         });
 
+        describe('axis button position', () => {
+            const BUTTON_SIZE = 20;
+
+            const buttonElement = (axis: 'xAxis' | 'yAxis'): HTMLElement =>
+                annotationsModule()[axis].button.button.getElement();
+
+            const prepareAxisButtons = async () => {
+                await prepareChart(
+                    undefined,
+                    withAnnotations({
+                        enabled: true,
+                        toolbar: { enabled: false },
+                        axesButtons: { enabled: true, axes: 'xy' },
+                    })
+                );
+                for (const axis of ['xAxis', 'yAxis'] as const) {
+                    const element = buttonElement(axis);
+                    Object.defineProperty(element, 'clientWidth', { configurable: true, value: BUTTON_SIZE });
+                    Object.defineProperty(element, 'clientHeight', { configurable: true, value: BUTTON_SIZE });
+                }
+                const { seriesRect } = annotationsModule();
+                await hoverAction(seriesRect.x + seriesRect.width / 2, seriesRect.y + seriesRect.height / 2)(chart);
+                return seriesRect;
+            };
+
+            const moveOverButton = (axis: 'xAxis' | 'yAxis', clientX: number, clientY: number) => {
+                const element = buttonElement(axis);
+                element.dispatchEvent(new MouseEvent('mousemove', { clientX, clientY, bubbles: true }));
+                const [, x, y] = /translate\((-?[\d.]+)px, (-?[\d.]+)px\)/.exec(element.style.transform)!;
+                return { x: Number(x), y: Number(y) };
+            };
+
+            it.each([
+                ['above the top', -40, 0],
+                ['below the bottom', 40, 1],
+            ])('keeps the y-axis button inside the series area when the pointer moves %s', async (_, offset, edge) => {
+                const seriesRect = await prepareAxisButtons();
+                const clientY = seriesRect.y + edge * seriesRect.height + offset;
+
+                const { y } = moveOverButton('yAxis', seriesRect.x + seriesRect.width / 2, clientY);
+
+                expect(y).toBe(Math.round(edge * (seriesRect.height - BUTTON_SIZE)));
+            });
+
+            it.each([
+                ['past the left edge', -40, 0],
+                ['past the right edge', 40, 1],
+            ])('keeps the x-axis button inside the series area when the pointer moves %s', async (_, offset, edge) => {
+                const seriesRect = await prepareAxisButtons();
+                const clientX = seriesRect.x + edge * seriesRect.width + offset;
+
+                const { x } = moveOverButton('xAxis', clientX, seriesRect.y + seriesRect.height / 2);
+
+                expect(x).toBe(Math.round(edge * (seriesRect.width - BUTTON_SIZE)));
+            });
+
+            it('adds a horizontal line near the top of the domain when the clamped y-axis button is clicked', async () => {
+                const seriesRect = await prepareAxisButtons();
+                moveOverButton('yAxis', seriesRect.x + seriesRect.width / 2, seriesRect.y - 40);
+
+                buttonElement('yAxis').click();
+                await waitForChartStability(chart);
+
+                const [yMin, yMax] = annotationsModule().yAxis.context.scale.domain;
+                const expected = yMax - ((yMax - yMin) * (BUTTON_SIZE / 2)) / seriesRect.height;
+                const { annotations } = chart.getState();
+                expect(annotations).toHaveLength(1);
+                expect(annotations[0]).toMatchObject({ type: 'horizontal-line' });
+                expect(annotations[0].value).toBeCloseTo(expected, 6);
+            });
+        });
+
         it('swaps the lock switch to its checked overrides while the selected annotation is locked', async () => {
             await prepareChart(
                 { annotations: [{ type: 'horizontal-line', value: 50, locked: true }] },

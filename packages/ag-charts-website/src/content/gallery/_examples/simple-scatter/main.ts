@@ -80,7 +80,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     lineDash: [6, 4],
                     label: {
                         text: 'Mean: 201 lbs',
-                        position: 'top-left',
+                        placement: 'left-top',
                         padding: 8,
                     },
                 },
@@ -114,7 +114,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     lineDash: [6, 4],
                     label: {
                         text: `Mean: 6'2"`,
-                        position: 'bottom-right',
+                        placement: 'bottom-right',
                         padding: 8,
                     },
                 },

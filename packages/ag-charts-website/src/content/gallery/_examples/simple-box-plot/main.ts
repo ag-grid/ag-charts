@@ -118,7 +118,7 @@ const options: AgCartesianChartOptions = {
                     strokeWidth: 2,
                     lineDash: [5, 5],
                     label: {
-                        position: 'top-right',
+                        placement: 'top-right',
                         text: 'Target: 5,000',
                     },
                 },

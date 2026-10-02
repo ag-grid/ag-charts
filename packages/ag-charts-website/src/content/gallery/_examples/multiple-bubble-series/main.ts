@@ -157,7 +157,7 @@ const options: AgCartesianChartOptions = {
                     lineDash: [4, 4],
                     label: {
                         text: 'Market Threshold',
-                        position: 'top',
+                        placement: 'top',
                         padding: 10,
                     },
                 },
@@ -194,7 +194,7 @@ const options: AgCartesianChartOptions = {
                     lineDash: [4, 4],
                     label: {
                         text: 'Industry Average',
-                        position: 'right',
+                        placement: 'right',
                         padding: 5,
                     },
                 },
