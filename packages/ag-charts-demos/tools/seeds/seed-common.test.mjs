@@ -236,7 +236,7 @@ describe('readPinnedChartsVersion', () => {
 
     /** Every seed of two demos pinning `version` throughout, as a merge-back or a bump leaves them. */
     function writeSeeds(version, pinSource) {
-        for (const seed of ['financial/react', 'financial/angular', 'procurement/vue']) {
+        for (const seed of ['trading-terminal/react', 'trading-terminal/angular', 'procurement/vue']) {
             const pins = { 'ag-charts-community': version, 'ag-charts-enterprise': version };
             writeSeed(seed, { pins, pinnedVersion: version, pinSource });
         }
@@ -316,7 +316,7 @@ describe('readPinnedChartsVersion', () => {
         const pin = pinFor(BETA);
         expect(pin).toMatchObject({ pinnedVersion: 'latest', pinSource: 'dist-tag' });
         expect(pin.reason).toBe(
-            `npm dist-tag: workspace version ${BETA} is a pre-release, which public npm does not have; a release carried in by a merge-back is kept only when every seed pins the same plain X.Y.Z, but the seeds pin latest with pinSource dist-tag in financial/angular, financial/react; 14.2.0 with pinSource release in procurement/vue`
+            `npm dist-tag: workspace version ${BETA} is a pre-release, which public npm does not have; a release carried in by a merge-back is kept only when every seed pins the same plain X.Y.Z, but the seeds pin latest with pinSource dist-tag in trading-terminal/angular, trading-terminal/react; 14.2.0 with pinSource release in procurement/vue`
         );
     });
 
@@ -348,16 +348,16 @@ describe('readPinnedChartsVersion', () => {
 
     it('keeps no carried-in release whose manifests do not record it as a release', () => {
         writeSeeds('14.2.0', 'release');
-        writeSeed('financial/angular', {
+        writeSeed('trading-terminal/angular', {
             pins: { 'ag-charts-angular': '14.2.0' },
             pinnedVersion: '14.2.0',
             pinSource: 'dist-tag',
         });
         expect(pinFor(BETA).pinnedVersion).toBe('latest');
 
-        writeSeed('financial/angular', { pins: { 'ag-charts-angular': '14.2.0' }, pinSource: 'release' });
+        writeSeed('trading-terminal/angular', { pins: { 'ag-charts-angular': '14.2.0' }, pinSource: 'release' });
         expect(pinFor(BETA).reason).toMatch(
-            /14\.2\.0 and no pinnedVersion with pinSource release in financial\/angular/
+            /14\.2\.0 and no pinnedVersion with pinSource release in trading-terminal\/angular/
         );
     });
 
@@ -383,17 +383,17 @@ describe('readCommittedPins', () => {
                 writeFileSync(join(seedsDir, path), JSON.stringify(value));
             };
             writeJson('project.json', {});
-            writeJson('financial/react/package.json', {
+            writeJson('trading-terminal/react/package.json', {
                 dependencies: { 'ag-charts-community': 'latest', react: '^19.0.0' },
                 devDependencies: { 'ag-charts-types': '14.2.0' },
             });
-            writeJson('financial/react/.seed-manifest.json', { pinnedVersion: 'latest', pinSource: 'dist-tag' });
-            writeJson('financial/vue/.seed-manifest.json', {});
-            writeJson('financial/notes/package.json', { dependencies: { 'ag-charts-community': '1.0.0' } });
+            writeJson('trading-terminal/react/.seed-manifest.json', { pinnedVersion: 'latest', pinSource: 'dist-tag' });
+            writeJson('trading-terminal/vue/.seed-manifest.json', {});
+            writeJson('trading-terminal/notes/package.json', { dependencies: { 'ag-charts-community': '1.0.0' } });
 
             expect(readCommittedPins(seedsDir)).toEqual([
-                { seed: 'financial/react', versions: ['14.2.0', 'latest'], pinSource: 'dist-tag' },
-                { seed: 'financial/vue', versions: [null], pinSource: null },
+                { seed: 'trading-terminal/react', versions: ['14.2.0', 'latest'], pinSource: 'dist-tag' },
+                { seed: 'trading-terminal/vue', versions: [null], pinSource: null },
             ]);
         } finally {
             rmSync(seedsDir, { recursive: true, force: true });

@@ -27,7 +27,7 @@ function writeSeed(demo, framework, files = {}) {
 beforeEach(() => {
     root = mkdtempSync(join(tmpdir(), 'seed-mirror-'));
     seedsDir = join(root, 'seeds');
-    writeFile('src/demos/financial/index.tsx');
+    writeFile('src/demos/trading-terminal/index.tsx');
     writeFile('seeds/project.json', '{}');
     writeFile('LICENSE.txt', 'The MIT License\n');
 });
@@ -37,17 +37,17 @@ afterEach(() => {
 
 describe('listMirroredSeeds', () => {
     it('lists folders with a manifest, demos in registry order and frameworks in site order', () => {
-        writeSeed('financial', 'typescript');
-        writeSeed('financial', 'react');
-        writeSeed('financial', 'svelte');
+        writeSeed('trading-terminal', 'typescript');
+        writeSeed('trading-terminal', 'react');
+        writeSeed('trading-terminal', 'svelte');
         writeSeed('web-analytics', 'vue');
         mkdirSync(join(seedsDir, 'web-analytics', 'angular'));
 
-        expect(listMirroredSeeds({ seedsDir, demoIds: ['web-analytics', 'financial', 'procurement'] })).toEqual([
+        expect(listMirroredSeeds({ seedsDir, demoIds: ['web-analytics', 'trading-terminal', 'procurement'] })).toEqual([
             { demo: 'web-analytics', framework: 'vue' },
-            { demo: 'financial', framework: 'react' },
-            { demo: 'financial', framework: 'typescript' },
-            { demo: 'financial', framework: 'svelte' },
+            { demo: 'trading-terminal', framework: 'react' },
+            { demo: 'trading-terminal', framework: 'typescript' },
+            { demo: 'trading-terminal', framework: 'svelte' },
         ]);
     });
 });
@@ -55,29 +55,29 @@ describe('listMirroredSeeds', () => {
 describe('rewriteMarkdownLinks', () => {
     const rewrite = (markdown, mirrored = []) =>
         rewriteMarkdownLinks(markdown, {
-            file: 'financial/angular/README.md',
+            file: 'trading-terminal/angular/README.md',
             ref: 'latest',
             mirrored: new Set(mirrored),
             seedsDir,
         });
 
     it('points a link that leaves the mirror at the same folder or file in ag-charts', () => {
-        writeFile('src/demos/financial/data.ts');
-        expect(rewrite('[source](../../../src/demos/financial) and [data](../../../src/demos/financial/data.ts)')).toBe(
-            `[source](${TREE}/src/demos/financial) and [data](${BLOB}/src/demos/financial/data.ts)`
+        writeFile('src/demos/trading-terminal/data.ts');
+        expect(rewrite('[source](../../../src/demos/trading-terminal) and [data](../../../src/demos/trading-terminal/data.ts)')).toBe(
+            `[source](${TREE}/src/demos/trading-terminal) and [data](${BLOB}/src/demos/trading-terminal/data.ts)`
         );
     });
 
     it('keeps a link to something the mirror carries, and any fragment', () => {
-        writeFile('seeds/financial/angular.PORTING.md');
-        expect(rewrite('[notes](../angular.PORTING.md#grid)', ['financial/angular.PORTING.md'])).toBe(
+        writeFile('seeds/trading-terminal/angular.PORTING.md');
+        expect(rewrite('[notes](../angular.PORTING.md#grid)', ['trading-terminal/angular.PORTING.md'])).toBe(
             '[notes](../angular.PORTING.md#grid)'
         );
-        expect(rewrite('[src](./src/)', ['financial/angular/src/main.ts'])).toBe('[src](./src/)');
+        expect(rewrite('[src](./src/)', ['trading-terminal/angular/src/main.ts'])).toBe('[src](./src/)');
     });
 
     it('carries the fragment over to the rewritten link', () => {
-        expect(rewrite('[source](../../../src/demos/financial#top)')).toBe(`[source](${TREE}/src/demos/financial#top)`);
+        expect(rewrite('[source](../../../src/demos/trading-terminal#top)')).toBe(`[source](${TREE}/src/demos/trading-terminal#top)`);
     });
 
     it('leaves absolute links and anchors alone', () => {
@@ -101,20 +101,20 @@ describe('exportSeedMirror', () => {
             outDir,
             ref: 'b14.3.0',
             seedsDir,
-            demoIds: ['financial', 'procurement'],
+            demoIds: ['trading-terminal', 'procurement'],
             licensePath: join(root, 'LICENSE.txt'),
             ...options,
         });
 
     beforeEach(() => {
         outDir = join(root, 'out');
-        writeSeed('financial', 'react', {
-            'README.md': '[source](../../../src/demos/financial)',
+        writeSeed('trading-terminal', 'react', {
+            'README.md': '[source](../../../src/demos/trading-terminal)',
             'src/main.tsx': 'main',
         });
-        writeSeed('financial', 'angular', { 'README.md': '[notes](../angular.PORTING.md)' });
-        writeFile('seeds/financial/angular.PORTING.md', '# Porting');
-        writeFile('seeds/financial/vue.PORTING.md', '# Not a seed');
+        writeSeed('trading-terminal', 'angular', { 'README.md': '[notes](../angular.PORTING.md)' });
+        writeFile('seeds/trading-terminal/angular.PORTING.md', '# Porting');
+        writeFile('seeds/trading-terminal/vue.PORTING.md', '# Not a seed');
     });
 
     it('writes each seed at <demo>/<framework>, with the root files ag-grid-demos has', () => {
@@ -123,24 +123,24 @@ describe('exportSeedMirror', () => {
             '.vscode/settings.json',
             'LICENSE.txt',
             'README.md',
-            'financial/README.md',
-            'financial/angular.PORTING.md',
-            'financial/angular/.seed-manifest.json',
-            'financial/angular/README.md',
-            'financial/angular/package.json',
-            'financial/react/.seed-manifest.json',
-            'financial/react/README.md',
-            'financial/react/package.json',
-            'financial/react/src/main.tsx',
+            'trading-terminal/README.md',
+            'trading-terminal/angular.PORTING.md',
+            'trading-terminal/angular/.seed-manifest.json',
+            'trading-terminal/angular/README.md',
+            'trading-terminal/angular/package.json',
+            'trading-terminal/react/.seed-manifest.json',
+            'trading-terminal/react/README.md',
+            'trading-terminal/react/package.json',
+            'trading-terminal/react/src/main.tsx',
         ]);
         const read = (path) => readFileSync(join(outDir, path), 'utf8');
-        expect(read('financial/react/README.md')).toBe(
-            '[source](https://github.com/ag-grid/ag-charts/tree/b14.3.0/packages/ag-charts-demos/src/demos/financial)'
+        expect(read('trading-terminal/react/README.md')).toBe(
+            '[source](https://github.com/ag-grid/ag-charts/tree/b14.3.0/packages/ag-charts-demos/src/demos/trading-terminal)'
         );
-        expect(read('financial/angular/README.md')).toBe('[notes](../angular.PORTING.md)');
+        expect(read('trading-terminal/angular/README.md')).toBe('[notes](../angular.PORTING.md)');
         expect(read('LICENSE.txt')).toBe('The MIT License\n');
-        expect(read('financial/README.md')).toContain('- [React](./react/)\n- [Angular](./angular/)\n');
-        expect(read('README.md')).toContain('| Financial | Angular | [`financial/angular`](./financial/angular) |');
+        expect(read('trading-terminal/README.md')).toContain('- [React](./react/)\n- [Angular](./angular/)\n');
+        expect(read('README.md')).toContain('| Trading Terminal | Angular | [`trading-terminal/angular`](./trading-terminal/angular) |');
         expect(read('README.md')).toContain('https://github.com/ag-grid/ag-charts/issues');
         expect(read('.gitignore').split('\n')).toContain('node_modules');
     });

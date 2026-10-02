@@ -14,7 +14,7 @@ exactly as a real consumer app does — so charts render normally.
 
 ## Status
 
-There are three demo apps: `financial`, `web-analytics` and `procurement`. Each is built,
+There are three demo apps: `trading-terminal`, `web-analytics` and `procurement`. Each is built,
 type-checked, unit-tested and e2e-tested in CI (a broken demo fails CI) and deployed with the website
 at `/charts/demos/<id>`, marked `noindex`, which also keeps the pages out of the sitemap.
 
@@ -68,7 +68,7 @@ default face of every family the demo's stylesheet declares, or 3 seconds have p
 comes first; a font that fails to load leaves the demo to render with its fallbacks as it would
 have anyway. An e2e run is one loaded with the deterministic switch, `?deterministic=1` in the URL
 or a build with `VITE_DEMO_DETERMINISTIC=1` (`src/deterministicMode.ts`), which the parity harness
-sets on every load; it is the same switch that freezes the financial demo's data. The functional
+sets on every load; it is the same switch that freezes the trading-terminal demo's data. The functional
 specs in `e2e/*.spec.ts` assert nothing that depends on the font, so they load without it. The
 generated React seeds and the framework ports do not wait.
 
@@ -142,7 +142,7 @@ be driven headlessly, so its link is checked through the GitHub folder it import
 
 ## Commands
 
-- `yarn nx dev ag-charts-demos` — standalone dev server; open `/#<id>` (e.g. `/#financial`).
+- `yarn nx dev ag-charts-demos` — standalone dev server; open `/#<id>` (e.g. `/#trading-terminal`).
 - `yarn nx typecheck ag-charts-demos` — `tsc --noEmit` over the package.
 - `yarn nx build ag-charts-demos` — type-check + `vite build`. This is the CI gate.
 - `yarn nx test ag-charts-demos` — vitest unit tests, run twice: once normally and once with a
@@ -157,7 +157,7 @@ be driven headlessly, so its link is checked through the GitHub folder it import
 ### In the website dev server
 
 `yarn nx dev` builds this package once at startup and the website's dev server serves the built output
-same-origin at `/charts/demos/<id>` (e.g. `https://localhost:4600/charts/demos/financial`).
+same-origin at `/charts/demos/<id>` (e.g. `https://localhost:4600/charts/demos/trading-terminal`).
 `/charts/demos` (no id) lists the available demos with a link to each. Serving the build — rather
 than proxying a second dev server — keeps the embed same-origin, which the website's `frame-src` CSP
 requires.

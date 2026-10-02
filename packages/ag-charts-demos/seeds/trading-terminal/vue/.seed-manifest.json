@@ -1,0 +1,9 @@
+{
+    "demo": "trading-terminal",
+    "framework": "vue",
+    "sourceHash": "sha256-c1b10c07f4d7269add2ff8bdb1eb48cff9d45b3bbcbe02e584249412e66b338b",
+    "sourceCommit": "bcaef1635243ba5cad3a532f3d01416d047b5538",
+    "pinnedVersion": "latest",
+    "pinSource": "dist-tag",
+    "dist": "dist"
+}

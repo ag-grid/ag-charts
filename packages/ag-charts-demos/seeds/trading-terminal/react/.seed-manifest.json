@@ -1,0 +1,9 @@
+{
+    "demo": "trading-terminal",
+    "framework": "react",
+    "sourceHash": "sha256-104294a9f9bb7f01ac51519ff1343bf293cf451983c0973f3caba2f141758713",
+    "sourceCommit": null,
+    "pinnedVersion": "latest",
+    "pinSource": "dist-tag",
+    "vendored": []
+}
