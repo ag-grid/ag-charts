@@ -315,13 +315,11 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
         border: 1px solid color-mix(in srgb, var(--color-bg-primary), var(--color-fg-white) 22%);
     }
 
-    // Where the browser can anchor to the button, the list is placed against the viewport rather
-    // than the button's wrapper: below the button when there is room, otherwise above it, and
-    // from the button's other edge when it would run off the side. Fixed, so that neither the
-    // hero's own scrolling nor its clipping can hide it, and the viewport is what it must fit.
-    // Elsewhere the absolute placement above stands: always below, left-aligned.
-    @supports (position-area: bottom) {
+    // Fixed, so the hero's scrolling and clipping cannot hide it; above the sticky site header
+    // (10002), which a list flipped above its button would otherwise sit under.
+    @supports (position-area: bottom) and (anchor-scope: all) {
         position: fixed;
+        z-index: 10003;
         inset: auto;
         position-anchor: --open-in;
         position-area: bottom span-right;
