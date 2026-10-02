@@ -497,7 +497,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     /**
      * Corner radius of series label backgrounds and borders.
      *
-     * Default: `4`
+     * Default: `borderRadius`
      */
     seriesLabelBorderRadius?: PixelSize;
     /**

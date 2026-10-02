@@ -341,7 +341,7 @@ export class ChartTheme {
             },
 
             seriesLabelBorder: false,
-            seriesLabelBorderRadius: 4,
+            seriesLabelBorderRadius: { $ref: 'borderRadius' },
             seriesLabelFontFamily: { $ref: 'fontFamily' },
             seriesLabelFontSize: { $ref: 'fontSize' },
             seriesLabelFontWeight: { $ref: 'fontWeight' },
