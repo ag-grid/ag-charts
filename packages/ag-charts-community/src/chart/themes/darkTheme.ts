@@ -68,7 +68,6 @@ export class DarkTheme extends ChartTheme {
     override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
         return {
             ...super.getThemeParameters(),
-            annotationColor: DEFAULT_DARK_FILLS.BLUE,
             axisLineColor: { $foregroundBackgroundMix: 0.737 },
             backgroundColor: DEFAULT_DARK_BACKGROUND_FILL,
             borderColor: { $foregroundBackgroundMix: 0.216 },

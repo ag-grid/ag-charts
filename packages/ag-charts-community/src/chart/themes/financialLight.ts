@@ -43,7 +43,6 @@ export class FinancialLight extends ChartTheme {
         return {
             ...super.getThemeParameters(),
             chartPadding: 0,
-            annotationColor: FINANCIAL_LIGHT_FILLS.BLUE,
             captionLayoutStyle: 'overlay',
             captionAlignment: 'left',
             gridLineColor: { $foregroundBackgroundMix: 0.06 },

@@ -9,6 +9,7 @@ import {
     type AgLineAnnotationTextStyles,
     type AgMeasurerAnnotationStatistics,
     type AgMeasurerAnnotationStyles,
+    type Operation,
     type StrokeOptions,
     type TextOptions,
     type WithThemeParams,
@@ -29,6 +30,11 @@ export const DEFAULT_FIBONACCI_STROKES = [
     '#d93e64',
 ];
 
+export const ANNOTATION_HANDLE_FILL: Operation = { $lightDark: ['#ffffff', '#192232'] };
+export const ANNOTATION_TEXTBOX_COLOR: Operation = { $lightDark: ['#000', '#fff'] };
+export const ANNOTATION_TEXTBOX_FILL: Operation = { $lightDark: ['#fafafa', '#28313e'] };
+export const ANNOTATION_TEXTBOX_STROKE: Operation = { $lightDark: ['#ddd', '#4b525d'] };
+
 const stroke: WithThemeParams<StrokeOptions> = {
     stroke: { $ref: 'foregroundColor' },
     strokeOpacity: 1,
@@ -36,7 +42,7 @@ const stroke: WithThemeParams<StrokeOptions> = {
 };
 
 const handle: WithThemeParams<AgAnnotationHandleStyles> = {
-    fill: { $lightDark: ['#ffffff', '#192232'] },
+    fill: ANNOTATION_HANDLE_FILL,
     strokeOpacity: 1,
     strokeWidth: 2,
 };
@@ -76,9 +82,9 @@ const channelText: WithThemeParams<AgChannelAnnotationTextStyles> = {
 export const MEASURER_STATISTICS_THEME: WithThemeParams<AgMeasurerAnnotationStatistics> = {
     ...font,
     fontSize: { $ref: 'fontSize' },
-    color: { $lightDark: ['#000', '#fff'] },
-    fill: { $lightDark: ['#fafafa', '#28313e'] },
-    stroke: { $lightDark: ['#ddd', '#4b525d'] },
+    color: ANNOTATION_TEXTBOX_COLOR,
+    fill: ANNOTATION_TEXTBOX_FILL,
+    stroke: ANNOTATION_TEXTBOX_STROKE,
     strokeWidth: 1,
     divider: {
         stroke: { $lightDark: ['#181d1f', '#fff'] },
@@ -258,15 +264,15 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     note: {
         ...text,
-        color: { $lightDark: ['#000', '#fff'] },
+        color: ANNOTATION_TEXTBOX_COLOR,
         fill: { $ref: 'annotationColor' },
         stroke: { $ref: 'chartBackgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },
         background: {
-            fill: { $lightDark: ['#fafafa', '#28313e'] },
-            stroke: { $lightDark: ['#ddd', '#4b525d'] },
+            fill: ANNOTATION_TEXTBOX_FILL,
+            stroke: ANNOTATION_TEXTBOX_STROKE,
             strokeWidth: 1,
         },
     },

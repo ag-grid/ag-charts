@@ -1,5 +1,4 @@
 import { getSequentialColors } from 'ag-charts-core';
-import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
 
@@ -57,13 +56,6 @@ export class VividLight extends ChartTheme {
             altUp: { fill: VIVID_FILLS.BLUE, stroke: VIVID_STROKES.BLUE },
             altDown: { fill: VIVID_FILLS.ORANGE, stroke: VIVID_STROKES.ORANGE },
             altNeutral: { fill: VIVID_FILLS.GRAY, stroke: VIVID_STROKES.GRAY },
-        };
-    }
-
-    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
-        return {
-            ...super.getThemeParameters(),
-            annotationColor: VIVID_FILLS.BLUE,
         };
     }
 }

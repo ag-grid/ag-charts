@@ -494,8 +494,35 @@ describe('ChartTheme', () => {
             );
             await waitForChartStability(chart);
 
-            expect((chart as any).ctx.chartState.getValue('options', 'background').fill).toBe(expected);
+            expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe(expected);
         });
+    });
+
+    describe('dark and financial theme defaults', () => {
+        test.each([
+            ['ag-default', false, 'block', 'center'],
+            ['ag-default-dark', true, 'block', 'center'],
+            ['ag-financial', false, 'overlay', 'left'],
+            ['ag-financial-dark', true, 'overlay', 'left'],
+        ] as const)(
+            'resolves tooltip, overlay and caption defaults for %s',
+            async (theme, darkTheme, layoutStyle, textAlign) => {
+                chart = deproxy(
+                    AgCharts.create({
+                        data,
+                        title: { text: 'Title' },
+                        series: [{ type: 'bar', xKey: 'label', yKey: 'v1' }],
+                        theme,
+                    })
+                );
+                await waitForChartStability(chart);
+
+                const { processedOptions } = chart.chartOptions;
+                expect(processedOptions.tooltip).toMatchObject({ darkTheme });
+                expect(processedOptions.overlays).toMatchObject({ darkTheme });
+                expect(processedOptions.title).toMatchObject({ layoutStyle, textAlign });
+            }
+        );
     });
 
     describe('legend padding overrides (CRT-1145, CRT-1146)', () => {

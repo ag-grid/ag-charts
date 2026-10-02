@@ -268,10 +268,11 @@ export class ChartTheme {
         };
     }
 
-    private static getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
+    private static getPrivateParameters(): Required<
+        WithThemeParams<Omit<AgChartPrivateThemeParams, 'annotationColor'>>
+    > {
         return {
             focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
-            annotationColor: DEFAULT_FILLS.BLUE,
             captionLayoutStyle: 'block',
             captionAlignment: 'center',
         };
@@ -418,6 +419,7 @@ export class ChartTheme {
         return {
             ...ChartTheme.getDefaultPublicParameters(),
             ...ChartTheme.getPrivateParameters(),
+            annotationColor: this.getDefaultColors().fills.BLUE,
         };
     }
 }

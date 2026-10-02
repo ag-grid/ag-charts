@@ -1,5 +1,4 @@
 import { getSequentialColors } from 'ag-charts-core';
-import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
 
@@ -57,13 +56,6 @@ export class SheetsLight extends ChartTheme {
             altUp: { fill: SHEETS_LIGHT_FILLS.BLUE, stroke: SHEETS_LIGHT_STROKES.BLUE },
             altDown: { fill: SHEETS_LIGHT_FILLS.ORANGE, stroke: SHEETS_LIGHT_STROKES.ORANGE },
             altNeutral: { fill: SHEETS_LIGHT_FILLS.GRAY, stroke: SHEETS_LIGHT_STROKES.GRAY },
-        };
-    }
-
-    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
-        return {
-            ...super.getThemeParameters(),
-            annotationColor: SHEETS_LIGHT_FILLS.BLUE,
         };
     }
 }

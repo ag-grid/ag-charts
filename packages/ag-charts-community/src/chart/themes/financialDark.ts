@@ -52,7 +52,6 @@ export class FinancialDark extends DarkTheme {
         return {
             ...super.getThemeParameters(),
             chartPadding: 0,
-            annotationColor: FINANCIAL_DARK_FILLS.BLUE,
             captionLayoutStyle: 'overlay',
             captionAlignment: 'left',
             gridLineColor: { $foregroundBackgroundMix: 0.12 },

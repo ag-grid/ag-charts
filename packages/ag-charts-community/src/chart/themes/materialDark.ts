@@ -1,5 +1,4 @@
 import { getSequentialColors } from 'ag-charts-core';
-import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { DarkTheme } from './darkTheme';
 
@@ -56,13 +55,6 @@ export class MaterialDark extends DarkTheme {
             altUp: { fill: MATERIAL_DARK_FILLS.BLUE, stroke: MATERIAL_DARK_STROKES.BLUE },
             altDown: { fill: MATERIAL_DARK_FILLS.RED, stroke: MATERIAL_DARK_STROKES.RED },
             altNeutral: { fill: MATERIAL_DARK_FILLS.GRAY, stroke: MATERIAL_DARK_STROKES.GRAY },
-        };
-    }
-
-    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
-        return {
-            ...super.getThemeParameters(),
-            annotationColor: MATERIAL_DARK_FILLS.BLUE,
         };
     }
 }

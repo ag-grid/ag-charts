@@ -13,6 +13,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    NEAREST_TOOLTIP_THEME,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
@@ -72,11 +73,10 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
             placement: 'top',
         },
         tooltip: {
-            range: { $path: ['/tooltip/range', 'nearest'] },
+            ...NEAREST_TOOLTIP_THEME,
             position: {
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
-            interaction: { enabled: false },
         },
         highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,

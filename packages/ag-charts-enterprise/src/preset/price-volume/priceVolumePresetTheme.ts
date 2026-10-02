@@ -11,6 +11,10 @@ import type {
 } from 'ag-charts-types';
 
 import {
+    ANNOTATION_HANDLE_FILL,
+    ANNOTATION_TEXTBOX_COLOR,
+    ANNOTATION_TEXTBOX_FILL,
+    ANNOTATION_TEXTBOX_STROKE,
     DEFAULT_FIBONACCI_STROKES,
     MEASURER_STATISTICS_THEME,
     QUICK_MEASURER_DIVIDER_THEME,
@@ -21,7 +25,7 @@ const stroke: WithThemeParams<StrokeOptions> = {
 };
 
 const handle: WithThemeParams<AgAnnotationHandleStyles> = {
-    fill: { $lightDark: ['#ffffff', '#192232'] },
+    fill: ANNOTATION_HANDLE_FILL,
 };
 
 const axisLabel: WithThemeParams<AgAnnotationAxisLabel> = {
@@ -119,15 +123,15 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     note: {
         ...font,
-        color: { $lightDark: ['#000', '#fff'] },
+        color: ANNOTATION_TEXTBOX_COLOR,
         fill: { $ref: 'annotationColor' },
         stroke: { $ref: 'chartBackgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },
         background: {
-            fill: { $lightDark: ['#fafafa', '#28313e'] },
-            stroke: { $lightDark: ['#ddd', '#4b525d'] },
+            fill: ANNOTATION_TEXTBOX_FILL,
+            stroke: ANNOTATION_TEXTBOX_STROKE,
             strokeWidth: 1,
         },
     },

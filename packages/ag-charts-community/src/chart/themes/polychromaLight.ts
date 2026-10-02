@@ -1,5 +1,4 @@
 import { getSequentialColors } from 'ag-charts-core';
-import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
 
@@ -59,13 +58,6 @@ export class PolychromaLight extends ChartTheme {
             altUp: { fill: POLYCHROMA_LIGHT_FILLS.BLUE, stroke: POLYCHROMA_LIGHT_STROKES.BLUE },
             altDown: { fill: POLYCHROMA_LIGHT_FILLS.RED, stroke: POLYCHROMA_LIGHT_STROKES.RED },
             altNeutral: { fill: POLYCHROMA_LIGHT_FILLS.GRAY, stroke: POLYCHROMA_LIGHT_STROKES.GRAY },
-        };
-    }
-
-    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
-        return {
-            ...super.getThemeParameters(),
-            annotationColor: POLYCHROMA_LIGHT_FILLS.BLUE,
         };
     }
 }
