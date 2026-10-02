@@ -60,7 +60,7 @@
       "options": {
         "cwd": "{projectRoot}",
         "parallel": false,
-        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-core.tgz"]
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -o ../../dist/packages/ag-charts-core.tgz"]
       }
     },
     "pack:extract": {

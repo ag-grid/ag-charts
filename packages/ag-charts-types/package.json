@@ -53,8 +53,6 @@
     "not operamobile >= 0"
   ],
   "homepage": "https://www.ag-grid.com/charts/",
-  "dependencies": {},
-  "devDependencies": {},
   "publishConfig": {
     "access": "public"
   }
