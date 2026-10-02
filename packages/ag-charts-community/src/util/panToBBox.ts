@@ -72,14 +72,26 @@ function panAxesUnnormalized(
     };
 }
 
+// Screen-space is y-down but zoom ratios are y-up; mirroring about the viewport's centre-line
+// keeps the viewport fixed while letting `viewport.y1` map to `ratio.min` below.
+function flipTargetY(viewportBBox: BoxBounds, targetBBox: BoxBounds): BoxBounds {
+    return {
+        x: targetBBox.x,
+        y: 2 * viewportBBox.y + viewportBBox.height - targetBBox.y - targetBBox.height,
+        width: targetBBox.width,
+        height: targetBBox.height,
+    };
+}
+
 // The calculations of the new desired viewport (i.e. ZoomMinMax) is done in pixel coords (unnormalised).
 // The desired (x, y) for the new viewport is found, the pixel coords are converted into normalized values
 export function calcPanToBBoxRatios(
     scalingMode: PanToBBoxScalingModeEnum,
     viewportBBox: BoxBounds,
     ratios: Partial<XYRatios>,
-    targetBBox: BoxBounds
+    screenTargetBBox: BoxBounds
 ): XYRatios {
+    const targetBBox = flipTargetY(viewportBBox, screenTargetBBox);
     switch (scalingMode) {
         case PanToBBoxScalingModeEnum.None:
             return calcPanToBBoxRatiosNoScale(viewportBBox, ratios, targetBBox);
