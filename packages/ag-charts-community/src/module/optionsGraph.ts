@@ -40,6 +40,7 @@ import {
     getPathSafe,
     hasPathSafe,
     hasTemplatePathSafe,
+    isListIndex,
     setPathSafe,
 } from './optionsGraphUtils';
 import { OptionsPartialCache, hasUnmergedCssVariables } from './optionsPartialCache';
@@ -613,12 +614,12 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         if (path[0] === 'axes' && path.length > 1) {
             const axisType = this.getResolvedPath(['axes', path[1], 'type']) as string;
-            if (this.hasTypedTemplateOverride(['common', 'axes', axisType], path, 2)) {
+            if (this.hasAxisTemplateOverride(['common', 'axes', axisType], path)) {
                 return true;
             }
 
             const seriesType = this.getResolvedPath(['series', '0', 'type']) as string;
-            return this.hasTypedTemplateOverride([seriesType, 'axes', axisType], path, 2);
+            return this.hasAxisTemplateOverride([seriesType, 'axes', axisType], path);
         }
 
         if (path[0] === 'series' && path.length > 1) {
@@ -634,18 +635,18 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     }
 
     /**
-     * As {@link hasTemplatePathSafe} on `path` from index `from` under `namespace`, also matching the overrides keyed by
-     * the `type` of the first list item the path passes through, as the type-keyed cross line overrides are.
+     * Axis themes hold list options such as cross lines as one template object, optionally keyed by each item's
+     * `type`, so an axis path below `axes.<id>` matches either form. Series themes have no list templates.
      */
-    private hasTypedTemplateOverride(namespace: string[], path: string[], from: number) {
+    private hasAxisTemplateOverride(namespace: string[], path: string[]) {
         const overrides = this.overrides!;
-        const rest = path.slice(from);
+        const rest = path.slice(2);
         if (hasTemplatePathSafe(overrides, [...namespace, ...rest])) return true;
 
-        const index = rest.findIndex((part) => /^\d+$/.test(part));
+        const index = rest.findIndex(isListIndex);
         if (index === -1) return false;
 
-        const type = this.dangerouslyGetUserOption([...path.slice(0, from + index + 1), 'type']);
+        const type = this.dangerouslyGetUserOption([...path.slice(0, index + 3), 'type']);
         if (typeof type !== 'string') return false;
 
         return hasTemplatePathSafe(overrides, [...namespace, ...rest.slice(0, index), type, ...rest.slice(index + 1)]);

@@ -117,7 +117,7 @@ export function hasTemplatePathSafe(object: PlainObject, path: string[]) {
     for (const part of path) {
         if (result == null || typeof result !== 'object') return false;
         if (!(part in result)) {
-            if (Array.isArray(result) || !/^\d+$/.test(part)) return false;
+            if (Array.isArray(result) || !isListIndex(part)) return false;
             continue;
         }
         result = (result as PlainObject)[part];
@@ -166,6 +166,12 @@ export function setPathSafe(object: PlainObject, path: (string | number)[], valu
 }
 
 const DIGITS_ONLY_REGEX = /^\d+$/;
+
+/** Whether a path segment addresses a list item. */
+export function isListIndex(part: string) {
+    return DIGITS_ONLY_REGEX.test(part);
+}
+
 export function getPathLastIndexIndex(pathArray: Array<string>, offset: number = 0) {
     let count = 0;
     // Manual loop from end is faster than findLastIndex + Number conversion

@@ -441,20 +441,21 @@ function rangeCrossLine(listeners?: AgCrossLineListeners, id?: string) {
  * from the rendered node rather than hard-coded.
  */
 function crossLineLabelCentre(chart: Chart, axisId: string): { x: number; y: number } {
-    const axis = chart.axes.findById(axisId);
-    const plugin = axis ? getCrossLinesPlugin(axis) : undefined;
-    const [crossLine] = plugin?.getInstances() ?? [];
+    const [crossLine] = crossLineInstancesOf(chart, axisId);
     const bbox = Transformable.toCanvas(crossLine.labelGroup);
     return { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 };
 }
 
 /** The text the cross line actually rendered, which `'clip-text'` may have truncated. */
 function crossLineLabelText(chart: Chart, axisId: string): string {
-    const axis = chart.axes.findById(axisId);
-    const plugin = axis ? getCrossLinesPlugin(axis) : undefined;
-    const [crossLine] = plugin?.getInstances() ?? [];
-    const [label] = crossLine.labelGroup.children() as any;
-    return label?.text ?? '';
+    return crossLineLabelNode(chart, axisId)?.text ?? '';
+}
+
+/** The label node of the first cross line on the axis. */
+function crossLineLabelNode(chart: Chart, axisId: string): any {
+    const [crossLine] = crossLineInstancesOf(chart, axisId);
+    const [node] = crossLine.labelGroup.children();
+    return node;
 }
 
 describe('CrossLine', () => {
@@ -2276,10 +2277,7 @@ describe('CrossLine', () => {
         }
 
         function crossLineLabelBox(axisId: string) {
-            const axis = chart.axes.findById(axisId)!;
-            const [crossLine] = getCrossLinesPlugin(axis)?.getInstances() ?? [];
-            const [crossLineLabel] = crossLine.labelGroup.children() as any;
-            return Transformable.toCanvas(crossLineLabel);
+            return Transformable.toCanvas(crossLineLabelNode(chart, axisId));
         }
 
         function shownSeriesLabelBoxes() {
@@ -2850,17 +2848,19 @@ describe('CrossLine label fitting', () => {
 
     const LONG_TEXT = 'A cross line label long enough to need fitting';
 
+    type AxisOverrides = Partial<AgNumberAxisOptions>;
+
     function fitChart(
         crossLine: AgCartesianCrossLineOptions,
         axisId: 'x' | 'y' = 'y',
-        theme?: AgCartesianChartOptions['theme']
+        { theme, x, y }: { theme?: AgCartesianChartOptions['theme']; x?: AxisOverrides; y?: AxisOverrides } = {}
     ): AgCartesianChartOptions {
         return prepareTestOptions({
             data: Array.from({ length: 11 }, (_, i) => ({ x: i, y: i })),
             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             axes: {
-                x: { type: 'number', position: 'bottom', crossLines: axisId === 'x' ? [crossLine] : [] },
-                y: { type: 'number', position: 'left', crossLines: axisId === 'y' ? [crossLine] : [] },
+                x: { type: 'number', position: 'bottom', crossLines: axisId === 'x' ? [crossLine] : [], ...x },
+                y: { type: 'number', position: 'left', crossLines: axisId === 'y' ? [crossLine] : [], ...y },
             },
             theme,
         });
@@ -2874,7 +2874,7 @@ describe('CrossLine label fitting', () => {
 
     function renderedLabel(axisId: 'x' | 'y' = 'y') {
         const [crossLine] = crossLineInstancesOf(chart, axisId);
-        const [node] = crossLine.labelGroup.children() as any;
+        const node = crossLineLabelNode(chart, axisId);
         const { width, height } = node.getBBox();
         return {
             text: node.text as string,
@@ -2886,22 +2886,22 @@ describe('CrossLine label fitting', () => {
         };
     }
 
-    it.each([
+    it.each<[string, AgCartesianCrossLineLabelOptions]>([
         ['nothing', {}],
         ['an array placement', { placement: ['left', 'right'] }],
-    ] as const)('renders the label whole with %s set', async (_, label) => {
-        chart = await createChart(fitChart(lineWith(label as AgCartesianCrossLineLabelOptions)));
+    ])('renders the label whole with %s set', async (_, label) => {
+        chart = await createChart(fitChart(lineWith(label)));
 
         const rendered = renderedLabel();
         expect(rendered.text).toBe(LONG_TEXT);
         expect(rendered.fontSize).toBe(12);
     });
 
-    it.each([
+    it.each<[string, 'x' | 'y', AgCartesianCrossLineOptions]>([
         ['line', 'y', lineWith({ maxWidth: 80 })],
         ['range', 'x', { type: 'range', range: [2, 4], label: { text: LONG_TEXT, maxWidth: 80 } }],
-    ] as const)('wraps a %s label within maxWidth', async (_, axisId, crossLine) => {
-        chart = await createChart(fitChart(crossLine as AgCartesianCrossLineOptions, axisId));
+    ])('wraps a %s label within maxWidth', async (_, axisId, crossLine) => {
+        chart = await createChart(fitChart(crossLine, axisId));
 
         const rendered = renderedLabel(axisId);
         expect(rendered.text.split('\n').length).toBeGreaterThan(1);
@@ -2920,10 +2920,10 @@ describe('CrossLine label fitting', () => {
         }
     );
 
-    it.each([
+    it.each<[string, AgCartesianCrossLineLabelOptions]>([
         ['maxWidth', { maxWidth: 80, wrapping: 'never' }],
         ['maxHeight', { maxWidth: 80, maxHeight: 20 }],
-    ] as const)('ellipsises a label bounded by %s', async (_, label: AgCartesianCrossLineLabelOptions) => {
+    ])('ellipsises a label bounded by %s', async (_, label) => {
         chart = await createChart(fitChart(lineWith({ ...label, truncate: true })));
 
         const rendered = renderedLabel();
@@ -2983,6 +2983,17 @@ describe('CrossLine label fitting', () => {
         expect(into.left).toBeLessThanOrEqual(80 + 10);
     });
 
+    it('neither pads the chart nor collides for a label erased by a maxHeight below one line', async () => {
+        chart = await createChart(fitChart(lineWith({ placement: 'left', maxHeight: 4 })));
+
+        const rendered = renderedLabel();
+        const into: Partial<Record<AgCrossLineLabelPosition, number>> = {};
+        rendered.crossLine.calculatePadding!(into);
+        expect(rendered.text).toBe('');
+        expect(into.left).toBeUndefined();
+        expect(rendered.crossLine.getLabelDatum!(chart.seriesRect!)).toBeUndefined();
+    });
+
     it('refits the label once a web font loads', async () => {
         chart = await createChart(fitChart(lineWith({ maxWidth: 80 })));
         const { crossLine } = renderedLabel();
@@ -3011,18 +3022,32 @@ describe('CrossLine label fitting', () => {
         expect(rendered.footprint.x).toBeGreaterThanOrEqual(0);
     });
 
+    it('collapses a wrapped clip-text label taller than the chart to one line', async () => {
+        const label = undocumentedLabel({
+            text: LONG_TEXT,
+            placement: 'top',
+            overflow: 'clip-text',
+            maxWidth: 30,
+            wrapping: 'always',
+        });
+        chart = await createChart({ ...fitChart(lineWith(label), 'x'), width: 300, height: 120 });
+
+        const rendered = renderedLabel('x');
+        expect(rendered.text.includes('\n')).toBe(false);
+        expect(rendered.footprint.y).toBeGreaterThanOrEqual(0);
+    });
+
     it('moves a fitted range label out of its band once the band is too narrow for it', async () => {
-        const options = (max: number) => {
-            const base = fitChart(
+        const options = (max: number) =>
+            fitChart(
                 {
                     type: 'range',
                     range: [4, 5],
                     label: { text: 'Target band', maxWidth: 60, placement: ['inside-top', 'top'] },
                 },
-                'x'
+                'x',
+                { x: { min: 3, max } }
             );
-            return { ...base, axes: { ...base.axes, x: { ...(base.axes as any).x, min: 3, max } } };
-        };
         const labelInsideBand = () => {
             const { crossLine, footprint } = renderedLabel('x');
             const band = Transformable.toCanvas(crossLine.rangeGroup);
@@ -3074,6 +3099,23 @@ describe('CrossLine label fitting', () => {
         }
     );
 
+    it.each<[string, AgCartesianChartOptions['theme']]>([
+        [
+            'a cross line type key',
+            { overrides: { common: { axes: { number: { crossLines: { line: { label: { maxWidth: 40 } } } } } } } },
+        ],
+        [
+            'a series type and cross line type key',
+            { overrides: { line: { axes: { number: { crossLines: { line: { label: { maxWidth: 40 } } } } } } } },
+        ],
+    ])('fits a label bounded through %s in the theme', async (_, theme) => {
+        chart = await createChart(fitChart(lineWith({}), 'y', { theme }));
+
+        const rendered = renderedLabel();
+        expect(rendered.text.includes('\n')).toBe(true);
+        expect(rendered.width).toBeLessThanOrEqual(40);
+    });
+
     describe('minimumFontSize validation', () => {
         const MINIMUM_FONT_SIZE_WARNING =
             'AG Charts - Option `axes.y.crossLines[0][type=line].label.minimumFontSize` cannot be set to `14`; expecting a number greater than 0 and the value to be less than or equal to `fontSize`, ignoring.';
@@ -3092,53 +3134,41 @@ describe('CrossLine label fitting', () => {
 
         it('accepts a minimumFontSize below a themed fontSize', async () => {
             const theme = { overrides: { common: { axes: { number: { crossLines: { label: { fontSize: 30 } } } } } } };
-            chart = await createChart(fitChart(lineWith({ minimumFontSize: 20, maxWidth: 80 }), 'y', theme));
+            chart = await createChart(fitChart(lineWith({ minimumFontSize: 20, maxWidth: 80 }), 'y', { theme }));
+
+            expect(renderedLabel().fontSize).toBeLessThanOrEqual(30);
+        });
+
+        it('accepts a minimumFontSize below a fontSize themed through a cross line type key', async () => {
+            const theme = {
+                overrides: { common: { axes: { number: { crossLines: { line: { label: { fontSize: 30 } } } } } } },
+            };
+            chart = await createChart(fitChart(lineWith({ minimumFontSize: 20, maxWidth: 80 }), 'y', { theme }));
 
             expect(renderedLabel().fontSize).toBeLessThanOrEqual(30);
         });
     });
 
     it('renders fitted labels', async () => {
-        const base = fitChart(lineWith({}));
-        chart = await createChart({
-            ...base,
-            axes: {
-                x: {
-                    type: 'number',
-                    position: 'bottom',
-                    crossLines: [
-                        {
-                            type: 'range',
-                            range: [1, 3],
-                            label: { text: LONG_TEXT, maxWidth: 70, placement: 'inside-top' },
-                        },
-                        {
-                            type: 'line',
-                            value: 7,
-                            label: {
-                                text: LONG_TEXT,
-                                maxWidth: 90,
-                                rotation: 90,
-                                fill: 'lightyellow',
-                                placement: 'left',
-                            },
-                        },
-                    ],
-                },
-                y: {
-                    type: 'number',
-                    position: 'left',
-                    crossLines: [
-                        { type: 'line', value: 8, label: { text: LONG_TEXT, maxWidth: 90, wrapping: 'never' } },
-                        {
-                            type: 'line',
-                            value: 4,
-                            label: { text: LONG_TEXT, fontSize: 16, maxWidth: 120, maxHeight: 24, minimumFontSize: 9 },
-                        },
-                    ],
-                },
+        const xCrossLines: AgCartesianCrossLineOptions[] = [
+            { type: 'range', range: [1, 3], label: { text: LONG_TEXT, maxWidth: 70, placement: 'inside-top' } },
+            {
+                type: 'line',
+                value: 7,
+                label: { text: LONG_TEXT, maxWidth: 90, rotation: 90, fill: 'lightyellow', placement: 'left' },
             },
-        });
+        ];
+        const yCrossLines: AgCartesianCrossLineOptions[] = [
+            { type: 'line', value: 8, label: { text: LONG_TEXT, maxWidth: 90, wrapping: 'never' } },
+            {
+                type: 'line',
+                value: 4,
+                label: { text: LONG_TEXT, fontSize: 16, maxWidth: 120, maxHeight: 24, minimumFontSize: 9 },
+            },
+        ];
+        chart = await createChart(
+            fitChart(xCrossLines[0], 'x', { x: { crossLines: xCrossLines }, y: { crossLines: yCrossLines } })
+        );
 
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
     });

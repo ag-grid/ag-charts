@@ -6,6 +6,7 @@ import {
     findMinMax,
     fitLabelText,
     fitLabelTextAutoSize,
+    fontWithSize,
     resolveCollideWith,
     resolveLabelFit,
     resolvePadding,
@@ -67,6 +68,7 @@ export type CartesianCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions
 };
 
 type NodeData = [number, number];
+type FittedLabel = { text: string; fontSize: number };
 
 const CROSS_LINE_MIN_HIT_TOLERANCE = 5;
 
@@ -124,7 +126,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     private chosen = 0;
     private readonly candidateIndices = new Map<PositionedLabelCandidate, number>();
     private labelBounds: BBox | undefined = undefined;
-    private fitted: { text: string; fontSize: number; measurer: TextMeasurer } | undefined = undefined;
+    private fitted: (FittedLabel & { measurer: TextMeasurer }) | undefined = undefined;
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         this.crossLineRange.pointerEvents = PointerEvents.None;
@@ -282,8 +284,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
 
     /** Taken from the drawn node, so whatever `positionLabel` and `clipLabelText` settled on is reserved. */
     private labelFootprint(): BBox | undefined {
-        const { label } = this;
-        if (label.enabled === false || label.text == null || label.text === '' || !this.labelGroup.visible) return;
+        if (!this.hasFittedText || !this.labelGroup.visible) return;
 
         return Transformable.toCanvas(this.crossLineLabel);
     }
@@ -516,7 +517,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
      * The label fitted to its own `maxWidth`/`maxHeight`, which do not depend on where it is placed. Keyed on
      * the measurer, which a web font load replaces.
      */
-    private fittedLabel(): { text: string; fontSize: number } {
+    private fittedLabel(): FittedLabel {
         const { label } = this;
         const measurer = cachedTextMeasurer(label);
         if (this.fitted?.measurer !== measurer) {
@@ -529,6 +530,13 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
             };
         }
         return this.fitted;
+    }
+
+    /** False once the fit has erased the text, as a `maxHeight` below one line does. */
+    private get hasFittedText(): boolean {
+        const { label } = this;
+        if (label.enabled === false || label.text == null || label.text === '') return false;
+        return this.fittedLabel().text !== '';
     }
 
     private get horizontal(): boolean {
@@ -588,7 +596,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const { text } = label;
         if (containerBox == null || text == null || text === '') return;
 
-        const bbox = crossLineLabel.getBBox();
+        let bbox = crossLineLabel.getBBox();
         if (bbox == null) return;
 
         const { x, y, width, height } = containerBox;
@@ -599,11 +607,23 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         const availableX = availableExtent(anchorX, anchor.labelH, pad, container.x, container.x + container.width);
         const availableY = availableExtent(anchorY, anchor.labelV, pad, container.y, container.y + container.height);
 
-        // The rotated footprint's extent is affine in the text width, so solving for that width keeps the
-        // boxing padding out of the arithmetic entirely.
+        // The rotated footprint is affine in the text width, which keeps the boxing padding out of the solve.
+        // It cannot bound the lines wrapping adds, so an overflowing wrapped label collapses to one line first.
         const { text: fittedText, fontSize } = this.fittedLabel();
-        const font = { ...label, fontSize };
-        const textWidth = cachedTextMeasurer(font).measureLines(fittedText).width;
+        const font = fontWithSize(label, fontSize);
+        const oneLine = (maxWidth: number | undefined) => {
+            const fitted = fitLabelText(text, { maxWidth, wrapping: 'never', overflowStrategy: 'ellipsis' }, font);
+            return typeof fitted === 'string' ? fitted : text;
+        };
+        let lineText = fittedText;
+        if (fittedText.includes('\n') && (bbox.width > availableX || bbox.height > availableY)) {
+            lineText = oneLine(label.maxWidth);
+            crossLineLabel.text = lineText;
+            bbox = crossLineLabel.getBBox();
+            if (bbox == null) return;
+        }
+
+        const textWidth = cachedTextMeasurer(font).measureLines(lineText).width;
         const cos = Math.abs(Math.cos(crossLineLabel.rotation));
         const sin = Math.abs(Math.sin(crossLineLabel.rotation));
         // Only a direction the text actually extends along can bound it; the bound is not floored before
@@ -617,12 +637,7 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
         }
         if (maxWidth >= textWidth) return;
 
-        // Refit the source text on one line: the affine solve above cannot bound the lines wrapping adds.
-        const fit = { maxWidth: Math.max(maxWidth, 0), wrapping: 'never', overflowStrategy: 'ellipsis' } as const;
-        const fitted = fitLabelText(text, fit, font);
-        if (typeof fitted === 'string') {
-            crossLineLabel.text = fitted;
-        }
+        crossLineLabel.text = oneLine(Math.max(maxWidth, 0));
     }
 
     private labelPoint(bounds: BBox, anchor: Anchor, { width, height }: { width: number; height: number }) {
@@ -649,14 +664,12 @@ export class CartesianCrossLine implements CrossLine<CartesianCrossLineLabelOpti
     }
 
     private computeLabelSize(): { width: number; height: number } | undefined {
+        if (!this.hasFittedText) return;
         const { label } = this;
-        if (label.enabled === false || label.text == null || label.text === '') return;
         const { text, fontSize } = this.fittedLabel();
         const tempText = new TransformableText();
-        tempText.fontFamily = label.fontFamily;
+        tempText.setFont(label);
         tempText.fontSize = fontSize;
-        tempText.fontStyle = label.fontStyle;
-        tempText.fontWeight = label.fontWeight;
         tempText.text = text;
         tempText.rotation = toRadians(label.rotation ?? 0);
         tempText.textBaseline = 'middle';

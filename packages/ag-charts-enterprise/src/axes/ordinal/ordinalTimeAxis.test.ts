@@ -777,17 +777,6 @@ describe('Ordinal Time Axis Examples', () => {
         await waitForChartStability(chart);
         expect(chart).toBeDefined();
     });
-});
-
-describe('Ordinal Time Axis cross line label fitting', () => {
-    setupMockConsole();
-    setupMockCanvas();
-    let chart: any;
-
-    afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
-    });
 
     it('fits a label bounded through an ordinal-time axis theme override', async () => {
         const text = 'A cross line label long enough to need fitting';

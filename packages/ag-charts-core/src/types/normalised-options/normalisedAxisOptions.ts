@@ -44,12 +44,11 @@ import type {
     ContextDefault,
     CssColor,
     Opacity,
-    TextWrap,
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
 import type { NormalisedBorderOptions, NormalisedColorType } from './normalisedCommonOptions';
-import type { NormalisedChartLabelCollisionOptions } from './normalisedLabelOptions';
+import type { NormalisedChartLabelCollisionOptions, NormalisedLabelFitOptions } from './normalisedLabelOptions';
 
 // --- Label normalised shapes ---
 // `mirrored`/`parallel` are axis-instance state managed by `Axis.updateDirection()`, not user-facing options.
@@ -385,30 +384,22 @@ export type NormalisedAxisCrossLineLabelOptions = Normalised<
     AgBaseCrossLineLabelOptions,
     'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'color' | 'cornerRadius',
     { fontFamily: string; color?: CssColor; fill?: NormalisedColorType; border?: NormalisedBorderOptions }
-> & {
-    overflow?: CrossLineLabelOverflow;
-    reserveSpace?: boolean;
-    /** Cartesian cross lines only. */
-    position?: AgCrossLineLabelPosition;
-    /** Cartesian cross lines only. */
-    placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
-    /** Cartesian cross lines only. */
-    rotation?: number;
-    /** Cartesian cross lines only. */
-    collision?: NormalisedChartLabelCollisionOptions;
-    /** Cartesian cross lines only. */
-    maxWidth?: number;
-    /** Cartesian cross lines only. */
-    maxHeight?: number;
-    /** Cartesian cross lines only. */
-    wrapping?: TextWrap;
-    /** Cartesian cross lines only. */
-    truncate?: boolean;
-    /** Cartesian cross lines only. */
-    minimumFontSize?: number;
-    /** Radius cross lines only. */
-    positionAngle?: number;
-};
+> &
+    // The fit options apply to cartesian cross lines only.
+    NormalisedLabelFitOptions & {
+        overflow?: CrossLineLabelOverflow;
+        reserveSpace?: boolean;
+        /** Cartesian cross lines only. */
+        position?: AgCrossLineLabelPosition;
+        /** Cartesian cross lines only. */
+        placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
+        /** Cartesian cross lines only. */
+        rotation?: number;
+        /** Cartesian cross lines only. */
+        collision?: NormalisedChartLabelCollisionOptions;
+        /** Radius cross lines only. */
+        positionAngle?: number;
+    };
 
 // The theme applies `fill`/`fillOpacity` and `label` to every cross line, so both variants carry them;
 // `stroke` narrows the public colour-or-reference to the resolved colour.

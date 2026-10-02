@@ -46,17 +46,22 @@ export type NormalisedChartLabelPlacementStyleOptions = Normalised<
     { color?: CssColor; fill?: NormalisedColorType; border?: Normalised<BorderOptions, never, { stroke?: CssColor }> }
 >;
 
+/** Post-theme fit fields shared by every label surface that can be bounded, wrapped, truncated or shrunk. */
+export interface NormalisedLabelFitOptions {
+    maxWidth?: number;
+    maxHeight?: number;
+    wrapping?: TextWrap;
+    truncate?: boolean;
+    minimumFontSize?: number;
+}
+
 /** Post-theme options of a series label. */
 export type NormalisedSeriesLabelOptions<TParams = never, TDatum = any> = Normalised<
-    AgChartLabelOptions<TDatum, RequireOptional<TParams>> & {
-        collision?: AgChartLabelCollisionOptions;
-        orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
-        maxWidth?: number;
-        maxHeight?: number;
-        wrapping?: TextWrap;
-        truncate?: boolean;
-        minimumFontSize?: number;
-    },
+    AgChartLabelOptions<TDatum, RequireOptional<TParams>> &
+        NormalisedLabelFitOptions & {
+            collision?: AgChartLabelCollisionOptions;
+            orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
+        },
     'enabled' | 'fontSize' | 'fontFamily' | 'collision',
     {
         color?: CssColor;
