@@ -110,6 +110,7 @@ const RULES = [
     // Series with no benchmark example — tagged so the uncovered-type note fires.
     { re: series('waterfall'), types: ['waterfall'] },
     { re: series('box-plot'), types: ['box-plot'] },
+    { re: series('hlc'), types: ['hlc'] },
     { re: series('heatmap'), types: ['heatmap'] },
     { re: series('radar-line'), types: ['radar-line'] },
     { re: series('radar-area'), types: ['radar-area'] },

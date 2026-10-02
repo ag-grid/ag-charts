@@ -173,6 +173,13 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'series',
+        name: 'hlc',
+        moduleId: 'HlcSeriesModule',
+        chartType: 'cartesian',
+        enterprise: true,
+    },
+    {
+        type: 'series',
         name: 'line',
         moduleId: 'LineSeriesModule',
         chartType: 'cartesian',

@@ -68,6 +68,12 @@ import {
     type AgHeatmapSeriesLabelStyle,
     type AgHeatmapSeriesStyle,
     type AgHeatmapSeriesThemeableOptions,
+    type AgHlcSeriesBandStyle,
+    type AgHlcSeriesItemBandThemeableOptions,
+    type AgHlcSeriesItemLineThemeableOptions,
+    type AgHlcSeriesLineStyle,
+    type AgHlcSeriesStyle,
+    type AgHlcSeriesThemeableOptions,
     type AgMapLineBackgroundThemeableOptions,
     type AgMapLineSeriesStyle,
     type AgMapLineSeriesThemeableOptions,
@@ -667,6 +673,53 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
         enabled: boolean,
         ...fillOptionsDef,
     },
+};
+
+const hlcSeriesItemLineThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemLineThemeableOptions<unknown, unknown>> = {
+    marker: {
+        enabled: boolean,
+        ...markerStyleOptionsDefs,
+    },
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+const hlcSeriesItemBandThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemBandThemeableOptions<unknown, unknown>> = {
+    ...hlcSeriesItemLineThemeableOptionsDef,
+    ...fillOptionsDef,
+};
+
+const hlcSeriesLineStyleDef: OptionsDefs<AgHlcSeriesLineStyle> = {
+    marker: markerStyleOptionsDefs,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+const hlcSeriesBandStyleDef: OptionsDefs<AgHlcSeriesBandStyle> = {
+    ...hlcSeriesLineStyleDef,
+    ...fillOptionsDef,
+};
+
+export const hlcSeriesThemeableOptionsDef: OptionsDefs<AgHlcSeriesThemeableOptions> = {
+    showInMiniChart: boolean,
+    connectMissingData: boolean,
+    interpolation: interpolationOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    marker: markerOptionsDefs,
+    item: {
+        high: { ...hlcSeriesItemBandThemeableOptionsDef },
+        low: { ...hlcSeriesItemBandThemeableOptionsDef },
+        close: { ...hlcSeriesItemLineThemeableOptionsDef },
+    },
+    styler: callbackDefs<AgHlcSeriesStyle>({
+        item: {
+            high: { ...hlcSeriesBandStyleDef },
+            low: { ...hlcSeriesBandStyleDef },
+            close: { ...hlcSeriesLineStyleDef },
+        },
+    }),
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 const rangeBarStyleCallback = callbackDefs<AgRangeBarSeriesStyle>({

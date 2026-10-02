@@ -80,6 +80,7 @@ export const seriesDefaultAxes = new Map([
     // Enterprise cartesian
     ['box-plot', { x: 'category', y: 'number' }],
     ['candlestick', { x: 'ordinal-time', y: 'number' }],
+    ['hlc', { x: 'ordinal-time', y: 'number' }],
     ['ohlc', { x: 'ordinal-time', y: 'number' }],
     ['heatmap', { x: 'category', y: 'category' }],
     ['range-area', { x: 'category', y: 'number' }],
