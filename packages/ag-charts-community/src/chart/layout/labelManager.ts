@@ -79,10 +79,7 @@ export class LabelManager {
         this.sources.set(source.id, source);
     }
 
-    /**
-     * A recreated axis registers its replacement before the old one is destroyed, so a source may only
-     * drop its own entry — deleting by id alone would unregister the live replacement.
-     */
+    /** A source may only drop its own entry: a mini-chart axis shares its id with the live main-chart one. */
     unregisterSource(id: string, source?: LabelSource) {
         if (source != null && this.sources.get(id) !== source) return;
         this.sources.delete(id);
