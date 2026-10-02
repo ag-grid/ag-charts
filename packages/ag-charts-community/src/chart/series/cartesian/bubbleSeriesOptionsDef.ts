@@ -11,7 +11,7 @@ import {
     constant,
     enterprise,
     markerOptionsDefs,
-    multiSeriesHighlightOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
     numericValue,
     placedSeriesLabelOptionsDefs,
@@ -45,7 +45,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled', 'size']),
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     colorScale: enterprise(colorScaleOptionsDef),
 };
 
@@ -66,7 +66,7 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     legendItemName: string,
     xKeyAxis: string,
     yKeyAxis: string,
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 // WARNING! `selectedKey` backs cross-filtering, an undocumented and unsupported feature — it is unrelated

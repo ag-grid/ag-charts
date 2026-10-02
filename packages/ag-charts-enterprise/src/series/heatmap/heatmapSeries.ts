@@ -731,6 +731,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     protected override updateDatumNodes({
         datumSelection,
+        isHighlight,
     }: {
         datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect<HeatmapNodeDatum>>;
         isHighlight: boolean;
@@ -746,7 +747,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
-            rect.fillShadow = shadow;
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
 
             rect.crisp = crisp;
             rect.cornerRadius = cornerRadius;

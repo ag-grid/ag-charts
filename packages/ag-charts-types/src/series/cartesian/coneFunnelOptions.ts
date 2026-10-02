@@ -12,7 +12,7 @@ import type {
     AgBaseCartesianThemeableOptions,
     AgBaseHighlightStyleOptions,
     AgBaseSeriesOptions,
-    AgHighlightOptions,
+    AgShadowHighlightOptions,
 } from '../seriesOptions';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -82,7 +82,7 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = DatumDefault, TCont
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgConeFunnelSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgHighlightOptions<AgBaseHighlightStyleOptions>;
+    highlight?: AgShadowHighlightOptions<AgBaseHighlightStyleOptions>;
 }
 
 export interface AgConeFunnelSeriesOptionsKeys<TDatum = DatumDefault> {

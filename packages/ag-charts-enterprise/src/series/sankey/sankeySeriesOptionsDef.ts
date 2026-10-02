@@ -12,13 +12,14 @@ import {
     required,
     string,
     undocumented,
+    without,
 } from 'ag-charts-core';
 
 const { sankeySeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     ...sankeySeriesThemeableOptionsDef,
-    ...commonSeriesOptionsDefs,
+    ...without(commonSeriesOptionsDefs, ['highlight']),
     type: required(constant('sankey')),
     fromKey: required(string),
     toKey: required(string),

@@ -1,3 +1,4 @@
+import type { AgDropShadowOptions } from '../chart/dropShadowOptions';
 import type { AgSeriesListeners } from '../chart/eventOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../chart/selectionOptions';
 import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
@@ -16,6 +17,34 @@ export interface AgMultiSeriesHighlightOptions<
      * Default: `true`
      */
     bringToFront?: boolean;
+}
+
+/** Highlight style options that only the highlighted item can set; the highlighted series cannot. */
+export interface AgItemHighlightStyleOptions {
+    /**
+     * Configuration for the shadow used behind the highlighted item. Replaces the series' own `shadow` while the item
+     * is highlighted.
+     *
+     * Default: no highlight shadow, so the highlighted item keeps the series' `shadow`.
+     */
+    shadow?: AgDropShadowOptions;
+}
+
+/** Highlight options for a series whose items can cast a `shadow`. */
+export interface AgShadowHighlightOptions<
+    ItemHighlightStyleOptions = AgHighlightStyleOptions,
+> extends AgHighlightOptions<ItemHighlightStyleOptions> {
+    /** Options for the highlighted item.  */
+    highlightedItem?: ItemHighlightStyleOptions & AgItemHighlightStyleOptions;
+}
+
+/** Highlight options for a series whose items can cast a `shadow`, with separate options for the highlighted series. */
+export interface AgMultiSeriesShadowHighlightOptions<
+    ItemHighlightStyleOptions,
+    SeriesHighlightStyleOptions = ItemHighlightStyleOptions,
+> extends AgMultiSeriesHighlightOptions<ItemHighlightStyleOptions, SeriesHighlightStyleOptions> {
+    /** Options for the highlighted item.  */
+    highlightedItem?: ItemHighlightStyleOptions & AgItemHighlightStyleOptions;
 }
 
 export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> {

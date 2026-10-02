@@ -556,7 +556,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = shadow;
+            sector.fillShadow = this.resolveItemShadow(shadow, highlighted, nodeDatum.datumIndex);
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;

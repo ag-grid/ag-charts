@@ -1558,6 +1558,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 hideWithSize0,
                 pickInflation,
                 shadow,
+                isHighlight,
+                datumIndex: datum.datumIndex,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {

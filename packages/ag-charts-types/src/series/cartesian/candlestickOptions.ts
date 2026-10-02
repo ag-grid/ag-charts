@@ -5,7 +5,7 @@ import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesShadowHighlightOptions,
 } from '../seriesOptions';
 import type { AgBarSeriesStyle } from './barOptions';
 import type {
@@ -55,7 +55,10 @@ export interface AgCandlestickSeriesThemeableOptions<TDatum = DatumDefault, TCon
     /** Function used to return formatting for individual columns, based on the given parameters.*/
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<TDatum, TContext>, AgCandlestickSeriesItemOptions>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgCandlestickHighlightStyleOptions, AgCandlestickHighlightStyleOptions>;
+    highlight?: AgMultiSeriesShadowHighlightOptions<
+        AgCandlestickHighlightStyleOptions,
+        AgCandlestickHighlightStyleOptions
+    >;
 }
 export interface AgCandlestickHighlightStyleOptions extends AgCandlestickSeriesItemOptions {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */

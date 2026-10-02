@@ -15,7 +15,7 @@ import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
     AgHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesShadowHighlightOptions,
 } from '../seriesOptions';
 import type { AgRadialSeriesOptionsKeys, AgRadialSeriesOptionsNames } from './radialOptions';
 
@@ -41,7 +41,7 @@ export interface AgRadarSeriesThemeableOptions<
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<TStylerParams, TStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgRadarHighlightStyleOptions<TStyle>>;
+    highlight?: AgMultiSeriesShadowHighlightOptions<AgHighlightStyleOptions, AgRadarHighlightStyleOptions<TStyle>>;
 }
 
 export type AgRadarHighlightStyleOptions<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'marker'> & {

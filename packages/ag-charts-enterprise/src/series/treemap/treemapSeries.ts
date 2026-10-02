@@ -729,7 +729,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
             rect.setStyleProperties(style, fillBBox);
 
-            rect.fillShadow = isLeaf ? tile.shadow : group.shadow;
+            rect.fillShadow = this.resolveItemShadow(isLeaf ? tile.shadow : group.shadow, isHighlight, node.datumIndex);
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];
 

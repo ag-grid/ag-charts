@@ -1345,6 +1345,8 @@ export abstract class BubbleScatterSeries<
                 hideWithSize0: false,
                 pickInflation,
                 shadow,
+                isHighlight,
+                datumIndex: datum.datumIndex,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {

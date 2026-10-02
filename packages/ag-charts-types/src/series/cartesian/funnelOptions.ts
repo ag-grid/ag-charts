@@ -9,7 +9,12 @@ import type {
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type {
+    AgBaseCartesianThemeableOptions,
+    AgBaseSeriesOptions,
+    AgHighlightStyleOptions,
+    AgShadowHighlightOptions,
+} from '../seriesOptions';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
@@ -87,6 +92,8 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     stageLabel?: AgFunnelSeriesStageLabelOptions<TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgShadowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgFunnelSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual bars, based on the given parameters.*/
@@ -104,7 +111,7 @@ export interface AgFunnelSeriesOptionsNames {}
 
 export interface AgFunnelSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend' | 'selection'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend' | 'selection' | 'highlight'>,
         AgFunnelSeriesOptionsKeys<TDatum>,
         AgFunnelSeriesOptionsNames,
         AgFunnelSeriesThemeableOptions<TDatum, TContext> {

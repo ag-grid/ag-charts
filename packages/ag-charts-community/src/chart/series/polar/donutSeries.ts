@@ -1420,7 +1420,7 @@ export class DonutSeries extends PolarSeries<
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
-            sector.fillShadow = this.options.shadow;
+            sector.fillShadow = this.resolveItemShadow(this.options.shadow, isDatumHighlighted, datum.datumIndex);
             this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
         };
