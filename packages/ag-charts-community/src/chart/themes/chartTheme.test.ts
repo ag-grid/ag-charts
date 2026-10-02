@@ -475,6 +475,29 @@ describe('ChartTheme', () => {
         });
     });
 
+    describe('$lightDark in overrides', () => {
+        test.each([
+            ['ag-default', '#111111'],
+            ['ag-default-dark', '#222222'],
+            ['ag-financial-dark', '#222222'],
+        ] as const)('resolves `overrides.common.background.fill` for `baseTheme: %s`', async (baseTheme, expected) => {
+            chart = deproxy(
+                AgCharts.create({
+                    data,
+                    series: [{ type: 'bar', xKey: 'label', yKey: 'v1' }],
+                    theme: {
+                        baseTheme,
+                        // @ts-expect-error theme operations are resolved at runtime but not typed in overrides
+                        overrides: { common: { background: { fill: { $lightDark: ['#111111', '#222222'] } } } },
+                    },
+                })
+            );
+            await waitForChartStability(chart);
+
+            expect((chart as any).ctx.chartState.getValue('options', 'background').fill).toBe(expected);
+        });
+    });
+
     describe('legend padding overrides (CRT-1145, CRT-1146)', () => {
         const baseOptions = (legend: AgCartesianChartOptions['legend']): AgCartesianChartOptions => ({
             data,

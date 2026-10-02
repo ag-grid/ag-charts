@@ -1,8 +1,5 @@
-import {
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    getSequentialColors,
-} from 'ag-charts-core';
+import { getSequentialColors } from 'ag-charts-core';
+import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { DarkTheme } from './darkTheme';
 
@@ -64,12 +61,10 @@ export class PolychromaDark extends DarkTheme {
         };
     }
 
-    override getTemplateParameters() {
-        const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, POLYCHROMA_DARK_FILLS.BLUE);
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_DARK_FILLS.BLUE);
-
-        return params;
+    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
+        return {
+            ...super.getThemeParameters(),
+            annotationColor: POLYCHROMA_DARK_FILLS.BLUE,
+        };
     }
 }

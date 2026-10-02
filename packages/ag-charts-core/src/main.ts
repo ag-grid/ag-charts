@@ -74,7 +74,6 @@ export * from './chart/legendUtil';
 export * from './utils/aggregation';
 export * from './types/geojson';
 export * from './types/themeConstants';
-export * from './types/themeSymbols';
 export * from './types/text';
 
 // Core utilities

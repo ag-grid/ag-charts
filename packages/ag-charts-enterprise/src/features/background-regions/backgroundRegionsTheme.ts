@@ -1,4 +1,4 @@
-import { LABEL_OVERFLOW_DEFAULTS } from 'ag-charts-core';
+import { FONT_THEME_DEFAULTS, LABEL_OVERFLOW_DEFAULTS } from 'ag-charts-core';
 
 export const backgroundRegionStyle = {
     fill: { $ref: 'foregroundColor' },
@@ -7,9 +7,7 @@ export const backgroundRegionStyle = {
     strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
     label: {
         ...LABEL_OVERFLOW_DEFAULTS,
-        fontSize: { $ref: 'fontSize' },
-        fontFamily: { $ref: 'fontFamily' },
-        fontWeight: { $ref: 'fontWeight' },
+        ...FONT_THEME_DEFAULTS,
         padding: {
             $applyPadding: {
                 $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],

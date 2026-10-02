@@ -1,11 +1,4 @@
-import {
-    DEFAULT_CAPTION_ALIGNMENT,
-    DEFAULT_CAPTION_LAYOUT_STYLE,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_TOOLBAR_POSITION,
-    getSequentialColors,
-} from 'ag-charts-core';
+import { getSequentialColors } from 'ag-charts-core';
 import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
@@ -50,20 +43,10 @@ export class FinancialLight extends ChartTheme {
         return {
             ...super.getThemeParameters(),
             chartPadding: 0,
+            annotationColor: FINANCIAL_LIGHT_FILLS.BLUE,
+            captionLayoutStyle: 'overlay',
+            captionAlignment: 'left',
             gridLineColor: { $foregroundBackgroundMix: 0.06 },
         };
-    }
-
-    override getTemplateParameters() {
-        const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, FINANCIAL_LIGHT_FILLS.BLUE);
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, FINANCIAL_LIGHT_FILLS.BLUE);
-
-        params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'overlay');
-        params.set(DEFAULT_CAPTION_ALIGNMENT, 'left');
-        params.set(DEFAULT_TOOLBAR_POSITION, 'bottom');
-
-        return params;
     }
 }

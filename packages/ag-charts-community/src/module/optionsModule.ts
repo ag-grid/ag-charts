@@ -607,11 +607,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.soloSeriesIntegrity(options);
 
-        // TODO: Remove as this is only required to pass the series validation, it is handled by the OptionsGraph.
-        if (presetType != null) {
-            activeTheme.templateTheme(options, false);
-        }
-
         const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
 
         const chartType = detectChartType(options, this.moduleRegistry);
