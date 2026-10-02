@@ -9,13 +9,14 @@ import {
     required,
     string,
     union,
+    without,
 } from 'ag-charts-core';
 
 const { waterfallSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = {
     ...waterfallSeriesThemeableOptionsDef,
-    ...commonSeriesOptionsDefs,
+    ...without(commonSeriesOptionsDefs, ['highlight']),
     type: required(constant('waterfall')),
     xKey: required(string),
     yKey: required(string),

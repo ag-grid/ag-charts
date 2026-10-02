@@ -934,6 +934,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private updateDatumNodes({
         datumSelection,
+        isHighlight,
     }: {
         datumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
         isHighlight: boolean;
@@ -950,7 +951,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             applyPyramidDatum(connector, nodeDatum);
 
-            connector.fillShadow = shadow;
+            connector.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
         });
     }
 

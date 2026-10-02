@@ -19,7 +19,7 @@ import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio 
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesShadowHighlightOptions,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
@@ -97,7 +97,7 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters.*/
     itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgRangeBarHighlightStyleOptions, AgRangeBarHighlightStyleOptions>;
+    highlight?: AgMultiSeriesShadowHighlightOptions<AgRangeBarHighlightStyleOptions, AgRangeBarHighlightStyleOptions>;
     /** Whether to group together (adjacently) separate bars. */
     grouped?: boolean;
     /** Configuration for styling series as separate segments. */
