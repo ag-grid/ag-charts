@@ -25,19 +25,19 @@ person or an agent performs it.
 
 ## File mapping
 
-| React source (`src/demos/trading-terminal/`)                     | Vue seed (`seeds/trading-terminal/vue/src/`)                                 | Treatment                            |
+| React source (`src/demos/trading-terminal/`)              | Vue seed (`seeds/trading-terminal/vue/src/`)                          | Treatment                            |
 | --------------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------ |
 | `barTransaction.ts`                                       | `barTransaction.ts`                                                   | copied unchanged                     |
 | `chartTheme.ts`                                           | `chartTheme.ts`                                                       | copied unchanged                     |
 | `data.ts`                                                 | `data.ts`                                                             | copied unchanged                     |
 | `deterministic.ts`                                        | `deterministic.ts`                                                    | copied unchanged (see below)         |
-| `trading-terminal.css`                                           | `trading-terminal.css`                                                       | copied unchanged                     |
+| `trading-terminal.css`                                    | `trading-terminal.css`                                                | copied unchanged                     |
 | `format.ts`                                               | `format.ts`                                                           | copied unchanged                     |
 | `types.ts`                                                | `types.ts`                                                            | copied unchanged                     |
 | `windowTransaction.ts`                                    | `windowTransaction.ts`                                                | copied unchanged                     |
 | `components/grid.ts`                                      | `components/grid.ts`                                                  | two import lines changed (see below) |
-| `index.tsx`                                               | `TradingTerminal.vue`                                                       | ported                               |
-| `TradingTerminalApp.tsx`                                        | `TradingTerminalApp.vue`                                                    | ported                               |
+| `index.tsx`                                               | `TradingTerminal.vue`                                                 | ported                               |
+| `TradingTerminalApp.tsx`                                  | `TradingTerminalApp.vue`                                              | ported                               |
 | `useStreamingMarket.ts`                                   | `useStreamingMarket.ts`                                               | ported (hook to composable)          |
 | `ui.tsx` (`Button`, `Select`, `ToggleGroup`)              | `ui/Button.vue`, `ui/Select.vue`, `ui/ToggleGroup.vue`, `ui/types.ts` | ported, one file per export          |
 | —                                                         | `ui/typeahead.ts`                                                     | port-only (see below)                |

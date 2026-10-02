@@ -17,5 +17,6 @@ if (!container) {
 // this wrapper with no box; sizing it to the viewport keeps it visible to tooling. In the demos
 // app the loading fallback does that while the demo's chunk loads.
 createApp({
-    render: () => h('main', { 'data-demo-id': 'trading-terminal', style: 'position: fixed; inset: 0;' }, h(TradingTerminal)),
+    render: () =>
+        h('main', { 'data-demo-id': 'trading-terminal', style: 'position: fixed; inset: 0;' }, h(TradingTerminal)),
 }).mount(container);

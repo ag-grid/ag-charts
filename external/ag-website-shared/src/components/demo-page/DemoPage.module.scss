@@ -330,7 +330,10 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
         min-width: anchor-size(width);
         max-height: calc(100dvh - #{$spacing-size-4});
         overflow-y: auto;
-        position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+        position-try-fallbacks:
+            flip-block,
+            flip-inline,
+            flip-block flip-inline;
     }
 }
 

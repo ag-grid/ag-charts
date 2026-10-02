@@ -116,7 +116,9 @@ describe('parseSeedLinks', () => {
 
 describe('resolveSeedLink', () => {
     it('maps a StackBlitz link to the GitHub folder it imports', () => {
-        expect(resolveSeedLink({ kind: 'stackblitz', href: seedLink('trading-terminal', 'vue', 'Vue').stackblitz })).toEqual({
+        expect(
+            resolveSeedLink({ kind: 'stackblitz', href: seedLink('trading-terminal', 'vue', 'Vue').stackblitz })
+        ).toEqual({
             ref: 'latest',
             path: 'trading-terminal/vue',
             githubUrl: `${TREE}/latest/trading-terminal/vue`,
@@ -130,7 +132,9 @@ describe('resolveSeedLink', () => {
                 href: 'https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-demos/seeds/trading-terminal/vue',
             }).error
         ).toMatch(/does not start with/);
-        expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/trading-terminal` }).error).toMatch(/does not name/);
+        expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/trading-terminal` }).error).toMatch(
+            /does not name/
+        );
         expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/trading-terminal/vue/src` }).error).toMatch(
             /does not name/
         );
@@ -138,7 +142,10 @@ describe('resolveSeedLink', () => {
 });
 
 describe('checkDemoSeedLinks', () => {
-    const page = renderPage([seedLink('trading-terminal', 'react', 'React'), seedLink('trading-terminal', 'angular', 'Angular')]);
+    const page = renderPage([
+        seedLink('trading-terminal', 'react', 'React'),
+        seedLink('trading-terminal', 'angular', 'Angular'),
+    ]);
 
     it('fetches the deployed page and resolves every link it renders, then every manifest', async () => {
         const { fetchImpl, calls } = fakeFetch({ pages: { [`${STAGING}/examples/`]: page } });
@@ -211,7 +218,9 @@ describe('checkDemoSeedLinks', () => {
     });
 
     it('fails when the page itself cannot be fetched, or links outside the seeds', async () => {
-        const stray = renderPage([{ ...seedLink('trading-terminal', 'react', 'React'), github: 'https://example.com/' }]);
+        const stray = renderPage([
+            { ...seedLink('trading-terminal', 'react', 'React'), github: 'https://example.com/' },
+        ]);
         const pages = { [`${STAGING}/examples/`]: stray };
         const { fetchImpl } = fakeFetch({ pages });
 

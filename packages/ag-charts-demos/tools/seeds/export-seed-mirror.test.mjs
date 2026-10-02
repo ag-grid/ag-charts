@@ -63,9 +63,11 @@ describe('rewriteMarkdownLinks', () => {
 
     it('points a link that leaves the mirror at the same folder or file in ag-charts', () => {
         writeFile('src/demos/trading-terminal/data.ts');
-        expect(rewrite('[source](../../../src/demos/trading-terminal) and [data](../../../src/demos/trading-terminal/data.ts)')).toBe(
-            `[source](${TREE}/src/demos/trading-terminal) and [data](${BLOB}/src/demos/trading-terminal/data.ts)`
-        );
+        expect(
+            rewrite(
+                '[source](../../../src/demos/trading-terminal) and [data](../../../src/demos/trading-terminal/data.ts)'
+            )
+        ).toBe(`[source](${TREE}/src/demos/trading-terminal) and [data](${BLOB}/src/demos/trading-terminal/data.ts)`);
     });
 
     it('keeps a link to something the mirror carries, and any fragment', () => {
@@ -77,7 +79,9 @@ describe('rewriteMarkdownLinks', () => {
     });
 
     it('carries the fragment over to the rewritten link', () => {
-        expect(rewrite('[source](../../../src/demos/trading-terminal#top)')).toBe(`[source](${TREE}/src/demos/trading-terminal#top)`);
+        expect(rewrite('[source](../../../src/demos/trading-terminal#top)')).toBe(
+            `[source](${TREE}/src/demos/trading-terminal#top)`
+        );
     });
 
     it('leaves absolute links and anchors alone', () => {
@@ -140,7 +144,9 @@ describe('exportSeedMirror', () => {
         expect(read('trading-terminal/angular/README.md')).toBe('[notes](../angular.PORTING.md)');
         expect(read('LICENSE.txt')).toBe('The MIT License\n');
         expect(read('trading-terminal/README.md')).toContain('- [React](./react/)\n- [Angular](./angular/)\n');
-        expect(read('README.md')).toContain('| Trading Terminal | Angular | [`trading-terminal/angular`](./trading-terminal/angular) |');
+        expect(read('README.md')).toContain(
+            '| Trading Terminal | Angular | [`trading-terminal/angular`](./trading-terminal/angular) |'
+        );
         expect(read('README.md')).toContain('https://github.com/ag-grid/ag-charts/issues');
         expect(read('.gitignore').split('\n')).toContain('node_modules');
     });

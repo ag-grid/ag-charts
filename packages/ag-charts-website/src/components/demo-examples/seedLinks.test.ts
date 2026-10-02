@@ -129,7 +129,8 @@ describe('seedLinks', () => {
             expect(links[3]).toEqual({
                 framework: 'TypeScript',
                 href: 'https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/release-14.2.0/trading-terminal/typescript?title=AG%20Charts%20Trading%20Terminal%20(TypeScript)',
-                sourceHref: 'https://github.com/ag-grid/ag-charts-demos/tree/release-14.2.0/trading-terminal/typescript',
+                sourceHref:
+                    'https://github.com/ag-grid/ag-charts-demos/tree/release-14.2.0/trading-terminal/typescript',
             });
         });
 
@@ -243,7 +244,9 @@ describe('seedLinks', () => {
 
         test('fails on a manifest that names a different demo or framework from its folder', () => {
             writeManifest('trading-terminal', 'vue', manifest('trading-terminal', 'react'));
-            expect(() => readSeedManifests(seedsDir)).toThrow('names trading-terminal/react but lives at trading-terminal/vue');
+            expect(() => readSeedManifests(seedsDir)).toThrow(
+                'names trading-terminal/react but lives at trading-terminal/vue'
+            );
         });
 
         test('fails on a framework the site has no label for', () => {

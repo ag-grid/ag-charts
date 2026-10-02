@@ -17,7 +17,10 @@ afterEach(() => {
 });
 
 function writeManifest(fields) {
-    writeFileSync(manifestPath, `${JSON.stringify({ demo: 'trading-terminal', framework: 'vue', ...fields }, null, 4)}\n`);
+    writeFileSync(
+        manifestPath,
+        `${JSON.stringify({ demo: 'trading-terminal', framework: 'vue', ...fields }, null, 4)}\n`
+    );
 }
 
 describe('stampPortManifest', () => {

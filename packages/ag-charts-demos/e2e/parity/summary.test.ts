@@ -87,7 +87,9 @@ describe('describeSkipped', () => {
     it('names every skipped port with what it was aligned to and where the demo is now', () => {
         const lines = describeSkipped([skipped('angular')], 1);
         expect(lines[0]).toMatch(/^Parity: SKIPPED 1 stale port, not compared with the React demo\./);
-        expect(lines.slice(1)).toEqual(['  - trading-terminal/angular: stale, aligned to decade00, demo now at c0ffee00']);
+        expect(lines.slice(1)).toEqual([
+            '  - trading-terminal/angular: stale, aligned to decade00, demo now at c0ffee00',
+        ]);
     });
 
     it('falls back to the hashes when the commits cannot tell the two apart', () => {

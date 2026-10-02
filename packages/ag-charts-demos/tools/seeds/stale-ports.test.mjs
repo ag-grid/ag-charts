@@ -52,7 +52,9 @@ describe('readPortManifests', () => {
         const path = join(seedsDir, 'trading-terminal', 'angular', '.seed-manifest.json');
         writeFileSync(path, JSON.stringify({ demo: 'procurement', framework: 'angular', sourceHash: 'x' }));
 
-        expect(() => readPortManifests(seedsDir)).toThrow(/"demo" is "procurement" but the folder says "trading-terminal"/);
+        expect(() => readPortManifests(seedsDir)).toThrow(
+            /"demo" is "procurement" but the folder says "trading-terminal"/
+        );
     });
 
     it('is empty when there is no seeds folder', () => {
@@ -62,7 +64,10 @@ describe('readPortManifests', () => {
 
 describe('findStalePorts', () => {
     it('reports only the ports whose recorded hash differs from the current one', () => {
-        writeManifest('trading-terminal', 'angular', { sourceHash: `${CURRENT_HASH}-trading-terminal`, sourceCommit: 'aaa' });
+        writeManifest('trading-terminal', 'angular', {
+            sourceHash: `${CURRENT_HASH}-trading-terminal`,
+            sourceCommit: 'aaa',
+        });
         writeManifest('trading-terminal', 'vue', { sourceHash: 'sha256-old', sourceCommit: 'bbb' });
         writeManifest('procurement', 'typescript', { sourceHash: `${CURRENT_HASH}-procurement`, sourceCommit: 'ccc' });
 
@@ -166,7 +171,10 @@ describe('findTouchedStalePorts', () => {
     });
 
     it('passes a change that edits only ports that are not stale', () => {
-        const changedFiles = [`${SEEDS}procurement/angular/src/main.ts`, `${SEEDS}trading-terminal/typescript/src/main.ts`];
+        const changedFiles = [
+            `${SEEDS}procurement/angular/src/main.ts`,
+            `${SEEDS}trading-terminal/typescript/src/main.ts`,
+        ];
         expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([]);
     });
 
@@ -195,7 +203,10 @@ describe('findTouchedStalePorts', () => {
     });
 
     it('does not mistake a framework whose name another starts with', () => {
-        const changedFiles = [`${SEEDS}trading-terminal/angular-signals/src/main.ts`, `${SEEDS}trading-terminal/angular.PORTING.md`];
+        const changedFiles = [
+            `${SEEDS}trading-terminal/angular-signals/src/main.ts`,
+            `${SEEDS}trading-terminal/angular.PORTING.md`,
+        ];
         expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([]);
     });
 });
