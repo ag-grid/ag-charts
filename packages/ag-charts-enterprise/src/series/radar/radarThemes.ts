@@ -1,5 +1,6 @@
 import {
     COMMON_SERIES_THEME_DEFAULTS,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -9,7 +10,6 @@ import {
     POLAR_AXIS_TYPE,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_SELECTION_THEME,
-    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -31,7 +31,13 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
         },
         marker: {
             enabled: true,
-            shadow: SHADOW_THEME_DEFAULTS,
+            shadow: {
+                enabled: false,
+                color: DEFAULT_SHADOW_COLOUR,
+                xOffset: 3,
+                yOffset: 3,
+                blur: 5,
+            },
             fill: {
                 $applySwitch: [
                     { $path: 'type' },

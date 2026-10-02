@@ -11,7 +11,7 @@ import type {
     DynamicContext,
     NormalisedChartLabelCollisionOptions,
     NormalisedColorType,
-    NormalisedSeriesMarkerNodeStyle,
+    NormalisedDropShadowOptions,
     NormalisedSeriesMarkerOptions,
     NormalisedSeriesMarkerStyle,
     NormalisedSeriesOptions,
@@ -99,7 +99,7 @@ import type {
     SeriesNodePickMatch,
 } from './pickTypes';
 import { SeriesNodePickMode } from './pickTypes';
-import { mergeMarkerStyles, mergeMarkerStylesPair, omitMarkerShadow } from './seriesMarker';
+import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 import {
     getHighlightStyle,
     getSelectionStyle,
@@ -1526,10 +1526,10 @@ export abstract class Series<
             resolveStyler?: boolean;
             hideWithSize0?: boolean;
         },
-        defaultOverrideStyle: NormalisedSeriesMarkerNodeStyle & { size: number } = {
+        defaultOverrideStyle: NormalisedSeriesMarkerStyle & { size: number } = {
             size: point?.size ?? marker.size ?? 0,
         },
-        inheritedStyle?: NormalisedSeriesMarkerNodeStyle
+        inheritedStyle?: NormalisedSeriesMarkerStyle
     ) {
         const { itemStyler } = marker;
         const {
@@ -1564,10 +1564,10 @@ export abstract class Series<
             }
         }
 
-        const highlightStyle: NormalisedSeriesMarkerNodeStyle | undefined = checkForHighlight
+        const highlightStyle: NormalisedSeriesMarkerStyle | undefined = checkForHighlight
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
-        const selectionStyle: NormalisedSeriesMarkerNodeStyle | undefined =
+        const selectionStyle: NormalisedSeriesMarkerStyle | undefined =
             checkForHighlight && this.isSelectionEnabled()
                 ? this.getSelectionStyle(datumIndex, selectionState, candidateState)
                 : undefined;
@@ -1591,10 +1591,10 @@ export abstract class Series<
             const selectionStateString = selectionState === undefined ? undefined : toSelectionString(selectionState);
             const candidateStateString = candidateState === undefined ? undefined : toSelectionString(candidateState);
             const fill = this.filterItemStylerFillParams(markerStyle.fill);
+
             const style = this.cachedCallWithContext(itemStyler, {
                 seriesId: this.id,
-                // `shadow` is a marker option, not part of the `itemStyler` params.
-                ...omitMarkerShadow(markerStyle),
+                ...markerStyle,
                 fill,
                 ...params,
                 highlightState: highlightStateString,
@@ -1611,7 +1611,7 @@ export abstract class Series<
     }
 
     protected applyMarkerStyle(
-        style: NormalisedSeriesMarkerNodeStyle,
+        style: NormalisedSeriesMarkerStyle,
         markerNode: Marker,
         point: SizedPoint | undefined,
         fillBBox: ShapeFillBBox | undefined,
@@ -1621,16 +1621,18 @@ export abstract class Series<
             hideWithSize0: boolean;
             /** Floor for `Marker.pickInflation`, from `maxMarkerStrokePickInflation` (AG-8173). */
             pickInflation?: number;
+            /** The marker's `shadow` option; not part of the per-datum style, as nothing can vary it per datum. */
+            shadow?: NormalisedDropShadowOptions;
         }
     ) {
         const { shape, size = 0, strokeWidth = 0 } = style;
-        const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
+        const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0, shadow } = opts;
         const visible =
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
         markerNode.setStyleProperties(style, fillBBox);
-        markerNode.fillShadow = style.shadow?.enabled && isSupportedMarkerShape(shape) ? style.shadow : undefined;
+        markerNode.fillShadow = shadow?.enabled && isSupportedMarkerShape(shape) ? shadow : undefined;
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
         // The floor covers the highlight states; `style` covers this datum's own stroke, including an
         // `itemStyler`'s. The guard is exact, as `markerStrokePickInflation` never exceeds `sw / 2`.

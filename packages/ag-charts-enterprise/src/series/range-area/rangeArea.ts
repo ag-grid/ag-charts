@@ -107,7 +107,6 @@ const {
     processedDataIsAnimatable,
     cartesianMarkerDrawMode,
     getMarkerStyles,
-    omitMarkerShadow,
     calculateSegments,
     toHighlightString,
     toSelectionString,
@@ -1287,6 +1286,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             maxMarkerStrokePickInflation(contextNodeData.styles.low),
             maxMarkerStrokePickInflation(contextNodeData.styles.high)
         );
+        const shadows = { low: this.itemMarkers.low.shadow, high: this.itemMarkers.high.shadow };
 
         datumSelection.each((node, datum) => {
             const { itemType } = datum;
@@ -1299,6 +1299,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, {
                 hideWithSize0,
                 pickInflation,
+                shadow: shadows[itemType],
             });
             node.drawingMode = drawingMode;
         });
@@ -1592,14 +1593,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(itemType);
-        const format = omitMarkerShadow(
-            this.getMarkerStyle(
-                this.itemMarkers[itemType],
-                { datumIndex, datum },
-                params,
-                { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
-                stylerStyle.item[itemType].marker
-            )
+        const format = this.getMarkerStyle(
+            this.itemMarkers[itemType],
+            { datumIndex, datum },
+            params,
+            { isHighlight: false, resolveMarkerSubPath: ['item', itemType, 'marker'] },
+            stylerStyle.item[itemType].marker
         ) as RequireOptional<AgSeriesMarkerStyle>;
 
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;

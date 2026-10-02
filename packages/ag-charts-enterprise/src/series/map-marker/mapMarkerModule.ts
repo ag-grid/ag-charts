@@ -1,6 +1,7 @@
 import { type AgMapMarkerSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -9,7 +10,6 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_RANGE2_OPERATION,
     SERIES_SELECTION_THEME,
-    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     ValidationError,
@@ -67,7 +67,13 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
             fillOpacity: 0.5,
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
-            shadow: SHADOW_THEME_DEFAULTS,
+            shadow: {
+                enabled: false,
+                color: DEFAULT_SHADOW_COLOUR,
+                xOffset: 3,
+                yOffset: 3,
+                blur: 5,
+            },
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,

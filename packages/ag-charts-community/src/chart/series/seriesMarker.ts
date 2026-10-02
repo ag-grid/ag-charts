@@ -1,26 +1,20 @@
-import type { NormalisedSeriesMarkerNodeStyle } from 'ag-charts-core';
+import type { NormalisedSeriesMarkerStyle } from 'ag-charts-core';
 
 /** Outer diameter a marker reserves: its size plus the stroke drawn around it. */
 export function markerDiameter(marker: { size: number; strokeWidth: number }): number {
     return marker.size + marker.strokeWidth;
 }
 
-/** The marker `shadow` is a render option, not a public styler or tooltip param: strip it before spreading a marker style into those. */
-export function omitMarkerShadow<T extends { shadow?: unknown }>(style: T): Omit<T, 'shadow'> {
-    const { shadow: _shadow, ...rest } = style;
-    return rest;
-}
-
 /** Highlight/selection styles carry an extra `opacity` field via HighlightOptions's StyleMixins. */
-export type MergeMarkerStyleSource = NormalisedSeriesMarkerNodeStyle & { opacity?: number };
-type MergeMarkerStyleResult = NormalisedSeriesMarkerNodeStyle & { size: number; opacity?: number };
+export type MergeMarkerStyleSource = NormalisedSeriesMarkerStyle & { opacity?: number };
+type MergeMarkerStyleResult = NormalisedSeriesMarkerStyle & { size: number; opacity?: number };
 
 /** Specialised mergeDefaults: left-most non-undefined wins, no recursion (no source holds plain objects). */
 export function mergeMarkerStyles(
     selectionStyle: MergeMarkerStyleSource | undefined,
     highlightStyle: MergeMarkerStyleSource | undefined,
-    defaultOverride: NormalisedSeriesMarkerNodeStyle & { size: number },
-    markerStyle: NormalisedSeriesMarkerNodeStyle,
+    defaultOverride: NormalisedSeriesMarkerStyle & { size: number },
+    markerStyle: NormalisedSeriesMarkerStyle,
     inheritedStyle: MergeMarkerStyleSource | undefined
 ): MergeMarkerStyleResult {
     return {
@@ -73,12 +67,6 @@ export function mergeMarkerStyles(
             defaultOverride.lineDashOffset ??
             markerStyle.lineDashOffset ??
             inheritedStyle?.lineDashOffset,
-        shadow:
-            selectionStyle?.shadow ??
-            highlightStyle?.shadow ??
-            defaultOverride.shadow ??
-            markerStyle.shadow ??
-            inheritedStyle?.shadow,
         // defaultOverride and markerStyle don't carry opacity — see MergeMarkerStyleSource.
         opacity: selectionStyle?.opacity ?? highlightStyle?.opacity ?? inheritedStyle?.opacity,
     };
@@ -100,7 +88,6 @@ export function mergeMarkerStylesPair(
         strokeOpacity: resolved.strokeOpacity ?? base.strokeOpacity,
         lineDash: resolved.lineDash ?? base.lineDash,
         lineDashOffset: resolved.lineDashOffset ?? base.lineDashOffset,
-        shadow: resolved.shadow ?? base.shadow,
         opacity: resolved.opacity ?? base.opacity,
     };
 }

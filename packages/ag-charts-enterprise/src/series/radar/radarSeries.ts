@@ -54,7 +54,6 @@ const {
     Marker,
     updateLabelNode,
     getMarkerStyles,
-    omitMarkerShadow,
     createDatumId,
     processedDataIsAnimatable,
 } = _ModuleSupport;
@@ -546,13 +545,14 @@ export abstract class RadarSeries<
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+        const { shadow } = this.options.marker;
 
         selection.each((node, datum) => {
             // datum.style is populated from resolved (ref-free) marker styles by the style passes.
             const style =
                 (datum.style as NormalisedSeriesMarkerStyle | undefined) ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0, pickInflation });
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0, pickInflation, shadow });
 
             node.drawingMode = drawingMode;
         });
@@ -602,11 +602,9 @@ export abstract class RadarSeries<
         const allowNullKeys = this.options.allowNullKeys ?? false;
         if (angleValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const activeStyle = omitMarkerShadow(
-            this.getMarkerStyle(marker, { datum, datumIndex }, this.getDatumStylerProperties(datum), {
-                isHighlight: false,
-            })
-        );
+        const activeStyle = this.getMarkerStyle(marker, { datum, datumIndex }, this.getDatumStylerProperties(datum), {
+            isHighlight: false,
+        });
 
         return this.formatTooltipWithContext(
             tooltip,

@@ -158,6 +158,74 @@ describe('marker shadow', () => {
         });
     });
 
+    describe('range-area item markers', () => {
+        const LOW_SHADOW: AgDropShadowOptions = { enabled: true, color: '#ff0000', xOffset: 2, yOffset: 2, blur: 3 };
+        const HIGH_SHADOW: AgDropShadowOptions = { enabled: true, color: '#0000ff', xOffset: 6, yOffset: 7, blur: 9 };
+
+        const rangeAreaCase = CASES.find((c) => c.name === 'range-area')!;
+
+        const markersByItemType = () => {
+            const byType: Record<'low' | 'high', Marker[]> = { low: [], high: [] };
+            for (const marker of visibleMarkers(rangeAreaCase)) {
+                byType[(marker.datum as { itemType: 'low' | 'high' }).itemType].push(marker);
+            }
+            return byType;
+        };
+
+        it('applies each item marker its own shadow', async () => {
+            await create({
+                data: RADAR_DATA,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'subject',
+                        yHighKey: 'value',
+                        yLowKey: 'low',
+                        marker: { enabled: true, shape: 'circle', size: 12 },
+                        item: {
+                            low: { marker: { shadow: LOW_SHADOW } },
+                            high: { marker: { shadow: HIGH_SHADOW } },
+                        },
+                    },
+                ],
+            } as AgChartOptions);
+
+            const { low, high } = markersByItemType();
+            expect(low).toHaveLength(RADAR_DATA.length);
+            expect(high).toHaveLength(RADAR_DATA.length);
+            for (const marker of low) {
+                expect(marker.fillShadow).toMatchObject(LOW_SHADOW);
+            }
+            for (const marker of high) {
+                expect(marker.fillShadow).toMatchObject(HIGH_SHADOW);
+            }
+        });
+
+        it('shadows only the item whose marker sets a shadow', async () => {
+            await create({
+                data: RADAR_DATA,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'subject',
+                        yHighKey: 'value',
+                        yLowKey: 'low',
+                        marker: { enabled: true, shape: 'circle', size: 12 },
+                        item: { high: { marker: { shadow: HIGH_SHADOW } } },
+                    },
+                ],
+            } as AgChartOptions);
+
+            const { low, high } = markersByItemType();
+            for (const marker of low) {
+                expect(marker.fillShadow?.enabled ?? false).toBe(false);
+            }
+            for (const marker of high) {
+                expect(marker.fillShadow).toMatchObject(HIGH_SHADOW);
+            }
+        });
+    });
+
     describe.each(CASES.filter((c) => c.name !== 'map-marker'))('$name tooltip renderer', (testCase) => {
         it('does not receive the marker shadow in its params', async () => {
             const received: any[] = [];

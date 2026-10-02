@@ -131,6 +131,50 @@ describe('marker shadow', () => {
         });
     });
 
+    describe.each(['scatter', 'bubble', 'line', 'area'] as const)('%s dynamic update', (type) => {
+        const options = (shadow: AgDropShadowOptions) =>
+            ({
+                data: SCATTER_DATA,
+                series: [markerSeriesOptions[type](shapeOption('circle'), shadow)],
+            }) as AgCartesianChartOptions;
+
+        const update = async (next: AgCartesianChartOptions) => {
+            prepareTestOptions(next);
+            await chart.update(next);
+            await waitForChartStability(chart);
+        };
+
+        it('follows shadow.enabled when it is toggled with chart.update()', async () => {
+            await create(options({ ...SHADOW, enabled: false }));
+            for (const marker of visibleMarkers()) {
+                expect(marker.fillShadow?.enabled ?? false).toBe(false);
+            }
+
+            await update(options(SHADOW));
+            const enabledMarkers = visibleMarkers();
+            expect(enabledMarkers).toHaveLength(SCATTER_DATA.length);
+            for (const marker of enabledMarkers) {
+                expect(marker.fillShadow).toMatchObject(SHADOW);
+            }
+
+            await update(options({ ...SHADOW, enabled: false }));
+            for (const marker of visibleMarkers()) {
+                expect(marker.fillShadow?.enabled ?? false).toBe(false);
+            }
+        });
+
+        it('follows the shadow values when they change with chart.update()', async () => {
+            await create(options(SHADOW));
+
+            const changed = { ...SHADOW, blur: 12, color: '#ff0000' };
+            await update(options(changed));
+
+            for (const marker of visibleMarkers()) {
+                expect(marker.fillShadow).toMatchObject(changed);
+            }
+        });
+    });
+
     describe('itemStyler', () => {
         it.each(['scatter', 'bubble', 'line', 'area'] as const)(
             '%s keeps the marker shadow and does not pass it to the itemStyler params',

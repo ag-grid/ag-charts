@@ -69,7 +69,7 @@ import { SeriesNodePickMode } from '../pickTypes';
 import type { MarkerStyleApply, MarkerStyleCompute } from '../series';
 import { Series } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { markerDiameter, omitMarkerShadow } from '../seriesMarker';
+import { markerDiameter } from '../seriesMarker';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import { HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
@@ -983,6 +983,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+        const { shadow } = this.options.marker;
 
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
@@ -995,6 +996,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 crossFilterSelected: datum.crossFilterSelected,
                 hideWithSize0,
                 pickInflation,
+                shadow,
             });
             const nextDrawingMode =
                 constantDrawingMode ?? thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);
@@ -1120,14 +1122,12 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
-        const format = omitMarkerShadow(
-            this.getMarkerStyle(
-                this.options.marker,
-                { datumIndex, datum },
-                params,
-                { isHighlight: false },
-                stylerStyle.marker
-            )
+        const format = this.getMarkerStyle(
+            this.options.marker,
+            { datumIndex, datum },
+            params,
+            { isHighlight: false },
+            stylerStyle.marker
         ) as RequireOptional<NormalisedSeriesMarkerStyle>;
 
         return this.formatTooltipWithContext(

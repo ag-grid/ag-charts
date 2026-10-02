@@ -20,7 +20,6 @@ import type {
     RequiredInternalAgPatternColor,
 } from '../types/normalised-options/normalisedCommonOptions';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../types/themeConstants';
-import { DEFAULT_SHADOW_COLOUR } from '../types/themeSymbols';
 import { mapValues } from '../utils/data/object';
 import { Color } from '../utils/format/color';
 
@@ -524,15 +523,6 @@ export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickR
 
 /** Solid, fully opaque stroke; the theme value every stroked element starts from. */
 export const STROKE_STYLE_THEME_DEFAULTS = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
-
-/** Drop shadow theme default shared by markers: off, with the same look as the bar series shadow. */
-export const SHADOW_THEME_DEFAULTS = {
-    enabled: false,
-    color: DEFAULT_SHADOW_COLOUR,
-    xOffset: 3,
-    yOffset: 3,
-    blur: 5,
-};
 
 /** Series-level defaults every migrated series module spreads into its `themeTemplate.series`. */
 export const COMMON_SERIES_THEME_DEFAULTS = { ...SERIES_INTERACTION_THEME_DEFAULTS, showInLegend: true } as const;

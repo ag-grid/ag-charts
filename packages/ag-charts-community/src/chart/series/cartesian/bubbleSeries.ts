@@ -105,7 +105,7 @@ import type { PickFocusInputs, SeriesNodePickMatch } from '../pickTypes';
 import { SeriesNodePickMode } from '../pickTypes';
 import type { MarkerStyleApply, MarkerStyleCompute, SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { markerDiameter, omitMarkerShadow } from '../seriesMarker';
+import { markerDiameter } from '../seriesMarker';
 import { toHighlightString, toSelectionString } from '../seriesProperties';
 import {
     type BucketLookupFeature,
@@ -1315,6 +1315,7 @@ export abstract class BubbleScatterSeries<
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+        const { shadow } = this.marker;
 
         datumSelection.each((node, datum, index) => {
             const {
@@ -1343,6 +1344,7 @@ export abstract class BubbleScatterSeries<
                 crossFilterSelected: datum.crossFilterSelected,
                 hideWithSize0: false,
                 pickInflation,
+                shadow,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {
@@ -1706,13 +1708,11 @@ export abstract class BubbleScatterSeries<
             }
         }
 
-        const activeStyle = omitMarkerShadow(
-            this.getMarkerStyle<BubbleScatterMarkerParams>(
-                marker,
-                { datum, datumIndex },
-                { xKey, yKey, sizeKey, labelKey, colorKey },
-                { resolveMarkerSubPath: [] }
-            )
+        const activeStyle = this.getMarkerStyle<BubbleScatterMarkerParams>(
+            marker,
+            { datum, datumIndex },
+            { xKey, yKey, sizeKey, labelKey, colorKey },
+            { resolveMarkerSubPath: [] }
         );
         if (resolvedColorFill != null) {
             // `getMarkerStyle` omits the colour-scale fill, so apply it here to match the on-canvas marker.

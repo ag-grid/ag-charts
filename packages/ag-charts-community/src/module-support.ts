@@ -250,7 +250,6 @@ export type {
     UnknownSeries,
 } from './chart/series/series';
 export type { PickFocusInputs, PickFocusOutputs, SeriesNodePickMatch } from './chart/series/pickTypes';
-export { omitMarkerShadow } from './chart/series/seriesMarker';
 export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from './chart/series/seriesLabelUtil';
 export type { SeriesItemHighlightStyle } from './chart/series/seriesProperties';
 export { toHighlightString, toSelectionString, isUnselected } from './chart/series/seriesProperties';

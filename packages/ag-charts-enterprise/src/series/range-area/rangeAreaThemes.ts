@@ -2,6 +2,7 @@ import { type AgChartThemeOverrides, type WithThemeParams } from 'ag-charts-comm
 import {
     CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -14,7 +15,6 @@ import {
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
-    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
@@ -139,7 +139,13 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         ...STROKE_STYLE_THEME_DEFAULTS,
         marker: {
             enabled: false,
-            shadow: SHADOW_THEME_DEFAULTS,
+            shadow: {
+                enabled: false,
+                color: DEFAULT_SHADOW_COLOUR,
+                xOffset: 3,
+                yOffset: 3,
+                blur: 5,
+            },
             fill: {
                 $applySwitch: [
                     { $path: 'type' },
