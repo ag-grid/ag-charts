@@ -143,6 +143,7 @@ function itemTheme(
                         labels: inherited('collision/collideWith/labels', 5),
                         seriesItems: inherited('collision/collideWith/seriesItems', 5),
                         seriesArea: inherited('collision/collideWith/seriesArea', 5),
+                        axisLabels: inherited('collision/collideWith/axisLabels', 5),
                     },
                 }),
             },

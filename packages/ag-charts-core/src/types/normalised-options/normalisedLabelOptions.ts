@@ -34,6 +34,7 @@ export interface NormalisedLabelCollideWithOptions {
     labels?: boolean;
     seriesItems?: boolean;
     seriesArea?: boolean;
+    axisLabels?: boolean;
 }
 
 export type NormalisedChartLabelCollisionOptions = Normalised<AgChartLabelCollisionOptions, 'alwaysShow'> & {

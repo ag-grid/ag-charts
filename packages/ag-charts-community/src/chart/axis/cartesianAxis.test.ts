@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { getDocument, rotatePoint } from 'ag-charts-core';
+import { axisLabelsOverlap, getDocument, rotatePoint } from 'ag-charts-core';
 import type {
     AgBaseChartThemeOptions,
     AgCartesianAxisCrossAt,
@@ -24,7 +24,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import { axisLabelsOverlap } from './generateTicksUtils';
 
 const NUMERIC_DATA = [
     { x: -10, y: -8 },
