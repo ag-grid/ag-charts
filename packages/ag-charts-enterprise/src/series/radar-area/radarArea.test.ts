@@ -33,7 +33,7 @@ import {
 } from 'ag-charts-community-test';
 import type { NonNullablePath } from 'ag-charts-core';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RadarAreaSeries', () => {
     setupMockConsole();
@@ -1007,6 +1007,61 @@ describe('RadarAreaSeries', () => {
             chart = AgCharts.create(options);
             await compare();
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+    });
+
+    describe('shadow', () => {
+        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
+        const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
+            data: EXAMPLE_OPTIONS.data,
+            series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA', shadow: seriesShadow }],
+            legend: { enabled: false },
+        });
+        const shadowedShapes = (group: any) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
+
+        it('defaults to a disabled shadow', async () => {
+            const options = shadowOptions();
+            prepareEnterpriseTestOptions(options as any);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            const options = shadowOptions();
+            prepareEnterpriseTestOptions(options as any);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0];
+            expect(collectShapes(series.contentGroup).length).toBeGreaterThan(0);
+            expect(shadowedShapes(series.contentGroup)).toEqual([]);
+        });
+
+        it('shadows the fill but not the line', async () => {
+            const options = shadowOptions(shadow);
+            prepareEnterpriseTestOptions(options as any);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0];
+            const areaShapes = collectShapes(series['areaGroup']);
+            expect(areaShapes).toHaveLength(1);
+            expect(areaShapes[0].fillShadow).toMatchObject(shadow);
+
+            const lineShapes = collectShapes(series['lineGroup']);
+            expect(lineShapes).toHaveLength(1);
+            expect(shadowedShapes(series['lineGroup'])).toEqual([]);
+            expect(shadowedShapes(series.contentGroup)).toEqual(areaShapes);
+        });
+
+        it('renders with the shadow enabled', async () => {
+            const options = shadowOptions(shadow);
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
         });
     });
 

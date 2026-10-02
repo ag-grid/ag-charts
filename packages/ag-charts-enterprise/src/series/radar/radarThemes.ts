@@ -94,6 +94,13 @@ export const RADAR_AREA_SERIES_THEME: ExtensibleSeriesTheme<'radar-area'> = merg
             },
             fillOpacity: 0.8,
             strokeWidth: 2,
+            shadow: {
+                enabled: false,
+                color: DEFAULT_SHADOW_COLOUR,
+                xOffset: 3,
+                yOffset: 3,
+                blur: 5,
+            },
             marker: {
                 enabled: false,
             },

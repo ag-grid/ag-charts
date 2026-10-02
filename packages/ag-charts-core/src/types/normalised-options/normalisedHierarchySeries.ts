@@ -22,7 +22,12 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { FillStrokeMorph, NormalisedColorType, NormalisedTextOrSegments } from './normalisedCommonOptions';
+import type {
+    FillStrokeMorph,
+    NormalisedColorType,
+    NormalisedDropShadowOptions,
+    NormalisedTextOrSegments,
+} from './normalisedCommonOptions';
 import type {
     NormalisedAutoSizedLabelOptions,
     NormalisedAutoSizedSecondaryLabelOptions,
@@ -81,6 +86,7 @@ type TreemapGroupRequiredKeys =
     | 'strokeWidth'
     | 'strokeOpacity'
     | 'cornerRadius'
+    | 'shadow'
     | 'textAlign'
     | 'gap'
     | 'padding'
@@ -95,6 +101,7 @@ export type NormalisedTreemapGroupOptions = Normalised<
         fill?: NormalisedColorType;
         fills: NormalisedColorType[];
         stroke?: CssColor;
+        shadow: NormalisedDropShadowOptions;
         label: NormalisedTreemapGroupLabelOptions;
         highlight: NormalisedTreemapGroupHighlightOptions;
     }
@@ -105,6 +112,7 @@ type TreemapTileRequiredKeys =
     | 'strokeWidth'
     | 'strokeOpacity'
     | 'cornerRadius'
+    | 'shadow'
     | 'textAlign'
     | 'verticalAlign'
     | 'gap'
@@ -120,6 +128,7 @@ export type NormalisedTreemapTileOptions = Normalised<
     {
         fill?: NormalisedColorType;
         stroke?: CssColor;
+        shadow: NormalisedDropShadowOptions;
         label: NormalisedAutoSizedLabelOptions<AgTreemapSeriesLabelFormatterParams>;
         secondaryLabel: NormalisedAutoSizedSecondaryLabelOptions<AgTreemapSeriesLabelFormatterParams>;
         highlight: NormalisedTreemapTileHighlightOptions;
@@ -180,6 +189,7 @@ type SunburstRequiredKeys =
     | 'strokeWidth'
     | 'strokeOpacity'
     | 'cornerRadius'
+    | 'shadow'
     | 'sectorSpacing'
     | 'padding'
     | 'label'
@@ -194,6 +204,7 @@ export type NormalisedSunburstSeriesOwnOptions = Normalised<
         fills: NormalisedColorType[];
         strokes: CssColor[];
         colorScale: NormalisedColorScaleOptions;
+        shadow: NormalisedDropShadowOptions;
         label: NormalisedAutoSizedLabelOptions<AgSunburstSeriesLabelFormatterParams>;
         secondaryLabel: NormalisedAutoSizedSecondaryLabelOptions<AgSunburstSeriesLabelFormatterParams>;
         innerLabels?: NormalisedSunburstInnerLabelOptions[];
