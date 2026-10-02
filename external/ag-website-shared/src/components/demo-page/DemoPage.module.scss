@@ -315,11 +315,11 @@ $breakpoint-demo-fits: $demo-held-width + $hero-max-width + $demo-column-gap + $
         border: 1px solid color-mix(in srgb, var(--color-bg-primary), var(--color-fg-white) 22%);
     }
 
-    // Fixed, so the hero's scrolling and clipping cannot hide it; above the sticky site header
-    // (10002), which a list flipped above its button would otherwise sit under.
+    // Fixed, so the hero's scrolling and clipping cannot hide it; above the sticky site header and
+    // announcement banner, which a list flipped above its button would otherwise sit under.
     @supports (position-area: bottom) and (anchor-scope: all) {
         position: fixed;
-        z-index: 10003;
+        z-index: 10010;
         inset: auto;
         position-anchor: --open-in;
         position-area: bottom span-right;
