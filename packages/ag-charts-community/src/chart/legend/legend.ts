@@ -21,7 +21,6 @@ import {
     isImageFill,
     isPatternFill,
     isTextTruncated,
-    legendContainerZIndex,
     objectsEqual,
     toPlainText,
     toTextString,
@@ -99,13 +98,11 @@ export class Legend {
 
     readonly id = createId(this);
 
-    // Created before `group` so that, when both share a z-index, the box draws beneath the items.
-    private readonly containerGroup = new TranslatableGroup({ name: 'legend-background', zIndex: ZIndexMap.LEGEND });
     private readonly group = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
 
     private readonly itemSelection: Selection<CategoryLegendDatum, LegendMarkerLabel> =
         Selection.select<LegendMarkerLabel>(this.group, LegendMarkerLabel);
-    private readonly containerNode = this.containerGroup.appendChild(new Rect({ name: 'legend-container' }));
+    private readonly containerNode = this.group.appendChild(new Rect({ name: 'legend-container' }));
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -171,7 +168,6 @@ export class Legend {
         // Enabled later by updateGroupVisibility(); starting visible would spuriously dirty the first
         // flushChanges() for chart types with no legend (sparklines, gauges).
         this.group.visible = false;
-        this.containerGroup.visible = false;
 
         this.pagination = new Pagination(
             () => ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER }),
@@ -216,8 +212,7 @@ export class Legend {
                     delete items['toggle-other-series'].action;
                 }
             },
-            () => this.group.remove(),
-            () => this.containerGroup.remove()
+            () => this.group.remove()
         );
 
         this.domProxy = new LegendDOMProxy(this.ctx, this.id);
@@ -239,7 +234,6 @@ export class Legend {
         if (options === undefined) return;
         const enabled = options.legend?.enabled ?? false;
         this.group.visible = enabled && this.visible && this.data.length > 0;
-        this.containerGroup.visible = this.group.visible;
     }
 
     private updateItemSelection(): void {
@@ -275,7 +269,6 @@ export class Legend {
     }
 
     attachLegend(scene: Scene) {
-        scene.appendChild(this.containerGroup);
         scene.appendChild(this.group);
     }
 
@@ -918,7 +911,7 @@ export class Legend {
 
     private computePagedBBox(): BBox {
         // Get BBox without group transforms applied.
-        const actualBBox = Group.computeChildrenBBox(this.group.children());
+        const actualBBox = Group.computeChildrenBBox(this.group.excludeChildren({ name: 'legend-container' }));
         if (this.pages.length > 1) {
             const [maxPageWidth, maxPageHeight] = this.maxPageSize;
             actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
@@ -1388,9 +1381,6 @@ export class Legend {
             // Round off for pixel grid alignment to work properly.
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
             this.group.translationY = Math.floor(y + translationY - legendBBox.y);
-            this.containerGroup.translationX = this.group.translationX;
-            this.containerGroup.translationY = this.group.translationY;
-            this.containerGroup.zIndex = legendContainerZIndex(floating);
 
             this.containerNode.x = legendBBox.x;
             this.containerNode.y = legendBBox.y;

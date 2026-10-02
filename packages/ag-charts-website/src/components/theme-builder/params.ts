@@ -157,7 +157,6 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         label: 'Legend',
         collapsed: true,
         params: [
-            { key: 'legendBackgroundColor', label: 'Background Color' },
             { key: 'legendBorder', label: 'Border' },
             { key: 'legendBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
             { key: 'legendPadding', label: 'Padding', icon: 'horizontalSpacing', min: 0, max: 40 },

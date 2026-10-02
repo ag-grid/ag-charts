@@ -133,7 +133,6 @@ const themeParams = [
     'footnoteFontFamily',
     'footnoteColor',
     'groupedCategoryLineColor',
-    'legendBackgroundColor',
     'legendLabelColor',
     'scrollbarTrackBackgroundColor',
     'scrollbarTrackBorder',

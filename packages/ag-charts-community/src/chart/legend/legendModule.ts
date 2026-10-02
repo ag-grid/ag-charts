@@ -98,7 +98,9 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
                     fontFamily: { $ref: 'legendLabelFontFamily' },
                 },
             },
-            fill: { $ref: 'legendBackgroundColor' },
+            fill: {
+                $if: [{ $path: ['./position/floating', false] }, { $ref: 'chartBackgroundColor' }, 'transparent'],
+            },
         },
 
         create: (ctx) => {

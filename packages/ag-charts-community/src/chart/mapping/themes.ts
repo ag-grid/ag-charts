@@ -319,7 +319,6 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         crosshairLabelBackgroundColor: colorOrRef,
         crosshairLabelTextColor: colorOrRef,
 
-        legendBackgroundColor: colorOrRef,
         legendBorder: or(boolean, themeParamBorder),
         legendBorderRadius: number,
         legendItemHorizontalPadding: positiveNumber,

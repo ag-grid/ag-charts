@@ -281,7 +281,6 @@ export class ChartTheme {
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
 
-            legendBackgroundColor: { $ref: 'chartBackgroundColor' },
             legendBorder: false,
             legendBorderRadius: { $ref: 'borderRadius' },
             legendItemHorizontalPadding: 8,
