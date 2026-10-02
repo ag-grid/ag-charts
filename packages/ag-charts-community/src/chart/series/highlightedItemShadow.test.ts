@@ -140,11 +140,22 @@ describe('highlightedItem.shadow', () => {
         chart = undefined;
     });
 
+    /** The highlight the legend raises for the series' first legend item: per sector, or the whole series. */
+    const legendHighlight = (series: any) => {
+        const [legendDatum] = series.getLegendData('category');
+        if (legendDatum == null) return undefined;
+        const { itemId, legendItemName } = legendDatum;
+        return typeof itemId === 'number'
+            ? { series, itemId: undefined, datum: undefined, datumIndex: itemId, legendItemName }
+            : { series, itemId, datum: undefined, datumIndex: Number.NaN, legendItemName };
+    };
+
     const hoverFirstItem = async (
         testCase: SeriesCase,
         shadow: AgDropShadowOptions | undefined,
         highlight: object = {},
-        drawingMode: 'cutout' | 'overlay' = 'cutout'
+        drawingMode: 'cutout' | 'overlay' = 'cutout',
+        via: 'item' | 'legend' = 'item'
     ) => {
         const options = {
             data: testCase.data,
@@ -159,12 +170,16 @@ describe('highlightedItem.shadow', () => {
 
         const [series] = chart.series;
         const inPlaceBefore = shapesOf(series.contentGroup, testCase.kind);
-        chart.ctx.highlightManager.updateHighlight(chart.id, series.getNodeData()[0]);
+        // The shapes are live, so count what they cast now, before the hover changes it.
+        const castingBefore = inPlaceBefore.filter(casts).length;
+        const datum = via === 'legend' ? legendHighlight(series) : series.getNodeData()[0];
+        if (datum != null) chart.ctx.highlightManager.updateHighlight(chart.id, datum);
         await waitForChartStability(chart);
 
         return {
             series,
             inPlaceBefore,
+            castingBefore,
             inPlace: shapesOf(series.contentGroup, testCase.kind),
             // Some series keep an invisible highlight copy of every item, and show only the hovered one.
             highlighted: shapesOf(series.highlightNodeGroup, testCase.kind).filter((shape) => shape.visible),
@@ -190,6 +205,19 @@ describe('highlightedItem.shadow', () => {
             expect(highlighted).toHaveLength(1);
             expect(casts(highlighted[0])).toBe(false);
             for (const shape of inPlace) expect(shape.fillShadow).toMatchObject(SHADOW);
+        });
+
+        it('keeps every shadow when the item is hovered through the legend', async () => {
+            const { castingBefore, inPlace, highlighted } = await hoverFirstItem(
+                testCase,
+                SHADOW,
+                {},
+                'cutout',
+                'legend'
+            );
+
+            // A legend highlight has no datum, so a series that draws no copy for it must keep the in-place shadow.
+            expect([...inPlace, ...highlighted].filter(casts).length).toBeGreaterThanOrEqual(castingBefore);
         });
 
         it('restores the in-place shadow when the hover ends', async () => {
