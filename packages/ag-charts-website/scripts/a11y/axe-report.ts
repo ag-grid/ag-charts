@@ -206,7 +206,9 @@ ${report.rules.map(renderRule).join('\n')}
 }
 
 function escapeMarkdownCell(value: unknown) {
-    return String(value).replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
+    return String(value)
+        .replace(/\|/g, '\\|')
+        .replace(/\s*\n\s*/g, ' ');
 }
 
 /** A short summary for a CI job summary page; the HTML report carries the per-node detail. */
@@ -233,7 +235,8 @@ export function renderAxeReportMarkdown(report: AxeGroupedReport) {
             '### Scan errors',
             '',
             ...report.scanErrors.map(
-                (err) => `- ${escapeMarkdownCell(`${err.page}/${err.example}`)} (${err.pass}): ${escapeMarkdownCell(err.error)}`
+                (err) =>
+                    `- ${escapeMarkdownCell(`${err.page}/${err.example}`)} (${err.pass}): ${escapeMarkdownCell(err.error)}`
             )
         );
     }

@@ -105,7 +105,11 @@ describe('renderAxeReportMarkdown', () => {
         const markdown = renderAxeReportMarkdown(
             groupAxeResults([
                 entry('bar-series', [
-                    { pass: 'load', violations: [violation('region', 'moderate', [false, true])], axeVersion: '4.13.0' },
+                    {
+                        pass: 'load',
+                        violations: [violation('region', 'moderate', [false, true])],
+                        axeVersion: '4.13.0',
+                    },
                     { pass: 'focus', error: 'Timed out | after\n35000ms' },
                 ]),
             ])
@@ -117,7 +121,9 @@ describe('renderAxeReportMarkdown', () => {
     });
 
     it('omits the table and error list when there is nothing to report', () => {
-        const markdown = renderAxeReportMarkdown(groupAxeResults([entry('bar-series', [{ pass: 'load', violations: [] }])]));
+        const markdown = renderAxeReportMarkdown(
+            groupAxeResults([entry('bar-series', [{ pass: 'load', violations: [] }])])
+        );
 
         expect(markdown).not.toContain('| Rule |');
         expect(markdown).not.toContain('### Scan errors');
