@@ -5,10 +5,10 @@ import baseConfig from './playwright.config';
 /**
  * Report-only axe-core accessibility scan (`e2e/a11y-axe.spec.ts`).
  *
- * Runs the scan on its own, so a dedicated CI job's artefact carries the whole report instead of it
- * landing on whichever e2e shard picked up the spec. Until ci.yml has that job, the spec also runs in
- * the main sharded plan. Everything except the test selection and the report destinations is
- * inherited from the main config (Chromium only).
+ * Runs the scan on its own as ci.yml's e2e_a11y job, so that job's artefact carries the whole report
+ * instead of it landing on whichever e2e shard picked up the spec (the main config ignores it).
+ * Everything except the test selection and the report destinations is inherited from the main
+ * config (Chromium only).
  */
 export default defineConfig({
     ...baseConfig,

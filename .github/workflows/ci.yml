@@ -1251,6 +1251,136 @@ jobs:
                       reports/
                       packages/ag-charts-website/**/__scene_snapshots__/*
 
+    # Report-only axe-core accessibility scan of docs examples (e2e/a11y-axe.spec.ts). A job of its
+    # own so the PR carries the whole report in one artefact, rather than it landing on whichever
+    # `e2e` shard picked up the spec; the main config testIgnores the spec for that reason. The scan
+    # never fails on findings, and this job is not in the result-gating `needs` lists.
+    e2e_a11y:
+        runs-on: ubuntu-latest
+        name: E2E Accessibility Report
+        permissions:
+            contents: read
+            packages: read
+        needs: [detect-changes, init, playwright_image]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        env:
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
+            AG_FORCE_ALL_TESTS: 1
+            AG_E2E_REPORT_JSON: ./reports/ag-charts-website-e2e-a11y.json
+        steps:
+            # See the identically-shaped step on the `e2e` job for why this is backgrounded first.
+            - name: Start Playwright Image Pull (GHCR mirror)
+              if: needs.playwright_image.outputs.ghcr_available == 'true'
+              env:
+                  GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  nohup bash -c '
+                    status=1
+                    for attempt in 1 2 3 ; do
+                      if echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin \
+                          && docker pull "${GHCR_IMAGE}" ; then
+                        docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+                        status=0
+                        break
+                      fi
+                      if [ ${attempt} -lt 3 ] ; then
+                        sleep $((attempt * 10))
+                      fi
+                    done
+                    echo "${status}" > "${RUNNER_TEMP}/playwright-pull.status"
+                  ' > "${RUNNER_TEMP}/playwright-pull.log" 2>&1 < /dev/null &
+                  echo "GHCR pull running in the background as pid $!."
+
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+            - name: Restore Init Build Outputs
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+              with:
+                  name: e2e-init-outputs
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  yarn_postinstall: no-install
+                  nx_restore: false # Restored in previous step.
+                  cache_mode: ro
+                  free_disk_space: false
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: Start Astro Dev Server
+              run: packages/ag-charts-website/playwright.sh --start-dev-server
+
+            - name: Await Playwright Image
+              id: await_image
+              env:
+                  GHCR_AVAILABLE: ${{ needs.playwright_image.outputs.ghcr_available }}
+              run: |
+                  pulled=false
+                  if [ "${GHCR_AVAILABLE}" == "true" ] ; then
+                    for _ in $(seq 1 300) ; do
+                      if [ -f "${RUNNER_TEMP}/playwright-pull.status" ] ; then
+                        break
+                      fi
+                      sleep 1
+                    done
+                    if docker image inspect "${PLAYWRIGHT_IMAGE}" >/dev/null 2>&1 ; then
+                      pulled=true
+                    else
+                      echo "::warning::GHCR pull did not produce ${PLAYWRIGHT_IMAGE}; falling back to the tarball cache."
+                      cat "${RUNNER_TEMP}/playwright-pull.log" 2>/dev/null || true
+                    fi
+                  fi
+                  echo "pulled=${pulled}" >> "$GITHUB_OUTPUT"
+
+            - name: Restore Playwright Image Cache
+              id: pw_tarball
+              if: steps.await_image.outputs.pulled != 'true'
+              uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+              with:
+                  path: /tmp/playwright-docker-image.tar
+                  key: playwright-image-v1.60.0-jammy-v1
+
+            - name: Load Playwright Image
+              if: steps.await_image.outputs.pulled != 'true'
+              env:
+                  TARBALL_HIT: ${{ steps.pw_tarball.outputs.cache-hit }}
+              run: |
+                  if [ "${TARBALL_HIT}" == "true" ] ; then
+                    docker load -i /tmp/playwright-docker-image.tar
+                    exit 0
+                  fi
+                  echo "No cached image tarball; pulling ${PLAYWRIGHT_IMAGE} from upstream."
+                  for attempt in 1 2 3 4 ; do
+                    if docker pull "${PLAYWRIGHT_IMAGE}" ; then
+                      exit 0
+                    fi
+                    if [ ${attempt} -lt 4 ] ; then
+                      sleep $((attempt * 15))
+                    fi
+                  done
+                  echo "Failed to obtain ${PLAYWRIGHT_IMAGE}."
+                  exit 1
+
+            # playwright.sh appends reports/a11y/axe-summary.md to the job summary on CI.
+            - name: nx test:e2e (axe accessibility scan)
+              id: test
+              run: |
+                  cd packages/ag-charts-website/
+                  ./playwright.sh --host test --config playwright.a11y.config.ts
+              timeout-minutes: 15
+
+            - name: Persist axe report
+              if: always()
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                  name: a11y-axe-report
+                  path: reports/
+
     demos_e2e:
         runs-on: ubuntu-24.04
         name: Demo Apps Smoke

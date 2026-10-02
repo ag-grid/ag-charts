@@ -26,9 +26,8 @@ const isCI = process.env.CI != null && process.env.CI !== '';
 export default defineConfig({
     testDir: './e2e',
     /* Exclude staging-only tests from regular CI runs — run via post-deploy-verification.yml instead.
-     * The axe scan (a11y-axe.spec.ts) stays in this sharded plan until ci.yml gains a job that runs
-     * playwright.a11y.config.ts; only then add it here, or CI stops running the scan. */
-    testIgnore: ['**/page-verification.spec.ts'],
+     * The axe scan (a11y-axe.spec.ts) runs from playwright.a11y.config.ts, as ci.yml's e2e_a11y job. */
+    testIgnore: ['**/page-verification.spec.ts', '**/a11y-axe.spec.ts'],
     /* Run tests in files in parallel */
     fullyParallel: true,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -49,7 +48,6 @@ export default defineConfig({
         ['junit', { outputFile: '../../reports/ag-charts-website-e2e.xml' }],
         ['line'],
         ['json', { outputFile: '../../reports/ag-charts-website-e2e.json' }],
-        ['./e2e/a11y/axe-reporter.ts'],
     ],
     outputDir: '../../reports/ag-charts-website-e2e-reports/',
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
