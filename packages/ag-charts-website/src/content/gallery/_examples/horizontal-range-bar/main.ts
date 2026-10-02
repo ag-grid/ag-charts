@@ -64,7 +64,7 @@ const options: AgChartOptions = {
                 strokeOpacity: 0.4,
                 label: {
                     text: subject,
-                    position: 'inside',
+                    placement: 'inside',
                 },
             })),
         },

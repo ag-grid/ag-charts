@@ -163,7 +163,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0.2,
                     label: {
                         text: 'Low',
-                        position: 'inside-bottom-right',
+                        placement: 'inside-bottom-right',
                     },
                 },
                 {
@@ -173,7 +173,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0.2,
                     label: {
                         text: 'Middle',
-                        position: 'inside-bottom-right',
+                        placement: 'inside-bottom-right',
                     },
                 },
                 {
@@ -183,7 +183,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0.2,
                     label: {
                         text: 'High',
-                        position: 'inside-bottom-right',
+                        placement: 'inside-bottom-right',
                     },
                 },
             ],
@@ -215,7 +215,7 @@ const options: AgChartOptions = {
                     lineDash: [6, 3],
                     label: {
                         text: 'Global Average',
-                        position: 'right',
+                        placement: 'right',
                         padding: 5,
                     },
                 },

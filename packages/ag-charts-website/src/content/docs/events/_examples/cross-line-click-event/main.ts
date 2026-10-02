@@ -19,9 +19,9 @@ ModuleRegistry.registerModules([
     UnitTimeAxisModule,
 ]);
 
-const lockdownLabelStyle = { fontStyle: 'italic', position: 'bottom' } as const;
+const lockdownLabelStyle = { fontStyle: 'italic', placement: 'bottom' } as const;
 const variantLineStyle = { strokeWidth: 2, lineDash: [6, 4] };
-const variantLabelStyle = { position: 'top' } as const;
+const variantLabelStyle = { placement: 'top' } as const;
 
 const lockdownListeners: AgCrossLineListeners = {
     click: (event) => console.log('[lockdown click]', event),
@@ -126,7 +126,7 @@ const options: AgCartesianChartOptions<DataType> = {
                     lineDash: [8, 4],
                     label: {
                         text: 'ICU capacity (700 beds)',
-                        position: 'top-right',
+                        placement: 'top-right',
                     },
                     listeners: {
                         click: (event) => console.log('[capacity click]', event),

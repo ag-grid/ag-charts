@@ -19,6 +19,7 @@ import type {
     AgBaseCrosshairLabel,
     AgCartesianAxisCaptionOptions,
     AgCartesianAxisLabelOptions,
+    AgCartesianCrossLineLabelPlacement,
     AgCartesianTimeAxisLabelOptions,
     AgCategoryAxisOptions,
     AgCrossLineLabelPosition,
@@ -388,6 +389,8 @@ export type NormalisedAxisCrossLineLabelOptions = Normalised<
     reserveSpace?: boolean;
     /** Cartesian cross lines only. */
     position?: AgCrossLineLabelPosition;
+    /** Cartesian cross lines only. */
+    placement?: AgCartesianCrossLineLabelPlacement | AgCartesianCrossLineLabelPlacement[];
     /** Cartesian cross lines only. */
     rotation?: number;
     /** Cartesian cross lines only. */

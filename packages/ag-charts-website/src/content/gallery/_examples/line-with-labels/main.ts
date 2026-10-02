@@ -102,7 +102,7 @@ const options: AgChartOptions = {
                     lineDash: [6, 4],
                     label: {
                         text: '1 hour',
-                        position: 'right',
+                        placement: 'right',
                     },
                 },
             ],

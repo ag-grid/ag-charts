@@ -73,6 +73,8 @@ const BAR_CASCADE = {
     collision: { alwaysShow: false },
 };
 
+const BAR_CASCADE_KEPT = { ...BAR_CASCADE, collision: { alwaysShow: true } };
+
 function create(opts: typeof options) {
     return AgCharts.create(opts);
 }
@@ -114,6 +116,10 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     {
                         params: { Labels: 'Cascade + shrink' },
                         run: () => performInitialLoad(barOptions(BAR_CASCADE), chartRef, create),
+                    },
+                    {
+                        params: { Labels: 'Cascade kept' },
+                        run: () => performInitialLoad(barOptions(BAR_CASCADE_KEPT), chartRef, create),
                     },
                 ],
             },

@@ -104,7 +104,7 @@ const options: AgCartesianChartOptions = {
                     value: 0,
                     label: {
                         text: '► X',
-                        position: 'right',
+                        placement: 'right',
                         padding: 0,
                     },
                 },
@@ -125,7 +125,7 @@ const options: AgCartesianChartOptions = {
                     value: 0,
                     label: {
                         text: 'Y\n▲',
-                        position: 'top',
+                        placement: 'top',
                         padding: 0,
                     },
                 },

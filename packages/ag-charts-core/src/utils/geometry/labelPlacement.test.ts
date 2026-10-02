@@ -1694,6 +1694,28 @@ describe('placeLabels positioned candidates', () => {
         expect(placed[0].candidate).toBe(smallOverflow);
     });
 
+    it('keeps the least buried candidate when every one fits its region but collides (neverDrop)', () => {
+        const buried: BarCandidate = {
+            box: { x: 10, y: 10, width: 20, height: 10 },
+            region: bounds,
+            anchor: anchorOf(20, 15),
+            placement: 'inside-center',
+        };
+        const grazed: BarCandidate = {
+            box: { x: 100, y: 100, width: 20, height: 10 },
+            region: bounds,
+            anchor: anchorOf(110, 105),
+            placement: 'outside-end',
+        };
+        const obstacles: LabelObstacle[] = [
+            { kind: 'rect', box: { x: 5, y: 5, width: 30, height: 20 }, category: 'label' },
+            { kind: 'rect', box: { x: 118, y: 108, width: 10, height: 10 }, category: 'label' },
+        ];
+        const { placed } = place([buried, grazed], obstacles);
+        expect(placed).toHaveLength(1);
+        expect(placed[0].candidate).toBe(grazed);
+    });
+
     it('slides a region-bound candidate flush and records the offset; a region-less one floats', () => {
         const inside: BarCandidate = {
             box: { x: -10, y: 50, width: 20, height: 10 },
