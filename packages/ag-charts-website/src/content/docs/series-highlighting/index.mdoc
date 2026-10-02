@@ -132,8 +132,10 @@ The `shadow` option takes `enabled`, `color`, `xOffset`, `yOffset` and `blur` (s
 
 - It applies to the highlighted item only. It is not available on `highlightedSeries`, `unhighlightedItem` or `unhighlightedSeries`.
 - It is off unless configured, so highlighting looks the same as before until you set it.
-- While an item is highlighted, its `highlightedItem.shadow` replaces the series `shadow`. When it is not set, the highlighted item keeps the series `shadow`.
-- It is available on every series that supports `shadow`. Area, radar area and range area series fills are not redrawn when highlighted, so `highlightedItem.shadow` only changes the shadow on their markers.
+- While an item is highlighted, its `highlightedItem.shadow` is merged with the series `shadow`, field by field. Any field you leave unset comes from the series `shadow`. For example, `{ color: 'red' }` without `enabled: true` stays off if the series `shadow` is off. When `highlightedItem.shadow` is not set, the highlighted item keeps the series `shadow`.
+- It is available on every series that supports `shadow`, with these exceptions:
+    - Area, radar area and range area fills are not redrawn when highlighted, so `highlightedItem.shadow` only changes the shadow on their markers.
+    - Cone funnel series do not have the option. Their highlighted item is a line, and only the connectors between steps cast a `shadow`.
 
 ## Stylers
 
