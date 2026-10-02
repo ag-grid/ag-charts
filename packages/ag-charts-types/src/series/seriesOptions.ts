@@ -22,8 +22,9 @@ export interface AgMultiSeriesHighlightOptions<
 /** Highlight style options that only the highlighted item can set; the highlighted series cannot. */
 export interface AgItemHighlightStyleOptions {
     /**
-     * Configuration for the shadow used behind the highlighted item. Replaces the series' own `shadow` while the item
-     * is highlighted.
+     * Configuration for the shadow used behind the highlighted item. While the item is highlighted, it is merged with
+     * the series' own `shadow` field by field, so any field left unset comes from the series' `shadow`. For example,
+     * `{ color }` without `enabled: true` stays off if the series' `shadow` is off.
      *
      * Default: no highlight shadow, so the highlighted item keeps the series' `shadow`.
      */
@@ -34,7 +35,7 @@ export interface AgItemHighlightStyleOptions {
 export interface AgShadowHighlightOptions<
     ItemHighlightStyleOptions = AgHighlightStyleOptions,
 > extends AgHighlightOptions<ItemHighlightStyleOptions> {
-    /** Options for the highlighted item.  */
+    /** Options for the highlighted item. */
     highlightedItem?: ItemHighlightStyleOptions & AgItemHighlightStyleOptions;
 }
 
@@ -43,7 +44,7 @@ export interface AgMultiSeriesShadowHighlightOptions<
     ItemHighlightStyleOptions,
     SeriesHighlightStyleOptions = ItemHighlightStyleOptions,
 > extends AgMultiSeriesHighlightOptions<ItemHighlightStyleOptions, SeriesHighlightStyleOptions> {
-    /** Options for the highlighted item.  */
+    /** Options for the highlighted item. */
     highlightedItem?: ItemHighlightStyleOptions & AgItemHighlightStyleOptions;
 }
 
