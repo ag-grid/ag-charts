@@ -85,7 +85,6 @@ export function resolveEdgeLabelOverflow({ firstStart, lastEnd, start, end, pair
     return { hideFirst, hideLast };
 }
 
-/** True when a label measured along the axis is wider than the band it labels. */
 export function labelExceedsBand(labelSize: number, bandSize: number): boolean {
     return labelSize > bandSize;
 }
