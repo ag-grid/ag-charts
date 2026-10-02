@@ -209,6 +209,12 @@
         },
         "ui": {
           "command": "./playwright.sh --host test --ui-port=8080 --ui-host=0.0.0.0"
+        },
+        "a11y": {
+          "command": "./playwright.sh --host test --config playwright.a11y.config.ts"
+        },
+        "a11y-all": {
+          "command": "AG_A11Y_ALL_EXAMPLES=1 ./playwright.sh --host test --config playwright.a11y.config.ts"
         }
       }
     },
