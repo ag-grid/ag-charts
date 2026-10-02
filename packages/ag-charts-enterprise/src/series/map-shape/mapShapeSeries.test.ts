@@ -109,36 +109,31 @@ describe('MapShapeSeries', () => {
             series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
         });
 
-        it('defaults to a disabled shadow', async () => {
-            const options = shadowOptions();
+        const createChart = async (options: AgChartOptions) => {
             prepareEnterpriseTestOptions(options);
-
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
+            return chart.series[0];
+        };
 
-            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+        it('defaults to a disabled shadow', async () => {
+            const series = await createChart(shadowOptions());
+
+            expect(series['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const options = shadowOptions();
-            prepareEnterpriseTestOptions(options);
+            const series = await createChart(shadowOptions());
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
-
-            const shapes = collectShapes(chart.series[0].contentGroup);
+            const shapes = collectShapes(series.contentGroup);
             expect(shapes.length).toBeGreaterThan(0);
             expect(shapes.filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
         });
 
         it('applies an enabled shadow to every shape', async () => {
-            const options = shadowOptions(shadow);
-            prepareEnterpriseTestOptions(options);
+            const series = await createChart(shadowOptions(shadow));
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
-
-            const shapes = collectShapes(chart.series[0].contentGroup);
+            const shapes = collectShapes(series.contentGroup);
             expect(shapes.length).toBeGreaterThan(0);
             for (const shape of shapes) {
                 expect(shape.fillShadow).toMatchObject(shadow);
@@ -146,19 +141,13 @@ describe('MapShapeSeries', () => {
         });
 
         it('should render a chart with the shadow enabled', async () => {
-            const options = shadowOptions(shadow);
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            await createChart(shadowOptions(shadow));
             await compare();
         });
 
         describe('cutout drawing mode', () => {
             const highlightFirstShape = async (options: AgChartOptions) => {
-                prepareEnterpriseTestOptions(options);
-
-                chart = deproxy(AgCharts.create(options));
-                await waitForChartStability(chart);
+                await createChart(options);
 
                 const seriesImpl = chart.series[0] as MapShapeSeries;
                 const node = seriesImpl?.['contextNodeData']?.nodeData[0];
@@ -188,7 +177,7 @@ describe('MapShapeSeries', () => {
                 expect(others).toEqual([]);
                 expect(highlighted.drawingMode).toBe('cutout');
                 expect(highlighted.fillShadow).toMatchObject(shadow);
-                await compare({ failureThreshold: 1 });
+                await compare();
             });
 
             it('draws the highlighted shape without a shadow after the cutout when no shadow is set', async () => {
@@ -197,7 +186,7 @@ describe('MapShapeSeries', () => {
                 const [highlighted] = collectShapes(chart.series[0].highlightNodeGroup);
                 expect(highlighted.drawingMode).toBe('cutout');
                 expect(highlighted.fillShadow?.enabled).toBe(false);
-                await compare({ failureThreshold: 1 });
+                await compare();
             });
         });
     });
