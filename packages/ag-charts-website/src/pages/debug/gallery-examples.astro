@@ -9,7 +9,7 @@ const examples = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
 ---
 
 <Layout title={`Debug: Gallery Examples`}>
-    <main class="layout-page-max-width container">
+    <div class="layout-page-max-width container">
         <h1>Gallery Example Pages ({examples.length})</h1>
         <table>
             <thead>
@@ -37,7 +37,7 @@ const examples = getGalleryExamplePages({ galleryData: galleryDataEntry.data });
                 })}
             </tbody>
         </table>
-    </main>
+    </div>
 </Layout>
 
 <style lang="scss">

@@ -1,0 +1,14 @@
+{
+  "name": "tools-archive",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "tools/archive",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node --test tools/archive/*.test.mjs"
+      }
+    }
+  },
+  "tags": ["no-sharding"]
+}

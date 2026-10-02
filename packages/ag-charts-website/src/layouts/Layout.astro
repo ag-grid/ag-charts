@@ -31,13 +31,8 @@ import GoogleTagManagerBody from '@ag-website-shared/components/google-tag-manag
 import JsonLd from '@ag-website-shared/components/structured-data/JsonLd.astro';
 import WebsiteMonitoring from '@ag-website-shared/components/website-monitoring/WebsiteMonitoring.astro';
 import AnnouncementBanner from '@ag-website-shared/components/announcement-banner/AnnouncementBanner.astro';
-import {
-    buildAgGridOrganization,
-    buildSoftwareApplication,
-    buildWebSite,
-    siteRootUrl,
-    type JsonLdObject,
-} from '@ag-website-shared/utils/structuredData';
+import type { JsonLdObject } from '@ag-website-shared/utils/structuredData';
+import { buildSiteStructuredData, getSocialImageUrl } from '@utils/siteSeo';
 
 export interface Props {
     title?: string;
@@ -113,7 +108,7 @@ const pageUrl = new URL(Astro.url.pathname, metadata.canonicalUrlBase);
 // canonicalise to the grid URL instead of to themselves. Every other page canonicalises to itself.
 // The social tags keep this page's own URL so a share still resolves to the page that was shared.
 const canonicalUrl = getCanonicalUrl(pageUrl, metadata.canonicalUrlBase);
-const socialImage = urlWithBaseUrl(overrideSocialImage ?? '/images/ag-charts-social.png');
+const socialImage = getSocialImageUrl({ canonicalUrlBase: metadata.canonicalUrlBase, image: overrideSocialImage });
 
 const isApiLayout = apiMenuItems.some((item) => {
     const removeTrailingSlash = (s: string) => s.replace(/\/$/, '');
@@ -138,29 +133,13 @@ const darkModeCSSUrl = `url("${urlWithBaseUrl('/images/moon.svg')}")`;
 const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.replaceAll('/', '');
 
 const includeStructuredData = !noIndex && !isArchive;
-const siteRoot = siteRootUrl(metadata.canonicalUrlBase);
-const licensePricingUrl = `${siteRoot}license-pricing/`;
 const structuredData: JsonLdObject[] = includeStructuredData
     ? [
-          buildAgGridOrganization(),
-          buildWebSite({
+          ...buildSiteStructuredData({
               canonicalUrlBase: metadata.canonicalUrlBase,
               name: metadata.title,
               description: metadata.description,
-          }),
-          buildSoftwareApplication({
-              canonicalUrlBase: metadata.canonicalUrlBase,
-              name: 'AG Charts',
-              version: agChartsVersion.split('-')[0],
-              offers: [
-                  {
-                      '@type': 'Offer',
-                      name: 'AG Charts Community',
-                      price: '0',
-                      priceCurrency: 'USD',
-                      url: licensePricingUrl,
-                  },
-              ],
+              version: agChartsVersion,
           }),
           ...(pageStructuredData ?? []),
       ]
@@ -286,7 +265,9 @@ const structuredData: JsonLdObject[] = includeStructuredData
                 <ApiTopBar client:load menuItems={apiMenuItems} fullPath={path} />
             )}
 
-            <slot />
+            <main>
+                <slot />
+            </main>
         </div>
         {!hideFooter && <Footer client:load footerItems={footerItems} />}
         <DevTools client:only="react" />
@@ -326,9 +307,10 @@ const structuredData: JsonLdObject[] = includeStructuredData
                 position: relative;
             }
 
+            // The one main landmark (SE-49). `display: contents` drops its box, so the page
+            // sections stay direct flex children of .mainContainer and the layout is unchanged.
             main {
-                flex: 1 1 auto;
-                min-width: 0px;
+                display: contents;
             }
 
             // Sticky footer: the footer sits outside .mainContainer, so the page column holds it down.
