@@ -169,6 +169,11 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         });
     }
 
+    /** A legend highlight carries no datum and draws no highlight copy, so the in-place stage keeps its shadow. */
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        return highlightedDatum?.datum == null ? undefined : super.getRedrawnDatumIndex(highlightedDatum);
+    }
+
     protected tooltipStyle(datum: unknown, datumIndex: number) {
         return this.getItemStyle({ datum, datumIndex }, false);
     }
