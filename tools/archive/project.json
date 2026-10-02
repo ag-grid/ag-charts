@@ -10,7 +10,5 @@
       }
     }
   },
-  "tags": [
-    "no-sharding"
-  ]
+  "tags": ["no-sharding"]
 }
