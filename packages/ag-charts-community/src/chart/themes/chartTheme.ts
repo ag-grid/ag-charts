@@ -227,7 +227,7 @@ export class ChartTheme {
             axisTitleFontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
             axisTitleFontWeight: { $ref: 'fontWeight' },
 
-            buttonBackgroundColor: { $ref: 'backgroundColor' },
+            buttonBackgroundColor: { $ref: 'chromeBackgroundColor' },
             buttonBorder: {
                 color: { $ref: 'borderColor' },
                 width: { $ref: 'borderWidth' },

@@ -3,7 +3,7 @@
 
     --toolbar-border-radius: var(--ag-charts-button-border-radius);
 
-    --toolbar-button-background-color: var(--ag-charts-chrome-background-color);
+    --toolbar-button-background-color: var(--ag-charts-button-background-color);
     --toolbar-button-border-color: var(--ag-charts-button-border-color);
     --toolbar-button-border-width: var(--ag-charts-button-border-width);
     --toolbar-button-gap: 0;
