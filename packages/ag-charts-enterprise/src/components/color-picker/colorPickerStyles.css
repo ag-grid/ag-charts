@@ -214,6 +214,8 @@
 
 .ag-charts-color-picker__hue-input {
     flex: 1 0 0;
+    /* Range inputs have an intrinsic minimum width; without this, wide track insets squash the multi-colour button. */
+    min-width: 0;
 }
 
 /* Firefox: cannot be combined with the following rules — keep in sync. */
