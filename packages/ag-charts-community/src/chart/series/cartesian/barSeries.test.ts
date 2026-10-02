@@ -4659,6 +4659,10 @@ describe('BarSeries', () => {
             );
         }
 
+        function getActiveItem() {
+            return chart.getState().active?.activeItem;
+        }
+
         describe('missing middle datum', () => {
             beforeEach(async () => {
                 await createTwoSeriesChart([
@@ -4677,12 +4681,12 @@ describe('BarSeries', () => {
 
                 await pressKey(chart, 'ArrowRight');
                 expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(0, 1))).toBe(true);
-                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'y1', itemId: 1 });
+                expect(getActiveItem()).toEqual({ type: 'series-node', seriesId: 'y1', itemId: 1 });
                 expect(getSwapChainText()).toBe('1; y1; 11');
 
                 await pressKey(chart, 'ArrowDown');
                 expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(1, 0))).toBe(true);
-                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'y2', itemId: 0 });
+                expect(getActiveItem()).toEqual({ type: 'series-node', seriesId: 'y2', itemId: 0 });
                 expect(getSwapChainText()).toBe('0; y1; 10; y2; 12');
             });
         });
@@ -4705,7 +4709,7 @@ describe('BarSeries', () => {
 
                 await pressKey(chart, 'ArrowDown');
                 expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(1, 1))).toBe(true);
-                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'y2', itemId: 1 });
+                expect(getActiveItem()).toEqual({ type: 'series-node', seriesId: 'y2', itemId: 1 });
                 expect(getSwapChainText()).toBe('1; y1; 11; y2; 14');
             });
         });
@@ -4730,12 +4734,12 @@ describe('BarSeries', () => {
                 await pressKey(chart, 'ArrowRight');
                 await pressKey(chart, 'ArrowRight');
                 expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(0, 3))).toBe(true);
-                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'y1', itemId: 3 });
+                expect(getActiveItem()).toEqual({ type: 'series-node', seriesId: 'y1', itemId: 3 });
                 expect(getSwapChainText()).toBe('4; y1; 13');
 
                 await pressKey(chart, 'ArrowDown');
                 expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(1, 2))).toBe(true);
-                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'y2', itemId: 2 });
+                expect(getActiveItem()).toEqual({ type: 'series-node', seriesId: 'y2', itemId: 2 });
                 expect(getSwapChainText()).toBe('3; y1; 12; y2; 16');
             });
         });
