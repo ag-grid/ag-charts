@@ -7,17 +7,15 @@ name: Cloud Cache Bake
 # sha256(yarn.lock), for Claude Code cloud environment setup to restore instead of
 # running its own capped install. See the action for why it is a release asset and
 # not a GitHub Actions artifact.
+#
+# Adopting this needs two things beyond the file itself: a CLOUD_CACHE_KEY repo
+# secret, and the same value as AG_CLOUD_CACHE_KEY in each cloud environment. The
+# bake fails rather than publishing a readable tree if the secret is missing.
 
 on:
     push:
         branches:
             - 'latest'
-            # TEMPORARY, remove before merge. `workflow_dispatch` cannot reach a
-            # workflow that is not yet on the default branch — verified:
-            # "HTTP 404: workflow cloud-cache-bake.yml not found on the default
-            # branch" — so a push trigger on this branch is the only way to
-            # exercise the bake before it lands.
-            - 'at/fix-cloud-session-hook-install'
         paths:
             - 'yarn.lock'
             # Re-bake when the bake logic changes, not only when dependencies do.
@@ -67,3 +65,20 @@ jobs:
               with:
                   # Empty on a push event, which reads as "not forced".
                   force: ${{ inputs.force }}
+                  # The payload is encrypted with this, and cloud environments
+                  # decrypt with the same value in AG_CLOUD_CACHE_KEY. The action
+                  # fails rather than publishing a readable tree if it is unset.
+                  encryption-key: ${{ secrets.CLOUD_CACHE_KEY }}
+                  # Where this release sorts on the releases page is a function of
+                  # its TAGGED COMMIT, not its publication time — measured on this
+                  # repo, and confirmed by a two-release probe in which the release
+                  # published second, against an older commit, still sorted below
+                  # the one published first against a newer commit. So aiming the
+                  # tag at an old commit is the only lever on its position.
+                  #
+                  # This repo's first commit (2020-01-20), chosen because it
+                  # predates every product release. Leave it set: --target applies
+                  # only when the tag does not yet exist, which is exactly the case
+                  # (a deleted tag) where an unset value would silently return the
+                  # release to the top of the list.
+                  release-target: d7e9df0d0d0b7304ab676f84a603f2f620c22cff
