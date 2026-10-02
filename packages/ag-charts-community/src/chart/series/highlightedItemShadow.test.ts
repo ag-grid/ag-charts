@@ -204,7 +204,7 @@ describe('highlightedItem.shadow', () => {
             for (const shape of shapes) expect(shape.fillShadow).toMatchObject(SHADOW);
         });
 
-        it('replaces the series shadow on the hovered item with highlightedItem.shadow', async () => {
+        it('merges highlightedItem.shadow over the series shadow on the hovered item', async () => {
             const { inPlace, highlighted } = await hoverFirstItem(testCase, SHADOW, {
                 highlightedItem: { shadow: HIGHLIGHT_SHADOW },
             });
@@ -245,6 +245,14 @@ describe('highlightedItem.shadow', () => {
 
             expect(highlighted[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
             for (const shape of inPlace) expect(casts(shape)).toBe(false);
+        });
+
+        it('keeps the highlight shadow off when neither it nor the series shadow is enabled', async () => {
+            const { highlighted } = await hoverFirstItem(testCase, undefined, {
+                highlightedItem: { shadow: { color: 'rgba(170, 0, 0, 1)' } },
+            });
+
+            for (const shape of highlighted) expect(casts(shape)).toBe(false);
         });
 
         it('has no highlight shadow unless configured', async () => {

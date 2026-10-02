@@ -11,11 +11,13 @@ import {
     collectShapes,
     prepareEnterpriseTestOptions,
 } from '../test/utils';
+import { BoxPlotNode } from './box-plot/boxPlotNode';
 import { CandlestickNode } from './candlestick/candlestickNode';
 import { FlowProportionDatumType } from './flow-proportion/flowDatumIndex';
 import { FunnelConnector } from './funnel/funnelConnector';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
+import { GeoGeometry } from './map-util/geoGeometry';
 import { OhlcNode } from './ohlc/ohlcNode';
 
 type Shadow = typeof SHADOW;
@@ -97,6 +99,11 @@ const OHLC_DATA = [
     { x: 'Q1', open: 6, high: 7, low: 3, close: 4 },
     { x: 'Q2', open: 5, high: 7, low: 4, close: 6 },
     { x: 'Q3', open: 4, high: 5, low: 4, close: 4.5 },
+];
+const BOX_PLOT_DATA = [
+    { x: 'Q1', min: 3, q1: 4, median: 5, q3: 6, max: 7 },
+    { x: 'Q2', min: 4, q1: 5, median: 6, q3: 7, max: 8 },
+    { x: 'Q3', min: 1, q1: 2, median: 3, q3: 4, max: 5 },
 ];
 const WATERFALL_DATA = [
     { x: 'Start', y: 10 },
@@ -302,6 +309,29 @@ const SERIES: SeriesCase[] = [
         }),
     },
     {
+        name: 'box-plot',
+        data: BOX_PLOT_DATA,
+        kind: BoxPlotNode,
+        series: (shadow, highlight) => ({
+            type: 'box-plot',
+            xKey: 'x',
+            minKey: 'min',
+            q1Key: 'q1',
+            medianKey: 'median',
+            q3Key: 'q3',
+            maxKey: 'max',
+            shadow,
+            highlight,
+        }),
+    },
+    {
+        name: 'map-shape',
+        data: ukData,
+        kind: GeoGeometry,
+        chartOptions: { topology: ukTopology },
+        series: (shadow, highlight) => ({ type: 'map-shape', idKey: 'name', shadow, highlight }),
+    },
+    {
         name: 'map-marker',
         data: ukData,
         kind: _Scene.Marker,
@@ -406,7 +436,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
     });
 
     describe.each(SERIES)('$name', (testCase) => {
-        it('replaces the series shadow on the hovered item with highlightedItem.shadow', async () => {
+        it('merges highlightedItem.shadow over the series shadow on the hovered item', async () => {
             const { inPlace, highlighted } = await hoverItem(testCase, SHADOW, {
                 highlightedItem: { shadow: HIGHLIGHT_SHADOW },
             });
@@ -437,6 +467,14 @@ describe('highlightedItem.shadow (enterprise series)', () => {
             expect(highlighted.find(casts)?.fillShadow).toMatchObject({ ...SHADOW, blur: 20 });
         });
 
+        it('keeps the highlight shadow off when neither it nor the series shadow is enabled', async () => {
+            const { highlighted } = await hoverItem(testCase, undefined, {
+                highlightedItem: { shadow: { color: HIGHLIGHT_SHADOW.color } },
+            });
+
+            expect(highlighted.filter(casts).length).toBe(0);
+        });
+
         it('applies highlightedItem.shadow when the series has no shadow', async () => {
             const { inPlace, highlighted } = await hoverItem(testCase, undefined, {
                 highlightedItem: { shadow: HIGHLIGHT_SHADOW },
@@ -444,6 +482,71 @@ describe('highlightedItem.shadow (enterprise series)', () => {
 
             expect(highlighted.find(casts)?.fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
             expect(inPlace.filter(casts).length).toBe(0);
+        });
+    });
+
+    describe('items the series draws no highlight copy for', () => {
+        it('keeps the shadow on a region of a series that shares the hovered series legend item name', async () => {
+            const options = {
+                data: ukData,
+                topology: ukTopology,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                highlight: { drawingMode: 'cutout' },
+                series: Array.from({ length: 2 }, () => ({
+                    type: 'map-shape',
+                    idKey: 'name',
+                    legendItemName: 'Regions',
+                    fill: 'steelblue',
+                    shadow: SHADOW,
+                })),
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const [hoveredSeries, otherSeries] = chart.series;
+            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredSeries.getNodeData()[0]);
+            await waitForChartStability(chart);
+
+            const inPlace = (series: any) =>
+                collectShapes(series.contentGroup).filter(
+                    (shape) => shape.visible && (shape.constructor as unknown) === GeoGeometry
+                );
+            const highlighted = (series: any) =>
+                collectShapes(series.highlightGroup).filter(
+                    (shape) => shape.visible && (shape.constructor as unknown) === GeoGeometry
+                );
+
+            // The hovered series swaps its shadow onto its highlight copy, as in any other series.
+            expect(highlighted(hoveredSeries).filter(casts).length).toBe(1);
+            expect(inPlace(hoveredSeries).filter((shape) => !casts(shape)).length).toBe(1);
+
+            // The other series draws no highlight copy, so every region keeps its own shadow.
+            expect(highlighted(otherSeries).length).toBe(0);
+            expect(inPlace(otherSeries).length).toBeGreaterThan(0);
+            for (const shape of inPlace(otherSeries)) expect(shape.fillShadow).toMatchObject(SHADOW);
+        });
+
+        it('keeps the shadow on a hovered treemap group that is not interactive', async () => {
+            const testCase: SeriesCase = {
+                name: 'treemap groups',
+                data: HIERARCHY_SHADOW_DATA,
+                kind: _Scene.Rect,
+                hover: FIRST_GROUP,
+                layers: GROUP_LAYERS,
+                series: (shadow, highlight) => ({
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    group: { shadow, gap: 12, padding: 10, interactive: false, highlight },
+                }),
+            };
+            const { inPlace, highlighted } = await hoverItem(testCase, SHADOW);
+
+            expect(highlighted.length).toBe(0);
+            expect(inPlace.length).toBeGreaterThan(0);
+            for (const shape of inPlace) expect(shape.fillShadow).toMatchObject(SHADOW);
         });
     });
 });

@@ -511,10 +511,18 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     protected override getActiveHighlightNode(): TreemapNode | undefined {
         const highlightedNode = super.getActiveHighlightNode();
-        if (highlightedNode != null && highlightedNode.children.length > 0 && !this.options.group.interactive) {
-            return undefined;
-        }
-        return highlightedNode;
+        return this.isNodeHighlightable(highlightedNode) ? highlightedNode : undefined;
+    }
+
+    /** A group that isn't interactive gets no highlight copy, so its in-place copy keeps its shadow. */
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        return this.isNodeHighlightable(highlightedDatum as TreemapNode | undefined)
+            ? super.getRedrawnDatumIndex(highlightedDatum)
+            : undefined;
+    }
+
+    private isNodeHighlightable(node: TreemapNode | undefined) {
+        return node == null || node.children.length === 0 || this.options.group.interactive;
     }
 
     /** Whether either tile or group sets one, for the series-wide check; each item resolves its own in `updateNodes`. */
