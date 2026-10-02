@@ -162,6 +162,7 @@ export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemea
     styler: boxPlotStyler,
     itemStyler: boxPlotStyler,
     tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...boxPlotStyleOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),
@@ -203,6 +204,7 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
     }),
     showInMiniChart: boolean,
     tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     highlight: multiSeriesHighlightOptionsDef(candlestickHighlightStyleOptionsDef, candlestickHighlightStyleOptionsDef),
 };
@@ -290,6 +292,7 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
         ...commonAxisLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
     ...without(commonSeriesThemeableOptionsDefs, ['showInLegend']),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
@@ -383,6 +386,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
         },
     },
     tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     highlight: multiSeriesHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };

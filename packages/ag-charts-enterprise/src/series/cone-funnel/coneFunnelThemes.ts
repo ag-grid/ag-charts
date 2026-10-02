@@ -1,5 +1,6 @@
 import {
     CARTESIAN_AXIS_TYPE,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
@@ -52,6 +53,13 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         fillOpacity: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
+        },
         label: {
             ...LABEL_BOXING_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,

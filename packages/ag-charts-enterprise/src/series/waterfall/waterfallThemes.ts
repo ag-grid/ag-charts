@@ -1,6 +1,7 @@
 import { type AgWaterfallSeriesItemOptions, type WithThemeParams } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
@@ -81,6 +82,13 @@ function itemTheme(
         fillOpacity: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
+        },
         label: {
             enabled: inherited('enabled'),
             fill: inherited('fill'),

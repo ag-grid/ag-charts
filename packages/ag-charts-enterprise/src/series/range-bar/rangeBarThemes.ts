@@ -2,6 +2,7 @@ import { type AgChartThemeOverrides, type WithThemeParams } from 'ag-charts-comm
 import {
     CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -51,6 +52,13 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             placement: 'inside',
+        },
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
         },
         tooltip: { interaction: { enabled: false } },
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },

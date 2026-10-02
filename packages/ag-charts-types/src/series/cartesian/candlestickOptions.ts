@@ -1,4 +1,5 @@
 import type { Styler } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type {
@@ -47,6 +48,8 @@ export interface AgCandlestickSeriesStyles {
 
 export interface AgCandlestickSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>, AgCandlestickSeriesStyles {
+    /** Configuration for the shadow used behind the series items, including the wicks. */
+    shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual columns, based on the given parameters.*/

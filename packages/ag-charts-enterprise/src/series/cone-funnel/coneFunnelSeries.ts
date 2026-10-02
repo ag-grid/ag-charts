@@ -3,7 +3,12 @@ import {
     type AgConeFunnelSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DynamicContext, NormalisedConeFunnelSeriesOwnOptions, RequireOptional } from 'ag-charts-core';
+import type {
+    DynamicContext,
+    NormalisedConeFunnelSeriesOwnOptions,
+    NormalisedDropShadowOptions,
+    RequireOptional,
+} from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -67,6 +72,10 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
 
     protected override connectorEnabled() {
         return true;
+    }
+
+    protected override connectorShadow(): NormalisedDropShadowOptions {
+        return this.options.shadow;
     }
 
     protected getItemStyle(

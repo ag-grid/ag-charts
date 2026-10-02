@@ -4,6 +4,7 @@ import type {
     AgConeFunnelSeriesLabelPlacement,
     AgConeFunnelSeriesLabelPlacementAlias,
 } from '../../chart/collisionAvoidanceOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelCollisionFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
@@ -70,6 +71,8 @@ export interface AgConeFunnelSeriesThemeableOptions<TDatum = DatumDefault, TCont
     strokeOpacity?: Opacity;
     /** The width in pixels of the stroke for the drop-offs. */
     strokeWidth?: PixelSize;
+    /** Configuration for the shadow used behind the drop-offs. */
+    shadow?: AgDropShadowOptions;
     /** Bar rendering direction. */
     direction?: 'horizontal' | 'vertical';
     /** Configuration for the labels shown on between drop-offs. */
