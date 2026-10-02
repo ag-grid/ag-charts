@@ -12,13 +12,17 @@ const config: Props = { serviceName, serviceVersion, environment, endpointUrl, a
 const configJson = JSON.stringify(config).replace(/</g, '\\u003c');
 ---
 
-{/* Must come before Google Tag Manager, so that violations from its tags are held too. A classic
-    script from our own origin, so it runs straight away and the site CSP allows it. */}
+{
+    /* Must come before Google Tag Manager, so that violations from its tags are held too. A classic
+    script from our own origin, so it runs straight away and the site CSP allows it. */
+}
 <script is:inline src={cspViolationBufferUrl}></script>
 
-{/* A JSON data block rather than define:vars, which would render an inline script the site CSP does
-    not authorise. The bundled script below reads it once, on the first full page load. */}
-<script is:inline id="website-monitoring-config" type="application/json" set:html={configJson}></script>
+{
+    /* A JSON data block rather than define:vars, which would render an inline script the site CSP does
+    not authorise. The bundled script below reads it once, on the first full page load. */
+}
+<script is:inline id="website-monitoring-config" type="application/json" set:html={configJson} />
 
 <script>
     import { initWebsiteMonitoring } from '@ag-website-shared/components/website-monitoring/websiteMonitoring';
