@@ -228,15 +228,19 @@ export abstract class DataModelSeries<
             const node: TDatum | undefined = nodeData[nodeBoundaryIndex];
             return node.datumIndex === desiredDatumIndex || this.isInBucket(node, desiredDatumIndex);
         };
+        const boundaryFallbacks = (): number | undefined => {
+            if ((opts.otherIndexDelta satisfies number) !== 0) return lower ?? upper;
+        };
 
+        const fullyBounded = lower !== undefined && upper !== undefined;
         let nextNodeIndex: number | undefined;
         // Search forward or backwards depending on the delta direction.
         if (opts.datumIndexDelta < 0) {
-            if (lower !== undefined && upper !== undefined) {
+            if (fullyBounded) {
                 nextNodeIndex = searchBackward(lower, opts.datumIndexDelta);
             }
         } else if (opts.datumIndexDelta > 0) {
-            if (lower !== undefined && upper !== undefined) {
+            if (fullyBounded) {
                 nextNodeIndex = searchForward(upper, opts.datumIndexDelta);
             }
         } /* opts.datumIndexDelta === 0 */ else {
@@ -250,9 +254,7 @@ export abstract class DataModelSeries<
 
         // If the user is changing the focus to another series type that missing the current datumIndex, then fallback
         // to either lower or upper bound:
-        if ((opts.otherIndexDelta satisfies number) !== 0 && nextNodeIndex === undefined) {
-            nextNodeIndex = lower ?? upper;
-        }
+        nextNodeIndex ??= boundaryFallbacks();
 
         if (nextNodeIndex === undefined) {
             return { datum: SeriesNodeDatumSentinel.CULLED, datumIndex: clampedDatumIndex };
