@@ -976,8 +976,12 @@ export abstract class Series<
         return (highlightedItem as { shadow?: DeepPartial<NormalisedDropShadowOptions> } | undefined)?.shadow;
     }
 
-    /** The index of the item this series' highlight layer redraws over its in-place copy, if `highlightedDatum` is one. */
-    private getRedrawnDatumIndex(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
+    /**
+     * The index of the item this series' highlight layer redraws over its in-place copy, if `highlightedDatum` is one.
+     * A series that draws no highlight copy for an item it reports as highlighted overrides this, as the in-place copy
+     * of that item must keep casting its shadow.
+     */
+    protected getRedrawnDatumIndex(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
         if (!this.isSeriesHighlighted(highlightedDatum) || !this.isDatumHighlight(highlightedDatum)) return;
         return highlightedDatum?.datumIndex;
     }

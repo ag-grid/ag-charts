@@ -119,7 +119,7 @@ describe('BarSeries highlight shadow', () => {
         expect(bars[2].fillShadow).toMatchObject(SHADOW);
     });
 
-    it('replaces the series shadow on the hovered bar with highlightedItem.shadow', async () => {
+    it('merges highlightedItem.shadow over the series shadow on the hovered bar', async () => {
         const { inPlace, highlighted } = await hoverFirstBar({
             shadow: SHADOW,
             highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
