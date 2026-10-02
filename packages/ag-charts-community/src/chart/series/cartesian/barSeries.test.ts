@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartAxisDirection } from 'ag-charts-core';
+import { Caster } from 'ag-charts-test';
 import type {
     AgBarSeriesItemStylerParams,
     AgBarSeriesLabelPlacement,
@@ -14,6 +15,7 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { Transformable } from '../../../scene/transformable';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -58,16 +60,21 @@ import {
     expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
+    focusIndicatorContainsCanvasPoint,
+    getSwapChainText,
     hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
+    pressKey,
     repeat,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
     spyOnAnimationManager,
+    tabIntoChart,
     waitForChartStability,
 } from '../../test/utils';
+import { BarSeries } from './barSeries';
 
 const buildLogAxisTestCase = (
     data: any[],
@@ -4621,6 +4628,116 @@ describe('BarSeries', () => {
                 // ...and the glyph stays centred on the bar regardless of padding distribution.
                 expect(variant.glyphOffset).toBeCloseTo(0, 0);
             }
+        });
+    });
+    describe('AG-14101 ArrowDown into a series with a missing datum', () => {
+        function createTwoSeriesChart(data: Array<{ x: number; y1: number; y2?: number }>) {
+            const options: AgCartesianChartOptions = {
+                data,
+                animation: { enabled: false },
+                series: [
+                    { id: 'y1', type: 'bar', xKey: 'x', yKey: 'y1' },
+                    { id: 'y2', type: 'bar', xKey: 'x', yKey: 'y2' },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            return waitForChartStability(chart);
+        }
+
+        function getBarCentre(seriesIndex: number, datumIndex: number) {
+            const series = new Caster(deproxy(chart))
+                .accessProperty('series')
+                .accessProperty(`${seriesIndex}`)
+                .cast(BarSeries).value;
+            const node = series.getNodeData()?.find((datum) => datum.datumIndex === datumIndex);
+            expect(node).toBeDefined();
+            return Transformable.toCanvasPoint(
+                series.contentGroup,
+                node!.x + node!.width / 2,
+                node!.y + node!.height / 2
+            );
+        }
+
+        describe('missing middle datum', () => {
+            beforeEach(async () => {
+                await createTwoSeriesChart([
+                    { x: 0, y1: 10, y2: 12 },
+                    { x: 1, y1: 11 }, // y2 missing
+                    { x: 3, y1: 12, y2: 16 },
+                    { x: 4, y1: 13, y2: 18 },
+                ]);
+            });
+
+            it('ArrowDown from y1 x:1 focuses y2 x:0', async () => {
+                await tabIntoChart(chart);
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(0, 0))).toBe(true);
+                // Tabbing in does not activate an item, so there is no `activeItem` to check yet.
+                expect(getSwapChainText()).toBe('0; y1; 10; y2; 12');
+
+                await pressKey(chart, 'ArrowRight');
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(0, 1))).toBe(true);
+                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'y1', itemId: 1 });
+                expect(getSwapChainText()).toBe('1; y1; 11');
+
+                await pressKey(chart, 'ArrowDown');
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(1, 0))).toBe(true);
+                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'y2', itemId: 0 });
+                expect(getSwapChainText()).toBe('0; y1; 10; y2; 12');
+            });
+        });
+
+        describe('missing first datum', () => {
+            beforeEach(async () => {
+                await createTwoSeriesChart([
+                    { x: 0, y1: 10 }, // y2 missing
+                    { x: 1, y1: 11, y2: 14 },
+                    { x: 3, y1: 12, y2: 16 },
+                    { x: 4, y1: 13, y2: 18 },
+                ]);
+            });
+
+            it('ArrowDown from y1 x:0 focuses y2 x:1', async () => {
+                await tabIntoChart(chart);
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(0, 0))).toBe(true);
+                // Tabbing in does not activate an item, so there is no `activeItem` to check yet.
+                expect(getSwapChainText()).toBe('0; y1; 10');
+
+                await pressKey(chart, 'ArrowDown');
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(1, 1))).toBe(true);
+                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'y2', itemId: 1 });
+                expect(getSwapChainText()).toBe('1; y1; 11; y2; 14');
+            });
+        });
+
+        describe('missing last datum', () => {
+            beforeEach(async () => {
+                await createTwoSeriesChart([
+                    { x: 0, y1: 10, y2: 12 },
+                    { x: 1, y1: 11, y2: 14 },
+                    { x: 3, y1: 12, y2: 16 },
+                    { x: 4, y1: 13 }, // y2 missing
+                ]);
+            });
+
+            it('ArrowDown from y1 x:4 focuses y2 x:3', async () => {
+                await tabIntoChart(chart);
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(0, 0))).toBe(true);
+                // Tabbing in does not activate an item, so there is no `activeItem` to check yet.
+                expect(getSwapChainText()).toBe('0; y1; 10; y2; 12');
+
+                await pressKey(chart, 'ArrowRight');
+                await pressKey(chart, 'ArrowRight');
+                await pressKey(chart, 'ArrowRight');
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(0, 3))).toBe(true);
+                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'y1', itemId: 3 });
+                expect(getSwapChainText()).toBe('4; y1; 13');
+
+                await pressKey(chart, 'ArrowDown');
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(1, 2))).toBe(true);
+                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'y2', itemId: 2 });
+                expect(getSwapChainText()).toBe('3; y1; 12; y2; 16');
+            });
         });
     });
 });
