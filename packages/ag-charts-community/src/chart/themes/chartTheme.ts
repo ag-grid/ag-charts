@@ -294,6 +294,16 @@ export class ChartTheme {
 
             groupedCategoryLineColor: { $foregroundBackgroundMix: 0.17 },
 
+            legendBorder: false,
+            legendBorderRadius: { $ref: 'borderRadius' },
+            legendItemHorizontalPadding: 8,
+            legendItemVerticalPadding: 4,
+            legendLabelColor: { $ref: 'textColor' },
+            legendLabelFontFamily: { $ref: 'fontFamily' },
+            legendLabelFontSize: { $rem: FONT_SIZE_RATIO.SMALL },
+            legendLabelFontWeight: { $ref: 'fontWeight' },
+            legendMarkerSize: 15,
+            legendPadding: 5,
             colorPickerColorBorderRadius: { $multiply: [0.5, { $ref: 'borderRadius' }] },
             colorPickerThumbBorderWidth: 3,
             colorPickerThumbSize: 18,

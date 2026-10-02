@@ -26,10 +26,10 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
         scale: {
             padding: 13,
             label: {
-                color: { $ref: 'textColor' },
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
+                color: { $ref: 'legendLabelColor' },
+                fontSize: { $ref: 'legendLabelFontSize' },
+                fontFamily: { $ref: 'legendLabelFontFamily' },
+                fontWeight: { $ref: 'legendLabelFontWeight' },
                 minSpacing: 5,
             },
             interval: {
