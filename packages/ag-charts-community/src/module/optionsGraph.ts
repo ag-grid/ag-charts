@@ -40,6 +40,7 @@ import {
     getPathSafe,
     hasPathSafe,
     hasTemplatePathSafe,
+    isListIndex,
     setPathSafe,
 } from './optionsGraphUtils';
 import { OptionsPartialCache, hasUnmergedCssVariables } from './optionsPartialCache';
@@ -613,12 +614,12 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         if (path[0] === 'axes' && path.length > 1) {
             const axisType = this.getResolvedPath(['axes', path[1], 'type']) as string;
-            if (hasPathSafe(this.overrides, ['common', 'axes', axisType, ...path.slice(2)])) {
+            if (this.hasAxisTemplateOverride(['common', 'axes', axisType], path)) {
                 return true;
             }
 
             const seriesType = this.getResolvedPath(['series', '0', 'type']) as string;
-            return hasPathSafe(this.overrides, [seriesType, 'axes', axisType, ...path.slice(2)]);
+            return this.hasAxisTemplateOverride([seriesType, 'axes', axisType], path);
         }
 
         if (path[0] === 'series' && path.length > 1) {
@@ -631,6 +632,24 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             hasTemplatePathSafe(this.overrides, ['common', ...path]) ||
             hasPathSafe(this.overrides, path)
         );
+    }
+
+    /**
+     * Axis themes hold list options such as cross lines as one template object, optionally keyed by each item's
+     * `type`, so an axis path below `axes.<id>` matches either form. Series themes have no list templates.
+     */
+    private hasAxisTemplateOverride(namespace: string[], path: string[]) {
+        const overrides = this.overrides!;
+        const rest = path.slice(2);
+        if (hasTemplatePathSafe(overrides, [...namespace, ...rest])) return true;
+
+        const index = rest.findIndex(isListIndex);
+        if (index === -1) return false;
+
+        const type = this.dangerouslyGetUserOption([...path.slice(0, index + 3), 'type']);
+        if (typeof type !== 'string') return false;
+
+        return hasTemplatePathSafe(overrides, [...namespace, ...rest.slice(0, index), type, ...rest.slice(index + 1)]);
     }
 
     getParamValue(pathString: string) {
