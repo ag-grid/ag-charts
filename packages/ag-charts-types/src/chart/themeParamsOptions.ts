@@ -108,7 +108,8 @@ export interface AgBaseChartThemeParams {
     buttonVerticalPadding?: PixelSize;
     /**
      * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
-     * dropdown menus of the toolbars and the colour picker. The value must be a valid CSS box-shadow.
+     * dropdown menus of the toolbars and the colour picker. Defaults to `popupShadow`. The value must be a valid CSS
+     * box-shadow.
      */
     cardShadow?: CssShadow;
     /** Corner radius of the colour swatch in the colour picker. Defaults to half of `borderRadius`. */

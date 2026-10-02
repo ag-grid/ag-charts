@@ -88,12 +88,14 @@
     display: block;
     position: relative;
     padding: 0;
-    margin: 0 calc(var(--inset) * -1);
+    margin: var(--track-overflow) calc(var(--inset) * -1);
     border: 0;
     height: var(--thumb-size);
     width: auto;
     background: transparent;
     --inset: calc((var(--thumb-size) - var(--track-height)) / 2);
+    /* A track taller than the thumb overflows the input; reserve that space so the tracks do not overlap. */
+    --track-overflow: max(0px, calc(var(--inset) * -1));
 }
 
 .ag-charts-color-picker__hue-input::-moz-range-thumb,
@@ -191,7 +193,8 @@
 
 .ag-charts-color-picker__multi-color-button {
     width: 36px;
-    margin-left: var(--inset);
+    /* A track taller than the thumb gives a negative inset; clamp it so the button stays inside the picker. */
+    margin-left: max(0px, var(--inset));
     height: var(--track-height);
     border-radius: var(--ag-charts-color-picker-track-border-radius);
     border: 0;
@@ -211,6 +214,8 @@
 
 .ag-charts-color-picker__hue-input {
     flex: 1 0 0;
+    /* Range inputs have an intrinsic minimum width; without this, wide track insets squash the multi-colour button. */
+    min-width: 0;
 }
 
 /* Firefox: cannot be combined with the following rules — keep in sync. */
@@ -247,7 +252,7 @@
 }
 
 .ag-charts-color-picker__alpha-input {
-    margin-bottom: 7px;
+    margin-bottom: calc(7px + var(--track-overflow));
 }
 
 /* Firefox: cannot be combined with the following rules — keep in sync. */

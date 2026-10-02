@@ -194,7 +194,7 @@ export class ChartTheme {
             borderColor: { $foregroundBackgroundMix: 0.15 },
             borderRadius: 4,
             borderWidth: 1,
-            cardShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
+            cardShadow: { $ref: 'popupShadow' },
             chartBackgroundColor: { $ref: 'backgroundColor' },
             chartPadding: 20,
             focusShadow: '0 0 0 3px color-mix(in srgb, var(--ag-charts-accent-color) 50%, transparent)',
