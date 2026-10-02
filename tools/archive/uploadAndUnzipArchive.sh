@@ -93,9 +93,12 @@ then
     fi
     # Compare and swap, in one command on the host: replace the live file only if it is still the
     # one that was fetched, so a grid in-flight mark or a docs deploy landing in between is kept
-    # rather than overwritten, and only with the bytes that were built here. The same protocol as
-    # ag-grid's patchUncachedArchives.sh. The timestamped copy makes a bad patch one cp to undo.
+    # rather than overwritten, and only with the bytes that were built here. The check through the mv
+    # holds an exclusive lock on .htaccess.lock beside the live file, which the grid patcher takes
+    # too, so two patchers cannot both pass the check. The same protocol as ag-grid's
+    # patchUncachedArchives.sh. The timestamped copy makes a bad patch one cp to undo.
     SWAP="cd $GRID_ROOT_DIR || exit 5; \
+        exec 9>>.htaccess.lock && flock -w 60 9 || { echo 'could not lock .htaccess.lock'; exit 6; }; \
         [ \"\$(sha256sum < $REMOTE | cut -d' ' -f1)\" = $SNAPSHOT_SHA ] || { echo 'live file changed since it was fetched'; exit 3; }; \
         [ \"\$(sha256sum < $STAGED | cut -d' ' -f1)\" = $PATCHED_SHA ] || { echo 'uploaded file does not match the patched one'; exit 4; }; \
         cp -p $REMOTE $BACKUP && chmod 644 $STAGED && mv $STAGED $REMOTE"
@@ -104,6 +107,7 @@ then
         0) ;;
         3) patchFailed "The live root .htaccess changed while this ran (another in-flight update or a deploy). Re-run this to patch the current file.";;
         4) patchFailed "The upload did not arrive intact. Re-run this.";;
+        6) patchFailed "Another patch of the live root .htaccess held its lock for over a minute. Re-run this.";;
         *) patchFailed "Could not move the patched root .htaccess into place.";;
     esac
     OUTCOME="$OUTCOME (previous copy at $BACKUP)"
