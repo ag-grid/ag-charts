@@ -4,30 +4,36 @@ import type {
     AgCategoryAxisOptions,
     AgNumberAxisOptions,
     AgVolumeProfileOptions,
+    DatumDefault,
 } from 'ag-charts-types';
 
-import { inferVolumeProfileTickSize, normaliseVolumeProfile } from './volumeProfileUtils';
+import { type VolumeProfileDatum, inferVolumeProfileTickSize, normaliseVolumeProfile } from './volumeProfileUtils';
 
 type ChartTheme = _Theme.ChartTheme;
 
-export function createVolumeProfileSeries(
-    getTheme: () => ChartTheme,
-    volumeProfile: AgVolumeProfileOptions | undefined,
-    tickSize: number | undefined,
-    priceAxisKey: string
+export function groupVolumeProfile(
+    data: DatumDefault[],
+    { priceKey = 'price', upKey, downKey }: Pick<AgVolumeProfileOptions, 'priceKey' | 'upKey' | 'downKey'>,
+    tickSize: number | undefined
 ) {
-    if (!volumeProfile) return [];
-
-    const { data, priceKey = 'price', upKey, downKey } = volumeProfile;
-    const normalisedData = normaliseVolumeProfile(
+    return normaliseVolumeProfile(
         data,
         { priceKey, upKey, downKey },
         tickSize ?? inferVolumeProfileTickSize(data, priceKey) ?? 1
     );
+}
+
+// Without `levels`, the series read the chart's data, which must then hold the grouped levels.
+export function createVolumeProfileSeries(
+    getTheme: () => ChartTheme,
+    priceAxisKey: string,
+    levels?: VolumeProfileDatum[]
+) {
+    const seriesData = levels == null ? {} : { data: levels };
 
     return [
         {
-            data: normalisedData,
+            ...seriesData,
             type: 'bar',
             direction: 'horizontal',
             xKey: 'price',
@@ -51,7 +57,7 @@ export function createVolumeProfileSeries(
             },
         } satisfies AgBarSeriesOptions,
         {
-            data: normalisedData,
+            ...seriesData,
             type: 'bar',
             direction: 'horizontal',
             xKey: 'price',
