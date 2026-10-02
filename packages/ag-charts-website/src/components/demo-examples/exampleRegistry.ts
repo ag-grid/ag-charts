@@ -1,6 +1,6 @@
 import type { DemoPageExample } from '@ag-website-shared/components/demo-page/types';
 
-export type DemoExampleId = 'financial' | 'web-analytics' | 'procurement' | 'real-time';
+export type DemoExampleId = 'trading-terminal' | 'web-analytics' | 'procurement' | 'real-time';
 
 export interface DemoExample extends DemoPageExample {
     id: DemoExampleId;
@@ -16,12 +16,12 @@ export interface DemoExample extends DemoPageExample {
  */
 export const DEMO_EXAMPLES: DemoExample[] = [
     {
-        id: 'financial',
+        id: 'trading-terminal',
         title: 'Trading Terminal',
         path: './examples/',
         description: 'Candlestick and volume series driven by streaming market data.',
-        demoAppId: 'financial',
-        image: '/images/demos/financial.webp',
+        demoAppId: 'trading-terminal',
+        image: '/images/demos/trading-terminal.webp',
     },
     {
         id: 'web-analytics',

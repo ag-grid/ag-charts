@@ -30,7 +30,7 @@ export const DEMO_PAGE_HERO = {
  * matches the page's own `<title>` and meta description.
  */
 export const DEMO_PAGE_CONTENT = {
-    financial: {
+    'trading-terminal': {
         metaTitle: 'Trading Terminal Demo | AG Charts',
         metaDescription: 'AG Charts: candlestick and volume series driven by streaming market data.',
     },
