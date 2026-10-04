@@ -1,11 +1,13 @@
 #!/bin/bash
 
-SSH_LOCATION=$SSH_FILE
+set -euo pipefail
+
+SSH_LOCATION=${SSH_FILE:-}
 
 if [ -z "$SSH_LOCATION" ]
 then
       echo "\$SSH_LOCATION is not set"
-      exit ;
+      exit 1;
 fi
 
 function checkFileExists {
@@ -21,4 +23,4 @@ checkFileExists $SSH_LOCATION
 
 CURRENT_HOST=$1
 
-ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "JIRA_CREDENTIALS=$JIRA_CREDENTIALS && cd /home/ubuntu/jira_reports && ./getChartsChangelog.sh && ./getChartsPipeline.sh"
+ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "JIRA_CREDENTIALS=${JIRA_CREDENTIALS:-} && cd /home/ubuntu/jira_reports && ./getChartsChangelog.sh && ./getChartsPipeline.sh"
