@@ -63,7 +63,7 @@ trap 'rm -f "$JOBLOG"' EXIT
 
 status=0
 # $hosts is deliberately unquoted so that it splits into one argument per host
-parallel --will-cite --tagstring '[{}]' --timeout 900 --joblog "$JOBLOG" "$SCRIPT" "$@" {} ::: $hosts || status=$?
+parallel --will-cite --quote --tagstring '[{}]' --timeout 900 --joblog "$JOBLOG" "$SCRIPT" "$@" {} ::: $hosts || status=$?
 
 echo "Job log:"
 cat "$JOBLOG"
