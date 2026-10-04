@@ -24,5 +24,12 @@ NEW_VERSION=$(node ./tools/calculate-next-version.js)
 node ./tools/readme/sync-readme.js
 node ./tools/updateVersionsData.js version
 
+# The bumps rewrite dependency versions in package.json files, so yarn.lock has to be regenerated in
+# the same commit - CI runs `yarn install --immutable` and fails every job on the branch when the
+# lockfile is stale. The plain install needs YARN_ENABLE_IMMUTABLE_INSTALLS=false on CI agents, where
+# Yarn 4 otherwise defaults to immutable installs; the explicit --immutable re-check is unaffected.
+AG_SKIP_NATIVE_DEP_VERSION_CHECK=1 yarn install
+AG_SKIP_NATIVE_DEP_VERSION_CHECK=1 yarn install --immutable
+
 git commit -a -m "BRANCH prep for ${NEW_VERSION}" --no-verify
 git push --set-upstream origin $BRANCH --no-verify
