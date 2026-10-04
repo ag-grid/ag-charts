@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 if [ "$#" -lt 2 ]
   then
     echo "You must supply a release version and host"
@@ -7,7 +9,7 @@ if [ "$#" -lt 2 ]
     exit 1
 fi
 
-SSH_LOCATION=$SSH_FILE
+SSH_LOCATION=${SSH_FILE:-}
 
 if [ -z "$SSH_LOCATION" ]
 then
@@ -34,7 +36,8 @@ REMOTE_SCRIPT="$(mktemp)"
 trap 'rm -f "$REMOTE_SCRIPT"' EXIT
 
 # replace tokens in prepareNewChartsDeploymentRemote.sh with env variables - we'll transfer the newly tokenised file to prod
-sed "s#\@CHARTS_ROOT_DIR\@#$CHARTS_ROOT_DIR#g" ./tools/release/prepareNewChartsDeploymentRemote.sh | sed "s#\@WWW_ROOT_DIR\@#$WWW_ROOT_DIR#g" > "$REMOTE_SCRIPT"
+# (the remote script does not use CHARTS_ROOT_DIR, so tolerate it being unset)
+sed "s#\@CHARTS_ROOT_DIR\@#${CHARTS_ROOT_DIR:-}#g" ./tools/release/prepareNewChartsDeploymentRemote.sh | sed "s#\@WWW_ROOT_DIR\@#$WWW_ROOT_DIR#g" > "$REMOTE_SCRIPT"
 
 scp -i $SSH_LOCATION -P $SSH_PORT "$REMOTE_SCRIPT" $CURRENT_HOST:$WWW_ROOT_DIR/prepareNewChartsDeploymentRemote.sh
 ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "chmod +x $WWW_ROOT_DIR/prepareNewChartsDeploymentRemote.sh"
