@@ -3,24 +3,29 @@
 #
 # Usage: hollow-yarn-cache.sh <yarn-cache-dir>
 #
-# yarn v1 fetches every optional dependency in the lockfile and only then checks its
-# os/cpu fields, so the cache holds native binaries for every platform (esbuild, rollup,
-# swc, sharp, ...) although this runner links only its own. Two things are trimmed:
-#
-# - Foreign-platform entries are hollowed to their .yarn-metadata.json and package.json.
-#   Deleting them instead makes the next install re-download them all: yarn treats an
-#   entry as cached when its metadata file exists, and needs only the manifest to skip
-#   an incompatible package, so a hollow entry is never fetched, linked or read.
-# - The packed .yarn-tarball.tgz copy kept beside each extracted package is removed;
-#   installs link from the extracted files.
-#
-# Hollow entries are valid only on runners of the same OS and architecture, so the
-# cache key must include both.
+# Yarn 4 (Berry) note: the hollowing logic below only understands the yarn v1 cache
+# layout (a `npm-<name>-<version>-<hash>/` directory per entry, containing a
+# `.yarn-metadata.json` and a `.yarn-tarball.tgz`). Under Yarn 4 the cache is a flat
+# directory of single `<name>-npm-<version>-<hash>-<compression>.zip` files instead, so
+# the `npm-*` glob below matches nothing there — verified against a real Yarn 4.10
+# global cache (`yarn config get cacheFolder`). This isn't only a format the logic needs
+# porting to, though: that same cache was checked for foreign-platform native binaries
+# (esbuild, rollup and sharp all ship platform-specific optional dependencies) and none
+# were found — only the current runner's own platform/arch had ever been fetched. So
+# unlike yarn v1, Yarn 4 filters optional dependencies by os/cpu *before* fetching, not
+# after, meaning the bloat this script exists to trim does not occur under Yarn 4 and
+# there is nothing to port. It exits early below as a documented, clean no-op rather
+# than silently matching nothing under the stale glob.
 set -euo pipefail
 
 cache="${1:?usage: hollow-yarn-cache.sh <yarn-cache-dir>}"
 if [[ ! -d "${cache}" ]]; then
     echo "No yarn cache at ${cache}; nothing to hollow"
+    exit 0
+fi
+
+if compgen -G "${cache}"/*.zip > /dev/null; then
+    echo "${cache} holds Yarn 4-style *.zip cache entries, not yarn v1's npm-*/ directories; it is already platform-filtered at fetch time. Nothing to hollow."
     exit 0
 fi
 

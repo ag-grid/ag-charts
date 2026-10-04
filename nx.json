@@ -207,6 +207,7 @@
     },
     "lint:eslint": {
       "executor": "nx:run-commands",
+      "dependsOn": ["^build:types", "build:types"],
       "options": {
         "cwd": "{projectRoot}",
         "command": "npx eslint --cache --cache-location node_modules/.cache/eslint/",

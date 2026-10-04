@@ -63,7 +63,7 @@
       "options": {
         "cwd": "packages/ag-charts-locale",
         "parallel": false,
-        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-locale.tgz"]
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -o ../../dist/packages/ag-charts-locale.tgz"]
       }
     },
     "pack:extract": {

@@ -14,7 +14,7 @@ SKIP_FORMAT="${2:-no}"
 # before any package.json is bumped, while the committed yarn.lock still matches.
 if ! node -e "require.resolve('prettier')" >/dev/null 2>&1; then
     echo "prettier is not installed - running yarn install for the demo seed tooling"
-    yarn install --frozen-lockfile --ignore-scripts --prefer-offline
+    YARN_ENABLE_SCRIPTS=false yarn install --immutable
 fi
 
 PACKAGES=(
