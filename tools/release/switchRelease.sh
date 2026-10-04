@@ -39,11 +39,15 @@ fi
 
 CURRENT_HOST=$2
 
+# a per-run temp file, so parallel runs for different hosts cannot overwrite each other
+REMOTE_SCRIPT="$(mktemp)"
+trap 'rm -f "$REMOTE_SCRIPT"' EXIT
+
 # replace tokens in switchChartsReleaseRemote.sh with env variables - we'll transfer the newly tokenised file to prod
-sed "s#\@CHARTS_ROOT_DIR\@#$CHARTS_ROOT_DIR#g" ./tools/release/switchChartsReleaseRemote.sh | sed "s#\@WWW_ROOT_DIR\@#$WWW_ROOT_DIR#g" > /tmp/switchChartsReleaseRemote.sh
+sed "s#\@CHARTS_ROOT_DIR\@#$CHARTS_ROOT_DIR#g" ./tools/release/switchChartsReleaseRemote.sh | sed "s#\@WWW_ROOT_DIR\@#$WWW_ROOT_DIR#g" > "$REMOTE_SCRIPT"
 
 # copy the remote script that will create tmp dirs, unzip the new deployment etc to the upload dir (archives)
-scp -i $SSH_LOCATION -P $SSH_PORT "/tmp/switchChartsReleaseRemote.sh" $CURRENT_HOST:$WWW_ROOT_DIR
+scp -i $SSH_LOCATION -P $SSH_PORT "$REMOTE_SCRIPT" $CURRENT_HOST:$WWW_ROOT_DIR/switchChartsReleaseRemote.sh
 ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "chmod +x $WWW_ROOT_DIR/switchChartsReleaseRemote.sh"
 
 # backup the old charts dir, unzip the new release and update permissions etc
