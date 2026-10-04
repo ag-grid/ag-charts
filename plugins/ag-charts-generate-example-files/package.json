@@ -1,12 +1,12 @@
 {
   "name": "ag-charts-generate-example-files",
-  "version": "14.2.0-beta.20261002",
+  "version": "14.2.0-beta.20261004",
   "private": true,
   "dependencies": {
     "@nx/devkit": "^18.3.4",
     "@swc/helpers": "0.5.23",
-    "ag-charts-community": "14.2.0-beta.20261002",
-    "ag-charts-test": "14.2.0-beta.20261002",
+    "ag-charts-community": "14.2.0-beta.20261004",
+    "ag-charts-test": "14.2.0-beta.20261004",
     "ag-shared": "0.0.1",
     "cheerio": "^1.2.0",
     "glob": "8.0.3",
