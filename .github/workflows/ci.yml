@@ -2019,7 +2019,8 @@ jobs:
         # alongside the test jobs and adds no time to the workflow. Staging's search reads the
         # ag-charts-dev indices (PUBLIC_ALGOLIA_INDEX_PREFIX in .env.build.staging).
         needs: [website_build]
-        if: ${{ !cancelled() && github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' }}
+        # Only when the whole Website Build job succeeded (build and artifact upload), not just its build step.
+        if: ${{ !cancelled() && github.ref == 'refs/heads/latest' && needs.website_build.result == 'success' }}
         # Search indexing is not part of the build's verdict: a failure here must not turn latest red
         # (and so trigger the CI failure handler).
         continue-on-error: true
