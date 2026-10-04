@@ -1578,9 +1578,6 @@ jobs:
                 playwright_image,
             ]
         if: cancelled() != true
-        outputs:
-            # Consumed by algolia_dev_index, which indexes the build that was deployed to staging.
-            staging_deploy: ${{ steps.deploy_to_staging.outcome || '' }}
         # SLACK_BOT_OAUTH_TOKEN is hoisted to job level on purpose: a step's OWN
         # env: block is not in scope for that same step's if: (the if is evaluated
         # before step env is applied). The Slack alert step below gates on
@@ -2018,10 +2015,11 @@ jobs:
         name: Update Algolia Dev Index
         # Replaces the TeamCity job "AG Charts › Build & Deploy - ONLY USED FOR ALGOLIA INDEXING",
         # which rebuilt the website from scratch each time latest-success moved, only to run this
-        # script. Here we index the build that was just deployed to staging instead; staging's search
-        # reads the ag-charts-dev indices (PUBLIC_ALGOLIA_INDEX_PREFIX in .env.build.staging).
-        needs: [report]
-        if: ${{ !cancelled() && github.ref == 'refs/heads/latest' && needs.report.outputs.staging_deploy == 'success' }}
+        # script. Here we index the staging build as soon as Website Build succeeds, so the job runs
+        # alongside the test jobs and adds no time to the workflow. Staging's search reads the
+        # ag-charts-dev indices (PUBLIC_ALGOLIA_INDEX_PREFIX in .env.build.staging).
+        needs: [website_build]
+        if: ${{ !cancelled() && github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' }}
         # Search indexing is not part of the build's verdict: a failure here must not turn latest red
         # (and so trigger the CI failure handler).
         continue-on-error: true
