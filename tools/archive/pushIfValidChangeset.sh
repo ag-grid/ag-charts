@@ -8,12 +8,7 @@ fi
 
 RELEASE_BRANCH=$1
 
-# The bump rewrites dependency versions in package.json files, so yarn.lock has to be regenerated
-# in the same commit. CI runs `yarn install --immutable` and fails every job on the branch when the
-# lockfile is stale, so run the same check here before the push. `--immutable` aborts without
-# writing anything when the lockfile would need to change, so it doubles as a staleness probe.
-# The fallback install needs YARN_ENABLE_IMMUTABLE_INSTALLS=false on CI agents, where Yarn 4
-# otherwise defaults to immutable installs.
+# Regenerate yarn.lock if the bump left it stale (needs YARN_ENABLE_IMMUTABLE_INSTALLS=false on CI).
 if ! yarn install --immutable > /dev/null 2>&1; then
   echo "yarn.lock is out of step with the bumped package.json files - running yarn install"
   yarn install || {
