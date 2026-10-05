@@ -1051,10 +1051,6 @@ export abstract class Series<
     }
 
     /**
-     * As `resolveItemShadow`, for a series that configures `highlightedItem.shadow` per item kind rather than on its
-     * `highlight`, like the treemap's tiles and groups. `highlightShadow` is the one that applies to this item.
-     */
-    /**
      * What `resolveItemShadowWith` reads about the highlight, which can't change while a pass draws every datum.
      * Resolved on the first datum and dropped when the highlight, the series' options or node data, or the chart's
      * `highlight` options change, so a pass of a million datums reads them once.
@@ -1077,6 +1073,10 @@ export abstract class Series<
         return this.itemShadowPass;
     }
 
+    /**
+     * As `resolveItemShadow`, for a series that configures `highlightedItem.shadow` per item kind rather than on its
+     * `highlight`, like the treemap's tiles and groups. `highlightShadow` is the one that applies to this item.
+     */
     protected resolveItemShadowWith(
         highlightShadow: DeepPartial<NormalisedDropShadowOptions> | undefined,
         shadow: NormalisedDropShadowOptions | undefined,
