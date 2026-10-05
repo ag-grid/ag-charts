@@ -27,13 +27,7 @@ export type HlcSeriesParams = Pick<
     'xKey' | 'highKey' | 'lowKey' | 'closeKey' | 'itemType'
 >;
 
-const {
-    CollapseMode,
-    pairUpSpans,
-    prepareAreaFillAnimationFns,
-    plotInterpolatedLinePathStroke,
-    prepareLinePathPropertyAnimation,
-} = _ModuleSupport;
+const { CollapseMode, pairUpSpans, prepareAreaFillAnimationFns, prepareLinePathStrokeAnimationFns } = _ModuleSupport;
 
 /** A band's fill: its outer edge as `spans`, closed back along the band edge as `phantomSpans`. */
 interface HlcFillPathDatum {
@@ -51,18 +45,6 @@ export interface HlcContext extends _ModuleSupport.CartesianSeriesNodeDataContex
     styles: Record<AgHlcSeriesItemType, _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>>;
 }
 
-function prepareStrokeAnimationFns(status: _ModuleSupport.NodeUpdateState, spans: _ModuleSupport.SpanAnimation) {
-    const removePhaseFn = (ratio: number, path: _ModuleSupport.Path) =>
-        plotInterpolatedLinePathStroke(ratio, path, spans.removed);
-    const updatePhaseFn = (ratio: number, path: _ModuleSupport.Path) =>
-        plotInterpolatedLinePathStroke(ratio, path, spans.moved);
-    const addPhaseFn = (ratio: number, path: _ModuleSupport.Path) =>
-        plotInterpolatedLinePathStroke(ratio, path, spans.added);
-    const pathProperties = prepareLinePathPropertyAnimation(status, 'fade');
-
-    return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
-}
-
 export function prepareHlcPathAnimation(
     newData: HlcContext,
     oldData: HlcContext,
@@ -71,7 +53,6 @@ export function prepareHlcPathAnimation(
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
     if (isCategoryBased !== wasCategoryBased || !isScaleValid(newData.scales.x) || !isScaleValid(oldData.scales.x)) {
-        // Not comparable.
         return;
     }
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- widen literal so callers can still narrow against the full NodeUpdateState (incl. 'no-op')
@@ -98,9 +79,9 @@ export function prepareHlcPathAnimation(
     // The bands share their outer edges' pairings with the strokes.
     const highFill = prepareAreaFillAnimationFns(status, highSpans, bandEdgeSpans, 'fade');
     const lowFill = prepareAreaFillAnimationFns(status, bandEdgeSpans, lowSpans, 'fade');
-    const highStroke = prepareStrokeAnimationFns(status, highSpans);
-    const lowStroke = prepareStrokeAnimationFns(status, lowSpans);
-    const closeStroke = prepareStrokeAnimationFns(status, closeSpans);
+    const highStroke = prepareLinePathStrokeAnimationFns(status, highSpans, 'fade');
+    const lowStroke = prepareLinePathStrokeAnimationFns(status, lowSpans, 'fade');
+    const closeStroke = prepareLinePathStrokeAnimationFns(status, closeSpans, 'fade');
 
     const hasMotion =
         (diff?.changed ?? true) ||

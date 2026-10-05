@@ -8,6 +8,7 @@ import {
 import {
     AGGREGATION_INDEX_UNSET,
     AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
@@ -29,25 +30,34 @@ import {
     findMinMax,
     isContinuous,
     markerRebuildNeeded,
+    maxValue,
     mergeDefaults,
+    minValue,
     toNumber,
 } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
-    type HlcSeriesDataAggregationFilter,
-    aggregateHlcDataFromDataModel,
-    aggregateHlcDataFromDataModelPartial,
-} from './hlcAggregation';
+    type OhlcSeriesDataAggregationFilter,
+    aggregateOhlcDataFromDataModel,
+    aggregateOhlcDataFromDataModelPartial,
+} from '../ohlc/ohlcAggregation';
 import { type HlcContext, type HlcMarkerDatum, type HlcSeriesParams, prepareHlcPathAnimation } from './hlcUtil';
 
 // A bucket's close is its last datum's close, as ohlc takes it.
+const FIRST = AGGREGATION_INDEX_X_MIN;
 const CLOSE = AGGREGATION_INDEX_X_MAX;
 const HIGH = AGGREGATION_INDEX_Y_MAX;
 const LOW = AGGREGATION_INDEX_Y_MIN;
 const SPAN = AGGREGATION_SPAN;
 
 const ITEM_TYPES: readonly AgHlcSeriesItemType[] = ['high', 'low', 'close'];
+
+function clampValue(value: AgNumericValue, a: AgNumericValue, b: AgNumericValue): AgNumericValue {
+    const lower = minValue(a, b);
+    const upper = maxValue(a, b);
+    return maxValue(lower, minValue(value, upper));
+}
 
 const {
     valueProperty,
@@ -119,18 +129,14 @@ interface StylerResult {
 }
 type StylerMarkerOptionsResult = { item: Record<AgHlcSeriesItemType, DeepRequired<HlcMarkerEnabledMixin>> };
 
-/**
- * Context object for efficient node datum creation.
- * Caches expensive-to-compute values that are reused across all datum iterations.
- */
+/** Values computed once per node data pass and reused for every datum. */
 interface HlcSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<HlcMarkerDatum> {
     readonly highValues: AgNumericValue[];
     readonly lowValues: AgNumericValue[];
     readonly closeValues: AgNumericValue[];
     readonly xOffset: number;
     readonly xAxisRange: [number, number];
-    readonly dataAggregationFilter: HlcSeriesDataAggregationFilter | undefined;
-    readonly range: number;
+    readonly dataAggregationFilter: OhlcSeriesDataAggregationFilter | undefined;
     readonly highKey: string;
     readonly lowKey: string;
     readonly closeKey: string;
@@ -216,7 +222,9 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         return { ...super.createNodeParams(datum), xKey, highKey, lowKey, closeKey };
     }
 
-    private readonly aggregationManager = new AggregationManager<HlcSeriesDataAggregationFilter>();
+    private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
+    /** Kept so focus and tooltips can resolve datums that are outside the current node data. */
+    private nodeDatumContext?: HlcSeriesNodeDatumContext;
     private hideWithSize0 = false;
     private markerNodesPickable = true;
 
@@ -299,7 +307,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
 
         this.aggregationManager.aggregate({
             computePartial: (existingFilters) =>
-                aggregateHlcDataFromDataModelPartial(
+                aggregateOhlcDataFromDataModelPartial(
                     xAxis.scale.type,
                     dataModel,
                     processedData,
@@ -308,7 +316,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
                     existingFilters
                 ),
             computeFull: (existingFilters) =>
-                aggregateHlcDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
+                aggregateOhlcDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
         });
 
@@ -348,6 +356,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         xAxis: _ModuleSupport.ChartAxis,
         yAxis: _ModuleSupport.ChartAxis
     ): HlcSeriesNodeDatumContext | undefined {
+        this.nodeDatumContext = undefined;
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
 
@@ -358,7 +367,6 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
 
-        // Ensure we have the aggregation level needed for the current range
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
@@ -373,7 +381,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
 
         const { xKey, highKey, lowKey, closeKey, item, connectMissingData, interpolation } = this.options;
 
-        return {
+        this.nodeDatumContext = {
             xAxis,
             yAxis,
             rawData,
@@ -386,7 +394,6 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
             xAxisRange: xAxis.range,
             xOffset: (xScale.bandwidth ?? 0) / 2,
             dataAggregationFilter,
-            range,
             animationEnabled,
             canIncrementallyUpdate,
             xKey,
@@ -400,6 +407,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
             spanPoints: [],
             nodeIndex: 0,
         };
+        return this.nodeDatumContext;
     }
 
     override xCoordinateRange(xValue: any): [number, number] {
@@ -455,28 +463,22 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         return { inner: 1, outer: 0.1 };
     }
 
-    /**
-     * Processes a single datum and updates the context's marker and span arrays.
-     * Uses the scratch object to avoid per-iteration allocations.
-     *
-     * In aggregation mode the values come from different datums of the bucket, so they are passed in
-     * as overrides while `datumIndex` is the bucket's midpoint.
-     */
+    /** In aggregation mode the values come from different datums of the bucket, while `datumIndex` is its midpoint. */
     private handleDatumPoint(
         ctx: HlcSeriesNodeDatumContext,
         scratch: HlcNodeDatumScratch,
         datumIndex: number,
-        highValueOverride?: AgNumericValue,
-        lowValueOverride?: AgNumericValue,
-        closeValueOverride?: AgNumericValue
+        highValue: AgNumericValue,
+        lowValue: AgNumericValue,
+        closeValue: AgNumericValue
     ): void {
         scratch.xValue = ctx.xValues[datumIndex];
         if (scratch.xValue === undefined && !this.options.allowNullKeys) return;
 
         scratch.datum = ctx.rawData[datumIndex];
-        scratch.highValue = highValueOverride ?? ctx.highValues[datumIndex];
-        scratch.lowValue = lowValueOverride ?? ctx.lowValues[datumIndex];
-        scratch.closeValue = closeValueOverride ?? ctx.closeValues[datumIndex];
+        scratch.highValue = highValue;
+        scratch.lowValue = lowValue;
+        scratch.closeValue = closeValue;
 
         const currentSpanPoints = ctx.spanPoints.at(-1);
 
@@ -501,7 +503,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
                 bandEdge: {
                     point: { x, y: clamp(Math.min(highY, lowY), closeY, Math.max(highY, lowY)) },
                     xDatum,
-                    yDatum: scratch.closeValue,
+                    yDatum: clampValue(scratch.closeValue, lowValue, highValue),
                 },
             };
 
@@ -530,7 +532,6 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
     private hasInvalidDatumsInRange(ctx: HlcSeriesNodeDatumContext, startIndex: number, endIndex: number): boolean {
         const { highValues, lowValues, closeValues } = ctx;
         for (let i = startIndex; i <= endIndex; i++) {
-            // isContinuous accepts any bigint; Number.isFinite rejects every bigint (it never coerces them).
             if (!isContinuous(highValues[i]) || !isContinuous(lowValues[i]) || !isContinuous(closeValues[i])) {
                 return true;
             }
@@ -538,10 +539,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         return false;
     }
 
-    /**
-     * Creates or updates the marker datum for one value of a datum.
-     * Supports incremental updates by reusing existing marker data objects when possible.
-     */
+    /** Reuses the existing marker datum in place when updating incrementally. */
     private upsertMarkerDatum(
         ctx: HlcSeriesNodeDatumContext,
         scratch: HlcNodeDatumScratch,
@@ -553,7 +551,6 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
 
         if (canReuseNode) {
-            // Update existing marker datum in place to avoid allocation
             const existingNode = ctx.nodes[ctx.nodeIndex] as {
                 -readonly [K in keyof HlcMarkerDatum]: HlcMarkerDatum[K];
             };
@@ -568,26 +565,73 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
             existingNode.xValue = scratch.xValue;
             existingNode.point = { x: scratch.x, y, size };
         } else {
-            ctx.nodes.push({
-                index: datumIndex,
-                series: this,
-                itemType,
-                datum: scratch.datum,
-                datumIndex,
-                midPoint: { x: scratch.x, y },
-                highValue: scratch.highValue,
-                lowValue: scratch.lowValue,
-                closeValue: scratch.closeValue,
-                xValue: scratch.xValue,
-                xKey: ctx.xKey,
-                highKey: ctx.highKey,
-                lowKey: ctx.lowKey,
-                closeKey: ctx.closeKey,
-                point: { x: scratch.x, y, size },
-                enabled: true,
-            });
+            ctx.nodes.push(this.createMarkerDatum(ctx, scratch, datumIndex, itemType, y));
         }
         ctx.nodeIndex++;
+    }
+
+    private createMarkerDatum(
+        ctx: HlcSeriesNodeDatumContext,
+        scratch: HlcNodeDatumScratch,
+        datumIndex: number,
+        itemType: AgHlcSeriesItemType,
+        y: number
+    ): HlcMarkerDatum {
+        return {
+            index: datumIndex,
+            series: this,
+            itemType,
+            datum: scratch.datum,
+            datumIndex,
+            midPoint: { x: scratch.x, y },
+            highValue: scratch.highValue,
+            lowValue: scratch.lowValue,
+            closeValue: scratch.closeValue,
+            xValue: scratch.xValue,
+            xKey: ctx.xKey,
+            highKey: ctx.highKey,
+            lowKey: ctx.lowKey,
+            closeKey: ctx.closeKey,
+            point: { x: scratch.x, y, size: ctx.item[itemType].marker.size },
+            enabled: true,
+        };
+    }
+
+    /**
+     * The datum index and the values that are drawn for a datum: its own, or, when aggregated, the
+     * extremes and last close of its bucket at the bucket's midpoint.
+     */
+    private resolveDrawnValues(
+        ctx: HlcSeriesNodeDatumContext,
+        datumIndex: number
+    ): ({ datumIndex: number } & Record<AgHlcSeriesItemType, AgNumericValue>) | undefined {
+        const filter = ctx.dataAggregationFilter;
+        if (filter == null) {
+            return {
+                datumIndex,
+                high: ctx.highValues[datumIndex],
+                low: ctx.lowValues[datumIndex],
+                close: ctx.closeValues[datumIndex],
+            };
+        }
+
+        const bucketIndex = this.bucketLookup?.getBucketIndex(datumIndex);
+        if (bucketIndex === undefined) return undefined;
+
+        const midIndex = filter.midpointIndices[bucketIndex];
+        const aggIndex = bucketIndex * SPAN;
+        const highIndex = filter.indexData[aggIndex + HIGH];
+        const lowIndex = filter.indexData[aggIndex + LOW];
+        const closeIndex = filter.indexData[aggIndex + CLOSE];
+        if (midIndex === AGGREGATION_INDEX_UNSET || highIndex === AGGREGATION_INDEX_UNSET) return undefined;
+        if (lowIndex === AGGREGATION_INDEX_UNSET || closeIndex === AGGREGATION_INDEX_UNSET) return undefined;
+
+        return {
+            datumIndex: midIndex,
+            high: ctx.highValues[highIndex],
+            low: ctx.lowValues[lowIndex],
+            close: ctx.closeValues[closeIndex],
+        };
     }
 
     protected override populateNodeData(ctx: HlcSeriesNodeDatumContext): void {
@@ -606,36 +650,41 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
 
         const xPosition = (index: number) => ctx.xScale.convert(ctx.xValues[index]) + ctx.xOffset;
 
-        // @todo(AG-13575) Remove this if block
         if (processedData.input.count < 1e3 || ctx.dataAggregationFilter == null) {
-            // No aggregation - iterate only visible data points
             let [start, end] = visibleRangeIndices(1, ctx.xValues.length, ctx.xAxisRange, (index) => {
                 const x = xPosition(index);
                 return [x, x];
             });
-            // @todo(AG-13575) Remove this if block
             if (processedData.input.count < 1e3) {
                 start = 0;
                 end = processedData.input.count;
             }
-            // Expand range by 1 on each side to ensure line continuity at edges
+            // One extra datum each side keeps the lines continuous at the edges.
             start = Math.max(start - 1, 0);
             end = Math.min(end + 1, ctx.xValues.length);
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
-                this.handleDatumPoint(ctx, scratch, datumIndex);
+                this.handleDatumPoint(
+                    ctx,
+                    scratch,
+                    datumIndex,
+                    ctx.highValues[datumIndex],
+                    ctx.lowValues[datumIndex],
+                    ctx.closeValues[datumIndex]
+                );
             }
         } else {
-            // With aggregation - iterate only visible buckets
             const { maxRange, indexData, midpointIndices } = ctx.dataAggregationFilter;
 
             const [start, end] = visibleRangeIndices(1, maxRange, ctx.xAxisRange, (index) => {
                 const midDatumIndex = midpointIndices[index];
                 if (midDatumIndex === AGGREGATION_INDEX_UNSET) return;
-                return [xPosition(midDatumIndex), xPosition(midDatumIndex)];
+                const x = xPosition(midDatumIndex);
+                return [x, x];
             });
 
-            let prevEndDatumIndex = -1;
+            // Seeded from the first drawn bucket, so the gap check never scans datums left of the viewport.
+            let prevEndDatumIndex: number | undefined;
 
             for (let bucketIndex = start; bucketIndex < end; bucketIndex += 1) {
                 const midIndex = midpointIndices[bucketIndex];
@@ -657,7 +706,11 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
 
                 if (
                     !ctx.connectMissingData &&
-                    this.hasInvalidDatumsInRange(ctx, prevEndDatumIndex + 1, closeDatumIndex)
+                    this.hasInvalidDatumsInRange(
+                        ctx,
+                        prevEndDatumIndex == null ? indexData[aggIndex + FIRST] : prevEndDatumIndex + 1,
+                        closeDatumIndex
+                    )
                 ) {
                     this.pushGapMarker(ctx);
                 }
@@ -678,7 +731,6 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
     }
 
     protected override finalizeNodeData(ctx: HlcSeriesNodeDatumContext): void {
-        // Cleanup incremental updates - trim nodes if fewer than before
         if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length) {
             ctx.nodes.length = ctx.nodeIndex;
         }
@@ -872,10 +924,9 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         }
 
         if (!processedDataIsAnimatable(this.processedData!)) {
-            // Optimised update path, no need to match nodes by id
             return datumSelection.update(resolvedNodeData);
         }
-        // Use xValue + itemType as unique ID since there are three markers per data point
+        // Three markers share an xValue, so the item type completes the id.
         return datumSelection.update(resolvedNodeData, undefined, (datum) =>
             createDatumId(datum.xValue, datum.itemType)
         );
@@ -989,7 +1040,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
 
         const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
 
-        // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
+        // Hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = Math.max(
             ...ITEM_TYPES.map((itemType) => maxMarkerStrokePickInflation(contextNodeData.styles[itemType]))
         );
@@ -1200,9 +1251,13 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
 
         const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
-        const highValue = dataModel.resolveColumnById(this, `highValue`, processedData, 'mixed-numeric')[datumIndex];
-        const lowValue = dataModel.resolveColumnById(this, `lowValue`, processedData, 'mixed-numeric')[datumIndex];
-        const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData, 'mixed-numeric')[datumIndex];
+        const drawn = this.nodeDatumContext && this.resolveDrawnValues(this.nodeDatumContext, datumIndex);
+        const highValue =
+            drawn?.high ?? dataModel.resolveColumnById(this, `highValue`, processedData, 'mixed-numeric')[datumIndex];
+        const lowValue =
+            drawn?.low ?? dataModel.resolveColumnById(this, `lowValue`, processedData, 'mixed-numeric')[datumIndex];
+        const closeValue =
+            drawn?.close ?? dataModel.resolveColumnById(this, `closeValue`, processedData, 'mixed-numeric')[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         const allowNullKeys = this.options.allowNullKeys ?? false;
@@ -1335,7 +1390,6 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         const { datumSelection, contextData, paths, previousContextData } = animationData;
         const [highFill, lowFill, highStroke, lowStroke, closeStroke] = paths;
 
-        // Handling initially hidden series case gracefully.
         if (paths.every((path) => path == null)) return;
 
         this.resetDatumAnimation(animationData);
@@ -1351,7 +1405,6 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         };
 
         if (contextData == null || previousContextData == null) {
-            // Added series to existing chart case - fade in series.
             update();
 
             markerFadeInAnimation(this, animationManager, 'added', this.getAnimationDrawingModes(), datumSelection);
@@ -1369,7 +1422,6 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
             this.processedData?.reduced?.diff?.[this.id]
         );
         if (fns === undefined) {
-            // Un-animatable - skip all animations.
             skip();
             return;
         } else if (fns.status === 'no-op') {
@@ -1402,10 +1454,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
             markerFadeInAnimation(this, animationManager, undefined, this.getAnimationDrawingModes(), datumSelection);
         }
 
-        // The animation may clip spans
-        // When using smooth interpolation, the bezier spans are clipped using an approximation
-        // This can result in artefacting, which may be present on the final frame
-        // To remove this on the final frame, re-draw the series without animations
+        // Smooth interpolation clips bezier spans approximately, which can artefact on the final frame, so redraw it.
         this.ctx.animationManager.animate({
             id: this.id,
             groupId: 'reset_after_animation',
@@ -1430,16 +1479,34 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        const nodeData = this.contextNodeData?.nodeData;
-        if (nodeData == null) return undefined;
+        const ctx = this.nodeDatumContext;
+        if (ctx == null) return undefined;
 
-        // A datum's three node datums are contiguous: high, low, then close.
-        const highIndex = nodeData.findIndex((node) => node.datumIndex === opts.datumIndex);
-        if (highIndex === -1) return undefined;
+        const drawn = this.resolveDrawnValues(ctx, opts.datumIndex);
+        if (drawn == null) return undefined;
 
+        const { high, low, close } = drawn;
+        if (!isContinuous(high) || !isContinuous(low) || !isContinuous(close)) return undefined;
+
+        const xValue = ctx.xValues[drawn.datumIndex];
+        const x = ctx.xScale.convert(xValue) + ctx.xOffset;
+        if (!Number.isFinite(x)) return undefined;
+
+        const scratch: HlcNodeDatumScratch = {
+            datum: ctx.rawData[drawn.datumIndex],
+            xValue,
+            highValue: high,
+            lowValue: low,
+            closeValue: close,
+            x,
+        };
         const boxes = [];
-        for (let i = highIndex; i < highIndex + ITEM_TYPES.length; i++) {
-            const box = computeMarkerFocusBoundsOfNodeDatum(this, nodeData[i]);
+        for (const itemType of ITEM_TYPES) {
+            const y = ctx.yScale.convert(drawn[itemType]);
+            const box = computeMarkerFocusBoundsOfNodeDatum(
+                this,
+                this.createMarkerDatum(ctx, scratch, drawn.datumIndex, itemType, y)
+            );
             if (box == null) return undefined;
             boxes.push(box);
         }
