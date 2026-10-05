@@ -268,6 +268,96 @@ describe('series label fit', () => {
             expect(rendered.some((node) => node.text.includes(ELLIPSIS))).toBe(true);
         });
 
+        describe('range-area', () => {
+            const rangeAreaChart = (label: object, theme?: object) => ({
+                data: bars,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                theme,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'cat',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: shrinkableLabel({ maxWidth: 60, collision: { alwaysShow: true }, ...label }),
+                    },
+                ],
+            });
+
+            const expectAllTruncatedAt = (fontSize: number) => {
+                const rendered = drawnLabels();
+                expect(rendered.length).toBe(bars.length * 2);
+                expect(rendered.map((node) => node.fontSize)).toEqual(rendered.map(() => fontSize));
+                expect(rendered.every((node) => node.text.includes(ELLIPSIS))).toBe(true);
+            };
+            const expectAllShrunkWhole = () => {
+                const rendered = drawnLabels();
+                expect(rendered.length).toBe(bars.length * 2);
+                for (const node of rendered) {
+                    expect(node.fontSize).toBeLessThan(FONT_SIZE);
+                    expect(node.text).not.toContain(ELLIPSIS);
+                }
+            };
+
+            it('keeps labels at their configured size when minimumFontSize is unset', async () => {
+                await render(rangeAreaChart({}));
+                expectAllTruncatedAt(FONT_SIZE);
+            });
+
+            it('shrinks labels to fit rather than truncating them', async () => {
+                await render(rangeAreaChart({ minimumFontSize: 4 }));
+                expectAllShrunkWhole();
+            });
+
+            it('stops shrinking at minimumFontSize and truncates from there', async () => {
+                await render(rangeAreaChart({ minimumFontSize: 16 }));
+                expectAllTruncatedAt(16);
+            });
+
+            it('stops shrinking at minimumFontSize and hides from there when alwaysShow is false', async () => {
+                await render(
+                    rangeAreaChart({ minimumFontSize: 16, truncate: false, collision: { alwaysShow: false } })
+                );
+                expect(drawnLabels()).toEqual([]);
+            });
+
+            it('takes minimumFontSize from the theme', async () => {
+                const theme = { overrides: { 'range-area': { series: { label: { minimumFontSize: 4 } } } } };
+                await render(rangeAreaChart({}, theme));
+                expectAllShrunkWhole();
+            });
+
+            it('shrinks only the labels crowding a neighbour, with a themed minimumFontSize alone', async () => {
+                const crowdedChart = (theme?: object) => ({
+                    data: Array.from({ length: 8 }, (_, i) => ({ cat: `Cat ${i}`, low: 20, high: 80 })),
+                    legend: { enabled: false },
+                    axes: { ...cartesianAxes, y: { type: 'number', position: 'left', min: 0, max: 100 } },
+                    theme,
+                    series: [
+                        {
+                            type: 'range-area',
+                            xKey: 'cat',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            label: { enabled: true, fontSize: FONT_SIZE, formatter: () => 'Alpha Bravo' },
+                        },
+                    ],
+                });
+                await render(crowdedChart());
+                expect(drawnLabels().map((node) => node.fontSize)).toEqual(Array(16).fill(FONT_SIZE));
+
+                chart.destroy();
+                await render(
+                    crowdedChart({ overrides: { 'range-area': { series: { label: { minimumFontSize: 6 } } } } })
+                );
+                const sizes = drawnLabels().map((node) => node.fontSize);
+                expect(sizes).toHaveLength(16);
+                expect(sizes).toContain(FONT_SIZE);
+                expect(sizes.some((size) => size < FONT_SIZE)).toBe(true);
+            });
+        });
+
         // The scene-graph cases above pin the exact sizes; these pin how they look side by side.
         describe('visual', () => {
             it('renders waterfall labels across the shrink spectrum', async () => {
@@ -306,6 +396,47 @@ describe('series label fit', () => {
                             totals: [{ totalType: 'total', index: spectrum.length - 1, axisLabel: 'Closing' }],
                         },
                     ],
+                });
+            });
+
+            it('renders range-area labels across the shrink spectrum', async () => {
+                // One band per configuration; the last datum is inverted so its labels face the opposite sides.
+                const spectrum = [
+                    { cat: 'A', label: 'Bid' },
+                    { cat: 'B', label: 'Lowest bid' },
+                    { cat: 'C', label: 'Ceiling price' },
+                    { cat: 'D', label: 'Lowest recorded closing value' },
+                    { cat: 'E', label: 'Closing quote', inverted: true },
+                ];
+                const series = [
+                    { offset: 0, label: { placement: 'outside' } },
+                    { offset: 35, label: { placement: 'inside', minimumFontSize: 6 } },
+                    { offset: 70, label: { placement: 'outside', minimumFontSize: 12, wrapping: 'on-space' } },
+                ].map(({ offset, label }, index) => ({
+                    type: 'range-area',
+                    xKey: 'cat',
+                    yLowKey: `low${index}`,
+                    yHighKey: `high${index}`,
+                    label: shrinkableLabel({
+                        maxWidth: 60,
+                        maxHeight: 28,
+                        collision: { alwaysShow: true },
+                        formatter: (p: any) => p.datum.label,
+                        ...label,
+                    }),
+                    data: spectrum.map((d) => ({
+                        ...d,
+                        [`low${index}`]: offset + (d.inverted ? 22 : 8),
+                        [`high${index}`]: offset + (d.inverted ? 8 : 22),
+                    })),
+                }));
+                await renderAndSnapshot({
+                    legend: { enabled: false },
+                    axes: {
+                        ...cartesianAxes,
+                        y: { type: 'number', position: 'left', min: -10, max: 115, label: { enabled: false } },
+                    },
+                    series,
                 });
             });
 

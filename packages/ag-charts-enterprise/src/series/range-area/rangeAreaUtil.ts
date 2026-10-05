@@ -44,6 +44,7 @@ const {
 export interface RangeAreaLabelDatum extends Readonly<Point>, PointLabelDatum {
     datumIndex: number;
     text: NormalisedTextOrSegments;
+    fittedFontSize?: number;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     rotation: number;

@@ -8,6 +8,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
+    AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
     AgSeriesLabelPlacementStyleOptions,
@@ -78,6 +79,7 @@ export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = Conte
     extends
         AgChartLabelOptions<TDatum, TParams, TContext>,
         AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the area. Either a single placement or an ordered
