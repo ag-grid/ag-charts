@@ -25,7 +25,6 @@ export interface StructuralCacheEntry {
     /** What the Logger reported during the cached calculation, replayed through it on a hit. */
     issues: LogIssue[];
     remappedAxisKeys: Map<string, AxisID> | undefined;
-    presetOptions: object | undefined;
 }
 
 const STRUCTURAL_CACHE_MAX = 8;

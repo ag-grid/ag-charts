@@ -1761,11 +1761,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.refreshSeriesUserVisibility(this.chartOptions, newChartOptions.seriesWithUserVisibility);
         }
 
-        // A change to the preset options a series data transform reads needn't change any series options,
-        // so the series data update is requested explicitly.
-        const seriesDataChanged =
-            this.getPresetDef()?.transformSeriesData != null &&
-            newChartOptions.presetOptions !== this.chartOptions.presetOptions;
+        // The series options needn't change with the preset options their data is transformed by.
+        const seriesDataChanged = newChartOptions.presetOptions !== this.chartOptions.presetOptions;
         const minimumUpdateType = seriesDataChanged ? ChartUpdateType.UPDATE_DATA : ChartUpdateType.PERFORM_LAYOUT;
         const deltaOptions = this.firstApply
             ? newChartOptions.processedOptions

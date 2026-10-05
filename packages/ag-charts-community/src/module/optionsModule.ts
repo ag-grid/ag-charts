@@ -276,10 +276,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     optionsProcessingTime?: number;
     optionsGraph?: OptionsGraphAccessor;
     remappedAxisKeys?: Map<string, AxisID>;
-    /**
-     * For a preset declaring `transformSeriesData`, its options as the last slow setup validated them, less
-     * `data`. The fast path carries them forward, so a key its delta changes, such as `width`, is stale here.
-     */
+    /** The validated options, less `data`, of a preset declaring `transformSeriesData`. */
     presetOptions?: object;
     seriesWithUserVisibility?: {
         identifiers: Set<string>;
@@ -411,7 +408,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 annotationThemes = baseChartOptions.annotationThemes;
                 // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
                 fonts = baseChartOptions.fonts;
-                // The preset options aren't re-validated either; they hold no `data`, which the chart keeps current.
+                // Nor does it re-validate the preset options.
                 presetOptions = baseChartOptions.presetOptions;
                 // The fast path doesn't re-validate, so carry forward the issues from the previous options.
                 this.issues.push(...baseChartOptions.issues);
@@ -685,8 +682,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const { fonts } = fontAccumulator;
-        // Kept only where read, as the structural cache freezes what it holds, and pass-through options such as
-        // `context` and `theme` are the caller's own objects.
         const clearedPresetOptions =
             presetDef?.transformSeriesData == null || presetOptions == null
                 ? undefined
@@ -711,7 +706,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     chartDef: this.chartDef,
                     issues: [...this.issues],
                     remappedAxisKeys,
-                    presetOptions: clearedPresetOptions,
                 },
                 this.moduleRegistry
             );
@@ -798,7 +792,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             fonts: cached.fonts ? new Set(cached.fonts) : undefined,
             optionsGraph,
             remappedAxisKeys: cached.remappedAxisKeys,
-            presetOptions: cached.presetOptions,
+            // Only sparklines are cached, and they don't transform their series data.
+            presetOptions: undefined,
         };
     }
 
