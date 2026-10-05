@@ -44,7 +44,7 @@ A port's manifest carries:
 
 ```json
 {
-    "demo": "financial",
+    "demo": "trading-terminal",
     "framework": "angular",
     "sourceHash": "sha256-…", // of src/demos/<demo>/** and its sibling-demo imports when last synced; stamped
     "sourceCommit": "…", // the commit that last touched any of those files; also stamped
@@ -183,7 +183,7 @@ imports included, so a shared module's change lists every demo that uses it), as
 {
     "stale": [
         {
-            "demo": "financial",
+            "demo": "trading-terminal",
             "framework": "angular",
             "sourceHash": "sha256-…",
             "manifestHash": "sha256-…",
@@ -230,7 +230,7 @@ port reproduces the demo change, and commit the manifest with the port; `--stale
 reporting it.
 
 ```sh
-node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs financial angular
+node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs trading-terminal angular
 ```
 
 ### `export-seed-mirror.mjs --out <dir> --ref <ref>`
