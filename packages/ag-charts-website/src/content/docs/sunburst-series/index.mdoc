@@ -251,30 +251,6 @@ In this configuration:
 - Sibling segments in the same branch inherit `highlightedBranch` styles (merged with their own highlight state).
 - Segments in other branches fade based on `unhighlightedBranch`.
 
-## Shadows
-
-{% chartExampleRunner title="Series Shadow" name="series-shadow" type="generated" /%}
-
-A drop shadow can be added behind the sectors using the `shadow` property. Shadows are disabled by default.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'sunburst',
-            labelKey: 'name',
-            shadow: {
-                enabled: true,
-                color: 'rgba(0, 0, 0, 0.4)',
-                xOffset: 3,
-                yOffset: 3,
-                blur: 6,
-            },
-        },
-    ],
-}
-```
-
 ## Sunburst Chart Examples
 
 {% galleryExamples series="sunburst" /%}
