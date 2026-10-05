@@ -31,7 +31,7 @@ const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgB
     listeners: defined,
     initialState: defined,
     title: defined,
-    data: required(array),
+    data: array,
     dataIdKey: string,
     dataSource: defined,
     formatter: defined,

@@ -106,15 +106,21 @@ describe('volumeProfilePreset', () => {
     });
 
     describe('with a data source', () => {
+        const instantDataSource = (getData: () => unknown[]): AgVolumeProfileChartOptions['dataSource'] => ({
+            // @ts-expect-error Set undocumented options to instantly resolve for tests
+            requestThrottle: 0,
+            updateThrottle: 0,
+            getData: () => Promise.resolve(getData()),
+        });
+
         const createWithDataSource = (getData: () => unknown[], options: Partial<AgVolumeProfileChartOptions> = {}) => {
-            const dataSource: AgVolumeProfileChartOptions['dataSource'] = {
-                // @ts-expect-error Set undocumented options to instantly resolve for tests
-                requestThrottle: 0,
-                updateThrottle: 0,
-                getData: () => Promise.resolve(getData()),
-            };
             chart = AgCharts.createVolumeProfileChart(
-                prepareFinancialTestOptions({ ...volumeProfile, data: [], ...options, dataSource })
+                prepareFinancialTestOptions({
+                    ...volumeProfile,
+                    data: [],
+                    ...options,
+                    dataSource: instantDataSource(getData),
+                })
             );
         };
 
@@ -129,6 +135,16 @@ describe('volumeProfilePreset', () => {
             // From 135 to 205 in steps of 2.5.
             expect(levels()).toHaveLength(29);
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should load without `data`', async () => {
+            const { data: _data, ...options } = volumeProfile;
+            chart = AgCharts.createVolumeProfileChart(
+                prepareFinancialTestOptions({ ...options, dataSource: instantDataSource(getRegularVolumeProfile) })
+            );
+            await settleUntil(() => loadedRows() === 27, 'the load');
+            expect(levels()).toHaveLength(29);
+            expectWarningsCalls().toEqual([]);
         });
 
         it('should replace the profile on a later load', async () => {
