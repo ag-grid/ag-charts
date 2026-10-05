@@ -30,6 +30,7 @@ import GoogleTagManager from '@ag-website-shared/components/google-tag-manager/G
 import GoogleTagManagerBody from '@ag-website-shared/components/google-tag-manager/GoogleTagManagerBody.astro';
 import JsonLd from '@ag-website-shared/components/structured-data/JsonLd.astro';
 import WebsiteMonitoring from '@ag-website-shared/components/website-monitoring/WebsiteMonitoring.astro';
+import CspZoneNavigation from '@ag-website-shared/components/csp-zone/CspZoneNavigation.astro';
 import AnnouncementBanner from '@ag-website-shared/components/announcement-banner/AnnouncementBanner.astro';
 import {
     buildAgGridOrganization,
@@ -192,6 +193,7 @@ const structuredData: JsonLdObject[] = includeStructuredData
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
         <ClientRouter />
+        <CspZoneNavigation />
         {!isStaging && <link rel="canonical" href={canonicalUrl} />}
         {markdownUrl && <link rel="alternate" type="text/markdown" href={markdownUrl} />}
         <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
