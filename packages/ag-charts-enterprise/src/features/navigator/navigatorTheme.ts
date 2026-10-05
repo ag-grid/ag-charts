@@ -50,6 +50,20 @@ const priceVolumePresetIgnoredMiniChartProperties = [
     'strokeWidth',
 ];
 
+// Not in the shared ignore lists: those drive the options defs, so `series[]` would reject `shadow`.
+function omitInheritedShadow(ignoredProperties: readonly string[]) {
+    return [...ignoredProperties, 'shadow'];
+}
+
+const miniChartMarkerTheme = {
+    // `$omit` only drops top-level keys and the first grafted value for a key wins, so the nested marker shadow is
+    // switched off here rather than alongside the omit.
+    shadow: { enabled: false },
+    enabled: {
+        $isUserOption: ['/series/$index/marker/enabled', { $path: ['/series/$index/marker/enabled', false] }, false],
+    },
+};
+
 function miniChartSeriesTheme(seriesPath: object, typePath: object) {
     return {
         $merge: [
@@ -57,17 +71,26 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                 $switch: [
                     typePath,
                     {},
+                    [['area', 'line'], { marker: miniChartMarkerTheme }],
+                    // Waterfall keeps its shadows under `item.*`, which `$omit` does not reach.
                     [
-                        ['area', 'line', 'range-area'],
+                        'waterfall',
                         {
-                            marker: {
-                                enabled: {
-                                    $isUserOption: [
-                                        '/series/$index/marker/enabled',
-                                        { $path: ['/series/$index/marker/enabled', false] },
-                                        false,
-                                    ],
-                                },
+                            item: {
+                                positive: { shadow: { enabled: false } },
+                                negative: { shadow: { enabled: false } },
+                                total: { shadow: { enabled: false } },
+                            },
+                        },
+                    ],
+                    [
+                        'range-area',
+                        {
+                            marker: miniChartMarkerTheme,
+                            // The item markers take their shadow from the main series via `$path`, not by copying it.
+                            item: {
+                                low: { marker: { shadow: { enabled: false } } },
+                                high: { marker: { shadow: { enabled: false } } },
                             },
                         },
                     ],
@@ -78,19 +101,20 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                     {
                         $switch: [
                             typePath,
-                            commonIgnoredMiniChartProperties,
-                            ['bar', barIgnoredMiniChartProperties],
-                            ['box-plot', boxPlotIngnoredMiniChartProperties],
-                            ['bubble', bubbleIgnoredMiniChartProperties],
-                            ['heatmap', heatmapIgnoredMiniChartProperties],
-                            ['histogram', histogramIgnoredMiniChartProperties],
+                            omitInheritedShadow(commonIgnoredMiniChartProperties),
+                            ['bar', omitInheritedShadow(barIgnoredMiniChartProperties)],
+                            ['box-plot', omitInheritedShadow(boxPlotIngnoredMiniChartProperties)],
+                            ['bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties)],
+                            ['heatmap', omitInheritedShadow(heatmapIgnoredMiniChartProperties)],
+                            ['histogram', omitInheritedShadow(histogramIgnoredMiniChartProperties)],
+                            // `priceVolumePresetIgnoredMiniChartProperties` already includes `shadow`.
                             [
                                 'line',
                                 [...lineIgnoredMiniChartProperties, ...priceVolumePresetIgnoredMiniChartProperties],
                             ],
-                            ['range-area', rangeAreaIgnoredMiniChartProperties],
-                            ['range-bar', rangeBarIgnoredMiniChartProperties],
-                            ['scatter', scatterIgnoredMiniChartProperties],
+                            ['range-area', omitInheritedShadow(rangeAreaIgnoredMiniChartProperties)],
+                            ['range-bar', omitInheritedShadow(rangeBarIgnoredMiniChartProperties)],
+                            ['scatter', omitInheritedShadow(scatterIgnoredMiniChartProperties)],
                             ['waterfall', waterfallIgnoredMiniChartProperties],
                         ],
                     },
