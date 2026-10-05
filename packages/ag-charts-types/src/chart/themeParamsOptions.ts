@@ -519,7 +519,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     seriesLabelFontWeight?: FontWeight;
     /**
-     * Background colour of series labels placed inside series shapes, such as bar labels with an `inside-*` placement and pie sector labels. `'transparent'` draws no background box; any other colour boxes the label, which adds padding and can hide labels that no longer fit. A colour string, or a theme-colour reference object.
+     * Background colour of series labels placed inside series shapes, such as bar labels with an `inside-*` placement and pie sector labels. A fully transparent colour, such as `'transparent'`, draws no background box; any other colour boxes the label, which adds padding and can hide labels that no longer fit. A colour string, or a theme-colour reference object.
      *
      * Default: `'transparent'`
      */
@@ -531,7 +531,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     seriesLabelInsideTextColor?: AgCssColorOrRef;
     /**
-     * Background colour of series labels placed outside series shapes, such as bar labels with an `outside-*` placement and pie callout labels. `'transparent'` draws no background box; any other colour boxes the label, which adds padding and can hide labels that no longer fit. A colour string, or a theme-colour reference object.
+     * Background colour of series labels placed outside series shapes, such as bar labels with an `outside-*` placement and pie callout labels. A fully transparent colour, such as `'transparent'`, draws no background box; any other colour boxes the label, which adds padding and can hide labels that no longer fit. A colour string, or a theme-colour reference object.
      *
      * Default: `'transparent'`
      */

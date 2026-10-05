@@ -372,10 +372,11 @@ const SERIES_LABEL_PLACEMENT_PARAMS = {
     outside: { color: 'seriesLabelOutsideTextColor', background: 'seriesLabelOutsideBackgroundColor' },
 } as const;
 
-// A defined `fill` switches label boxing on, so the `'transparent'` default must resolve to no fill at all.
+// A defined `fill` switches label boxing on, so a fully transparent background, such as the `'transparent'` default,
+// must resolve to no fill at all.
 const seriesLabelBackground = (placement: SeriesLabelPlacement) => {
     const param = SERIES_LABEL_PLACEMENT_PARAMS[placement].background;
-    return { $if: [{ $eq: [{ $ref: param }, 'transparent'] }, undefined, { $ref: param }] };
+    return { $if: [{ $isTransparent: { $ref: param } }, undefined, { $ref: param }] };
 };
 
 const labelBoxingFillDefaults = (placement?: SeriesLabelPlacement): WithThemeParams<LabelBoxOptions> => ({
