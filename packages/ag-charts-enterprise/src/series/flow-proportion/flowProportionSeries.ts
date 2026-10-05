@@ -522,13 +522,21 @@ export abstract class FlowProportionSeries<
             nodeData: focusLinkSelection,
             datumSelection: this.focusLinkSelection,
         });
-        this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
+        this.updateLinkNodes({
+            datumSelection: this.focusLinkSelection,
+            isHighlight: false,
+            focusedDatum: highlightedDatum,
+        });
 
         this.focusNodeSelection = this.updateNodeSelection({
             nodeData: focusNodeSelection,
             datumSelection: this.focusNodeSelection,
         });
-        this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
+        this.updateNodeNodes({
+            datumSelection: this.focusNodeSelection,
+            isHighlight: false,
+            focusedDatum: highlightedDatum,
+        });
 
         this.highlightLinkSelection = this.updateLinkSelection({
             nodeData: highlightLinkSelection,
@@ -589,9 +597,14 @@ export abstract class FlowProportionSeries<
         datumSelection: _ModuleSupport.Selection<TNodeDatum, TNode>;
     }): _ModuleSupport.Selection<TNodeDatum, TNode>;
 
+    /**
+     * `focusedDatum` is the hovered item when `datumSelection` is the focus layer, which redraws it among its
+     * neighbours. That copy casts no shadow: the hovered item's shadow is cast by exactly one other copy.
+     */
     protected abstract updateNodeNodes(opts: {
         datumSelection: _ModuleSupport.Selection<TNodeDatum, TNode>;
         isHighlight: boolean;
+        focusedDatum?: TNodeDatum | TLinkDatum;
     }): void;
 
     protected abstract updateLinkSelection(opts: {
@@ -602,6 +615,7 @@ export abstract class FlowProportionSeries<
     protected abstract updateLinkNodes(opts: {
         datumSelection: _ModuleSupport.Selection<TLinkDatum, TLink>;
         isHighlight: boolean;
+        focusedDatum?: TNodeDatum | TLinkDatum;
     }): void;
 
     override resetAnimation(_chartAnimationPhase: ChartAnimationPhase): void {

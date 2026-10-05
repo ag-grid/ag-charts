@@ -13,12 +13,14 @@ import {
 } from '../test/utils';
 import { BoxPlotNode } from './box-plot/boxPlotNode';
 import { CandlestickNode } from './candlestick/candlestickNode';
+import { ChordLink } from './chord/chordLink';
 import { FlowProportionDatumType } from './flow-proportion/flowDatumIndex';
 import { FunnelConnector } from './funnel/funnelConnector';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
 import { GeoGeometry } from './map-util/geoGeometry';
 import { OhlcNode } from './ohlc/ohlcNode';
+import { SankeyLink } from './sankey/sankeyLink';
 
 type Shadow = typeof SHADOW;
 
@@ -73,15 +75,18 @@ const GROUP_LAYERS = (series: any) => {
     };
     return { inPlace: groups(series.datumSelection), highlighted: groups(series.highlightSelection) };
 };
-// A flow series redraws the hovered node's neighbours on a focus layer; the highlight layer holds the node itself.
+// A flow series redraws the hovered item's neighbours on a focus layer; the highlight layer holds the item itself,
+// as a node or as a link.
 const FLOW_LAYERS = (series: any) => ({
     inPlace: collectShapes(series.contentGroup),
-    highlighted: collectShapes(series.highlightNodeGroup),
+    highlighted: [...collectShapes(series.highlightNodeGroup), ...collectShapes(series.highlightLinkGroup)],
 });
-const FLOW_NODE = (series: any) =>
-    series.contextNodeData.nodeData.find((datum: any) => datum.type === FlowProportionDatumType.Node);
-const SECOND_FLOW_NODE = (series: any) =>
-    series.contextNodeData.nodeData.filter((datum: any) => datum.type === FlowProportionDatumType.Node)[1];
+const flowData = (type: FlowProportionDatumType) => (series: any) =>
+    series.contextNodeData.nodeData.filter((datum: any) => datum.type === type);
+const FLOW_NODE = (series: any) => flowData(FlowProportionDatumType.Node)(series)[0];
+const SECOND_FLOW_NODE = (series: any) => flowData(FlowProportionDatumType.Node)(series)[1];
+const FLOW_LINK = (series: any) => flowData(FlowProportionDatumType.Link)(series)[0];
+const SECOND_FLOW_LINK = (series: any) => flowData(FlowProportionDatumType.Link)(series)[1];
 
 const STAGE_DATA = [
     { stage: 'Visits', value: 100 },
@@ -151,6 +156,38 @@ const SERIES: SeriesCase[] = [
             toKey: 'to',
             sizeKey: 'size',
             node: { shadow },
+            highlight,
+        }),
+    },
+    {
+        name: 'sankey links',
+        data: FLOW_DATA,
+        kind: SankeyLink,
+        hover: FLOW_LINK,
+        hoverNext: SECOND_FLOW_LINK,
+        layers: FLOW_LAYERS,
+        series: (shadow, highlight) => ({
+            type: 'sankey',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            link: { shadow },
+            highlight,
+        }),
+    },
+    {
+        name: 'chord links',
+        data: FLOW_DATA,
+        kind: ChordLink,
+        hover: FLOW_LINK,
+        hoverNext: SECOND_FLOW_LINK,
+        layers: FLOW_LAYERS,
+        series: (shadow, highlight) => ({
+            type: 'chord',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            link: { shadow },
             highlight,
         }),
     },
@@ -538,6 +575,47 @@ describe('highlightedItem.shadow (enterprise series)', () => {
             expect(inPlace.filter(casts).length).toBe(0);
         });
     });
+
+    describe.each(SERIES.filter(({ name }) => /^(sankey|chord) (nodes|links)$/.test(name)))(
+        '$name focus layer',
+        (testCase) => {
+            // Every copy of the hovered item: in place, on the focus layer beside its neighbours, and highlighted.
+            const copiesOf = (series: any, hovered: unknown) => {
+                const copy = (names: string[]) => {
+                    const shapes: _Scene.Shape[] = [];
+                    for (const name of names) {
+                        series[name].each((shape: _Scene.Shape, datum: unknown) => {
+                            if (datum === hovered) shapes.push(shape);
+                        });
+                    }
+                    return shapes;
+                };
+                return {
+                    inPlace: copy(['nodeSelection', 'linkSelection']),
+                    focus: copy(['focusNodeSelection', 'focusLinkSelection']),
+                    highlighted: copy(['highlightNodeSelection', 'highlightLinkSelection']),
+                };
+            };
+
+            it.each([
+                ['cutout', {}, 'highlighted'],
+                ['overlay', {}, 'inPlace'],
+                ['overlay', { highlightedItem: { shadow: HIGHLIGHT_SHADOW } }, 'highlighted'],
+            ] as const)('casts the hovered item once, in %s mode with %j', async (drawingMode, highlight, caster) => {
+                const { series } = await hoverItem(testCase, SHADOW, highlight, drawingMode);
+                const copies = copiesOf(series, testCase.hover?.(series));
+
+                // The hovered item is drawn in each layer, and exactly one of its copies casts.
+                expect(copies.inPlace.length).toBe(1);
+                expect(copies.focus.length).toBe(1);
+                expect(copies.highlighted.length).toBe(1);
+                expect(copies.focus.filter(casts).length).toBe(0);
+                expect([...copies.inPlace, ...copies.focus, ...copies.highlighted].filter(casts)).toEqual(
+                    copies[caster]
+                );
+            });
+        }
+    );
 
     describe('items the series draws no highlight copy for', () => {
         it('keeps the shadow on a region of a series that shares the hovered series legend item name', async () => {

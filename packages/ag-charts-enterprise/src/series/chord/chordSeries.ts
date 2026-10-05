@@ -523,8 +523,9 @@ export class ChordSeries extends FlowProportionSeries<
     protected updateNodeNodes(opts: {
         datumSelection: _ModuleSupport.Selection<ChordNodeDatum, _ModuleSupport.Sector<ChordNodeDatum>>;
         isHighlight: boolean;
+        focusedDatum?: ChordNodeDatum | ChordLinkDatum;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
         const { shadow } = this.options.node;
@@ -534,7 +535,8 @@ export class ChordSeries extends FlowProportionSeries<
             const style = this.getNodeStyle(datum, datumIndex, isHighlight);
 
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = this.resolveItemShadow(shadow, isHighlight, datumIndex);
+            sector.fillShadow =
+                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex);
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -648,8 +650,9 @@ export class ChordSeries extends FlowProportionSeries<
     protected updateLinkNodes(opts: {
         datumSelection: _ModuleSupport.Selection<ChordLinkDatum, ChordLink<ChordLinkDatum>>;
         isHighlight: boolean;
+        focusedDatum?: ChordNodeDatum | ChordLinkDatum;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
         const { shadow } = this.options.link;
@@ -680,7 +683,8 @@ export class ChordSeries extends FlowProportionSeries<
 
             link.tension = style.tension;
             link.setStyleProperties(style, fillBBox);
-            link.fillShadow = this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
+            link.fillShadow =
+                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
         });
     }
 

@@ -937,8 +937,9 @@ export class SankeySeries extends FlowProportionSeries<
     protected updateNodeNodes(opts: {
         datumSelection: _ModuleSupport.Selection<SankeyNodeDatum, _ModuleSupport.Rect<SankeyNodeDatum>>;
         isHighlight: boolean;
+        focusedDatum?: SankeyNodeDatum | SankeyLinkDatum;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
         const { shadow } = this.options.node;
@@ -954,7 +955,8 @@ export class SankeySeries extends FlowProportionSeries<
             rect.cornerRadius = this.options.node.cornerRadius;
 
             rect.setStyleProperties(style, fillBBox);
-            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, datumIndex);
+            rect.fillShadow =
+                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex);
         });
     }
 
@@ -1041,8 +1043,9 @@ export class SankeySeries extends FlowProportionSeries<
     protected updateLinkNodes(opts: {
         datumSelection: _ModuleSupport.Selection<SankeyLinkDatum, SankeyLink<SankeyLinkDatum>>;
         isHighlight: boolean;
+        focusedDatum?: SankeyNodeDatum | SankeyLinkDatum;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
         const { cornerRadius } = this.options.node;
@@ -1061,7 +1064,8 @@ export class SankeySeries extends FlowProportionSeries<
             link.endEdge = nodeEdge(datum.toNode, cornerRadius, 1);
 
             link.setStyleProperties(style, fillBBox);
-            link.fillShadow = this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
+            link.fillShadow =
+                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
 
             link.inset = link.strokeWidth / 2;
         });
