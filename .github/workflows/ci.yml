@@ -2016,6 +2016,59 @@ jobs:
     # on this job and it must be excluded from branch-protection required checks — merge never waits
     # on it. `continue-on-error` + `!cancelled()` keep it off the critical path (the snapshot jobs
     # deliberately exit 1 when they regenerate baselines, so this must tolerate their failure).
+    algolia_dev_index:
+        runs-on: ubuntu-24.04
+        name: Update Algolia Dev Index
+        needs: [website_build]
+        # Only when the whole Website Build job succeeded (build and artifact upload), not just its build step.
+        if: ${{ !cancelled() && github.ref == 'refs/heads/latest' && needs.website_build.result == 'success' }}
+        # Search indexing is not part of the build's verdict: a failure here must not turn latest red
+        # (and so trigger the CI failure handler).
+        continue-on-error: true
+        # Each run clears and refills the indices, so never let two overlap. A newer pending run
+        # supersedes an older pending one, which is fine because only the newest build matters.
+        concurrency:
+            group: ${{ github.workflow }}-algolia-dev-index
+            cancel-in-progress: false
+        steps:
+            - name: Checkout
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  fetch-depth: 1
+
+            # Only node_modules are needed (jsdom, algoliasearch, puppeteer-core, ...); nothing is built.
+            - name: Setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  yarn_postinstall: no-install
+                  cache_mode: ro
+                  nx_restore: false
+                  fetch_base: skip
+                  free_disk_space: false
+
+            - name: Restore Website Build
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+              with:
+                  name: website-staging-dist
+                  path: dist/packages/ag-charts-website/
+
+            - name: Update Algolia dev indices
+              working-directory: packages/ag-charts-website
+              env:
+                  ALGOLIA_ADMIN_KEY: ${{ secrets.ALGOLIA_ADMIN_KEY }}
+              run: |
+                  # update-algolia.js reads the App ID as PUBLIC_ASTRO_ALGOLIA_APP_ID; take the public
+                  # value from the staging build's env file rather than duplicating it here.
+                  PUBLIC_ASTRO_ALGOLIA_APP_ID=$(sed -n 's/^PUBLIC_ALGOLIA_APP_ID=//p' .env.build.staging)
+                  export PUBLIC_ASTRO_ALGOLIA_APP_ID
+                  if [[ -z "$PUBLIC_ASTRO_ALGOLIA_APP_ID" || -z "$ALGOLIA_ADMIN_KEY" ]]; then
+                      echo "::error::Algolia App ID or ALGOLIA_ADMIN_KEY secret is missing"
+                      exit 1
+                  fi
+                  # Launches /usr/bin/google-chrome (preinstalled on ubuntu-24.04 runners) and
+                  # indexes the built pages under dist/packages/ag-charts-website.
+                  node update-algolia.js -i ag-charts-dev
+
     snapshot_review:
         runs-on: ubuntu-24.04
         name: Snapshot Review

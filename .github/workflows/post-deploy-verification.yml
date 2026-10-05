@@ -28,6 +28,7 @@ env:
     GIT_CONFIG_KEY_1: maintenance.auto
     GIT_CONFIG_VALUE_1: 'false'
     CI: true
+    NX_NO_CLOUD: 'true'
 
 concurrency:
     group: post-deploy-verification-${{ github.ref }}
