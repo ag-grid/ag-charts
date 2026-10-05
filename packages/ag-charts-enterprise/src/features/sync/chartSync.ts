@@ -7,6 +7,7 @@ import {
     Debug,
     type DefinedZoomState,
     type DynamicContext,
+    type NormalisedChartSyncOptions,
     type Scale,
     arraysEqual,
     definedZoomState,
@@ -65,7 +66,7 @@ export class ChartSync extends AbstractModuleInstance {
 
     // ChartSync is only created when the `sync` subtree is configured, so we
     // assert the subtree's presence here and rely on theme defaults for fields.
-    private get opts(): _ModuleSupport.NormalisedChartSyncOptions {
+    private get opts(): NormalisedChartSyncOptions {
         return this.moduleContext.chartState.getValue('options', 'sync')!;
     }
 

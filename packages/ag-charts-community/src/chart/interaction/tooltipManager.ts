@@ -1,10 +1,8 @@
-import { type BoxBounds, CleanupRegistry, objectsEqual } from 'ag-charts-core';
+import { type BoxBounds, CleanupRegistry, StateTracker, debouncedCallback, objectsEqual } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { debouncedCallback } from '../../util/render';
-import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 import { getDatumRefPoint } from '../series/util';
 import type {

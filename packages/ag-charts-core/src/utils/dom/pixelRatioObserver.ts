@@ -1,5 +1,4 @@
-import type { AgDocument } from 'ag-charts-core';
-
+import type { AgDocument } from './agDocument';
 import { type PerWindowEntry, createPerWindowRegistry } from './perWindowRegistry';
 
 /**

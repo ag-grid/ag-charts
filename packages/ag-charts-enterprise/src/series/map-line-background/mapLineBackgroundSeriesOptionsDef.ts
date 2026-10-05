@@ -1,7 +1,11 @@
-import { type AgMapLineBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, constant, geoJson, required } from 'ag-charts-core';
-
-const { mapLineBackgroundSeriesThemeableOptionsDef } = _ModuleSupport;
+import type { AgMapLineBackgroundOptions } from 'ag-charts-community';
+import {
+    type OptionsDefs,
+    constant,
+    geoJson,
+    mapLineBackgroundSeriesThemeableOptionsDef,
+    required,
+} from 'ag-charts-core';
 
 export const mapLineBackgroundSeriesOptionsDef: OptionsDefs<AgMapLineBackgroundOptions> = {
     ...mapLineBackgroundSeriesThemeableOptionsDef,

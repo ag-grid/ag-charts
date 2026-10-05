@@ -1,7 +1,4 @@
-import { getOffscreenCanvas } from 'ag-charts-core';
-
-import { deviceDimension } from '../util/pixel';
-import { clearContext, debugContext } from './canvasUtil';
+import { clearContext, debugContext, deviceDimension, getOffscreenCanvas } from 'ag-charts-core';
 
 interface CanvasOptions {
     width: number;

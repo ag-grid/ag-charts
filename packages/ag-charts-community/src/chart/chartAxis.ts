@@ -1,5 +1,6 @@
 import type {
     AxisID,
+    AxisPrimaryTickCount,
     ChartAnimationPhase,
     ChartAxisDirection,
     ChartUpdateType,
@@ -30,7 +31,6 @@ import type { ChartAxisRegistry } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
-import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import type { ScrollbarLayoutMap } from './layout/layoutManager';
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from './series/seriesTypes';
 

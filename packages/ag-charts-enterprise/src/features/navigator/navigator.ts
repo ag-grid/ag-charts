@@ -1,5 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type BoxBounds, type DynamicContext, clamp } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    type BoxBounds,
+    type DynamicContext,
+    type NormalisedNavigatorOptions,
+    clamp,
+} from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -23,7 +29,7 @@ export class Navigator extends AbstractModuleInstance {
 
     // Navigator is only created when the `navigator` subtree is configured, so we
     // assert the subtree's presence here and rely on theme defaults for fields.
-    private get opts(): _ModuleSupport.NormalisedNavigatorOptions {
+    private get opts(): NormalisedNavigatorOptions {
         return this.ctx.chartState.getValue('options', 'navigator')!;
     }
 

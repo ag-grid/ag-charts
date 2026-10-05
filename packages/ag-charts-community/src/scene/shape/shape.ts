@@ -1,13 +1,24 @@
+import type {
+    AlignedInterval,
+    ColorSpace,
+    InternalAgGradientColor,
+    Logger,
+    NormalisedDropShadowOptions,
+    SerializedNodeState,
+    SerializedShapeProps,
+} from 'ag-charts-core';
 import {
-    type ColorSpace,
     DeclaredSceneChangeDetection,
     DeclaredSceneObjectChangeDetection,
-    type InternalAgGradientColor,
     SceneArrayChangeDetection,
     SceneObjectChangeDetection,
     TRIPLE_EQ,
+    align,
+    alignCentre,
     boxesEqual,
+    centreSnapApplies,
     clamp,
+    deviceDimension,
     generateUUID,
     isFiniteNumber,
     isGradientFill,
@@ -15,8 +26,9 @@ import {
     isPatternFill,
     isString,
     objectsEqual,
+    setSvgLineDashAttributes,
+    setSvgStrokeAttributes,
 } from 'ag-charts-core';
-import type { Logger, NormalisedDropShadowOptions, SerializedNodeState, SerializedShapeProps } from 'ag-charts-core';
 import type {
     AgDrawingMode,
     AgImageFill,
@@ -35,8 +47,6 @@ import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { type AlignedInterval, align, alignCentre, centreSnapApplies, deviceDimension } from '../util/pixel';
-import { setSvgLineDashAttributes, setSvgStrokeAttributes } from './svgUtils';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';

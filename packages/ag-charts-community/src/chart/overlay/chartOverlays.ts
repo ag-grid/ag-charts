@@ -1,13 +1,8 @@
+import type { NormalisedChartOverlaysOptions } from 'ag-charts-core';
+
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
-import { type NormalisedChartOverlayOptions, Overlay } from './overlay';
-
-export type NormalisedChartOverlaysOptions = {
-    loading?: NormalisedChartOverlayOptions;
-    noData?: NormalisedChartOverlayOptions;
-    noVisibleSeries?: NormalisedChartOverlayOptions;
-    unsupportedBrowser?: NormalisedChartOverlayOptions;
-};
+import { Overlay } from './overlay';
 
 export class ChartOverlays {
     readonly loading: Overlay;

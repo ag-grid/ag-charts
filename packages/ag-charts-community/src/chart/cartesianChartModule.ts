@@ -1,13 +1,20 @@
-import { type ChartModuleDefinition, ValidationError, isObject, validate, without } from 'ag-charts-core';
+import {
+    type CartesianChartDefOptions,
+    type ChartModuleDefinition,
+    ValidationError,
+    cartesianChartOptionsDefs,
+    commonChartThemeTemplate,
+    isObject,
+    validate,
+    without,
+} from 'ag-charts-core';
 
 import { communityModule } from '../module/moduleIdentity';
 import type { ChartOptions } from '../module/optionsModule';
 import { VERSION } from '../version';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
-import { type CartesianChartDefOptions, cartesianChartOptionsDefs } from './chartOptionsDefs';
 import { SeriesAreaModule } from './series-area/seriesAreaModule';
-import { commonChartThemeTemplate } from './themes/chartThemeTemplate';
 
 const histogramAxisTypes = new Set(['number', 'log', 'time']);
 const invalidHistogramAxis = (axis: any) => isObject(axis) && axis.type != null && !histogramAxisTypes.has(axis.type);

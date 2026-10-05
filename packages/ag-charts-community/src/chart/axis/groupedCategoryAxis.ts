@@ -1,7 +1,12 @@
-import type { AxisID, DynamicContext, NormalisedGroupedCategoryAxisOptions } from 'ag-charts-core';
+import type {
+    AxisID,
+    AxisPrimaryTickCount,
+    DynamicContext,
+    NormalisedGroupedCategoryAxisOptions,
+    ScaleTickParams,
+    WrapOptions,
+} from 'ag-charts-core';
 import {
-    type ScaleTickParams,
-    type WrapOptions,
     angularPadding,
     createIdsGenerator,
     extent,
@@ -25,7 +30,6 @@ import { BBox } from '../../scene/bbox';
 import { PointerEvents } from '../../scene/node';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
 import type { AxisPickDatum, LabelNodeDatum } from './axis';

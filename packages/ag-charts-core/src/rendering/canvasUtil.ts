@@ -1,4 +1,4 @@
-import { Debug } from 'ag-charts-core';
+import * as Debug from '../logging/debugLogger';
 
 export function clearContext({
     context,

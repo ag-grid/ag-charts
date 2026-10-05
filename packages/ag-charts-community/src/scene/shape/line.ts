@@ -1,10 +1,9 @@
 import type { DistantObject, SerializedLineProps, SerializedNodeState } from 'ag-charts-core';
-import { createSvgElement, lineDistanceSquared } from 'ag-charts-core';
+import { createSvgElement, lineDistanceSquared, snapDeviceCentre } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
 import type { NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
-import { snapDeviceCentre } from '../util/pixel';
 import { Shape } from './shape';
 
 export class Line<D = unknown> extends Shape<D> implements DistantObject {

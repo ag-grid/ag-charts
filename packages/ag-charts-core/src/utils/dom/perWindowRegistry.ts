@@ -5,7 +5,7 @@
 // The caller owns the "what to attach" logic via `onFirstSubscribe` (called when the
 // first subscriber arrives for a Window) and `onLastUnsubscribe` (called when the last
 // subscriber leaves). The registry handles the lifecycle.
-import { Debug } from 'ag-charts-core';
+import * as Debug from '../../logging/debugLogger';
 
 const registryDebug = Debug.create(true, 'perf', 'opts');
 

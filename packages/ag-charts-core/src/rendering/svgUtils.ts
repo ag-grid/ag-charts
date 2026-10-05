@@ -1,5 +1,7 @@
-import type { FontOptions, NormalisedStrokeOptions } from 'ag-charts-core';
 import type { LineDashOptions } from 'ag-charts-types';
+
+import type { NormalisedStrokeOptions } from '../types/normalised-options/normalisedCommonOptions';
+import type { FontOptions } from '../types/text';
 
 export function setSvgFontAttributes(element: SVGElement, options: FontOptions) {
     const { fontStyle, fontWeight, fontSize, fontFamily } = options;

@@ -1,5 +1,5 @@
 import type { CallbackParamRules, CanvasPoint, CurrentPoint, DynamicContext, Point, Writeable } from 'ag-charts-core';
-import { ChartUpdateType, Vec4, clamp, createId } from 'ag-charts-core';
+import { BaseManager, ChartUpdateType, Vec4, clamp, createId, debouncedAnimationFrame } from 'ag-charts-core';
 import type {
     AgActiveItemState,
     AgChartClickEvent,
@@ -29,8 +29,6 @@ import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import type { Node as SceneNode } from '../../scene/node';
 import { Transformable } from '../../scene/transformable';
-import { BaseManager } from '../../util/baseManager';
-import { debouncedAnimationFrame } from '../../util/render';
 import type { Widget } from '../../widget/widget';
 import type {
     ClickWidgetEvent,

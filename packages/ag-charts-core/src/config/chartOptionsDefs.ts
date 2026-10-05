@@ -1,28 +1,3 @@
-import {
-    type OptionsDefs,
-    array,
-    arrayOf,
-    arrayOfDefs,
-    boolean,
-    borderOptionsDef,
-    callback,
-    commonChartOptionsDefs,
-    defined,
-    geoJson,
-    htmlElement,
-    nonNegativeInteger,
-    number,
-    object,
-    or,
-    padding,
-    positiveNumber,
-    required,
-    strictUnion,
-    string,
-    themeOperator,
-    undocumented,
-    union,
-} from 'ag-charts-core';
 import type {
     AgActiveItemState,
     AgActiveState,
@@ -35,6 +10,30 @@ import type {
     AgStandaloneChartOptions,
     AgTopologyChartOptions,
 } from 'ag-charts-types';
+
+import {
+    type OptionsDefs,
+    array,
+    arrayOf,
+    arrayOfDefs,
+    boolean,
+    callback,
+    defined,
+    htmlElement,
+    nonNegativeInteger,
+    number,
+    object,
+    or,
+    positiveNumber,
+    required,
+    strictUnion,
+    string,
+    undocumented,
+    union,
+} from '../state/validation';
+import { geoJson } from '../utils/geojson';
+import { commonChartOptionsDefs } from './chartDefaults';
+import { borderOptionsDef, padding, themeOperator } from './optionsDefaults';
 
 /** Chart-level keys owned by plugin modules; their defs arrive through the modules' contributions. */
 export type ModuleOwnedChartOptions = 'annotations' | 'navigator' | 'scrollbar';

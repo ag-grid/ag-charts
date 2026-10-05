@@ -1,18 +1,17 @@
-import type { AgDocument } from 'ag-charts-core';
-
+import type { AgDocument } from './agDocument';
 import { PixelRatioObserver } from './pixelRatioObserver';
 
-export interface Size {
+export interface ElementSize {
     width: number;
     height: number;
     pixelRatio: number;
 }
 
-type OnSizeChange = (size: Size, element: HTMLElement) => void;
+type OnSizeChange = (size: ElementSize, element: HTMLElement) => void;
 
 interface Entry {
     cb: OnSizeChange;
-    size?: Size;
+    size?: ElementSize;
 }
 
 export class SizeMonitor {

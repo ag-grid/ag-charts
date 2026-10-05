@@ -1,5 +1,5 @@
 import type { Logger, Point } from 'ag-charts-core';
-import { DeclaredSceneChangeDetection, DeclaredSceneObjectChangeDetection, TRIPLE_EQ } from 'ag-charts-core';
+import { DeclaredSceneChangeDetection, DeclaredSceneObjectChangeDetection, TRIPLE_EQ, align } from 'ag-charts-core';
 import type { AgMarkerShape } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
@@ -8,7 +8,6 @@ import { type NodeOptions } from '../../scene/node';
 import { Path } from '../../scene/shape/path';
 import type { CanvasContext } from '../../scene/shape/shape';
 import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
-import { align } from '../../scene/util/pixel';
 import { getSharedMarkerPath } from './markerPathCache';
 
 // Frozen anchor literals returned from Marker.anchor() — avoids per-frame object allocation in hot paths.

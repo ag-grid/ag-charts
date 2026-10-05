@@ -16,7 +16,9 @@
                 "packages/ag-charts-community/src/chart/data/processors.ts",
                 "packages/ag-charts-community/src/chart/data/aggregateFunctions.ts",
                 "packages/ag-charts-core/src/utils/geometry/**",
-                "packages/ag-charts-core/src/utils/text/textWrapper.ts"
+                "packages/ag-charts-core/src/utils/text/textWrapper.ts",
+                "packages/ag-charts-core/src/chart/cartesianSeriesUtil.ts",
+                "packages/ag-charts-core/src/structures/bandedStructure.ts"
             ],
             "invariants": [
                 "TypedArrays (Float64Array/Uint32Array/Int32Array) are reused across renders, not reallocated \u2014 reuse arrays are threaded through helper signatures",
@@ -38,7 +40,12 @@
                 "packages/ag-charts-community/src/chart/series/**/*Node.ts",
                 "packages/ag-charts-enterprise/src/series/**/*Node.ts",
                 "packages/ag-charts-community/src/chart/series/**/*Shape.ts",
-                "packages/ag-charts-enterprise/src/series/**/*Shape.ts"
+                "packages/ag-charts-enterprise/src/series/**/*Shape.ts",
+                "packages/ag-charts-core/src/chart/markerShapes.ts",
+                "packages/ag-charts-core/src/chart/markerUtil.ts",
+                "packages/ag-charts-core/src/rendering/canvasUtil.ts",
+                "packages/ag-charts-core/src/rendering/pixel.ts",
+                "packages/ag-charts-core/src/rendering/svgUtils.ts"
             ],
             "invariants": [
                 "@DeclaredSceneChangeDetection with a matching `declare __field`, and render paths read the backing field",
@@ -62,7 +69,9 @@
                 "packages/ag-charts-community/src/chart/series/pickManager.ts",
                 "packages/ag-charts-community/src/scale/**",
                 "packages/ag-charts-community/src/dom/**",
-                "packages/ag-charts-enterprise/src/features/**"
+                "packages/ag-charts-enterprise/src/features/**",
+                "packages/ag-charts-core/src/scale/scaleUtil.ts",
+                "packages/ag-charts-core/src/utils/time/timeFormatUtil.ts"
             ],
             "invariants": [
                 "The narrowest sufficient ChartUpdateType is requested \u2014 never FULL where PERFORM_LAYOUT or SERIES_UPDATE suffices",

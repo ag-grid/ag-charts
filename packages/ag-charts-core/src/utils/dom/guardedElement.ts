@@ -1,4 +1,7 @@
-import { CleanupRegistry, attachListener, isHTMLElement, setAttribute } from 'ag-charts-core';
+import { CleanupRegistry } from '../../state/cleanupRegistry';
+import { setAttribute } from './attributeUtil';
+import { attachListener } from './domEvents';
+import { isHTMLElement } from './globalsProxy';
 
 export class GuardedElement {
     private readonly cleanup = new CleanupRegistry();

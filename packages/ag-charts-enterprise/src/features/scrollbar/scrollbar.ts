@@ -6,6 +6,8 @@ import {
     type DynamicContext,
     type FillStrokeMorph,
     type Normalised,
+    type NormalisedScrollbarOptions,
+    type NormalisedScrollbarOrientationOptions,
     UNIT_MAX,
     UNIT_MIN,
     ZIndexMap,
@@ -35,7 +37,7 @@ interface ScrollbarOrientationState {
     track: _ModuleSupport.Rect;
     thumb: _ModuleSupport.Rect;
     dom: ScrollbarDOMProxy;
-    properties: _ModuleSupport.NormalisedScrollbarOrientationOptions;
+    properties: NormalisedScrollbarOrientationOptions;
     layoutRect?: _ModuleSupport.BBox;
     position: AgCartesianAxisPosition;
     positionHasAxis: boolean;
@@ -53,7 +55,7 @@ export class Scrollbar extends AbstractModuleInstance {
     private readonly scrollPanner = new ZoomScrollPanner();
 
     // Scrollbar is only created when the `scrollbar` subtree is configured, so assert presence here.
-    private get opts(): _ModuleSupport.NormalisedScrollbarOptions {
+    private get opts(): NormalisedScrollbarOptions {
         return this.ctx.chartState.getValue('options', 'scrollbar')!;
     }
 
@@ -111,7 +113,7 @@ export class Scrollbar extends AbstractModuleInstance {
         };
     }
 
-    private resolveProperties(orientation: ScrollbarOrientation): _ModuleSupport.NormalisedScrollbarOrientationOptions {
+    private resolveProperties(orientation: ScrollbarOrientation): NormalisedScrollbarOrientationOptions {
         return orientation === 'horizontal' ? this.opts.horizontal : this.opts.vertical;
     }
 

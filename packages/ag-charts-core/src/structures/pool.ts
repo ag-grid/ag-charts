@@ -1,4 +1,4 @@
-import { Debug } from 'ag-charts-core';
+import * as Debug from '../logging/debugLogger';
 
 const CLEANUP_TIMEOUT_MS = 1000;
 

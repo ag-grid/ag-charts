@@ -1,24 +1,3 @@
-import {
-    type OptionsDefs,
-    array,
-    arrayOf,
-    arrayOfDefs,
-    boolean,
-    colorOrRef,
-    fillOptionsDef,
-    fontOptionsDef,
-    lineDashOptionsDef,
-    optionsDefs,
-    or,
-    padding,
-    positiveNumber,
-    required,
-    string,
-    strokeOptionsDef,
-    toolbarButtonOptionsDefs,
-    undocumented,
-    union,
-} from 'ag-charts-core';
 import type {
     AgAnnotationAxisLabel,
     AgAnnotationHandleStyles,
@@ -46,6 +25,30 @@ import type {
     AgTextAnnotationStyles,
     LineOptions,
 } from 'ag-charts-types';
+
+import {
+    type OptionsDefs,
+    array,
+    arrayOf,
+    arrayOfDefs,
+    boolean,
+    optionsDefs,
+    or,
+    positiveNumber,
+    required,
+    string,
+    undocumented,
+    union,
+} from '../state/validation';
+import { toolbarButtonOptionsDefs } from './chartDefaults';
+import {
+    colorOrRef,
+    fillOptionsDef,
+    fontOptionsDef,
+    lineDashOptionsDef,
+    padding,
+    strokeOptionsDef,
+} from './optionsDefaults';
 
 const annotationLineOptionsDef: OptionsDefs<LineOptions> = {
     lineStyle: union('solid', 'dashed', 'dotted'),

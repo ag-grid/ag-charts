@@ -1,7 +1,13 @@
-import { type AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, commonSeriesOptionsDefs, constant, required, string, without } from 'ag-charts-core';
-
-const { funnelSeriesThemeableOptionsDef } = _ModuleSupport;
+import type { AgFunnelSeriesOptions } from 'ag-charts-community';
+import {
+    type OptionsDefs,
+    commonSeriesOptionsDefs,
+    constant,
+    funnelSeriesThemeableOptionsDef,
+    required,
+    string,
+    without,
+} from 'ag-charts-core';
 
 export const funnelSeriesOptionsDef: OptionsDefs<AgFunnelSeriesOptions> = {
     ...funnelSeriesThemeableOptionsDef,

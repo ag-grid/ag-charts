@@ -1,4 +1,4 @@
-import { type AgTreemapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgTreemapSeriesOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
@@ -7,11 +7,10 @@ import {
     constant,
     required,
     string,
+    treemapSeriesThemeableOptionsDef,
     undocumented,
     without,
 } from 'ag-charts-core';
-
-const { treemapSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     ...treemapSeriesThemeableOptionsDef,

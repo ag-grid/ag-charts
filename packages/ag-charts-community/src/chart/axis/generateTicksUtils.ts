@@ -1,4 +1,5 @@
 import {
+    type AxisPrimaryTickCount,
     EllipsisChar,
     type ITextMeasurer,
     type NormalisedTextOrSegments,
@@ -41,7 +42,6 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { expandLabelPadding } from '../label';
 import type { TickInterval } from './axisTick';

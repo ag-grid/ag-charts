@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { Size } from './sizeMonitor';
+import type { ElementSize } from './sizeMonitor';
 import { SizeMonitor } from './sizeMonitor';
 
 // Capture the ResizeObserver callback registered by SizeMonitor so we can
@@ -67,7 +67,7 @@ describe('SizeMonitor', () => {
                 paddingBottom: '17px',
             });
 
-            const sizes: Size[] = [];
+            const sizes: ElementSize[] = [];
             sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
 
             // Synchronous initial read should report content-box: 1166×586.
@@ -86,7 +86,7 @@ describe('SizeMonitor', () => {
 
             const element = mockElement({ clientWidth: 800, clientHeight: 600 });
 
-            const sizes: Size[] = [];
+            const sizes: ElementSize[] = [];
             sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
 
             expect(sizes).toHaveLength(1);
@@ -102,7 +102,7 @@ describe('SizeMonitor', () => {
 
             const element = mockElement({ clientWidth: 800, clientHeight: 600 });
 
-            const sizes: Size[] = [];
+            const sizes: ElementSize[] = [];
             sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
             expect(sizes).toHaveLength(1);
 
@@ -120,7 +120,7 @@ describe('SizeMonitor', () => {
             // A 345.5px container: clientWidth is spec-rounded to 346, contentRect stays 345.5.
             const element = mockElement({ clientWidth: 346, clientHeight: 400 });
 
-            const sizes: Size[] = [];
+            const sizes: ElementSize[] = [];
             sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
 
             expect(sizes).toHaveLength(1);
@@ -136,7 +136,7 @@ describe('SizeMonitor', () => {
 
             const element = mockElement({ clientWidth: 346, clientHeight: 400 });
 
-            const sizes: Size[] = [];
+            const sizes: ElementSize[] = [];
             sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
             expect(sizes).toHaveLength(1);
 
@@ -152,7 +152,7 @@ describe('SizeMonitor', () => {
 
             const element = mockElement({ clientWidth: 346, clientHeight: 400, paddingLeft: '0.5px' });
 
-            const sizes: Size[] = [];
+            const sizes: ElementSize[] = [];
             sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
 
             // clientWidth is spec-rounded to 346; minus the 0.5px padding the content box is 345.5.
@@ -181,7 +181,7 @@ describe('SizeMonitor', () => {
                 paddingBottom: '0px',
             } as any);
 
-            const sizes: Size[] = [];
+            const sizes: ElementSize[] = [];
             sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
             expect(sizes).toHaveLength(0);
 

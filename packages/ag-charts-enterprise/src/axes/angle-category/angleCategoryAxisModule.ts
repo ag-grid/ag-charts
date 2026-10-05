@@ -3,6 +3,8 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedAngleCategoryAxisOptions,
+    angleCategoryAxisOptionsDefs,
+    commonAxisThemeTemplate,
     mergeDefaults,
 } from 'ag-charts-core';
 
@@ -16,7 +18,7 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
     version: VERSION,
     dependencies: [PolarChartModule],
 
-    options: _ModuleSupport.angleCategoryAxisOptionsDefs,
+    options: angleCategoryAxisOptionsDefs,
     themeTemplate: mergeDefaults(
         {
             startAngle: 0,
@@ -26,7 +28,7 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
             gridLine: { enabled: false },
             shape: { $findFirstSiblingNotOperation: ['polygon'] },
         },
-        _ModuleSupport.commonAxisThemeTemplate
+        commonAxisThemeTemplate
     ),
 
     create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>

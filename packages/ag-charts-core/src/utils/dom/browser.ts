@@ -1,4 +1,5 @@
-import { ambientLog, getWindow } from 'ag-charts-core';
+import * as ambientLog from '../../logging/ambientLog';
+import { getWindow } from './globalsProxy';
 
 const isSafariRegexp = /^((?!chrome|android).)*safari/i;
 const safariVersionRegexp = /Version\/(\d+(\.\d+)?)/;

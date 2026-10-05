@@ -66,7 +66,7 @@ Read it once into a local per scope, as each `getValue` call has a cost. Do **no
 
 1. Add type to `ag-charts-types` (e.g., `AgBaseChartOptions`)
 2. Add validator to all chart option defs in `chartOptionsDefs.ts`
-3. Read it through `ctx.chartState.getValue('options', …)`; if `ResolvedChartOptions` (`chart/chartState.ts`) omits it, extend that type rather than casting
+3. Read it through `ctx.chartState.getValue('options', …)`; if `ResolvedChartOptions` (`ag-charts-core/src/types/normalised-options/normalisedChartOptions.ts`) omits it, extend that type rather than casting
 4. If the option affects the DataSet or other persistent state, ensure state is recreated when the option changes (not just when `data` changes)
 5. If the option includes a callback/renderer, use `TContext = ContextDefault` for the `context` parameter — never `any`. Thread `TContext` from the root chart options through all intermediate interfaces so user-supplied generics propagate to the renderer params.
 

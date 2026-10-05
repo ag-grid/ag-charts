@@ -1,7 +1,12 @@
-import { type AgPyramidSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, commonSeriesOptionsDefs, constant, required, string } from 'ag-charts-core';
-
-const { pyramidSeriesThemeableOptionsDef } = _ModuleSupport;
+import type { AgPyramidSeriesOptions } from 'ag-charts-community';
+import {
+    type OptionsDefs,
+    commonSeriesOptionsDefs,
+    constant,
+    pyramidSeriesThemeableOptionsDef,
+    required,
+    string,
+} from 'ag-charts-core';
 
 export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions> = {
     ...pyramidSeriesThemeableOptionsDef,

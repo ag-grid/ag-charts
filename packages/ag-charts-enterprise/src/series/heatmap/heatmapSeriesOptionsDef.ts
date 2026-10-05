@@ -1,15 +1,14 @@
-import { type AgHeatmapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgHeatmapSeriesOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
     colorScaleOptionsDef,
     commonSeriesOptionsDefs,
     constant,
+    heatmapSeriesThemeableOptionsDef,
     required,
     string,
     without,
 } from 'ag-charts-core';
-
-const { heatmapSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
     ...without(heatmapSeriesThemeableOptionsDef, ['showInLegend']),

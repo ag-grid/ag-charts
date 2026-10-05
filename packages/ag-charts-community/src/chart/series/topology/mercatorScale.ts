@@ -1,7 +1,7 @@
 import type { DomainWithMetadata, NormalizedDomain, Position } from 'ag-charts-core';
+import { unpackDomainMinMax } from 'ag-charts-core';
 
 import { AbstractScale } from '../../../scale/abstractScale';
-import { unpackDomainMinMax } from '../../../scale/scaleUtil';
 import { BBox } from '../../../scene/bbox';
 
 type XY = [x: number, y: number];

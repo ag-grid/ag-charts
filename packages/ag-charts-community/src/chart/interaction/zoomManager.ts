@@ -1,9 +1,25 @@
+import type {
+    AxisID,
+    BoxBounds,
+    CartesianAxisDirection,
+    DeepReadonly,
+    DefinedZoomState,
+    DynamicContext,
+    Logger,
+    MementoOriginator,
+    OptionsDefs,
+    Scale,
+    ZoomMinMax,
+    ZoomState,
+} from 'ag-charts-core';
 import {
+    BaseManager,
     ChartAxisDirection,
     Debug,
-    type Logger,
+    PanToBBoxScalingModeEnum,
     ScaleAlignment,
     attachDescription,
+    calcPanToBBoxRatios,
     clamp,
     deepClone,
     defined,
@@ -21,19 +37,6 @@ import {
     toZoomState,
     validate,
 } from 'ag-charts-core';
-import type {
-    AxisID,
-    BoxBounds,
-    CartesianAxisDirection,
-    DeepReadonly,
-    DefinedZoomState,
-    DynamicContext,
-    MementoOriginator,
-    OptionsDefs,
-    Scale,
-    ZoomMinMax,
-    ZoomState,
-} from 'ag-charts-core';
 import type { AgZoomEventSource } from 'ag-charts-types';
 
 import type {
@@ -47,8 +50,6 @@ import type { ChartRegistry } from '../../module/moduleContext';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
-import { BaseManager } from '../../util/baseManager';
-import { PanToBBoxScalingModeEnum, calcPanToBBoxRatios } from '../../util/panToBBox';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 
