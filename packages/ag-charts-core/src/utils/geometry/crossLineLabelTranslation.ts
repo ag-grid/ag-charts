@@ -1,23 +1,6 @@
-import type { BBox } from '../../scene/bbox';
+import type { AgCrossLineLabelPosition } from 'ag-charts-types';
 
-export type CrossLineLabelPosition =
-    | 'top'
-    | 'left'
-    | 'right'
-    | 'bottom'
-    | 'top-left'
-    | 'top-right'
-    | 'bottom-left'
-    | 'bottom-right'
-    | 'inside'
-    | 'inside-left'
-    | 'inside-right'
-    | 'inside-top'
-    | 'inside-bottom'
-    | 'inside-top-left'
-    | 'inside-bottom-left'
-    | 'inside-top-right'
-    | 'inside-bottom-right';
+import type { Size } from '../../types/scene';
 
 type LabelTranslationDirection = 1 | -1 | 0;
 type CrossLineTranslationDirection = {
@@ -25,7 +8,7 @@ type CrossLineTranslationDirection = {
     yTranslationDirection: LabelTranslationDirection;
 };
 
-const horizontalCrosslineTranslationDirections: Record<CrossLineLabelPosition, CrossLineTranslationDirection> = {
+const horizontalCrosslineTranslationDirections: Record<AgCrossLineLabelPosition, CrossLineTranslationDirection> = {
     top: { xTranslationDirection: 0, yTranslationDirection: -1 },
     bottom: { xTranslationDirection: 0, yTranslationDirection: 1 },
     left: { xTranslationDirection: -1, yTranslationDirection: 0 },
@@ -45,7 +28,7 @@ const horizontalCrosslineTranslationDirections: Record<CrossLineLabelPosition, C
     'inside-bottom-right': { xTranslationDirection: -1, yTranslationDirection: -1 },
 };
 
-const verticalCrossLineTranslationDirections: Record<CrossLineLabelPosition, CrossLineTranslationDirection> = {
+const verticalCrossLineTranslationDirections: Record<AgCrossLineLabelPosition, CrossLineTranslationDirection> = {
     top: { xTranslationDirection: 1, yTranslationDirection: 0 },
     bottom: { xTranslationDirection: -1, yTranslationDirection: 0 },
     left: { xTranslationDirection: 0, yTranslationDirection: -1 },
@@ -73,8 +56,8 @@ export function calculateLabelTranslation({
 }: {
     yDirection: boolean;
     padding: number;
-    position: CrossLineLabelPosition;
-    bbox: BBox;
+    position: AgCrossLineLabelPosition;
+    bbox: Size;
 }) {
     const crossLineTranslationDirections = yDirection
         ? horizontalCrosslineTranslationDirections

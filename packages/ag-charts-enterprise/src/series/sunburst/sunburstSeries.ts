@@ -21,6 +21,7 @@ import {
 } from 'ag-charts-core';
 import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight } from 'ag-charts-types';
 
+import { HierarchyNode, HierarchySeries, toHierarchyHighlightString } from '../hierarchy/hierarchySeries';
 import { formatLabels } from '../util/labelFormatter';
 
 const {
@@ -36,10 +37,9 @@ const {
     BBox,
     fitLabelToContainer,
     getLabelStyles,
-    toHierarchyHighlightString,
 } = _ModuleSupport;
 
-class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
+class SunburstNode extends HierarchyNode<SunburstNode> {
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
     contentHeight: number = 0;
@@ -98,7 +98,7 @@ enum TextNodeTag {
 
 type ItemStyle = Required<NormalisedSunburstSeriesStyle> & { opacity: number };
 
-export class SunburstSeries extends _ModuleSupport.HierarchySeries<
+export class SunburstSeries extends HierarchySeries<
     SunburstNode,
     _ModuleSupport.Sector<SunburstNode>,
     NormalisedSunburstSeriesOwnOptions

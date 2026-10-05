@@ -161,6 +161,7 @@ export * from './utils/geometry/labelPlacement';
 export * from './utils/geometry/spatialIndex';
 export * from './utils/geometry/fitRegion';
 export * from './utils/geometry/trapezoid';
+export * from './utils/geometry/crossLineLabelTranslation';
 export * from './utils/geometry/scaling';
 export * from './utils/geometry/lineInterpolation';
 export * from './utils/geometry/panToBBox';

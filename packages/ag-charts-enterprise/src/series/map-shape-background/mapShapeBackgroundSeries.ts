@@ -12,6 +12,7 @@ import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { LonLatBBox } from '../map-util/lonLatBbox';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
+import type { MercatorScale } from '../map-util/mercatorScale';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
 
@@ -39,7 +40,7 @@ export class MapShapeBackgroundSeries
     static override readonly className = 'MapShapeBackgroundSeries';
     static readonly type = 'map-shape-background' as const;
 
-    scale: _ModuleSupport.MercatorScale | undefined;
+    scale: MercatorScale | undefined;
 
     public topologyBounds: LonLatBBox | undefined;
 

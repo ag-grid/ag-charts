@@ -301,7 +301,7 @@ test('benchmark map: a base no benchmark example instantiates says so', () => {
     // guide warns about.
     for (const file of [
         'packages/ag-charts-community/src/chart/series/polar/polarSeries.ts',
-        'packages/ag-charts-community/src/chart/series/hierarchy/hierarchySeries.ts',
+        'packages/ag-charts-enterprise/src/series/hierarchy/hierarchySeries.ts',
     ]) {
         const result = recommend([file]);
         assert.deepEqual(result.examples, [], `${file} recommends nothing`);

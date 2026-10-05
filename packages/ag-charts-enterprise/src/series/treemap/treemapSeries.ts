@@ -31,23 +31,18 @@ import {
 } from 'ag-charts-core';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
+import {
+    HierarchyHighlightState,
+    HierarchyNode,
+    HierarchySeries,
+    toHierarchyHighlightString,
+} from '../hierarchy/hierarchySeries';
 import { formatLabels } from '../util/labelFormatter';
 
-const {
-    createDatumId,
-    Rect,
-    Group,
-    BBox,
-    Selection,
-    SelectionState,
-    Text,
-    Transformable,
-    getLabelStyles,
-    HierarchyHighlightState,
-    toHierarchyHighlightString,
-} = _ModuleSupport;
+const { createDatumId, Rect, Group, BBox, Selection, SelectionState, Text, Transformable, getLabelStyles } =
+    _ModuleSupport;
 
-class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
+class TreemapNode extends HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
     secondaryLabelValue: string | undefined = undefined;
     // Leaf-only: preserves the formatter's segment output so image segments survive the squarify step.
@@ -107,7 +102,7 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-export class TreemapSeries extends _ModuleSupport.HierarchySeries<
+export class TreemapSeries extends HierarchySeries<
     TreemapNode,
     _ModuleSupport.Rect<TreemapNode>,
     NormalisedTreemapSeriesOwnOptions
@@ -824,7 +819,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         isHighlight: boolean,
         highlightedNode: TreemapNode | undefined,
         nodeDatum: Pick<TreemapNode, 'path' | 'datumIndex' | 'depth'> & Partial<Pick<TreemapNode, 'children'>>
-    ): _ModuleSupport.HierarchyHighlightState {
+    ): HierarchyHighlightState {
         const nodeIndex = nodeDatum.path;
         const highlightedIndex = highlightedNode?.path;
         const isDescendant = this.isDescendantDatumIndex(nodeIndex, highlightedIndex);
@@ -851,8 +846,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     private getTileHighlightStyle(
-        tileHighlightState: _ModuleSupport.HierarchyHighlightState,
-        groupHighlightState: _ModuleSupport.HierarchyHighlightState,
+        tileHighlightState: HierarchyHighlightState,
+        groupHighlightState: HierarchyHighlightState,
         highlightedNode: TreemapNode | undefined
     ): HighlightStyle | undefined {
         const isGroupHighlighted = highlightedNode?.children && highlightedNode.children.length > 0;
@@ -874,7 +869,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return this.getHierarchyHighlightStyles(tileHighlightState, highlight);
     }
 
-    private getGroupHighlightStyle(highlightState: _ModuleSupport.HierarchyHighlightState): HighlightStyle | undefined {
+    private getGroupHighlightStyle(highlightState: HierarchyHighlightState): HighlightStyle | undefined {
         const { highlight } = this.options.group;
         if (!highlight.enabled) {
             return undefined;

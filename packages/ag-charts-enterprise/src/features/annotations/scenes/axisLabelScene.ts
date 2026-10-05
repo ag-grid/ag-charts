@@ -1,10 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { calculateLabelTranslation } from 'ag-charts-core';
 import type { Padding, PaddingOptions } from 'ag-charts-types';
 
 import type { AxisLabelDatum } from '../annotationDatum';
 import type { AnnotationAxisContext } from '../annotationTypes';
-
-const { calculateLabelTranslation } = _ModuleSupport;
 
 // Defaults preserve the spacing the container had before `padding` was configurable.
 function normaliseAxisLabelPadding(padding: Padding | undefined): Required<PaddingOptions> {

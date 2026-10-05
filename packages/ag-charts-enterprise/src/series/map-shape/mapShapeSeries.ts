@@ -43,6 +43,7 @@ import { LonLatBBox } from '../map-util/lonLatBbox';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
+import { MercatorScale } from '../map-util/mercatorScale';
 import { polygonFitRegion, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { polygonCentroid } from '../map-util/polygonUtil';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
@@ -99,7 +100,7 @@ interface ShapeDataValues {
     readonly labelValue: string | undefined;
 }
 
-const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
+const fixedScale = MercatorScale.fixedScale();
 
 /** The label's anchors in fixed-scale space, cached per geometry so panning and zooming do not repeat the search. */
 interface LabelLayout {
@@ -154,7 +155,7 @@ export class MapShapeSeries
     static override readonly className = 'MapShapeSeries';
     static readonly type = 'map-shape' as const;
 
-    scale: _ModuleSupport.MercatorScale | undefined;
+    scale: MercatorScale | undefined;
 
     public topologyBounds: LonLatBBox | undefined;
 

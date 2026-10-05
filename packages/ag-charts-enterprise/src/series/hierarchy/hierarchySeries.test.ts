@@ -1,20 +1,20 @@
+import { _ModuleSupport } from 'ag-charts-community';
+import { BIG } from 'ag-charts-community-test';
 import { EventEmitter, type NormalisedHierarchySeriesKeys, type NormalisedSeriesOptions } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
-import { Group } from '../../../scene/group';
-import { Selection } from '../../../scene/selection';
-import { DataSet } from '../../data/dataSet';
-import { BIG } from '../../test/bigintExamples';
 import { HierarchyNode, HierarchySeries } from './hierarchySeries';
+
+const { DataSet, Group, Selection } = _ModuleSupport;
 
 class ExampleHierarchySeries extends HierarchySeries<
     HierarchyNode,
-    Group<HierarchyNode>,
+    _ModuleSupport.Group<HierarchyNode>,
     NormalisedHierarchySeriesKeys
 > {
     NodeClass = HierarchyNode;
 
-    datumSelection = Selection.select<Group<HierarchyNode>>(this.contentGroup, Group);
+    datumSelection = Selection.select<_ModuleSupport.Group<HierarchyNode>>(this.contentGroup, Group);
 
     override getSeriesDomain(): never {
         throw new Error('Method not implemented.');
