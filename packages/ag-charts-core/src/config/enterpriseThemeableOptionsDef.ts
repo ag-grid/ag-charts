@@ -657,6 +657,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: rangeInsideOutsidePlacementDef,
         spacing: positiveNumber,

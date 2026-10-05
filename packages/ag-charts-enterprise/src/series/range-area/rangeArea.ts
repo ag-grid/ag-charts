@@ -1456,7 +1456,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             const isInside = coarsePlacement(placement, datum.valueSide) === 'inside';
             const styled = resolveStyle?.(datum, placement, undefined);
             const offsetY = styled?.boxPadding.top ?? (isInside ? insideOffset : outsideOffset).y;
-            return { ...datum, x: placed.x + placed.width / 2, y: placed.y + offsetY, placement, text: placed.text };
+            return {
+                ...datum,
+                x: placed.x + placed.width / 2,
+                y: placed.y + offsetY,
+                placement,
+                text: placed.text,
+                fittedFontSize: placed.fontSize,
+            };
         };
     }
 
