@@ -1,8 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import { type Geometry, type Position } from 'ag-charts-core';
 
 import { lineStringLength } from './lineStringUtil';
 import { LonLatBBox } from './lonLatBbox';
+import type { MercatorScale } from './mercatorScale';
 import { polygonBbox } from './polygonUtil';
 
 function calculatePolygonArea(polygon: Position[][]): number {
@@ -137,7 +137,7 @@ export function containsType(geometry: Geometry | null, type: GeometryType): boo
     }
 }
 
-export function projectGeometry(geometry: Geometry, scale: _ModuleSupport.MercatorScale): Geometry {
+export function projectGeometry(geometry: Geometry, scale: MercatorScale): Geometry {
     switch (geometry.type) {
         case 'GeometryCollection':
             return {
@@ -177,14 +177,14 @@ export function projectGeometry(geometry: Geometry, scale: _ModuleSupport.Mercat
     }
 }
 
-function projectMultiPolygon(multiPolygon: Position[][][], scale: _ModuleSupport.MercatorScale): Position[][][] {
+function projectMultiPolygon(multiPolygon: Position[][][], scale: MercatorScale): Position[][][] {
     return multiPolygon.map((polygon) => projectPolygon(polygon, scale));
 }
 
-function projectPolygon(polygon: Position[][], scale: _ModuleSupport.MercatorScale): Position[][] {
+function projectPolygon(polygon: Position[][], scale: MercatorScale): Position[][] {
     return polygon.map((lineString) => projectLineString(lineString, scale));
 }
 
-function projectLineString(lineString: Position[], scale: _ModuleSupport.MercatorScale): Position[] {
+function projectLineString(lineString: Position[], scale: MercatorScale): Position[] {
     return lineString.map((lonLat) => scale.convert(lonLat));
 }

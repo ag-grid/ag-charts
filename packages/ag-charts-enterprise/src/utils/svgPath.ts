@@ -1,5 +1,6 @@
-import { Rotatable, Translatable } from '../transformable';
-import { Path } from './path';
+import { _ModuleSupport } from 'ag-charts-community';
+
+const { Path, Translatable } = _ModuleSupport;
 
 export class SvgPath<D = any> extends Path<D> {
     private _d: string = '';
@@ -27,5 +28,3 @@ export class TranslatableSvgPath extends Translatable(SvgPath) {
         return super.isPointInPath(x - this.translationX, y - this.translationY);
     }
 }
-
-export class RotatableSvgPath extends Rotatable(TranslatableSvgPath) {}

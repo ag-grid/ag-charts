@@ -18,8 +18,9 @@ import {
     lowestGranularityUnitForValue,
 } from 'ag-charts-core';
 
-const { OrdinalTimeScale, ApproximateOrdinalTimeScale, APPROXIMATE_THRESHOLD, minimumTimeAxisDatumGranularity } =
-    _ModuleSupport;
+import { ApproximateOrdinalTimeScale } from './approximateOrdinalTimeScale';
+
+const { OrdinalTimeScale, APPROXIMATE_THRESHOLD, minimumTimeAxisDatumGranularity } = _ModuleSupport;
 
 export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
     _ModuleSupport.OrdinalTimeScale,
@@ -29,7 +30,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
     static override readonly type = 'ordinal-time' as const;
 
     private readonly accurateScale: _ModuleSupport.OrdinalTimeScale;
-    private readonly approximateScale: _ModuleSupport.ApproximateOrdinalTimeScale;
+    private readonly approximateScale: ApproximateOrdinalTimeScale;
 
     override get primaryLabel() {
         const parentLevel = this.options.parentLevel;

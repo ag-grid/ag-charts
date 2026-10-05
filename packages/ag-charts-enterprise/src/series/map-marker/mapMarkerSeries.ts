@@ -37,6 +37,7 @@ import { LonLatBBox } from '../map-util/lonLatBbox';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { markerPositions } from '../map-util/markerUtil';
+import type { MercatorScale } from '../map-util/mercatorScale';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
@@ -117,7 +118,7 @@ export class MapMarkerSeries
     static override readonly className = 'MapMarkerSeries';
     static readonly type = 'map-marker' as const;
 
-    scale: _ModuleSupport.MercatorScale | undefined;
+    scale: MercatorScale | undefined;
 
     public topologyBounds: LonLatBBox | undefined;
 
@@ -662,7 +663,7 @@ export class MapMarkerSeries
         }
     }
 
-    private previousScale: _ModuleSupport.MercatorScale | undefined;
+    private previousScale: MercatorScale | undefined;
     private checkScaleChange() {
         if (this.previousScale === this.scale) return false;
         this.previousScale = this.scale;

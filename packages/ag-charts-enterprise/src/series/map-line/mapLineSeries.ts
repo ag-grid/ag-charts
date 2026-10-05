@@ -35,6 +35,7 @@ import { lineStringCenter } from '../map-util/lineStringUtil';
 import { LonLatBBox } from '../map-util/lonLatBbox';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
+import type { MercatorScale } from '../map-util/mercatorScale';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
 
@@ -95,7 +96,7 @@ export class MapLineSeries
     static override readonly className = 'MapLineSeries';
     static readonly type = 'map-line' as const;
 
-    scale: _ModuleSupport.MercatorScale | undefined;
+    scale: MercatorScale | undefined;
 
     public topologyBounds: LonLatBBox | undefined;
 

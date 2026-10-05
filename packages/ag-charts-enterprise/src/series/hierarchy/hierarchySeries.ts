@@ -1,3 +1,4 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import type { ChartAnimationPhase, DynamicContext, NormalisedHierarchySeriesKeys } from 'ag-charts-core';
 import {
     type BoxBounds,
@@ -12,26 +13,16 @@ import {
 } from 'ag-charts-core';
 import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
 
-import type { HighlightNodeDatum } from '../../../core/eventsHub';
-import type { ChartRegistry } from '../../../module/moduleContext';
-import { ColorScale } from '../../../scale/colorScale';
-import { configureColorScale } from '../../../scale/colorScaleUtil';
-import { BBox } from '../../../scene/bbox';
-import { type Node, PointerEvents } from '../../../scene/node';
-import type { Selection, SelectionInterface } from '../../../scene/selection';
-import type { Path } from '../../../scene/shape/path';
-import { createDatumId } from '../../data/processors';
-import {
-    type CategoryLegendDatum,
-    type ChartLegendType,
-    type GradientLegendDatum,
+const {
+    ColorScale,
+    PointerEvents,
+    SeriesNodePickMode,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
-} from '../../legend/legendDatum';
-import { type PickFocusInputs, type PickFocusOutputs, SeriesNodePickMode } from '../pickTypes';
-import { Series } from '../series';
-import type { DatumIndex, ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
+    configureColorScale,
+    createDatumId,
+} = _ModuleSupport;
 
 export enum HierarchyHighlightState {
     None,
@@ -66,22 +57,22 @@ type Mutable<T> = {
 };
 
 type HierarchyAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-type HierarchyAnimationEvent<TDatum, TNode extends Node<TDatum>> = {
+type HierarchyAnimationEvent<TDatum, TNode extends _ModuleSupport.Node<TDatum>> = {
     update: HierarchyAnimationData<TNode, TDatum>;
     updateData: undefined;
-    highlight: Selection<TDatum, TNode>;
+    highlight: _ModuleSupport.Selection<TDatum, TNode>;
     resize: HierarchyAnimationData<TNode, TDatum>;
     clear: HierarchyAnimationData<TNode, TDatum>;
     reset: undefined;
     skip: undefined;
 };
 
-export interface HierarchyNodeDatum extends SeriesNodeDatum {}
+export interface HierarchyNodeDatum extends _ModuleSupport.SeriesNodeDatum {}
 
-export interface HierarchyAnimationData<_TNode extends Node, _TNodeClass> {}
+export interface HierarchyAnimationData<_TNode extends _ModuleSupport.Node, _TNodeClass> {}
 
 export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatum = Record<string, any>>
-    implements HierarchyNodeDatum, Pick<HighlightNodeDatum, 'colorValue'>
+    implements HierarchyNodeDatum, Pick<_ModuleSupport.HighlightNodeDatum, 'colorValue'>
 {
     private static readonly Walk = {
         PreOrder: 0,
@@ -91,8 +82,8 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
     readonly midPoint: Point;
 
     constructor(
-        public readonly series: ISeries<any, any, any>,
-        public readonly itemId: ItemId,
+        public readonly series: _ModuleSupport.ISeries<any, any, any>,
+        public readonly itemId: _ModuleSupport.ItemId,
         public readonly path: number[],
         public readonly datumIndex: number,
         public readonly datum: TDatum | undefined,
@@ -149,9 +140,9 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
 
 export abstract class HierarchySeries<
     TNodeClass extends HierarchyNode,
-    TNode extends Node<TNodeClass>,
+    TNode extends _ModuleSupport.Node<TNodeClass>,
     TOptions extends NormalisedHierarchySeriesKeys,
-> extends Series<TNodeClass, TOptions> {
+> extends _ModuleSupport.Series<TNodeClass, TOptions> {
     protected abstract NodeClass: new (...params: ConstructorParameters<typeof HierarchyNode<any, any>>) => TNodeClass;
 
     rootNode: TNodeClass | undefined;
@@ -162,7 +153,7 @@ export abstract class HierarchySeries<
 
     protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNodeClass, TNode>>;
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
@@ -304,7 +295,7 @@ export abstract class HierarchySeries<
 
     protected abstract updateNodes(): void;
 
-    override update({ seriesRect }: { seriesRect?: BBox }) {
+    override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         this.updateSelections();
         this.updateNodes();
 
@@ -331,7 +322,7 @@ export abstract class HierarchySeries<
         this.resetAllAnimation(data);
     }
 
-    protected animateReadyHighlight(_data: Selection<TNodeClass, TNode>) {
+    protected animateReadyHighlight(_data: _ModuleSupport.Selection<TNodeClass, TNode>) {
         // No-op
     }
 
@@ -374,7 +365,9 @@ export abstract class HierarchySeries<
         return [Number.NaN, Number.NaN];
     }
 
-    override getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] | GradientLegendDatum[] {
+    override getLegendData(
+        legendType: _ModuleSupport.ChartLegendType
+    ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { colorKey, colorScale: colorScaleProps } = this.options;
         const hasColorScale = colorScaleProps.fills.length > 0;
         const {
@@ -431,7 +424,7 @@ export abstract class HierarchySeries<
         return 0;
     }
 
-    protected abstract datumSelection: SelectionInterface<TNodeClass, TNode>;
+    protected abstract datumSelection: _ModuleSupport.SelectionInterface<TNodeClass, TNode>;
 
     /**
      * Yields in datum order, as `getSelection()` does; the base scene walk would yield in depth order, and would
@@ -446,9 +439,9 @@ export abstract class HierarchySeries<
         }
     }
 
-    protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
+    protected abstract computeFocusBounds(node: TNode): _ModuleSupport.BBox | _ModuleSupport.Path | undefined;
 
-    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
+    public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
         if (this.rootNode == null || this.rootNode.children.length === 0) return undefined;
 
         const index = clamp(0, opts.datumIndex - opts.datumIndexDelta, this.datumSelection.length - 1);
@@ -483,7 +476,7 @@ export abstract class HierarchySeries<
         };
     }
 
-    override getDatumAriaMeta(datum: SeriesNodeDatum, description: string) {
+    override getDatumAriaMeta(datum: _ModuleSupport.SeriesNodeDatum, description: string) {
         if (!(datum instanceof this.NodeClass)) {
             this.ctx.logger.error(`datum is not HierarchyNode: ${JSON.stringify(datum)}`);
             return undefined;
@@ -497,11 +490,11 @@ export abstract class HierarchySeries<
         };
     }
 
-    getCategoryValue(_datumIndex: DatumIndex) {
+    getCategoryValue(_datumIndex: _ModuleSupport.DatumIndex) {
         return;
     }
 
-    datumIndexForCategoryValue(_categoryValue: any): DatumIndex | undefined {
+    datumIndexForCategoryValue(_categoryValue: any): _ModuleSupport.DatumIndex | undefined {
         return;
     }
 
@@ -562,9 +555,9 @@ export abstract class HierarchySeries<
     }
 
     public override getHighlightStateString(
-        _datum: HighlightNodeDatum | undefined,
+        _datum: _ModuleSupport.HighlightNodeDatum | undefined,
         isHighlight?: boolean,
-        datumIndex?: DatumIndex,
+        datumIndex?: _ModuleSupport.DatumIndex,
         _legendItemValues?: string[]
     ): ReturnType<typeof toHierarchyHighlightString> {
         if (!this.isHighlightEnabled()) {

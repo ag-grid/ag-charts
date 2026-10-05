@@ -158,6 +158,7 @@ export type {
     ErrorBoundSeriesNodeDatum,
     ISeries,
     ISeriesOptions,
+    ItemId,
     SeriesNodeDatum,
 } from './chart/series/seriesTypes';
 export { HighlightState, SelectionState } from './chart/series/seriesTypes';
@@ -233,13 +234,6 @@ export {
     PolarSeries,
 } from './chart/series/polar/polarSeries';
 export type { PolarAnimationData } from './chart/series/polar/polarSeries';
-export {
-    HierarchyHighlightState,
-    HierarchyNode,
-    HierarchySeries,
-    toHierarchyHighlightString,
-} from './chart/series/hierarchy/hierarchySeries';
-export { MercatorScale } from './chart/series/topology/mercatorScale';
 export type { GaugeSeries } from './chart/series/gaugeSeries';
 export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';
 export type { ShapeFillBBox } from './chart/series/shapeUtil';
@@ -259,7 +253,6 @@ export type { ChartAxis, FormatDatumParams } from './chart/chartAxis';
 export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/crossLine';
 export type { CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
 export { getCrossLinesPlugin } from './chart/crossline/getCrossLinesPlugin';
-export { calculateLabelTranslation } from './chart/crossline/crossLineLabelPosition';
 export { bandRangeExpansion, isValidScaleValue } from './chart/scaleValue';
 export {
     buildColorCategoryLegendData,
@@ -296,18 +289,17 @@ export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } f
 export { Node, PointerEvents } from './scene/node';
 export type { RenderContext } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
-export { Selection } from './scene/selection';
+export { Selection, type SelectionInterface } from './scene/selection';
 export { type GradientParams } from './scene/gradient/gradient';
 export { getColorStops } from './scene/gradient/stops';
 export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';
 export type { ShapeLineCap, ShapeColor } from './scene/shape/shape';
-export { SvgPath, TranslatableSvgPath } from './scene/shape/svgPath';
 export { Text, RotatableText, TransformableText } from './scene/shape/text';
+export { AbstractScale } from './scale/abstractScale';
 export { ContinuousScale } from './scale/continuousScale';
 export { OrdinalTimeScale } from './scale/ordinalTimeScale';
-export { ApproximateOrdinalTimeScale } from './scale/approximateOrdinalTimeScale';
 export { APPROXIMATE_THRESHOLD } from './scale/discreteTimeScale';
 export {
     expandLabelBoxExtent,
