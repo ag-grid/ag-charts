@@ -65,7 +65,7 @@ export type {
 export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
 export type { SelectionModuleFns } from './chart/modulesManager';
 export { Background } from './chart/background/background';
-export { type SeriesAreaContent } from './chart/series-area/seriesArea';
+export type { SeriesAreaContent } from './chart/series-area/seriesArea';
 export type { BackgroundRegion } from './chart/background-regions/backgroundRegion';
 export { ChartAxes } from './chart/chartAxes';
 export { NiceMode, resetAxisLabelSelectionFn } from './chart/axis/axisUtil';

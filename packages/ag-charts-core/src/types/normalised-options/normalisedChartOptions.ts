@@ -23,6 +23,8 @@ import type {
     AgScrollbarVerticalOrientationOptions,
     AgSeriesAreaOptions,
     AgTouchOptions,
+    FontStyle,
+    FontWeight,
 } from 'ag-charts-types';
 
 import type { NormalisedChartCaptionOptions } from './normalisedChartCaptionOptions';
@@ -217,8 +219,8 @@ export type NormalisedStatusBarLabelOptions = {
     color: string;
     fontFamily: string;
     fontSize: number;
-    fontWeight?: import('ag-charts-types').FontWeight;
-    fontStyle?: import('ag-charts-types').FontStyle;
+    fontWeight?: FontWeight;
+    fontStyle?: FontStyle;
 };
 
 export type NormalisedTooltipOptions = AgChartTooltipOptions & {
