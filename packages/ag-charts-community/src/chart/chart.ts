@@ -407,9 +407,14 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     isDataTransactionSupported() {
+        // A transaction mutates the chart's data in place, which rows derived from it wouldn't follow.
+        return this.getPresetDef()?.transformSeriesData == null;
+    }
+
+    private getPresetDef() {
         const { moduleRegistry, optionMetadata } = this.chartOptions;
-        if (optionMetadata.presetType == null) return true;
-        return moduleRegistry.getPresetModule(optionMetadata.presetType)?.dataTransactions !== false;
+        if (optionMetadata.presetType == null) return;
+        return moduleRegistry.getPresetModule(optionMetadata.presetType);
     }
 
     protected createDataSet(data: unknown[]): DataSet {
