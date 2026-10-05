@@ -941,8 +941,8 @@ export class MapMarkerSeries
             marker.size = style.size;
 
             marker.setStyleProperties(style, fillBBox);
-            marker.fillShadow =
-                this.options.shadow?.enabled && isSupportedMarkerShape(style.shape) ? this.options.shadow : undefined;
+            const shadow = this.resolveItemShadow(this.options.shadow, isHighlight, markerDatum.datumIndex);
+            marker.fillShadow = shadow?.enabled && isSupportedMarkerShape(style.shape) ? shadow : undefined;
 
             marker.x = point.x;
             marker.y = point.y;

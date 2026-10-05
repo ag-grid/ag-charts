@@ -41,6 +41,7 @@ import {
     isPatternFill,
     isSupportedMarkerShape,
     jsonDiff,
+    mergeDefaults,
     nearestSquared,
     resolveCollideWith,
     without,
@@ -342,7 +343,10 @@ export abstract class Series<
         this._nodeDataRefresh = value;
         // A rebuild request bumps the version so consumers (e.g. label placement) can tell that this
         // series' node data, and everything derived from it, will differ from the last render.
-        if (value) this._nodeDataVersion++;
+        if (value) {
+            this._nodeDataVersion++;
+            this.itemShadowPass = undefined;
+        }
     }
     /** Increments on every node-data invalidation; lets consumers skip work while it is unchanged. */
     get nodeDataVersion() {
@@ -396,6 +400,7 @@ export abstract class Series<
     /** Replaces the series options; `diff` holds only the changed keys, `undefined` on the initial apply. */
     applyOptions(options: NormalisedSeriesOptions<TOpts>, diff?: DeepPartial<NormalisedSeriesOptions<TOpts>>) {
         this.options = options;
+        this.itemShadowPass = undefined;
         this.legendItemName =
             'legendItemName' in options && typeof options.legendItemName === 'string'
                 ? options.legendItemName
@@ -493,6 +498,11 @@ export abstract class Series<
                 if (this._dataConnected) this.setChartData(data);
             }),
             this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
+            // The chart's `highlight.drawingMode` decides which copy casts the shadow, and is flushed before each update.
+            this.ctx.chartState?.observe((get) => {
+                get('options', 'highlight');
+                this.itemShadowPass = undefined;
+            }),
             this.events.on('data-selection-change', () => {
                 this.hasChangesOnSelection = true;
                 this.bucketLookup?.refresh();
@@ -905,6 +915,8 @@ export abstract class Series<
     }
 
     protected onChangeHighlight(event: HighlightChangeEvent) {
+        this.itemShadowPass = undefined;
+
         const previousHighlightedDatum = event.previousHighlight;
         const currentHighlightedDatum = event.currentHighlight;
 
@@ -917,7 +929,13 @@ export abstract class Series<
         // Check if there are any itemStylers that might need to react to highlight changes
         const hasItemStylers = this.hasItemStylers();
 
-        if (!hasItemStylers && currentHighlightState === previousHighlightState) {
+        // When the highlight layer's copy casts the shadow (see `resolveItemShadow`), the hovered item's in-place copy
+        // casts none, so the in-place nodes redraw whenever the item the highlight layer redraws changes.
+        const shadowSwapped =
+            this.isItemShadowOnHighlightLayer(this.getHighlightedItemShadow(), this.hasEnabledItemShadow()) &&
+            this.getRedrawnDatumIndex(previousHighlightedDatum) !== this.getRedrawnDatumIndex(currentHighlightedDatum);
+
+        if (!hasItemStylers && !shadowSwapped && currentHighlightState === previousHighlightState) {
             // Datum-level and series-level highlights both report HighlightState.Series here, yet dim
             // the series' other items differently, so a transition between them still needs a redraw.
             const datumLevelnessChanged =
@@ -939,6 +957,7 @@ export abstract class Series<
 
         this.hasChangesOnHighlight =
             hasItemStylers ||
+            shadowSwapped ||
             hasStateStyle(highlight?.highlightedSeries) ||
             hasStateStyle(highlight?.unhighlightedItem) ||
             hasStateStyle(highlight?.unhighlightedSeries);
@@ -957,6 +976,138 @@ export abstract class Series<
         }
 
         return highlightedDatum?.series === this;
+    }
+
+    /**
+     * The `shadow` configured on `highlight.highlightedItem`; no other highlight bucket accepts one. A series whose
+     * item highlight sits elsewhere, like the treemap's `tile.highlight`, passes its own to `resolveItemShadow`.
+     */
+    protected getHighlightedItemShadow(): DeepPartial<NormalisedDropShadowOptions> | undefined {
+        return this.options.highlight?.highlightedItem?.shadow;
+    }
+
+    /**
+     * The index of the item this series' highlight layer redraws over its in-place copy, if `highlightedDatum` is one.
+     * A series that draws no highlight copy for an item it reports as highlighted overrides this, as the in-place copy
+     * of that item must keep casting its shadow.
+     */
+    protected getRedrawnDatumIndex(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
+        if (!this.isSeriesHighlighted(highlightedDatum) || !this.isDatumHighlight(highlightedDatum)) return;
+        return highlightedDatum?.datumIndex;
+    }
+
+    /**
+     * The `shadow` options of the items this series draws, wherever it keeps them. The default is the series' own
+     * `shadow`; a series that configures its item shadows elsewhere, like on its `marker` or per `node` and `link`,
+     * overrides this to return those instead.
+     */
+    protected getItemShadowOptions(): ReadonlyArray<Pick<NormalisedDropShadowOptions, 'enabled'> | undefined> {
+        const { options } = this;
+        return hasShadowOption(options) ? [options.shadow] : [];
+    }
+
+    private hasEnabledItemShadow(): boolean {
+        return this.getItemShadowOptions().some((shadow) => shadow?.enabled === true);
+    }
+
+    /**
+     * Whether the highlight layer's copy of a hovered item casts its shadow, rather than the in-place copy. True when
+     * `highlightedItem.shadow` is set, and under `highlight.drawingMode: 'cutout'` (the theme default), where the
+     * highlight copy erases the in-place copy's footprint, and with it the shadow under a translucent fill.
+     * `hasShadow` is whether the series casts a shadow at all.
+     */
+    private isItemShadowOnHighlightLayer(
+        highlightShadow: DeepPartial<NormalisedDropShadowOptions> | undefined,
+        hasShadow: boolean
+    ): boolean {
+        return highlightShadow != null || (hasShadow && this.getChartHighlightDrawingMode() === 'cutout');
+    }
+
+    /**
+     * The shadow to draw on one copy of an item. A hovered item is drawn twice: in place, and again by the highlight
+     * layer on top of it. Both copies casting the series' `shadow` stacked into a double shadow, so exactly one casts:
+     *
+     * - The highlight layer's copy, when `highlight.drawingMode` is `'cutout'` (the theme default) or
+     *   `highlightedItem.shadow` is set. It casts `highlightedItem.shadow` over the series' `shadow`, and the hovered
+     *   item's in-place copy casts none. The in-place nodes then redraw when the hovered item changes.
+     * - The in-place copy otherwise, as in `'overlay'` mode nothing erases it. The highlight layer's copy casts none.
+     *
+     * Items lit in place, like those sharing the hovered category in `highlight.mode: 'shared'`, cast the
+     * `highlightedItem.shadow` themselves, as no highlight layer copy exists for them.
+     */
+    protected resolveItemShadow(
+        shadow: NormalisedDropShadowOptions | undefined,
+        isHighlight: boolean | undefined,
+        datumIndex: DatumIndex | undefined,
+        highlightState?: HighlightState
+    ): NormalisedDropShadowOptions | undefined {
+        return this.resolveItemShadowWith(
+            this.getHighlightedItemShadow(),
+            shadow,
+            isHighlight,
+            datumIndex,
+            highlightState
+        );
+    }
+
+    /**
+     * What `resolveItemShadowWith` reads about the highlight, which can't change while a pass draws every datum.
+     * Resolved on the first datum and dropped when the highlight, the series' options or node data, or the chart's
+     * `highlight` options change, so a pass of a million datums reads them once.
+     */
+    private itemShadowPass?: {
+        highlightedDatum: HighlightNodeDatum | undefined;
+        redrawnIndex: DatumIndex | undefined;
+        cutout: boolean;
+    };
+
+    private getItemShadowPass() {
+        if (this.itemShadowPass == null) {
+            const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+            this.itemShadowPass = {
+                highlightedDatum,
+                redrawnIndex: this.getRedrawnDatumIndex(highlightedDatum),
+                cutout: this.getChartHighlightDrawingMode() === 'cutout',
+            };
+        }
+        return this.itemShadowPass;
+    }
+
+    /**
+     * As `resolveItemShadow`, for a series that configures `highlightedItem.shadow` per item kind rather than on its
+     * `highlight`, like the treemap's tiles and groups. `highlightShadow` is the one that applies to this item.
+     */
+    protected resolveItemShadowWith(
+        highlightShadow: DeepPartial<NormalisedDropShadowOptions> | undefined,
+        shadow: NormalisedDropShadowOptions | undefined,
+        isHighlight: boolean | undefined,
+        datumIndex: DatumIndex | undefined,
+        highlightState?: HighlightState
+    ): NormalisedDropShadowOptions | undefined {
+        // Per-datum hot path: with nothing to cast or replace, every copy keeps the series' shadow.
+        if (highlightShadow == null && shadow?.enabled !== true) return shadow;
+
+        // The item's own shadow is enabled here, so there is no need to ask whether the series has one.
+        const pass = this.getItemShadowPass();
+        if (highlightShadow == null && !pass.cutout) return isHighlight ? undefined : shadow;
+        if (isHighlight) return this.mergeHighlightedItemShadow(shadow, highlightShadow);
+
+        if (datumIndex != null && pass.redrawnIndex === datumIndex) return undefined;
+
+        const state = highlightState ?? this.getHighlightState(pass.highlightedDatum, false, datumIndex);
+        return state === HighlightState.Item ? this.mergeHighlightedItemShadow(shadow, highlightShadow) : shadow;
+    }
+
+    private mergeHighlightedItemShadow(
+        shadow: NormalisedDropShadowOptions | undefined,
+        highlightShadow: DeepPartial<NormalisedDropShadowOptions> | undefined
+    ): NormalisedDropShadowOptions | undefined {
+        return highlightShadow == null
+            ? shadow
+            : (mergeDefaults<DeepPartial<NormalisedDropShadowOptions>>(
+                  highlightShadow,
+                  shadow
+              ) as NormalisedDropShadowOptions);
     }
 
     protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datumIndex?: DatumIndex) {
@@ -1623,10 +1774,14 @@ export abstract class Series<
             pickInflation?: number;
             /** The marker's `shadow` option; not part of the per-datum style, as nothing can vary it per datum. */
             shadow?: NormalisedDropShadowOptions;
+            /** With `datumIndex`, lets `highlight.highlightedItem.shadow` and the one-shadow-per-hover rule apply. */
+            isHighlight?: boolean;
+            datumIndex?: DatumIndex;
         }
     ) {
         const { shape, size = 0, strokeWidth = 0 } = style;
-        const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0, shadow } = opts;
+        const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
+        const shadow = this.resolveItemShadow(opts.shadow, opts.isHighlight, opts.datumIndex);
         const visible =
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
@@ -1821,4 +1976,8 @@ export abstract class Series<
     needsDataModelDiff(): boolean {
         return !this.ctx.animationManager.isSkipped() || !!this.chart?.flashOnUpdateEnabled;
     }
+}
+
+function hasShadowOption(options: object): options is { shadow?: NormalisedDropShadowOptions } {
+    return 'shadow' in options;
 }

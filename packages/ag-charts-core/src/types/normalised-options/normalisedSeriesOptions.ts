@@ -11,9 +11,9 @@ import type {
     Renderer,
 } from 'ag-charts-types';
 
-import type { RequireOptional } from '../global';
+import type { DeepPartial, RequireOptional } from '../global';
 import type { BivariantCallback, Normalised } from './normalise';
-import type { NormalisedColorType } from './normalisedCommonOptions';
+import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 
 /** Style overrides a highlight or selection state bucket may carry once colour refs are resolved. */
 export interface NormalisedSeriesStateStyle {
@@ -27,10 +27,22 @@ export interface NormalisedSeriesStateStyle {
     opacity?: number;
 }
 
-export type NormalisedSeriesHighlightOptions<TStyle extends object = NormalisedSeriesStateStyle> = Normalised<
+/** The `shadow` only `highlightedItem` accepts, which the shared state style leaves out. */
+export interface NormalisedItemHighlightShadow {
+    shadow?: DeepPartial<NormalisedDropShadowOptions>;
+}
+
+type NormalisedSeriesHighlightBuckets<TStyle extends object> = Normalised<
     AgMultiSeriesHighlightOptions<Partial<TStyle & NormalisedSeriesStateStyle>>,
     'enabled'
 >;
+
+export type NormalisedSeriesHighlightOptions<TStyle extends object = NormalisedSeriesStateStyle> = Omit<
+    NormalisedSeriesHighlightBuckets<TStyle>,
+    'highlightedItem'
+> & {
+    highlightedItem?: NormalisedSeriesHighlightBuckets<TStyle>['highlightedItem'] & NormalisedItemHighlightShadow;
+};
 
 export type NormalisedSeriesSelectionOptions<TStyle extends object = NormalisedSeriesStateStyle> = Normalised<
     AgSelectionOptions<Partial<TStyle & NormalisedSeriesStateStyle>>,
@@ -61,7 +73,7 @@ type NormaliseSeriesTooltip<T> = T extends { tooltip?: AgSeriesTooltip<infer P> 
 export interface NormalisedSeriesHighlightBase<TStyle extends object = NormalisedSeriesStateStyle> {
     enabled: boolean;
     bringToFront?: boolean;
-    highlightedItem?: TStyle;
+    highlightedItem?: TStyle & NormalisedItemHighlightShadow;
     unhighlightedItem?: TStyle;
     highlightedSeries?: TStyle;
     unhighlightedSeries?: TStyle;

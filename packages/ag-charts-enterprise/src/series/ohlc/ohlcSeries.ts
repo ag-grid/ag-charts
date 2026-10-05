@@ -58,7 +58,16 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
             const baseStyle = datum.isRising ? up : down;
 
-            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp, shadow);
+            node.setStaticProperties(
+                centerX,
+                width,
+                y,
+                height,
+                yOpen,
+                yClose,
+                crisp,
+                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex)
+            );
 
             const style = (datum.style ??
                 contextNodeData.styles[datum.itemType][

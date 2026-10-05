@@ -88,8 +88,10 @@ import {
     labelPlacementStyleDefs,
     markerOptionsDefs,
     markerStyleOptionsDefs,
+    multiSeriesShadowHighlightOptionsDef,
     numberFormatValidator,
     seriesLabelOptionsDefs,
+    shadowHighlightOptionsDef,
     shadowOptionsDefs,
     tooltipOptionsDefs,
     undocumentedLabelFitOptionsDefs,
@@ -169,7 +171,7 @@ export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemea
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...boxPlotStyleOptionsDef,
-    highlight: multiSeriesHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),
     segmentation: shapeSegmentation,
     width: positiveNumberNonZero,
     widthRatio: ratio,
@@ -210,7 +212,10 @@ export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeri
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
-    highlight: multiSeriesHighlightOptionsDef(candlestickHighlightStyleOptionsDef, candlestickHighlightStyleOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(
+        candlestickHighlightStyleOptionsDef,
+        candlestickHighlightStyleOptionsDef
+    ),
 };
 
 export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableOptions> = {
@@ -251,6 +256,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
+    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
 };
 
 Object.assign(chordSeriesThemeableOptionsDef.label, without(undocumentedLabelFitOptionsDefs, ['maxWidth']));
@@ -339,6 +345,7 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...without(commonSeriesThemeableOptionsDefs, ['showInLegend']),
+    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     ...lineDashOptionsDef,
@@ -373,6 +380,7 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
     tooltip: tooltipOptionsDefs,
     colorScale: colorScaleOptionsDef,
     ...commonSeriesThemeableOptionsDefs,
+    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
     ...strokeOptionsDef,
 };
 
@@ -395,7 +403,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
-    highlight: multiSeriesHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
 export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemeableOptions> = {
@@ -437,7 +445,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
@@ -461,7 +469,7 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const mapShapeBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeBackgroundThemeableOptions> = {
@@ -489,7 +497,7 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
 // TODO: duplicate series options defs here?
@@ -540,6 +548,7 @@ export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemea
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
+    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
     ...lineDashOptionsDef,
@@ -563,7 +572,7 @@ export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesTh
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 Object.assign(radarAreaSeriesThemeableOptionsDef.label, undocumentedLabelFitOptionsDefs);
@@ -583,7 +592,7 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
     ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
 Object.assign(radarLineSeriesThemeableOptionsDef.label, undocumentedLabelFitOptionsDefs);
@@ -614,7 +623,7 @@ export const radialColumnSeriesThemeableOptionsDef: OptionsDefs<AgRadialColumnSe
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
 const rangeAreaSeriesLineThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesLineThemeableOptions<unknown, unknown>> = {
@@ -677,7 +686,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
             high: { ...rangeAreaSeriesLineStyleDef },
         },
     }),
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     segmentation: shapeSegmentation,
     invertedStyle: {
         enabled: boolean,
@@ -714,7 +723,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
     segmentation: shapeSegmentation,
     width: positiveNumberNonZero,
     widthRatio: ratio,
@@ -760,6 +769,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
+    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
 };
 
 Object.assign(sankeySeriesThemeableOptionsDef.label, undocumentedLabelFitOptionsDefs);
@@ -798,7 +808,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     ...without(strokeOptionsDef, ['stroke']),
     highlight: {
         enabled: boolean,
-        highlightedItem: hierarchyHighlightStyleOptionsDef,
+        highlightedItem: { ...hierarchyHighlightStyleOptionsDef, shadow: shadowOptionsDefs },
         highlightedBranch: hierarchyHighlightStyleOptionsDef,
         unhighlightedItem: hierarchyHighlightStyleOptionsDef,
         unhighlightedBranch: hierarchyHighlightStyleOptionsDef,
@@ -823,7 +833,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         interactive: boolean,
         highlight: {
             enabled: boolean,
-            highlightedItem: hierarchyHighlightStyleOptionsDef,
+            highlightedItem: { ...hierarchyHighlightStyleOptionsDef, shadow: shadowOptionsDefs },
             unhighlightedItem: hierarchyHighlightStyleOptionsDef,
         },
         label: {
@@ -847,7 +857,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         secondaryLabel: autoSizedLabelOptionsDefs,
         highlight: {
             enabled: boolean,
-            highlightedItem: hierarchyHighlightStyleOptionsDef,
+            highlightedItem: { ...hierarchyHighlightStyleOptionsDef, shadow: shadowOptionsDefs },
             highlightedBranch: hierarchyHighlightStyleOptionsDef,
             unhighlightedItem: hierarchyHighlightStyleOptionsDef,
             unhighlightedBranch: hierarchyHighlightStyleOptionsDef,
@@ -905,4 +915,5 @@ export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesTh
     width: positiveNumberNonZero,
     widthRatio: ratio,
     ...commonSeriesThemeableOptionsDefs,
+    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
 };

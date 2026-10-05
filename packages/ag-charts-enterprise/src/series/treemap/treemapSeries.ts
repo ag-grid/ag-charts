@@ -504,12 +504,31 @@ export class TreemapSeries extends HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => node.datumIndex);
     }
 
+    /** The shadows of the tiles and groups, which this series keeps there rather than on its own `shadow`. */
+    protected override getItemShadowOptions() {
+        return [this.options.tile.shadow, this.options.group.shadow];
+    }
+
     protected override getActiveHighlightNode(): TreemapNode | undefined {
         const highlightedNode = super.getActiveHighlightNode();
-        if (highlightedNode != null && highlightedNode.children.length > 0 && !this.options.group.interactive) {
-            return undefined;
-        }
-        return highlightedNode;
+        return this.isNodeHighlightable(highlightedNode) ? highlightedNode : undefined;
+    }
+
+    /** A group that isn't interactive gets no highlight copy, so its in-place copy keeps its shadow. */
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        return this.isNodeHighlightable(highlightedDatum as TreemapNode | undefined)
+            ? super.getRedrawnDatumIndex(highlightedDatum)
+            : undefined;
+    }
+
+    private isNodeHighlightable(node: TreemapNode | undefined) {
+        return node == null || node.children.length === 0 || this.options.group.interactive;
+    }
+
+    /** Whether either tile or group sets one, for the series-wide check; each item resolves its own in `updateNodes`. */
+    protected override getHighlightedItemShadow() {
+        const { tile, group } = this.options;
+        return tile.highlight.highlightedItem?.shadow ?? group.highlight.highlightedItem?.shadow;
     }
 
     updateNodes() {
@@ -724,7 +743,14 @@ export class TreemapSeries extends HierarchySeries<
 
             rect.setStyleProperties(style, fillBBox);
 
-            rect.fillShadow = isLeaf ? tile.shadow : group.shadow;
+            // Tile and group highlights sit under `tile.highlight` and `group.highlight`, not the series' `highlight`.
+            const itemOptions = isLeaf ? tile : group;
+            rect.fillShadow = this.resolveItemShadowWith(
+                itemOptions.highlight.highlightedItem?.shadow,
+                itemOptions.shadow,
+                isHighlight,
+                node.datumIndex
+            );
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];
 

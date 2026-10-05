@@ -10,7 +10,7 @@ import {
     lineDashOptionsDef,
     markerOptionsDefs,
     markerStyleOptionsDefs,
-    multiSeriesHighlightOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
     placedSeriesLabelOptionsDefs,
     required,
@@ -24,7 +24,7 @@ import {
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, AgAreaSeriesStylerResult, AgAreaSeriesThemeableOptions } from 'ag-charts-types';
 
-const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
+const highlight = multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
 
 const areaStyler = callbackDefs<AgAreaSeriesStylerResult>({
     ...strokeOptionsDef,

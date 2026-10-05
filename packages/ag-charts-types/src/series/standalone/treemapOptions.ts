@@ -22,7 +22,7 @@ import type {
     VerticalAlign,
 } from '../../chart/types';
 import type { AgColorScale, AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgItemHighlightStyleOptions } from '../seriesOptions';
 
 export type AgTreemapHighlightState = HierarchyHighlightState;
 
@@ -109,7 +109,7 @@ export interface AgTreemapSeriesTileHighlightOptions {
     /** Style for tiles within the hovered branch. */
     highlightedBranch?: AgTreemapSeriesTileHighlightStyle;
     /** Style for the directly hovered tile. */
-    highlightedItem?: AgTreemapSeriesTileHighlightStyle;
+    highlightedItem?: AgTreemapSeriesTileHighlightStyle & AgItemHighlightStyleOptions;
     /** Style for other tiles within the hovered branch. */
     unhighlightedItem?: AgTreemapSeriesTileHighlightStyle;
     /** Style for tiles outside of the hovered branch. */
@@ -129,7 +129,7 @@ export interface AgTreemapSeriesGroupHighlightOptions {
      */
     enabled?: boolean;
     /** Style for the hovered group. */
-    highlightedItem?: AgTreemapSeriesGroupHighlightStyle;
+    highlightedItem?: AgTreemapSeriesGroupHighlightStyle & AgItemHighlightStyleOptions;
     /** Style for groups that are not hovered when another group is active. */
     unhighlightedItem?: AgTreemapSeriesGroupHighlightStyle;
 }

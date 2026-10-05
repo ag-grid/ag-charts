@@ -552,7 +552,13 @@ export abstract class RadarSeries<
             const style =
                 (datum.style as NormalisedSeriesMarkerStyle | undefined) ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, { hideWithSize0, pickInflation, shadow });
+            this.applyMarkerStyle(style, node, datum.point, fillBBox, {
+                hideWithSize0,
+                pickInflation,
+                shadow,
+                isHighlight,
+                datumIndex: datum.datumIndex,
+            });
 
             node.drawingMode = drawingMode;
         });
@@ -667,6 +673,11 @@ export abstract class RadarSeries<
                 lineDash,
             },
         };
+    }
+
+    /** The shadows of the markers, which this series keeps there rather than on its own `shadow`. */
+    protected override getItemShadowOptions() {
+        return [this.options.marker.shadow];
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

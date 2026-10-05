@@ -9,7 +9,12 @@ import type {
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgHighlightStyleOptions,
+    AgShadowHighlightOptions,
+} from '../seriesOptions';
 
 export interface AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends
@@ -82,6 +87,8 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext
     stageLabel?: AgPyramidSeriesStageLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgShadowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgPyramidSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual bars, based on the given parameters.*/
@@ -99,7 +106,7 @@ export interface AgPyramidSeriesOptionsNames {}
 
 export interface AgPyramidSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight'>,
         AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
         AgPyramidSeriesThemeableOptions<TDatum, TContext> {

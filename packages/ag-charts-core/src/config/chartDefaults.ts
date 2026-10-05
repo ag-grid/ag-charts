@@ -92,6 +92,7 @@ import {
     highlightOptionsDef,
     labelBoxOptionsDef,
     lineDashOptionsDef,
+    multiSeriesHighlightOptionsDef,
     overflowStrategy,
     padding,
     selectionOptionsDef,
@@ -769,6 +770,25 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     blur: positiveNumber,
     color: colorOrRef,
 };
+
+/** Validation for a series whose highlighted item can also cast a `shadow`; the other highlight slots cannot. */
+export function shadowHighlightOptionsDef<I extends object>(itemHighlightOptionsDef: I) {
+    return {
+        ...highlightOptionsDef(itemHighlightOptionsDef),
+        highlightedItem: { ...itemHighlightOptionsDef, shadow: shadowOptionsDefs },
+    };
+}
+
+/** As {@link shadowHighlightOptionsDef}, for a series that also has highlighted-series and unhighlighted-series slots. */
+export function multiSeriesShadowHighlightOptionsDef<I extends object, S>(
+    itemHighlightOptionsDef: I,
+    seriesHighlightOptionsDef: S
+) {
+    return {
+        ...multiSeriesHighlightOptionsDef(itemHighlightOptionsDef, seriesHighlightOptionsDef),
+        highlightedItem: { ...itemHighlightOptionsDef, shadow: shadowOptionsDefs },
+    };
+}
 
 export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
     shape: shapeValidator,

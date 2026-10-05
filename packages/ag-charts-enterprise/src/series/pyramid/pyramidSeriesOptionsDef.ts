@@ -6,11 +6,12 @@ import {
     pyramidSeriesThemeableOptionsDef,
     required,
     string,
+    without,
 } from 'ag-charts-core';
 
 export const pyramidSeriesOptionsDef: OptionsDefs<AgPyramidSeriesOptions> = {
     ...pyramidSeriesThemeableOptionsDef,
-    ...commonSeriesOptionsDefs,
+    ...without(commonSeriesOptionsDefs, ['highlight']),
     type: required(constant('pyramid')),
     stageKey: required(string),
     valueKey: required(string),

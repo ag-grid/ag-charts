@@ -518,7 +518,7 @@ export abstract class RadialColumnSeriesBase<
 
                 node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);
 
-                node.fillShadow = shadow;
+                node.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
                 node.cornerRadius = style.cornerRadius ?? 0;
                 node.lineJoin = 'round';
             });

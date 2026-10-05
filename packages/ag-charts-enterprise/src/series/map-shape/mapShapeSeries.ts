@@ -569,7 +569,7 @@ export class MapShapeSeries
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumStyles({ datumSelection, isHighlight: false });
-        this.updateDatumNodes({ datumSelection, drawingMode: 'overlay' });
+        this.updateDatumNodes({ datumSelection, drawingMode: 'overlay', isHighlight: false });
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
         const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum);
@@ -585,7 +585,7 @@ export class MapShapeSeries
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
-        this.updateDatumNodes({ datumSelection: highlightDatumSelection, drawingMode });
+        this.updateDatumNodes({ datumSelection: highlightDatumSelection, drawingMode, isHighlight: true });
     }
 
     private getHighlightLabelData(
@@ -711,9 +711,11 @@ export class MapShapeSeries
     private updateDatumNodes({
         datumSelection,
         drawingMode,
+        isHighlight,
     }: {
         datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
         drawingMode: AgDrawingMode;
+        isHighlight: boolean;
     }) {
         const fillBBox = getTopologyShapeFillBBox(this.scale);
         const { shadow } = this.options;
@@ -732,7 +734,7 @@ export class MapShapeSeries
             // Style is resolved by getItemStyle; colour refs are gone by render.
             geoGeometry.setStyleProperties(nodeDatum.style as NormalisedMapShapeSeriesStyle, fillBBox);
 
-            geoGeometry.fillShadow = shadow;
+            geoGeometry.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
             geoGeometry.drawingMode = drawingMode;
 
             const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);

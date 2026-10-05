@@ -34,7 +34,7 @@ import type {
     NormalisedCollisionFreeSeriesLabelOptions,
 } from './normalisedLabelOptions';
 import type { NormalisedColorScaleOptions } from './normalisedScatterSeries';
-import type { NormalisedSeriesSelectionOptions } from './normalisedSeriesOptions';
+import type { NormalisedItemHighlightShadow, NormalisedSeriesSelectionOptions } from './normalisedSeriesOptions';
 
 /** Keys every hierarchy series reads; each leaf's normalised own-options type satisfies this. */
 export interface NormalisedHierarchySeriesKeys {
@@ -61,7 +61,7 @@ export type NormalisedTreemapGroupHighlightOptions = Normalised<
     AgTreemapSeriesGroupHighlightOptions,
     'enabled',
     {
-        highlightedItem?: NormalisedTreemapGroupHighlightStyle;
+        highlightedItem?: NormalisedTreemapGroupHighlightStyle & NormalisedItemHighlightShadow;
         unhighlightedItem?: NormalisedTreemapGroupHighlightStyle;
     }
 >;
@@ -71,7 +71,7 @@ export type NormalisedTreemapTileHighlightOptions = Normalised<
     'enabled',
     {
         highlightedBranch?: NormalisedTreemapTileHighlightStyle;
-        highlightedItem?: NormalisedTreemapTileHighlightStyle;
+        highlightedItem?: NormalisedTreemapTileHighlightStyle & NormalisedItemHighlightShadow;
         unhighlightedItem?: NormalisedTreemapTileHighlightStyle;
         unhighlightedBranch?: NormalisedTreemapTileHighlightStyle;
     }

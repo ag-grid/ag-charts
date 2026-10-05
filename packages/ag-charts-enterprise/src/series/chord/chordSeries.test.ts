@@ -26,7 +26,11 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { describeFlowProportionShadow } from '../../test/flowProportionShadowTests';
+import {
+    FLOW_PROPORTION_SHADOW,
+    describeFlowProportionShadow,
+    flowProportionShadowOptions,
+} from '../../test/flowProportionShadowTests';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
@@ -143,6 +147,28 @@ describe('ChordSeries', () => {
             chart = created;
         },
         compare,
+    });
+
+    describe('shadow highlight', () => {
+        // The hovered node is redrawn on the highlight layer; only that copy casts the node's shadow.
+        it('should render a highlighted node with shadows enabled', async () => {
+            const options = flowProportionShadowOptions('chord', {
+                link: FLOW_PROPORTION_SHADOW,
+                node: FLOW_PROPORTION_SHADOW,
+            });
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const node = chart.series[0].contextNodeData.nodeData.find(
+                (n: any) => n.type === FlowProportionDatumType.Node
+            );
+
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+            highlightManager.updateHighlight(chart.id, node);
+            await compare();
+        });
     });
 
     describe('Series Highlighting', () => {

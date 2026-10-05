@@ -1558,6 +1558,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 hideWithSize0,
                 pickInflation,
                 shadow,
+                isHighlight,
+                datumIndex: datum.datumIndex,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {
@@ -1745,6 +1747,11 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 lineDash,
             },
         };
+    }
+
+    /** The shadows of the markers, which this series keeps there rather than on its own `shadow`. */
+    protected override getItemShadowOptions() {
+        return [this.options.marker.shadow];
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {

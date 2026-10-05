@@ -20,7 +20,7 @@ import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio 
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesShadowHighlightOptions,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
@@ -121,7 +121,7 @@ export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgBarHighlightStyleOptions, AgBarHighlightStyleOptions>;
+    highlight?: AgMultiSeriesShadowHighlightOptions<AgBarHighlightStyleOptions, AgBarHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
     /** Fixed width of each bar in the series. */

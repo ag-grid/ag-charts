@@ -11,11 +11,12 @@ import {
     required,
     string,
     undocumented,
+    without,
 } from 'ag-charts-core';
 
 export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     ...chordSeriesThemeableOptionsDef,
-    ...commonSeriesOptionsDefs,
+    ...without(commonSeriesOptionsDefs, ['highlight']),
     type: required(constant('chord')),
     fromKey: required(string),
     toKey: required(string),
