@@ -97,6 +97,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
             xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
             yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
             blur: { $path: '/series/$index/marker/shadow/blur' },
+            spread: { $path: '/series/$index/marker/shadow/spread' },
         },
         shape: {
             $path: '/series/$index/marker/shape',

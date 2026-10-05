@@ -263,7 +263,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         if (typeof wickStroke === 'string') {
             ctx.strokeStyle = wickStroke;
         }
-        ctx.lineWidth = wickStrokeWidth;
+        ctx.lineWidth = wickStrokeWidth + this.shadowStrokeGrowth;
 
         if (wickLineDash != null) {
             ctx.setLineDash([...wickLineDash]);
