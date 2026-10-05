@@ -11,10 +11,6 @@ import type {
 } from 'ag-charts-types';
 
 import {
-    ANNOTATION_HANDLE_FILL,
-    ANNOTATION_TEXTBOX_COLOR,
-    ANNOTATION_TEXTBOX_FILL,
-    ANNOTATION_TEXTBOX_STROKE,
     DEFAULT_FIBONACCI_STROKES,
     MEASURER_STATISTICS_THEME,
     QUICK_MEASURER_DIVIDER_THEME,
@@ -25,7 +21,7 @@ const stroke: WithThemeParams<StrokeOptions> = {
 };
 
 const handle: WithThemeParams<AgAnnotationHandleStyles> = {
-    fill: ANNOTATION_HANDLE_FILL,
+    fill: { $ref: 'annotationHandleColor' },
 };
 
 const axisLabel: WithThemeParams<AgAnnotationAxisLabel> = {
@@ -38,7 +34,7 @@ const lineText: WithThemeParams<TextOptions> = {
 };
 
 const font: WithThemeParams<TextOptions> = {
-    color: { $lightDark: ['#5090dc', '#fff'] },
+    color: { $ref: 'annotationTextColor' },
     fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
     fontFamily: { $ref: 'fontFamily' },
 };
@@ -123,15 +119,15 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     note: {
         ...font,
-        color: ANNOTATION_TEXTBOX_COLOR,
+        color: { $ref: 'annotationTextboxTextColor' },
         fill: { $ref: 'annotationColor' },
         stroke: { $ref: 'chartBackgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },
         background: {
-            fill: ANNOTATION_TEXTBOX_FILL,
-            stroke: ANNOTATION_TEXTBOX_STROKE,
+            fill: { $ref: 'annotationTextboxBackgroundColor' },
+            stroke: { $ref: 'annotationTextboxBorderColor' },
             strokeWidth: 1,
         },
     },

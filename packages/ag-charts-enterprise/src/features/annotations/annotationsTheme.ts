@@ -9,7 +9,6 @@ import {
     type AgLineAnnotationTextStyles,
     type AgMeasurerAnnotationStatistics,
     type AgMeasurerAnnotationStyles,
-    type Operation,
     type StrokeOptions,
     type TextOptions,
     type WithThemeParams,
@@ -30,11 +29,6 @@ export const DEFAULT_FIBONACCI_STROKES = [
     '#d93e64',
 ];
 
-export const ANNOTATION_HANDLE_FILL: Operation = { $lightDark: ['#ffffff', '#192232'] };
-export const ANNOTATION_TEXTBOX_COLOR: Operation = { $lightDark: ['#000', '#fff'] };
-export const ANNOTATION_TEXTBOX_FILL: Operation = { $lightDark: ['#fafafa', '#28313e'] };
-export const ANNOTATION_TEXTBOX_STROKE: Operation = { $lightDark: ['#ddd', '#4b525d'] };
-
 const stroke: WithThemeParams<StrokeOptions> = {
     stroke: { $ref: 'foregroundColor' },
     strokeOpacity: 1,
@@ -42,7 +36,7 @@ const stroke: WithThemeParams<StrokeOptions> = {
 };
 
 const handle: WithThemeParams<AgAnnotationHandleStyles> = {
-    fill: ANNOTATION_HANDLE_FILL,
+    fill: { $ref: 'annotationHandleColor' },
     strokeOpacity: 1,
     strokeWidth: 2,
 };
@@ -82,12 +76,12 @@ const channelText: WithThemeParams<AgChannelAnnotationTextStyles> = {
 export const MEASURER_STATISTICS_THEME: WithThemeParams<AgMeasurerAnnotationStatistics> = {
     ...font,
     fontSize: { $ref: 'fontSize' },
-    color: ANNOTATION_TEXTBOX_COLOR,
-    fill: ANNOTATION_TEXTBOX_FILL,
-    stroke: ANNOTATION_TEXTBOX_STROKE,
+    color: { $ref: 'annotationTextboxTextColor' },
+    fill: { $ref: 'annotationTextboxBackgroundColor' },
+    stroke: { $ref: 'annotationTextboxBorderColor' },
     strokeWidth: 1,
     divider: {
-        stroke: { $lightDark: ['#181d1f', '#fff'] },
+        stroke: { $ref: 'annotationDividerColor' },
         strokeWidth: 1,
         strokeOpacity: 0.5,
     },
@@ -264,15 +258,15 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     note: {
         ...text,
-        color: ANNOTATION_TEXTBOX_COLOR,
+        color: { $ref: 'annotationTextboxTextColor' },
         fill: { $ref: 'annotationColor' },
         stroke: { $ref: 'chartBackgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },
         background: {
-            fill: ANNOTATION_TEXTBOX_FILL,
-            stroke: ANNOTATION_TEXTBOX_STROKE,
+            fill: { $ref: 'annotationTextboxBackgroundColor' },
+            stroke: { $ref: 'annotationTextboxBorderColor' },
             strokeWidth: 1,
         },
     },

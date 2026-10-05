@@ -505,6 +505,12 @@ export interface AgChartPrivateThemeParams {
 
     focusColor?: CssColor;
     annotationColor?: CssColor;
+    annotationTextColor?: CssColor;
+    annotationHandleColor?: CssColor;
+    annotationTextboxTextColor?: CssColor;
+    annotationTextboxBackgroundColor?: CssColor;
+    annotationTextboxBorderColor?: CssColor;
+    annotationDividerColor?: CssColor;
     captionLayoutStyle?: 'block' | 'overlay';
     captionAlignment?: TextAlign;
 }
