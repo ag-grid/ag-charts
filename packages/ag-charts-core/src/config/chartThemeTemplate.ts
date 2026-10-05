@@ -134,7 +134,6 @@ export const commonChartThemeTemplate = {
     },
     tooltip: {
         enabled: true,
-        darkTheme: { $lightDark: [false, true] },
         delay: 0,
         pagination: false,
         mode: {
@@ -164,7 +163,6 @@ export const commonChartThemeTemplate = {
             ],
         },
     },
-    overlays: { darkTheme: { $lightDark: [false, true] } },
     listeners: {},
     // TODO: remove this
     series: {

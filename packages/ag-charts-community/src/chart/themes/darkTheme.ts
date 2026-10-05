@@ -1,5 +1,5 @@
 import { getSequentialColors } from 'ag-charts-core';
-import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
+import type { AgChartAllThemeParams, AgChartPrivateThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
 import type { DefaultColors } from './defaultColors';
@@ -62,6 +62,18 @@ export class DarkTheme extends ChartTheme {
             altUp: { fill: DEFAULT_DARK_FILLS.BLUE, stroke: DEFAULT_DARK_STROKES.BLUE },
             altDown: { fill: DEFAULT_DARK_FILLS.ORANGE, stroke: DEFAULT_DARK_STROKES.ORANGE },
             altNeutral: { fill: DEFAULT_DARK_FILLS.GRAY, stroke: DEFAULT_DARK_STROKES.GRAY },
+        };
+    }
+
+    protected override getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
+        return {
+            ...super.getPrivateParameters(),
+            annotationTextColor: '#fff',
+            annotationHandleColor: DEFAULT_DARK_BACKGROUND_FILL,
+            annotationTextboxTextColor: '#fff',
+            annotationTextboxBackgroundColor: '#28313e',
+            annotationTextboxBorderColor: '#4b525d',
+            annotationDividerColor: '#fff',
         };
     }
 

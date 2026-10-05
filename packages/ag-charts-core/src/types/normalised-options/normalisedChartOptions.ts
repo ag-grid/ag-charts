@@ -224,7 +224,6 @@ export type NormalisedStatusBarLabelOptions = {
 };
 
 export type NormalisedTooltipOptions = AgChartTooltipOptions & {
-    darkTheme?: boolean;
     pagination?: boolean;
     bounds?: 'extended' | 'canvas';
 };
@@ -232,7 +231,6 @@ export type NormalisedTooltipOptions = AgChartTooltipOptions & {
 export type NormalisedChartOverlayOptions = Omit<AgChartOverlayOptions, 'text'> & { text?: NormalisedTextOrSegments };
 
 export type NormalisedChartOverlaysOptions = {
-    darkTheme?: boolean;
     loading?: NormalisedChartOverlayOptions;
     noData?: NormalisedChartOverlayOptions;
     noVisibleSeries?: NormalisedChartOverlayOptions;

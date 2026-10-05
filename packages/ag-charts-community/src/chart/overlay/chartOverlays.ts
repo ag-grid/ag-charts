@@ -5,8 +5,6 @@ import type { BBox } from '../../scene/bbox';
 import { Overlay } from './overlay';
 
 export class ChartOverlays {
-    darkTheme = false;
-
     readonly loading: Overlay;
     readonly noData = new Overlay('ag-charts-no-data-overlay', 'overlayNoData');
     readonly noVisibleSeries = new Overlay('ag-charts-no-visible-series', 'overlayNoVisibleSeries');
@@ -23,7 +21,6 @@ export class ChartOverlays {
     }
 
     applyOptions(options: NormalisedChartOverlaysOptions) {
-        this.darkTheme = options.darkTheme ?? false;
         this.loading.applyOptions(options.loading);
         this.noData.applyOptions(options.noData);
         this.noVisibleSeries.applyOptions(options.noVisibleSeries);
