@@ -75,6 +75,7 @@ export class RadarAreaSeries extends RadarSeries<AgRadarAreaSeriesStyle, Normali
                 pointerEvents: PointerEvents.None,
                 opacity,
             });
+            areaNode.fillShadow = this.options.shadow;
         }
     }
 

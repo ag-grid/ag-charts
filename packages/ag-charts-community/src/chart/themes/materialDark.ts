@@ -1,8 +1,4 @@
-import {
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    getSequentialColors,
-} from 'ag-charts-core';
+import { getSequentialColors } from 'ag-charts-core';
 
 import { DarkTheme } from './darkTheme';
 
@@ -60,14 +56,5 @@ export class MaterialDark extends DarkTheme {
             altDown: { fill: MATERIAL_DARK_FILLS.RED, stroke: MATERIAL_DARK_STROKES.RED },
             altNeutral: { fill: MATERIAL_DARK_FILLS.GRAY, stroke: MATERIAL_DARK_STROKES.GRAY },
         };
-    }
-
-    override getTemplateParameters() {
-        const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, MATERIAL_DARK_FILLS.BLUE);
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, MATERIAL_DARK_FILLS.BLUE);
-
-        return params;
     }
 }

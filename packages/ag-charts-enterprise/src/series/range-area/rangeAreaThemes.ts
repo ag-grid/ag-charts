@@ -11,10 +11,13 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    NEAREST_TOOLTIP_THEME,
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    fillThemeTemplate,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
 
@@ -76,15 +79,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
                     ],
                 },
 
-                {
-                    $applySwitch: [
-                        { $path: 'type' },
-                        { $palette: 'fill' },
-                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                        ['image', FILL_IMAGE_DEFAULTS],
-                        ['pattern', FILL_PATTERN_DEFAULTS],
-                    ],
-                },
+                fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             ],
         },
         fillOpacity: {
@@ -95,6 +90,13 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
         },
         lineDashOffset: {
             $path: '/series/$index/marker/lineDashOffset',
+        },
+        shadow: {
+            enabled: { $path: '/series/$index/marker/shadow/enabled' },
+            color: { $path: '/series/$index/marker/shadow/color' },
+            xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
+            yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
+            blur: { $path: '/series/$index/marker/shadow/blur' },
         },
         shape: {
             $path: '/series/$index/marker/shape',
@@ -131,15 +133,8 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         ...STROKE_STYLE_THEME_DEFAULTS,
         marker: {
             enabled: false,
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $palette: 'fill' },
-                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            },
+            shadow: SHADOW_THEME_DEFAULTS,
+            fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             shape: 'circle',
             stroke: { $palette: 'stroke' },
             size: 6,
@@ -175,10 +170,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             yOffset: 0,
             blur: 5,
         },
-        tooltip: {
-            range: { $path: ['/tooltip/range', 'nearest'] },
-            interaction: { enabled: false },
-        },
+        tooltip: NEAREST_TOOLTIP_THEME,
         highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,

@@ -20,7 +20,9 @@ import {
     fillOptionsDef,
     fontOptionsDef,
     greaterThan,
+    labelAutoFontSizeOptionsDefs,
     labelBoxOptionsDef,
+    labelFitOptionsDefs,
     lessThan,
     lineDashOptionsDef,
     number,
@@ -223,6 +225,8 @@ export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLin
     placement: unionOrArray(crossLineLabelPlacements),
     rotation: number,
     collision: collisionOptionsDef,
+    ...labelFitOptionsDefs,
+    ...labelAutoFontSizeOptionsDefs,
 };
 
 // @ts-expect-error undocumented option

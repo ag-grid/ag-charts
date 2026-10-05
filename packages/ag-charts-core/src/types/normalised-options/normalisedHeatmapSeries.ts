@@ -10,7 +10,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
-import type { FillStrokeMorph } from './normalisedCommonOptions';
+import type { FillStrokeMorph, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedAutoSizedSecondaryLabelOptions } from './normalisedLabelOptions';
 import type { NormalisedColorScaleOptions } from './normalisedScatterSeries';
 
@@ -31,6 +31,7 @@ type HeatmapRequiredKeys =
     | 'strokeOpacity'
     | 'itemPadding'
     | 'cornerRadius'
+    | 'shadow'
     | 'label'
     | 'colorScale';
 
@@ -40,6 +41,7 @@ export type NormalisedHeatmapSeriesOwnOptions = Normalised<
     HeatmapRequiredKeys,
     {
         stroke: CssColor;
+        shadow: NormalisedDropShadowOptions;
         label: NormalisedHeatmapSeriesLabelOptions;
         colorScale: NormalisedColorScaleOptions;
         itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<unknown, unknown>, AgHeatmapSeriesStyle>;

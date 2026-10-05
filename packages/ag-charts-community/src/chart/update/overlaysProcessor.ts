@@ -9,7 +9,7 @@ import { isUnsupportedBrowser } from '../../util/browser';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
-import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, type Overlay } from '../overlay/overlay';
+import { DEFAULT_OVERLAY_CLASS, type Overlay } from '../overlay/overlay';
 import type { ChartValidations } from '../validation/chartValidations';
 import type { ChartLike, UpdateProcessor } from './processor';
 
@@ -90,7 +90,6 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         const overlayRect =
             newOverlayState === 'validation' ? (this.lastChartRect ?? this.fullContainerRect() ?? rect) : rect;
 
-        this.overlayElem.toggleClass(DEFAULT_OVERLAY_DARK_CLASS, this.overlays.darkTheme);
         this.overlayElem.setProperty('left', `${overlayRect.x}px`);
         this.overlayElem.setProperty('top', `${overlayRect.y}px`);
         this.overlayElem.setProperty('width', `${overlayRect.width}px`);

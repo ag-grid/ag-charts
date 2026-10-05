@@ -1,29 +1,21 @@
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_SERIES_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     POLAR_AXIS_SHAPE,
     POLAR_AXIS_TYPE,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    fillThemeTemplate,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
-        fill: {
-            $applySwitch: [
-                { $path: 'type' },
-                { $palette: 'fill' },
-                ['gradient', FILL_GRADIENT_RADIAL_SERIES_DEFAULTS],
-                ['image', FILL_IMAGE_DEFAULTS],
-                ['pattern', FILL_PATTERN_DEFAULTS],
-            ],
-        },
+        fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_SERIES_DEFAULTS),
         stroke: {
             $if: [{ $eq: [{ $palette: 'type' }, 'inbuilt'] }, { $ref: 'chartBackgroundColor' }, { $palette: 'stroke' }],
         },
@@ -31,6 +23,7 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
         strokeWidth: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,

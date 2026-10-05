@@ -6,7 +6,7 @@ export function GET() {
         return new Response(null, { status: 404 });
     }
 
-    const output = buildDemoMarkdown({ demo: 'financial', siteRoot: SITE_URL });
+    const output = buildDemoMarkdown({ demo: 'trading-terminal', siteRoot: SITE_URL });
 
     return new Response(output, {
         status: 200,

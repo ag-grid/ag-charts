@@ -74,7 +74,6 @@ export * from './chart/legendUtil';
 export * from './utils/aggregation';
 export * from './types/geojson';
 export * from './types/themeConstants';
-export * from './types/themeSymbols';
 export * from './types/text';
 
 // Core utilities
@@ -139,6 +138,7 @@ export * as Vec4 from './utils/geometry/vector4';
 export * from './utils/geometry/fill';
 export * from './utils/geometry/bezier';
 export * from './utils/geometry/barLabelGeometry';
+export * from './utils/geometry/axisLabelCollision';
 export * from './utils/geometry/labelPlacement';
 export * from './utils/geometry/spatialIndex';
 export * from './utils/geometry/fitRegion';

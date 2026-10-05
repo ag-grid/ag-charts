@@ -3,6 +3,7 @@ import {
     SAFE_RANGE2_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -25,6 +26,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         strokeOpacity: 1,
         cornerRadius: 0,
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,

@@ -337,6 +337,63 @@ describe('WaterfallSeries', () => {
         await compare();
     });
 
+    it(`should render a waterfall chart with item shadows`, async () => {
+        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
+        const baseSeries = WATERFALL_COLUMN_OPTIONS.series![0] as AgWaterfallSeriesOptions;
+        const options = {
+            ...WATERFALL_COLUMN_OPTIONS,
+            series: [
+                {
+                    ...baseSeries,
+                    item: {
+                        positive: { ...baseSeries.item?.positive, shadow },
+                        negative: { ...baseSeries.item?.negative, shadow },
+                        total: { ...baseSeries.item?.total, shadow },
+                    },
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options as any);
+        await compare();
+    });
+
+    it(`should apply the default shadow styling when only shadow.enabled is set on each item`, async () => {
+        const baseSeries = WATERFALL_COLUMN_OPTIONS.series![0] as AgWaterfallSeriesOptions;
+        const shadow = { enabled: true };
+        const options = {
+            ...WATERFALL_COLUMN_OPTIONS,
+            series: [
+                {
+                    ...baseSeries,
+                    item: {
+                        positive: { ...baseSeries.item?.positive, shadow },
+                        negative: { ...baseSeries.item?.negative, shadow },
+                        total: { ...baseSeries.item?.total, shadow },
+                    },
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options as any);
+
+        chart = AgCharts.create(options as any);
+        await waitForChartStability(chart);
+
+        const series: any = deproxy(chart).series[0];
+        const nodes = series.datumSelection.nodes();
+        expect(nodes.length).toBeGreaterThan(0);
+        for (const node of nodes) {
+            expect(node.fillShadow).toEqual({
+                enabled: true,
+                color: expect.any(String),
+                xOffset: 3,
+                yOffset: 3,
+                blur: 5,
+            });
+        }
+    });
+
     it(`should render a horizontal waterfall chart as expected`, async () => {
         const options: AgChartOptions = { ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal') };
         prepareEnterpriseTestOptions(options as any);

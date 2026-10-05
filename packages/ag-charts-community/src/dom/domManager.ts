@@ -274,7 +274,7 @@ export class DOMManager extends BaseManager {
         const element = createElement('div');
         element.role = 'presentation';
         element.dataset.agCharts = '';
-        element.classList.add('ag-charts-wrapper');
+        element.classList.add('ag-charts-wrapper', 'ag-charts-theme-default');
         const seriesArea = createElement('div');
         element.appendChild(seriesArea);
         seriesArea.role = 'presentation';
@@ -545,16 +545,8 @@ export class DOMManager extends BaseManager {
         this.eventsHub.emit('dom:container-change', null);
     }
 
-    setThemeClass(themeClassName: string) {
-        const themeClassNamePrefix = 'ag-charts-theme-';
-
-        for (const className of Array.from(this.element.classList)) {
-            if (className.startsWith(themeClassNamePrefix) && className !== themeClassName) {
-                this.element.classList.remove(className);
-            }
-        }
-
-        this.element.classList.add(themeClassName);
+    setDarkTheme(isDark: boolean) {
+        this.element.classList.toggle('ag-charts-wrapper--dark', isDark);
     }
 
     setThemeParameters(params: AgChartAllThemeParams) {

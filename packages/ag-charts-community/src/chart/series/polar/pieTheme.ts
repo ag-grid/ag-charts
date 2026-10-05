@@ -1,15 +1,14 @@
 import {
     COMMON_SERIES_THEME_DEFAULTS,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_OVERFLOW_DEFAULTS,
     PART_WHOLE_HIGHLIGHT_STYLE,
     PLACED_LABEL_BOXING_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    cycledFillThemeTemplate,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -80,15 +79,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
             $applyCycle: [
                 { $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } },
                 { $palette: 'fills' },
-                {
-                    $applySwitch: [
-                        { $path: ['/type', undefined, { $value: '$1' }] },
-                        { $value: '$1' },
-                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
-                        ['pattern', FILL_PATTERN_DEFAULTS],
-                        ['image', FILL_IMAGE_DEFAULTS],
-                    ],
-                },
+                cycledFillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS),
             ],
         },
         strokes: {
@@ -103,13 +94,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         outerRadiusRatio: 1,
         sectorSpacing: 1,
         hideZeroValueSectorsInLegend: false,
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
         tooltip: { interaction: { enabled: false } },
         highlight: { ...PART_WHOLE_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,

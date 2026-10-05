@@ -1,28 +1,19 @@
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_CONIC_SERIES_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     POLAR_AXIS_TYPE,
     SERIES_SELECTION_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
+    fillThemeTemplate,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
-        fill: {
-            $applySwitch: [
-                { $path: 'type' },
-                { $palette: 'fill' },
-                ['gradient', FILL_GRADIENT_CONIC_SERIES_DEFAULTS],
-                ['image', FILL_IMAGE_DEFAULTS],
-                ['pattern', FILL_PATTERN_DEFAULTS],
-            ],
-        },
+        fill: fillThemeTemplate(FILL_GRADIENT_CONIC_SERIES_DEFAULTS),
         fillOpacity: 1,
         stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 1, 0] },

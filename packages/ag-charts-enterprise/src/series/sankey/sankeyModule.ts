@@ -7,6 +7,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     SAFE_FILLS_OPERATION,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
@@ -64,11 +65,13 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
+                shadow: SHADOW_THEME_DEFAULTS,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
+                shadow: SHADOW_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

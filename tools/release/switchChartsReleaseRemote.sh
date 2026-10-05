@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 ##########################################################################################
 ## This script is meant to live on ag-grid.com and be invoked by someone doing a deployment
 ## It's in a separate script as occasionally multiple "ssh -i" from a devs machine would
@@ -18,6 +20,13 @@ TIMESTAMP=$1
 
 CHARTS_ROOT_DIR="@CHARTS_ROOT_DIR@"
 WWW_ROOT_DIR="@WWW_ROOT_DIR@"
+
+# don't touch the live site unless the new release (unpacked by prepareNewChartsDeploymentRemote.sh) is in place
+if [ ! -f "$WWW_ROOT_DIR/charts_tmp/index.html" ];
+then
+  echo "$WWW_ROOT_DIR/charts_tmp/index.html doesn't exist - not switching release"
+  exit 1
+fi
 
 # create a backup of the charts folder ONLY if it doesn't already exist - this handles the situation where multiple deployments are done on the same day
 # in that case we only want to backup the original chart folder, not the subsequent attempts (for rollback)

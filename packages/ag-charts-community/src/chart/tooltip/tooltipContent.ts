@@ -12,7 +12,6 @@ import { sanitizeHtml } from '../../util/sanitize';
 import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-charts-tooltip';
-export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-charts-tooltip--dark';
 
 interface LocaleManager {
     t(key: string, variables?: Record<string, any>): string;

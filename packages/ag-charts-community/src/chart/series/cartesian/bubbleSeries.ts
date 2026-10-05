@@ -155,6 +155,7 @@ const MARKER_REBUILD_KEYS = [
     'strokeWidth',
     'strokeOpacity',
     'itemStyler',
+    'shadow',
     'size',
     'minSize',
     'maxSize',
@@ -394,6 +395,7 @@ export abstract class BubbleScatterSeries<
             lineDash: options.lineDash,
             lineDashOffset: options.lineDashOffset,
             itemStyler: options.itemStyler,
+            shadow: options.shadow,
         };
         if (optionsDiff == null || markerStyleChanged(optionsDiff)) {
             this.markerDirty = true;
@@ -1313,6 +1315,7 @@ export abstract class BubbleScatterSeries<
 
         // AG-8173 — hoisted out of the per-datum loop; see `maxMarkerStrokePickInflation`.
         const pickInflation = maxMarkerStrokePickInflation(contextNodeData.styles);
+        const { shadow } = this.marker;
 
         datumSelection.each((node, datum, index) => {
             const {
@@ -1341,6 +1344,7 @@ export abstract class BubbleScatterSeries<
                 crossFilterSelected: datum.crossFilterSelected,
                 hideWithSize0: false,
                 pickInflation,
+                shadow,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {

@@ -2,14 +2,15 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    NEAREST_TOOLTIP_THEME,
     POLAR_AXIS_TYPE,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    fillThemeTemplate,
     mergeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -30,15 +31,8 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
         },
         marker: {
             enabled: true,
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $palette: 'fill' },
-                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            },
+            shadow: SHADOW_THEME_DEFAULTS,
+            fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             stroke: { $palette: 'stroke' },
             fillOpacity: 1,
             shape: 'circle',
@@ -48,10 +42,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
         },
         highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
-        tooltip: {
-            range: { $path: ['/tooltip/range', 'nearest'] },
-            interaction: { enabled: false },
-        },
+        tooltip: NEAREST_TOOLTIP_THEME,
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {
@@ -75,17 +66,10 @@ export const RADAR_LINE_SERIES_THEME: ExtensibleSeriesTheme<'radar-line'> = merg
 export const RADAR_AREA_SERIES_THEME: ExtensibleSeriesTheme<'radar-area'> = mergeDefaults(
     {
         series: {
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $palette: 'fill' },
-                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            },
+            fill: fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
             fillOpacity: 0.8,
             strokeWidth: 2,
+            shadow: SHADOW_THEME_DEFAULTS,
             marker: {
                 enabled: false,
             },

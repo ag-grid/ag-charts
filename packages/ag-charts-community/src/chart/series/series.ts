@@ -11,6 +11,7 @@ import type {
     DynamicContext,
     NormalisedChartLabelCollisionOptions,
     NormalisedColorType,
+    NormalisedDropShadowOptions,
     NormalisedSeriesMarkerOptions,
     NormalisedSeriesMarkerStyle,
     NormalisedSeriesOptions,
@@ -85,6 +86,7 @@ import { type FormatterCache, type LabelFormatSource, LabelValueFormatter } from
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import { markerStrokePickInflation } from '../marker/marker';
+import { isSupportedMarkerShape } from '../marker/util';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import type {
@@ -1619,15 +1621,18 @@ export abstract class Series<
             hideWithSize0: boolean;
             /** Floor for `Marker.pickInflation`, from `maxMarkerStrokePickInflation` (AG-8173). */
             pickInflation?: number;
+            /** The marker's `shadow` option; not part of the per-datum style, as nothing can vary it per datum. */
+            shadow?: NormalisedDropShadowOptions;
         }
     ) {
         const { shape, size = 0, strokeWidth = 0 } = style;
-        const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0 } = opts;
+        const { applyPosition = true, crossFilterSelected = true, hideWithSize0, pickInflation = 0, shadow } = opts;
         const visible =
             this.visible &&
             (hideWithSize0 || (this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y)));
 
         markerNode.setStyleProperties(style, fillBBox);
+        markerNode.fillShadow = shadow?.enabled && isSupportedMarkerShape(shape) ? shadow : undefined;
         markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyPosition ? point : undefined);
         // The floor covers the highlight states; `style` covers this datum's own stroke, including an
         // `itemStyler`'s. The guard is exact, as `markerStrokePickInflation` never exceeds `sw / 2`.
@@ -1764,12 +1769,6 @@ export abstract class Series<
 
     public pickViewportFocus(_opts: PickViewportFocusInputs): PickFocusOutputs | undefined {
         return undefined;
-    }
-
-    // Override in y-up series (network/org) to mirror y so `calcPanToBBoxRatios` (y-down) pans
-    // the right direction. Default identity.
-    public mapFocusBBoxToPanTarget(_seriesRect: BoxBounds, focusBBox: Readonly<BBox>): BoxBounds {
-        return focusBBox;
     }
 
     public resetDatumCallbackCache() {

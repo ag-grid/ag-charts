@@ -5,14 +5,14 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    fillThemeTemplate,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgScatterSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -31,19 +31,12 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
         ...COMMON_SERIES_THEME_DEFAULTS,
         shape: 'circle',
         size: 7,
-        fill: {
-            $applySwitch: [
-                { $path: 'type' },
-                { $palette: 'fill' },
-                ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                ['image', FILL_IMAGE_DEFAULTS],
-                ['pattern', FILL_PATTERN_DEFAULTS],
-            ],
-        },
+        fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.8,
         strokeWidth: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
+        shadow: SHADOW_THEME_DEFAULTS,
         maxRenderedItems: 2000,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,

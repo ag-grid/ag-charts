@@ -1,3 +1,46 @@
+// A fresh object per caption keeps the relative `$path`/`$isUserOption` padding expressions isolated.
+function captionBoxThemeDefaults() {
+    return {
+        cornerRadius: 4,
+        border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
+        padding: {
+            $if: [
+                { $path: './border/enabled' },
+                { left: 12, right: 12, top: 8, bottom: 8 },
+                { $isUserOption: ['./fill', { left: 12, right: 12, top: 8, bottom: 8 }, 0] },
+            ],
+        },
+    };
+}
+
+function hasUserOptionLessThan1(key: string) {
+    return {
+        $some: [
+            {
+                $and: [
+                    {
+                        $or: [
+                            { $isSeriesType: 'line' },
+                            { $isSeriesType: 'scatter' },
+                            { $isSeriesType: 'area' },
+                            { $isSeriesType: 'radar' },
+                            { $isSeriesType: 'rangeArea' },
+                        ],
+                    },
+                    {
+                        $isUserOption: [
+                            `/series/$index/${key}`,
+                            { $lessThan: [{ $path: `/series/$index/${key}` }, 1] },
+                            false,
+                        ],
+                    },
+                ],
+            },
+            { $path: '/series' },
+        ],
+    };
+}
+
 /**
  * Shared chart-level theme defaults composed into every chart-type module's
  * `themeTemplate`.
@@ -15,6 +58,132 @@
 export const commonChartThemeTemplate = {
     mode: 'standalone',
     suppressFieldDotNotation: false,
-    keyboard: { initialFocus: 'data-start' },
+    keyboard: { enabled: true, initialFocus: 'data-start' },
     touch: { dragAction: 'drag' },
+    minHeight: 300,
+    minWidth: 300,
+    background: { visible: true, fill: { $ref: 'chartBackgroundColor' } },
+    padding: { $applyPadding: { $ref: 'chartPadding' } },
+    seriesArea: {
+        border: {
+            enabled: false,
+            stroke: { $ref: 'foregroundColor' },
+            strokeOpacity: 1,
+            strokeWidth: 1,
+        },
+        cornerRadius: 4,
+        padding: { $applyPadding: { $if: [{ $path: './border/enabled' }, 5, 0] } },
+    },
+    title: {
+        enabled: false,
+        text: 'Title',
+        spacing: { $if: [{ $path: '../subtitle/enabled' }, 10, 20] },
+        fontWeight: { $ref: 'titleFontWeight' },
+        fontSize: { $ref: 'titleFontSize' },
+        fontFamily: { $ref: 'titleFontFamily' },
+        color: { $ref: 'titleColor' },
+        wrapping: 'hyphenate',
+        layoutStyle: { $ref: 'captionLayoutStyle' },
+        textAlign: { $ref: 'captionAlignment' },
+        ...captionBoxThemeDefaults(),
+    },
+    subtitle: {
+        enabled: false,
+        text: 'Subtitle',
+        spacing: 20,
+        fontWeight: { $ref: 'subtitleFontWeight' },
+        fontSize: { $ref: 'subtitleFontSize' },
+        fontFamily: { $ref: 'subtitleFontFamily' },
+        color: { $ref: 'subtitleColor' },
+        wrapping: 'hyphenate',
+        layoutStyle: { $ref: 'captionLayoutStyle' },
+        textAlign: { $ref: 'captionAlignment' },
+        ...captionBoxThemeDefaults(),
+    },
+    footnote: {
+        enabled: false,
+        text: 'Footnote',
+        spacing: 20,
+        fontSize: { $ref: 'footnoteFontSize' },
+        fontFamily: { $ref: 'footnoteFontFamily' },
+        fontWeight: { $ref: 'footnoteFontWeight' },
+        color: { $ref: 'footnoteColor' },
+        wrapping: 'hyphenate',
+        layoutStyle: { $ref: 'captionLayoutStyle' },
+        textAlign: { $ref: 'captionAlignment' },
+        ...captionBoxThemeDefaults(),
+    },
+    highlight: {
+        enabled: true,
+        drawingMode: {
+            $if: [
+                {
+                    $or: [
+                        hasUserOptionLessThan1('highlight/highlightedItem/opacity'),
+                        hasUserOptionLessThan1('highlight/unhighlightedItem/opacity'),
+                        hasUserOptionLessThan1('highlight/highlightedSeries/opacity'),
+                        hasUserOptionLessThan1('highlight/unhighlightedSeries/opacity'),
+                        hasUserOptionLessThan1('fillOpacity'),
+                        hasUserOptionLessThan1('marker/fillOpacity'),
+                    ],
+                },
+                'overlap',
+                'cutout',
+            ],
+        },
+    },
+    tooltip: {
+        enabled: true,
+        delay: 0,
+        pagination: false,
+        mode: {
+            $if: [
+                {
+                    $or: [
+                        {
+                            $and: [
+                                { $isChartType: 'cartesian' },
+                                { $not: { $hasSeriesType: 'bubble' } },
+                                { $not: { $hasSeriesType: 'scatter' } },
+                                { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
+                                { $lessThan: [{ $size: { $path: '/series' } }, 4] },
+                            ],
+                        },
+                        {
+                            $and: [
+                                { $isChartType: 'polar' },
+                                { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
+                                { $lessThan: [{ $size: { $path: '/series' } }, 4] },
+                            ],
+                        },
+                    ],
+                },
+                'shared',
+                'single',
+            ],
+        },
+    },
+    listeners: {},
+    // TODO: remove this
+    series: {
+        tooltip: {
+            range: {
+                $if: [
+                    { $eq: [{ $path: ['/tooltip/range', 'exact'] }, 'area'] },
+                    'exact',
+                    { $path: ['/tooltip/range', 'exact'] },
+                ],
+            },
+            position: {
+                anchorTo: { $path: ['/tooltip/position/anchorTo', 'pointer'] },
+                placement: { $path: ['/tooltip/position/placement', undefined] },
+                xOffset: { $path: ['/tooltip/position/xOffset', 0] },
+                yOffset: { $path: ['/tooltip/position/yOffset', 0] },
+                // Chart-anchored tooltips sit flush; pointer/node use a 12px gap.
+                offset: {
+                    $path: ['/tooltip/position/offset', { $if: [{ $eq: [{ $path: './anchorTo' }, 'chart'] }, 0, 12] }],
+                },
+            },
+        },
+    },
 };

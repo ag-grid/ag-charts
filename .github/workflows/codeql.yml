@@ -17,6 +17,7 @@ env:
     GIT_CONFIG_VALUE_0: '0'
     GIT_CONFIG_KEY_1: maintenance.auto
     GIT_CONFIG_VALUE_1: 'false'
+    NX_NO_CLOUD: 'true'
 
 # Least-privilege default; the analyze job overrides this with its own block.
 permissions:
@@ -26,6 +27,7 @@ jobs:
     analyze:
         name: Analyze (${{ matrix.language }})
         runs-on: 'ubuntu-latest'
+        if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
         permissions:
             # required for all workflows
             security-events: write

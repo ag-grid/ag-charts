@@ -1,13 +1,13 @@
 import { type AgTreemapSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    cycledFillThemeTemplate,
     seriesLabelFontWeightOr,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -33,15 +33,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 $applyCycle: [
                     { $size: { $path: ['./data', { $path: '/data' }] } },
                     { $palette: 'fills' },
-                    {
-                        $applySwitch: [
-                            { $path: ['/type', undefined, { $value: '$1' }] },
-                            { $value: '$1' },
-                            ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                            ['pattern', FILL_PATTERN_DEFAULTS],
-                            ['image', FILL_IMAGE_DEFAULTS],
-                        ],
-                    },
+                    cycledFillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
                 ],
             },
             strokes: {
@@ -70,6 +62,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: 1,
                 strokeOpacity: 1,
                 cornerRadius: 0,
+                shadow: SHADOW_THEME_DEFAULTS,
                 padding: 4,
                 gap: 2,
                 textAlign: 'left',
@@ -115,6 +108,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
                 strokeOpacity: 1,
                 cornerRadius: 0,
+                shadow: SHADOW_THEME_DEFAULTS,
                 textAlign: 'center',
                 verticalAlign: 'middle',
                 padding: 3,

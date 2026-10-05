@@ -9,6 +9,7 @@ import type {
     AgSelectionOptions,
     AgSelectionStyleOptions,
     AgSeriesSegmentation,
+    AgSeriesTooltip,
     FontWeight,
     LabelBoxOptions,
     Operation,
@@ -543,6 +544,13 @@ export const LABEL_OVERFLOW_ALWAYS_SHOW: Operation = {
     ],
 };
 
+/** `label.collision` for bar-like series, whose labels must also avoid other series' bars. */
+export const BAR_LABEL_COLLISION_THEME = {
+    threshold: 4,
+    alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+    ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
+};
+
 export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
     enabled: { $circular: { $path: '/highlight/enabled' } },
     unhighlightedItem: {
@@ -582,6 +590,48 @@ export const SERIES_INTERACTION_THEME_DEFAULTS = { cursor: 'default', nodeClickR
 
 /** Solid, fully opaque stroke; the theme value every stroked element starts from. */
 export const STROKE_STYLE_THEME_DEFAULTS = { strokeOpacity: 1, lineDash: [0], lineDashOffset: 0 };
+
+/** Font size, family and weight taken from the theme params; most text theme blocks spread this. */
+export const FONT_THEME_DEFAULTS = {
+    fontSize: { $ref: 'fontSize' },
+    fontFamily: { $ref: 'fontFamily' },
+    fontWeight: { $ref: 'fontWeight' },
+} as const;
+
+/** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
+export const SHADOW_THEME_DEFAULTS = { enabled: false, color: '#00000080', xOffset: 3, yOffset: 3, blur: 5 };
+
+/** Tooltip defaults for series that pick the nearest datum unless the chart sets `tooltip.range`. */
+export const NEAREST_TOOLTIP_THEME: WithThemeParams<Pick<AgSeriesTooltip<never>, 'range' | 'interaction'>> = {
+    range: { $path: ['/tooltip/range', 'nearest'] },
+    interaction: { enabled: false },
+};
+
+/** A `fill` switched on its `type`: solid `defaultFill`, or `gradient`, image or pattern defaults. */
+export function fillThemeTemplate(gradient: unknown, defaultFill: unknown = { $palette: 'fill' }) {
+    return {
+        $applySwitch: [
+            { $path: 'type' },
+            defaultFill,
+            ['gradient', gradient],
+            ['image', FILL_IMAGE_DEFAULTS],
+            ['pattern', FILL_PATTERN_DEFAULTS],
+        ],
+    };
+}
+
+/** Per-item {@link fillThemeTemplate} for an `$applyCycle` over palette `fills`, where `$1` is the cycled colour. */
+export function cycledFillThemeTemplate(gradient: unknown, pattern: unknown = FILL_PATTERN_DEFAULTS) {
+    return {
+        $applySwitch: [
+            { $path: ['/type', undefined, { $value: '$1' }] },
+            { $value: '$1' },
+            ['gradient', gradient],
+            ['pattern', pattern],
+            ['image', FILL_IMAGE_DEFAULTS],
+        ],
+    };
+}
 
 /** Series-level defaults every migrated series module spreads into its `themeTemplate.series`. */
 export const COMMON_SERIES_THEME_DEFAULTS = { ...SERIES_INTERACTION_THEME_DEFAULTS, showInLegend: true } as const;
@@ -660,15 +710,7 @@ export const SEGMENTATION_DEFAULTS: WithThemeParams<AgSeriesSegmentation> = {
     key: 'x',
     segments: {
         $apply: {
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $path: '../../../fill' },
-                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            },
+            fill: fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS, { $path: '../../../fill' }),
             stroke: { $path: '../../../stroke' },
             fillOpacity: { $path: '../../../fillOpacity' },
             strokeWidth: {

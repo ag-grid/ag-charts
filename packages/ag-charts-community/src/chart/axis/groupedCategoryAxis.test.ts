@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { BBox } from '../../scene/bbox';
 import {
     DATA_GROUPED_MULTIPLE_NULLS,
     DATA_GROUPED_NULL_FIRST_LEVEL,
@@ -262,6 +263,23 @@ describe('Grouped Category Axis Examples', () => {
                 }
             });
         }
+    });
+
+    describe('axis label obstacles', () => {
+        it('contributes its drawn labels and invalidates them on update', async () => {
+            chart = await createChart({ ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE });
+            const axis = deproxy(chart).axes.find((a: any) => a.position === 'bottom') as any;
+            const obstacles = axis.labelSource.getLabelObstacles(BBox.zero);
+            expect(obstacles.length).toBeGreaterThan(0);
+            expect(obstacles.length).toBe(axis.tickLabelGroupSelection.nodes().length);
+
+            const version = axis.labelSource.nodeDataVersion;
+            await deproxy(chart).publicApi!.update(
+                prepareTestOptions({ ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE, width: 700 })
+            );
+            await waitForChartStability(chart);
+            expect(axis.labelSource.nodeDataVersion).toBeGreaterThan(version);
+        });
     });
 
     describe('when toggling all series off', () => {

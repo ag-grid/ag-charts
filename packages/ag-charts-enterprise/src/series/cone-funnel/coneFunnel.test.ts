@@ -26,6 +26,8 @@ import {
 } from 'ag-charts-community-test';
 
 import {
+    DEFAULT_DISABLED_SHADOW,
+    SHADOW,
     funnelLabelFadeIn,
     funnelLabelOpacities,
     funnelPathReveal,
@@ -286,6 +288,75 @@ describe('ConeFunnelSeries', () => {
                     (child: any) => child.datum.id === highlightedDatum.id
                 );
             },
+        });
+    });
+
+    describe('shadow', () => {
+        const buildOptions = (shadow?: typeof SHADOW): AgChartOptions => {
+            const options = {
+                ...CONE_FUNNEL_EXAMPLE,
+                series: [{ ...CONE_FUNNEL_EXAMPLE.series![0], shadow }],
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+        const create = async (shadow?: typeof SHADOW) => {
+            chart = deproxy(AgCharts.create(buildOptions(shadow)));
+            await waitForChartStability(chart);
+            return chart.series[0];
+        };
+        const nodesOf = (series: any, selection: string): any[] => series[selection].nodes();
+
+        it('defaults to a disabled shadow', async () => {
+            const series = await create();
+
+            expect(series['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            const series = await create();
+
+            const shapes = [...nodesOf(series, 'connectorSelection'), ...nodesOf(series, 'datumSelection')];
+            expect(shapes.length).toBeGreaterThan(0);
+            expect(shapes.filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
+        });
+
+        it('casts one silhouette shadow from each connector and none from the dividers', async () => {
+            const series = await create(SHADOW);
+
+            const connectors = nodesOf(series, 'connectorSelection');
+            expect(connectors).toHaveLength(3);
+            for (const connector of connectors) {
+                expect(connector.shadowMode).toBe('silhouette');
+                expect(connector.fillShadow).toMatchObject(SHADOW);
+            }
+
+            const dividers = nodesOf(series, 'datumSelection');
+            expect(dividers).toHaveLength(4);
+            for (const divider of dividers) {
+                expect(divider.fillShadow?.enabled).not.toBe(true);
+            }
+        });
+
+        it('keeps the connector shadow when the connectors are stroked with no fill', async () => {
+            const options = buildOptions(SHADOW);
+            Object.assign(options.series![0], { fillOpacity: 0, strokes: ['navy'], strokeWidth: 3 });
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const connectors = nodesOf(chart.series[0], 'connectorSelection');
+            expect(connectors).toHaveLength(3);
+            for (const connector of connectors) {
+                expect(connector.fillOpacity).toBe(0);
+                expect(connector.strokeWidth).toBe(3);
+                expect(connector.shadowMode).toBe('silhouette');
+                expect(connector.fillShadow).toMatchObject(SHADOW);
+            }
+        });
+
+        it('should render a cone funnel chart with a shadow', async () => {
+            await create(SHADOW);
+            await compare();
         });
     });
 

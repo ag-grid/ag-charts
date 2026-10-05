@@ -2,13 +2,13 @@ import { type AgSunburstSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     BASE_FONT_SIZE,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    cycledFillThemeTemplate,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -24,15 +24,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             $applyCycle: [
                 { $size: { $path: ['./data', { $path: '/data' }] } },
                 { $palette: 'fills' },
-                {
-                    $applySwitch: [
-                        { $path: ['/type', undefined, { $value: '$1' }] },
-                        { $value: '$1' },
-                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
-                        ['pattern', FILL_PATTERN_DEFAULTS],
-                        ['image', FILL_IMAGE_DEFAULTS],
-                    ],
-                },
+                cycledFillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS),
             ],
         },
         strokes: {
@@ -47,6 +39,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         strokeOpacity: 1,
         cornerRadius: 0,
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: true,

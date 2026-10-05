@@ -1,6 +1,7 @@
 import { type AgLinearGaugePreset, VERSION } from 'ag-charts-community';
 import {
     FONT_SIZE,
+    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
@@ -101,18 +102,14 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
                 label: {
                     enabled: true,
                     fontStyle: 'normal',
-                    fontWeight: { $ref: 'fontWeight' },
-                    fontSize: { $ref: 'fontSize' },
-                    fontFamily: { $ref: 'fontFamily' },
+                    ...FONT_THEME_DEFAULTS,
                     color: { $ref: 'textColor' },
                     spacing: 5,
                 },
             },
             defaultScale: {
                 label: {
-                    fontWeight: { $ref: 'fontWeight' },
-                    fontSize: { $ref: 'fontSize' },
-                    fontFamily: { $ref: 'fontFamily' },
+                    ...FONT_THEME_DEFAULTS,
                     color: { $ref: 'textColor' },
                 },
             },

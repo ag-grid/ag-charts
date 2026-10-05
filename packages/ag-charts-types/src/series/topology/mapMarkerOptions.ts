@@ -1,6 +1,7 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelCollisionFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgMarkerShape, ContextDefault, DatumDefault, DatumKey, GeoJSON, PixelSize } from '../../chart/types';
@@ -103,6 +104,8 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
      * Reverse the bounds (e.g. `[100, 0]`) to invert the mapping so that larger values produce smaller markers.
      */
     sizeDomain?: [AgNumericValue, AgNumericValue];
+    /** Configuration for the shadow used behind the markers. Not applied to custom marker shapes. */
+    shadow?: AgDropShadowOptions;
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
     /** Configuration for the labels shown on top of data points. */

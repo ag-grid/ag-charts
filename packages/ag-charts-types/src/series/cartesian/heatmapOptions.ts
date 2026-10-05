@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedSecondaryLabelOptions,
     AgChartLabelStyleOptions,
@@ -69,6 +70,8 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext
      * Default: `0`
      */
     cornerRadius?: PixelSize;
+    /** Configuration for the shadow used behind the cells. */
+    shadow?: AgDropShadowOptions;
     /** Horizontal position of the label.
      *
      * @deprecated v14.2.0 Use `label.textAlign` instead.

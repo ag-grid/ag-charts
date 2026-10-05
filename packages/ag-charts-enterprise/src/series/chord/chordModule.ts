@@ -6,6 +6,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
@@ -50,12 +51,14 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
                 fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
+                shadow: SHADOW_THEME_DEFAULTS,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
                 tension: 0.4,
+                shadow: SHADOW_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

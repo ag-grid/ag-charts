@@ -99,7 +99,8 @@ type ChartOperation =
     | { $hasSeriesType: Leaf<string> }
     | { $isChartType: Leaf<string> }
     | { $isPackageType: Leaf<'community' | 'enterprise'> } // True when the registered package matches
-    | { $isSeriesType: Leaf<string> };
+    | { $isSeriesType: Leaf<string> }
+    | { $lightDark: [AnyLeaf | object, AnyLeaf | object] }; // Value for light themes | Value for dark themes
 
 type ColorOperation =
     | { $foregroundBackgroundMix: Leaf<number> } // Ratio of foreground (0 to 1)

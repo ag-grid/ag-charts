@@ -47,7 +47,11 @@
       "options": {
         "cwd": "{projectRoot}/dist/ag-charts-angular",
         "parallel": false,
-        "commands": ["mkdir -p ../../../../dist/packages", "yarn pack -f ../../../../dist/{projectRoot}.tgz"]
+        "commands": [
+          "mkdir -p ../../../../dist/packages",
+          "touch yarn.lock",
+          "yarn pack -o ../../../../dist/{projectRoot}.tgz"
+        ]
       }
     },
     "pack:extract": {

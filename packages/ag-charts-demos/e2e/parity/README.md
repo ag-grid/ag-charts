@@ -67,16 +67,16 @@ job's `check-seeds.mjs --touched` fails a pull request that edits a port without
 
 ### Explicit targets
 
-Example, comparing the Angular financial seed served on port 4710 by hand. The subshell stops the
+Example, comparing the Angular trading-terminal seed served on port 4710 by hand. The subshell stops the
 server when the run ends, so none is left behind on the port:
 
 ```sh
 cd packages/ag-charts-demos
 (
-  node e2e/parity/serve-dist.mjs --dir seeds/financial/angular/dist --port 4710 &
+  node e2e/parity/serve-dist.mjs --dir seeds/trading-terminal/angular/dist --port 4710 &
   server=$!
   trap 'kill $server' EXIT
-  PARITY_TARGETS='[{"demo":"financial","framework":"angular","baseURL":"http://localhost:4710"}]' \
+  PARITY_TARGETS='[{"demo":"trading-terminal","framework":"angular","baseURL":"http://localhost:4710"}]' \
     yarn nx test:e2e:parity ag-charts-demos
 )
 ```
@@ -157,7 +157,7 @@ PR that needs it.
 ## Deterministic mode
 
 Both sides load with `?deterministic=1` (or are built with `VITE_DEMO_DETERMINISTIC=1`). The
-financial demo is the only one with live data; `src/demos/financial/deterministic.ts` is the whole
+trading-terminal demo is the only one with live data; `src/demos/trading-terminal/deterministic.ts` is the whole
 contract a port mirrors:
 
 - `randomSource(label)`: every consumer of randomness draws from its own seeded stream, so the
@@ -218,7 +218,7 @@ In CI the folder is uploaded with the `test-results-demos-e2e` artefact.
     ],
     "comparisons": [
         {
-            "demo": "financial",
+            "demo": "trading-terminal",
             "framework": "angular",
             "state": "initial",
             "viewport": "1440x900", // the viewport the page is first laid out in
@@ -230,10 +230,10 @@ In CI the folder is uploaded with the `test-results-demos-e2e` artefact.
             "passed": true,
             "artefacts": {
                 // relative to results/<run>/; present only when written
-                "reference": "angular/financial/initial@1440x900/repeat-0-retry-0/reference.png",
-                "port": "angular/financial/initial@1440x900/repeat-0-retry-0/port.png",
-                "diff": "angular/financial/initial@1440x900/repeat-0-retry-0/diff.png",
-                "sideBySide": "angular/financial/initial@1440x900/repeat-0-retry-0/side-by-side.png",
+                "reference": "angular/trading-terminal/initial@1440x900/repeat-0-retry-0/reference.png",
+                "port": "angular/trading-terminal/initial@1440x900/repeat-0-retry-0/port.png",
+                "diff": "angular/trading-terminal/initial@1440x900/repeat-0-retry-0/diff.png",
+                "sideBySide": "angular/trading-terminal/initial@1440x900/repeat-0-retry-0/side-by-side.png",
             },
             "error": "...", // only when not passed: the assertion or the reason the state was not reached
         },

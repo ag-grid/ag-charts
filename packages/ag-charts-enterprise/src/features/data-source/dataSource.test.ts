@@ -721,6 +721,35 @@ describe('DataSource', () => {
         });
     });
 
+    describe('transactions', () => {
+        it('should apply a fallback transaction to the loaded data', async () => {
+            const pieOptions: any = {
+                data: [{ category: 'Initial', value: 1 }],
+                series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'category' }],
+                dataSource: {
+                    requestThrottle: 0,
+                    updateThrottle: 0,
+                    getData: () => [
+                        { category: 'A', value: 10 },
+                        { category: 'B', value: 20 },
+                    ],
+                },
+            };
+            prepareEnterpriseTestOptions(pieOptions);
+            chart = AgCharts.create(pieOptions);
+            await settleUntil(() => chart.chart.data.data.length === 2, 'the initial load');
+
+            await chart.applyTransaction({ add: [{ category: 'C', value: 30 }] });
+            await waitForChartStability(chart);
+
+            expect(chart.chart.data.data).toEqual([
+                { category: 'A', value: 10 },
+                { category: 'B', value: 20 },
+                { category: 'C', value: 30 },
+            ]);
+        });
+    });
+
     describe('navigator mini-chart', () => {
         it('should use separate data for mini-chart', async () => {
             const response = delay(1).then(() => [

@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-vue3",
   "description": "AG Charts Vue 3 Component",
-  "version": "14.2.0-beta.20261002",
+  "version": "14.2.0-beta.20261004",
   "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
   "main": "./dist/package/index.cjs.js",
@@ -38,18 +38,18 @@
   "scripts": {
     "clean": "rimraf dist lib",
     "build": "npx tsc -p tsconfig-lib.json && NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --target lib src/index.ts",
-    "lint": "# vue-cli-service lint"
+    "lint": "echo 'ag-charts-vue3: lint disabled (vue-cli-service lint)'"
   },
   "dependencies": {
-    "ag-charts-community": "14.2.0-beta.20261002"
+    "ag-charts-community": "14.2.0-beta.20261004"
   },
   "devDependencies": {
-    "ag-charts-community": "14.2.0-beta.20261002",
-    "@types/node": "18.19.130",
-    "typescript": "~5.8.3",
-    "vue": "^3.5.43",
     "@babel/types": "7.29.0",
-    "rimraf": "3.0.2"
+    "@types/node": "18.19.130",
+    "ag-charts-community": "14.2.0-beta.20261004",
+    "rimraf": "3.0.2",
+    "typescript": "~5.8.3",
+    "vue": "^3.5.43"
   },
   "peerDependencies": {
     "vue": "^3.5.0"

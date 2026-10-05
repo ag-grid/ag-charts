@@ -2,44 +2,11 @@ import {
     BASE_FONT_SIZE,
     Color,
     type ContributionHost,
-    DEFAULT_ANNOTATION_HANDLE_FILL,
-    DEFAULT_ANNOTATION_STATISTICS_COLOR,
-    DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
-    DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
-    DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
-    DEFAULT_ANNOTATION_STATISTICS_FILL,
-    DEFAULT_ANNOTATION_STATISTICS_STROKE,
-    DEFAULT_CAPTION_ALIGNMENT,
-    DEFAULT_CAPTION_LAYOUT_STYLE,
-    DEFAULT_FIBONACCI_STROKES,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_POLAR_SERIES_STROKE,
-    DEFAULT_SHADOW_COLOUR,
-    DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
-    DEFAULT_TEXTBOX_COLOR,
-    DEFAULT_TEXTBOX_FILL,
-    DEFAULT_TEXTBOX_STROKE,
-    DEFAULT_TEXT_ANNOTATION_COLOR,
-    DEFAULT_TOOLBAR_POSITION,
     FONT_SIZE_RATIO,
-    IS_DARK_THEME,
     ModuleRegistry,
     type ModuleScope,
     ModuleType,
     type OptionsContribution,
-    PALETTE_ALT_DOWN_FILL,
-    PALETTE_ALT_DOWN_STROKE,
-    PALETTE_ALT_NEUTRAL_FILL,
-    PALETTE_ALT_NEUTRAL_STROKE,
-    PALETTE_ALT_UP_FILL,
-    PALETTE_ALT_UP_STROKE,
-    PALETTE_DOWN_FILL,
-    PALETTE_DOWN_STROKE,
-    PALETTE_NEUTRAL_FILL,
-    PALETTE_NEUTRAL_STROKE,
-    PALETTE_UP_FILL,
-    PALETTE_UP_STROKE,
     type PlainObject,
     contributionMatchesAxisType,
     contributionMatchesChartType,
@@ -49,8 +16,6 @@ import {
     deepFreeze,
     getSequentialColors,
     groupBy,
-    isArray,
-    jsonWalk,
     mergeDefaults,
     mergeDefaultsShallowOperations,
     nestAtOptionsPath,
@@ -77,55 +42,12 @@ import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultCol
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = '#ffffff';
 
-// A fresh object per caption keeps the relative `$path`/`$isUserOption` padding expressions isolated.
-function captionBoxThemeDefaults() {
-    return {
-        cornerRadius: 4,
-        border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
-        padding: {
-            $if: [
-                { $path: './border/enabled' },
-                { left: 12, right: 12, top: 8, bottom: 8 },
-                { $isUserOption: ['./fill', { left: 12, right: 12, top: 8, bottom: 8 }, 0] },
-            ],
-        },
-    };
-}
-
 type OverridesKey = keyof AgThemeOverrides;
 
 const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
     'radial-gauge': true,
     'linear-gauge': true,
 };
-
-function hasUserOptionLessThan1(key: string) {
-    return {
-        $some: [
-            {
-                $and: [
-                    {
-                        $or: [
-                            { $isSeriesType: 'line' },
-                            { $isSeriesType: 'scatter' },
-                            { $isSeriesType: 'area' },
-                            { $isSeriesType: 'radar' },
-                            { $isSeriesType: 'rangeArea' },
-                        ],
-                    },
-                    {
-                        $isUserOption: [
-                            `/series/$index/${key}`,
-                            { $lessThan: [{ $path: `/series/$index/${key}` }, 1] },
-                            false,
-                        ],
-                    },
-                ],
-            },
-            { $path: '/series' },
-        ],
-    };
-}
 
 function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverrides {
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
@@ -159,6 +81,7 @@ export class ChartTheme {
     readonly presets: AgPresetOverrides;
     readonly overrides: AgThemeOverrides | undefined;
     readonly params: AgChartAllThemeParams;
+    readonly isDark: boolean = false;
 
     public static getDefaultColors(): DefaultColors {
         return {
@@ -190,7 +113,9 @@ export class ChartTheme {
         return {
             accentColor: '#2196f3',
             axisLineColor: { $ref: 'borderColor' },
+            axisLineWidth: 1,
             backgroundColor: DEFAULT_BACKGROUND_FILL,
+            bandHighlightColor: { $foregroundBackgroundMix: 0.05 },
             borderColor: { $foregroundBackgroundMix: 0.15 },
             borderRadius: 4,
             borderWidth: 1,
@@ -204,6 +129,7 @@ export class ChartTheme {
             fontSize: BASE_FONT_SIZE,
             fontWeight: 400,
             gridLineColor: { $mix: [{ $ref: 'axisLineColor' }, { $ref: 'backgroundColor' }, 0.35] },
+            gridLineWidth: 1,
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.15)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.38] },
             textColor: { $ref: 'foregroundColor' },
@@ -352,146 +278,18 @@ export class ChartTheme {
         };
     }
 
-    private static getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
+    protected getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
         return {
             focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
-        };
-    }
-
-    protected getChartDefaults() {
-        return {
-            minHeight: 300,
-            minWidth: 300,
-            background: { visible: true, fill: { $ref: 'chartBackgroundColor' } },
-            padding: { $applyPadding: { $ref: 'chartPadding' } },
-            seriesArea: {
-                border: {
-                    enabled: false,
-                    stroke: { $ref: 'foregroundColor' },
-                    strokeOpacity: 1,
-                    strokeWidth: 1,
-                },
-                cornerRadius: 4,
-                padding: { $applyPadding: { $if: [{ $path: './border/enabled' }, 5, 0] } },
-            },
-            keyboard: { enabled: true },
-            title: {
-                enabled: false,
-                text: 'Title',
-                spacing: { $if: [{ $path: '../subtitle/enabled' }, 10, 20] },
-                fontWeight: { $ref: 'titleFontWeight' },
-                fontSize: { $ref: 'titleFontSize' },
-                fontFamily: { $ref: 'titleFontFamily' },
-                color: { $ref: 'titleColor' },
-                wrapping: 'hyphenate',
-                layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
-                textAlign: DEFAULT_CAPTION_ALIGNMENT,
-                ...captionBoxThemeDefaults(),
-            },
-            subtitle: {
-                enabled: false,
-                text: 'Subtitle',
-                spacing: 20,
-                fontWeight: { $ref: 'subtitleFontWeight' },
-                fontSize: { $ref: 'subtitleFontSize' },
-                fontFamily: { $ref: 'subtitleFontFamily' },
-                color: { $ref: 'subtitleColor' },
-                wrapping: 'hyphenate',
-                layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
-                textAlign: DEFAULT_CAPTION_ALIGNMENT,
-                ...captionBoxThemeDefaults(),
-            },
-            footnote: {
-                enabled: false,
-                text: 'Footnote',
-                spacing: 20,
-                fontSize: { $ref: 'footnoteFontSize' },
-                fontFamily: { $ref: 'footnoteFontFamily' },
-                fontWeight: { $ref: 'footnoteFontWeight' },
-                color: { $ref: 'footnoteColor' },
-                wrapping: 'hyphenate',
-                layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
-                textAlign: DEFAULT_CAPTION_ALIGNMENT,
-                ...captionBoxThemeDefaults(),
-            },
-            highlight: {
-                enabled: true,
-                drawingMode: {
-                    $if: [
-                        {
-                            $or: [
-                                hasUserOptionLessThan1('highlight/highlightedItem/opacity'),
-                                hasUserOptionLessThan1('highlight/unhighlightedItem/opacity'),
-                                hasUserOptionLessThan1('highlight/highlightedSeries/opacity'),
-                                hasUserOptionLessThan1('highlight/unhighlightedSeries/opacity'),
-                                hasUserOptionLessThan1('fillOpacity'),
-                                hasUserOptionLessThan1('marker/fillOpacity'),
-                            ],
-                        },
-                        'overlap',
-                        'cutout',
-                    ],
-                },
-            },
-            tooltip: {
-                enabled: true,
-                darkTheme: IS_DARK_THEME,
-                delay: 0,
-                pagination: false,
-                mode: {
-                    $if: [
-                        {
-                            $or: [
-                                {
-                                    $and: [
-                                        { $isChartType: 'cartesian' },
-                                        { $not: { $hasSeriesType: 'bubble' } },
-                                        { $not: { $hasSeriesType: 'scatter' } },
-                                        { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
-                                        { $lessThan: [{ $size: { $path: '/series' } }, 4] },
-                                    ],
-                                },
-                                {
-                                    $and: [
-                                        { $isChartType: 'polar' },
-                                        { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
-                                        { $lessThan: [{ $size: { $path: '/series' } }, 4] },
-                                    ],
-                                },
-                            ],
-                        },
-                        'shared',
-                        'single',
-                    ],
-                },
-            },
-            overlays: { darkTheme: IS_DARK_THEME },
-            listeners: {},
-            // TODO: remove this
-            series: {
-                tooltip: {
-                    range: {
-                        $if: [
-                            { $eq: [{ $path: ['/tooltip/range', 'exact'] }, 'area'] },
-                            'exact',
-                            { $path: ['/tooltip/range', 'exact'] },
-                        ],
-                    },
-                    position: {
-                        anchorTo: { $path: ['/tooltip/position/anchorTo', 'pointer'] },
-                        placement: { $path: ['/tooltip/position/placement', undefined] },
-                        xOffset: { $path: ['/tooltip/position/xOffset', 0] },
-                        yOffset: { $path: ['/tooltip/position/yOffset', 0] },
-                        // Chart-anchored tooltips sit flush; pointer/node use a 12px gap.
-                        offset: {
-                            $path: [
-                                '/tooltip/position/offset',
-                                { $if: [{ $eq: [{ $path: './anchorTo' }, 'chart'] }, 0, 12] },
-                            ],
-                        },
-                    },
-                },
-            },
+            annotationColor: this.getDefaultColors().fills.BLUE,
+            annotationTextColor: DEFAULT_FILLS.BLUE,
+            annotationHandleColor: DEFAULT_BACKGROUND_FILL,
+            annotationTextboxTextColor: '#000',
+            annotationTextboxBackgroundColor: '#fafafa',
+            annotationTextboxBorderColor: '#ddd',
+            annotationDividerColor: '#181d1f',
+            captionLayoutStyle: 'block',
+            captionAlignment: 'center',
         };
     }
 
@@ -578,8 +376,7 @@ export class ChartTheme {
                 ...contributedThemeTemplates(moduleRegistry, 'chart', (c) =>
                     contributionMatchesChartType(c, chartType)
                 ),
-                moduleRegistry.getChartModule(chartType)?.themeTemplate,
-                this.getChartDefaults()
+                moduleRegistry.getChartModule(chartType)?.themeTemplate
             );
 
             for (const seriesType of seriesTypes) {
@@ -629,33 +426,6 @@ export class ChartTheme {
         );
     }
 
-    private static applyTemplateTheme(this: void, node: any, _other: any, params?: Map<any, any>) {
-        if (isArray(node)) {
-            for (let i = 0; i < node.length; i++) {
-                const symbol = node[i];
-                if (typeof symbol === 'symbol' && params?.has(symbol)) {
-                    node[i] = params.get(symbol);
-                }
-            }
-        } else {
-            for (const name of Object.keys(node)) {
-                const value = node[name];
-                if (typeof value === 'symbol' && params?.has(value)) {
-                    node[name] = params.get(value);
-                }
-            }
-        }
-    }
-
-    templateTheme<T>(themeTemplate: T, clone = true): T {
-        const themeInstance = clone ? deepClone(themeTemplate) : themeTemplate;
-        const params = this.getTemplateParameters();
-
-        jsonWalk(themeInstance, ChartTheme.applyTemplateTheme, undefined, undefined, params);
-
-        return themeInstance;
-    }
-
     protected getDefaultColors(): DefaultColors {
         return ChartTheme.getDefaultColors();
     }
@@ -663,65 +433,8 @@ export class ChartTheme {
     getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
         return {
             ...ChartTheme.getDefaultPublicParameters(),
-            ...ChartTheme.getPrivateParameters(),
+            ...this.getPrivateParameters(),
         };
-    }
-
-    // Private parameters that are not exposed in the themes API.
-    getTemplateParameters() {
-        const params = new Map();
-        params.set(IS_DARK_THEME, false);
-        params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
-        params.set(DEFAULT_SPARKLINE_CROSSHAIR_STROKE, '#aaa');
-        params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
-        params.set(DEFAULT_CAPTION_ALIGNMENT, 'center');
-        params.set(DEFAULT_FIBONACCI_STROKES, [
-            '#797b86',
-            '#e24c4a',
-            '#f49d2d',
-            '#65ab58',
-            '#409682',
-            '#4db9d2',
-            '#5090dc',
-            '#3068f9',
-            '#e24c4a',
-            '#913aac',
-            '#d93e64',
-        ]);
-        params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
-
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, DEFAULT_FILLS.BLUE);
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
-        params.set(DEFAULT_TEXT_ANNOTATION_COLOR, DEFAULT_FILLS.BLUE);
-        params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
-        params.set(DEFAULT_ANNOTATION_STATISTICS_FILL, '#fafafa');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_STROKE, '#ddd');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_COLOR, '#000');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE, '#181d1f');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL, '#e35c5c');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE, '#e35c5c');
-
-        params.set(DEFAULT_TEXTBOX_FILL, '#fafafa');
-        params.set(DEFAULT_TEXTBOX_STROKE, '#ddd');
-        params.set(DEFAULT_TEXTBOX_COLOR, '#000');
-
-        params.set(DEFAULT_TOOLBAR_POSITION, 'top');
-
-        const defaultColors = this.getDefaultColors();
-        params.set(PALETTE_UP_STROKE, this.palette.up?.stroke ?? defaultColors.up.stroke);
-        params.set(PALETTE_UP_FILL, this.palette.up?.fill ?? defaultColors.up.fill);
-        params.set(PALETTE_DOWN_STROKE, this.palette.down?.stroke ?? defaultColors.down.stroke);
-        params.set(PALETTE_DOWN_FILL, this.palette.down?.fill ?? defaultColors.down.fill);
-        params.set(PALETTE_NEUTRAL_STROKE, this.palette.neutral?.stroke ?? defaultColors.neutral.stroke);
-        params.set(PALETTE_NEUTRAL_FILL, this.palette.neutral?.fill ?? defaultColors.neutral.fill);
-        params.set(PALETTE_ALT_UP_STROKE, this.palette.altUp?.stroke ?? defaultColors.up.stroke);
-        params.set(PALETTE_ALT_UP_FILL, this.palette.altUp?.fill ?? defaultColors.up.fill);
-        params.set(PALETTE_ALT_DOWN_STROKE, this.palette.altDown?.stroke ?? defaultColors.down.stroke);
-        params.set(PALETTE_ALT_DOWN_FILL, this.palette.altDown?.fill ?? defaultColors.down.fill);
-        params.set(PALETTE_ALT_NEUTRAL_FILL, this.palette.altNeutral?.fill ?? defaultColors.altNeutral.fill);
-        params.set(PALETTE_ALT_NEUTRAL_STROKE, this.palette.altNeutral?.stroke ?? defaultColors.altNeutral.stroke);
-
-        return params;
     }
 }
 

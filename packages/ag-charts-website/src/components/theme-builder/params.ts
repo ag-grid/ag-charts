@@ -61,6 +61,7 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         label: 'Axes & Grid',
         params: [
             { key: 'axisLineColor', label: 'Axis Line Color' },
+            { key: 'axisLineWidth', label: 'Axis Line Width', min: 0, max: 8 },
             { key: 'axisLabelColor', label: 'Axis Label Color' },
             { key: 'axisLabelFontFamily', label: 'Axis Label Font Family' },
             { key: 'axisLabelFontSize', label: 'Axis Label Font Size', min: 8, max: 24 },
@@ -70,7 +71,9 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
             { key: 'axisTitleFontSize', label: 'Axis Title Font Size', min: 8, max: 24 },
             { key: 'axisTitleFontWeight', label: 'Axis Title Font Weight' },
             { key: 'gridLineColor', label: 'Grid Line Color' },
+            { key: 'gridLineWidth', label: 'Grid Line Width', min: 0, max: 8 },
             { key: 'groupedCategoryLineColor', label: 'Grouped Category Line' },
+            { key: 'bandHighlightColor', label: 'Band Highlight Color' },
             { key: 'crosshairLabelBackgroundColor', label: 'Crosshair Label Background' },
             { key: 'crosshairLabelTextColor', label: 'Crosshair Label Text' },
         ],

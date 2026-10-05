@@ -9,6 +9,11 @@ const { Path, Scalable, ExtendedPath2D, BBox, clippedRoundRect: baseClippedRound
 export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     private readonly wickPath = new ExtendedPath2D();
 
+    constructor() {
+        super();
+        this.shadowMode = 'silhouette';
+    }
+
     @SceneChangeDetection()
     horizontal: boolean = false;
 
@@ -68,6 +73,16 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         return horizontal
             ? new BBox(Math.min(min, max), center - thickness / 2, Math.abs(max - min), thickness)
             : new BBox(center - thickness / 2, Math.min(min, max), thickness, Math.abs(max - min));
+    }
+
+    /** The path's own bounds miss separately styled whiskers, which the silhouette pre-pass is sized from. */
+    override computeBBoxWithoutTransforms(): _ModuleSupport.BBox | undefined {
+        return this.computeBBox();
+    }
+
+    protected override getSilhouetteStrokeWidth(): number {
+        // A crisp body can snap up to a device pixel past its bounds, so pad it even without a stroke.
+        return Math.max(this.__strokeWidth, this.wickStrokeWidth ?? 0, this.crisp ? 2 : 0);
     }
 
     override computeDefaultGradientFillBBox(): _ModuleSupport.BBox {
@@ -217,6 +232,14 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger) {
         super.drawPath(ctx, logger);
 
+        this.strokeWicks(ctx);
+    }
+
+    protected override renderSilhouetteExtras(ctx: _ModuleSupport.CanvasContext) {
+        this.strokeWicks(ctx);
+    }
+
+    private strokeWicks(ctx: _ModuleSupport.CanvasContext) {
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
 

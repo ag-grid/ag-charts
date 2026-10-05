@@ -11,8 +11,10 @@ import {
     CARTESIAN_POSITION,
     ChartAxisDirection,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    NEAREST_TOOLTIP_THEME,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
@@ -46,10 +48,8 @@ const themeTemplate: ExtensibleSeriesTheme<'ohlc'> = {
             up: itemTheme('up'),
             down: itemTheme('down'),
         },
-        tooltip: {
-            range: { $path: ['/tooltip/range', 'nearest'] },
-            interaction: { enabled: false },
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
+        tooltip: NEAREST_TOOLTIP_THEME,
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },

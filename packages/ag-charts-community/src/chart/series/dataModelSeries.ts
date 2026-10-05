@@ -232,11 +232,11 @@ export abstract class DataModelSeries<
         let nextNodeIndex: number | undefined;
         // Search forward or backwards depending on the delta direction.
         if (opts.datumIndexDelta < 0) {
-            if (lower !== undefined) {
+            if (lower !== undefined && upper !== undefined) {
                 nextNodeIndex = searchBackward(lower, opts.datumIndexDelta);
             }
         } else if (opts.datumIndexDelta > 0) {
-            if (upper !== undefined) {
+            if (lower !== undefined && upper !== undefined) {
                 nextNodeIndex = searchForward(upper, opts.datumIndexDelta);
             }
         } /* opts.datumIndexDelta === 0 */ else {

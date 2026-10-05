@@ -1,4 +1,4 @@
-import type { CssColor, CssShadow, FontFamilyFull, FontSize, FontWeight, PixelSize } from './types';
+import type { CssColor, CssShadow, FontFamilyFull, FontSize, FontWeight, PixelSize, TextAlign } from './types';
 
 type ColorKeys<T> = {
     [K in keyof T]: T[K] extends AgCssColorOrRef ? K : never;
@@ -234,6 +234,14 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     axisLabelFontWeight?: FontWeight;
     /** Default colour for axis lines and ticks. A colour string, or a theme-colour reference object. */
     axisLineColor?: AgCssColorOrRef;
+    /** Default width for axis lines. Does not apply to ticks. */
+    axisLineWidth?: PixelSize;
+    /**
+     * Colour of the band highlight. A colour string, or a theme-colour reference object.
+     *
+     * Default: `foregroundColor + backgroundColor`
+     */
+    bandHighlightColor?: AgCssColorOrRef;
     /**
      * Colour of axis titles. A colour string, or a theme-colour reference object.
      *
@@ -392,6 +400,8 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     fontWeight?: FontWeight;
     /** Default colour for grid lines. A colour string, or a theme-colour reference object. */
     gridLineColor?: AgCssColorOrRef;
+    /** Default width for grid lines. */
+    gridLineWidth?: PixelSize;
     /** Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object. */
     groupedCategoryLineColor?: AgCssColorOrRef;
     /** Border around the legend and the gradient legend. `true` for the default border, `false` to disable, or an object to customise it. */
@@ -548,6 +558,15 @@ export interface AgChartPrivateThemeParams {
     // TODO: move `separateLinesColor` to this interface.
 
     focusColor?: CssColor;
+    annotationColor?: CssColor;
+    annotationTextColor?: CssColor;
+    annotationHandleColor?: CssColor;
+    annotationTextboxTextColor?: CssColor;
+    annotationTextboxBackgroundColor?: CssColor;
+    annotationTextboxBorderColor?: CssColor;
+    annotationDividerColor?: CssColor;
+    captionLayoutStyle?: 'block' | 'overlay';
+    captionAlignment?: TextAlign;
 }
 
 export interface AgChartAllThemeParams extends AgChartThemeParams, AgChartPrivateThemeParams {}

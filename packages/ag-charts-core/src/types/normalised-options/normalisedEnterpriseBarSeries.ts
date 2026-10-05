@@ -133,10 +133,12 @@ export type NormalisedBoxPlotSeriesOwnOptions = Normalised<
     | 'direction'
     | BarStyleRequiredKeys
     | 'cap'
-    | 'segmentation',
+    | 'segmentation'
+    | 'shadow',
     {
         fill: NormalisedColorType;
         stroke: CssColor;
+        shadow: NormalisedDropShadowOptions;
         cap: Required<AgBoxPlotCapOptions>;
         whisker?: NormalisedBoxPlotWhiskerOptions;
         styler?: Styler<AgBoxPlotSeriesStylerParams<unknown, unknown>, AgBoxPlotSeriesStyle>;
@@ -187,9 +189,10 @@ export type NormalisedOhlcSeriesBaseOwnOptions = Omit<
 /** OHLC options the series owns, before the common series keys are layered on. */
 export type NormalisedOhlcSeriesOwnOptions = Normalised<
     AgOhlcSeriesOptions,
-    'item',
+    'item' | 'shadow',
     {
         item: Record<'up' | 'down', NormalisedOhlcSeriesItemOptions>;
+        shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgOhlcSeriesItemOptions>;
     }
 >;
@@ -200,9 +203,10 @@ export type NormalisedOhlcSeriesOptions = NormalisedSeriesOptions<NormalisedOhlc
 /** Candlestick options the series owns, before the common series keys are layered on. */
 export type NormalisedCandlestickSeriesOwnOptions = Normalised<
     AgCandlestickSeriesOptions,
-    'item',
+    'item' | 'shadow',
     {
         item: Record<'up' | 'down', NormalisedCandlestickSeriesItemOptions>;
+        shadow: NormalisedDropShadowOptions;
         itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
     }
 >;
@@ -267,10 +271,11 @@ type ConeFunnelLabelPlacement = AgConeFunnelSeriesLabelPlacement | AgConeFunnelS
 /** Cone funnel options the series owns, before the common series keys are layered on. */
 export type NormalisedConeFunnelSeriesOwnOptions = Normalised<
     AgConeFunnelSeriesOptions,
-    FunnelStyleRequiredKeys | 'direction' | 'label',
+    FunnelStyleRequiredKeys | 'direction' | 'label' | 'shadow',
     {
         fills: NormalisedColorType[];
         strokes: CssColor[];
+        shadow: NormalisedDropShadowOptions;
         label: NormalisedSeriesLabelOptions<AgConeFunnelSeriesLabelFormatterParams> & {
             placement?: ConeFunnelLabelPlacement | ConeFunnelLabelPlacement[];
             spacing: number;

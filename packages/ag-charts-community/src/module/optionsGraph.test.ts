@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import type { PlainObject } from 'ag-charts-core';
 import { expectWarningsCalls, setupMockConsole, testLogger } from 'ag-charts-test';
+import type { AgChartThemeName } from 'ag-charts-types';
 
-import { OptionsGraph } from './optionsGraph';
+import { getChartTheme } from '../chart/mapping/themes';
+import { OptionsGraph, createOptionsGraph } from './optionsGraph';
 
 function prepareOptions(options: PlainObject) {
     return {
@@ -291,6 +293,73 @@ describe('OptionsGraph', () => {
                 three: 'other-three',
             },
             axes: expect.any(Object),
+        });
+    });
+
+    describe('chart operations', () => {
+        describe('$lightDark', () => {
+            const themeConfig = {
+                line: {
+                    one: { $lightDark: ['light', 'dark'] },
+                    two: { $lightDark: [{ child: 'light-child' }, { child: 'dark-child', other: 'dark-other' }] },
+                    three: { $ref: 'colour' },
+                    four: { $if: [true, { $lightDark: ['light-if', 'dark-if'] }, 'no'] },
+                    five: { $lightDark: [{ $ref: 'colour' }, { $if: [false, 'yes', 'dark-nested'] }] },
+                },
+            };
+            const params = { colour: { $lightDark: ['light-ref', 'dark-ref'] } };
+            const resolveWith = (isDark: boolean) =>
+                new OptionsGraph(themeConfig, prepareOptions({}), params, {}, {}, undefined, isDark).resolve(
+                    testLogger
+                );
+
+            it('should resolve the light branch for a light theme', () => {
+                expect(resolveWith(false)).toStrictEqual({
+                    one: 'light',
+                    two: { child: 'light-child' },
+                    three: 'light-ref',
+                    four: 'light-if',
+                    five: 'light-ref',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve the dark branch for a dark theme', () => {
+                expect(resolveWith(true)).toStrictEqual({
+                    one: 'dark',
+                    two: { child: 'dark-child', other: 'dark-other' },
+                    three: 'dark-ref',
+                    four: 'dark-if',
+                    five: 'dark-nested',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it.each([
+                ['ag-default', false],
+                ['ag-default-dark', true],
+                ['ag-financial', false],
+                ['ag-financial-dark', true],
+                ['ag-material-dark', true],
+            ])('should follow the `%s` theme', (themeName, isDark) => {
+                const options = createOptionsGraph(
+                    getChartTheme(themeName),
+                    prepareOptions({ series: [{ type: 'line' }], one: { $lightDark: ['light', 'dark'] } })
+                ).resolve(testLogger);
+                expect(options.one).toBe(isDark ? 'dark' : 'light');
+            });
+
+            it.each([
+                ['ag-default', 'light'],
+                ['ag-default-dark', 'dark'],
+                ['ag-financial-dark', 'dark'],
+            ])('should follow a custom theme with `baseTheme: %s`', (baseTheme, expected) => {
+                const options = createOptionsGraph(
+                    getChartTheme({ baseTheme: baseTheme as AgChartThemeName, params: { fontSize: 13 } }),
+                    prepareOptions({ series: [{ type: 'line' }], one: { $lightDark: ['light', 'dark'] } })
+                ).resolve(testLogger);
+                expect(options.one).toBe(expected);
+            });
         });
     });
 
@@ -1810,7 +1879,7 @@ describe('OptionsGraph', () => {
                 userValue: 'toString',
                 inherited: '__proto__',
             });
-            const options = new OptionsGraph(themeConfig, userOptions, {}, {}, {}, undefined, new Map(), {
+            const options = new OptionsGraph(themeConfig, userOptions, {}, {}, {}, undefined, false, {
                 'var(--brand)': '#00ff00',
             }).resolve(testLogger);
             expect(options).toStrictEqual({
@@ -1903,7 +1972,7 @@ describe('OptionsGraph', () => {
                     {},
                     {},
                     undefined,
-                    new Map(),
+                    false,
                     cssVariables
                 ).resolve(testLogger);
                 expect(options).toStrictEqual({

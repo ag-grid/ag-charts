@@ -1,6 +1,5 @@
 import { type AgCollapsedChangeEventSource, _ModuleSupport } from 'ag-charts-community';
 import {
-    type BoxBounds,
     type ChartAnimationPhase,
     ChartAxisDirection,
     ChartUpdateType,
@@ -253,17 +252,6 @@ export abstract class AbstractNetworkSeries<
         this.updateNodes();
         // Re-apply now that contentBBox is current (the zoom observer early-returned earlier).
         this.applyViewportTransform();
-    }
-
-    // FIXME(AG-17179 follow-up): mirror y because `calcPanToBBoxRatios` is y-down and we
-    // render y-up. Remove once the helper is direction-aware.
-    override mapFocusBBoxToPanTarget(seriesRect: BoxBounds, focusBBox: Readonly<_ModuleSupport.BBox>): BoxBounds {
-        return {
-            x: focusBBox.x,
-            y: 2 * seriesRect.y + seriesRect.height - focusBBox.y - focusBBox.height,
-            width: focusBBox.width,
-            height: focusBBox.height,
-        };
     }
 
     processPendingCollapse() {

@@ -4,6 +4,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
+    AgChartInstance,
     AgChartOptions,
     AgPolarChartOptions,
     InteractionRange,
@@ -38,7 +39,12 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    HIERARCHY_SHADOW_DATA,
+    collectShapes,
+    prepareEnterpriseTestOptions,
+} from '../../test/utils';
 import type { SunburstSeries } from './sunburstSeries';
 
 describe('SunburstSeries', () => {
@@ -1200,6 +1206,88 @@ describe('SunburstSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+        });
+    });
+
+    describe('shadow', () => {
+        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 8 };
+        const data = HIERARCHY_SHADOW_DATA;
+        let proxy: AgChartInstance;
+        const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
+            data,
+            series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', shadow: seriesShadow }],
+            legend: { enabled: false },
+            animation: { enabled: false },
+        });
+        const createChart = async (seriesShadow?: typeof shadow) => {
+            const options = shadowOptions(seriesShadow);
+            prepareEnterpriseTestOptions(options);
+            proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+            return chart.series[0] as SunburstSeries;
+        };
+        const sectors = (series: SunburstSeries) => {
+            const nodes: _ModuleSupport.Sector[] = [];
+            // The synthetic root node has a sector that is never shown.
+            series.datumSelection.each((sector) => sector.visible && nodes.push(sector));
+            return nodes;
+        };
+
+        it('defaults to a disabled shadow', async () => {
+            const series = await createChart();
+
+            expect(series['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            const series = await createChart();
+
+            expect(sectors(series)).toHaveLength(7);
+            expect(collectShapes(series.contentGroup).filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
+        });
+
+        it('applies an enabled shadow to every sector', async () => {
+            const series = await createChart(shadow);
+
+            const nodes = sectors(series);
+            expect(nodes).toHaveLength(7);
+            for (const sector of nodes) {
+                expect(sector.fillShadow).toMatchObject(shadow);
+            }
+        });
+
+        it('renders with the shadow enabled', async () => {
+            await createChart(shadow);
+            await compare();
+        });
+
+        describe('box selection', () => {
+            const wholeChart = { x: 0, y: 0, width: 10_000, height: 10_000 };
+            const pickedIndices = (series: SunburstSeries) =>
+                Array.from(series.pickNodesInBBox(wholeChart), (node) => node.datumIndex);
+
+            it('yields sectors in datum order although they are drawn in depth order', async () => {
+                const series = await createChart(shadow);
+
+                const picked = pickedIndices(series);
+                expect(picked).toHaveLength(7);
+                expect(picked).toEqual([...picked].sort((a, b) => a - b));
+            });
+
+            it('keeps datum order after a keyed update adds sectors', async () => {
+                const series = await createChart(shadow);
+
+                const [{ children }] = data;
+                const grown = [
+                    { ...data[0], children: [{ name: 'C', children: [{ name: 'C1', size: 5 }] }, ...children] },
+                ];
+                await proxy.updateDelta({ data: grown });
+
+                const picked = pickedIndices(series);
+                expect(picked).toHaveLength(9);
+                expect(picked).toEqual([...picked].sort((a, b) => a - b));
+            });
         });
     });
 

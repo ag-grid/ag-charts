@@ -5,7 +5,7 @@ import type { SkippedPort } from './targets';
 
 function attempt(overrides: Partial<ComparisonRecord>): ComparisonRecord {
     return {
-        demo: 'financial',
+        demo: 'trading-terminal',
         framework: 'angular',
         state: 'initial',
         viewport: '1440x900',
@@ -60,17 +60,17 @@ describe('attempt identity', () => {
         ];
         expect(new Set(records.map(attemptKey)).size).toBe(4);
         expect(records.map(attemptDir)).toEqual([
-            'angular/financial/initial@1440x900/repeat-0-retry-0',
-            'angular/financial/initial@1440x900/repeat-0-retry-1',
-            'angular/financial/initial@1440x900/repeat-1-retry-0',
-            'angular/financial/initial@1440x900/repeat-1-retry-1',
+            'angular/trading-terminal/initial@1440x900/repeat-0-retry-0',
+            'angular/trading-terminal/initial@1440x900/repeat-0-retry-1',
+            'angular/trading-terminal/initial@1440x900/repeat-1-retry-0',
+            'angular/trading-terminal/initial@1440x900/repeat-1-retry-1',
         ]);
     });
 });
 
 describe('describeSkipped', () => {
     const skipped = (framework: string, overrides: Partial<SkippedPort> = {}): SkippedPort => ({
-        demo: 'financial',
+        demo: 'trading-terminal',
         framework,
         sourceHash: 'sha256-now',
         manifestHash: 'sha256-then',
@@ -87,7 +87,9 @@ describe('describeSkipped', () => {
     it('names every skipped port with what it was aligned to and where the demo is now', () => {
         const lines = describeSkipped([skipped('angular')], 1);
         expect(lines[0]).toMatch(/^Parity: SKIPPED 1 stale port, not compared with the React demo\./);
-        expect(lines.slice(1)).toEqual(['  - financial/angular: stale, aligned to decade00, demo now at c0ffee00']);
+        expect(lines.slice(1)).toEqual([
+            '  - trading-terminal/angular: stale, aligned to decade00, demo now at c0ffee00',
+        ]);
     });
 
     it('falls back to the hashes when the commits cannot tell the two apart', () => {
@@ -101,9 +103,9 @@ describe('describeSkipped', () => {
             1
         );
         expect(lines.slice(1)).toEqual([
-            '  - financial/angular: stale, aligned to sha256-fedcba98, demo now at sha256-01234567',
-            '  - financial/vue: stale, aligned to sha256-fedcba98, demo now at sha256-01234567',
-            '  - financial/typescript: stale, aligned to never, demo now at sha256-01234567',
+            '  - trading-terminal/angular: stale, aligned to sha256-fedcba98, demo now at sha256-01234567',
+            '  - trading-terminal/vue: stale, aligned to sha256-fedcba98, demo now at sha256-01234567',
+            '  - trading-terminal/typescript: stale, aligned to never, demo now at sha256-01234567',
         ]);
     });
 
