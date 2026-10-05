@@ -4,13 +4,13 @@ import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
-    delay,
     deproxy,
     expectWarningsCalls,
     prepareFinancialTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
+    waitForChartStabilityUntil,
 } from 'ag-charts-community-test';
 import type { AgChartInstance, AgChartTheme, AgVolumeProfileChartOptions } from 'ag-charts-types';
 
@@ -120,19 +120,14 @@ describe('volumeProfilePreset', () => {
 
         const loadedRows = () => deproxy(chart).data.data.length;
 
-        const settleUntil = async (predicate: () => boolean, description: string) => {
-            for (let attempt = 0; attempt < 200; attempt++) {
-                await waitForChartStability(chart);
-                if (predicate()) return;
-                await delay(5);
-            }
-            throw new Error(`Timed out waiting for ${description}`);
-        };
+        const settleUntil = (predicate: () => boolean, description: string) =>
+            waitForChartStabilityUntil(chart, predicate, description);
 
         it('should show the loaded profile', async () => {
-            const getData = vi.fn(getRegularVolumeProfile);
-            createWithDataSource(getData);
+            createWithDataSource(getRegularVolumeProfile);
             await settleUntil(() => loadedRows() === 27, 'the load');
+            // From 135 to 205 in steps of 2.5.
+            expect(levels()).toHaveLength(29);
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
         });
 
@@ -144,19 +139,22 @@ describe('volumeProfilePreset', () => {
             getData.mockImplementation(() => getRegularVolumeProfile().filter(({ price }) => price >= 170));
             await chart.updateDelta({});
             await settleUntil(() => loadedRows() === 15, 'the second load');
+            // From 170 to 205 in steps of 2.5.
+            expect(levels()).toHaveLength(15);
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
         });
 
         it('should infer the tick size from the loaded data', async () => {
-            const getData = vi.fn(() =>
+            const getData = () =>
                 Array.from({ length: 11 }, (_, i) => ({
                     price: 150 + i,
                     upVolume: (i + 1) * 10e6,
                     downVolume: (11 - i) * 10e6,
-                }))
-            );
+                }));
             createWithDataSource(getData, { data: getRegularVolumeProfile() });
             await settleUntil(() => loadedRows() === 11, 'the load');
+            // From 150 to 160 in steps of 1.
+            expect(levels()).toHaveLength(11);
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
         });
 
@@ -165,7 +163,7 @@ describe('volumeProfilePreset', () => {
             createWithDataSource(getRegularVolumeProfile, { priceKey: null, tickSize: 0 });
             await settleUntil(() => loadedRows() === 27, 'the load');
             // The levels of the default `priceKey` at the inferred 2.5 tick size, from 135 to 205.
-            expect(deproxy(chart).series[0].data?.data).toHaveLength(29);
+            expect(levels()).toHaveLength(29);
             expectWarningsCalls().toEqual([
                 ['AG Charts - Option `priceKey` cannot be set to `null`; expecting a string, ignoring.'],
                 ['AG Charts - Option `tickSize` cannot be set to `0`; expecting a number greater than 0, ignoring.'],

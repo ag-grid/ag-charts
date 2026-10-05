@@ -17,6 +17,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
+    waitForChartStabilityUntil,
 } from 'ag-charts-community-test';
 import { isDate } from 'ag-charts-core';
 
@@ -154,14 +155,8 @@ describe('DataSource', () => {
 
     // `scrollAction` waits only a fixed delay, but the zoom it triggers re-requests data on a later
     // frame, so poll for the observable effect instead of asserting straight away.
-    const settleUntil = async (predicate: () => boolean, description: string) => {
-        for (let attempt = 0; attempt < 200; attempt++) {
-            await waitForChartStability(chart);
-            if (predicate()) return;
-            await delay(5);
-        }
-        throw new Error(`Timed out waiting for ${description}`);
-    };
+    const settleUntil = (predicate: () => boolean, description: string) =>
+        waitForChartStabilityUntil(chart, predicate, description);
 
     it('should load data asynchronously', async () => {
         const response = delay(1).then(() => [

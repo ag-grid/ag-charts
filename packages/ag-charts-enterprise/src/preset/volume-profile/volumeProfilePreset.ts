@@ -19,12 +19,13 @@ export function volumeProfileChart(
 ): AgCartesianChartOptions<DatumDefault, never> {
     const {
         data = [],
-        // Read by the preset's `transformSeriesData`, and the theme resolved from the chart's own options
-        // against the preset's `themeTemplate`; pulled out here only to keep them out of `unusedOpts`.
+        // Read by the preset's `transformSeriesData`; pulled out here only to keep them out of `unusedOpts`.
         priceKey: _priceKey,
         upKey: _upKey,
         downKey: _downKey,
         tickSize: _tickSize,
+        // Resolved from the chart's own options against the preset's `themeTemplate`; pulled out
+        // here only to keep it out of `unusedOpts`.
         theme: _theme,
         ...unusedOpts
     } = opts;
