@@ -321,7 +321,7 @@ export { SectorBox } from './scene/sectorBox';
 export { Image } from './scene/image';
 export { ExtendedPath2D } from './scene/extendedPath2D';
 
-export const motion = { ...fromToMotion, ...resetMotion };
+export const motion: typeof fromToMotion & typeof resetMotion = { ...fromToMotion, ...resetMotion };
 export type { NodeUpdateState, FromToMotionPropFn } from './motion/fromToMotion';
 
 export { BBox } from './scene/bbox';
