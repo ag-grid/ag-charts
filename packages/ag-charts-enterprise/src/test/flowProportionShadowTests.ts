@@ -4,9 +4,13 @@ import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import { deproxy, waitForChartStability } from 'ag-charts-community-test';
 
-import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions, shadowedShapes } from './utils';
-
-export const FLOW_PROPORTION_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
+import {
+    DEFAULT_DISABLED_SHADOW,
+    FLOW_PROPORTION_SHADOW,
+    collectShapes,
+    prepareEnterpriseTestOptions,
+    shadowedShapes,
+} from './utils';
 
 const DATA = [
     { from: 'A', to: 'C', size: 8 },

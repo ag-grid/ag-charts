@@ -8,6 +8,7 @@ import { Rect } from '../../scene/shape/rect';
 import { Sector } from '../../scene/shape/sector';
 import { Shape } from '../../scene/shape/shape';
 import { Marker } from '../marker/marker';
+import { HIGHLIGHT_SHADOW, SERIES_SHADOW } from '../test/shadowFixtures';
 import {
     deproxy,
     expectWarningMessages,
@@ -16,9 +17,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-
-const SHADOW: AgDropShadowOptions = { enabled: true, color: '#112233', xOffset: 4, yOffset: 4, blur: 6 };
-const HIGHLIGHT_SHADOW: AgDropShadowOptions = { enabled: true, color: '#aa0000', xOffset: 8, yOffset: 8, blur: 2 };
 
 const XY_DATA = [
     { x: 1, y: 5, size: 10 },
@@ -188,29 +186,29 @@ describe('highlightedItem.shadow', () => {
 
     describe.each(SERIES)('$name', (testCase) => {
         it('casts one shadow per hover from the highlight layer when the highlight cuts out', async () => {
-            const { inPlace, highlighted } = await hoverFirstItem(testCase, SHADOW);
+            const { inPlace, highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW);
 
             expect(highlighted).toHaveLength(1);
-            expect(highlighted[0].fillShadow).toMatchObject(SHADOW);
+            expect(highlighted[0].fillShadow).toMatchObject(SERIES_SHADOW);
 
             const [hovered, ...others] = inPlace;
             expect(casts(hovered)).toBe(false);
             expect(others.length).toBeGreaterThan(0);
-            for (const shape of others) expect(shape.fillShadow).toMatchObject(SHADOW);
+            for (const shape of others) expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
         });
 
         it('casts one shadow per hover from the in-place item when the highlight overlays', async () => {
-            const { inPlace, highlighted } = await hoverFirstItem(testCase, SHADOW, {}, 'overlay');
+            const { inPlace, highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {}, 'overlay');
 
             expect(highlighted).toHaveLength(1);
             expect(casts(highlighted[0])).toBe(false);
-            for (const shape of inPlace) expect(shape.fillShadow).toMatchObject(SHADOW);
+            for (const shape of inPlace) expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
         });
 
         it('keeps every shadow when the item is hovered through the legend', async () => {
             const { castingBefore, inPlace, highlighted } = await hoverFirstItem(
                 testCase,
-                SHADOW,
+                SERIES_SHADOW,
                 {},
                 'cutout',
                 'legend'
@@ -221,7 +219,7 @@ describe('highlightedItem.shadow', () => {
         });
 
         it('moves the shadow from one hovered item to the next', async () => {
-            const { series } = await hoverFirstItem(testCase, SHADOW);
+            const { series } = await hoverFirstItem(testCase, SERIES_SHADOW);
             const [first, next] = series.getNodeData();
 
             expect(next.datumIndex).not.toBe(first.datumIndex);
@@ -230,13 +228,13 @@ describe('highlightedItem.shadow', () => {
 
             // The first item casts again, and only the second one's in-place copy is cut out.
             const [firstShape, nextShape, ...others] = shapesOf(series.contentGroup, testCase.kind);
-            expect(firstShape.fillShadow).toMatchObject(SHADOW);
+            expect(firstShape.fillShadow).toMatchObject(SERIES_SHADOW);
             expect(casts(nextShape)).toBe(false);
-            for (const shape of others) expect(shape.fillShadow).toMatchObject(SHADOW);
+            for (const shape of others) expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
         });
 
         it('restores the in-place shadow when the hover ends', async () => {
-            const { series, inPlaceBefore } = await hoverFirstItem(testCase, SHADOW);
+            const { series, inPlaceBefore } = await hoverFirstItem(testCase, SERIES_SHADOW);
             expect(casts(shapesOf(series.contentGroup, testCase.kind)[0])).toBe(false);
 
             chart.ctx.highlightManager.updateHighlight(chart.id);
@@ -244,11 +242,11 @@ describe('highlightedItem.shadow', () => {
 
             const shapes = shapesOf(series.contentGroup, testCase.kind);
             expect(shapes).toHaveLength(inPlaceBefore.length);
-            for (const shape of shapes) expect(shape.fillShadow).toMatchObject(SHADOW);
+            for (const shape of shapes) expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
         });
 
         it('merges highlightedItem.shadow over the series shadow on the hovered item', async () => {
-            const { inPlace, highlighted } = await hoverFirstItem(testCase, SHADOW, {
+            const { inPlace, highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {
                 highlightedItem: { shadow: HIGHLIGHT_SHADOW },
             });
 
@@ -257,28 +255,28 @@ describe('highlightedItem.shadow', () => {
 
             const [hovered, ...others] = inPlace;
             expect(casts(hovered)).toBe(false);
-            for (const shape of others) expect(shape.fillShadow).toMatchObject(SHADOW);
+            for (const shape of others) expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
         });
 
         it('casts highlightedItem.shadow from the highlight layer in overlay mode too', async () => {
             const { inPlace, highlighted } = await hoverFirstItem(
                 testCase,
-                SHADOW,
+                SERIES_SHADOW,
                 { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
                 'overlay'
             );
 
             expect(highlighted[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
             expect(casts(inPlace[0])).toBe(false);
-            for (const shape of inPlace.slice(1)) expect(shape.fillShadow).toMatchObject(SHADOW);
+            for (const shape of inPlace.slice(1)) expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
         });
 
         it('fills highlightedItem.shadow gaps from the series shadow', async () => {
-            const { highlighted } = await hoverFirstItem(testCase, SHADOW, {
+            const { highlighted } = await hoverFirstItem(testCase, SERIES_SHADOW, {
                 highlightedItem: { shadow: { blur: 20 } },
             });
 
-            expect(highlighted[0].fillShadow).toMatchObject({ ...SHADOW, blur: 20 });
+            expect(highlighted[0].fillShadow).toMatchObject({ ...SERIES_SHADOW, blur: 20 });
         });
 
         it('applies highlightedItem.shadow when the series has no shadow', async () => {
@@ -315,7 +313,7 @@ describe('highlightedItem.shadow', () => {
                 animation: { enabled: false },
                 legend: { enabled: false },
                 highlight: { drawingMode },
-                series: [testCase.series(SHADOW, {})],
+                series: [testCase.series(SERIES_SHADOW, {})],
             } as AgChartOptions;
             prepareTestOptions(options);
             const proxy = AgCharts.create(options);
@@ -337,7 +335,7 @@ describe('highlightedItem.shadow', () => {
 
             // Overlay mode leaves the hovered item's in-place copy casting, and the highlight copy casts none.
             for (const shape of shapesOf(series.contentGroup, testCase.kind)) {
-                expect(shape.fillShadow).toMatchObject(SHADOW);
+                expect(shape.fillShadow).toMatchObject(SERIES_SHADOW);
             }
             for (const shape of shapesOf(series.highlightNodeGroup, testCase.kind).filter((s) => s.visible)) {
                 expect(casts(shape)).toBe(false);
@@ -413,7 +411,7 @@ describe('highlightedItem.shadow', () => {
                         type: 'scatter',
                         xKey: 'x',
                         yKey: 'y',
-                        shadow: SHADOW,
+                        shadow: SERIES_SHADOW,
                         // @ts-expect-error highlightedSeries has no `shadow`
                         highlight: { highlightedSeries: { shadow: HIGHLIGHT_SHADOW } },
                     },
@@ -429,7 +427,7 @@ describe('highlightedItem.shadow', () => {
             ]);
             expect(series.options.highlight?.highlightedSeries?.shadow).toBeUndefined();
             for (const marker of shapesOf(series.contentGroup, Marker)) {
-                expect(marker.fillShadow).toMatchObject(SHADOW);
+                expect(marker.fillShadow).toMatchObject(SERIES_SHADOW);
             }
         });
     });

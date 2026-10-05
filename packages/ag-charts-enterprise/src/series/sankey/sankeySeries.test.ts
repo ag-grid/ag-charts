@@ -28,12 +28,8 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import {
-    FLOW_PROPORTION_SHADOW,
-    describeFlowProportionShadow,
-    flowProportionShadowOptions,
-} from '../../test/flowProportionShadowTests';
-import { mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
+import { describeFlowProportionShadow, flowProportionShadowOptions } from '../../test/flowProportionShadowTests';
+import { FLOW_PROPORTION_SHADOW, mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
 describe('SankeySeries', () => {

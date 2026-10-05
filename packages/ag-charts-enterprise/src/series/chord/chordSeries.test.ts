@@ -26,12 +26,8 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import {
-    FLOW_PROPORTION_SHADOW,
-    describeFlowProportionShadow,
-    flowProportionShadowOptions,
-} from '../../test/flowProportionShadowTests';
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { describeFlowProportionShadow, flowProportionShadowOptions } from '../../test/flowProportionShadowTests';
+import { FLOW_PROPORTION_SHADOW, prepareEnterpriseTestOptions } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
 describe('ChordSeries', () => {

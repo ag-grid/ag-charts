@@ -134,6 +134,9 @@ export const DEFAULT_DISABLED_SHADOW = { enabled: false, xOffset: 3, yOffset: 3,
 /** The shadow the series tests turn on. */
 export const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
 
+/** The shadow the flow-proportion (sankey/chord), map-shape and waterfall tests turn on. */
+export const FLOW_PROPORTION_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
+
 /** The shadow the highlight tests set on `highlightedItem`, distinct from `SHADOW` in every field. */
 export const HIGHLIGHT_SHADOW = { enabled: true, color: 'rgba(170, 0, 0, 1)', xOffset: 8, yOffset: 8, blur: 2 };
 

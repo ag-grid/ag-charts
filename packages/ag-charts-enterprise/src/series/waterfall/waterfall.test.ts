@@ -35,9 +35,9 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { FLOW_PROPORTION_SHADOW } from '../../test/flowProportionShadowTests';
 import {
     DEFAULT_DISABLED_SHADOW,
+    FLOW_PROPORTION_SHADOW,
     createEnterpriseChart,
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
@@ -344,7 +344,6 @@ describe('WaterfallSeries', () => {
     });
 
     it(`should render a waterfall chart with item shadows`, async () => {
-        const shadow = FLOW_PROPORTION_SHADOW;
         const baseSeries = WATERFALL_COLUMN_OPTIONS.series![0] as AgWaterfallSeriesOptions;
         const options = {
             ...WATERFALL_COLUMN_OPTIONS,
@@ -352,9 +351,9 @@ describe('WaterfallSeries', () => {
                 {
                     ...baseSeries,
                     item: {
-                        positive: { ...baseSeries.item?.positive, shadow },
-                        negative: { ...baseSeries.item?.negative, shadow },
-                        total: { ...baseSeries.item?.total, shadow },
+                        positive: { ...baseSeries.item?.positive, shadow: FLOW_PROPORTION_SHADOW },
+                        negative: { ...baseSeries.item?.negative, shadow: FLOW_PROPORTION_SHADOW },
+                        total: { ...baseSeries.item?.total, shadow: FLOW_PROPORTION_SHADOW },
                     },
                 },
             ],

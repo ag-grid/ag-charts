@@ -5,7 +5,7 @@ import type { AgCartesianChartOptions, AgChartInstance, AgDropShadowOptions } fr
 import { AgCharts } from '../../../api/agCharts';
 import type { Marker } from '../../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
-import { MARKER_SHADOW, customMarkerShape } from '../../test/markerShadowFixtures';
+import { MARKER_SHADOW, customMarkerShape } from '../../test/shadowFixtures';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,

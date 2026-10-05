@@ -27,8 +27,13 @@ import {
 } from 'ag-charts-community-test';
 import { ambientLogger } from 'ag-charts-core';
 
-import { FLOW_PROPORTION_SHADOW } from '../../test/flowProportionShadowTests';
-import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions, shadowedShapes } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    FLOW_PROPORTION_SHADOW,
+    collectShapes,
+    prepareEnterpriseTestOptions,
+    shadowedShapes,
+} from '../../test/utils';
 import { ukData } from '../map-test/ukData';
 import ukTopology from '../map-test/ukTopology.json';
 import { usData } from '../map-test/usData';
@@ -104,8 +109,7 @@ describe('MapShapeSeries', () => {
     });
 
     describe('shadow', () => {
-        const shadow = FLOW_PROPORTION_SHADOW;
-        const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
+        const shadowOptions = (seriesShadow?: typeof FLOW_PROPORTION_SHADOW): AgChartOptions => ({
             ...SIMPLIFIED_EXAMPLE,
             series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
         });
@@ -132,17 +136,17 @@ describe('MapShapeSeries', () => {
         });
 
         it('applies an enabled shadow to every shape', async () => {
-            const series = await createChart(shadowOptions(shadow));
+            const series = await createChart(shadowOptions(FLOW_PROPORTION_SHADOW));
 
             const shapes = collectShapes(series.contentGroup);
             expect(shapes.length).toBeGreaterThan(0);
             for (const shape of shapes) {
-                expect(shape.fillShadow).toMatchObject(shadow);
+                expect(shape.fillShadow).toMatchObject(FLOW_PROPORTION_SHADOW);
             }
         });
 
         it('should render a chart with the shadow enabled', async () => {
-            await createChart(shadowOptions(shadow));
+            await createChart(shadowOptions(FLOW_PROPORTION_SHADOW));
             await compare();
         });
 
@@ -158,7 +162,7 @@ describe('MapShapeSeries', () => {
 
             // The cutout erases the shape beneath the highlight before it is drawn again, so a
             // translucent highlight fill makes the erase visible and the shadow must survive it.
-            const cutoutOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
+            const cutoutOptions = (seriesShadow?: typeof FLOW_PROPORTION_SHADOW): AgChartOptions => ({
                 ...shadowOptions(seriesShadow),
                 highlight: { drawingMode: 'cutout' },
                 series: [
@@ -172,12 +176,12 @@ describe('MapShapeSeries', () => {
             });
 
             it('draws the highlighted shape with its shadow after the cutout', async () => {
-                await highlightFirstShape(cutoutOptions(shadow));
+                await highlightFirstShape(cutoutOptions(FLOW_PROPORTION_SHADOW));
 
                 const [highlighted, ...others] = collectShapes(chart.series[0].highlightNodeGroup);
                 expect(others).toEqual([]);
                 expect(highlighted.drawingMode).toBe('cutout');
-                expect(highlighted.fillShadow).toMatchObject(shadow);
+                expect(highlighted.fillShadow).toMatchObject(FLOW_PROPORTION_SHADOW);
                 await compare();
             });
 
