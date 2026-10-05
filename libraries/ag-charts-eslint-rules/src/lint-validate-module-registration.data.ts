@@ -303,3 +303,12 @@ const perChartSpread = {
     axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
 };
 AgCharts.create({ ...perChartSpread, title: { text: 'Spread' } }, { modules: [AreaSeriesModule] });
+
+// =============================================================================
+// TEST CASE 22: sizeMode: 'area' is not a series type - should pass
+// =============================================================================
+const sizeModeArea = {
+    series: [{ type: 'scatter', xKey: 'x', yKey: 'y', sizeKey: 's', sizeMode: 'area' }],
+    axes: { x: { type: 'number' }, y: { type: 'number' } },
+};
+AgCharts.create(sizeModeArea, { modules: [ScatterSeriesModule, NumberAxisModule] });
