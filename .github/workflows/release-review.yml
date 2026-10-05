@@ -90,6 +90,7 @@ env:
     GIT_CONFIG_KEY_1: maintenance.auto
     GIT_CONFIG_VALUE_1: 'false'
     DEV_PROMPTS_CHANNEL: canary
+    IBM_TELEMETRY_DISABLED: 'true'
 
 jobs:
     dispatch-on-push:

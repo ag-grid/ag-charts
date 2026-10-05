@@ -57,6 +57,7 @@ env:
     # cross-run CV — a single run per side cannot separate a real change from shared-runner CPU
     # drift (~half the suite has a >10% run-to-run noise floor on hosted VMs).
     AG_BENCHMARK_RUNS: 3
+    IBM_TELEMETRY_DISABLED: 'true'
 
 permissions:
     contents: read

@@ -59,6 +59,7 @@ env:
     GIT_CONFIG_VALUE_1: 'false'
     ISSUE_KEY: ${{ github.event.client_payload.issue_key || inputs.issue_key }}
     DEV_PROMPTS_CHANNEL: canary
+    IBM_TELEMETRY_DISABLED: 'true'
 
 jobs:
     # -------------------------------------------------- concurrency key
