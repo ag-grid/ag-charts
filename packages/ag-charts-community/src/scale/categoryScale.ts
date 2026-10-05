@@ -1,8 +1,7 @@
 import type { DomainWithMetadata, NormalizedDomain, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
-import { clamp, dateToNumber, previousPowerOf2 } from 'ag-charts-core';
+import { clamp, dateToNumber, filterVisibleTicks, previousPowerOf2 } from 'ag-charts-core';
 
 import { BandScale } from './bandScale';
-import { filterVisibleTicks } from './scaleUtil';
 
 export class CategoryScale<D, I = number> extends BandScale<D, I> {
     static override is(value: unknown): value is CategoryScale<any, any> {

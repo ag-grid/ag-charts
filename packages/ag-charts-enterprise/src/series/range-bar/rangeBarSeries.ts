@@ -51,6 +51,7 @@ import {
     rotatedLabelInset,
     toArray,
     toNumber,
+    upsertNodeDatum,
 } from 'ag-charts-core';
 import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
@@ -101,7 +102,6 @@ const {
     toSelectionString,
     HighlightState,
     AggregationManager,
-    upsertNodeDatum,
 } = _ModuleSupport;
 
 interface RangeBarNodeLabelDatum extends Readonly<Point> {

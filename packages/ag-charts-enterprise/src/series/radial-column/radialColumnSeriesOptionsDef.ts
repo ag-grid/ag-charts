@@ -1,16 +1,15 @@
-import { type AgRadialColumnSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgRadialColumnSeriesOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
     commonSeriesOptionsDefs,
     constant,
     number,
+    radialColumnSeriesThemeableOptionsDef,
     required,
     string,
     undocumented,
 } from 'ag-charts-core';
-
-const { radialColumnSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptions> = {
     ...commonSeriesOptionsDefs,

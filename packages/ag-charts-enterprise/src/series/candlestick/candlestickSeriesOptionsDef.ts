@@ -1,7 +1,8 @@
-import { type AgCandlestickSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgCandlestickSeriesOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
+    candlestickSeriesThemeableOptionsDef,
     commonSeriesOptionsDefs,
     constant,
     number,
@@ -9,8 +10,6 @@ import {
     string,
     undocumented,
 } from 'ag-charts-core';
-
-const { candlestickSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions> = {
     ...commonSeriesOptionsDefs,

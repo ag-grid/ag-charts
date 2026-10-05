@@ -1,5 +1,5 @@
 import {
-    type BoxBounds,
+    type AxisPrimaryTickCount,
     EllipsisChar,
     type ITextMeasurer,
     type NormalisedTextOrSegments,
@@ -8,7 +8,6 @@ import {
     ScaleAlignment,
     type ScaleTickParams,
     type WrapOptions,
-    boxCollides,
     buildDateFormatter,
     cachedTextMeasurer,
     compareDates,
@@ -43,7 +42,6 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { expandLabelPadding } from '../label';
 import type { TickInterval } from './axisTick';
@@ -134,20 +132,6 @@ enum ParentLevelMode {
 
 const DENSE_TICK_COUNT = 18;
 const TICK_STEP_VALUES = [1, 2, 3, 4, 6, 8, 9, 10, 12]; // Multiples of 2 & 3
-
-export function axisLabelsOverlap(data: readonly BoxBounds[], padding: number = 0): boolean {
-    const result: BoxBounds[] = [];
-
-    for (const datum of data) {
-        const { x, y, width, height } = datum;
-        if (result.some((l) => boxCollides(l, x, y, width + padding, height + padding))) {
-            return true;
-        }
-        result.push(datum);
-    }
-
-    return false;
-}
 
 function createTimeScaleTicks(
     interval: AnyTimeInterval | number,

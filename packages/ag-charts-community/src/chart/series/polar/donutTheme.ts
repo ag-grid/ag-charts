@@ -1,5 +1,6 @@
 import {
     FILL_PATTERN_DEFAULTS,
+    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     PART_WHOLE_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
@@ -34,9 +35,7 @@ export const donutTheme: ExtensibleSeriesTheme<'donut'> = {
         innerLabels: {
             $apply: {
                 ...LABEL_BOXING_DEFAULTS,
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
+                ...FONT_THEME_DEFAULTS,
                 color: { $ref: 'textColor' },
                 spacing: 2,
             },

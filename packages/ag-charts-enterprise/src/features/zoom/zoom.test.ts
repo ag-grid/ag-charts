@@ -24,9 +24,11 @@ import {
     mouseDownAction,
     mouseMoveAction,
     mouseUpAction,
+    pressKey,
     scrollAction,
     setupMockCanvas,
     setupMockConsole,
+    tabIntoChart,
     twoFingerEnd,
     twoFingerMove,
     twoFingerStart,
@@ -1766,6 +1768,34 @@ describe('Zoom', () => {
                 expect(crossLine.rangeGroup.visible).toBe(false);
                 expect(crossLine.labelGroup.visible).toBe(false);
             });
+        });
+    });
+
+    describe('keyboard navigation panning', () => {
+        it('pans up to a focused datum above the viewport when autoScaling is disabled', async () => {
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 2000 }, (_v, index) => ({ x: index, y: index % 10 })),
+                animation: { enabled: false },
+                zoom: { enabled: true, axes: 'x', autoScaling: { enabled: false } },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                initialState: {
+                    zoom: { ratioX: { start: 0, end: 0.005 }, ratioY: { start: 0, end: 0.25 } },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Datums 0 to 2 are in the viewport, datum 3 (y = 3) is above its top edge.
+            await tabIntoChart(chart);
+            for (let i = 0; i < 3; i++) {
+                await pressKey(chart, 'ArrowRight');
+            }
+
+            const { start = Number.NaN, end = Number.NaN } = chart.getState().zoom?.ratioY ?? {};
+            expect(start).toBeGreaterThan(0);
+            expect(end).toBeGreaterThan(0.25);
+            expect(end - start).toBeCloseTo(0.25, 10);
         });
     });
 });

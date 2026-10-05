@@ -1,24 +1,23 @@
 import { type AgMapMarkerSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
+    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
-    SAFE_RANGE2_OPERATION,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     ValidationError,
+    fillThemeTemplate,
     undocumentedThemeOptions,
     validate,
 } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
-import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
+import { MAP_COLOR_SCALE_THEME, MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
 import { mapMarkerSeriesOptionsDef } from './mapMarkerSeriesOptionsDef';
 
@@ -39,49 +38,19 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
             shape: 'circle',
             size: 7,
             maxSize: 30,
-            fill: applyMapPalette({
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $mapPalette: 'fill' },
-                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            }),
+            fill: applyMapPalette(fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS)),
             stroke: { $mapPalette: 'stroke' },
-            colorScale: {
-                fills: {
-                    $map: [
-                        { color: { $value: '$1' } },
-                        {
-                            $if: [
-                                { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
-                                { $mapPalette: 'divergingColors' },
-                                applyMapPalette(SAFE_RANGE2_OPERATION),
-                            ],
-                        },
-                    ],
-                },
-                mode: 'continuous',
-            },
+            colorScale: MAP_COLOR_SCALE_THEME,
             fillOpacity: 0.5,
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
-            shadow: {
-                enabled: false,
-                color: DEFAULT_SHADOW_COLOUR,
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            },
+            shadow: SHADOW_THEME_DEFAULTS,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,
                 enabled: false,
                 placement: 'bottom',
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
+                ...FONT_THEME_DEFAULTS,
                 color: { $ref: 'textColor' },
                 collision: { alwaysShow: false },
             },

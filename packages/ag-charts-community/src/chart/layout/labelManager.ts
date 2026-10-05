@@ -9,6 +9,7 @@ import {
     type SeriesLabelDefaults,
     type SeriesLabels,
     isPointLabelDatum,
+    labelsAvoidAxisLabels,
     placeLabels,
 } from 'ag-charts-core';
 
@@ -29,6 +30,8 @@ export interface LabelSource {
     readonly nodeDataVersion: number;
     /** `seriesRect` is the placement space's canvas origin; series already work in it and ignore it. */
     getLabelObstacles?(seriesRect: BBox): LabelObstacle[] | undefined;
+    /** Its obstacles are axis labels, which only opted-in labels avoid, so other solves skip the source. */
+    readonly axisLabelObstacles?: boolean;
 }
 
 /**
@@ -55,9 +58,10 @@ function placesLabels(source: LabelSource): source is PlacedLabelSource {
  * derive from node data) and the layout bounds. Unchanged between two updates means placement would
  * produce the same result.
  */
-function placementSignature(sources: LabelSource[], bounds: BoxBounds): string {
+function placementSignature(sources: LabelSource[], bounds: BoxBounds, avoidsAxisLabels: boolean): string {
     let ids = '';
     for (const source of sources) {
+        if (source.axisLabelObstacles === true && !avoidsAxisLabels) continue;
         ids += `${source.id}:${source.nodeDataVersion};`;
     }
     return `${ids}|${bounds.x},${bounds.y},${bounds.width},${bounds.height}`;
@@ -69,15 +73,13 @@ export class LabelManager {
     private lastPlacedLabels?: Map<string, PlacedLabel[]>;
     private readonly sources = new Map<string, LabelSource>();
     private holdingPlacements = false;
+    private avoidsAxisLabels = false;
 
     registerSource(source: LabelSource) {
         this.sources.set(source.id, source);
     }
 
-    /**
-     * A recreated axis registers its replacement before the old one is destroyed, so a source may only
-     * drop its own entry — deleting by id alone would unregister the live replacement.
-     */
+    /** A source may only drop its own entry: a mini-chart axis shares its id with the live main-chart one. */
     unregisterSource(id: string, source?: LabelSource) {
         if (source != null && this.sources.get(id) !== source) return;
         this.sources.delete(id);
@@ -104,15 +106,20 @@ export class LabelManager {
             this.lastPlacementSignature = undefined;
             this.lastPlacedLabels = undefined;
             this.holdingPlacements = false;
+            this.avoidsAxisLabels = false;
             return false;
         }
 
         // SERIES_UPDATE also fires on hover/highlight, where the placement inputs are unchanged, so
         // reuse the cached solve; it is still re-applied below to refresh per-datum highlight styling.
-        const signature = placementSignature(allSources, bounds);
+        const { avoidsAxisLabels } = this;
+        let signature = placementSignature(allSources, bounds, avoidsAxisLabels);
         let placedLabels = this.lastPlacedLabels;
         if (placedLabels == null || signature !== this.lastPlacementSignature) {
             placedLabels = this.computePlacement(placedLabelSources, allSources, bounds, seriesRect);
+            if (this.avoidsAxisLabels !== avoidsAxisLabels) {
+                signature = placementSignature(allSources, bounds, this.avoidsAxisLabels);
+            }
             this.lastPlacementSignature = signature;
             this.lastPlacedLabels = placedLabels;
         }
@@ -161,11 +168,15 @@ export class LabelManager {
             }
         }
 
+        const avoidsAxisLabels = labelsAvoidAxisLabels(this.labelData);
+        this.avoidsAxisLabels = avoidsAxisLabels;
+
         // Every visible series can contribute entity obstacles (bar rects, sectors, markers) that
         // any labels must avoid, even series that don't place labels of their own.
         function gatherObstacles() {
             const obstacles: LabelObstacle[] = [];
             for (const source of allSources) {
+                if (source.axisLabelObstacles === true && !avoidsAxisLabels) continue;
                 const sourceObstacles = source.getLabelObstacles?.(seriesRect);
                 if (sourceObstacles == null) continue;
                 for (const obstacle of sourceObstacles) {

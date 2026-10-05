@@ -1,20 +1,27 @@
-import type { CanvasPoint, DeepPartial, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
+import type {
+    AxisID,
+    AxisPluginModuleInstance,
+    CanvasPoint,
+    ChartAnimationPhase,
+    DeepPartial,
+    DynamicContext,
+    ModuleInstance,
+    NormalisedTextOrSegments,
+} from 'ag-charts-core';
 import {
     AgDocument,
     AsyncAwaitQueue,
-    type AxisID,
-    type AxisPluginModuleInstance,
-    type ChartAnimationPhase,
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
     Color,
     Debug,
-    type ModuleInstance,
     ModuleType,
+    Mutex,
     ZIndexMap,
     callWithContext,
     createId,
+    debouncedCallback,
     enterpriseRegistry,
     entries,
     getPath,
@@ -52,8 +59,6 @@ import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { DebugSelectors } from '../scene/sceneDebug';
-import { Mutex } from '../util/mutex';
-import { debouncedCallback } from '../util/render';
 import { Background } from './background/background';
 import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
@@ -1149,32 +1154,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         });
     }
 
-    private updateThemeClassName() {
-        const themeClassNamePrefix = 'ag-charts-theme-';
-        const validThemeClassNames = [`${themeClassNamePrefix}default`, `${themeClassNamePrefix}default-dark`];
-
-        let themeClassName = validThemeClassNames[0];
-        let isDark = false;
-
-        let { theme } = this.chartOptions.processedOptions;
-        while (typeof theme !== 'string' && theme != null) {
-            theme = theme.baseTheme;
-        }
-
-        if (typeof theme === 'string') {
-            themeClassName = theme.replace('ag-', themeClassNamePrefix);
-            isDark = theme.includes('-dark');
-        }
-
-        if (!validThemeClassNames.includes(themeClassName)) {
-            themeClassName = isDark ? validThemeClassNames[1] : validThemeClassNames[0];
-        }
-
-        this.ctx.domManager.setThemeClass(themeClassName);
-    }
-
     private updateDOM() {
-        this.updateThemeClassName();
+        this.ctx.domManager.setDarkTheme(this.chartOptions.activeTheme.isDark);
 
         const { enabled, tabIndex } = this.ctx.chartState.getValue('options', 'keyboard');
         this.ctx.domManager.setTabGuardIndex(enabled ? (tabIndex ?? 0) : -1);

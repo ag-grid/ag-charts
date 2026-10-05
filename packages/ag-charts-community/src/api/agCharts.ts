@@ -5,6 +5,7 @@ import {
     MementoCaretaker,
     ModuleRegistry,
     type ModuleScope,
+    Pool,
     deepClone,
     deepFreeze,
     enterpriseRegistry,
@@ -32,7 +33,6 @@ import { detectChartType } from '../chart/mapping/types';
 import { resolveInstanceModuleScope } from '../module/instanceModuleScope';
 import { isCommunityModule } from '../module/moduleIdentity';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
-import { Pool } from '../util/pool';
 import { VERSION } from '../version';
 
 const debug = Debug.create(true, 'opts');

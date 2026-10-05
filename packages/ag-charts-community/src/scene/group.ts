@@ -1,5 +1,5 @@
 import type { SerializedGroupProps, SerializedNodeState } from 'ag-charts-core';
-import { canRenderTextOffscreen, clamp, toIterable } from 'ag-charts-core';
+import { alignBefore, canRenderTextOffscreen, clamp, toIterable } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
@@ -15,7 +15,6 @@ import {
     Translatable,
     type TranslatableType,
 } from './transformable';
-import { alignBefore } from './util/pixel';
 import { type ZIndex, compareZIndex } from './zIndex';
 
 interface OffscreenImageBitmap {

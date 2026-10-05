@@ -1,4 +1,4 @@
-import { type AgWaterfallSeriesOptions, type WaterfallSeriesTotalMeta, _ModuleSupport } from 'ag-charts-community';
+import type { AgWaterfallSeriesOptions, WaterfallSeriesTotalMeta } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOfDefs,
@@ -9,10 +9,9 @@ import {
     required,
     string,
     union,
+    waterfallSeriesThemeableOptionsDef,
     without,
 } from 'ag-charts-core';
-
-const { waterfallSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = {
     ...waterfallSeriesThemeableOptionsDef,

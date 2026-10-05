@@ -271,33 +271,6 @@ In this configuration:
 - `tile.highlight` controls the tiles themselves. When a group is hovered, only the `fillOpacity` and `strokeOpacity` styles are inherited by its tiles.
 - Providing `fill`/`stroke` overrides allows highlight colours to take precedence over colour scales.
 
-## Shadows
-
-{% chartExampleRunner title="Tile Shadow" name="tile-shadow" type="generated" /%}
-
-A drop shadow can be added behind the tiles using the `shadow` property on `tile`, or behind the groups using the
-`shadow` property on `group`. Shadows are disabled by default.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'treemap',
-            labelKey: 'title',
-            tile: {
-                shadow: {
-                    enabled: true,
-                    color: 'rgba(0, 0, 0, 0.4)',
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 6,
-                },
-            },
-        },
-    ],
-}
-```
-
 ## Treemap Chart Examples
 
 {% galleryExamples series="treemap" /%}

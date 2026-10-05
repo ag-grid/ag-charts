@@ -73,6 +73,7 @@ priceVolumeOptionsDef.overrideDevicePixelRatio = undocumented(positiveNumber);
 // @ts-expect-error undocumented option
 priceVolumeOptionsDef.foreground = undocumented(defined);
 
+const NO_UNHIGHLIGHT_THEME = { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } };
 const VOLUME_PROFILE_ENABLED = { $and: [{ $preset: 'volumeProfile' }, { $preset: ['volumeProfile/enabled', true] }] };
 const HLC_UP_BAND_INDEX = {
     $if: [
@@ -174,18 +175,12 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
         bar: {
             series: {
                 fillOpacity: 0.5,
-                highlight: {
-                    unhighlightedItem: { opacity: 1 },
-                    unhighlightedSeries: { opacity: 1 },
-                },
+                highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
         candlestick: {
             series: {
-                highlight: {
-                    unhighlightedItem: { opacity: 1 },
-                    unhighlightedSeries: { opacity: 1 },
-                },
+                highlight: NO_UNHIGHLIGHT_THEME,
                 item: {
                     up: {
                         fill: {
@@ -228,21 +223,14 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
         },
         ohlc: {
             series: {
-                highlight: {
-                    unhighlightedItem: { opacity: 1 },
-                    unhighlightedSeries: { opacity: 1 },
-                },
+                highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
         'range-area': {
             series: {
                 fillOpacity: 0.3,
                 strokeWidth: 2,
-                highlight: {
-                    bringToFront: false,
-                    unhighlightedItem: { opacity: 1 },
-                    unhighlightedSeries: { opacity: 1 },
-                },
+                highlight: { ...NO_UNHIGHLIGHT_THEME, bringToFront: false },
                 fill: {
                     $switch: [
                         { $preset: 'chartType' },
@@ -279,10 +267,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
         },
         'range-bar': {
             series: {
-                highlight: {
-                    unhighlightedItem: { opacity: 1 },
-                    unhighlightedSeries: { opacity: 1 },
-                },
+                highlight: NO_UNHIGHLIGHT_THEME,
                 fill: {
                     $switch: [
                         { $preset: 'chartType' },

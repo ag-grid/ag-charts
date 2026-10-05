@@ -288,7 +288,7 @@ export interface PointLabelDatum {
     readonly ownBoxLabelsCollide?: boolean;
 }
 
-export type ObstacleCategory = 'marker' | 'label' | 'seriesItem';
+export type ObstacleCategory = 'marker' | 'label' | 'seriesItem' | 'axisLabel';
 
 /** Per-category toggle: `false` disables avoidance of that obstacle category. */
 export interface CollideWith {
@@ -297,6 +297,8 @@ export interface CollideWith {
     readonly seriesItem?: boolean;
     /** Whether the label must stay inside the series plotting area; a series attaches its plot region when set. */
     readonly seriesArea?: boolean;
+    /** Opt-in, unlike the other categories: only `true` makes axis tick labels obstacles. */
+    readonly axisLabel?: boolean;
 }
 
 /**
@@ -361,14 +363,30 @@ export interface SeriesLabels {
     readonly resolveCandidate?: PositionedCandidateResolver;
 }
 
+/** Whether any label opts in to avoiding axis labels, so a solve without one can skip gathering them. */
+export function labelsAvoidAxisLabels(labelData: ReadonlyMap<string, SeriesLabels>): boolean {
+    for (const { datums, defaults } of labelData.values()) {
+        // OPTIMIZATION: series share one `collideWith` across their datums, so test each object once.
+        let tested: CollideWith | undefined;
+        for (const d of datums) {
+            const collideWith = d.collideWith ?? defaults?.collideWith;
+            if (collideWith === tested) continue;
+            if (collideWith?.axisLabel === true) return true;
+            tested = collideWith;
+        }
+    }
+    return false;
+}
+
 /** Resolves the user-facing `collideWith` flags into the engine's {@link CollideWith}, applying the defaults. */
 export function resolveCollideWith(collision: NormalisedChartLabelCollisionOptions): CollideWith {
-    const { markers, labels, seriesItems, seriesArea } = collision.collideWith ?? {};
+    const { markers, labels, seriesItems, seriesArea, axisLabels } = collision.collideWith ?? {};
     return {
         marker: markers ?? true,
         label: labels ?? true,
         seriesItem: seriesItems ?? false,
         seriesArea: seriesArea ?? true,
+        axisLabel: axisLabels ?? false,
     };
 }
 
@@ -817,7 +835,8 @@ function obstacleExcluded(o: LabelObstacle): boolean {
         return true;
     }
 
-    return candidateCollideWith?.[category] === false;
+    const enabled = candidateCollideWith?.[category];
+    return category === 'axisLabel' ? enabled !== true : enabled === false;
 }
 
 /**

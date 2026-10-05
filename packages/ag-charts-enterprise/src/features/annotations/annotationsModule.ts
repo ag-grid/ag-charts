@@ -1,5 +1,5 @@
 import { type AgAnnotationsOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import { type PluginModuleDefinition } from 'ag-charts-core';
+import { type PluginModuleDefinition, annotationOptionsDef } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { SharedToolbar } from '../shared-toolbar/sharedToolbar';
@@ -15,7 +15,7 @@ export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions, _Mo
     enterprise: true,
     version: VERSION,
 
-    options: _ModuleSupport.annotationOptionsDef,
+    options: annotationOptionsDef,
     themeTemplate: annotationsTheme,
 
     create: (ctx) => new Annotations(ctx),

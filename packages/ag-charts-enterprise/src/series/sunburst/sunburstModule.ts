@@ -1,15 +1,15 @@
 import { type AgSunburstSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     BASE_FONT_SIZE,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
+    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    cycledFillThemeTemplate,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -25,15 +25,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             $applyCycle: [
                 { $size: { $path: ['./data', { $path: '/data' }] } },
                 { $palette: 'fills' },
-                {
-                    $applySwitch: [
-                        { $path: ['/type', undefined, { $value: '$1' }] },
-                        { $value: '$1' },
-                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
-                        ['pattern', FILL_PATTERN_DEFAULTS],
-                        ['image', FILL_IMAGE_DEFAULTS],
-                    ],
-                },
+                cycledFillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS),
             ],
         },
         strokes: {
@@ -48,13 +40,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         strokeOpacity: 1,
         cornerRadius: 0,
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: true,
@@ -81,9 +67,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         innerLabels: {
             $apply: {
                 ...LABEL_BOXING_DEFAULTS,
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
+                ...FONT_THEME_DEFAULTS,
                 color: { $ref: 'textColor' },
                 spacing: 2,
             },

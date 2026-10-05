@@ -131,7 +131,7 @@ function getPublicOperation(
             }
 
             // Pass the raw `ontoColor` (not `{ $ref }`) so a literal reaches `Color.fromString` and a `var(--…)` is
-            // substituted for its computed colour by `resolveValueOrSymbol`.
+            // substituted for its computed colour by `resolveValueOrCssVariable`.
             if ('ontoColor' in value && typeof value.ontoColor === 'string' && keys.length === 3 + privateOperation) {
                 return { operation: ColorOperation.Mix, values: [{ $ref: value.ref }, value.ontoColor, ratio] };
             }
@@ -193,6 +193,7 @@ enum ChartOperation {
     IsChartType = '$isChartType',
     IsPackageType = '$isPackageType',
     IsSeriesType = '$isSeriesType',
+    LightDark = '$lightDark',
 }
 
 const chartOperations: Record<ChartOperation, OperationFns> = {
@@ -200,6 +201,7 @@ const chartOperations: Record<ChartOperation, OperationFns> = {
     $isChartType: { dependencies: seriesTypeDependencyFactory, resolve: isChartTypeOperation },
     $isPackageType: isPackageTypeOperation,
     $isSeriesType: { dependencies: seriesTypeDependencyFactory, resolve: isSeriesTypeOperation },
+    $lightDark: lightDarkOperation,
 };
 
 function isPackageTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -209,6 +211,14 @@ function isPackageTypeOperation(graph: OptionsGraphInterface, vertex: VertexInte
     if (value === 'enterprise') return isEnterprise;
     if (value === 'community') return !isEnterprise;
     return false;
+}
+
+function lightDarkOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [lightVertex, darkVertex] = values;
+    const branchVertex = graph.isDark ? darkVertex : lightVertex;
+    if (branchVertex == null) return;
+
+    return resolveConditionalBranch(graph, vertex, branchVertex);
 }
 
 function seriesTypeDependencyFactory(

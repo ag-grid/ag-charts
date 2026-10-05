@@ -1,20 +1,19 @@
 import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
+    BAR_LABEL_COLLISION_THEME,
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
+    FONT_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
-    LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
-    undocumentedThemeOptions,
+    fillThemeTemplate,
 } from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -29,15 +28,7 @@ import { predictCartesianNonPrimitiveAxis } from './util';
 const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
-        fill: {
-            $applySwitch: [
-                { $path: 'type' },
-                { $palette: 'fill' },
-                ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                ['image', FILL_IMAGE_DEFAULTS],
-                ['pattern', FILL_PATTERN_DEFAULTS],
-            ],
-        },
+        fill: fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
         stroke: { $palette: 'stroke' },
         strokeWidth: 1,
         fillOpacity: 1,
@@ -49,27 +40,15 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            ...FONT_THEME_DEFAULTS,
             spacing: 8,
             padding: 8,
-            collision: {
-                threshold: 4,
-                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
-                ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
-            },
+            collision: BAR_LABEL_COLLISION_THEME,
             insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             placement: 'inside-center',
         },
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
         tooltip: { interaction: { enabled: false } },
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
     },

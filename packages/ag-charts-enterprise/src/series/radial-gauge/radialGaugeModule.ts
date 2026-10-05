@@ -1,6 +1,7 @@
 import { type AgRadialGaugePreset, VERSION } from 'ag-charts-community';
 import {
     FONT_SIZE_RATIO,
+    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
@@ -55,9 +56,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 },
                 label: {
                     enabled: true,
-                    fontWeight: { $ref: 'fontWeight' },
-                    fontSize: { $ref: 'fontSize' },
-                    fontFamily: { $ref: 'fontFamily' },
+                    ...FONT_THEME_DEFAULTS,
                     color: { $ref: 'textColor' },
                     spacing: 12,
                     avoidCollisions: true,
@@ -136,9 +135,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                     label: {
                         enabled: true,
                         fontStyle: 'normal',
-                        fontWeight: { $ref: 'fontWeight' },
-                        fontSize: { $ref: 'fontSize' },
-                        fontFamily: { $ref: 'fontFamily' },
+                        ...FONT_THEME_DEFAULTS,
                         color: { $ref: 'textColor' },
                         spacing: 5,
                     },

@@ -1,4 +1,5 @@
 import {
+    type NormalisedChartOverlayOptions,
     type NormalisedTextOrSegments,
     callWithContext,
     coerceTextValue,
@@ -9,20 +10,13 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type {
-    AgChartOverlayOptions,
-    AgChartOverlayRendererParams,
-    DatumDefault,
-    ImageSegment,
-    Renderer,
-} from 'ag-charts-types';
+import type { AgChartOverlayRendererParams, DatumDefault, ImageSegment, Renderer } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
 import type { AnimationManager } from '../interaction/animationManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-charts-overlay';
-export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-charts-dark-overlay';
 
 function imageVerticalAlignToCss(verticalAlign: ImageSegment['verticalAlign']): string {
     switch (verticalAlign) {
@@ -53,8 +47,6 @@ export function imageSegmentStyle(segment: ImageSegment): Partial<CSSStyleDeclar
         borderRadius: segment.cornerRadius == null ? '' : `${segment.cornerRadius}px`,
     };
 }
-
-export type NormalisedChartOverlayOptions = Omit<AgChartOverlayOptions, 'text'> & { text?: NormalisedTextOrSegments };
 
 export class Overlay {
     enabled = true;

@@ -1,4 +1,4 @@
-import type { CssColor, CssShadow, FontFamilyFull, FontSize, FontWeight, PixelSize } from './types';
+import type { CssColor, CssShadow, FontFamilyFull, FontSize, FontWeight, PixelSize, TextAlign } from './types';
 
 type ColorKeys<T> = {
     [K in keyof T]: T[K] extends AgCssColorOrRef ? K : never;
@@ -504,6 +504,15 @@ export interface AgChartPrivateThemeParams {
     // TODO: move `separateLinesColor` to this interface.
 
     focusColor?: CssColor;
+    annotationColor?: CssColor;
+    annotationTextColor?: CssColor;
+    annotationHandleColor?: CssColor;
+    annotationTextboxTextColor?: CssColor;
+    annotationTextboxBackgroundColor?: CssColor;
+    annotationTextboxBorderColor?: CssColor;
+    annotationDividerColor?: CssColor;
+    captionLayoutStyle?: 'block' | 'overlay';
+    captionAlignment?: TextAlign;
 }
 
 export interface AgChartAllThemeParams extends AgChartThemeParams, AgChartPrivateThemeParams {}

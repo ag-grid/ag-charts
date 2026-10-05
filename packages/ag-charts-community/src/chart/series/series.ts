@@ -39,6 +39,7 @@ import {
     createId,
     isGradientFill,
     isPatternFill,
+    isSupportedMarkerShape,
     jsonDiff,
     mergeDefaults,
     nearestSquared,
@@ -87,7 +88,6 @@ import { type FormatterCache, type LabelFormatSource, LabelValueFormatter } from
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import { markerStrokePickInflation } from '../marker/marker';
-import { isSupportedMarkerShape } from '../marker/util';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import type {
@@ -1924,12 +1924,6 @@ export abstract class Series<
 
     public pickViewportFocus(_opts: PickViewportFocusInputs): PickFocusOutputs | undefined {
         return undefined;
-    }
-
-    // Override in y-up series (network/org) to mirror y so `calcPanToBBoxRatios` (y-down) pans
-    // the right direction. Default identity.
-    public mapFocusBBoxToPanTarget(_seriesRect: BoxBounds, focusBBox: Readonly<BBox>): BoxBounds {
-        return focusBBox;
     }
 
     public resetDatumCallbackCache() {

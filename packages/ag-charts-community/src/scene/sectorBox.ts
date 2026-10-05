@@ -1,5 +1,6 @@
+import { type Interpolating, interpolate } from 'ag-charts-core';
+
 // For small data structs like a bounding box, objects are superior to arrays
-import { type Interpolating, interpolate } from '../util/interpolating';
 
 export class SectorBox implements Interpolating<SectorBox> {
     constructor(

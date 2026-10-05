@@ -1,8 +1,7 @@
 import type { ScaleAlignment } from 'ag-charts-core';
-import { clamp } from 'ag-charts-core';
+import { clamp, unpackDomainMinMax } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
-import { unpackDomainMinMax } from './scaleUtil';
 
 /**
  * Maps a discrete domain to a continuous numeric range.

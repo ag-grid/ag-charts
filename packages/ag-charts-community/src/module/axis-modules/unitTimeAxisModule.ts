@@ -2,18 +2,16 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedUnitTimeAxisOptions,
+    commonAxisThemeTemplate,
     mergeDefaults,
+    parentLevelAxisThemeTemplate,
+    titleAxisThemeTemplate,
+    unitTimeAxisOptionsDefs,
 } from 'ag-charts-core';
 import type { AgUnitTimeAxisOptions } from 'ag-charts-types';
 
-import { unitTimeAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { UnitTimeAxis } from '../../chart/axis/unitTimeAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import {
-    commonAxisThemeTemplate,
-    parentLevelAxisThemeTemplate,
-    titleAxisThemeTemplate,
-} from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';

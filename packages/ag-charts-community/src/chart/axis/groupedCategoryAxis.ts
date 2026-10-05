@@ -1,7 +1,12 @@
-import type { AxisID, DynamicContext, NormalisedGroupedCategoryAxisOptions } from 'ag-charts-core';
+import type {
+    AxisID,
+    AxisPrimaryTickCount,
+    DynamicContext,
+    NormalisedGroupedCategoryAxisOptions,
+    ScaleTickParams,
+    WrapOptions,
+} from 'ag-charts-core';
 import {
-    type ScaleTickParams,
-    type WrapOptions,
     angularPadding,
     createIdsGenerator,
     extent,
@@ -11,6 +16,7 @@ import {
     isArray,
     isObject,
     isTruncated,
+    labelExceedsBand,
     normalizeAngle360FromDegrees,
     sortBasedOnArray,
     toArray,
@@ -24,7 +30,6 @@ import { BBox } from '../../scene/bbox';
 import { PointerEvents } from '../../scene/node';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
 import type { AxisPickDatum, LabelNodeDatum } from './axis';
@@ -338,7 +343,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 const { width, height } = tempText.getBBox();
                 const labelSize = horizontal ? width : height;
                 const availableRange = isLeaf ? step : datum.leafCount * step;
-                if (labelSize > availableRange) {
+                if (labelExceedsBand(labelSize, availableRange)) {
                     labelBBoxes.delete(index);
                     continue;
                 }
@@ -656,6 +661,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
      */
     override update() {
         if (!this.computedLayout) return;
+        this.labelSource.nodeDataVersion++;
 
         // Skip animations only when the domain changes (not on initial load or other updates)
         if (!this.scale.animatable) {
@@ -742,6 +748,10 @@ export class GroupedCategoryAxis extends CategoryAxis<
         this.updateTitle(this.scale.domain, spacing);
         this.notifyAxisPlugins('onAxisUpdate');
         this.resetSelectionNodes();
+    }
+
+    protected override getDrawnTickLabels() {
+        return this.computedLayout?.tickLabelLayout;
     }
 
     override calculateLayout(_primaryTickCount?: AxisPrimaryTickCount, chartLayout?: ChartLayout) {

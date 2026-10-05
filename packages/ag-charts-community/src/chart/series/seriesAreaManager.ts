@@ -1,5 +1,5 @@
 import type { CallbackParamRules, CanvasPoint, CurrentPoint, DynamicContext, Point, Writeable } from 'ag-charts-core';
-import { ChartUpdateType, Vec4, clamp, createId } from 'ag-charts-core';
+import { BaseManager, ChartUpdateType, Vec4, clamp, createId, debouncedAnimationFrame } from 'ag-charts-core';
 import type {
     AgActiveItemState,
     AgChartClickEvent,
@@ -29,8 +29,6 @@ import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import type { Node as SceneNode } from '../../scene/node';
 import { Transformable } from '../../scene/transformable';
-import { BaseManager } from '../../util/baseManager';
-import { debouncedAnimationFrame } from '../../util/render';
 import type { Widget } from '../../widget/widget';
 import type {
     ClickWidgetEvent,
@@ -1169,8 +1167,7 @@ export class SeriesAreaManager extends BaseManager {
             const { x, y } = focusBBox.computeCenter();
 
             if (!hoverRect.containsPoint(x, y)) {
-                const panTarget = focus.series.mapFocusBBoxToPanTarget(hoverRect, focusBBox);
-                const panSuccess = this.chart.ctx.zoomManager?.panToBBox(hoverRect, panTarget);
+                const panSuccess = this.chart.ctx.zoomManager?.panToBBox(hoverRect, focusBBox);
                 if (panSuccess) {
                     // Wait for an update to ensure that we show the tooltip/highlight correctly.
                     return PickedFocusStatus.PAN_REQUIRED;

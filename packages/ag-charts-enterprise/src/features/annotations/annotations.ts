@@ -11,6 +11,7 @@ import {
     ChartUpdateType,
     type CurrentPoint,
     type DynamicContext,
+    type NormalisedAnnotationsOptions,
     type Point,
     Vec2,
     addValues,
@@ -88,7 +89,7 @@ export class Annotations extends AbstractModuleInstance {
 
     // Annotations is only created when the `annotations` subtree is configured, so assert
     // the subtree's presence here and rely on annotationsTheme for field-level defaults.
-    private get opts(): _ModuleSupport.NormalisedAnnotationsOptions {
+    private get opts(): NormalisedAnnotationsOptions {
         return this.ctx.chartState.getValue('options', 'annotations')!;
     }
 

@@ -18,21 +18,21 @@ const stale = (demo: string, framework: string): StalePortReport => ({
 
 describe('partitionStalePorts', () => {
     const committed = [
-        port('financial', 'angular'),
-        port('financial', 'vue'),
+        port('trading-terminal', 'angular'),
+        port('trading-terminal', 'vue'),
         port('procurement', 'angular'),
         port('web-analytics', 'typescript'),
     ];
 
     it('compares the current ports and skips the stale ones, recording why', () => {
         const { current, skipped } = partitionStalePorts(committed, [
-            stale('financial', 'angular'),
-            stale('financial', 'vue'),
+            stale('trading-terminal', 'angular'),
+            stale('trading-terminal', 'vue'),
         ]);
         expect(current).toEqual([port('procurement', 'angular'), port('web-analytics', 'typescript')]);
         expect(skipped).toEqual([
-            { ...stale('financial', 'angular'), reason: 'stale' },
-            { ...stale('financial', 'vue'), reason: 'stale' },
+            { ...stale('trading-terminal', 'angular'), reason: 'stale' },
+            { ...stale('trading-terminal', 'vue'), reason: 'stale' },
         ]);
     });
 
@@ -49,19 +49,19 @@ describe('partitionStalePorts', () => {
         );
         expect(current).toEqual([]);
         expect(skipped.map(({ demo, framework }) => `${demo}/${framework}`)).toEqual([
-            'financial/angular',
-            'financial/vue',
+            'trading-terminal/angular',
+            'trading-terminal/vue',
             'procurement/angular',
             'web-analytics/typescript',
         ]);
     });
 
     it('ignores a stale entry for a port that is not committed', () => {
-        expect(partitionStalePorts([], [stale('financial', 'angular')])).toEqual({ current: [], skipped: [] });
+        expect(partitionStalePorts([], [stale('trading-terminal', 'angular')])).toEqual({ current: [], skipped: [] });
     });
 
     it('skips nothing when stale ports are included', () => {
-        const { current, skipped } = partitionStalePorts(committed, [stale('financial', 'angular')], true);
+        const { current, skipped } = partitionStalePorts(committed, [stale('trading-terminal', 'angular')], true);
         expect(current).toEqual(committed);
         expect(skipped).toEqual([]);
     });
@@ -83,8 +83,8 @@ describe('readStaleReport', () => {
     });
 
     it('reads the report CI wrote, named by PARITY_STALE_REPORT', () => {
-        vi.stubEnv('PARITY_STALE_REPORT', writeReport(JSON.stringify({ stale: [stale('financial', 'vue')] })));
-        expect(readStaleReport()).toEqual([stale('financial', 'vue')]);
+        vi.stubEnv('PARITY_STALE_REPORT', writeReport(JSON.stringify({ stale: [stale('trading-terminal', 'vue')] })));
+        expect(readStaleReport()).toEqual([stale('trading-terminal', 'vue')]);
     });
 
     it('rejects a file that is not a stale report rather than skipping nothing', () => {

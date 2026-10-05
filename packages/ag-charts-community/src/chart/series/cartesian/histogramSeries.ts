@@ -1,22 +1,22 @@
 import type {
     BoxBounds,
     CallbackParamRules,
+    DomainWithMetadata,
     DynamicContext,
     LabelFit,
+    Mutable,
     NormalisedHistogramSeriesOptions,
     NormalisedHistogramSeriesOwnOptions,
     NormalisedHistogramSeriesStyle,
     NormalisedTextOrSegments,
     PlacedLabel,
+    Point,
     PointLabelDatum,
     PositionedCandidateResolver,
+    RequireOptional,
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
-    type DomainWithMetadata,
-    type Mutable,
-    type Point,
-    type RequireOptional,
     addValues,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
@@ -45,6 +45,7 @@ import {
     tickStep,
     toArray,
     toNumber,
+    upsertNodeDatum,
 } from 'ag-charts-core';
 import type {
     AgHistogramSeriesBinParams,
@@ -128,7 +129,6 @@ import type {
     CartesianSeriesNodeDatum,
     CartesianSeriesTypes,
 } from './cartesianSeriesTypes';
-import { upsertNodeDatum } from './cartesianSeriesUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;

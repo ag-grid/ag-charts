@@ -14,7 +14,7 @@ SKIP_FORMAT="${2:-no}"
 # before any package.json is bumped, while the committed yarn.lock still matches.
 if ! node -e "require.resolve('prettier')" >/dev/null 2>&1; then
     echo "prettier is not installed - running yarn install for the demo seed tooling"
-    yarn install --frozen-lockfile --ignore-scripts --prefer-offline
+    YARN_ENABLE_SCRIPTS=false yarn install --immutable
 fi
 
 PACKAGES=(
@@ -73,3 +73,6 @@ if [ "$SKIP_FORMAT" != "yes" ] && [ -n "$PACKAGE_FILES" ]
     npx prettier -w $PACKAGE_FILES
 fi
 
+# Yarn 4 records each workspace's version in yarn.lock, so refresh the lockfile to match the bumped
+# package.json files - otherwise CI's `yarn install --immutable` rejects the bump commit.
+YARN_ENABLE_SCRIPTS=false yarn install --mode=update-lockfile

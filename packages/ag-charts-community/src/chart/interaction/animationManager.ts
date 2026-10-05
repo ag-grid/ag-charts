@@ -1,4 +1,4 @@
-import { AgDocument, Debug, EventEmitter, type EventListener, Logger } from 'ag-charts-core';
+import { AgDocument, Debug, EventEmitter, type EventListener, Logger, type Mutex } from 'ag-charts-core';
 
 import type {
     AdditionalAnimationOptions,
@@ -8,7 +8,6 @@ import type {
     IAnimation,
 } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
-import type { Mutex } from '../../util/mutex';
 import { MAX_ANIMATABLE_NODES } from '../data/processors';
 import { AnimationBatch } from './animationBatch';
 import { InteractionManager, InteractionState } from './interactionManager';

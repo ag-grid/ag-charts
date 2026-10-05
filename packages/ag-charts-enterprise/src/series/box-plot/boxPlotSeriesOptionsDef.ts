@@ -1,7 +1,8 @@
-import { type AgBoxPlotSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgBoxPlotSeriesOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
+    boxPlotSeriesThemeableOptionsDef,
     commonSeriesOptionsDefs,
     constant,
     positiveNumberNonZero,
@@ -10,8 +11,6 @@ import {
     shapeSegmentation,
     string,
 } from 'ag-charts-core';
-
-const { boxPlotSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     ...commonSeriesOptionsDefs,

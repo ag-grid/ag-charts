@@ -33,17 +33,17 @@ const SANCTIONED_AMBIENT_LOGGING = [
     '/utils/data/json.ts',
     // The unsupported-browser warning is a property of the environment, not of a chart: per-chart
     // scoping would repeat it once per chart on the same browser.
-    '/util/browser.ts',
+    '/utils/dom/browser.ts',
     // Runs before any chart exists.
-    '/util/time-interop.ts',
+    '/utils/time/timeInterop.ts',
     // Default for the AG Grid `_Theme.getChartTheme(value)` entry point, which takes no logger.
     '/chart/mapping/themes.ts',
     // Pure parsers and formatters with no owner.
-    '/util/svg.ts',
+    '/rendering/svg.ts',
     // Static `FormatManager.getFormatter`, reached from properties classes with no chart.
     '/chart/formatter/formatManager.ts',
     // Global error interception, by definition not attributable to one chart.
-    '/util/listeners.ts',
+    '/structures/listeners.ts',
     // Development-only diagnostics.
     '/scene/sceneDebug.ts',
     // The manual `OptionsGraph.diagram()` dev entry point only, which prints unconditionally. Every

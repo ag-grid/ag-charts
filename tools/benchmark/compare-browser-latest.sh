@@ -456,7 +456,7 @@ if [[ -d "${worktree_dir}" ]]; then
         log "yarn.lock matches HEAD, skipping install"
     else
         log "yarn.lock differs, reconciling dependencies..."
-        yarn install --prefer-offline || yarn install || {
+        yarn install || {
             soft_fail_or_exit "Failed to install dependencies in worktree"
         }
     fi

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { Size, SizeMonitor } from '../util/sizeMonitor';
+import type { ElementSize, SizeMonitor } from 'ag-charts-core';
+
 import { DOMElementProxy } from './domElementProxy';
 
 function createElement(): HTMLDivElement {
@@ -448,7 +449,7 @@ describe('DOMElementProxy', () => {
             } as unknown as SizeMonitor;
 
             const proxy = new DOMElementProxy(el, { sizeMonitor: mockSizeMonitor });
-            const unsub = proxy.addResizeListener((_size: Size) => {});
+            const unsub = proxy.addResizeListener((_size: ElementSize) => {});
 
             expect(observeFn).toHaveBeenCalledWith(el, expect.any(Function), { skipInitialRead: false });
 

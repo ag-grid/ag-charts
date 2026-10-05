@@ -1,6 +1,7 @@
 import type {
     AxisID,
     AxisPluginModuleInstance,
+    AxisPrimaryTickCount,
     Callback,
     CallbackParam,
     CanvasPoint,
@@ -70,7 +71,6 @@ import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';

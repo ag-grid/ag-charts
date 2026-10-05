@@ -1,14 +1,21 @@
-import { type ChartModuleDefinition, UnknownError, ValidationError, validate, without } from 'ag-charts-core';
+import {
+    type ChartModuleDefinition,
+    type ModuleOwnedChartOptions,
+    UnknownError,
+    ValidationError,
+    commonChartThemeTemplate,
+    polarChartOptionsDefs,
+    validate,
+    without,
+} from 'ag-charts-core';
 import type { AgPolarChartOptions } from 'ag-charts-types';
 
 import { communityModule } from '../module/moduleIdentity';
 import type { ChartOptions } from '../module/optionsModule';
 import { VERSION } from '../version';
 import type { TransferableResources } from './chart';
-import { type ModuleOwnedChartOptions, polarChartOptionsDefs } from './chartOptionsDefs';
 import { PolarChart } from './polarChart';
 import { SeriesAreaModule } from './series-area/seriesAreaModule';
-import { commonChartThemeTemplate } from './themes/chartThemeTemplate';
 
 export const PolarChartModule: ChartModuleDefinition<Omit<AgPolarChartOptions, ModuleOwnedChartOptions>> =
     /* #__PURE__ */ communityModule({

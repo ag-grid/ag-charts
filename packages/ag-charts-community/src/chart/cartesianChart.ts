@@ -1,4 +1,4 @@
-import type { CanvasPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
+import type { AxisPrimaryTickCount, CanvasPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
 import { ChartAxisDirection, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCoordinates } from 'ag-charts-types';
 
@@ -6,7 +6,6 @@ import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import { ContinuousScale } from '../scale/continuousScale';
 import type { BBox } from '../scene/bbox';
-import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import { CartesianAxis } from './axis/cartesianAxis';
 import { CategoryAxis } from './axis/categoryAxis';
 import { NumberAxis } from './axis/numberAxis';
@@ -85,6 +84,15 @@ export class CartesianChart extends Chart {
         this.syncAxisChanges(newValue, oldValue);
 
         if (this.ctx != null) {
+            // Registered here rather than by the axis, so mini-chart axes sharing these ids never replace them.
+            const { labelManager } = this.ctx;
+            for (const axis of oldValue ?? []) {
+                labelManager.unregisterSource(axis.labelSource.id, axis.labelSource);
+            }
+            for (const axis of newValue) {
+                labelManager.registerSource(axis.labelSource);
+            }
+
             this.ctx.zoomManager?.setAxes(
                 newValue.filter((axis) => {
                     const { ignoreZoom, linkZoom } = axis.options as { ignoreZoom?: boolean; linkZoom?: string };

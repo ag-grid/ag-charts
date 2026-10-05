@@ -79,8 +79,8 @@ function fakeFetch({ pages = {}, statuses = {}, json = {} } = {}) {
 }
 
 const base = {
-    seeds: ['financial/angular', 'financial/react', 'procurement/react'],
-    demoPages: [{ path: 'examples/', demoId: 'financial' }],
+    seeds: ['trading-terminal/angular', 'trading-terminal/react', 'procurement/react'],
+    demoPages: [{ path: 'examples/', demoId: 'trading-terminal' }],
     productionSiteUrls: ['https://ag-grid.com', 'https://www.ag-grid.com'],
     readSeedManifest: manifestText,
     branch: () => 'latest',
@@ -94,7 +94,7 @@ describe('parseDemoPages', () => {
             'utf8'
         );
         expect(parseDemoPages(registry)).toEqual([
-            { path: 'examples/', demoId: 'financial' },
+            { path: 'examples/', demoId: 'trading-terminal' },
             { path: 'examples-web-analytics/', demoId: 'web-analytics' },
         ]);
     });
@@ -102,24 +102,26 @@ describe('parseDemoPages', () => {
 
 describe('parseSeedLinks', () => {
     it('reads both links of every seed, decoding entities in the href', () => {
-        const html = renderPage([seedLink('financial', 'react', 'React')]).replace('?title=', '?x=1&amp;title=');
+        const html = renderPage([seedLink('trading-terminal', 'react', 'React')]).replace('?title=', '?x=1&amp;title=');
         expect(parseSeedLinks(html)).toEqual([
             {
                 kind: 'stackblitz',
                 framework: 'React',
-                href: `https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/latest/financial/react?x=1&title=AG%20Charts%20Demo%20(React)`,
+                href: `https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/latest/trading-terminal/react?x=1&title=AG%20Charts%20Demo%20(React)`,
             },
-            { kind: 'github', framework: 'React', href: `${TREE}/latest/financial/react` },
+            { kind: 'github', framework: 'React', href: `${TREE}/latest/trading-terminal/react` },
         ]);
     });
 });
 
 describe('resolveSeedLink', () => {
     it('maps a StackBlitz link to the GitHub folder it imports', () => {
-        expect(resolveSeedLink({ kind: 'stackblitz', href: seedLink('financial', 'vue', 'Vue').stackblitz })).toEqual({
+        expect(
+            resolveSeedLink({ kind: 'stackblitz', href: seedLink('trading-terminal', 'vue', 'Vue').stackblitz })
+        ).toEqual({
             ref: 'latest',
-            path: 'financial/vue',
-            githubUrl: `${TREE}/latest/financial/vue`,
+            path: 'trading-terminal/vue',
+            githubUrl: `${TREE}/latest/trading-terminal/vue`,
         });
     });
 
@@ -127,18 +129,23 @@ describe('resolveSeedLink', () => {
         expect(
             resolveSeedLink({
                 kind: 'github',
-                href: 'https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-demos/seeds/financial/vue',
+                href: 'https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-demos/seeds/trading-terminal/vue',
             }).error
         ).toMatch(/does not start with/);
-        expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/financial` }).error).toMatch(/does not name/);
-        expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/financial/vue/src` }).error).toMatch(
+        expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/trading-terminal` }).error).toMatch(
+            /does not name/
+        );
+        expect(resolveSeedLink({ kind: 'github', href: `${TREE}/latest/trading-terminal/vue/src` }).error).toMatch(
             /does not name/
         );
     });
 });
 
 describe('checkDemoSeedLinks', () => {
-    const page = renderPage([seedLink('financial', 'react', 'React'), seedLink('financial', 'angular', 'Angular')]);
+    const page = renderPage([
+        seedLink('trading-terminal', 'react', 'React'),
+        seedLink('trading-terminal', 'angular', 'Angular'),
+    ]);
 
     it('fetches the deployed page and resolves every link it renders, then every manifest', async () => {
         const { fetchImpl, calls } = fakeFetch({ pages: { [`${STAGING}/examples/`]: page } });
@@ -149,10 +156,10 @@ describe('checkDemoSeedLinks', () => {
         expect(calls).toEqual([
             `HEAD ${TREE}/latest`,
             `GET ${STAGING}/examples/`,
-            `HEAD ${TREE}/latest/financial/react`,
-            `HEAD ${TREE}/latest/financial/angular`,
-            `GET ${RAW}/latest/financial/angular/.seed-manifest.json`,
-            `GET ${RAW}/latest/financial/react/.seed-manifest.json`,
+            `HEAD ${TREE}/latest/trading-terminal/react`,
+            `HEAD ${TREE}/latest/trading-terminal/angular`,
+            `GET ${RAW}/latest/trading-terminal/angular/.seed-manifest.json`,
+            `GET ${RAW}/latest/trading-terminal/react/.seed-manifest.json`,
             `HEAD ${TREE}/latest/procurement/react`,
             `GET ${RAW}/latest/procurement/react/.seed-manifest.json`,
         ]);
@@ -162,7 +169,7 @@ describe('checkDemoSeedLinks', () => {
         const { fetchImpl } = fakeFetch({
             pages: {
                 [`${STAGING}/examples/`]: page,
-                [`${RAW}/latest/financial/react/.seed-manifest.json`]: '{ "sourceHash": "older" }\n',
+                [`${RAW}/latest/trading-terminal/react/.seed-manifest.json`]: '{ "sourceHash": "older" }\n',
             },
             statuses: { [`${RAW}/latest/procurement/react/.seed-manifest.json`]: 404 },
         });
@@ -171,13 +178,13 @@ describe('checkDemoSeedLinks', () => {
 
         expect(result.ok).toBe(true);
         expect(result.warnings).toEqual([
-            expect.stringMatching(/latest has a different financial\/react\/\.seed-manifest\.json/),
+            expect.stringMatching(/latest has a different trading-terminal\/react\/\.seed-manifest\.json/),
             expect.stringMatching(/procurement\/react\/\.seed-manifest\.json could not be read .* \(404\)/),
         ]);
     });
 
     it('fails when a folder a rendered link opens does not resolve', async () => {
-        const missing = `${TREE}/latest/financial/angular`;
+        const missing = `${TREE}/latest/trading-terminal/angular`;
         const { fetchImpl } = fakeFetch({ pages: { [`${STAGING}/examples/`]: page }, statuses: { [missing]: 404 } });
 
         const result = await checkDemoSeedLinks({ ...base, siteUrl: STAGING, fetchImpl });
@@ -191,7 +198,7 @@ describe('checkDemoSeedLinks', () => {
     });
 
     it('fails when the page links a ref other than the one this site should link', async () => {
-        const released = renderPage([seedLink('financial', 'react', 'React', 'release-14.2.0')]);
+        const released = renderPage([seedLink('trading-terminal', 'react', 'React', 'release-14.2.0')]);
         const { fetchImpl } = fakeFetch({ pages: { [`${STAGING}/examples/`]: released } });
 
         const result = await checkDemoSeedLinks({ ...base, siteUrl: STAGING, fetchImpl });
@@ -206,12 +213,14 @@ describe('checkDemoSeedLinks', () => {
         const result = await checkDemoSeedLinks({ ...base, siteUrl: STAGING, fetchImpl });
 
         expect(result.errors).toEqual([
-            `${STAGING}/examples/ renders no seed links, but this checkout has seeds financial/angular, financial/react`,
+            `${STAGING}/examples/ renders no seed links, but this checkout has seeds trading-terminal/angular, trading-terminal/react`,
         ]);
     });
 
     it('fails when the page itself cannot be fetched, or links outside the seeds', async () => {
-        const stray = renderPage([{ ...seedLink('financial', 'react', 'React'), github: 'https://example.com/' }]);
+        const stray = renderPage([
+            { ...seedLink('trading-terminal', 'react', 'React'), github: 'https://example.com/' },
+        ]);
         const pages = { [`${STAGING}/examples/`]: stray };
         const { fetchImpl } = fakeFetch({ pages });
 
@@ -230,22 +239,22 @@ describe('checkDemoSeedLinks', () => {
 
     describe('against production', () => {
         const meta = { [`${PRODUCTION}/debug/meta.json`]: { versions: { charts: '14.2.0' } } };
-        const released = renderPage([seedLink('financial', 'react', 'React', 'release-14.2.0')]);
+        const released = renderPage([seedLink('trading-terminal', 'react', 'React', 'release-14.2.0')]);
 
         it('checks the release tag when run from the matching release branch', async () => {
             const { fetchImpl, calls } = fakeFetch({ json: meta, pages: { [`${PRODUCTION}/examples/`]: released } });
 
             const result = await checkDemoSeedLinks({
                 ...base,
-                seeds: ['financial/react'],
+                seeds: ['trading-terminal/react'],
                 siteUrl: PRODUCTION,
                 branch: () => 'b14.2.0',
                 fetchImpl,
             });
 
             expect(result).toEqual({ ok: true, errors: [], warnings: [] });
-            expect(calls).toContain(`HEAD ${TREE}/release-14.2.0/financial/react`);
-            expect(calls).toContain(`GET ${RAW}/release-14.2.0/financial/react/.seed-manifest.json`);
+            expect(calls).toContain(`HEAD ${TREE}/release-14.2.0/trading-terminal/react`);
+            expect(calls).toContain(`GET ${RAW}/release-14.2.0/trading-terminal/react/.seed-manifest.json`);
         });
 
         it('refuses to run from anything but a release branch', async () => {

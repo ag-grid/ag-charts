@@ -3,7 +3,15 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
-import { type CanvasPoint, type OffsetPoint, fromPairs, getDocument, mapValues } from 'ag-charts-core';
+import {
+    type CanvasPoint,
+    type OffsetPoint,
+    alignCentre,
+    fromPairs,
+    getDocument,
+    mapValues,
+    snapDeviceCentre,
+} from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -52,7 +60,6 @@ import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } fro
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import { alignCentre, snapDeviceCentre } from '../../scene/util/pixel';
 import { extractImageData, type setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';

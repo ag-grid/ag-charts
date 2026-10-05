@@ -2,18 +2,45 @@ import {
     type OptionsDefs,
     type PlainObject,
     type Validator,
+    angleCategoryAxisOptionsDefs,
+    angleNumberAxisOptionsDefs,
+    annotationCalloutStylesDefs,
+    annotationCommentStylesDefs,
+    annotationCrossLineStyleDefs,
+    annotationDisjointChannelStyleDefs,
+    annotationFibonacciStylesDefs,
+    annotationLineStyleDefs,
+    annotationMeasurerStylesDefs,
+    annotationNoteStylesDefs,
+    annotationOptionsDef,
+    annotationParallelChannelStyleDefs,
+    annotationQuickMeasurerStylesDefs,
+    annotationShapeStylesDefs,
+    annotationTextStylesDef,
     array,
     arrayOf,
     arrayOfDefs,
     boolean,
     borderOptionsDef,
+    boxPlotSeriesThemeableOptionsDef,
     callbackOf,
+    candlestickSeriesThemeableOptionsDef,
+    cartesianCrossLineLabelOptionsDefs,
+    categoryAxisOptionsDefs,
+    chordSeriesThemeableOptionsDef,
     colorOrRef,
     commonChartOptionsDefs,
+    commonCrossLineLabelOptionsDefs,
+    coneFunnelSeriesThemeableOptionsDef,
     constant,
+    crossLineCommonStyleOptionsDefs,
+    crossLineStyleOptionsDefs,
     defined,
     fillOptionsDef,
     fontOptionsDef,
+    funnelSeriesThemeableOptionsDef,
+    groupedCategoryAxisOptionsDefs,
+    heatmapSeriesThemeableOptionsDef,
     isFunction,
     isObject,
     isSymbol,
@@ -22,23 +49,51 @@ import {
     lineDashOptionsDef,
     linearGaugeSeriesThemeableOptionsDef,
     linearGaugeTargetOptionsDef,
+    logAxisOptionsDefs,
+    mapLineBackgroundSeriesThemeableOptionsDef,
+    mapLineSeriesThemeableOptionsDef,
+    mapMarkerSeriesThemeableOptionsDef,
+    mapShapeBackgroundSeriesThemeableOptionsDef,
+    mapShapeSeriesThemeableOptionsDef,
+    nightingaleSeriesThemeableOptionsDef,
     number,
+    numberAxisOptionsDefs,
     numberFormatValidator,
+    ohlcSeriesThemeableOptionsDef,
     optionsDefs,
     or,
+    ordinalTimeAxisOptionsDefs,
+    organizationSeriesThemeableOptionsDef,
     padding,
     positiveNumber,
+    pyramidSeriesThemeableOptionsDef,
+    radarAreaSeriesThemeableOptionsDef,
+    radarLineSeriesThemeableOptionsDef,
+    radialBarSeriesThemeableOptionsDef,
+    radialColumnSeriesThemeableOptionsDef,
     radialGaugeSeriesThemeableOptionsDef,
     radialGaugeTargetOptionsDef,
+    radiusCategoryAxisOptionsDefs,
+    radiusCrossLineLabelOptionsDefs,
+    radiusNumberAxisOptionsDefs,
+    rangeAreaSeriesThemeableOptionsDef,
+    rangeBarSeriesThemeableOptionsDef,
     ratio,
     required,
+    sankeySeriesThemeableOptionsDef,
     string,
     strokeOptionsDef,
+    sunburstSeriesThemeableOptionsDef,
     textOrSegments,
     themeOperator,
+    timeAxisOptionsDefs,
+    treemapSeriesThemeableOptionsDef,
     undocumented,
     union,
     unionSymbol,
+    unitTimeAxisOptionsDefs,
+    validationsOptionsDef,
+    waterfallSeriesThemeableOptionsDef,
     without,
 } from 'ag-charts-core';
 import type {
@@ -61,27 +116,6 @@ import type {
     AgThemeOverrides,
 } from 'ag-charts-types';
 
-import {
-    cartesianCrossLineLabelOptionsDefs,
-    categoryAxisOptionsDefs,
-    commonCrossLineLabelOptionsDefs,
-    crossLineCommonStyleOptionsDefs,
-    crossLineStyleOptionsDefs,
-    groupedCategoryAxisOptionsDefs,
-    logAxisOptionsDefs,
-    numberAxisOptionsDefs,
-    radiusCrossLineLabelOptionsDefs,
-    timeAxisOptionsDefs,
-    unitTimeAxisOptionsDefs,
-} from '../axesOptionsDefs';
-import {
-    angleCategoryAxisOptionsDefs,
-    angleNumberAxisOptionsDefs,
-    ordinalTimeAxisOptionsDefs,
-    radiusCategoryAxisOptionsDefs,
-    radiusNumberAxisOptionsDefs,
-} from '../axesOptionsEnterpriseDefs';
-import { validationsOptionsDef } from '../chartOptionsDefs';
 import { areaSeriesThemeableOptionsDef } from '../series/cartesian/areaSeriesOptionsDef';
 import { barSeriesThemeableOptionsDef } from '../series/cartesian/barSeriesOptionsDef';
 import { bubbleSeriesThemeableOptionsDef } from '../series/cartesian/bubbleSeriesOptionsDef';
@@ -90,48 +124,6 @@ import { lineSeriesThemeableOptionsDef } from '../series/cartesian/lineSeriesOpt
 import { scatterSeriesThemeableOptionsDef } from '../series/cartesian/scatterSeriesOptionsDef';
 import { donutSeriesThemeableOptionsDef } from '../series/polar/donutSeriesOptionsDef';
 import { pieSeriesThemeableOptionsDef } from '../series/polar/pieSeriesOptionsDef';
-import {
-    annotationCalloutStylesDefs,
-    annotationCommentStylesDefs,
-    annotationCrossLineStyleDefs,
-    annotationDisjointChannelStyleDefs,
-    annotationFibonacciStylesDefs,
-    annotationLineStyleDefs,
-    annotationMeasurerStylesDefs,
-    annotationNoteStylesDefs,
-    annotationOptionsDef,
-    annotationParallelChannelStyleDefs,
-    annotationQuickMeasurerStylesDefs,
-    annotationShapeStylesDefs,
-    annotationTextStylesDef,
-} from './annotationOptionsDef';
-import {
-    boxPlotSeriesThemeableOptionsDef,
-    candlestickSeriesThemeableOptionsDef,
-    chordSeriesThemeableOptionsDef,
-    coneFunnelSeriesThemeableOptionsDef,
-    funnelSeriesThemeableOptionsDef,
-    heatmapSeriesThemeableOptionsDef,
-    mapLineBackgroundSeriesThemeableOptionsDef,
-    mapLineSeriesThemeableOptionsDef,
-    mapMarkerSeriesThemeableOptionsDef,
-    mapShapeBackgroundSeriesThemeableOptionsDef,
-    mapShapeSeriesThemeableOptionsDef,
-    nightingaleSeriesThemeableOptionsDef,
-    ohlcSeriesThemeableOptionsDef,
-    organizationSeriesThemeableOptionsDef,
-    pyramidSeriesThemeableOptionsDef,
-    radarAreaSeriesThemeableOptionsDef,
-    radarLineSeriesThemeableOptionsDef,
-    radialBarSeriesThemeableOptionsDef,
-    radialColumnSeriesThemeableOptionsDef,
-    rangeAreaSeriesThemeableOptionsDef,
-    rangeBarSeriesThemeableOptionsDef,
-    sankeySeriesThemeableOptionsDef,
-    sunburstSeriesThemeableOptionsDef,
-    treemapSeriesThemeableOptionsDef,
-    waterfallSeriesThemeableOptionsDef,
-} from './enterpriseThemeableOptionsDef';
 
 const serializableDate = optionsDefs<AgStateSerializableDate>(
     {
@@ -721,9 +713,8 @@ export const themeOverridesOptionsWithOperatorsDef = mapValues(
     themeOverridesOptionsDef,
     function themeOperatorMapper(value: unknown, key: string | number | symbol): any {
         if (isSymbol(key)) return value;
-        // TODO remove isSymbol from validators after theme symbols have been removed
         if (isFunction(value)) {
-            return or(value as Validator, themeOperator, isSymbol);
+            return or(value as Validator, themeOperator);
         } else if (isObject(value)) {
             return or(
                 optionsDefs(
@@ -731,8 +722,7 @@ export const themeOverridesOptionsWithOperatorsDef = mapValues(
                         ? mapValues(value, (val) => (isObject(val) ? mapValues(val, themeOperatorMapper) : val))
                         : mapValues(value, themeOperatorMapper)
                 ),
-                themeOperator,
-                isSymbol
+                themeOperator
             );
         }
         throw new Error(`Invalid theme override value: ${String(value)}`);

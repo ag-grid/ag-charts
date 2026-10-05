@@ -1,5 +1,4 @@
-import { deviceDimension } from '../util/pixel';
-import { clearContext, debugContext } from './canvasUtil';
+import { clearContext, debugContext, deviceDimension } from 'ag-charts-core';
 
 // Work-around for typing issues with Angular 13+.
 type OffscreenCanvasRenderingContext2D = any;

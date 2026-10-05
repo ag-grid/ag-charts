@@ -39,7 +39,6 @@ export interface IChartTheme {
         altDown: AgPaletteColors;
         altNeutral: AgPaletteColors;
     };
-    getTemplateParameters(): Map<symbol, any>;
 }
 
 export interface _IScene {
@@ -70,7 +69,6 @@ export interface _IScene {
 
 export interface _ITheme {
     themeNames: string[];
-    themeSymbols: Record<string, symbol | boolean | string>;
     getChartTheme(value: unknown): IChartTheme;
     resolveOperation(operation: Operation): any;
 

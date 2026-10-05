@@ -17,7 +17,10 @@ afterEach(() => {
 });
 
 function writeManifest(fields) {
-    writeFileSync(manifestPath, `${JSON.stringify({ demo: 'financial', framework: 'vue', ...fields }, null, 4)}\n`);
+    writeFileSync(
+        manifestPath,
+        `${JSON.stringify({ demo: 'trading-terminal', framework: 'vue', ...fields }, null, 4)}\n`
+    );
 }
 
 describe('stampPortManifest', () => {
@@ -29,7 +32,7 @@ describe('stampPortManifest', () => {
         });
         expect(result).toEqual({ sourceHash: 'sha256-new', sourceCommit: 'new-commit' });
         expect(JSON.parse(readFileSync(manifestPath, 'utf8'))).toEqual({
-            demo: 'financial',
+            demo: 'trading-terminal',
             framework: 'vue',
             sourceHash: 'sha256-new',
             sourceCommit: 'new-commit',

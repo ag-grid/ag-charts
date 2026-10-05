@@ -3,7 +3,9 @@ import {
     type Scale,
     ScaleAlignment,
     type ScaleTickParams,
+    axisLabelsOverlap,
     cachedTextMeasurer,
+    calculateNiceSecondaryAxis,
     countFractionDigits,
     estimateTickCount,
     findMinMax,
@@ -13,6 +15,8 @@ import {
     lowestGranularityForInterval,
     normalizeAngle360FromDegrees,
     rotatePoint,
+    thinTickLabels,
+    tickLabelSpacing,
 } from 'ag-charts-core';
 import type { PaddingOptions, VerticalAlign } from 'ag-charts-types';
 
@@ -22,7 +26,6 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { expandLabelPadding } from '../label';
 import { getVerticalAlignShift } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
@@ -31,7 +34,6 @@ import {
     type AnyTimeInterval,
     type GenerateTicksOptions,
     type TickData,
-    axisLabelsOverlap,
     calculateLabelRotation,
     formatTicks,
     getTextAlign,
@@ -78,8 +80,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
 
     const initialRotation = configuredRotation + defaultRotation;
     const checkLabelOverlap = (tickData: TickData, rotation = 0) => {
-        // minSpacing defaults to 10 unless label is rotated
-        const labelSpacing = label.minSpacing ?? (configuredRotation === 0 && rotation === 0 ? 10 : 0);
+        const labelSpacing = tickLabelSpacing(label.minSpacing, configuredRotation !== 0 || rotation !== 0);
         const labelRotation = initialRotation + rotation;
         const labelPadding = expandLabelPadding(label);
         // Where the band flush will leave each label, rather than where the anchor sits now: rotated
@@ -117,8 +118,6 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     const tryAutoRotate = avoidCollisions && label.autoRotate && label.rotation == null;
 
     let index = 0;
-    let autoRotation = 0;
-    let labelOverlap = true;
     let tickData: TickData = {
         tickDomain: [],
         niceDomain: domain,
@@ -134,20 +133,18 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     // nice domain: at tickCount 1 the scale stops honouring the interval and widens past the data.
     const fixedInterval = options.interval?.step != null || options.interval?.values != null;
 
-    while (labelOverlap && index <= maxIterations) {
-        let intervalIgnored: boolean | undefined;
-        ({ tickData, index, intervalIgnored } = buildTickData(options, tickGenerationType, tickData, index));
-
-        autoRotation =
-            tryAutoRotate && checkLabelOverlap(tickData, 0)
-                ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335)
-                : 0;
-
-        // A step the scale rejected as too dense leaves automatic ticks, which the search can still thin.
-        if (fixedInterval && !intervalIgnored) break;
-
-        labelOverlap = avoidCollisions && checkLabelOverlap(tickData, autoRotation);
-    }
+    const { autoRotation } = thinTickLabels(
+        () => {
+            if (index > maxIterations) return;
+            let intervalIgnored: boolean | undefined;
+            ({ tickData, index, intervalIgnored } = buildTickData(options, tickGenerationType, tickData, index));
+            // A step the scale rejected as too dense leaves automatic ticks, which the search can still thin.
+            return { candidate: tickData, pinned: fixedInterval && !intervalIgnored };
+        },
+        checkLabelOverlap,
+        avoidCollisions,
+        tryAutoRotate ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335) : undefined
+    );
 
     const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
     const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);

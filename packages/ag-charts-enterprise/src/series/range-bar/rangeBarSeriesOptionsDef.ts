@@ -1,4 +1,4 @@
-import { type AgRangeBarSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgRangeBarSeriesOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
@@ -6,14 +6,13 @@ import {
     constant,
     number,
     positiveNumberNonZero,
+    rangeBarSeriesThemeableOptionsDef,
     ratio,
     required,
     shapeSegmentation,
     string,
     undocumented,
 } from 'ag-charts-core';
-
-const { rangeBarSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     ...commonSeriesOptionsDefs,

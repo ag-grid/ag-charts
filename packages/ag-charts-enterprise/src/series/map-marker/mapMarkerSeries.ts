@@ -20,6 +20,7 @@ import {
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
+    isSupportedMarkerShape,
     mergeDefaults,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
@@ -940,8 +941,7 @@ export class MapMarkerSeries
 
             marker.setStyleProperties(style, fillBBox);
             const shadow = this.resolveItemShadow(this.options.shadow, isHighlight, markerDatum.datumIndex);
-            marker.fillShadow =
-                shadow?.enabled && _ModuleSupport.isSupportedMarkerShape(style.shape) ? shadow : undefined;
+            marker.fillShadow = shadow?.enabled && isSupportedMarkerShape(style.shape) ? shadow : undefined;
 
             marker.x = point.x;
             marker.y = point.y;

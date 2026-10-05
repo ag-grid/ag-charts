@@ -127,7 +127,7 @@ export function pinPorts({ seedsDir = SEEDS_DIR, pin = readPinnedChartsVersion({
     return drift;
 }
 
-/** One line per drifted port naming what disagreed, e.g. `seeds/financial/vue: ag-charts-vue3 14.1.0, manifest pinnedVersion 14.1.0`. */
+/** One line per drifted port naming what disagreed, e.g. `seeds/trading-terminal/vue: ag-charts-vue3 14.1.0, manifest pinnedVersion 14.1.0`. */
 export function describeDrift(drift) {
     return drift.map(({ demo, framework, pins, manifest }) => {
         const parts = [

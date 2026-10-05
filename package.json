@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "14.2.0-beta.20261002",
+  "version": "14.2.0-beta.20261004",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -10,7 +10,7 @@
     "clean": "rimraf dist/ packages/*/dist packages/*/lib",
     "preinstall": "./external/ag-shared/scripts/setup-worktree/preinstall-worktree.sh && yarn run preinstall:verify-native-dep-versions",
     "preinstall:verify-native-dep-versions": "./tools/dependencies/check-versions.sh",
-    "postinstall": "npx run-s postinstall:*",
+    "postinstall": "npx run-s 'postinstall:*'",
     "postinstall:0-allow-scripts": "[ -n \"$ALLOW_SCRIPTS_RUNNING\" ] || ALLOW_SCRIPTS_RUNNING=1 yarn allow-scripts",
     "postinstall:patch": "[ \"$AG_WORKTREE_FAST_PATH\" = \"1\" ] || ./external/ag-shared/scripts/apply-patches.sh",
     "postinstall:nx-stop-watch": "[ \"$AG_WORKTREE_FAST_PATH\" = \"1\" ] || pkill -f \"nx dev\" || echo \"Nx watch not running\"",
@@ -24,7 +24,7 @@
   "private": true,
   "engines": {
     "node": "^24.21.0",
-    "yarn": "^1.22.21"
+    "yarn": "^4.10.0"
   },
   "dependencies": {
     "@nicolo-ribaudo/semver-v6": "^6.3.3",
@@ -33,7 +33,6 @@
     "tslib": "^2.8.1"
   },
   "devDependencies": {
-    "acorn": "^8.18.0",
     "@babel/types": "7.29.0",
     "@carbon/icons-react": "^11.79.0",
     "@cspell/dict-en-gb": "^5.0.34",
@@ -55,6 +54,7 @@
     "@swc/core": "1.15.32",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/glob": "^8.1.0",
+    "@types/jest-image-snapshot": "^6.4.2",
     "@types/jscodeshift": "^0.12.0",
     "@types/node": "24.13.6",
     "@types/pixelmatch": "^5.2.4",
@@ -68,6 +68,7 @@
     "@vitest/ui": "2.1.9",
     "@vue/compiler-sfc": "^3.5.13",
     "JSONStream": "1.3.5",
+    "acorn": "^8.18.0",
     "algoliasearch": "^5.59.0",
     "cheerio": "^1.2.0",
     "classnames": "^2.5.1",
@@ -88,6 +89,7 @@
     "glob": "^11.1.0",
     "globals": "^15.12.0",
     "html-minifier-terser": "^7.2.0",
+    "jest-image-snapshot": "^6.5.2",
     "jscodeshift": "^0.16.1",
     "jsdom": "~22.1.0",
     "junit-report-merger": "^9.0.4",
@@ -122,9 +124,7 @@
     "vite": "^8.3.0",
     "vitest": "2.1.9",
     "wait-on": "^9.1.0",
-    "yargs": "^18.2.0",
-    "@types/jest-image-snapshot": "^6.4.2",
-    "jest-image-snapshot": "^6.5.2"
+    "yargs": "^18.2.0"
   },
   "workspaces": {
     "packages": [
@@ -153,34 +153,24 @@
       "tests/server-side-package-tests",
       "tests/vue-package-tests",
       "tests/bundle-treeshake-tests"
-    ],
-    "nohoist": [
-      "**/tinypool",
-      "**/@vue/**",
-      "**/vue",
-      "**/vue-template-compiler"
     ]
   },
   "resolutions": {
     "typescript": "~5.8.3",
-    "**/micromatch": "4.0.8",
-    "**/axios/form-data": "4.0.4",
-    "**/http-proxy/follow-redirects": "1.15.4",
+    "micromatch": "4.0.8",
+    "axios/form-data": "4.0.4",
+    "http-proxy/follow-redirects": "1.15.4",
     "npm-run-all/cross-spawn": "6.0.6",
-    "dependency-cruiser/**/cross-spawn": "7.0.6",
     "eslint/cross-spawn": "7.0.6",
     "patch-package/cross-spawn": "7.0.6",
-    "@angular/cli/**/cross-spawn": "7.0.6",
-    "@angular-devkit/build-angular/**/cross-spawn": "7.0.6",
-    "@swc/cli/**/bin-version/execa/cross-spawn": "7.0.6",
-    "ng-packagr/**/cross-spawn": "7.0.6",
-    "vitest/**/vite": "6.4.3",
+    "vitest/vite": "6.4.3",
     "@modelcontextprotocol/sdk": "1.26.0",
-    "@nx/devkit/**/ejs": "3.1.10",
-    "@nx/devkit/**/ejs/jake": "10.9.4",
-    "@nx/devkit/**/brace-expansion": "2.1.4",
+    "ejs": "3.1.10",
+    "jake": "10.9.4",
     "@svgr/**/lru-cache": "5.1.1",
-    "rulesync/js-yaml": "4.3.2"
+    "rulesync/js-yaml": "4.3.2",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   },
   "lavamoat": {
     "allowScripts": {
@@ -197,5 +187,6 @@
       "vitest>vite-node>vite>esbuild#0.25.0": true,
       "vitest>vite>esbuild#0.25.0": true
     }
-  }
+  },
+  "packageManager": "yarn@4.10.3+sha512.c38cafb5c7bb273f3926d04e55e1d8c9dfa7d9c3ea1f36a4868fa028b9e5f72298f0b7f401ad5eb921749eb012eb1c3bb74bf7503df3ee43fd600d14a018266f"
 }

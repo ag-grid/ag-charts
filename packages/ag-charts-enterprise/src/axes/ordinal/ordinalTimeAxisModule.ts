@@ -3,7 +3,11 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedOrdinalTimeAxisOptions,
+    commonAxisThemeTemplate,
     mergeDefaults,
+    ordinalTimeAxisOptionsDefs,
+    parentLevelAxisThemeTemplate,
+    titleAxisThemeTemplate,
 } from 'ag-charts-core';
 
 import { AxisInteractionModule } from '../../features/axis-interaction/axisInteractionModule';
@@ -18,7 +22,7 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
     version: VERSION,
     dependencies: [CartesianChartModule, AxisInteractionModule, BackgroundRegionsModule],
 
-    options: _ModuleSupport.ordinalTimeAxisOptionsDefs,
+    options: ordinalTimeAxisOptionsDefs,
     themeTemplate: mergeDefaults(
         {
             groupPaddingInner: 0,
@@ -27,9 +31,9 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
             gridLine: { enabled: false },
             interval: { placement: 'between' },
         },
-        _ModuleSupport.titleAxisThemeTemplate,
-        _ModuleSupport.parentLevelAxisThemeTemplate,
-        _ModuleSupport.commonAxisThemeTemplate
+        titleAxisThemeTemplate,
+        parentLevelAxisThemeTemplate,
+        commonAxisThemeTemplate
     ),
 
     create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>

@@ -1,8 +1,15 @@
 import {
     AgDocument,
+    BaseManager,
+    type ElementSize,
+    GuardedElement,
+    type PerWindowEntry,
+    SizeMonitor,
+    StateTracker,
     type StrictHTMLElement,
     createElement,
     createId,
+    createPerWindowRegistry,
     createStyleElement,
     entries,
     isDirectionRtl,
@@ -19,11 +26,6 @@ import type { AgChartAllThemeParams } from 'ag-charts-types';
 import type { EventsHub } from '../core/eventsHub';
 import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
-import { BaseManager } from '../util/baseManager';
-import { GuardedElement } from '../util/guardedElement';
-import { type PerWindowEntry, createPerWindowRegistry } from '../util/perWindowRegistry';
-import { type Size, SizeMonitor } from '../util/sizeMonitor';
-import { StateTracker } from '../util/stateTracker';
 import { DOMElementProxy, type DeferredMode } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';
 
@@ -173,7 +175,7 @@ export class DOMManager extends BaseManager {
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
     private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
-    containerSize?: Size = undefined;
+    containerSize?: ElementSize = undefined;
     private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
@@ -274,7 +276,7 @@ export class DOMManager extends BaseManager {
         const element = createElement('div');
         element.role = 'presentation';
         element.dataset.agCharts = '';
-        element.classList.add('ag-charts-wrapper');
+        element.classList.add('ag-charts-wrapper', 'ag-charts-theme-default');
         const seriesArea = createElement('div');
         element.appendChild(seriesArea);
         seriesArea.role = 'presentation';
@@ -545,16 +547,8 @@ export class DOMManager extends BaseManager {
         this.eventsHub.emit('dom:container-change', null);
     }
 
-    setThemeClass(themeClassName: string) {
-        const themeClassNamePrefix = 'ag-charts-theme-';
-
-        for (const className of Array.from(this.element.classList)) {
-            if (className.startsWith(themeClassNamePrefix) && className !== themeClassName) {
-                this.element.classList.remove(className);
-            }
-        }
-
-        this.element.classList.add(themeClassName);
+    setDarkTheme(isDark: boolean) {
+        this.element.classList.toggle('ag-charts-wrapper--dark', isDark);
     }
 
     setThemeParameters(params: AgChartAllThemeParams) {

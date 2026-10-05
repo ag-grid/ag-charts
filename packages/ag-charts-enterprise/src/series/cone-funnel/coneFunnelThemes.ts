@@ -1,15 +1,17 @@
 import {
     CARTESIAN_AXIS_TYPE,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
+    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
+    NEAREST_TOOLTIP_THEME,
     SAFE_FILLS_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    cycledFillThemeTemplate,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -27,15 +29,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
                         SAFE_FILLS_OPERATION,
                     ],
                 },
-                {
-                    $applySwitch: [
-                        { $path: ['/type', undefined, { $value: '$1' }] },
-                        { $value: '$1' },
-                        ['gradient', FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS],
-                        ['pattern', FILL_PATTERN_SINGLE_DEFAULTS],
-                        ['image', FILL_IMAGE_DEFAULTS],
-                    ],
-                },
+                cycledFillThemeTemplate(FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS, FILL_PATTERN_SINGLE_DEFAULTS),
             ],
         },
         strokes: {
@@ -53,20 +47,12 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         fillOpacity: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            ...FONT_THEME_DEFAULTS,
             color: { $ref: 'textColor' },
             collision: {
                 threshold: 4,
@@ -75,10 +61,7 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
             placement: 'start-center',
             spacing: 4,
         },
-        tooltip: {
-            range: { $path: ['/tooltip/range', 'nearest'] },
-            interaction: { enabled: false },
-        },
+        tooltip: NEAREST_TOOLTIP_THEME,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
             highlightedItem: {

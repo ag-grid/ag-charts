@@ -72,6 +72,10 @@ jobs:
 
             - name: Install ag-grid dependencies
               working-directory: /tmp/ag-grid
+              env:
+                  # The local tarball paths set above change package.json, so the lockfile can't match.
+                  # Yarn 4 makes installs immutable on CI by default, which would fail the install.
+                  YARN_ENABLE_IMMUTABLE_INSTALLS: false
               run: |
                   npm run bootstrap
 

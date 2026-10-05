@@ -43,14 +43,14 @@ afterEach(() => {
 
 describe('findPortPinDrift', () => {
     it('is empty when every port pins the version', () => {
-        writePort('financial', 'vue', inStep);
-        writePort('financial', 'typescript', inStep);
+        writePort('trading-terminal', 'vue', inStep);
+        writePort('trading-terminal', 'typescript', inStep);
 
         expect(findPortPinDrift({ seedsDir, pin: PIN })).toEqual([]);
     });
 
     it('names each drifted ag-charts-* dependency and manifest field, and nothing else', () => {
-        writePort('financial', 'angular', {
+        writePort('trading-terminal', 'angular', {
             dependencies: {
                 'ag-charts-angular': '14.1.0',
                 'ag-charts-community': '14.2.0',
@@ -63,35 +63,35 @@ describe('findPortPinDrift', () => {
         const drift = findPortPinDrift({ seedsDir, pin: PIN });
         expect(drift).toMatchObject([
             {
-                demo: 'financial',
+                demo: 'trading-terminal',
                 framework: 'angular',
                 pins: { 'ag-charts-angular': '14.1.0', 'ag-charts-enterprise': '14.1.0' },
                 manifest: { pinnedVersion: '14.1.0', pinSource: 'dist-tag' },
             },
         ]);
         expect(describeDrift(drift)).toEqual([
-            'seeds/financial/angular: ag-charts-angular 14.1.0, ag-charts-enterprise 14.1.0, manifest pinnedVersion 14.1.0, manifest pinSource dist-tag',
+            'seeds/trading-terminal/angular: ag-charts-angular 14.1.0, ag-charts-enterprise 14.1.0, manifest pinnedVersion 14.1.0, manifest pinSource dist-tag',
         ]);
     });
 
     it('reports a manifest whose pin fields are missing as drift', () => {
-        writePort('financial', 'vue', { ...inStep, manifest: { dist: 'dist' } });
+        writePort('trading-terminal', 'vue', { ...inStep, manifest: { dist: 'dist' } });
 
         const drift = findPortPinDrift({ seedsDir, pin: PIN });
         expect(drift).toMatchObject([
             { framework: 'vue', pins: {}, manifest: { pinnedVersion: null, pinSource: null } },
         ]);
         expect(describeDrift(drift)).toEqual([
-            'seeds/financial/vue: manifest pinnedVersion missing, manifest pinSource missing',
+            'seeds/trading-terminal/vue: manifest pinnedVersion missing, manifest pinSource missing',
         ]);
     });
 
     it('covers devDependencies too, and skips the generated React seed', () => {
-        writePort('financial', 'react', {
+        writePort('trading-terminal', 'react', {
             dependencies: { 'ag-charts-community': '1.0.0' },
             manifest: { pinnedVersion: '1.0.0' },
         });
-        writePort('financial', 'typescript', {
+        writePort('trading-terminal', 'typescript', {
             dependencies: { 'ag-grid-community': '~35.0.1' },
             devDependencies: { 'ag-charts-community': '14.1.0' },
             manifest: inStep.manifest,
@@ -103,7 +103,7 @@ describe('findPortPinDrift', () => {
     });
 
     it('rejects a port that pins no ag-charts-* package at all', () => {
-        writePort('financial', 'vue', { ...inStep, dependencies: { vue: '^3.5.13' } });
+        writePort('trading-terminal', 'vue', { ...inStep, dependencies: { vue: '^3.5.13' } });
 
         expect(() => findPortPinDrift({ seedsDir, pin: PIN })).toThrow(
             /vue\/package\.json pins no ag-charts-\* package/
@@ -113,7 +113,7 @@ describe('findPortPinDrift', () => {
 
 describe('pinPorts', () => {
     it('rewrites only the drifted values and keeps each file byte-for-byte otherwise', () => {
-        const dir = writePort('financial', 'angular', {
+        const dir = writePort('trading-terminal', 'angular', {
             dependencies: {
                 '@angular/core': '^20.0.0',
                 'ag-charts-angular': '14.1.0',
@@ -142,7 +142,7 @@ describe('pinPorts', () => {
     });
 
     it('moves a release-pinned port to the npm latest dist-tag', () => {
-        const dir = writePort('financial', 'vue', {
+        const dir = writePort('trading-terminal', 'vue', {
             dependencies: { 'ag-charts-vue3': '14.2.0', 'ag-charts-enterprise': '14.2.0', vue: '^3.5.13' },
             manifest: inStep.manifest,
         });
@@ -161,7 +161,7 @@ describe('pinPorts', () => {
     });
 
     it('preserves a 4-space package.json as it found it', () => {
-        const dir = writePort('financial', 'vue', {
+        const dir = writePort('trading-terminal', 'vue', {
             dependencies: { 'ag-charts-vue3': '14.1.0', 'ag-charts-community': '14.2.0' },
             manifest: inStep.manifest,
             indent: 4,
@@ -176,14 +176,14 @@ describe('pinPorts', () => {
     });
 
     it('adds missing manifest pin fields after "framework" with the manifest indentation', () => {
-        const dir = writePort('financial', 'typescript', { ...inStep, manifest: { dist: 'dist' } });
+        const dir = writePort('trading-terminal', 'typescript', { ...inStep, manifest: { dist: 'dist' } });
 
         pinPorts({ seedsDir, pin: PIN });
 
         expect(readFileSync(join(dir, '.seed-manifest.json'), 'utf8')).toBe(
             `${JSON.stringify(
                 {
-                    demo: 'financial',
+                    demo: 'trading-terminal',
                     framework: 'typescript',
                     pinnedVersion: '14.2.0',
                     pinSource: 'release',
@@ -197,7 +197,7 @@ describe('pinPorts', () => {
     });
 
     it('touches nothing when every port is already in step', () => {
-        const dir = writePort('financial', 'vue', inStep);
+        const dir = writePort('trading-terminal', 'vue', inStep);
         const before = readFileSync(join(dir, 'package.json'), 'utf8');
 
         expect(pinPorts({ seedsDir, pin: PIN })).toEqual([]);
@@ -205,7 +205,7 @@ describe('pinPorts', () => {
     });
 
     it('refuses a package.json where a pinned name occurs twice, rather than guessing', () => {
-        writePort('financial', 'vue', {
+        writePort('trading-terminal', 'vue', {
             dependencies: { 'ag-charts-community': '14.1.0' },
             devDependencies: { 'ag-charts-community': '14.1.0' },
             manifest: inStep.manifest,
@@ -224,9 +224,9 @@ describe('runPinPorts', () => {
     function writeCarriedIn(version) {
         const pinSource = version === 'latest' ? 'dist-tag' : 'release';
         const manifest = { pinnedVersion: version, pinSource, dist: 'dist' };
-        writePort('financial', 'react', { dependencies: { 'ag-charts-community': version }, manifest });
-        writePort('financial', 'vue', { dependencies: { 'ag-charts-vue3': version, vue: '^3.5.13' }, manifest });
-        return writePort('financial', 'angular', { dependencies: { 'ag-charts-angular': version }, manifest });
+        writePort('trading-terminal', 'react', { dependencies: { 'ag-charts-community': version }, manifest });
+        writePort('trading-terminal', 'vue', { dependencies: { 'ag-charts-vue3': version, vue: '^3.5.13' }, manifest });
+        return writePort('trading-terminal', 'angular', { dependencies: { 'ag-charts-angular': version }, manifest });
     }
 
     it('keeps a release every seed carries in from a merge-back, and rewrites nothing', () => {
@@ -253,7 +253,7 @@ describe('runPinPorts', () => {
 
     it('moves a port off a release the other seeds do not carry', () => {
         writeCarriedIn('latest');
-        writePort('financial', 'vue', {
+        writePort('trading-terminal', 'vue', {
             dependencies: { 'ag-charts-vue3': '14.2.0' },
             manifest: { pinnedVersion: '14.2.0', pinSource: 'release' },
         });
@@ -261,7 +261,7 @@ describe('runPinPorts', () => {
         const { pin, fixed } = runPinPorts([], { seedsDir, workspaceVersion: BETA });
         expect(pin.pinnedVersion).toBe('latest');
         expect(describeDrift(fixed)).toEqual([
-            'seeds/financial/vue: ag-charts-vue3 14.2.0, manifest pinnedVersion 14.2.0, manifest pinSource release',
+            'seeds/trading-terminal/vue: ag-charts-vue3 14.2.0, manifest pinnedVersion 14.2.0, manifest pinSource release',
         ]);
     });
 

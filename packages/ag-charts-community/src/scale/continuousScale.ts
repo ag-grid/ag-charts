@@ -1,9 +1,8 @@
 import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
-import { findMinMax, maxValue, minValue, toNumber } from 'ag-charts-core';
+import { findMinMax, maxValue, minValue, toNumber, unpackDomainMinMax } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { AbstractScale } from './abstractScale';
-import { unpackDomainMinMax } from './scaleUtil';
 
 export type ContinuousDomainValue = number | bigint | Date;
 

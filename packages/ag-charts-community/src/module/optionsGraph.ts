@@ -40,6 +40,7 @@ import {
     getPathSafe,
     hasPathSafe,
     hasTemplatePathSafe,
+    isListIndex,
     setPathSafe,
 } from './optionsGraphUtils';
 import { OptionsPartialCache, hasUnmergedCssVariables } from './optionsPartialCache';
@@ -84,7 +85,7 @@ function resolveSeriesThemeDefaults(
         theme.getThemeParameters(),
         theme.palette,
         undefined,
-        theme.getTemplateParameters(),
+        theme.isDark,
         cssVariables,
         undefined,
         moduleRegistry
@@ -141,7 +142,7 @@ export function createOptionsGraph(
             theme.getThemeParameters(),
             theme.palette,
             theme.overrides,
-            theme.getTemplateParameters(),
+            theme.isDark,
             cssVariables,
             presetOptions,
             moduleRegistry
@@ -288,7 +289,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         fallbackParams: PlainObject = {},
         public readonly palette: PlainObject = {},
         private readonly overrides: PlainObject | undefined = undefined,
-        private readonly internalParams: Map<unknown, unknown> = new Map(),
+        public readonly isDark: boolean = false,
         private cssVariables: Record<string, string> = {},
         private readonly presetOptions: PlainObject = {},
         public readonly moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
@@ -613,12 +614,12 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         if (path[0] === 'axes' && path.length > 1) {
             const axisType = this.getResolvedPath(['axes', path[1], 'type']) as string;
-            if (hasPathSafe(this.overrides, ['common', 'axes', axisType, ...path.slice(2)])) {
+            if (this.hasAxisTemplateOverride(['common', 'axes', axisType], path)) {
                 return true;
             }
 
             const seriesType = this.getResolvedPath(['series', '0', 'type']) as string;
-            return hasPathSafe(this.overrides, [seriesType, 'axes', axisType, ...path.slice(2)]);
+            return this.hasAxisTemplateOverride([seriesType, 'axes', axisType], path);
         }
 
         if (path[0] === 'series' && path.length > 1) {
@@ -631,6 +632,24 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             hasTemplatePathSafe(this.overrides, ['common', ...path]) ||
             hasPathSafe(this.overrides, path)
         );
+    }
+
+    /**
+     * Axis themes hold list options such as cross lines as one template object, optionally keyed by each item's
+     * `type`, so an axis path below `axes.<id>` matches either form. Series themes have no list templates.
+     */
+    private hasAxisTemplateOverride(namespace: string[], path: string[]) {
+        const overrides = this.overrides!;
+        const rest = path.slice(2);
+        if (hasTemplatePathSafe(overrides, [...namespace, ...rest])) return true;
+
+        const index = rest.findIndex(isListIndex);
+        if (index === -1) return false;
+
+        const type = this.dangerouslyGetUserOption([...path.slice(0, index + 3), 'type']);
+        if (typeof type !== 'string') return false;
+
+        return hasTemplatePathSafe(overrides, [...namespace, ...rest.slice(0, index), type, ...rest.slice(index + 1)]);
     }
 
     getParamValue(pathString: string) {
@@ -692,7 +711,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrSymbol(resolved);
+            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrCssVariable(resolved);
         }
 
         let value = this.getVertexValue(valueVertex);
@@ -703,7 +722,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             value = getPathSafe(object, this.getPathArray(vertex));
         }
 
-        return this.resolveValueOrSymbol(value);
+        return this.resolveValueOrCssVariable(value);
     }
 
     /**
@@ -1269,10 +1288,10 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrSymbol(resolved);
+            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrCssVariable(resolved);
         }
 
-        return this.resolveValueOrSymbol(this.getVertexValue(valueVertex));
+        return this.resolveValueOrCssVariable(this.getVertexValue(valueVertex));
     }
 
     private resolveVertexAutoEnable(vertex: Vertex<unknown>, object: PlainObject, pathArray: Array<string>) {
@@ -1390,11 +1409,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
     }
 
-    private resolveValueOrSymbol(value: unknown) {
-        if (typeof value === 'symbol' && this.internalParams?.has(value)) {
-            return this.internalParams.get(value);
-        }
-
+    private resolveValueOrCssVariable(value: unknown) {
         if (typeof value === 'string' && Object.hasOwn(this.cssVariables, value)) {
             return this.cssVariables[value];
         }
@@ -1640,9 +1655,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         let className = edge == null ? undefined : (classNames[edge] ?? undefined);
         className = className ? `:::${className}` : '';
 
-        if (typeof vertex.value === 'symbol') {
-            return String.raw`${diagramKey}[/"[symbol]"\]${className}`;
-        } else if (Array.isArray(vertex.value)) {
+        if (Array.isArray(vertex.value)) {
             return String.raw`${diagramKey}[/"[array]"\]${className}`;
         } else if (typeof vertex.value === 'object') {
             return String.raw`${diagramKey}[/"[object]"\]${className}`;
