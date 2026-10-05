@@ -73,7 +73,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                 $switch: [
                     typePath,
                     {},
-                    [['area', 'hlc', 'line'], { marker: miniChartMarkerTheme }],
+                    [['area', 'line'], { marker: miniChartMarkerTheme }],
                     // Waterfall keeps its shadows under `item.*`, which `$omit` does not reach.
                     [
                         'waterfall',
@@ -93,6 +93,17 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                             item: {
                                 low: { marker: { shadow: { enabled: false } } },
                                 high: { marker: { shadow: { enabled: false } } },
+                            },
+                        },
+                    ],
+                    [
+                        'hlc',
+                        {
+                            marker: miniChartMarkerTheme,
+                            item: {
+                                high: { marker: { shadow: { enabled: false } } },
+                                low: { marker: { shadow: { enabled: false } } },
+                                close: { marker: { shadow: { enabled: false } } },
                             },
                         },
                     ],

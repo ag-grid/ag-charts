@@ -993,6 +993,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         const pickInflation = Math.max(
             ...ITEM_TYPES.map((itemType) => maxMarkerStrokePickInflation(contextNodeData.styles[itemType]))
         );
+        const { itemMarkers } = this;
 
         datumSelection.each((node, datum) => {
             const style =
@@ -1004,6 +1005,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
             this.applyMarkerStyle(style as NormalisedSeriesMarkerStyle, node, datum.point, fillBBox, {
                 hideWithSize0,
                 pickInflation,
+                shadow: itemMarkers[datum.itemType].shadow,
             });
             node.drawingMode = drawingMode;
         });

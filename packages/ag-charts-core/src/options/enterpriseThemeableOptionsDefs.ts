@@ -708,6 +708,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
 const hlcSeriesItemLineThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemLineThemeableOptions<unknown, unknown>> = {
     marker: {
         enabled: boolean,
+        shadow: shadowOptionsDefs,
         ...markerStyleOptionsDefs,
     },
     ...strokeOptionsDef,

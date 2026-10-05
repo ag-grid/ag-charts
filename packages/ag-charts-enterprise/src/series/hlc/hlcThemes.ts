@@ -10,6 +10,7 @@ import {
     MARKER_SERIES_HIGHLIGHT_STYLE,
     type NonNullablePath,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
@@ -75,6 +76,13 @@ const HLC_ITEM_MARKER: WithThemeParams<HlcItemMarkerOptions> = {
     fillOpacity: { $path: '/series/$index/marker/fillOpacity' },
     lineDash: { $path: '/series/$index/marker/lineDash' },
     lineDashOffset: { $path: '/series/$index/marker/lineDashOffset' },
+    shadow: {
+        enabled: { $path: '/series/$index/marker/shadow/enabled' },
+        color: { $path: '/series/$index/marker/shadow/color' },
+        xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
+        yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
+        blur: { $path: '/series/$index/marker/shadow/blur' },
+    },
     shape: { $path: '/series/$index/marker/shape' },
     size: { $path: ['/series/$index/marker/size', 6] },
     stroke: { $path: ['/series/$index/marker/stroke', { $path: '../stroke' }] },
@@ -112,6 +120,7 @@ export const HLC_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['hlc']> = {
         ...COMMON_SERIES_THEME_DEFAULTS,
         marker: {
             enabled: false,
+            shadow: SHADOW_THEME_DEFAULTS,
             shape: 'circle',
             size: 6,
             fillOpacity: 1,
