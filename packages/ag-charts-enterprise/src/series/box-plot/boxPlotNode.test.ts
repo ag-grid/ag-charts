@@ -82,6 +82,30 @@ describe('BoxPlotNode', () => {
             expect(pixelAt(canvasCtx, 210, 45)).toEqual([255, 0, 0, 255]);
         });
 
+        it('should grow the shadow of a separately styled whisker by the spread', () => {
+            const vertical = (spread?: number) =>
+                boxPlot({
+                    horizontal: false,
+                    min: 20,
+                    q1: 70,
+                    median: 100,
+                    q3: 130,
+                    max: 190,
+                    wickStroke: 'rgb(0, 0, 0)',
+                    wickStrokeWidth: 2,
+                    fillShadow: { ...RED_SHADOW, spread },
+                });
+
+            renderNode(canvasCtx, vertical());
+            // The lower whisker is 2px wide at x = 110, so without a spread its shadow hides behind it.
+            expect(pixelAt(canvasCtx, 117, 45)).toEqual([255, 255, 255, 255]);
+
+            renderNode(canvasCtx, vertical(10));
+            // With a spread of 10 the whisker's shadow is 22px wide: 99 to 121.
+            expect(pixelAt(canvasCtx, 117, 45)).toEqual([255, 0, 0, 255]);
+            expect(pixelAt(canvasCtx, 125, 45)).toEqual([255, 255, 255, 255]);
+        });
+
         it('should not leave a sliver on the left edge for a crisp horizontal box plot with a hard shadow', () => {
             const node = boxPlot({
                 crisp: true,
@@ -112,6 +136,19 @@ describe('BoxPlotNode', () => {
             renderNode(canvasCtx, node, pixelRatio);
 
             expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
+        });
+
+        it('should not leave a copy of spread whiskers on the left edge', () => {
+            const node = boxPlot({
+                wickStrokeWidth: 2,
+                wickStroke: 'rgb(0, 0, 0)',
+                fillShadow: { ...RED_SHADOW, spread: 40 },
+            });
+            renderNode(canvasCtx, node, pixelRatio);
+
+            expect(node['wickPath'].isEmpty()).toBe(false);
+            // The shadow reaches 40px past the whisker end at 150, so everything left of 110 is untouched.
+            expect(leftEdgeIsWhite(canvasCtx, 100 * pixelRatio)).toBe(true);
         });
 
         it('should not leave a sliver on the left edge for a crisp vertical box plot without a stroke', () => {

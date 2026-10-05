@@ -7,7 +7,9 @@ import { Group } from '../../../scene/group';
 import { Shape } from '../../../scene/shape/shape';
 import { HIGHLIGHT_SHADOW, SERIES_SHADOW } from '../../test/shadowFixtures';
 import {
+    IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
+    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -34,7 +36,7 @@ function shapes(root: Group): Shape[] {
 
 describe('BarSeries highlight shadow', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
 
     let chart: any;
 
@@ -147,5 +149,37 @@ describe('BarSeries highlight shadow', () => {
 
         expect(highlighted[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
         for (const bar of inPlace) expect(bar.fillShadow?.enabled).not.toBe(true);
+    });
+
+    describe('spread', () => {
+        const SPREAD_SHADOW: AgDropShadowOptions = { ...SHADOW, spread: 6 };
+
+        it('should render the bars with a shadow spread', async () => {
+            const options: AgCartesianChartOptions = {
+                data: DATA,
+                animation: { enabled: false },
+                series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', shadow: SPREAD_SHADOW }],
+            };
+            prepareTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render the hovered bar with highlightedItem.shadow.spread', async () => {
+            await hoverFirstBar({
+                shadow: SHADOW,
+                highlight: { highlightedItem: { shadow: { ...HIGHLIGHT_SHADOW, spread: 8 } } },
+            });
+
+            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render the hovered bar with the series shadow spread when it overlays', async () => {
+            await hoverFirstBar({ shadow: SPREAD_SHADOW }, 'overlay');
+
+            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
     });
 });

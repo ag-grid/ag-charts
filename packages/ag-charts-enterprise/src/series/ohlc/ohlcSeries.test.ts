@@ -375,6 +375,20 @@ describe('OhlcSeries', () => {
         it('should render an ohlc chart with a shadow', async () => {
             await compareSnapshot(AgCharts.create(buildOptions(SHADOW)));
         });
+
+        it('carries the shadow spread to the stroke shadow of every item', async () => {
+            const chart: any = await createEnterpriseChart(buildOptions({ ...SHADOW, spread: 6 } as typeof SHADOW));
+
+            for (const shape of itemNodes(chart)) {
+                expect(shape.shadowMode).toBe('stroke');
+                expect(shape.fillShadow).toMatchObject({ ...SHADOW, spread: 6 });
+            }
+            chart.destroy();
+        });
+
+        it('should render an ohlc chart with a shadow spread', async () => {
+            await compareSnapshot(AgCharts.create(buildOptions({ ...SHADOW, spread: 6 } as typeof SHADOW)));
+        });
     });
 
     describe('null category key', () => {

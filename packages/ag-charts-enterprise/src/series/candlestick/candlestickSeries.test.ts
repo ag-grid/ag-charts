@@ -425,6 +425,28 @@ describe('CandlestickSeries', () => {
             styled.destroy();
         });
 
+        it('carries the shadow spread to the silhouette shadow of every item', async () => {
+            const chart: any = await createEnterpriseChart(buildOptions({ ...SHADOW, spread: 6 } as typeof SHADOW));
+
+            for (const shape of itemNodes(chart)) {
+                expect(shape.shadowMode).toBe('silhouette');
+                expect(shape.fillShadow).toMatchObject({ ...SHADOW, spread: 6 });
+            }
+            chart.destroy();
+        });
+
+        it('should render a candlestick chart with a shadow spread and shared wick styling', async () => {
+            await compareSnapshot(AgCharts.create(buildOptions({ ...SHADOW, spread: 6 } as typeof SHADOW)));
+        });
+
+        it('should render a candlestick chart with a shadow spread and separately styled wicks', async () => {
+            await compareSnapshot(
+                AgCharts.create(
+                    buildOptions({ ...SHADOW, spread: 6 } as typeof SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS })
+                )
+            );
+        });
+
         it('should render a candlestick chart with a shadow and shared wick styling', async () => {
             await compareSnapshot(AgCharts.create(buildOptions(SHADOW)));
         });
