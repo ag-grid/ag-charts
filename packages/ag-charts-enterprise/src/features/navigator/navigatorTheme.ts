@@ -115,7 +115,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                             ['range-area', omitInheritedShadow(rangeAreaIgnoredMiniChartProperties)],
                             ['range-bar', omitInheritedShadow(rangeBarIgnoredMiniChartProperties)],
                             ['scatter', omitInheritedShadow(scatterIgnoredMiniChartProperties)],
-                            ['waterfall', omitInheritedShadow(waterfallIgnoredMiniChartProperties)],
+                            ['waterfall', waterfallIgnoredMiniChartProperties],
                         ],
                     },
                     seriesPath,
