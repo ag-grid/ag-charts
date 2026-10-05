@@ -101,47 +101,6 @@ In the above example we provided the same `highlight` for all of the series, but
 
 For simplicity, we provided the `highlight` once within a chart [Theme](./themes/), rather than repeating it on each series.
 
-### Highlighted Item Shadow
-
-Use `highlightedItem.shadow` to cast a drop shadow behind the highlighted item, so it appears lifted off the chart.
-
-{% chartExampleRunner title="Highlighted Item Shadow" name="highlight-shadow" type="generated" /%}
-
-```js format="snippet"
-{
-    highlight: {
-        highlightedItem: {
-            shadow: {
-                enabled: true,
-                color: 'rgba(0, 0, 0, 0.5)',
-                xOffset: 3,
-                yOffset: 3,
-                blur: 8,
-            },
-        },
-    },
-}
-```
-
-In this example:
-
-- Hovering a bar casts a shadow behind that bar only. The other bars have no shadow.
-- The `Shadow Off` button sets `shadow.enabled` to `false`, which removes the highlight shadow.
-
-The `shadow` option takes `enabled`, `color`, `xOffset`, `yOffset` and `blur` (see the API reference), and works as follows:
-
-- It applies to the highlighted item only. It is not available on `highlightedSeries`, `unhighlightedItem` or `unhighlightedSeries`.
-- It is off unless configured. Without it, the highlighted item casts the same shadow as when it is not highlighted.
-- While an item is highlighted, its `highlightedItem.shadow` is merged field by field with the item's normal `shadow`. Any field you leave unset comes from that shadow. For example, `{ color: 'red' }` without `enabled: true` stays off if the normal shadow is off. When `highlightedItem.shadow` is not set, the highlighted item keeps its normal shadow.
-- The normal shadow is the series `shadow`, except for these series:
-    - Line, area, radar and range area: `marker.shadow`.
-    - Sankey and chord: `node.shadow` for nodes and `link.shadow` for links.
-    - Treemap: `tile.shadow` for tiles and `group.shadow` for groups. Set the highlight shadow on `tile.highlight.highlightedItem.shadow` or `group.highlight.highlightedItem.shadow`.
-    - Waterfall: the `shadow` of the item type, such as `item.positive.shadow`.
-- It is available on every series that supports `shadow`, with these exceptions:
-    - Area, radar area and range area fills are not redrawn when highlighted, so `highlightedItem.shadow` only changes the shadow on their markers.
-    - Cone funnel series do not have the option. Their highlighted item is a line, and only the connectors between steps cast a `shadow`.
-
 ## Stylers
 
 All [Styler](./stylers/) callbacks receive a `param.highlightState`

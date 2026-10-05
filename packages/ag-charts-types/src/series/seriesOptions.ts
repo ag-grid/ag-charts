@@ -27,6 +27,9 @@ export interface AgItemHighlightStyleOptions {
      * `{ color }` without `enabled: true` stays off if the normal `shadow` is off. The normal `shadow` is the series'
      * `shadow`, or for some series another one, such as `marker.shadow`, `node.shadow` or `link.shadow`.
      *
+     * Area, radar area and range area fills are not redrawn when highlighted, so only the shadow on their markers
+     * changes. Cone funnel series do not have this option.
+     *
      * Default: no highlight shadow, so the highlighted item keeps its normal `shadow`.
      */
     shadow?: AgDropShadowOptions;
