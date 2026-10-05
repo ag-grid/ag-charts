@@ -276,7 +276,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     optionsProcessingTime?: number;
     optionsGraph?: OptionsGraphAccessor;
     remappedAxisKeys?: Map<string, AxisID>;
-    /** The preset's options as validation cleared them for its `create`, less `data`. */
+    /**
+     * For a preset declaring `transformSeriesData`, its options as the last slow setup validated them, less
+     * `data`. The fast path carries them forward, so a key its delta changes, such as `width`, is stale here.
+     */
     presetOptions?: object;
     seriesWithUserVisibility?: {
         identifiers: Set<string>;
@@ -408,7 +411,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 annotationThemes = baseChartOptions.annotationThemes;
                 // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
                 fonts = baseChartOptions.fonts;
-                // A fast-path delta changes no preset options but `fastUpdateKeys`, which `create` maps itself.
+                // The preset options aren't re-validated either; they hold no `data`, which the chart keeps current.
                 presetOptions = baseChartOptions.presetOptions;
                 // The fast path doesn't re-validate, so carry forward the issues from the previous options.
                 this.issues.push(...baseChartOptions.issues);
@@ -682,7 +685,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const { fonts } = fontAccumulator;
-        const clearedPresetOptions = presetOptions == null ? undefined : without(presetOptions, ['data']);
+        // Kept only where read, as the structural cache freezes what it holds, and pass-through options such as
+        // `context` and `theme` are the caller's own objects.
+        const clearedPresetOptions =
+            presetDef?.transformSeriesData == null || presetOptions == null
+                ? undefined
+                : without(presetOptions, ['data']);
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
