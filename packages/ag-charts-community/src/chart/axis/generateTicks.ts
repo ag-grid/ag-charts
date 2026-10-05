@@ -5,6 +5,7 @@ import {
     type ScaleTickParams,
     axisLabelsOverlap,
     cachedTextMeasurer,
+    calculateNiceSecondaryAxis,
     countFractionDigits,
     estimateTickCount,
     findMinMax,
@@ -25,7 +26,6 @@ import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { expandLabelPadding } from '../label';
 import { getVerticalAlignShift } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';

@@ -11,6 +11,7 @@ import {
     ChartAxisDirection,
     Color,
     type DynamicContext,
+    type NormalisedRangesOptions,
     clamp,
     intervalAgo,
     isTimeInterval,
@@ -81,13 +82,13 @@ export class Ranges extends AbstractModuleInstance {
     // CSS variables the button styles read — the first two form the key below, the rest are
     // covered by the resets registered in the constructor.
     private cachedToolbarHeight?: number;
-    private cachedToolbarHeightOpts?: _ModuleSupport.NormalisedRangesOptions;
+    private cachedToolbarHeightOpts?: NormalisedRangesOptions;
     private cachedToolbarHeightIsDropdown?: boolean;
     private cachedToolbarHeightLabel?: string;
 
     // Ranges is only created when the `ranges` subtree is configured, so assert
     // presence here and rely on rangesTheme for field-level defaults.
-    private get opts(): _ModuleSupport.NormalisedRangesOptions {
+    private get opts(): NormalisedRangesOptions {
         return this.ctx.chartState.getValue('options', 'ranges')!;
     }
 
@@ -186,10 +187,7 @@ export class Ranges extends AbstractModuleInstance {
         this.cachedToolbarHeight = undefined;
     }
 
-    private getToolbarHeight(
-        opts: _ModuleSupport.NormalisedRangesOptions,
-        toolbar: _ModuleSupport.BaseToolbar
-    ): number {
+    private getToolbarHeight(opts: NormalisedRangesOptions, toolbar: _ModuleSupport.BaseToolbar): number {
         if (
             this.cachedToolbarHeight !== undefined &&
             this.cachedToolbarHeightOpts === opts &&

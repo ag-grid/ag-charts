@@ -1,8 +1,7 @@
-import { toRadians } from 'ag-charts-core';
+import { align, toRadians } from 'ag-charts-core';
 import type { AgPatternName } from 'ag-charts-types';
 
 import type { ExtendedPath2D } from '../extendedPath2D';
-import { align } from '../util/pixel';
 
 interface PatternFnParams {
     width: number;

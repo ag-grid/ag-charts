@@ -1,4 +1,6 @@
-import { type NormalisedTextOrSegments, createElement, toPlainText } from 'ag-charts-core';
+import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
+import { toPlainText } from '../data/strings';
+import { createElement } from './domElements';
 
 let element: HTMLElement | null = null;
 

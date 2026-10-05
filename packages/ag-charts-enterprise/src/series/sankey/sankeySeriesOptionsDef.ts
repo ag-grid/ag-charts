@@ -1,4 +1,4 @@
-import { type AgSankeySeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgSankeySeriesOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
@@ -10,11 +10,10 @@ import {
     fillImageDefaults,
     fillPatternDefaults,
     required,
+    sankeySeriesThemeableOptionsDef,
     string,
     undocumented,
 } from 'ag-charts-core';
-
-const { sankeySeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     ...sankeySeriesThemeableOptionsDef,

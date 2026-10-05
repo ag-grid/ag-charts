@@ -1,8 +1,15 @@
 import type { ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
-import { createTicks, findMinMax, findRangeExtent, isDenseInterval, isInteger, range } from 'ag-charts-core';
+import {
+    createTicks,
+    filterVisibleTicks,
+    findMinMax,
+    findRangeExtent,
+    isDenseInterval,
+    isInteger,
+    range,
+} from 'ag-charts-core';
 
 import { ContinuousScale } from './continuousScale';
-import { filterVisibleTicks } from './scaleUtil';
 
 const logFunctions: Record<number, (base: number, x: number) => number> = {
     2: (_base, x) => Math.log2(x),

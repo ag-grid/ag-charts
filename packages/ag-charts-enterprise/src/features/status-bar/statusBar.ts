@@ -3,13 +3,12 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     type DynamicContext,
+    type NormalisedStatusBarOptions,
     ZIndexMap,
     cachedTextMeasurer,
     calcLineHeight,
     isNumericValue,
 } from 'ag-charts-core';
-
-type NormalisedStatusBarOptions = _ModuleSupport.NormalisedStatusBarOptions;
 
 const { LayoutElement, Group, Rect, Text } = _ModuleSupport;
 enum LabelConfiguration {

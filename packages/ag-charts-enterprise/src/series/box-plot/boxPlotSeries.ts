@@ -16,7 +16,14 @@ import type {
     NormalisedBoxPlotSeriesOwnOptions,
     RequireOptional,
 } from 'ag-charts-core';
-import { ChartAxisDirection, deepClone, isNumericValue, mergeDefaults, toNumber } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    deepClone,
+    isNumericValue,
+    mergeDefaults,
+    toNumber,
+    upsertNodeDatum,
+} from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
@@ -40,7 +47,6 @@ const {
     toHighlightString,
     toSelectionString,
     processedDataIsAnimatable,
-    upsertNodeDatum,
 } = _ModuleSupport;
 
 /** Whisker style after theme-merge: colour refs are resolved before reaching this point. */

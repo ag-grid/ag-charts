@@ -1,4 +1,4 @@
-import { type AgSunburstInnerLabel, type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgSunburstInnerLabel, AgSunburstSeriesOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOfDefs,
@@ -11,11 +11,10 @@ import {
     ratio,
     required,
     string,
+    sunburstSeriesThemeableOptionsDef,
     textOrSegments,
     without,
 } from 'ag-charts-core';
-
-const { sunburstSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
     ...sunburstSeriesThemeableOptionsDef,

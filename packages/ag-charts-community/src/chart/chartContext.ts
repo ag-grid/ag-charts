@@ -6,6 +6,7 @@ import {
     type Logger,
     type ModuleScope,
     ModuleType,
+    type Mutex,
     ReactiveState,
     type StrictHTMLElement,
     createDynamicContext,
@@ -22,7 +23,6 @@ import { LocaleManager } from '../locale/localeManager';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
-import type { Mutex } from '../util/mutex';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import type { ChartState } from './chartState';

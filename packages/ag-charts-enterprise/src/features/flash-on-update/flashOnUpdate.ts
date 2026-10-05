@@ -4,12 +4,11 @@ import {
     type BoxBounds,
     ChartAxisDirection,
     type DynamicContext,
+    type NormalisedFlashOnUpdateOptions,
     ZIndexMap,
     createId,
     easeOut,
 } from 'ag-charts-core';
-
-type NormalisedFlashOnUpdateOptions = _ModuleSupport.NormalisedFlashOnUpdateOptions;
 
 const { Group, Rect, Selection, TranslatableGroup } = _ModuleSupport;
 

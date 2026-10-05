@@ -1,8 +1,15 @@
 import {
     AgDocument,
+    BaseManager,
+    type ElementSize,
+    GuardedElement,
+    type PerWindowEntry,
+    SizeMonitor,
+    StateTracker,
     type StrictHTMLElement,
     createElement,
     createId,
+    createPerWindowRegistry,
     createStyleElement,
     entries,
     isDirectionRtl,
@@ -19,11 +26,6 @@ import type { AgChartAllThemeParams } from 'ag-charts-types';
 import type { EventsHub } from '../core/eventsHub';
 import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
-import { BaseManager } from '../util/baseManager';
-import { GuardedElement } from '../util/guardedElement';
-import { type PerWindowEntry, createPerWindowRegistry } from '../util/perWindowRegistry';
-import { type Size, SizeMonitor } from '../util/sizeMonitor';
-import { StateTracker } from '../util/stateTracker';
 import { DOMElementProxy, type DeferredMode } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';
 
@@ -173,7 +175,7 @@ export class DOMManager extends BaseManager {
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
     private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
-    containerSize?: Size = undefined;
+    containerSize?: ElementSize = undefined;
     private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;

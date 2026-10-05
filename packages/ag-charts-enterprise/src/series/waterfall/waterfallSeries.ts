@@ -50,6 +50,7 @@ import {
     resolveLabelFitDescriptors,
     subtractValues,
     toArray,
+    upsertNodeDatum,
     zeroLike,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -95,7 +96,6 @@ const {
     getItemStylesPerItemId,
     DataSet,
     processedDataIsAnimatable,
-    upsertNodeDatum,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Point & {

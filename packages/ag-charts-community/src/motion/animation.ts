@@ -1,9 +1,17 @@
-import { clamp, isPlainObject, linear, objectsEqualWith } from 'ag-charts-core';
+import {
+    type Interpolating,
+    clamp,
+    interpolate,
+    interpolateColor,
+    interpolateNumber,
+    isInterpolating,
+    isPlainObject,
+    linear,
+    objectsEqualWith,
+} from 'ag-charts-core';
 
 import { Node } from '../scene/node';
 import type { SelectionInterface } from '../scene/selection';
-import { interpolateColor, interpolateNumber } from '../util/interpolate';
-import { type Interpolating, interpolate, isInterpolating } from '../util/interpolating';
 
 export type AnimationMetadata = {
     animationDuration: number;

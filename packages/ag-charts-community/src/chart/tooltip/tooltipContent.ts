@@ -3,12 +3,12 @@ import {
     type NormalisedTextOrSegments,
     forceLtrNumbersIn,
     getDocument,
+    sanitizeHtml,
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
 import type { AgTooltipMode, TextValue } from 'ag-charts-types';
 
-import { sanitizeHtml } from '../../util/sanitize';
 import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-charts-tooltip';

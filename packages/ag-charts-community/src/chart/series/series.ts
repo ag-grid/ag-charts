@@ -39,6 +39,7 @@ import {
     createId,
     isGradientFill,
     isPatternFill,
+    isSupportedMarkerShape,
     jsonDiff,
     nearestSquared,
     resolveCollideWith,
@@ -86,7 +87,6 @@ import { type FormatterCache, type LabelFormatSource, LabelValueFormatter } from
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import { markerStrokePickInflation } from '../marker/marker';
-import { isSupportedMarkerShape } from '../marker/util';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import type {

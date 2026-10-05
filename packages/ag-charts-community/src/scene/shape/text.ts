@@ -1,15 +1,19 @@
+import type {
+    BoxBounds,
+    FontOptions,
+    MeasuredImageSegment,
+    NormalisedContentSegment,
+    NormalisedTextOrSegments,
+    RequireOptional,
+    SerializedNodeState,
+    SerializedTextProps,
+    TextMetricsBox,
+} from 'ag-charts-core';
 import {
     BLOCK_IMAGE_SPACING,
-    type BoxBounds,
     Debug,
-    type FontOptions,
     LineSplitter,
-    type MeasuredImageSegment,
-    type NormalisedContentSegment,
-    type NormalisedTextOrSegments,
-    type RequireOptional,
     SceneRefChangeDetection,
-    type TextMetricsBox,
     ambientLog,
     blockStripHeight,
     blockStripWidth,
@@ -22,12 +26,12 @@ import {
     measureTextSegments,
     resolvePadding,
     resolveTextAlign,
+    setSvgFontAttributes,
     toCanvasTextBaseline,
     toFontString,
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type { SerializedNodeState, SerializedTextProps } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
@@ -39,7 +43,6 @@ import { Rotatable, type RotatableType, Translatable, type TranslatableType } fr
 import { ImageSegmentNode } from './imageSegmentNode';
 import { Rect } from './rect';
 import { Shape, type ShapeColor } from './shape';
-import { setSvgFontAttributes } from './svgUtils';
 
 export interface TextSizeProperties extends FontOptions {
     lineHeight?: number;

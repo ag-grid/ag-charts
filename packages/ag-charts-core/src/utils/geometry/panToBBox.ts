@@ -1,4 +1,7 @@
-import { type Bounds4, type BoxBounds, Vec4, clamp } from 'ag-charts-core';
+import type { Bounds4 } from '../../types/scene';
+import { clamp } from '../data/numbers';
+import type { BoxBounds } from './boxBounds';
+import * as Vec4 from './vector4';
 
 export enum PanToBBoxScalingModeEnum {
     None,

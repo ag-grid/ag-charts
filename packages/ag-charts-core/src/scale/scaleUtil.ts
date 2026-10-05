@@ -1,4 +1,5 @@
-import { clamp, readIntegratedWrappedValue } from 'ag-charts-core';
+import { clamp } from '../utils/data/numbers';
+import { readIntegratedWrappedValue } from '../utils/data/value';
 
 function visibleTickRange<T = any>(
     ticks: T[],

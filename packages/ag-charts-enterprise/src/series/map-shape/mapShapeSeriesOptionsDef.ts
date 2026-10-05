@@ -1,15 +1,14 @@
-import { type AgMapShapeSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgMapShapeSeriesOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
     commonSeriesOptionsDefs,
     constant,
     geoJson,
+    mapShapeSeriesThemeableOptionsDef,
     required,
     string,
     without,
 } from 'ag-charts-core';
-
-const { mapShapeSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const mapShapeSeriesOptionsDef: OptionsDefs<AgMapShapeSeriesOptions> = {
     ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight']),

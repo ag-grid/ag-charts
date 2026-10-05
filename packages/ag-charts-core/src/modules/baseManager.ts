@@ -1,4 +1,4 @@
-import { CleanupRegistry } from 'ag-charts-core';
+import { CleanupRegistry } from '../state/cleanupRegistry';
 
 export abstract class BaseManager {
     protected readonly cleanup = new CleanupRegistry();

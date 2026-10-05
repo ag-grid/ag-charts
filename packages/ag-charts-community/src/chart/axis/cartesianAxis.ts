@@ -1,5 +1,6 @@
 import type {
     AxisID,
+    AxisPrimaryTickCount,
     ChartAnimationPhase,
     DynamicContext,
     NormalisedBaseAxisLabelOptions,
@@ -43,7 +44,6 @@ import { Line } from '../../scene/shape/line';
 import { Rect } from '../../scene/shape/rect';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { Caption } from '../caption';
 import type { ChartLayout } from '../chartAxis';
 import type { AnimationManager } from '../interaction/animationManager';

@@ -2,103 +2,19 @@ import * as fromToMotion from './motion/fromToMotion';
 import * as resetMotion from './motion/resetMotion';
 
 export { Chart } from './chart/chart';
-export type {
-    ChartState,
-    NormalisedAnimationOptions,
-    NormalisedAnnotationsOptions,
-    NormalisedBackgroundOptions,
-    NormalisedChartSyncOptions,
-    NormalisedFlashOnUpdateOptions,
-    NormalisedForegroundOptions,
-    NormalisedNavigatorOptions,
-    NormalisedRangesDropdown,
-    NormalisedRangesOptions,
-    NormalisedScrollbarOptions,
-    NormalisedScrollbarOrientationOptions,
-    NormalisedScrollbarThumbStyle,
-    NormalisedScrollbarTrackStyle,
-    NormalisedStatusBarLabelOptions,
-    NormalisedStatusBarOptions,
-    ResolvedChartOptions,
-} from './chart/chartState';
+export type { ChartState } from './chart/chartState';
 export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';
 export type { ChartService } from './chart/chartService';
-export { numberAxisOptionsDefs } from './chart/axesOptionsDefs';
-export {
-    angleCategoryAxisOptionsDefs,
-    angleNumberAxisOptionsDefs,
-    ordinalTimeAxisOptionsDefs,
-    radiusCategoryAxisOptionsDefs,
-    radiusNumberAxisOptionsDefs,
-} from './chart/axesOptionsEnterpriseDefs';
 export { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef } from './chart/themes/themeOptionsDef';
-export {
-    type ModuleOwnedChartOptions,
-    standaloneChartOptionsDefs,
-    topologyChartOptionsDefs,
-    initialStatePickedOptionsDef,
-} from './chart/chartOptionsDefs';
-export {
-    annotationAxisLabelOptionsDef,
-    annotationCalloutStylesDefs,
-    annotationChannelTextDefs,
-    annotationCommentStylesDefs,
-    annotationCrossLineStyleDefs,
-    annotationDisjointChannelStyleDefs,
-    annotationFibonacciStylesDefs,
-    annotationLineStyleDefs,
-    annotationLineTextDefs,
-    annotationMeasurerStylesDefs,
-    annotationNoteStylesDefs,
-    annotationOptionsDef,
-    annotationParallelChannelStyleDefs,
-    annotationQuickMeasurerStylesDefs,
-    annotationShapeStylesDefs,
-    annotationTextStylesDef,
-} from './chart/themes/annotationOptionsDef';
 export type { IDataSelectionService } from './chart/data/dataSelectionServiceTypes';
 export { DataChangeDescription } from './chart/data/dataChangeDescription';
 export type { IDataSetSelection } from './chart/data/dataSetSelectionTypes';
-export {
-    commonAxisThemeTemplate,
-    parentLevelAxisThemeTemplate,
-    titleAxisThemeTemplate,
-} from './chart/themes/axisThemeTemplate';
-export { commonChartThemeTemplate } from './chart/themes/chartThemeTemplate';
-export {
-    boxPlotSeriesThemeableOptionsDef,
-    candlestickSeriesThemeableOptionsDef,
-    chordSeriesThemeableOptionsDef,
-    coneFunnelSeriesThemeableOptionsDef,
-    funnelSeriesThemeableOptionsDef,
-    heatmapSeriesThemeableOptionsDef,
-    mapLineBackgroundSeriesThemeableOptionsDef,
-    mapLineSeriesThemeableOptionsDef,
-    mapMarkerSeriesThemeableOptionsDef,
-    mapShapeBackgroundSeriesThemeableOptionsDef,
-    mapShapeSeriesThemeableOptionsDef,
-    nightingaleSeriesThemeableOptionsDef,
-    ohlcSeriesThemeableOptionsDef,
-    organizationSeriesThemeableOptionsDef,
-    pyramidSeriesThemeableOptionsDef,
-    radarAreaSeriesThemeableOptionsDef,
-    radarLineSeriesThemeableOptionsDef,
-    radialBarSeriesThemeableOptionsDef,
-    radialColumnSeriesThemeableOptionsDef,
-    rangeAreaSeriesThemeableOptionsDef,
-    rangeBarSeriesThemeableOptionsDef,
-    sankeySeriesThemeableOptionsDef,
-    sunburstSeriesThemeableOptionsDef,
-    treemapSeriesThemeableOptionsDef,
-    waterfallSeriesThemeableOptionsDef,
-} from './chart/themes/enterpriseThemeableOptionsDef';
 export {
     calculateSegments,
     predictCartesianFinancialAxis,
     predictCartesianNonPrimitiveAxis,
 } from './chart/series/cartesian/util';
-export { hasDimmedOpacity } from './chart/series/util';
 export { stackCartesianSeries } from './chart/cartesianUtil';
 export { CartesianCrossLine, crossLineHitTolerance } from './chart/crossline/cartesianCrossLine';
 export type {
@@ -127,8 +43,6 @@ export type {
     SeriesKeyNavExpandEvent,
     SeriesKeyNavZoomEvent,
     SeriesKeyNavPanXEvent,
-    ZoomInteractionRequestAxisWheelEvent,
-    ZoomInteractionAxisDragEvent,
     ZoomInteractionAxisMouseEvent,
     ZoomInteractionAxisWheelEvent,
     ZoomInteractionWheelEvent,
@@ -149,10 +63,9 @@ export type {
     PolarAxisLayout,
 } from './module/axisContext';
 export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
-export { type AxisID, type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
 export type { SelectionModuleFns } from './chart/modulesManager';
 export { Background } from './chart/background/background';
-export { SeriesArea, type SeriesAreaContent } from './chart/series-area/seriesArea';
+export { type SeriesAreaContent } from './chart/series-area/seriesArea';
 export type { BackgroundRegion } from './chart/background-regions/backgroundRegion';
 export { ChartAxes } from './chart/chartAxes';
 export { NiceMode, resetAxisLabelSelectionFn } from './chart/axis/axisUtil';
@@ -162,8 +75,6 @@ export { DataController } from './chart/data/dataController';
 export { DataModel, fixNumericExtent, getMissCount } from './chart/data/dataModel';
 export type {
     ColumnValueType,
-    DatumPropertyDefinition,
-    GroupedData,
     ProcessedData,
     ProcessedOutputDiff,
     PropertyDefinition,
@@ -193,7 +104,6 @@ export {
     barLabelDataContext,
     barLabelObstaclesFor,
     buildBarLabelCandidates,
-    compassCandidatePlacement,
     createBarCandidateStyleResolver,
     createBarPositionedCandidateResolver,
     createCandidateStyleResolver,
@@ -207,15 +117,7 @@ export {
     toResolvedPlacement,
     updateLabelNode,
 } from './chart/labelUtil';
-export type {
-    BarCandidateStyleResolver,
-    BarLabelDataContext,
-    BarLabelPlacement,
-    BarLabelSurface,
-    BarPositionedCandidate,
-    CandidatePlacementMapper,
-    ResolvedLabelPlacement,
-} from './chart/labelUtil';
+export type { BarLabelPlacement, BarPositionedCandidate, CandidatePlacementMapper } from './chart/labelUtil';
 export { LayoutElement } from './chart/layout/layoutManager';
 export type { LayoutContext } from './chart/layout/layoutManager';
 export { AnnotationManager } from './chart/annotation/annotationManager';
@@ -227,7 +129,6 @@ export type {
     ContextMenuItemContract,
     ContextMenuItemContractNonRecursive,
 } from './chart/interaction/contextMenuTypes';
-export { HighlightManager } from './chart/interaction/highlightManager';
 export { InteractionManager, InteractionState } from './chart/interaction/interactionManager';
 export { TooltipManager } from './chart/interaction/tooltipManager';
 export {
@@ -237,7 +138,6 @@ export {
     ZoomManager,
 } from './chart/interaction/zoomManager';
 export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
-export { PanToBBoxScalingModeEnum } from './util/panToBBox';
 export { getItemId } from './chart/series/pickManager';
 export { Series } from './chart/series/series';
 export { SeriesNodePickMode } from './chart/series/pickTypes';
@@ -258,9 +158,7 @@ export type {
     ErrorBoundSeriesNodeDatum,
     ISeries,
     ISeriesOptions,
-    ItemId,
     SeriesNodeDatum,
-    SeriesNodeEventTypes,
 } from './chart/series/seriesTypes';
 export { HighlightState, SelectionState } from './chart/series/seriesTypes';
 export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices, findNodeDatumInArray } from './chart/series/util';
@@ -277,22 +175,11 @@ export {
 } from './chart/series/cartesian/cartesianSeries';
 export type { CartesianAnimationData } from './chart/series/cartesian/cartesianSeries';
 export type {
-    CartesianAnimationDataOf,
-    CartesianBarLikeContext,
     CartesianCreateNodeDataContext,
-    CartesianMarkerLikeContext,
     CartesianSeriesNodeDataContext,
     CartesianSeriesNodeDatum,
     CartesianSeriesTypes,
-    ContextOf,
-    CreateNodeDataContextOf,
-    DatumOf,
-    DatumSelectionOf,
-    LabelOf,
-    LabelSelectionOf,
     NodeOf,
-    OptionsOf,
-    StackContextOf,
 } from './chart/series/cartesian/cartesianSeriesTypes';
 export {
     interpolatePoints,
@@ -311,8 +198,6 @@ export {
     resetBarSelectionsDirect,
     resetBarSelectionsFn,
 } from './chart/series/cartesian/barUtil';
-export { upsertNodeDatum } from './chart/series/cartesian/cartesianSeriesUtil';
-export type { IncrementalUpdateContext } from './chart/series/cartesian/cartesianSeriesUtil';
 export { plotAreaPathFill, prepareAreaFillAnimationFns } from './chart/series/cartesian/areaUtil';
 export { calculateDataDiff } from './chart/series/cartesian/diffUtil';
 export {
@@ -359,16 +244,11 @@ export type { GaugeSeries } from './chart/series/gaugeSeries';
 export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';
 export type { ShapeFillBBox } from './chart/series/shapeUtil';
 export { AggregationManager } from './chart/series/aggregationManager';
-export {
-    BucketLookupManager,
-    IndexSetBucketLookupManager,
-    SplitBucketLookupManager,
-} from './chart/series/bucketLookupFeature';
+export { BucketLookupManager } from './chart/series/bucketLookupFeature';
 export type { BucketLookupFeature } from './chart/series/seriesTypes';
 export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
 export { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './chart/axis/axisLabelUtil';
-export type { AxisLabelFormatterCache } from './chart/axis/axisLabelUtil';
 export type { TickInterval } from './chart/axis/axisTick';
 export { PolarAxis } from './chart/axis/polarAxis';
 export { CategoryAxis } from './chart/axis/categoryAxis';
@@ -377,7 +257,7 @@ export { DiscreteTimeAxis } from './chart/axis/discreteTimeAxis';
 export { minimumTimeAxisDatumGranularity } from './chart/axis/timeAxis';
 export type { ChartAxis, FormatDatumParams } from './chart/chartAxis';
 export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/crossLine';
-export type { CrossLine, CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
+export type { CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
 export { getCrossLinesPlugin } from './chart/crossline/getCrossLinesPlugin';
 export { calculateLabelTranslation } from './chart/crossline/crossLineLabelPosition';
 export { bandRangeExpansion, isValidScaleValue } from './chart/scaleValue';
@@ -388,7 +268,6 @@ export {
     type CategoryLegendDatum,
     type ChartLegendDatum,
     type ChartLegendType,
-    type ColorScaleLegendFormatterContext,
     type GradientLegendDatum,
     type GradientLegendNamedLabel,
 } from './chart/legend/legendDatum';
@@ -418,14 +297,13 @@ export { Node, PointerEvents } from './scene/node';
 export type { RenderContext } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
-export type { SelectionInterface } from './scene/selection';
 export { type GradientParams } from './scene/gradient/gradient';
 export { getColorStops } from './scene/gradient/stops';
 export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';
 export type { ShapeLineCap, ShapeColor } from './scene/shape/shape';
-export { SvgPath, TranslatableSvgPath, RotatableSvgPath } from './scene/shape/svgPath';
+export { SvgPath, TranslatableSvgPath } from './scene/shape/svgPath';
 export { Text, RotatableText, TransformableText } from './scene/shape/text';
 export { ContinuousScale } from './scale/continuousScale';
 export { OrdinalTimeScale } from './scale/ordinalTimeScale';
@@ -437,11 +315,8 @@ export {
     labelHasBox,
     placedLabelTextOffset,
     resolvePlacementLabelBoxExtent,
-    styledLabelTextOffset,
 } from './chart/label';
 export { Marker } from './chart/marker/marker';
-export { drawMarkerUnitPolygon } from './chart/marker/shapes';
-export { isSupportedMarkerShape } from './chart/marker/util';
 export { SectorBox } from './scene/sectorBox';
 export { Image } from './scene/image';
 export { ExtendedPath2D } from './scene/extendedPath2D';
@@ -449,7 +324,6 @@ export { ExtendedPath2D } from './scene/extendedPath2D';
 export const motion = { ...fromToMotion, ...resetMotion };
 export type { NodeUpdateState, FromToMotionPropFn } from './motion/fromToMotion';
 
-export { Caption } from './chart/caption';
 export { BBox } from './scene/bbox';
 export { Group, TranslatableGroup, ScalableGroup, TransformableGroup } from './scene/group';
 export { Scene } from './scene/scene';
@@ -466,13 +340,7 @@ export { GroupWidget } from './widget/groupWidget';
 export { NativeWidget } from './widget/nativeWidget';
 export { SliderWidget } from './widget/sliderWidget';
 export { ToolbarWidget } from './widget/toolbarWidget';
-export type {
-    DragWidgetEvent,
-    KeyboardWidgetEvent,
-    MouseWidgetEvent,
-    WheelWidgetEvent,
-    WidgetEvent,
-} from './widget/widgetEvents';
+export type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent } from './widget/widgetEvents';
 export { Menu } from './components/menu/menu';
 export type { MenuItem } from './components/menu/menu';
 export { AnchoredPopover } from './components/popover/anchoredPopover';

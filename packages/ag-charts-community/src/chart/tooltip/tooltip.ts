@@ -2,19 +2,13 @@ import {
     AgDocument,
     type CanvasPoint,
     CleanupRegistry,
+    type NormalisedTooltipOptions,
     type Placement,
     calculatePlacement,
     clamp,
     isNode,
 } from 'ag-charts-core';
-import type {
-    AgChartTooltipOptions,
-    AgTooltipAnchorTo,
-    AgTooltipMode,
-    AgTooltipPlacement,
-    InteractionRange,
-    TextWrap,
-} from 'ag-charts-types';
+import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMElementProxy } from '../../dom/domElementProxy';
 import type { DOMManager } from '../../dom/domManager';
@@ -118,12 +112,6 @@ export interface TooltipPosition {
 }
 
 /** Undocumented keys the theme sets on `tooltip`. */
-export type NormalisedTooltipOptions = AgChartTooltipOptions & {
-    darkTheme?: boolean;
-    pagination?: boolean;
-    bounds?: 'extended' | 'canvas';
-};
-
 export class Tooltip {
     enabled: boolean = true;
     mode: AgTooltipMode = 'single';

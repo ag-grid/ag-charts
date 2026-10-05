@@ -1,4 +1,5 @@
 import {
+    type NormalisedChartOverlayOptions,
     type NormalisedTextOrSegments,
     callWithContext,
     coerceTextValue,
@@ -9,13 +10,7 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type {
-    AgChartOverlayOptions,
-    AgChartOverlayRendererParams,
-    DatumDefault,
-    ImageSegment,
-    Renderer,
-} from 'ag-charts-types';
+import type { AgChartOverlayRendererParams, DatumDefault, ImageSegment, Renderer } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
@@ -53,8 +48,6 @@ export function imageSegmentStyle(segment: ImageSegment): Partial<CSSStyleDeclar
         borderRadius: segment.cornerRadius == null ? '' : `${segment.cornerRadius}px`,
     };
 }
-
-export type NormalisedChartOverlayOptions = Omit<AgChartOverlayOptions, 'text'> & { text?: NormalisedTextOrSegments };
 
 export class Overlay {
     enabled = true;

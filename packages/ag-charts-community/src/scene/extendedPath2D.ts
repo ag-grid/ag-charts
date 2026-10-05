@@ -5,9 +5,9 @@ import {
     getPath2D,
     lineDistanceSquared,
     normalizeAngle360,
+    parseSvg,
 } from 'ag-charts-core';
 
-import { parseSvg } from '../util/svg';
 import { BBox } from './bbox';
 
 enum Command {

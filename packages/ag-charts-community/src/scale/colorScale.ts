@@ -1,9 +1,8 @@
 import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
-import { Color, clamp, toNumber } from 'ag-charts-core';
+import { Color, clamp, toNumber, unpackDomainMinMax } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { AbstractScale } from './abstractScale';
-import { unpackDomainMinMax } from './scaleUtil';
 
 type OKLCHA = { l: number; c: number; h: number; a: number };
 

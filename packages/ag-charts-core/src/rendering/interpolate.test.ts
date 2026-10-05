@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { Color } from 'ag-charts-core';
-
+import { Color } from '../utils/format/color';
 import { interpolateColor } from './interpolate';
 
 describe('interpolate module', () => {

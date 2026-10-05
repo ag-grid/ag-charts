@@ -1,4 +1,4 @@
-import { ambientLog } from 'ag-charts-core';
+import * as ambientLog from '../logging/ambientLog';
 
 export type SVGCommand = 'z' | 'h' | 'v' | 'm' | 'l' | 't' | 's' | 'q' | 'c' | 'a';
 export type SVGPathSegment = { command: SVGCommand; params: number[] };

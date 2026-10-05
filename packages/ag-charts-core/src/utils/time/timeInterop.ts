@@ -1,5 +1,7 @@
-import { type RequireOptional, ambientLog } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+
+import * as ambientLog from '../../logging/ambientLog';
+import type { RequireOptional } from '../../types/global';
 
 interface TimeIntervalBackwardsCompat extends RequireOptional<AgTimeInterval> {
     every(count: number): TimeIntervalBackwardsCompat;

@@ -1,4 +1,4 @@
-import { ambientLog } from 'ag-charts-core';
+import * as ambientLog from '../logging/ambientLog';
 
 type Handler = (...args: any[]) => void;
 

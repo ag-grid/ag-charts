@@ -1,3 +1,11 @@
+import type {
+    AgAngleCategoryAxisOptions,
+    AgAngleNumberAxisOptions,
+    AgOrdinalTimeAxisOptions,
+    AgRadiusCategoryAxisOptions,
+    AgRadiusNumberAxisOptions,
+} from 'ag-charts-types';
+
 import {
     type OptionsDefs,
     arrayOfDefs,
@@ -7,20 +15,11 @@ import {
     date,
     defined,
     number,
-    numberFormatValidator,
     numericValue,
     or,
     ratio,
     union,
-} from 'ag-charts-core';
-import type {
-    AgAngleCategoryAxisOptions,
-    AgAngleNumberAxisOptions,
-    AgOrdinalTimeAxisOptions,
-    AgRadiusCategoryAxisOptions,
-    AgRadiusNumberAxisOptions,
-} from 'ag-charts-types';
-
+} from '../state/validation';
 import {
     cartesianAxisBandHighlightOptions,
     cartesianAxisCrosshairOptions,
@@ -37,6 +36,7 @@ import {
     discreteTimeAxisIntervalOptionsDefs,
     radiusCrossLineLabelOptionsDefs,
 } from './axesOptionsDefs';
+import { numberFormatValidator } from './chartDefaults';
 
 const polarAxisListenersOptionsDefs = {
     crossLineClick: callback,

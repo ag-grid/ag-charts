@@ -1,0 +1,238 @@
+import type {
+    AgAnimationOptions,
+    AgAnnotationsOptions,
+    AgChartBackground,
+    AgChartOptions,
+    AgChartOverlayOptions,
+    AgChartSyncOptions,
+    AgChartTooltipOptions,
+    AgChartValidationsOptions,
+    AgDataSourceCallbackParams,
+    AgDataSourceOptions,
+    AgFlashOnUpdateOptions,
+    AgInitialFocus,
+    AgNavigatorMiniChartOptions,
+    AgNavigatorOptions,
+    AgRangesButton,
+    AgRangesDropdown,
+    AgRangesOptions,
+    AgScrollbarHorizontalOrientationOptions,
+    AgScrollbarOptions,
+    AgScrollbarThumbStyle,
+    AgScrollbarTrackStyle,
+    AgScrollbarVerticalOrientationOptions,
+    AgSeriesAreaOptions,
+    AgTouchOptions,
+} from 'ag-charts-types';
+
+import type { NormalisedChartCaptionOptions } from './normalisedChartCaptionOptions';
+import type {
+    NormalisedBorderOptions,
+    NormalisedPaddingOptions,
+    NormalisedTextOrSegments,
+} from './normalisedCommonOptions';
+import type { NormalisedGradientLegendOptions } from './normalisedGradientLegendOptions';
+import type { NormalisedLegendOptions } from './normalisedLegendOptions';
+import type { NormalisedSelectionOptions } from './normalisedSelectionOptions';
+import type { NormalisedSeriesAreaBackgroundRegion } from './normalisedSeriesArea';
+import type { NormalisedZoomOptions } from './normalisedZoomOptions';
+
+export type NormalisedBackgroundOptions = AgChartBackground & { visible: boolean; fill: string };
+
+export type NormalisedForegroundOptions = {
+    visible?: boolean;
+    fill?: string;
+    fillOpacity?: number;
+    image?: AgChartBackground['image'];
+    text?: string;
+};
+
+export type NormalisedAnimationOptions = AgAnimationOptions & { maxAnimatableItems?: number };
+
+export type NormalisedFlashOnUpdateOptions = Required<
+    Pick<AgFlashOnUpdateOptions, 'enabled' | 'item' | 'fill' | 'fillOpacity'>
+> &
+    Pick<AgFlashOnUpdateOptions, 'flashDuration' | 'fadeOutDuration'>;
+
+export type NormalisedDataSourceOptions = AgDataSourceOptions & {
+    enabled?: boolean;
+    getData?: (params: AgDataSourceCallbackParams) => Promise<unknown[]>;
+    requestThrottle?: number;
+    updateThrottle?: number;
+    updateDuringInteraction?: boolean;
+};
+
+export type NormalisedChartSyncOptions = AgChartSyncOptions & {
+    enabled: boolean;
+    axes: 'x' | 'y' | 'xy';
+    nodeInteraction: boolean;
+    zoom: boolean;
+    domainMode?: 'direction' | 'position' | 'id';
+};
+
+export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
+    enabled: boolean;
+    snap?: boolean;
+    data?: unknown[];
+    xKey?: string;
+    volumeKey?: string;
+};
+
+export type NormalisedNavigatorMiniChartOptions = Omit<AgNavigatorMiniChartOptions, 'padding'> & {
+    padding: NormalisedPaddingOptions;
+};
+
+export type NormalisedNavigatorOptions = Omit<AgNavigatorOptions, 'miniChart'> & {
+    enabled: boolean;
+    height: number;
+    spacing: number;
+    cornerRadius: number;
+    miniChart?: NormalisedNavigatorMiniChartOptions;
+};
+
+export type NormalisedRangesDropdown = AgRangesDropdown & { visible: 'auto' | 'always' | 'never' };
+
+export type NormalisedRangesOptions = Omit<AgRangesOptions, 'dropdown' | 'buttons'> & {
+    enabled: boolean;
+    enableOutOfRange: boolean;
+    position: 'top-right' | 'top-left' | 'top' | 'right' | 'bottom-right' | 'bottom-left' | 'bottom' | 'left';
+    gap: number;
+    spacing: number;
+    buttons: AgRangesButton[];
+    dropdown: NormalisedRangesDropdown;
+};
+
+export type NormalisedScrollbarTrackStyle = AgScrollbarTrackStyle & {
+    cornerRadius: number;
+    opacity: number;
+};
+
+export type NormalisedScrollbarThumbStyle = AgScrollbarThumbStyle & {
+    cornerRadius: number;
+    opacity: number;
+    minSize: number;
+};
+
+export type NormalisedScrollbarOrientationOptions = (
+    AgScrollbarHorizontalOrientationOptions | AgScrollbarVerticalOrientationOptions
+) & {
+    enabled: boolean;
+    thickness: number;
+    spacing: number;
+    tickSpacing: number;
+    placement: 'inner' | 'outer';
+    visible: 'auto' | 'always' | 'never';
+    track: NormalisedScrollbarTrackStyle;
+    thumb: NormalisedScrollbarThumbStyle;
+};
+
+export type NormalisedScrollbarOptions = AgScrollbarOptions & {
+    enabled: boolean;
+    enableAxisScrolling: boolean;
+    enableSeriesAreaScrolling: boolean;
+    horizontal: NormalisedScrollbarOrientationOptions;
+    vertical: NormalisedScrollbarOrientationOptions;
+};
+
+export type NormalisedSeriesAreaOptions = Omit<AgSeriesAreaOptions, 'border'> & {
+    border?: NormalisedBorderOptions;
+    backgroundRegions?: NormalisedSeriesAreaBackgroundRegion[];
+};
+
+export type ResolvedChartOptions = Omit<
+    AgChartOptions,
+    | 'animation'
+    | 'annotations'
+    | 'background'
+    | 'dataSource'
+    | 'flashOnUpdate'
+    | 'footnote'
+    | 'gradientLegend'
+    | 'keyboard'
+    | 'legend'
+    | 'navigator'
+    | 'overlays'
+    | 'padding'
+    | 'ranges'
+    | 'scrollbar'
+    | 'selection'
+    | 'seriesArea'
+    | 'subtitle'
+    | 'suppressFieldDotNotation'
+    | 'sync'
+    | 'title'
+    | 'tooltip'
+    | 'touch'
+    | 'zoom'
+> & {
+    animation?: NormalisedAnimationOptions;
+    background: NormalisedBackgroundOptions;
+    dataSource?: NormalisedDataSourceOptions;
+    flashOnUpdate?: NormalisedFlashOnUpdateOptions;
+    footnote?: NormalisedChartCaptionOptions;
+    gradientLegend?: NormalisedGradientLegendOptions;
+    keyboard: { enabled: boolean; initialFocus: AgInitialFocus; tabIndex?: number };
+    legend: NormalisedLegendOptions;
+    navigator?: NormalisedNavigatorOptions;
+    overlays?: NormalisedChartOverlaysOptions;
+    padding: NormalisedPaddingOptions;
+    ranges?: NormalisedRangesOptions;
+    scrollbar?: NormalisedScrollbarOptions;
+    selection: NormalisedSelectionOptions | undefined;
+    seriesArea?: NormalisedSeriesAreaOptions;
+    subtitle?: NormalisedChartCaptionOptions;
+    suppressFieldDotNotation: boolean;
+    sync?: NormalisedChartSyncOptions;
+    title?: NormalisedChartCaptionOptions;
+    tooltip?: NormalisedTooltipOptions;
+    touch: Required<AgTouchOptions>;
+    zoom: NormalisedZoomOptions;
+    // Undocumented options that the chart consumes through chartState.
+    mode: 'integrated' | 'standalone';
+    withinStudio?: boolean;
+    foreground?: NormalisedForegroundOptions;
+    chartToolbar?: { enabled: boolean };
+    statusBar?: NormalisedStatusBarOptions;
+    annotations?: NormalisedAnnotationsOptions;
+    validations?: AgChartValidationsOptions;
+};
+
+export type NormalisedStatusBarOptions = {
+    enabled: boolean;
+    openKey?: string;
+    highKey?: string;
+    lowKey?: string;
+    closeKey?: string;
+    volumeKey?: string;
+    layoutStyle: 'block' | 'overlay';
+    title: NormalisedStatusBarLabelOptions;
+    positive: NormalisedStatusBarLabelOptions;
+    negative: NormalisedStatusBarLabelOptions;
+    neutral: NormalisedStatusBarLabelOptions;
+    altNeutral: NormalisedStatusBarLabelOptions;
+    background: { fill: string; fillOpacity: number };
+};
+
+export type NormalisedStatusBarLabelOptions = {
+    color: string;
+    fontFamily: string;
+    fontSize: number;
+    fontWeight?: import('ag-charts-types').FontWeight;
+    fontStyle?: import('ag-charts-types').FontStyle;
+};
+
+export type NormalisedTooltipOptions = AgChartTooltipOptions & {
+    darkTheme?: boolean;
+    pagination?: boolean;
+    bounds?: 'extended' | 'canvas';
+};
+
+export type NormalisedChartOverlayOptions = Omit<AgChartOverlayOptions, 'text'> & { text?: NormalisedTextOrSegments };
+
+export type NormalisedChartOverlaysOptions = {
+    darkTheme?: boolean;
+    loading?: NormalisedChartOverlayOptions;
+    noData?: NormalisedChartOverlayOptions;
+    noVisibleSeries?: NormalisedChartOverlayOptions;
+    unsupportedBrowser?: NormalisedChartOverlayOptions;
+};

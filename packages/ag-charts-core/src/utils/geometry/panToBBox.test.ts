@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import type { BoxBounds } from 'ag-charts-core';
-
+import type { BoxBounds } from './boxBounds';
 import { PanToBBoxScalingModeEnum, calcPanToBBoxRatios } from './panToBBox';
 
 type Ratios = { min: number; max: number };

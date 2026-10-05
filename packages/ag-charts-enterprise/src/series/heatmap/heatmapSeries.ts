@@ -27,6 +27,7 @@ import {
     joinFormatted,
     mergeDefaults,
     resolveTextAlign,
+    upsertNodeDatum,
 } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -50,7 +51,6 @@ const {
     findQuadtreeMatch,
     getLabelStyles,
     updateLabelNode,
-    upsertNodeDatum,
 } = _ModuleSupport;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
