@@ -943,7 +943,9 @@ describe('MapMarkerSeries', () => {
             const drawn = (chart.series[1].markerSelection.nodes() as any[]).map((m) => m.size).sort((a, b) => a - b);
             const expected = nodes.map((n) => n.point.size).sort((a, b) => a - b);
             expect(drawn.length).toBe(expected.length);
-            drawn.forEach((size, i) => expect(size).toBeCloseTo(expected[i], 10));
+            for (const [i, size] of drawn.entries()) {
+                expect(size).toBeCloseTo(expected[i], 10);
+            }
             expect(drawn[0]).toBeCloseTo(10, 10);
             expect(drawn.at(-1)).toBeCloseTo(40, 10);
             const scotland = nodes.find((n) => n.datum.name === 'Scotland');
