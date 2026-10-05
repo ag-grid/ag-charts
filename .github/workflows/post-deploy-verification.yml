@@ -29,6 +29,7 @@ env:
     GIT_CONFIG_VALUE_1: 'false'
     CI: true
     NX_NO_CLOUD: 'true'
+    IBM_TELEMETRY_DISABLED: 'true'
 
 concurrency:
     group: post-deploy-verification-${{ github.ref }}

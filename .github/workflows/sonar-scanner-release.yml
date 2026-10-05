@@ -15,6 +15,7 @@ env:
     NX_BRANCH: ${{ github.ref }}
     SONAR_PROJECT: ag-charts-community
     SONAR_SOURCE_PROJECT: ag-charts-community-latest
+    IBM_TELEMETRY_DISABLED: 'true'
 
 on: workflow_dispatch
 
