@@ -39,6 +39,16 @@ function report_flaky_tests {
   done
 }
 
+# The axe reporter (e2e/a11y/axe-reporter.ts) writes a markdown summary only when the run
+# included a11y-axe.spec.ts; surface it on the job's summary page so it can be reviewed on the PR.
+function publish_a11y_summary {
+  local summary_file=./reports/a11y/axe-summary.md
+
+  if [ -n "${GITHUB_STEP_SUMMARY:-}" ] && [ -f "${summary_file}" ] ; then
+    cat "${summary_file}" >> "${GITHUB_STEP_SUMMARY}"
+  fi
+}
+
 # Astro compiles pages on first request, so the index costs about a second the first
 # time it is hit. Requesting it in the background overlaps that compile with the test
 # container's start-up instead of paying it inside the container's readiness wait.
@@ -245,6 +255,7 @@ if [ "$1" == "--host" ] ; then
     -e NX_PARALLEL \
     -e NX_BASE \
     -e AG_FORCE_ALL_TESTS \
+    -e AG_A11Y_ALL_EXAMPLES \
     -e AG_E2E_FRAMEWORKS \
     -e AG_SCENE_SNAPSHOTS \
     -e AG_SKIP_NATIVE_DEP_VERSION_CHECK \
@@ -261,6 +272,7 @@ if [ "$1" == "--host" ] ; then
 
   if [[ "${CI:-}" != "" ]] ; then
     report_flaky_tests
+    publish_a11y_summary
   fi
 
   exit $exit_code
