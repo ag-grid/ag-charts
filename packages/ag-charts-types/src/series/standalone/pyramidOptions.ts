@@ -2,6 +2,7 @@ import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler
 import type { AgFunnelSeriesLabelPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
+    AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
     AgSeriesLabelPlacementStyleOptions,
@@ -15,6 +16,7 @@ export interface AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = Context
     extends
         AgChartLabelOptions<TDatum, TParams, TContext>,
         AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the stages. Either a single placement or an ordered
