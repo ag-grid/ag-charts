@@ -306,6 +306,64 @@ describe('highlightedItem.shadow', () => {
         });
     });
 
+    describe('shadow state read once per update', () => {
+        const testCase = SERIES.find(({ name }) => name === 'histogram')!;
+
+        const createHovered = async (drawingMode: 'cutout' | 'overlay') => {
+            const options = {
+                data: testCase.data,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                highlight: { drawingMode },
+                series: [testCase.series(SHADOW, {})],
+            } as AgChartOptions;
+            prepareTestOptions(options);
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+
+            const [series] = chart.series;
+            chart.ctx.highlightManager.updateHighlight(chart.id, series.getNodeData()[0]);
+            await waitForChartStability(chart);
+            return { proxy, options, series };
+        };
+
+        it('follows a drawing mode change while the same item stays hovered', async () => {
+            const { proxy, options, series } = await createHovered('cutout');
+            expect(casts(shapesOf(series.contentGroup, testCase.kind)[0])).toBe(false);
+
+            await proxy.update({ ...options, highlight: { drawingMode: 'overlay' } } as AgChartOptions);
+            await waitForChartStability(chart);
+
+            // Overlay mode leaves the hovered item's in-place copy casting, and the highlight copy casts none.
+            for (const shape of shapesOf(series.contentGroup, testCase.kind)) {
+                expect(shape.fillShadow).toMatchObject(SHADOW);
+            }
+            for (const shape of shapesOf(series.highlightNodeGroup, testCase.kind).filter((s) => s.visible)) {
+                expect(casts(shape)).toBe(false);
+            }
+        });
+
+        it('keeps casting one shadow for the hovered item after a data update', async () => {
+            const { proxy, options, series } = await createHovered('cutout');
+
+            const data = testCase.data.map((datum: any) => ({ ...datum, x: datum.x + 0.1 }));
+            await proxy.update({ ...options, data } as AgChartOptions);
+            await waitForChartStability(chart);
+
+            const inPlace = shapesOf(series.contentGroup, testCase.kind);
+            const highlighted = shapesOf(series.highlightNodeGroup, testCase.kind).filter((s) => s.visible);
+            // Whether or not the hover survives the update, each item casts exactly one shadow, never two or none.
+            const hovered = chart.ctx.highlightManager.getActiveHighlight() != null;
+            expect(inPlace.filter(casts).length + highlighted.filter(casts).length).toBe(inPlace.length);
+            if (hovered) {
+                expect(highlighted).toHaveLength(1);
+                expect(casts(highlighted[0])).toBe(true);
+                expect(casts(inPlace[0])).toBe(false);
+            }
+        });
+    });
+
     describe('highlightedSeries', () => {
         it('does not accept shadow', () => {
             const options: AgCartesianChartOptions = {

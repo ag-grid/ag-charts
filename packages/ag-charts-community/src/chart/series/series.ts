@@ -343,7 +343,10 @@ export abstract class Series<
         this._nodeDataRefresh = value;
         // A rebuild request bumps the version so consumers (e.g. label placement) can tell that this
         // series' node data, and everything derived from it, will differ from the last render.
-        if (value) this._nodeDataVersion++;
+        if (value) {
+            this._nodeDataVersion++;
+            this.itemShadowPass = undefined;
+        }
     }
     /** Increments on every node-data invalidation; lets consumers skip work while it is unchanged. */
     get nodeDataVersion() {
@@ -397,6 +400,7 @@ export abstract class Series<
     /** Replaces the series options; `diff` holds only the changed keys, `undefined` on the initial apply. */
     applyOptions(options: NormalisedSeriesOptions<TOpts>, diff?: DeepPartial<NormalisedSeriesOptions<TOpts>>) {
         this.options = options;
+        this.itemShadowPass = undefined;
         this.legendItemName =
             'legendItemName' in options && typeof options.legendItemName === 'string'
                 ? options.legendItemName
@@ -494,6 +498,11 @@ export abstract class Series<
                 if (this._dataConnected) this.setChartData(data);
             }),
             this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
+            // The chart's `highlight.drawingMode` decides which copy casts the shadow, and is flushed before each update.
+            this.ctx.chartState?.observe((get) => {
+                get('options', 'highlight');
+                this.itemShadowPass = undefined;
+            }),
             this.events.on('data-selection-change', () => {
                 this.hasChangesOnSelection = true;
                 this.bucketLookup?.refresh();
@@ -906,6 +915,8 @@ export abstract class Series<
     }
 
     protected onChangeHighlight(event: HighlightChangeEvent) {
+        this.itemShadowPass = undefined;
+
         const previousHighlightedDatum = event.previousHighlight;
         const currentHighlightedDatum = event.currentHighlight;
 
@@ -972,8 +983,7 @@ export abstract class Series<
      * item highlight sits elsewhere, like the treemap's `tile.highlight`, passes its own to `resolveItemShadow`.
      */
     protected getHighlightedItemShadow(): DeepPartial<NormalisedDropShadowOptions> | undefined {
-        const highlightedItem: object | undefined = this.options.highlight?.highlightedItem;
-        return (highlightedItem as { shadow?: DeepPartial<NormalisedDropShadowOptions> } | undefined)?.shadow;
+        return this.options.highlight?.highlightedItem?.shadow;
     }
 
     /**
@@ -1044,6 +1054,29 @@ export abstract class Series<
      * As `resolveItemShadow`, for a series that configures `highlightedItem.shadow` per item kind rather than on its
      * `highlight`, like the treemap's tiles and groups. `highlightShadow` is the one that applies to this item.
      */
+    /**
+     * What `resolveItemShadowWith` reads about the highlight, which can't change while a pass draws every datum.
+     * Resolved on the first datum and dropped when the highlight, the series' options or node data, or the chart's
+     * `highlight` options change, so a pass of a million datums reads them once.
+     */
+    private itemShadowPass?: {
+        highlightedDatum: HighlightNodeDatum | undefined;
+        redrawnIndex: DatumIndex | undefined;
+        cutout: boolean;
+    };
+
+    private getItemShadowPass() {
+        if (this.itemShadowPass == null) {
+            const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+            this.itemShadowPass = {
+                highlightedDatum,
+                redrawnIndex: this.getRedrawnDatumIndex(highlightedDatum),
+                cutout: this.getChartHighlightDrawingMode() === 'cutout',
+            };
+        }
+        return this.itemShadowPass;
+    }
+
     protected resolveItemShadowWith(
         highlightShadow: DeepPartial<NormalisedDropShadowOptions> | undefined,
         shadow: NormalisedDropShadowOptions | undefined,
@@ -1055,13 +1088,13 @@ export abstract class Series<
         if (highlightShadow == null && shadow?.enabled !== true) return shadow;
 
         // The item's own shadow is enabled here, so there is no need to ask whether the series has one.
-        if (!this.isItemShadowOnHighlightLayer(highlightShadow, true)) return isHighlight ? undefined : shadow;
+        const pass = this.getItemShadowPass();
+        if (highlightShadow == null && !pass.cutout) return isHighlight ? undefined : shadow;
         if (isHighlight) return this.mergeHighlightedItemShadow(shadow, highlightShadow);
 
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        if (datumIndex != null && this.getRedrawnDatumIndex(highlightedDatum) === datumIndex) return undefined;
+        if (datumIndex != null && pass.redrawnIndex === datumIndex) return undefined;
 
-        const state = highlightState ?? this.getHighlightState(highlightedDatum, false, datumIndex);
+        const state = highlightState ?? this.getHighlightState(pass.highlightedDatum, false, datumIndex);
         return state === HighlightState.Item ? this.mergeHighlightedItemShadow(shadow, highlightShadow) : shadow;
     }
 
@@ -1071,7 +1104,10 @@ export abstract class Series<
     ): NormalisedDropShadowOptions | undefined {
         return highlightShadow == null
             ? shadow
-            : mergeDefaults<NormalisedDropShadowOptions>(highlightShadow as any, shadow);
+            : (mergeDefaults<DeepPartial<NormalisedDropShadowOptions>>(
+                  highlightShadow,
+                  shadow
+              ) as NormalisedDropShadowOptions);
     }
 
     protected isItemHighlighted(highlightedDatum?: HighlightNodeDatum, datumIndex?: DatumIndex) {

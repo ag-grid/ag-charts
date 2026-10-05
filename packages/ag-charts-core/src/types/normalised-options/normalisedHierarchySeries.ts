@@ -21,7 +21,6 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import type { DeepPartial } from '../global';
 import type { Normalised } from './normalise';
 import type {
     FillStrokeMorph,
@@ -35,7 +34,7 @@ import type {
     NormalisedCollisionFreeSeriesLabelOptions,
 } from './normalisedLabelOptions';
 import type { NormalisedColorScaleOptions } from './normalisedScatterSeries';
-import type { NormalisedSeriesSelectionOptions } from './normalisedSeriesOptions';
+import type { NormalisedItemHighlightShadow, NormalisedSeriesSelectionOptions } from './normalisedSeriesOptions';
 
 /** Keys every hierarchy series reads; each leaf's normalised own-options type satisfies this. */
 export interface NormalisedHierarchySeriesKeys {
@@ -57,11 +56,6 @@ export type NormalisedTreemapGroupHighlightStyle = Normalised<
 >;
 
 export type NormalisedTreemapTileHighlightStyle = Normalised<AgTreemapSeriesTileHighlightStyle, never, FillStrokeMorph>;
-
-/** The `shadow` `highlightedItem` accepts, which the style types above leave out. */
-interface NormalisedItemHighlightShadow {
-    shadow?: DeepPartial<NormalisedDropShadowOptions>;
-}
 
 export type NormalisedTreemapGroupHighlightOptions = Normalised<
     AgTreemapSeriesGroupHighlightOptions,
