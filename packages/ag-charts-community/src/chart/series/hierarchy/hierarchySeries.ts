@@ -435,7 +435,7 @@ export abstract class HierarchySeries<
 
     /**
      * Yields in datum order, as `getSelection()` does; the base scene walk would yield in depth order, and would
-     * also yield a highlighted node a second time where its highlight node shares the group with the tiles.
+     * also yield a highlighted node a second time where its highlight node shares a group with the datum nodes.
      */
     public override *pickNodesInBBox(selectionBox: BoxBounds): Iterable<TNodeClass> {
         const predicate = this.pickNodesInBBoxPredicate();
