@@ -2013,11 +2013,6 @@ jobs:
     algolia_dev_index:
         runs-on: ubuntu-24.04
         name: Update Algolia Dev Index
-        # Replaces the TeamCity job "AG Charts › Build & Deploy - ONLY USED FOR ALGOLIA INDEXING",
-        # which rebuilt the website from scratch each time latest-success moved, only to run this
-        # script. Here we index the staging build as soon as Website Build succeeds, so the job runs
-        # alongside the test jobs and adds no time to the workflow. Staging's search reads the
-        # ag-charts-dev indices (PUBLIC_ALGOLIA_INDEX_PREFIX in .env.build.staging).
         needs: [website_build]
         # Only when the whole Website Build job succeeded (build and artifact upload), not just its build step.
         if: ${{ !cancelled() && github.ref == 'refs/heads/latest' && needs.website_build.result == 'success' }}
