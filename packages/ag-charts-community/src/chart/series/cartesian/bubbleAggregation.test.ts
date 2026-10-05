@@ -662,7 +662,9 @@ describe('computeBubbleAggregationCount sizeMode', () => {
             dilations.map((d) => computeBubbleAggregationCount(d, aggregation, { ...options, sizeMode }));
         const diameterCounts = counts();
         const areaCounts = counts('area');
-        areaCounts.forEach((count, i) => expect(count).toBeLessThanOrEqual(diameterCounts[i]));
+        for (const [i, count] of areaCounts.entries()) {
+            expect(count).toBeLessThanOrEqual(diameterCounts[i]);
+        }
         expect(areaCounts).not.toEqual(diameterCounts);
     });
 });

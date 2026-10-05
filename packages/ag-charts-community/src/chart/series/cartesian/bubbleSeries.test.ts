@@ -53,6 +53,11 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 
+const nodeSizes = (c: AgChartInstance) =>
+    (deproxy(c).series[0] as unknown as { getNodeData(): Array<{ point: { size: number } }> })
+        .getNodeData()
+        .map((d) => d.point.size);
+
 describe('BubbleSeries', () => {
     setupMockConsole();
 
@@ -1418,10 +1423,6 @@ describe('BubbleSeries', () => {
     });
 
     describe('AG-17481 size scaling', () => {
-        const nodeSizes = (c: AgChartInstance) =>
-            (deproxy(c).series[0] as unknown as { getNodeData(): Array<{ point: { size: number } }> })
-                .getNodeData()
-                .map((d) => d.point.size);
 
         const createBubble = async (seriesOverrides: object) => {
             const options = {
@@ -1573,10 +1574,6 @@ describe('BubbleSeries', () => {
     });
 
     describe('AG-18508 sizeMode', () => {
-        const nodeSizes = (c: AgChartInstance) =>
-            (deproxy(c).series[0] as unknown as { getNodeData(): Array<{ point: { size: number } }> })
-                .getNodeData()
-                .map((d) => d.point.size);
 
         const createBubble = async (
             seriesOverrides: object,
@@ -1703,7 +1700,7 @@ describe('BubbleSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
-                  "AG Charts - Option \`series[0].sizeMode\` cannot be set to \`\"radius\"\`; expecting a keyword such as 'diameter' or 'area', ignoring.",
+                  "AG Charts - Option \`series[0].sizeMode\` cannot be set to \`"radius"\`; expecting a keyword such as 'diameter' or 'area', ignoring.",
                 ],
               ]
             `);

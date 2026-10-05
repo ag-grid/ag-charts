@@ -937,11 +937,11 @@ export abstract class BubbleScatterSeries<
 
         const crossFilterSelected = ctx.crossFilterSelectedDataValues?.[datumIndex];
 
-        const [minSize, maxSize] = ctx.sizeScale.range;
+        const sizeRange = ctx.sizeScale.range;
         const markerSize =
             sizeValue == null
-                ? minSize
-                : applySizeMode(ctx.sizeScale.convertClamped(sizeValue), minSize, maxSize, ctx.sizeMode);
+                ? sizeRange[0]
+                : applySizeMode(ctx.sizeScale.convertClamped(sizeValue), sizeRange[0], sizeRange[1], ctx.sizeMode);
 
         // Compute label (skip expensive formatting if labels disabled)
         if (ctx.labelsEnabled) {
