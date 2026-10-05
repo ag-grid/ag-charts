@@ -385,13 +385,25 @@ describe('series label fit', () => {
                 expect(rendered.some((node) => node.fontSize === 16 && node.text.includes(ELLIPSIS))).toBe(true);
             });
 
+            it('shrinks before hiding when collision.alwaysShow is left to the theme', async () => {
+                await render(stageChart({ minimumFontSize: 4, collision: {} }));
+                expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE && !node.text.includes(ELLIPSIS))).toBe(
+                    true
+                );
+
+                await render(stageChart({ minimumFontSize: 16, collision: {} }));
+                const rendered = drawnLabels();
+                expect(rendered.length).toBeLessThan(stages.length);
+                expect(rendered.every((node) => node.fontSize >= 16)).toBe(true);
+            });
+
             it('takes minimumFontSize from the theme', async () => {
                 await render(stageChart({}, { overrides: { [type]: { series: { label: { minimumFontSize: 4 } } } } }));
                 expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE)).toBe(true);
             });
         });
 
-        // One chart per standalone series; each stage label exercises a different fit outcome.
+        // One chart per series, as they cannot share a chart; each stage label exercises a different fit outcome.
         describe('visual: funnel family', () => {
             const spectrum = [
                 { stage: 'Visits', value: 100, label: 'Site visits' },
