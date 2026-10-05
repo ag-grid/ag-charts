@@ -38,6 +38,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
             shape: 'circle',
             size: 7,
             maxSize: 30,
+            sizeMode: 'diameter',
             fill: applyMapPalette(fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS)),
             stroke: { $mapPalette: 'stroke' },
             colorScale: MAP_COLOR_SCALE_THEME,

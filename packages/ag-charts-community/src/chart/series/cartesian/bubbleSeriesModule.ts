@@ -69,6 +69,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
         shape: 'circle',
         minSize: 7,
         maxSize: 30,
+        sizeMode: 'diameter',
         fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
         stroke: { $palette: 'stroke' },
         fillOpacity: 0.8,

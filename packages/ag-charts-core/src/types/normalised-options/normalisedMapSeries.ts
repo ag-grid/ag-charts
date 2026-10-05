@@ -95,6 +95,7 @@ export type NormalisedMapMarkerSeriesOwnOptions = Normalised<
     | 'shape'
     | 'size'
     | 'maxSize'
+    | 'sizeMode'
     | 'fill'
     | 'fillOpacity'
     | TopologyStrokeRequiredKeys

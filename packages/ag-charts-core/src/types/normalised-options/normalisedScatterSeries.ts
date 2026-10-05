@@ -6,6 +6,7 @@ import type {
     AgBubbleSeriesStylerResult,
     AgColorScale,
     AgColorScaleColorStop,
+    AgMarkerSizeMode,
     AgNumericValue,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesOptions,
@@ -68,7 +69,7 @@ interface BubbleScatterOverrides<TKeys> {
 /** Bubble options the series owns, before the common series keys are layered on. */
 export type NormalisedBubbleSeriesOwnOptions = Normalised<
     AgBubbleSeriesOptions,
-    BubbleScatterRequiredKeys | 'sizeKey' | 'minSize' | 'maxSize',
+    BubbleScatterRequiredKeys | 'sizeKey' | 'minSize' | 'maxSize' | 'sizeMode',
     BubbleScatterOverrides<AgBubbleSeriesOptionsKeys> & {
         label: NormalisedPlacedSeriesLabelOptions<AgBubbleSeriesLabelFormatterParams>;
         styler?: Styler<AgBubbleSeriesStylerParams<unknown, unknown>, AgBubbleSeriesStylerResult>;
@@ -103,13 +104,14 @@ export type NormalisedScatterSeriesOptions = NormalisedSeriesOptions<NormalisedS
  */
 export type NormalisedBubbleScatterSeriesOwnOptions = Omit<
     NormalisedBubbleSeriesOwnOptions,
-    'type' | 'sizeKey' | 'sizeDomain' | 'minSize' | 'maxSize' | 'styler' | 'itemStyler'
+    'type' | 'sizeKey' | 'sizeDomain' | 'minSize' | 'maxSize' | 'sizeMode' | 'styler' | 'itemStyler'
 > & {
     type: 'bubble' | 'scatter';
     sizeKey?: string;
     sizeDomain?: [AgNumericValue, AgNumericValue];
     minSize?: number;
     maxSize?: number;
+    sizeMode?: AgMarkerSizeMode;
     size?: number;
     styler?: BivariantCallback<
         AgBubbleSeriesStylerParams<unknown, unknown> | AgScatterSeriesStylerParams<unknown, unknown>,

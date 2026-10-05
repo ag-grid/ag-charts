@@ -4,7 +4,15 @@ import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelCollisionFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { AgMarkerShape, ContextDefault, DatumDefault, DatumKey, GeoJSON, PixelSize } from '../../chart/types';
+import type {
+    AgMarkerShape,
+    AgMarkerSizeMode,
+    ContextDefault,
+    DatumDefault,
+    DatumKey,
+    GeoJSON,
+    PixelSize,
+} from '../../chart/types';
 import type { AgColorScale, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
@@ -104,6 +112,17 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
      * Reverse the bounds (e.g. `[100, 0]`) to invert the mapping so that larger values produce smaller markers.
      */
     sizeDomain?: [AgNumericValue, AgNumericValue];
+    /**
+     * Determines how `sizeKey` values map onto marker sizes.
+     *
+     * - `'diameter'`: the marker diameter grows linearly with the value.
+     * - `'area'`: the marker area grows linearly with the value, so equal steps in value give equal steps in area.
+     *
+     * In `'area'` mode the area is only strictly proportional to the value when `minSize` is `0` and `sizeDomain` starts at `0`.
+     *
+     * Default: `'diameter'`
+     */
+    sizeMode?: AgMarkerSizeMode;
     /** Configuration for the shadow used behind the markers. Not applied to custom marker shapes. */
     shadow?: AgDropShadowOptions;
     /** Configuration for colour scale with fills, domain, and mode. */

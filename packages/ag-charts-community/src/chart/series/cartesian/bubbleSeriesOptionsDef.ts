@@ -21,6 +21,7 @@ import {
     string,
     tooltipOptionsDefs,
     undocumented,
+    union,
     without,
 } from 'ag-charts-core';
 import type {
@@ -34,6 +35,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     sizeDomain: and(arrayOf(numericValue), arrayLength(2, 2)),
     minSize: positiveNumber,
     maxSize: positiveNumber,
+    sizeMode: union('diameter', 'area'),
     showInMiniChart: boolean,
     label: placedSeriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
