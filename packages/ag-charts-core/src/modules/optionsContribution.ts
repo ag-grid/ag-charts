@@ -1,5 +1,5 @@
-import { type OptionsDefs, type Validator, object } from '../state/validation';
-import { isFunction, isObject } from '../utils/types/typeGuards';
+import { isFunction, isObject } from '../data/typeGuards';
+import { type OptionsDefs, type Validator, object } from '../options/validation';
 
 /**
  * A location in the options tree owned by a module. Ownership drives validation defs, missing-module

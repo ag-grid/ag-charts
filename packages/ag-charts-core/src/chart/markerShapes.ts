@@ -1,6 +1,6 @@
 import type { AgMarkerShape, AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
 
-import { toRadians } from '../utils/geometry/angle';
+import { toRadians } from '../geometry/angle';
 
 export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 

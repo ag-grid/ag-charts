@@ -129,7 +129,7 @@ grep -rlE "name: 'sankey'," packages/ag-charts-{community,enterprise}/src --incl
 
 ### Step 2: Check the Theme Templates
 
-Open the module file and look for the `themeTemplate` object. Follow any spread constants (`...COMMON_SERIES_THEME_DEFAULTS`, `...STROKE_STYLE_THEME_DEFAULTS` from `ag-charts-core/src/config/themeUtil.ts`) and `mergeDefaults(...)` arguments (`commonAxisThemeTemplate` from `ag-charts-core/src/config/axisThemeTemplate.ts`), as these carry defaults too.
+Open the module file and look for the `themeTemplate` object. Follow any spread constants (`...COMMON_SERIES_THEME_DEFAULTS`, `...STROKE_STYLE_THEME_DEFAULTS` from `ag-charts-core/src/options/themeUtil.ts`) and `mergeDefaults(...)` arguments (`commonAxisThemeTemplate` from `ag-charts-core/src/options/axisThemeTemplate.ts`), as these carry defaults too.
 
 Then check contribution-level theme templates. A module that owns an option path outside its own location declares it in `contributes`, and each contribution can carry its own `themeTemplate`, merged at that path:
 
@@ -208,7 +208,7 @@ This applies to every option in `packages/ag-charts-types` regardless of descrip
 | Annotations         | `packages/ag-charts-enterprise/src/features/annotations/*`            | `annotationsModule.ts`, `annotationsTheme.ts`                   |
 | Legend              | `packages/ag-charts-community/src/chart/legend/*Module.ts`            | `legendModule.ts`                                               |
 | Enterprise features | `packages/ag-charts-enterprise/src/features/**/*Module.ts`            | `context-menu/contextMenuModule.ts`                             |
-| Shared theme parts  | `packages/ag-charts-core/src/config/`                                 | `chartThemeTemplate.ts`, `axisThemeTemplate.ts` (merged into chart-type and axis modules) |
+| Shared theme parts  | `packages/ag-charts-core/src/options/`                                 | `chartThemeTemplate.ts`, `axisThemeTemplate.ts` (merged into chart-type and axis modules) |
 
 ---
 

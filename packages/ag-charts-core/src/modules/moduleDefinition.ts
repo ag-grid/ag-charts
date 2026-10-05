@@ -8,12 +8,12 @@ import type {
     SeriesType,
 } from 'ag-charts-types';
 
-import type { DynamicContext } from '../module/dynamicContext';
-import type { OptionsDefs, ValidateParams, ValidationResult } from '../state/validation';
-import type { AxisID } from '../types/idBranding';
-import type { Normalised } from '../types/normalised-options/normalise';
+import type { AxisID } from '../identity/idBranding';
+import type { Normalised } from '../options/normalised/normalise';
+import type { OptionsDefs, ValidateParams, ValidationResult } from '../options/validation';
 import type { ScaleType } from '../types/scales';
 import type { Point } from '../types/scene';
+import type { DynamicContext } from './dynamicContext';
 import type { OptionsContribution } from './optionsContribution';
 
 export enum ModuleType {

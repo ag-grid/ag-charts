@@ -1,4 +1,4 @@
-import { arraysEqual } from '../utils/data/arrays';
+import { arraysEqual } from '../data/arrays';
 
 type Target = { [K in string]: any } & { onChangeDetection(privateKey: string): void };
 

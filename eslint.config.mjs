@@ -26,16 +26,16 @@ const SANCTIONED_AMBIENT_LOGGING = [
     // The default Logger for a scale with no owning axis (sparklines, interpolation scales).
     '/scale/abstractScale.ts',
     // Pixel-boundary coercion called from everywhere; a logger parameter would be viral.
-    '/utils/data/numbers.ts',
+    'ag-charts-core/src/data/numbers.ts',
     // Pure format-string parser, reached from the static `FormatManager.getFormatter` below.
-    '/utils/format/numberFormat.ts',
+    'ag-charts-core/src/format/numberFormat.ts',
     // Cycle detection in the generic JSON walker.
-    '/utils/data/json.ts',
+    'ag-charts-core/src/data/json.ts',
     // The unsupported-browser warning is a property of the environment, not of a chart: per-chart
     // scoping would repeat it once per chart on the same browser.
-    '/utils/dom/browser.ts',
+    'ag-charts-core/src/dom/browser.ts',
     // Runs before any chart exists.
-    '/utils/time/timeInterop.ts',
+    'ag-charts-core/src/time/timeInterop.ts',
     // Default for the AG Grid `_Theme.getChartTheme(value)` entry point, which takes no logger.
     '/chart/mapping/themes.ts',
     // Pure parsers and formatters with no owner.
