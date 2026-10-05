@@ -341,8 +341,7 @@ describe('series label fit', () => {
             });
         });
 
-        // Cone-funnel's default `start-center` sits on a stage boundary the cone does not bound, so its labels
-        // are moved into the stage.
+        // Cone-funnel's default `start-center` is not bounded by the cone, so its labels move into the stage.
         describe.each([
             ['funnel', 'inside-center', [100, 30, 10, 4, 2]],
             ['cone-funnel', 'middle-center', [100, 30, 10, 4, 2]],
@@ -392,8 +391,7 @@ describe('series label fit', () => {
             });
         });
 
-        // One chart per series, since each is standalone; every stage label exercises a different outcome
-        // (fits, shrinks, wraps and shrinks, or truncates at the floor).
+        // One chart per standalone series; each stage label exercises a different fit outcome.
         describe('visual: funnel family', () => {
             const spectrum = [
                 { stage: 'Visits', value: 100, label: 'Site visits' },
