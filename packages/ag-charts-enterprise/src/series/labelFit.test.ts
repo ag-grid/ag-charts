@@ -285,14 +285,12 @@ describe('series label fit', () => {
                 ],
             });
 
-            it('keeps labels at their configured size when minimumFontSize is unset', async () => {
-                await render(rangeAreaChart({}));
+            const expectAllTruncatedAt = (fontSize: number) => {
                 const rendered = drawnLabels();
                 expect(rendered.length).toBe(bars.length * 2);
-                expect(rendered.map((node) => node.fontSize)).toEqual(rendered.map(() => FONT_SIZE));
+                expect(rendered.map((node) => node.fontSize)).toEqual(rendered.map(() => fontSize));
                 expect(rendered.every((node) => node.text.includes(ELLIPSIS))).toBe(true);
-            });
-
+            };
             const expectAllShrunkWhole = () => {
                 const rendered = drawnLabels();
                 expect(rendered.length).toBe(bars.length * 2);
@@ -302,6 +300,11 @@ describe('series label fit', () => {
                 }
             };
 
+            it('keeps labels at their configured size when minimumFontSize is unset', async () => {
+                await render(rangeAreaChart({}));
+                expectAllTruncatedAt(FONT_SIZE);
+            });
+
             it('shrinks labels to fit rather than truncating them', async () => {
                 await render(rangeAreaChart({ minimumFontSize: 4 }));
                 expectAllShrunkWhole();
@@ -309,16 +312,49 @@ describe('series label fit', () => {
 
             it('stops shrinking at minimumFontSize and truncates from there', async () => {
                 await render(rangeAreaChart({ minimumFontSize: 16 }));
-                const rendered = drawnLabels();
-                expect(rendered.length).toBe(bars.length * 2);
-                expect(rendered.map((node) => node.fontSize)).toEqual(rendered.map(() => 16));
-                expect(rendered.every((node) => node.text.includes(ELLIPSIS))).toBe(true);
+                expectAllTruncatedAt(16);
+            });
+
+            it('stops shrinking at minimumFontSize and hides from there when alwaysShow is false', async () => {
+                await render(
+                    rangeAreaChart({ minimumFontSize: 16, truncate: false, collision: { alwaysShow: false } })
+                );
+                expect(drawnLabels()).toEqual([]);
             });
 
             it('takes minimumFontSize from the theme', async () => {
                 const theme = { overrides: { 'range-area': { series: { label: { minimumFontSize: 4 } } } } };
                 await render(rangeAreaChart({}, theme));
                 expectAllShrunkWhole();
+            });
+
+            it('shrinks only the labels crowding a neighbour, with a themed minimumFontSize alone', async () => {
+                const crowdedChart = (theme?: object) => ({
+                    data: Array.from({ length: 8 }, (_, i) => ({ cat: `Cat ${i}`, low: 20, high: 80 })),
+                    legend: { enabled: false },
+                    axes: { ...cartesianAxes, y: { type: 'number', position: 'left', min: 0, max: 100 } },
+                    theme,
+                    series: [
+                        {
+                            type: 'range-area',
+                            xKey: 'cat',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            label: { enabled: true, fontSize: FONT_SIZE, formatter: () => 'Alpha Bravo' },
+                        },
+                    ],
+                });
+                await render(crowdedChart());
+                expect(drawnLabels().map((node) => node.fontSize)).toEqual(Array(16).fill(FONT_SIZE));
+
+                chart.destroy();
+                await render(
+                    crowdedChart({ overrides: { 'range-area': { series: { label: { minimumFontSize: 6 } } } } })
+                );
+                const sizes = drawnLabels().map((node) => node.fontSize);
+                expect(sizes).toHaveLength(16);
+                expect(sizes).toContain(FONT_SIZE);
+                expect(sizes.some((size) => size < FONT_SIZE)).toBe(true);
             });
         });
 
