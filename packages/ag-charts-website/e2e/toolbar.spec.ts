@@ -288,4 +288,25 @@ test.describe('toolbar', () => {
         await repeat(12, async () => await page.keyboard.press('ArrowDown'));
         await expectChartScreenshot(page, page, 'AG-16815-horizontal-line-moved-down.png', { animations: 'disabled' });
     });
+
+    test('AG-17497 colour picker tracks taller than the thumb do not overlap', async ({ page }) => {
+        await gotoExample(page, url);
+
+        await page.getByTitle('Fibonacci').click();
+        await page.getByText('Fib Retracement').click();
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: 250 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 250 } });
+        await page.hover(SELECTORS.canvasProxy, { position: { x: 350, y: 100 } });
+        await page.click(SELECTORS.canvasProxy, { position: { x: 350, y: 100 } });
+        await page.getByTitle('Line Color').click();
+
+        // Equivalent to `colorPickerThumbSize: 12` and `colorPickerTrackSize: 40` in the theme params.
+        const picker = page.locator('.ag-charts-color-picker');
+        await picker.evaluate((el: HTMLElement) => {
+            el.style.setProperty('--ag-charts-color-picker-thumb-size', '12px');
+            el.style.setProperty('--ag-charts-color-picker-track-size', '40px');
+        });
+
+        await expectChartScreenshot(page, page, 'AG-17497-colour-picker-tall-tracks.png', { animations: 'disabled' });
+    });
 });

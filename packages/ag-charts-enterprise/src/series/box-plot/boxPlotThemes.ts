@@ -1,6 +1,7 @@
 import {
     CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -41,6 +42,13 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         fillOpacity: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
+        },
         cap: { lengthRatio: 0.5 },
         tooltip: { interaction: { enabled: false } },
         highlight: {

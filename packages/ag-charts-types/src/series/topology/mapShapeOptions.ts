@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
     AgChartLabelFitOptions,
@@ -84,6 +85,8 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContex
     label?: AgMapShapeSeriesLabelOptions<TDatum, AgMapShapeSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Distance between the shape edges and the text. */
     padding?: PixelSize;
+    /** Configuration for the shadow used behind the series items. */
+    shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgMapShapeSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A callback function for adjusting the styles of a particular Map shape based on the input parameters. */

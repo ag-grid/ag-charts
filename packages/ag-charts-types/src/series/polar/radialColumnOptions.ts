@@ -1,3 +1,4 @@
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { ContextDefault, DatumDefault, Ratio } from '../../chart/types';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 import type {
@@ -33,6 +34,8 @@ export interface AgRadialColumnSeriesThemeableOptions<
     columnWidthRatio?: Ratio;
     /** Prevents columns from becoming too wide. This value is relative to the diameter of the polar chart. */
     maxColumnWidthRatio?: Ratio;
+    /** Configuration for the shadow used behind the series items. */
+    shadow?: AgDropShadowOptions;
 }
 
 export interface AgRadialColumnSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

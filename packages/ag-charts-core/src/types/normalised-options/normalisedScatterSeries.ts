@@ -20,7 +20,7 @@ import type {
 import type { RequireOptional } from '../global';
 import type { BivariantCallback, Normalised } from './normalise';
 import type { NormalisedCartesianSeriesOptionsCommon } from './normalisedCartesianSeries';
-import type { NormalisedColorType } from './normalisedCommonOptions';
+import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedPlacedSeriesLabelOptions } from './normalisedLabelOptions';
 import type { NormalisedSeriesMarkerStylerParams } from './normalisedSeriesMarkerOptions';
 import type { NormalisedSeriesOptions } from './normalisedSeriesOptions';
@@ -51,11 +51,13 @@ type BubbleScatterRequiredKeys =
     | 'lineDash'
     | 'lineDashOffset'
     | 'label'
-    | 'maxRenderedItems';
+    | 'maxRenderedItems'
+    | 'shadow';
 
 interface BubbleScatterOverrides<TKeys> {
     fill: NormalisedColorType;
     stroke: CssColor;
+    shadow: NormalisedDropShadowOptions;
     colorScale?: NormalisedColorScaleOptions;
     itemStyler?: BivariantCallback<
         NormalisedSeriesMarkerStylerParams<unknown, unknown> & RequireOptional<Omit<TKeys, 'context'>>,

@@ -441,6 +441,7 @@ export {
 } from './chart/label';
 export { Marker } from './chart/marker/marker';
 export { drawMarkerUnitPolygon } from './chart/marker/shapes';
+export { isSupportedMarkerShape } from './chart/marker/util';
 export { SectorBox } from './scene/sectorBox';
 export { Image } from './scene/image';
 export { ExtendedPath2D } from './scene/extendedPath2D';

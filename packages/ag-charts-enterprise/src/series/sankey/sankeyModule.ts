@@ -1,6 +1,7 @@
 import { type AgSankeySeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -64,11 +65,25 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
+                shadow: {
+                    enabled: false,
+                    color: DEFAULT_SHADOW_COLOUR,
+                    xOffset: 3,
+                    yOffset: 3,
+                    blur: 5,
+                },
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
+                shadow: {
+                    enabled: false,
+                    color: DEFAULT_SHADOW_COLOUR,
+                    xOffset: 3,
+                    yOffset: 3,
+                    blur: 5,
+                },
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

@@ -11,6 +11,7 @@ import {
     type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
+    type CollideWith,
     type DomainWithMetadata,
     type DynamicContext,
     type FillStrokeMorph,
@@ -1160,6 +1161,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             rect.setStyleProperties(style as Required<NormalisedWaterfallSeriesStyle>, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
+            rect.fillShadow = this.getItemConfig(datum.itemType).shadow;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;
@@ -1185,11 +1187,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels) return [];
         const data: PointLabelDatum[] = [];
+        // One `collideWith` per item type keeps datums sharing it, which placement relies on to test it once.
+        const collideWithByLabel = new Map<object, CollideWith>();
         for (const node of this.contextNodeData?.labelData ?? []) {
             const nodeLabel = node.label;
             if (nodeLabel == null || nodeLabel.text === '') continue;
             const label = this.getItemConfig(node.itemType).label;
-            const collideWith = resolveCollideWith(label.collision);
+            let collideWith = collideWithByLabel.get(label);
+            if (collideWith == null) {
+                collideWith = resolveCollideWith(label.collision);
+                collideWithByLabel.set(label, collideWith);
+            }
             const threshold = label.collision.threshold ?? 0;
             // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
             // avoid the box, not just the text.

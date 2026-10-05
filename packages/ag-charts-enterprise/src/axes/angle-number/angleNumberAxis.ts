@@ -4,7 +4,7 @@ import {
     type ScaleTickParams,
     angleBetween,
     findMinMax,
-    isNumberEqual,
+    hideCollidingRadialNumberLabels,
     normalisedExtentWithMetadata,
     toNumberOrUndefined,
 } from 'ag-charts-core';
@@ -105,56 +105,7 @@ export class AngleNumberAxis extends AngleAxis<AgNumericValue, LinearAngleScale,
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        const minSpacing = this.options.label.minSpacing;
-
-        const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
-            if (prev.hidden || next.hidden) {
-                return false;
-            } else if (minSpacing == null) {
-                return prev.box!.collidesBBox(next.box!);
-            }
-            const prevBox = prev.box!.clone().grow(minSpacing / 2);
-            const nextBox = next.box!.clone().grow(minSpacing / 2);
-            return prevBox.collidesBBox(nextBox);
-        };
-
-        const firstLabel = labelData[0];
-        const lastLabel = labelData.at(-1)!;
-        if (
-            firstLabel !== lastLabel &&
-            isNumberEqual(firstLabel.x, lastLabel.x) &&
-            isNumberEqual(firstLabel.y, lastLabel.y)
-        ) {
-            lastLabel.hidden = true;
-        }
-
-        for (let step = 1; step < labelData.length; step *= 2) {
-            let collisionDetected = false;
-            for (let i = step; i < labelData.length; i += step) {
-                const next = labelData[i];
-                const prev = labelData[i - step];
-                if (labelsCollide(prev, next)) {
-                    collisionDetected = true;
-                    break;
-                }
-            }
-            if (!collisionDetected) {
-                for (const [i, datum] of labelData.entries()) {
-                    if (i % step > 0) {
-                        datum.hidden = true;
-                        datum.box = undefined;
-                    }
-                }
-                return;
-            }
-        }
-
-        for (const [i, datum] of labelData.entries()) {
-            if (i > 0) {
-                datum.hidden = true;
-                datum.box = undefined;
-            }
-        }
+        hideCollidingRadialNumberLabels(labelData, this.options.label.minSpacing);
     }
 
     override tickFormatParams(

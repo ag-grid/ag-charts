@@ -4,10 +4,16 @@ import { Logger } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type { AgPatternName } from 'ag-charts-types';
 
+import { Marker } from '../../chart/marker/marker';
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
+import { Scalable } from '../transformable';
+import { BarShape } from './barShape';
+import { Line } from './line';
+import { Path } from './path';
 import { Rect } from './rect';
+import type { ShapeShadowMode } from './shape';
 
 describe('Shape', () => {
     setupMockConsole();
@@ -793,6 +799,440 @@ describe('Shape', () => {
 
             expect(scoped).toHaveBeenCalledWith('Pattern fill is too small to render, ignoring.');
             expect(unrelated).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('shadow modes', () => {
+        const canvasCtx = setupMockCanvas({ width: 400, height: 220 });
+
+        const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.7)', xOffset: 6, yOffset: 6, blur: 4 };
+
+        const renderNode = (node: Line | Path, ctx = canvasCtx.getRenderContext2D()) => {
+            const renderCtx = {
+                ctx,
+                direction: 'ltr' as const,
+                width: canvasCtx.nodeCanvas.width,
+                height: canvasCtx.nodeCanvas.height,
+                devicePixelRatio: 1,
+                logger: testLogger,
+                debugNodes: {},
+            };
+            ctx.save();
+            node.preRender(renderCtx);
+            node.render(renderCtx);
+            ctx.restore();
+        };
+
+        const lineNode = (shadowMode: ShapeShadowMode, y: number, strokeWidth = 8) => {
+            const line = new Line();
+            Object.assign(line, {
+                x1: 20,
+                y1: y,
+                x2: 120,
+                y2: y + 30,
+                stroke: 'red',
+                strokeWidth,
+                fillShadow: SHADOW,
+                shadowMode,
+            });
+            return line;
+        };
+
+        /** A filled box with whiskers sticking out above and below, as in a box plot. */
+        const whiskerPath = (shadowMode: ShapeShadowMode, x: number, mixin: Partial<Path> = {}) => {
+            const path = new Path();
+            Object.assign(path, {
+                fill: 'gold',
+                stroke: 'navy',
+                strokeWidth: 4,
+                fillShadow: SHADOW,
+                shadowMode,
+                ...mixin,
+            });
+            const { path: p } = path;
+            p.moveTo(x, 40);
+            p.lineTo(x + 60, 40);
+            p.lineTo(x + 60, 140);
+            p.lineTo(x, 140);
+            p.closePath();
+            p.moveTo(x + 30, 10);
+            p.lineTo(x + 30, 40);
+            p.moveTo(x + 30, 140);
+            p.lineTo(x + 30, 190);
+            return path;
+        };
+
+        const clearCanvas = () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
+        };
+
+        it('should render a stroke-only line and path with a stroke shadow', () => {
+            clearCanvas();
+            renderNode(lineNode('stroke', 20));
+            renderNode(lineNode('stroke', 100, 3));
+
+            const open = new Path();
+            Object.assign(open, {
+                fill: undefined,
+                stroke: 'green',
+                strokeWidth: 6,
+                lineJoin: 'round',
+                fillShadow: SHADOW,
+                shadowMode: 'stroke',
+            });
+            open.path.moveTo(200, 160);
+            open.path.lineTo(250, 40);
+            open.path.lineTo(300, 160);
+            open.path.lineTo(350, 40);
+            renderNode(open);
+
+            expect(extractImageData(canvasCtx)).toMatchImageSnapshot();
+        });
+
+        it('should render a mixed path with open subpaths with a silhouette shadow', () => {
+            clearCanvas();
+            renderNode(whiskerPath('silhouette', 40));
+            renderNode(
+                whiskerPath('silhouette', 200, { fill: { type: 'pattern', pattern: 'circles', width: 10, height: 10 } })
+            );
+
+            expect(extractImageData(canvasCtx)).toMatchImageSnapshot();
+        });
+
+        it('should not paint the silhouette source off-canvas on to the canvas', () => {
+            clearCanvas();
+            // No shadow offset or blur, so a silhouette shadow is exactly the shape's own pixels.
+            const path = whiskerPath('silhouette', 40, {
+                fill: 'black',
+                stroke: 'black',
+                fillShadow: { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 },
+            });
+            renderNode(path);
+
+            const ctx = canvasCtx.getRenderContext2D();
+            const pixel = (x: number, y: number) => Array.from(ctx.getImageData(x, y, 1, 1).data);
+            // Inside the body: black fill on top of the shadow. On the whisker: black stroke on top.
+            expect(pixel(70, 90)).toEqual([0, 0, 0, 255]);
+            expect(pixel(70, 20)).toEqual([0, 0, 0, 255]);
+            // Nothing is drawn away from the shape, including the far right where the shifted source would land.
+            expect(pixel(300, 90)).toEqual([255, 255, 255, 255]);
+        });
+
+        it('should not paint a silhouette node past the right edge back on to the canvas', () => {
+            clearCanvas();
+            const width = canvasCtx.nodeCanvas.width;
+            // Between one and two canvas widths to the right: a shift of one canvas width would land it back on-screen.
+            const unshadowed = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+            renderNode(
+                whiskerPath('silhouette', width + 40, { fill: 'black', stroke: 'black', fillShadow: unshadowed })
+            );
+            // Same node, with a shadow offset that brings only its shadow back on-screen.
+            renderNode(
+                whiskerPath('silhouette', width + 40, {
+                    fill: 'black',
+                    stroke: 'black',
+                    fillShadow: { ...unshadowed, xOffset: -(width + 20) },
+                })
+            );
+
+            const { data } = canvasCtx.getRenderContext2D().getImageData(0, 0, width, canvasCtx.nodeCanvas.height);
+            let black = 0;
+            let red = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i] === 0 && data[i + 1] === 0 && data[i + 2] === 0) black++;
+                if (data[i] === 255 && data[i + 1] === 0) red++;
+            }
+            // The node is off-canvas, so its own pixels never reach the canvas; only the offset shadow does.
+            expect(black).toBe(0);
+            expect(red).toBeGreaterThan(0);
+        });
+
+        it('should scale the silhouette shadow offset by the device pixel ratio of the layer', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const node = new Path();
+            Object.assign(node, {
+                fill: 'black',
+                stroke: undefined,
+                strokeWidth: 0,
+                fillShadow: { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 5, yOffset: 5, blur: 0 },
+                shadowMode: 'silhouette',
+            });
+            node.path.rect(20, 20, 30, 50);
+            // A 200x110 layer at a pixel ratio of 2 is the 400x220 canvas.
+            vi.spyOn(node, 'layerManager', 'get').mockReturnValue({
+                canvas: { width: 200, height: 110, pixelRatio: 2 },
+            } as any);
+
+            clearCanvas();
+            ctx.save();
+            ctx.scale(2, 2);
+            renderNode(node, ctx);
+            ctx.restore();
+            vi.restoreAllMocks();
+
+            const pixel = (x: number, y: number) => Array.from(ctx.getImageData(x, y, 1, 1).data);
+            expect(pixel(70, 90)).toEqual([0, 0, 0, 255]);
+            // The node spans 40 to 100 on the canvas, and its shadow another 10 to the right.
+            expect(pixel(108, 100)).toEqual([255, 0, 0, 255]);
+            expect(pixel(112, 100)).toEqual([255, 255, 255, 255]);
+            expect(pixel(300, 100)).toEqual([255, 255, 255, 255]);
+        });
+
+        describe('extent coordinate spaces', () => {
+            const BLACK = [0, 0, 0, 255];
+            const unshadowed = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
+
+            /** The device-pixel columns that hold at least one pixel of the given colour. */
+            const columnsOf = (colour: number[]) => {
+                const { width, height } = canvasCtx.nodeCanvas;
+                const { data } = canvasCtx.getRenderContext2D().getImageData(0, 0, width, height);
+                const columns = new Set<number>();
+                for (let i = 0; i < data.length; i += 4) {
+                    if (colour.every((v, k) => data[i + k] === v)) columns.add((i / 4) % width);
+                }
+                return [...columns].sort((a, b) => a - b);
+            };
+
+            it('should place the silhouette source by the scaled geometry of a Scalable Path', () => {
+                class ScalablePath extends Scalable(Path) {}
+
+                clearCanvas();
+                const node = new ScalablePath();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: 'black',
+                    strokeWidth: 0,
+                    fillShadow: unshadowed,
+                    shadowMode: 'silhouette',
+                    scalingX: 0.5,
+                });
+                // 200 to 300 in local space, 100 to 150 on screen once scaled.
+                node.path.rect(200, 40, 100, 100);
+                renderNode(node);
+
+                // Only the node's own pixels reach the canvas.
+                const columns = columnsOf(BLACK);
+                expect(columns[0]).toBe(100);
+                expect(columns.at(-1)).toBe(149);
+            });
+
+            it('should scale the stroke reach of a Scalable Path with the node', () => {
+                class ScalablePath extends Scalable(Path) {}
+
+                clearCanvas();
+                const node = new ScalablePath();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: 'black',
+                    strokeWidth: 10,
+                    fillShadow: unshadowed,
+                    shadowMode: 'silhouette',
+                    scalingX: 4,
+                });
+                // 20 to 30 in local space, 80 to 120 on screen. The stroke is scaled too, so it adds 20px on each side.
+                node.path.rect(20, 40, 10, 100);
+                renderNode(node);
+
+                // The source copy is shifted clear of the canvas by the scaled stroke, so none of it lands at the left.
+                const columns = columnsOf(BLACK);
+                expect(columns[0]).toBe(60);
+                expect(columns.at(-1)).toBe(139);
+            });
+
+            it('should place the silhouette source clear of the canvas when the node is mirrored', () => {
+                class ScalablePath extends Scalable(Path) {}
+
+                clearCanvas();
+                const node = new ScalablePath();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: 'black',
+                    strokeWidth: 10,
+                    fillShadow: unshadowed,
+                    shadowMode: 'silhouette',
+                    scalingX: -1,
+                    scalingCenterX: 100,
+                });
+                // 20 to 30 in local space, 170 to 180 on screen once mirrored around x = 100, and the stroke adds 5px.
+                node.path.rect(20, 40, 10, 100);
+                renderNode(node);
+
+                const columns = columnsOf(BLACK);
+                expect(columns[0]).toBe(165);
+                expect(columns.at(-1)).toBe(184);
+            });
+
+            it('should not skip the silhouette of a node whose stroke is the only part on the canvas', () => {
+                const node = new Path();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: 'black',
+                    strokeWidth: 10,
+                    fillShadow: unshadowed,
+                    shadowMode: 'silhouette',
+                });
+                // The geometry starts at x = 403, past the right edge of the 400px canvas, but its stroke starts at 398.
+                node.path.rect(403, 40, 10, 100);
+
+                const ctx = canvasCtx.getRenderContext2D();
+                const shadowedStrokes: unknown[] = [];
+                const stroke = ctx.stroke.bind(ctx);
+                vi.spyOn(ctx, 'stroke').mockImplementation((...args: Parameters<typeof stroke>) => {
+                    if (ctx.shadowColor !== 'rgba(0, 0, 0, 0)') shadowedStrokes.push(ctx.shadowColor);
+                    stroke(...args);
+                });
+                clearCanvas();
+                renderNode(node, ctx);
+                vi.restoreAllMocks();
+
+                expect(shadowedStrokes).toHaveLength(1);
+                expect(columnsOf(BLACK)).toEqual([398, 399]);
+            });
+
+            it('should not skip the silhouette of a marker drawn in a translated context', () => {
+                clearCanvas();
+                const marker = new Marker();
+                // More than half way across the canvas, so a bbox that is translated twice lands off it.
+                Object.assign(marker, {
+                    x: 300,
+                    y: 100,
+                    size: 40,
+                    shape: 'square',
+                    fill: 'black',
+                    strokeWidth: 0,
+                    // Nothing but the shadow reaches the canvas to the right of the marker.
+                    fillShadow: { ...unshadowed, xOffset: 30 },
+                    shadowMode: 'silhouette',
+                });
+                renderNode(marker);
+
+                const ctx = canvasCtx.getRenderContext2D();
+                const pixel = (x: number, y: number) => Array.from(ctx.getImageData(x, y, 1, 1).data);
+                expect(pixel(300, 100)).toEqual(BLACK);
+                expect(pixel(335, 100)).toEqual([255, 0, 0, 255]);
+                // The pre-pass source never lands on the canvas.
+                expect(columnsOf(BLACK).at(-1)).toBeLessThan(321);
+            });
+
+            it('should shadow a Line with its stroke, where it is drawn', () => {
+                clearCanvas();
+                const line = lineNode('silhouette', 20, 8);
+                line.fillShadow = { ...unshadowed, color: 'rgba(0, 0, 255, 1)', yOffset: 60 };
+                renderNode(line);
+
+                const ctx = canvasCtx.getRenderContext2D();
+                const pixel = (x: number, y: number) => Array.from(ctx.getImageData(x, y, 1, 1).data);
+                // The line runs from (20, 20) to (120, 50). Its shadow is the same line, 60px lower.
+                expect(pixel(70, 35)).toEqual([255, 0, 0, 255]);
+                expect(pixel(70, 95)).toEqual([0, 0, 255, 255]);
+                // No second copy of the line, and no shadow, to the right of it.
+                expect(columnsOf([0, 0, 255, 255]).at(-1)).toBeLessThan(125);
+                expect(columnsOf([255, 0, 0, 255]).at(-1)).toBeLessThan(125);
+            });
+        });
+
+        describe('on a Rect', () => {
+            it.each<ShapeShadowMode>(['stroke', 'silhouette'])('falls back to fill when set to %s', (mode) => {
+                const rect = new Rect();
+                rect.shadowMode = mode;
+                expect(rect.shadowMode).toBe('fill');
+            });
+
+            it('falls back to fill on a BarShape', () => {
+                const bar = new BarShape();
+                bar.shadowMode = 'silhouette';
+                expect(bar.shadowMode).toBe('fill');
+            });
+        });
+
+        describe('draw order', () => {
+            const record = (node: Line | Path) => {
+                const ctx = canvasCtx.getRenderContext2D();
+                const calls: string[] = [];
+                const wrap = (name: 'fill' | 'stroke') => {
+                    const original = ctx[name].bind(ctx) as (...args: unknown[]) => void;
+                    vi.spyOn(ctx, name).mockImplementation((...args: unknown[]) => {
+                        calls.push(`${name}:${ctx.shadowColor}:${ctx.shadowOffsetX}`);
+                        original(...args);
+                    });
+                };
+                wrap('fill');
+                wrap('stroke');
+                renderNode(node, ctx);
+                return calls;
+            };
+
+            // The mock canvas normalises the 0.7 alpha to 8-bit precision.
+            const SHADOWED = /^(fill|stroke):rgba\(0, 0, 0, 0\.7\d*\):/;
+
+            afterEach(() => {
+                vi.restoreAllMocks();
+            });
+
+            it('shadows only the fill in fill mode', () => {
+                const calls = record(whiskerPath('fill', 40));
+                expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([
+                    ['fill', true],
+                    ['stroke', false],
+                ]);
+            });
+
+            it('shadows only the stroke in stroke mode', () => {
+                const calls = record(whiskerPath('stroke', 40));
+                expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([
+                    ['fill', false],
+                    ['stroke', true],
+                ]);
+            });
+
+            it('shadows a pre-pass of fill then stroke in silhouette mode, then paints unshadowed', () => {
+                const calls = record(whiskerPath('silhouette', 40));
+                expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([
+                    ['fill', true],
+                    ['stroke', true],
+                    ['fill', false],
+                    ['stroke', false],
+                ]);
+            });
+
+            it('bounds the silhouette offset by how far right the shape reaches, plus blur and half the stroke width', () => {
+                const calls = record(whiskerPath('silhouette', 40, { lineJoin: 'round' }));
+                const offset = Number(calls[0].split(':')[2]);
+                // distance + xOffset, with distance = right edge of the shape (40 + 60) + blur + strokeWidth / 2.
+                expect(offset).toBe(100 + SHADOW.blur + 4 / 2 + SHADOW.xOffset);
+            });
+
+            it('pads the silhouette offset by the miter reach of the stroke', () => {
+                const calls = record(whiskerPath('silhouette', 40, { lineJoin: 'miter', miterLimit: 3 }));
+                const offset = Number(calls[0].split(':')[2]);
+                // As above, with the stroke reaching miterLimit * strokeWidth / 2 past the shape.
+                expect(offset).toBe(100 + SHADOW.blur + 3 * (4 / 2) + SHADOW.xOffset);
+            });
+
+            it('keeps a silhouette whose visible blur just reaches the canvas', () => {
+                const fillShadow = { ...SHADOW, blur: 10 };
+                const calls = record(whiskerPath('silhouette', -80, { lineJoin: 'round', fillShadow }));
+                // The shadow's edge is 2px short of the canvas, but the blur fades out about 1.5 * blur from it.
+                expect(calls).toHaveLength(4);
+            });
+
+            it('skips the silhouette pre-pass when the shadow is not finite', () => {
+                const calls = record(whiskerPath('silhouette', 40, { fillShadow: { ...SHADOW, blur: Number.NaN } }));
+                expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([
+                    ['fill', false],
+                    ['stroke', false],
+                ]);
+            });
+
+            it('skips the silhouette pre-pass for a shape whose shadow is nowhere near the canvas', () => {
+                const calls = record(whiskerPath('silhouette', 700));
+                expect(calls.map((c) => [c.split(':')[0], SHADOWED.test(c)])).toEqual([
+                    ['fill', false],
+                    ['stroke', false],
+                ]);
+            });
         });
     });
 });

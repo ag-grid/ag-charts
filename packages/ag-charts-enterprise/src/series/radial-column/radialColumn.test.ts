@@ -38,7 +38,13 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    collectShapes,
+    createEnterpriseChart,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
 
 describe('RadialColumnSeries', () => {
     setupMockConsole();
@@ -1419,6 +1425,51 @@ describe('RadialColumnSeries', () => {
                         axes: polarAxes,
                     })
                 ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            });
+        });
+
+        describe('shadow', () => {
+            const shadowData = [
+                { quarter: 'Q1', value: 4 },
+                { quarter: 'Q2', value: 7 },
+                { quarter: 'Q3', value: 5 },
+                { quarter: 'Q4', value: 9 },
+            ];
+            const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
+            const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
+                data: shadowData,
+                series: [{ type: seriesType, angleKey: 'quarter', radiusKey: 'value', shadow: seriesShadow }],
+                axes: polarAxes,
+                legend: { enabled: false },
+            });
+
+            it('defaults to a disabled shadow', async () => {
+                chart = await createEnterpriseChart(shadowOptions());
+
+                expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            });
+
+            it('shadows nothing when no shadow is set', async () => {
+                chart = await createEnterpriseChart(shadowOptions());
+
+                const shapes = collectShapes(chart.series[0].contentGroup);
+                expect(shapes).toHaveLength(shadowData.length);
+                expect(shapes.filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
+            });
+
+            it('applies an enabled shadow to every shape', async () => {
+                chart = await createEnterpriseChart(shadowOptions(shadow));
+
+                const shapes = collectShapes(chart.series[0].contentGroup);
+                expect(shapes).toHaveLength(shadowData.length);
+                for (const shape of shapes) {
+                    expect(shape.fillShadow).toMatchObject(shadow);
+                }
+            });
+
+            it('renders with the shadow enabled', async () => {
+                chart = await createEnterpriseChart(shadowOptions(shadow));
+                await compare();
             });
         });
 

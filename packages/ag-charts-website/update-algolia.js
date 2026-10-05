@@ -47,9 +47,7 @@ const isLocal = options.local === true;
 
 console.log('Updating Algolia Indices');
 console.log(`debug: ${debug}, indexNamePrefix: ${indexNamePrefix}, isLocal: ${isLocal}`);
-console.log(
-    `Updating Algolia using App ID ${process.env.PUBLIC_ASTRO_ALGOLIA_APP_ID} and admin key ${process.env.ALGOLIA_ADMIN_KEY}`
-);
+console.log(`Updating Algolia using App ID ${process.env.PUBLIC_ASTRO_ALGOLIA_APP_ID}`);
 
 let algoliaClient;
 if (!debug) {

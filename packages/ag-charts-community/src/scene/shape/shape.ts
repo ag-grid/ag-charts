@@ -9,6 +9,7 @@ import {
     boxesEqual,
     clamp,
     generateUUID,
+    isFiniteNumber,
     isGradientFill,
     isImageFill,
     isPatternFill,
@@ -34,11 +35,18 @@ import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { type AlignedInterval, align, alignCentre, centreSnapApplies } from '../util/pixel';
+import { type AlignedInterval, align, alignCentre, centreSnapApplies, deviceDimension } from '../util/pixel';
 import { setSvgLineDashAttributes, setSvgStrokeAttributes } from './svgUtils';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
+
+/**
+ * Which part of a shape casts its {@link Shape.fillShadow}: `fill` (default), `stroke`, or `silhouette` (both).
+ * `silhouette` isn't a true union: overlapping fill and stroke shadows stack. `Path`, `Line` and `Marker` support it;
+ * `Rect` and `BarShape` fall back to `fill`.
+ */
+export type ShapeShadowMode = 'fill' | 'stroke' | 'silhouette';
 
 export type CanvasContext = CanvasFillStrokeStyles &
     CanvasCompositing &
@@ -48,6 +56,15 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasPath &
     CanvasTransform &
     CanvasState;
+
+function hasCanvas(ctx: CanvasContext): ctx is CanvasContext & { canvas: { width: number; height: number } } {
+    return 'canvas' in ctx;
+}
+
+/** Nodes with their own transform matrix, whose `getBBox()` is in parent space rather than the space they draw in. */
+function hasLocalTransform(node: Node): node is Node & { computeBBoxWithoutTransforms(): BBox | undefined } {
+    return 'computeBBoxWithoutTransforms' in node;
+}
 
 export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { colorSpace?: ColorSpace };
 
@@ -219,6 +236,15 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     fillShadow: NormalisedDropShadowOptions | undefined;
     declare __fillShadow: NormalisedDropShadowOptions | undefined; // optimised field accessor
 
+    @DeclaredSceneChangeDetection({ changeCb: (s: Shape) => s.onShadowModeChange() })
+    shadowMode: ShapeShadowMode = 'fill';
+    declare __shadowMode: ShapeShadowMode; // optimised field accessor
+
+    /** Lets a shape that can't honour every {@link ShapeShadowMode} fall back to a supported one. */
+    protected onShadowModeChange() {
+        // Nothing to do by default.
+    }
+
     @DeclaredSceneObjectChangeDetection({ equals: boxesEqual, changeCb: (s) => s.onFillChange() })
     fillBBox?: BBox;
     declare __fillBBox: BBox | undefined; // optimised field accessor
@@ -247,8 +273,111 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             ctx.globalCompositeOperation = 'source-over';
         }
 
+        // Without a Path2D (e.g. Line) the pre-pass can't be moved by the transform, so renderStroke shadows instead.
+        if (this.__shadowMode === 'silhouette' && path != null) {
+            this.renderSilhouetteShadow(ctx, logger, path, bboxOverride, fillBBoxOverride);
+        }
+
         this.renderFill(ctx, logger, path, bboxOverride, fillBBoxOverride);
         this.renderStroke(ctx, path, bboxOverride);
+    }
+
+    /** Draws the shape off-canvas and shifts only its shadow back, so the stroke's shadow never lands on the fill. */
+    private renderSilhouetteShadow(
+        ctx: CanvasContext,
+        logger: Logger,
+        path: Path2D,
+        bboxOverride?: BBox,
+        fillBBoxOverride?: BBox
+    ) {
+        const { __fillShadow: shadow, __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
+        if (shadow?.enabled !== true) return;
+
+        const layerCanvas = this.layerManager?.canvas;
+        const pixelRatio = layerCanvas?.pixelRatio ?? 1;
+        let canvasWidth: number | undefined;
+        let canvasHeight: number | undefined;
+        if (layerCanvas != null) {
+            canvasWidth = deviceDimension(pixelRatio, layerCanvas.width);
+            canvasHeight = deviceDimension(pixelRatio, layerCanvas.height);
+        } else if (hasCanvas(ctx)) {
+            canvasWidth = ctx.canvas.width;
+            canvasHeight = ctx.canvas.height;
+        }
+        const reach = shadow.blur * pixelRatio;
+        const shadowX = shadow.xOffset * pixelRatio;
+        const shadowY = shadow.yOffset * pixelRatio;
+
+        // `ctx` already has the shape's own transform, so the local bbox is taken to device space through it.
+        const { a, b, c, d, e, f } = ctx.getTransform();
+        const localBBox: BBox | undefined =
+            bboxOverride ?? (hasLocalTransform(this) ? this.computeBBoxWithoutTransforms() : this.getBBox());
+        // Without bounds, the canvas width is as far right as a shape that is on the canvas can reach.
+        let maxX = canvasWidth ?? 0;
+        if (localBBox != null) {
+            // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
+            const halfStroke = this.getSilhouetteStrokeWidth() / 2;
+            const strokeReach =
+                (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * (this.__miterLimit ?? 10) : halfStroke;
+            const halfWidth = localBBox.width / 2 + strokeReach;
+            const halfHeight = localBBox.height / 2 + strokeReach;
+            const centreX = localBBox.x + localBBox.width / 2;
+            const centreY = localBBox.y + localBBox.height / 2;
+            const deviceCentreX = a * centreX + c * centreY + e;
+            const deviceCentreY = b * centreX + d * centreY + f;
+            const reachX = Math.abs(a) * halfWidth + Math.abs(c) * halfHeight;
+            const reachY = Math.abs(b) * halfWidth + Math.abs(d) * halfHeight;
+            const minX = deviceCentreX - reachX;
+            maxX = deviceCentreX + reachX;
+
+            if (canvasWidth != null && canvasHeight != null) {
+                // The visible blur extends to about 1.5 × `blur`.
+                const blurReach = reach * 1.5;
+                const offCanvas =
+                    maxX + shadowX + blurReach < 0 ||
+                    minX + shadowX - blurReach > canvasWidth ||
+                    deviceCentreY + reachY + shadowY + blurReach < 0 ||
+                    deviceCentreY - reachY + shadowY - blurReach > canvasHeight;
+                if (offCanvas) return;
+            }
+        }
+
+        // The source copy is never blurred; `reach` is only slack to keep it clear of the left edge.
+        const distance = Math.max(0, Math.ceil(maxX + reach));
+        if (
+            !isFiniteNumber(reach) ||
+            !isFiniteNumber(distance) ||
+            !isFiniteNumber(shadowX) ||
+            !isFiniteNumber(shadowY)
+        ) {
+            return;
+        }
+
+        ctx.save();
+        ctx.setTransform(a, b, c, d, e - distance, f);
+        this.applyShadow(ctx);
+        ctx.shadowOffsetX += distance;
+
+        if (fill != null && fill !== 'none' && fillOpacity > 0) {
+            const globalAlpha = ctx.globalAlpha;
+            this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
+            this.executeFill(ctx, path);
+            ctx.globalAlpha = globalAlpha;
+        }
+        this.renderStroke(ctx, path, bboxOverride);
+        this.renderSilhouetteExtras(ctx);
+
+        ctx.restore();
+    }
+
+    /** Draws strokes the shape paints apart from its main path, so the silhouette pre-pass casts them too. */
+    protected renderSilhouetteExtras(_ctx: CanvasContext) {
+        // Nothing to do by default.
+    }
+
+    /** The widest stroke cast into the silhouette shadow, which the shape's off-canvas pre-pass has to clear. */
+    protected getSilhouetteStrokeWidth(): number {
+        return this.__strokeWidth;
     }
 
     protected renderFill(
@@ -270,10 +399,13 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
 
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
-            this.applyShadow(ctx);
+            const shadowed = this.__shadowMode === 'fill' && this.__fillShadow?.enabled === true;
+            if (shadowed) {
+                this.applyShadow(ctx);
+            }
             this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
-            if (this.fillShadow?.enabled) {
+            if (shadowed) {
                 ctx.shadowColor = 'rgba(0, 0, 0, 0)';
             }
         }
@@ -396,8 +528,18 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 ctx.miterLimit = miterLimit;
             }
 
+            // Silhouette mode without a Path2D has no pre-pass, so the stroke casts the shadow.
+            const mode = this.__shadowMode;
+            const shadowed =
+                (mode === 'stroke' || (mode === 'silhouette' && path == null)) && this.__fillShadow?.enabled === true;
+            if (shadowed) {
+                this.applyShadow(ctx);
+            }
             this.executeStroke(ctx, path);
             ctx.globalAlpha = globalAlpha;
+            if (shadowed) {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+            }
         }
     }
 

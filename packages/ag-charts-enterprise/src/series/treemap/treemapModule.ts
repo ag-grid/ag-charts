@@ -1,5 +1,6 @@
 import { type AgTreemapSeriesOptions, VERSION } from 'ag-charts-community';
 import {
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -69,6 +70,13 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: 1,
                 strokeOpacity: 1,
                 cornerRadius: 0,
+                shadow: {
+                    enabled: false,
+                    color: DEFAULT_SHADOW_COLOUR,
+                    xOffset: 3,
+                    yOffset: 3,
+                    blur: 5,
+                },
                 padding: 4,
                 gap: 2,
                 textAlign: 'left',
@@ -114,6 +122,13 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
                 strokeOpacity: 1,
                 cornerRadius: 0,
+                shadow: {
+                    enabled: false,
+                    color: DEFAULT_SHADOW_COLOUR,
+                    xOffset: 3,
+                    yOffset: 3,
+                    blur: 5,
+                },
                 textAlign: 'center',
                 verticalAlign: 'middle',
                 padding: 3,

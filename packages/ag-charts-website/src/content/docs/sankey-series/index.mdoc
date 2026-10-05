@@ -165,6 +165,35 @@ The styling of all links can be customised using the `link` property.
 }
 ```
 
+### Shadows
+
+{% chartExampleRunner title="Node Shadow" name="node-shadow" type="generated" /%}
+
+A drop shadow can be added behind the nodes using the `shadow` property on `node`, or behind the links using
+the `shadow` property on `link`. Shadows are disabled by default.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'sankey',
+            fromKey: 'from',
+            toKey: 'to',
+            sizeKey: 'size',
+            node: {
+                shadow: {
+                    enabled: true,
+                    color: 'rgba(0, 0, 0, 0.4)',
+                    xOffset: 3,
+                    yOffset: 3,
+                    blur: 6,
+                },
+            },
+        },
+    ],
+}
+```
+
 ## Sankey Chart Examples
 
 {% galleryExamples series="sankey" /%}

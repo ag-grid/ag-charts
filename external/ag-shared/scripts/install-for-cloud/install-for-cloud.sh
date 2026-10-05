@@ -463,9 +463,12 @@ fi
 # ---------------------------------------------------------------------------
 
 if command -v yarn &>/dev/null && [[ -d node_modules ]]; then
-    # Verify lockfile hasn't changed since last install — Yarn 1 writes
-    # node_modules/.yarn-integrity which embeds a lockfile hash.
-    if yarn check --integrity &>/dev/null; then
+    # Verify lockfile hasn't changed since last install. Yarn 1 wrote
+    # node_modules/.yarn-integrity embedding a lockfile hash, checked via
+    # `yarn check --integrity`; under Yarn 4 (Berry) `yarn install --immutable`
+    # is the equivalent read-only-in-practice probe — verified to fail fast,
+    # before touching node_modules, when the lockfile would need to change.
+    if yarn install --immutable &>/dev/null; then
         log_info "yarn and node_modules present and valid, skipping bootstrap"
         exit 0
     fi
@@ -474,7 +477,7 @@ if command -v yarn &>/dev/null && [[ -d node_modules ]]; then
         announce_deps_not_ready
         exit 0
     fi
-    yarn install --prefer-offline
+    yarn install
     exit $?
 fi
 
@@ -529,7 +532,9 @@ install_nx_if_missing() {
     }
 
     log_info "Installing nx@${nx_version} globally"
-    if ! yarn global add "nx@${nx_version}"; then
+    # Yarn 4 removed `yarn global add`; npm's global installer is the replacement
+    # for a persistent global binary (see the comment on `npm i -g yarn` below).
+    if ! npm install -g "nx@${nx_version}"; then
         log_error "Failed to install nx globally"
         return 2
     fi
@@ -567,7 +572,7 @@ main() {
     # Delegate to yarn install — preinstall-worktree.sh handles COW cloning,
     # symlink fixes, and .nx cache. Postinstall handles patches, plugins, etc.
     log_info "Running yarn install (preinstall hook will handle COW cloning)"
-    if ! yarn install --prefer-offline; then
+    if ! yarn install; then
         log_error "yarn install failed"
         exit 2
     fi

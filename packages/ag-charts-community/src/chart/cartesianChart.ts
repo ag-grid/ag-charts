@@ -85,6 +85,15 @@ export class CartesianChart extends Chart {
         this.syncAxisChanges(newValue, oldValue);
 
         if (this.ctx != null) {
+            // Registered here rather than by the axis, so mini-chart axes sharing these ids never replace them.
+            const { labelManager } = this.ctx;
+            for (const axis of oldValue ?? []) {
+                labelManager.unregisterSource(axis.labelSource.id, axis.labelSource);
+            }
+            for (const axis of newValue) {
+                labelManager.registerSource(axis.labelSource);
+            }
+
             this.ctx.zoomManager?.setAxes(
                 newValue.filter((axis) => {
                     const { ignoreZoom, linkZoom } = axis.options as { ignoreZoom?: boolean; linkZoom?: string };

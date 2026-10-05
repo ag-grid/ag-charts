@@ -96,6 +96,31 @@ Customise the Radius Axis Line position via `positionAngle` and Axis Label rotat
 }
 ```
 
+### Shadows
+
+{% chartExampleRunner title="Series Shadow" name="series-shadow" type="generated" /%}
+
+A drop shadow can be added behind the area fill using the `shadow` property. Shadows are disabled by default.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'radar-area',
+            angleKey: 'department',
+            radiusKey: 'quality',
+            shadow: {
+                enabled: true,
+                color: 'rgba(0, 0, 0, 0.4)',
+                xOffset: 3,
+                yOffset: 3,
+                blur: 6,
+            },
+        },
+    ],
+}
+```
+
 ## Radar Area Chart Examples
 
 {% galleryExamples series="radar-area" /%}

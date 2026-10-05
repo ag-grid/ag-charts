@@ -93,6 +93,32 @@ The Gradient Legend is enabled by default for heatmap series using a `colorKey`.
 
 For position, size, and label customisation options, see the [Colour Scale](./colour-scale/#gradient-legend) page.
 
+## Shadows
+
+{% chartExampleRunner title="Series Shadow" name="series-shadow" type="generated" /%}
+
+A drop shadow can be added behind the cells using the `shadow` property. Shadows are disabled by default.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'heatmap',
+            xKey: 'month',
+            yKey: 'year',
+            colorKey: 'temperature',
+            shadow: {
+                enabled: true,
+                color: 'rgba(0, 0, 0, 0.4)',
+                xOffset: 3,
+                yOffset: 3,
+                blur: 6,
+            },
+        },
+    ],
+}
+```
+
 ## Heatmap Chart Examples
 
 {% galleryExamples series="heatmap" /%}

@@ -936,6 +936,7 @@ export class SankeySeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const fillBBox = this.getShapeFillBBox();
+        const { shadow } = this.options.node;
 
         datumSelection.each((rect, datum) => {
             const { datumIndex } = datum;
@@ -948,6 +949,7 @@ export class SankeySeries extends FlowProportionSeries<
             rect.cornerRadius = this.options.node.cornerRadius;
 
             rect.setStyleProperties(style, fillBBox);
+            rect.fillShadow = shadow;
         });
     }
 
@@ -1039,6 +1041,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         const fillBBox = this.getShapeFillBBox();
         const { cornerRadius } = this.options.node;
+        const { shadow } = this.options.link;
 
         datumSelection.each((link, datum) => {
             const style = this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
@@ -1053,6 +1056,7 @@ export class SankeySeries extends FlowProportionSeries<
             link.endEdge = nodeEdge(datum.toNode, cornerRadius, 1);
 
             link.setStyleProperties(style, fillBBox);
+            link.fillShadow = shadow;
 
             link.inset = link.strokeWidth / 2;
         });

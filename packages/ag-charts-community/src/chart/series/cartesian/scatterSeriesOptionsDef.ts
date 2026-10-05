@@ -32,7 +32,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     label: placedSeriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     errorBar: errorBarThemeableOptionsDefs,
-    styler: callbackDefs<AgScatterSeriesStylerResult>(markerOptionsDefs),
+    styler: callbackDefs<AgScatterSeriesStylerResult>(without(markerOptionsDefs, ['shadow'])),
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),

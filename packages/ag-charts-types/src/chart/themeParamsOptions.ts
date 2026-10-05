@@ -108,7 +108,8 @@ export interface AgBaseChartThemeParams {
     buttonVerticalPadding?: PixelSize;
     /**
      * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
-     * dropdown menus of the toolbars and the colour picker. The value must be a valid CSS box-shadow.
+     * dropdown menus of the toolbars and the colour picker. Defaults to `popupShadow`. The value must be a valid CSS
+     * box-shadow.
      */
     cardShadow?: CssShadow;
     /** Corner radius of the colour swatch in the colour picker. Defaults to half of `borderRadius`. */
@@ -233,6 +234,14 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     axisLabelFontWeight?: FontWeight;
     /** Default colour for axis lines and ticks. A colour string, or a theme-colour reference object. */
     axisLineColor?: AgCssColorOrRef;
+    /** Default width for axis lines. Does not apply to ticks. */
+    axisLineWidth?: PixelSize;
+    /**
+     * Colour of the band highlight. A colour string, or a theme-colour reference object.
+     *
+     * Default: `foregroundColor + backgroundColor`
+     */
+    bandHighlightColor?: AgCssColorOrRef;
     /**
      * Colour of axis titles. A colour string, or a theme-colour reference object.
      *
@@ -391,8 +400,50 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
     fontWeight?: FontWeight;
     /** Default colour for grid lines. A colour string, or a theme-colour reference object. */
     gridLineColor?: AgCssColorOrRef;
+    /** Default width for grid lines. */
+    gridLineWidth?: PixelSize;
     /** Default colour for grouped-category separation lines. A colour string, or a theme-colour reference object. */
     groupedCategoryLineColor?: AgCssColorOrRef;
+    /** Border around the legend and the gradient legend. `true` for the default border, `false` to disable, or an object to customise it. */
+    legendBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the legend and the gradient legend.
+     *
+     * Default: `borderRadius`
+     */
+    legendBorderRadius?: PixelSize;
+    /** Horizontal padding around each legend item. Applies to the legend only, not the gradient legend. */
+    legendItemHorizontalPadding?: PixelSize;
+    /** Vertical padding around each legend item. Applies to the legend only, not the gradient legend. */
+    legendItemVerticalPadding?: PixelSize;
+    /**
+     * Colour of the legend item labels, the legend pagination label and the gradient legend scale labels. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    legendLabelColor?: AgCssColorOrRef;
+    /**
+     * Font family of the legend item labels, the legend pagination label and the gradient legend scale labels. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    legendLabelFontFamily?: FontFamilyFull;
+    /**
+     * Font size of the legend item labels, the legend pagination label and the gradient legend scale labels.
+     *
+     * Default: `fontSize`
+     */
+    legendLabelFontSize?: FontSize;
+    /**
+     * Font weight of the legend item labels and the gradient legend scale labels.
+     *
+     * Default: `fontWeight`
+     */
+    legendLabelFontWeight?: FontWeight;
+    /** Size of the legend item markers. Applies to the legend only, not the gradient legend. */
+    legendMarkerSize?: PixelSize;
+    /** Padding inside the legend and the gradient legend. Applied only when the legend has a border or a `fill` set in its options. */
+    legendPadding?: PixelSize;
     /**
      * Thickness of the scrollbar track.
      *

@@ -21,6 +21,7 @@ env:
     DEPLOYMENT_APP_ID: 957224
     TAG_NAME: ${{ github.head_ref || github.ref_name }}
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+    NX_NO_CLOUD: 'true'
 
 permissions:
     id-token: write # Required for OIDC
@@ -62,9 +63,15 @@ jobs:
               with:
                   node-version-file: package.json
 
+            # GitHub-hosted runners ship corepack but not enabled, so a bare `yarn`
+            # would otherwise resolve to the runner image's preinstalled Yarn Classic
+            # instead of this repo's "packageManager"-pinned Yarn 4.
+            - name: Enable corepack
+              run: corepack enable
+
             - name: Yarn
               run: |
-                  yarn install --ci
+                  yarn install --immutable
 
             - name: Build
               run: |

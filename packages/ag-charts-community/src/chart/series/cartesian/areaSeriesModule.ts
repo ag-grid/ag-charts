@@ -57,6 +57,13 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
         interpolation: interpolationThemeTemplate(),
         marker: {
             enabled: false,
+            shadow: {
+                enabled: false,
+                color: DEFAULT_SHADOW_COLOUR,
+                xOffset: 3,
+                yOffset: 3,
+                blur: 5,
+            },
             shape: 'circle',
             size: 7,
             fillOpacity: 1,

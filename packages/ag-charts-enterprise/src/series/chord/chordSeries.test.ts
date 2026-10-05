@@ -26,6 +26,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
+import { describeFlowProportionShadow } from '../../test/flowProportionShadowTests';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
@@ -134,6 +135,14 @@ describe('ChordSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+    });
+
+    describeFlowProportionShadow({
+        type: 'chord',
+        setChart: (created) => {
+            chart = created;
+        },
+        compare,
     });
 
     describe('Series Highlighting', () => {

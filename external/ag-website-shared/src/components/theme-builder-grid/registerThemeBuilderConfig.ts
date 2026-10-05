@@ -6,6 +6,8 @@ import { setNonAdvancedParams } from '@ag-website-shared/theming/ParamModel';
 import { FeatureModel, setFeatureModels } from '@ag-website-shared/theming/PartModel';
 import { setBaseTheme } from '@ag-website-shared/theming/base-theme';
 import { setRenderedFeatures } from '@ag-website-shared/theming/rendered-theme';
+import { setProductVersion } from '@ag-website-shared/theming/store';
+import { agGridVersion } from '@constants';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 import {
@@ -170,3 +172,5 @@ setFontFamilyOptions([
 setImageValuesDocsUrl('/react-data-grid/theming-parameters/#image-values');
 
 setThemeBuilderDocsUrl(urlWithBaseUrl('/data-grid/theming-theme-builder/'));
+
+setProductVersion(agGridVersion);

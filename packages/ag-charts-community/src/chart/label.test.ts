@@ -122,13 +122,18 @@ describe('Labels', () => {
     });
 
     describe('collision.resolveCollideWith', () => {
-        test('defaults markers/labels/seriesArea on and seriesItems off', () => {
+        test('defaults markers/labels/seriesArea on and seriesItems/axisLabels off', () => {
             expect(resolveCollideWith({ alwaysShow: true })).toEqual({
                 marker: true,
                 label: true,
                 seriesItem: false,
                 seriesArea: true,
+                axisLabel: false,
             });
+        });
+
+        test('opts axisLabels in only when explicitly enabled', () => {
+            expect(resolveCollideWith({ alwaysShow: true, collideWith: { axisLabels: true } }).axisLabel).toBe(true);
         });
 
         test('opts seriesItems in only when explicitly enabled', () => {

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 if [ "$#" -lt 2 ]
   then
     echo "You must supply a release version and host"
@@ -27,7 +29,7 @@ function checkFileExists {
 VERSION=$1
 CURRENT_HOST=$2
 
-export SSH_LOCATION=$SSH_FILE
+export SSH_LOCATION=${SSH_FILE:-}
 
 # a few safety checks
 if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
@@ -111,9 +113,9 @@ echo "$GRID_ROOT_DIR/$REMOTE: $OUTCOME"
 FILE_VERSION=""${VERSION//./}""
 ARCHIVE="charts-release_`date +%Y%m%d`_v$FILE_VERSION.zip"
 
-# delete dir if it exists - can ignore dir not found error
-echo "ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST \"cd $CHARTS_ROOT_DIR/archive/ && [[ -d $VERSION ]] && rm -r $VERSION\""
-ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "cd $CHARTS_ROOT_DIR/archive/ && [[ -d $VERSION ]] && rm -r $VERSION"
+# delete dir if it exists
+echo "ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST \"if [[ -d $CHARTS_ROOT_DIR/archive/$VERSION ]]; then rm -r $CHARTS_ROOT_DIR/archive/$VERSION; fi\""
+ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "if [[ -d $CHARTS_ROOT_DIR/archive/$VERSION ]]; then rm -r $CHARTS_ROOT_DIR/archive/$VERSION; fi"
 
 # upload file
 echo "ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST \"mkdir -p $CHARTS_ROOT_DIR/archive/$VERSION\""

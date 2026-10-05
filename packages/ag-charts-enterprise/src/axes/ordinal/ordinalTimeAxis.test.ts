@@ -777,4 +777,32 @@ describe('Ordinal Time Axis Examples', () => {
         await waitForChartStability(chart);
         expect(chart).toBeDefined();
     });
+
+    it('fits a label bounded through an ordinal-time axis theme override', async () => {
+        const text = 'A cross line label long enough to need fitting';
+        chart = await createEnterpriseChart(
+            prepareEnterpriseTestOptions({
+                data: DATA,
+                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+                axes: {
+                    x: {
+                        type: 'ordinal-time',
+                        position: 'bottom',
+                        crossLines: [{ type: 'line', value: DATA[2].date }],
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                theme: {
+                    overrides: {
+                        common: { axes: { 'ordinal-time': { crossLines: { label: { text, maxWidth: 40 } } } } },
+                    },
+                },
+            })
+        );
+
+        const [crossLine] = _ModuleSupport.getCrossLinesPlugin(chart.axes.findById('x'))!.getInstances() as any[];
+        const [node] = crossLine.labelGroup.children();
+        expect(node.text).toContain('\n');
+        expect(node.getBBox().width).toBeLessThanOrEqual(40);
+    });
 });
