@@ -1718,9 +1718,15 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+            # Not gated on needs.init.result == 'success': init is the job that fails when setup does
+            # (e.g. a stale yarn.lock under `yarn install --immutable`), and that is exactly when the
+            # alert must fire. init's outputs are still populated when it fails after the Setup
+            # step's nx_config sub-step, and empty when it fails earlier — nx_base then resolves to
+            # nothing and the loop below falls back; an empty build_type is not 'pr', so
+            # github.event_name keeps PR runs silent. Only a skipped init suppresses the alert.
             - name: Commit History
               id: commits
-              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && needs.init.result != 'skipped' && github.event_name != 'pull_request' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
                   # Fall back through the bases that may not exist in this shallow checkout, so a
                   # missing success tag degrades the Slack commit list rather than failing the job.
@@ -1913,7 +1919,7 @@ jobs:
             # no anchor; the handler's fallback covers that case too.
             - name: Slack Notification (bot token, thread anchor)
               id: ci_failure_alert
-              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != ''
+              if: always() && job.status != 'cancelled' && needs.init.result != 'skipped' && github.event_name != 'pull_request' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != ''
               continue-on-error: true
               env:
                   # SLACK_BOT_OAUTH_TOKEN inherited from the job-level env above.
