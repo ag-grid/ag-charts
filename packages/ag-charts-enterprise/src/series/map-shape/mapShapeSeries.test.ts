@@ -27,7 +27,8 @@ import {
 } from 'ag-charts-community-test';
 import { ambientLogger } from 'ag-charts-core';
 
-import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions } from '../../test/utils';
+import { FLOW_PROPORTION_SHADOW } from '../../test/flowProportionShadowTests';
+import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions, shadowedShapes } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
 import ukTopology from '../map-test/ukTopology.json';
 import { usData } from '../map-test/usData';
@@ -103,7 +104,7 @@ describe('MapShapeSeries', () => {
     });
 
     describe('shadow', () => {
-        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
+        const shadow = FLOW_PROPORTION_SHADOW;
         const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
             ...SIMPLIFIED_EXAMPLE,
             series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
@@ -127,7 +128,7 @@ describe('MapShapeSeries', () => {
 
             const shapes = collectShapes(series.contentGroup);
             expect(shapes.length).toBeGreaterThan(0);
-            expect(shapes.filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
+            expect(shadowedShapes(series.contentGroup)).toEqual([]);
         });
 
         it('applies an enabled shadow to every shape', async () => {

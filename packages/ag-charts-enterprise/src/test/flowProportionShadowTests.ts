@@ -4,7 +4,7 @@ import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import { deproxy, waitForChartStability } from 'ag-charts-community-test';
 
-import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions } from './utils';
+import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions, shadowedShapes } from './utils';
 
 export const FLOW_PROPORTION_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
 
@@ -56,7 +56,6 @@ export function describeFlowProportionShadow({ type, setChart, compare }: FlowPr
             await waitForChartStability(chart);
             return chart.series[0] as any;
         };
-        const shadowedShapes = (group: any) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
 
         it('defaults to disabled link and node shadows', async () => {
             const series = await createChart(flowProportionShadowOptions(type));

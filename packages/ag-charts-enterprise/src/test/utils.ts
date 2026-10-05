@@ -125,15 +125,7 @@ export function mockCssVarColorSupport(container: HTMLElement, vars: Record<stri
  * Kept `expect`-free since enterprise `src/test` is linted as shippable source.
  */
 export function collectShapes(root: _Scene.Group): _Scene.Shape[] {
-    const shapes: _Scene.Shape[] = [];
-    const visit = (node: unknown) => {
-        if (node instanceof _Scene.Shape) shapes.push(node);
-        if (node instanceof _Scene.Group) {
-            for (const child of node.children()) visit(child);
-        }
-    };
-    visit(root);
-    return shapes;
+    return Array.from(root.descendants()).filter((node): node is _Scene.Shape => node instanceof _Scene.Shape);
 }
 
 /** The theme-resolved `shadow` defaults of a fill series: present but disabled. */
