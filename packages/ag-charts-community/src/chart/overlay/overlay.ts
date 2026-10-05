@@ -22,7 +22,6 @@ import type { BBox } from '../../scene/bbox';
 import type { AnimationManager } from '../interaction/animationManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-charts-overlay';
-export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-charts-dark-overlay';
 
 function imageVerticalAlignToCss(verticalAlign: ImageSegment['verticalAlign']): string {
     switch (verticalAlign) {

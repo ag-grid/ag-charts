@@ -1,5 +1,5 @@
 import { VERSION } from 'ag-charts-community';
-import { DEFAULT_CAPTION_LAYOUT_STYLE, type PluginModuleDefinition } from 'ag-charts-core';
+import { FONT_THEME_DEFAULTS, type PluginModuleDefinition } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { StatusBar } from './statusBar';
@@ -14,30 +14,22 @@ export const StatusBarModule: PluginModuleDefinition<never> = {
 
     themeTemplate: {
         enabled: false,
-        layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
+        layoutStyle: { $ref: 'captionLayoutStyle' },
         title: {
             color: { $ref: 'textColor' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontSize: { $ref: 'fontSize' },
-            fontWeight: { $ref: 'fontWeight' },
+            ...FONT_THEME_DEFAULTS,
         },
         positive: {
             color: { $palette: 'up.stroke' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontSize: { $ref: 'fontSize' },
-            fontWeight: { $ref: 'fontWeight' },
+            ...FONT_THEME_DEFAULTS,
         },
         negative: {
             color: { $palette: 'down.stroke' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontSize: { $ref: 'fontSize' },
-            fontWeight: { $ref: 'fontWeight' },
+            ...FONT_THEME_DEFAULTS,
         },
         neutral: {
             color: { $palette: 'neutral.stroke' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontSize: { $ref: 'fontSize' },
-            fontWeight: { $ref: 'fontWeight' },
+            ...FONT_THEME_DEFAULTS,
         },
         background: {
             fill: { $ref: 'chartBackgroundColor' },
@@ -45,9 +37,7 @@ export const StatusBarModule: PluginModuleDefinition<never> = {
         },
         altNeutral: {
             color: 'gray',
-            fontFamily: { $ref: 'fontFamily' },
-            fontSize: { $ref: 'fontSize' },
-            fontWeight: { $ref: 'fontWeight' },
+            ...FONT_THEME_DEFAULTS,
         },
     },
 

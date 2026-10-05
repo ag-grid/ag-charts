@@ -1,11 +1,4 @@
-import {
-    DEFAULT_CAPTION_ALIGNMENT,
-    DEFAULT_CAPTION_LAYOUT_STYLE,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_TOOLBAR_POSITION,
-    getSequentialColors,
-} from 'ag-charts-core';
+import { getSequentialColors } from 'ag-charts-core';
 import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { DarkTheme } from './darkTheme';
@@ -59,20 +52,9 @@ export class FinancialDark extends DarkTheme {
         return {
             ...super.getThemeParameters(),
             chartPadding: 0,
+            captionLayoutStyle: 'overlay',
+            captionAlignment: 'left',
             gridLineColor: { $foregroundBackgroundMix: 0.12 },
         };
-    }
-
-    override getTemplateParameters() {
-        const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, FINANCIAL_DARK_FILLS.BLUE);
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, FINANCIAL_DARK_FILLS.BLUE);
-
-        params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'overlay');
-        params.set(DEFAULT_CAPTION_ALIGNMENT, 'left');
-        params.set(DEFAULT_TOOLBAR_POSITION, 'bottom');
-
-        return params;
     }
 }

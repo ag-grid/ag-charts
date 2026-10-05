@@ -85,7 +85,7 @@ function resolveSeriesThemeDefaults(
         theme.getThemeParameters(),
         theme.palette,
         undefined,
-        theme.getTemplateParameters(),
+        theme.isDark,
         cssVariables,
         undefined,
         moduleRegistry
@@ -142,7 +142,7 @@ export function createOptionsGraph(
             theme.getThemeParameters(),
             theme.palette,
             theme.overrides,
-            theme.getTemplateParameters(),
+            theme.isDark,
             cssVariables,
             presetOptions,
             moduleRegistry
@@ -289,7 +289,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         fallbackParams: PlainObject = {},
         public readonly palette: PlainObject = {},
         private readonly overrides: PlainObject | undefined = undefined,
-        private readonly internalParams: Map<unknown, unknown> = new Map(),
+        public readonly isDark: boolean = false,
         private cssVariables: Record<string, string> = {},
         private readonly presetOptions: PlainObject = {},
         public readonly moduleRegistry: ModuleScope = ModuleRegistry.resolveModuleScope()
@@ -711,7 +711,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrSymbol(resolved);
+            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrCssVariable(resolved);
         }
 
         let value = this.getVertexValue(valueVertex);
@@ -722,7 +722,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             value = getPathSafe(object, this.getPathArray(vertex));
         }
 
-        return this.resolveValueOrSymbol(value);
+        return this.resolveValueOrCssVariable(value);
     }
 
     /**
@@ -1288,10 +1288,10 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             const operator = operations[operation];
             const operatorFn = typeof operator === 'function' ? operator : operator.resolve;
             const resolved = operatorFn?.(this, vertex, operationValues ?? []);
-            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrSymbol(resolved);
+            return resolved === RESOLVED_TO_BRANCH ? undefined : this.resolveValueOrCssVariable(resolved);
         }
 
-        return this.resolveValueOrSymbol(this.getVertexValue(valueVertex));
+        return this.resolveValueOrCssVariable(this.getVertexValue(valueVertex));
     }
 
     private resolveVertexAutoEnable(vertex: Vertex<unknown>, object: PlainObject, pathArray: Array<string>) {
@@ -1409,11 +1409,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         }
     }
 
-    private resolveValueOrSymbol(value: unknown) {
-        if (typeof value === 'symbol' && this.internalParams?.has(value)) {
-            return this.internalParams.get(value);
-        }
-
+    private resolveValueOrCssVariable(value: unknown) {
         if (typeof value === 'string' && Object.hasOwn(this.cssVariables, value)) {
             return this.cssVariables[value];
         }
@@ -1659,9 +1655,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         let className = edge == null ? undefined : (classNames[edge] ?? undefined);
         className = className ? `:::${className}` : '';
 
-        if (typeof vertex.value === 'symbol') {
-            return String.raw`${diagramKey}[/"[symbol]"\]${className}`;
-        } else if (Array.isArray(vertex.value)) {
+        if (Array.isArray(vertex.value)) {
             return String.raw`${diagramKey}[/"[array]"\]${className}`;
         } else if (typeof vertex.value === 'object') {
             return String.raw`${diagramKey}[/"[object]"\]${className}`;

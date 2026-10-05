@@ -1149,32 +1149,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         });
     }
 
-    private updateThemeClassName() {
-        const themeClassNamePrefix = 'ag-charts-theme-';
-        const validThemeClassNames = [`${themeClassNamePrefix}default`, `${themeClassNamePrefix}default-dark`];
-
-        let themeClassName = validThemeClassNames[0];
-        let isDark = false;
-
-        let { theme } = this.chartOptions.processedOptions;
-        while (typeof theme !== 'string' && theme != null) {
-            theme = theme.baseTheme;
-        }
-
-        if (typeof theme === 'string') {
-            themeClassName = theme.replace('ag-', themeClassNamePrefix);
-            isDark = theme.includes('-dark');
-        }
-
-        if (!validThemeClassNames.includes(themeClassName)) {
-            themeClassName = isDark ? validThemeClassNames[1] : validThemeClassNames[0];
-        }
-
-        this.ctx.domManager.setThemeClass(themeClassName);
-    }
-
     private updateDOM() {
-        this.updateThemeClassName();
+        this.ctx.domManager.setDarkTheme(this.chartOptions.activeTheme.isDark);
 
         const { enabled, tabIndex } = this.ctx.chartState.getValue('options', 'keyboard');
         this.ctx.domManager.setTabGuardIndex(enabled ? (tabIndex ?? 0) : -1);

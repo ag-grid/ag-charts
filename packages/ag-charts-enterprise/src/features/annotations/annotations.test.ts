@@ -44,6 +44,40 @@ describe('Annotations', () => {
     const compare = () => compareAnnotationsSnapshot(chart, ctx);
     const applyAnnotations = (annotations: object[]) => restoreAnnotations(chart, ctx, annotations);
 
+    describe('theme defaults', () => {
+        async function resolveAnnotationThemes(theme: AgCartesianChartOptions['theme']) {
+            chart = await createAnnotationsChart({ ...ANNOTATIONS_EXAMPLE_OPTIONS, theme });
+            return deproxy(chart).chartOptions.annotationThemes;
+        }
+
+        it.each([
+            ['ag-default', '#000', '#fafafa', '#ffffff'],
+            ['ag-default-dark', '#fff', '#28313e', '#192232'],
+            ['ag-financial-dark', '#fff', '#28313e', '#192232'],
+        ] as const)('resolves light/dark annotation colours for %s', async (theme, noteColor, noteFill, handleFill) => {
+            const { note, line } = await resolveAnnotationThemes(theme);
+            expect(note.color).toBe(noteColor);
+            expect(note.background.fill).toBe(noteFill);
+            expect(line.handle.fill).toBe(handleFill);
+        });
+
+        it.each([
+            ['ag-default', '#5090dc'],
+            ['ag-material', '#2196F3'],
+        ] as const)('resolves `annotationColor` from the %s fills', async (theme, annotationColor) => {
+            const { 'quick-date-price-range': quickDatePriceRange } = await resolveAnnotationThemes(theme);
+            expect(quickDatePriceRange.up.fill).toBe(annotationColor);
+        });
+
+        it('replaces the default fibonacci strokes with a theme override', async () => {
+            const strokes = ['red', 'green'];
+            const themes = await resolveAnnotationThemes({
+                overrides: { common: { annotations: { 'fibonacci-retracement': { strokes } } } },
+            });
+            expect(themes['fibonacci-retracement'].strokes).toEqual(strokes);
+        });
+    });
+
     describe('initial', () => {
         it('should render a line annotation', async () => {
             await prepareChart({

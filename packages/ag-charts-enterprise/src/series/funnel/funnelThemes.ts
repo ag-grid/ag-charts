@@ -1,16 +1,17 @@
 import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
+    FONT_THEME_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    cycledFillThemeTemplate,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -79,15 +80,7 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
             $applyCycle: [
                 { $size: { $path: ['./data', { $path: '/data' }] } },
                 [{ $path: ['/0', undefined, { $palette: 'fills' }] }],
-                {
-                    $applySwitch: [
-                        { $path: ['/type', undefined, { $value: '$1' }] },
-                        { $value: '$1' },
-                        ['gradient', FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS],
-                        ['pattern', FILL_PATTERN_SINGLE_DEFAULTS],
-                        ['image', FILL_IMAGE_DEFAULTS],
-                    ],
-                },
+                cycledFillThemeTemplate(FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS, FILL_PATTERN_SINGLE_DEFAULTS),
             ],
         },
         strokes: {
@@ -100,9 +93,7 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            ...FONT_THEME_DEFAULTS,
             padding: 8,
             spacing: 8,
             collision: {
@@ -122,13 +113,7 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
             ...STROKE_STYLE_THEME_DEFAULTS,
         },
         tooltip: { interaction: { enabled: false } },
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
             unhighlightedItem: {
