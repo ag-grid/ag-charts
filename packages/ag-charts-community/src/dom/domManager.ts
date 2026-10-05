@@ -557,6 +557,10 @@ export class DOMManager extends BaseManager {
         this.element.classList.add(themeClassName);
     }
 
+    setDarkTheme(isDark: boolean) {
+        this.element.classList.toggle('ag-charts-wrapper--dark', isDark);
+    }
+
     setThemeParameters(params: AgChartAllThemeParams) {
         // OPTIMIZATION: called every layout, but the resolved parameters keep a stable reference
         // across data-only updates (the options fast path carries them forward). The graph also

@@ -505,10 +505,12 @@ describe('ChartTheme', () => {
             ['ag-financial', false, 'overlay', 'left'],
             ['ag-financial-dark', true, 'overlay', 'left'],
         ] as const)(
-            'resolves tooltip, overlay and caption defaults for %s',
-            async (theme, darkTheme, layoutStyle, textAlign) => {
+            'resolves the dark styling scope and caption defaults for %s',
+            async (theme, isDark, layoutStyle, textAlign) => {
+                const container = document.body.appendChild(document.createElement('div'));
                 chart = deproxy(
                     AgCharts.create({
+                        container,
                         data,
                         title: { text: 'Title' },
                         series: [{ type: 'bar', xKey: 'label', yKey: 'v1' }],
@@ -517,10 +519,9 @@ describe('ChartTheme', () => {
                 );
                 await waitForChartStability(chart);
 
-                const { processedOptions } = chart.chartOptions;
-                expect(processedOptions.tooltip).toMatchObject({ darkTheme });
-                expect(processedOptions.overlays).toMatchObject({ darkTheme });
-                expect(processedOptions.title).toMatchObject({ layoutStyle, textAlign });
+                const darkScoped = container.querySelectorAll('.ag-charts-wrapper--dark .ag-charts-canvas-overlay');
+                expect(darkScoped.length > 0).toBe(isDark);
+                expect(chart.chartOptions.processedOptions.title).toMatchObject({ layoutStyle, textAlign });
             }
         );
     });

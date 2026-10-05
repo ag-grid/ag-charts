@@ -21,17 +21,10 @@ import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import { SpringAnimation } from './springAnimation';
 import { getTooltipBounds } from './tooltipBounds';
-import {
-    DEFAULT_TOOLTIP_CLASS,
-    DEFAULT_TOOLTIP_DARK_CLASS,
-    type TooltipContent,
-    type TooltipPaginationState,
-    tooltipHtml,
-} from './tooltipContent';
+import { DEFAULT_TOOLTIP_CLASS, type TooltipContent, type TooltipPaginationState, tooltipHtml } from './tooltipContent';
 
 export {
     DEFAULT_TOOLTIP_CLASS,
-    DEFAULT_TOOLTIP_DARK_CLASS,
     tooltipHtml,
     tooltipContentAriaLabel,
     isTooltipValueMissing,
@@ -119,7 +112,6 @@ export interface TooltipPosition {
 
 /** Undocumented keys the theme sets on `tooltip`. */
 export type NormalisedTooltipOptions = AgChartTooltipOptions & {
-    darkTheme?: boolean;
     pagination?: boolean;
     bounds?: 'extended' | 'canvas';
 };
@@ -133,7 +125,6 @@ export class Tooltip {
     wrapping: TextWrap = 'hyphenate';
     position: TooltipPosition = { xOffset: 0, yOffset: 0 };
     pagination = false;
-    darkTheme = false;
     /** Escape-hatch for changes in AG-11645. */
     bounds: 'extended' | 'canvas' = 'extended';
 
@@ -186,7 +177,6 @@ export class Tooltip {
         this.wrapping = options.wrapping ?? 'hyphenate';
         this.position = { xOffset: 0, yOffset: 0, ...options.position };
         this.pagination = options.pagination ?? false;
-        this.darkTheme = options.darkTheme ?? false;
         this.bounds = options.bounds ?? 'extended';
     }
 
@@ -459,7 +449,7 @@ export class Tooltip {
         if (!this.elementProxy?.isConnected) return;
 
         const { elementProxy } = this;
-        const { enableInteraction, arrowPosition, mode, darkTheme, wrapping } = this;
+        const { enableInteraction, arrowPosition, mode, wrapping } = this;
 
         const toggle = (name: string, force: boolean) =>
             elementProxy.toggleClass(`${DEFAULT_TOOLTIP_CLASS}--${name}`, force);
@@ -470,8 +460,6 @@ export class Tooltip {
         toggle('arrow-bottom', arrowPosition === ArrowPosition.Bottom);
         toggle('arrow-left', arrowPosition === ArrowPosition.Left);
         toggle('compact', mode === 'compact');
-
-        elementProxy.toggleClass(DEFAULT_TOOLTIP_DARK_CLASS, darkTheme);
 
         for (const wrapType of this.wrapTypes) {
             elementProxy.toggleClass(`${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === wrapping);

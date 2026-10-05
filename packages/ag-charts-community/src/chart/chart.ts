@@ -1171,6 +1171,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
 
         this.ctx.domManager.setThemeClass(themeClassName);
+        this.ctx.domManager.setDarkTheme(this.chartOptions.activeTheme.isDark);
     }
 
     private updateDOM() {
