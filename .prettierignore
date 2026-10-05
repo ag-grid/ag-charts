@@ -1,6 +1,8 @@
 # Add files here to ignore them from prettier formatting
 /dist
 /coverage
+# Zed formats its own JSONC settings with trailing commas, which Prettier would strip
+/.zed
 /packages/ag-charts-community/dist
 /packages/ag-charts-enterprise/dist
 /packages/ag-charts-community-examples/src
