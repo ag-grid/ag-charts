@@ -1423,7 +1423,6 @@ describe('BubbleSeries', () => {
     });
 
     describe('AG-17481 size scaling', () => {
-
         const createBubble = async (seriesOverrides: object) => {
             const options = {
                 data: [
@@ -1574,7 +1573,6 @@ describe('BubbleSeries', () => {
     });
 
     describe('AG-18508 sizeMode', () => {
-
         const createBubble = async (
             seriesOverrides: object,
             data: Array<{ x: number; y: number; s: number }> = [
