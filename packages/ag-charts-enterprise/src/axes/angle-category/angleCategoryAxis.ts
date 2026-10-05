@@ -4,10 +4,10 @@ import {
     type DynamicContext,
     type NormalisedAngleCategoryAxisOptions,
     type ScaleTickParams,
-    isNumberEqual,
+    hideCollidingRadialCategoryLabels,
+    walkPairsOutward,
 } from 'ag-charts-core';
 
-import { walkPairsOutward } from '../../utils/polar';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
@@ -82,43 +82,7 @@ export class AngleCategoryAxis extends AngleAxis<
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        const minSpacing = this.options.label.minSpacing;
-
-        if (labelData.length < 3) return;
-
-        const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
-            if (prev.hidden || next.hidden) {
-                return false;
-            } else if (minSpacing == null) {
-                return prev.box!.collidesBBox(next.box!);
-            }
-            const prevBox = prev.box!.clone().grow(minSpacing / 2);
-            const nextBox = next.box!.clone().grow(minSpacing / 2);
-            return prevBox.collidesBBox(nextBox);
-        };
-
-        const firstLabel = labelData[0];
-        const lastLabel = labelData.at(-1)!;
-        const visibleLabels = new Set<AngleAxisLabelDatum>([firstLabel]);
-        const lastLabelIsOverFirst =
-            isNumberEqual(firstLabel.x, lastLabel.x) && isNumberEqual(firstLabel.y, lastLabel.y);
-        const maxStep = Math.floor(labelData.length / 2);
-        for (let step = 1; step <= maxStep; step++) {
-            const labels = lastLabelIsOverFirst ? labelData.slice(0, -1) : labelData;
-            const collisionDetected = walkPairsOutward(labels, step, labelsCollide);
-            if (!collisionDetected) {
-                walkPairsOutward(labels, step, (_, next) => {
-                    visibleLabels.add(next);
-                });
-                break;
-            }
-        }
-        for (const datum of labelData) {
-            if (!visibleLabels.has(datum)) {
-                datum.hidden = true;
-                datum.box = undefined;
-            }
-        }
+        hideCollidingRadialCategoryLabels(labelData, this.options.label.minSpacing);
     }
 
     override tickFormatParams(): _ModuleSupport.AxisTickFormatParams {

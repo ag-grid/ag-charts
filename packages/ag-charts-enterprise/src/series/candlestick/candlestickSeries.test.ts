@@ -15,7 +15,14 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    SHADOW,
+    createEnterpriseChart,
+    itemNodes,
+    prepareEnterpriseTestOptions,
+    shadowedShapes,
+} from '../../test/utils';
 
 const CANDLESTICK_OPTIONS: AgChartOptions = {
     data: [
@@ -353,6 +360,77 @@ describe('CandlestickSeries', () => {
             };
             prepareEnterpriseTestOptions(options as any);
             await compareSnapshot(AgCharts.create(options as AgChartOptions));
+        });
+    });
+
+    describe('shadow', () => {
+        const STYLED_WICKS = { wick: { stroke: 'navy', strokeWidth: 3 } };
+        const buildOptions = (shadow?: typeof SHADOW, item?: Record<string, unknown>): AgChartOptions => {
+            const options = {
+                ...CANDLESTICK_OPTIONS,
+                series: [{ ...CANDLESTICK_OPTIONS.series![0], shadow, item }],
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options as any);
+            return options;
+        };
+
+        it('defaults to a disabled shadow', async () => {
+            const chart: any = await createEnterpriseChart(buildOptions());
+
+            expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
+            chart.destroy();
+        });
+
+        it('shadows nothing when no shadow is set', async () => {
+            const chart: any = await createEnterpriseChart(buildOptions());
+
+            expect(itemNodes(chart)).toHaveLength(4);
+            expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
+            chart.destroy();
+        });
+
+        it('casts one silhouette shadow over the body and wicks of up and down items alike', async () => {
+            const chart: any = await createEnterpriseChart(buildOptions(SHADOW));
+
+            const shapes = itemNodes(chart);
+            expect(shapes).toHaveLength(4);
+            for (const shape of shapes) {
+                expect(shape.shadowMode).toBe('silhouette');
+                expect(shape.fillShadow).toMatchObject(SHADOW);
+            }
+
+            // The shadow is a series option only: the items have no shadow of their own, whichever direction.
+            const { item } = chart.series[0]['options'];
+            expect(item.up).not.toHaveProperty('shadow');
+            expect(item.down).not.toHaveProperty('shadow');
+            chart.destroy();
+        });
+
+        it('keeps shared wicks on the body path and styled wicks on their own path', async () => {
+            const shared: any = await createEnterpriseChart(buildOptions(SHADOW));
+            for (const node of itemNodes(shared)) {
+                expect(node['wickPath'].isEmpty()).toBe(true);
+            }
+            shared.destroy();
+
+            // The styled wicks are drawn apart from the body, so they reach the shadow through renderSilhouetteExtras.
+            const styled: any = await createEnterpriseChart(
+                buildOptions(SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS })
+            );
+            for (const node of itemNodes(styled)) {
+                expect(node['wickPath'].isEmpty()).toBe(false);
+                expect(node.shadowMode).toBe('silhouette');
+                expect(node.fillShadow).toMatchObject(SHADOW);
+            }
+            styled.destroy();
+        });
+
+        it('should render a candlestick chart with a shadow and shared wick styling', async () => {
+            await compareSnapshot(AgCharts.create(buildOptions(SHADOW)));
+        });
+
+        it('should render a candlestick chart with a shadow and separately styled wicks', async () => {
+            await compareSnapshot(AgCharts.create(buildOptions(SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS })));
         });
     });
 

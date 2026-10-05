@@ -522,12 +522,14 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const fillBBox = this.getShapeFillBBox();
+        const { shadow } = this.options.node;
 
         datumSelection.each((sector, datum) => {
             const { datumIndex } = datum;
             const style = this.getNodeStyle(datum, datumIndex, isHighlight);
 
             sector.setStyleProperties(style, fillBBox);
+            sector.fillShadow = shadow;
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -645,6 +647,7 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const fillBBox = this.getShapeFillBBox();
+        const { shadow } = this.options.link;
 
         // An itemStyler can vary cornerRadius per node, and the link must follow how the node is drawn.
         const nodeEdges = new Map<ChordNodeDatum, ChordLinkNodeEdge | undefined>();
@@ -672,6 +675,7 @@ export class ChordSeries extends FlowProportionSeries<
 
             link.tension = style.tension;
             link.setStyleProperties(style, fillBBox);
+            link.fillShadow = shadow;
         });
     }
 

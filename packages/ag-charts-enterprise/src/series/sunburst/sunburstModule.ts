@@ -1,6 +1,7 @@
 import { type AgSunburstSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     BASE_FONT_SIZE,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -47,6 +48,13 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         strokeOpacity: 1,
         cornerRadius: 0,
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
+        },
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: true,

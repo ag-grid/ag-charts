@@ -57,6 +57,7 @@ jobs:
     detect-changes:
         runs-on: ubuntu-24.04
         name: Detect Changes
+        if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
         outputs:
             run_full_ci: ${{ steps.decide.outputs.run_full_ci }}
             locale: ${{ steps.filter.outputs.locale }}
@@ -126,6 +127,7 @@ jobs:
         # Deliberately does not wait for detect-changes (~20-30s off the critical path):
         # init consumes none of its outputs. On the rare docs-only PR this wastes one
         # init run — every downstream job is still gated by detect-changes.
+        if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
         permissions:
             contents: write
         env:
@@ -204,7 +206,7 @@ jobs:
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     count=10
                   else
-                    count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test | wc -l)
+                    count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test | wc -l)
                   fi
 
                   matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max 6 --ratio 1 --zero ${count})
@@ -216,7 +218,7 @@ jobs:
                   echo "pkg_matrix=${pkg_matrix}" >> $GITHUB_OUTPUT
                   echo "Package test matrix determined to be: ${pkg_matrix}"
 
-                  e2e_nx_count=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
+                  e2e_nx_count=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} -t test:e2e | wc -l)
                   if [[ ${e2e_nx_count} -gt 0 ]] ; then
                     e2e_count=$(cd packages/ag-charts-website/ ; npx playwright test --list | grep -v '!!!SKIPPED!!!' | wc -l)
                   else
@@ -275,7 +277,7 @@ jobs:
                   if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
                     demos_affected=1
                   else
-                    demos_affected=$(yarn -s nx show projects --affected --base ${{ steps.setup.outputs.base }} | grep -Fxc -e 'ag-charts-demos' -e 'ag-charts-demos-seeds' || true)
+                    demos_affected=$(yarn nx show projects --affected --base ${{ steps.setup.outputs.base }} | grep -Fxc -e 'ag-charts-demos' -e 'ag-charts-demos-seeds' || true)
                   fi
                   echo "demos_affected=${demos_affected}" >> $GITHUB_OUTPUT
                   echo "Demos affected: ${demos_affected}"
@@ -1550,7 +1552,7 @@ jobs:
                     -e PARITY_STALE_REPORT=/parity-input/stale-ports.json \
                     ${PLAYWRIGHT_IMAGE} \
                     npx playwright test -c playwright.parity.config.ts
-              timeout-minutes: 15
+              timeout-minutes: 20
 
             - name: Persist test results
               if: always()
@@ -1761,11 +1763,13 @@ jobs:
               if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped' || needs.e2e_cross_browser.result != 'skipped' || needs.demos_e2e.result != 'skipped'
               continue-on-error: true
               run: |
-                  yarn global add junit-report-merger
+                  # junit-report-merger (jrm) is a root devDependency, so it's already
+                  # in node_modules/.bin — no separate global install needed under
+                  # Yarn 4 (which removed `yarn global add` entirely).
                   reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
                   mkdir -p reports/
                   echo "$reports" | (while read name ; do
-                    yarn exec -s jrm reports/${name} "test-results/**/${name}"
+                    yarn exec jrm reports/${name} "test-results/**/${name}"
                   done)
 
             - name: Test Report
@@ -1844,9 +1848,15 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+            # Not gated on needs.init.result == 'success': init is the job that fails when setup does
+            # (e.g. a stale yarn.lock under `yarn install --immutable`), and that is exactly when the
+            # alert must fire. init's outputs are still populated when it fails after the Setup
+            # step's nx_config sub-step, and empty when it fails earlier — nx_base then resolves to
+            # nothing and the loop below falls back; an empty build_type is not 'pr', so
+            # github.event_name keeps PR runs silent. Only a skipped init suppresses the alert.
             - name: Commit History
               id: commits
-              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
+              if: always() && job.status != 'cancelled' && needs.init.result != 'skipped' && github.event_name != 'pull_request' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
                   # Fall back through the bases that may not exist in this shallow checkout, so a
                   # missing success tag degrades the Slack commit list rather than failing the job.
@@ -2039,7 +2049,7 @@ jobs:
             # no anchor; the handler's fallback covers that case too.
             - name: Slack Notification (bot token, thread anchor)
               id: ci_failure_alert
-              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != ''
+              if: always() && job.status != 'cancelled' && needs.init.result != 'skipped' && github.event_name != 'pull_request' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true' && env.SLACK_BOT_OAUTH_TOKEN != '' && vars.CI_FAILURE_SLACK_CHANNEL != ''
               continue-on-error: true
               env:
                   # SLACK_BOT_OAUTH_TOKEN inherited from the job-level env above.
@@ -2136,6 +2146,59 @@ jobs:
     # on this job and it must be excluded from branch-protection required checks — merge never waits
     # on it. `continue-on-error` + `!cancelled()` keep it off the critical path (the snapshot jobs
     # deliberately exit 1 when they regenerate baselines, so this must tolerate their failure).
+    algolia_dev_index:
+        runs-on: ubuntu-24.04
+        name: Update Algolia Dev Index
+        needs: [website_build]
+        # Only when the whole Website Build job succeeded (build and artifact upload), not just its build step.
+        if: ${{ !cancelled() && github.ref == 'refs/heads/latest' && needs.website_build.result == 'success' }}
+        # Search indexing is not part of the build's verdict: a failure here must not turn latest red
+        # (and so trigger the CI failure handler).
+        continue-on-error: true
+        # Each run clears and refills the indices, so never let two overlap. A newer pending run
+        # supersedes an older pending one, which is fine because only the newest build matters.
+        concurrency:
+            group: ${{ github.workflow }}-algolia-dev-index
+            cancel-in-progress: false
+        steps:
+            - name: Checkout
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+              with:
+                  fetch-depth: 1
+
+            # Only node_modules are needed (jsdom, algoliasearch, puppeteer-core, ...); nothing is built.
+            - name: Setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  yarn_postinstall: no-install
+                  cache_mode: ro
+                  nx_restore: false
+                  fetch_base: skip
+                  free_disk_space: false
+
+            - name: Restore Website Build
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+              with:
+                  name: website-staging-dist
+                  path: dist/packages/ag-charts-website/
+
+            - name: Update Algolia dev indices
+              working-directory: packages/ag-charts-website
+              env:
+                  ALGOLIA_ADMIN_KEY: ${{ secrets.ALGOLIA_ADMIN_KEY }}
+              run: |
+                  # update-algolia.js reads the App ID as PUBLIC_ASTRO_ALGOLIA_APP_ID; take the public
+                  # value from the staging build's env file rather than duplicating it here.
+                  PUBLIC_ASTRO_ALGOLIA_APP_ID=$(sed -n 's/^PUBLIC_ALGOLIA_APP_ID=//p' .env.build.staging)
+                  export PUBLIC_ASTRO_ALGOLIA_APP_ID
+                  if [[ -z "$PUBLIC_ASTRO_ALGOLIA_APP_ID" || -z "$ALGOLIA_ADMIN_KEY" ]]; then
+                      echo "::error::Algolia App ID or ALGOLIA_ADMIN_KEY secret is missing"
+                      exit 1
+                  fi
+                  # Launches /usr/bin/google-chrome (preinstalled on ubuntu-24.04 runners) and
+                  # indexes the built pages under dist/packages/ag-charts-website.
+                  node update-algolia.js -i ag-charts-dev
+
     snapshot_review:
         runs-on: ubuntu-24.04
         name: Snapshot Review
@@ -2349,7 +2412,8 @@ jobs:
         # Org-scoped GHA variable kill-switch: set SONARCLOUD_ENABLED=false to
         # skip the scan (e.g. during a SonarCloud infra outage). Absent/any other
         # value keeps it running. Sonar is advisory, so a skip is not a failure.
-        if: vars.SONARCLOUD_ENABLED != 'false'
+        if: vars.SONARCLOUD_ENABLED != 'false' &&
+            (github.event_name != 'pull_request' || github.event.pull_request.draft == false)
         runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -1,4 +1,5 @@
 import {
+    DEFAULT_SHADOW_COLOUR,
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
@@ -25,6 +26,13 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         strokeOpacity: 1,
         cornerRadius: 0,
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
+        },
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,

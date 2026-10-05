@@ -1,5 +1,6 @@
 import {
     COMMON_SERIES_THEME_DEFAULTS,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_SERIES_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -31,6 +32,13 @@ export const RADIAL_COLUMN_SERIES_THEME: ExtensibleSeriesTheme<'radial-column'> 
         strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
+        },
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,

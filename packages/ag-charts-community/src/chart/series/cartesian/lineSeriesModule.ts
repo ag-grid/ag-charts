@@ -4,6 +4,7 @@ import {
     CARTESIAN_POSITION,
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -38,6 +39,13 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
         interpolation: interpolationThemeTemplate(),
         marker: {
             enabled: true,
+            shadow: {
+                enabled: false,
+                color: DEFAULT_SHADOW_COLOUR,
+                xOffset: 3,
+                yOffset: 3,
+                blur: 5,
+            },
             shape: 'circle',
             size: 7,
             fillOpacity: 1,

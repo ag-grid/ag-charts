@@ -762,6 +762,14 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
 // @ts-expect-error undocumented option
 commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
 
+export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
+    enabled: boolean,
+    xOffset: number,
+    yOffset: number,
+    blur: positiveNumber,
+    color: colorOrRef,
+};
+
 export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
     shape: shapeValidator,
     size: positiveNumber,
@@ -772,6 +780,7 @@ export const markerStyleOptionsDefs: OptionsDefs<AgSeriesMarkerStyle> = {
 
 export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     enabled: boolean,
+    shadow: shadowOptionsDefs,
     itemStyler: callbackDefs<AgSeriesMarkerStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -809,6 +818,7 @@ collisionOptionsDef.collideWith = undocumented({
     labels: boolean,
     seriesItems: boolean,
     seriesArea: boolean,
+    axisLabels: boolean,
 });
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
@@ -973,14 +983,6 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
 export const tooltipOptionsDefsWithArea: OptionsDefs<AgSeriesTooltip<any>> = {
     ...tooltipOptionsDefs,
     range: rangeValidator,
-};
-
-export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
-    enabled: boolean,
-    xOffset: number,
-    yOffset: number,
-    blur: positiveNumber,
-    color: colorOrRef,
 };
 
 export const interpolationOptionsDefs = typeUnion<AgInterpolationType>(

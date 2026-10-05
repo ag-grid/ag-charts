@@ -7,6 +7,7 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
     AgChartLabelAutoFontSizeOptions,
@@ -81,6 +82,8 @@ export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext
      * Default: `2000`
      */
     maxRenderedItems?: number;
+    /** Configuration for the shadow used behind the markers. Not applied to custom marker shapes. */
+    shadow?: AgDropShadowOptions;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
     /** Configuration for the labels shown on top of data points. */

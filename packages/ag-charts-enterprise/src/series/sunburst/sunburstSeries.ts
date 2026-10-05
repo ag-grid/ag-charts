@@ -4,6 +4,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type BoxBounds,
     type CallbackParamRules,
     type DynamicContext,
     type NormalisedSunburstInnerLabelOptions,
@@ -281,6 +282,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sectorSpacing,
             padding,
             cornerRadius,
+            shadow,
             childrenKey,
             colorKey,
             colorName,
@@ -554,6 +556,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
+            sector.fillShadow = shadow;
+            // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
+            // earlier branch's outer ring.
+            sector.zIndex = depth;
             sector.centerX = 0;
             sector.centerY = 0;
             sector.innerRadius = hole + depth * radiusScale;
@@ -866,6 +872,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     protected override pickNodesInBBoxPredicate() {
         return _ModuleSupport.pickSectorsInBBoxPredicate(this);
+    }
+
+    /** Yields in datum order, as `getSelection()` does; the base scene walk would yield in depth order. */
+    public override *pickNodesInBBox(selectionBox: BoxBounds): Iterable<SunburstNode> {
+        const predicate = this.pickNodesInBBoxPredicate();
+        for (const sector of this.datumSelection.nodes()) {
+            if (sector.visible && sector.pointerEvents !== PointerEvents.None && predicate(selectionBox, sector)) {
+                yield sector.unsafeDatum;
+            }
+        }
     }
 
     protected override animateEmptyUpdateReady() {

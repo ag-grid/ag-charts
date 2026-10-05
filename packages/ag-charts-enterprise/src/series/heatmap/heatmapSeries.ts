@@ -740,13 +740,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const isZoomed = visibleMin !== 0 || visibleMax !== 1;
         const crisp = !isZoomed;
 
+        const { cornerRadius, shadow } = this.options;
+
         datumSelection.each((rect, nodeDatum) => {
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
+            rect.fillShadow = shadow;
 
             rect.crisp = crisp;
-            rect.cornerRadius = this.options.cornerRadius;
+            rect.cornerRadius = cornerRadius;
             rect.x = point.x - width / 2;
             rect.y = point.y - height / 2;
             rect.width = width;

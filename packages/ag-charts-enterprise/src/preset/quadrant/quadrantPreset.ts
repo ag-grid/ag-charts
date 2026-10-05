@@ -191,6 +191,7 @@ export function createQuadrant(
         'maxRenderedItems',
         'nodeClickRange',
         'styler',
+        'shadow',
         'shape',
         'stroke',
         'strokeOpacity',

@@ -94,9 +94,14 @@ function warm_test_urls {
 # the CI step's stdout open. Job control additionally puts the server in its own
 # process group, so cleanup can signal the whole tree.
 function start_astro {
-  # Astro is a declared dependency of this workspace, so yarn always links it here.
-  if [ ! -e ./node_modules/.bin/astro ] ; then
-    echo "Astro not found at ./node_modules/.bin/astro — has node_modules been installed?"
+  # Astro is a declared dependency of this workspace, so yarn always resolves it here.
+  # Resolved via `yarn bin` rather than a hardcoded `./node_modules/.bin/astro` path:
+  # Yarn's node-modules linker doesn't recreate a per-workspace .bin directory the way
+  # Yarn Classic did, so that fixed path no longer exists under Yarn 4.
+  local astro_bin
+  astro_bin="$(yarn bin astro 2>/dev/null)"
+  if [ -z "${astro_bin}" ] || [ ! -e "${astro_bin}" ] ; then
+    echo "Astro binary not found via 'yarn bin astro' — has node_modules been installed?"
     exit 1
   fi
 
@@ -105,10 +110,10 @@ function start_astro {
 
   set -m
   if [ "${1:-}" == "--detached" ] ; then
-    nohup ./node_modules/.bin/astro dev --port=${astro_port} --host \
+    nohup "${astro_bin}" dev --port=${astro_port} --host \
       > "${astro_log_file}" 2>&1 < /dev/null &
   else
-    ./node_modules/.bin/astro dev --port=${astro_port} --host &
+    "${astro_bin}" dev --port=${astro_port} --host &
   fi
   astro_pid=$!
   set +m

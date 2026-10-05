@@ -10,6 +10,7 @@ import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
     ChartAxisDirection,
+    DEFAULT_SHADOW_COLOUR,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
@@ -45,6 +46,13 @@ const themeTemplate: ExtensibleSeriesTheme<'ohlc'> = {
         item: {
             up: itemTheme('up'),
             down: itemTheme('down'),
+        },
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
         },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },

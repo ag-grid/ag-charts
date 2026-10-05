@@ -36,6 +36,7 @@ env:
     REPO_URL: ${{ github.server_url }}/${{ github.repository }}
     SLACK_CHANNEL: '#ci-chart-gate'
     AG_LIBRARY: charts
+    NX_NO_CLOUD: 'true'
 
 jobs:
     # TODO: Re-enable rulesync-integrity job once rulesync issues are resolved

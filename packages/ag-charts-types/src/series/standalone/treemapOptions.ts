@@ -4,6 +4,7 @@ import type {
     HierarchyHighlightState,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
@@ -64,6 +65,8 @@ export interface AgTreemapSeriesGroupOptions<TDatum, TContext = ContextDefault>
     extends AgTreemapSeriesGroupStyle, AgTreemapSeriesGroupLayout<TDatum, TContext> {
     /** Apply rounded corners to each group. */
     cornerRadius?: PixelSize;
+    /** Configuration for the shadow used behind the groups. */
+    shadow?: AgDropShadowOptions;
     /** The colours to cycle through for the fills of the groups, by their depth in the hierarchy. An array of colour strings, or fill objects for gradients, patterns, or images. */
     fills?: AgColorType[];
     /** Highlight overrides for groups. */
@@ -135,6 +138,8 @@ export interface AgTreemapSeriesTileOptions<TDatum, TContext = ContextDefault>
     extends AgTreemapSeriesTileStyle, AgTreemapSeriesTileLayout<TDatum, TContext> {
     /** Apply rounded corners to each tile. */
     cornerRadius?: PixelSize;
+    /** Configuration for the shadow used behind the tiles. */
+    shadow?: AgDropShadowOptions;
     /** Highlight overrides for tiles. */
     highlight?: AgTreemapSeriesTileHighlightOptions;
     /** Selection overrides for tiles. */

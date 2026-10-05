@@ -416,6 +416,28 @@ describe('Quadrant Preset', () => {
         expect(rendererParams[0]).toMatchObject({ sizeName: 'Population', region: 'bottom-left' });
     });
 
+    it.each([
+        ['scatter', NUMERIC],
+        ['bubble', BUBBLE_SIZED_NUMERIC],
+    ] as const)('forwards shadow to the %s series', (type, base) => {
+        const shadow = { enabled: true, color: '#000000', xOffset: 2, yOffset: 3, blur: 4 };
+
+        const cartesianOptions = createQuadrant(
+            { ...base, shadow } as AgQuadrantChartOptions,
+            undefined,
+            undefined,
+            undefined,
+            new Logger(),
+            () => undefined
+        );
+
+        const series = cartesianOptions.series?.filter((s) => s.type === type);
+        expect(series?.length).toBeGreaterThan(0);
+        for (const s of series!) {
+            expect(s).toMatchObject({ shadow });
+        }
+    });
+
     describe('region label spacing', () => {
         const SPACING_EXAMPLES: Record<string, AgQuadrantChartOptions> = {
             AWAY_FROM_PIVOT: regionLabelOptions('inside-inner-inner', undefined, { spacing: 40 }),

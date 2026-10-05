@@ -1,4 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, PixelSize } from '../../chart/types';
@@ -89,6 +90,8 @@ export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault> e
 export interface AgSankeySeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgSankeySeriesLinkOptions<TDatum, TContext = ContextDefault> extends AgSankeySeriesLinkStyle {
+    /** Configuration for the shadow used behind the links. */
+    shadow?: AgDropShadowOptions;
     /** Function used to return formatting for individual links, based on the given parameters.*/
     itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<TDatum, TContext>, AgSankeySeriesLinkStyle>;
 }
@@ -96,6 +99,8 @@ export interface AgSankeySeriesLinkOptions<TDatum, TContext = ContextDefault> ex
 export interface AgSankeySeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
 export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgSankeySeriesNodeStyle {
+    /** Configuration for the shadow used behind the nodes. */
+    shadow?: AgDropShadowOptions;
     /**
      * Spacing between the nodes.
      *

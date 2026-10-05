@@ -9,6 +9,7 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
+import { BBox } from '../../scene/bbox';
 import type { ChartAxis } from '../chartAxis';
 import {
     type ChartOrProxy,
@@ -657,6 +658,16 @@ describe('Time Axis Examples', () => {
                 expect(texts.some((t) => /Jan|Feb|Mar|Nov|Dec/.test(t))).toBe(false);
             }
         );
+
+        it('contributes the parent tier as label obstacles when base labels are disabled', async () => {
+            const options = monthAndYearOptions(false, 'unit-time');
+            // The label group draws only while a base or parent tick is enabled.
+            (options.axes as any).x.parentLevel.tick = { enabled: true };
+            chart = await createChart(options);
+            const axis = deproxy(chart).axes.find((a: any) => a.position === 'bottom') as any;
+            expect(labelTexts(chart)).toContain('2024');
+            expect(axis.labelSource.getLabelObstacles(BBox.zero)).toHaveLength(labelTexts(chart).length);
+        });
 
         it('removes base-tier labels at runtime while the parent tier remains (TC2)', async () => {
             chart = await createChart(monthAndYearOptions(true, 'unit-time'));

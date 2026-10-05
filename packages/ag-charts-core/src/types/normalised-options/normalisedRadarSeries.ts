@@ -12,7 +12,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { BivariantCallback, Normalised } from './normalise';
-import type { NormalisedColorType } from './normalisedCommonOptions';
+import type { NormalisedColorType, NormalisedDropShadowOptions } from './normalisedCommonOptions';
 import type { NormalisedCollisionFreeSeriesLabelOptions } from './normalisedLabelOptions';
 import type { NormalisedSeriesMarkerOptions } from './normalisedSeriesMarkerOptions';
 
@@ -64,7 +64,7 @@ export type NormalisedRadarLineSeriesOwnOptions = Normalised<
 
 export type NormalisedRadarAreaSeriesOwnOptions = Normalised<
     AgRadarAreaSeriesOptions,
-    RadarRequiredKeys | 'fill' | 'fillOpacity',
-    RadarOverrides & { fill: NormalisedColorType }
+    RadarRequiredKeys | 'fill' | 'fillOpacity' | 'shadow',
+    RadarOverrides & { fill: NormalisedColorType; shadow: NormalisedDropShadowOptions }
 > &
     RadarAxisKeys;

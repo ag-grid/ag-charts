@@ -106,6 +106,7 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     minSize: defined,
     nodeClickRange: defined,
     styler: defined,
+    shadow: defined,
     shape: defined,
     size: defined,
     sizeKey: defined,

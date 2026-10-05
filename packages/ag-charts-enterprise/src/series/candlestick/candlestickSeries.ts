@@ -63,6 +63,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const { up, down } = options.item;
+        const { shadow } = options;
 
         const fillBBox = this.getShapeFillBBox();
 
@@ -74,7 +75,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
             const style = (datum.style ??
                 contextNodeData.styles[datum.itemType][highlightState]) as NormalisedCandlestickStyle;
 
-            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
+            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp, shadow);
 
             node.setStyleProperties(style, fillBBox);
 
