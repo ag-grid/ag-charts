@@ -76,6 +76,35 @@ describe('volumeProfilePreset', () => {
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
     });
 
+    const levels = () => deproxy(chart).series[0].data?.data ?? [];
+
+    it('should regroup the profile when the tick size changes', async () => {
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
+        await waitForChartStability(chart);
+        await chart.updateDelta({ tickSize: 5 });
+        await waitForChartStability(chart);
+        // From 135 to 205 in steps of 5.
+        expect(levels()).toHaveLength(15);
+    });
+
+    it('should regroup the profile when the price key changes', async () => {
+        const data = getRegularVolumeProfile().map((datum) => ({ ...datum, level: datum.price + 100 }));
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile, data }));
+        await waitForChartStability(chart);
+        await chart.updateDelta({ priceKey: 'level' });
+        await waitForChartStability(chart);
+        expect(levels()[0]).toMatchObject({ price: 305 });
+    });
+
+    it('should regroup the profile on a same-length data update', async () => {
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
+        await waitForChartStability(chart);
+        const data = getRegularVolumeProfile().map((datum) => ({ ...datum, upVolume: datum.upVolume * 2 }));
+        await chart.updateDelta({ data });
+        await waitForChartStability(chart);
+        expect(levels()[0]).toMatchObject({ price: 205, upVolume: 6052217 * 2 });
+    });
+
     describe('with a data source', () => {
         const createWithDataSource = (getData: () => unknown[], options: Partial<AgVolumeProfileChartOptions> = {}) => {
             const dataSource: AgVolumeProfileChartOptions['dataSource'] = {

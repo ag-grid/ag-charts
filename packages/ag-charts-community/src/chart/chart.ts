@@ -1434,18 +1434,16 @@ export abstract class Chart implements ModuleInstance, ChartService {
         this.ctx.eventsHub.emit('data:update', this.getSeriesData());
     }
 
-    private seriesData: { source: DataSet; options: ChartOptions; data: DataSet } | undefined = undefined;
+    private seriesData: { source: DataSet; options: object; data: DataSet } | undefined = undefined;
     private getSeriesData() {
-        const { data, chartOptions } = this;
-        const { optionMetadata, presetOptions } = chartOptions;
-        if (optionMetadata.presetType == null || presetOptions == null) return data;
+        const { data } = this;
+        const { presetOptions } = this.chartOptions;
+        const transform = this.getPresetDef()?.transformSeriesData;
+        if (transform == null || presetOptions == null) return data;
 
-        const transform = chartOptions.moduleRegistry.getPresetModule(optionMetadata.presetType)?.transformSeriesData;
-        if (transform == null) return data;
-
-        if (this.seriesData?.source !== data || this.seriesData.options !== chartOptions) {
+        if (this.seriesData?.source !== data || this.seriesData.options !== presetOptions) {
             const seriesData = DataSet.wrap(transform(data.data, presetOptions), this.ctx.logger);
-            this.seriesData = { source: data, options: chartOptions, data: seriesData };
+            this.seriesData = { source: data, options: presetOptions, data: seriesData };
         }
         return this.seriesData.data;
     }
@@ -1763,7 +1761,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.refreshSeriesUserVisibility(this.chartOptions, newChartOptions.seriesWithUserVisibility);
         }
 
-        const minimumUpdateType = ChartUpdateType.PERFORM_LAYOUT;
+        // A change to the preset options a series data transform reads needn't change any series options,
+        // so the series data update is requested explicitly.
+        const seriesDataChanged =
+            this.getPresetDef()?.transformSeriesData != null &&
+            newChartOptions.presetOptions !== this.chartOptions.presetOptions;
+        const minimumUpdateType = seriesDataChanged ? ChartUpdateType.UPDATE_DATA : ChartUpdateType.PERFORM_LAYOUT;
         const deltaOptions = this.firstApply
             ? newChartOptions.processedOptions
             : newChartOptions.diffOptions(this.chartOptions);
