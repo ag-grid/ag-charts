@@ -49,7 +49,7 @@ fi
 # and if it fails nothing has been removed or uploaded yet. Mirrors the remote steps of ag-grid's
 # scripts/deployments/prep_and_archive/patchUncachedArchives.sh, for the charts rule alone.
 # Only one deploy or release runs at a time, so nothing else writes the root .htaccess while this runs.
-if [ -z "$GRID_ROOT_DIR" ]
+if [ -z "${GRID_ROOT_DIR:-}" ]
 then
       echo "\$GRID_ROOT_DIR is not set: the grid docroot, whose root .htaccess marks this archive in flight"
       exit 1;
@@ -67,7 +67,7 @@ function patchFailed {
     echo "$1";
     echo "The live root .htaccess has NOT been changed, and nothing has been uploaded.";
     rm -f "$LIVE_HTACCESS";
-    ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "rm -f $STAGED" 2>/dev/null;
+    ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "rm -f $STAGED" 2>/dev/null || true;
     exit 1;
 }
 
@@ -99,8 +99,10 @@ then
     SWAP="cd $GRID_ROOT_DIR || exit 5; \
         [ \"\$(sha256sum < $STAGED | cut -d' ' -f1)\" = $PATCHED_SHA ] || { echo 'uploaded file does not match the patched one'; exit 4; }; \
         cp -p $REMOTE $BACKUP && chmod 644 $STAGED && mv $STAGED $REMOTE"
-    ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "$SWAP"
-    case $? in
+    # capture the exit code rather than letting set -e stop here, so patchFailed can report and clean up
+    SWAP_RC=0
+    ssh -i $SSH_LOCATION -p $SSH_PORT $CURRENT_HOST "$SWAP" || SWAP_RC=$?
+    case $SWAP_RC in
         0) ;;
         4) patchFailed "The upload did not arrive intact. Re-run this.";;
         *) patchFailed "Could not move the patched root .htaccess into place.";;
