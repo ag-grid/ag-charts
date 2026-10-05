@@ -220,6 +220,21 @@ describe('highlightedItem.shadow', () => {
             expect([...inPlace, ...highlighted].filter(casts).length).toBeGreaterThanOrEqual(castingBefore);
         });
 
+        it('moves the shadow from one hovered item to the next', async () => {
+            const { series } = await hoverFirstItem(testCase, SHADOW);
+            const [first, next] = series.getNodeData();
+
+            expect(next.datumIndex).not.toBe(first.datumIndex);
+            chart.ctx.highlightManager.updateHighlight(chart.id, next);
+            await waitForChartStability(chart);
+
+            // The first item casts again, and only the second one's in-place copy is cut out.
+            const [firstShape, nextShape, ...others] = shapesOf(series.contentGroup, testCase.kind);
+            expect(firstShape.fillShadow).toMatchObject(SHADOW);
+            expect(casts(nextShape)).toBe(false);
+            for (const shape of others) expect(shape.fillShadow).toMatchObject(SHADOW);
+        });
+
         it('restores the in-place shadow when the hover ends', async () => {
             const { series, inPlaceBefore } = await hoverFirstItem(testCase, SHADOW);
             expect(casts(shapesOf(series.contentGroup, testCase.kind)[0])).toBe(false);

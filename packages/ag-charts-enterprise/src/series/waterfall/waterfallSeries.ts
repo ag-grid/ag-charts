@@ -1485,6 +1485,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         };
     }
 
+    /** The shadows of the positive, negative and total items, which this series keeps there rather than on its own `shadow`. */
+    protected override getItemShadowOptions() {
+        return (['positive', 'negative', 'total'] as const).map((itemType) => this.getItemConfig(itemType).shadow);
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType) {
         if (legendType !== 'category') {
             return [];

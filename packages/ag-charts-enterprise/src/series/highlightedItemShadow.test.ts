@@ -36,6 +36,8 @@ interface SeriesCase {
     hoveredCopies?: number;
     /** The datum to hover; defaults to the first of the series' node data. */
     hover?: (series: any) => unknown;
+    /** A second datum of the same kind to move the hover to; defaults to the first node datum of another item. */
+    hoverNext?: (series: any) => unknown;
 }
 
 const FLOW_DATA = [
@@ -49,7 +51,13 @@ const FIRST_LEAF = (series: any) => {
     while (node.children?.length) node = node.children[0];
     return node;
 };
+const SECOND_LEAF = (series: any) => {
+    const leaves: any[] = [];
+    for (const node of series.rootNode) if (node.children.length === 0) leaves.push(node);
+    return leaves[1];
+};
 const FIRST_GROUP = (series: any) => series.rootNode.children[0];
+const SECOND_GROUP = (series: any) => series.rootNode.children[0].children[0];
 const SELECTION_LAYERS = (series: any) => ({
     inPlace: [...series.datumSelection.nodes()] as _Scene.Shape[],
     highlighted: [...series.highlightSelection.nodes()] as _Scene.Shape[],
@@ -72,6 +80,8 @@ const FLOW_LAYERS = (series: any) => ({
 });
 const FLOW_NODE = (series: any) =>
     series.contextNodeData.nodeData.find((datum: any) => datum.type === FlowProportionDatumType.Node);
+const SECOND_FLOW_NODE = (series: any) =>
+    series.contextNodeData.nodeData.filter((datum: any) => datum.type === FlowProportionDatumType.Node)[1];
 
 const STAGE_DATA = [
     { stage: 'Visits', value: 100 },
@@ -117,6 +127,7 @@ const SERIES: SeriesCase[] = [
         data: FLOW_DATA,
         kind: _Scene.Rect,
         hover: FLOW_NODE,
+        hoverNext: SECOND_FLOW_NODE,
         layers: FLOW_LAYERS,
         series: (shadow, highlight) => ({
             type: 'sankey',
@@ -132,6 +143,7 @@ const SERIES: SeriesCase[] = [
         data: FLOW_DATA,
         kind: _Scene.Sector,
         hover: FLOW_NODE,
+        hoverNext: SECOND_FLOW_NODE,
         layers: FLOW_LAYERS,
         series: (shadow, highlight) => ({
             type: 'chord',
@@ -148,6 +160,7 @@ const SERIES: SeriesCase[] = [
         data: HIERARCHY_SHADOW_DATA,
         kind: _Scene.Rect,
         hover: FIRST_LEAF,
+        hoverNext: SECOND_LEAF,
         layers: SELECTION_LAYERS,
         series: (shadow, highlight) => ({
             type: 'treemap',
@@ -162,6 +175,7 @@ const SERIES: SeriesCase[] = [
         data: HIERARCHY_SHADOW_DATA,
         kind: _Scene.Rect,
         hover: FIRST_GROUP,
+        hoverNext: SECOND_GROUP,
         layers: GROUP_LAYERS,
         series: (shadow, highlight) => ({
             type: 'treemap',
@@ -175,6 +189,7 @@ const SERIES: SeriesCase[] = [
         data: HIERARCHY_SHADOW_DATA,
         kind: _Scene.Sector,
         hover: FIRST_LEAF,
+        hoverNext: SECOND_LEAF,
         layers: SELECTION_LAYERS,
         series: (shadow, highlight) => ({ type: 'sunburst', labelKey: 'name', sizeKey: 'size', shadow, highlight }),
     },
@@ -436,6 +451,23 @@ describe('highlightedItem.shadow (enterprise series)', () => {
 
             // A legend highlight has no datum, so a series that draws no copy for it must keep the in-place shadow.
             expect([...inPlace, ...highlighted].filter(casts).length).toBeGreaterThanOrEqual(castingBefore);
+        });
+
+        it('moves the shadow from one hovered item to the next', async () => {
+            const { series, inPlace: hoveredFirst } = await hoverItem(testCase, SHADOW);
+            expect(hoveredFirst.filter((shape) => !casts(shape)).length).toBe(testCase.hoveredCopies ?? 1);
+
+            const [first] = [testCase.hover?.(series) ?? series.getNodeData()[0]];
+            const next =
+                testCase.hoverNext?.(series) ??
+                series.getNodeData().find((d: any) => d.datumIndex !== first.datumIndex);
+            chart.ctx.highlightManager.updateHighlight(chart.id, next);
+            await waitForChartStability(chart);
+
+            // The first item casts again, and only the second one's in-place copy is cut out.
+            const { inPlace, highlighted } = layersOf(testCase, series);
+            expect(inPlace.filter((shape) => !casts(shape)).length).toBe(testCase.hoveredCopies ?? 1);
+            expect(highlighted.filter(casts).length).toBe(testCase.hoveredCopies ?? 1);
         });
 
         it('restores the in-place shadow when the hover ends', async () => {

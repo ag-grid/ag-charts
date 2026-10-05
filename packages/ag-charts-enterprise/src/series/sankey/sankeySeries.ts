@@ -135,6 +135,11 @@ export class SankeySeries extends FlowProportionSeries<
         return new SankeyLink<SankeyLinkDatum>();
     }
 
+    /** The shadows of the nodes and links, which this series keeps there rather than on its own `shadow`. */
+    protected override getItemShadowOptions() {
+        return [this.options.node.shadow, this.options.link.shadow];
+    }
+
     protected nodeFactory() {
         return new Rect<SankeyNodeDatum>();
     }

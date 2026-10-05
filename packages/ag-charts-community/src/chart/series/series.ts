@@ -921,7 +921,7 @@ export abstract class Series<
         // When the highlight layer's copy casts the shadow (see `resolveItemShadow`), the hovered item's in-place copy
         // casts none, so the in-place nodes redraw whenever the item the highlight layer redraws changes.
         const shadowSwapped =
-            this.isItemShadowOnHighlightLayer(this.getHighlightedItemShadow()) &&
+            this.isItemShadowOnHighlightLayer(this.getHighlightedItemShadow(), this.hasEnabledItemShadow()) &&
             this.getRedrawnDatumIndex(previousHighlightedDatum) !== this.getRedrawnDatumIndex(currentHighlightedDatum);
 
         if (!hasItemStylers && !shadowSwapped && currentHighlightState === previousHighlightState) {
@@ -987,25 +987,31 @@ export abstract class Series<
     }
 
     /**
+     * The `shadow` options of the items this series draws, wherever it keeps them. The default is the series' own
+     * `shadow`; a series that configures its item shadows elsewhere, like on its `marker` or per `node` and `link`,
+     * overrides this to return those instead.
+     */
+    protected getItemShadowOptions(): ReadonlyArray<Pick<NormalisedDropShadowOptions, 'enabled'> | undefined> {
+        const { options } = this;
+        return hasShadowOption(options) ? [options.shadow] : [];
+    }
+
+    private hasEnabledItemShadow(): boolean {
+        return this.getItemShadowOptions().some((shadow) => shadow?.enabled === true);
+    }
+
+    /**
      * Whether the highlight layer's copy of a hovered item casts its shadow, rather than the in-place copy. True when
      * `highlightedItem.shadow` is set, and under `highlight.drawingMode: 'cutout'` (the theme default), where the
      * highlight copy erases the in-place copy's footprint, and with it the shadow under a translucent fill.
+     * `hasShadow` is whether the series casts a shadow at all.
      */
     private isItemShadowOnHighlightLayer(
-        highlightShadow: DeepPartial<NormalisedDropShadowOptions> | undefined
+        highlightShadow: DeepPartial<NormalisedDropShadowOptions> | undefined,
+        hasShadow: boolean
     ): boolean {
-        if (highlightShadow != null) return true;
-        if (this.getChartHighlightDrawingMode() !== 'cutout') return false;
-
-        // Called per datum, so the option walk is kept for as long as the series options object is.
-        const { options } = this;
-        if (this.enabledShadowCache?.options !== options) {
-            this.enabledShadowCache = { options, enabled: hasEnabledShadow(options) };
-        }
-        return this.enabledShadowCache.enabled;
+        return highlightShadow != null || (hasShadow && this.getChartHighlightDrawingMode() === 'cutout');
     }
-
-    private enabledShadowCache?: { options: object; enabled: boolean };
 
     /**
      * The shadow to draw on one copy of an item. A hovered item is drawn twice: in place, and again by the highlight
@@ -1048,7 +1054,8 @@ export abstract class Series<
         // Per-datum hot path: with nothing to cast or replace, every copy keeps the series' shadow.
         if (highlightShadow == null && shadow?.enabled !== true) return shadow;
 
-        if (!this.isItemShadowOnHighlightLayer(highlightShadow)) return isHighlight ? undefined : shadow;
+        // The item's own shadow is enabled here, so there is no need to ask whether the series has one.
+        if (!this.isItemShadowOnHighlightLayer(highlightShadow, true)) return isHighlight ? undefined : shadow;
         if (isHighlight) return this.mergeHighlightedItemShadow(shadow, highlightShadow);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
@@ -1941,16 +1948,6 @@ export abstract class Series<
     }
 }
 
-/** Whether any `shadow` in the series options, outside its data and highlight/selection styles, is enabled. */
-function hasEnabledShadow(options: object, depth = 0): boolean {
-    if (depth > 4) return false;
-    for (const key of Object.keys(options)) {
-        const value = (options as Record<string, unknown>)[key];
-        if (value == null || typeof value !== 'object' || Array.isArray(value)) continue;
-        if (key === 'highlight' || key === 'selection' || key === 'listeners') continue;
-        if (key === 'shadow' ? (value as { enabled?: boolean }).enabled === true : hasEnabledShadow(value, depth + 1)) {
-            return true;
-        }
-    }
-    return false;
+function hasShadowOption(options: object): options is { shadow?: NormalisedDropShadowOptions } {
+    return 'shadow' in options;
 }

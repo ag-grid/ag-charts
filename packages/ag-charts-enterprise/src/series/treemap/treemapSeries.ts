@@ -509,6 +509,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => node.datumIndex);
     }
 
+    /** The shadows of the tiles and groups, which this series keeps there rather than on its own `shadow`. */
+    protected override getItemShadowOptions() {
+        return [this.options.tile.shadow, this.options.group.shadow];
+    }
+
     protected override getActiveHighlightNode(): TreemapNode | undefined {
         const highlightedNode = super.getActiveHighlightNode();
         return this.isNodeHighlightable(highlightedNode) ? highlightedNode : undefined;
