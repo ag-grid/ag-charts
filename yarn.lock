@@ -14806,6 +14806,9 @@ __metadata:
     vitest: "npm:2.1.9"
     wait-on: "npm:^9.1.0"
     yargs: "npm:^18.2.0"
+  dependenciesMeta:
+    skia-canvas:
+      built: true
   languageName: unknown
   linkType: soft
 
