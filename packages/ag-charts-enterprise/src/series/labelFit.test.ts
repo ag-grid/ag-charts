@@ -293,14 +293,18 @@ describe('series label fit', () => {
                 expect(rendered.every((node) => node.text.includes(ELLIPSIS))).toBe(true);
             });
 
-            it('shrinks labels to fit rather than truncating them', async () => {
-                await render(rangeAreaChart({ minimumFontSize: 4 }));
+            const expectAllShrunkWhole = () => {
                 const rendered = drawnLabels();
                 expect(rendered.length).toBe(bars.length * 2);
                 for (const node of rendered) {
                     expect(node.fontSize).toBeLessThan(FONT_SIZE);
                     expect(node.text).not.toContain(ELLIPSIS);
                 }
+            };
+
+            it('shrinks labels to fit rather than truncating them', async () => {
+                await render(rangeAreaChart({ minimumFontSize: 4 }));
+                expectAllShrunkWhole();
             });
 
             it('stops shrinking at minimumFontSize and truncates from there', async () => {
@@ -314,12 +318,7 @@ describe('series label fit', () => {
             it('takes minimumFontSize from the theme', async () => {
                 const theme = { overrides: { 'range-area': { series: { label: { minimumFontSize: 4 } } } } };
                 await render(rangeAreaChart({}, theme));
-                const rendered = drawnLabels();
-                expect(rendered.length).toBe(bars.length * 2);
-                for (const node of rendered) {
-                    expect(node.fontSize).toBeLessThan(FONT_SIZE);
-                    expect(node.text).not.toContain(ELLIPSIS);
-                }
+                expectAllShrunkWhole();
             });
         });
 
@@ -373,8 +372,6 @@ describe('series label fit', () => {
                     { cat: 'D', label: 'Lowest recorded closing value' },
                     { cat: 'E', label: 'Closing quote', inverted: true },
                 ];
-                const band = (offset: number) => (d: (typeof spectrum)[number]) =>
-                    d.inverted ? { low: offset + 22, high: offset + 8 } : { low: offset + 8, high: offset + 22 };
                 const series = [
                     { offset: 0, label: { placement: 'outside' } },
                     { offset: 35, label: { placement: 'inside', minimumFontSize: 6 } },
@@ -391,10 +388,11 @@ describe('series label fit', () => {
                         formatter: (p: any) => p.datum.label,
                         ...label,
                     }),
-                    data: spectrum.map((d) => {
-                        const { low, high } = band(offset)(d);
-                        return { ...d, [`low${index}`]: low, [`high${index}`]: high };
-                    }),
+                    data: spectrum.map((d) => ({
+                        ...d,
+                        [`low${index}`]: offset + (d.inverted ? 22 : 8),
+                        [`high${index}`]: offset + (d.inverted ? 8 : 22),
+                    })),
                 }));
                 await renderAndSnapshot({
                     legend: { enabled: false },
