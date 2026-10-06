@@ -33,6 +33,14 @@ export interface AgMarkerShapeFnParams {
 
 export type AgMarkerShapeFn = (params: AgMarkerShapeFnParams) => void;
 
+/**
+ * How `sizeKey` values map onto marker sizes.
+ *
+ * - `'diameter'`: the marker diameter grows linearly with the value.
+ * - `'area'`: the marker area grows linearly with the value.
+ */
+export type AgMarkerSizeMode = 'diameter' | 'area';
+
 export type LabelPlacement = 'top' | 'bottom' | 'left' | 'right';
 
 /** Alias to denote that a value should be a colour string in one of the supported formats: hex, `rgb()`/`rgba()`, `hsl()`/`hsla()`, `oklch()`, or a CSS colour name. */
