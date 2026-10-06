@@ -2,7 +2,6 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     NEAREST_TOOLTIP_THEME,
@@ -25,7 +24,9 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
-            ...FONT_THEME_DEFAULTS,
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'textColor' },
         },
         marker: {

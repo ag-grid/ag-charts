@@ -16,6 +16,7 @@ import {
     type PointLabelDatum,
     type SizedPoint,
     StateMachine,
+    applySizeMode,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
     fitLabelText,
@@ -454,7 +455,13 @@ export class MapMarkerSeries
     }
 
     private calculateMarkerSize(sizeValue: number | undefined): number {
-        return sizeValue == null ? this.options.size : this.sizeScale.convertClamped(sizeValue);
+        return sizeValue == null ? this.options.size : this.scaleMarkerSize(sizeValue);
+    }
+
+    private scaleMarkerSize(sizeValue: number): number {
+        const { sizeScale, options } = this;
+        const [min, max] = sizeScale.range;
+        return applySizeMode(sizeScale.convertClamped(sizeValue), min, max, options.sizeMode);
     }
 
     private buildNodeDatum(
@@ -813,7 +820,7 @@ export class MapMarkerSeries
         { datumIndex, datum, colorValue, sizeValue }: Partial<MapMarkerNodeDatum>,
         isHighlight: boolean
     ): Required<NormalisedMapMarkerSeriesStyle> {
-        const { options, colorScale, sizeScale } = this;
+        const { options, colorScale } = this;
         const { colorKey, colorScale: colorScaleProps, itemStyler } = options;
         const { missingDataFill } = colorScaleProps;
 
@@ -847,7 +854,7 @@ export class MapMarkerSeries
         }
 
         if (sizeValue != null) {
-            baseStyle.size = sizeScale.convertClamped(sizeValue);
+            baseStyle.size = this.scaleMarkerSize(sizeValue);
         }
 
         let style = baseStyle;

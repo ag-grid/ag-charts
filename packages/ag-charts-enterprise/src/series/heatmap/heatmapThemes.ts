@@ -1,5 +1,4 @@
 import {
-    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
@@ -32,7 +31,9 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             color: { $ref: 'textColor' },
-            ...FONT_THEME_DEFAULTS,
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             wrapping: 'on-space',
             overflowStrategy: 'ellipsis',
             textAlign: { $path: ['../textAlign', 'center'] },

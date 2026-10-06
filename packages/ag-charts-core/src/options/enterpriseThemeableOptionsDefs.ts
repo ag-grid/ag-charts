@@ -295,6 +295,7 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         placement: coneFunnelPlacementDef,
         spacing: positiveNumber,
     },
@@ -338,6 +339,7 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: funnelPlacementDef,
         spacing: positiveNumber,
@@ -436,6 +438,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     minSize: positiveNumber,
     maxSize: positiveNumber,
     sizeDomain: and(arrayOf(positiveNumericValue), arrayLength(2, 2)),
+    sizeMode: union('diameter', 'area'),
     label: {
         placement: labelCollisionPlacementDef,
         spacing: positiveNumber,
@@ -536,6 +539,7 @@ export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemea
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: funnelPlacementDef,
         spacing: positiveNumber,

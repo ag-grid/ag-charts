@@ -848,6 +848,111 @@ describe('MapMarkerSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
+    describe('AG-18508 sizeMode', () => {
+        const build = async (markerOverrides: object, theme?: object) => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    { type: 'map-marker', idKey: 'name', sizeKey: 'population', ...markerOverrides },
+                ],
+                ...(theme ? { theme } : {}),
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.series[1].contextNodeData?.nodeData as any[];
+        };
+        const sizesByName = (nodes: any[]) => Object.fromEntries(nodes.map((n) => [n.datum.name, n.point.size]));
+        const England = 56e6;
+        const NorthernIreland = 2e6;
+        const linearScotland = 10 + (30 * 3) / 54;
+
+        it('leaves sizes unchanged when sizeMode is unset or diameter', async () => {
+            const base = { minSize: 10, maxSize: 40, sizeDomain: [NorthernIreland, England] };
+            const unset = sizesByName(await build(base));
+            chart.destroy();
+            const diameter = sizesByName(await build({ ...base, sizeMode: 'diameter' }));
+            expect(diameter).toEqual(unset);
+            expect(unset.Scotland).toBeCloseTo(linearScotland, 6);
+        });
+
+        it('renders domain endpoints at exactly minSize and maxSize in area mode', async () => {
+            const sizes = sizesByName(
+                await build({ sizeMode: 'area', minSize: 10, maxSize: 40, sizeDomain: [NorthernIreland, England] })
+            );
+            expect(sizes.England).toBeCloseTo(40, 10);
+            expect(sizes['Northern Ireland']).toBeCloseTo(10, 10);
+            expect(sizes.Scotland).toBeCloseTo(Math.sqrt(10 ** 2 + ((40 ** 2 - 10 ** 2) * 3) / 54), 6);
+            expect(sizes.Scotland).toBeGreaterThan(linearScotland);
+        });
+
+        it('scales area with value when minSize is 0', async () => {
+            const sizes = sizesByName(
+                await build({ sizeMode: 'area', minSize: 0, maxSize: 30, sizeDomain: [0, 60e6] })
+            );
+            expect(sizes.Wales ** 2 / sizes['Northern Ireland'] ** 2).toBeCloseTo(3 / 2, 6);
+            expect(sizes.Scotland ** 2 / sizes['Northern Ireland'] ** 2).toBeCloseTo(5 / 2, 6);
+            expect(sizes.England ** 2).toBeCloseTo((900 * 56e6) / 60e6, 6);
+        });
+
+        it('swaps the endpoints for a reversed sizeDomain', async () => {
+            const sizes = sizesByName(
+                await build({ sizeMode: 'area', minSize: 10, maxSize: 40, sizeDomain: [England, NorthernIreland] })
+            );
+            expect(sizes.England).toBeCloseTo(10, 10);
+            expect(sizes['Northern Ireland']).toBeCloseTo(40, 10);
+        });
+
+        it('clamps values outside sizeDomain to minSize and maxSize', async () => {
+            const sizes = sizesByName(
+                await build({ sizeMode: 'area', minSize: 10, maxSize: 40, sizeDomain: [3e6, 5e6] })
+            );
+            expect(sizes.England).toBeCloseTo(40, 10);
+            expect(sizes['Northern Ireland']).toBeCloseTo(10, 10);
+        });
+
+        it('gives a finite area-mode size when the sizeDomain has zero width', async () => {
+            const nodes = await build({ sizeMode: 'area', minSize: 10, maxSize: 30, sizeDomain: [5, 5] });
+            expect(nodes.length).toBeGreaterThan(0);
+            for (const node of nodes) {
+                expect(Number.isFinite(node.point.size)).toBe(true);
+                expect(node.point.size).toBeCloseTo(Math.sqrt((10 ** 2 + 30 ** 2) / 2), 6);
+            }
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('applies sizeMode set through theme overrides', async () => {
+            const base = { minSize: 10, maxSize: 40, sizeDomain: [NorthernIreland, England] };
+            const viaSeries = sizesByName(await build({ ...base, sizeMode: 'area' }));
+            chart.destroy();
+            const viaTheme = sizesByName(
+                await build(base, { overrides: { 'map-marker': { series: { sizeMode: 'area' } } } })
+            );
+            expect(viaTheme).toEqual(viaSeries);
+            expect(viaTheme.Scotland).toBeGreaterThan(linearScotland);
+        });
+
+        it('draws markers at the area-mode size', async () => {
+            const nodes = await build({
+                sizeMode: 'area',
+                minSize: 10,
+                maxSize: 40,
+                sizeDomain: [NorthernIreland, England],
+            });
+            const drawn = (chart.series[1].markerSelection.nodes() as any[]).map((m) => m.size).sort((a, b) => a - b);
+            const expected = nodes.map((n) => n.point.size).sort((a, b) => a - b);
+            expect(drawn.length).toBe(expected.length);
+            for (const [i, size] of drawn.entries()) {
+                expect(size).toBeCloseTo(expected[i], 10);
+            }
+            expect(drawn[0]).toBeCloseTo(10, 10);
+            expect(drawn.at(-1)).toBeCloseTo(40, 10);
+            const scotland = nodes.find((n) => n.datum.name === 'Scotland');
+            expect(chart.series[1].getMarkerItemStyle(scotland, false).size).toBeCloseTo(scotland.point.size, 10);
+        });
+    });
+
     describe('default marker size', () => {
         const markerSizes = async (markerOverrides: object): Promise<number[]> => {
             const options: AgChartOptions = {
