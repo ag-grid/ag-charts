@@ -1302,7 +1302,7 @@ export abstract class Axis<
                 // `caption.text` keeps its last value when the title is disabled, so gate on `enabled`.
                 if (!caption.enabled) return undefined;
                 const text = toPlainText(caption.text);
-                return text === '' ? undefined : text;
+                return text.trim() === '' ? undefined : text;
             },
             axisType: this.type,
             scale: this.scale,

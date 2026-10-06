@@ -45,8 +45,9 @@ export function resolveAxisAriaLabels(sources: AxisAriaLabelSource[]): AxisAriaL
         if (entry.explicit || labelCounts.get(normalise(entry.label)) === 1) continue;
 
         let label = entry.userAxisId;
-        for (let n = 2; taken.has(normalise(label)); n++) {
-            label = `${entry.userAxisId} (${n})`;
+        let n = 2;
+        while (taken.has(normalise(label))) {
+            label = `${entry.userAxisId} (${n++})`;
         }
         entry.label = label;
         taken.add(normalise(label));

@@ -970,8 +970,8 @@ describe('AxisInteraction', () => {
         const regionLabels = () =>
             Array.from(document.querySelectorAll('.ag-charts-proxy-elem'))
                 .filter((el) => (el as HTMLElement).role === 'region')
-                .map((el) => el.getAttribute('aria-label'))
-                .sort();
+                .map((el) => el.getAttribute('aria-label') ?? '')
+                .sort((a, b) => a.localeCompare(b));
 
         const lineOptions = (axes?: AgCartesianChartOptions['axes'], series?: AgCartesianChartOptions['series']) =>
             ({
