@@ -471,6 +471,111 @@ describe('series label fit', () => {
                 });
             });
         });
+
+        // Cone-funnel's default `start-center` is not bounded by the cone, so its labels move into the stage.
+        describe.each([
+            ['funnel', 'inside-center', [100, 30, 10, 4, 2]],
+            ['cone-funnel', 'middle-center', [100, 30, 10, 4, 2]],
+            ['pyramid', 'inside-center', [100, 60, 30, 15, 8]],
+        ])('%s', (type, placement, values) => {
+            const stages = values.map((value, i) => ({ stage: `Stage ${i}`, value }));
+            const stageChart = (label: object, theme?: object) => ({
+                data: stages,
+                legend: { enabled: false },
+                theme,
+                series: [
+                    {
+                        type,
+                        stageKey: 'stage',
+                        valueKey: 'value',
+                        label: shrinkableLabel({ placement, collision: { alwaysShow: true }, ...label }),
+                    },
+                ],
+            });
+
+            it('keeps labels at their configured size when minimumFontSize is unset', async () => {
+                await render(stageChart({}));
+                const rendered = drawnLabels();
+                expect(rendered.length).toBe(stages.length);
+                expect(rendered.map((node) => node.fontSize)).toEqual(rendered.map(() => FONT_SIZE));
+                expect(rendered.some((node) => node.text.includes(ELLIPSIS))).toBe(true);
+            });
+
+            it('shrinks a label into its stage rather than truncating it', async () => {
+                await render(stageChart({ minimumFontSize: 4 }));
+                const shrunk = drawnLabels().filter((node) => node.fontSize < FONT_SIZE);
+                expect(shrunk.length).toBeGreaterThan(0);
+                expect(shrunk.some((node) => !node.text.includes(ELLIPSIS))).toBe(true);
+            });
+
+            it('stops shrinking at minimumFontSize and truncates from there', async () => {
+                await render(stageChart({ minimumFontSize: 16 }));
+                const rendered = drawnLabels();
+                expect(rendered.length).toBe(stages.length);
+                expect(rendered.every((node) => node.fontSize >= 16)).toBe(true);
+                expect(rendered.some((node) => node.fontSize === 16 && node.text.includes(ELLIPSIS))).toBe(true);
+            });
+
+            it('shrinks before hiding when collision.alwaysShow is left to the theme', async () => {
+                await render(stageChart({ minimumFontSize: 4, collision: {} }));
+                expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE && !node.text.includes(ELLIPSIS))).toBe(
+                    true
+                );
+
+                await render(stageChart({ minimumFontSize: 16, collision: {} }));
+                const rendered = drawnLabels();
+                expect(rendered.length).toBeLessThan(stages.length);
+                expect(rendered.every((node) => node.fontSize >= 16)).toBe(true);
+            });
+
+            it('takes minimumFontSize from the theme', async () => {
+                await render(stageChart({}, { overrides: { [type]: { series: { label: { minimumFontSize: 4 } } } } }));
+                expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE)).toBe(true);
+            });
+        });
+
+        // One chart per series, as they cannot share a chart; each stage label exercises a different fit outcome.
+        describe('visual: funnel family', () => {
+            const spectrum = [
+                { stage: 'Visits', value: 100, label: 'Site visits' },
+                { stage: 'Sign-ups', value: 45, label: 'Newsletter sign-ups' },
+                { stage: 'Trials', value: 20, label: 'Free trial activations' },
+                { stage: 'Paid', value: 9, label: 'Paid subscriptions' },
+                { stage: 'Renewed', value: 4, label: 'Annual renewals completed' },
+            ];
+            const stageSeries = (type: string, label: object) => ({
+                data: spectrum,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        stageKey: 'stage',
+                        valueKey: 'value',
+                        label: shrinkableLabel({
+                            collision: { alwaysShow: true },
+                            formatter: (p: any) => p.datum.label,
+                            ...label,
+                        }),
+                    },
+                ],
+            });
+
+            it('renders funnel labels across the shrink spectrum', async () => {
+                await renderAndSnapshot(stageSeries('funnel', { minimumFontSize: 8, wrapping: 'on-space' }));
+            });
+
+            it('renders cone-funnel labels across the shrink spectrum', async () => {
+                await renderAndSnapshot(stageSeries('cone-funnel', { placement: 'middle-center', minimumFontSize: 6 }));
+            });
+
+            it('renders pyramid labels across the shrink spectrum', async () => {
+                // Even stage heights with the longest labels nearest the apex, so the narrowing triangle bounds them.
+                await renderAndSnapshot({
+                    ...stageSeries('pyramid', { minimumFontSize: 8, wrapping: 'on-space' }),
+                    data: spectrum.map((d, i) => ({ ...d, value: 20, label: spectrum.at(-1 - i)!.label })),
+                });
+            });
+        });
     });
 
     it('wraps and truncates range-area labels within an explicit maxWidth/maxHeight', async () => {
