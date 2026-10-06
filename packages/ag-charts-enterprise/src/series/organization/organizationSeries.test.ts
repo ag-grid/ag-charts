@@ -2702,7 +2702,7 @@ describe('OrganizationSeries', () => {
                         { key: 'job', overflowStrategy },
                     ],
                 });
-                await chart.update({ ...chart.getOptions() } as any);
+                await chart.update({ ...chart.getOptions() });
                 await waitForChartStability(chart);
 
                 expect(series.options.node.title.truncate).toBe(truncate);

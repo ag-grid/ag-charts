@@ -58,7 +58,10 @@ function hasVisibleContent(text: NormalisedTextOrSegments | MeasuredSegment[]): 
     return text.some((segment) => !('text' in segment) || toTextString(segment.text).trim() !== '');
 }
 
-function tierHeight(node: _ModuleSupport.Text | undefined, tierStyles: NormalisedOrganizationNodeTextStyle): number {
+function measureTierHeight(
+    node: _ModuleSupport.Text | undefined,
+    tierStyles: NormalisedOrganizationNodeTextStyle
+): number {
     return node == null ? 0 : node.getBBox().height + tierStyles.spacing;
 }
 
@@ -198,9 +201,9 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         // Tiers share the card's vertical space top-down, so each is fitted to whatever the tiers above leave.
         let textMaxHeight = computeTextMaxHeight(styles, this.imageNode != null);
         this.updateTitleNode(fields.title, styles, textMaxWidth, textMaxHeight);
-        textMaxHeight -= tierHeight(this.titleNode, styles.title);
+        textMaxHeight -= measureTierHeight(this.titleNode, styles.title);
         this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth, textMaxHeight);
-        textMaxHeight -= tierHeight(this.subtitleNode, styles.subtitle);
+        textMaxHeight -= measureTierHeight(this.subtitleNode, styles.subtitle);
         this.updateLabelNodes(fields.labels, styles, textMaxWidth, textMaxHeight);
         this.updateExpanderNode(expanderText, allChildren, isCollapsed, isRtl, direction, styles);
 
@@ -467,7 +470,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             this.labelNodes[index]!.text = wrapTextTier(labelText, styles.labels[index], textMaxWidth, textMaxHeight);
             applyTextStyles(this.labelNodes[index]!, { ...styles.labels[index], textAlign: 'left' });
             applyTextBoxingStyles(this.labelNodes[index]!, styles.labels[index]);
-            textMaxHeight -= tierHeight(this.labelNodes[index], styles.labels[index]);
+            textMaxHeight -= measureTierHeight(this.labelNodes[index], styles.labels[index]);
             index++;
         }
 
