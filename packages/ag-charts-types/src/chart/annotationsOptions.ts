@@ -542,6 +542,8 @@ export interface AgAnnotationsToolbar extends Toggleable {
     buttons?: AgAnnotationsToolbarButton[];
     /** Padding in pixels around the toolbar. */
     padding?: number;
+    /** The width and height in pixels of each button in this toolbar. Icon buttons are square; text buttons use this height and are at least this wide. If not set, buttons keep their default size. */
+    buttonSize?: PixelSize;
 }
 
 export interface AgAnnotationsToolbarButton extends ToolbarButton {
@@ -577,6 +579,8 @@ export type AgAnnotationOptionsToolbarItem = AgAnnotationOptionsToolbarButton | 
 export interface AgAnnotationOptionsToolbar extends Toggleable {
     /** The buttons to show in the options toolbar. */
     buttons?: AgAnnotationOptionsToolbarItem[];
+    /** The width and height in pixels of each button in this toolbar. Icon buttons are square; text buttons use this height and are at least this wide. If not set, buttons keep their default size. */
+    buttonSize?: PixelSize;
 }
 
 export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {

@@ -65,6 +65,7 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions, _ModuleSupport.Ch
                 'zoom button options array'
             ),
             visible: union('always', 'zoomed', 'hover'),
+            buttonSize: positiveNumber,
         },
     },
     themeTemplate: {

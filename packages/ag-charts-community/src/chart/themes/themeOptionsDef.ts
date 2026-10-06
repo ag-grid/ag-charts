@@ -414,6 +414,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         },
         chartToolbar: {
             enabled: boolean,
+            buttonSize: positiveNumber,
         },
         initialState: {
             legend: arrayOfDefs<AgInitialStateLegendOptions>(
