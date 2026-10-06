@@ -896,6 +896,12 @@ describe('Crosshair', () => {
                 await waitForChartStability(chart);
             };
 
+            // The first move out also leaves the bounds element, so take a second step to assert the drag itself.
+            const dragOut = async (x: number, y: number, dx: number, dy: number) => {
+                await dragTo(x, y);
+                await dragTo(x + dx, y + dy);
+            };
+
             const startDrag = async (annotation: object) => {
                 await createChart(annotation, false);
                 const from = toCanvas(5, 5);
@@ -913,11 +919,11 @@ describe('Crosshair', () => {
                 expect(crosshairLine('y').visible, 'inside').toBe(true);
 
                 const rect = seriesRect();
-                await dragTo(from.x, rect.y - 20);
+                await dragOut(from.x, rect.y - 20, 0, -20);
                 expect(crosshairLine('y').visible, 'above').toBe(false);
                 expect(visibleLabels('y'), 'y label above').toBe(0);
 
-                await dragTo(from.x, rect.y + rect.height + 20);
+                await dragOut(from.x, rect.y + rect.height + 20, 0, 20);
                 expect(crosshairLine('y').visible, 'below').toBe(false);
                 expect(visibleLabels('y'), 'y label below').toBe(0);
 
@@ -933,11 +939,11 @@ describe('Crosshair', () => {
                 expect(crosshairLine('x').visible, 'inside').toBe(true);
 
                 const rect = seriesRect();
-                await dragTo(rect.x - 20, from.y);
+                await dragOut(rect.x - 20, from.y, -20, 0);
                 expect(crosshairLine('x').visible, 'left').toBe(false);
                 expect(visibleLabels('x'), 'x label left').toBe(0);
 
-                await dragTo(rect.x + rect.width + 20, from.y);
+                await dragOut(rect.x + rect.width + 20, from.y, 20, 0);
                 expect(crosshairLine('x').visible, 'right').toBe(false);
                 expect(visibleLabels('x'), 'x label right').toBe(0);
             });
