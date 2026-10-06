@@ -119,6 +119,8 @@ export interface ValidateParams {
      * positive.
      */
     silentAdvisories?: boolean;
+    /** Accept a theme operator (`{ $op: ... }`) wherever a value is expected, as theme templates and overrides may. */
+    themeOperators?: boolean;
 }
 
 export enum ErrorType {
@@ -207,6 +209,12 @@ export class UnknownError extends ValidationError {
  * @param path The current path in the options object, for nested properties.
  * @returns An object containing valid options and validation errors.
  */
+export function isThemeOperator(value: unknown) {
+    if (!isObject(value)) return false;
+    const keys = Object.keys(value);
+    return keys.length === 1 && keys[0].startsWith('$');
+}
+
 export function validate<T>(
     options: unknown,
     optionsDefs: OptionsDefs<T>,
@@ -272,6 +280,11 @@ export function validate<T>(
                 unusedKeys.push(key);
             }
             if (!required || optionsDisabled) continue;
+        }
+
+        if (params.themeOperators && isThemeOperator(value)) {
+            cleared[key as keyof T] = value;
+            continue;
         }
 
         const keyPath = extendPath(path, key);

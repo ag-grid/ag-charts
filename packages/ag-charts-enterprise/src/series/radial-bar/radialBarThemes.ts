@@ -5,6 +5,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     POLAR_AXIS_TYPE,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
 } from 'ag-charts-core';
@@ -27,7 +28,7 @@ export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
         },
-        tooltip: { interaction: { enabled: false } },
+        tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },

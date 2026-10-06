@@ -6,6 +6,7 @@ import {
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
@@ -21,7 +22,7 @@ export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         ...STROKE_STYLE_THEME_DEFAULTS,
         spacing: 2,
-        tooltip: { interaction: { enabled: false } },
+        tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
         fills: {
             $applyCycle: [
                 { $size: { $path: ['./data', { $path: '/data' }] } },

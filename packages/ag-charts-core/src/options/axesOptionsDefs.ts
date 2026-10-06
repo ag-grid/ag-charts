@@ -37,6 +37,7 @@ import type {
     AxisValue,
 } from 'ag-charts-types';
 
+import { without } from '../data/object';
 import {
     collisionOptionsDef,
     labelAutoFontSizeOptionsDefs,
@@ -590,3 +591,29 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
         'a cross-line options array'
     ),
 };
+
+function crossLineThemeOptionsDefs<LabelDefs>(label: LabelDefs) {
+    const range = { ...crossLineStyleOptionsDefs, label };
+    return { ...range, line: { ...crossLineCommonStyleOptionsDefs, label }, range };
+}
+
+/** Theme overrides for a cartesian axis type: its options plus per-position overrides, cross-lines styled by kind. */
+export function cartesianAxisThemeOptionsDefs(axisDefs: OptionsDefs<any>): OptionsDefs<any> {
+    const positioned = without(axisDefs, ['type', 'crossLines', 'position']);
+    return {
+        ...without(axisDefs, ['type', 'crossLines']),
+        top: positioned,
+        right: positioned,
+        bottom: positioned,
+        left: positioned,
+        crossLines: crossLineThemeOptionsDefs(cartesianCrossLineLabelOptionsDefs),
+    };
+}
+
+/** Theme overrides for a polar axis type, cross-lines styled by kind. */
+export function polarAxisThemeOptionsDefs(
+    axisDefs: OptionsDefs<any>,
+    crossLineLabel: OptionsDefs<any>
+): OptionsDefs<any> {
+    return { ...without(axisDefs, ['type', 'crossLines']), crossLines: crossLineThemeOptionsDefs(crossLineLabel) };
+}

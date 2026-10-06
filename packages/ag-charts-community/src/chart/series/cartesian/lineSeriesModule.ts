@@ -13,6 +13,7 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
@@ -25,7 +26,7 @@ import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { LineSeries } from './lineSeries';
-import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
+import { lineSeriesOptionsDef, lineSeriesThemeableOptionsDef } from './lineSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'line'> = {
@@ -61,6 +62,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
             placement: 'top',
         },
         tooltip: {
+            ...SERIES_TOOLTIP_THEME,
             range: {
                 $if: [
                     { $eq: [{ $path: ['/tooltip/range', 'nearest'] }, 'area'] },
@@ -69,6 +71,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
                 ],
             },
             position: {
+                ...SERIES_TOOLTIP_THEME.position,
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
             interaction: { enabled: false },
@@ -88,6 +91,8 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = /* 
     dependencies: [CartesianChartModule],
 
     options: lineSeriesOptionsDef,
+
+    themeOptions: lineSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: {
         y: {

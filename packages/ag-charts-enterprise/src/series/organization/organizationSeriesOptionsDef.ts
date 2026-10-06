@@ -1,4 +1,5 @@
 import type {
+    AgNetworkSeriesTreeLayout,
     AgOrganizationSeriesExpanderStyle,
     AgOrganizationSeriesLinkStyle,
     AgOrganizationSeriesNodeStyle,
@@ -12,6 +13,7 @@ import type {
     AgOrganizationSeriesOptionsNodeSubtitle,
     AgOrganizationSeriesOptionsNodeTitle,
     AgOrganizationSeriesStackedLayoutOptions,
+    AgOrganizationSeriesThemeableOptions,
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
@@ -20,14 +22,16 @@ import {
     callbackDefs,
     callbackOf,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    defined,
+    deprecated,
     fillCssOptionsDef,
     fillOptionsDef,
     fontOptionsDef,
     lineDashOptionsDef,
     number,
     optionsDefs,
-    organizationSeriesThemeableOptionsDef,
     overflowStrategy,
     padding,
     positiveNumber,
@@ -38,9 +42,31 @@ import {
     textAlign,
     textOrSegments,
     textWrap,
+    tooltipOptionsDefs,
     undocumented,
     union,
 } from 'ag-charts-core';
+
+// TODO: duplicate series options defs here?
+const networkSeriesTreeLayoutDef: OptionsDefs<AgNetworkSeriesTreeLayout> = {
+    direction: union('down', 'left', 'right', 'up'),
+    depthSpacing: number,
+    innerSpacing: number,
+    outerSpacing: number,
+    verticalSpacing: deprecated(number, 'Use `depthSpacing` instead.'),
+};
+
+export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
+    ...commonSeriesThemeableOptionsDefs,
+    ...networkSeriesTreeLayoutDef,
+    direction: union('horizontal', 'vertical'),
+    reverse: boolean,
+    expander: defined,
+    layout: defined,
+    link: defined,
+    node: defined,
+    tooltip: tooltipOptionsDefs,
+};
 
 const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
     ...fillOptionsDef,
@@ -173,6 +199,11 @@ const stackedLayout: OptionsDefs<AgOrganizationSeriesStackedLayoutOptions> = {
     nodeIndentation: positiveNumber,
     stackFromDepth: positiveNumberNonZero,
 };
+
+// @ts-expect-error undocumented option
+organizationSeriesThemeableOptionsDef.parentIdKey = undocumented(string);
+// @ts-expect-error undocumented option
+organizationSeriesThemeableOptionsDef.idKey = undocumented(string);
 
 export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptions> = {
     ...commonSeriesOptionsDefs,

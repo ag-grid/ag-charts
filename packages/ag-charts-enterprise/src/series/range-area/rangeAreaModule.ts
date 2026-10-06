@@ -8,7 +8,7 @@ import {
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { RangeAreaSeries } from './rangeArea';
-import { rangeAreaSeriesOptionsDef } from './rangeAreaSeriesOptionsDef';
+import { rangeAreaSeriesOptionsDef, rangeAreaSeriesThemeableOptionsDef } from './rangeAreaSeriesOptionsDef';
 import { RANGE_AREA_SERIES_THEME } from './rangeAreaThemes';
 
 const { predictCartesianNonPrimitiveAxis } = _ModuleSupport;
@@ -22,6 +22,8 @@ export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOpti
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: rangeAreaSeriesOptionsDef,
+
+    themeOptions: rangeAreaSeriesThemeableOptionsDef,
     matchingKeys: ['xKey', 'yLowKey', 'yHighKey', 'normalizedTo'],
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: {

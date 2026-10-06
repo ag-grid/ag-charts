@@ -601,8 +601,32 @@ export const FONT_THEME_DEFAULTS = {
 /** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
 export const SHADOW_THEME_DEFAULTS = { enabled: false, color: '#00000080', xOffset: 3, yOffset: 3, blur: 5 };
 
+/** Series tooltip defaults, following the chart `tooltip` range and position. */
+export const SERIES_TOOLTIP_THEME: WithThemeParams<Pick<AgSeriesTooltip<never>, 'range' | 'position'>> = {
+    range: {
+        $if: [
+            { $eq: [{ $path: ['/tooltip/range', 'exact'] }, 'area'] },
+            'exact',
+            { $path: ['/tooltip/range', 'exact'] },
+        ],
+    },
+    position: {
+        anchorTo: { $path: ['/tooltip/position/anchorTo', 'pointer'] },
+        placement: { $path: ['/tooltip/position/placement', undefined] },
+        xOffset: { $path: ['/tooltip/position/xOffset', 0] },
+        yOffset: { $path: ['/tooltip/position/yOffset', 0] },
+        // Chart-anchored tooltips sit flush; pointer/node use a 12px gap.
+        offset: {
+            $path: ['/tooltip/position/offset', { $if: [{ $eq: [{ $path: './anchorTo' }, 'chart'] }, 0, 12] }],
+        },
+    },
+};
+
 /** Tooltip defaults for series that pick the nearest datum unless the chart sets `tooltip.range`. */
-export const NEAREST_TOOLTIP_THEME: WithThemeParams<Pick<AgSeriesTooltip<never>, 'range' | 'interaction'>> = {
+export const NEAREST_TOOLTIP_THEME: WithThemeParams<
+    Pick<AgSeriesTooltip<never>, 'range' | 'position' | 'interaction'>
+> = {
+    ...SERIES_TOOLTIP_THEME,
     range: { $path: ['/tooltip/range', 'nearest'] },
     interaction: { enabled: false },
 };

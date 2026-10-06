@@ -5,6 +5,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
@@ -16,7 +17,7 @@ import {
 import { TopologyChartModule } from '../../charts/topologyChartModule';
 import { MAP_COLOR_SCALE_THEME, MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
 import { MapShapeSeries } from './mapShapeSeries';
-import { mapShapeSeriesOptionsDef } from './mapShapeSeriesOptionsDef';
+import { mapShapeSeriesOptionsDef, mapShapeSeriesThemeableOptionsDef } from './mapShapeSeriesOptionsDef';
 
 export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOptions> = {
     type: 'series',
@@ -27,6 +28,8 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
     dependencies: [TopologyChartModule],
 
     options: mapShapeSeriesOptionsDef,
+
+    themeOptions: mapShapeSeriesThemeableOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
@@ -58,7 +61,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 fontSize: { $ref: 'seriesLabelFontSize' },
                 fontWeight: seriesLabelFontWeightOr('bold'),
             },
-            tooltip: { interaction: { enabled: false } },
+            tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,
         },

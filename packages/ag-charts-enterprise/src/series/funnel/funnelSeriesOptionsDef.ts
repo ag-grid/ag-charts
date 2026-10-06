@@ -1,13 +1,87 @@
-import type { AgFunnelSeriesOptions } from 'ag-charts-community';
+import type { AgFunnelSeriesOptions, AgFunnelSeriesStyle, AgFunnelSeriesThemeableOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    arrayOf,
+    boolean,
+    callbackDefs,
+    colorOrRef,
+    colorUnion,
+    commonAxisLabelOptionsDefs,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
-    funnelSeriesThemeableOptionsDef,
+    fillOptionsDef,
+    labelAutoFontSizeOptionsDefs,
+    labelCollisionFitOptionsDefs,
+    labelPlacementStyleDefs,
+    lineDashOptionsDef,
+    numberFormatValidator,
+    positiveNumber,
+    ratio,
     required,
+    seriesLabelOptionsDefs,
+    shadowHighlightOptionsDef,
+    shadowOptionsDefs,
+    shapeHighlightOptionsDef,
     string,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    union,
+    unionOrArray,
     without,
 } from 'ag-charts-core';
+
+export const funnelPlacementDef = unionOrArray(
+    'inside-center',
+    'inside-start',
+    'inside-end',
+    'inside-before',
+    'inside-after',
+    'outside-start',
+    'outside-end',
+    'outside-before',
+    'outside-after'
+);
+
+export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeableOptions> = {
+    direction: union('horizontal', 'vertical'),
+    fills: arrayOf(colorUnion),
+    strokes: arrayOf(colorOrRef),
+    itemStyler: callbackDefs<AgFunnelSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
+    spacingRatio: ratio,
+    cornerRadius: positiveNumber,
+    crisp: boolean,
+    dropOff: {
+        enabled: boolean,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    stageLabel: {
+        placement: union('before', 'after'),
+        format: numberFormatValidator,
+        ...commonAxisLabelOptionsDefs,
+    },
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
+        ...labelPlacementStyleDefs,
+        placement: funnelPlacementDef,
+        spacing: positiveNumber,
+    },
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...without(commonSeriesThemeableOptionsDefs, ['showInLegend']),
+    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
+    ...without(fillOptionsDef, ['fill']),
+    ...without(strokeOptionsDef, ['stroke']),
+    ...lineDashOptionsDef,
+};
 
 export const funnelSeriesOptionsDef: OptionsDefs<AgFunnelSeriesOptions> = {
     ...funnelSeriesThemeableOptionsDef,

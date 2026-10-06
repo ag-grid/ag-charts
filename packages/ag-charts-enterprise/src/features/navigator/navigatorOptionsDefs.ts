@@ -14,6 +14,8 @@ import {
     boolean,
     callbackOf,
     color,
+    colorOrRef,
+    defined,
     fontOptionsDef,
     isObject,
     number,
@@ -32,6 +34,7 @@ import type {
     AgMiniChartSeriesOptions,
     AgNavigatorHandleOptions,
     AgNavigatorOptions,
+    AgNavigatorThemeableOptions,
     BarIgnoredProperties,
     BoxPlotIgnoredProperties,
     BubbleIgnoredProperties,
@@ -212,5 +215,49 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
             ...fontOptionsDef,
         },
         series: arrayOf(or(untypedMiniChartSeries, optionsDefs(miniChartSeriesDefs())), 'miniChart series options'),
+    },
+};
+
+const navigatorHandleThemeOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
+    width: positiveNumber,
+    height: positiveNumber,
+    grip: boolean,
+    fill: colorOrRef,
+    stroke: colorOrRef,
+    strokeWidth: positiveNumber,
+    cornerRadius: positiveNumber,
+};
+
+export const navigatorThemeOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
+    enabled: boolean,
+    height: positiveNumber,
+    spacing: positiveNumber,
+    cornerRadius: number,
+    mask: {
+        fill: colorOrRef,
+        fillOpacity: ratio,
+        stroke: colorOrRef,
+        strokeWidth: positiveNumber,
+    },
+    minHandle: navigatorHandleThemeOptionsDef,
+    maxHandle: navigatorHandleThemeOptionsDef,
+    miniChart: {
+        enabled: boolean,
+        padding: padding,
+        label: {
+            enabled: boolean,
+            avoidCollisions: boolean,
+            spacing: positiveNumber,
+            format: numberFormatValidator,
+            formatter: callbackOf(textOrSegments),
+            interval: {
+                minSpacing: positiveNumber,
+                maxSpacing: positiveNumber,
+                values: array,
+                step: number,
+            },
+            ...fontOptionsDef,
+        },
+        series: defined,
     },
 };

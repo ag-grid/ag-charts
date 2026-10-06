@@ -10,6 +10,7 @@ import {
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
@@ -29,7 +30,7 @@ import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { BubbleSeries } from './bubbleSeries';
-import { bubbleSeriesOptionsDef } from './bubbleSeriesOptionsDef';
+import { bubbleSeriesOptionsDef, bubbleSeriesThemeableOptionsDef } from './bubbleSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
 
 // Shared with scatter. The $if/$isPackageType pairs resolve colorScale defaults only under
@@ -90,6 +91,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
             placement: 'top',
         },
         tooltip: {
+            ...SERIES_TOOLTIP_THEME,
             range: {
                 $if: [
                     { $eq: [{ $path: ['/tooltip/range', 'nearest'] }, 'area'] },
@@ -98,6 +100,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
                 ],
             },
             position: {
+                ...SERIES_TOOLTIP_THEME.position,
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
             interaction: { enabled: false },
@@ -117,6 +120,8 @@ export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> =
     dependencies: [CartesianChartModule],
 
     options: bubbleSeriesOptionsDef,
+
+    themeOptions: bubbleSeriesThemeableOptionsDef,
     predictAxis: predictCartesianAxis,
     defaultAxes: {
         x: {

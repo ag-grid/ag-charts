@@ -6,6 +6,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
@@ -18,7 +19,7 @@ import {
 import { TopologyChartModule } from '../../charts/topologyChartModule';
 import { MAP_COLOR_SCALE_THEME, MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
-import { mapMarkerSeriesOptionsDef } from './mapMarkerSeriesOptionsDef';
+import { mapMarkerSeriesOptionsDef, mapMarkerSeriesThemeableOptionsDef } from './mapMarkerSeriesOptionsDef';
 
 export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOptions> = {
     type: 'series',
@@ -29,6 +30,8 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
     dependencies: [TopologyChartModule],
 
     options: mapMarkerSeriesOptionsDef,
+
+    themeOptions: mapMarkerSeriesThemeableOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
@@ -56,7 +59,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
                 color: { $ref: 'textColor' },
                 collision: { alwaysShow: false },
             },
-            tooltip: { interaction: { enabled: false } },
+            tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,
         },

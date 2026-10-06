@@ -3,6 +3,7 @@ import {
     SAFE_RANGE2_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -40,7 +41,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
             verticalAlign: { $path: ['../verticalAlign', 'middle'] },
         },
         itemPadding: 3,
-        tooltip: { interaction: { enabled: false } },
+        tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
         colorScale: {
             fills: {
                 $map: [

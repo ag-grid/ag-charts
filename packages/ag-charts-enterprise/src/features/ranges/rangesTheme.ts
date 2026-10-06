@@ -72,7 +72,6 @@ const componentStateTheme = (state: 'active' | 'disabled' | 'hover') => ({
     fill: { $path: `../../${state}/fill` },
     fillOpacity: { $path: `../../${state}/fillOpacity` },
     stroke: { $path: `../../${state}/stroke` },
-    strokeWidth: { $path: `../../${state}/strokeWidth` },
     textColor: { $path: `../../${state}/textColor` },
 });
 

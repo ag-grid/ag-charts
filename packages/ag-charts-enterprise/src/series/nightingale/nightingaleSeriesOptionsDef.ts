@@ -1,15 +1,40 @@
-import type { AgNightingaleSeriesOptions } from 'ag-charts-community';
+import type { AgNightingaleSeriesOptions, AgNightingaleSeriesThemeableOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    barHighlightOptionsDef,
     boolean,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
-    nightingaleSeriesThemeableOptionsDef,
+    fillOptionsDef,
+    lineDashOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
+    positiveNumber,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     string,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
     undocumented,
 } from 'ag-charts-core';
+
+import { radialSeriesStylerDef } from '../radial-column/radialColumnSeriesOptionsDef';
+
+export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeriesThemeableOptions> = {
+    cornerRadius: positiveNumber,
+    styler: radialSeriesStylerDef,
+    itemStyler: radialSeriesStylerDef,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    highlight: multiSeriesShadowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+};
 
 export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions> = {
     ...commonSeriesOptionsDefs,

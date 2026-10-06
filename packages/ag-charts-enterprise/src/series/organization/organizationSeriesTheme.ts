@@ -4,6 +4,7 @@ import {
     COMMON_SERIES_THEME_DEFAULTS,
     FONT_SIZE_RATIO,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
@@ -88,6 +89,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
             strokeWidth: 1,
         },
         tooltip: {
+            ...SERIES_TOOLTIP_THEME,
             enabled: false,
             interaction: { enabled: false },
         },
