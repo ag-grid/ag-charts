@@ -1,5 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type NormalisedTextOrSegments, resolveTextAlign, wrapTextOrSegments } from 'ag-charts-core';
+import {
+    type MeasuredSegment,
+    type NormalisedTextOrSegments,
+    type WrapOptions,
+    isArray,
+    resolveTextAlign,
+    toTextString,
+    wrapTextOrSegments,
+} from 'ag-charts-core';
 import type { AgNetworkSeriesTreeLayoutDirection, TextAlign } from 'ag-charts-types';
 
 import { type PositionedScene, alignSceneX, layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
@@ -32,20 +40,51 @@ function computeTextMaxWidth(styles: NormalisedOrganizationNodeStyle): number {
     return cardWidth - 2 * (styles.padding.left + styles.padding.right) - imageHorizontalSpace;
 }
 
+// Only a card height the user configured bounds the text vertically; an unbounded card grows to fit it.
+function computeTextMaxHeight(styles: NormalisedOrganizationNodeStyle, hasImage: boolean): number {
+    const cardHeight = Number.isNaN(styles.height) ? styles.maxHeight : styles.height;
+    if (!Number.isFinite(cardHeight)) return Infinity;
+
+    const imageVerticalSpace =
+        hasImage && (styles.image.position === 'top' || styles.image.position === 'bottom')
+            ? styles.image.height + styles.image.spacing
+            : 0;
+
+    return cardHeight - (styles.padding.top + styles.padding.bottom) - imageVerticalSpace;
+}
+
+function hasVisibleContent(text: NormalisedTextOrSegments | MeasuredSegment[]): boolean {
+    if (!isArray(text)) return toTextString(text).trim() !== '';
+    return text.some((segment) => !('text' in segment) || toTextString(segment.text).trim() !== '');
+}
+
+function tierHeight(node: _ModuleSupport.Text | undefined, tierStyles: NormalisedOrganizationNodeTextStyle): number {
+    return node == null ? 0 : node.getBBox().height + tierStyles.spacing;
+}
+
 function wrapTextTier(
     text: NormalisedTextOrSegments,
     tierStyles: NormalisedOrganizationNodeTextStyle,
-    maxWidth: number
+    maxWidth: number,
+    maxHeight: number
 ): NormalisedTextOrSegments {
-    const tierWidth = Math.max(maxWidth - (tierStyles.padding.left + tierStyles.padding.right), 1);
-    if (!Number.isFinite(tierWidth)) return text;
+    const { padding, collision } = tierStyles;
+    const tierWidth = Math.max(maxWidth - (padding.left + padding.right) - collision.threshold, 1);
+    const tierHeight = Math.max(maxHeight - (padding.top + padding.bottom) - collision.threshold, 0);
+    if (!Number.isFinite(tierWidth) && !Number.isFinite(tierHeight)) return text;
 
-    return wrapTextOrSegments(text, {
+    const options: WrapOptions = {
         font: tierStyles,
         maxWidth: tierWidth,
+        maxHeight: Number.isFinite(tierHeight) ? tierHeight : undefined,
         textWrap: tierStyles.wrapping,
-        overflow: tierStyles.overflowStrategy,
-    });
+        overflow: tierStyles.truncate ? 'ellipsis' : 'hide',
+    };
+    const wrapped = wrapTextOrSegments(text, options);
+    if (!collision.alwaysShow || hasVisibleContent(wrapped) || !hasVisibleContent(text)) return wrapped;
+
+    // Keep text that does not fit at all: wrap it to the width and leave the card clip to bound it.
+    return wrapTextOrSegments(text, { ...options, maxHeight: undefined, overflow: 'preserve' });
 }
 
 // The expander pill straddles the card's edge: the exclusion is punched out of the border only, so
@@ -156,9 +195,13 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         const textMaxWidth = computeTextMaxWidth(styles);
         this.updateShapeNode(styles);
         this.updateImageNode(fields.image, styles);
-        this.updateTitleNode(fields.title, styles, textMaxWidth);
-        this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth);
-        this.updateLabelNodes(fields.labels, styles, textMaxWidth);
+        // Tiers share the card's vertical space top-down, so each is fitted to whatever the tiers above leave.
+        let textMaxHeight = computeTextMaxHeight(styles, this.imageNode != null);
+        this.updateTitleNode(fields.title, styles, textMaxWidth, textMaxHeight);
+        textMaxHeight -= tierHeight(this.titleNode, styles.title);
+        this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth, textMaxHeight);
+        textMaxHeight -= tierHeight(this.subtitleNode, styles.subtitle);
+        this.updateLabelNodes(fields.labels, styles, textMaxWidth, textMaxHeight);
         this.updateExpanderNode(expanderText, allChildren, isCollapsed, isRtl, direction, styles);
 
         styles.padding = this.getDirectionalPadding(styles, direction);
@@ -369,7 +412,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     private updateTitleNode(
         text: NormalisedTextOrSegments | undefined,
         styles: NormalisedOrganizationNodeStyle,
-        textMaxWidth: number
+        textMaxWidth: number,
+        textMaxHeight: number
     ) {
         if (text == null || !styles.title.enabled) {
             this.titleNode?.remove();
@@ -378,7 +422,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.titleNode ??= this.contentGroup.appendChild(new _ModuleSupport.Text());
-        this.titleNode.text = wrapTextTier(text, styles.title, textMaxWidth);
+        this.titleNode.text = wrapTextTier(text, styles.title, textMaxWidth, textMaxHeight);
         applyTextStyles(this.titleNode, { ...styles.title, textAlign: 'left' });
         applyTextBoxingStyles(this.titleNode, styles.title);
     }
@@ -386,7 +430,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     private updateSubtitleNode(
         text: NormalisedTextOrSegments | undefined,
         styles: NormalisedOrganizationNodeStyle,
-        textMaxWidth: number
+        textMaxWidth: number,
+        textMaxHeight: number
     ) {
         if (text == null || !styles.subtitle.enabled) {
             this.subtitleNode?.remove();
@@ -395,7 +440,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.subtitleNode ??= this.contentGroup.appendChild(new _ModuleSupport.Text());
-        this.subtitleNode.text = wrapTextTier(text, styles.subtitle, textMaxWidth);
+        this.subtitleNode.text = wrapTextTier(text, styles.subtitle, textMaxWidth, textMaxHeight);
         applyTextStyles(this.subtitleNode, { ...styles.subtitle, textAlign: 'left' });
         applyTextBoxingStyles(this.subtitleNode, styles.subtitle);
     }
@@ -403,7 +448,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     private updateLabelNodes(
         labels: (NormalisedTextOrSegments | undefined)[] | undefined,
         styles: NormalisedOrganizationNodeStyle,
-        textMaxWidth: number
+        textMaxWidth: number,
+        textMaxHeight: number
     ) {
         if (labels == null) return;
 
@@ -418,9 +464,10 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                 continue;
             }
             this.labelNodes[index] ??= this.contentGroup.appendChild(new _ModuleSupport.Text());
-            this.labelNodes[index]!.text = wrapTextTier(labelText, styles.labels[index], textMaxWidth);
+            this.labelNodes[index]!.text = wrapTextTier(labelText, styles.labels[index], textMaxWidth, textMaxHeight);
             applyTextStyles(this.labelNodes[index]!, { ...styles.labels[index], textAlign: 'left' });
             applyTextBoxingStyles(this.labelNodes[index]!, styles.labels[index]);
+            textMaxHeight -= tierHeight(this.labelNodes[index], styles.labels[index]);
             index++;
         }
 
