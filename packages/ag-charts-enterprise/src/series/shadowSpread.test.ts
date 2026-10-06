@@ -456,6 +456,39 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
             expect(leftEdgeIsWhite(canvasCtx, WIDTH * pixelRatio)).toBe(true);
         });
     });
+
+    describe.each<ShadowMode>(['fill', 'silhouette'])('%s mode with a shape larger than the canvas', (shadowMode) => {
+        const SHADOW = { ...RED_SHADOW, xOffset: 30, yOffset: 30, blur: 8 };
+
+        /** An L of two 40px bars: one from -200 to 600 across and one from -100 to 400 down, so both overshoot the canvas. */
+        const bars = (spread?: number) => {
+            const node = new _Scene.Path();
+            Object.assign(node, { fill: 'black', stroke: undefined, strokeWidth: 0, shadowMode });
+            node.fillShadow = { ...SHADOW, spread };
+            node.path.rect(-200, 60, 800, 40);
+            node.path.rect(60, -100, 40, 500);
+            return node;
+        };
+
+        /** The row of shadow below the horizontal bar and the column of shadow beside the vertical bar. */
+        const rowPixels = () => [200, 300, 380, 390, 395, WIDTH - 1].map((x) => at(x, 115));
+        const columnPixels = () => [120, 150, 190, 205, 214, HEIGHT - 1].map((y) => at(115, y));
+
+        it('should cast a shadow that is as uniform out to the right and bottom edges as without a spread', () => {
+            render(bars());
+            const unspreadRow = rowPixels();
+            const unspreadColumn = columnPixels();
+            // The shadow is there at all, and the reference is a flat colour.
+            expect(unspreadRow[0]).toEqual(RED);
+            expect(unspreadColumn[0]).toEqual(RED);
+            expect(new Set(unspreadRow.map(String)).size).toBe(1);
+            expect(new Set(unspreadColumn.map(String)).size).toBe(1);
+
+            render(bars(4));
+            expect(rowPixels()).toEqual(unspreadRow);
+            expect(columnPixels()).toEqual(unspreadColumn);
+        });
+    });
 });
 
 describe('shadow spread without a spread', () => {
