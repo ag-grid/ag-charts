@@ -1,7 +1,8 @@
 import type { ImageSegment, Padding, PaddingOptions } from 'ag-charts-types';
 
+import type { NormalisedContentSegment } from '../options/normalised/normalisedCommonOptions';
 import { LRUCache } from '../structures/lruCache';
-import type { NormalisedContentSegment } from '../types/normalised-options/normalisedCommonOptions';
+import { toFontString, toTextString } from '../text/textUtil';
 import {
     type FontOptions,
     type ITextMeasurer,
@@ -13,8 +14,7 @@ import {
     type SegmentsLineMetrics,
     type TextMetricsBox,
 } from '../types/text';
-import { createCanvasContext } from '../utils/canvas';
-import { toFontString, toTextString } from '../utils/text/textUtils';
+import { createCanvasContext } from './canvasUtil';
 
 export class TextMeasurer implements ITextMeasurer {
     private readonly baselineMap = new Map<string, number>();

@@ -24,13 +24,6 @@ export interface DomainWithMetadata<D> {
     sortMetadata?: DomainSortMetadata;
 }
 
-/**
- * Extract domain array from a domain with metadata.
- */
-export function extractDomain<D>(value: DomainWithMetadata<D>): D[] {
-    return value.domain;
-}
-
 export interface ScaleTickParams<I> {
     nice: boolean[];
     interval: I | undefined;

@@ -1,7 +1,7 @@
 // SONARCLOUD EXCEPTION (S6836): Named function declarations are intentionally used throughout
 // this file instead of arrow functions. Named functions appear properly in Chrome DevTools
 // profiler, whereas anonymous arrow functions get grouped together making profiling difficult.
-import { AgDocument } from '../utils/dom/agDocument';
+import { AgDocument } from '../dom/agDocument';
 
 type VoidCallback = () => void;
 

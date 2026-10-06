@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { boolean, callback, number, object } from '../state/validation';
+import { boolean, callback, number, object } from '../options/validation';
 import { type ModuleDefinition, ModuleType } from './moduleDefinition';
 import { createModuleScope } from './moduleScope';
 import {

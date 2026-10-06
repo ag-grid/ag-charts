@@ -1,5 +1,5 @@
 import * as Debug from '../logging/debugLogger';
-import type { AxisID, ElementID } from '../types/idBranding';
+import type { AxisID, ElementID } from './idBranding';
 
 type IDTypes = ElementID | AxisID;
 

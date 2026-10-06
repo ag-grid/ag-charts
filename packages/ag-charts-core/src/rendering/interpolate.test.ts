@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { Color } from '../utils/format/color';
+import { Color } from '../format/color';
 import { interpolateColor } from './interpolate';
 
 describe('interpolate module', () => {

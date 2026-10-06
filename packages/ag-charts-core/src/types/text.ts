@@ -1,7 +1,7 @@
 import type { FontFamily, FontSize, FontStyle, FontWeight, ImageSegment } from 'ag-charts-types';
 
+import type { NormalisedTextSegment } from '../options/normalised/normalisedCommonOptions';
 import type { Writeable } from './global';
-import type { NormalisedTextSegment } from './normalised-options/normalisedCommonOptions';
 import type { Size } from './scene';
 
 export const EllipsisChar = '\u2026';
