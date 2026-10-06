@@ -1100,6 +1100,50 @@ describe('series label fit', () => {
             }
         );
 
+        it('keeps overflowing sunburst labels at a finite position', async () => {
+            await render({
+                data: [{ name: 'Root', children: tileNames.map((name) => ({ name: name.repeat(8), value: 1 })) }],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'value',
+                        label: { wrapping: 'never', truncate: false, collision: { alwaysShow: true } },
+                    },
+                ],
+            });
+            const labels: any[] = [];
+            chart.series[0].rootNode?.walk((node: any) => {
+                if (node.label != null) labels.push(node.label);
+            });
+            expect(labels.length).toBeGreaterThan(0);
+            for (const label of labels) {
+                expect(Number.isFinite(label.radius)).toBe(true);
+            }
+        });
+
+        it('keeps a secondary label that alwaysShow marks when the stack does not fit', async () => {
+            const options = treemapChart({}, { fontSize: 14, minimumFontSize: 14, truncate: false });
+            await render(options);
+            const secondaryCount = () => {
+                let count = 0;
+                chart.series[0].rootNode?.walk((node: any) => {
+                    if (node.children.length === 0 && node.secondaryLabel != null) count += 1;
+                });
+                return count;
+            };
+            const hidden = treemapData.length - secondaryCount();
+            expect(hidden).toBeGreaterThan(0);
+
+            await render(
+                treemapChart(
+                    {},
+                    { fontSize: 14, minimumFontSize: 14, truncate: false, collision: { alwaysShow: true } }
+                )
+            );
+            expect(secondaryCount()).toBe(treemapData.length);
+        });
+
         it('warns on the deprecated overflowStrategy and maps `hide` onto truncate off', async () => {
             await render(treemapChart({ overflowStrategy: 'hide' }));
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -1137,6 +1181,61 @@ describe('series label fit', () => {
             const texts = hierarchyLabelTexts();
             expect(someTruncated(texts)).toBe(true);
             expect(texts.length).toBe(data.length);
+        });
+    });
+
+    describe('gauge labels', () => {
+        const longText = 'Supercalifragilistic'.repeat(6);
+        const gaugeLabelTexts = (): string[] =>
+            chart.series[0].labelSelection
+                .nodes()
+                .filter((node: any) => node.visible)
+                .map((node: any) => String(node.text));
+        const renderGauge = async (options: object) => {
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+            chart = deproxy(AgCharts.createGauge(options as any));
+            await waitForChartStability(chart);
+        };
+        const radialGauge = (label: object, secondaryLabel?: object) => ({
+            type: 'radial-gauge',
+            value: 50,
+            scale: { min: 0, max: 100 },
+            label: { text: longText, wrapping: 'never', fontSize: 14, minimumFontSize: 14, ...label },
+            secondaryLabel,
+        });
+        const linearGauge = (label: object) => ({
+            type: 'linear-gauge',
+            value: 50,
+            scale: { min: 0, max: 100 },
+            label: { enabled: true, text: longText, wrapping: 'never', ...label },
+        });
+
+        it.each([
+            ['radial-gauge', radialGauge],
+            ['linear-gauge', linearGauge],
+        ] as const)('%s truncates by default, hides with truncate off and keeps with alwaysShow', async (_, build) => {
+            await renderGauge(build({}));
+            expect(someTruncated(gaugeLabelTexts())).toBe(true);
+
+            await renderGauge(build({ truncate: false }));
+            expect(gaugeLabelTexts()).toEqual([]);
+
+            await renderGauge(build({ truncate: false, collision: { alwaysShow: true } }));
+            expect(gaugeLabelTexts()).toEqual([longText]);
+        });
+
+        it('keeps radial-gauge labels that alwaysShow marks when the stack does not fit', async () => {
+            const secondaryLabel = { text: longText, truncate: false };
+            await renderGauge(radialGauge({ text: 'Score' }, secondaryLabel));
+            expect(gaugeLabelTexts()).toEqual([]);
+
+            await renderGauge(
+                radialGauge(
+                    { text: 'Score', collision: { alwaysShow: true } },
+                    { ...secondaryLabel, collision: { alwaysShow: true } }
+                )
+            );
+            expect(gaugeLabelTexts()).toEqual(['Score', longText]);
         });
     });
 });

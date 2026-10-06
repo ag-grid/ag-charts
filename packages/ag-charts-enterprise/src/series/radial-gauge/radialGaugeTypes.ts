@@ -1,6 +1,12 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import type { NormalisedGaugeSeriesStyle, NormalisedRadialGaugeLabelOptions } from 'ag-charts-core';
-import type { AgNumericValue, AgRadialGaugeMarkerShape, FontStyle, FontWeight } from 'ag-charts-types';
+import type {
+    AgChartLabelCollisionOptions,
+    AgNumericValue,
+    AgRadialGaugeMarkerShape,
+    FontStyle,
+    FontWeight,
+} from 'ag-charts-types';
 
 export enum NodeDataType {
     Node,
@@ -70,5 +76,7 @@ export type RadialGaugeLabelDatum = {
     minimumFontSize: number | undefined;
     fontFamily: string;
     lineHeight: number | undefined;
+    truncate: boolean;
+    collision: AgChartLabelCollisionOptions | undefined;
     formatter: NormalisedRadialGaugeLabelOptions['formatter'];
 };

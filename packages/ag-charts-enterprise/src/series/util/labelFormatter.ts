@@ -475,36 +475,35 @@ export function formatLabels<Meta = never>(
         }
     }
 
-    let labelMeta: [LabelFormatting, Meta] | undefined;
-    if (value == null && labelValue != null) {
-        labelMeta = formatSingleAny(labelValue, labelProps, layoutParams, sizeFittingHeight);
-    }
-    if (labelMeta != null) {
+    if (value != null) return value;
+
+    const labelMeta =
+        labelValue == null ? undefined : formatSingleAny(labelValue, labelProps, layoutParams, sizeFittingHeight);
+    // The secondary label only stands in for a missing primary, unless `alwaysShow` keeps it beneath one.
+    const secondaryLabelMeta =
+        secondaryLabelValue != null && (labelValue == null || secondaryLabelProps.collision?.alwaysShow)
+            ? formatSingleAny(secondaryLabelValue, secondaryLabelProps, layoutParams, sizeFittingHeight)
+            : undefined;
+
+    if (labelMeta != null && secondaryLabelMeta != null) {
         const [label, meta] = labelMeta;
-        value = {
-            width: label.width,
-            height: label.height,
+        const [secondaryLabel] = secondaryLabelMeta;
+        return {
+            width: Math.max(label.width, secondaryLabel.width),
+            height: label.height + (labelProps.spacing ?? 0) + secondaryLabel.height,
             meta,
             label,
-            secondaryLabel: undefined,
-        };
-    }
-
-    let secondaryLabelMeta: [LabelFormatting, Meta] | undefined;
-    if (value == null && labelValue == null && secondaryLabelValue != null) {
-        secondaryLabelMeta = formatSingleAny(secondaryLabelValue, secondaryLabelProps, layoutParams, sizeFittingHeight);
-    }
-    if (secondaryLabelMeta != null) {
-        const [secondaryLabel, meta] = secondaryLabelMeta;
-        value = {
-            width: secondaryLabel.width,
-            height: secondaryLabel.height,
-            meta,
-            label: undefined,
             secondaryLabel,
         };
     }
-
+    if (labelMeta != null) {
+        const [label, meta] = labelMeta;
+        return { width: label.width, height: label.height, meta, label, secondaryLabel: undefined };
+    }
+    if (secondaryLabelMeta != null) {
+        const [secondaryLabel, meta] = secondaryLabelMeta;
+        return { width: secondaryLabel.width, height: secondaryLabel.height, meta, label: undefined, secondaryLabel };
+    }
     return value;
 }
 
