@@ -56,6 +56,7 @@ import { roundTo } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
 import {
+    DEFAULT_DISABLED_SHADOW,
     createEnterpriseChart,
     mockCssVarColorSupport,
     prepareEnterpriseTestOptions,
@@ -329,13 +330,7 @@ describe('RangeBarSeries', () => {
         const nodes = series.datumSelection.nodes();
         expect(nodes.length).toBeGreaterThan(0);
         for (const node of nodes) {
-            expect(node.fillShadow).toEqual({
-                enabled: true,
-                color: expect.any(String),
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            });
+            expect(node.fillShadow).toEqual({ ...DEFAULT_DISABLED_SHADOW, enabled: true, color: expect.any(String) });
         }
     });
 
