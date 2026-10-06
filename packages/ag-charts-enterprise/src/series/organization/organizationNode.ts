@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     type MeasuredSegment,
+    type NormalisedPaddingOptions,
     type NormalisedTextOrSegments,
     type WrapOptions,
     isArray,
@@ -41,16 +42,39 @@ function computeTextMaxWidth(styles: NormalisedOrganizationNodeStyle): number {
 }
 
 // Only a card height the user configured bounds the text vertically; an unbounded card grows to fit it.
-function computeTextMaxHeight(styles: NormalisedOrganizationNodeStyle, hasImage: boolean): number {
+function computeTextMaxHeight(
+    styles: NormalisedOrganizationNodeStyle,
+    fields: OrganizationNodeFields,
+    padding: NormalisedPaddingOptions,
+    hasImage: boolean
+): number {
     const cardHeight = Number.isNaN(styles.height) ? styles.maxHeight : styles.height;
     if (!Number.isFinite(cardHeight)) return Infinity;
 
-    const imageVerticalSpace =
-        hasImage && (styles.image.position === 'top' || styles.image.position === 'bottom')
-            ? styles.image.height + styles.image.spacing
-            : 0;
+    let imageVerticalSpace = 0;
+    if (hasImage && styles.image.position === 'top') {
+        imageVerticalSpace = styles.image.height + styles.image.spacing;
+    } else if (hasImage && styles.image.position === 'bottom') {
+        // The column layout separates a bottom image by the preceding tier's spacing; its own spacing trails it.
+        imageVerticalSpace = styles.image.height + lastTextTierSpacing(fields, styles);
+    }
 
-    return cardHeight - (styles.padding.top + styles.padding.bottom) - imageVerticalSpace;
+    return cardHeight - (padding.top + padding.bottom) - imageVerticalSpace;
+}
+
+function lastTextTierSpacing(fields: OrganizationNodeFields, styles: NormalisedOrganizationNodeStyle): number {
+    const labels = fields.labels ?? [];
+    for (let i = labels.length - 1; i >= 0; i--) {
+        if (labels[i] != null && styles.labels[i].enabled) return styles.labels[i].spacing;
+    }
+    if (fields.subtitle != null && styles.subtitle.enabled) return styles.subtitle.spacing;
+    if (fields.title != null && styles.title.enabled) return styles.title.spacing;
+    return 0;
+}
+
+// Backing-box padding only takes up space when a box is drawn, which `Text.setBoxing` decides the same way.
+function hasTextBoxing(tierStyles: NormalisedOrganizationNodeTextStyle): boolean {
+    return tierStyles.fill != null || (tierStyles.stroke != null && tierStyles.strokeWidth > 0);
 }
 
 function hasVisibleContent(text: NormalisedTextOrSegments | MeasuredSegment[]): boolean {
@@ -76,7 +100,8 @@ function wrapTextTier(
 ): NormalisedTextOrSegments {
     const { padding, collision } = tierStyles;
     const tierWidth = Math.max(maxWidth - (padding.left + padding.right) - collision.threshold, 1);
-    const tierHeight = Math.max(maxHeight - (padding.top + padding.bottom) - collision.threshold, 0);
+    const verticalPadding = hasTextBoxing(tierStyles) ? padding.top + padding.bottom : 0;
+    const tierHeight = Math.max(maxHeight - verticalPadding - collision.threshold, 0);
     if (!Number.isFinite(tierWidth) && !Number.isFinite(tierHeight)) return text;
 
     const options: WrapOptions = {
@@ -201,16 +226,18 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         const textMaxWidth = computeTextMaxWidth(styles);
         this.updateShapeNode(styles);
         this.updateImageNode(fields.image, styles);
+        // The expander widens the edge padding it sits on, so resolve it before budgeting the text.
+        this.updateExpanderNode(expanderText, allChildren, isCollapsed, isRtl, direction, styles);
+        const padding = this.getDirectionalPadding(styles, fields, direction);
         // Tiers share the card's vertical space top-down, so each is fitted to whatever the tiers above leave.
-        let textMaxHeight = computeTextMaxHeight(styles, this.imageNode != null);
+        let textMaxHeight = computeTextMaxHeight(styles, fields, padding, this.imageNode != null);
         this.updateTitleNode(fields.title, styles, textMaxWidth, textMaxHeight);
         textMaxHeight = remainingTextHeight(textMaxHeight, this.titleNode, styles.title);
         this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth, textMaxHeight);
         textMaxHeight = remainingTextHeight(textMaxHeight, this.subtitleNode, styles.subtitle);
         this.updateLabelNodes(fields.labels, styles, textMaxWidth, textMaxHeight);
-        this.updateExpanderNode(expanderText, allChildren, isCollapsed, isRtl, direction, styles);
 
-        styles.padding = this.getDirectionalPadding(styles, direction);
+        styles.padding = padding;
 
         let rowScenes = [];
         let rowGaps: number[] = [];
@@ -504,6 +531,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
     private getDirectionalPadding(
         styles: NormalisedOrganizationNodeStyle,
+        fields: OrganizationNodeFields,
         direction: AgNetworkSeriesTreeLayoutDirection
     ) {
         if (!this.expanderNode) return styles.padding;
@@ -523,10 +551,13 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             }
 
             case 'down': {
-                let lastElementSpacing = this.subtitleNode ? styles.subtitle.spacing : styles.title.spacing;
+                // Called before the text tiers are updated, so read their presence from the fields.
+                const hasSubtitle = fields.subtitle != null && styles.subtitle.enabled;
+                const labelCount = (fields.labels ?? this.labelNodes)?.length ?? 0;
+                let lastElementSpacing = hasSubtitle ? styles.subtitle.spacing : styles.title.spacing;
                 if (this.imageNode && styles.image.position === 'bottom') {
                     lastElementSpacing = styles.image.spacing;
-                } else if (this.labelNodes && this.labelNodes.length > 0) {
+                } else if (labelCount > 0) {
                     lastElementSpacing = styles.labels.at(-1)?.spacing ?? lastElementSpacing;
                 }
 

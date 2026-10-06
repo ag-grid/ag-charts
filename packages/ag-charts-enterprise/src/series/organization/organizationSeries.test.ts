@@ -2861,6 +2861,94 @@ describe('OrganizationSeries', () => {
             });
             expect(kept.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
         });
+
+        // A single node, so no expander widens the bottom padding.
+        const AVATAR_DATA = FIT_DATA.slice(0, 1).map((d) => ({
+            ...d,
+            avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+        }));
+        const ceoContentHeight = (series: any) => {
+            let height = Number.NaN;
+            series.datumSelection.each((nodeScene: any, datum: any) => {
+                if (datum.itemId === 'ceo') height = nodeScene.intrinsicCardSize.height;
+            });
+            return height;
+        };
+
+        it.each([false, true])(
+            'should fit the text inside a configured maxHeight beside the expander (reverse: %s)',
+            async (reverse) => {
+                // 70 fits every tier beside the default edge padding but not beside the expander's wider one.
+                for (const maxHeight of [55, 70, 85]) {
+                    const { series } = await render({ ...BASE_NODE, maxWidth: undefined, maxHeight }, {
+                        series: [
+                            {
+                                type: 'organization',
+                                idKey: 'id',
+                                parentIdKey: 'parentId',
+                                reverse,
+                                node: { ...BASE_NODE, maxWidth: undefined, maxHeight },
+                            },
+                        ],
+                    } as any);
+                    expect(ceoContentHeight(series)).toBeLessThanOrEqual(maxHeight + 0.5);
+                }
+            }
+        );
+
+        it('should fit the text inside a configured maxHeight above a bottom image', async () => {
+            // 95 fits every tier when the label's 20px gap above the image is ignored, but not with it.
+            for (const maxHeight of [95, 110]) {
+                const { series } = await render(
+                    {
+                        ...BASE_NODE,
+                        maxWidth: undefined,
+                        maxHeight,
+                        image: { key: 'avatar', position: 'bottom', height: 20, spacing: 0 },
+                        labels: [{ key: 'location', spacing: 20 }],
+                    },
+                    {},
+                    AVATAR_DATA
+                );
+                expect(ceoContentHeight(series)).toBeLessThanOrEqual(maxHeight + 0.5);
+            }
+        });
+
+        it('should not reserve a bottom image spacing that the layout does not use', async () => {
+            const node: OrgNodeOptions = {
+                ...BASE_NODE,
+                maxWidth: undefined,
+                image: { key: 'avatar', position: 'bottom', height: 20, spacing: 0 },
+            };
+            const { series: unbounded } = await render(node, {}, AVATAR_DATA);
+            const maxHeight = ceoContentHeight(unbounded) + 1;
+
+            const { texts } = await render(
+                { ...node, maxHeight, image: { key: 'avatar', position: 'bottom', height: 20, spacing: 200 } },
+                {},
+                AVATAR_DATA
+            );
+            expect(texts.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
+        });
+
+        it('should only reserve vertical tier padding when a backing box is drawn', async () => {
+            const { series: unbounded } = await render({ ...BASE_NODE, maxWidth: undefined });
+            const node: OrgNodeOptions = {
+                ...BASE_NODE,
+                maxWidth: undefined,
+                maxHeight: ceoContentHeight(unbounded) + 1,
+                labels: [{ key: 'location', padding: { top: 100, bottom: 100 } }],
+            };
+
+            const { texts: plain } = await render(node);
+            expect(plain.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
+
+            const { texts: boxed } = await render({
+                ...node,
+                labels: [{ key: 'location', padding: { top: 100, bottom: 100 }, fill: 'red' }],
+            });
+            expect(boxed.find((t) => t.id === 'ceo')!.labels).toEqual(['']);
+        });
     });
 
     describe('viewportGroup zoom transform', () => {
