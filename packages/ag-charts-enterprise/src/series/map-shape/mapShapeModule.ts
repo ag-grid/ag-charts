@@ -9,6 +9,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     fillThemeTemplate,
+    seriesLabelFontWeightOr,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
@@ -53,9 +54,9 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 },
                 enabled: true,
                 color: { $ref: 'chartBackgroundColor' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $ref: 'fontSize' },
-                fontWeight: 'bold',
+                fontFamily: { $ref: 'seriesLabelFontFamily' },
+                fontSize: { $ref: 'seriesLabelFontSize' },
+                fontWeight: seriesLabelFontWeightOr('bold'),
             },
             tooltip: { interaction: { enabled: false } },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),

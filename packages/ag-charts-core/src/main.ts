@@ -1,193 +1,208 @@
-// Types
+// types
+export * from './types/animationPhase';
+export * from './types/axisDirection';
+export * from './types/geojson';
 export * from './types/global';
-export * from './types/normalised-options/normalise';
-export * from './types/normalised-options/normalisedAreaSeries';
-export * from './types/normalised-options/normalisedAxisOptions';
-export * from './types/normalised-options/normalisedCartesianSeries';
-export * from './types/normalised-options/normalisedCommonOptions';
-export * from './types/normalised-options/normalisedChartCaptionOptions';
-export * from './types/normalised-options/normalisedChartOptions';
-export * from './types/normalised-options/normalisedDonutSeries';
-export * from './types/normalised-options/normalisedEnterpriseBarSeries';
-export * from './types/normalised-options/normalisedErrorBarOptions';
-export * from './types/normalised-options/normalisedFlowProportionSeries';
-export * from './types/normalised-options/normalisedGradientLegendOptions';
-export * from './types/normalised-options/normalisedGaugeSeries';
-export * from './types/normalised-options/normalisedHeatmapSeries';
-export * from './types/normalised-options/normalisedHierarchySeries';
-export * from './types/normalised-options/normalisedPieSeries';
-export * from './types/normalised-options/normalisedPyramidSeries';
-export * from './types/normalised-options/normalisedRangeAreaSeries';
-export * from './types/normalised-options/normalisedRadarSeries';
-export * from './types/normalised-options/normalisedRadialSeries';
-export * from './types/normalised-options/normalisedScatterSeries';
-export * from './types/normalised-options/normalisedSeriesMarkerOptions';
-export * from './types/normalised-options/normalisedSeriesOptions';
-export * from './types/normalised-options/normalisedLabelOptions';
-export * from './types/normalised-options/normalisedNetworkSeries';
-export * from './types/normalised-options/normalisedLegendOptions';
-export * from './types/normalised-options/normalisedMapSeries';
-export * from './types/normalised-options/normalisedSeriesArea';
-export * from './types/normalised-options/normalisedSelectionOptions';
-export * from './types/normalised-options/normalisedZoomOptions';
-export * from './types/normalised-options/resolved';
-export * from './modules/moduleDefinition';
-export * from './types/scene';
 export * from './types/scales';
+export * from './types/scene';
+export * from './types/text';
+export * from './types/themeConstants';
+export * from './types/updateType';
+export * from './types/zIndexMap';
 
-// Structures
-export * from './structures/bitfield';
-export * from './structures/eventEmitter';
-export * from './structures/lruCache';
-export * from './structures/bandedStructure';
-export * from './structures/listeners';
-export * from './structures/pool';
-export * from './structures/stateTracker';
-export * as Debug from './logging/debugLogger';
-export { Logger, ambientLogger, isLogLevel } from './logging/logger';
-export type { LogIssue, LogLevel } from './logging/logger';
+// identity
+export * from './identity/id';
+export * from './identity/idBranding';
+export * from './identity/idGenerator';
+
+// logging
 // Chart-less logging fallback, restricted by the `no-unscoped-logger` lint rule. Enumerated rather
 // than `export *` so the namespace cannot reach the `Logger` constructor.
 export * as ambientLog from './logging/ambientLog';
+export * as Debug from './logging/debugLogger';
 export * as DebugMetrics from './logging/debugMetrics';
-export * from './modules/enterpriseRegistry';
-export * from './modules/optionsContribution';
+export { Logger, ambientLogger, isLogLevel } from './logging/logger';
+export type { LogIssue, LogLevel } from './logging/logger';
+
+// structures
+export * from './structures/bandedStructure';
+export * from './structures/bitfield';
+export * from './structures/eventEmitter';
+export * from './structures/graph';
+export * from './structures/listeners';
+export * from './structures/lruCache';
+export * from './structures/pool';
+export * from './structures/stateTracker';
+
+// state
+export * from './state/caching';
+export * from './state/callbackCache';
+export * from './state/cleanupRegistry';
+export * from './state/memento';
+export * from './state/memo';
+export { ReactiveState } from './state/reactiveState';
+export * from './state/stateMachine';
+
+// async
+export * from './async/async';
+export * from './async/deferredExecutor';
+export * from './async/functions';
+export * from './async/mutex';
+
+// modules
 export * from './modules/baseManager';
+export { type DynamicContext, type DynamicContextApi, createDynamicContext } from './modules/dynamicContext';
+export * from './modules/enterpriseRegistry';
+export * from './modules/moduleDefinition';
+export { AbstractModuleInstance } from './modules/moduleInstance';
 export * as ModuleRegistry from './modules/moduleRegistry';
 export { ModuleScope, type RegistryRevision, type ScopedCache, createScopedCache } from './modules/moduleScope';
-export { AbstractModuleInstance } from './modules/moduleInstance';
-export { type DynamicContext, type DynamicContextApi, createDynamicContext } from './module/dynamicContext';
+export * from './modules/optionsContribution';
 
-// Scales
-export * from './scale/colorScaleUtil';
-export * from './scale/scaleUtil';
+// options
+export * from './options/annotationOptionsDefs';
+export * from './options/axesOptionsDefs';
+export * from './options/axesOptionsEnterpriseDefs';
+export * from './options/axisThemeTemplate';
+export * from './options/chartDefaults';
+export * from './options/chartOptionsDefs';
+export * from './options/chartThemeTemplate';
+export * from './options/enterpriseThemeableOptionsDefs';
+export * from './options/gaugePreset';
+export * from './options/geoJsonValidator';
+export * from './options/optionsDefaults';
+export * from './options/themeUtil';
+export * from './options/validation';
 
-// Config
-export * from './config/chartDefaults';
-export * from './config/optionsDefaults';
-export * from './config/gaugePreset';
-export * from './config/themeUtil';
-export * from './config/annotationOptionsDef';
-export * from './config/axesOptionsDefs';
-export * from './config/axesOptionsEnterpriseDefs';
-export * from './config/axisThemeTemplate';
-export * from './config/chartOptionsDefs';
-export * from './config/chartThemeTemplate';
-export * from './config/enterpriseThemeableOptionsDef';
+// options/normalised
+export * from './options/normalised/normalise';
+export * from './options/normalised/normalisedAreaSeries';
+export * from './options/normalised/normalisedAxisOptions';
+export * from './options/normalised/normalisedCartesianSeries';
+export * from './options/normalised/normalisedChartCaptionOptions';
+export * from './options/normalised/normalisedChartOptions';
+export * from './options/normalised/normalisedCommonOptions';
+export * from './options/normalised/normalisedDonutSeries';
+export * from './options/normalised/normalisedEnterpriseBarSeries';
+export * from './options/normalised/normalisedErrorBarOptions';
+export * from './options/normalised/normalisedFlowProportionSeries';
+export * from './options/normalised/normalisedGaugeSeries';
+export * from './options/normalised/normalisedGradientLegendOptions';
+export * from './options/normalised/normalisedHeatmapSeries';
+export * from './options/normalised/normalisedHierarchySeries';
+export * from './options/normalised/normalisedLabelOptions';
+export * from './options/normalised/normalisedLegendOptions';
+export * from './options/normalised/normalisedMapSeries';
+export * from './options/normalised/normalisedNetworkSeries';
+export * from './options/normalised/normalisedPieSeries';
+export * from './options/normalised/normalisedPyramidSeries';
+export * from './options/normalised/normalisedRadarSeries';
+export * from './options/normalised/normalisedRadialSeries';
+export * from './options/normalised/normalisedRangeAreaSeries';
+export * from './options/normalised/normalisedScatterSeries';
+export * from './options/normalised/normalisedSelectionOptions';
+export * from './options/normalised/normalisedSeriesArea';
+export * from './options/normalised/normalisedSeriesMarkerOptions';
+export * from './options/normalised/normalisedSeriesOptions';
+export * from './options/normalised/normalisedZoomOptions';
+export * from './options/normalised/resolved';
 
-// API
-export * from './state/memento';
-export { ReactiveState } from './state/reactiveState';
+// data
+export * from './data/arrays';
+export * from './data/binarySearch';
+export * from './data/diff';
+export * from './data/epochColumns';
+export * from './data/extent';
+export * from './data/iterators';
+export * from './data/json';
+export * from './data/linkedList';
+export * from './data/nearest';
+export * from './data/numberArray';
+export * from './data/numbers';
+export * from './data/object';
+export * from './data/strings';
+export * from './data/typeGuards';
+export * from './data/value';
+export * from './data/visibleRange';
 
-// Chart
-export * from './types/animationPhase';
-export * from './types/axisDirection';
-export * from './types/updateType';
-export * from './types/zIndexMap';
-export * from './chart/legendUtil';
-export * from './chart/cartesianSeriesUtil';
-export * from './chart/markerShapes';
-export * from './chart/markerUtil';
-export * from './chart/secondaryAxisTicks';
-export * from './utils/aggregation';
-export * from './types/geojson';
-export * from './types/themeConstants';
-export * from './types/text';
+// geometry
+export * from './geometry/angle';
+export * from './geometry/axisLabelCollision';
+export * from './geometry/barLabelGeometry';
+export * from './geometry/bezier';
+export * from './geometry/boxBounds';
+export * from './geometry/crossLineLabelTranslation';
+export * from './geometry/distance';
+export * from './geometry/fill';
+export * from './geometry/fitRegion';
+export * from './geometry/labelPlacement';
+export * from './geometry/lineInterpolation';
+export * from './geometry/panToBBox';
+export * from './geometry/placement';
+export * from './geometry/scaling';
+export * from './geometry/shapeUtil';
+export * from './geometry/spatialIndex';
+export * from './geometry/trapezoid';
+export * as Vec2 from './geometry/vector';
+export * as Vec4 from './geometry/vector4';
 
-// Core utilities
-export * from './state/callbackCache';
-export * from './utils/dom/agDocument';
-export * from './utils/dom/domUtil';
-export * from './utils/geometry/math';
-export * from './utils/data/arrays';
-export * from './utils/geometry/angle';
-export * from './utils/async';
-export * from './utils/dom/attributeUtil';
-export * from './utils/geometry/boxBounds';
-export * from './utils/data/binarySearch';
-export * from './utils/format/color';
-export * from './utils/canvas';
-export * from './utils/configuredCanvasMixin';
-export * from './state/caching';
-export * from './utils/time/date';
-export * from './state/cleanupRegistry';
-export * from './utils/data/diff';
-export * from './utils/data/epochColumns';
-export * from './utils/geometry/distance';
-export * from './utils/data/extent';
-export * from './utils/format/format.util';
-export * from './utils/functions';
-export * from './utils/seriesMarkerDiff';
-export * from './utils/geojson';
-export * from './structures/graph';
-export * from './utils/data/json';
-export * from './utils/dom/keynavUtil';
-export * from './identity/id';
-export * from './types/idBranding';
-export * from './utils/data/iso8601';
-export * from './utils/data/iterators';
-export * from './utils/data/linkedList';
-export * from './state/memo';
-export * from './utils/data/nearest';
-export * from './utils/data/numberArray';
-export * from './utils/data/numbers';
-export * from './utils/data/object';
-export * from './utils/geometry/placement';
-export * from './utils/data/strings';
-export * from './state/stateMachine';
-export * from './rendering/textMeasurer';
-export * from './utils/dom/domElements';
-export * from './utils/dom/domEvents';
-export * from './utils/dom/globalsProxy';
-export * from './utils/dom/domDownload';
-export * from './utils/text/labelMeasure';
-export * from './utils/text/textUtils';
-export * from './utils/text/textWrapper';
-export * from './utils/time/ticks';
-export * from './utils/time/time';
-export * from './utils/time/timeFormatDefaults';
-export * from './utils/data/visibleRange';
-export * from './identity/idGenerator';
-export * from './utils/types/typeGuards';
-export * from './utils/data/value';
-export * from './state/validation';
-export * as Vec2 from './utils/geometry/vector';
-export * as Vec4 from './utils/geometry/vector4';
-export * from './utils/geometry/fill';
-export * from './utils/geometry/bezier';
-export * from './utils/geometry/barLabelGeometry';
-export * from './utils/geometry/axisLabelCollision';
-export * from './utils/geometry/labelPlacement';
-export * from './utils/geometry/spatialIndex';
-export * from './utils/geometry/fitRegion';
-export * from './utils/geometry/trapezoid';
-export * from './utils/geometry/crossLineLabelTranslation';
-export * from './utils/geometry/scaling';
-export * from './utils/geometry/lineInterpolation';
-export * from './utils/geometry/panToBBox';
-export * from './utils/zoomUtils';
-export * from './logging/debugMetrics';
-export * from './utils/format/numberFormat';
-export * from './utils/format/timeFormat';
+// text
+export * from './text/labelMeasure';
+export * from './text/textUtil';
+export * from './text/textWrapper';
 
-// Rendering
-export * from './rendering/domElements';
-export * from './rendering/easing';
+// time
+export * from './time/date';
+export * from './time/iso8601';
+export * from './time/ticks';
+export * from './time/timeFormat';
+export * from './time/timeFormatDefaults';
+export * from './time/timeFormatUtil';
+export * from './time/timeInterop';
+export * from './time/timeInterval';
+
+// format
+export * from './format/color';
+export * from './format/formatUtil';
+export * from './format/numberFormat';
+
+// dom
+export * from './dom/agDocument';
+export * from './dom/attributeUtil';
+export * from './dom/browser';
+export * from './dom/domDownload';
+export * from './dom/domElements';
+export * from './dom/domEvents';
+export * from './dom/domUtil';
+export * from './dom/globalsProxy';
+export * from './dom/guardedElement';
+export * from './dom/keynavUtil';
+export * from './dom/perWindowRegistry';
+export * from './dom/pixelRatioObserver';
+export * from './dom/sanitize';
+export * from './dom/sizeMonitor';
+
+// rendering
+export * from './rendering/canvasUtil';
 export * from './rendering/changeDetectable';
+export * from './rendering/configuredCanvasMixin';
+export * from './rendering/easing';
 export * from './rendering/interpolate';
 export * from './rendering/interpolating';
+export * from './rendering/pixel';
 export * from './rendering/render';
 export * from './rendering/svg';
-export * from './rendering/canvasUtil';
-export * from './rendering/pixel';
-export * from './rendering/svgUtils';
-export * from './utils/deferredExecutor';
-export * from './utils/mutex';
-export * from './utils/dom/browser';
-export * from './utils/dom/guardedElement';
-export * from './utils/dom/perWindowRegistry';
-export * from './utils/dom/pixelRatioObserver';
-export * from './utils/dom/sanitize';
-export * from './utils/dom/sizeMonitor';
-export * from './utils/time/timeInterop';
-export * from './utils/time/timeFormatUtil';
+export * from './rendering/svgUtil';
+export * from './rendering/textMeasurer';
+
+// chart
+export * from './chart/aggregation';
+export * from './chart/cartesianSeriesUtil';
+export * from './chart/legendUtil';
+export * from './chart/markerShapes';
+export * from './chart/markerUtil';
+export * from './chart/scale/colorScaleUtil';
+export * from './chart/scale/scaleUtil';
+export * from './chart/secondaryAxisTicks';
+export * from './chart/seriesMarkerDiff';
+export * from './chart/zoomUtil';

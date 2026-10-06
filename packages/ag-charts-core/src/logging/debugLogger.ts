@@ -1,6 +1,6 @@
+import { toArray } from '../data/arrays';
+import { getWindow } from '../dom/globalsProxy';
 import type { StripCallSignature } from '../types/global';
-import { toArray } from '../utils/data/arrays';
-import { getWindow } from '../utils/dom/globalsProxy';
 import { log, logGroup } from './logger';
 
 export interface DebugLogger {

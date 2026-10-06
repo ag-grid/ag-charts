@@ -4,7 +4,6 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
-    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
@@ -38,7 +37,9 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
-                ...FONT_THEME_DEFAULTS,
+                fontFamily: { $ref: 'seriesLabelFontFamily' },
+                fontSize: { $ref: 'seriesLabelFontSize' },
+                fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 5,
                 maxWidth: 100,

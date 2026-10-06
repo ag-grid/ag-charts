@@ -601,6 +601,8 @@ export default {
             'yHighKey',
             // Shape/style properties
             'shape',
+            // Size scaling mode ('area' is also a series type)
+            'sizeMode',
             // Non-chart contexts
             'crossLines',
             'annotations',

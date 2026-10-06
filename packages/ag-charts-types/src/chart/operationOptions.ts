@@ -60,6 +60,8 @@ type ThemeParam =
     | 'scrollbarThumbHoverBorder.width'
     | 'scrollbarTrackBorder.color'
     | 'scrollbarTrackBorder.width'
+    | 'seriesLabelBorder.color'
+    | 'seriesLabelBorder.width'
     | 'tooltipBorder.color'
     | 'tooltipBorder.width';
 
@@ -107,6 +109,7 @@ type ColorOperation =
     | { $isGradient: AnyLeaf } // Target vertex
     | { $isImage: AnyLeaf } // Target vertex
     | { $isPattern: AnyLeaf } // Target vertex
+    | { $isTransparent: AnyLeaf } // Target vertex, true for a colour with zero alpha
     | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] } // Colour A | Colour B | Ratio of Colour B (0 to 1)
     | { $opacity: [Leaf<string>, Leaf<number>] }; // Colour A | Opacity of Colour A (0 to 1)
 

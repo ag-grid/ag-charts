@@ -389,6 +389,84 @@ describe('OptionsGraph', () => {
                 axes: expect.any(Object),
             });
         });
+
+        describe('$isTransparent', () => {
+            const resolveIsTransparent = (value: unknown) =>
+                new OptionsGraph({ line: { fill: { $isTransparent: { $ref: 'key' } } } }, prepareOptions({}), {
+                    key: value,
+                }).resolve(testLogger);
+
+            it.each([
+                'transparent',
+                'Transparent',
+                'transPARent',
+                'TRANSPARENT',
+                'rgba(0, 0, 0, 0)',
+                'rgb(0 0 0 / 0)',
+                'rgba(255, 255, 255, 0)',
+                '#0000',
+                '#00000000',
+                '#ffffff00',
+                'hsla(0, 0%, 0%, 0)',
+            ])('should be true for the fully transparent colour `%s`', (value) => {
+                expect(resolveIsTransparent(value)).toStrictEqual({ fill: true, axes: expect.any(Object) });
+            });
+
+            it.each([
+                'white',
+                'black',
+                'rgba(0, 0, 0, 0.5)',
+                'rgba(0, 0, 0, 1)',
+                '#00000001',
+                '#000',
+                'not-a-colour',
+                'var(--ag-charts-test)',
+                '',
+            ])('should be false for the colour string `%s`', (value) => {
+                expect(resolveIsTransparent(value)).toStrictEqual({ fill: false, axes: expect.any(Object) });
+            });
+
+            it.each([
+                ['a number', 0],
+                ['a boolean', false],
+                ['null', null],
+                ['an object', { type: 'gradient', colorStops: [{ color: 'transparent', stop: 0 }] }],
+            ])('should be false for %s', (_name, value) => {
+                expect(resolveIsTransparent(value)).toStrictEqual({ fill: false, axes: expect.any(Object) });
+            });
+
+            it('should be false for an unset param', () => {
+                const options = new OptionsGraph(
+                    { line: { fill: { $isTransparent: { $ref: 'missing' } } } },
+                    prepareOptions({})
+                ).resolve(testLogger);
+                expect(options).toStrictEqual({ fill: false, axes: expect.any(Object) });
+            });
+
+            it('should resolve a colour reference to a transparent colour', () => {
+                const options = new OptionsGraph(
+                    { line: { fill: { $isTransparent: { $ref: 'second' } } } },
+                    prepareOptions({}),
+                    {
+                        first: 'Transparent',
+                        second: { $ref: 'first' },
+                    }
+                ).resolve(testLogger);
+                expect(options).toStrictEqual({ fill: true, axes: expect.any(Object) });
+            });
+
+            it('should drop the fill in an `$if` when the param is transparent and keep it otherwise', () => {
+                const config = {
+                    line: { fill: { $if: [{ $isTransparent: { $ref: 'key' } }, undefined, { $ref: 'key' }] } },
+                };
+                const transparent = new OptionsGraph(config, prepareOptions({}), { key: 'transPARent' }).resolve(
+                    testLogger
+                );
+                const opaque = new OptionsGraph(config, prepareOptions({}), { key: 'white' }).resolve(testLogger);
+                expect(transparent).toStrictEqual(expect.not.objectContaining({ fill: expect.anything() }));
+                expect(opaque).toStrictEqual({ fill: 'white', axes: expect.any(Object) });
+            });
+        });
     });
 
     describe('location operations', () => {

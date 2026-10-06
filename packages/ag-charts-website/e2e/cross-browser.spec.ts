@@ -29,7 +29,7 @@ test.describe('cross-browser', () => {
      * CRT-1177: on Firefox, text measured in an OffscreenCanvas context resolves generic font
      * keywords differently from a document context, so text measures narrower than it draws and
      * labels/captions truncate wrongly. The fix is the `canRenderTextOffscreen()` probe in
-     * `ag-charts-core/src/utils/canvas.ts`, which makes `createCanvasContext()` fall back to a
+     * `ag-charts-core/src/rendering/canvasUtil.ts`, which makes `createCanvasContext()` fall back to a
      * document canvas when the two disagree.
      *
      * That guard is not reachable from the page — `ag-charts-community` re-exports none of it — so a

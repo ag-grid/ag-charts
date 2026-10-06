@@ -265,6 +265,16 @@ export class ChartTheme {
                 },
                 width: { $ref: 'scrollbarThumbBorder.width' },
             },
+
+            seriesLabelBorder: false,
+            seriesLabelBorderRadius: { $ref: 'borderRadius' },
+            seriesLabelFontFamily: { $ref: 'fontFamily' },
+            seriesLabelFontSize: { $ref: 'fontSize' },
+            seriesLabelFontWeight: { $ref: 'fontWeight' },
+            seriesLabelInsideBackgroundColor: 'transparent',
+            seriesLabelInsideTextColor: { $ref: 'chartBackgroundColor' },
+            seriesLabelOutsideBackgroundColor: 'transparent',
+            seriesLabelOutsideTextColor: { $ref: 'textColor' },
         };
     }
 

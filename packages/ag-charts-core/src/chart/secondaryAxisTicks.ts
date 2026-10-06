@@ -1,6 +1,6 @@
-import { findMinMax } from '../utils/data/numberArray';
-import { countFractionDigits } from '../utils/data/numbers';
-import { createTicks, niceTicksDomain } from '../utils/time/ticks';
+import { findMinMax } from '../data/numberArray';
+import { countFractionDigits } from '../data/numbers';
+import { createTicks, niceTicksDomain } from '../time/ticks';
 
 interface SecondaryTickScale<D> {
     toDomain(d: number): D;

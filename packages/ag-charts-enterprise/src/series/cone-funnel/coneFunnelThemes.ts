@@ -2,7 +2,6 @@ import {
     CARTESIAN_AXIS_TYPE,
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
-    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
@@ -52,7 +51,9 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
             ...LABEL_BOXING_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
-            ...FONT_THEME_DEFAULTS,
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'textColor' },
             collision: {
                 threshold: 4,

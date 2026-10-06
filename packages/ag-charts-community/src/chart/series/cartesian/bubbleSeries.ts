@@ -24,6 +24,7 @@ import type {
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
+    applySizeMode,
     applyStyledMarkerSize,
     cachedTextMeasurer,
     clamp,
@@ -52,6 +53,7 @@ import {
     type AgBubbleSeriesStylerResult,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
+    type AgMarkerSizeMode,
     type AgNumericValue,
     type AgScatterSeriesOptionsKeys,
     type AgScatterSeriesStylerParams,
@@ -160,6 +162,7 @@ const MARKER_REBUILD_KEYS = [
     'minSize',
     'maxSize',
     'sizeDomain',
+    'sizeMode',
 ] as const;
 
 function markerStyleChanged(diff: object): boolean {
@@ -278,6 +281,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
 
     // Additional scale (size is BubbleSeries-specific)
     readonly sizeScale: ContinuousScale<AgNumericValue>;
+    readonly sizeMode: AgMarkerSizeMode;
 
     // Property lookups (BubbleSeries-specific)
     readonly sizeKey: string | undefined;
@@ -513,7 +517,9 @@ export abstract class BubbleScatterSeries<
         if (sizeKey == null) return marker.size;
         const sizeValues = this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!, 'number');
         const sizeValue = sizeValues[index];
-        return sizeValue == null ? this.getSizeRange()[0] : sizeScale.convertClamped(sizeValue);
+        const [min, max] = sizeScale.range;
+        if (sizeValue == null) return min;
+        return applySizeMode(sizeScale.convertClamped(sizeValue), min, max, options.sizeMode ?? 'diameter');
     }
 
     override xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number] {
@@ -652,6 +658,7 @@ export abstract class BubbleScatterSeries<
             yRange,
             minSize,
             maxSize,
+            sizeMode: this.options.sizeMode,
             xVisibleRange: ascending(xVisibleRange),
             yVisibleRange: ascending(yVisibleRange),
         };
@@ -734,6 +741,7 @@ export abstract class BubbleScatterSeries<
             xScale,
             yScale,
             sizeScale,
+            sizeMode: this.options.sizeMode ?? 'diameter',
 
             // Computed positioning
             xOffset: (xScale.bandwidth ?? 0) / 2,
@@ -929,7 +937,11 @@ export abstract class BubbleScatterSeries<
 
         const crossFilterSelected = ctx.crossFilterSelectedDataValues?.[datumIndex];
 
-        const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convertClamped(sizeValue);
+        const sizeRange = ctx.sizeScale.range;
+        const markerSize =
+            sizeValue == null
+                ? sizeRange[0]
+                : applySizeMode(ctx.sizeScale.convertClamped(sizeValue), sizeRange[0], sizeRange[1], ctx.sizeMode);
 
         // Compute label (skip expensive formatting if labels disabled)
         if (ctx.labelsEnabled) {

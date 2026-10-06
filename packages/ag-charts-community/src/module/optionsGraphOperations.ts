@@ -280,6 +280,7 @@ enum ColorOperation {
     IsGradient = '$isGradient',
     IsImage = '$isImage',
     IsPattern = '$isPattern',
+    IsTransparent = '$isTransparent',
     Mix = '$mix',
     Opacity = '$opacity',
 }
@@ -291,6 +292,7 @@ const colorOperations: Record<ColorOperation, OperationFns> = {
     $isGradient: isGradientOperation,
     $isImage: isImageOperation,
     $isPattern: isPatternOperation,
+    $isTransparent: isTransparentOperation,
     $mix: mixOperation,
     $opacity: opacityOperation,
 };
@@ -370,6 +372,19 @@ function isPatternOperation(graph: OptionsGraphInterface, vertex: VertexInterfac
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
     return isPatternFill(value);
+}
+
+// True for a colour string with zero alpha, however it is written (`'Transparent'`, `'rgba(0, 0, 0, 0)'`, `'#0000'`).
+function isTransparentOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex] = values;
+    const value = graph.resolveVertexValue(vertex, valueVertex);
+    if (typeof value !== 'string') return false;
+
+    try {
+        return Color.fromString(value).a === 0;
+    } catch {
+        return false;
+    }
 }
 
 function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
