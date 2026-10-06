@@ -3,9 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgChartOptions,
+    AgOrganizationSeriesNodeTextStyle,
     AgOrganizationSeriesOptions,
     AgOrganizationSeriesOptionsNodeImagePosition,
-    AgOrganizationSeriesNodeTextStyle,
     AgStandaloneChartOptions,
     TextAlign,
 } from 'ag-charts-community';
