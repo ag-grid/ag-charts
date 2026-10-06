@@ -20,6 +20,8 @@ import {
     fillImageDefaults,
     fillOptionsDef,
     fillPatternDefaults,
+    labelAutoFontSizeOptionsDefs,
+    labelFitOptionsDefs,
     lessThanOrEqual,
     lineDashOptionsDef,
     positiveNumber,
@@ -32,7 +34,6 @@ import {
     strokeOptionsDef,
     tooltipOptionsDefs,
     undocumented,
-    undocumentedLabelFitOptionsDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -42,6 +43,8 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     strokes: arrayOf(colorOrRef),
     label: {
         ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         spacing: positiveNumber,
         placement: union('left', 'right', 'center'),
         edgePlacement: union('inside', 'outside'),
@@ -79,8 +82,6 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     ...commonSeriesThemeableOptionsDefs,
     highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
 };
-
-Object.assign(sankeySeriesThemeableOptionsDef.label, undocumentedLabelFitOptionsDefs);
 
 // @ts-expect-error undocumented option
 sankeySeriesThemeableOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);

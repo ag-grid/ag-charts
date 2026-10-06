@@ -190,3 +190,20 @@
 .ag-charts-floating-toolbar__drag-handle--dragging {
     cursor: grabbing;
 }
+
+/* Button size */
+
+.ag-charts-toolbar .ag-charts-toolbar__button--sized {
+    height: var(--toolbar-button-size);
+    min-height: var(--toolbar-button-size);
+    min-width: var(--toolbar-button-size);
+    padding-bottom: 0;
+    padding-top: 0;
+}
+
+.ag-charts-toolbar .ag-charts-toolbar__button--sized.ag-charts-toolbar__button--icon-only {
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+    width: var(--toolbar-button-size);
+}

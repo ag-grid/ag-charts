@@ -186,6 +186,7 @@ export {
     plotInterpolatedLinePathStroke,
     plotLinePathStroke,
     prepareLinePathPropertyAnimation,
+    prepareLinePathStrokeAnimationFns,
 } from './chart/series/cartesian/lineUtil';
 export type { LinePathSpan, LineSpanPointDatum, SpanAnimation } from './chart/series/cartesian/lineUtil';
 export { CollapseMode, pairUpSpans } from './chart/series/cartesian/lineInterpolationUtil';

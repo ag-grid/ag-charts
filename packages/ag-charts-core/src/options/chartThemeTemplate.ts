@@ -25,6 +25,7 @@ function hasUserOptionLessThan1(key: string) {
                             { $isSeriesType: 'area' },
                             { $isSeriesType: 'radar' },
                             { $isSeriesType: 'rangeArea' },
+                            { $isSeriesType: 'hlc' },
                         ],
                     },
                     {

@@ -125,15 +125,7 @@ export function mockCssVarColorSupport(container: HTMLElement, vars: Record<stri
  * Kept `expect`-free since enterprise `src/test` is linted as shippable source.
  */
 export function collectShapes(root: _Scene.Group): _Scene.Shape[] {
-    const shapes: _Scene.Shape[] = [];
-    const visit = (node: unknown) => {
-        if (node instanceof _Scene.Shape) shapes.push(node);
-        if (node instanceof _Scene.Group) {
-            for (const child of node.children()) visit(child);
-        }
-    };
-    visit(root);
-    return shapes;
+    return Array.from(root.descendants()).filter((node): node is _Scene.Shape => node instanceof _Scene.Shape);
 }
 
 /** The theme-resolved `shadow` defaults of a fill series: present but disabled. */
@@ -141,6 +133,9 @@ export const DEFAULT_DISABLED_SHADOW = { enabled: false, xOffset: 3, yOffset: 3,
 
 /** The shadow the series tests turn on. */
 export const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
+
+/** A smaller shadow than `SHADOW`, for the tests that turn on a second, distinct shadow (flow-proportion, map-shape, waterfall). */
+export const SMALL_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
 
 /** The shadow the highlight tests set on `highlightedItem`, distinct from `SHADOW` in every field. */
 export const HIGHLIGHT_SHADOW = { enabled: true, color: 'rgba(170, 0, 0, 1)', xOffset: 8, yOffset: 8, blur: 2 };

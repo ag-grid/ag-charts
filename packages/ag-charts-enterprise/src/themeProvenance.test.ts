@@ -112,6 +112,12 @@ const CASES: Array<ProvenanceCase> = [
         data: DATA,
         coverage: { minChecked: 66, maxSkipped: 6, maxRejected: 8, maxIneffective: 0, minContainers: 2 },
     },
+    {
+        seriesType: 'hlc',
+        series: { xKey: 'category', highKey: 'high', lowKey: 'low', closeKey: 'close' },
+        data: DATA,
+        coverage: { minChecked: 125, maxSkipped: 7, maxRejected: 0, maxIneffective: 0, minContainers: 7 },
+    },
 ];
 
 defineProvenanceSuite(prepareProcessedOptions, CASES);

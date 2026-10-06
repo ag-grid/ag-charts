@@ -19,11 +19,16 @@ import type {
     AgRangeBarSeriesOptions,
     AgRangesOptions,
     AgThemeOverrides,
+    AgVolumeProfileOptions,
     AgZoomOptions,
     DatumDefault,
 } from 'ag-charts-types';
 
-import { createVolumeProfileAxis, createVolumeProfileSeries } from '../volume-profile/volumeProfile';
+import {
+    createVolumeProfileAxis,
+    createVolumeProfileSeries,
+    groupVolumeProfile,
+} from '../volume-profile/volumeProfile';
 
 type ChartTheme = _Theme.ChartTheme;
 
@@ -103,7 +108,7 @@ export function priceVolume(
         legend: { enabled: false },
         series: [
             ...createVolumeSeries(getTheme, keys, shownVolumeKey),
-            ...createVolumeProfileSeries(getTheme, volumeProfile, tickSize, 'xVolumeProfilePrice'),
+            ...createPriceVolumeProfileSeries(getTheme, volumeProfile, tickSize),
             ...createPriceSeries(chartType, keys, logger),
         ],
         axes: {
@@ -281,6 +286,17 @@ function createVolumeSeries(
             highlight: { unhighlightedSeries: { opacity: 1 } },
         } satisfies AgBarSeriesOptions,
     ];
+}
+
+function createPriceVolumeProfileSeries(
+    getTheme: () => ChartTheme,
+    volumeProfile: AgVolumeProfileOptions | undefined,
+    tickSize: number | undefined
+) {
+    if (volumeProfile == null) return [];
+
+    const levels = groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize);
+    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels);
 }
 
 function createPriceAxis() {

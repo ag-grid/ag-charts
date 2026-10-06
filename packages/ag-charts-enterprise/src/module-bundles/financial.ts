@@ -21,6 +21,7 @@ import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
 import { PriceVolumePresetModule } from '../preset/price-volume/priceVolumePresetModule';
 import { VolumeProfilePresetModule } from '../preset/volume-profile/volumeProfilePresetModule';
 import { CandlestickSeriesModule } from '../series/candlestick/candlestickModule';
+import { HlcSeriesModule } from '../series/hlc/hlcModule';
 import { OhlcSeriesModule } from '../series/ohlc/ohlcModule';
 import { RangeAreaSeriesModule } from '../series/range-area/rangeAreaModule';
 import { RangeBarSeriesModule } from '../series/range-bar/rangeBarModule';
@@ -31,6 +32,7 @@ export const FinancialChartModule: ModuleDefinition[] = [
     BarSeriesModule,
     LineSeriesModule,
     CandlestickSeriesModule,
+    HlcSeriesModule,
     OhlcSeriesModule,
     RangeBarSeriesModule,
     RangeAreaSeriesModule,

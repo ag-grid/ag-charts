@@ -41,6 +41,7 @@ import type {
     CommonIgnoredProperties,
     HeatmapIgnoredProperties,
     HistogramIgnoredProperties,
+    HlcIgnoredProperties,
     LineIgnoredProperties,
     RangeAreaIgnoredProperties,
     RangeBarIgnoredProperties,
@@ -51,6 +52,7 @@ import type {
 import { BoxPlotSeriesModule } from '../../series/box-plot/boxPlotModule';
 import { CandlestickSeriesModule } from '../../series/candlestick/candlestickModule';
 import { HeatmapSeriesModule } from '../../series/heatmap/heatmapModule';
+import { HlcSeriesModule } from '../../series/hlc/hlcModule';
 import { OhlcSeriesModule } from '../../series/ohlc/ohlcModule';
 import { RangeAreaSeriesModule } from '../../series/range-area/rangeAreaModule';
 import { RangeBarSeriesModule } from '../../series/range-bar/rangeBarModule';
@@ -116,6 +118,12 @@ export const histogramIgnoredMiniChartProperties: HistogramIgnoredProperties[] =
     ...commonIgnoredMiniChartProperties,
     'label',
 ];
+export const hlcIgnoredMiniChartProperties: HlcIgnoredProperties[] = [
+    ...commonIgnoredMiniChartProperties,
+    'highName',
+    'lowName',
+    'closeName',
+];
 export const lineIgnoredMiniChartProperties: LineIgnoredProperties[] = [
     ...commonIgnoredMiniChartProperties,
     'errorBar',
@@ -163,6 +171,7 @@ function miniChartSeriesDefs() {
             histogram: partial(
                 without(HistogramSeriesModule.options, [...histogramIgnoredMiniChartProperties, 'type'])
             ),
+            hlc: partial(without(HlcSeriesModule.options, [...hlcIgnoredMiniChartProperties, 'type'])),
             line: partial(without(LineSeriesModule.options, [...lineIgnoredMiniChartProperties, 'type'])),
             ohlc: partial(without(OhlcSeriesModule.options, [...commonIgnoredMiniChartProperties, 'type'])),
             'range-area': partial(

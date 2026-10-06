@@ -5,6 +5,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
@@ -50,6 +51,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
             label: {
                 ...LABEL_BOXING_DEFAULTS,
+                ...LABEL_OVERFLOW_DEFAULTS,
                 enabled: true,
                 fontFamily: { $ref: 'seriesLabelFontFamily' },
                 fontSize: { $ref: 'seriesLabelFontSize' },

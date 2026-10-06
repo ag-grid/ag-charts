@@ -6,6 +6,7 @@ import {
     AgCharts,
     AnimationModule,
     CandlestickSeriesModule,
+    HlcSeriesModule,
     ModuleRegistry,
     NavigatorModule,
     NumberAxisModule,
@@ -23,6 +24,7 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     AnimationModule,
     CandlestickSeriesModule,
+    HlcSeriesModule,
     NavigatorModule,
     NumberAxisModule,
     OhlcSeriesModule,
@@ -40,10 +42,17 @@ const timeAxes: Record<string, AgCartesianAxisOptions> = {
     x: { type: 'ordinal-time', parentLevel: { enabled: true } },
 };
 
-const SERIES_TYPES = ['candlestick', 'ohlc'] as const;
+const SERIES_TYPES = ['candlestick', 'ohlc', 'hlc'] as const;
 type SeriesType = (typeof SERIES_TYPES)[number];
 
 function buildSeries(type: SeriesType): AgCartesianChartOptions['series'] {
+    const selection = {
+        enabled: true,
+        selectedItem: { fill: '#ff3b30', stroke: '#990000', strokeWidth: 2 },
+    };
+    if (type === 'hlc') {
+        return [{ type, xKey: 'timestamp', lowKey: 'low', highKey: 'high', closeKey: 'close', selection }];
+    }
     return [
         {
             type,
@@ -52,10 +61,7 @@ function buildSeries(type: SeriesType): AgCartesianChartOptions['series'] {
             highKey: 'high',
             openKey: 'open',
             closeKey: 'close',
-            selection: {
-                enabled: true,
-                selectedItem: { fill: '#ff3b30', stroke: '#990000', strokeWidth: 2 },
-            },
+            selection,
         },
     ];
 }

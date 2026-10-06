@@ -225,6 +225,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     toolbar: {
         enabled: boolean,
         padding: positiveNumber,
+        buttonSize: positiveNumber,
         buttons: arrayOfDefs<AgAnnotationsToolbarButton>(
             {
                 ...toolbarButtonOptionsDefs,
@@ -253,6 +254,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     },
     optionsToolbar: {
         enabled: boolean,
+        buttonSize: positiveNumber,
         buttons: arrayOf(
             or(
                 optionsDefs<AgAnnotationOptionsToolbarButton>({

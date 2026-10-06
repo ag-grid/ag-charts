@@ -124,3 +124,8 @@
         color: var(--ag-charts-ranges__dropdown-text-color--disabled);
     }
 }
+
+.ag-charts-range-buttons .ag-charts-toolbar__button.ag-charts-toolbar__button--sized {
+    padding-bottom: 0;
+    padding-top: 0;
+}

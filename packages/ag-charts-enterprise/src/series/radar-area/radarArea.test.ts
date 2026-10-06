@@ -33,7 +33,13 @@ import {
 } from 'ag-charts-community-test';
 import type { NonNullablePath } from 'ag-charts-core';
 
-import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    SHADOW,
+    collectShapes,
+    prepareEnterpriseTestOptions,
+    shadowedShapes,
+} from '../../test/utils';
 
 describe('RadarAreaSeries', () => {
     setupMockConsole();
@@ -1011,13 +1017,11 @@ describe('RadarAreaSeries', () => {
     });
 
     describe('shadow', () => {
-        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
-        const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
+        const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions => ({
             data: EXAMPLE_OPTIONS.data,
             series: [{ type: 'radar-area', angleKey: 'subject', radiusKey: 'gradeA', shadow: seriesShadow }],
             legend: { enabled: false },
         });
-        const shadowedShapes = (group: any) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
 
         it('defaults to a disabled shadow', async () => {
             const options = shadowOptions();
@@ -1040,7 +1044,7 @@ describe('RadarAreaSeries', () => {
         });
 
         it('shadows the fill but not the line', async () => {
-            const options = shadowOptions(shadow);
+            const options = shadowOptions(SHADOW);
             prepareEnterpriseTestOptions(options as any);
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
@@ -1048,7 +1052,7 @@ describe('RadarAreaSeries', () => {
             const series = chart.series[0];
             const areaShapes = collectShapes(series['areaGroup']);
             expect(areaShapes).toHaveLength(1);
-            expect(areaShapes[0].fillShadow).toMatchObject(shadow);
+            expect(areaShapes[0].fillShadow).toMatchObject(SHADOW);
 
             const lineShapes = collectShapes(series['lineGroup']);
             expect(lineShapes).toHaveLength(1);
@@ -1057,7 +1061,7 @@ describe('RadarAreaSeries', () => {
         });
 
         it('renders with the shadow enabled', async () => {
-            const options = shadowOptions(shadow);
+            const options = shadowOptions(SHADOW);
             prepareEnterpriseTestOptions(options as any);
 
             chart = deproxy(AgCharts.create(options));

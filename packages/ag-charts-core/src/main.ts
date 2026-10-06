@@ -86,6 +86,7 @@ export * from './options/normalised/normalisedGaugeSeries';
 export * from './options/normalised/normalisedGradientLegendOptions';
 export * from './options/normalised/normalisedHeatmapSeries';
 export * from './options/normalised/normalisedHierarchySeries';
+export * from './options/normalised/normalisedHlcSeries';
 export * from './options/normalised/normalisedLabelOptions';
 export * from './options/normalised/normalisedLegendOptions';
 export * from './options/normalised/normalisedMapSeries';
