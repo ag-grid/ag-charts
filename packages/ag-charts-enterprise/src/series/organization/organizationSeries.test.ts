@@ -2728,8 +2728,13 @@ describe('OrganizationSeries', () => {
                 title: { key: 'name', wrapping: 'never', overflowStrategy: 'hide', truncate: true },
             });
             expect(titleOf(texts)).toContain('…');
-            expect(console.warn).toHaveBeenCalledTimes(1);
-            vi.mocked(console.warn).mockClear();
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].node.title.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                ],
+              ]
+            `);
         });
 
         it('should hide text that does not fit with truncate: false alone, keeping the other defaults', async () => {
@@ -2755,7 +2760,7 @@ describe('OrganizationSeries', () => {
         it.each([false, true])(
             'should keep text that does not fit at all when alwaysShow is true (truncate: %s)',
             async (truncate) => {
-                // 10px is narrower than any single character, so nothing fits and the tier would be emptied.
+                // A 30px card leaves a 1px text budget, narrower than any character, so the tier would be emptied.
                 const node: OrgNodeOptions = { width: 30, title: { key: 'name', truncate }, subtitle: { key: 'job' } };
                 const { texts: hidden } = await render(node, {}, LONG_WORD_DATA);
                 expect(titleOf(hidden)).toBe('');
@@ -2819,7 +2824,13 @@ describe('OrganizationSeries', () => {
             });
             expect(titleOf(texts)).toBe('');
             expect(titleOf(texts, 'cto')).toBe('Bob');
-            vi.mocked(console.warn).mockClear();
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].node.title.itemStyler.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                ],
+              ]
+            `);
         });
 
         it('should pass truncate and collision to text itemStyler params', async () => {
