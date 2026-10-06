@@ -618,7 +618,8 @@ export class SankeySeries extends FlowProportionSeries<
         const { x, textAlign } = this.getNodeLabelPlacement(node, leading, trailing);
 
         // A centred label sits over its own column, so a wrapped one must not reach the nodes above or below.
-        const heightRoom = textAlign === 'center' ? this.getColumnLabelHeightRoom(nodeGraph, node, y) : Infinity;
+        const columnHeightRoom = textAlign === 'center' ? this.getColumnLabelHeightRoom(nodeGraph, node, y) : Infinity;
+        const heightRoom = Math.min(columnHeightRoom, this.getSeriesAreaLabelHeightRoom(node.label, y));
         let fitted: { text: string; fontSize?: number; room: number } | undefined;
 
         if (!leading && !trailing) {
@@ -716,6 +717,14 @@ export class SankeySeries extends FlowProportionSeries<
             }
         }
         return 2 * Math.min(y - minY, maxY - y);
+    }
+
+    /** Height a label centred at `y` has within the series area, never less than its first line. */
+    private getSeriesAreaLabelHeightRoom(text: string, y: number) {
+        const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
+        const room = 2 * Math.min(y, seriesRectHeight - y);
+        const firstLine = text.split('\n', 1)[0];
+        return Math.max(room, this.labelMeasurer(undefined).measureLines(firstLine).height);
     }
 
     private fitNodeLabel(text: string, room: number, overflowStrategy: OverflowStrategy, heightRoom = Infinity) {
@@ -870,7 +879,7 @@ export class SankeySeries extends FlowProportionSeries<
             label.fill = fill;
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
-            label.fontSize = fittedFontSize ?? fontSize;
+            label.fontSize = fittedFontSize == null ? fontSize : Math.min(fittedFontSize, fontSize);
             label.fontFamily = fontFamily;
             label.textAlign = textAlign;
             label.textBaseline = 'middle';

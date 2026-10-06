@@ -343,6 +343,69 @@ describe('SankeySeries', () => {
             });
             expect(wrappedBesideNode).toBe(true);
         });
+
+        it('keeps wrapped labels of nodes at the edges within the series area', async () => {
+            const data = [
+                { from: 'Small source whose long label wraps over several lines', to: 'Sink', size: 6 },
+                { from: 'Large', to: 'Sink', size: 40 },
+                { from: 'Another small source whose long label wraps over lines', to: 'Sink', size: 6 },
+            ];
+            const options: AgStandaloneChartOptions = {
+                data,
+                series: [
+                    {
+                        type: 'sankey',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'size',
+                        label: { wrapping: 'on-space', maxWidth: 60 },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create({ ...options, width: 500 }));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0];
+            const seriesRectHeight = series._nodeDataDependencies.seriesRectHeight;
+            const labels = series.labelSelection.nodes().filter((node: any) => node.visible);
+            expect(labels.some((node: any) => node.text.includes('\n'))).toBe(true);
+            for (const node of labels) {
+                const box = node.getBBox();
+                expect(box.y, `"${node.text}" top`).toBeGreaterThanOrEqual(-0.5);
+                expect(box.y + box.height, `"${node.text}" bottom`).toBeLessThanOrEqual(seriesRectHeight + 0.5);
+            }
+        });
+
+        it('draws a shrunk label no larger than the font size its itemStyler returns', async () => {
+            const data = [
+                { from: 'Alpha source', to: 'Interior node', size: 10 },
+                { from: 'Beta source node', to: 'Interior node', size: 6 },
+                { from: 'Interior node', to: 'Gamma destination', size: 16 },
+            ];
+            const renderFontSizes = async (label: AgSankeySeriesLabelOptions<unknown>) => {
+                chart?.destroy();
+                const options: AgStandaloneChartOptions = {
+                    data,
+                    series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create({ ...options, width: 500 }));
+                await waitForChartStability(chart);
+                return chart.series[0].labelSelection
+                    .nodes()
+                    .filter((node: any) => node.visible)
+                    .map((node: any) => node.fontSize as number);
+            };
+            const label = { fontSize: 14, minimumFontSize: 9, maxWidth: 70, wrapping: 'never' } as const;
+
+            const unstyled = await renderFontSizes(label);
+            expect(unstyled.some((size: number) => size > 10 && size < 14)).toBe(true);
+
+            const styled = await renderFontSizes({ ...label, itemStyler: () => ({ fontSize: 10 }) });
+            expect(styled.length).toBeGreaterThan(0);
+            expect(styled.every((size: number) => size <= 10)).toBe(true);
+        });
     });
 
     describe('node cornerRadius', () => {
