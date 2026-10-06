@@ -239,6 +239,14 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         this.strokeWicks(ctx);
     }
 
+    protected override dilateSilhouetteExtras(ctx: _ModuleSupport.CanvasContext, growth: number) {
+        const { wickPath, strokeWidth, wickStrokeWidth = strokeWidth } = this;
+        if (wickPath.isEmpty() || wickStrokeWidth === 0) return;
+
+        ctx.lineWidth = wickStrokeWidth + growth;
+        ctx.stroke(wickPath.getPath2D());
+    }
+
     private strokeWicks(ctx: _ModuleSupport.CanvasContext) {
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
@@ -263,7 +271,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         if (typeof wickStroke === 'string') {
             ctx.strokeStyle = wickStroke;
         }
-        ctx.lineWidth = wickStrokeWidth + this.shadowStrokeGrowth;
+        ctx.lineWidth = wickStrokeWidth;
 
         if (wickLineDash != null) {
             ctx.setLineDash([...wickLineDash]);

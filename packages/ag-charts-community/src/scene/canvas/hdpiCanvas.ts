@@ -1,5 +1,7 @@
 import { clearContext, debugContext, deviceDimension } from 'ag-charts-core';
 
+import { releaseSpreadCanvas } from './spreadCanvas';
+
 // Work-around for typing issues with Angular 13+.
 type OffscreenCanvasRenderingContext2D = any;
 
@@ -86,6 +88,7 @@ export class HdpiCanvas {
 
     destroy() {
         this.element.remove();
+        releaseSpreadCanvas(this.context);
 
         // Workaround memory allocation quirks in iOS Safari by resizing to 0x0 and clearing.
         // See https://bugs.webkit.org/show_bug.cgi?id=195325.

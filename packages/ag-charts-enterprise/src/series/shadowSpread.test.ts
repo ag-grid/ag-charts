@@ -92,22 +92,18 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
             expect(at(260, 45)).toEqual(WHITE);
         });
 
-        it('should draw the dilation as a stroke of twice the spread, only when there is a spread', () => {
-            const strokeWidths = (spread: number | undefined) => {
+        it('should blit the dilated silhouette from the scratch canvas, only when there is a spread', () => {
+            const blits = (spread: number | undefined) => {
                 const ctx = canvasCtx.getRenderContext2D();
-                const widths: number[] = [];
-                const original = ctx.stroke.bind(ctx);
-                const spy = vi.spyOn(ctx, 'stroke').mockImplementation((...args: Parameters<typeof original>) => {
-                    widths.push(ctx.lineWidth);
-                    original(...args);
-                });
+                const spy = vi.spyOn(ctx, 'drawImage');
                 render(square({ spread, shadowMode: 'fill' }));
+                const { calls } = spy.mock;
                 spy.mockRestore();
-                return widths;
+                return calls.length;
             };
 
-            expect(strokeWidths(undefined)).toEqual([]);
-            expect(strokeWidths(9)).toEqual([18]);
+            expect(blits(undefined)).toBe(0);
+            expect(blits(9)).toBe(1);
         });
     });
 

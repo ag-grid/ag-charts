@@ -1,5 +1,7 @@
 import { clearContext, debugContext, deviceDimension, getOffscreenCanvas } from 'ag-charts-core';
 
+import { releaseSpreadCanvas } from './spreadCanvas';
+
 interface CanvasOptions {
     width: number;
     height: number;
@@ -81,6 +83,8 @@ export class HdpiOffscreenCanvas {
     }
 
     destroy() {
+        releaseSpreadCanvas(this.context);
+
         // Workaround memory allocation quirks in iOS Safari by resizing to 0x0 and clearing.
         // See https://bugs.webkit.org/show_bug.cgi?id=195325.
         this.canvas.width = 0;
