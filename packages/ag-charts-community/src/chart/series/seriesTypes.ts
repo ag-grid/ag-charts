@@ -52,7 +52,7 @@ interface ChartAxisLike {
 
 export type DatumIndex = number;
 export type ItemId = string;
-export type ItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
+export type ItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high' | 'close';
 
 export type SeriesNodeEventTypes = 'nodeContextMenuAction' | 'seriesNodeClick' | 'seriesNodeDoubleClick';
 

@@ -8,6 +8,7 @@ import {
     commonIgnoredMiniChartProperties,
     heatmapIgnoredMiniChartProperties,
     histogramIgnoredMiniChartProperties,
+    hlcIgnoredMiniChartProperties,
     lineIgnoredMiniChartProperties,
     rangeAreaIgnoredMiniChartProperties,
     rangeBarIgnoredMiniChartProperties,
@@ -22,6 +23,7 @@ const validMiniChartSeriesTypes: AgMiniChartSeriesOptions['type'][] = [
     'candlestick',
     'heatmap',
     'histogram',
+    'hlc',
     'line',
     'ohlc',
     'range-area',
@@ -94,6 +96,17 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                             },
                         },
                     ],
+                    [
+                        'hlc',
+                        {
+                            marker: miniChartMarkerTheme,
+                            item: {
+                                high: { marker: { shadow: { enabled: false } } },
+                                low: { marker: { shadow: { enabled: false } } },
+                                close: { marker: { shadow: { enabled: false } } },
+                            },
+                        },
+                    ],
                 ],
             },
             {
@@ -107,6 +120,7 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                             ['bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties)],
                             ['heatmap', omitInheritedShadow(heatmapIgnoredMiniChartProperties)],
                             ['histogram', omitInheritedShadow(histogramIgnoredMiniChartProperties)],
+                            ['hlc', omitInheritedShadow(hlcIgnoredMiniChartProperties)],
                             // `priceVolumePresetIgnoredMiniChartProperties` already includes `shadow`.
                             [
                                 'line',
