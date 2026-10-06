@@ -12,8 +12,8 @@ export interface AxisAriaLabels {
     duplicateExplicitLabels: string[];
 }
 
-// axe's `landmark-unique` rule compares accessible names case-insensitively.
-const normalise = (label: string) => label.toLowerCase();
+// Accessible names are compared with whitespace trimmed and collapsed; axe's `landmark-unique` rule also ignores case.
+const normalise = (label: string) => label.trim().replaceAll(/\s+/g, ' ').toLowerCase();
 
 /**
  * Resolves the accessible name of each axis region: the `ariaLabel` option, else the title text, else the axis key.
@@ -21,7 +21,7 @@ const normalise = (label: string) => label.toLowerCase();
  */
 export function resolveAxisAriaLabels(sources: AxisAriaLabelSource[]): AxisAriaLabels {
     const entries = sources.map(({ axisId, userAxisId, ariaLabel, titleText }) => {
-        const explicit = ariaLabel != null && ariaLabel !== '';
+        const explicit = ariaLabel != null && ariaLabel.trim() !== '';
         const base = explicit ? ariaLabel : (titleText ?? userAxisId);
         return { axisId, userAxisId, explicit, base, label: base };
     });

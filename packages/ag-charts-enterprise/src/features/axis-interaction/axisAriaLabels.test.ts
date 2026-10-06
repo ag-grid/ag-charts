@@ -30,6 +30,26 @@ describe('resolveAxisAriaLabels', () => {
         expect(resolve(src('x', { ariaLabel: '' })).labels).toEqual(['x']);
     });
 
+    it('treats a whitespace-only ariaLabel as unset', () => {
+        expect(resolve(src('x', { ariaLabel: '   ', titleText: 'Price' })).labels).toEqual(['Price']);
+        expect(resolve(src('x', { ariaLabel: ' \n\t' })).labels).toEqual(['x']);
+    });
+
+    it('suffixes derived labels that differ only in whitespace', () => {
+        expect(resolve(src('y', { titleText: 'Value' }), src('y2', { titleText: ' Value ' })).labels).toEqual([
+            'Value (y)',
+            ' Value  (y2)',
+        ]);
+        expect(
+            resolve(src('y', { titleText: 'Total value' }), src('y2', { titleText: 'Total\n  value' })).labels
+        ).toEqual(['Total value (y)', 'Total\n  value (y2)']);
+    });
+
+    it('reports explicit labels that differ only in whitespace as duplicates', () => {
+        const { duplicateExplicitLabels } = resolve(src('a', { ariaLabel: 'Same' }), src('b', { ariaLabel: ' Same ' }));
+        expect(duplicateExplicitLabels).toEqual(['Same', ' Same ']);
+    });
+
     it('suffixes derived labels that collide, case-insensitively', () => {
         const { labels } = resolve(src('y', { titleText: 'Value' }), src('y2', { titleText: 'VALUE' }));
         expect(labels).toEqual(['Value (y)', 'VALUE (y2)']);
