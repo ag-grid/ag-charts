@@ -58,11 +58,14 @@ function hasVisibleContent(text: NormalisedTextOrSegments | MeasuredSegment[]): 
     return text.some((segment) => !('text' in segment) || toTextString(segment.text).trim() !== '');
 }
 
-function measureTierHeight(
+// OPTIMIZATION: an unbounded card needs no vertical budget, so skip measuring the tier.
+function remainingTextHeight(
+    maxHeight: number,
     node: _ModuleSupport.Text | undefined,
     tierStyles: NormalisedOrganizationNodeTextStyle
 ): number {
-    return node == null ? 0 : node.getBBox().height + tierStyles.spacing;
+    if (node == null || !Number.isFinite(maxHeight)) return maxHeight;
+    return maxHeight - node.getBBox().height - tierStyles.spacing;
 }
 
 function wrapTextTier(
@@ -201,9 +204,9 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         // Tiers share the card's vertical space top-down, so each is fitted to whatever the tiers above leave.
         let textMaxHeight = computeTextMaxHeight(styles, this.imageNode != null);
         this.updateTitleNode(fields.title, styles, textMaxWidth, textMaxHeight);
-        textMaxHeight -= measureTierHeight(this.titleNode, styles.title);
+        textMaxHeight = remainingTextHeight(textMaxHeight, this.titleNode, styles.title);
         this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth, textMaxHeight);
-        textMaxHeight -= measureTierHeight(this.subtitleNode, styles.subtitle);
+        textMaxHeight = remainingTextHeight(textMaxHeight, this.subtitleNode, styles.subtitle);
         this.updateLabelNodes(fields.labels, styles, textMaxWidth, textMaxHeight);
         this.updateExpanderNode(expanderText, allChildren, isCollapsed, isRtl, direction, styles);
 
@@ -470,7 +473,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             this.labelNodes[index]!.text = wrapTextTier(labelText, styles.labels[index], textMaxWidth, textMaxHeight);
             applyTextStyles(this.labelNodes[index]!, { ...styles.labels[index], textAlign: 'left' });
             applyTextBoxingStyles(this.labelNodes[index]!, styles.labels[index]);
-            textMaxHeight -= measureTierHeight(this.labelNodes[index], styles.labels[index]);
+            textMaxHeight = remainingTextHeight(textMaxHeight, this.labelNodes[index], styles.labels[index]);
             index++;
         }
 
