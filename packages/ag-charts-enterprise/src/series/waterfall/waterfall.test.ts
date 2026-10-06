@@ -37,7 +37,7 @@ import {
 
 import {
     DEFAULT_DISABLED_SHADOW,
-    FLOW_PROPORTION_SHADOW,
+    SMALL_SHADOW,
     createEnterpriseChart,
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
@@ -351,9 +351,9 @@ describe('WaterfallSeries', () => {
                 {
                     ...baseSeries,
                     item: {
-                        positive: { ...baseSeries.item?.positive, shadow: FLOW_PROPORTION_SHADOW },
-                        negative: { ...baseSeries.item?.negative, shadow: FLOW_PROPORTION_SHADOW },
-                        total: { ...baseSeries.item?.total, shadow: FLOW_PROPORTION_SHADOW },
+                        positive: { ...baseSeries.item?.positive, shadow: SMALL_SHADOW },
+                        negative: { ...baseSeries.item?.negative, shadow: SMALL_SHADOW },
+                        total: { ...baseSeries.item?.total, shadow: SMALL_SHADOW },
                     },
                 },
             ],

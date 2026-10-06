@@ -29,7 +29,7 @@ import {
 } from 'ag-charts-community-test';
 
 import { describeFlowProportionShadow, flowProportionShadowOptions } from '../../test/flowProportionShadowTests';
-import { FLOW_PROPORTION_SHADOW, mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
+import { SMALL_SHADOW, mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
 describe('SankeySeries', () => {
@@ -385,8 +385,8 @@ describe('SankeySeries', () => {
         // The highlighted node is redrawn above the dimmed layer; only that copy casts the node's shadow.
         it('should render a highlighted node with shadows enabled', async () => {
             const options = flowProportionShadowOptions('sankey', {
-                link: FLOW_PROPORTION_SHADOW,
-                node: FLOW_PROPORTION_SHADOW,
+                link: SMALL_SHADOW,
+                node: SMALL_SHADOW,
             });
             prepareEnterpriseTestOptions(options);
 
