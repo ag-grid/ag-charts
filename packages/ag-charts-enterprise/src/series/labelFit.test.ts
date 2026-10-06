@@ -671,7 +671,7 @@ describe('series label fit', () => {
                 },
             ],
         });
-        const render = async (options: object) => {
+        const renderNarrow = async (options: object) => {
             prepareEnterpriseTestOptions(options as AgChartOptions);
             chart = deproxy(AgCharts.create({ ...options, width: 500 } as AgChartOptions));
             await waitForChartStability(chart);
@@ -683,7 +683,7 @@ describe('series label fit', () => {
         const isTruncated = (node: LabelNode) => node.text.includes(ELLIPSIS);
 
         it('truncates labels on one line at their configured size when no fit option is set', async () => {
-            await render(sankeyChart({}));
+            await renderNarrow(sankeyChart({}));
             const rendered = drawnLabels();
             expect(rendered.length).toBe(6);
             expect(rendered.every((node) => node.fontSize === FONT_SIZE && !isWrapped(node))).toBe(true);
@@ -691,12 +691,12 @@ describe('series label fit', () => {
         });
 
         it('wraps a label rather than truncating it', async () => {
-            await render(sankeyChart({ wrapping: 'on-space' }));
+            await renderNarrow(sankeyChart({ wrapping: 'on-space' }));
             expect(drawnLabels().some((node) => isWrapped(node) && !isTruncated(node))).toBe(true);
         });
 
         it('keeps every label within maxWidth', async () => {
-            await render(sankeyChart({ maxWidth: 60 }));
+            await renderNarrow(sankeyChart({ maxWidth: 60 }));
             const rendered = drawnLabels();
             expect(rendered.length).toBe(6);
             expect(rendered.every((node) => node.getBBox().width <= 60.5)).toBe(true);
@@ -704,14 +704,14 @@ describe('series label fit', () => {
         });
 
         it('truncates the lines that do not fit within maxHeight', async () => {
-            await render(sankeyChart({ maxWidth: 60, maxHeight: FONT_SIZE * 1.5 }));
+            await renderNarrow(sankeyChart({ maxWidth: 60, maxHeight: FONT_SIZE * 1.5 }));
             const rendered = drawnLabels();
             expect(rendered.some(isWrapped)).toBe(false);
             expect(rendered.some(isTruncated)).toBe(true);
         });
 
         it('hides a label that does not fit when truncate is false', async () => {
-            await render(sankeyChart({ wrapping: 'never', truncate: false }));
+            await renderNarrow(sankeyChart({ wrapping: 'never', truncate: false }));
             const rendered = drawnLabels();
             expect(rendered.length).toBeGreaterThan(0);
             expect(rendered.length).toBeLessThan(6);
@@ -719,29 +719,31 @@ describe('series label fit', () => {
         });
 
         it('shrinks a label rather than truncating it', async () => {
-            await render(sankeyChart({ wrapping: 'never', minimumFontSize: 6 }));
+            await renderNarrow(sankeyChart({ wrapping: 'never', minimumFontSize: 6 }));
             expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE && !isTruncated(node))).toBe(true);
         });
 
         it('stops shrinking at minimumFontSize and truncates from there', async () => {
-            await render(sankeyChart({ wrapping: 'never', minimumFontSize: 12 }));
+            await renderNarrow(sankeyChart({ wrapping: 'never', minimumFontSize: 12 }));
             const rendered = drawnLabels();
             expect(rendered.every((node) => node.fontSize >= 12)).toBe(true);
             expect(rendered.some((node) => node.fontSize === 12 && isTruncated(node))).toBe(true);
         });
 
         it('resolves the other fit options once one is set', async () => {
-            await render(sankeyChart({}));
+            await renderNarrow(sankeyChart({}));
             const { wrapping, truncate } = chart.series[0].options.label;
             expect([wrapping, truncate]).toEqual([undefined, undefined]);
 
             chart.destroy();
-            await render(sankeyChart({ minimumFontSize: 6 }));
+            await renderNarrow(sankeyChart({ minimumFontSize: 6 }));
             expect(chart.series[0].options.label).toMatchObject({ wrapping: 'on-space', truncate: true });
         });
 
         it('takes the fit options from the theme', async () => {
-            await render(sankeyChart({}, { overrides: { sankey: { series: { label: { wrapping: 'on-space' } } } } }));
+            await renderNarrow(
+                sankeyChart({}, { overrides: { sankey: { series: { label: { wrapping: 'on-space' } } } } })
+            );
             expect(drawnLabels().some(isWrapped)).toBe(true);
         });
 
