@@ -24,10 +24,11 @@ async function isLoadedAsNewDocument(from: string, to: string, redirectedTo?: st
     Object.assign(event, {
         from: new URL(from, origin),
         to: new URL(to, origin),
-        loader: async () => {
-            if (redirectedTo) {
+        loader: () => {
+            if (redirectedTo !== undefined) {
                 Object.assign(event, { to: new URL(redirectedTo, origin) });
             }
+            return Promise.resolve();
         },
     });
 
