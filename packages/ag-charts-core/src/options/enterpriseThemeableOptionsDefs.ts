@@ -898,8 +898,11 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         },
         label: {
             ...seriesLabelOptionsDefs,
+            ...labelCollisionFitOptionsDefs,
+            ...labelAutoFontSizeOptionsDefs,
             spacing: positiveNumber,
             textAlign,
+            verticalAlign,
         },
         ...fillOptionsDef,
         ...strokeOptionsDef,

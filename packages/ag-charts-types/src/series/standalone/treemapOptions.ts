@@ -8,6 +8,8 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
+    AgChartLabelAutoFontSizeOptions,
+    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../../chart/selectionOptions';
@@ -39,11 +41,11 @@ export interface AgTreemapSeriesTooltipRendererParams<TDatum, TContext = Context
 
 export interface AgTreemapSeriesGroupStyle extends FillOptions, StrokeOptions {}
 
-export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
-    TDatum,
-    AgTreemapSeriesLabelFormatterParams<TDatum>,
-    TContext
-> {
+export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = ContextDefault>
+    extends
+        AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>,
+        AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions {
     /** The distance between the tiles and the title. */
     spacing?: PixelSize;
     /**
@@ -52,6 +54,12 @@ export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = ContextDefa
      * Default: `'left'`
      */
     textAlign?: TextAlign;
+    /**
+     * Vertical position of the label within the group header, which grows to fit a wrapped label up to a third of the group's height.
+     *
+     * Default: `'middle'`
+     */
+    verticalAlign?: VerticalAlign;
 }
 
 export interface AgTreemapSeriesGroupLayout<TDatum, TContext = ContextDefault> {

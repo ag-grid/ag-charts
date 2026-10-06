@@ -21,13 +21,15 @@ import {
     cachedTextMeasurer,
     calcLineHeight,
     findDiscreteColorBinLabel,
+    fontWithSize,
     formatValue,
     isGradientFill,
     isNumberEqual,
     mergeDefaults,
+    resolveMinimumFontSize,
     resolveTextAlign,
     toPlainText,
-    wrapText,
+    wrapLines,
 } from 'ag-charts-core';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
@@ -37,7 +39,7 @@ import {
     HierarchySeries,
     toHierarchyHighlightString,
 } from '../hierarchy/hierarchySeries';
-import { formatLabels } from '../util/labelFormatter';
+import { formatLabels, formatSingleLabel } from '../util/labelFormatter';
 
 const { createDatumId, Rect, Group, BBox, Selection, SelectionState, Text, Transformable, getLabelStyles } =
     _ModuleSupport;
@@ -52,6 +54,15 @@ class TreemapNode extends HierarchyNode<TreemapNode> {
     secondaryLabel: LabelLayout | undefined = undefined;
     bbox: _ModuleSupport.BBox | undefined = undefined;
     padding: Padding | undefined = undefined;
+    // Layout probes the same group size repeatedly while squarifying.
+    groupTitle: { width: number; height: number; title: GroupTitle | undefined } | undefined = undefined;
+}
+
+interface GroupTitle {
+    text: NormalisedTextOrSegments;
+    fontSize: number;
+    labelHeight: number;
+    bandHeight: number;
 }
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
@@ -152,21 +163,41 @@ export class TreemapSeries extends HierarchySeries<
         return result;
     }
 
-    private groupTitleHeight(node: TreemapNode, bbox: _ModuleSupport.BBox): number | undefined {
+    private groupTitle(node: TreemapNode, bbox: _ModuleSupport.BBox): GroupTitle | undefined {
+        const { label, padding } = this.options.group;
+        const { labelValue } = node;
+        if (!label.enabled || labelValue == null) return;
+
+        const cached = node.groupTitle;
+        if (cached?.width === bbox.width && cached.height === bbox.height) return cached.title;
+
+        const title = this.fitGroupTitle(labelValue, bbox, padding);
+        node.groupTitle = { width: bbox.width, height: bbox.height, title };
+        return title;
+    }
+
+    private fitGroupTitle(labelValue: string, bbox: _ModuleSupport.BBox, padding: number): GroupTitle | undefined {
         const heightRatioThreshold = 3;
         const { label } = this.options.group;
-        const { labelValue } = node;
-        const { fontSize } = label;
+        const { fontSize, maxWidth = Infinity, maxHeight = Infinity } = label;
+        const floorFontSize = resolveMinimumFontSize(label.minimumFontSize, fontSize);
+        const heightCap = bbox.height / heightRatioThreshold;
+        if (floorFontSize > bbox.width / heightRatioThreshold || floorFontSize > heightCap) return;
 
-        if (
-            label.enabled &&
-            labelValue != null &&
-            fontSize <= bbox.width / heightRatioThreshold &&
-            fontSize <= bbox.height / heightRatioThreshold
-        ) {
-            const { height: fontHeight } = cachedTextMeasurer(label).measureLines(labelValue);
-            return Math.max(fontHeight, fontSize);
-        }
+        const props = { ...label, wrapping: label.wrapping ?? 'never', truncate: label.truncate ?? true };
+        const width = Math.min(bbox.width - 2 * padding, maxWidth);
+        // A single line at the floor size always fits within the one-third cap, as it did before fitting.
+        const floorLineHeight = cachedTextMeasurer(fontWithSize(label, floorFontSize)).lineHeight();
+        const height = Math.min(maxHeight, Math.max(heightCap, floorLineHeight));
+        const fitted = formatSingleLabel(labelValue, props, { padding: 0 }, () => ({ width, height, meta: null }));
+        if (fitted == null) return;
+
+        const [formatting] = fitted;
+        const natural = cachedTextMeasurer(label).measureLines(
+            wrapLines(labelValue, { maxWidth: width, font: label, textWrap: props.wrapping })
+        );
+        const bandHeight = Math.max(formatting.height, Math.min(natural.height, height), fontSize);
+        return { text: formatting.text, fontSize: formatting.fontSize, labelHeight: formatting.height, bandHeight };
     }
 
     private getNodePadding(node: TreemapNode, bbox: _ModuleSupport.BBox) {
@@ -181,8 +212,8 @@ export class TreemapSeries extends HierarchySeries<
             padding,
             label: { spacing },
         } = this.options.group;
-        const fontHeight = this.groupTitleHeight(node, bbox);
-        const titleHeight = fontHeight == null ? 0 : fontHeight + spacing;
+        const title = this.groupTitle(node, bbox);
+        const titleHeight = title == null ? 0 : title.bandHeight + spacing;
 
         return {
             top: padding + titleHeight,
@@ -618,6 +649,7 @@ export class TreemapSeries extends HierarchySeries<
                 secondaryLabelValue = undefined;
             }
 
+            node.groupTitle = undefined;
             node.labelValue = toPlainText(labelValue);
             node.secondaryLabelValue = toPlainText(secondaryLabelValue);
             // Image-bearing segments are preserved for leaf tiles only; group headers stay text-only (alt-text fallback).
@@ -745,23 +777,19 @@ export class TreemapSeries extends HierarchySeries<
                 return;
             } else {
                 const { padding } = group;
-                const { textAlign } = group.label;
+                const { textAlign, verticalAlign } = group.label;
 
-                const groupTitleHeight = this.groupTitleHeight(node, bbox);
-                if (groupTitleHeight == null) return;
-
-                const text = wrapText(labelValue, {
-                    maxWidth: bbox.width - 2 * padding,
-                    font: group.label,
-                    textWrap: 'never',
-                });
+                const title = this.groupTitle(node, bbox);
+                if (title == null) return;
 
                 const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = group.label;
+                const { labelHeight, bandHeight } = title;
+                const alignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
 
                 node.label = {
-                    text,
-                    fontSize: group.label.fontSize,
-                    lineHeight: calcLineHeight(group.label.fontSize),
+                    text: title.text,
+                    fontSize: title.fontSize,
+                    lineHeight: calcLineHeight(title.fontSize),
                     fontStyle,
                     fontFamily,
                     fontWeight,
@@ -769,7 +797,7 @@ export class TreemapSeries extends HierarchySeries<
                     textAlign,
                     verticalAlign: 'middle',
                     x: alignedX(bbox, padding, textAlign, this.ctx.domManager.isRtl),
-                    y: bbox.y + padding + groupTitleHeight * 0.5,
+                    y: bbox.y + padding + (bandHeight - labelHeight) * alignFactor + labelHeight * 0.5,
                 };
             }
         });

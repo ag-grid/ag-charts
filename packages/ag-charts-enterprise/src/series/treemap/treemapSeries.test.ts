@@ -764,6 +764,131 @@ describe('TreemapSeries', () => {
         });
     });
 
+    describe('group label fit', () => {
+        const groupData = (fruit = 'Fresh fruit from the orchards') => [
+            {
+                name: fruit,
+                children: [
+                    { name: 'Apples', value: 42 },
+                    { name: 'Pears', value: 30 },
+                ],
+            },
+            {
+                name: 'Vegetables',
+                children: [
+                    { name: 'Carrots', value: 36 },
+                    { name: 'Leeks', value: 24 },
+                ],
+            },
+        ];
+        const groupOptions = (label: object, data = groupData()): AgChartOptions => {
+            const options = {
+                data,
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'value', group: { label } }],
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+        const render = async (label: object, data?: object[]) => {
+            chart = deproxy(AgCharts.create(groupOptions(label, data as any)));
+            await waitForChartStability(chart);
+        };
+        const groups = () => {
+            const out: any[] = [];
+            chart.series[0].rootNode?.walk((node: any) => {
+                if (node.children.length > 0 && node.datum != null) out.push(node);
+            });
+            return out;
+        };
+
+        it('fits, shrinks and aligns group labels within their headers', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    groupOptions(
+                        { fontSize: 16, minimumFontSize: 8, maxWidth: 150, maxHeight: 30, verticalAlign: 'bottom' },
+                        [
+                            ...groupData('Fresh fruit from the orchards of the valley'),
+                            { name: 'Nuts\nand seeds', children: [{ name: 'Almonds', value: 20 }] },
+                        ]
+                    )
+                )
+            );
+            await compare();
+        });
+
+        it('renders a manual line break in the group label as separate lines', async () => {
+            await render({}, groupData('Fresh\nfruit'));
+            const [fruit, vegetables] = groups();
+            expect(fruit.label.text).toBe('Fresh\nfruit');
+            expect(fruit.padding.top).toBeGreaterThan(vegetables.padding.top);
+        });
+
+        it('wraps a group label to maxWidth', async () => {
+            await render({ maxWidth: 100 });
+            const [fruit, vegetables] = groups();
+            expect(fruit.label.text).toContain('\n');
+            expect(fruit.label.text).not.toContain('…');
+            expect(fruit.padding.top).toBeGreaterThan(vegetables.padding.top);
+        });
+
+        it('shrinks a group label before truncating it', async () => {
+            await render({ maxWidth: 100, wrapping: 'never', minimumFontSize: 6 });
+            const [fruit, vegetables] = groups();
+            expect(fruit.label.fontSize).toBeLessThan(vegetables.label.fontSize);
+            expect(fruit.label.text).not.toContain('…');
+        });
+
+        it('truncates a group label that does not fit at its minimum font size', async () => {
+            await render({ maxWidth: 60, wrapping: 'never' });
+            expect(groups()[0].label.text).toMatch(/…$/);
+        });
+
+        it('hides a group label taller than maxHeight unless alwaysShow keeps it', async () => {
+            await render({ maxHeight: 5 });
+            const [hidden] = groups();
+            expect(hidden.label).toBeUndefined();
+            expect(hidden.padding.top).toBe(chart.series[0].options.group.padding);
+
+            chart.destroy();
+            await render({ maxHeight: 5, collision: { alwaysShow: true } });
+            expect(groups()[0].label).toBeDefined();
+        });
+
+        it('aligns a truncated group label vertically within its capped header', async () => {
+            const labelY = async (verticalAlign: string) => {
+                await render({ maxHeight: 20, verticalAlign }, groupData('Fresh\nfruit'));
+                const { label, bbox, padding } = groups()[0];
+                chart.destroy();
+                return { y: label.y - bbox.y, headerBottom: padding.top };
+            };
+            const top = await labelY('top');
+            const middle = await labelY('middle');
+            const bottom = await labelY('bottom');
+            expect(top.y).toBeLessThan(middle.y);
+            expect(middle.y).toBeLessThan(bottom.y);
+            expect(bottom.headerBottom).toBe(top.headerBottom);
+            chart = undefined;
+        });
+
+        it('resolves the other group label fit options once one is set', async () => {
+            await render({});
+            const defaults = chart.series[0].options.group.label;
+            expect([defaults.wrapping, defaults.truncate, defaults.collision.alwaysShow]).toEqual([
+                undefined,
+                undefined,
+                true,
+            ]);
+
+            chart.destroy();
+            await render({ minimumFontSize: 6 });
+            expect(chart.series[0].options.group.label).toMatchObject({
+                wrapping: 'on-space',
+                truncate: true,
+                collision: { alwaysShow: false },
+            });
+        });
+    });
+
     describe('Label itemStyler', () => {
         it('should style labels via itemStyler', async () => {
             const options: AgChartOptions = {
