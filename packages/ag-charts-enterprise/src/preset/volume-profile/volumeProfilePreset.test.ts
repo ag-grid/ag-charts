@@ -102,7 +102,16 @@ describe('volumeProfilePreset', () => {
         const data = getRegularVolumeProfile().map((datum) => ({ ...datum, upVolume: datum.upVolume * 2 }));
         await chart.updateDelta({ data });
         await waitForChartStability(chart);
-        expect(levels()[0]).toMatchObject({ price: 205, upVolume: 6052217 * 2 });
+        expect(levels()[0]).toMatchObject({ price: 205, upVolume: data.find(({ price }) => price === 205)?.upVolume });
+    });
+
+    it('should regroup the profile when the up key changes', async () => {
+        chart = AgCharts.createVolumeProfileChart(prepareFinancialTestOptions({ ...volumeProfile }));
+        await waitForChartStability(chart);
+        await chart.updateDelta({ upKey: 'downVolume' });
+        await waitForChartStability(chart);
+        const { downVolume } = getRegularVolumeProfile().find(({ price }) => price === 205) ?? {};
+        expect(levels()[0]).toMatchObject({ price: 205, upVolume: downVolume, downVolume });
     });
 
     describe('with a data source', () => {
@@ -125,13 +134,14 @@ describe('volumeProfilePreset', () => {
         };
 
         const loadedRows = () => deproxy(chart).data.data.length;
+        const regularRows = getRegularVolumeProfile().length;
 
         const settleUntil = (predicate: () => boolean, description: string) =>
             waitForChartStabilityUntil(chart, predicate, description);
 
         it('should show the loaded profile', async () => {
             createWithDataSource(getRegularVolumeProfile);
-            await settleUntil(() => loadedRows() === 27, 'the load');
+            await settleUntil(() => loadedRows() === regularRows, 'the load');
             // From 135 to 205 in steps of 2.5.
             expect(levels()).toHaveLength(29);
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
@@ -142,7 +152,7 @@ describe('volumeProfilePreset', () => {
             chart = AgCharts.createVolumeProfileChart(
                 prepareFinancialTestOptions({ ...options, dataSource: instantDataSource(getRegularVolumeProfile) })
             );
-            await settleUntil(() => loadedRows() === 27, 'the load');
+            await settleUntil(() => loadedRows() === regularRows, 'the load');
             expect(levels()).toHaveLength(29);
             expectWarningsCalls().toEqual([]);
         });
@@ -150,7 +160,7 @@ describe('volumeProfilePreset', () => {
         it('should replace the profile on a later load', async () => {
             const getData = vi.fn(getRegularVolumeProfile);
             createWithDataSource(getData);
-            await settleUntil(() => loadedRows() === 27, 'the first load');
+            await settleUntil(() => loadedRows() === regularRows, 'the first load');
 
             getData.mockImplementation(() => getRegularVolumeProfile().filter(({ price }) => price >= 170));
             await chart.updateDelta({});
@@ -158,6 +168,17 @@ describe('volumeProfilePreset', () => {
             // From 170 to 205 in steps of 2.5.
             expect(levels()).toHaveLength(15);
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should keep the profile when a load groups to no levels', async () => {
+            createWithDataSource(() => [{ upVolume: 10e6, downVolume: 10e6 }], { data: getRegularVolumeProfile() });
+            let rendered: boolean | undefined;
+            deproxy(chart).ctx.eventsHub.on('data:render-verdict', (event) => (rendered = event.rendered));
+            await settleUntil(() => rendered === false, 'the load');
+            await waitForChartStability(chart);
+            // A load that renders nothing is dropped, and the chart's previous data restored.
+            expect(loadedRows()).toBe(regularRows);
+            expect(levels()).toHaveLength(29);
         });
 
         it('should infer the tick size from the loaded data', async () => {
@@ -177,7 +198,7 @@ describe('volumeProfilePreset', () => {
         it('should group the loaded data by the validated options', async () => {
             // @ts-expect-error invalid `priceKey`
             createWithDataSource(getRegularVolumeProfile, { priceKey: null, tickSize: 0 });
-            await settleUntil(() => loadedRows() === 27, 'the load');
+            await settleUntil(() => loadedRows() === regularRows, 'the load');
             // The levels of the default `priceKey` at the inferred 2.5 tick size, from 135 to 205.
             expect(levels()).toHaveLength(29);
             expectWarningsCalls().toEqual([

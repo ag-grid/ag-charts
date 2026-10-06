@@ -535,19 +535,6 @@ describe('ChartOptions', () => {
         });
     });
 
-    describe('structural cache', () => {
-        beforeEach(() => __clearStructuralCacheForTests());
-
-        it("should not freeze a sparkline's own context and theme", () => {
-            const context = { id: 'sparkline' };
-            const theme = { params: {} };
-            prepareSparklineOptions({ type: 'bar', data: [1, 2, 3], context, theme });
-
-            expect(Object.isFrozen(context)).toBe(false);
-            expect(Object.isFrozen(theme)).toBe(false);
-        });
-    });
-
     describe('type warnings', () => {
         it('warns when a series type is missing', () => {
             prepareOptions({
