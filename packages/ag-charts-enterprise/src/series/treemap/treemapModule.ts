@@ -1,5 +1,6 @@
 import { type AgTreemapSeriesOptions, VERSION } from 'ag-charts-community';
 import {
+    AUTO_SIZED_LABEL_TRUNCATE,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
@@ -87,7 +88,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'on-space',
-                    overflowStrategy: 'ellipsis',
+                    truncate: AUTO_SIZED_LABEL_TRUNCATE,
                     spacing: 2,
                 },
                 secondaryLabel: {
@@ -100,7 +101,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'never',
-                    overflowStrategy: 'ellipsis',
+                    truncate: AUTO_SIZED_LABEL_TRUNCATE,
                 },
                 fill: undefined, // Override default fill
                 fillOpacity: 1,

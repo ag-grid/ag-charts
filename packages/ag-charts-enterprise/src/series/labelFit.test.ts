@@ -5,6 +5,7 @@ import { AgCharts } from 'ag-charts-community';
 import {
     compareImageSnapshot,
     deproxy,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -28,6 +29,12 @@ describe('series label fit', () => {
     afterEach(() => {
         chart?.destroy();
     });
+
+    const render = async (options: object) => {
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        await waitForChartStability(chart);
+    };
 
     const renderAndSnapshot = async (options: object) => {
         prepareEnterpriseTestOptions(options as AgChartOptions);
@@ -193,11 +200,6 @@ describe('series label fit', () => {
             ...extra,
         });
 
-        const render = async (options: object) => {
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
-            await waitForChartStability(chart);
-        };
         type LabelNode = { visible: boolean; fontSize: number; text: string };
         const drawnLabels = (): LabelNode[] =>
             (chart.series[0].labelSelection.nodes() as LabelNode[]).filter((node) => node.visible && node.text !== '');
@@ -861,6 +863,132 @@ describe('series label fit', () => {
                     },
                 },
             ],
+        });
+    });
+    describe('tile labels (heatmap, treemap, sunburst)', () => {
+        const tileNames = [
+            'Supercalifragilistic',
+            'Antidisestablishment',
+            'Floccinaucinihilipilification',
+            'Pneumonoultramicroscopic',
+            'Hippopotomonstrosesquipedalian',
+            'Incomprehensibilities',
+        ];
+        const treemapData = [
+            { name: 'A broad tile label', value: 200 },
+            ...tileNames.map((name) => ({ name, value: 3 })),
+        ];
+        const treemapChart = (label: object, secondaryLabel?: object) => ({
+            data: treemapData.map((d) => ({ ...d, detail: 'Secondary detail text' })),
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'value',
+                    secondaryLabelKey: secondaryLabel ? 'detail' : undefined,
+                    tile: { label: { fontSize: 14, minimumFontSize: 10, ...label }, secondaryLabel },
+                },
+            ],
+        });
+        const sunburstChart = (label: object) => ({
+            data: tileNames.map((name) => ({ name: 'Group', children: tileNames.map(() => ({ name, value: 1 })) })),
+            series: [
+                {
+                    type: 'sunburst',
+                    labelKey: 'name',
+                    sizeKey: 'value',
+                    label: { fontSize: 14, minimumFontSize: 10, ...label },
+                },
+            ],
+        });
+        const heatmapChart = (label: object) => ({
+            data: tileNames.flatMap((name, x) => tileNames.map((_, y) => ({ x, y, color: x + y, name }))),
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'category', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'x',
+                    yKey: 'y',
+                    colorKey: 'color',
+                    label: { enabled: true, fontSize: 14, formatter: (p: any) => p.datum.name, ...label },
+                },
+            ],
+        });
+
+        const hierarchyLabelTexts = (): string[] => {
+            const texts: string[] = [];
+            chart.series[0].rootNode?.walk((node: any) => {
+                if (node.children.length === 0 && node.label != null) texts.push(String(node.label.text));
+            });
+            return texts;
+        };
+        const heatmapLabelTexts = (): string[] =>
+            (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: unknown }) => String(d.text));
+        const longNameShown = (texts: string[]) => tileNames.filter((name) => texts.includes(name)).length;
+
+        it.each([
+            ['treemap', treemapChart, hierarchyLabelTexts],
+            ['sunburst', sunburstChart, hierarchyLabelTexts],
+            ['heatmap', heatmapChart, heatmapLabelTexts],
+        ] as const)(
+            '%s truncates by default, hides with truncate off and keeps with alwaysShow',
+            async (_, build, texts) => {
+                await render(build({}));
+                expect(someTruncated(texts())).toBe(true);
+                const truncatedCount = texts().length;
+
+                await render(build({ truncate: false }));
+                expect(someTruncated(texts())).toBe(false);
+                expect(texts().length).toBeLessThan(truncatedCount);
+
+                await render(build({ truncate: false, collision: { alwaysShow: true } }));
+                expect(someTruncated(texts())).toBe(false);
+                expect(texts().length).toBe(truncatedCount);
+                expect(longNameShown(texts())).toBeGreaterThan(0);
+            }
+        );
+
+        it('warns on the deprecated overflowStrategy and maps `hide` onto truncate off', async () => {
+            await render(treemapChart({ overflowStrategy: 'hide' }));
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].tile.label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                ],
+              ]
+            `);
+            expect(chart.series[0].options.tile.label.truncate).toBe(false);
+            expect(someTruncated(hierarchyLabelTexts())).toBe(false);
+        });
+
+        it('renders whole, truncated, overflowing and hidden treemap labels', async () => {
+            // Mid-sized tiles truncate; the slivers are too short for a line, so `alwaysShow` keeps them
+            // overflowing; the secondary label, with `truncate` off, only shows where it fits whole.
+            const data = [
+                { name: 'A broad tile label', value: 200 },
+                ...tileNames.map((name, i) => ({ name, value: i < 3 ? 8 : 0.1 })),
+            ];
+            await renderAndSnapshot({
+                data: data.map((d) => ({ ...d, detail: 'Secondary detail text' })),
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'value',
+                        secondaryLabelKey: 'detail',
+                        tile: {
+                            label: { fontSize: 14, minimumFontSize: 10, collision: { alwaysShow: true } },
+                            secondaryLabel: { truncate: false },
+                        },
+                    },
+                ],
+            });
+            const texts = hierarchyLabelTexts();
+            expect(someTruncated(texts)).toBe(true);
+            expect(texts.length).toBe(data.length);
         });
     });
 });

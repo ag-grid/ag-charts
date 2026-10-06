@@ -32,6 +32,11 @@ interface AutoSizedSecondaryLabelOptions extends AgChartAutoSizedSecondaryLabelO
     fontSize: FontSize;
 }
 
+/** At the floor size a label truncates, or is hidden when `truncate` is off; above it, it must fit whole. */
+function overflowAtFloor(props: AgChartAutoSizedBaseLabelOptions<unknown, any>): OverflowStrategy {
+    return props.truncate ? 'ellipsis' : 'hide';
+}
+
 type FontSizeCandidate = {
     labelFontSize: number;
     secondaryLabelFontSize: number;
@@ -182,7 +187,7 @@ export function formatStackedLabels<Meta>(
                 availableHeight,
                 labelFont,
                 labelProps.wrapping,
-                allowTruncation ? labelProps.overflowStrategy : 'hide'
+                allowTruncation ? overflowAtFloor(labelProps) : 'hide'
             );
         }
 
@@ -196,7 +201,7 @@ export function formatStackedLabels<Meta>(
                 availableHeight,
                 secondaryLabelFont,
                 secondaryLabelProps.wrapping,
-                allowTruncation ? secondaryLabelProps.overflowStrategy : 'hide'
+                allowTruncation ? overflowAtFloor(secondaryLabelProps) : 'hide'
             );
         }
 
@@ -241,7 +246,7 @@ function formatSingleSegmentsLabel<Meta>(
         maxHeight: availableHeight,
         font: baseFont,
         textWrap: props.wrapping,
-        overflow: props.overflowStrategy ?? 'hide',
+        overflow: overflowAtFloor(props),
     });
 
     if (wrapped.length === 0) return;
@@ -266,7 +271,7 @@ export function formatSingleLabel<Meta>(
         fontWeight: props.fontWeight,
     };
 
-    return findLargestFittingFontSize<[LabelFormatting, Meta]>(
+    const fitted = findLargestFittingFontSize<[LabelFormatting, Meta]>(
         minimumFontSize,
         props.fontSize,
         (fontSize, allowTruncation) => {
@@ -284,7 +289,7 @@ export function formatSingleLabel<Meta>(
                 maxHeight: availableHeight,
                 font: currentFont,
                 textWrap: props.wrapping,
-                overflow: (allowTruncation ? props.overflowStrategy : null) ?? 'hide',
+                overflow: allowTruncation ? overflowAtFloor(props) : 'hide',
             });
 
             if (lines.length === 0) return;
@@ -295,6 +300,33 @@ export function formatSingleLabel<Meta>(
             return [{ width, height, text, fontSize, lineHeight }, sizeFitting.meta];
         }
     );
+    if (fitted != null || !props.collision?.alwaysShow) return fitted;
+    return formatOverflowingLabel(value, props, minimumFontSize, padding, sizeFittingHeight);
+}
+
+/**
+ * A label kept by `collision.alwaysShow` although it does not fit: drawn at its floor size, wrapped and
+ * truncated to the available width where possible, and otherwise in full, overflowing its bounds.
+ */
+function formatOverflowingLabel<Meta>(
+    value: string,
+    props: AutoSizedBaseLabelOptions,
+    fontSize: number,
+    padding: number,
+    sizeFittingHeight: SizeFittingHeightFn<Meta>
+): [LabelFormatting, Meta] {
+    const font = { fontFamily: props.fontFamily, fontStyle: props.fontStyle, fontWeight: props.fontWeight, fontSize };
+    const measurer = cachedTextMeasurer(font);
+    const lineHeight = props.lineHeight ?? measurer.lineHeight();
+    const sizeFitting = sizeFittingHeight(lineHeight + 2 * padding, true);
+    const maxWidth = sizeFitting.width - 2 * padding;
+    let lines =
+        maxWidth > 0
+            ? wrapLines(value, { maxWidth, font, textWrap: props.wrapping, overflow: overflowAtFloor(props) })
+            : [];
+    if (lines.length === 0) lines = value.split('\n');
+    const { width, height } = measurer.measureLines(lines);
+    return [{ width, height, text: lines.join('\n'), fontSize, lineHeight }, sizeFitting.meta];
 }
 
 function formatSingleAny<Meta>(

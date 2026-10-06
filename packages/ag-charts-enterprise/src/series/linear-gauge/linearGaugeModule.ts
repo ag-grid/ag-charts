@@ -1,5 +1,6 @@
 import { type AgLinearGaugePreset, VERSION } from 'ag-charts-community';
 import {
+    AUTO_SIZED_LABEL_TRUNCATE,
     FONT_SIZE,
     FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
@@ -72,7 +73,7 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             spacing: 18,
             color: { $ref: 'chartBackgroundColor' },
             wrapping: 'on-space',
-            overflowStrategy: 'ellipsis',
+            truncate: AUTO_SIZED_LABEL_TRUNCATE,
         },
         tooltip: {
             range: { $path: ['/tooltip/range', 10] },

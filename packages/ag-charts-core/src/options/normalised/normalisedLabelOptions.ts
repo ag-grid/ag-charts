@@ -10,7 +10,6 @@ import type {
     BorderOptions,
     ContextDefault,
     CssColor,
-    OverflowStrategy,
     RichFormatter,
     Styler,
     TextWrap,
@@ -84,12 +83,13 @@ export type NormalisedCollisionFreeSeriesLabelOptions<TParams = never, TDatum = 
 >;
 
 /** Label fitted to its container by shrinking the font (treemap tile, sunburst sector, heatmap cell). */
-export type NormalisedAutoSizedSecondaryLabelOptions<
-    TParams = never,
-    TDatum = any,
-> = NormalisedCollisionFreeSeriesLabelOptions<TParams, TDatum> & {
+export type NormalisedAutoSizedSecondaryLabelOptions<TParams = never, TDatum = any> = Omit<
+    NormalisedSeriesLabelOptions<TParams, TDatum>,
+    'collision' | 'truncate'
+> & {
     wrapping: TextWrap;
-    overflowStrategy: OverflowStrategy;
+    truncate: boolean;
+    collision?: AgChartLabelCollisionOptions;
     lineHeight?: number;
 };
 

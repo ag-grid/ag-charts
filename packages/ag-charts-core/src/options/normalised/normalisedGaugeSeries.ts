@@ -90,13 +90,13 @@ type GaugeLabelFormatter<TParams> = RichFormatter<AgChartLabelFormatterParams<un
 
 export type NormalisedRadialGaugeLabelOptions = Normalised<
     AgRadialGaugeLabelOptions,
-    'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'overflowStrategy' | 'spacing',
+    'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate' | 'spacing',
     { color?: CssColor; formatter?: GaugeLabelFormatter<AgRadialGaugeLabelFormatterParams> }
 >;
 
 export type NormalisedRadialGaugeSecondaryLabelOptions = Normalised<
     AgRadialGaugeSecondaryLabelOptions,
-    'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'overflowStrategy',
+    'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate',
     { color?: CssColor; formatter?: GaugeLabelFormatter<AgRadialGaugeLabelFormatterParams> }
 >;
 
@@ -187,14 +187,7 @@ export type NormalisedLinearGaugeBarOptions = Normalised<
 
 export type NormalisedLinearGaugeLabelOptions = Normalised<
     AgLinearGaugeLabelOptions,
-    | 'enabled'
-    | 'fontSize'
-    | 'fontFamily'
-    | 'wrapping'
-    | 'overflowStrategy'
-    | 'spacing'
-    | 'placement'
-    | 'avoidCollisions',
+    'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate' | 'spacing' | 'placement' | 'avoidCollisions',
     { color?: CssColor; formatter?: GaugeLabelFormatter<unknown> }
 >;
 

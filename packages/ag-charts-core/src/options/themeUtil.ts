@@ -525,6 +525,11 @@ export const LABEL_OVERFLOW_DEFAULTS: WithThemeParams<AgChartLabelFitOptions> = 
     },
 };
 
+/** `truncate` for a label auto-sized to its container: on, unless the deprecated `overflowStrategy` says `'hide'`. */
+export const AUTO_SIZED_LABEL_TRUNCATE: Operation = {
+    $isUserOption: ['./overflowStrategy', { $eq: [{ $path: './overflowStrategy' }, 'ellipsis'] }, true],
+};
+
 /** Counterpart to {@link LABEL_OVERFLOW_DEFAULTS}, assigned to `label.collision.alwaysShow` one level deeper. */
 export const LABEL_OVERFLOW_ALWAYS_SHOW: Operation = {
     $if: [

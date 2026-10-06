@@ -10,7 +10,6 @@ import type {
     AgNumericValue,
     FontStyle,
     FontWeight,
-    OverflowStrategy,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -80,6 +79,6 @@ export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum {
     fontFamily: string;
     lineHeight: number | undefined;
     wrapping: TextWrap;
-    overflowStrategy: OverflowStrategy;
+    truncate: boolean;
     formatter: NormalisedLinearGaugeLabelOptions['formatter'];
 }

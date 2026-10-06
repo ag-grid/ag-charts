@@ -82,6 +82,7 @@ import {
     constant,
     date,
     defined,
+    deprecated,
     greaterThan,
     htmlElement,
     lessThan,
@@ -908,7 +909,9 @@ export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOpt
     lineHeight: positiveNumber,
     minimumFontSize: and(positiveNumber, lessThanOrEqual('fontSize')),
     wrapping: textWrap,
-    overflowStrategy: overflowStrategy,
+    truncate: boolean,
+    collision: collisionOptionsDef,
+    overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
 };
 
 export const errorBarThemeableOptionsDefs: OptionsDefs<AgErrorBarThemeableOptions> = {
