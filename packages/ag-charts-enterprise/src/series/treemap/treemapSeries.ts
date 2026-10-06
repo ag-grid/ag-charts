@@ -186,7 +186,7 @@ export class TreemapSeries extends HierarchySeries<
 
         const props = { ...label, wrapping: label.wrapping ?? 'never', truncate: label.truncate ?? true };
         const width = Math.min(bbox.width - 2 * padding, maxWidth);
-        // A single line at the floor size always fits within the one-third cap, as it did before fitting.
+        // One line at the floor size always fits, however small the one-third cap.
         const floorLineHeight = cachedTextMeasurer(fontWithSize(label, floorFontSize)).lineHeight();
         const height = Math.min(maxHeight, Math.max(heightCap, floorLineHeight));
         const fitted = formatSingleLabel(labelValue, props, { padding: 0 }, () => ({ width, height, meta: null }));
