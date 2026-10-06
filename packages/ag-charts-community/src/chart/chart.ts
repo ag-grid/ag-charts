@@ -412,9 +412,14 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     isDataTransactionSupported() {
+        // A transaction mutates the chart's data in place, which rows derived from it wouldn't follow.
+        return this.getPresetDef()?.transformSeriesData == null;
+    }
+
+    private getPresetDef() {
         const { moduleRegistry, optionMetadata } = this.chartOptions;
-        if (optionMetadata.presetType == null) return true;
-        return moduleRegistry.getPresetModule(optionMetadata.presetType)?.dataTransactions !== false;
+        if (optionMetadata.presetType == null) return;
+        return moduleRegistry.getPresetModule(optionMetadata.presetType);
     }
 
     protected createDataSet(data: unknown[]): DataSet {
@@ -1407,7 +1412,21 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     updateData() {
-        this.ctx.eventsHub.emit('data:update', this.data);
+        this.ctx.eventsHub.emit('data:update', this.getSeriesData());
+    }
+
+    private seriesData: { source: DataSet; options: object; data: DataSet } | undefined = undefined;
+    private getSeriesData() {
+        const { data } = this;
+        const { presetOptions } = this.chartOptions;
+        const transform = this.getPresetDef()?.transformSeriesData;
+        if (transform == null || presetOptions == null) return data;
+
+        if (this.seriesData?.source !== data || this.seriesData.options !== presetOptions) {
+            const seriesData = DataSet.wrap(transform(data.data, presetOptions), this.ctx.logger);
+            this.seriesData = { source: data, options: presetOptions, data: seriesData };
+        }
+        return this.seriesData.data;
     }
 
     private _cachedData: CachedData | undefined = undefined;
@@ -1726,7 +1745,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.refreshSeriesUserVisibility(this.chartOptions, newChartOptions.seriesWithUserVisibility);
         }
 
-        const minimumUpdateType = ChartUpdateType.PERFORM_LAYOUT;
+        // The series options needn't change with the preset options their data is transformed by.
+        const seriesDataChanged = newChartOptions.presetOptions !== this.chartOptions.presetOptions;
+        const minimumUpdateType = seriesDataChanged ? ChartUpdateType.UPDATE_DATA : ChartUpdateType.PERFORM_LAYOUT;
         const deltaOptions = this.firstApply
             ? newChartOptions.processedOptions
             : newChartOptions.diffOptions(this.chartOptions);

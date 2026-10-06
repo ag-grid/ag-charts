@@ -13,6 +13,7 @@ import {
 } from 'ag-charts-core';
 import type { AgBaseFinancialPresetOptions, AgVolumeProfileChartPreset } from 'ag-charts-types';
 
+import { groupVolumeProfile } from './volumeProfile';
 import { volumeProfileChart } from './volumeProfilePreset';
 
 const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgBaseFinancialPresetOptions> = {
@@ -30,7 +31,7 @@ const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgB
     listeners: defined,
     initialState: defined,
     title: defined,
-    data: required(array),
+    data: array,
     dataIdKey: string,
     dataSource: defined,
     formatter: defined,
@@ -54,7 +55,7 @@ export const VolumeProfilePresetModule: PresetModuleDefinition<
     options: volumeProfileChartOptionsDef,
 
     create: volumeProfileChart,
-    dataTransactions: false,
+    transformSeriesData: (data, opts) => groupVolumeProfile(data, opts, opts.tickSize),
 
     baseTheme: 'ag-financial',
     themeTemplate: {
