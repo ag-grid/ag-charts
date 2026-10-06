@@ -48,6 +48,7 @@ import {
     unique,
     validate,
     visitOptionsPath,
+    without,
 } from 'ag-charts-core';
 import {
     type AgChartModule,
@@ -275,6 +276,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     optionsProcessingTime?: number;
     optionsGraph?: OptionsGraphAccessor;
     remappedAxisKeys?: Map<string, AxisID>;
+    /** The validated options, less `data`, of a preset declaring `transformSeriesData`. */
+    presetOptions?: object;
     seriesWithUserVisibility?: {
         identifiers: Set<string>;
         indices: Set<number>;
@@ -367,7 +370,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             googleFonts,
             fonts,
             optionsGraph,
-            remappedAxisKeys;
+            remappedAxisKeys,
+            presetOptions;
 
         const stopCapture = this.logger.onIssue((issue) => this.issues.push(issue));
         let rejected = false;
@@ -393,15 +397,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 deltaOptions !== undefined &&
                 ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
                 baseChartOptions != null &&
-                !dataChangedLength &&
-                !(presetDef?.dataTransactions === false && deltaOptions?.data !== undefined)
+                !dataChangedLength
             ) {
                 ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
                 themeParameters = baseChartOptions.themeParameters;
                 annotationThemes = baseChartOptions.annotationThemes;
                 // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
                 fonts = baseChartOptions.fonts;
-                // The fast path doesn't re-validate, so carry forward the issues from the previous options.
+                // The fast path doesn't re-validate, so carry forward the preset options and issues from the
+                // previous options.
+                presetOptions = baseChartOptions.presetOptions;
                 this.issues.push(...baseChartOptions.issues);
                 this.revalidated = false;
             } else {
@@ -415,6 +420,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     fonts,
                     optionsGraph,
                     remappedAxisKeys,
+                    presetOptions,
                 } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
             }
         } catch (error) {
@@ -442,6 +448,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.fonts = fonts;
         this.optionsGraph = optionsGraph;
         this.remappedAxisKeys = remappedAxisKeys;
+        this.presetOptions = presetOptions;
 
         // Capture options processing time for debug stats
         if (apiStartTime !== undefined && typeof apiStartTime === 'number' && !Number.isNaN(apiStartTime)) {
@@ -695,6 +702,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const { fonts } = fontAccumulator;
+        const clearedPresetOptions =
+            presetDef?.transformSeriesData == null || presetOptions == null
+                ? undefined
+                : without(presetOptions, ['data']);
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
@@ -729,6 +740,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             fonts,
             optionsGraph,
             remappedAxisKeys,
+            presetOptions: clearedPresetOptions,
         };
     }
 
@@ -797,6 +809,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             fonts: cached.fonts ? new Set(cached.fonts) : undefined,
             optionsGraph,
             remappedAxisKeys: cached.remappedAxisKeys,
+            // Only sparklines are cached, and they don't transform their series data.
+            presetOptions: undefined,
         };
     }
 

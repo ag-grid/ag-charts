@@ -568,6 +568,18 @@ export async function waitForChartStability<
     }
 }
 
+/** Waits for the chart to settle until `predicate` holds, e.g. for an asynchronous data source load. */
+export async function waitForChartStabilityUntil<
+    O extends AgChartOptions | AgGaugeOptions | AgFinancialChartOptions | AgSparklineOptions,
+>(chartOrProxy: ChartOrProxy<O>, predicate: () => boolean, description: string): Promise<void> {
+    for (let attempt = 0; attempt < 200; attempt++) {
+        await waitForChartStability(chartOrProxy);
+        if (predicate()) return;
+        await delay(5);
+    }
+    throw new Error(`Timed out waiting for ${description}`);
+}
+
 /**
  * Object-form axes placing category gridlines on the category centre, for asserting that bars align
  * with their gridlines (AG-17856). Spread into a chart options `axes` field.
