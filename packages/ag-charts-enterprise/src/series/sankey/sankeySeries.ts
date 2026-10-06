@@ -6,6 +6,7 @@ import {
 import {
     type CallbackParamRules,
     type DynamicContext,
+    type FontOptions,
     type NormalisedSankeySeriesLinkOptions,
     type NormalisedSankeySeriesNodeOptions,
     type NormalisedSankeySeriesNodeStyle,
@@ -349,8 +350,10 @@ export class SankeySeries extends FlowProportionSeries<
                 if (node.datum.label == null || node.datum.label === '') return acc;
                 let maxWidth = (seriesRectWidth - nodeWidth) / (maxPathLength - 1) - labelSpacing;
                 if (labelPlacement === 'center' && edgeLabelPlacement == null) maxWidth /= 2;
-                const { text, fontSize } = this.fitNodeLabel(node.datum.label, maxWidth, 'ellipsis');
-                let { width } = this.labelMeasurer(fontSize).measureLines(text);
+                const { font, hidden } = this.getLabelLayoutStyle(node.datum.size);
+                if (hidden) return acc;
+                const { text, fontSize } = this.fitNodeLabel(node.datum.label, font, maxWidth, 'ellipsis');
+                let { width } = this.labelMeasurer(font, fontSize).measureLines(text);
                 if (labelPlacement === 'center' && edgeLabelPlacement == null) width /= 2;
                 return Math.max(acc, width);
             };
@@ -610,29 +613,31 @@ export class SankeySeries extends FlowProportionSeries<
         if (node.label == null) return bottom;
 
         const {
-            label: { spacing: labelSpacing, edgePlacement: edgeLabelPlacement, fontSize, truncate },
+            label: { spacing: labelSpacing, edgePlacement: edgeLabelPlacement, truncate },
             node: { width: nodeWidth },
         } = this.options;
+        const { font, hidden } = this.getLabelLayoutStyle(node.size);
+        if (hidden) return bottom;
 
         const y = node.y + node.height / 2;
         const { x, textAlign } = this.getNodeLabelPlacement(node, leading, trailing);
 
         // A centred label sits over its own column, so a wrapped one must not reach the nodes above or below.
         const columnHeightRoom = textAlign === 'center' ? this.getColumnLabelHeightRoom(nodeGraph, node, y) : Infinity;
-        const heightRoom = Math.min(columnHeightRoom, this.getSeriesAreaLabelHeightRoom(node.label, y));
+        const heightRoom = Math.min(columnHeightRoom, this.getSeriesAreaLabelHeightRoom(node.label, font, y));
         let fitted: { text: string; fontSize?: number; room: number } | undefined;
 
         if (!leading && !trailing) {
             // A label may run past its column while nothing is in the way, but only if it fits whole.
-            const lineHeight = calcLineHeight(fontSize);
+            const lineHeight = calcLineHeight(font.fontSize);
             let halfHeight = lineHeight;
             for (let attempt = 0; attempt < 3; attempt++) {
                 const room = this.getClearLabelRoom(nodeGraph, node, x, textAlign, y - halfHeight, y + halfHeight);
-                const candidate = { ...this.fitNodeLabel(node.label, room, 'hide', heightRoom), room };
+                const candidate = { ...this.fitNodeLabel(node.label, font, room, 'hide', heightRoom), room };
                 if (candidate.text === '') break;
                 fitted = candidate;
                 if (!candidate.text.includes('\n')) break;
-                const { height } = this.labelMeasurer(candidate.fontSize).measureLines(candidate.text);
+                const { height } = this.labelMeasurer(font, candidate.fontSize).measureLines(candidate.text);
                 const wrappedHalfHeight = (height + lineHeight) / 2;
                 if (wrappedHalfHeight <= halfHeight) break;
                 halfHeight = wrappedHalfHeight;
@@ -648,13 +653,13 @@ export class SankeySeries extends FlowProportionSeries<
                     ? columnWidth - labelInset
                     : columnWidth - nodeWidth - labelSpacing * 2;
             const overflowStrategy = truncate === false ? 'hide' : 'ellipsis';
-            fitted = { ...this.fitNodeLabel(node.label, room, overflowStrategy, heightRoom), room };
+            fitted = { ...this.fitNodeLabel(node.label, font, room, overflowStrategy, heightRoom), room };
         }
 
         const { text, room } = fitted;
         if (text === '') return bottom;
 
-        const { width, height } = this.labelMeasurer(fitted.fontSize).measureLines(text);
+        const { width, height } = this.labelMeasurer(font, fitted.fontSize).measureLines(text);
         // Even a lone ellipsis can be wider than the room left, and must not be drawn over a node.
         if (width > Math.max(room, 0) + 0.5) return bottom;
 
@@ -720,14 +725,33 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     /** Height a label centred at `y` has within the series area, never less than its first line. */
-    private getSeriesAreaLabelHeightRoom(text: string, y: number) {
+    private getSeriesAreaLabelHeightRoom(text: string, font: FontOptions, y: number) {
         const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
         const room = 2 * Math.min(y, seriesRectHeight - y);
         const firstLine = text.split('\n', 1)[0];
-        return Math.max(room, this.labelMeasurer(undefined).measureLines(firstLine).height);
+        return Math.max(room, this.labelMeasurer(font, undefined).measureLines(firstLine).height);
     }
 
-    private fitNodeLabel(text: string, room: number, overflowStrategy: OverflowStrategy, heightRoom = Infinity) {
+    /** Laid out with the unhighlighted `itemStyler` result, so hovering restyles a label without reflowing it. */
+    private getLabelLayoutStyle(size: number): { font: FontOptions; hidden: boolean } {
+        const { label } = this.options;
+        if (label.itemStyler == null) return { font: label, hidden: false };
+        const style = getLabelStyles(this, undefined, this.getLabelFormatterParams(size), label, false, undefined);
+        return { font: style, hidden: !style.enabled };
+    }
+
+    private getLabelFormatterParams(size: number): RequireOptional<AgSankeySeriesLabelFormatterParams> {
+        const { fromKey, sizeKey, toKey } = this.options;
+        return { fromKey, size, sizeKey, toKey };
+    }
+
+    private fitNodeLabel(
+        text: string,
+        font: FontOptions,
+        room: number,
+        overflowStrategy: OverflowStrategy,
+        heightRoom = Infinity
+    ) {
         const { label } = this.options;
         const maxHeight = Math.min(heightRoom, label.maxHeight ?? Infinity);
         const fitted = fitLabelTextAutoSize(
@@ -739,13 +763,13 @@ export class SankeySeries extends FlowProportionSeries<
                 overflowStrategy,
                 minimumFontSize: label.minimumFontSize,
             },
-            label
+            font
         );
         return { text: toPlainText(fitted.text), fontSize: fitted.fontSize };
     }
 
-    private labelMeasurer(fontSize: number | undefined): TextMeasurer {
-        return cachedTextMeasurer(fontWithSize(this.options.label, fontSize));
+    private labelMeasurer(font: FontOptions, fontSize: number | undefined): TextMeasurer {
+        return cachedTextMeasurer(fontWithSize(font, fontSize));
     }
 
     private getNodeLabelPlacement(node: SankeyNodeDatum, leading: boolean, trailing: boolean) {
@@ -850,12 +874,7 @@ export class SankeySeries extends FlowProportionSeries<
         const activeHighlightDatum = this.getHighlightedDatum();
         opts.labelSelection.each((label, datum) => {
             const { x, y, textAlign, text, datumIndex, nodeDatum, fontSize: fittedFontSize } = datum;
-            const params: RequireOptional<AgSankeySeriesLabelFormatterParams> = {
-                fromKey: this.options.fromKey,
-                size: datum.size,
-                sizeKey: this.options.sizeKey,
-                toKey: this.options.toKey,
-            };
+            const params = this.getLabelFormatterParams(datum.size);
 
             const isHighlight = this.isLabelHighlighted(nodeDatum, activeHighlightDatum);
             const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
@@ -879,7 +898,7 @@ export class SankeySeries extends FlowProportionSeries<
             label.fill = fill;
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
-            label.fontSize = fittedFontSize == null ? fontSize : Math.min(fittedFontSize, fontSize);
+            label.fontSize = fittedFontSize ?? fontSize;
             label.fontFamily = fontFamily;
             label.textAlign = textAlign;
             label.textBaseline = 'middle';

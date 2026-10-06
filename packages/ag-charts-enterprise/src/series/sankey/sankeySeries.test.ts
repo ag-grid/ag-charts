@@ -377,13 +377,17 @@ describe('SankeySeries', () => {
             }
         });
 
-        it('draws a shrunk label no larger than the font size its itemStyler returns', async () => {
+        it('fits labels from the font size their itemStyler returns', async () => {
             const data = [
-                { from: 'Alpha source', to: 'Interior node', size: 10 },
-                { from: 'Beta source node', to: 'Interior node', size: 6 },
+                { from: 'Ann', to: 'Interior node', size: 10 },
+                { from: 'Bob Smith', to: 'Interior node', size: 6 },
+                { from: 'Carol Jones', to: 'Interior node', size: 4 },
                 { from: 'Interior node', to: 'Gamma destination', size: 16 },
+                { from: 'Interior node', to: 'Delta', size: 4 },
             ];
-            const renderFontSizes = async (label: AgSankeySeriesLabelOptions<unknown>) => {
+            const renderLabels = async (
+                label: AgSankeySeriesLabelOptions<unknown>
+            ): Promise<{ fontSize: number; width: number }[]> => {
                 chart?.destroy();
                 const options: AgStandaloneChartOptions = {
                     data,
@@ -395,16 +399,22 @@ describe('SankeySeries', () => {
                 return chart.series[0].labelSelection
                     .nodes()
                     .filter((node: any) => node.visible)
-                    .map((node: any) => node.fontSize as number);
+                    .map((node: any) => ({ fontSize: node.fontSize as number, width: node.getBBox().width as number }));
             };
             const label = { fontSize: 14, minimumFontSize: 9, maxWidth: 70, wrapping: 'never' } as const;
 
-            const unstyled = await renderFontSizes(label);
-            expect(unstyled.some((size: number) => size > 10 && size < 14)).toBe(true);
+            const unstyled = await renderLabels(label);
+            expect(unstyled.some(({ fontSize }) => fontSize > 10 && fontSize < 14)).toBe(true);
 
-            const styled = await renderFontSizes({ ...label, itemStyler: () => ({ fontSize: 10 }) });
-            expect(styled.length).toBeGreaterThan(0);
-            expect(styled.every((size: number) => size <= 10)).toBe(true);
+            const smaller = await renderLabels({ ...label, itemStyler: () => ({ fontSize: 10 }) });
+            expect(smaller.length).toBeGreaterThan(0);
+            expect(smaller.every(({ fontSize }) => fontSize <= 10)).toBe(true);
+
+            const larger = await renderLabels({ ...label, itemStyler: () => ({ fontSize: 20 }) });
+            expect(larger.some(({ fontSize }) => fontSize > 14)).toBe(true);
+            for (const { fontSize, width } of larger) {
+                expect(width, `${fontSize}px label`).toBeLessThanOrEqual(70.5);
+            }
         });
     });
 
