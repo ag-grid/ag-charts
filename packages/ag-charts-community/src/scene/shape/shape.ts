@@ -214,6 +214,17 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return new Image(this.imageLoader, fill);
     }
 
+    /** The alpha of {@link _alphaFill}, so a spread shadow doesn't re-parse an unchanged fill on every render. */
+    private _alphaFill?: ShapeColor;
+    private _fillAlpha: number = 1;
+    private getFillAlpha(fill: ShapeColor): number {
+        if (fill !== this._alphaFill) {
+            this._alphaFill = fill;
+            this._fillAlpha = colourAlpha(fill);
+        }
+        return this._fillAlpha;
+    }
+
     private _cachedFill?: ShapeColor;
     protected onFillChange() {
         if (typeof this.fill === 'object') {
@@ -521,7 +532,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const { x, y, width, height, maxWidth, maxHeight } = spreadRegion;
 
         const fillAlpha =
-            mode === 'stroke' || fill == null || fill === 'none' || fillOpacity <= 0 ? 0 : colourAlpha(fill);
+            mode === 'stroke' || fill == null || fill === 'none' || fillOpacity <= 0 ? 0 : this.getFillAlpha(fill);
         const drawsFill = fillAlpha > 0;
         const drawsStroke = mode !== 'fill' && this.hasVisibleStroke();
         const extrasOpacity = mode === 'fill' ? 0 : this.getSilhouetteExtrasOpacity();
@@ -553,9 +564,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         // The dilation is always solid, and an open stroke is capped so that its ends spread too.
         const lineCap = this.__lineCap;
-        scratch.lineCap = lineCap == null || lineCap === 'butt' ? 'square' : lineCap;
         if (mode === 'fill') {
             scratch.lineCap = 'round';
+        } else {
+            scratch.lineCap = lineCap == null || lineCap === 'butt' ? 'square' : lineCap;
         }
         scratch.lineJoin = drawsStroke ? (this.__lineJoin ?? 'miter') : 'miter';
         scratch.miterLimit = drawsStroke ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
