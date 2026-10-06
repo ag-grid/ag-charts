@@ -5,6 +5,7 @@ import type {
     AgChartOptions,
     AgOrganizationSeriesOptions,
     AgOrganizationSeriesOptionsNodeImagePosition,
+    AgOrganizationSeriesNodeTextStyle,
     AgStandaloneChartOptions,
     TextAlign,
 } from 'ag-charts-community';
@@ -2948,6 +2949,83 @@ describe('OrganizationSeries', () => {
                 labels: [{ key: 'location', padding: { top: 100, bottom: 100 }, fill: 'red' }],
             });
             expect(boxed.find((t) => t.id === 'ceo')!.labels).toEqual(['']);
+        });
+
+        it('should fit wrapping: never text to a configured maxHeight', async () => {
+            const node: OrgNodeOptions = { ...BASE_NODE, maxWidth: undefined, maxHeight: 40 };
+            const { texts: hidden } = await render({
+                ...node,
+                labels: [{ key: 'location', wrapping: 'never', truncate: false }],
+            });
+            expect(hidden.find((t) => t.id === 'ceo')!.labels).toEqual(['']);
+
+            const { texts: kept } = await render({
+                ...node,
+                labels: [{ key: 'location', wrapping: 'never', truncate: false, collision: { alwaysShow: true } }],
+            });
+            expect(kept.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
+
+            const multiline = [{ id: 'ceo', name: 'First line\nSecond line\nThird line', parentId: null }];
+            const { texts: truncated } = await render(
+                { maxHeight: 40, title: { key: 'name', wrapping: 'never' }, subtitle: { enabled: false } },
+                {},
+                multiline
+            );
+            expect(titleOf(truncated)).toBe('First line…');
+        });
+
+        // One chart per budget, each node rendering a different fit configuration through the text stylers.
+        type FitVariant = Pick<AgOrganizationSeriesNodeTextStyle, 'truncate' | 'collision' | 'wrapping'>;
+        const renderFitVariants = async (variants: Record<string, FitVariant>, node: OrgNodeOptions, data: object) => {
+            const variantStyler = ({ datum }: { datum: { name: string } }) => variants[datum.name];
+            const options: AgChartOptions = {
+                data: Object.keys(variants).map((name, i) => ({ id: i, name, parentId: i === 0 ? null : 0, ...data })),
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            ...node,
+                            title: { key: 'name' },
+                            subtitle: { key: 'job', itemStyler: variantStyler },
+                            labels: [{ key: 'location', itemStyler: variantStyler }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        };
+
+        it('should render each width fit option in a node with a configured maxWidth', async () => {
+            await renderFitVariants(
+                {
+                    default: {},
+                    'truncate: false': { truncate: false },
+                    'alwaysShow: true': { truncate: false, collision: { alwaysShow: true } },
+                    "wrapping: 'never'": { wrapping: 'never' },
+                    'threshold: 30': { collision: { threshold: 30 } },
+                    'threshold: -30': { collision: { threshold: -30 } },
+                },
+                { maxWidth: 120 },
+                { job: 'Supercalifragilisticexpialidocious Officer', location: 'Edinburgh and the Lothians' }
+            );
+        });
+
+        it('should render each height fit option in a node with a configured maxHeight', async () => {
+            await renderFitVariants(
+                {
+                    default: {},
+                    'no truncate': { truncate: false },
+                    alwaysShow: { truncate: false, collision: { alwaysShow: true } },
+                    'never wrap': { wrapping: 'never' },
+                    'threshold: 15': { collision: { threshold: 15 } },
+                },
+                { maxWidth: 120, maxHeight: 100 },
+                { job: 'Head of IT', location: 'London\nEdinburgh\nManchester\nGlasgow\nCardiff' }
+            );
         });
     });
 
