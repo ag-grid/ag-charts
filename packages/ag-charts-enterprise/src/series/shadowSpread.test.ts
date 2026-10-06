@@ -488,6 +488,27 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
             expect(rowPixels()).toEqual(unspreadRow);
             expect(columnPixels()).toEqual(unspreadColumn);
         });
+
+        it('should not create a scratch canvas for each width the region has while the shape is panned', () => {
+            // The left edge crosses the blur margin (shadow offset 30 plus a reach of 12) one pixel per frame, so the
+            // region is a different width each time, all of them wider than the 400px canvas.
+            const pan = (left: number) => {
+                const node = new _Scene.Path();
+                Object.assign(node, { fill: 'black', stroke: undefined, strokeWidth: 0, shadowMode });
+                node.fillShadow = { ...SHADOW, spread: 4 };
+                node.path.rect(left, 60, 800, 40);
+                return node;
+            };
+
+            render(pan(-60));
+            const before = new Set(canvasCtx.getActiveOffscreenCanvasInstances());
+            for (let left = -60; left <= -30; left++) {
+                render(pan(left));
+            }
+
+            const created = canvasCtx.getActiveOffscreenCanvasInstances().filter((canvas) => !before.has(canvas));
+            expect(created.length).toBeLessThanOrEqual(2);
+        });
     });
 });
 

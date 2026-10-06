@@ -50,6 +50,36 @@ describe('spread scratch canvases', () => {
             expect(canvas.height).toBe(100);
             releaseSpreadCanvas(ctx);
         });
+
+        it('should give every region wider or taller than the layer, up to the blur margin, one canvas', () => {
+            // A 200 x 100 layer with a blur reach of 15 on each side: a region spans at most 230 x 130. The next power of
+            // two (256) is past the maximum on both axes of the wide case, so every size maps to the maximum.
+            const first = getSpreadCanvas(ctx, 201, 20, 230, 130);
+            expect(first.canvas.width).toBe(230);
+            for (let width = 201; width <= 230; width++) {
+                expect(getSpreadCanvas(ctx, width, 20, 230, 130)).toBe(first);
+            }
+
+            const tall = getSpreadCanvas(ctx, 20, 129, 230, 130);
+            expect(tall.canvas.height).toBe(130);
+            for (let height = 129; height <= 130; height++) {
+                expect(getSpreadCanvas(ctx, 20, height, 230, 130)).toBe(tall);
+            }
+            releaseSpreadCanvas(ctx);
+        });
+
+        it('should keep the canvases of regions at and beyond the layer size to a handful', () => {
+            const seen = new Set<OffscreenCanvas>();
+            for (let width = 100; width <= 230; width++) {
+                for (let height = 50; height <= 130; height += 5) {
+                    seen.add(getSpreadCanvas(ctx, width, height, 230, 130).canvas);
+                }
+            }
+
+            // At most the 64, 128 and capped classes per axis, however many distinct sizes were asked for.
+            expect(seen.size).toBeLessThanOrEqual(3 * 3);
+            releaseSpreadCanvas(ctx);
+        });
     });
 
     describe('releaseSpreadCanvas', () => {
