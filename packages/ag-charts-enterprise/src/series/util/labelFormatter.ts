@@ -408,13 +408,13 @@ function formatStackedAnyLabels<Meta>(
     const [label] = labelFormatted;
 
     const remainingHeight = availableHeight - label.height;
-    if (remainingHeight <= 0) return labelOnly(label);
+    if (remainingHeight <= 0 && !secondaryLabelProps.collision?.alwaysShow) return labelOnly(label);
 
     const secondaryFormatted = formatSingleAny(
         secondaryLabelValue,
         secondaryLabelProps,
         layoutParams,
-        fixedFitting(sizeFitting.width, remainingHeight, padding, sizeFitting.meta)
+        fixedFitting(sizeFitting.width, Math.max(0, remainingHeight), padding, sizeFitting.meta)
     );
     if (secondaryFormatted == null) return labelOnly(label);
     const [secondaryLabel] = secondaryFormatted;

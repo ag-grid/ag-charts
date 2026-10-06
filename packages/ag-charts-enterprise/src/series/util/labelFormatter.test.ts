@@ -392,5 +392,29 @@ describe('label formatter', () => {
             expect(format(false)).toBe(undefined);
             expect(format(true)!.label!.width).toBeGreaterThan(20);
         });
+
+        it('keeps an alwaysShow secondary label beneath a segments primary that fills the height', () => {
+            const label = {
+                enabled: true,
+                fontFamily: 'Verdana',
+                fontSize: 20,
+                minimumFontSize: 10,
+                wrapping: 'never',
+                truncate: false,
+                spacing: 10,
+                collision: { alwaysShow: true },
+            } as const;
+            const output = formatLabels(
+                [{ text: 'Tall', fontSize: 60 }],
+                label,
+                'World',
+                label,
+                { padding: 10 },
+                () => ({ width: 200, height: 60, meta: undefined })
+            );
+
+            expect(output!.label).not.toBe(undefined);
+            expect(output!.secondaryLabel).not.toBe(undefined);
+        });
     });
 });
