@@ -878,5 +878,75 @@ describe('Crosshair', () => {
                 expectLabels({ hidden: [], shown: ['x', 'y'] });
             });
         });
+
+        describe('AG-18186 pointer dragged out of the series area', () => {
+            // While a drag holds the pointer, it keeps reporting positions outside the series area; a crosshair
+            // must hide on the axis the pointer has left rather than follow it into the chart padding.
+            const crosshairLine = (direction: 'x' | 'y') => {
+                const axis = (deproxy(chart) as any).axes.find((a: any) => a.direction === direction);
+                const crosshair = axis.getModuleMap().getModule('crosshair');
+                const [line] = crosshair.lineGroupSelection.nodes();
+                return { visible: crosshair.crosshairGroup.visible && line.visible, y: line.y1 };
+            };
+
+            const seriesRect = () => (deproxy(chart) as any).seriesRect;
+
+            const dragTo = async (x: number, y: number) => {
+                await hoverAction(x, y)(chart);
+                await waitForChartStability(chart);
+            };
+
+            // The first move out also leaves the bounds element, so take a second step to assert the drag itself.
+            const dragOut = async (x: number, y: number, dx: number, dy: number) => {
+                await dragTo(x, y);
+                await dragTo(x + dx, y + dy);
+            };
+
+            const startDrag = async (annotation: object) => {
+                await createChart(annotation, false);
+                const from = toCanvas(5, 5);
+                await hoverAction(from.x, from.y)(chart);
+                await mouseDownAction(from.x, from.y)(chart);
+                await dragTo(from.x, from.y - 10);
+                return from;
+            };
+
+            it.each([
+                ['horizontal line', { type: 'horizontal-line', value: 5 }],
+                ['vertical line', { type: 'vertical-line', value: 5 }],
+            ])('hides the y crosshair while a %s is dragged above or below the series area', async (_n, annotation) => {
+                const from = await startDrag(annotation);
+                expect(crosshairLine('y').visible, 'inside').toBe(true);
+
+                const rect = seriesRect();
+                await dragOut(from.x, rect.y - 20, 0, -20);
+                expect(crosshairLine('y').visible, 'above').toBe(false);
+                expect(visibleLabels('y'), 'y label above').toBe(0);
+
+                await dragOut(from.x, rect.y + rect.height + 20, 0, 20);
+                expect(crosshairLine('y').visible, 'below').toBe(false);
+                expect(visibleLabels('y'), 'y label below').toBe(0);
+
+                // Back inside, the crosshair follows the pointer again.
+                await dragTo(from.x, from.y);
+                const line = crosshairLine('y');
+                expect(line.visible, 'back inside').toBe(true);
+                expect(line.y).toBeCloseTo(from.y - rect.y, 0);
+            });
+
+            it('hides the x crosshair while a vertical line is dragged past the left or right edge', async () => {
+                const from = await startDrag({ type: 'vertical-line', value: 5 });
+                expect(crosshairLine('x').visible, 'inside').toBe(true);
+
+                const rect = seriesRect();
+                await dragOut(rect.x - 20, from.y, -20, 0);
+                expect(crosshairLine('x').visible, 'left').toBe(false);
+                expect(visibleLabels('x'), 'x label left').toBe(0);
+
+                await dragOut(rect.x + rect.width + 20, from.y, 20, 0);
+                expect(crosshairLine('x').visible, 'right').toBe(false);
+                expect(visibleLabels('x'), 'x label right').toBe(0);
+            });
+        });
     });
 });
