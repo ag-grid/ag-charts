@@ -242,16 +242,16 @@ describe('SankeySeries', () => {
         });
     });
 
-    describe('label placement', () => {
-        const placementOptions = {
-            default: { label: { placement: undefined, edgePlacement: undefined } },
-            left: { label: { placement: 'left' as const, edgePlacement: undefined } },
-            right: { label: { placement: 'right' as const, edgePlacement: undefined } },
-            center: { label: { placement: 'center' as const, edgePlacement: undefined } },
-            inside: { label: { placement: 'right' as const, edgePlacement: 'inside' as const } },
-            outside: { label: { placement: 'right' as const, edgePlacement: 'outside' as const } },
-        };
+    const placementOptions = {
+        default: { label: { placement: undefined, edgePlacement: undefined } },
+        left: { label: { placement: 'left' as const, edgePlacement: undefined } },
+        right: { label: { placement: 'right' as const, edgePlacement: undefined } },
+        center: { label: { placement: 'center' as const, edgePlacement: undefined } },
+        inside: { label: { placement: 'right' as const, edgePlacement: 'inside' as const } },
+        outside: { label: { placement: 'right' as const, edgePlacement: 'outside' as const } },
+    };
 
+    describe('label placement', () => {
         it.each(Object.entries(placementOptions))('%s', async (_placement, defaultOptions) => {
             const options: AgStandaloneChartOptions = {
                 data: [
@@ -275,6 +275,46 @@ describe('SankeySeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+    });
+
+    describe('label truncation', () => {
+        const longLabels = [
+            { from: 'Alpha source with a long name', to: 'An interior node with a very long label', size: 10 },
+            { from: 'Beta', to: 'Another long interior label here', size: 6 },
+            { from: 'An interior node with a very long label', to: 'Gamma destination', size: 10 },
+            { from: 'Another long interior label here', to: 'Gamma destination', size: 6 },
+            { from: 'Gamma destination', to: 'Delta end of the long flow', size: 16 },
+        ];
+
+        it.each(Object.entries(placementOptions))(
+            'keeps %s labels, ellipsis included, clear of neighbouring nodes',
+            async (_placement, placementOption) => {
+                const options: AgStandaloneChartOptions = {
+                    data: longLabels,
+                    series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', ...placementOption }],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create({ ...options, width: 500 }));
+                await waitForChartStability(chart);
+
+                const series = chart.series[0];
+                const spacing = series.options.label.spacing;
+                const nodes = series.contextNodeData.nodeData.filter(
+                    (datum: any) => datum.type === FlowProportionDatumType.Node
+                );
+                const labels = series.labelSelection.nodes().filter((label: any) => label.visible);
+                expect(labels.some((label: any) => label.text.includes('…'))).toBe(true);
+                for (const label of labels) {
+                    const box = label.getBBox();
+                    for (const node of nodes) {
+                        if (node === label.datum.nodeDatum) continue;
+                        if (box.y >= node.y + node.height || box.y + box.height <= node.y) continue;
+                        const gap = Math.max(node.x - (box.x + box.width), box.x - (node.x + node.width));
+                        expect(gap, `"${label.text}" against node "${node.id}"`).toBeGreaterThanOrEqual(spacing - 0.5);
+                    }
+                }
+            }
+        );
     });
 
     describe('node cornerRadius', () => {

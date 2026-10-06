@@ -6,6 +6,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
     SERIES_SELECTION_THEME,
     SHADOW_THEME_DEFAULTS,
@@ -48,6 +49,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
             tooltip: { interaction: { enabled: false } },
             label: {
                 ...LABEL_BOXING_DEFAULTS,
+                ...LABEL_OVERFLOW_DEFAULTS,
                 enabled: true,
                 ...FONT_THEME_DEFAULTS,
                 color: { $ref: 'textColor' },

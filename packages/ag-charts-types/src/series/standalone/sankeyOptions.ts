@@ -1,6 +1,10 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelAutoFontSizeOptions,
+    AgChartLabelFitOptions,
+    AgChartLabelOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -81,11 +85,11 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
-    TDatum,
-    AgSankeySeriesLabelFormatterParams<TDatum>,
-    TContext
-> {
+export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault>
+    extends
+        AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>, TContext>,
+        AgChartLabelFitOptions,
+        AgChartLabelAutoFontSizeOptions {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
     /** Placement of a label relative to its node. */
