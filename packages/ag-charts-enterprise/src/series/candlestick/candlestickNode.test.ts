@@ -93,6 +93,23 @@ describe('CandlestickNode', () => {
             expect(pixelAt(canvasCtx, 100, 5)).toEqual([255, 255, 255, 255]);
         });
 
+        it('should not spread the shadow of wicks that share the body path and are not painted', () => {
+            const node = candlestick({ strokeOpacity: 0, fillShadow: { ...RED_SHADOW, spread: 10 } });
+            renderNode(canvasCtx, node);
+
+            // The wicks are in the body's path, but with no stroke only the body is painted, so only it casts.
+            expect(node['wickPath'].isEmpty()).toBe(true);
+            for (const [x, y] of [
+                [100, 15],
+                [100, 185],
+                [104, 50],
+            ]) {
+                expect(pixelAt(canvasCtx, x, y)).toEqual([255, 255, 255, 255]);
+            }
+            // Beside the body (80 to 120), its shadow does reach 10 past the edge.
+            expect(pixelAt(canvasCtx, 100, 75)).toEqual([255, 0, 0, 255]);
+        });
+
         it.each([
             ['a wick stroke opacity of 0', { wickStrokeOpacity: 0 }],
             ['a wick stroke width of 0', { wickStrokeWidth: 0 }],

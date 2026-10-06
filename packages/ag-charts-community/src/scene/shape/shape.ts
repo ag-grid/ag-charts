@@ -597,7 +597,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 this.shadowStrokeGrowth = 0;
             }
         } else if (drawsFill) {
-            scratch.stroke(path);
+            this.dilateFill(scratch, path);
         }
         if (mode !== 'fill') {
             this.dilateSilhouetteExtras(scratch, spread * 2);
@@ -611,6 +611,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.globalAlpha = strength;
         ctx.drawImage(canvas, 0, 0, width, height, x - distance, y, width, height);
         ctx.restore();
+    }
+
+    /** Strokes the filled geometry as a solid line, to dilate it. Open subpaths the fill does not paint are skipped. */
+    protected dilateFill(ctx: CanvasContext, path: Path2D) {
+        ctx.stroke(path);
     }
 
     /** Draws strokes the shape paints apart from its main path, so the silhouette pre-pass casts them too. */
