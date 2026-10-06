@@ -108,8 +108,9 @@ function setSpreadRegion(): boolean {
     const top = Math.floor(canvasHeight == null ? minY : Math.max(minY, -shadowY - blurReach));
     const right = Math.ceil(canvasWidth == null ? maxX : Math.min(maxX, canvasWidth - shadowX + blurReach));
     const bottom = Math.ceil(canvasHeight == null ? maxY : Math.min(maxY, canvasHeight - shadowY + blurReach));
-    const width = Math.min(right - left, canvasWidth ?? Infinity);
-    const height = Math.min(bottom - top, canvasHeight ?? Infinity);
+    // Not capped to the canvas: the region can be `2 × blurReach` larger, so the blurred edge falls off the canvas.
+    const width = right - left;
+    const height = bottom - top;
     if (!(isFiniteNumber(width) && isFiniteNumber(height) && width > 0 && height > 0)) return false;
 
     spreadRegion.x = left;
