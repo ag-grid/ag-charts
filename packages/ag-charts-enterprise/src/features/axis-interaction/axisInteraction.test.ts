@@ -5,16 +5,18 @@
 import { vi } from 'vitest';
 
 import type { AgCartesianChartOptions } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     Chart,
     clickAction,
+    deproxy,
     doubleClickAction,
     setupMockCanvas,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { closeToBigInt, closeToDate, setupMockConsole } from 'ag-charts-test';
+import { closeToBigInt, closeToDate, expectWarningsCalls, setupMockConsole } from 'ag-charts-test';
 
-import { createEnterpriseChart } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 function measureXGridLines(): [number, number, number, number] | undefined {
     const elem = document.querySelector('.ag-charts-series-area-bounds');
@@ -956,6 +958,149 @@ describe('AxisInteraction', () => {
             expect(proxies.some((el) => (el as HTMLElement).role === 'region')).toBe(true);
             expect(chartClick).not.toHaveBeenCalled();
             expect(chartDoubleClick).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('axis region aria-label', () => {
+        const DATA = [
+            { x: 1, y: 1, y2: 5 },
+            { x: 2, y: 2, y2: 6 },
+        ];
+
+        const regionLabels = () =>
+            Array.from(document.querySelectorAll('.ag-charts-proxy-elem'))
+                .filter((el) => (el as HTMLElement).role === 'region')
+                .map((el) => el.getAttribute('aria-label'))
+                .sort();
+
+        const lineOptions = (axes?: AgCartesianChartOptions['axes'], series?: AgCartesianChartOptions['series']) =>
+            ({
+                data: DATA,
+                ...(axes ? { axes } : {}),
+                series: series ?? [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            }) as AgCartesianChartOptions;
+
+        const twoYSeries: AgCartesianChartOptions['series'] = [
+            { type: 'line', xKey: 'x', yKey: 'y' },
+            { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'y2' },
+        ];
+
+        // Creates through the public API so that the test can also drive `update` on the same instance.
+        async function create(options: AgCartesianChartOptions) {
+            prepareEnterpriseTestOptions(options);
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+            return proxy;
+        }
+
+        async function update(proxy: ReturnType<typeof AgCharts.create>, options: AgCartesianChartOptions) {
+            prepareEnterpriseTestOptions(options);
+            await proxy.update(options);
+            await waitForChartStability(chart);
+        }
+
+        test('defaults to the axis keys when no axes are configured', async () => {
+            await create(lineOptions());
+            expect(regionLabels()).toEqual(expect.arrayContaining(['x', 'y']));
+        });
+
+        test('uses the axis title text', async () => {
+            await create(
+                lineOptions({
+                    x: { type: 'number', title: { text: 'Time' } },
+                    y: { type: 'number', title: { text: 'Price' } },
+                })
+            );
+            expect(regionLabels()).toEqual(['Price', 'Time']);
+        });
+
+        test('ariaLabel wins over the title', async () => {
+            await create(
+                lineOptions({
+                    x: { type: 'number', ariaLabel: 'Horizontal', title: { text: 'Time' } },
+                    y: { type: 'number', title: { text: 'Price' } },
+                })
+            );
+            expect(regionLabels()).toEqual(['Horizontal', 'Price']);
+        });
+
+        test('a disabled title falls back to the axis key', async () => {
+            await create(
+                lineOptions({
+                    x: { type: 'number', title: { enabled: false, text: 'Time' } },
+                    y: { type: 'number', title: { enabled: true, text: 'Price' } },
+                })
+            );
+            expect(regionLabels()).toEqual(['Price', 'x']);
+        });
+
+        test('a secondary axis is labelled with its key, never the internal id', async () => {
+            await create(
+                lineOptions(
+                    {
+                        x: { type: 'number' },
+                        y: { type: 'number' },
+                        y2: { type: 'number', position: 'right' },
+                    },
+                    twoYSeries
+                )
+            );
+            const labels = regionLabels();
+            expect(labels).toEqual(['x', 'y', 'y2']);
+            expect(labels.some((l) => l?.startsWith('__AXIS_ID_'))).toBe(false);
+        });
+
+        test('follows a title change on update', async () => {
+            const axes = (text: string): AgCartesianChartOptions['axes'] => ({
+                x: { type: 'number' },
+                y: { type: 'number', title: { text } },
+            });
+            const proxy = await create(lineOptions(axes('Before')));
+            expect(regionLabels()).toEqual(['Before', 'x']);
+
+            await update(proxy, lineOptions(axes('After')));
+            expect(regionLabels()).toEqual(['After', 'x']);
+        });
+
+        test('an explicit ariaLabel is unaffected by a title change', async () => {
+            const axes = (text: string): AgCartesianChartOptions['axes'] => ({
+                x: { type: 'number' },
+                y: { type: 'number', ariaLabel: 'Fixed', title: { text } },
+            });
+            const proxy = await create(lineOptions(axes('Before')));
+            expect(regionLabels()).toEqual(['Fixed', 'x']);
+
+            await update(proxy, lineOptions(axes('After')));
+            expect(regionLabels()).toEqual(['Fixed', 'x']);
+        });
+
+        test('axes sharing a title are disambiguated by key', async () => {
+            await create(
+                lineOptions(
+                    {
+                        x: { type: 'number' },
+                        y: { type: 'number', title: { text: 'Value' } },
+                        y2: { type: 'number', position: 'right', title: { text: 'Value' } },
+                    },
+                    twoYSeries
+                )
+            );
+            expect(regionLabels()).toEqual(['Value (y)', 'Value (y2)', 'x']);
+        });
+
+        test('identical explicit ariaLabels are kept and warned about', async () => {
+            const options = lineOptions(
+                {
+                    x: { type: 'number' },
+                    y: { type: 'number', ariaLabel: 'Same' },
+                    y2: { type: 'number', position: 'right', ariaLabel: 'Same' },
+                },
+                twoYSeries
+            );
+            await create(options);
+            expect(regionLabels()).toEqual(['Same', 'Same', 'x']);
+            expectWarningsCalls().toEqual([[expect.stringContaining('[ariaLabel]')]]);
         });
     });
 });
