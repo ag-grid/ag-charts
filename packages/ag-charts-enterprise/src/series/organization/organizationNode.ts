@@ -4,6 +4,8 @@ import {
     type NormalisedPaddingOptions,
     type NormalisedTextOrSegments,
     type WrapOptions,
+    cachedTextMeasurer,
+    clipLines,
     isArray,
     resolveTextAlign,
     toTextString,
@@ -111,7 +113,11 @@ function wrapTextTier(
         textWrap: tierStyles.wrapping,
         overflow: tierStyles.truncate ? 'ellipsis' : 'hide',
     };
-    const wrapped = wrapTextOrSegments(text, options);
+    let wrapped = wrapTextOrSegments(text, options);
+    if (options.maxHeight != null && options.textWrap === 'never' && !isArray(wrapped)) {
+        // The wrapper's 'never' path only fits the width, so apply the height limit to its lines here.
+        wrapped = clipLines(wrapped.split('\n'), cachedTextMeasurer(tierStyles), options).join('\n');
+    }
     if (!collision.alwaysShow || hasVisibleContent(wrapped) || !hasVisibleContent(text)) return wrapped;
 
     // Keep text that does not fit at all: wrap it to the width and leave the card clip to bound it.
