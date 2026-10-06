@@ -162,10 +162,21 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
 
     protected override dilateSilhouetteExtras(ctx: _ModuleSupport.CanvasContext, growth: number) {
         const { wickPath, strokeWidth, __wickStrokeWidth: wickStrokeWidth = strokeWidth } = this;
-        if (wickPath.isEmpty() || wickStrokeWidth === 0) return;
+        if (this.getSilhouetteExtrasOpacity() <= 0) return;
 
         ctx.lineWidth = wickStrokeWidth + growth;
         ctx.stroke(wickPath.getPath2D());
+    }
+
+    protected override getSilhouetteExtrasOpacity(): number {
+        const { wickPath, stroke, strokeWidth, strokeOpacity, __wickStroke: wickStroke = stroke } = this;
+        const {
+            __wickStrokeWidth: wickStrokeWidth = strokeWidth,
+            __wickStrokeOpacity: wickStrokeOpacity = strokeOpacity,
+        } = this;
+        // A wick casts a shadow only where `strokeWicks` paints it.
+        if (wickPath.isEmpty() || wickStrokeWidth === 0 || wickStroke === 'none') return 0;
+        return Math.max(0, wickStrokeOpacity);
     }
 
     private strokeWicks(ctx: _ModuleSupport.CanvasContext) {

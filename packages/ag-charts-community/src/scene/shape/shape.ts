@@ -524,7 +524,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             mode === 'stroke' || fill == null || fill === 'none' || fillOpacity <= 0 ? 0 : colourAlpha(fill);
         const drawsFill = fillAlpha > 0;
         const drawsStroke = mode !== 'fill' && this.hasVisibleStroke();
-        if (!drawsFill && !drawsStroke && mode !== 'silhouette') return;
+        const extrasOpacity = mode === 'fill' ? 0 : this.getSilhouetteExtrasOpacity();
+        if (!drawsFill && !drawsStroke && extrasOpacity <= 0) return;
 
         // The shadow is as strong as what casts it, as it is without a spread.
         const globalAlpha = ctx.globalAlpha;
@@ -535,9 +536,12 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         } else if (drawsStroke) {
             this.applyStrokeAndAlpha(ctx, bboxOverride);
             strength = colourAlpha(this.__stroke);
+        } else {
+            strength = extrasOpacity * (this.__opacity ?? 1);
         }
         strength *= ctx.globalAlpha;
         ctx.globalAlpha = globalAlpha;
+        if (strength <= 0) return;
 
         const { canvas, context: scratch } = getSpreadCanvas(ctx, width, height, maxWidth, maxHeight);
         scratch.setTransform(1, 0, 0, 1, 0, 0);
@@ -592,6 +596,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /** Strokes the paths the shape paints apart from its main one as a solid line `growth` wider, to dilate the shadow. */
     protected dilateSilhouetteExtras(_ctx: CanvasContext, _growth: number) {
         // Nothing to do by default.
+    }
+
+    /** The opacity the shape strokes its extra paths with, or 0 when it paints none, so they cast no shadow. */
+    protected getSilhouetteExtrasOpacity(): number {
+        return 0;
     }
 
     /** The widest stroke cast into the silhouette shadow, which the shape's off-canvas pre-pass has to clear. */
