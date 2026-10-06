@@ -4,6 +4,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgPolarChartOptions,
+    AgSankeySeriesLabelOptions,
     AgSankeySeriesLinkItemStylerParams,
     AgSankeySeriesNodeItemStylerParams,
     AgStandaloneChartOptions,
@@ -242,16 +243,16 @@ describe('SankeySeries', () => {
         });
     });
 
-    describe('label placement', () => {
-        const placementOptions = {
-            default: { label: { placement: undefined, edgePlacement: undefined } },
-            left: { label: { placement: 'left' as const, edgePlacement: undefined } },
-            right: { label: { placement: 'right' as const, edgePlacement: undefined } },
-            center: { label: { placement: 'center' as const, edgePlacement: undefined } },
-            inside: { label: { placement: 'right' as const, edgePlacement: 'inside' as const } },
-            outside: { label: { placement: 'right' as const, edgePlacement: 'outside' as const } },
-        };
+    const placementOptions = {
+        default: { label: { placement: undefined, edgePlacement: undefined } },
+        left: { label: { placement: 'left' as const, edgePlacement: undefined } },
+        right: { label: { placement: 'right' as const, edgePlacement: undefined } },
+        center: { label: { placement: 'center' as const, edgePlacement: undefined } },
+        inside: { label: { placement: 'right' as const, edgePlacement: 'inside' as const } },
+        outside: { label: { placement: 'right' as const, edgePlacement: 'outside' as const } },
+    };
 
+    describe('label placement', () => {
         it.each(Object.entries(placementOptions))('%s', async (_placement, defaultOptions) => {
             const options: AgStandaloneChartOptions = {
                 data: [
@@ -274,6 +275,146 @@ describe('SankeySeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+        });
+    });
+
+    describe('label truncation', () => {
+        const longLabels = [
+            { from: 'Alpha source with a long name', to: 'An interior node with a very long label', size: 10 },
+            { from: 'Beta', to: 'Another long interior label here', size: 6 },
+            { from: 'An interior node with a very long label', to: 'Gamma destination', size: 10 },
+            { from: 'Another long interior label here', to: 'Gamma destination', size: 6 },
+            { from: 'Gamma destination', to: 'Delta end of the long flow', size: 16 },
+        ];
+
+        const fitCases = Object.entries(placementOptions).flatMap(
+            ([placement, { label }]): [string, AgSankeySeriesLabelOptions<unknown>][] => [
+                [placement, label],
+                [`${placement} wrapped`, { ...label, wrapping: 'on-space', maxHeight: 40 }],
+            ]
+        );
+
+        const renderAndCheckClearance = async (data: object[], label: AgSankeySeriesLabelOptions<unknown>) => {
+            const options: AgStandaloneChartOptions = {
+                data,
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create({ ...options, width: 500 }));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0];
+            const spacing = series.options.label.spacing;
+            const nodes = series.contextNodeData.nodeData.filter(
+                (datum: any) => datum.type === FlowProportionDatumType.Node
+            );
+            const labels = series.labelSelection.nodes().filter((node: any) => node.visible);
+            const overlapsVertically = (a: { y: number; height: number }, b: { y: number; height: number }) =>
+                a.y < b.y + b.height && b.y < a.y + a.height;
+            let truncatedBesideNode = false;
+            let wrappedBesideNode = false;
+            for (const node of labels) {
+                const box = node.getBBox();
+                for (const other of nodes) {
+                    if (other === node.datum.nodeDatum || !overlapsVertically(box, other)) continue;
+                    const gap = Math.max(other.x - (box.x + box.width), box.x - (other.x + other.width));
+                    expect(gap, `"${node.text}" against node "${other.id}"`).toBeGreaterThanOrEqual(spacing - 0.5);
+                    truncatedBesideNode ||= node.text.includes('…');
+                    wrappedBesideNode ||= node.text.includes('\n');
+                }
+            }
+            return { truncatedBesideNode, wrappedBesideNode };
+        };
+
+        it.each(fitCases)('keeps %s labels, ellipsis included, clear of other nodes', async (_, label) => {
+            const { truncatedBesideNode, wrappedBesideNode } = await renderAndCheckClearance(longLabels, label);
+            expect(label.wrapping == null ? truncatedBesideNode : wrappedBesideNode).toBe(true);
+        });
+
+        it('keeps wrapped centred labels clear of the nodes above and below them', async () => {
+            const data = Array.from({ length: 12 }, (_, i) => [
+                { from: 'Source', to: `Stage ${i} has a long descriptive label that wraps over many lines`, size: 1 },
+                { from: `Stage ${i} has a long descriptive label that wraps over many lines`, to: 'Sink', size: 1 },
+            ]).flat();
+            const { wrappedBesideNode } = await renderAndCheckClearance(data, {
+                placement: 'center',
+                wrapping: 'on-space',
+                maxWidth: 60,
+            });
+            expect(wrappedBesideNode).toBe(true);
+        });
+
+        it('keeps wrapped labels of nodes at the edges within the series area', async () => {
+            const data = [
+                { from: 'Small source whose long label wraps over several lines', to: 'Sink', size: 6 },
+                { from: 'Large', to: 'Sink', size: 40 },
+                { from: 'Another small source whose long label wraps over lines', to: 'Sink', size: 6 },
+            ];
+            const options: AgStandaloneChartOptions = {
+                data,
+                series: [
+                    {
+                        type: 'sankey',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'size',
+                        label: { wrapping: 'on-space', maxWidth: 60 },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create({ ...options, width: 500 }));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0];
+            const seriesRectHeight = series._nodeDataDependencies.seriesRectHeight;
+            const labels = series.labelSelection.nodes().filter((node: any) => node.visible);
+            expect(labels.some((node: any) => node.text.includes('\n'))).toBe(true);
+            for (const node of labels) {
+                const box = node.getBBox();
+                expect(box.y, `"${node.text}" top`).toBeGreaterThanOrEqual(-0.5);
+                expect(box.y + box.height, `"${node.text}" bottom`).toBeLessThanOrEqual(seriesRectHeight + 0.5);
+            }
+        });
+
+        it('fits labels from the font size their itemStyler returns', async () => {
+            const data = [
+                { from: 'Ann', to: 'Interior node', size: 10 },
+                { from: 'Bob Smith', to: 'Interior node', size: 6 },
+                { from: 'Carol Jones', to: 'Interior node', size: 4 },
+                { from: 'Interior node', to: 'Gamma destination', size: 16 },
+                { from: 'Interior node', to: 'Delta', size: 4 },
+            ];
+            const renderLabels = async (
+                label: AgSankeySeriesLabelOptions<unknown>
+            ): Promise<{ fontSize: number; width: number }[]> => {
+                chart?.destroy();
+                const options: AgStandaloneChartOptions = {
+                    data,
+                    series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create({ ...options, width: 500 }));
+                await waitForChartStability(chart);
+                return chart.series[0].labelSelection
+                    .nodes()
+                    .filter((node: any) => node.visible)
+                    .map((node: any) => ({ fontSize: node.fontSize as number, width: node.getBBox().width as number }));
+            };
+            const label = { fontSize: 14, minimumFontSize: 9, maxWidth: 70, wrapping: 'never' } as const;
+
+            const unstyled = await renderLabels(label);
+            expect(unstyled.some(({ fontSize }) => fontSize > 10 && fontSize < 14)).toBe(true);
+
+            const smaller = await renderLabels({ ...label, itemStyler: () => ({ fontSize: 10 }) });
+            expect(smaller.length).toBeGreaterThan(0);
+            expect(smaller.every(({ fontSize }) => fontSize <= 10)).toBe(true);
+
+            const larger = await renderLabels({ ...label, itemStyler: () => ({ fontSize: 20 }) });
+            expect(larger.some(({ fontSize }) => fontSize > 14)).toBe(true);
+            for (const { fontSize, width } of larger) {
+                expect(width, `${fontSize}px label`).toBeLessThanOrEqual(70.5);
+            }
         });
     });
 

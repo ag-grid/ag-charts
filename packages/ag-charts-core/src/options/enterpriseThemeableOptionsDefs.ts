@@ -793,6 +793,8 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     strokes: arrayOf(colorOrRef),
     label: {
         ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         spacing: positiveNumber,
         placement: union('left', 'right', 'center'),
         edgePlacement: union('inside', 'outside'),
@@ -830,8 +832,6 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     ...commonSeriesThemeableOptionsDefs,
     highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
 };
-
-Object.assign(sankeySeriesThemeableOptionsDef.label, undocumentedLabelFitOptionsDefs);
 
 export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThemeableOptions> = {
     fills: arrayOf(colorUnion),
