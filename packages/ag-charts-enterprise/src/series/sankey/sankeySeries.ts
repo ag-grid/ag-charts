@@ -617,19 +617,24 @@ export class SankeySeries extends FlowProportionSeries<
         const y = node.y + node.height / 2;
         const { x, textAlign } = this.getNodeLabelPlacement(node, leading, trailing);
 
+        // A centred label sits over its own column, so a wrapped one must not reach the nodes above or below.
+        const heightRoom = textAlign === 'center' ? this.getColumnLabelHeightRoom(nodeGraph, node, y) : Infinity;
         let fitted: { text: string; fontSize?: number; room: number } | undefined;
 
         if (!leading && !trailing) {
             // A label may run past its column while nothing is in the way, but only if it fits whole.
-            let halfHeight = calcLineHeight(fontSize);
+            const lineHeight = calcLineHeight(fontSize);
+            let halfHeight = lineHeight;
             for (let attempt = 0; attempt < 3; attempt++) {
                 const room = this.getClearLabelRoom(nodeGraph, node, x, textAlign, y - halfHeight, y + halfHeight);
-                const candidate = { ...this.fitNodeLabel(node.label, room, 'hide'), room };
+                const candidate = { ...this.fitNodeLabel(node.label, room, 'hide', heightRoom), room };
                 if (candidate.text === '') break;
                 fitted = candidate;
+                if (!candidate.text.includes('\n')) break;
                 const { height } = this.labelMeasurer(candidate.fontSize).measureLines(candidate.text);
-                if (height / 2 <= halfHeight) break;
-                halfHeight = height / 2;
+                const wrappedHalfHeight = (height + lineHeight) / 2;
+                if (wrappedHalfHeight <= halfHeight) break;
+                halfHeight = wrappedHalfHeight;
                 fitted = undefined;
             }
         }
@@ -641,7 +646,8 @@ export class SankeySeries extends FlowProportionSeries<
                 textAlign === 'center' || extendsOutward
                     ? columnWidth - labelInset
                     : columnWidth - nodeWidth - labelSpacing * 2;
-            fitted = { ...this.fitNodeLabel(node.label, room, truncate === false ? 'hide' : 'ellipsis'), room };
+            const overflowStrategy = truncate === false ? 'hide' : 'ellipsis';
+            fitted = { ...this.fitNodeLabel(node.label, room, overflowStrategy, heightRoom), room };
         }
 
         const { text, room } = fitted;
@@ -696,13 +702,30 @@ export class SankeySeries extends FlowProportionSeries<
         return 2 * Math.min(x - minX, maxX - x);
     }
 
-    private fitNodeLabel(text: string, room: number, overflowStrategy: OverflowStrategy) {
+    /** Height a label centred at `y` has between the nodes above and below it in its own column. */
+    private getColumnLabelHeightRoom(nodeGraph: Map<string, EnhancedNodeGraphEntry>, node: SankeyNodeDatum, y: number) {
+        const labelSpacing = this.options.label.spacing;
+        let minY = -Infinity;
+        let maxY = Infinity;
+        for (const { datum } of nodeGraph.values()) {
+            if (datum === node || datum.x !== node.x) continue;
+            if (datum.y < node.y) {
+                minY = Math.max(minY, datum.y + datum.height + labelSpacing);
+            } else {
+                maxY = Math.min(maxY, datum.y - labelSpacing);
+            }
+        }
+        return 2 * Math.min(y - minY, maxY - y);
+    }
+
+    private fitNodeLabel(text: string, room: number, overflowStrategy: OverflowStrategy, heightRoom = Infinity) {
         const { label } = this.options;
+        const maxHeight = Math.min(heightRoom, label.maxHeight ?? Infinity);
         const fitted = fitLabelTextAutoSize(
             text,
             {
                 maxWidth: Math.min(room, label.maxWidth ?? Infinity),
-                maxHeight: label.maxHeight,
+                maxHeight: Number.isFinite(maxHeight) ? maxHeight : undefined,
                 wrapping: label.wrapping ?? 'never',
                 overflowStrategy,
                 minimumFontSize: label.minimumFontSize,

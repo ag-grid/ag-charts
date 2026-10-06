@@ -540,6 +540,7 @@ describe('series label fit', () => {
         });
         expect(someTruncated(nestedLabelTexts(1))).toBe(true);
     });
+
     describe('sankey (fits between the nodes)', () => {
         const FONT_SIZE = 14;
         const flows = [

@@ -4,6 +4,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgPolarChartOptions,
+    AgSankeySeriesLabelOptions,
     AgSankeySeriesLinkItemStylerParams,
     AgSankeySeriesNodeItemStylerParams,
     AgStandaloneChartOptions,
@@ -286,35 +287,62 @@ describe('SankeySeries', () => {
             { from: 'Gamma destination', to: 'Delta end of the long flow', size: 16 },
         ];
 
-        it.each(Object.entries(placementOptions))(
-            'keeps %s labels, ellipsis included, clear of neighbouring nodes',
-            async (_placement, placementOption) => {
-                const options: AgStandaloneChartOptions = {
-                    data: longLabels,
-                    series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', ...placementOption }],
-                };
-                prepareEnterpriseTestOptions(options);
-                chart = deproxy(AgCharts.create({ ...options, width: 500 }));
-                await waitForChartStability(chart);
+        const fitCases = Object.entries(placementOptions).flatMap(
+            ([placement, { label }]): [string, AgSankeySeriesLabelOptions<unknown>][] => [
+                [placement, label],
+                [`${placement} wrapped`, { ...label, wrapping: 'on-space', maxHeight: 40 }],
+            ]
+        );
 
-                const series = chart.series[0];
-                const spacing = series.options.label.spacing;
-                const nodes = series.contextNodeData.nodeData.filter(
-                    (datum: any) => datum.type === FlowProportionDatumType.Node
-                );
-                const labels = series.labelSelection.nodes().filter((label: any) => label.visible);
-                expect(labels.some((label: any) => label.text.includes('…'))).toBe(true);
-                for (const label of labels) {
-                    const box = label.getBBox();
-                    for (const node of nodes) {
-                        if (node === label.datum.nodeDatum) continue;
-                        if (box.y >= node.y + node.height || box.y + box.height <= node.y) continue;
-                        const gap = Math.max(node.x - (box.x + box.width), box.x - (node.x + node.width));
-                        expect(gap, `"${label.text}" against node "${node.id}"`).toBeGreaterThanOrEqual(spacing - 0.5);
-                    }
+        const renderAndCheckClearance = async (data: object[], label: AgSankeySeriesLabelOptions<unknown>) => {
+            const options: AgStandaloneChartOptions = {
+                data,
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create({ ...options, width: 500 }));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0];
+            const spacing = series.options.label.spacing;
+            const nodes = series.contextNodeData.nodeData.filter(
+                (datum: any) => datum.type === FlowProportionDatumType.Node
+            );
+            const labels = series.labelSelection.nodes().filter((node: any) => node.visible);
+            const overlapsVertically = (a: { y: number; height: number }, b: { y: number; height: number }) =>
+                a.y < b.y + b.height && b.y < a.y + a.height;
+            let truncatedBesideNode = false;
+            let wrappedBesideNode = false;
+            for (const node of labels) {
+                const box = node.getBBox();
+                for (const other of nodes) {
+                    if (other === node.datum.nodeDatum || !overlapsVertically(box, other)) continue;
+                    const gap = Math.max(other.x - (box.x + box.width), box.x - (other.x + other.width));
+                    expect(gap, `"${node.text}" against node "${other.id}"`).toBeGreaterThanOrEqual(spacing - 0.5);
+                    truncatedBesideNode ||= node.text.includes('…');
+                    wrappedBesideNode ||= node.text.includes('\n');
                 }
             }
-        );
+            return { truncatedBesideNode, wrappedBesideNode };
+        };
+
+        it.each(fitCases)('keeps %s labels, ellipsis included, clear of other nodes', async (_, label) => {
+            const { truncatedBesideNode, wrappedBesideNode } = await renderAndCheckClearance(longLabels, label);
+            expect(label.wrapping == null ? truncatedBesideNode : wrappedBesideNode).toBe(true);
+        });
+
+        it('keeps wrapped centred labels clear of the nodes above and below them', async () => {
+            const data = Array.from({ length: 12 }, (_, i) => [
+                { from: 'Source', to: `Stage ${i} has a long descriptive label that wraps over many lines`, size: 1 },
+                { from: `Stage ${i} has a long descriptive label that wraps over many lines`, to: 'Sink', size: 1 },
+            ]).flat();
+            const { wrappedBesideNode } = await renderAndCheckClearance(data, {
+                placement: 'center',
+                wrapping: 'on-space',
+                maxWidth: 60,
+            });
+            expect(wrappedBesideNode).toBe(true);
+        });
     });
 
     describe('node cornerRadius', () => {
