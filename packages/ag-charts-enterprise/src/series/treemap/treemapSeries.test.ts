@@ -865,6 +865,16 @@ describe('TreemapSeries', () => {
             expect(groups()[0].label).toBeUndefined();
         });
 
+        it('shrinks a manually broken group label to fit maxHeight', async () => {
+            await render(
+                { fontSize: 16, minimumFontSize: 6, maxHeight: 20, wrapping: 'never' },
+                groupData('Fresh\nfruit')
+            );
+            const { label } = groups()[0];
+            expect(label.text).toBe('Fresh\nfruit');
+            expect(label.fontSize).toBeLessThan(16);
+        });
+
         it('aligns a truncated group label vertically within its capped header', async () => {
             const labelY = async (verticalAlign: string) => {
                 await render({ maxHeight: 20, verticalAlign }, groupData('Fresh\nfruit'));
