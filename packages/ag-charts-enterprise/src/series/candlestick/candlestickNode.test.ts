@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { setupMockCanvas } from 'ag-charts-community-test';
 
-import { RED_SHADOW, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../../test/utils';
+import { RED_SHADOW, allWhite, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../../test/utils';
 import { CandlestickNode } from './candlestickNode';
 
 const candlestick = (mixin: Partial<CandlestickNode<unknown>>) => {
@@ -72,6 +72,46 @@ describe('CandlestickNode', () => {
             }
             for (const y of [5, 195]) {
                 expect(pixelAt(canvasCtx, 100, y)).toEqual([255, 255, 255, 255]);
+            }
+        });
+
+        it.each([
+            ['a wick stroke opacity of 0', { wickStrokeOpacity: 0 }],
+            ['a wick stroke width of 0', { wickStrokeWidth: 0 }],
+        ])('should cast no shadow from a wick with %s, with or without a spread', (_, hidden) => {
+            for (const spread of [undefined, 10]) {
+                const node = candlestick({
+                    wickStroke: 'black',
+                    wickStrokeWidth: 2,
+                    fillShadow: { ...RED_SHADOW, spread },
+                });
+                Object.assign(node, hidden);
+                renderNode(canvasCtx, node);
+
+                // The upper wick runs from 20 to 80 at x = 100: a hidden wick casts nothing on it or past its ends.
+                for (const [x, y] of [
+                    [100, 50],
+                    [104, 50],
+                    [100, 15],
+                    [100, 185],
+                ]) {
+                    expect(pixelAt(canvasCtx, x, y)).toEqual([255, 255, 255, 255]);
+                }
+            }
+        });
+
+        it('should cast no shadow from a candlestick that is fully transparent, with or without a spread', () => {
+            for (const spread of [undefined, 10]) {
+                const node = candlestick({
+                    wickStroke: 'black',
+                    wickStrokeWidth: 2,
+                    fillShadow: { ...RED_SHADOW, spread },
+                });
+                // As a series styles an item at `opacity: 0`.
+                Object.assign(node, { fillOpacity: 0, strokeOpacity: 0, wickStrokeOpacity: 0, opacity: 0 });
+                renderNode(canvasCtx, node);
+
+                expect(allWhite(canvasCtx)).toBe(true);
             }
         });
     });

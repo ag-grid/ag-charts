@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { setupMockCanvas } from 'ag-charts-community-test';
 
-import { RED_SHADOW, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../../test/utils';
+import { RED_SHADOW, allWhite, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../../test/utils';
 import { BoxPlotNode } from './boxPlotNode';
 
 const boxPlot = (mixin: Partial<BoxPlotNode>) => {
@@ -119,6 +119,38 @@ describe('BoxPlotNode', () => {
             }
             for (const y of [5, 205]) {
                 expect(pixelAt(canvasCtx, 110, y)).toEqual([255, 255, 255, 255]);
+            }
+        });
+
+        it.each([
+            ['a whisker stroke opacity of 0', { wickStrokeOpacity: 0 }],
+            ['a whisker stroke width of 0', { wickStrokeWidth: 0 }],
+        ])('should cast no shadow from a whisker with %s, with or without a spread', (_, hidden) => {
+            for (const spread of [undefined, 10]) {
+                const node = verticalWhiskers(spread);
+                Object.assign(node, hidden);
+                renderNode(canvasCtx, node);
+
+                // Where the visible whisker's shadow lands, and past its end: a hidden whisker casts none.
+                for (const [x, y] of [
+                    [110, 45],
+                    [117, 45],
+                    [110, 15],
+                    [110, 195],
+                ]) {
+                    expect(pixelAt(canvasCtx, x, y)).toEqual([255, 255, 255, 255]);
+                }
+            }
+        });
+
+        it('should cast no shadow from a box plot that is fully transparent, with or without a spread', () => {
+            for (const spread of [undefined, 10]) {
+                const node = verticalWhiskers(spread);
+                // As the series styles an item at `opacity: 0`.
+                Object.assign(node, { fillOpacity: 0, strokeOpacity: 0, wickStrokeOpacity: 0, opacity: 0 });
+                renderNode(canvasCtx, node);
+
+                expect(allWhite(canvasCtx)).toBe(true);
             }
         });
 
