@@ -136,12 +136,9 @@ describe('volumeProfilePreset', () => {
         const loadedRows = () => deproxy(chart).data.data.length;
         const regularRows = getRegularVolumeProfile().length;
 
-        const settleUntil = (predicate: () => boolean, description: string) =>
-            waitForChartStabilityUntil(chart, predicate, description);
-
         it('should show the loaded profile', async () => {
             createWithDataSource(getRegularVolumeProfile);
-            await settleUntil(() => loadedRows() === regularRows, 'the load');
+            await waitForChartStabilityUntil(chart, () => loadedRows() === regularRows, 'the load');
             // From 135 to 205 in steps of 2.5.
             expect(levels()).toHaveLength(29);
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
@@ -152,7 +149,7 @@ describe('volumeProfilePreset', () => {
             chart = AgCharts.createVolumeProfileChart(
                 prepareFinancialTestOptions({ ...options, dataSource: instantDataSource(getRegularVolumeProfile) })
             );
-            await settleUntil(() => loadedRows() === regularRows, 'the load');
+            await waitForChartStabilityUntil(chart, () => loadedRows() === regularRows, 'the load');
             expect(levels()).toHaveLength(29);
             expectWarningsCalls().toEqual([]);
         });
@@ -160,11 +157,11 @@ describe('volumeProfilePreset', () => {
         it('should replace the profile on a later load', async () => {
             const getData = vi.fn(getRegularVolumeProfile);
             createWithDataSource(getData);
-            await settleUntil(() => loadedRows() === regularRows, 'the first load');
+            await waitForChartStabilityUntil(chart, () => loadedRows() === regularRows, 'the first load');
 
             getData.mockImplementation(() => getRegularVolumeProfile().filter(({ price }) => price >= 170));
             await chart.updateDelta({});
-            await settleUntil(() => loadedRows() === 15, 'the second load');
+            await waitForChartStabilityUntil(chart, () => loadedRows() === 15, 'the second load');
             // From 170 to 205 in steps of 2.5.
             expect(levels()).toHaveLength(15);
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
@@ -174,7 +171,7 @@ describe('volumeProfilePreset', () => {
             createWithDataSource(() => [{ upVolume: 10e6, downVolume: 10e6 }], { data: getRegularVolumeProfile() });
             let rendered: boolean | undefined;
             deproxy(chart).ctx.eventsHub.on('data:render-verdict', (event) => (rendered = event.rendered));
-            await settleUntil(() => rendered === false, 'the load');
+            await waitForChartStabilityUntil(chart, () => rendered === false, 'the load');
             await waitForChartStability(chart);
             // A load that renders nothing is dropped, and the chart's previous data restored.
             expect(loadedRows()).toBe(regularRows);
@@ -189,7 +186,7 @@ describe('volumeProfilePreset', () => {
                     downVolume: (11 - i) * 10e6,
                 }));
             createWithDataSource(getData, { data: getRegularVolumeProfile() });
-            await settleUntil(() => loadedRows() === 11, 'the load');
+            await waitForChartStabilityUntil(chart, () => loadedRows() === 11, 'the load');
             // From 150 to 160 in steps of 1.
             expect(levels()).toHaveLength(11);
             await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
@@ -198,7 +195,7 @@ describe('volumeProfilePreset', () => {
         it('should group the loaded data by the validated options', async () => {
             // @ts-expect-error invalid `priceKey`
             createWithDataSource(getRegularVolumeProfile, { priceKey: null, tickSize: 0 });
-            await settleUntil(() => loadedRows() === regularRows, 'the load');
+            await waitForChartStabilityUntil(chart, () => loadedRows() === regularRows, 'the load');
             // The levels of the default `priceKey` at the inferred 2.5 tick size, from 135 to 205.
             expect(levels()).toHaveLength(29);
             expectWarningsCalls().toEqual([
