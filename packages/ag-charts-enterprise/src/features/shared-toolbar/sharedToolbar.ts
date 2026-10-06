@@ -176,9 +176,12 @@ export class SharedToolbar extends AbstractModuleInstance {
     }
 
     private updateSharedButtons(sharedToolbar: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>) {
-        const sharedButtons = SharedToolbar.SECTION_ORDER.flatMap((order) =>
-            this.sectionButtons[order].map((button) => this.withButtonSize(order, button))
-        );
+        const sharedButtons = SharedToolbar.SECTION_ORDER.flatMap((order) => {
+            const buttons = this.sectionButtons[order];
+            return this.sectionButtonSize[order] == null
+                ? buttons
+                : buttons.map((button) => this.withButtonSize(order, button));
+        });
         sharedToolbar.updateButtons(sharedButtons);
     }
 

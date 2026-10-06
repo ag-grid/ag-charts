@@ -125,10 +125,7 @@
     }
 }
 
-.ag-charts-range-buttons .ag-charts-toolbar .ag-charts-toolbar__button--sized {
-    height: var(--toolbar-button-size);
-    min-height: var(--toolbar-button-size);
-    min-width: var(--toolbar-button-size);
-    padding-top: 0;
+.ag-charts-range-buttons .ag-charts-toolbar__button.ag-charts-toolbar__button--sized {
     padding-bottom: 0;
+    padding-top: 0;
 }

@@ -52,7 +52,7 @@ test.describe('toolbar button size', () => {
         const count = await sharedButtons.count();
         expect(count).toBeGreaterThan(1);
 
-        expectSize(await box(sharedButtons.first()), undefined, 40);
+        expectSize(await box(sharedButtons.first()), 40, 40);
         for (let i = 1; i < count; i++) {
             expectSize(await box(sharedButtons.nth(i)), 44, 44);
         }
@@ -72,6 +72,7 @@ test.describe('toolbar button size', () => {
             const bbox = await box(button);
             expectSize(bbox, undefined, 48);
             expect(bbox.width).toBeGreaterThanOrEqual(48 - TOLERANCE);
+            expect(await button.evaluate((el) => getComputedStyle(el).paddingTop)).toBe('0px');
         }
     });
 

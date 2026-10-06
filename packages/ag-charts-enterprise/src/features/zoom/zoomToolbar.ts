@@ -142,10 +142,10 @@ export class ZoomToolbar {
         const { container, toolbar } = this;
         const element = container.getElement();
         container.toggleClass('ag-charts-zoom-buttons--sized', buttonSize != null);
-        if (buttonSize != null) {
-            element.style.setProperty('--toolbar-button-size', `${buttonSize}px`);
-        } else {
+        if (buttonSize == null) {
             element.style.removeProperty('--toolbar-button-size');
+        } else {
+            element.style.setProperty('--toolbar-button-size', `${buttonSize}px`);
         }
         toolbar.setButtonSize(buttonSize);
 
