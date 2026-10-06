@@ -225,6 +225,17 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return this._fillAlpha;
     }
 
+    /** The alpha of {@link _alphaStroke}, cached like {@link _fillAlpha}. */
+    private _alphaStroke?: ShapeColor;
+    private _strokeAlpha: number = 1;
+    private getStrokeAlpha(stroke: ShapeColor | undefined): number {
+        if (stroke !== this._alphaStroke) {
+            this._alphaStroke = stroke;
+            this._strokeAlpha = colourAlpha(stroke);
+        }
+        return this._strokeAlpha;
+    }
+
     private _cachedFill?: ShapeColor;
     protected onFillChange() {
         if (typeof this.fill === 'object') {
@@ -535,7 +546,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             mode === 'stroke' || fill == null || fill === 'none' || fillOpacity <= 0 ? 0 : this.getFillAlpha(fill);
         const drawsFill = fillAlpha > 0;
         // A transparent stroke colour casts nothing, so it must not suppress the extras' shadow below.
-        const strokeAlpha = mode !== 'fill' && this.hasVisibleStroke() ? colourAlpha(this.__stroke) : 0;
+        const strokeAlpha = mode !== 'fill' && this.hasVisibleStroke() ? this.getStrokeAlpha(this.__stroke) : 0;
         const drawsStroke = strokeAlpha > 0;
         const extrasOpacity = mode === 'fill' ? 0 : this.getSilhouetteExtrasOpacity();
         if (!drawsFill && !drawsStroke && extrasOpacity <= 0) return;
