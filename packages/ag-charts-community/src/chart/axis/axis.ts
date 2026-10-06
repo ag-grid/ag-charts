@@ -1301,7 +1301,8 @@ export abstract class Axis<
                 const { caption } = axis;
                 // `caption.text` keeps its last value when the title is disabled, so gate on `enabled`.
                 if (!caption.enabled) return undefined;
-                return toPlainText(caption.text) || undefined;
+                const text = toPlainText(caption.text);
+                return text === '' ? undefined : text;
             },
             axisType: this.type,
             scale: this.scale,
