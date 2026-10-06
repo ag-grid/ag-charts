@@ -55,6 +55,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     fontSize: { $ref: 'seriesLabelFontSize' },
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     spacing: 4,
+                    textAlign: { $path: ['../textAlign', 'left'] },
                 },
                 fill: undefined, // Override default fill
                 fills: { $palette: 'hierarchyColors' },
@@ -66,7 +67,6 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 shadow: SHADOW_THEME_DEFAULTS,
                 padding: 4,
                 gap: 2,
-                textAlign: 'left',
                 interactive: true,
                 highlight: {
                     enabled: { $circular: { $path: '/highlight/enabled' } },
@@ -90,6 +90,8 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     wrapping: 'on-space',
                     truncate: AUTO_SIZED_LABEL_TRUNCATE,
                     spacing: 2,
+                    textAlign: { $path: ['../textAlign', 'center'] },
+                    verticalAlign: { $path: ['../verticalAlign', 'middle'] },
                 },
                 secondaryLabel: {
                     ...LABEL_BOXING_DEFAULTS,
@@ -102,6 +104,8 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'never',
                     truncate: AUTO_SIZED_LABEL_TRUNCATE,
+                    textAlign: { $path: ['../textAlign', 'center'] },
+                    verticalAlign: { $path: ['../verticalAlign', 'middle'] },
                 },
                 fill: undefined, // Override default fill
                 fillOpacity: 1,
@@ -110,8 +114,6 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeOpacity: 1,
                 cornerRadius: 0,
                 shadow: SHADOW_THEME_DEFAULTS,
-                textAlign: 'center',
-                verticalAlign: 'middle',
                 padding: 3,
                 gap: 1,
                 highlight: {

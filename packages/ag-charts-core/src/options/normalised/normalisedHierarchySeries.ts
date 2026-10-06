@@ -19,6 +19,8 @@ import type {
     AgTreemapSeriesTileOptions,
     CssColor,
     Styler,
+    TextAlign,
+    VerticalAlign,
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
@@ -77,8 +79,15 @@ export type NormalisedTreemapTileHighlightOptions = Normalised<
     }
 >;
 
+/** Group header label; the deprecated `group.textAlign` forwards into it via the theme. */
 export type NormalisedTreemapGroupLabelOptions =
-    NormalisedCollisionFreeSeriesLabelOptions<AgTreemapSeriesLabelFormatterParams> & { spacing: number };
+    NormalisedCollisionFreeSeriesLabelOptions<AgTreemapSeriesLabelFormatterParams> & {
+        spacing: number;
+        textAlign: TextAlign;
+    };
+
+/** Tile label alignment; the deprecated `tile.textAlign`/`tile.verticalAlign` forward into it via the theme. */
+type NormalisedTreemapTileLabelAlignment = { textAlign: TextAlign; verticalAlign: VerticalAlign };
 
 type TreemapGroupRequiredKeys =
     | 'fills'
@@ -87,7 +96,6 @@ type TreemapGroupRequiredKeys =
     | 'strokeOpacity'
     | 'cornerRadius'
     | 'shadow'
-    | 'textAlign'
     | 'gap'
     | 'padding'
     | 'interactive'
@@ -113,8 +121,6 @@ type TreemapTileRequiredKeys =
     | 'strokeOpacity'
     | 'cornerRadius'
     | 'shadow'
-    | 'textAlign'
-    | 'verticalAlign'
     | 'gap'
     | 'padding'
     | 'label'
@@ -129,8 +135,10 @@ export type NormalisedTreemapTileOptions = Normalised<
         fill?: NormalisedColorType;
         stroke?: CssColor;
         shadow: NormalisedDropShadowOptions;
-        label: NormalisedAutoSizedLabelOptions<AgTreemapSeriesLabelFormatterParams>;
-        secondaryLabel: NormalisedAutoSizedSecondaryLabelOptions<AgTreemapSeriesLabelFormatterParams>;
+        label: NormalisedAutoSizedLabelOptions<AgTreemapSeriesLabelFormatterParams> &
+            NormalisedTreemapTileLabelAlignment;
+        secondaryLabel: NormalisedAutoSizedSecondaryLabelOptions<AgTreemapSeriesLabelFormatterParams> &
+            NormalisedTreemapTileLabelAlignment;
         highlight: NormalisedTreemapTileHighlightOptions;
         selection: NormalisedSeriesSelectionOptions<NormalisedTreemapSeriesStyle>;
     }

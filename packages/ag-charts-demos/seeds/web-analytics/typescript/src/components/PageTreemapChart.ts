@@ -18,14 +18,16 @@ export function createPageTreemapChart(data: PageRow[]): DataChart<PageRow[]> {
                 gap: 8,
                 padding: 8,
                 fillOpacity: 0.85,
-                textAlign: 'left',
-                verticalAlign: 'bottom',
                 label: {
+                    textAlign: 'left',
+                    verticalAlign: 'bottom',
                     fontSize: 16,
                     fontWeight: 'bold',
                     minimumFontSize: 10,
                 },
                 secondaryLabel: {
+                    textAlign: 'left',
+                    verticalAlign: 'bottom',
                     minimumFontSize: 9,
                     formatter: ({ value }) => fmtInt(Number(value)),
                 },

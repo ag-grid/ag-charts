@@ -888,7 +888,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         cornerRadius: positiveNumber,
         shadow: shadowOptionsDefs,
         fills: arrayOf(colorUnion),
-        textAlign,
+        textAlign: deprecated(textAlign, 'Use `label.textAlign` instead.'),
         interactive: boolean,
         highlight: {
             enabled: boolean,
@@ -898,6 +898,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         label: {
             ...seriesLabelOptionsDefs,
             spacing: positiveNumber,
+            textAlign,
         },
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -907,13 +908,22 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         padding: positiveNumber,
         cornerRadius: positiveNumber,
         shadow: shadowOptionsDefs,
-        textAlign,
-        verticalAlign: union('top', 'middle', 'bottom'),
+        textAlign: deprecated(textAlign, 'Use `label.textAlign` and `secondaryLabel.textAlign` instead.'),
+        verticalAlign: deprecated(
+            union('top', 'middle', 'bottom'),
+            'Use `label.verticalAlign` and `secondaryLabel.verticalAlign` instead.'
+        ),
         label: {
             ...autoSizedLabelOptionsDefs,
             spacing: positiveNumber,
+            textAlign,
+            verticalAlign: union('top', 'middle', 'bottom'),
         },
-        secondaryLabel: autoSizedLabelOptionsDefs,
+        secondaryLabel: {
+            ...autoSizedLabelOptionsDefs,
+            textAlign,
+            verticalAlign: union('top', 'middle', 'bottom'),
+        },
         highlight: {
             enabled: boolean,
             highlightedItem: { ...hierarchyHighlightStyleOptionsDef, shadow: shadowOptionsDefs },
