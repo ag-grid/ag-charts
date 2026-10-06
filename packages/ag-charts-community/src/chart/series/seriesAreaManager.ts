@@ -854,7 +854,6 @@ export class SeriesAreaManager extends BaseManager {
         focus.dismissedTooltip = { series, datumIndex, otherIndex: seriesIndex };
         this.clearTooltip();
         widgetEvent.sourceEvent.preventDefault();
-        widgetEvent.sourceEvent.stopPropagation();
     }
 
     private isFocusedTooltipDismissed(): boolean {
