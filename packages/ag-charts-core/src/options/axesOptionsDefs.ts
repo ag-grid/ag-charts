@@ -295,6 +295,7 @@ export const commonAxisIntervalOptionsDefs: OptionsDefs<AgAxisBaseIntervalOption
 
 export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>> = {
     reverse: boolean,
+    ariaLabel: string,
     gridLine: {
         enabled: boolean,
         width: positiveNumber,
