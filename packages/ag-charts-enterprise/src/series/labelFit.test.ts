@@ -965,8 +965,7 @@ describe('series label fit', () => {
         });
 
         it('renders whole, truncated, overflowing and hidden treemap labels', async () => {
-            // Mid-sized tiles truncate; the slivers are too short for a line, so `alwaysShow` keeps them
-            // overflowing; the secondary label, with `truncate` off, only shows where it fits whole.
+            // Mid-sized tiles truncate, `alwaysShow` keeps the slivers' labels overflowing, secondaries hide.
             const data = [
                 { name: 'A broad tile label', value: 200 },
                 ...tileNames.map((name, i) => ({ name, value: i < 3 ? 8 : 0.1 })),

@@ -32,7 +32,6 @@ interface AutoSizedSecondaryLabelOptions extends AgChartAutoSizedSecondaryLabelO
     fontSize: FontSize;
 }
 
-/** At the floor size a label truncates, or is hidden when `truncate` is off; above it, it must fit whole. */
 function overflowAtFloor(props: AgChartAutoSizedBaseLabelOptions<unknown, any>): OverflowStrategy {
     return props.truncate ? 'ellipsis' : 'hide';
 }
@@ -304,10 +303,7 @@ export function formatSingleLabel<Meta>(
     return formatOverflowingLabel(value, props, minimumFontSize, padding, sizeFittingHeight);
 }
 
-/**
- * A label kept by `collision.alwaysShow` although it does not fit: drawn at its floor size, wrapped and
- * truncated to the available width where possible, and otherwise in full, overflowing its bounds.
- */
+/** A label `collision.alwaysShow` keeps although it does not fit: drawn at its floor size, overflowing its bounds. */
 function formatOverflowingLabel<Meta>(
     value: string,
     props: AutoSizedBaseLabelOptions,
