@@ -176,6 +176,41 @@ describe('BarSeries highlight shadow', () => {
             expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
 
+        // The first bar fills x = 75 to 248 and ends at y = 555 on the canvas, and its highlight shadow is offset by 8
+        // each way. There is no blur, so the shadow covers exactly its rect, which a spread grows on every side.
+        const pixel = (x: number, y: number) => [...ctx.getRenderContext2D().getImageData(x, y, 1, 1).data];
+        const SHADOW_RED = [170, 0, 0, 255];
+
+        it('should grow the highlight shadow past the hovered bar by highlightedItem.shadow.spread', async () => {
+            await hoverFirstBar({
+                shadow: SHADOW,
+                highlight: { highlightedItem: { shadow: { ...HIGHLIGHT_SHADOW, blur: 0, spread: 8 } } },
+            });
+
+            // Right of the bar: the shadow runs to 248 + 8 + 8 = 264.
+            expect(pixel(260, 300)).toEqual(SHADOW_RED);
+            expect(pixel(268, 300)).not.toEqual(SHADOW_RED);
+            // Left of where the shadow would start without a spread: 75 + 8 - 8 = 75.
+            expect(pixel(77, 560)).toEqual(SHADOW_RED);
+            expect(pixel(70, 560)).not.toEqual(SHADOW_RED);
+            // Below the bar: the shadow runs to 555 + 8 + 8 = 571.
+            expect(pixel(150, 568)).toEqual(SHADOW_RED);
+            expect(pixel(150, 575)).not.toEqual(SHADOW_RED);
+        });
+
+        it('should not grow the highlight shadow without highlightedItem.shadow.spread', async () => {
+            await hoverFirstBar({
+                shadow: SHADOW,
+                highlight: { highlightedItem: { shadow: { ...HIGHLIGHT_SHADOW, blur: 0 } } },
+            });
+
+            // The shadow of a rect offset by 8 runs from 83 to 256, and to 563.
+            expect(pixel(252, 300)).toEqual(SHADOW_RED);
+            expect(pixel(260, 300)).not.toEqual(SHADOW_RED);
+            expect(pixel(77, 560)).not.toEqual(SHADOW_RED);
+            expect(pixel(150, 568)).not.toEqual(SHADOW_RED);
+        });
+
         it('should render the hovered bar with the series shadow spread when it overlays', async () => {
             await hoverFirstBar({ shadow: SPREAD_SHADOW }, 'overlay');
 

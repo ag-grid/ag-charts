@@ -30,6 +30,19 @@ describe('BoxPlotNode', () => {
     describe('silhouette shadow', () => {
         const canvasCtx = setupMockCanvas({ width: 400, height: 220 });
 
+        const verticalWhiskers = (spread?: number) =>
+            boxPlot({
+                horizontal: false,
+                min: 20,
+                q1: 70,
+                median: 100,
+                q3: 130,
+                max: 190,
+                wickStroke: 'rgb(0, 0, 0)',
+                wickStrokeWidth: 2,
+                fillShadow: { ...RED_SHADOW, spread },
+            });
+
         it('should not leave a copy of separately styled whiskers at the left edge of a horizontal box plot', () => {
             const node = boxPlot({ wickStrokeWidth: 2 });
             renderNode(canvasCtx, node);
@@ -83,49 +96,23 @@ describe('BoxPlotNode', () => {
         });
 
         it('should grow the shadow of a separately styled whisker by the spread', () => {
-            const vertical = (spread?: number) =>
-                boxPlot({
-                    horizontal: false,
-                    min: 20,
-                    q1: 70,
-                    median: 100,
-                    q3: 130,
-                    max: 190,
-                    wickStroke: 'rgb(0, 0, 0)',
-                    wickStrokeWidth: 2,
-                    fillShadow: { ...RED_SHADOW, spread },
-                });
-
-            renderNode(canvasCtx, vertical());
+            renderNode(canvasCtx, verticalWhiskers());
             // The lower whisker is 2px wide at x = 110, so without a spread its shadow hides behind it.
             expect(pixelAt(canvasCtx, 117, 45)).toEqual([255, 255, 255, 255]);
 
-            renderNode(canvasCtx, vertical(10));
+            renderNode(canvasCtx, verticalWhiskers(10));
             // With a spread of 10 the whisker's shadow is 22px wide: 99 to 121.
             expect(pixelAt(canvasCtx, 117, 45)).toEqual([255, 0, 0, 255]);
             expect(pixelAt(canvasCtx, 125, 45)).toEqual([255, 255, 255, 255]);
         });
 
         it('should spread the shadow past the ends of a whisker by the spread', () => {
-            const whiskers = (spread?: number) =>
-                boxPlot({
-                    horizontal: false,
-                    min: 20,
-                    q1: 70,
-                    median: 100,
-                    q3: 130,
-                    max: 190,
-                    wickStroke: 'rgb(0, 0, 0)',
-                    wickStrokeWidth: 2,
-                    fillShadow: { ...RED_SHADOW, spread },
-                });
-
-            renderNode(canvasCtx, whiskers());
+            renderNode(canvasCtx, verticalWhiskers());
             // The whiskers end at 20 and 190, and without a spread their shadows hide behind them.
             expect(pixelAt(canvasCtx, 110, 15)).toEqual([255, 255, 255, 255]);
             expect(pixelAt(canvasCtx, 110, 195)).toEqual([255, 255, 255, 255]);
 
-            renderNode(canvasCtx, whiskers(10));
+            renderNode(canvasCtx, verticalWhiskers(10));
             // The whiskers have butt caps, but their shadows still reach `spread` past each end, and no further.
             for (const y of [10, 14, 18, 191, 195, 199]) {
                 expect(pixelAt(canvasCtx, 110, y)).toEqual([255, 0, 0, 255]);
