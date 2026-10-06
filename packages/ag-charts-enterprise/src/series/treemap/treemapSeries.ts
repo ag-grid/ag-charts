@@ -92,10 +92,7 @@ function nodeSize(node: TreemapNode) {
 
 type AlignedLabel = { y: number; height: number; verticalAlign: VerticalAlign };
 
-/**
- * Centres for two labels aligned to different edges. The stacked fit leaves room for both, so only a
- * `middle` label can meet an edge-aligned one: it is pushed clear of it by `spacing`.
- */
+// The stacked fit leaves room for both labels, so only a `middle` one can meet an edge-aligned one.
 function separateLabels(a: AlignedLabel, b: AlignedLabel, spacing: number): [number, number] {
     const clear = (middle: AlignedLabel, edge: AlignedLabel) => {
         if (edge.verticalAlign === 'top') {

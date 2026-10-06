@@ -79,14 +79,12 @@ export type NormalisedTreemapTileHighlightOptions = Normalised<
     }
 >;
 
-/** Group header label; the deprecated `group.textAlign` forwards into it via the theme. */
 export type NormalisedTreemapGroupLabelOptions =
     NormalisedCollisionFreeSeriesLabelOptions<AgTreemapSeriesLabelFormatterParams> & {
         spacing: number;
         textAlign: TextAlign;
     };
 
-/** Tile label alignment; the deprecated `tile.textAlign`/`tile.verticalAlign` forward into it via the theme. */
 type NormalisedTreemapTileLabelAlignment = { textAlign: TextAlign; verticalAlign: VerticalAlign };
 
 type TreemapGroupRequiredKeys =
