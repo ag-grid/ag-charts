@@ -534,7 +534,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const fillAlpha =
             mode === 'stroke' || fill == null || fill === 'none' || fillOpacity <= 0 ? 0 : this.getFillAlpha(fill);
         const drawsFill = fillAlpha > 0;
-        const drawsStroke = mode !== 'fill' && this.hasVisibleStroke();
+        // A transparent stroke colour casts nothing, so it must not suppress the extras' shadow below.
+        const strokeAlpha = mode !== 'fill' && this.hasVisibleStroke() ? colourAlpha(this.__stroke) : 0;
+        const drawsStroke = strokeAlpha > 0;
         const extrasOpacity = mode === 'fill' ? 0 : this.getSilhouetteExtrasOpacity();
         if (!drawsFill && !drawsStroke && extrasOpacity <= 0) return;
 
@@ -546,7 +548,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             strength = fillAlpha;
         } else if (drawsStroke) {
             this.applyStrokeAndAlpha(ctx, bboxOverride);
-            strength = colourAlpha(this.__stroke);
+            strength = strokeAlpha;
         } else {
             strength = extrasOpacity * (this.__opacity ?? 1);
         }

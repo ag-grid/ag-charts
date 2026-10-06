@@ -75,6 +75,24 @@ describe('CandlestickNode', () => {
             }
         });
 
+        it('should spread the shadow of visible wicks when the unfilled body has a transparent stroke', () => {
+            const node = candlestick({
+                fill: 'none',
+                stroke: 'transparent',
+                wickStroke: 'black',
+                wickStrokeWidth: 2,
+                fillShadow: { ...RED_SHADOW, spread: 10 },
+            });
+            renderNode(canvasCtx, node);
+
+            // Only the wicks cast: the upper one ends at 20, and its shadow reaches 10 past that.
+            expect(node['wickPath'].isEmpty()).toBe(false);
+            for (const y of [11, 15, 19]) {
+                expect(pixelAt(canvasCtx, 100, y)).toEqual([255, 0, 0, 255]);
+            }
+            expect(pixelAt(canvasCtx, 100, 5)).toEqual([255, 255, 255, 255]);
+        });
+
         it.each([
             ['a wick stroke opacity of 0', { wickStrokeOpacity: 0 }],
             ['a wick stroke width of 0', { wickStrokeWidth: 0 }],
