@@ -22,9 +22,8 @@ import { ExpectedModules } from './expectedModules';
 import { uncoveredContributions } from './processModuleOptions';
 
 /**
- * The theme overrides schema composed from the modules visible to `moduleRegistry`. A registered module
- * validates the locations it owns; an expected module that is not registered only gets a shape check, so
- * its key stays known until `sanitizeThemeModules` drops it.
+ * The theme overrides schema composed from the modules visible to `moduleRegistry`. An expected module that
+ * is not registered only gets a shape check, so its key stays known until `sanitizeThemeModules` drops it.
  */
 export function themeOverridesOptionsDefs(moduleRegistry: ModuleScope): OptionsDefs<AgThemeOverrides> {
     const contributions: ResolvedContribution[] = [
