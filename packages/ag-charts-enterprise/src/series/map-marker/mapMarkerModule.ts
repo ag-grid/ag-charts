@@ -2,7 +2,6 @@ import { type AgMapMarkerSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
@@ -51,7 +50,9 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
                 ...LABEL_OVERFLOW_DEFAULTS,
                 enabled: false,
                 placement: 'bottom',
-                ...FONT_THEME_DEFAULTS,
+                fontSize: { $ref: 'seriesLabelFontSize' },
+                fontFamily: { $ref: 'seriesLabelFontFamily' },
+                fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 collision: { alwaysShow: false },
             },

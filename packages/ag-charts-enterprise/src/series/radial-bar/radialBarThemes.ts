@@ -1,7 +1,6 @@
 import {
     COMMON_SERIES_THEME_DEFAULTS,
     FILL_GRADIENT_CONIC_SERIES_DEFAULTS,
-    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     POLAR_AXIS_TYPE,
@@ -23,7 +22,9 @@ export const RADIAL_BAR_SERIES_THEME: ExtensibleSeriesTheme<'radial-bar'> = {
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
-            ...FONT_THEME_DEFAULTS,
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
         },
         tooltip: { interaction: { enabled: false } },

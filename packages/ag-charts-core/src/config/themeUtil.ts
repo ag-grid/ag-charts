@@ -10,6 +10,7 @@ import type {
     AgSelectionStyleOptions,
     AgSeriesSegmentation,
     AgSeriesTooltip,
+    FontWeight,
     LabelBoxOptions,
     Operation,
     WithThemeParams,
@@ -365,7 +366,21 @@ export function getSequentialColors(colors: { [key: string]: string }) {
     });
 }
 
-const LABEL_BOXING_FILL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
+type SeriesLabelPlacement = 'inside' | 'outside';
+
+const SERIES_LABEL_PLACEMENT_PARAMS = {
+    inside: { color: 'seriesLabelInsideTextColor', background: 'seriesLabelInsideBackgroundColor' },
+    outside: { color: 'seriesLabelOutsideTextColor', background: 'seriesLabelOutsideBackgroundColor' },
+} as const;
+
+// A defined `fill` switches label boxing on, so a fully transparent background, such as the `'transparent'` default,
+// must resolve to no fill at all.
+const seriesLabelBackground = (placement: SeriesLabelPlacement) => {
+    const param = SERIES_LABEL_PLACEMENT_PARAMS[placement].background;
+    return { $if: [{ $isTransparent: { $ref: param } }, undefined, { $ref: param }] };
+};
+
+const labelBoxingFillDefaults = (placement?: SeriesLabelPlacement): WithThemeParams<LabelBoxOptions> => ({
     fill: {
         $if: [
             {
@@ -375,38 +390,79 @@ const LABEL_BOXING_FILL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
                 ],
             },
             { backgroundFill: 'transparent' },
-            undefined,
+            placement == null ? undefined : seriesLabelBackground(placement),
         ],
+    },
+});
+
+// `false` keeps the subtle border shown when a series enables `label.border`; `true` and objects follow borderColor/borderWidth.
+const seriesLabelBorderValue = (
+    key: 'color' | 'width',
+    base: 'borderColor' | 'borderWidth',
+    offValue: Operation | number
+): Operation => ({
+    $isType: [
+        { $ref: 'seriesLabelBorder' },
+        'boolean',
+        { $if: [{ $ref: 'seriesLabelBorder' }, { $ref: base }, offValue] },
+        {
+            $isType: [
+                { $ref: `seriesLabelBorder.${key}` },
+                'nullish',
+                { $ref: base },
+                { $ref: `seriesLabelBorder.${key}` },
+            ],
+        },
+    ],
+});
+
+const LABEL_BOXING_BORDER_DEFAULTS: WithThemeParams<Pick<LabelBoxOptions, 'border'>> = {
+    border: {
+        enabled: {
+            $or: [{ $isUserOption: '../border' }, { $not: { $eq: [{ $ref: 'seriesLabelBorder' }, false] } }],
+        },
+        strokeWidth: seriesLabelBorderValue('width', 'borderWidth', 1),
+        stroke: seriesLabelBorderValue('color', 'borderColor', { $foregroundOpacity: 0.08 }),
     },
 };
 
 export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
-    ...LABEL_BOXING_FILL_DEFAULTS,
+    ...labelBoxingFillDefaults(),
+    ...LABEL_BOXING_BORDER_DEFAULTS,
     padding: 8,
-    cornerRadius: 4,
-    border: {
-        enabled: { $isUserOption: '../border' },
-        strokeWidth: 1,
-        stroke: { $foregroundOpacity: 0.08 },
-    },
+    cornerRadius: { $ref: 'seriesLabelBorderRadius' },
 };
+
+/**
+ * Font weight for a series label whose default does not follow `fontWeight`. `seriesLabelFontWeight` applies only once it
+ * differs from `fontWeight`, so the label keeps `fallback` until a theme sets the series label weight.
+ */
+export const seriesLabelFontWeightOr = (fallback: FontWeight | undefined): Operation => ({
+    $if: [
+        { $eq: [{ $ref: 'seriesLabelFontWeight' }, { $ref: 'fontWeight' }] },
+        fallback,
+        { $ref: 'seriesLabelFontWeight' },
+    ],
+});
+
+/** `LABEL_BOXING_DEFAULTS` for a label that sits inside or outside its series shape, e.g. pie sector and callout labels. */
+export const PLACED_LABEL_BOXING_DEFAULTS = (placement: SeriesLabelPlacement): WithThemeParams<LabelBoxOptions> => ({
+    ...LABEL_BOXING_DEFAULTS,
+    ...labelBoxingFillDefaults(placement),
+});
 
 /**
  * Top-level box defaults for placement-reactive labels. Box geometry (`cornerRadius`, `padding`,
  * fill and the border stroke geometry) lives here so a value set once at the top level applies to
  * both placements; `border.enabled` falls through to the placement blocks via
  * `LABEL_PLACEMENT_STYLE_DEFAULTS` (see there for the per-placement auto-enable precedence). The
- * placement blocks carry only user overrides plus a conditional `color` default (whose value
- * legitimately differs per inside/outside placement).
+ * placement blocks carry only user overrides plus conditional `color` and `fill` defaults (whose values
+ * legitimately differ per inside/outside placement).
  */
 export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
-    ...LABEL_BOXING_FILL_DEFAULTS,
-    cornerRadius: 4,
-    border: {
-        enabled: { $isUserOption: '../border' },
-        strokeWidth: 1,
-        stroke: { $foregroundOpacity: 0.08 },
-    },
+    ...labelBoxingFillDefaults(),
+    ...LABEL_BOXING_BORDER_DEFAULTS,
+    cornerRadius: { $ref: 'seriesLabelBorderRadius' },
 };
 
 /**
@@ -418,14 +474,17 @@ const LABEL_PLACEMENT_BORDER_DEFAULTS: WithThemeParams<Pick<LabelBoxOptions, 'bo
 };
 
 /**
- * A series' `insideStyle`/`outsideStyle` theme block: the per-placement border default plus a `color`
- * resolving to `colorRef` where the user set no `label.color`, which legitimately differs per placement.
+ * A series' `insideStyle`/`outsideStyle` theme block: the per-placement border default plus `color` and
+ * `fill` from the placement's theme params where the user set no `label.color` / `label.fill`, since
+ * placement keys beat top-level label keys.
  */
 export const LABEL_PLACEMENT_STYLE_DEFAULTS = (
-    colorRef: keyof AgChartAllThemeParams
+    placement: SeriesLabelPlacement,
+    colorRef: keyof AgChartAllThemeParams = SERIES_LABEL_PLACEMENT_PARAMS[placement].color
 ): WithThemeParams<AgChartLabelPlacementStyleOptions> => ({
     ...LABEL_PLACEMENT_BORDER_DEFAULTS,
     color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: colorRef }] },
+    fill: { $if: [{ $isUserOption: '../fill' }, undefined, seriesLabelBackground(placement)] },
 });
 
 /**

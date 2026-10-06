@@ -1,7 +1,6 @@
 import { type AgMapLineSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
-    FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
@@ -40,7 +39,9 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,
                 enabled: true,
-                ...FONT_THEME_DEFAULTS,
+                fontSize: { $ref: 'seriesLabelFontSize' },
+                fontFamily: { $ref: 'seriesLabelFontFamily' },
+                fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 collision: { alwaysShow: false },
             },
