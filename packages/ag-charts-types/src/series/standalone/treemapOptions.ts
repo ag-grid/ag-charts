@@ -93,8 +93,8 @@ export interface AgTreemapSeriesTileLabelAlignmentOptions {
      */
     textAlign?: TextAlign;
     /**
-     * Vertical position of the label within the tile. Labels sharing a vertical position stack, the primary
-     * label above the secondary one.
+     * Vertical position of the label within the tile. Labels sharing a vertical position, or too tall to sit
+     * apart, stack with the primary label above the secondary one.
      *
      * Default: `'middle'`
      */
@@ -114,7 +114,7 @@ export interface AgTreemapSeriesTileSecondaryLabelOptions<TDatum, TContext = Con
 export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
     /** Options for the label in a tile. */
     label?: AgTreemapSeriesTileLabelOptions<TDatum, TContext>;
-    /** Options for a secondary, smaller label in a tile - displayed under the primary label. */
+    /** Options for a secondary, smaller label in a tile. */
     secondaryLabel?: AgTreemapSeriesTileSecondaryLabelOptions<TDatum, TContext>;
     /**
      * Horizontal position of the label.

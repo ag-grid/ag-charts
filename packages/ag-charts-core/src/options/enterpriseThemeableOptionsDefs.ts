@@ -100,6 +100,7 @@ import {
     shapeSegmentation,
     strokeOptionsDef,
     textAlign,
+    verticalAlign,
 } from './optionsDefaults';
 import {
     type OptionsDefs,
@@ -910,19 +911,19 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         shadow: shadowOptionsDefs,
         textAlign: deprecated(textAlign, 'Use `label.textAlign` and `secondaryLabel.textAlign` instead.'),
         verticalAlign: deprecated(
-            union('top', 'middle', 'bottom'),
+            verticalAlign,
             'Use `label.verticalAlign` and `secondaryLabel.verticalAlign` instead.'
         ),
         label: {
             ...autoSizedLabelOptionsDefs,
             spacing: positiveNumber,
             textAlign,
-            verticalAlign: union('top', 'middle', 'bottom'),
+            verticalAlign,
         },
         secondaryLabel: {
             ...autoSizedLabelOptionsDefs,
             textAlign,
-            verticalAlign: union('top', 'middle', 'bottom'),
+            verticalAlign,
         },
         highlight: {
             enabled: boolean,

@@ -713,6 +713,27 @@ describe('TreemapSeries', () => {
             expect(secondary.y + secondary.height).toBeLessThanOrEqual(primary.y + 0.5);
         });
 
+        it('stacks labels aligned to different edges when alwaysShow keeps a pair that does not fit', async () => {
+            const fixed = { fontSize: 14, minimumFontSize: 14, truncate: false };
+            chart = deproxy(
+                AgCharts.create(
+                    alignmentOptions(
+                        {
+                            tile: {
+                                padding: 285,
+                                label: { ...fixed, verticalAlign: 'top', collision: { alwaysShow: true } },
+                                secondaryLabel: { ...fixed, verticalAlign: 'bottom', collision: { alwaysShow: true } },
+                            },
+                        },
+                        [{ name: 'Primary', detail: 'Secondary', value: 1 }]
+                    )
+                )
+            );
+            await waitForChartStability(chart);
+            const [primary, secondary] = textBBoxes();
+            expect(primary.y + primary.height).toBeLessThanOrEqual(secondary.y + 0.5);
+        });
+
         it('forwards the deprecated tile and group alignment into the labels', async () => {
             chart = deproxy(
                 AgCharts.create(

@@ -16,11 +16,11 @@ import type {
     AgTreemapSeriesStyle,
     AgTreemapSeriesTileHighlightOptions,
     AgTreemapSeriesTileHighlightStyle,
+    AgTreemapSeriesTileLabelAlignmentOptions,
     AgTreemapSeriesTileOptions,
     CssColor,
     Styler,
     TextAlign,
-    VerticalAlign,
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
@@ -85,7 +85,7 @@ export type NormalisedTreemapGroupLabelOptions =
         textAlign: TextAlign;
     };
 
-type NormalisedTreemapTileLabelAlignment = { textAlign: TextAlign; verticalAlign: VerticalAlign };
+type NormalisedTreemapTileLabelAlignment = Required<AgTreemapSeriesTileLabelAlignmentOptions>;
 
 type TreemapGroupRequiredKeys =
     | 'fills'

@@ -90,21 +90,6 @@ function nodeSize(node: TreemapNode) {
     return node.children.length > 0 ? node.sumSize - node.sizeValue : node.sizeValue;
 }
 
-type AlignedLabel = { y: number; height: number; verticalAlign: VerticalAlign };
-
-// The stacked fit leaves room for both labels, so only a `middle` one can meet an edge-aligned one.
-function separateLabels(a: AlignedLabel, b: AlignedLabel, spacing: number): [number, number] {
-    const clear = (middle: AlignedLabel, edge: AlignedLabel) => {
-        if (edge.verticalAlign === 'top') {
-            return Math.max(middle.y, edge.y + edge.height * 0.5 + spacing + middle.height * 0.5);
-        }
-        return Math.min(middle.y, edge.y - edge.height * 0.5 - spacing - middle.height * 0.5);
-    };
-    if (a.verticalAlign === 'middle') return [clear(a, b), b.y];
-    if (b.verticalAlign === 'middle') return [a.y, clear(b, a)];
-    return [a.y, b.y];
-}
-
 const textAlignFactors: Record<ResolvedTextAlign, number | undefined> = {
     left: 0,
     center: 0.5,
@@ -116,6 +101,24 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     middle: 0.5,
     bottom: 1,
 };
+
+function alignedX(bbox: _ModuleSupport.BBox, padding: number, textAlign: TextAlign, isRtl: boolean) {
+    const factor = textAlignFactors[resolveTextAlign(textAlign, isRtl)] ?? 0.5;
+    return bbox.x + padding + (bbox.width - 2 * padding) * factor;
+}
+
+// When the pair fits, only a `middle` label can meet an edge-aligned one.
+function clearOfEdge(
+    y: number,
+    height: number,
+    edgeY: number,
+    edgeHeight: number,
+    edgeAlign: VerticalAlign,
+    spacing: number
+) {
+    const gap = (edgeHeight + height) * 0.5 + spacing;
+    return edgeAlign === 'top' ? Math.max(y, edgeY + gap) : Math.min(y, edgeY - gap);
+}
 
 export class TreemapSeries extends HierarchySeries<
     TreemapNode,
@@ -656,10 +659,6 @@ export class TreemapSeries extends HierarchySeries<
                 const isRtl = this.ctx.domManager.isRtl;
                 const innerY = bbox.y + padding;
                 const innerHeight = bbox.height - 2 * padding;
-                const labelX = (textAlign: TextAlign) =>
-                    bbox.x +
-                    padding +
-                    (bbox.width - 2 * padding) * (textAlignFactors[resolveTextAlign(textAlign, isRtl)] ?? 0.5);
                 const centreY = (blockHeight: number, verticalAlign: VerticalAlign) =>
                     innerY +
                     blockHeight * 0.5 +
@@ -669,19 +668,31 @@ export class TreemapSeries extends HierarchySeries<
                 let secondaryLabelY =
                     secondaryLabel == null ? 0 : centreY(secondaryLabel.height, tile.secondaryLabel.verticalAlign);
                 if (label != null && secondaryLabel != null) {
-                    if (tile.label.verticalAlign === tile.secondaryLabel.verticalAlign) {
-                        const blockY = centreY(labelHeight, tile.label.verticalAlign);
+                    const labelAlign = tile.label.verticalAlign;
+                    const secondaryAlign = tile.secondaryLabel.verticalAlign;
+                    const { spacing } = tile.label;
+                    // `alwaysShow` can keep a pair too tall for the tile; stacking stops them drawing over each other.
+                    if (labelAlign === secondaryAlign || labelHeight > innerHeight) {
+                        const blockY = centreY(labelHeight, labelAlign);
                         labelY = blockY - (labelHeight - label.height) * 0.5;
                         secondaryLabelY = blockY + (labelHeight - secondaryLabel.height) * 0.5;
-                    } else {
-                        [labelY, secondaryLabelY] = separateLabels(
-                            { y: labelY, height: label.height, verticalAlign: tile.label.verticalAlign },
-                            {
-                                y: secondaryLabelY,
-                                height: secondaryLabel.height,
-                                verticalAlign: tile.secondaryLabel.verticalAlign,
-                            },
-                            tile.label.spacing
+                    } else if (labelAlign === 'middle') {
+                        labelY = clearOfEdge(
+                            labelY,
+                            label.height,
+                            secondaryLabelY,
+                            secondaryLabel.height,
+                            secondaryAlign,
+                            spacing
+                        );
+                    } else if (secondaryAlign === 'middle') {
+                        secondaryLabelY = clearOfEdge(
+                            secondaryLabelY,
+                            secondaryLabel.height,
+                            labelY,
+                            label.height,
+                            labelAlign,
+                            spacing
                         );
                     }
                 }
@@ -704,7 +715,7 @@ export class TreemapSeries extends HierarchySeries<
                         color,
                         textAlign,
                         verticalAlign: 'middle',
-                        x: labelX(textAlign),
+                        x: alignedX(bbox, padding, textAlign, isRtl),
                         y: labelY,
                     };
                 }
@@ -726,7 +737,7 @@ export class TreemapSeries extends HierarchySeries<
                         color,
                         textAlign,
                         verticalAlign: 'middle',
-                        x: labelX(textAlign),
+                        x: alignedX(bbox, padding, textAlign, isRtl),
                         y: secondaryLabelY,
                     };
                 }
@@ -739,14 +750,11 @@ export class TreemapSeries extends HierarchySeries<
                 const groupTitleHeight = this.groupTitleHeight(node, bbox);
                 if (groupTitleHeight == null) return;
 
-                const innerWidth = bbox.width - 2 * padding;
                 const text = wrapText(labelValue, {
                     maxWidth: bbox.width - 2 * padding,
                     font: group.label,
                     textWrap: 'never',
                 });
-                const resolvedTextAlign = resolveTextAlign(textAlign, this.ctx.domManager.isRtl);
-                const textAlignFactor = textAlignFactors[resolvedTextAlign] ?? 0.5;
 
                 const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = group.label;
 
@@ -760,7 +768,7 @@ export class TreemapSeries extends HierarchySeries<
                     color,
                     textAlign,
                     verticalAlign: 'middle',
-                    x: bbox.x + padding + innerWidth * textAlignFactor,
+                    x: alignedX(bbox, padding, textAlign, this.ctx.domManager.isRtl),
                     y: bbox.y + padding + groupTitleHeight * 0.5,
                 };
             }
