@@ -179,7 +179,12 @@ export class AxisInteraction extends AbstractModuleInstance {
 
     private resolveAriaLabels(axesCtx: _ModuleSupport.AxisContext[]) {
         const { labels, duplicateExplicitLabels } = resolveAxisAriaLabels(
-            axesCtx.map(({ axisId, userAxisId, ariaLabel, titleText }) => ({ axisId, userAxisId, ariaLabel, titleText }))
+            axesCtx.map(({ axisId, userAxisId, ariaLabel, titleText }) => ({
+                axisId,
+                userAxisId,
+                ariaLabel,
+                titleText,
+            }))
         );
         for (const label of duplicateExplicitLabels) {
             this.ctx.logger.warnOnce(
