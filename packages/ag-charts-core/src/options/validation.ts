@@ -202,6 +202,12 @@ export class UnknownError extends ValidationError {
     }
 }
 
+export function isThemeOperator(value: unknown) {
+    if (!isObject(value)) return false;
+    const keys = Object.keys(value);
+    return keys.length === 1 && keys[0].startsWith('$');
+}
+
 /**
  * Validates the provided options against the specified definitions.
  * @param options The options object to validate.
@@ -209,12 +215,6 @@ export class UnknownError extends ValidationError {
  * @param path The current path in the options object, for nested properties.
  * @returns An object containing valid options and validation errors.
  */
-export function isThemeOperator(value: unknown) {
-    if (!isObject(value)) return false;
-    const keys = Object.keys(value);
-    return keys.length === 1 && keys[0].startsWith('$');
-}
-
 export function validate<T>(
     options: unknown,
     optionsDefs: OptionsDefs<T>,
@@ -841,6 +841,14 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description = 'an object ar
 
         return { valid: true, cleared, invalid };
     }, description);
+
+/** Validates against `defs`, accepting a theme operator in place of any value. */
+export const withThemeOperators = <T>(defs: OptionsDefs<T>) =>
+    attachDescription((value, context) => {
+        if (!isObject(value)) return false;
+        const { cleared, invalid } = validate(value, defs, context.path, { ...context.params, themeOperators: true });
+        return { valid: true, cleared, invalid };
+    }, 'an object');
 
 export const callbackOf = (validator: Validator, description?: string) =>
     attachDescription((value, context) => {

@@ -246,6 +246,21 @@ describe('themes.ts', () => {
               ]
             `);
         });
+
+        it('accepts theme operators in overrides only', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: {
+                    palette: { fills: { $ref: 'foregroundColor' } },
+                    overrides: { bar: { series: { fill: { $ref: 'foregroundColor' } } } },
+                } as unknown as AgChartTheme,
+            });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`theme.palette.fills` cannot be set to `{"$ref":"foregroundColor"}`')],
+            ]);
+        });
     });
 
     describe('theme caching across repeat chart creates', () => {

@@ -33,6 +33,8 @@ import {
 import type {
     AgMiniChartSeriesOptions,
     AgNavigatorHandleOptions,
+    AgNavigatorMaskOptions,
+    AgNavigatorMiniChartLabelOptions,
     AgNavigatorOptions,
     AgNavigatorThemeableOptions,
     BarIgnoredProperties,
@@ -193,80 +195,59 @@ function miniChartSeriesDefs() {
 // once the theme has filled it in, so the pre-theme pass accepts it as a bare object.
 const untypedMiniChartSeries = attachDescription((value) => isObject(value) && value.type == null, 'an object');
 
+const navigatorMaskOptionsDef: OptionsDefs<AgNavigatorMaskOptions> = {
+    fill: color,
+    fillOpacity: ratio,
+    stroke: color,
+    strokeWidth: positiveNumber,
+};
+
+const navigatorMiniChartLabelOptionsDef: OptionsDefs<AgNavigatorMiniChartLabelOptions> = {
+    enabled: boolean,
+    avoidCollisions: boolean,
+    spacing: positiveNumber,
+    format: numberFormatValidator,
+    formatter: callbackOf(textOrSegments),
+    interval: {
+        minSpacing: positiveNumber,
+        maxSpacing: positiveNumber,
+        values: array,
+        step: number,
+    },
+    ...fontOptionsDef,
+};
+
 export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
     enabled: boolean,
     height: positiveNumber,
     spacing: positiveNumber,
     cornerRadius: number,
-    mask: {
-        fill: color,
-        fillOpacity: ratio,
-        stroke: color,
-        strokeWidth: positiveNumber,
-    },
+    mask: navigatorMaskOptionsDef,
     minHandle: navigatorHandleOptionsDef,
     maxHandle: navigatorHandleOptionsDef,
     miniChart: {
         enabled: boolean,
         padding: padding,
-        label: {
-            enabled: boolean,
-            avoidCollisions: boolean,
-            spacing: positiveNumber,
-            format: numberFormatValidator,
-            formatter: callbackOf(textOrSegments),
-            interval: {
-                minSpacing: positiveNumber,
-                maxSpacing: positiveNumber,
-                values: array,
-                step: number,
-            },
-            ...fontOptionsDef,
-        },
+        label: navigatorMiniChartLabelOptionsDef,
         series: arrayOf(or(untypedMiniChartSeries, optionsDefs(miniChartSeriesDefs())), 'miniChart series options'),
     },
 };
 
 const navigatorHandleThemeOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
-    width: positiveNumber,
-    height: positiveNumber,
-    grip: boolean,
+    ...navigatorHandleOptionsDef,
     fill: colorOrRef,
     stroke: colorOrRef,
-    strokeWidth: positiveNumber,
-    cornerRadius: positiveNumber,
 };
 
 export const navigatorThemeOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
-    enabled: boolean,
-    height: positiveNumber,
-    spacing: positiveNumber,
-    cornerRadius: number,
-    mask: {
-        fill: colorOrRef,
-        fillOpacity: ratio,
-        stroke: colorOrRef,
-        strokeWidth: positiveNumber,
-    },
+    ...navigatorOptionsDef,
+    mask: { ...navigatorMaskOptionsDef, fill: colorOrRef, stroke: colorOrRef },
     minHandle: navigatorHandleThemeOptionsDef,
     maxHandle: navigatorHandleThemeOptionsDef,
     miniChart: {
         enabled: boolean,
         padding: padding,
-        label: {
-            enabled: boolean,
-            avoidCollisions: boolean,
-            spacing: positiveNumber,
-            format: numberFormatValidator,
-            formatter: callbackOf(textOrSegments),
-            interval: {
-                minSpacing: positiveNumber,
-                maxSpacing: positiveNumber,
-                values: array,
-                step: number,
-            },
-            ...fontOptionsDef,
-        },
+        label: navigatorMiniChartLabelOptionsDef,
         series: defined,
     },
 };

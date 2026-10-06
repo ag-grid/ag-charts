@@ -48,7 +48,7 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
                 color: { $ref: 'textColor' },
                 collision: { alwaysShow: false },
             },
-            tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,
         },

@@ -34,7 +34,7 @@ import {
     unionOrArray,
 } from 'ag-charts-core';
 
-const rangeInsideOutsidePlacementDef = unionOrArray('inside', 'outside');
+export const rangeInsideOutsidePlacementDef = unionOrArray('inside', 'outside');
 
 const rangeBarStyleCallback = callbackDefs<AgRangeBarSeriesStyle>({
     ...fillOptionsDef,

@@ -61,7 +61,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 fontSize: { $ref: 'seriesLabelFontSize' },
                 fontWeight: seriesLabelFontWeightOr('bold'),
             },
-            tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,
         },

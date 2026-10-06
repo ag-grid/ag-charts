@@ -96,7 +96,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         sectorSpacing: 1,
         hideZeroValueSectorsInLegend: false,
         shadow: SHADOW_THEME_DEFAULTS,
-        tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         highlight: { ...PART_WHOLE_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },

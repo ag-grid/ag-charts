@@ -51,7 +51,7 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
             placement: 'inside-center',
         },
         shadow: SHADOW_THEME_DEFAULTS,
-        tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
     },
 };

@@ -33,8 +33,9 @@ import {
     strokeOptionsDef,
     tooltipOptionsDefs,
     undocumented,
-    unionOrArray,
 } from 'ag-charts-core';
+
+import { rangeInsideOutsidePlacementDef } from '../range-bar/rangeBarSeriesOptionsDef';
 
 export const rangeAreaSeriesLineThemeableOptionsDef: OptionsDefs<
     AgRangeAreaSeriesLineThemeableOptions<unknown, unknown>
@@ -61,8 +62,6 @@ const rangeAreaSeriesLineStyleDef: OptionsDefs<AgRangeAreaSeriesLineStyle> = {
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
 };
-
-const rangeInsideOutsidePlacementDef = unionOrArray('inside', 'outside');
 
 export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesThemeableOptions> = {
     showInMiniChart: boolean,

@@ -91,7 +91,6 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
         tooltip: {
             ...SERIES_TOOLTIP_THEME,
             enabled: false,
-            interaction: { enabled: false },
         },
         node: {
             cornerRadius: 4,

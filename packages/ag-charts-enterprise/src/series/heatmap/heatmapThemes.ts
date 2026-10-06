@@ -41,7 +41,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
             verticalAlign: { $path: ['../verticalAlign', 'middle'] },
         },
         itemPadding: 3,
-        tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         colorScale: {
             fills: {
                 $map: [

@@ -33,7 +33,7 @@ export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'textColor' },
         },
-        tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: false },
         selection: SERIES_SELECTION_THEME,
     },

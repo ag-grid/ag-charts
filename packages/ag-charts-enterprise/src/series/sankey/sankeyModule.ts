@@ -48,7 +48,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                     opacity: 0.5,
                 },
             },
-            tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,

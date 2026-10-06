@@ -15,6 +15,7 @@ import {
     boolean,
     callback,
     color,
+    colorOrRef,
     date,
     fillCssOptionsDef,
     fontOptionsDef,
@@ -85,3 +86,20 @@ export const rangesOptionsDefs: OptionsDefs<AgRangesOptions> = {
 
 // @ts-expect-error undocumented option
 rangesOptionsDefs.minSize = undocumented(positiveNumber);
+
+const stateStylesThemeOptions: OptionsDefs<AgRangesStateStyles> = { ...stateStylesOptions, textColor: colorOrRef };
+
+const stylesThemeOptions: OptionsDefs<AgRangesStyles> = {
+    ...stylesOptions,
+    textColor: colorOrRef,
+    active: stateStylesThemeOptions,
+    disabled: stateStylesThemeOptions,
+    hover: stateStylesThemeOptions,
+};
+
+export const rangesThemeOptionsDefs: OptionsDefs<AgRangesOptions> = {
+    ...rangesOptionsDefs,
+    ...stylesThemeOptions,
+    button: stylesThemeOptions,
+    dropdown: { ...dropdownOptions, ...stylesThemeOptions },
+};

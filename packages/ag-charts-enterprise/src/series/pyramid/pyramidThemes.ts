@@ -22,7 +22,7 @@ export const PYRAMID_SERIES_THEME: ExtensibleSeriesTheme<'pyramid'> = {
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         ...STROKE_STYLE_THEME_DEFAULTS,
         spacing: 2,
-        tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         fills: {
             $applyCycle: [
                 { $size: { $path: ['./data', { $path: '/data' }] } },

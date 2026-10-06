@@ -24,6 +24,7 @@ import {
     string,
     union,
     validate,
+    withThemeOperators,
 } from 'ag-charts-core';
 import type {
     AgBorderThemeParam,
@@ -202,7 +203,6 @@ function createChartTheme(
 
     const { cleared, invalid } = validate(reduceThemeOptions(value), themeOptionsDefFor(moduleRegistry), 'theme', {
         logger,
-        themeOperators: true,
     });
 
     for (const error of invalid) {
@@ -426,6 +426,9 @@ const themeOptionsDefsCaches = createScopedCache(
 /** The theme schema for `moduleRegistry`, with `overrides` composed from its modules. */
 export function themeOptionsDefFor(moduleRegistry: ModuleScope): OptionsDefs<AgChartTheme> {
     const cache = themeOptionsDefsCaches.for(moduleRegistry);
-    cache.defs ??= { ...themeOptionsBaseDef, overrides: themeOverridesOptionsDefs(moduleRegistry) };
+    cache.defs ??= {
+        ...themeOptionsBaseDef,
+        overrides: withThemeOperators(themeOverridesOptionsDefs(moduleRegistry)),
+    };
     return cache.defs;
 }

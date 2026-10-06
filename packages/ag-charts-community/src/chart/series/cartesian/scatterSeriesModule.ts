@@ -9,8 +9,8 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    NEAREST_NODE_TOOLTIP_THEME,
     SERIES_SELECTION_THEME,
-    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
@@ -52,21 +52,7 @@ const themeTemplate: ExtensibleSeriesTheme<'scatter'> = {
             collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesArea: false } }) },
             placement: 'top',
         },
-        tooltip: {
-            ...SERIES_TOOLTIP_THEME,
-            range: {
-                $if: [
-                    { $eq: [{ $path: ['/tooltip/range', 'nearest'] }, 'area'] },
-                    'nearest',
-                    { $path: ['/tooltip/range', 'nearest'] },
-                ],
-            },
-            position: {
-                ...SERIES_TOOLTIP_THEME.position,
-                anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
-            },
-            interaction: { enabled: false },
-        },
+        tooltip: NEAREST_NODE_TOOLTIP_THEME,
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         colorScale: BUBBLE_SCATTER_COLOR_SCALE_THEME,

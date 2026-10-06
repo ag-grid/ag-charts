@@ -36,7 +36,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
             highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
-            tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,

@@ -221,7 +221,7 @@ export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
             ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: 2,
         },
-        tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
     },
     legend: {

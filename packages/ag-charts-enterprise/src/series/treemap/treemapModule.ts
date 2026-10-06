@@ -46,7 +46,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
                 mode: 'continuous',
             },
-            tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             group: {
                 label: {
                     ...LABEL_BOXING_DEFAULTS,

@@ -115,7 +115,6 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
             tooltip: {
                 ...SERIES_TOOLTIP_THEME,
                 range: { $path: ['/tooltip/range', 10] },
-                interaction: { enabled: false },
             },
             highlight: { enabled: true },
             selection: SERIES_SELECTION_THEME,

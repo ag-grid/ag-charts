@@ -85,7 +85,7 @@ function checkModuleThemeTemplates(scope: ModuleScope) {
     const placements = [...moduleTemplatePlacements(scope), ...contributionTemplatePlacements(scope)];
     for (const [label, overrides] of placements) {
         checked.push(label);
-        const { invalid } = validate({ overrides }, defs, 'theme', { logger, themeOperators: true });
+        const { invalid } = validate({ overrides }, defs, 'theme', { logger });
         for (const error of invalid) errors.push(`${label}: ${String(error)}`);
     }
     return { checked, errors };

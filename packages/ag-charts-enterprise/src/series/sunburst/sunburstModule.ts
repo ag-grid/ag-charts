@@ -35,7 +35,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
             mode: 'continuous',
         },
-        tooltip: { ...SERIES_TOOLTIP_THEME, interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         fillOpacity: 1,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         strokeOpacity: 1,
