@@ -67,6 +67,8 @@ export class HdpiOffscreenCanvas {
 
         const { canvas, context } = this;
         if (width !== this.width || height !== this.height || pixelRatio !== this.pixelRatio) {
+            // The scratch canvases are capped at the layer size, so they would otherwise pile up per size.
+            releaseSpreadCanvas(context);
             const [canvasWidth, canvasHeight] = canvasDimensions(width, height, pixelRatio);
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;

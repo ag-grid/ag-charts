@@ -64,6 +64,10 @@ export class HdpiCanvas {
         if (!(width > 0 && height > 0)) return;
 
         const { element, context } = this;
+        if (width !== this.width || height !== this.height || pixelRatio !== this.pixelRatio) {
+            // The scratch canvases are capped at the layer size, so they would otherwise pile up per size.
+            releaseSpreadCanvas(context);
+        }
         element.width = deviceDimension(pixelRatio, width);
         element.height = deviceDimension(pixelRatio, height);
         context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
