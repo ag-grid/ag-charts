@@ -193,10 +193,12 @@ export class TreemapSeries extends HierarchySeries<
         if (fitted == null) return;
 
         const [formatting] = fitted;
+        // `'never'` keeps every manual line, so a label too tall for the header is only drawn if `alwaysShow` keeps it.
+        if (formatting.height > height && !label.collision?.alwaysShow) return;
         const natural = cachedTextMeasurer(label).measureLines(
             wrapLines(labelValue, { maxWidth: width, font: label, textWrap: props.wrapping })
         );
-        const bandHeight = Math.max(formatting.height, Math.min(natural.height, height), fontSize);
+        const bandHeight = Math.max(formatting.height, Math.min(Math.max(natural.height, fontSize), height));
         return { text: formatting.text, fontSize: formatting.fontSize, labelHeight: formatting.height, bandHeight };
     }
 

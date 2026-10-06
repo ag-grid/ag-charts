@@ -838,7 +838,7 @@ describe('TreemapSeries', () => {
             expect(fruit.label.text).not.toContain('…');
         });
 
-        it('truncates a group label that does not fit at its minimum font size', async () => {
+        it('truncates a group label wider than maxWidth', async () => {
             await render({ maxWidth: 60, wrapping: 'never' });
             expect(groups()[0].label.text).toMatch(/…$/);
         });
@@ -852,6 +852,17 @@ describe('TreemapSeries', () => {
             chart.destroy();
             await render({ maxHeight: 5, collision: { alwaysShow: true } });
             expect(groups()[0].label).toBeDefined();
+        });
+
+        it('keeps the group header within maxHeight when the label shrinks', async () => {
+            await render({ fontSize: 16, minimumFontSize: 6, maxHeight: 10, wrapping: 'never' });
+            const { padding, label } = chart.series[0].options.group;
+            expect(groups()[1].padding.top).toBeLessThanOrEqual(padding + 10 + label.spacing);
+        });
+
+        it('hides a multi-line group label taller than maxHeight when it cannot wrap', async () => {
+            await render({ wrapping: 'never', maxHeight: 20 }, groupData('Fresh\nfruit\nand nuts'));
+            expect(groups()[0].label).toBeUndefined();
         });
 
         it('aligns a truncated group label vertically within its capped header', async () => {
