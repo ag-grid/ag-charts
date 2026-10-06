@@ -63,6 +63,7 @@ export const rangesOptionsDefs: OptionsDefs<AgRangesOptions> = {
     position: union('top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'),
     button: buttonStylesOptions,
     dropdown: dropdownOptions,
+    buttonSize: positiveNumber,
     gap: positiveNumber,
     spacing: positiveNumber,
     ...stylesOptions,

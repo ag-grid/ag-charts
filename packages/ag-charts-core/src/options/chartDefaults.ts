@@ -589,6 +589,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         enableOutOfRange: boolean,
         position: union('top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'),
         spacing: positiveNumber,
+        buttonSize: positiveNumber,
         button: {
             ...fillCssOptionsDef,
             ...strokeOptionsDef,
