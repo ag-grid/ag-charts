@@ -95,7 +95,7 @@ const spreadBounds: SpreadBounds = {
 };
 
 /** The region of the layer that the spread shadow being drawn needs, reused to avoid a per-shape allocation. */
-const spreadRegion = { x: 0, y: 0, width: 0, height: 0, canvasWidth: 0, canvasHeight: 0 };
+const spreadRegion = { x: 0, y: 0, width: 0, height: 0, maxWidth: 0, maxHeight: 0 };
 
 /**
  * Sets the region of the layer that a spread shadow has to draw: only the part of the silhouette whose shadow can land
@@ -117,8 +117,9 @@ function setSpreadRegion(): boolean {
     spreadRegion.y = top;
     spreadRegion.width = width;
     spreadRegion.height = height;
-    spreadRegion.canvasWidth = canvasWidth ?? width;
-    spreadRegion.canvasHeight = canvasHeight ?? height;
+    // The region never exceeds the canvas plus the blur margin on each side, so that is the largest scratch canvas needed.
+    spreadRegion.maxWidth = canvasWidth == null ? width : canvasWidth + 2 * blurReach;
+    spreadRegion.maxHeight = canvasHeight == null ? height : canvasHeight + 2 * blurReach;
     return true;
 }
 
@@ -517,7 +518,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         fillBBoxOverride?: BBox
     ) {
         const { __fill: fill, __fillOpacity: fillOpacity = 1, __shadowMode: mode } = this;
-        const { x, y, width, height, canvasWidth, canvasHeight } = spreadRegion;
+        const { x, y, width, height, maxWidth, maxHeight } = spreadRegion;
 
         const fillAlpha =
             mode === 'stroke' || fill == null || fill === 'none' || fillOpacity <= 0 ? 0 : colourAlpha(fill);
@@ -538,7 +539,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         strength *= ctx.globalAlpha;
         ctx.globalAlpha = globalAlpha;
 
-        const { canvas, context: scratch } = getSpreadCanvas(ctx, width, height, canvasWidth, canvasHeight);
+        const { canvas, context: scratch } = getSpreadCanvas(ctx, width, height, maxWidth, maxHeight);
         scratch.setTransform(1, 0, 0, 1, 0, 0);
         scratch.clearRect(0, 0, width, height);
         scratch.save();
