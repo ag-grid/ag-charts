@@ -408,9 +408,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 annotationThemes = baseChartOptions.annotationThemes;
                 // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
                 fonts = baseChartOptions.fonts;
-                // Nor does it re-validate the preset options.
+                // The fast path doesn't re-validate, so carry forward the preset options and issues from the
+                // previous options.
                 presetOptions = baseChartOptions.presetOptions;
-                // The fast path doesn't re-validate, so carry forward the issues from the previous options.
                 this.issues.push(...baseChartOptions.issues);
                 this.revalidated = false;
             } else {
