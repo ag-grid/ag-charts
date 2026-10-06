@@ -2472,6 +2472,19 @@ describe('OrganizationSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].node.labels[0].overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                ],
+                [
+                  "AG Charts - Option \`series[0].node.title.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                ],
+                [
+                  "AG Charts - Option \`series[0].node.subtitle.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                ],
+              ]
+            `);
         });
 
         // Clamping the card via `maxWidth`/`maxHeight` must not leave children drawing outside it.
@@ -2529,8 +2542,8 @@ describe('OrganizationSeries', () => {
         });
 
         it('AG-17253 pt2 should clip vertical overflow when card shorter than content (text-only)', async () => {
-            // maxHeight (50) cannot fit title + subtitle + label; trailing tiers must be cut at
-            // the card edge instead of bleeding onto the link/child rows below.
+            // maxHeight (50) cannot fit title + subtitle + label; tiers that do not fit are hidden, and
+            // anything left is cut at the card edge instead of bleeding onto the link/child rows below.
             const options: AgChartOptions = {
                 data: OVERFLOW_DATA,
                 series: [
@@ -2555,7 +2568,7 @@ describe('OrganizationSeries', () => {
 
         it('AG-17253 pt2 should clip vertical overflow with image-left layout', async () => {
             // image-left forces the card to be at least image.height tall (50); maxHeight=50 then
-            // leaves zero room for text. Text must be clipped at the card edge.
+            // leaves too little room for every tier. Tiers that do not fit are hidden, the rest clipped.
             const options: AgChartOptions = {
                 data: OVERFLOW_DATA,
                 series: [
@@ -2604,6 +2617,238 @@ describe('OrganizationSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('node text fit options', () => {
+        type OrgNodeOptions = NonNullable<AgOrganizationSeriesOptions['node']>;
+        const FIT_DATA = [
+            {
+                id: 'ceo',
+                name: 'Alexandra Montgomery-Fairweather',
+                job: 'Chief Executive Officer',
+                location: 'London',
+                parentId: null,
+            },
+            { id: 'cto', name: 'Bob', job: 'Chief Technology Officer', location: 'Edinburgh', parentId: 'ceo' },
+        ];
+        const LONG_WORD_DATA = [{ id: 'ceo', name: 'Supercalifragilisticexpialidocious', job: 'CEO', parentId: null }];
+
+        type NodeTexts = { id: string; title?: string; subtitle?: string; labels: (string | undefined)[] };
+
+        const render = async (node: OrgNodeOptions, extra: Partial<AgChartOptions> = {}, data: any[] = FIT_DATA) => {
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'organization', idKey: 'id', parentIdKey: 'parentId', node } as any],
+                ...extra,
+            };
+            prepareEnterpriseTestOptions(options);
+            chart?.destroy();
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart).series[0] as any;
+            const texts: NodeTexts[] = [];
+            series.datumSelection.each((nodeScene: any, datum: any) => {
+                texts.push({
+                    id: datum.itemId,
+                    title: nodeScene.titleNode?.text,
+                    subtitle: nodeScene.subtitleNode?.text,
+                    labels: (nodeScene.labelNodes ?? []).map((n: any) => n?.text),
+                });
+            });
+            return { texts, series };
+        };
+
+        const titleOf = (texts: NodeTexts[], id = 'ceo') => texts.find((t) => t.id === id)?.title;
+        const BASE_NODE: OrgNodeOptions = {
+            maxWidth: 100,
+            title: { key: 'name' },
+            subtitle: { key: 'job' },
+            labels: [{ key: 'location' }],
+        };
+
+        it('should default to truncate: true and collision { threshold: 0, alwaysShow: false } on every tier', async () => {
+            const { series } = await render(BASE_NODE);
+            const { title, subtitle, labels } = series.options.node;
+            for (const tier of [title, subtitle, labels[0]]) {
+                expect(tier.truncate).toBe(true);
+                expect(tier.collision).toEqual({ threshold: 0, alwaysShow: false });
+            }
+        });
+
+        it('should render the same text with no fit options as with truncate: true', async () => {
+            const { texts: defaults } = await render(BASE_NODE);
+            const { texts: explicit } = await render({
+                ...BASE_NODE,
+                title: { key: 'name', truncate: true },
+                subtitle: { key: 'job', truncate: true },
+                labels: [{ key: 'location', truncate: true }],
+            });
+            expect(explicit).toEqual(defaults);
+            expect(titleOf(defaults)).toContain('…');
+        });
+
+        it.each([
+            ['ellipsis', true],
+            ['hide', false],
+        ] as const)(
+            'should map overflowStrategy: %s onto truncate: %s and warn once per option path',
+            async (overflowStrategy, truncate) => {
+                const { texts, series } = await render({
+                    ...BASE_NODE,
+                    title: { key: 'name', overflowStrategy, wrapping: 'never' },
+                    labels: [
+                        { key: 'location', overflowStrategy },
+                        { key: 'job', overflowStrategy },
+                    ],
+                });
+                await chart.update({ ...chart.getOptions() } as any);
+                await waitForChartStability(chart);
+
+                expect(series.options.node.title.truncate).toBe(truncate);
+                expect(series.options.node.labels.map((l: any) => l.truncate)).toEqual([truncate, truncate]);
+                expect(titleOf(texts)).toEqual(truncate ? expect.stringContaining('…') : '');
+                expectWarningsCalls().toEqual([
+                    [
+                        'AG Charts - Option `series[0].node.labels[0].overflowStrategy` is deprecated. Use `truncate` instead.',
+                    ],
+                    [
+                        'AG Charts - Option `series[0].node.labels[1].overflowStrategy` is deprecated. Use `truncate` instead.',
+                    ],
+                    [
+                        'AG Charts - Option `series[0].node.title.overflowStrategy` is deprecated. Use `truncate` instead.',
+                    ],
+                ]);
+            }
+        );
+
+        it('should let truncate win over overflowStrategy when both are set', async () => {
+            const { texts } = await render({
+                ...BASE_NODE,
+                title: { key: 'name', wrapping: 'never', overflowStrategy: 'hide', truncate: true },
+            });
+            expect(titleOf(texts)).toContain('…');
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            vi.mocked(console.warn).mockClear();
+        });
+
+        it('should hide text that does not fit with truncate: false alone, keeping the other defaults', async () => {
+            const { texts, series } = await render({
+                ...BASE_NODE,
+                title: { key: 'name', wrapping: 'never', truncate: false },
+            });
+            expect(titleOf(texts)).toBe('');
+            expect(titleOf(texts, 'cto')).toBe('Bob');
+            expect(series.options.node.title.collision).toEqual({ threshold: 0, alwaysShow: false });
+        });
+
+        it('should keep truncating with collision.alwaysShow alone', async () => {
+            const { texts, series } = await render({
+                ...BASE_NODE,
+                title: { key: 'name', wrapping: 'never', collision: { alwaysShow: true } },
+            });
+            expect(titleOf(texts)).toContain('…');
+            expect(series.options.node.title.truncate).toBe(true);
+            expect(series.options.node.title.collision.threshold).toBe(0);
+        });
+
+        it.each([false, true])(
+            'should keep text that does not fit at all when alwaysShow is true (truncate: %s)',
+            async (truncate) => {
+                // 10px is narrower than any single character, so nothing fits and the tier would be emptied.
+                const node: OrgNodeOptions = { width: 30, title: { key: 'name', truncate }, subtitle: { key: 'job' } };
+                const { texts: hidden } = await render(node, {}, LONG_WORD_DATA);
+                expect(titleOf(hidden)).toBe('');
+
+                const { texts: kept } = await render(
+                    { ...node, title: { key: 'name', truncate, collision: { alwaysShow: true } } },
+                    {},
+                    LONG_WORD_DATA
+                );
+                expect(titleOf(kept)).not.toBe('');
+                expect(titleOf(kept)).not.toContain('…');
+            }
+        );
+
+        it('should fit text into less space with a positive threshold and more with a negative one', async () => {
+            const renderTitle = async (threshold: number) =>
+                titleOf(
+                    (
+                        await render({
+                            ...BASE_NODE,
+                            maxWidth: 160,
+                            title: { key: 'name', wrapping: 'never', collision: { threshold } },
+                        })
+                    ).texts
+                )!;
+            const atZero = await renderTitle(0);
+            const positive = await renderTitle(40);
+            const negative = await renderTitle(-40);
+            expect(positive.length).toBeLessThan(atZero.length);
+            expect(negative.length).toBeGreaterThan(atZero.length);
+        });
+
+        it('should apply truncate and collision from theme overrides', async () => {
+            const { texts, series } = await render({ ...BASE_NODE, title: { key: 'name', wrapping: 'never' } }, {
+                theme: {
+                    overrides: {
+                        organization: {
+                            series: { node: { title: { truncate: false, collision: { threshold: 5 } } } },
+                        },
+                    },
+                },
+            } as any);
+            expect(series.options.node.title.truncate).toBe(false);
+            expect(series.options.node.title.collision).toEqual({ threshold: 5, alwaysShow: false });
+            expect(titleOf(texts)).toBe('');
+        });
+
+        it('should map a theme overflowStrategy onto truncate without warning', async () => {
+            const { texts } = await render({ ...BASE_NODE, title: { key: 'name', wrapping: 'never' } }, {
+                theme: {
+                    overrides: { organization: { series: { node: { title: { overflowStrategy: 'hide' } } } } },
+                },
+            } as any);
+            expect(titleOf(texts)).toBe('');
+        });
+
+        it('should map an overflowStrategy returned by a text itemStyler', async () => {
+            const { texts } = await render({
+                ...BASE_NODE,
+                title: { key: 'name', wrapping: 'never', itemStyler: () => ({ overflowStrategy: 'hide' }) },
+            });
+            expect(titleOf(texts)).toBe('');
+            expect(titleOf(texts, 'cto')).toBe('Bob');
+            vi.mocked(console.warn).mockClear();
+        });
+
+        it('should pass truncate and collision to text itemStyler params', async () => {
+            const itemStyler = vi.fn(() => ({}));
+            await render({ ...BASE_NODE, title: { key: 'name', itemStyler } });
+            expect(itemStyler).toHaveBeenCalledWith(
+                expect.objectContaining({ truncate: true, collision: { threshold: 0, alwaysShow: false } })
+            );
+        });
+
+        it('should not fit text vertically when no card height is configured', async () => {
+            const { texts: unbounded } = await render({ ...BASE_NODE, maxWidth: undefined });
+            const ceo = unbounded.find((t) => t.id === 'ceo')!;
+            expect(ceo.title).toBe('Alexandra Montgomery-Fairweather');
+            expect(ceo.labels).toEqual(['London']);
+        });
+
+        it('should truncate or hide the lower tiers when a configured maxHeight leaves them no room', async () => {
+            const node: OrgNodeOptions = { ...BASE_NODE, maxWidth: undefined, maxHeight: 40 };
+            const { texts: truncated } = await render(node);
+            const ceo = truncated.find((t) => t.id === 'ceo')!;
+            expect(ceo.title).toBe('Alexandra Montgomery-Fairweather');
+            expect(ceo.labels).toEqual(['']);
+
+            const { texts: kept } = await render({
+                ...node,
+                labels: [{ key: 'location', collision: { alwaysShow: true } }],
+            });
+            expect(kept.find((t) => t.id === 'ceo')!.labels).toEqual(['London']);
         });
     });
 
