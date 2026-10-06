@@ -339,7 +339,9 @@ describe('OhlcSeries', () => {
     });
 
     describe('shadow', () => {
-        const buildOptions = (shadow?: typeof SHADOW): AgChartOptions => {
+        const SPREAD_SHADOW = { ...SHADOW, spread: 6 };
+
+        const buildOptions = (shadow?: typeof SHADOW & { spread?: number }): AgChartOptions => {
             const options = { ...OHLC_OPTIONS, series: [{ ...OHLC_OPTIONS.series![0], shadow }] } as AgChartOptions;
             prepareEnterpriseTestOptions(options as any);
             return options;
@@ -377,17 +379,19 @@ describe('OhlcSeries', () => {
         });
 
         it('carries the shadow spread to the stroke shadow of every item', async () => {
-            const chart: any = await createEnterpriseChart(buildOptions({ ...SHADOW, spread: 6 } as typeof SHADOW));
+            const chart: any = await createEnterpriseChart(buildOptions(SPREAD_SHADOW));
+
+            expect(itemNodes(chart).length).toBeGreaterThan(0);
 
             for (const shape of itemNodes(chart)) {
                 expect(shape.shadowMode).toBe('stroke');
-                expect(shape.fillShadow).toMatchObject({ ...SHADOW, spread: 6 });
+                expect(shape.fillShadow).toMatchObject(SPREAD_SHADOW);
             }
             chart.destroy();
         });
 
         it('should render an ohlc chart with a shadow spread', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions({ ...SHADOW, spread: 6 } as typeof SHADOW)));
+            await compareSnapshot(AgCharts.create(buildOptions(SPREAD_SHADOW)));
         });
     });
 

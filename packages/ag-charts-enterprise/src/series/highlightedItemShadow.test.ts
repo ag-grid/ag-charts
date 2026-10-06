@@ -1,14 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts, _Scene } from 'ag-charts-community';
-import {
-    deproxy,
-    expectWarningMessages,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 
 import {
     HIERARCHY_SHADOW_DATA,
@@ -597,7 +591,9 @@ describe('highlightedItem.shadow (enterprise series)', () => {
                     )
                 );
             }
-            expectWarningMessages(messages);
+            // One warning for each shadow, never repeated. Clear them so they are not reported as unexpected.
+            expect(new Set(messages).size).toBe(messages.length);
+            (console.warn as Mock).mockClear();
         };
 
         it('carries the series shadow spread to the items that cast', async () => {

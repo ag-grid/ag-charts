@@ -403,8 +403,10 @@ describe('BoxPlotSeries', () => {
 
     describe('shadow', () => {
         const STYLED_WHISKERS = { stroke: 'navy', strokeWidth: 3 };
+        const SPREAD_SHADOW = { ...SHADOW, spread: 6 };
+
         const buildOptions = (
-            shadow?: typeof SHADOW,
+            shadow?: typeof SHADOW & { spread?: number },
             seriesOptions?: Record<string, unknown>,
             direction: 'horizontal' | 'vertical' = 'vertical'
         ): AgChartOptions => {
@@ -468,26 +470,24 @@ describe('BoxPlotSeries', () => {
         });
 
         it('carries the shadow spread to the silhouette shadow of every box', async () => {
-            const chart: any = await createEnterpriseChart(
-                buildOptions({ ...SHADOW, spread: 6 } as typeof SHADOW, { whisker: STYLED_WHISKERS })
-            );
+            const chart: any = await createEnterpriseChart(buildOptions(SPREAD_SHADOW, { whisker: STYLED_WHISKERS }));
+
+            expect(itemNodes(chart).length).toBeGreaterThan(0);
 
             for (const shape of itemNodes(chart)) {
                 expect(shape.shadowMode).toBe('silhouette');
-                expect(shape.fillShadow).toMatchObject({ ...SHADOW, spread: 6 });
+                expect(shape.fillShadow).toMatchObject(SPREAD_SHADOW);
             }
             chart.destroy();
         });
 
         it('should render a box-plot chart with a shadow spread and shared whisker styling', async () => {
-            await compareSnapshot(AgCharts.create(buildOptions({ ...SHADOW, spread: 6 } as typeof SHADOW)));
+            await compareSnapshot(AgCharts.create(buildOptions(SPREAD_SHADOW)));
         });
 
         it('should render a box-plot chart with a shadow spread and separately styled whiskers', async () => {
             await compareSnapshot(
-                AgCharts.create(
-                    buildOptions({ ...SHADOW, spread: 6 } as typeof SHADOW, { whisker: STYLED_WHISKERS }, 'horizontal')
-                )
+                AgCharts.create(buildOptions(SPREAD_SHADOW, { whisker: STYLED_WHISKERS }, 'horizontal'))
             );
         });
 

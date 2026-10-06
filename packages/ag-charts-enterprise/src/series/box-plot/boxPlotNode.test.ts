@@ -106,6 +106,35 @@ describe('BoxPlotNode', () => {
             expect(pixelAt(canvasCtx, 125, 45)).toEqual([255, 255, 255, 255]);
         });
 
+        it('should spread the shadow past the ends of a whisker by the spread', () => {
+            const whiskers = (spread?: number) =>
+                boxPlot({
+                    horizontal: false,
+                    min: 20,
+                    q1: 70,
+                    median: 100,
+                    q3: 130,
+                    max: 190,
+                    wickStroke: 'rgb(0, 0, 0)',
+                    wickStrokeWidth: 2,
+                    fillShadow: { ...RED_SHADOW, spread },
+                });
+
+            renderNode(canvasCtx, whiskers());
+            // The whiskers end at 20 and 190, and without a spread their shadows hide behind them.
+            expect(pixelAt(canvasCtx, 110, 15)).toEqual([255, 255, 255, 255]);
+            expect(pixelAt(canvasCtx, 110, 195)).toEqual([255, 255, 255, 255]);
+
+            renderNode(canvasCtx, whiskers(10));
+            // The whiskers have butt caps, but their shadows still reach `spread` past each end, and no further.
+            for (const y of [10, 14, 18, 191, 195, 199]) {
+                expect(pixelAt(canvasCtx, 110, y)).toEqual([255, 0, 0, 255]);
+            }
+            for (const y of [5, 205]) {
+                expect(pixelAt(canvasCtx, 110, y)).toEqual([255, 255, 255, 255]);
+            }
+        });
+
         it('should not leave a sliver on the left edge for a crisp horizontal box plot with a hard shadow', () => {
             const node = boxPlot({
                 crisp: true,

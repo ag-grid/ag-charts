@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { _Scene } from 'ag-charts-community';
 import { setupMockCanvas } from 'ag-charts-community-test';
@@ -92,6 +92,16 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
             expect(at(260, 45)).toEqual(WHITE);
         });
 
+        it('should grow the shadow of a stroked path by the spread from its fill, past the stroke', () => {
+            render(square({ spread: 10, stroke: 'black', strokeWidth: 4, shadowMode: 'fill' }));
+
+            // The fill is 150 to 250, so its shadow is 140 to 260: it grows by `spread - strokeWidth / 2` past the stroke.
+            expect(at(139, 110)).toEqual(WHITE);
+            expect(at(140, 110)).toEqual(RED);
+            expect(at(259, 110)).toEqual(RED);
+            expect(at(260, 110)).toEqual(WHITE);
+        });
+
         it('should blit the dilated silhouette from the scratch canvas, only when there is a spread', () => {
             const blits = (spread: number | undefined) => {
                 const ctx = canvasCtx.getRenderContext2D();
@@ -129,6 +139,21 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
 
             expect(at(143, 110)).toEqual(WHITE);
             expect(at(157, 110)).toEqual(WHITE);
+        });
+
+        it('should spread the shadow past the ends of an open stroke with butt caps', () => {
+            const node = outline({ spread: 10, lineCap: 'butt' });
+            node.path.clear();
+            node.path.moveTo(200, 60);
+            node.path.lineTo(200, 160);
+            render(node);
+
+            for (const y of [51, 55, 59, 160, 164, 168]) {
+                expect(at(200, y)).toEqual(RED);
+            }
+            for (const y of [44, 176]) {
+                expect(at(200, y)).toEqual(WHITE);
+            }
         });
 
         it('should not shadow the fill', () => {
@@ -169,12 +194,127 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
             expect(at(130, 110)).toEqual(WHITE);
         });
 
+        it('should cast a solid shadow ring around a dashed stroke', () => {
+            render(
+                square({
+                    spread: 10,
+                    stroke: 'black',
+                    strokeWidth: 4,
+                    lineDash: [6, 10],
+                    shadowMode: 'silhouette',
+                })
+            );
+
+            // The ring does not take the stroke's dashes: every pixel along each side's shadow is covered.
+            for (let y = 60; y < 160; y++) {
+                expect(at(143, y)).toEqual(RED);
+                expect(at(257, y)).toEqual(RED);
+            }
+            for (let x = 150; x < 250; x++) {
+                expect(at(x, 54)).toEqual(RED);
+                expect(at(x, 166)).toEqual(RED);
+            }
+        });
+
+        it('should cast the shadow ring at the strength of the fill, not of a translucent stroke', () => {
+            render(
+                square({ spread: 10, stroke: 'black', strokeWidth: 4, strokeOpacity: 0.2, shadowMode: 'silhouette' })
+            );
+
+            // The fill is opaque, so the whole shadow is, including the 10px ring around the faint stroke.
+            expect(at(143, 110)).toEqual(RED);
+            expect(at(257, 110)).toEqual(RED);
+            expect(at(200, 54)).toEqual(RED);
+        });
+
+        it('should spread the shadow past the ends of an open stroke with butt caps', () => {
+            const line = (spread: number | undefined) => {
+                const node = square({
+                    spread,
+                    fill: undefined,
+                    stroke: 'black',
+                    strokeWidth: 4,
+                    lineCap: 'butt',
+                    shadowMode: 'silhouette',
+                });
+                node.path.clear();
+                node.path.moveTo(200, 60);
+                node.path.lineTo(200, 160);
+                return node;
+            };
+
+            render(line(undefined));
+            expect(at(200, 55)).toEqual(WHITE);
+            expect(at(200, 165)).toEqual(WHITE);
+
+            render(line(10));
+            // The line ends at 60 and 160, and the shadow reaches at least `spread` past each end and no further than
+            // the stroke's own half-width beyond that.
+            for (const y of [51, 55, 59, 160, 164, 168]) {
+                expect(at(200, y)).toEqual(RED);
+            }
+            for (const y of [44, 176]) {
+                expect(at(200, y)).toEqual(WHITE);
+            }
+        });
+
         it('should not grow the shape itself', () => {
             render(square({ spread: 10, stroke: 'black', strokeWidth: 4, shadowMode: 'silhouette' }));
 
             const columns = blackColumns(canvasCtx);
             expect(columns[0]).toBe(148 * pixelRatio);
             expect(columns.at(-1)).toBe(252 * pixelRatio - 1);
+        });
+    });
+
+    describe('translucent shadows', () => {
+        const TRANSLUCENT_RED = { enabled: true, color: 'rgba(255, 0, 0, 0.5)', xOffset: 4, yOffset: 0, blur: 0 };
+
+        /** The colours of the shadow pixels to the left and right of the shape, at one row, in CSS pixels. */
+        const shadowRow = (from: number, to: number) => {
+            const colours: number[][] = [];
+            for (let x = from; x < to; x++) colours.push(at(x, 110));
+            return colours;
+        };
+
+        it.each<ShadowMode>(['fill', 'silhouette'])('should cast one uniform shadow in %s mode', (shadowMode) => {
+            render(square({ shadowMode, fillShadow: { ...TRANSLUCENT_RED, spread: 8 } }));
+
+            // The square covers 150 to 250 and its shadow is 4px to the right and 8px bigger: 146 to 262.
+            const [r, g, b, a] = at(256, 110);
+            expect([r, a]).toEqual([255, 255]);
+            // A half-strength red over white, rather than the darker two-layer one.
+            expect(g).toBeGreaterThanOrEqual(126);
+            expect(g).toBeLessThanOrEqual(129);
+            expect(b).toBe(g);
+
+            const covered = [...shadowRow(250, 262), ...shadowRow(146, 150)];
+            expect(covered).toHaveLength(16);
+            for (const colour of covered) {
+                expect(colour).toEqual([r, g, b, a]);
+            }
+            expect(at(145, 110)).toEqual(WHITE);
+            expect(at(262, 110)).toEqual(WHITE);
+        });
+
+        it.each<[string, Partial<_Scene.Path>]>([
+            ['a translucent fill colour', { fill: 'rgba(0, 0, 0, 0.4)' }],
+            ['a translucent fill opacity', { fillOpacity: 0.4 }],
+        ])('should cast the spread shadow at the strength of %s, as without a spread', (_name, fillMixin) => {
+            const shadow = { ...RED_SHADOW, xOffset: 40 };
+
+            // The shadow without a spread, beside the shape: 250 to 290.
+            render(square({ shadowMode: 'fill', fillShadow: shadow, ...fillMixin }));
+            const unspread = at(270, 110);
+            expect(unspread).not.toEqual(WHITE);
+            expect(unspread).not.toEqual(RED);
+
+            render(square({ shadowMode: 'fill', fillShadow: { ...shadow, spread: 6 }, ...fillMixin }));
+            // The shadow is 190 to 290 without a spread and 184 to 296 with one: the same strength where the two
+            // overlap, and across the 6px that only the spread reaches.
+            expect(at(270, 110)).toEqual(unspread);
+            expect(at(293, 110)).toEqual(unspread);
+            expect(at(297, 110)).toEqual(WHITE);
         });
     });
 
@@ -216,12 +356,16 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
             expect(at(144, 110)).toEqual(WHITE);
         });
 
-        it('should grow the shadow of a rect with a stroke, from the outside of the stroke', () => {
+        it('should grow the shadow of a stroked rect from its inset fill', () => {
             render(rect(10, { stroke: 'black', strokeWidth: 4 }));
 
-            // The rect is drawn 4px bigger by its stroke, which is centred on the edge: 148 to 252.
-            expect(at(143, 110)).toEqual(RED);
-            expect(at(130, 110)).toEqual(WHITE);
+            // A rect insets its fill by half the stroke, to 152 to 248, so the fill-mode shadow reaches 142 to 258.
+            expect(at(141, 110)).toEqual(WHITE);
+            expect(at(142, 110)).toEqual(RED);
+            expect(at(257, 110)).toEqual(RED);
+            expect(at(258, 110)).toEqual(WHITE);
+            expect(at(200, 51)).toEqual(WHITE);
+            expect(at(200, 52)).toEqual(RED);
         });
 
         it('should keep the grown shadow off the left edge for a rect at the right edge', () => {
@@ -316,10 +460,6 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
 
 describe('shadow spread without a spread', () => {
     const canvasCtx = setupMockCanvas({ width: WIDTH, height: HEIGHT });
-
-    afterEach(() => {
-        vi.restoreAllMocks();
-    });
 
     const render = (node: _Scene.Shape) => {
         renderNode(canvasCtx, node);

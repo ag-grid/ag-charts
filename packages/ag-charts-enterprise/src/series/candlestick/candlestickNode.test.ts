@@ -51,6 +51,29 @@ describe('CandlestickNode', () => {
             // The upper wick runs from 20 to 80 at x = 100, so its shadow lands at x = 120, above the body shadow.
             expect(pixelAt(canvasCtx, 120, 50)).toEqual([255, 0, 0, 255]);
         });
+
+        it('should spread the shadow past the ends of a wick by the spread', () => {
+            const wicks = (spread?: number) =>
+                candlestick({
+                    wickStroke: 'black',
+                    wickStrokeWidth: 2,
+                    fillShadow: { ...RED_SHADOW, spread },
+                });
+
+            renderNode(canvasCtx, wicks());
+            // The upper wick ends at 20 and the lower at 180, and without a spread their shadows hide behind them.
+            expect(pixelAt(canvasCtx, 100, 15)).toEqual([255, 255, 255, 255]);
+            expect(pixelAt(canvasCtx, 100, 185)).toEqual([255, 255, 255, 255]);
+
+            renderNode(canvasCtx, wicks(10));
+            // The wicks have butt caps, but their shadows still reach `spread` past each end, and no further.
+            for (const y of [11, 15, 19, 180, 184, 188]) {
+                expect(pixelAt(canvasCtx, 100, y)).toEqual([255, 0, 0, 255]);
+            }
+            for (const y of [5, 195]) {
+                expect(pixelAt(canvasCtx, 100, y)).toEqual([255, 255, 255, 255]);
+            }
+        });
     });
 
     describe.each([1, 2, 3])('silhouette shadow at a device pixel ratio of %i', (pixelRatio) => {
