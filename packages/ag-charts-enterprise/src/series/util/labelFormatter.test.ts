@@ -366,5 +366,31 @@ describe('label formatter', () => {
             expect(output!.label).not.toBe(undefined);
             expect(output!.secondaryLabel).toBe(undefined);
         });
+        it.each([
+            ['plain text', 'Supercalifragilistic'],
+            ['segments', [{ text: 'Supercalifragilistic' }]],
+        ] as const)('keeps a %s label that does not fit when collision.alwaysShow is set', (_, value) => {
+            const label = {
+                enabled: true,
+                fontFamily: 'Verdana',
+                fontSize: 20,
+                minimumFontSize: 10,
+                wrapping: 'never',
+                truncate: false,
+                spacing: 10,
+            } as const;
+            const format = (alwaysShow: boolean) =>
+                formatLabels(
+                    value as any,
+                    { ...label, collision: { alwaysShow } },
+                    undefined,
+                    label,
+                    { padding: 10 },
+                    () => ({ width: 40, height: 30, meta: undefined })
+                );
+
+            expect(format(false)).toBe(undefined);
+            expect(format(true)!.label!.width).toBeGreaterThan(20);
+        });
     });
 });

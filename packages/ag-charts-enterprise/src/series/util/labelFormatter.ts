@@ -238,17 +238,21 @@ function formatSingleSegmentsLabel<Meta>(
     const availableWidth = sizeFitting.width - sizeAdjust;
     const availableHeight = sizeFitting.height - sizeAdjust;
 
-    if (availableWidth <= 0 || availableHeight <= 0) return;
+    let wrapped =
+        availableWidth > 0 && availableHeight > 0
+            ? wrapTextSegments(segments, {
+                  maxWidth: availableWidth,
+                  maxHeight: availableHeight,
+                  font: baseFont,
+                  textWrap: props.wrapping,
+                  overflow: overflowAtFloor(props),
+              })
+            : [];
 
-    const wrapped = wrapTextSegments(segments, {
-        maxWidth: availableWidth,
-        maxHeight: availableHeight,
-        font: baseFont,
-        textWrap: props.wrapping,
-        overflow: overflowAtFloor(props),
-    });
-
-    if (wrapped.length === 0) return;
+    if (wrapped.length === 0) {
+        if (!props.collision?.alwaysShow) return;
+        wrapped = wrapTextSegments(segments, { maxWidth: Infinity, font: baseFont, textWrap: 'never' });
+    }
 
     const { width, height } = measureTextSegments(wrapped, baseFont);
 
