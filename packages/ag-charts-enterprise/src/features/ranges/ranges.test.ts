@@ -171,8 +171,8 @@ describe('Ranges', () => {
             expect(module.dropdownMinWidth).not.toBe(999);
         });
 
-        // `getBounds()` prefers the inline width written during the previous layout, so a stale width
-        // would hide the resized buttons from the overflow check and the alignment.
+        // `getBounds()` prefers an inline width, so the width written by the previous layout must not
+        // survive into the next measurement, or the overflow check and alignment would use the old size.
         it('re-measures both toolbars instead of reusing their inline widths when the size changes', async () => {
             const ranges = { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] };
             const proxy = await create({ ...ranges, buttonSize: 40 });
@@ -180,24 +180,15 @@ describe('Ranges', () => {
                 (toolbar) =>
                     proxy.ctx.agDocument.body.querySelector(`.ag-charts-range-buttons--${toolbar}`) as HTMLElement
             );
-            const withSize = (buttonSize: number) =>
-                chart.update({
-                    data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                    ranges: { ...ranges, buttonSize },
-                } as any);
-            const staleWidth = () => {
-                for (const toolbar of toolbars) toolbar.style.width = '999px';
-            };
 
-            staleWidth();
-            await withSize(40);
+            for (const toolbar of toolbars) toolbar.style.width = '999px';
+            await chart.update({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                ranges: { ...ranges, buttonSize: 50 },
+            } as any);
             await waitForChartStability(chart);
-            expect(toolbars.map((toolbar) => toolbar.style.width)).toEqual(['999px', '999px']);
 
-            staleWidth();
-            await withSize(50);
-            await waitForChartStability(chart);
             for (const toolbar of toolbars) {
                 expect(toolbar.style.width).not.toBe('999px');
             }

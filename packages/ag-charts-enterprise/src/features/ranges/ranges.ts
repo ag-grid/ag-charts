@@ -163,10 +163,6 @@ export class Ranges extends AbstractModuleInstance {
         if (buttonSize !== this.lastButtonSize) {
             this.lastButtonSize = buttonSize;
             this.dropdownMinWidth = undefined;
-            // `getBounds()` prefers the inline width written by `updateToolbarBounds()`, so it must be
-            // cleared for the resized buttons to be measured.
-            buttonsToolbar.getElement().style.removeProperty('width');
-            dropdownToolbar.getElement().style.removeProperty('width');
         }
         buttonsToolbar.setButtonSize(buttonSize);
         dropdownToolbar.setButtonSize(buttonSize);
