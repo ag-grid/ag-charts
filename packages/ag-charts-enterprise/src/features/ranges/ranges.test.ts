@@ -91,6 +91,87 @@ describe('Ranges', () => {
         });
     });
 
+    describe('buttonSize', () => {
+        const create = async (ranges: Record<string, unknown>) => {
+            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }], ...ranges },
+            } as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return deproxy(chart as any) as any;
+        };
+
+        const rangeButtons = (proxy: any, toolbar: 'buttons' | 'dropdown') =>
+            Array.from<HTMLElement>(
+                proxy.ctx.agDocument.body.querySelectorAll(
+                    `.ag-charts-range-buttons--${toolbar} .ag-charts-toolbar__button`
+                )
+            );
+
+        it('sizes the range buttons and the dropdown button when set', async () => {
+            const proxy = await create({ buttonSize: 44 });
+
+            for (const toolbar of ['buttons', 'dropdown'] as const) {
+                const buttons = rangeButtons(proxy, toolbar);
+                expect(buttons.length).toBeGreaterThan(0);
+                for (const button of buttons) {
+                    expect(button.classList.contains('ag-charts-toolbar__button--sized')).toBe(true);
+                    expect(button.style.getPropertyValue('--toolbar-button-size')).toBe('44px');
+                }
+            }
+        });
+
+        it('emits no sizing when unset, leaving minSize in effect', async () => {
+            const proxy = await create({ minSize: 34 });
+
+            for (const toolbar of ['buttons', 'dropdown'] as const) {
+                for (const button of rangeButtons(proxy, toolbar)) {
+                    expect(button.classList.contains('ag-charts-toolbar__button--sized')).toBe(false);
+                    expect(button.style.getPropertyValue('--toolbar-button-size')).toBe('');
+                }
+            }
+        });
+
+        it('takes precedence over minSize', async () => {
+            const proxy = await create({ buttonSize: 44, minSize: 34 });
+
+            for (const button of rangeButtons(proxy, 'buttons')) {
+                expect(button.style.getPropertyValue('--toolbar-button-size')).toBe('44px');
+            }
+        });
+
+        it('resets the dropdown minimum width when the size changes', async () => {
+            const ranges = {
+                enabled: true,
+                dropdown: { visible: 'always' },
+                buttons: [{ label: 'All', value: [0, 19] }],
+            };
+            const proxy = await create({ ...ranges, buttonSize: 40 });
+            const module = proxy.modulesManager.getModule('ranges');
+            const withSize = (buttonSize: number) =>
+                chart.update({
+                    data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    ranges: { ...ranges, buttonSize },
+                } as any);
+
+            module.dropdownMinWidth = 999;
+            await withSize(40);
+            await waitForChartStability(chart);
+            expect(module.dropdownMinWidth).toBe(999);
+
+            await withSize(50);
+            await waitForChartStability(chart);
+            expect(module.dropdownMinWidth).not.toBe(999);
+        });
+    });
+
     describe('AG-16886 button value function source parameter', () => {
         it('should pass source parameter to AgRangesButtonValueFunction', async () => {
             const receivedSources: AgRangesButtonValueSource[] = [];

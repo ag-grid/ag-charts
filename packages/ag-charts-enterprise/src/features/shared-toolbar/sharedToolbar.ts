@@ -19,6 +19,7 @@ export interface SharedToolbarWithSection<
     | 'clearActiveButton'
 > {
     layout: (layoutBox: _ModuleSupport.BBox, padding?: number) => void;
+    setButtonSize: (buttonSize: number | undefined) => void;
 }
 
 export class SharedToolbar extends AbstractModuleInstance {
@@ -30,6 +31,10 @@ export class SharedToolbar extends AbstractModuleInstance {
     private readonly sectionButtons: Record<SharedToolbarSection, Array<_ModuleSupport.ToolbarButtonOptions>> = {
         annotations: [],
         chartToolbar: [],
+    };
+    private readonly sectionButtonSize: Record<SharedToolbarSection, number | undefined> = {
+        annotations: undefined,
+        chartToolbar: undefined,
     };
     private firstLayoutSection?: SharedToolbarSection;
 
@@ -118,11 +123,15 @@ export class SharedToolbar extends AbstractModuleInstance {
             },
             updateButtons: (buttons: ButtonOptions[]) => {
                 this.sectionButtons[section] = buttons;
-                const sharedButtons = SharedToolbar.SECTION_ORDER.flatMap((order) => this.sectionButtons[order]);
-                sharedToolbar.updateButtons(sharedButtons);
+                this.updateSharedButtons(sharedToolbar);
             },
             updateButtonByIndex: (index: number, button: ButtonOptions) => {
-                sharedToolbar.updateButtonByIndex(this.getIndex(section, index), button);
+                sharedToolbar.updateButtonByIndex(this.getIndex(section, index), this.withButtonSize(section, button));
+            },
+            setButtonSize: (buttonSize: number | undefined) => {
+                if (this.sectionButtonSize[section] === buttonSize) return;
+                this.sectionButtonSize[section] = buttonSize;
+                this.updateSharedButtons(sharedToolbar);
             },
             toggleActiveButtonByIndex: (index: number) => {
                 sharedToolbar.toggleActiveButtonByIndex(this.getIndex(section, index));
@@ -166,16 +175,35 @@ export class SharedToolbar extends AbstractModuleInstance {
         return withSection;
     }
 
+    private updateSharedButtons(sharedToolbar: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>) {
+        const sharedButtons = SharedToolbar.SECTION_ORDER.flatMap((order) =>
+            this.sectionButtons[order].map((button) => this.withButtonSize(order, button))
+        );
+        sharedToolbar.updateButtons(sharedButtons);
+    }
+
+    private withButtonSize<ButtonOptions extends _ModuleSupport.ToolbarButtonOptions>(
+        section: SharedToolbarSection,
+        button: ButtonOptions
+    ): ButtonOptions {
+        const buttonSize = this.sectionButtonSize[section];
+        return buttonSize == null ? button : { ...button, buttonSize };
+    }
+
     private invalidateWidthCache() {
         this.cachedWidth = undefined;
     }
 
-    private measureWidth(sharedToolbar: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>): number {
+    private measureWidth(
+        sharedToolbar: Pick<_ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>, 'getBounds' | 'getElement'>
+    ): number {
         const signature = this.widthSignature();
         if (this.cachedWidth !== undefined && this.cachedWidthSignature === signature) {
             return this.cachedWidth;
         }
 
+        // `getBounds()` prefers the inline width, so it must be cleared to measure the natural width.
+        sharedToolbar.getElement().style.removeProperty('width');
         const width = sharedToolbar.getBounds().width;
         // A zero width means the toolbar isn't laid out yet; don't pin the cache to it.
         if (width === 0) return width;
@@ -188,10 +216,11 @@ export class SharedToolbar extends AbstractModuleInstance {
     private widthSignature(): string {
         return SharedToolbar.SECTION_ORDER.map((section) => {
             const active = this.activeSections.has(section) ? '1' : '0';
+            const size = this.sectionButtonSize[section] ?? '';
             const buttons = this.sectionButtons[section]
                 .map((b) => `${b.label ?? ''}~${b.icon ?? ''}~${b.iconPosition ?? ''}`)
                 .join(',');
-            return `${section}:${active}:${buttons}`;
+            return `${section}:${active}:${size}:${buttons}`;
         }).join('|');
     }
 

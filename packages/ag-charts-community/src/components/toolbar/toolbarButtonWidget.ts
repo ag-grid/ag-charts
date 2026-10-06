@@ -167,7 +167,10 @@ export class ToolbarButtonWidget extends ButtonWidget {
     private updateButtonSize(buttonSize: number | undefined, options: ToolbarButtonWidgetOptions) {
         const sized = buttonSize != null;
         this.toggleClass('ag-charts-toolbar__button--sized', sized);
-        this.toggleClass('ag-charts-toolbar__button--icon-only', sized && options.icon != null && options.label == null);
+        this.toggleClass(
+            'ag-charts-toolbar__button--icon-only',
+            sized && options.icon != null && options.label == null
+        );
 
         if (buttonSize === this.lastButtonSize) return;
         this.lastButtonSize = buttonSize;

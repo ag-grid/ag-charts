@@ -45,7 +45,7 @@ export abstract class BaseToolbar<
     protected hasPrefix = false;
 
     private readonly buttonWidgets: Array<ButtonWidget> = [];
-    private readonly buttonOptions: Array<ButtonOptions> = [];
+    private readonly buttonOptions: Array<ToolbarButtonWidgetOptions> = [];
     private expanded?: ExpandableWidget;
     private buttonSize?: number;
 
