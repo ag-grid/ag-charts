@@ -7,6 +7,8 @@ on:
             - 'next'
             - 'b[0-9][0-9]?.[0-9][0-9]?.[0-9][0-9]?'
     pull_request:
+        # ready_for_review: every job is skipped on draft PRs, so CI must run again when a draft is marked ready.
+        types: [opened, synchronize, reopened, ready_for_review]
     workflow_dispatch:
         inputs:
             clean_checkout:
