@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgCartesianChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Group } from '../../../scene/group';
@@ -152,7 +152,7 @@ describe('BarSeries highlight shadow', () => {
     });
 
     describe('spread', () => {
-        const SPREAD_SHADOW: AgDropShadowOptions = { ...SHADOW, spread: 6 };
+        const SPREAD_SHADOW: AgDropShadowOptions = { ...SERIES_SHADOW, spread: 6 };
 
         it('should render the bars with a shadow spread', async () => {
             const options: AgCartesianChartOptions = {
@@ -169,7 +169,7 @@ describe('BarSeries highlight shadow', () => {
 
         it('should render the hovered bar with highlightedItem.shadow.spread', async () => {
             await hoverFirstBar({
-                shadow: SHADOW,
+                shadow: SERIES_SHADOW,
                 highlight: { highlightedItem: { shadow: { ...HIGHLIGHT_SHADOW, spread: 8 } } },
             });
 
@@ -183,7 +183,7 @@ describe('BarSeries highlight shadow', () => {
 
         it('should grow the highlight shadow past the hovered bar by highlightedItem.shadow.spread', async () => {
             await hoverFirstBar({
-                shadow: SHADOW,
+                shadow: SERIES_SHADOW,
                 highlight: { highlightedItem: { shadow: { ...HIGHLIGHT_SHADOW, blur: 0, spread: 8 } } },
             });
 
@@ -200,7 +200,7 @@ describe('BarSeries highlight shadow', () => {
 
         it('should not grow the highlight shadow without highlightedItem.shadow.spread', async () => {
             await hoverFirstBar({
-                shadow: SHADOW,
+                shadow: SERIES_SHADOW,
                 highlight: { highlightedItem: { shadow: { ...HIGHLIGHT_SHADOW, blur: 0 } } },
             });
 
