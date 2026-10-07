@@ -9,6 +9,7 @@ import { releaseShadowScratch } from './shadowCompositor';
 import { Path } from './shape/path';
 import { Rect } from './shape/rect';
 import type { Shape } from './shape/shape';
+import { Translatable } from './transformable';
 
 const WIDTH = 400;
 const HEIGHT = 220;
@@ -670,6 +671,32 @@ describe('Group shadow compositor', () => {
             expect(createdSince(before)).toHaveLength(1);
             expect(isHalfRed(at(60, 45))).toBe(true);
             expect(at(95, 45)).toEqual(CLEAR);
+            expect(batched).toEqual(unbatched);
+        });
+
+        it('should clip the shadow of a path with a transform of its own in the coordinates of the path', () => {
+            const TranslatedPath = Translatable(Path);
+            const translated = (y: number) => {
+                const node = new TranslatedPath();
+                Object.assign(node, {
+                    fill: 'black',
+                    stroke: undefined,
+                    strokeWidth: 0,
+                    fillShadow: { ...RED_HALF, xOffset: 30 },
+                    clip: true,
+                    clipX: 90,
+                    clipY: HEIGHT,
+                    translationX: 100,
+                    translationY: y,
+                });
+                node.path.rect(20, 0, 60, 50);
+                return node;
+            };
+            const { unbatched, batched } = renderBoth(() => [translated(20), translated(100)]);
+
+            // The paths are 120 to 180 across, and their shadows 150 to 210 are clipped at 100 + 90.
+            expect(isHalfRed(at(185, 45))).toBe(true);
+            expect(at(195, 45)).toEqual(CLEAR);
             expect(batched).toEqual(unbatched);
         });
 

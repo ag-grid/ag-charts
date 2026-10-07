@@ -3,6 +3,7 @@ import type { NormalisedDropShadowOptions } from 'ag-charts-core';
 
 import type { Node, RenderContext } from './node';
 import { shadowPass } from './shadowPass';
+import type { TranslatableType } from './transformable';
 import { Path } from './shape/path';
 import { Shape } from './shape/shape';
 
@@ -37,22 +38,35 @@ export function getBatchedShadow(node: Node): NormalisedDropShadowOptions | unde
     return shadow?.enabled === true && node.__drawingMode !== 'cutout' ? shadow : undefined;
 }
 
-/** The rectangle, in the coordinates of the group, that a path clips its drawing and its shadow to. */
-interface ShadowClip {
-    readonly x: number;
-    readonly y: number;
-    readonly width: number;
-    readonly height: number;
-}
+/** The corners, in the coordinates of the group, of the rectangle that a path clips its drawing and its shadow to. */
+type ShadowClip = readonly number[];
 
 function getShadowClip(node: Node): ShadowClip | undefined {
-    return node instanceof Path ? node.getShadowClip() : undefined;
+    if (!(node instanceof Path)) return;
+
+    const rect = node.getShadowClip();
+    if (rect == null) return;
+
+    // A path with a transform of its own clips in its own coordinates, which are not those of the group.
+    const toParent = (node as Partial<Pick<TranslatableType<Node>, 'toParentPoint'>>).toParentPoint;
+    const { x, y, width, height } = rect;
+    const corners: number[] = [];
+    for (const [cx, cy] of [
+        [x, y],
+        [x + width, y],
+        [x + width, y + height],
+        [x, y + height],
+    ]) {
+        const point = toParent == null ? { x: cx, y: cy } : toParent.call(node, cx, cy);
+        corners.push(point.x, point.y);
+    }
+    return corners;
 }
 
 function sameClip(a: ShadowClip | undefined, b: ShadowClip | undefined) {
     if (a === b) return true;
     if (a == null || b == null) return false;
-    return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+    return a.every((value, i) => value === b[i]);
 }
 
 function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
@@ -209,7 +223,9 @@ function renderBatch(
         // A path clips its shadow as well as its silhouette, so the shadow is clipped to what the path was drawn into.
         if (clip != null) {
             ctx.beginPath();
-            ctx.rect(clip.x, clip.y, clip.width, clip.height);
+            ctx.moveTo(clip[0], clip[1]);
+            for (let i = 2; i < clip.length; i += 2) ctx.lineTo(clip[i], clip[i + 1]);
+            ctx.closePath();
             ctx.clip();
         }
         ctx.resetTransform();
