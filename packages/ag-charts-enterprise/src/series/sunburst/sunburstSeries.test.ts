@@ -1299,38 +1299,44 @@ describe('SunburstSeries', () => {
                 expect(picked).toHaveLength(9);
                 expect(picked).toEqual([...picked].sort((a, b) => a - b));
             });
+        });
+    });
 
-            it('selects sectors in getSelection() order after a keyed update removes a branch', async () => {
-                const events: AgSelectionChangeEvent<unknown, unknown>[] = [];
-                const options: AgChartOptions = {
-                    ...shadowOptions(shadow),
-                    selection: { enabled: true, enableDrag: true },
-                    listeners: {
-                        selectionChange: (event: AgSelectionChangeEvent<unknown, unknown>) => events.push(event),
-                    },
-                };
-                prepareEnterpriseTestOptions(options);
-                proxy = AgCharts.create(options);
-                chart = deproxy(proxy);
-                await waitForChartStability(chart);
+    describe('box selection after updateDelta', () => {
+        it('drag-selects sectors in getSelection() order after a keyed update removes a branch', async () => {
+            const data = HIERARCHY_SHADOW_DATA;
+            const events: AgSelectionChangeEvent<unknown, unknown>[] = [];
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size' }],
+                legend: { enabled: false },
+                animation: { enabled: false },
+                selection: { enabled: true, enableDrag: true },
+                listeners: {
+                    selectionChange: (event: AgSelectionChangeEvent<unknown, unknown>) => events.push(event),
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
 
-                const [{ children }] = data;
-                await proxy.updateDelta({ data: [{ ...data[0], children: children.slice(1) }] });
-                await waitForChartStability(chart);
+            const [{ children }] = data;
+            await proxy.updateDelta({ data: [{ ...data[0], children: children.slice(1) }] });
+            await waitForChartStability(chart);
 
-                const { x, y, width, height } = chart.seriesAreaManager.seriesRect;
-                await dragAction(
-                    { x: Math.ceil(x) + 2, y: Math.ceil(y) + 2 },
-                    { x: Math.floor(x + width) - 2, y: Math.floor(y + height) - 2 }
-                )(chart);
-                await waitForChartStability(chart);
+            const { x, y, width, height } = chart.seriesAreaManager.seriesRect;
+            await dragAction(
+                { x: Math.ceil(x) + 2, y: Math.ceil(y) + 2 },
+                { x: Math.floor(x + width) - 2, y: Math.floor(y + height) - 2 }
+            )(chart);
+            await waitForChartStability(chart);
 
-                // Root, B, B1 and B2 remain.
-                const selection = Array.from(proxy.getSelection());
-                expect(selection).toHaveLength(4);
-                expect(events).toHaveLength(1);
-                expect(events[0].added.map((item) => item.itemId)).toEqual(selection.map((item) => item.itemId));
-            });
+            // Root, B, B1 and B2 remain.
+            const selection = Array.from(proxy.getSelection());
+            expect(selection).toHaveLength(4);
+            expect(events).toHaveLength(1);
+            expect(events[0].added.map((item) => item.itemId)).toEqual(selection.map((item) => item.itemId));
         });
     });
 

@@ -407,7 +407,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /** How far the pre-pass's strokes reach past the shape's bounds, in the shape's own units. */
-    private getShadowStrokeReach(spread: number, pixelRatio: number): number {
+    private getShadowStrokeReach(spread: number): number {
         const fillOnly = this.__shadowMode === 'fill';
         const halfStroke = (fillOnly ? 0 : this.getSilhouetteStrokeWidth() / 2) + spread;
         // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
@@ -415,9 +415,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const joinReach = fillOnly || (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * miterLimit : halfStroke;
         // A square cap reaches a half-stroke along the diagonal. A spread dilation caps its open strokes too.
         const squareCap = spread > 0 || (!fillOnly && this.__lineCap === 'square');
-        const strokeReach = squareCap ? Math.max(joinReach, halfStroke * Math.SQRT2) : joinReach;
-        // A crisp shape can snap up to a device pixel past its bounds, so pad it even without a stroke.
-        return strokeReach + (this.isCrisp() ? 1 / pixelRatio : 0);
+        return squareCap ? Math.max(joinReach, halfStroke * Math.SQRT2) : joinReach;
     }
 
     /** Draws the shape off-canvas and shifts only its shadow back, so the stroke's shadow never lands on the fill. */
@@ -458,15 +456,18 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         let maxX = (canvasWidth ?? 0) + spread * pixelRatio;
         let maxY = canvasHeight ?? 0;
         if (localBBox != null) {
-            const strokeReach = this.getShadowStrokeReach(spread, pixelRatio);
+            const strokeReach = this.getShadowStrokeReach(spread);
             const halfWidth = localBBox.width / 2 + strokeReach;
             const halfHeight = localBBox.height / 2 + strokeReach;
             const centreX = localBBox.x + localBBox.width / 2;
             const centreY = localBBox.y + localBBox.height / 2;
             const deviceCentreX = a * centreX + c * centreY + e;
             const deviceCentreY = b * centreX + d * centreY + f;
-            const reachX = Math.abs(a) * halfWidth + Math.abs(c) * halfHeight;
-            const reachY = Math.abs(b) * halfWidth + Math.abs(d) * halfHeight;
+            // A crisp shape can snap up to a device pixel past its bounds, so pad it even without a stroke. That is
+            // a device pixel whatever the shape's own transform, so it is added after the bounds are transformed.
+            const crispPad = this.isCrisp() ? 1 : 0;
+            const reachX = Math.abs(a) * halfWidth + Math.abs(c) * halfHeight + crispPad;
+            const reachY = Math.abs(b) * halfWidth + Math.abs(d) * halfHeight + crispPad;
             minX = deviceCentreX - reachX;
             maxX = deviceCentreX + reachX;
             minY = deviceCentreY - reachY;
