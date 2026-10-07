@@ -111,6 +111,8 @@ const visibilityState: SeriesVisibilityState = { visible: options.series!.map((s
 type ShadowMode = 'off' | 'on' | 'spread';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
+// Until a series opts in to batched layer shadows, these variants time the per-shape shadow renderer, which is the
+// baseline to compare a series against once it does.
 // `shadow` and `spread` need a release that has them on this series, so older versions skip those variants.
 const SHADOW_MIN_VERSION = '14.2.0';
 const SHADOWS: Record<'on' | 'spread', AgDropShadowOptions> = {

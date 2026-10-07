@@ -73,6 +73,32 @@ function colourAlpha(colour: unknown): number {
     }
 }
 
+function paintAlpha(colour: unknown, opacity: unknown = 1): number {
+    if (colour == null) return 0;
+    return colourAlpha(colour) * (typeof opacity === 'number' ? opacity : 1);
+}
+
+/**
+ * The most that a fill can contribute to a shadow mask: the alpha of a colour, the strongest stop of a gradient and the
+ * strongest part of a pattern. Anything else (e.g. an image) counts as opaque, because it can't be told without drawing.
+ */
+function maxFillAlpha(fill: unknown): number {
+    if (typeof fill !== 'object' || fill == null) return colourAlpha(fill);
+
+    const paint = fill as Record<string, any>;
+    if (paint.type === 'gradient' && Array.isArray(paint.colorStops)) {
+        return Math.max(0, ...paint.colorStops.map((stop: { color?: unknown }) => colourAlpha(stop?.color)));
+    }
+    if (paint.type === 'pattern') {
+        return Math.max(
+            paint.fill == null ? 1 : paintAlpha(paint.fill, paint.fillOpacity),
+            paintAlpha(paint.backgroundFill, paint.backgroundFillOpacity),
+            paintAlpha(paint.stroke, paint.strokeOpacity)
+        );
+    }
+    return 1;
+}
+
 interface SpreadBounds {
     minX: number;
     minY: number;
@@ -437,7 +463,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
         const spread = shadow.spread ?? 0;
         const { __fill: fill, __fillOpacity: fillOpacity = 1, __shadowMode: mode } = this;
-        const drawsFill = mode !== 'stroke' && fill != null && fill !== 'none' && fillOpacity > 0;
+        // A fill with no alpha casts nothing, so it must not knock the dilation of a stroke out below.
+        const drawsFill =
+            mode !== 'stroke' && fill != null && fill !== 'none' && fillOpacity > 0 && maxFillAlpha(fill) > 0;
         // A transparent stroke colour casts nothing, so it must not take the place of the fill's dilation below.
         const drawsStroke = mode !== 'fill' && this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
         const hasExtras = mode !== 'fill' && this.getSilhouetteExtrasOpacity() > 0;

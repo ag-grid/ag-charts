@@ -280,6 +280,47 @@ describe('Group shadow compositor', () => {
             expect([at(63, 55), at(66, 55), at(90, 55)]).toEqual(unbatched);
         });
 
+        describe('a stroke with a fill that casts nothing', () => {
+            const transparentGradient = {
+                type: 'gradient' as const,
+                colorStops: [
+                    { color: 'rgba(0, 0, 0, 0)', stop: 0 },
+                    { color: 'rgba(255, 0, 0, 0)', stop: 1 },
+                ],
+            };
+            const transparentPattern = {
+                type: 'pattern' as const,
+                pattern: 'squares' as const,
+                width: 10,
+                height: 10,
+                fill: 'rgba(0, 0, 0, 0)',
+                backgroundFill: 'rgba(0, 0, 0, 0)',
+                strokeOpacity: 0,
+            };
+
+            it.each([
+                ['colour', 'transparent'],
+                ['rgba colour', 'rgba(0, 0, 0, 0)'],
+                ['gradient', transparentGradient],
+                ['pattern', transparentPattern],
+            ])('should cast the whole dilated stroke with a transparent %s fill', (_name, fill) => {
+                const item = (y: number) =>
+                    pathBox(60, y, 60, 50, {
+                        fill,
+                        stroke: 'black',
+                        strokeWidth: 6,
+                        fillShadow: { ...RED_HALF, xOffset: 0, spread: 6 },
+                        shadowMode: 'silhouette',
+                    });
+
+                renderNodes([item(30), item(130)]);
+
+                // 6px inside the left edge, which the inner half of the stroke and its spread reach across.
+                expect(isHalfRed(at(66, 55))).toBe(true);
+                expect(isHalfRed(at(66, 155))).toBe(true);
+            });
+        });
+
         it('should match the shadow of an item that casts for itself', () => {
             renderNodes([translucent(30, 12), translucent(130, 12)], false);
             const alone = Array.from(ctx().getImageData(40, 10, 100, 90).data);
