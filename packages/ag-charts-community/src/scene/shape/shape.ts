@@ -465,10 +465,15 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             const globalAlpha = ctx.globalAlpha;
             this.applyStrokeAndAlpha(ctx, bboxOverride);
             this.shadowStrokeGrowth = spread * 2;
+            ctx.save();
             try {
+                // The dilation is knocked out of the fill, so that where it overlaps the fill, a translucent paint casts a
+                // uniform shadow, as it does without a batch, instead of a darker one.
+                if (drawsFill && path != null) this.clipOutsideFill(ctx, path);
                 this.executeStroke(ctx, path);
             } finally {
                 this.shadowStrokeGrowth = 0;
+                ctx.restore();
             }
             ctx.globalAlpha = globalAlpha;
         } else if (drawsFill && path != null) {
@@ -479,10 +484,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             // without a batch, instead of a darker one where the dilation overlaps its own edge.
             ctx.save();
             try {
-                const outside = new Path2D();
-                outside.rect(-KNOCK_OUT_EXTENT, -KNOCK_OUT_EXTENT, KNOCK_OUT_EXTENT * 2, KNOCK_OUT_EXTENT * 2);
-                outside.addPath(path);
-                ctx.clip(outside, 'evenodd');
+                this.clipOutsideFill(ctx, path);
                 this.dilateFill(ctx, path);
             } finally {
                 ctx.restore();
@@ -494,22 +496,31 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             const globalAlpha = ctx.globalAlpha;
             ctx.save();
             try {
-                this.renderSilhouetteExtras(ctx);
+                if (spread > 0) {
+                    // The dilation covers the extras themselves, so they are not also drawn at their own width, which would
+                    // darken a translucent paint down their middle. They are as strong as `renderSilhouetteExtras` draws them.
+                    // A shape whose extras have a paint of their own sets it in `dilateSilhouetteExtras`.
+                    this.applyStrokeAndAlpha(ctx, bboxOverride);
+                    ctx.globalAlpha = globalAlpha * this.getSilhouetteExtrasOpacity();
+                    this.dilateSilhouetteExtras(ctx, spread * 2);
+                } else {
+                    this.renderSilhouetteExtras(ctx);
+                }
             } finally {
                 ctx.restore();
             }
-            if (spread > 0) {
-                ctx.save();
-                try {
-                    // A shape whose extras have a paint of their own sets it in `dilateSilhouetteExtras`.
-                    this.applyStrokeAndAlpha(ctx, bboxOverride);
-                    ctx.globalAlpha = globalAlpha * (this.__opacity ?? 1) * this.getSilhouetteExtrasOpacity();
-                    this.dilateSilhouetteExtras(ctx, spread * 2);
-                } finally {
-                    ctx.restore();
-                }
-            }
         }
+    }
+
+    /**
+     * Clips the context to what is outside the path, so that nothing drawn after it covers the fill. A shape's Path2D is
+     * edited in place, so the clip can't be cached against it.
+     */
+    private clipOutsideFill(ctx: CanvasContext, path: Path2D) {
+        const outside = new Path2D();
+        outside.rect(-KNOCK_OUT_EXTENT, -KNOCK_OUT_EXTENT, KNOCK_OUT_EXTENT * 2, KNOCK_OUT_EXTENT * 2);
+        outside.addPath(path);
+        ctx.clip(outside, 'evenodd');
     }
 
     /** True when the shape paints a stroke, which {@link renderStroke} skips otherwise. */

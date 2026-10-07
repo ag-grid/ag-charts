@@ -117,19 +117,18 @@ const SHADOWS: Record<'on' | 'spread', AgDropShadowOptions> = {
 const SHADOW_LABELS: Record<'on' | 'spread', string> = { on: 'On', spread: 'On, with spread' };
 
 const shadowSeries = options.series![0] as { shadow?: AgDropShadowOptions };
-let shadowMode: ShadowMode = 'off';
 
 // Switches the series shadow, which is off unless set. Rebuilds the chart, outside the timing, so each variant starts afresh.
 /** inScope */
 async function prepareShadow(mode: ShadowMode): Promise<void> {
-    if (mode === shadowMode) return;
-
-    shadowMode = mode;
     if (mode === 'off') {
         delete shadowSeries.shadow;
     } else {
         shadowSeries.shadow = SHADOWS[mode];
     }
+    // Every variant starts from the same data, because the variants before it have appended to or removed from it.
+    dataGenerator.reset();
+    dataRef.data = dataGenerator.take(INITIAL_POINTS);
     options.data = dataRef.data;
     chartRef.current?.destroy();
     chartRef.current = AgCharts.create(options);

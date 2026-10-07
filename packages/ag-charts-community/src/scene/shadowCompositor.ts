@@ -130,7 +130,7 @@ function renderPass(children: readonly Node[], renderCtx: RenderContext, state: 
     }
 }
 
-/** Draws a batch of at least two casters that share `shadow`. Returns false, drawing nothing, if it can't batch. */
+/** Draws a batch of casters that share `shadow`. Returns false, drawing nothing, if it can't batch. */
 function renderBatch(
     scene: object | undefined,
     user: object,
@@ -215,10 +215,10 @@ export function renderChildrenWithShadowBatches(
     let runShadow: NormalisedDropShadowOptions | undefined;
 
     const flush = () => {
-        if (run.length > 1 && runShadow != null && renderBatch(scene, user, run, runShadow, renderCtx)) {
+        if (run.length > 0 && runShadow != null && renderBatch(scene, user, run, runShadow, renderCtx)) {
             batches++;
         } else {
-            // A lone caster has nothing to share a blur with, and casts for itself.
+            // The batch can't be drawn, so the casters cast for themselves.
             for (const caster of run) caster.isolatedRender(renderCtx);
         }
         run = [];

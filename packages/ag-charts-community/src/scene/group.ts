@@ -321,8 +321,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 if (countCasters && getBatchedShadow(child) != null) casters++;
             }
             this.shadowCasterCount = casters;
-            if (casters < 2) {
-                // A group with fewer than two casters has nothing to batch, so it gives up the scene's scratch canvas.
+            if (casters === 0) {
+                // A group with no casters has nothing to batch, so it gives up the scene's scratch canvas.
                 releaseShadowScratch(this.scene, this);
             }
 
@@ -479,7 +479,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 childRenderCtx.clipBBox = Transformable.toCanvas(this, this.clipRect);
             }
 
-            if (this.batchShadows && this.countShadowCasters() > 1) {
+            if (this.batchShadows && this.countShadowCasters() > 0) {
                 renderChildrenWithShadowBatches(this.children(), this.scene, this, childRenderCtx);
                 return;
             }

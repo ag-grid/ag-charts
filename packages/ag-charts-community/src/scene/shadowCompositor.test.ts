@@ -260,8 +260,28 @@ describe('Group shadow compositor', () => {
             expect(at(54, 25)).toEqual(side);
         });
 
+        it('should cast a uniform shadow over the fill of a translucent item with a stroke and a spread', () => {
+            const stroked = (y: number) =>
+                pathBox(60, y, 60, 50, {
+                    fill: 'rgba(0, 0, 0, 0.5)',
+                    stroke: 'rgba(0, 0, 0, 0.5)',
+                    strokeWidth: 2,
+                    fillShadow: { ...INK, spread: 6 },
+                    shadowMode: 'silhouette',
+                });
+
+            renderNodes([stroked(30), stroked(130)], false);
+            const unbatched = [at(63, 55), at(66, 55), at(90, 55)];
+
+            renderNodes([stroked(30), stroked(130)]);
+
+            // 3 and 6px inside the left edge, which the stroke and the 6px spread reach across, and the middle.
+            expect(unbatched[0][3]).toBeGreaterThan(0);
+            expect([at(63, 55), at(66, 55), at(90, 55)]).toEqual(unbatched);
+        });
+
         it('should match the shadow of an item that casts for itself', () => {
-            renderNodes([translucent(30, 12)]);
+            renderNodes([translucent(30, 12), translucent(130, 12)], false);
             const alone = Array.from(ctx().getImageData(40, 10, 100, 90).data);
 
             renderNodes([translucent(30, 12), translucent(130, 12)]);
@@ -325,6 +345,19 @@ describe('Group shadow compositor', () => {
                     expect(at(40, 55)).toEqual(CLEAR);
                 }
             );
+
+            it('should cast no shadow from a lone transparent item with a spread, beside items with other options', () => {
+                const lone = () => box(20, 40, 40, 50, { fill: transparentGradient, fillShadow: shadow });
+
+                renderNodes([lone()]);
+                expect(at(140, 65)).toEqual(CLEAR);
+                expect(at(125, 45)).toEqual(CLEAR);
+
+                renderNodes([lone(), box(20, 130, 40, 50, { fillShadow: BLUE })]);
+                expect(at(140, 65)).toEqual(CLEAR);
+                expect(at(125, 45)).toEqual(CLEAR);
+                expect(at(140, 155)).toEqual(BLUE_PIXEL);
+            });
 
             it('should cast no shadow from a whisker with a zero stroke opacity', () => {
                 renderNodes([
@@ -561,12 +594,12 @@ describe('Group shadow compositor', () => {
             expect(paintedPixels()).toBe(3 * 60 * 60);
         });
 
-        it('should take the existing path for a group with a single shadow caster', () => {
+        it('should cast the shadow of a group with a single shadow caster through the mask', () => {
             const before = offscreenCanvases();
 
             renderNodes([box(20, 40, 60, 60, { fillShadow: RED_HALF }), box(250, 40, 60, 60)]);
 
-            expect(createdSince(before)).toHaveLength(0);
+            expect(createdSince(before)).toHaveLength(1);
             expect(isHalfRed(at(130, 70))).toBe(true);
         });
 
@@ -589,7 +622,7 @@ describe('Group shadow compositor', () => {
             expect(isHalfRed(at(130, 70))).toBe(true);
             expect(isHalfRed(at(140, 160))).toBe(true);
 
-            // One caster is left, which casts for itself.
+            // One caster is left, which still casts through the mask.
             nodes[1].fillShadow = undefined;
             renderGroup(group);
             expect(isHalfRed(at(130, 70))).toBe(true);

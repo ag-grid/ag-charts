@@ -178,6 +178,48 @@ describe('CandlestickNode', () => {
             expect(pixelAt(canvasCtx, 270, 50)).toEqual(unbatched);
         });
 
+        it('should cast a uniform shadow from a translucent wick with a spread', () => {
+            // The body casts nothing, so that the strength of the shadow is that of the wick alone.
+            const style = {
+                fill: 'none',
+                stroke: 'transparent',
+                wickStrokeOpacity: 0.5,
+                fillShadow: { ...RED_SHADOW, xOffset: 20, spread: 6 },
+            };
+            renderNode(canvasCtx, wicked(100, style));
+            const centre = pixelAt(canvasCtx, 120, 50);
+            const beside = pixelAt(canvasCtx, 124, 50);
+
+            renderShadowBatch(canvasCtx, [wicked(100, style), wicked(250, style)]);
+
+            // The wick is drawn into the mask once, so the middle of its shadow is no darker than the sides.
+            expect(centre).not.toEqual([255, 255, 255, 255]);
+            expect(beside).toEqual(centre);
+            // The mask and the shadow of a single item round differently, by one at most.
+            for (const x of [120, 124, 270, 274]) {
+                for (const [i, channel] of pixelAt(canvasCtx, x, 50).entries()) {
+                    expect(Math.abs(channel - centre[i])).toBeLessThanOrEqual(1);
+                }
+            }
+        });
+
+        it.each([undefined, 10])(
+            'should cast no shadow from a wick with a transparent colour, with a spread of %s',
+            (spread) => {
+                const style = {
+                    fill: 'none',
+                    stroke: 'transparent',
+                    wickStroke: 'rgba(0, 0, 0, 0)',
+                    fillShadow: { ...RED_SHADOW, xOffset: 20, spread },
+                };
+                renderShadowBatch(canvasCtx, [wicked(100, style), wicked(250, style)]);
+
+                for (const x of [120, 270]) {
+                    expect(pixelAt(canvasCtx, x, 50)).toEqual([255, 255, 255, 255]);
+                }
+            }
+        );
+
         it('should spread the shadow of a wick with its own colour when the body stroke is transparent', () => {
             const style = {
                 fill: 'none',

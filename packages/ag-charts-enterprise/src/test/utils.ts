@@ -203,7 +203,7 @@ export function renderShadowBatch(canvasCtx: MockCanvas, nodes: readonly _Module
     };
     group.preRender(renderCtx);
     group.render(renderCtx);
-    // The group keeps a scratch canvas for the batch, which it gives up once it has fewer than two casters.
+    // The group keeps a scratch canvas for the batch, which it gives up once it has no casters.
     for (const node of nodes) node.fillShadow = undefined;
     group.preRender(renderCtx);
 }

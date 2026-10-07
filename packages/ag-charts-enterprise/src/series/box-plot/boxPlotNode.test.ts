@@ -208,6 +208,48 @@ describe('BoxPlotNode', () => {
             expect(pixelAt(canvasCtx, 270, 40)).toEqual(unbatched);
         });
 
+        it('should cast a uniform shadow from a translucent whisker with a spread', () => {
+            // The body casts nothing, so that the strength of the shadow is that of the whisker alone.
+            const style = {
+                fill: 'none',
+                stroke: 'transparent',
+                wickStrokeOpacity: 0.5,
+                fillShadow: { ...RED_SHADOW, xOffset: 20, spread: 6 },
+            };
+            renderNode(canvasCtx, whiskers(100, style));
+            const centre = pixelAt(canvasCtx, 120, 40);
+            const beside = pixelAt(canvasCtx, 124, 40);
+
+            renderShadowBatch(canvasCtx, [whiskers(100, style), whiskers(250, style)]);
+
+            // The whisker is drawn into the mask once, so the middle of its shadow is no darker than the sides.
+            expect(centre).not.toEqual([255, 255, 255, 255]);
+            expect(beside).toEqual(centre);
+            // The mask and the shadow of a single item round differently, by one at most.
+            for (const x of [120, 124, 270, 274]) {
+                for (const [i, channel] of pixelAt(canvasCtx, x, 40).entries()) {
+                    expect(Math.abs(channel - centre[i])).toBeLessThanOrEqual(1);
+                }
+            }
+        });
+
+        it.each([undefined, 10])(
+            'should cast no shadow from a whisker with a transparent colour, with a spread of %s',
+            (spread) => {
+                const style = {
+                    fill: 'none',
+                    stroke: 'transparent',
+                    wickStroke: 'rgba(0, 0, 0, 0)',
+                    fillShadow: { ...RED_SHADOW, xOffset: 20, spread },
+                };
+                renderShadowBatch(canvasCtx, [whiskers(100, style), whiskers(250, style)]);
+
+                for (const x of [120, 270]) {
+                    expect(pixelAt(canvasCtx, x, 40)).toEqual([255, 255, 255, 255]);
+                }
+            }
+        );
+
         it('should spread the shadow of a whisker with its own colour when the body stroke is transparent', () => {
             const style = { fill: 'none', stroke: 'transparent', fillShadow: { ...RED_SHADOW, spread: 10 } };
             renderShadowBatch(canvasCtx, [whiskers(100, style), whiskers(250, style)]);
