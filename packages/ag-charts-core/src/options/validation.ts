@@ -413,10 +413,7 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
     ) as T;
 }
 
-/**
- * Spread inside a defs literal for keys absent from its options type; typed as empty so the literal still matches
- * `OptionsDefs<T>`. Assigning keys onto a defs object afterwards would keep it out of tree-shaking.
- */
+/** Spread inside a defs literal for keys absent from its options type; typed as empty so the literal type-checks. */
 export function undocumentedDefs(defs: Record<string, Validator | OptionsDefs<any>>): Record<never, never> {
     const result: Record<string, Validator | OptionsDefs<any>> = {};
     for (const key of Object.keys(defs)) {

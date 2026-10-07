@@ -82,7 +82,7 @@ function resolveTarget(target) {
 }
 
 function checkBuilt(root, target) {
-    for (const pkg of ['ag-charts-community', 'ag-charts-enterprise']) {
+    for (const pkg of ['ag-charts-core', 'ag-charts-community', 'ag-charts-enterprise']) {
         const entry = join(root, 'packages', pkg, 'dist', 'package', 'main.esm.mjs');
         if (!existsSync(entry)) throw new Error(`${target}: missing ${entry}; build it first`);
     }

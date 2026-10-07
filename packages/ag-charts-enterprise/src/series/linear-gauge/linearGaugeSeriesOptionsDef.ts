@@ -55,7 +55,7 @@ export const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
     ...lineDashOptionsDef,
 };
 
-const linearGaugeScaleOptionsDef = {
+const linearGaugeScaleOptionsDef: OptionsDefs<NonNullable<AgLinearGaugeThemeableOptions['scale']>> = {
     min: and(numericValue, lessThan('max')),
     max: and(numericValue, greaterThan('min')),
     label: {
