@@ -1,6 +1,12 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedRadiusCategoryAxisOptions } from 'ag-charts-core';
-import { type BandScale, CategoryScale } from 'ag-charts-core';
+import type {
+    AxisID,
+    BandScale,
+    DomainWithMetadata,
+    DynamicContext,
+    NormalisedRadiusCategoryAxisOptions,
+} from 'ag-charts-core';
+import { CategoryScale } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 

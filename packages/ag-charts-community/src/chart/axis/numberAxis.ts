@@ -1,5 +1,5 @@
-import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
-import { LinearScale, type LogScale, normalisedExtentWithMetadata } from 'ag-charts-core';
+import type { AxisID, DomainWithMetadata, DynamicContext, LogScale, NormalisedNumberAxisOptions } from 'ag-charts-core';
+import { LinearScale, normalisedExtentWithMetadata } from 'ag-charts-core';
 import type { AgNumericValue, FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';

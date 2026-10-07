@@ -1,5 +1,5 @@
 import { tickFormat } from '../../time/ticks';
-import { type ScaleTickParams } from '../../types/scales';
+import type { ScaleTickParams } from '../../types/scales';
 import { LinearScale } from './linearScale';
 
 describe('LinearScale', () => {

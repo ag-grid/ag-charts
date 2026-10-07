@@ -1,5 +1,10 @@
-import type { NormalisedBaseCategoryStyleAxisOptions, NormalisedCategoryAxisOptions } from 'ag-charts-core';
-import { type CategoryScale, type OrdinalTimeScale, UnitTimeScale } from 'ag-charts-core';
+import type {
+    CategoryScale,
+    NormalisedBaseCategoryStyleAxisOptions,
+    NormalisedCategoryAxisOptions,
+    OrdinalTimeScale,
+} from 'ag-charts-core';
+import { UnitTimeScale } from 'ag-charts-core';
 
 import type { AxisFillDatum, AxisLineDatum, TickDatum } from './axisUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';

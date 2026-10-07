@@ -1,6 +1,6 @@
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { type Logger } from '../../logging/logger';
+import type { Logger } from '../../logging/logger';
 import type { ColorScale } from './colorScale';
 import { type ColorScaleColorStop, type ColorScaleMode, computeColorBins } from './colorScaleUtil';
 

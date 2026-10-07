@@ -4,14 +4,10 @@ import type {
     DynamicContext,
     NormalisedBaseCategoryStyleAxisOptions,
     NormalisedCategoryAxisOptions,
+    OrdinalTimeScale,
+    UnitTimeScale,
 } from 'ag-charts-core';
-import {
-    CategoryScale,
-    ChartUpdateType,
-    type OrdinalTimeScale,
-    type UnitTimeScale,
-    isFiniteNumber,
-} from 'ag-charts-core';
+import { CategoryScale, ChartUpdateType, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
