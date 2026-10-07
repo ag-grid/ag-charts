@@ -585,7 +585,7 @@ describe('Scrollbar visibility after deferred (detached -> attached) resize', ()
     });
 });
 
-describe('Scrollbar thumb hoverStyle.strokeWidth', () => {
+describe('Scrollbar thumb hoverStyle', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -609,5 +609,75 @@ describe('Scrollbar thumb hoverStyle.strokeWidth', () => {
 
         scrollbar.handleHoverChange('horizontal', false);
         expect(thumb.strokeWidth).toBe(1);
+    });
+
+    async function hoverThumbs(scrollbarOptions: AgCartesianChartOptions['scrollbar']) {
+        destroyChartRef(chartRef);
+        chartRef.current = await createEnterpriseChart({
+            data: DATA,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            scrollbar: { enabled: true, visible: 'always', ...scrollbarOptions },
+            initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 }, ratioY: { start: 0.2, end: 0.6 } } },
+        });
+        const scrollbar = chartRef.current.modulesManager.getModule('scrollbar');
+        const read = (orientation: 'horizontal' | 'vertical') => {
+            const { thumb } = scrollbar.state[orientation];
+            const rest = { fill: thumb.fill, stroke: thumb.stroke, strokeWidth: thumb.strokeWidth };
+            scrollbar.handleHoverChange(orientation, true);
+            const hover = { fill: thumb.fill, stroke: thumb.stroke, strokeWidth: thumb.strokeWidth };
+            scrollbar.handleHoverChange(orientation, false);
+            return { rest, hover };
+        };
+        return { horizontal: read('horizontal'), vertical: read('vertical') };
+    }
+
+    it('keeps an orientation thumb strokeWidth of 0 on hover', async () => {
+        const { horizontal, vertical } = await hoverThumbs({ horizontal: { thumb: { strokeWidth: 0 } } });
+
+        expect(horizontal.rest.strokeWidth).toBe(0);
+        expect(horizontal.hover.strokeWidth).toBe(0);
+        expect(vertical.rest.strokeWidth).toBe(1);
+        expect(vertical.hover.strokeWidth).toBe(1);
+    });
+
+    it('keeps a per-chart thumb strokeWidth on hover', async () => {
+        const { horizontal, vertical } = await hoverThumbs({ thumb: { strokeWidth: 3 } });
+
+        expect(horizontal.hover.strokeWidth).toBe(3);
+        expect(vertical.hover.strokeWidth).toBe(3);
+    });
+
+    it('derives the hover colours from a per-chart thumb fill and stroke', async () => {
+        const defaults = await hoverThumbs({});
+        const custom = await hoverThumbs({ thumb: { fill: 'teal', stroke: 'black' } });
+
+        for (const orientation of ['horizontal', 'vertical'] as const) {
+            const { rest, hover } = custom[orientation];
+            expect(rest).toMatchObject({ fill: 'teal', stroke: 'black' });
+            expect(hover.fill).not.toBe('teal');
+            expect(hover.fill).not.toBe(defaults[orientation].hover.fill);
+            expect(hover.stroke).not.toBe('black');
+            expect(hover.stroke).not.toBe(defaults[orientation].hover.stroke);
+        }
+    });
+
+    it('derives the hover colours from an orientation thumb fill', async () => {
+        const defaults = await hoverThumbs({});
+        const { horizontal, vertical } = await hoverThumbs({ horizontal: { thumb: { fill: 'blue' } } });
+
+        expect(horizontal.hover.fill).not.toBe('blue');
+        expect(horizontal.hover.fill).not.toBe(defaults.horizontal.hover.fill);
+        expect(vertical.hover.fill).toBe(defaults.vertical.hover.fill);
+    });
+
+    it('prefers an explicit hoverStyle over the regular thumb style', async () => {
+        const { horizontal, vertical } = await hoverThumbs({
+            thumb: { fill: 'blue', strokeWidth: 3, hoverStyle: { fill: 'green', strokeWidth: 2 } },
+            horizontal: { thumb: { strokeWidth: 0 } },
+        });
+
+        for (const { hover } of [horizontal, vertical]) {
+            expect(hover).toMatchObject({ fill: 'green', strokeWidth: 2 });
+        }
     });
 });

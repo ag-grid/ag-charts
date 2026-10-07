@@ -41,10 +41,48 @@ const SCROLLBAR_ORIENTATION_THEME: WithThemeParams<AgScrollbarOptions> = {
         opacity: { $path: '../../thumb/opacity' },
         cornerRadius: { $path: '../../thumb/cornerRadius' },
         minSize: { $path: '../../thumb/minSize' },
+        // The hover state follows the regular state when that is set, unless the hover state is set too: an explicit
+        // shared `thumb.hoverStyle` wins, then this orientation's own thumb style, then the shared hover default.
         hoverStyle: {
-            fill: { $path: '../../../thumb/hoverStyle/fill' },
-            stroke: { $path: '../../../thumb/hoverStyle/stroke' },
-            strokeWidth: { $path: '../../../thumb/hoverStyle/strokeWidth' },
+            fill: {
+                $isUserOption: [
+                    '../../../thumb/hoverStyle/fill',
+                    { $path: '../../../thumb/hoverStyle/fill' },
+                    {
+                        $isUserOption: [
+                            '../fill',
+                            { $mix: [{ $path: '../fill' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
+                            { $path: '../../../thumb/hoverStyle/fill' },
+                        ],
+                    },
+                ],
+            },
+            stroke: {
+                $isUserOption: [
+                    '../../../thumb/hoverStyle/stroke',
+                    { $path: '../../../thumb/hoverStyle/stroke' },
+                    {
+                        $isUserOption: [
+                            '../stroke',
+                            { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
+                            { $path: '../../../thumb/hoverStyle/stroke' },
+                        ],
+                    },
+                ],
+            },
+            strokeWidth: {
+                $isUserOption: [
+                    '../../../thumb/hoverStyle/strokeWidth',
+                    { $path: '../../../thumb/hoverStyle/strokeWidth' },
+                    {
+                        $isUserOption: [
+                            '../strokeWidth',
+                            { $path: '../strokeWidth' },
+                            { $path: '../../../thumb/hoverStyle/strokeWidth' },
+                        ],
+                    },
+                ],
+            },
         },
     },
 };
@@ -77,35 +115,54 @@ export const SCROLLBAR_THEME: WithThemeParams<AgScrollbarOptions> = {
         cornerRadius: { $ref: 'scrollbarThumbBorderRadius' },
         minSize: 20,
         hoverStyle: {
-            fill: { $ref: 'scrollbarThumbHoverBackgroundColor' },
+            // A per-chart regular thumb style carries to hover, as it did before the hover params existed.
+            fill: {
+                $isUserOption: [
+                    '../fill',
+                    { $mix: [{ $path: '../fill' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
+                    { $ref: 'scrollbarThumbHoverBackgroundColor' },
+                ],
+            },
             stroke: {
-                $if: [
-                    { $isType: [{ $ref: 'scrollbarThumbHoverBorder.color' }, 'string'] },
-                    { $ref: 'scrollbarThumbHoverBorder.color' },
+                $isUserOption: [
+                    '../stroke',
                     { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
+                    {
+                        $if: [
+                            { $isType: [{ $ref: 'scrollbarThumbHoverBorder.color' }, 'string'] },
+                            { $ref: 'scrollbarThumbHoverBorder.color' },
+                            { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, HOVER_MIX_RATIO] },
+                        ],
+                    },
                 ],
             },
             strokeWidth: {
-                $if: [
-                    { $isType: [{ $ref: 'scrollbarThumbHoverBorder' }, 'boolean'] },
+                $isUserOption: [
+                    '../strokeWidth',
+                    { $path: '../strokeWidth' },
                     {
                         $if: [
-                            { $ref: 'scrollbarThumbHoverBorder' },
+                            { $isType: [{ $ref: 'scrollbarThumbHoverBorder' }, 'boolean'] },
                             {
                                 $if: [
-                                    { $greaterThan: [{ $path: '../strokeWidth' }, 0] },
-                                    { $path: '../strokeWidth' },
-                                    1,
+                                    { $ref: 'scrollbarThumbHoverBorder' },
+                                    {
+                                        $if: [
+                                            { $greaterThan: [{ $path: '../strokeWidth' }, 0] },
+                                            { $path: '../strokeWidth' },
+                                            1,
+                                        ],
+                                    },
+                                    0,
                                 ],
                             },
-                            0,
-                        ],
-                    },
-                    {
-                        $if: [
-                            { $isType: [{ $ref: 'scrollbarThumbHoverBorder.width' }, 'number'] },
-                            { $ref: 'scrollbarThumbHoverBorder.width' },
-                            { $path: '../strokeWidth' },
+                            {
+                                $if: [
+                                    { $isType: [{ $ref: 'scrollbarThumbHoverBorder.width' }, 'number'] },
+                                    { $ref: 'scrollbarThumbHoverBorder.width' },
+                                    { $path: '../strokeWidth' },
+                                ],
+                            },
                         ],
                     },
                 ],
