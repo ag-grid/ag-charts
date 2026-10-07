@@ -27,7 +27,7 @@ import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { AreaSeries } from './areaSeries';
-import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
+import { areaSeriesOptionsDef, areaSeriesThemeableOptionsDef } from './areaSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'area'> = {
@@ -76,6 +76,7 @@ const themeTemplate: ExtensibleSeriesTheme<'area'> = {
         tooltip: {
             ...NEAREST_TOOLTIP_THEME,
             position: {
+                ...NEAREST_TOOLTIP_THEME.position,
                 anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
             },
         },
@@ -94,6 +95,8 @@ export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = /* 
     dependencies: [CartesianChartModule],
 
     options: areaSeriesOptionsDef,
+
+    themeOptions: areaSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: {
         y: {

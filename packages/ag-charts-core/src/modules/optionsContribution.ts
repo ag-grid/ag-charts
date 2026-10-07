@@ -15,6 +15,8 @@ export interface OptionsContribution<TOptions = any> {
     readonly path: string;
     /** Validation for the subtree, or a single validator for a leaf such as a callback. */
     readonly options?: OptionsDefs<TOptions> | Validator;
+    /** Validation for theme overrides at the location, where their shape differs from `options`. */
+    readonly themeOptions?: OptionsDefs<any> | Validator;
     /** Defaults merged into the theme at the location derived from `path`. */
     readonly themeTemplate?: object;
     readonly chartTypes?: readonly string[];
@@ -96,6 +98,7 @@ export interface ContributingDefinition {
     readonly axisTypes?: readonly string[];
     readonly seriesTypes?: readonly string[];
     readonly options?: OptionsDefs<any>;
+    readonly themeOptions?: OptionsDefs<any>;
     readonly themeTemplate?: object;
     readonly contributes?: readonly OptionsContribution[];
 }
@@ -107,7 +110,7 @@ export interface ContributingDefinition {
  * preset modules own whole subtrees by identity rather than by path and so contribute nothing.
  */
 export function contributionsOf(definition: ContributingDefinition): readonly OptionsContribution[] {
-    const { name, chartTypes, options, themeTemplate } = definition;
+    const { name, chartTypes, options, themeOptions, themeTemplate } = definition;
 
     if (definition.contributes != null) {
         if (chartTypes == null) return definition.contributes;
@@ -120,12 +123,13 @@ export function contributionsOf(definition: ContributingDefinition): readonly Op
 
     switch (definition.type) {
         case 'plugin':
-            return [{ path: name, options, themeTemplate, chartTypes }];
+            return [{ path: name, options, themeOptions, themeTemplate, chartTypes }];
         case 'axis:plugin':
             return [
                 {
                     path: `axes[].${definition.optionsKey ?? name}`,
                     options,
+                    themeOptions,
                     themeTemplate,
                     chartTypes,
                     axisTypes: definition.axisTypes,
@@ -136,6 +140,7 @@ export function contributionsOf(definition: ContributingDefinition): readonly Op
                 {
                     path: `series[].${name}`,
                     options,
+                    themeOptions,
                     themeTemplate,
                     chartTypes,
                     seriesTypes: definition.seriesTypes,

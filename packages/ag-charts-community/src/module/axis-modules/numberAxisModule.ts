@@ -2,6 +2,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedNumberAxisOptions,
+    cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
     numberAxisOptionsDefs,
@@ -24,6 +25,8 @@ export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions, NumberA
     dependencies: [CartesianChartModule],
 
     options: numberAxisOptionsDefs,
+
+    themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(numberAxisOptionsDefs),
     themeTemplate: mergeDefaults(
         {
             maxThicknessRatio: 0.3,

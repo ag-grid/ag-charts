@@ -8,7 +8,7 @@ import {
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { HlcSeries } from './hlcSeries';
-import { hlcSeriesOptionsDef } from './hlcSeriesOptionsDef';
+import { hlcSeriesOptionsDef, hlcSeriesThemeableOptionsDef } from './hlcSeriesOptionsDef';
 import { HLC_SERIES_THEME } from './hlcThemes';
 
 const { predictCartesianFinancialAxis } = _ModuleSupport;
@@ -29,6 +29,7 @@ export const HlcSeriesModule: SeriesModuleDefinition<AgHlcSeriesOptions> = {
         x: { type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME, position: CARTESIAN_POSITION.BOTTOM },
     },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
+    themeOptions: hlcSeriesThemeableOptionsDef,
     themeTemplate: HLC_SERIES_THEME,
 
     create: (ctx) => new HlcSeries(ctx),

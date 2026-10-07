@@ -89,6 +89,10 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
         return { x: this.__centerX, y: this.__y + this.__height / 2 };
     }
 
+    protected override isCrisp(): boolean {
+        return this.__crisp;
+    }
+
     protected alignedCoordinates() {
         const { __y: y, __width: width, __height: height, __crisp: crisp } = this;
 
@@ -125,7 +129,7 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
     protected override executeStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
         const { __width: width, strokeWidth } = this;
         if (width < strokeWidth) {
-            ctx.lineWidth = width;
+            ctx.lineWidth = width + this.shadowStrokeGrowth;
         }
         super.executeStroke(ctx, path);
     }

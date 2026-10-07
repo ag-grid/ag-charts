@@ -40,10 +40,12 @@ import {
 
 import {
     DEFAULT_DISABLED_SHADOW,
+    SHADOW,
     collectShapes,
     createEnterpriseChart,
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
+    shadowedShapes,
 } from '../../test/utils';
 
 describe('RadialColumnSeries', () => {
@@ -1435,8 +1437,7 @@ describe('RadialColumnSeries', () => {
                 { quarter: 'Q3', value: 5 },
                 { quarter: 'Q4', value: 9 },
             ];
-            const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
-            const shadowOptions = (seriesShadow?: typeof shadow): AgChartOptions => ({
+            const shadowOptions = (seriesShadow?: typeof SHADOW): AgChartOptions => ({
                 data: shadowData,
                 series: [{ type: seriesType, angleKey: 'quarter', radiusKey: 'value', shadow: seriesShadow }],
                 axes: polarAxes,
@@ -1454,21 +1455,21 @@ describe('RadialColumnSeries', () => {
 
                 const shapes = collectShapes(chart.series[0].contentGroup);
                 expect(shapes).toHaveLength(shadowData.length);
-                expect(shapes.filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
+                expect(shadowedShapes(chart.series[0].contentGroup)).toEqual([]);
             });
 
             it('applies an enabled shadow to every shape', async () => {
-                chart = await createEnterpriseChart(shadowOptions(shadow));
+                chart = await createEnterpriseChart(shadowOptions(SHADOW));
 
                 const shapes = collectShapes(chart.series[0].contentGroup);
                 expect(shapes).toHaveLength(shadowData.length);
                 for (const shape of shapes) {
-                    expect(shape.fillShadow).toMatchObject(shadow);
+                    expect(shape.fillShadow).toMatchObject(SHADOW);
                 }
             });
 
             it('renders with the shadow enabled', async () => {
-                chart = await createEnterpriseChart(shadowOptions(shadow));
+                chart = await createEnterpriseChart(shadowOptions(SHADOW));
                 await compare();
             });
         });

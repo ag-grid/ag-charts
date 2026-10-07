@@ -8,6 +8,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     cycledFillThemeTemplate,
@@ -17,7 +18,7 @@ import {
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { TreemapSeries } from './treemapSeries';
-import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
+import { treemapSeriesOptionsDef, treemapSeriesThemeableOptionsDef } from './treemapSeriesOptionsDef';
 
 export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
     type: 'series',
@@ -29,6 +30,8 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
     dependencies: [StandaloneChartModule],
 
     options: treemapSeriesOptionsDef,
+
+    themeOptions: treemapSeriesThemeableOptionsDef,
     themeTemplate: {
         series: {
             ...SERIES_INTERACTION_THEME_DEFAULTS,
@@ -46,7 +49,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
                 mode: 'continuous',
             },
-            tooltip: { interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             group: {
                 label: {
                     ...LABEL_BOXING_DEFAULTS,

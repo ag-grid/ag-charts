@@ -1,20 +1,94 @@
-import type { AgSankeySeriesOptions } from 'ag-charts-community';
+import type {
+    AgSankeySeriesLinkStyle,
+    AgSankeySeriesNodeStyle,
+    AgSankeySeriesOptions,
+    AgSankeySeriesThemeableOptions,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
+    and,
     arrayOf,
+    callbackDefs,
     callbackOf,
     color,
+    colorOrRef,
+    colorUnion,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
     fillGradientDefaults,
     fillImageDefaults,
+    fillOptionsDef,
     fillPatternDefaults,
+    labelAutoFontSizeOptionsDefs,
+    labelFitOptionsDefs,
+    lessThanOrEqual,
+    lineDashOptionsDef,
+    positiveNumber,
     required,
-    sankeySeriesThemeableOptionsDef,
+    seriesLabelOptionsDefs,
+    shadowHighlightOptionsDef,
+    shadowOptionsDefs,
+    shapeHighlightOptionsDef,
     string,
-    undocumented,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    undocumentedDefs,
+    union,
     without,
 } from 'ag-charts-core';
+
+export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeableOptions> = {
+    fills: arrayOf(colorUnion),
+    strokes: arrayOf(colorOrRef),
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
+        spacing: positiveNumber,
+        placement: union('left', 'right', 'center'),
+        edgePlacement: union('inside', 'outside'),
+    },
+    link: {
+        shadow: shadowOptionsDefs,
+        itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        }),
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    node: {
+        shadow: shadowOptionsDefs,
+        width: positiveNumber,
+        spacing: positiveNumber,
+        minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),
+        cornerRadius: positiveNumber,
+        alignment: union('left', 'center', 'right', 'justify'),
+        verticalAlignment: union('top', 'bottom', 'center'),
+        sort: union('data', 'ascending', 'descending', 'auto'),
+        itemStyler: callbackDefs<AgSankeySeriesNodeStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        }),
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
+    ...undocumentedDefs({
+        fillGradientDefaults: fillGradientDefaults,
+        fillPatternDefaults: fillPatternDefaults,
+        fillImageDefaults: fillImageDefaults,
+        defaultColorRange: arrayOf(arrayOf(color)),
+        defaultPatternFills: arrayOf(color),
+    }),
+};
 
 export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     ...sankeySeriesThemeableOptionsDef,
@@ -26,14 +100,3 @@ export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     sizeName: string,
     getItemId: callbackOf(string),
 };
-
-// @ts-expect-error undocumented option
-sankeySeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
-// @ts-expect-error undocumented option
-sankeySeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
-// @ts-expect-error undocumented option
-sankeySeriesOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
-// @ts-expect-error undocumented option
-sankeySeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
-// @ts-expect-error undocumented option
-sankeySeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));

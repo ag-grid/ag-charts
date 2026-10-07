@@ -9,7 +9,7 @@ import type {
 
 import { type VolumeProfileDatum, inferVolumeProfileTickSize, normaliseVolumeProfile } from './volumeProfileUtils';
 
-type ChartTheme = _Theme.ChartTheme;
+type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
 
 export function groupVolumeProfile(
     data: DatumDefault[],

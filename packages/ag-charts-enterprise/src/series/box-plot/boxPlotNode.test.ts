@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { setupMockCanvas } from 'ag-charts-community-test';
 
-import { RED_SHADOW, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../../test/utils';
+import { RED_SHADOW, allWhite, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../../test/utils';
 import { BoxPlotNode } from './boxPlotNode';
 
 const boxPlot = (mixin: Partial<BoxPlotNode>) => {
@@ -29,6 +29,19 @@ const boxPlot = (mixin: Partial<BoxPlotNode>) => {
 describe('BoxPlotNode', () => {
     describe('silhouette shadow', () => {
         const canvasCtx = setupMockCanvas({ width: 400, height: 220 });
+
+        const verticalWhiskers = (spread?: number) =>
+            boxPlot({
+                horizontal: false,
+                min: 20,
+                q1: 70,
+                median: 100,
+                q3: 130,
+                max: 190,
+                wickStroke: 'rgb(0, 0, 0)',
+                wickStrokeWidth: 2,
+                fillShadow: { ...RED_SHADOW, spread },
+            });
 
         it('should not leave a copy of separately styled whiskers at the left edge of a horizontal box plot', () => {
             const node = boxPlot({ wickStrokeWidth: 2 });
@@ -82,6 +95,65 @@ describe('BoxPlotNode', () => {
             expect(pixelAt(canvasCtx, 210, 45)).toEqual([255, 0, 0, 255]);
         });
 
+        it('should grow the shadow of a separately styled whisker by the spread', () => {
+            renderNode(canvasCtx, verticalWhiskers());
+            // The lower whisker is 2px wide at x = 110, so without a spread its shadow hides behind it.
+            expect(pixelAt(canvasCtx, 117, 45)).toEqual([255, 255, 255, 255]);
+
+            renderNode(canvasCtx, verticalWhiskers(10));
+            // With a spread of 10 the whisker's shadow is 22px wide: 99 to 121.
+            expect(pixelAt(canvasCtx, 117, 45)).toEqual([255, 0, 0, 255]);
+            expect(pixelAt(canvasCtx, 125, 45)).toEqual([255, 255, 255, 255]);
+        });
+
+        it('should spread the shadow past the ends of a whisker by the spread', () => {
+            renderNode(canvasCtx, verticalWhiskers());
+            // The whiskers end at 20 and 190, and without a spread their shadows hide behind them.
+            expect(pixelAt(canvasCtx, 110, 15)).toEqual([255, 255, 255, 255]);
+            expect(pixelAt(canvasCtx, 110, 195)).toEqual([255, 255, 255, 255]);
+
+            renderNode(canvasCtx, verticalWhiskers(10));
+            // The whiskers have butt caps, but their shadows still reach `spread` past each end, and no further.
+            for (const y of [10, 14, 18, 191, 195, 199]) {
+                expect(pixelAt(canvasCtx, 110, y)).toEqual([255, 0, 0, 255]);
+            }
+            for (const y of [5, 205]) {
+                expect(pixelAt(canvasCtx, 110, y)).toEqual([255, 255, 255, 255]);
+            }
+        });
+
+        it.each([
+            ['a whisker stroke opacity of 0', { wickStrokeOpacity: 0 }],
+            ['a whisker stroke width of 0', { wickStrokeWidth: 0 }],
+        ])('should cast no shadow from a whisker with %s, with or without a spread', (_, hidden) => {
+            for (const spread of [undefined, 10]) {
+                const node = verticalWhiskers(spread);
+                Object.assign(node, hidden);
+                renderNode(canvasCtx, node);
+
+                // Where the visible whisker's shadow lands, and past its end: a hidden whisker casts none.
+                for (const [x, y] of [
+                    [110, 45],
+                    [117, 45],
+                    [110, 15],
+                    [110, 195],
+                ]) {
+                    expect(pixelAt(canvasCtx, x, y)).toEqual([255, 255, 255, 255]);
+                }
+            }
+        });
+
+        it('should cast no shadow from a box plot that is fully transparent, with or without a spread', () => {
+            for (const spread of [undefined, 10]) {
+                const node = verticalWhiskers(spread);
+                // As the series styles an item at `opacity: 0`.
+                Object.assign(node, { fillOpacity: 0, strokeOpacity: 0, wickStrokeOpacity: 0, opacity: 0 });
+                renderNode(canvasCtx, node);
+
+                expect(allWhite(canvasCtx)).toBe(true);
+            }
+        });
+
         it('should not leave a sliver on the left edge for a crisp horizontal box plot with a hard shadow', () => {
             const node = boxPlot({
                 crisp: true,
@@ -97,7 +169,7 @@ describe('BoxPlotNode', () => {
         });
     });
 
-    describe.each([1, 2, 3])('silhouette shadow at a device pixel ratio of %i', (pixelRatio) => {
+    describe.each([0.5, 1, 2, 3])('silhouette shadow at a device pixel ratio of %s', (pixelRatio) => {
         const canvasCtx = setupMockCanvas({ width: 400 * pixelRatio, height: 220 * pixelRatio });
 
         it('should not leave a sliver on the left edge for a crisp box plot with theme default strokes', () => {
@@ -112,6 +184,19 @@ describe('BoxPlotNode', () => {
             renderNode(canvasCtx, node, pixelRatio);
 
             expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
+        });
+
+        it('should not leave a copy of spread whiskers on the left edge', () => {
+            const node = boxPlot({
+                wickStrokeWidth: 2,
+                wickStroke: 'rgb(0, 0, 0)',
+                fillShadow: { ...RED_SHADOW, spread: 40 },
+            });
+            renderNode(canvasCtx, node, pixelRatio);
+
+            expect(node['wickPath'].isEmpty()).toBe(false);
+            // The shadow reaches 40px past the whisker end at 150, so everything left of 110 is untouched.
+            expect(leftEdgeIsWhite(canvasCtx, 100 * pixelRatio)).toBe(true);
         });
 
         it('should not leave a sliver on the left edge for a crisp vertical box plot without a stroke', () => {
@@ -132,5 +217,22 @@ describe('BoxPlotNode', () => {
 
             expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
         });
+
+        // The alignment snaps a whisker end outward at some ratios and inward at others, so try a few ends.
+        it.each([360.5, 361, 363])(
+            'should not leave a sliver on the left edge for a crisp box plot with a 1px round-joined stroke and max %s',
+            (max) => {
+                const node = boxPlot({
+                    max,
+                    strokeWidth: 1,
+                    lineJoin: 'round',
+                    wickStrokeWidth: 1,
+                    crisp: true,
+                });
+                renderNode(canvasCtx, node, pixelRatio);
+
+                expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
+            }
+        );
     });
 });

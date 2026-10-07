@@ -15,6 +15,7 @@ import {
     boolean,
     callback,
     color,
+    colorOrRef,
     date,
     fillCssOptionsDef,
     fontOptionsDef,
@@ -26,7 +27,7 @@ import {
     timeInterval,
     timeIntervalUnit,
     toolbarButtonOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 
@@ -63,6 +64,7 @@ export const rangesOptionsDefs: OptionsDefs<AgRangesOptions> = {
     position: union('top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'),
     button: buttonStylesOptions,
     dropdown: dropdownOptions,
+    buttonSize: positiveNumber,
     gap: positiveNumber,
     spacing: positiveNumber,
     ...stylesOptions,
@@ -80,7 +82,24 @@ export const rangesOptionsDefs: OptionsDefs<AgRangesOptions> = {
         },
         'range button options array'
     ),
+    ...undocumentedDefs({
+        minSize: positiveNumber,
+    }),
 };
 
-// @ts-expect-error undocumented option
-rangesOptionsDefs.minSize = undocumented(positiveNumber);
+const stateStylesThemeOptions: OptionsDefs<AgRangesStateStyles> = { ...stateStylesOptions, textColor: colorOrRef };
+
+const stylesThemeOptions: OptionsDefs<AgRangesStyles> = {
+    ...stylesOptions,
+    textColor: colorOrRef,
+    active: stateStylesThemeOptions,
+    disabled: stateStylesThemeOptions,
+    hover: stateStylesThemeOptions,
+};
+
+export const rangesThemeOptionsDefs: OptionsDefs<AgRangesOptions> = {
+    ...rangesOptionsDefs,
+    ...stylesThemeOptions,
+    button: stylesThemeOptions,
+    dropdown: { ...dropdownOptions, ...stylesThemeOptions },
+};

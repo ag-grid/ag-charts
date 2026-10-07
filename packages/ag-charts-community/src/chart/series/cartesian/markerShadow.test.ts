@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { AgCartesianChartOptions, AgChartInstance, AgDropShadowOptions, AgMarkerShapeFn } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance, AgDropShadowOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import type { Marker } from '../../marker/marker';
 import { STRIPPED_NUMBER_AXES } from '../../test/bigintExamples';
+import { MARKER_SHADOW, customMarkerShape } from '../../test/shadowFixtures';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -15,21 +16,12 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 
-const SHADOW: AgDropShadowOptions = { enabled: true, color: '#000000', xOffset: 4, yOffset: 4, blur: 6 };
-
 const SCATTER_DATA = [
     { x: 1, y: 3, size: 10 },
     { x: 2, y: 6, size: 20 },
     { x: 3, y: 4, size: 30 },
     { x: 4, y: 8, size: 15 },
 ];
-
-const customShape: AgMarkerShapeFn = ({ path, x, y, size }) => {
-    path.moveTo(x - size / 2, y - size / 2);
-    path.lineTo(x + size / 2, y - size / 2);
-    path.lineTo(x, y + size / 2);
-    path.closePath();
-};
 
 const markerSeriesOptions = {
     scatter: (marker: object, shadow?: AgDropShadowOptions) => ({
@@ -94,20 +86,20 @@ describe('marker shadow', () => {
         it('applies the shadow to markers with a built-in shape', async () => {
             await create({
                 data: SCATTER_DATA,
-                series: [markerSeriesOptions[type](shapeOption('diamond'), SHADOW)],
+                series: [markerSeriesOptions[type](shapeOption('diamond'), MARKER_SHADOW)],
             } as AgCartesianChartOptions);
 
             const markers = visibleMarkers();
             expect(markers).toHaveLength(SCATTER_DATA.length);
             for (const marker of markers) {
-                expect(marker.fillShadow).toMatchObject(SHADOW);
+                expect(marker.fillShadow).toMatchObject(MARKER_SHADOW);
             }
         });
 
         it('does not apply the shadow to markers with a custom function shape', async () => {
             await create({
                 data: SCATTER_DATA,
-                series: [markerSeriesOptions[type](shapeOption(customShape), SHADOW)],
+                series: [markerSeriesOptions[type](shapeOption(customMarkerShape), MARKER_SHADOW)],
             } as AgCartesianChartOptions);
 
             const markers = visibleMarkers();
@@ -145,28 +137,28 @@ describe('marker shadow', () => {
         };
 
         it('follows shadow.enabled when it is toggled with chart.update()', async () => {
-            await create(options({ ...SHADOW, enabled: false }));
+            await create(options({ ...MARKER_SHADOW, enabled: false }));
             for (const marker of visibleMarkers()) {
                 expect(marker.fillShadow?.enabled ?? false).toBe(false);
             }
 
-            await update(options(SHADOW));
+            await update(options(MARKER_SHADOW));
             const enabledMarkers = visibleMarkers();
             expect(enabledMarkers).toHaveLength(SCATTER_DATA.length);
             for (const marker of enabledMarkers) {
-                expect(marker.fillShadow).toMatchObject(SHADOW);
+                expect(marker.fillShadow).toMatchObject(MARKER_SHADOW);
             }
 
-            await update(options({ ...SHADOW, enabled: false }));
+            await update(options({ ...MARKER_SHADOW, enabled: false }));
             for (const marker of visibleMarkers()) {
                 expect(marker.fillShadow?.enabled ?? false).toBe(false);
             }
         });
 
         it('follows the shadow values when they change with chart.update()', async () => {
-            await create(options(SHADOW));
+            await create(options(MARKER_SHADOW));
 
-            const changed = { ...SHADOW, blur: 12, color: '#ff0000' };
+            const changed = { ...MARKER_SHADOW, blur: 12, color: '#ff0000' };
             await update(options(changed));
 
             for (const marker of visibleMarkers()) {
@@ -187,7 +179,7 @@ describe('marker shadow', () => {
 
                 await create({
                     data: SCATTER_DATA,
-                    series: [markerSeriesOptions[type]({ shape: 'square', itemStyler }, SHADOW)],
+                    series: [markerSeriesOptions[type]({ shape: 'square', itemStyler }, MARKER_SHADOW)],
                 } as AgCartesianChartOptions);
 
                 expect(received.length).toBeGreaterThan(0);
@@ -199,7 +191,7 @@ describe('marker shadow', () => {
                 expect(markers.length).toBeGreaterThan(0);
                 for (const marker of markers) {
                     expect(marker.fill).toBe('green');
-                    expect(marker.fillShadow).toMatchObject(SHADOW);
+                    expect(marker.fillShadow).toMatchObject(MARKER_SHADOW);
                 }
             }
         );
@@ -207,11 +199,11 @@ describe('marker shadow', () => {
         it('keeps the marker shadow when the itemStyler returns no style', async () => {
             await create({
                 data: SCATTER_DATA,
-                series: [markerSeriesOptions.scatter({ shape: 'square', itemStyler: () => undefined }, SHADOW)],
+                series: [markerSeriesOptions.scatter({ shape: 'square', itemStyler: () => undefined }, MARKER_SHADOW)],
             } as AgCartesianChartOptions);
 
             for (const marker of visibleMarkers()) {
-                expect(marker.fillShadow).toMatchObject(SHADOW);
+                expect(marker.fillShadow).toMatchObject(MARKER_SHADOW);
             }
         });
     });
@@ -228,7 +220,9 @@ describe('marker shadow', () => {
 
                 await create({
                     data: SCATTER_DATA,
-                    series: [{ ...markerSeriesOptions[type]({ shape: 'square' }, SHADOW), tooltip: { renderer } }],
+                    series: [
+                        { ...markerSeriesOptions[type]({ shape: 'square' }, MARKER_SHADOW), tooltip: { renderer } },
+                    ],
                 } as AgCartesianChartOptions);
 
                 (deproxy(chart).series[0] as any).getTooltipContent(0, undefined);
@@ -261,7 +255,7 @@ describe('marker shadow', () => {
                         xKey: 'x',
                         yKey: 'y',
                         shadow: AREA_FILL_SHADOW,
-                        marker: { enabled: true, shape: 'circle', size: 12, shadow: SHADOW },
+                        marker: { enabled: true, shape: 'circle', size: 12, shadow: MARKER_SHADOW },
                     },
                 ],
             } as AgCartesianChartOptions);
@@ -270,7 +264,7 @@ describe('marker shadow', () => {
             const markers = visibleMarkers();
             expect(markers).toHaveLength(SCATTER_DATA.length);
             for (const marker of markers) {
-                expect(marker.fillShadow).toMatchObject(SHADOW);
+                expect(marker.fillShadow).toMatchObject(MARKER_SHADOW);
             }
         });
 
@@ -304,7 +298,7 @@ describe('marker shadow', () => {
                         type: 'area',
                         xKey: 'x',
                         yKey: 'y',
-                        marker: { enabled: true, shape: 'circle', size: 12, shadow: SHADOW },
+                        marker: { enabled: true, shape: 'circle', size: 12, shadow: MARKER_SHADOW },
                     },
                 ],
             } as AgCartesianChartOptions);
@@ -313,7 +307,7 @@ describe('marker shadow', () => {
             const markers = visibleMarkers();
             expect(markers).toHaveLength(SCATTER_DATA.length);
             for (const marker of markers) {
-                expect(marker.fillShadow).toMatchObject(SHADOW);
+                expect(marker.fillShadow).toMatchObject(MARKER_SHADOW);
             }
         });
     });

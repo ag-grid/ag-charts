@@ -1,6 +1,19 @@
 import type { AgAnnotation } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    boolean,
+    date,
+    number,
+    numericValue,
+    optionsDefs,
+    or,
+    positiveNumber,
+    string,
+    textAlign,
+    typeUnion,
+} from 'ag-charts-core';
+
+import {
     annotationAxisLabelOptionsDef,
     annotationCalloutStylesDefs,
     annotationChannelTextDefs,
@@ -16,17 +29,7 @@ import {
     annotationQuickMeasurerStylesDefs,
     annotationShapeStylesDefs,
     annotationTextStylesDef,
-    boolean,
-    date,
-    number,
-    numericValue,
-    optionsDefs,
-    or,
-    positiveNumber,
-    string,
-    textAlign,
-    typeUnion,
-} from 'ag-charts-core';
+} from './annotationOptionsDefs';
 
 /** Defs for restored annotation state: the option types plus the datum fields `getState()` also emits. */
 export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {

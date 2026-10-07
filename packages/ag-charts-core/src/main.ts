@@ -60,15 +60,11 @@ export { ModuleScope, type RegistryRevision, type ScopedCache, createScopedCache
 export * from './modules/optionsContribution';
 
 // options
-export * from './options/annotationOptionsDefs';
 export * from './options/axesOptionsDefs';
-export * from './options/axesOptionsEnterpriseDefs';
 export * from './options/axisThemeTemplate';
 export * from './options/chartDefaults';
 export * from './options/chartOptionsDefs';
 export * from './options/chartThemeTemplate';
-export * from './options/enterpriseThemeableOptionsDefs';
-export * from './options/gaugePreset';
 export * from './options/geoJsonValidator';
 export * from './options/optionsDefaults';
 export * from './options/themeUtil';

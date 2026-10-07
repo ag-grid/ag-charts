@@ -1,15 +1,44 @@
-import type { AgOhlcSeriesOptions } from 'ag-charts-community';
+import type { AgOhlcSeriesItemOptions, AgOhlcSeriesOptions, AgOhlcSeriesThemeableOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
+    callbackDefs,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    lineDashOptionsDef,
+    lineHighlightOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
-    ohlcSeriesThemeableOptionsDef,
     required,
+    shadowOptionsDefs,
     string,
-    undocumented,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    undocumentedDefs,
 } from 'ag-charts-core';
+
+export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOptions> = {
+    showInMiniChart: boolean,
+    itemStyler: callbackDefs<AgOhlcSeriesItemOptions>({
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
+    item: {
+        up: {
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        },
+        down: {
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        },
+    },
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    highlight: multiSeriesShadowHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
+};
 
 export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -28,9 +57,8 @@ export const ohlcSeriesOptionsDef: OptionsDefs<AgOhlcSeriesOptions> = {
     highName: string,
     lowName: string,
     closeName: string,
+    ...undocumentedDefs({
+        pickOutsideVisibleMinorAxis: boolean,
+        focusPriority: number,
+    }),
 };
-
-// @ts-expect-error undocumented option
-ohlcSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
-// @ts-expect-error undocumented option
-ohlcSeriesOptionsDef.focusPriority = undocumented(number);

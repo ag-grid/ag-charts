@@ -81,8 +81,11 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     }
 
     protected override getSilhouetteStrokeWidth(): number {
-        // A crisp body can snap up to a device pixel past its bounds, so pad it even without a stroke.
-        return Math.max(this.__strokeWidth, this.wickStrokeWidth ?? 0, this.crisp ? 2 : 0);
+        return Math.max(this.__strokeWidth, this.wickStrokeWidth ?? 0);
+    }
+
+    protected override isCrisp(): boolean {
+        return this.crisp;
     }
 
     override computeDefaultGradientFillBBox(): _ModuleSupport.BBox {
@@ -237,6 +240,29 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
 
     protected override renderSilhouetteExtras(ctx: _ModuleSupport.CanvasContext) {
         this.strokeWicks(ctx);
+    }
+
+    protected override dilateSilhouetteExtras(ctx: _ModuleSupport.CanvasContext, growth: number) {
+        const { wickPath, strokeWidth, wickStrokeWidth = strokeWidth } = this;
+        if (this.getSilhouetteExtrasOpacity() <= 0) return;
+
+        ctx.lineWidth = wickStrokeWidth + growth;
+        ctx.stroke(wickPath.getPath2D());
+    }
+
+    protected override getSilhouetteExtrasOpacity(): number {
+        const {
+            wickPath,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            wickStroke = stroke,
+            wickStrokeWidth = strokeWidth,
+            wickStrokeOpacity = strokeOpacity,
+        } = this;
+        // A wick casts a shadow only where `strokeWicks` paints it.
+        if (wickPath.isEmpty() || wickStrokeWidth === 0 || wickStroke === 'none') return 0;
+        return Math.max(0, wickStrokeOpacity);
     }
 
     private strokeWicks(ctx: _ModuleSupport.CanvasContext) {

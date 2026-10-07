@@ -1,14 +1,50 @@
-import type { AgMapMarkerSeriesOptions } from 'ag-charts-community';
+import type { AgMapMarkerSeriesOptions, AgMapMarkerSeriesThemeableOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    and,
+    arrayLength,
+    arrayOf,
+    colorScaleOptionsDef,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
     geoJson,
-    mapMarkerSeriesThemeableOptionsDef,
+    labelCollisionFitOptionsDefs,
+    labelCollisionPlacementDef,
+    markerOptionsDefs,
+    multiSeriesShadowHighlightOptionsDef,
+    positiveNumber,
+    positiveNumericValue,
     required,
+    seriesLabelOptionsDefs,
+    shapeHighlightOptionsDef,
     string,
+    tooltipOptionsDefs,
+    undocumentedDefs,
+    union,
     without,
 } from 'ag-charts-core';
+
+export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesThemeableOptions> = {
+    colorScale: colorScaleOptionsDef,
+    minSize: positiveNumber,
+    maxSize: positiveNumber,
+    sizeDomain: and(arrayOf(positiveNumericValue), arrayLength(2, 2)),
+    sizeMode: union('diameter', 'area'),
+    label: {
+        placement: labelCollisionPlacementDef,
+        spacing: positiveNumber,
+        ...seriesLabelOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
+    },
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...without(markerOptionsDefs, ['enabled']),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    ...undocumentedDefs({
+        topologyIdKey: string,
+    }),
+};
 
 export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions> = {
     ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight']),

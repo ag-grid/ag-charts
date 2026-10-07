@@ -5,8 +5,11 @@ import type { AgBarSeriesOptions, AgCartesianChartOptions, AgDropShadowOptions }
 import { AgCharts } from '../../../api/agCharts';
 import { Group } from '../../../scene/group';
 import { Shape } from '../../../scene/shape/shape';
+import { HIGHLIGHT_SHADOW, SERIES_SHADOW } from '../../test/shadowFixtures';
 import {
+    IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
+    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -18,9 +21,6 @@ const DATA = [
     { quarter: 'Q2', value: 8 },
     { quarter: 'Q3', value: 3 },
 ];
-
-const SHADOW: AgDropShadowOptions = { enabled: true, color: '#112233', xOffset: 4, yOffset: 4, blur: 6 };
-const HIGHLIGHT_SHADOW: AgDropShadowOptions = { enabled: true, color: '#aa0000', xOffset: 8, yOffset: 8, blur: 2 };
 
 function shapes(root: Group): Shape[] {
     const found: Shape[] = [];
@@ -36,7 +36,7 @@ function shapes(root: Group): Shape[] {
 
 describe('BarSeries highlight shadow', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
 
     let chart: any;
 
@@ -74,7 +74,7 @@ describe('BarSeries highlight shadow', () => {
         const options: AgCartesianChartOptions = {
             data: DATA,
             animation: { enabled: false },
-            series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', shadow: SHADOW }],
+            series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', shadow: SERIES_SHADOW }],
         };
         prepareTestOptions(options);
         chart = deproxy(AgCharts.create(options));
@@ -82,31 +82,31 @@ describe('BarSeries highlight shadow', () => {
 
         const bars = shapes(chart.series[0].contentGroup);
         expect(bars).toHaveLength(DATA.length);
-        for (const bar of bars) expect(bar.fillShadow).toMatchObject(SHADOW);
+        for (const bar of bars) expect(bar.fillShadow).toMatchObject(SERIES_SHADOW);
     });
 
     it('casts the hovered bar shadow once, from the highlight layer, when the highlight cuts out', async () => {
-        const { inPlace, highlighted } = await hoverFirstBar({ shadow: SHADOW }, 'cutout');
+        const { inPlace, highlighted } = await hoverFirstBar({ shadow: SERIES_SHADOW }, 'cutout');
 
         expect(highlighted).toHaveLength(1);
         expect(highlighted[0].drawingMode).toBe('cutout');
-        expect(highlighted[0].fillShadow).toMatchObject(SHADOW);
+        expect(highlighted[0].fillShadow).toMatchObject(SERIES_SHADOW);
 
         const [hovered, ...others] = inPlace;
         expect(hovered.fillShadow?.enabled).not.toBe(true);
-        for (const bar of others) expect(bar.fillShadow).toMatchObject(SHADOW);
+        for (const bar of others) expect(bar.fillShadow).toMatchObject(SERIES_SHADOW);
     });
 
     it('casts the hovered bar shadow once, from the in-place bar, when the highlight overlays', async () => {
-        const { inPlace, highlighted } = await hoverFirstBar({ shadow: SHADOW }, 'overlay');
+        const { inPlace, highlighted } = await hoverFirstBar({ shadow: SERIES_SHADOW }, 'overlay');
 
         expect(highlighted).toHaveLength(1);
         expect(highlighted[0].fillShadow?.enabled).not.toBe(true);
-        for (const bar of inPlace) expect(bar.fillShadow).toMatchObject(SHADOW);
+        for (const bar of inPlace) expect(bar.fillShadow).toMatchObject(SERIES_SHADOW);
     });
 
     it('moves the shadow between bars as the hover moves', async () => {
-        const { inPlace } = await hoverFirstBar({ shadow: SHADOW }, 'cutout');
+        const { inPlace } = await hoverFirstBar({ shadow: SERIES_SHADOW }, 'cutout');
         expect(inPlace[0].fillShadow?.enabled).not.toBe(true);
 
         const [series] = chart.series;
@@ -114,14 +114,14 @@ describe('BarSeries highlight shadow', () => {
         await waitForChartStability(chart);
 
         const bars = shapes(series.contentGroup);
-        expect(bars[0].fillShadow).toMatchObject(SHADOW);
+        expect(bars[0].fillShadow).toMatchObject(SERIES_SHADOW);
         expect(bars[1].fillShadow?.enabled).not.toBe(true);
-        expect(bars[2].fillShadow).toMatchObject(SHADOW);
+        expect(bars[2].fillShadow).toMatchObject(SERIES_SHADOW);
     });
 
     it('merges highlightedItem.shadow over the series shadow on the hovered bar', async () => {
         const { inPlace, highlighted } = await hoverFirstBar({
-            shadow: SHADOW,
+            shadow: SERIES_SHADOW,
             highlight: { highlightedItem: { shadow: HIGHLIGHT_SHADOW } },
         });
 
@@ -130,16 +130,16 @@ describe('BarSeries highlight shadow', () => {
 
         const [hovered, ...others] = inPlace;
         expect(hovered.fillShadow?.enabled).not.toBe(true);
-        for (const bar of others) expect(bar.fillShadow).toMatchObject(SHADOW);
+        for (const bar of others) expect(bar.fillShadow).toMatchObject(SERIES_SHADOW);
     });
 
     it('fills highlightedItem.shadow gaps from the series shadow', async () => {
         const { highlighted } = await hoverFirstBar({
-            shadow: SHADOW,
+            shadow: SERIES_SHADOW,
             highlight: { highlightedItem: { shadow: { blur: 20 } } },
         });
 
-        expect(highlighted[0].fillShadow).toMatchObject({ ...SHADOW, blur: 20 });
+        expect(highlighted[0].fillShadow).toMatchObject({ ...SERIES_SHADOW, blur: 20 });
     });
 
     it('applies highlightedItem.shadow without a series shadow', async () => {
@@ -149,5 +149,72 @@ describe('BarSeries highlight shadow', () => {
 
         expect(highlighted[0].fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
         for (const bar of inPlace) expect(bar.fillShadow?.enabled).not.toBe(true);
+    });
+
+    describe('spread', () => {
+        const SPREAD_SHADOW: AgDropShadowOptions = { ...SERIES_SHADOW, spread: 6 };
+
+        it('should render the bars with a shadow spread', async () => {
+            const options: AgCartesianChartOptions = {
+                data: DATA,
+                animation: { enabled: false },
+                series: [{ type: 'bar', xKey: 'quarter', yKey: 'value', shadow: SPREAD_SHADOW }],
+            };
+            prepareTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should render the hovered bar with highlightedItem.shadow.spread', async () => {
+            await hoverFirstBar({
+                shadow: SERIES_SHADOW,
+                highlight: { highlightedItem: { shadow: { ...HIGHLIGHT_SHADOW, spread: 8 } } },
+            });
+
+            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+
+        // The first bar fills x = 75 to 248 and ends at y = 555 on the canvas, and its highlight shadow is offset by 8
+        // each way. There is no blur, so the shadow covers exactly its rect, which a spread grows on every side.
+        const pixel = (x: number, y: number) => [...ctx.getRenderContext2D().getImageData(x, y, 1, 1).data];
+        const SHADOW_RED = [170, 0, 0, 255];
+
+        it('should grow the highlight shadow past the hovered bar by highlightedItem.shadow.spread', async () => {
+            await hoverFirstBar({
+                shadow: SERIES_SHADOW,
+                highlight: { highlightedItem: { shadow: { ...HIGHLIGHT_SHADOW, blur: 0, spread: 8 } } },
+            });
+
+            // Right of the bar: the shadow runs to 248 + 8 + 8 = 264.
+            expect(pixel(260, 300)).toEqual(SHADOW_RED);
+            expect(pixel(268, 300)).not.toEqual(SHADOW_RED);
+            // Left of where the shadow would start without a spread: 75 + 8 - 8 = 75.
+            expect(pixel(77, 560)).toEqual(SHADOW_RED);
+            expect(pixel(70, 560)).not.toEqual(SHADOW_RED);
+            // Below the bar: the shadow runs to 555 + 8 + 8 = 571.
+            expect(pixel(150, 568)).toEqual(SHADOW_RED);
+            expect(pixel(150, 575)).not.toEqual(SHADOW_RED);
+        });
+
+        it('should not grow the highlight shadow without highlightedItem.shadow.spread', async () => {
+            await hoverFirstBar({
+                shadow: SERIES_SHADOW,
+                highlight: { highlightedItem: { shadow: { ...HIGHLIGHT_SHADOW, blur: 0 } } },
+            });
+
+            // The shadow of a rect offset by 8 runs from 83 to 256, and to 563.
+            expect(pixel(252, 300)).toEqual(SHADOW_RED);
+            expect(pixel(260, 300)).not.toEqual(SHADOW_RED);
+            expect(pixel(77, 560)).not.toEqual(SHADOW_RED);
+            expect(pixel(150, 568)).not.toEqual(SHADOW_RED);
+        });
+
+        it('should render the hovered bar with the series shadow spread when it overlays', async () => {
+            await hoverFirstBar({ shadow: SPREAD_SHADOW }, 'overlay');
+
+            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
     });
 });

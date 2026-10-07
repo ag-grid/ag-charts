@@ -47,7 +47,6 @@ const options: AgChartOptions = {
             topologyIdKey: 'NAME_ENGL',
             size: 5,
             maxSize: 60,
-            sizeMode: 'area',
             labelKey: 'name',
             showInLegend: false,
         },

@@ -14,6 +14,9 @@ import {
     boolean,
     callbackOf,
     color,
+    colorOrRef,
+    defined,
+    deprecated,
     fontOptionsDef,
     isObject,
     number,
@@ -31,7 +34,12 @@ import {
 import type {
     AgMiniChartSeriesOptions,
     AgNavigatorHandleOptions,
+    AgNavigatorMaskOptions,
+    AgNavigatorMiniChartLabelOptions,
     AgNavigatorOptions,
+    AgNavigatorThemeableOptions,
+    AgNavigatorThumbOptions,
+    AgNavigatorTrackOptions,
     BarIgnoredProperties,
     BoxPlotIgnoredProperties,
     BubbleIgnoredProperties,
@@ -190,36 +198,76 @@ function miniChartSeriesDefs() {
 // once the theme has filled it in, so the pre-theme pass accepts it as a bare object.
 const untypedMiniChartSeries = attachDescription((value) => isObject(value) && value.type == null, 'an object');
 
+const navigatorTrackOptionsDef: OptionsDefs<AgNavigatorTrackOptions> = {
+    fill: color,
+    fillOpacity: ratio,
+    stroke: color,
+    strokeWidth: positiveNumber,
+};
+
+const navigatorMaskOptionsDef: OptionsDefs<AgNavigatorMaskOptions> = deprecated(
+    navigatorTrackOptionsDef,
+    'Use `navigator.track` instead.'
+);
+
+const navigatorThumbOptionsDef: OptionsDefs<AgNavigatorThumbOptions> = {
+    fill: color,
+    fillOpacity: ratio,
+};
+
+const navigatorMiniChartLabelOptionsDef: OptionsDefs<AgNavigatorMiniChartLabelOptions> = {
+    enabled: boolean,
+    avoidCollisions: boolean,
+    spacing: positiveNumber,
+    format: numberFormatValidator,
+    formatter: callbackOf(textOrSegments),
+    interval: {
+        minSpacing: positiveNumber,
+        maxSpacing: positiveNumber,
+        values: array,
+        step: number,
+    },
+    ...fontOptionsDef,
+};
+
 export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
     enabled: boolean,
     height: positiveNumber,
     spacing: positiveNumber,
     cornerRadius: number,
-    mask: {
-        fill: color,
-        fillOpacity: ratio,
-        stroke: color,
-        strokeWidth: positiveNumber,
-    },
+    mask: navigatorMaskOptionsDef,
+    track: navigatorTrackOptionsDef,
+    thumb: navigatorThumbOptionsDef,
     minHandle: navigatorHandleOptionsDef,
     maxHandle: navigatorHandleOptionsDef,
     miniChart: {
         enabled: boolean,
         padding: padding,
-        label: {
-            enabled: boolean,
-            avoidCollisions: boolean,
-            spacing: positiveNumber,
-            format: numberFormatValidator,
-            formatter: callbackOf(textOrSegments),
-            interval: {
-                minSpacing: positiveNumber,
-                maxSpacing: positiveNumber,
-                values: array,
-                step: number,
-            },
-            ...fontOptionsDef,
-        },
+        label: navigatorMiniChartLabelOptionsDef,
         series: arrayOf(or(untypedMiniChartSeries, optionsDefs(miniChartSeriesDefs())), 'miniChart series options'),
+    },
+};
+
+const navigatorHandleThemeOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
+    ...navigatorHandleOptionsDef,
+    fill: colorOrRef,
+    stroke: colorOrRef,
+};
+
+export const navigatorThemeOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
+    ...navigatorOptionsDef,
+    mask: deprecated(
+        { ...navigatorTrackOptionsDef, fill: colorOrRef, stroke: colorOrRef },
+        'Use `navigator.track` instead.'
+    ),
+    track: { ...navigatorTrackOptionsDef, fill: colorOrRef, stroke: colorOrRef },
+    thumb: { ...navigatorThumbOptionsDef, fill: colorOrRef },
+    minHandle: navigatorHandleThemeOptionsDef,
+    maxHandle: navigatorHandleThemeOptionsDef,
+    miniChart: {
+        enabled: boolean,
+        padding: padding,
+        label: navigatorMiniChartLabelOptionsDef,
+        series: defined,
     },
 };

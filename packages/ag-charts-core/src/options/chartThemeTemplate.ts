@@ -1,17 +1,14 @@
-// A fresh object per caption keeps the relative `$path`/`$isUserOption` padding expressions isolated.
-function captionBoxThemeDefaults() {
-    return {
-        cornerRadius: 4,
-        border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
-        padding: {
-            $if: [
-                { $path: './border/enabled' },
-                { left: 12, right: 12, top: 8, bottom: 8 },
-                { $isUserOption: ['./fill', { left: 12, right: 12, top: 8, bottom: 8 }, 0] },
-            ],
-        },
-    };
-}
+const CAPTION_BOX_THEME_DEFAULTS = {
+    cornerRadius: 4,
+    border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
+    padding: {
+        $if: [
+            { $path: './border/enabled' },
+            { left: 12, right: 12, top: 8, bottom: 8 },
+            { $isUserOption: ['./fill', { left: 12, right: 12, top: 8, bottom: 8 }, 0] },
+        ],
+    },
+};
 
 function hasUserOptionLessThan1(key: string) {
     return {
@@ -86,7 +83,7 @@ export const commonChartThemeTemplate = {
         wrapping: 'hyphenate',
         layoutStyle: { $ref: 'captionLayoutStyle' },
         textAlign: { $ref: 'captionAlignment' },
-        ...captionBoxThemeDefaults(),
+        ...CAPTION_BOX_THEME_DEFAULTS,
     },
     subtitle: {
         enabled: false,
@@ -99,7 +96,7 @@ export const commonChartThemeTemplate = {
         wrapping: 'hyphenate',
         layoutStyle: { $ref: 'captionLayoutStyle' },
         textAlign: { $ref: 'captionAlignment' },
-        ...captionBoxThemeDefaults(),
+        ...CAPTION_BOX_THEME_DEFAULTS,
     },
     footnote: {
         enabled: false,
@@ -112,7 +109,7 @@ export const commonChartThemeTemplate = {
         wrapping: 'hyphenate',
         layoutStyle: { $ref: 'captionLayoutStyle' },
         textAlign: { $ref: 'captionAlignment' },
-        ...captionBoxThemeDefaults(),
+        ...CAPTION_BOX_THEME_DEFAULTS,
     },
     highlight: {
         enabled: true,
@@ -165,26 +162,4 @@ export const commonChartThemeTemplate = {
         },
     },
     listeners: {},
-    // TODO: remove this
-    series: {
-        tooltip: {
-            range: {
-                $if: [
-                    { $eq: [{ $path: ['/tooltip/range', 'exact'] }, 'area'] },
-                    'exact',
-                    { $path: ['/tooltip/range', 'exact'] },
-                ],
-            },
-            position: {
-                anchorTo: { $path: ['/tooltip/position/anchorTo', 'pointer'] },
-                placement: { $path: ['/tooltip/position/placement', undefined] },
-                xOffset: { $path: ['/tooltip/position/xOffset', 0] },
-                yOffset: { $path: ['/tooltip/position/yOffset', 0] },
-                // Chart-anchored tooltips sit flush; pointer/node use a 12px gap.
-                offset: {
-                    $path: ['/tooltip/position/offset', { $if: [{ $eq: [{ $path: './anchorTo' }, 'chart'] }, 0, 12] }],
-                },
-            },
-        },
-    },
 };

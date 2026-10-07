@@ -410,6 +410,9 @@ export class Crosshair
         const isVertical = this.isVertical();
         const position = isVertical ? currentX : currentY;
 
+        // A drag keeps reporting the pointer once it has left the series area; hide rather than follow it.
+        if (!this.isInRange(position)) return {};
+
         let value = datum?.[isVertical ? xKey : yKey] ?? '';
         if (axisCtx.continuous) {
             value = axisCtx.scaleInvert(position);

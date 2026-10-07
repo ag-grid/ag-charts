@@ -8,6 +8,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
@@ -113,7 +114,7 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
             strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             ...STROKE_STYLE_THEME_DEFAULTS,
         },
-        tooltip: { interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         shadow: SHADOW_THEME_DEFAULTS,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },

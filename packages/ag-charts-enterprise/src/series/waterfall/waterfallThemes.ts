@@ -8,6 +8,7 @@ import {
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     STROKE_STYLE_THEME_DEFAULTS,
@@ -220,7 +221,7 @@ export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
             ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: 2,
         },
-        tooltip: { interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
     },
     legend: {

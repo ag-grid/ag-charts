@@ -537,6 +537,107 @@ describe('Navigator', () => {
         });
     });
 
+    describe('theme validation', () => {
+        const createWithTheme = async (navigatorTheme: unknown) => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                theme: { overrides: { common: { navigator: navigatorTheme } } } as AgCartesianChartOptions['theme'],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        it('validates navigator theme overrides against the module theme schema', async () => {
+            await createWithTheme({ height: 'tall' });
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`theme.overrides.common.navigator.height` cannot be set to `"tall"`')],
+            ]);
+        });
+
+        it('accepts theme operators nested inside navigator theme overrides', async () => {
+            await createWithTheme({ track: { fill: { $ref: 'foregroundColor' } }, height: { $if: [true, 20, 30] } });
+
+            expectWarningsCalls().toEqual([]);
+        });
+    });
+
+    describe('track and thumb options', () => {
+        const create = async (navigator: object) => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                navigator: { enabled: true, ...navigator },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return deproxy(chart).modulesManager.getModule<any>('navigator').track;
+        };
+
+        it('styles the track from `track`', async () => {
+            const track = await create({ track: { fill: 'red', fillOpacity: 0.5, strokeWidth: 3 } });
+            expect([track.fill, track.fillOpacity, track.strokeWidth]).toEqual(['red', 0.5, 3]);
+        });
+
+        it('still styles the track from deprecated `mask`, with a deprecation warning', async () => {
+            const track = await create({ mask: { fill: 'blue', strokeWidth: 2 } });
+            expect([track.fill, track.strokeWidth]).toEqual(['blue', 2]);
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`navigator.mask` is deprecated. Use `navigator.track`')],
+            ]);
+        });
+
+        it('prefers `track` over `mask`', async () => {
+            const track = await create({ mask: { fill: 'blue', strokeWidth: 2 }, track: { fill: 'red' } });
+            expect([track.fill, track.strokeWidth]).toEqual(['red', 2]);
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`navigator.mask` is deprecated. Use `navigator.track`')],
+            ]);
+        });
+
+        it('styles the selected range from `thumb`', async () => {
+            const track = await create({ thumb: { fill: 'green', fillOpacity: 0.4 } });
+            expect([track.thumbFill, track.thumbFillOpacity]).toEqual(['green', 0.4]);
+        });
+
+        it('includes the thumb fill in the SVG export', async () => {
+            const track = await create({ thumb: { fill: 'green', fillOpacity: 0.3 } });
+            const paths = track.toSVG().elements;
+            expect(paths).toHaveLength(2);
+            expect([paths[1].getAttribute('fill'), paths[1].getAttribute('fill-opacity')]).toEqual(['green', '0.3']);
+        });
+
+        describe('rendering', () => {
+            const THUMB_CASES: Record<string, object> = {
+                'thumb fill': { thumb: { fill: 'green' } },
+                'thumb fill and fill opacity': { thumb: { fill: 'green', fillOpacity: 0.3 } },
+                'thumb with zero fill opacity': { thumb: { fill: 'green', fillOpacity: 0 } },
+                'track and thumb': {
+                    track: { fill: 'red', fillOpacity: 0.2, stroke: 'darkred', strokeWidth: 2 },
+                    thumb: { fill: 'green', fillOpacity: 0.3 },
+                },
+            };
+
+            it.each(Object.entries(THUMB_CASES))(
+                'for %s it should render to canvas as expected',
+                async (_name, navigator) => {
+                    const options: AgCartesianChartOptions = {
+                        ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                        navigator: { enabled: true, miniChart: {}, ...navigator },
+                        initialState: { zoom: { ratioX: { start: 0.2, end: 0.7 } } },
+                    };
+                    prepareEnterpriseTestOptions(options);
+
+                    chart = AgCharts.create(options);
+                    await compare();
+
+                    expectWarningsCalls().toEqual([]);
+                }
+            );
+        });
+    });
+
     describe('mini chart shadow inheritance', () => {
         const SHADOW = { enabled: true, color: '#000000', xOffset: 3, yOffset: 3, blur: 5 };
         const ohlcData = Array.from({ length: 8 }, (_, i) => ({

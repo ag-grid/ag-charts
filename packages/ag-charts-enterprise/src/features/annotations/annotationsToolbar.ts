@@ -76,11 +76,12 @@ export class AnnotationsToolbar {
     }
 
     public applyOptions(options: AgAnnotationsToolbar & { enabled: boolean }) {
-        const { enabled, padding = 20, buttons = [] } = options;
+        const { enabled, padding = 20, buttons = [], buttonSize } = options;
         if (enabled !== this.enabled) {
             this.enabled = enabled;
             this.toolbar.setHidden(!enabled);
         }
+        this.toolbar.setButtonSize(buttonSize);
         this.padding = padding;
         this.buttons = [...buttons];
     }

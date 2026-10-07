@@ -25,6 +25,7 @@ const KEY_BINDING_LITERALS = {
     home: { bindings: [{ code: 'Home' }] },
     end: { bindings: [{ code: 'End' }] },
     delete: { bindings: [{ key: 'Backspace' }, { key: 'Delete' }], activatesFocusIndicator: false },
+    dismiss: { bindings: [{ key: 'Escape' }, { code: 'Escape' }] },
     redo: {
         bindings: [
             { key: 'y', ctrlOrMeta: true },

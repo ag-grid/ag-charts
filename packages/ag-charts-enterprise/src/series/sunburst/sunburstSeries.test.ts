@@ -7,6 +7,7 @@ import type {
     AgChartInstance,
     AgChartOptions,
     AgPolarChartOptions,
+    AgSelectionChangeEvent,
     InteractionRange,
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
@@ -24,6 +25,7 @@ import {
     compareImageSnapshot,
     createSceneGeometrySampler,
     deproxy,
+    dragAction,
     expectAnimatedEndpointsMatchStatic,
     expectMonotonic,
     expectNoAnimation,
@@ -42,8 +44,8 @@ import {
 import {
     DEFAULT_DISABLED_SHADOW,
     HIERARCHY_SHADOW_DATA,
-    collectShapes,
     prepareEnterpriseTestOptions,
+    shadowedShapes,
 } from '../../test/utils';
 import type { SunburstSeries } from './sunburstSeries';
 
@@ -1244,7 +1246,7 @@ describe('SunburstSeries', () => {
             const series = await createChart();
 
             expect(sectors(series)).toHaveLength(7);
-            expect(collectShapes(series.contentGroup).filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
+            expect(shadowedShapes(series.contentGroup)).toEqual([]);
         });
 
         it('applies an enabled shadow to every sector', async () => {
@@ -1297,6 +1299,44 @@ describe('SunburstSeries', () => {
                 expect(picked).toHaveLength(9);
                 expect(picked).toEqual([...picked].sort((a, b) => a - b));
             });
+        });
+    });
+
+    describe('box selection after updateDelta', () => {
+        it('drag-selects sectors in getSelection() order after a keyed update removes a branch', async () => {
+            const data = HIERARCHY_SHADOW_DATA;
+            const events: AgSelectionChangeEvent<unknown, unknown>[] = [];
+            const options: AgChartOptions = {
+                data,
+                series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size' }],
+                legend: { enabled: false },
+                animation: { enabled: false },
+                selection: { enabled: true, enableDrag: true },
+                listeners: {
+                    selectionChange: (event: AgSelectionChangeEvent<unknown, unknown>) => events.push(event),
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+
+            const [{ children }] = data;
+            await proxy.updateDelta({ data: [{ ...data[0], children: children.slice(1) }] });
+            await waitForChartStability(chart);
+
+            const { x, y, width, height } = chart.seriesAreaManager.seriesRect;
+            await dragAction(
+                { x: Math.ceil(x) + 2, y: Math.ceil(y) + 2 },
+                { x: Math.floor(x + width) - 2, y: Math.floor(y + height) - 2 }
+            )(chart);
+            await waitForChartStability(chart);
+
+            // Root, B, B1 and B2 remain.
+            const selection = Array.from(proxy.getSelection());
+            expect(selection).toHaveLength(4);
+            expect(events).toHaveLength(1);
+            expect(events[0].added.map((item) => item.itemId)).toEqual(selection.map((item) => item.itemId));
         });
     });
 

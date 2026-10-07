@@ -76,6 +76,7 @@ export class Ranges extends AbstractModuleInstance {
     private isDropdown?: boolean;
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
     private dropdownMinWidth?: number;
+    private lastButtonSize?: number;
 
     // OPTIMIZATION: `getBounds()` has no inline height, so it forces a sync reflow every layout.
     // The height depends on the resolved options, the shown toolbar, text metrics, and the theme
@@ -157,6 +158,14 @@ export class Ranges extends AbstractModuleInstance {
 
         const { buttonsToolbar, dropdownToolbar } = this;
         if (!buttonsToolbar || !dropdownToolbar) return;
+
+        const { buttonSize } = opts;
+        if (buttonSize !== this.lastButtonSize) {
+            this.lastButtonSize = buttonSize;
+            this.dropdownMinWidth = undefined;
+        }
+        buttonsToolbar.setButtonSize(buttonSize);
+        dropdownToolbar.setButtonSize(buttonSize);
 
         buttonsToolbar.updateButtons(opts.buttons);
         dropdownToolbar.updateButtons([this.getDropdownButtonOptions(this.dropdownLabel)]);
