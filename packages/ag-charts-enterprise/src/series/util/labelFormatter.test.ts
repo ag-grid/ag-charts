@@ -170,6 +170,26 @@ describe('label formatter', () => {
         });
     });
 
+    describe('formatSingleLabel with an explicit lineHeight', () => {
+        it('sizes the label by the lineHeight it is drawn with', () => {
+            const [format] = formatSingleLabel(
+                'Hello world',
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 12,
+                    lineHeight: 30,
+                    wrapping: 'on-space',
+                    overflowStrategy: 'ellipsis',
+                },
+                { padding: 0 },
+                () => ({ width: 50, height: 1000, meta: undefined })
+            )!;
+            expect(String(format.text).split('\n')).toHaveLength(2);
+            expect(format.height).toBe(60);
+        });
+    });
+
     describe('formatStackedLabels', () => {
         it('formats stacked labels without shrinking within large bounds', () => {
             const format = formatStackedLabels(

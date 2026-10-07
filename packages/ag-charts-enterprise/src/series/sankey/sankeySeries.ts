@@ -14,7 +14,6 @@ import {
     type RequireOptional,
     type TextMeasurer,
     cachedTextMeasurer,
-    calcLineHeight,
     fitLabelTextAutoSize,
     fontWithSize,
     mergeDefaults,
@@ -629,7 +628,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         if (!leading && !trailing) {
             // A label may run past its column while nothing is in the way, but only if it fits whole.
-            const lineHeight = calcLineHeight(font.fontSize);
+            const lineHeight = this.labelMeasurer(font, font.fontSize).lineHeight();
             let halfHeight = lineHeight;
             for (let attempt = 0; attempt < 3; attempt++) {
                 const room = this.getClearLabelRoom(nodeGraph, node, x, textAlign, y - halfHeight, y + halfHeight);

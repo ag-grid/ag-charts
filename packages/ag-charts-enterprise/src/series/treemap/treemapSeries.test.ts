@@ -987,6 +987,29 @@ describe('TreemapSeries', () => {
         });
     });
 
+    it('draws the secondary label with the line height it was fitted to', async () => {
+        const options = {
+            data: [{ name: 'Fruit', detail: 'Forty-two tonnes of apples', value: 1 }],
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    secondaryLabelKey: 'detail',
+                    sizeKey: 'value',
+                    tile: { secondaryLabel: { lineHeight: 30 } },
+                },
+            ],
+        } as AgChartOptions;
+        prepareEnterpriseTestOptions(options);
+        chart = deproxy(AgCharts.create(options));
+        await waitForChartStability(chart);
+        let secondaryLineHeight: number | undefined;
+        chart.series[0].rootNode.walk((node: any) => {
+            if (node.secondaryLabel != null) secondaryLineHeight = node.secondaryLabel.lineHeight;
+        });
+        expect(secondaryLineHeight).toBe(30);
+    });
+
     describe('Label itemStyler', () => {
         it('should style labels via itemStyler', async () => {
             const options: AgChartOptions = {

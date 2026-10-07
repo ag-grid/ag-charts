@@ -4,7 +4,7 @@ import {
     ChartAxisDirection,
     type DynamicContext,
     ZIndexMap,
-    calcLineHeight,
+    cachedTextMeasurer,
 } from 'ag-charts-core';
 
 import { MiniChartGroup } from './shapes/miniChartGroup';
@@ -265,7 +265,7 @@ export class MiniChart extends AbstractModuleInstance {
             } else {
                 size =
                     (line.enabled ? line.strokeWidth : 0) +
-                    (label.enabled ? calcLineHeight(label.fontSize) + label.spacing : 0);
+                    (label.enabled ? cachedTextMeasurer(label).lineHeight() + label.spacing : 0);
             }
 
             padding[position] = Math.ceil(size);

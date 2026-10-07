@@ -768,7 +768,7 @@ export class TreemapSeries extends HierarchySeries<
                     node.secondaryLabel = {
                         text: secondaryLabel.text,
                         fontSize: secondaryLabel.fontSize,
-                        lineHeight: secondaryLabel.fontSize,
+                        lineHeight: secondaryLabel.lineHeight,
                         fontStyle,
                         fontFamily,
                         fontWeight,

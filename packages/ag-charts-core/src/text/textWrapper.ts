@@ -892,20 +892,22 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
     }
 
     const { height, lineMetrics } = measurer.measureLines(lines);
-
-    if (height <= options.maxHeight) {
+    // An explicit line height is the spacing the text is drawn with, so it is what has to fit.
+    const totalHeight = options.lineHeight == null ? height : lines.length * options.lineHeight;
+    if (totalHeight <= options.maxHeight) {
         return lines;
     }
 
+    const lineHeightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
+
     for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
         const lineTop = cumulativeHeight;
-        cumulativeHeight += lineMetrics[i].height;
+        cumulativeHeight += lineHeightAt(i);
         if (cumulativeHeight > options.maxHeight) {
             if (options.overflow === 'hide' || i === 0) return [];
             const clippedResults = lines.slice(0, i);
             const lastLine = clippedResults.pop()!;
-            const last = lineMetrics[i - 1];
-            const maxWidth = lineMaxWidth(options, lineTop - last.height, lineTop);
+            const maxWidth = lineMaxWidth(options, lineTop - lineHeightAt(i - 1), lineTop);
             return clippedResults.concat(
                 isTextTruncated(lastLine) ? lastLine : truncateLine(lastLine, measurer, maxWidth, true)
             );

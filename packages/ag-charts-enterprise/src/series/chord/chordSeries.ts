@@ -8,7 +8,6 @@ import {
     type RequireOptional,
     angleBetween,
     cachedTextMeasurer,
-    calcLineHeight,
     evaluateBezier,
     fitLabelText,
     isBetweenAngles,
@@ -148,7 +147,7 @@ export class ChordSeries extends FlowProportionSeries<
             toKey,
             sizeKey,
             labelKey,
-            label: { spacing: labelSpacing, maxWidth: labelMaxWidth, fontSize },
+            label: { spacing: labelSpacing, maxWidth: labelMaxWidth },
             node: { width: nodeWidth, spacing: nodeSpacing },
         } = options;
         const centerX = seriesRectWidth / 2;
@@ -352,8 +351,9 @@ export class ChordSeries extends FlowProportionSeries<
 
         let minAngle = Infinity;
         let maxAngle = -Infinity;
+        const labelMeasurer = cachedTextMeasurer(options.label);
         labelData = labelData.filter((label) => {
-            const labelHeight = calcLineHeight(fontSize);
+            const labelHeight = labelMeasurer.measureLines(label.text).height;
             const da = Math.atan2(labelHeight / 2, label.radius);
 
             const a0 = label.angle - da;

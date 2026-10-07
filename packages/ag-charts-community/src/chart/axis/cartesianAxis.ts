@@ -13,7 +13,7 @@ import {
     ChartAxisDirection,
     StateMachine,
     arraysEqual,
-    calcLineHeight,
+    cachedTextMeasurer,
     countLines,
     diffArrays,
     findMinMax,
@@ -885,7 +885,7 @@ export abstract class CartesianAxis<
             boxes.push(
                 new BBox(
                     0,
-                    calcLineHeight(label.fontSize) + inexactMeasurementPadding,
+                    cachedTextMeasurer(label).lineHeight() + inexactMeasurementPadding,
                     1,
                     this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding
                 )
@@ -903,7 +903,7 @@ export abstract class CartesianAxis<
                             primaryLabel.spacing +
                             seriesAreaPadding,
                         1,
-                        maxLines * calcLineHeight(primaryLabel.fontSize) + inexactMeasurementPadding
+                        maxLines * cachedTextMeasurer(primaryLabel).lineHeight() + inexactMeasurementPadding
                     )
                 );
             }

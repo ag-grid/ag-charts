@@ -290,6 +290,7 @@ export function formatSingleLabel<Meta>(
             const lines = wrapLines(value, {
                 maxWidth: availableWidth,
                 maxHeight: availableHeight,
+                lineHeight: props.lineHeight,
                 font: currentFont,
                 textWrap: props.wrapping,
                 overflow: allowTruncation ? overflowAtFloor(props) : 'hide',
@@ -297,7 +298,8 @@ export function formatSingleLabel<Meta>(
 
             if (lines.length === 0) return;
 
-            const { width, height } = measurer.measureLines(lines);
+            const { width } = measurer.measureLines(lines);
+            const height = lines.length * lineHeight;
             // `'never'` keeps every manual line whatever the height, so it can still be too tall here.
             if (height > availableHeight) return;
             const text = lines.join('\n');
