@@ -176,6 +176,26 @@ describe('Group shadow compositor', () => {
     });
 
     describe('spread', () => {
+        it.each(['transparent', 'rgba(0, 0, 0, 0)'])(
+            'should spread the shadow of an opaque fill with a stroke colour of %s',
+            (stroke) => {
+                const shadow = { ...RED_HALF, xOffset: 0, spread: 10 };
+                const item = (y: number) =>
+                    pathBox(60, y, 40, 50, { fillShadow: shadow, shadowMode: 'silhouette', stroke, strokeWidth: 6 });
+                const render = (batchShadows: boolean) => {
+                    renderNodes([item(40), item(130)], batchShadows);
+                    return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+                };
+
+                const unbatched = render(false);
+                const batched = render(true);
+
+                // The shadow reaches the spread past the fill, as the item casts it for itself.
+                expect(isHalfRed(at(105, 65))).toBe(true);
+                expect(batched).toEqual(unbatched);
+            }
+        );
+
         it('should grow the shadow of every item of a batch by the spread', () => {
             const shadow = { ...RED_HALF, spread: 10 };
             renderNodes([box(20, 40, 40, 40, { fillShadow: shadow }), box(20, 130, 40, 40, { fillShadow: shadow })]);
@@ -434,16 +454,63 @@ describe('Group shadow compositor', () => {
             expect(at(WIDTH - 5, 70)).toEqual(BLACK);
         });
 
-        it('should cast the shadow of the part of an item on the layer, from an item that overhangs the left edge', () => {
+        it('should cast the shadow of an item that overhangs the left edge across the whole item', () => {
             renderNodes([
                 box(-30, 40, 40, 60, { fillShadow: { ...RED_HALF, xOffset: 40 } }),
                 box(-30, 130, 40, 60, { fillShadow: { ...RED_HALF, xOffset: 40 } }),
             ]);
 
-            // The part of the item on the layer is 0 to 10 across, so its shadow is 40 to 50.
+            // The item is -30 to 10 across, so its shadow is 10 to 50, as it is when the item casts for itself.
+            expect(isHalfRed(at(15, 70))).toBe(true);
             expect(isHalfRed(at(45, 70))).toBe(true);
             expect(isHalfRed(at(45, 160))).toBe(true);
             expect(at(55, 70)).toEqual(CLEAR);
+        });
+
+        it('should cast the shadow of an item that is off the layer, onto it', () => {
+            renderNodes([
+                box(-60, 40, 40, 60, { fillShadow: { ...RED_HALF, xOffset: 80 } }),
+                box(-60, 130, 40, 60, { fillShadow: { ...RED_HALF, xOffset: 80 } }),
+            ]);
+
+            // The items are -60 to -20 across, so their shadows are 20 to 60.
+            expect(at(10, 70)).toEqual(CLEAR);
+            expect(isHalfRed(at(30, 70))).toBe(true);
+            expect(isHalfRed(at(50, 160))).toBe(true);
+            expect(at(70, 70)).toEqual(CLEAR);
+        });
+
+        it.each([
+            ['left', { xOffset: -60, yOffset: 0 }, [box(WIDTH + 20, 40, 40, 60), box(WIDTH + 20, 130, 40, 60)]],
+            ['top', { xOffset: 0, yOffset: 60 }, [box(100, -80, 40, 40), box(200, -80, 40, 40)]],
+            ['bottom', { xOffset: 0, yOffset: -60 }, [box(100, HEIGHT + 20, 40, 40), box(200, HEIGHT + 20, 40, 40)]],
+        ])('should cast a blurred shadow onto the layer from items off the %s edge', (_edge, offset, items) => {
+            const shadow = { ...RED_HALF, ...offset, blur: 8, spread: 4 };
+            const render = (batchShadows: boolean) => {
+                renderNodes(
+                    items.map((item) => box(item.x, item.y, item.width, item.height, { fillShadow: shadow })),
+                    batchShadows
+                );
+                return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+            };
+
+            const unbatched = render(false);
+            const batched = render(true);
+
+            expect(unbatched.some((value) => value !== 0)).toBe(true);
+            expect(batched).toEqual(unbatched);
+        });
+
+        it('should cast for itself when its shadow reaches further than the layer is wide', () => {
+            const casters = () => [
+                box(20, 40, 40, 40, { fillShadow: { ...RED_HALF, xOffset: WIDTH * 2 } }),
+                box(20, 130, 40, 40, { fillShadow: { ...RED_HALF, xOffset: WIDTH * 2 } }),
+            ];
+            const before = offscreenCanvases();
+            renderNodes(casters());
+
+            expect(createdSince(before)).toHaveLength(0);
+            expect(at(30, 60)).toEqual(BLACK);
         });
     });
 
@@ -590,7 +657,9 @@ describe('Group shadow compositor', () => {
 
             // The canvas that fits the wide layer is replaced by one that fits both, which neither group replaces again.
             const [scratch] = inUse(createdSince(before));
-            expect(scratch.width).toBe(400);
+            // The mask reaches 100 further than a layer, for the offset of the shadow, so 500 across the wide one and
+            // 300 across the tall one.
+            expect(scratch.width).toBe(500);
             expect(scratch.height).toBe(400);
             const created = createdSince(before).length;
 

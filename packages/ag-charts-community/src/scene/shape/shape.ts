@@ -438,7 +438,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const spread = shadow.spread ?? 0;
         const { __fill: fill, __fillOpacity: fillOpacity = 1, __shadowMode: mode } = this;
         const drawsFill = mode !== 'stroke' && fill != null && fill !== 'none' && fillOpacity > 0;
-        const drawsStroke = mode !== 'fill' && this.hasVisibleStroke();
+        // A transparent stroke colour casts nothing, so it must not take the place of the fill's dilation below.
+        const drawsStroke = mode !== 'fill' && this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
         const hasExtras = mode !== 'fill' && this.getSilhouetteExtrasOpacity() > 0;
 
         if (spread > 0) {

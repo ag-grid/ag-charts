@@ -20,6 +20,9 @@ import { Shape } from './shape/shape';
  * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node and at a change of shadow options.
  */
 
+/** How far a canvas shadow reaches past its source, in blurs: its Gaussian has a deviation of half the blur. */
+const SHADOW_BLUR_REACH = 1.5;
+
 type ShadowCaster = Shape & { __fillShadow: NormalisedDropShadowOptions };
 
 /** The shadow options that a node casts through a batch, or undefined if it casts none. */
@@ -145,13 +148,25 @@ function renderBatch(
         return false;
     }
 
-    const { canvas, context: scratch } = acquireShadowScratch(scene, user, width, height);
+    // An item that overhangs the layer still casts its shadow onto it, so the mask extends past the layer by as far as a
+    // shadow can reach back. A shadow that reaches further than the layer is as large leaves the batch to cast for itself.
+    const reach = Math.ceil(blur * SHADOW_BLUR_REACH + Math.max(0, shadow.spread ?? 0) * devicePixelRatio);
+    const padLeft = Math.ceil(Math.max(0, offsetX)) + reach;
+    const padRight = Math.ceil(Math.max(0, -offsetX)) + reach;
+    const padTop = Math.ceil(Math.max(0, offsetY)) + reach;
+    const padBottom = Math.ceil(Math.max(0, -offsetY)) + reach;
+    if (padLeft + padRight > width || padTop + padBottom > height) return false;
+
+    const maskWidth = width + padLeft + padRight;
+    const maskHeight = height + padTop + padBottom;
+    const { canvas, context: scratch } = acquireShadowScratch(scene, user, maskWidth, maskHeight);
 
     scratch.save();
     try {
         scratch.setTransform(1, 0, 0, 1, 0, 0);
-        scratch.clearRect(0, 0, width, height);
-        scratch.setTransform(ctx.getTransform());
+        scratch.clearRect(0, 0, maskWidth, maskHeight);
+        const { a, b, c, d, e, f } = ctx.getTransform();
+        scratch.setTransform(a, b, c, d, e + padLeft, f + padTop);
         scratch.globalAlpha = ctx.globalAlpha;
         scratch.direction = ctx.direction;
 
@@ -166,7 +181,7 @@ function renderBatch(
     }
 
     // The mask is drawn this far to the left, so that none of it is on the layer. The shadow offset brings its shadow back.
-    const distance = width;
+    const distance = maskWidth;
     ctx.save();
     try {
         ctx.resetTransform();
@@ -175,7 +190,7 @@ function renderBatch(
         ctx.shadowOffsetX = offsetX + distance;
         ctx.shadowOffsetY = offsetY;
         ctx.shadowBlur = blur;
-        ctx.drawImage(canvas, 0, 0, width, height, -distance, 0, width, height);
+        ctx.drawImage(canvas, 0, 0, maskWidth, maskHeight, -padLeft - distance, -padTop, maskWidth, maskHeight);
     } finally {
         ctx.restore();
     }
