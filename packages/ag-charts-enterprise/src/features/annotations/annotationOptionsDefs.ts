@@ -1,9 +1,33 @@
+import {
+    type OptionsDefs,
+    array,
+    arrayOf,
+    arrayOfDefs,
+    boolean,
+    colorOrRef,
+    fillOptionsDef,
+    fontOptionsDef,
+    lineDashOptionsDef,
+    optionsDefs,
+    or,
+    padding,
+    positiveNumber,
+    required,
+    string,
+    strokeOptionsDef,
+    textAlign,
+    toolbarButtonOptionsDefs,
+    undocumented,
+    undocumentedDefs,
+    union,
+} from 'ag-charts-core';
 import type {
     AgAnnotationAxisLabel,
     AgAnnotationHandleStyles,
     AgAnnotationOptionsToolbarButton,
     AgAnnotationOptionsToolbarSwitch,
     AgAnnotationsOptions,
+    AgAnnotationsThemeableOptions,
     AgAnnotationsToolbarButton,
     AgCalloutAnnotationStyles,
     AgChannelAnnotationMiddle,
@@ -25,30 +49,6 @@ import type {
     AgTextAnnotationStyles,
     LineOptions,
 } from 'ag-charts-types';
-
-import { toolbarButtonOptionsDefs } from './chartDefaults';
-import {
-    colorOrRef,
-    fillOptionsDef,
-    fontOptionsDef,
-    lineDashOptionsDef,
-    padding,
-    strokeOptionsDef,
-} from './optionsDefaults';
-import {
-    type OptionsDefs,
-    array,
-    arrayOf,
-    arrayOfDefs,
-    boolean,
-    optionsDefs,
-    or,
-    positiveNumber,
-    required,
-    string,
-    undocumented,
-    union,
-} from './validation';
 
 const annotationLineOptionsDef: OptionsDefs<LineOptions> = {
     lineStyle: union('solid', 'dashed', 'dotted'),
@@ -226,6 +226,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     toolbar: {
         enabled: boolean,
         padding: positiveNumber,
+        buttonSize: positiveNumber,
         buttons: arrayOfDefs<AgAnnotationsToolbarButton>(
             {
                 ...toolbarButtonOptionsDefs,
@@ -254,6 +255,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     },
     optionsToolbar: {
         enabled: boolean,
+        buttonSize: positiveNumber,
         buttons: arrayOf(
             or(
                 optionsDefs<AgAnnotationOptionsToolbarButton>({
@@ -281,13 +283,36 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
             )
         ),
     },
+    ...undocumentedDefs({
+        data: array,
+        xKey: string,
+        volumeKey: string,
+        snap: boolean,
+    }),
 };
 
-// @ts-expect-error undocumented option
-annotationOptionsDef.data = undocumented(array);
-// @ts-expect-error undocumented option
-annotationOptionsDef.xKey = undocumented(string);
-// @ts-expect-error undocumented option
-annotationOptionsDef.volumeKey = undocumented(string);
-// @ts-expect-error undocumented option
-annotationOptionsDef.snap = undocumented(boolean);
+function withThemeTextAlign<T>(defs: OptionsDefs<T>): OptionsDefs<T> {
+    return { ...defs, textAlign: undocumented(textAlign) };
+}
+
+export const annotationThemeOptionsDef: OptionsDefs<AgAnnotationsThemeableOptions> = {
+    ...annotationOptionsDef,
+    line: annotationLineStyleDefs,
+    'horizontal-line': annotationCrossLineStyleDefs,
+    'vertical-line': annotationCrossLineStyleDefs,
+    'disjoint-channel': annotationDisjointChannelStyleDefs,
+    'parallel-channel': annotationParallelChannelStyleDefs,
+    'fibonacci-retracement': annotationFibonacciStylesDefs,
+    'fibonacci-retracement-trend-based': annotationFibonacciStylesDefs,
+    callout: withThemeTextAlign(annotationCalloutStylesDefs),
+    comment: withThemeTextAlign(annotationCommentStylesDefs),
+    note: withThemeTextAlign(annotationNoteStylesDefs),
+    text: withThemeTextAlign(annotationTextStylesDef),
+    arrow: annotationLineStyleDefs,
+    'arrow-up': annotationShapeStylesDefs,
+    'arrow-down': annotationShapeStylesDefs,
+    'date-range': annotationMeasurerStylesDefs,
+    'price-range': annotationMeasurerStylesDefs,
+    'date-price-range': annotationMeasurerStylesDefs,
+    'quick-date-price-range': annotationQuickMeasurerStylesDefs,
+};

@@ -1,4 +1,5 @@
 import type {
+    AgNetworkSeriesTreeLayout,
     AgOrganizationSeriesExpanderStyle,
     AgOrganizationSeriesLinkStyle,
     AgOrganizationSeriesNodeStyle,
@@ -12,6 +13,7 @@ import type {
     AgOrganizationSeriesOptionsNodeSubtitle,
     AgOrganizationSeriesOptionsNodeTitle,
     AgOrganizationSeriesStackedLayoutOptions,
+    AgOrganizationSeriesThemeableOptions,
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
@@ -20,14 +22,16 @@ import {
     callbackDefs,
     callbackOf,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    defined,
+    deprecated,
     fillCssOptionsDef,
     fillOptionsDef,
     fontOptionsDef,
     lineDashOptionsDef,
     number,
     optionsDefs,
-    organizationSeriesThemeableOptionsDef,
     overflowStrategy,
     padding,
     positiveNumber,
@@ -38,9 +42,35 @@ import {
     textAlign,
     textOrSegments,
     textWrap,
-    undocumented,
+    tooltipOptionsDefs,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
+
+// TODO: duplicate series options defs here?
+const networkSeriesTreeLayoutDef: OptionsDefs<AgNetworkSeriesTreeLayout> = {
+    direction: union('down', 'left', 'right', 'up'),
+    depthSpacing: number,
+    innerSpacing: number,
+    outerSpacing: number,
+    verticalSpacing: deprecated(number, 'Use `depthSpacing` instead.'),
+};
+
+export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
+    ...commonSeriesThemeableOptionsDefs,
+    ...networkSeriesTreeLayoutDef,
+    direction: union('horizontal', 'vertical'),
+    reverse: boolean,
+    expander: defined,
+    layout: defined,
+    link: defined,
+    node: defined,
+    tooltip: tooltipOptionsDefs,
+    ...undocumentedDefs({
+        parentIdKey: string,
+        idKey: string,
+    }),
+};
 
 const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
     ...fillOptionsDef,
@@ -115,7 +145,12 @@ const nodeTextStyleDef = {
     cornerRadius: positiveNumber,
     padding: padding,
     enabled: boolean,
-    overflowStrategy: overflowStrategy,
+    overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
+    truncate: boolean,
+    collision: {
+        threshold: number,
+        alwaysShow: boolean,
+    },
     spacing: number,
     textAlign: textAlign,
     wrapping: textWrap,
@@ -129,14 +164,18 @@ const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeTitle | AgOrganizatio
 };
 
 // Theme-resolved: whether `key` was configured rather than left at its theme default.
-const nodeImageOptions: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = { ...nodeImage };
-// @ts-expect-error undocumented option
-nodeImageOptions._isUserKey = undocumented(boolean);
+const nodeImageOptions: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = {
+    ...nodeImage,
+    ...undocumentedDefs({
+        _isUserKey: boolean,
+    }),
+};
 const nodeTextOptions: OptionsDefs<AgOrganizationSeriesOptionsNodeTitle | AgOrganizationSeriesOptionsNodeSubtitle> = {
     ...nodeText,
+    ...undocumentedDefs({
+        _isUserKey: boolean,
+    }),
 };
-// @ts-expect-error undocumented option
-nodeTextOptions._isUserKey = undocumented(boolean);
 
 const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     ...fillOptionsDef,

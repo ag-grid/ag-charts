@@ -114,6 +114,17 @@ export class TooltipManager {
         this.applyStates();
     }
 
+    /** Whether the caller's tooltip is shown, or will be once its show delay elapses. */
+    public isTooltipActive(callerId: string): boolean {
+        const state = this.stateTracker.get(callerId);
+        return (
+            state?.meta != null &&
+            state.content != null &&
+            !this.pendingRemovals.has(callerId) &&
+            !this.suppressState.stateValue()
+        );
+    }
+
     public suppressTooltip(callerId: string) {
         this.suppressState.set(callerId, true);
     }

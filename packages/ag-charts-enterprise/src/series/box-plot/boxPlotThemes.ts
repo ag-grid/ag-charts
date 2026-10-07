@@ -5,6 +5,7 @@ import {
     SAFE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
@@ -35,7 +36,7 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleSeriesTheme<'box-plot'> = {
         cornerRadius: 0,
         shadow: SHADOW_THEME_DEFAULTS,
         cap: { lengthRatio: 0.5 },
-        tooltip: { interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
             bringToFront: true,

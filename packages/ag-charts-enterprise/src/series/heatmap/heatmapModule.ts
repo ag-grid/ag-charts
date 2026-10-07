@@ -4,7 +4,7 @@ import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection } from 'ag-
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { HeatmapSeries } from './heatmapSeries';
-import { heatmapSeriesOptionsDef } from './heatmapSeriesOptionsDef';
+import { heatmapSeriesOptionsDef, heatmapSeriesThemeableOptionsDef } from './heatmapSeriesOptionsDef';
 import { HEATMAP_SERIES_THEME } from './heatmapThemes';
 
 export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions> = {
@@ -16,6 +16,8 @@ export const HeatmapSeriesModule: SeriesModuleDefinition<AgHeatmapSeriesOptions>
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: heatmapSeriesOptionsDef,
+
+    themeOptions: heatmapSeriesThemeableOptionsDef,
     defaultAxes: {
         y: { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.LEFT },
         x: { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },

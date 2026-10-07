@@ -20,7 +20,7 @@ import {
     shapeHighlightOptionsDef,
     string,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -69,9 +69,9 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     xKeyAxis: string,
     yKeyAxis: string,
     highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    ...undocumentedDefs({
+        // WARNING! `selectedKey` backs cross-filtering, an undocumented and unsupported feature — it is unrelated
+        // to the public data selection API.
+        selectedKey: string,
+    }),
 };
-
-// WARNING! `selectedKey` backs cross-filtering, an undocumented and unsupported feature — it is unrelated
-// to the public data selection API.
-// @ts-expect-error undocumented option
-bubbleSeriesOptionsDef.selectedKey = undocumented(string);

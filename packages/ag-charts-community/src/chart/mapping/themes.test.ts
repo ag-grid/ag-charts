@@ -199,6 +199,29 @@ describe('themes.ts', () => {
 `);
         });
 
+        it('keeps an unregistered module key known without validating its contents', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: { overrides: { common: { navigator: { height: 'tall' } } } } as unknown as AgChartTheme,
+            });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('checks the shape of an unregistered module key', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: { overrides: { common: { navigator: 5, notAnOption: 1 } } } as unknown as AgChartTheme,
+            });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`theme.overrides.common.navigator` cannot be set to `5`')],
+                [expect.stringContaining('Unknown option `theme.overrides.common.notAnOption`')],
+            ]);
+        });
+
         it('should show 2 warnings for invalid types - palette', async () => {
             const chart = AgCharts.create({
                 ...opts,
@@ -222,6 +245,21 @@ describe('themes.ts', () => {
                 ],
               ]
             `);
+        });
+
+        it('accepts theme operators in overrides only', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: {
+                    palette: { fills: { $ref: 'foregroundColor' } },
+                    overrides: { bar: { series: { fill: { $ref: 'foregroundColor' } } } },
+                } as unknown as AgChartTheme,
+            });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`theme.palette.fills` cannot be set to `{"$ref":"foregroundColor"}`')],
+            ]);
         });
     });
 

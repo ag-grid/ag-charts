@@ -106,6 +106,7 @@ export interface ModuleDefinition<
     readonly contributes?: readonly OptionsContribution[];
 
     options?: OptionsDefs<TOptions>; // options definitions validation
+    themeOptions?: OptionsDefs<any>; // theme overrides validation where it differs from `options`
     themeTemplate?: ExtensibleSeriesTheme<any>; // module's default theme template
     style?: string; // css string to inject into a style element
 
@@ -123,6 +124,8 @@ export interface ModuleDefinition<
 
 export interface ChartModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Chart, TOptions> {
     options: OptionsDefs<TOptions>;
+    /** The chart-level theme overrides for series of this chart type. */
+    themeOptions: OptionsDefs<any>;
 }
 
 export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
@@ -161,6 +164,8 @@ export interface AxisModuleDefinition<
     readonly chartType: string;
 
     options: OptionsDefs<TOptions>;
+    /** The theme overrides keyed by this axis type under `axes`. */
+    themeOptions: OptionsDefs<any>;
 
     create(this: void, ctx: DynamicContext<any>, id: AxisID, options: AxisCreateOptions<TOptions>): TInstance;
 }
@@ -197,6 +202,8 @@ export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<
     matchingKeys?: string[];
 
     options: OptionsDefs<TOptions>;
+    /** The theme overrides under the series type's `series` key, or at its root for a preset-shaped entry. */
+    themeOptions: OptionsDefs<any>;
 }
 
 export interface PluginModuleDefinition<TOptions, TRegistry = unknown> extends ModuleDefinition<

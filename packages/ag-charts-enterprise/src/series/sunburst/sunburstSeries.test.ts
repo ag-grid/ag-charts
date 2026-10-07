@@ -42,8 +42,8 @@ import {
 import {
     DEFAULT_DISABLED_SHADOW,
     HIERARCHY_SHADOW_DATA,
-    collectShapes,
     prepareEnterpriseTestOptions,
+    shadowedShapes,
 } from '../../test/utils';
 import type { SunburstSeries } from './sunburstSeries';
 
@@ -1244,7 +1244,7 @@ describe('SunburstSeries', () => {
             const series = await createChart();
 
             expect(sectors(series)).toHaveLength(7);
-            expect(collectShapes(series.contentGroup).filter((shape) => shape.fillShadow?.enabled)).toEqual([]);
+            expect(shadowedShapes(series.contentGroup)).toEqual([]);
         });
 
         it('applies an enabled shadow to every sector', async () => {

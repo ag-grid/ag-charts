@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { parseChecks, runChecks } from './check-seeds.mjs';
+import { checkTouched, parseChecks, runChecks } from './check-seeds.mjs';
 
 afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
 });
 
 /** Stand-ins for the real checks that record what ran and return the given statuses. */
@@ -83,5 +84,124 @@ describe('runChecks', () => {
         expect(error).toHaveBeenCalledWith(
             expect.stringMatching(/^check-seeds: (every port pins|framework ports must pin) ag-charts-\*/)
         );
+    });
+});
+
+describe('checkTouched', () => {
+    const DEMO_NOW = 'sha256-now';
+    const DEMO_AT_BASE = 'sha256-base';
+    const stalePort = (framework, sourceHash = DEMO_NOW) => ({
+        demo: 'web-analytics',
+        framework,
+        sourceHash,
+        manifestHash: 'sha256-then',
+        sourceCommit: 'c0ffee',
+        manifestCommit: 'decade',
+    });
+    const SEEDS = 'packages/ag-charts-demos/seeds/web-analytics';
+    /** `staleAtBase` maps a framework to the demo's hash at the base; `demoMoved` ones differ from now. */
+    const reads = ({ stale, changedFiles, staleAtBase = {} }) => ({
+        findStalePorts: () => stale.map((framework) => stalePort(framework)),
+        readChangedFiles: () => changedFiles,
+        findStalePortsAtBase: vi.fn(() =>
+            Object.entries(staleAtBase).map(([framework, hash]) => stalePort(framework, hash))
+        ),
+    });
+    const logged = () => {
+        vi.stubEnv('GITHUB_ACTIONS', '');
+        return vi.spyOn(console, 'error').mockImplementation(() => {});
+    };
+    const output = (error) => error.mock.calls.map(([line]) => line).join('\n');
+
+    it('warns, and passes, for a port already stale at the base that the change edits along with its demo', () => {
+        const error = logged();
+        const status = checkTouched(
+            { base: 'origin/latest' },
+            reads({
+                stale: ['vue'],
+                changedFiles: [`${SEEDS}/vue/src/components/PageTreemapChart.vue`],
+                staleAtBase: { vue: DEMO_AT_BASE },
+            })
+        );
+
+        expect(status).toBe(0);
+        expect(output(error)).toMatch(
+            /warning: seeds\/web-analytics\/vue was already stale at origin\/latest and is edited here \(src\/components\/PageTreemapChart\.vue\) along with src\/demos\/web-analytics.*nothing to restamp on this PR/
+        );
+        expect(output(error)).not.toMatch(/stamp-port-manifest/);
+    });
+
+    it('emits the warning as a GitHub annotation under Actions', () => {
+        const error = logged();
+        vi.stubEnv('GITHUB_ACTIONS', 'true');
+
+        checkTouched(
+            { base: 'origin/latest' },
+            reads({
+                stale: ['vue'],
+                changedFiles: [`${SEEDS}/vue/src/main.ts`],
+                staleAtBase: { vue: DEMO_AT_BASE },
+            })
+        );
+
+        expect(output(error)).toMatch(
+            /^::warning title=Edited stale demo port::seeds\/web-analytics\/vue was already stale/m
+        );
+    });
+
+    it('still fails, with the restamp hint, for a port that was fresh at the base and is left stale', () => {
+        const error = logged();
+        const status = checkTouched(
+            { base: 'origin/latest' },
+            reads({ stale: ['vue'], changedFiles: [`${SEEDS}/vue/src/main.ts`] })
+        );
+
+        expect(status).toBe(1);
+        expect(output(error)).toMatch(/seeds\/web-analytics\/vue: src\/main\.ts/);
+        expect(output(error)).toMatch(/stamp-port-manifest\.mjs web-analytics vue/);
+        expect(output(error)).not.toMatch(/warning/);
+    });
+
+    it('still fails an alignment that edits a port stale at the base, leaves its demo alone and forgets to restamp', () => {
+        const error = logged();
+        const status = checkTouched(
+            { base: 'origin/latest' },
+            reads({
+                stale: ['vue'],
+                changedFiles: [`${SEEDS}/vue/src/components/PageTreemapChart.vue`],
+                staleAtBase: { vue: DEMO_NOW },
+            })
+        );
+
+        expect(status).toBe(1);
+        expect(output(error)).toMatch(/seeds\/web-analytics\/vue: src\/components\/PageTreemapChart\.vue/);
+        expect(output(error)).toMatch(/stamp-port-manifest\.mjs web-analytics vue/);
+        expect(output(error)).not.toMatch(/warning/);
+    });
+
+    it('fails only for the ports that must be restamped when the change edits both kinds', () => {
+        const error = logged();
+        const status = checkTouched(
+            { base: 'origin/latest' },
+            reads({
+                stale: ['angular', 'vue'],
+                changedFiles: [`${SEEDS}/angular/src/main.ts`, `${SEEDS}/vue/src/main.ts`],
+                staleAtBase: { angular: DEMO_AT_BASE },
+            })
+        );
+
+        expect(status).toBe(1);
+        expect(output(error)).toMatch(/warning: seeds\/web-analytics\/angular was already stale/);
+        expect(output(error)).toMatch(/stamp-port-manifest\.mjs web-analytics vue/);
+        expect(output(error)).not.toMatch(/stamp-port-manifest\.mjs web-analytics angular/);
+    });
+
+    it('passes without reading the base when the change edits no stale port', () => {
+        const error = logged();
+        const checkReads = reads({ stale: ['vue'], changedFiles: ['packages/other/file.ts'] });
+
+        expect(checkTouched({ base: 'origin/latest' }, checkReads)).toBe(0);
+        expect(checkReads.findStalePortsAtBase).not.toHaveBeenCalled();
+        expect(output(error)).toMatch(/no port edited since origin\/latest is newly left stale/);
     });
 });

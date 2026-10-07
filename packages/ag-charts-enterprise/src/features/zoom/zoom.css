@@ -54,4 +54,12 @@
                 transform 0.4s ease-in-out;
         }
     }
+
+    &.ag-charts-zoom-buttons--sized {
+        height: calc(var(--toolbar-button-size) + 20px);
+
+        .ag-charts-toolbar {
+            height: auto;
+        }
+    }
 }

@@ -83,6 +83,24 @@ test.describe('tooltip', () => {
             await gotoExample(page, toExamplePageUrl('tooltips-e2e', 'tooltip-renderer', 'vanilla').url);
         });
 
+        test('AG-18673 Escape dismisses the tooltip of a keyboard-focused datum', async ({ page }) => {
+            const tooltip = page.locator(SELECTORS.tooltip);
+
+            await page.keyboard.press('Tab');
+            await page.keyboard.press('ArrowRight');
+            await expect(tooltip).toBeVisible();
+
+            await page.keyboard.press('Escape');
+            await expect(tooltip).toBeHidden();
+            // Focus stays on the datum.
+            await expect
+                .poll(() => page.evaluate(() => document.activeElement?.classList.contains('ag-charts-swapchain')))
+                .toBe(true);
+
+            await page.keyboard.press('ArrowRight');
+            await expect(tooltip).toBeVisible();
+        });
+
         test.describe('initial focus', () => {
             test.beforeEach(async ({ page }) => {
                 await page.keyboard.press('Tab');

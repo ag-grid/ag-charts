@@ -2,9 +2,7 @@ import { ModuleRegistry } from 'ag-charts-core';
 import type { IntegratedModule } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import * as _Scene from '../integrated-charts-scene';
-import * as _Theme from '../integrated-charts-theme';
-import * as _Util from '../integrated-charts-util';
+import { _Scene, _Theme, _Util } from '../integrated-charts';
 import { VERSION } from '../version';
 import { AllCommunityModule } from './all';
 

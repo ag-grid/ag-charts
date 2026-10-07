@@ -1,15 +1,82 @@
-import type { AgHlcSeriesOptions } from 'ag-charts-community';
+import type {
+    AgHlcSeriesBandStyle,
+    AgHlcSeriesItemBandThemeableOptions,
+    AgHlcSeriesItemLineThemeableOptions,
+    AgHlcSeriesLineStyle,
+    AgHlcSeriesOptions,
+    AgHlcSeriesStyle,
+    AgHlcSeriesThemeableOptions,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
+    callbackDefs,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
-    hlcSeriesThemeableOptionsDef,
+    fillOptionsDef,
+    interpolationOptionsDefs,
+    lineDashOptionsDef,
+    markerOptionsDefs,
+    markerStyleOptionsDefs,
+    multiSeriesHighlightOptionsDef,
     number,
     required,
+    shadowOptionsDefs,
+    shapeHighlightOptionsDef,
     string,
-    undocumented,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    undocumentedDefs,
 } from 'ag-charts-core';
+
+const hlcSeriesItemLineThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemLineThemeableOptions<unknown, unknown>> = {
+    marker: {
+        enabled: boolean,
+        shadow: shadowOptionsDefs,
+        ...markerStyleOptionsDefs,
+    },
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+const hlcSeriesItemBandThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemBandThemeableOptions<unknown, unknown>> = {
+    ...hlcSeriesItemLineThemeableOptionsDef,
+    ...fillOptionsDef,
+};
+
+const hlcSeriesLineStyleDef: OptionsDefs<AgHlcSeriesLineStyle> = {
+    marker: markerStyleOptionsDefs,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+const hlcSeriesBandStyleDef: OptionsDefs<AgHlcSeriesBandStyle> = {
+    ...hlcSeriesLineStyleDef,
+    ...fillOptionsDef,
+};
+
+export const hlcSeriesThemeableOptionsDef: OptionsDefs<AgHlcSeriesThemeableOptions> = {
+    showInMiniChart: boolean,
+    connectMissingData: boolean,
+    interpolation: interpolationOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    marker: markerOptionsDefs,
+    item: {
+        high: { ...hlcSeriesItemBandThemeableOptionsDef },
+        low: { ...hlcSeriesItemBandThemeableOptionsDef },
+        close: { ...hlcSeriesItemLineThemeableOptionsDef },
+    },
+    styler: callbackDefs<AgHlcSeriesStyle>({
+        item: {
+            high: { ...hlcSeriesBandStyleDef },
+            low: { ...hlcSeriesBandStyleDef },
+            close: { ...hlcSeriesLineStyleDef },
+        },
+    }),
+    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+};
 
 export const hlcSeriesOptionsDef: OptionsDefs<AgHlcSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -27,9 +94,8 @@ export const hlcSeriesOptionsDef: OptionsDefs<AgHlcSeriesOptions> = {
     closeName: string,
     yName: string,
     legendItemName: string,
+    ...undocumentedDefs({
+        pickOutsideVisibleMinorAxis: boolean,
+        focusPriority: number,
+    }),
 };
-
-// @ts-expect-error undocumented option
-hlcSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
-// @ts-expect-error undocumented option
-hlcSeriesOptionsDef.focusPriority = undocumented(number);

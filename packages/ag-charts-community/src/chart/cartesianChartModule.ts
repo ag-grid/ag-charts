@@ -3,6 +3,7 @@ import {
     type ChartModuleDefinition,
     ValidationError,
     cartesianChartOptionsDefs,
+    cartesianChartThemeOptionsDefs,
     commonChartThemeTemplate,
     isObject,
     validate,
@@ -26,6 +27,8 @@ export const CartesianChartModule: ChartModuleDefinition<CartesianChartDefOption
     dependencies: [SeriesAreaModule],
 
     options: cartesianChartOptionsDefs,
+
+    themeOptions: cartesianChartThemeOptionsDefs,
 
     themeTemplate: commonChartThemeTemplate,
 

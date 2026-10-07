@@ -142,6 +142,15 @@ export interface AgBaseAxisOptions<LabelType = any, TContext = ContextDefault> {
     tick?: AgAxisBaseTickOptions;
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisBaseIntervalOptions;
+    /**
+     * The accessible name of the axis region, announced by screen readers.
+     *
+     * Applies to the axis region created when the axis is interactive, for example when the context menu, zoom or axis
+     * listeners are enabled. Keep explicit values unique within a chart.
+     *
+     * Default: the axis title text, or the axis key under `axes` if the title is not shown.
+     */
+    ariaLabel?: string;
 }
 
 export interface AgBaseContinuousAxisOptions<TDatum extends AgTimeValue = number> {

@@ -3407,9 +3407,7 @@ describe('ChartOptions', () => {
                 expect(chartOptions.activeTheme.overrides?.common?.annotations?.enabled).toBe(true);
                 expect(chartOptions.activeTheme.overrides?.common?.axes?.['angle-number']).toBeUndefined();
                 expect((chartOptions.activeTheme.overrides as any)?.['radial-bar']).toBeUndefined();
-                expect(warnSpy).toHaveBeenCalledTimes(2);
-                expect(warnSpy.mock.calls[0]?.[0]).toContain('theme.overrides.common.axes.angle-number.crosshair');
-                expect(warnSpy.mock.calls[1]?.[0]).toContain('theme.overrides.radial-bar.series.errorBar');
+                expect(warnSpy).not.toHaveBeenCalled();
             } finally {
                 warnSpy.mockRestore();
             }

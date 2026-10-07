@@ -2,6 +2,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedGroupedCategoryAxisOptions,
+    cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     groupedCategoryAxisOptionsDefs,
     mergeDefaults,
@@ -24,6 +25,8 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAx
         dependencies: [CartesianChartModule],
 
         options: groupedCategoryAxisOptionsDefs,
+
+        themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(groupedCategoryAxisOptionsDefs),
         themeTemplate: mergeDefaults(
             {
                 tick: { enabled: true, stroke: { $ref: 'groupedCategoryLineColor' } },

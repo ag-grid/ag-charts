@@ -1,15 +1,70 @@
-import type { AgCandlestickSeriesOptions } from 'ag-charts-community';
+import type {
+    AgCandlestickHighlightStyleOptions,
+    AgCandlestickSeriesItemOptions,
+    AgCandlestickSeriesOptions,
+    AgCandlestickSeriesThemeableOptions,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
-    candlestickSeriesThemeableOptionsDef,
+    callbackDefs,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    fillOptionsDef,
+    lineDashOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
+    positiveNumber,
+    ratio,
     required,
+    shadowOptionsDefs,
     string,
-    undocumented,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    undocumentedDefs,
 } from 'ag-charts-core';
+
+const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOptions> = {
+    cornerRadius: positiveNumber,
+    wick: {
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+const candlestickHighlightStyleOptionsDef: OptionsDefs<AgCandlestickHighlightStyleOptions> = {
+    ...candlestickSeriesItemOptionsDef,
+    opacity: ratio,
+};
+
+export const candlestickSeriesThemeableOptionsDef: OptionsDefs<AgCandlestickSeriesThemeableOptions> = {
+    item: {
+        up: candlestickSeriesItemOptionsDef,
+        down: candlestickSeriesItemOptionsDef,
+    },
+    itemStyler: callbackDefs<AgCandlestickSeriesItemOptions>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+        cornerRadius: positiveNumber,
+        wick: {
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+        },
+    }),
+    showInMiniChart: boolean,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    highlight: multiSeriesShadowHighlightOptionsDef(
+        candlestickHighlightStyleOptionsDef,
+        candlestickHighlightStyleOptionsDef
+    ),
+};
 
 export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -28,9 +83,8 @@ export const candlestickSeriesOptionsDef: OptionsDefs<AgCandlestickSeriesOptions
     closeName: string,
     xKeyAxis: string,
     yKeyAxis: string,
+    ...undocumentedDefs({
+        pickOutsideVisibleMinorAxis: boolean,
+        focusPriority: number,
+    }),
 };
-
-// @ts-expect-error undocumented option
-candlestickSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
-// @ts-expect-error undocumented option
-candlestickSeriesOptionsDef.focusPriority = undocumented(number);
