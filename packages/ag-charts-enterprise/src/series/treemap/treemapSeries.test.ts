@@ -700,6 +700,136 @@ describe('TreemapSeries', () => {
         });
     });
 
+    describe('label alignment', () => {
+        const alignmentData = [
+            {
+                name: 'Fruit',
+                children: [
+                    { name: 'Apples', detail: '42 tonnes', value: 42 },
+                    { name: 'Pears', detail: '30 tonnes', value: 30 },
+                    { name: 'Plums', detail: '18 tonnes', value: 18 },
+                ],
+            },
+            {
+                name: 'Vegetables',
+                children: [
+                    { name: 'Carrots', detail: '36 tonnes', value: 36 },
+                    { name: 'Leeks', detail: '24 tonnes', value: 24 },
+                ],
+            },
+        ];
+        const alignmentOptions = (series: object, data: object[] = alignmentData): AgChartOptions => {
+            const options = {
+                data,
+                series: [
+                    { type: 'treemap', labelKey: 'name', secondaryLabelKey: 'detail', sizeKey: 'value', ...series },
+                ],
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+        const leaves = () => {
+            const out: any[] = [];
+            chart.series[0].rootNode?.walk((node: any) => {
+                if (node.children.length === 0) out.push(node);
+            });
+            return out;
+        };
+        const textBBoxes = () =>
+            [...chart.series[0].labelSelection.selectByClass(_ModuleSupport.Text)]
+                .filter((text: any) => text.visible && text.text)
+                .map((text: any) => text.getBBox());
+
+        it('aligns each tile label and the group label on its own', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    alignmentOptions({
+                        group: { label: { textAlign: 'right' } },
+                        tile: {
+                            label: { textAlign: 'left', verticalAlign: 'top' },
+                            secondaryLabel: { textAlign: 'right', verticalAlign: 'bottom' },
+                        },
+                    })
+                )
+            );
+            await compare();
+            for (const node of leaves()) {
+                expect(node.label.y).toBeLessThan(node.secondaryLabel.y);
+                expect(node.label.x).toBeLessThan(node.secondaryLabel.x);
+            }
+        });
+
+        it('keeps a middle label clear of a label aligned to an edge', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    alignmentOptions(
+                        {
+                            tile: {
+                                padding: 250,
+                                label: { fontSize: 14, minimumFontSize: 14, verticalAlign: 'middle' },
+                                secondaryLabel: { fontSize: 24, minimumFontSize: 24, verticalAlign: 'top' },
+                            },
+                        },
+                        [{ name: 'Primary', detail: 'Secondary', value: 1 }]
+                    )
+                )
+            );
+            await waitForChartStability(chart);
+            const [primary, secondary] = textBBoxes();
+            expect(secondary.y + secondary.height).toBeLessThanOrEqual(primary.y + 0.5);
+        });
+
+        it('stacks labels aligned to different edges when alwaysShow keeps a pair that does not fit', async () => {
+            const fixed = { fontSize: 14, minimumFontSize: 14, truncate: false };
+            chart = deproxy(
+                AgCharts.create(
+                    alignmentOptions(
+                        {
+                            tile: {
+                                padding: 285,
+                                label: { ...fixed, verticalAlign: 'top', collision: { alwaysShow: true } },
+                                secondaryLabel: { ...fixed, verticalAlign: 'bottom', collision: { alwaysShow: true } },
+                            },
+                        },
+                        [{ name: 'Primary', detail: 'Secondary', value: 1 }]
+                    )
+                )
+            );
+            await waitForChartStability(chart);
+            const [primary, secondary] = textBBoxes();
+            expect(primary.y + primary.height).toBeLessThanOrEqual(secondary.y + 0.5);
+        });
+
+        it('forwards the deprecated tile and group alignment into the labels', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    alignmentOptions({
+                        group: { textAlign: 'right' },
+                        tile: { textAlign: 'left', verticalAlign: 'bottom' },
+                    })
+                )
+            );
+            await waitForChartStability(chart);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].group.textAlign\` is deprecated. Use \`label.textAlign\` instead.",
+                ],
+                [
+                  "AG Charts - Option \`series[0].tile.textAlign\` is deprecated. Use \`label.textAlign\` and \`secondaryLabel.textAlign\` instead.",
+                ],
+                [
+                  "AG Charts - Option \`series[0].tile.verticalAlign\` is deprecated. Use \`label.verticalAlign\` and \`secondaryLabel.verticalAlign\` instead.",
+                ],
+              ]
+            `);
+            const { group, tile } = chart.series[0].options;
+            expect(group.label.textAlign).toBe('right');
+            expect([tile.label.textAlign, tile.label.verticalAlign]).toEqual(['left', 'bottom']);
+            expect([tile.secondaryLabel.textAlign, tile.secondaryLabel.verticalAlign]).toEqual(['left', 'bottom']);
+        });
+    });
+
     describe('Label itemStyler', () => {
         it('should style labels via itemStyler', async () => {
             const options: AgChartOptions = {

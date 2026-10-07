@@ -16,9 +16,11 @@ import type {
     AgTreemapSeriesStyle,
     AgTreemapSeriesTileHighlightOptions,
     AgTreemapSeriesTileHighlightStyle,
+    AgTreemapSeriesTileLabelAlignmentOptions,
     AgTreemapSeriesTileOptions,
     CssColor,
     Styler,
+    TextAlign,
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
@@ -78,7 +80,12 @@ export type NormalisedTreemapTileHighlightOptions = Normalised<
 >;
 
 export type NormalisedTreemapGroupLabelOptions =
-    NormalisedCollisionFreeSeriesLabelOptions<AgTreemapSeriesLabelFormatterParams> & { spacing: number };
+    NormalisedCollisionFreeSeriesLabelOptions<AgTreemapSeriesLabelFormatterParams> & {
+        spacing: number;
+        textAlign: TextAlign;
+    };
+
+type NormalisedTreemapTileLabelAlignment = Required<AgTreemapSeriesTileLabelAlignmentOptions>;
 
 type TreemapGroupRequiredKeys =
     | 'fills'
@@ -87,7 +94,6 @@ type TreemapGroupRequiredKeys =
     | 'strokeOpacity'
     | 'cornerRadius'
     | 'shadow'
-    | 'textAlign'
     | 'gap'
     | 'padding'
     | 'interactive'
@@ -113,8 +119,6 @@ type TreemapTileRequiredKeys =
     | 'strokeOpacity'
     | 'cornerRadius'
     | 'shadow'
-    | 'textAlign'
-    | 'verticalAlign'
     | 'gap'
     | 'padding'
     | 'label'
@@ -129,8 +133,10 @@ export type NormalisedTreemapTileOptions = Normalised<
         fill?: NormalisedColorType;
         stroke?: CssColor;
         shadow: NormalisedDropShadowOptions;
-        label: NormalisedAutoSizedLabelOptions<AgTreemapSeriesLabelFormatterParams>;
-        secondaryLabel: NormalisedAutoSizedSecondaryLabelOptions<AgTreemapSeriesLabelFormatterParams>;
+        label: NormalisedAutoSizedLabelOptions<AgTreemapSeriesLabelFormatterParams> &
+            NormalisedTreemapTileLabelAlignment;
+        secondaryLabel: NormalisedAutoSizedSecondaryLabelOptions<AgTreemapSeriesLabelFormatterParams> &
+            NormalisedTreemapTileLabelAlignment;
         highlight: NormalisedTreemapTileHighlightOptions;
         selection: NormalisedSeriesSelectionOptions<NormalisedTreemapSeriesStyle>;
     }

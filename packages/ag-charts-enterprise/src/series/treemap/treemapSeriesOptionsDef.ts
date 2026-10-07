@@ -16,6 +16,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    deprecated,
     fillOptionsDef,
     lineDashOptionsDef,
     positiveNumber,
@@ -29,7 +30,7 @@ import {
     textAlign,
     tooltipOptionsDefs,
     undocumentedDefs,
-    union,
+    verticalAlign,
     without,
 } from 'ag-charts-core';
 
@@ -56,7 +57,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         cornerRadius: positiveNumber,
         shadow: shadowOptionsDefs,
         fills: arrayOf(colorUnion),
-        textAlign,
+        textAlign: deprecated(textAlign, 'Use `label.textAlign` instead.'),
         interactive: boolean,
         highlight: {
             enabled: boolean,
@@ -66,6 +67,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         label: {
             ...seriesLabelOptionsDefs,
             spacing: positiveNumber,
+            textAlign,
         },
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -75,13 +77,22 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         padding: positiveNumber,
         cornerRadius: positiveNumber,
         shadow: shadowOptionsDefs,
-        textAlign,
-        verticalAlign: union('top', 'middle', 'bottom'),
+        textAlign: deprecated(textAlign, 'Use `label.textAlign` and `secondaryLabel.textAlign` instead.'),
+        verticalAlign: deprecated(
+            verticalAlign,
+            'Use `label.verticalAlign` and `secondaryLabel.verticalAlign` instead.'
+        ),
         label: {
             ...autoSizedLabelOptionsDefs,
             spacing: positiveNumber,
+            textAlign,
+            verticalAlign,
         },
-        secondaryLabel: autoSizedLabelOptionsDefs,
+        secondaryLabel: {
+            ...autoSizedLabelOptionsDefs,
+            textAlign,
+            verticalAlign,
+        },
         highlight: {
             enabled: boolean,
             highlightedItem: { ...hierarchyHighlightStyleOptionsDef, shadow: shadowOptionsDefs },
