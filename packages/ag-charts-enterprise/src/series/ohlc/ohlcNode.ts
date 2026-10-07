@@ -89,6 +89,10 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
         return { x: this.__centerX, y: this.__y + this.__height / 2 };
     }
 
+    protected override isCrisp(): boolean {
+        return this.__crisp;
+    }
+
     protected alignedCoordinates() {
         const { __y: y, __width: width, __height: height, __crisp: crisp } = this;
 

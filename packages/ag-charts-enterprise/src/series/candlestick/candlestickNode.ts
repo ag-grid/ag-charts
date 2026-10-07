@@ -152,8 +152,7 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
     }
 
     protected override getSilhouetteStrokeWidth(): number {
-        // A crisp body can snap up to a device pixel past its bounds, so pad it even without a stroke.
-        return Math.max(this.__strokeWidth, this.__wickStrokeWidth ?? 0, this.__crisp ? 2 : 0);
+        return Math.max(this.__strokeWidth, this.__wickStrokeWidth ?? 0);
     }
 
     protected override renderSilhouetteExtras(ctx: _ModuleSupport.CanvasContext) {
