@@ -414,10 +414,8 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
 }
 
 /**
- * Undocumented keys absent from an options type, spread inside its defs literal:
- * `{ ...documented, ...undocumentedDefs({ internalKey: boolean }) }`. Typed as empty so the literal still
- * type-checks against `OptionsDefs<T>`; never assign keys onto a defs object after declaration, as that keeps it
- * out of tree-shaking.
+ * Spread inside a defs literal for keys absent from its options type; typed as empty so the literal still matches
+ * `OptionsDefs<T>`. Assigning keys onto a defs object afterwards would keep it out of tree-shaking.
  */
 export function undocumentedDefs(defs: Record<string, Validator | OptionsDefs<any>>): Record<never, never> {
     const result: Record<string, Validator | OptionsDefs<any>> = {};

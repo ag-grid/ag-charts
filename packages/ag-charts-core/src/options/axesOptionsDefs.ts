@@ -105,10 +105,7 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     cornerRadius: number,
     ...fontOptionsDef,
     ...fillOptionsDef,
-    ...undocumentedDefs({
-        // Assigned before the defs below spread this object, so every cross-line variant picks it up.
-        overflow: union('pad-chart', 'realign-text', 'clip-text'),
-    }),
+    ...undocumentedDefs({ overflow: union('pad-chart', 'realign-text', 'clip-text') }),
 };
 
 // `fill`/`fillOpacity` belong to the `range` variant only, and `id` identifies rather than styles a cross line.
