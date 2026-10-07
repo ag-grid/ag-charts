@@ -12,7 +12,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { WheelDeltaMode } from 'ag-charts-test';
+import { WheelDeltaMode, dispatchEvent, makeMockEvent, mouseEnterEvent } from 'ag-charts-test';
 import type { AgCartesianAxisPosition, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
@@ -609,5 +609,68 @@ describe('Scrollbar thumb hoverStyle.strokeWidth', () => {
 
         scrollbar.handleHoverChange('horizontal', false);
         expect(thumb.strokeWidth).toBe(1);
+    });
+});
+
+// The horizontal scrollbar track at the default chart size, and the centre of its thumb at the zoom range 0.2 to 0.6.
+const TRACK_BOUNDS = { x: 91, y: 550, width: 689, height: 30 };
+const THUMB_CENTRE = { x: 367, y: 565 };
+
+function hoverHorizontalThumb() {
+    const container = document.querySelector<HTMLElement>('.ag-charts-proxy-scrollbar-horizontal')!;
+    const { x, y, width, height } = TRACK_BOUNDS;
+    container.getBoundingClientRect = () =>
+        ({ x, y, width, height, left: x, top: y, right: x + width, bottom: y + height }) as DOMRect;
+
+    const target = makeMockEvent({
+        target: container.querySelector<HTMLElement>('.ag-charts-proxy-scrollbar-slider')!,
+        offsetX: THUMB_CENTRE.x - x,
+        offsetY: THUMB_CENTRE.y - y,
+        clientX: THUMB_CENTRE.x,
+        clientY: THUMB_CENTRE.y,
+    });
+    dispatchEvent(target, mouseEnterEvent(target, THUMB_CENTRE.x, THUMB_CENTRE.y));
+}
+
+describe('Scrollbar thumb hover derives from the per-chart thumb style', () => {
+    const ctx = setupMockCanvas();
+    setupMockConsole();
+
+    const chartRef: ChartRef = {};
+    afterEach(() => destroyChartRef(chartRef));
+
+    async function hoverSnapshot(scrollbar: Record<string, unknown>, identifier: string) {
+        chartRef.current = await createEnterpriseChart({
+            data: DATA,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            scrollbar: { enabled: true, visible: 'always', thickness: 30, ...scrollbar },
+            initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
+        });
+        await waitForChartStability(chartRef.current);
+        hoverHorizontalThumb();
+        await waitForChartStability(chartRef.current);
+        await compareImageSnapshot(chartRef.current, ctx, {
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: identifier,
+        });
+    }
+
+    it('keeps the horizontal thumb strokeWidth of 0 on hover', async () => {
+        await hoverSnapshot({ horizontal: { thumb: { strokeWidth: 0 } } }, 'thumb-hover-horizontal-stroke-width-0');
+    });
+
+    it('keeps a per-chart thumb strokeWidth on hover', async () => {
+        await hoverSnapshot({ thumb: { strokeWidth: 3 } }, 'thumb-hover-stroke-width-3');
+    });
+
+    it('tints the hover fill and stroke from the per-chart thumb colours', async () => {
+        await hoverSnapshot({ thumb: { fill: '#0000ff', stroke: '#000000' } }, 'thumb-hover-derived-colours');
+    });
+
+    it('prefers an explicit hoverStyle over the per-chart thumb style', async () => {
+        await hoverSnapshot(
+            { thumb: { fill: '#0000ff', strokeWidth: 3, hoverStyle: { fill: '#ff0000', strokeWidth: 5 } } },
+            'thumb-hover-explicit-hover-style'
+        );
     });
 });
