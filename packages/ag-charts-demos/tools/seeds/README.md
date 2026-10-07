@@ -212,16 +212,21 @@ port, the files that touched it and the stamp command. Changes to a port's `pack
 `.seed-manifest.json` alone do not count: `pin-ports.mjs` rewrites those in every port on each
 version bump and at the release-branch cut, stale or not.
 
-Only a port that was **fresh at `<base>`** fails. One that was already stale there, such as a port
-a change edits only to migrate an option across every framework, did not drift because of the
-change and is not for it to fix: it is reported as a warning ("no action needed on this PR") and
-left for the release-branch cut to align. Staleness at `<base>` is read from `<base>`'s own demo
-sources and port manifests (`findStalePortsAtBase`), not from the working tree.
+A stale port is excused only when it was already stale at `<base>` **and** the change moves its React
+demo's source hash. That is an API migration swept across the demo and every port (a rename that
+the ports have to follow, say): the change did not cause the drift and cannot clear it, so it is
+reported as a warning ("nothing to restamp on this PR") and left for the release-branch cut to
+align. A port that was stale at `<base>` but whose demo the change leaves alone is an alignment,
+which only ever edits ports that were already stale, and it still fails if it was not restamped.
+Staleness and the demo's hash at `<base>` are read from `<base>`'s own demo sources and port
+manifests (`findStalePortsAtBase`), not from the working tree, and hashed with `HEAD`'s hashing
+code. Under GitHub Actions the warning is emitted as a `::warning` annotation.
 
 It compares the trees at `<base>` and `HEAD`, so it needs no merge base and works in a shallow
-clone once `<base>` is fetched (`<base>`'s demos and manifests are extracted with `git archive`); uncommitted changes are not seen. CI runs it in the lint job with the
-same base as the affected checks (`findTouchedStalePorts` in `stale-ports.mjs` takes the changed files
-as input, for the unit tests):
+clone once `<base>` is fetched (`<base>`'s demos and manifests are extracted with `git archive`);
+uncommitted changes are not seen. CI runs it in the lint job with the same base as the affected
+checks (`findTouchedStalePorts` in `stale-ports.mjs` takes the changed files as input, for the
+unit tests):
 
 ```sh
 node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --touched origin/latest
@@ -268,8 +273,7 @@ node packages/ag-charts-demos/tools/seeds/export-seed-mirror.mjs --out /tmp/mirr
    release branch as input.
 3. The PR is gated by CI like any other. Once restamped a port is current again, so the parity run
    compares it: every port screenshot must match React within tolerance. The lint job's
-   `check-seeds.mjs --touched` fails a PR that edits a port that was current at its base without
-   restamping it.
+   `check-seeds.mjs --touched` fails a PR that aligns a port without restamping it.
 
 To align ports yourself on any branch, run `/port-showcases [demo] [framework]` in Claude Code. The
 functional specs should pass with `DEMOS_BASE_URL` pointing at an aligned port too

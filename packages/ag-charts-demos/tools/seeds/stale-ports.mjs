@@ -115,7 +115,8 @@ const PIN_FILES = new Set(['package.json', MANIFEST_FILENAME]);
  *
  * A port is aligned by editing it and then restamping its manifest; one that is edited and still
  * stale was aligned without the restamp, and the blocking parity run would skip it as stale rather
- * than compare it. `changedFiles` are repository-relative POSIX paths, as `git diff --name-only`
+ * than compare it. (A change that edits a port while moving its demo on is a different case; see
+ * `splitTouchedByBaseStaleness`.) `changedFiles` are repository-relative POSIX paths, as `git diff --name-only`
  * prints them.
  */
 export function findTouchedStalePorts({ changedFiles, stale, seedsPathPrefix = SEEDS_PATH_PREFIX }) {
@@ -132,17 +133,31 @@ export function findTouchedStalePorts({ changedFiles, stale, seedsPathPrefix = S
 }
 
 /**
- * Splits the ports a change edits (`findTouchedStalePorts`) by whether they were already stale at
- * the base, given `staleAtBase` (`findStalePortsAtBase`). `introduced` are the ports that were in
- * step with their demo at the base and are left stale: an alignment that forgot to restamp.
- * `inherited` were behind before the change, so editing them (an API migration swept across every
- * port, say) neither caused the drift nor is expected to clear it; the release-branch cut aligns them.
+ * Splits the ports a change edits (`findTouchedStalePorts`) into those it must restamp and those
+ * it need not, given `staleAtBase` (`findStalePortsAtBase`, whose `sourceHash` is the demo's hash
+ * at the base).
+ *
+ * `inherited` ports were already stale at the base **and** the change moves their demo's source
+ * hash. That is an API migration swept across the demo and every port: the change did not cause
+ * the drift and cannot be expected to clear it, and the release-branch cut aligns them.
+ *
+ * Everything else is `introduced` and must be restamped: a port that was in step with its demo at
+ * the base, and one that was already stale but whose demo the change leaves alone. The latter is
+ * an alignment (the Demo Port Alignment workflow, `/port-showcases`) that only ever edits ports
+ * stale at its base; one that forgot to restamp would otherwise have its parity run skipped as
+ * stale with nothing to say so.
  */
 export function splitTouchedByBaseStaleness({ touched, staleAtBase }) {
-    const wasStale = new Set(staleAtBase.map(({ demo, framework }) => `${demo}/${framework}`));
+    const hashAtBase = new Map(
+        staleAtBase.map(({ demo, framework, sourceHash }) => [`${demo}/${framework}`, sourceHash])
+    );
+    const demoMoved = ({ demo, framework, sourceHash }) => {
+        const key = `${demo}/${framework}`;
+        return hashAtBase.has(key) && hashAtBase.get(key) !== sourceHash;
+    };
     return {
-        introduced: touched.filter(({ demo, framework }) => !wasStale.has(`${demo}/${framework}`)),
-        inherited: touched.filter(({ demo, framework }) => wasStale.has(`${demo}/${framework}`)),
+        introduced: touched.filter((port) => !demoMoved(port)),
+        inherited: touched.filter(demoMoved),
     };
 }
 
@@ -153,6 +168,10 @@ export function splitTouchedByBaseStaleness({ touched, staleAtBase }) {
  * clone once `base` is fetched. A port or demo that does not exist at `base` is not stale there.
  * When `base` predates the seeds altogether nothing was stale at it, so every edited stale port is
  * held to the restamp rule.
+ *
+ * The base tree is hashed with `HEAD`'s `hashDemoSource`, so a change to the hashing algorithm
+ * itself makes every demo's hash differ between the two, which classes every edited stale port as
+ * inherited. Such a change re-stamps the manifests anyway.
  */
 export function findStalePortsAtBase(base, { demoIds = readDemoIds(), workspaceRoot = WORKSPACE_ROOT } = {}) {
     const demosPath = toRepoPath(DEMOS_SRC_DIR);
@@ -166,6 +185,8 @@ export function findStalePortsAtBase(base, { demoIds = readDemoIds(), workspaceR
                 ['archive', '--format=tar', '-o', archive, base, '--', demosPath, `:(glob)${manifestsPath}`],
                 {
                     cwd: workspaceRoot,
+                    // The "did not match" check below reads git's message, so keep it English.
+                    env: { ...process.env, LC_ALL: 'C' },
                     stdio: ['ignore', 'pipe', 'pipe'],
                 }
             );

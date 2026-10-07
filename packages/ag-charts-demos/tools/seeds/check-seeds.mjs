@@ -44,9 +44,11 @@ import {
  * `--touched <base>` fails when a port the change edits (a file under `seeds/<demo>/<framework>/`
  * that differs between `<base>` and `HEAD`, pin-only files aside) is still stale: the port was
  * aligned without restamping its manifest, and the blocking parity run, which skips stale ports,
- * would not compare it. The message names the stamp command. A port that was already stale at
- * `<base>` is only reported as a warning: a change that edits it (an API migration across every
- * port) did not cause the drift, and the release-branch cut aligns it.
+ * would not compare it. The message names the stamp command. The exception is a port that was
+ * already stale at `<base>` when the change also moves its React demo's source hash: an API
+ * migration across the demo and every port did not cause that drift, and the release-branch cut
+ * aligns it, so it is only reported as a warning. A stale port edited with its demo left alone is
+ * an alignment, and fails like any other.
  *
  * `--pins` fails when a framework port's `ag-charts-*` pins, or its manifest's `pinnedVersion` /
  * `pinSource`, disagree with what the seeds install (`readPinnedChartsVersion`: the release for a
@@ -188,8 +190,11 @@ export function checkTouched({ base }, reads = TOUCHED_READS) {
         staleAtBase: touched.length > 0 ? reads.findStalePortsAtBase(base) : [],
     });
     for (const { demo, framework, files } of inherited) {
+        const message = `seeds/${demo}/${framework} was already stale at ${base} and is edited here (${files.join(', ')}) along with src/demos/${demo}; the Demo Port Alignment workflow aligns it when the next release branch is cut, so there is nothing to restamp on this PR.`;
         console.error(
-            `check-seeds: warning: seeds/${demo}/${framework} was already stale at ${base} and is edited here (${files.join(', ')}); it is aligned by the Demo Port Alignment workflow when the next release branch is cut, no action needed on this PR.`
+            process.env.GITHUB_ACTIONS
+                ? `::warning title=Edited stale demo port::${message}`
+                : `check-seeds: warning: ${message}`
         );
     }
     if (introduced.length === 0) {

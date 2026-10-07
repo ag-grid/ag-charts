@@ -62,8 +62,8 @@ skipped port is printed when the run starts and again at its end, and recorded u
 `summary.json` with reason `stale`. When every port is stale, or none is committed, the run passes
 with the one test `no current ports to compare` and prints the same; self-parity runs regardless.
 An alignment restamps the ports it edits, which makes them current and so compared, and the lint
-job's `check-seeds.mjs --touched` fails a pull request that edits a port without restamping it (see
-`tools/seeds/README.md`). An explicit `PARITY_TARGETS` run compares what it is given, stale or not.
+job's `check-seeds.mjs --touched` fails a pull request that edits a port without restamping it, unless
+the port was already stale at the base and the change also moves its demo (see `tools/seeds/README.md`). An explicit `PARITY_TARGETS` run compares what it is given, stale or not.
 
 ### Explicit targets
 

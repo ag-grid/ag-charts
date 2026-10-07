@@ -220,18 +220,27 @@ describe('findTouchedStalePorts', () => {
 });
 
 describe('splitTouchedByBaseStaleness', () => {
+    const portAt = (framework, sourceHash, demo = 'web-analytics') => ({ demo, framework, sourceHash });
     const touched = ['angular', 'typescript', 'vue'].map((framework) => ({
-        demo: 'web-analytics',
-        framework,
+        ...portAt(framework, 'sha256-now'),
         files: ['src/main.ts'],
     }));
 
-    it('separates the ports that were already stale at the base from those the change left stale', () => {
-        const staleAtBase = [{ demo: 'web-analytics', framework: 'angular' }];
+    it('excuses a port that was stale at the base when the change also moves its demo', () => {
+        const staleAtBase = [portAt('angular', 'sha256-base')];
         const { introduced, inherited } = splitTouchedByBaseStaleness({ touched, staleAtBase });
 
         expect(inherited.map(({ framework }) => framework)).toEqual(['angular']);
         expect(introduced.map(({ framework }) => framework)).toEqual(['typescript', 'vue']);
+    });
+
+    it('holds a port stale at the base to the restamp rule when the change leaves its demo alone', () => {
+        // An alignment edits only ports that are stale at its base, with the demo untouched.
+        const staleAtBase = [portAt('angular', 'sha256-now')];
+        const { introduced, inherited } = splitTouchedByBaseStaleness({ touched, staleAtBase });
+
+        expect(inherited).toEqual([]);
+        expect(introduced).toEqual(touched);
     });
 
     it('holds every port to the restamp rule when none was stale at the base', () => {
@@ -242,7 +251,7 @@ describe('splitTouchedByBaseStaleness', () => {
     });
 
     it('does not take a same-named framework of another demo for a stale one', () => {
-        const staleAtBase = [{ demo: 'procurement', framework: 'angular' }];
+        const staleAtBase = [portAt('angular', 'sha256-base', 'procurement')];
 
         expect(splitTouchedByBaseStaleness({ touched, staleAtBase }).inherited).toEqual([]);
     });
