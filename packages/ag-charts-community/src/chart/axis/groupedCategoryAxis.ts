@@ -7,6 +7,7 @@ import type {
     WrapOptions,
 } from 'ag-charts-core';
 import {
+    GroupedCategoryScale,
     angularPadding,
     createIdsGenerator,
     extent,
@@ -25,7 +26,6 @@ import {
 } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
 import { PointerEvents } from '../../scene/node';
 import { TransformableText } from '../../scene/shape/text';

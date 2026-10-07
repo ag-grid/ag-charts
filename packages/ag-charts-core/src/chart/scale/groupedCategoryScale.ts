@@ -1,5 +1,4 @@
-import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
-
+import type { DomainWithMetadata, NormalizedDomain } from '../../types/scales';
 import { CategoryScale } from './categoryScale';
 
 // Matches MAX_ANIMATABLE_NODES in processors.ts - domains larger than this won't animate anyway

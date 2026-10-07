@@ -16,6 +16,7 @@ import {
     type FontOptions,
     type Has,
     type InternalAgColorType,
+    LinearScale,
     type Point,
     PolarZIndexMap,
     type RequireOptional,
@@ -68,7 +69,6 @@ import type {
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import type { GradientParams } from '../../../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../../../scene/group';

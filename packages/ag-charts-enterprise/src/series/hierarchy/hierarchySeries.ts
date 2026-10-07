@@ -2,10 +2,12 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { ChartAnimationPhase, DynamicContext, NormalisedHierarchySeriesKeys } from 'ag-charts-core';
 import {
     type BoxBounds,
+    ColorScale,
     type Point,
     StateMachine,
     arraysEqual,
     clamp,
+    configureColorScale,
     isFiniteNumericValue,
     isNumericValue,
     mergeDefaults,
@@ -14,13 +16,11 @@ import {
 import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 const {
-    ColorScale,
     PointerEvents,
     SeriesNodePickMode,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
-    configureColorScale,
     createDatumId,
 } = _ModuleSupport;
 

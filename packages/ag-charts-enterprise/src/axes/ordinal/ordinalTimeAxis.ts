@@ -6,9 +6,11 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    APPROXIMATE_THRESHOLD,
     type AxisID,
     type DynamicContext,
     type NormalisedOrdinalTimeAxisOptions,
+    OrdinalTimeScale,
     dateTruncationForDomain,
     intervalEpoch,
     intervalMilliseconds,
@@ -20,16 +22,16 @@ import {
 
 import { ApproximateOrdinalTimeScale } from './approximateOrdinalTimeScale';
 
-const { OrdinalTimeScale, APPROXIMATE_THRESHOLD, minimumTimeAxisDatumGranularity } = _ModuleSupport;
+const { minimumTimeAxisDatumGranularity } = _ModuleSupport;
 
 export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
-    _ModuleSupport.OrdinalTimeScale,
+    OrdinalTimeScale,
     NormalisedOrdinalTimeAxisOptions
 > {
     static override readonly className = 'OrdinalTimeAxis' as const;
     static override readonly type = 'ordinal-time' as const;
 
-    private readonly accurateScale: _ModuleSupport.OrdinalTimeScale;
+    private readonly accurateScale: OrdinalTimeScale;
     private readonly approximateScale: ApproximateOrdinalTimeScale;
 
     override get primaryLabel() {
@@ -79,7 +81,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
      * Returns the active scale based on visible range and data uniformity.
      * Use approximate scale when data is uniform and visible datum count is large.
      */
-    getActiveScale(): _ModuleSupport.OrdinalTimeScale {
+    getActiveScale(): OrdinalTimeScale {
         const visibleBandCount = this.accurateScale.bandCount(this.visibleRange);
         const isUniform = this.accurateScale.getUniformityCache(this.visibleRange)?.isUniform ?? false;
 

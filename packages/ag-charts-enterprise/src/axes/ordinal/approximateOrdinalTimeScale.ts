@@ -1,7 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { ScaleAlignment } from 'ag-charts-core';
-
-const { OrdinalTimeScale } = _ModuleSupport;
+import { OrdinalTimeScale, ScaleAlignment } from 'ag-charts-core';
 
 /**
  * Approximate ordinal time scale using O(1) linear interpolation.
@@ -18,18 +15,18 @@ export class ApproximateOrdinalTimeScale extends OrdinalTimeScale {
         return value instanceof ApproximateOrdinalTimeScale;
     }
 
-    private _sourceScale: _ModuleSupport.OrdinalTimeScale | undefined;
+    private _sourceScale: OrdinalTimeScale | undefined;
 
     /**
      * Set the source scale that this approximate scale delegates to.
      * All property access (domain, range, etc.) will be delegated to the source.
      */
-    setSourceScale(scale: _ModuleSupport.OrdinalTimeScale): void {
+    setSourceScale(scale: OrdinalTimeScale): void {
         this._sourceScale = scale;
 
         // Set up property delegation using Object.defineProperty
         // This allows reads/writes to delegate to the source scale
-        const delegateProperty = (prop: keyof _ModuleSupport.OrdinalTimeScale) => {
+        const delegateProperty = (prop: keyof OrdinalTimeScale) => {
             Object.defineProperty(this, prop, {
                 get: () => scale[prop],
                 set: (value: unknown) => {
@@ -47,7 +44,7 @@ export class ApproximateOrdinalTimeScale extends OrdinalTimeScale {
         delegateProperty('round');
 
         // Delegate computed properties (read-only)
-        const delegateReadOnly = (prop: keyof _ModuleSupport.OrdinalTimeScale) => {
+        const delegateReadOnly = (prop: keyof OrdinalTimeScale) => {
             Object.defineProperty(this, prop, {
                 get: () => scale[prop],
                 configurable: true,

@@ -1,9 +1,8 @@
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
-import { narrowToNumber, normalisedExtentWithMetadata, zeroLike } from 'ag-charts-core';
+import { LogScale, narrowToNumber, normalisedExtentWithMetadata, zeroLike } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import { LogScale } from '../../scale/logScale';
 import { NumberAxis } from './numberAxis';
 
 export class LogAxis extends NumberAxis {

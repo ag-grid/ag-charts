@@ -1,12 +1,11 @@
 import {
+    ColorScale,
     type ColorScaleMode,
     type GradientColorStop,
     type NormalisedGradientColorStop,
     discreteColorStops,
     resolveStopPositions,
 } from 'ag-charts-core';
-
-import { ColorScale } from '../../scale/colorScale';
 
 function getDefaultColorStops(defaultColorStops: string[], fillMode: ColorScaleMode) {
     const stopOffset = fillMode === 'discrete' ? 1 : 0;

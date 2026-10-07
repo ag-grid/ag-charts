@@ -1,11 +1,9 @@
 import { describe, expect, test } from 'vitest';
 
-import { discreteColorStops, resolveStopPositions } from 'ag-charts-core';
+import { ColorScale, configureColorScale, discreteColorStops, resolveStopPositions } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import { buildGradientLegendDatum } from '../../chart/legend/legendDatum';
-import { ColorScale } from '../../scale/colorScale';
-import { configureColorScale } from '../../scale/colorScaleUtil';
 import { getColorStops } from './stops';
 
 describe('stops', () => {

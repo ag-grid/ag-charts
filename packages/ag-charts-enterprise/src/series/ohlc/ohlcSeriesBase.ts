@@ -14,6 +14,7 @@ import {
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
+    BandScale,
     type CallbackParamRules,
     ChartAxisDirection,
     DebugMetrics,
@@ -54,7 +55,6 @@ const {
     animationValidation,
     computeBarFocusBounds,
     visibleRangeIndices,
-    BandScale,
     processedDataIsAnimatable,
     getItemStylesPerItemId,
 } = _ModuleSupport;

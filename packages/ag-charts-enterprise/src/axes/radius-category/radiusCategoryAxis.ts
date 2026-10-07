@@ -1,11 +1,11 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedRadiusCategoryAxisOptions } from 'ag-charts-core';
+import { type BandScale, CategoryScale } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
-const { CategoryScale } = _ModuleSupport;
 export class RadiusCategoryAxis extends RadiusAxis<
-    _ModuleSupport.BandScale<string | object>,
+    BandScale<string | object>,
     string | object,
     NormalisedRadiusCategoryAxisOptions
 > {

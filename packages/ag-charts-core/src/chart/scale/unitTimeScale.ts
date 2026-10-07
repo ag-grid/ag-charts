@@ -1,27 +1,20 @@
-import type {
-    DomainWithMetadata,
-    IntervalRangeNumericResult,
-    NormalizedDomain,
-    ScaleTickParams,
-    ScaleTickResult,
-} from 'ag-charts-core';
+import type { AgTimeInterval, AgTimeIntervalUnit, AgTimeValue } from 'ag-charts-types';
+
+import { findMaxIndex, findMinIndex } from '../../data/binarySearch';
+import type { IntervalRangeNumericResult } from '../../time/range';
 import {
-    ScaleAlignment,
     decodeIntervalValue,
     encodedToTimestamp,
-    findMaxIndex,
-    findMinIndex,
     intervalFloor,
-    intervalMilliseconds,
     intervalNext,
     intervalRange,
     intervalRangeCount,
     intervalRangeNumeric,
-    timeValueToNumber,
-    toTimeInterval,
-} from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit, AgTimeValue } from 'ag-charts-types';
-
+} from '../../time/range';
+import { timeValueToNumber } from '../../time/timeFormatDefaults';
+import { intervalMilliseconds, toTimeInterval } from '../../time/timeInterval';
+import type { DomainWithMetadata, NormalizedDomain, ScaleTickParams, ScaleTickResult } from '../../types/scales';
+import { ScaleAlignment } from '../../types/scales';
 import { normalizeContinuousDomains } from './continuousScale';
 import { DiscreteTimeScale, type UniformityCheck } from './discreteTimeScale';
 

@@ -15,7 +15,9 @@ import type {
 import {
     BaseManager,
     ChartAxisDirection,
+    ContinuousScale,
     Debug,
+    DiscreteTimeScale,
     PanToBBoxScalingModeEnum,
     ScaleAlignment,
     attachDescription,
@@ -47,8 +49,6 @@ import type {
     ZoomMementoRange,
 } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { ContinuousScale } from '../../scale/continuousScale';
-import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';

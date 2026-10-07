@@ -1,19 +1,13 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import {
-    Logger,
-    ambientLogger,
-    computeColorBins,
-    deriveNormalizedStops,
-    formatColorScaleBinLabel,
-} from 'ag-charts-core';
-
+import { Logger, ambientLogger } from '../../logging/logger';
 import { ColorScale } from './colorScale';
-import { configureColorScale } from './colorScaleUtil';
+import { computeColorBins, deriveNormalizedStops, formatColorScaleBinLabel } from './colorScaleUtil';
+import { configureColorScale } from './configureColorScale';
 
 const scaleTestLogger = new Logger();
 
-// Local to this file: `scale*` cannot import the shared test library under `ag-isolated-scales`.
+// Local to this file: core cannot import the shared test library, which depends on core.
 afterEach(() => scaleTestLogger.reset());
 
 describe('computeColorBins', () => {

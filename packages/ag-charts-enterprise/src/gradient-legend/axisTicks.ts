@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     type DynamicContext,
+    LinearScale,
     type NormalisedGradientLegendIntervalOptions,
     type NormalisedGradientLegendLabelOptions,
     type NormalisedTextOrSegments,
@@ -22,7 +23,7 @@ import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
 
-const { LinearScale, BBox, TranslatableGroup, Selection, Text, createAxisLabelFormatterCache, formatAxisLabelValue } =
+const { BBox, TranslatableGroup, Selection, Text, createAxisLabelFormatterCache, formatAxisLabelValue } =
     _ModuleSupport;
 
 interface TickDatum {

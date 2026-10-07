@@ -1,17 +1,11 @@
-import type { Logger, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
-import {
-    TickIntervals,
-    dateToNumber,
-    defaultEpoch,
-    getTickTimeInterval,
-    intervalRange,
-    intervalRangeStartIndex,
-    intervalStep,
-    isDenseInterval,
-    timeValueToNumber,
-} from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, AgTimeValue } from 'ag-charts-types';
 
+import type { Logger } from '../../logging/logger';
+import { intervalRange, intervalRangeStartIndex } from '../../time/range';
+import { TickIntervals, defaultEpoch, getTickTimeInterval, isDenseInterval } from '../../time/ticks';
+import { dateToNumber, timeValueToNumber } from '../../time/timeFormatDefaults';
+import { intervalStep } from '../../time/timeInterval';
+import type { ScaleTickParams, ScaleTickResult } from '../../types/scales';
 import { ContinuousScale } from './continuousScale';
 
 const sunday = new Date(1970, 0, 4);

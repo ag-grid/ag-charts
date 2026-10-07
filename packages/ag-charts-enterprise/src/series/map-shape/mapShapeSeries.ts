@@ -16,7 +16,9 @@ import type {
     Position,
 } from 'ag-charts-core';
 import {
+    ColorScale,
     cachedTextMeasurer,
+    configureColorScale,
     findDiscreteColorBinLabel,
     fitLabelTextToRegionAutoSize,
     formatValue,
@@ -55,11 +57,9 @@ const {
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
-    configureColorScale,
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
-    ColorScale,
     Group,
     Selection,
     Text,

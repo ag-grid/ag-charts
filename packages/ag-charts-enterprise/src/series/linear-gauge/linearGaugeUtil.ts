@@ -1,6 +1,7 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
 import {
     type InternalAgGradientColor,
+    type LinearScale,
     type NormalisedGaugeColorStop,
     type NormalisedGaugeSeriesStyle,
     type NormalisedLinearGaugeBarOptions,
@@ -26,7 +27,7 @@ export function createLinearGradient(
     fills: NormalisedGaugeColorStop[] | undefined,
     fillMode: AgGaugeFillMode,
     defaultColorRange: string[],
-    scale: _ModuleSupport.LinearScale,
+    scale: LinearScale,
     horizontal: boolean
 ): InternalAgGradientColor {
     // Colour-stop positions are fractional thresholds, so Number is exact enough here.
@@ -46,7 +47,7 @@ export function getLinearGaugeBarStyle(
     bar: NormalisedLinearGaugeBarOptions,
     defaultColorRange: string[],
     horizontal: boolean,
-    scale: _ModuleSupport.LinearScale
+    scale: LinearScale
 ): Required<NormalisedGaugeSeriesStyle> {
     const { fill, fills, fillMode, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = bar;
     const barFill = fill ?? createLinearGradient(fills, fillMode, defaultColorRange, scale, horizontal);
@@ -58,7 +59,7 @@ export function getLinearGaugeScaleStyle(
     barEnabled: boolean,
     defaultColorRange: string[],
     horizontal: boolean,
-    scale: _ModuleSupport.LinearScale
+    scale: LinearScale
 ): Required<NormalisedGaugeSeriesStyle> {
     const {
         fill,

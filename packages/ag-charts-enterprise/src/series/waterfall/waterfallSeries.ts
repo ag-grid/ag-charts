@@ -7,6 +7,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    BandScale,
     type BarPlacedLabelDatum,
     type BoxBounds,
     type CallbackParamRules,
@@ -89,7 +90,6 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     computeBarFocusBounds,
-    BandScale,
     Rect,
     motion,
     getItemId,

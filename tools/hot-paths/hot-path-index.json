@@ -67,10 +67,9 @@
                 "packages/ag-charts-community/src/chart/chart.ts",
                 "packages/ag-charts-community/src/chart/series/seriesAreaManager.ts",
                 "packages/ag-charts-community/src/chart/series/pickManager.ts",
-                "packages/ag-charts-community/src/scale/**",
+                "packages/ag-charts-core/src/chart/scale/**",
                 "packages/ag-charts-community/src/dom/**",
                 "packages/ag-charts-enterprise/src/features/**",
-                "packages/ag-charts-core/src/chart/scale/scaleUtil.ts",
                 "packages/ag-charts-core/src/time/timeFormatUtil.ts"
             ],
             "invariants": [
