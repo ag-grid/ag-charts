@@ -169,7 +169,7 @@ describe('BoxPlotNode', () => {
         });
     });
 
-    describe.each([0.5, 1, 2, 3])('silhouette shadow at a device pixel ratio of %i', (pixelRatio) => {
+    describe.each([0.5, 1, 2, 3])('silhouette shadow at a device pixel ratio of %s', (pixelRatio) => {
         const canvasCtx = setupMockCanvas({ width: 400 * pixelRatio, height: 220 * pixelRatio });
 
         it('should not leave a sliver on the left edge for a crisp box plot with theme default strokes', () => {
@@ -218,17 +218,21 @@ describe('BoxPlotNode', () => {
             expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
         });
 
-        it('should not leave a sliver on the left edge for a crisp box plot with a 1px round-joined stroke', () => {
-            const node = boxPlot({
-                max: 360.5,
-                strokeWidth: 1,
-                lineJoin: 'round',
-                wickStrokeWidth: 1,
-                crisp: true,
-            });
-            renderNode(canvasCtx, node, pixelRatio);
+        // The alignment snaps a whisker end outward at some ratios and inward at others, so try a few ends.
+        it.each([360.5, 361, 363])(
+            'should not leave a sliver on the left edge for a crisp box plot with a 1px round-joined stroke and max %s',
+            (max) => {
+                const node = boxPlot({
+                    max,
+                    strokeWidth: 1,
+                    lineJoin: 'round',
+                    wickStrokeWidth: 1,
+                    crisp: true,
+                });
+                renderNode(canvasCtx, node, pixelRatio);
 
-            expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
-        });
+                expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
+            }
+        );
     });
 });

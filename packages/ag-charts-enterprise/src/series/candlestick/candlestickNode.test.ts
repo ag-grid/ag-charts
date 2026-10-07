@@ -151,7 +151,7 @@ describe('CandlestickNode', () => {
         });
     });
 
-    describe.each([0.5, 1, 2, 3])('silhouette shadow at a device pixel ratio of %i', (pixelRatio) => {
+    describe.each([0.5, 0.6, 1, 2, 3])('silhouette shadow at a device pixel ratio of %s', (pixelRatio) => {
         const canvasCtx = setupMockCanvas({ width: 400 * pixelRatio, height: 220 * pixelRatio });
 
         it('should not leave a sliver on the left edge for a crisp candlestick without a stroke', () => {
@@ -161,11 +161,15 @@ describe('CandlestickNode', () => {
             expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
         });
 
-        it('should not leave a sliver on the left edge for a crisp candlestick with a 1px round-joined stroke', () => {
-            const node = candlestick({ crisp: true, strokeWidth: 1, lineJoin: 'round', centerX: 100.5, width: 5 });
-            renderNode(canvasCtx, node, pixelRatio);
+        // The alignment snaps the body outward at some ratios and inward at others, so try a few centres.
+        it.each([100.5, 101, 102.5, 103])(
+            'should not leave a sliver on the left edge for a crisp candlestick with a 1px round-joined stroke at x %s',
+            (centerX) => {
+                const node = candlestick({ crisp: true, strokeWidth: 1, lineJoin: 'round', centerX, width: 5 });
+                renderNode(canvasCtx, node, pixelRatio);
 
-            expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
-        });
+                expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
+            }
+        );
     });
 });
