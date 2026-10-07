@@ -1,4 +1,5 @@
-import type { DatumDefault, Ratio } from '../../chart/types';
+import type { CssColor, DatumDefault, PixelSize, Ratio } from '../../chart/types';
+import type { TextOptions, Toggleable } from '../../series/cartesian/commonOptions';
 
 export type AgPriceVolumeChartType =
     'candlestick' | 'hollow-candlestick' | 'ohlc' | 'line' | 'step-line' | 'hlc' | 'high-low';
@@ -112,6 +113,47 @@ export interface AgVolumeProfileOptions {
      * Default: `0.5`
      */
     widthRatio?: Ratio;
+    /** A fixed-width column showing each level's total volume, set between the price axis and the up and down bars. */
+    totalSegment?: AgVolumeProfileTotalSegmentOptions;
+}
+
+export interface AgVolumeProfileTotalSegmentOptions {
+    /** Whether to show the total volume segment.
+     *
+     * Default: `false`
+     */
+    enabled?: boolean;
+    /** The fill of each level's block.
+     *
+     * Default: the theme's blue
+     */
+    fill?: CssColor;
+    /** The width of the segment, in pixels. The series area shrinks to make room for it.
+     *
+     * Default: just wide enough for the widest label, but no less than `minWidth`
+     */
+    width?: PixelSize;
+    /** The least width of the segment, in pixels, when `width` is not set.
+     *
+     * Default: `60`
+     */
+    minWidth?: PixelSize;
+    /** The label showing each level's total volume. Text too wide for the segment is truncated. */
+    label?: AgVolumeProfileTotalSegmentLabelOptions;
+}
+
+export interface AgVolumeProfileTotalSegmentLabelOptions extends Toggleable, TextOptions {
+    /** A function that converts a level's total volume into the text to display. Without one, the value is abbreviated with a suffix, such as `1.2K` or `3.4M`. */
+    formatter?: (params: AgVolumeProfileTotalSegmentLabelFormatterParams) => string;
+}
+
+export interface AgVolumeProfileTotalSegmentLabelFormatterParams {
+    /** The level's total volume. */
+    value: number;
+    /** The level's price. */
+    price: unknown;
+    /** The grouped level the total was read from. */
+    datum: DatumDefault;
 }
 
 type AgVolumeProfilePlacement = 'left' | 'right';

@@ -5,10 +5,11 @@ import type {
     AgCategoryAxisOptions,
     AgNumberAxisOptions,
     AgVolumeProfileChartPreset,
+    AgVolumeProfileTotalSegmentOptions,
     DatumDefault,
 } from 'ag-charts-types';
 
-import { createVolumeProfileSeries } from './volumeProfile';
+import { createTotalSegmentAxisOptions, createVolumeProfileSeries } from './volumeProfile';
 
 type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
 
@@ -19,6 +20,7 @@ export function volumeProfileChart(
 ): AgCartesianChartOptions<DatumDefault, never> {
     const {
         data = [],
+        totalSegment,
         // Read by the preset's `transformSeriesData`, or resolved against its `themeTemplate`; pulled out here
         // only to keep them out of `unusedOpts`.
         priceKey: _priceKey,
@@ -35,18 +37,19 @@ export function volumeProfileChart(
         legend: { enabled: false },
         series: createVolumeProfileSeries(getTheme, 'x'),
         axes: {
-            ...createPriceAxis(),
+            ...createPriceAxis(totalSegment),
             ...createVolumeAxis(),
         },
         ...unusedOpts,
     } satisfies AgCartesianChartOptions<DatumDefault, never>;
 }
 
-function createPriceAxis() {
+function createPriceAxis(totalSegment: AgVolumeProfileTotalSegmentOptions | undefined) {
     return {
         x: {
             type: 'category',
             position: 'left',
+            ...createTotalSegmentAxisOptions(totalSegment, 'left'),
         } satisfies AgCategoryAxisOptions,
     };
 }

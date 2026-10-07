@@ -487,6 +487,26 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
         placement: union('on', 'between'),
     },
     skipNullBars: boolean,
+    // Set by the Volume Profile presets for the enterprise `axisInsetValue` plugin, which draws a column of
+    // per-category values between the axis and the series area.
+    ...undocumentedDefs({
+        axisInsetValue: {
+            enabled: boolean,
+            position: union('left', 'right', 'top', 'bottom'),
+            width: positiveNumber,
+            minWidth: positiveNumber,
+            fill: colorOrRef,
+            fillOpacity: ratio,
+            categoryKey: string,
+            valueKey: string,
+            label: {
+                enabled: boolean,
+                ...fontOptionsDef,
+                padding: positiveNumber,
+                formatter: callback,
+            },
+        },
+    }),
 };
 
 export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOptions> = {

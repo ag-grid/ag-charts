@@ -18,10 +18,12 @@ import {
 } from 'ag-charts-core';
 import type { AgBaseFinancialPresetOptions, AgPriceVolumePreset } from 'ag-charts-types';
 
+import { AxisInsetValueModule } from '../../features/axis-inset-value/axisInsetValueModule';
 import { ChartToolbarModule } from '../../features/chart-toolbar/chartToolbarModule';
 import { StatusBarModule } from '../../features/status-bar/statusBarModule';
 import { CandlestickSeriesModule } from '../../series/candlestick/candlestickModule';
 import { RangeBarSeriesModule } from '../../series/range-bar/rangeBarModule';
+import { volumeProfileTotalSegmentOptionsDef } from '../volume-profile/volumeProfile';
 import { priceVolume } from './priceVolumePreset';
 import { annotationsTheme } from './priceVolumePresetTheme';
 
@@ -43,6 +45,7 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
         downKey: required(string),
         placement: union('left', 'right'),
         widthRatio: ratio,
+        totalSegment: volumeProfileTotalSegmentOptionsDef,
     },
     tickSize: positiveNumberNonZero,
     rangeButtons: boolean,
@@ -78,7 +81,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
     name: 'price-volume',
     apiName: 'AgCharts.createFinancialChart',
     enterprise: true,
-    dependencies: [ChartToolbarModule, StatusBarModule],
+    dependencies: [ChartToolbarModule, StatusBarModule, AxisInsetValueModule],
     version: VERSION,
 
     options: priceVolumeOptionsDef,

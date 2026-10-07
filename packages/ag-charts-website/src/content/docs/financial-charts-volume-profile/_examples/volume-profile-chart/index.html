@@ -29,6 +29,20 @@
             <input type="radio" id="tick-5" name="tick-size" value="5" onchange="changeTickSize(event)" />
             <label for="tick-5">5</label>
         </div>
+        <span class="gap-left">Total Segment:</span>
+        <div class="button-group" role="group" aria-label="Total Segment">
+            <input
+                type="radio"
+                id="total-off"
+                name="total-segment"
+                value="off"
+                checked
+                onchange="toggleTotalSegment(event)"
+            />
+            <label for="total-off">Off</label>
+            <input type="radio" id="total-on" name="total-segment" value="on" onchange="toggleTotalSegment(event)" />
+            <label for="total-on">On</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

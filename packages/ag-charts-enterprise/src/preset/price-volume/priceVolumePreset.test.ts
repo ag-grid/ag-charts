@@ -21,6 +21,7 @@ import type {
 
 import { setupEnterpriseModules } from '../../setup';
 import { getStockData } from '../test/stockData';
+import { totalSegmentBlocks, totalSegmentLabels } from '../test/totalSegment';
 import { getIrregularVolumeProfile, getRegularVolumeProfile } from '../test/volumeProfileData';
 import { priceVolume } from './priceVolumePreset';
 
@@ -183,6 +184,14 @@ describe('priceVolumePreset', () => {
             'smaller tick size': { data: getStockData(), volumeProfile, tickSize: 1 },
             'matching tick size': { data: getStockData(), volumeProfile, tickSize: 2.5 },
             'larger tick size': { data: getStockData(), volumeProfile, tickSize: 5 },
+            'total segment placement left': {
+                data: getStockData(),
+                volumeProfile: { ...volumeProfile, placement: 'left', totalSegment: { enabled: true } },
+            },
+            'total segment placement right': {
+                data: getStockData(),
+                volumeProfile: { ...volumeProfile, placement: 'right', totalSegment: { enabled: true } },
+            },
             'irregular data': {
                 data: getStockData(),
                 volumeProfile: { ...volumeProfile, data: getIrregularVolumeProfile() },
@@ -196,6 +205,58 @@ describe('priceVolumePreset', () => {
                 await compare();
             }
         );
+
+        describe('total segment', () => {
+            it.each(['left', 'right'] as const)(
+                'should reserve a fixed-width strip for placement %s',
+                async (placement) => {
+                    chart = AgCharts.createFinancialChart(
+                        prepareFinancialTestOptions({
+                            data: getStockData(),
+                            volumeProfile: { ...volumeProfile, placement },
+                        })
+                    );
+                    await waitForChartStability(chart);
+                    const widthWithout = deproxy(chart).seriesRect!.width;
+                    expect(totalSegmentBlocks(chart)).toHaveLength(0);
+
+                    await chart.updateDelta({ volumeProfile: { totalSegment: { enabled: true, width: 50 } } });
+                    await waitForChartStability(chart);
+
+                    const blocks = totalSegmentBlocks(chart);
+                    expect(blocks.length).toBeGreaterThan(0);
+                    expect(new Set(blocks.map((block) => block.width))).toEqual(new Set([50]));
+                    expect(totalSegmentLabels(chart).length).toBeGreaterThan(0);
+                    expect(widthWithout - deproxy(chart).seriesRect!.width).toBe(50);
+
+                    await chart.updateDelta({ volumeProfile: { totalSegment: { enabled: false } } });
+                    await waitForChartStability(chart);
+                    expect(totalSegmentBlocks(chart)).toHaveLength(0);
+                    expect(deproxy(chart).seriesRect!.width).toBe(widthWithout);
+                }
+            );
+
+            it('should only draw blocks for the levels in a zoomed range', async () => {
+                const create = async (initialState?: AgFinancialChartOptions['initialState']) => {
+                    chart = AgCharts.createFinancialChart(
+                        prepareFinancialTestOptions({
+                            data: getStockData(),
+                            volumeProfile: { ...volumeProfile, totalSegment: { enabled: true } },
+                            initialState,
+                        })
+                    );
+                    await waitForChartStability(chart);
+                    const count = totalSegmentBlocks(chart).length;
+                    chart.destroy();
+                    return count;
+                };
+
+                const all = await create();
+                const zoomed = await create({ zoom: { ratioY: { start: 0.5, end: 1 } } });
+                expect(zoomed).toBeGreaterThan(0);
+                expect(zoomed).toBeLessThan(all);
+            });
+        });
 
         it('should render no volume profile when enabled is false', async () => {
             chart = AgCharts.createFinancialChart(

@@ -12,3 +12,20 @@ A Volume Profile shows the traded volume at each price level alongside the price
 Use `AgCharts.createVolumeProfileChart()` to show a Volume Profile on its own, against a price axis.
 
 {% chartExampleRunner title="Volume Profile Chart" name="volume-profile-chart" type="generated" /%}
+
+## Total Segment
+
+Set `totalSegment.enabled` to show a column of filled blocks between the price axis and the bars. Each block sits level with a price level and is labelled with the total volume traded at that price. Price levels with no volume have no block. The column is not a series: the series area gets narrower to make room for it, in the same way as it does for an axis.
+
+Totals are abbreviated with a suffix, such as `1.2K` or `3.4M`; supply a `label.formatter` to show them differently. The column is as wide as its widest label, but never narrower than `minWidth` (60 pixels by default). Set `width` (in pixels) to fix the width instead, in which case labels that do not fit are shortened. The `fill` and `label` can also be customised. Labels are hidden when the price levels are too close together to read.
+
+```js format="snippet"
+{
+    totalSegment: {
+        enabled: true,
+        minWidth: 80,
+        fill: '#5090dc',
+        label: { formatter: ({ value }) => value.toLocaleString() },
+    },
+}
+```
