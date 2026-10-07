@@ -5,6 +5,7 @@ import type {
     RichFormatter,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelCollisionOptions } from '../../chart/collisionAvoidanceOptions';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
@@ -193,7 +194,7 @@ export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOpti
     maxHeight?: PixelSize;
     /**
      * Maximum width of the card in pixels. When set, long text content wraps onto
-     * multiple lines (subject to each text tier's `wrapping` and `overflowStrategy`)
+     * multiple lines (subject to each text tier's `wrapping` and `truncate`)
      * instead of pushing the card wider, so cards do not overlap on tightly packed
      * graphs.
      */
@@ -261,7 +262,26 @@ export interface AgOrganizationSeriesOptionsNodeLabel<
 export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssOptions, StrokeOptions, Toggleable {
     /** The colour to use for the node text. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
+    /**
+     * Adjusts the behaviour of the text when it overflows the node.
+     * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
+     * - `'hide'` only displays the text if it completely fits within the node, and removes it if it would overflow
+     *
+     * @deprecated v14.3.0 Use `truncate` instead.
+     */
     overflowStrategy?: OverflowStrategy;
+    /**
+     * Whether to truncate the text with an ellipsis when it does not fit within the node after wrapping. When
+     * `false`, text that does not fit is hidden instead.
+     *
+     * The text is fitted to the node's `width` (or `maxWidth`), and also to its `height` (or `maxHeight`) when
+     * one is set.
+     *
+     * Default: `true`
+     */
+    truncate?: boolean;
+    /** Controls what happens to text that still does not fit within the node after wrapping and truncation. */
+    collision?: AgOrganizationSeriesNodeTextCollisionOptions;
     spacing?: number;
     textAlign?: TextAlign;
     wrapping?: TextWrap;
@@ -269,6 +289,24 @@ export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssO
     cornerRadius?: PixelSize;
     /** Padding between the text and the backing box edge. Has no effect unless `fill` or `stroke` is set. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
+}
+
+export interface AgOrganizationSeriesNodeTextCollisionOptions extends AgChartLabelCollisionOptions {
+    /**
+     * Space in pixels kept between the text and the edge of the space available to it in the node. A positive
+     * value fits the text earlier; a negative value lets it run past the available space by that many pixels
+     * before it is fitted.
+     *
+     * Default: `0`
+     */
+    threshold?: PixelSize;
+    /**
+     * Whether to keep text that does not fit within the node even after wrapping and truncation. When `true` the
+     * text stays visible, clipped by the node; when `false` it is hidden.
+     *
+     * Default: `false`
+     */
+    alwaysShow?: boolean;
 }
 
 export interface AgOrganizationSeriesOptionsKeys {

@@ -145,7 +145,12 @@ const nodeTextStyleDef = {
     cornerRadius: positiveNumber,
     padding: padding,
     enabled: boolean,
-    overflowStrategy: overflowStrategy,
+    overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
+    truncate: boolean,
+    collision: {
+        threshold: number,
+        alwaysShow: boolean,
+    },
     spacing: number,
     textAlign: textAlign,
     wrapping: textWrap,

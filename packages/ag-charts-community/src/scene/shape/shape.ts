@@ -8,6 +8,7 @@ import type {
     SerializedShapeProps,
 } from 'ag-charts-core';
 import {
+    Color,
     DeclaredSceneChangeDetection,
     DeclaredSceneObjectChangeDetection,
     SceneArrayChangeDetection,
@@ -39,6 +40,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { BBox } from '../bbox';
+import { getSpreadCanvas } from '../canvas/spreadCanvas';
 import { ConicGradient } from '../gradient/conicGradient';
 import { Gradient, type GradientParams } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
@@ -52,6 +54,76 @@ export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
 /**
+ * The miter limit of the stroke that dilates a shape for its shadow `spread`. Right angles keep their sharp corners,
+ * like a CSS `box-shadow` spread, while acute vertices are bevelled instead of spiking out.
+ */
+const DILATION_MITER_LIMIT = 2;
+
+/** The alpha of a plain colour, which a shadow cast from an opaque copy of the shape has to follow. */
+function colourAlpha(colour: unknown): number {
+    if (!isString(colour)) return 1;
+    try {
+        return Color.fromString(colour).a;
+    } catch {
+        return 1;
+    }
+}
+
+interface SpreadBounds {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+    canvasWidth?: number;
+    canvasHeight?: number;
+    shadowX: number;
+    shadowY: number;
+    blur: number;
+}
+
+/** The device-space bounds of the shape whose spread shadow is being drawn, reused to avoid a per-shape allocation. */
+const spreadBounds: SpreadBounds = {
+    minX: 0,
+    minY: 0,
+    maxX: 0,
+    maxY: 0,
+    canvasWidth: undefined,
+    canvasHeight: undefined,
+    shadowX: 0,
+    shadowY: 0,
+    blur: 0,
+};
+
+/** The region of the layer that the spread shadow being drawn needs, reused to avoid a per-shape allocation. */
+const spreadRegion = { x: 0, y: 0, width: 0, height: 0, maxWidth: 0, maxHeight: 0 };
+
+/**
+ * Sets the region of the layer that a spread shadow has to draw: only the part of the silhouette whose shadow can land
+ * on the canvas. Returns false when there is none.
+ */
+function setSpreadRegion(): boolean {
+    const { minX, minY, maxX, maxY, canvasWidth, canvasHeight, shadowX, shadowY, blur } = spreadBounds;
+    const blurReach = Math.ceil(blur * 1.5);
+    const left = Math.floor(canvasWidth == null ? minX : Math.max(minX, -shadowX - blurReach));
+    const top = Math.floor(canvasHeight == null ? minY : Math.max(minY, -shadowY - blurReach));
+    const right = Math.ceil(canvasWidth == null ? maxX : Math.min(maxX, canvasWidth - shadowX + blurReach));
+    const bottom = Math.ceil(canvasHeight == null ? maxY : Math.min(maxY, canvasHeight - shadowY + blurReach));
+    // Not capped to the canvas: the region can be `2 × blurReach` larger, so the blurred edge falls off the canvas.
+    const width = right - left;
+    const height = bottom - top;
+    if (!(isFiniteNumber(width) && isFiniteNumber(height) && width > 0 && height > 0)) return false;
+
+    spreadRegion.x = left;
+    spreadRegion.y = top;
+    spreadRegion.width = width;
+    spreadRegion.height = height;
+    // The region never exceeds the canvas plus the blur margin on each side, so that is the largest scratch canvas needed.
+    spreadRegion.maxWidth = canvasWidth == null ? width : canvasWidth + 2 * blurReach;
+    spreadRegion.maxHeight = canvasHeight == null ? height : canvasHeight + 2 * blurReach;
+    return true;
+}
+
+/**
  * Which part of a shape casts its {@link Shape.fillShadow}: `fill` (default), `stroke`, or `silhouette` (both).
  * `silhouette` isn't a true union: overlapping fill and stroke shadows stack. `Path`, `Line` and `Marker` support it;
  * `Rect` and `BarShape` fall back to `fill`.
@@ -60,6 +132,7 @@ export type ShapeShadowMode = 'fill' | 'stroke' | 'silhouette';
 
 export type CanvasContext = CanvasFillStrokeStyles &
     CanvasCompositing &
+    CanvasDrawImage &
     CanvasShadowStyles &
     CanvasPathDrawingStyles &
     CanvasDrawPath &
@@ -139,6 +212,28 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     private createImage(fill: AgImageFill) {
         return new Image(this.imageLoader, fill);
+    }
+
+    /** The alpha of {@link _alphaFill}, so a spread shadow doesn't re-parse an unchanged fill on every render. */
+    private _alphaFill?: ShapeColor;
+    private _fillAlpha: number = 1;
+    private getFillAlpha(fill: ShapeColor): number {
+        if (fill !== this._alphaFill) {
+            this._alphaFill = fill;
+            this._fillAlpha = colourAlpha(fill);
+        }
+        return this._fillAlpha;
+    }
+
+    /** The alpha of {@link _alphaStroke}, cached like {@link _fillAlpha}. */
+    private _alphaStroke?: ShapeColor;
+    private _strokeAlpha: number = 1;
+    private getStrokeAlpha(stroke: ShapeColor | undefined): number {
+        if (stroke !== this._alphaStroke) {
+            this._alphaStroke = stroke;
+            this._strokeAlpha = colourAlpha(stroke);
+        }
+        return this._strokeAlpha;
     }
 
     private _cachedFill?: ShapeColor;
@@ -250,6 +345,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     shadowMode: ShapeShadowMode = 'fill';
     declare __shadowMode: ShapeShadowMode; // optimised field accessor
 
+    /** How much wider than the shape the spread shadow's stroke is drawn. Zero except while that stroke is drawn. */
+    protected shadowStrokeGrowth: number = 0;
+
     /** Lets a shape that can't honour every {@link ShapeShadowMode} fall back to a supported one. */
     protected onShadowModeChange() {
         // Nothing to do by default.
@@ -283,17 +381,44 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             ctx.globalCompositeOperation = 'source-over';
         }
 
-        // Without a Path2D (e.g. Line) the pre-pass can't be moved by the transform, so renderStroke shadows instead.
-        if (this.__shadowMode === 'silhouette' && path != null) {
-            this.renderSilhouetteShadow(ctx, logger, path, bboxOverride, fillBBoxOverride);
+        if (path != null && this.castsShadowFromPrePass()) {
+            this.renderShadowPrePass(ctx, logger, path, bboxOverride, fillBBoxOverride);
         }
 
         this.renderFill(ctx, logger, path, bboxOverride, fillBBoxOverride);
         this.renderStroke(ctx, path, bboxOverride);
     }
 
+    /**
+     * Whether the shadow is cast by the off-canvas pre-pass rather than inline with the fill or stroke. That is the
+     * `silhouette` mode, and any mode with a `spread`, which has to dilate a copy of the shape. Without a Path2D
+     * (e.g. Line) the pre-pass can't be moved by the transform, so the stroke casts the shadow inline instead.
+     */
+    private castsShadowFromPrePass(): boolean {
+        const shadow = this.__fillShadow;
+        if (shadow?.enabled !== true) return false;
+        return this.__shadowMode === 'silhouette' || (shadow.spread ?? 0) > 0;
+    }
+
+    /** True when the shape paints a stroke, which {@link renderStroke} skips otherwise. */
+    private hasVisibleStroke(): boolean {
+        const { __stroke: stroke, __strokeWidth: strokeWidth = 0, __strokeOpacity: strokeOpacity = 1 } = this;
+        return stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0;
+    }
+
+    /** How far the pre-pass's strokes reach past the shape's bounds, in the shape's own units. */
+    private getShadowStrokeReach(spread: number): number {
+        const fillOnly = this.__shadowMode === 'fill';
+        const halfStroke = (fillOnly ? 0 : this.getSilhouetteStrokeWidth() / 2) + spread;
+        // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
+        const miterLimit = fillOnly ? DILATION_MITER_LIMIT : (this.__miterLimit ?? 10);
+        const joinReach = fillOnly || (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * miterLimit : halfStroke;
+        // A square cap reaches a half-stroke along the diagonal.
+        return spread > 0 ? Math.max(joinReach, halfStroke * Math.SQRT2) : joinReach;
+    }
+
     /** Draws the shape off-canvas and shifts only its shadow back, so the stroke's shadow never lands on the fill. */
-    private renderSilhouetteShadow(
+    private renderShadowPrePass(
         ctx: CanvasContext,
         logger: Logger,
         path: Path2D,
@@ -317,18 +442,20 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const reach = shadow.blur * pixelRatio;
         const shadowX = shadow.xOffset * pixelRatio;
         const shadowY = shadow.yOffset * pixelRatio;
+        const spread = shadow.spread ?? 0;
 
         // `ctx` already has the shape's own transform, so the local bbox is taken to device space through it.
-        const { a, b, c, d, e, f } = ctx.getTransform();
+        const matrix = ctx.getTransform();
+        const { a, b, c, d, e, f } = matrix;
         const localBBox: BBox | undefined =
             bboxOverride ?? (hasLocalTransform(this) ? this.computeBBoxWithoutTransforms() : this.getBBox());
-        // Without bounds, the canvas width is as far right as a shape that is on the canvas can reach.
-        let maxX = canvasWidth ?? 0;
+        // Without bounds, the canvas width plus the dilation is as far right as a shape on the canvas can reach.
+        let minX = 0;
+        let minY = 0;
+        let maxX = (canvasWidth ?? 0) + spread * pixelRatio;
+        let maxY = canvasHeight ?? 0;
         if (localBBox != null) {
-            // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
-            const halfStroke = this.getSilhouetteStrokeWidth() / 2;
-            const strokeReach =
-                (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * (this.__miterLimit ?? 10) : halfStroke;
+            const strokeReach = this.getShadowStrokeReach(spread);
             const halfWidth = localBBox.width / 2 + strokeReach;
             const halfHeight = localBBox.height / 2 + strokeReach;
             const centreX = localBBox.x + localBBox.width / 2;
@@ -337,8 +464,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             const deviceCentreY = b * centreX + d * centreY + f;
             const reachX = Math.abs(a) * halfWidth + Math.abs(c) * halfHeight;
             const reachY = Math.abs(b) * halfWidth + Math.abs(d) * halfHeight;
-            const minX = deviceCentreX - reachX;
+            minX = deviceCentreX - reachX;
             maxX = deviceCentreX + reachX;
+            minY = deviceCentreY - reachY;
+            maxY = deviceCentreY + reachY;
 
             if (canvasWidth != null && canvasHeight != null) {
                 // The visible blur extends to about 1.5 × `blur`.
@@ -346,8 +475,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 const offCanvas =
                     maxX + shadowX + blurReach < 0 ||
                     minX + shadowX - blurReach > canvasWidth ||
-                    deviceCentreY + reachY + shadowY + blurReach < 0 ||
-                    deviceCentreY - reachY + shadowY - blurReach > canvasHeight;
+                    maxY + shadowY + blurReach < 0 ||
+                    minY + shadowY - blurReach > canvasHeight;
                 if (offCanvas) return;
             }
         }
@@ -360,6 +489,22 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             !isFiniteNumber(shadowX) ||
             !isFiniteNumber(shadowY)
         ) {
+            return;
+        }
+
+        if (spread > 0) {
+            spreadBounds.minX = minX;
+            spreadBounds.minY = minY;
+            spreadBounds.maxX = maxX;
+            spreadBounds.maxY = maxY;
+            spreadBounds.canvasWidth = canvasWidth;
+            spreadBounds.canvasHeight = canvasHeight;
+            spreadBounds.shadowX = shadowX;
+            spreadBounds.shadowY = shadowY;
+            spreadBounds.blur = reach;
+            if (setSpreadRegion()) {
+                this.castSpreadShadow(ctx, logger, path, matrix, spread, distance, bboxOverride, fillBBoxOverride);
+            }
             return;
         }
 
@@ -380,9 +525,112 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         ctx.restore();
     }
 
+    /**
+     * Draws the shape, dilated by `spread`, opaque into the layer's scratch canvas, then blits that off-canvas so that
+     * a single draw casts the shadow. Two draws (fill, then a stroke) would stack their shadows where they overlap.
+     */
+    private castSpreadShadow(
+        ctx: CanvasContext,
+        logger: Logger,
+        path: Path2D,
+        matrix: DOMMatrix,
+        spread: number,
+        distance: number,
+        bboxOverride?: BBox,
+        fillBBoxOverride?: BBox
+    ) {
+        const { __fill: fill, __fillOpacity: fillOpacity = 1, __shadowMode: mode } = this;
+        const { x, y, width, height, maxWidth, maxHeight } = spreadRegion;
+
+        const fillAlpha =
+            mode === 'stroke' || fill == null || fill === 'none' || fillOpacity <= 0 ? 0 : this.getFillAlpha(fill);
+        const drawsFill = fillAlpha > 0;
+        // A transparent stroke colour casts nothing, so it must not suppress the extras' shadow below.
+        const strokeAlpha = mode !== 'fill' && this.hasVisibleStroke() ? this.getStrokeAlpha(this.__stroke) : 0;
+        const drawsStroke = strokeAlpha > 0;
+        const extrasOpacity = mode === 'fill' ? 0 : this.getSilhouetteExtrasOpacity();
+        if (!drawsFill && !drawsStroke && extrasOpacity <= 0) return;
+
+        // The shadow is as strong as what casts it, as it is without a spread.
+        const globalAlpha = ctx.globalAlpha;
+        let strength = 1;
+        if (drawsFill) {
+            this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
+            strength = fillAlpha;
+        } else if (drawsStroke) {
+            this.applyStrokeAndAlpha(ctx, bboxOverride);
+            strength = strokeAlpha;
+        } else {
+            strength = extrasOpacity * (this.__opacity ?? 1);
+        }
+        strength *= ctx.globalAlpha;
+        ctx.globalAlpha = globalAlpha;
+        if (strength <= 0) return;
+
+        const { canvas, context: scratch } = getSpreadCanvas(ctx, width, height, maxWidth, maxHeight);
+        scratch.setTransform(1, 0, 0, 1, 0, 0);
+        scratch.clearRect(0, 0, width, height);
+        scratch.save();
+        scratch.setTransform(matrix.a, matrix.b, matrix.c, matrix.d, matrix.e - x, matrix.f - y);
+        scratch.fillStyle = '#000';
+        scratch.strokeStyle = '#000';
+
+        // The dilation is always solid, and an open stroke is capped so that its ends spread too.
+        const lineCap = this.__lineCap;
+        if (mode === 'fill') {
+            scratch.lineCap = 'round';
+        } else {
+            scratch.lineCap = lineCap == null || lineCap === 'butt' ? 'square' : lineCap;
+        }
+        scratch.lineJoin = drawsStroke ? (this.__lineJoin ?? 'miter') : 'miter';
+        scratch.miterLimit = drawsStroke ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
+        scratch.lineWidth = (drawsStroke ? this.__strokeWidth : 0) + spread * 2;
+
+        if (drawsFill) {
+            this.executeFill(scratch, path);
+        }
+        if (drawsStroke) {
+            this.shadowStrokeGrowth = spread * 2;
+            try {
+                this.executeStroke(scratch, path);
+            } finally {
+                this.shadowStrokeGrowth = 0;
+            }
+        } else if (drawsFill) {
+            this.dilateFill(scratch, path);
+        }
+        if (mode !== 'fill') {
+            this.dilateSilhouetteExtras(scratch, spread * 2);
+        }
+        scratch.restore();
+
+        ctx.save();
+        ctx.resetTransform();
+        this.applyShadow(ctx);
+        ctx.shadowOffsetX += distance;
+        ctx.globalAlpha = strength;
+        ctx.drawImage(canvas, 0, 0, width, height, x - distance, y, width, height);
+        ctx.restore();
+    }
+
+    /** Strokes the filled geometry as a solid line, to dilate it. Open subpaths the fill does not paint are skipped. */
+    protected dilateFill(ctx: CanvasContext, path: Path2D) {
+        ctx.stroke(path);
+    }
+
     /** Draws strokes the shape paints apart from its main path, so the silhouette pre-pass casts them too. */
     protected renderSilhouetteExtras(_ctx: CanvasContext) {
         // Nothing to do by default.
+    }
+
+    /** Strokes the paths the shape paints apart from its main one as a solid line `growth` wider, to dilate the shadow. */
+    protected dilateSilhouetteExtras(_ctx: CanvasContext, _growth: number) {
+        // Nothing to do by default.
+    }
+
+    /** The opacity the shape strokes its extra paths with, or 0 when it paints none, so they cast no shadow. */
+    protected getSilhouetteExtrasOpacity(): number {
+        return 0;
     }
 
     /** The widest stroke cast into the silhouette shadow, which the shape's off-canvas pre-pass has to clear. */
@@ -409,7 +657,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
 
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
-            const shadowed = this.__shadowMode === 'fill' && this.__fillShadow?.enabled === true;
+            const shadowed =
+                this.__shadowMode === 'fill' &&
+                this.__fillShadow?.enabled === true &&
+                (path == null || !this.castsShadowFromPrePass());
             if (shadowed) {
                 this.applyShadow(ctx);
             }
@@ -539,9 +790,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
 
             // Silhouette mode without a Path2D has no pre-pass, so the stroke casts the shadow.
-            const mode = this.__shadowMode;
             const shadowed =
-                (mode === 'stroke' || (mode === 'silhouette' && path == null)) && this.__fillShadow?.enabled === true;
+                this.__shadowMode !== 'fill' &&
+                this.__fillShadow?.enabled === true &&
+                (path == null || !this.castsShadowFromPrePass());
             if (shadowed) {
                 this.applyShadow(ctx);
             }

@@ -125,7 +125,7 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
     protected override executeStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
         const { __width: width, strokeWidth } = this;
         if (width < strokeWidth) {
-            ctx.lineWidth = width;
+            ctx.lineWidth = width + this.shadowStrokeGrowth;
         }
         super.executeStroke(ctx, path);
     }

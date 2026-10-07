@@ -665,6 +665,7 @@ export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     xOffset: number,
     yOffset: number,
     blur: positiveNumber,
+    spread: positiveNumber,
     color: colorOrRef,
 };
 

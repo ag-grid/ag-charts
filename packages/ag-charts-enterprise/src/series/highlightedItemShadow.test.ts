@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
@@ -573,6 +573,93 @@ describe('highlightedItem.shadow (enterprise series)', () => {
 
             expect(highlighted.find(casts)?.fillShadow).toMatchObject(HIGHLIGHT_SHADOW);
             expect(inPlace.filter(casts).length).toBe(0);
+        });
+    });
+
+    describe.each(SERIES)('$name spread', (testCase) => {
+        const SPREAD_SHADOW = { ...SHADOW, spread: 5 };
+        const NEGATIVE_SHADOW = { ...SHADOW, spread: -4 };
+        // Where the option sits in the path depends on the series: `shadow`, `node.shadow`, `tile.shadow` and so on,
+        // and a series that has several shadows, like a waterfall's, warns once for each.
+        const expectNegativeSpreadWarnings = (value: number) => {
+            const messages = (console.warn as any).mock.calls.map(([message]: [string]) => message);
+            expect(messages.length).toBeGreaterThan(0);
+            for (const message of messages) {
+                expect(message).toMatch(
+                    new RegExp(
+                        `^AG Charts - Option \`series\\[0\\]\\.[\\w.]*shadow\\.spread\` cannot be set to \`${value}\`; expecting a number greater than or equal to 0, ignoring\\.$`
+                    )
+                );
+            }
+            // One warning for each shadow, never repeated. Clear them so they are not reported as unexpected.
+            expect(new Set(messages).size).toBe(messages.length);
+            (console.warn as Mock).mockClear();
+        };
+
+        it('carries the series shadow spread to the items that cast', async () => {
+            const { inPlace, highlighted } = await hoverItem(testCase, SPREAD_SHADOW, {}, 'overlay');
+
+            expect(inPlace.filter(casts).length).toBeGreaterThan(0);
+            for (const shape of inPlace.filter(casts)) expect(shape.fillShadow).toMatchObject(SPREAD_SHADOW);
+            expect(highlighted.length).toBeGreaterThan(0);
+        });
+
+        it('carries the series shadow spread to the hovered item when the highlight cuts out', async () => {
+            const { highlighted } = await hoverItem(testCase, SPREAD_SHADOW);
+
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject(SPREAD_SHADOW);
+        });
+
+        it('merges highlightedItem.shadow.spread over the series shadow spread on the hovered item', async () => {
+            const { inPlace, highlighted } = await hoverItem(testCase, SPREAD_SHADOW, {
+                highlightedItem: { shadow: { spread: 9 } },
+            });
+
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject({ ...SPREAD_SHADOW, spread: 9 });
+            for (const shape of inPlace.filter(casts)) expect(shape.fillShadow).toMatchObject(SPREAD_SHADOW);
+        });
+
+        it('fills a missing highlightedItem.shadow.spread from the series shadow', async () => {
+            const { highlighted } = await hoverItem(testCase, SPREAD_SHADOW, {
+                highlightedItem: { shadow: { blur: 20 } },
+            });
+
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject({ ...SPREAD_SHADOW, blur: 20 });
+        });
+
+        it('applies highlightedItem.shadow.spread when the series shadow has none', async () => {
+            const { highlighted } = await hoverItem(testCase, SHADOW, {
+                highlightedItem: { shadow: { spread: 7 } },
+            });
+
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject({ ...SHADOW, spread: 7 });
+        });
+
+        it('has no spread unless configured', async () => {
+            const { inPlace } = await hoverItem(testCase, SHADOW, {}, 'overlay');
+
+            for (const shape of inPlace.filter(casts)) expect(shape.fillShadow?.spread ?? 0).toBe(0);
+        });
+
+        it('warns about and ignores a negative series shadow spread', async () => {
+            const { inPlace } = await hoverItem(testCase, NEGATIVE_SHADOW, {}, 'overlay');
+
+            expectNegativeSpreadWarnings(-4);
+            expect(inPlace.filter(casts).length).toBeGreaterThan(0);
+            for (const shape of inPlace.filter(casts)) {
+                expect(shape.fillShadow).toMatchObject(SHADOW);
+                expect(shape.fillShadow?.spread ?? 0).toBe(0);
+            }
+        });
+
+        it('warns about and ignores a negative highlightedItem.shadow.spread', async () => {
+            const { highlighted } = await hoverItem(testCase, SPREAD_SHADOW, {
+                highlightedItem: { shadow: { spread: -2 } },
+            });
+
+            expectNegativeSpreadWarnings(-2);
+            // The negative value is dropped, so the series shadow's spread shows through.
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject(SPREAD_SHADOW);
         });
     });
 
