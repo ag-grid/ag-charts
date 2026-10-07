@@ -24,6 +24,7 @@ import {
     prepareSceneNodeHighlight,
     registerDebugStatsConsumer,
 } from './sceneDebug';
+import { destroyShadowScratch } from './shadowCompositor';
 
 type EventMap = {
     'scene-changed': object;
@@ -379,6 +380,7 @@ export class Scene extends EventEmitter<EventMap> {
         context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         this.layersManager.clear();
+        destroyShadowScratch(this);
 
         this.setRoot(null);
         this.isDirty = false;

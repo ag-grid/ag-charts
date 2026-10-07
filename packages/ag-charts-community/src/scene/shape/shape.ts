@@ -49,9 +49,13 @@ import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
+import { shadowPass } from '../shadowPass';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
+
+/** Half the width of the region, in a shape's own units, that a shadow mask clips a fill out of its dilation within. */
+const KNOCK_OUT_EXTENT = 1e6;
 
 /**
  * The miter limit of the stroke that dilates a shape for its shadow `spread`. Right angles keep their sharp corners,
@@ -375,6 +379,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         bboxOverride?: BBox,
         fillBBoxOverride?: BBox
     ) {
+        if (shadowPass.state === 'mask') {
+            this.renderShadowMask(ctx, logger, path, bboxOverride, fillBBoxOverride);
+            return;
+        }
+
         if (this.__drawingMode === 'cutout') {
             ctx.globalCompositeOperation = 'destination-out';
             this.executeFill(ctx, path);
@@ -396,8 +405,110 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      */
     private castsShadowFromPrePass(): boolean {
         const shadow = this.__fillShadow;
-        if (shadow?.enabled !== true) return false;
+        if (!this.castsOwnShadow() || shadow == null) return false;
         return this.__shadowMode === 'silhouette' || (shadow.spread ?? 0) > 0;
+    }
+
+    /** False while a layer shadow batch casts the shadow for this shape, instead of the shape itself. */
+    private castsOwnShadow(): boolean {
+        return shadowPass.state === 'none' && this.__fillShadow?.enabled === true;
+    }
+
+    /** True while the shape is drawing into a layer shadow batch's mask, where {@link renderSilhouetteExtras} is drawn. */
+    protected isDrawingShadowMask(): boolean {
+        return shadowPass.state === 'mask';
+    }
+
+    /**
+     * Draws the silhouette that casts this shape's shadow into the scratch canvas of a layer shadow batch, which blurs
+     * the silhouettes of the whole batch once. The silhouette is drawn with the shape's real paint, so a fully
+     * transparent gradient, pattern or stroke casts nothing, and a translucent one casts a weaker shadow. A `spread`
+     * dilates it with a solid stroke in the same paint. Strokes cast only in the `stroke` and `silhouette` modes.
+     */
+    private renderShadowMask(
+        ctx: CanvasContext,
+        logger: Logger,
+        path?: Path2D,
+        bboxOverride?: BBox,
+        fillBBoxOverride?: BBox
+    ) {
+        const shadow = this.__fillShadow;
+        if (shadow?.enabled !== true) return;
+
+        const spread = shadow.spread ?? 0;
+        const { __fill: fill, __fillOpacity: fillOpacity = 1, __shadowMode: mode } = this;
+        const drawsFill = mode !== 'stroke' && fill != null && fill !== 'none' && fillOpacity > 0;
+        const drawsStroke = mode !== 'fill' && this.hasVisibleStroke();
+        const hasExtras = mode !== 'fill' && this.getSilhouetteExtrasOpacity() > 0;
+
+        if (spread > 0) {
+            // The dilation is always solid, and an open stroke is capped so that its ends spread too.
+            const lineCap = this.__lineCap;
+            let dilationCap: ShapeLineCap = lineCap == null || lineCap === 'butt' ? 'square' : lineCap;
+            if (mode === 'fill') dilationCap = 'round';
+            ctx.lineCap = dilationCap;
+            ctx.lineJoin = drawsStroke ? (this.__lineJoin ?? 'miter') : 'miter';
+            ctx.miterLimit = drawsStroke ? (this.__miterLimit ?? 10) : DILATION_MITER_LIMIT;
+            ctx.lineWidth = (drawsStroke ? this.__strokeWidth : 0) + spread * 2;
+        }
+
+        if (drawsFill) {
+            this.renderFill(ctx, logger, path, bboxOverride, fillBBoxOverride);
+        }
+
+        if (spread <= 0) {
+            if (drawsStroke) {
+                this.renderStroke(ctx, path, bboxOverride);
+            }
+        } else if (drawsStroke) {
+            const globalAlpha = ctx.globalAlpha;
+            this.applyStrokeAndAlpha(ctx, bboxOverride);
+            this.shadowStrokeGrowth = spread * 2;
+            try {
+                this.executeStroke(ctx, path);
+            } finally {
+                this.shadowStrokeGrowth = 0;
+            }
+            ctx.globalAlpha = globalAlpha;
+        } else if (drawsFill && path != null) {
+            const globalAlpha = ctx.globalAlpha;
+            this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
+            ctx.strokeStyle = ctx.fillStyle;
+            // Knock the fill out of the dilation, so that a translucent fill casts a uniform shadow, as it does
+            // without a batch, instead of a darker one where the dilation overlaps its own edge.
+            ctx.save();
+            try {
+                const outside = new Path2D();
+                outside.rect(-KNOCK_OUT_EXTENT, -KNOCK_OUT_EXTENT, KNOCK_OUT_EXTENT * 2, KNOCK_OUT_EXTENT * 2);
+                outside.addPath(path);
+                ctx.clip(outside, 'evenodd');
+                this.dilateFill(ctx, path);
+            } finally {
+                ctx.restore();
+            }
+            ctx.globalAlpha = globalAlpha;
+        }
+
+        if (hasExtras) {
+            const globalAlpha = ctx.globalAlpha;
+            ctx.save();
+            try {
+                this.renderSilhouetteExtras(ctx);
+            } finally {
+                ctx.restore();
+            }
+            if (spread > 0) {
+                ctx.save();
+                try {
+                    // A shape whose extras have a paint of their own sets it in `dilateSilhouetteExtras`.
+                    this.applyStrokeAndAlpha(ctx, bboxOverride);
+                    ctx.globalAlpha = globalAlpha * (this.__opacity ?? 1) * this.getSilhouetteExtrasOpacity();
+                    this.dilateSilhouetteExtras(ctx, spread * 2);
+                } finally {
+                    ctx.restore();
+                }
+            }
+        }
     }
 
     /** True when the shape paints a stroke, which {@link renderStroke} skips otherwise. */
@@ -668,7 +779,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
             const shadowed =
                 this.__shadowMode === 'fill' &&
-                this.__fillShadow?.enabled === true &&
+                this.castsOwnShadow() &&
                 (path == null || !this.castsShadowFromPrePass());
             if (shadowed) {
                 this.applyShadow(ctx);
@@ -801,7 +912,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             // Silhouette mode without a Path2D has no pre-pass, so the stroke casts the shadow.
             const shadowed =
                 this.__shadowMode !== 'fill' &&
-                this.__fillShadow?.enabled === true &&
+                this.castsOwnShadow() &&
                 (path == null || !this.castsShadowFromPrePass());
             if (shadowed) {
                 this.applyShadow(ctx);
