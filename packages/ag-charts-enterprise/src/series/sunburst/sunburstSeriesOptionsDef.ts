@@ -29,7 +29,7 @@ import {
     strokeOptionsDef,
     textOrSegments,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     without,
 } from 'ag-charts-core';
 
@@ -74,10 +74,10 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
         unhighlightedItem: hierarchyHighlightStyleOptionsDef,
         unhighlightedBranch: hierarchyHighlightStyleOptionsDef,
     },
+    ...undocumentedDefs({
+        childrenKey: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-sunburstSeriesThemeableOptionsDef.childrenKey = undocumented(string);
 
 export const sunburstSeriesOptionsDef: OptionsDefs<AgSunburstSeriesOptions> = {
     ...sunburstSeriesThemeableOptionsDef,

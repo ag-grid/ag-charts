@@ -27,7 +27,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
 } from 'ag-charts-core';
 
 const hlcSeriesItemLineThemeableOptionsDef: OptionsDefs<AgHlcSeriesItemLineThemeableOptions<unknown, unknown>> = {
@@ -94,9 +94,8 @@ export const hlcSeriesOptionsDef: OptionsDefs<AgHlcSeriesOptions> = {
     closeName: string,
     yName: string,
     legendItemName: string,
+    ...undocumentedDefs({
+        pickOutsideVisibleMinorAxis: boolean,
+        focusPriority: number,
+    }),
 };
-
-// @ts-expect-error undocumented option
-hlcSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
-// @ts-expect-error undocumented option
-hlcSeriesOptionsDef.focusPriority = undocumented(number);

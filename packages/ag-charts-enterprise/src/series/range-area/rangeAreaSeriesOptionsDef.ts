@@ -32,7 +32,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
 } from 'ag-charts-core';
 
 import { rangeInsideOutsidePlacementDef } from '../range-bar/rangeBarSeriesOptionsDef';
@@ -118,9 +118,8 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
         enabled: boolean,
         ...fillOptionsDef,
     },
+    ...undocumentedDefs({
+        pickOutsideVisibleMinorAxis: boolean,
+        focusPriority: number,
+    }),
 };
-
-// @ts-expect-error undocumented option
-rangeAreaSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
-// @ts-expect-error undocumented option
-rangeAreaSeriesOptionsDef.focusPriority = undocumented(number);

@@ -32,7 +32,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -86,11 +86,16 @@ export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThem
         interval: {
             values: arrayOf(numericValue),
             step: numericValue,
+            ...undocumentedDefs({
+                minSpacing: positiveNumber,
+                maxSpacing: positiveNumber,
+            }),
         },
         ...fillsOptionsDef,
         ...fillOptionsDef,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
+        ...undocumentedDefs({ defaultFill: color }),
     },
     segmentation: {
         enabled: boolean,
@@ -126,24 +131,18 @@ export const radialGaugeSeriesThemeableOptionsDef: OptionsDefs<AgRadialGaugeThem
         ...autoSizedLabelOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
+    ...undocumentedDefs({
+        defaultColorRange: arrayOf(color),
+        defaultTarget: {
+            ...radialGaugeTargetOptionsDef,
+            value: number,
+            label: {
+                ...seriesLabelOptionsDefs,
+                spacing: number,
+            },
+        },
+    }),
 };
-
-// @ts-expect-error undocumented option
-radialGaugeSeriesThemeableOptionsDef.defaultColorRange = undocumented(arrayOf(color));
-// @ts-expect-error undocumented option
-radialGaugeSeriesThemeableOptionsDef.defaultTarget = undocumented({
-    ...radialGaugeTargetOptionsDef,
-    value: number,
-    label: {
-        ...seriesLabelOptionsDefs,
-        spacing: number,
-    },
-});
-(radialGaugeSeriesThemeableOptionsDef.scale as any).defaultFill = undocumented(color);
-// @ts-expect-error undocumented option
-radialGaugeSeriesThemeableOptionsDef.scale.interval.minSpacing = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-radialGaugeSeriesThemeableOptionsDef.scale.interval.maxSpacing = undocumented(positiveNumber);
 
 export const radialGaugeSeriesOptionsDef: OptionsDefs<AgRadialGaugePreset> = {
     ...without(commonSeriesOptionsDefs, ['listeners']),

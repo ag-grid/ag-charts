@@ -16,7 +16,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
 } from 'ag-charts-core';
 
 import { radialSeriesStylerDef } from '../radial-column/radialColumnSeriesOptionsDef';
@@ -47,9 +47,8 @@ export const radialBarSeriesOptionsDef: OptionsDefs<AgRadialBarSeriesOptions> = 
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
+    ...undocumentedDefs({
+        angleKeyAxis: string,
+        radiusKeyAxis: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-radialBarSeriesOptionsDef.angleKeyAxis = undocumented(string);
-// @ts-expect-error undocumented option
-radialBarSeriesOptionsDef.radiusKeyAxis = undocumented(string);

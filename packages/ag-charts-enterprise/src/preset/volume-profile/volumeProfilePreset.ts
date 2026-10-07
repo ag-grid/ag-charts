@@ -10,7 +10,7 @@ import type {
 
 import { createVolumeProfileSeries } from './volumeProfile';
 
-type ChartTheme = _Theme.ChartTheme;
+type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
 
 export function volumeProfileChart(
     opts: AgVolumeProfileChartPreset & AgBaseFinancialPresetOptions,

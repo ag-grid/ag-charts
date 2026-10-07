@@ -29,7 +29,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
     unionOrArray,
 } from 'ag-charts-core';
@@ -88,9 +88,8 @@ export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     segmentation: shapeSegmentation,
     width: positiveNumberNonZero,
     widthRatio: ratio,
+    ...undocumentedDefs({
+        pickOutsideVisibleMinorAxis: boolean,
+        focusPriority: number,
+    }),
 };
-
-// @ts-expect-error undocumented option
-rangeBarSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
-// @ts-expect-error undocumented option
-rangeBarSeriesOptionsDef.focusPriority = undocumented(number);

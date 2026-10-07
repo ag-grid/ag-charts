@@ -2,7 +2,7 @@
 root: false
 targets: ['*']
 description: 'Public API contract boundaries and the undocumented-options validator pattern'
-globs: ['packages/ag-charts-types/**/*.ts', 'packages/ag-charts-*/src/config/**/*.ts']
+globs: ['packages/ag-charts-types/**/*.ts', 'packages/ag-charts-*/src/config/**/*.ts', 'packages/ag-charts-*/src/**/*OptionsDef*.ts', 'packages/ag-charts-core/src/options/*.ts']
 ---
 
 # API Contracts and Undocumented Options
@@ -21,22 +21,31 @@ The `ag-charts-types` package is the **public/documented interface contract**. A
 
 ## Undocumented Options Pattern
 
-For internal/undocumented options, use the validator pattern in `chartDefaults.ts`:
+For an internal option whose key is absent from the options type, spread `undocumentedDefs` (from `ag-charts-core`) inside the defs literal that owns it:
 
 ```typescript
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.myUndocumentedOption = undocumented(boolean);
+export const commonChartOptionsDefs: OptionsDefs<...> = {
+    enableRtl: boolean,
+    ...undocumentedDefs({
+        myUndocumentedOption: boolean,
+        myNestedOption: { visible: boolean },
+    }),
+};
 ```
 
 This pattern:
 
--   Allows the option to be accepted without TypeScript type errors
--   Keeps the option out of the public API contract
--   Provides runtime validation
+-   Accepts the option at runtime with validation, while keeping it out of the public API contract
+-   Type-checks without `@ts-expect-error`: the helper returns an empty type, so the literal still matches `OptionsDefs<T>`
+-   Marks each key as undocumented, so validation leaves it out of "did you mean" suggestions
+
+When the key already exists on the type (for example an internal field of a defs object typed as a plain record), wrap only its validator inline: `maxWidth: undocumented(positiveNumber)`.
+
+**Never assign keys onto a defs object after its declaration** (`defs.key = undocumented(…)`, `Object.assign(defs.label, …)`). A top-level mutation is a side effect, so bundlers keep the whole defs object and everything it references in every application bundle, even when the owning module is not used. If the key belongs to a shared nested literal, add it inside that literal or extract the literal into its own `const` and spread into it there.
 
 ### Existing Examples
 
-Examples from `packages/ag-charts-core/src/options/chartDefaults.ts` (for the full set, run `grep -n "undocumented(" packages/ag-charts-core/src/options/chartDefaults.ts`).
+Examples from `packages/ag-charts-core/src/options/chartDefaults.ts` (for the full set, run `grep -n -A4 "undocumentedDefs(" packages/ag-charts-core/src/options/chartDefaults.ts`).
 
 Chart-level:
 
@@ -78,7 +87,7 @@ To propagate a root-level undocumented option to series, use the `processSeriesO
 
 **Steps:**
 
-1. Add the validator to `commonChartOptionsDefs` in `chartDefaults.ts`
+1. Add the validator to the `undocumentedDefs` block in `commonChartOptionsDefs` (`chartDefaults.ts`)
 2. Modify `processSeriesOptions()` in `optionsModule.ts` to propagate the value
 3. Use `(options as any).optionName` to access without TypeScript errors
 

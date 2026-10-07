@@ -13,7 +13,7 @@ import {
     ratio,
     required,
     string,
-    undocumented,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 import type { AgBaseFinancialPresetOptions, AgPriceVolumePreset } from 'ag-charts-types';
@@ -65,12 +65,11 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     dataSource: defined,
     formatter: defined,
     enableRtl: boolean,
+    ...undocumentedDefs({
+        overrideDevicePixelRatio: positiveNumber,
+        foreground: defined,
+    }),
 };
-
-// @ts-expect-error undocumented option
-priceVolumeOptionsDef.overrideDevicePixelRatio = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-priceVolumeOptionsDef.foreground = undocumented(defined);
 
 const NO_UNHIGHLIGHT_THEME = { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } };
 

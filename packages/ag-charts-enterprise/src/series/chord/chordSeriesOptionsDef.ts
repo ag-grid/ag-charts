@@ -29,7 +29,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     undocumentedLabelFitOptionsDefs,
     without,
 } from 'ag-charts-core';
@@ -41,6 +41,7 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
         spacing: positiveNumber,
         maxWidth: positiveNumber,
         ...seriesLabelOptionsDefs,
+        ...without(undocumentedLabelFitOptionsDefs, ['maxWidth']),
     },
     link: {
         shadow: shadowOptionsDefs,
@@ -73,16 +74,12 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
+    ...undocumentedDefs({
+        fillGradientDefaults: fillGradientDefaults,
+        fillPatternDefaults: fillPatternDefaults,
+        fillImageDefaults: fillImageDefaults,
+    }),
 };
-
-Object.assign(chordSeriesThemeableOptionsDef.label, without(undocumentedLabelFitOptionsDefs, ['maxWidth']));
-
-// @ts-expect-error undocumented option
-chordSeriesThemeableOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
-// @ts-expect-error undocumented option
-chordSeriesThemeableOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
-// @ts-expect-error undocumented option
-chordSeriesThemeableOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
 
 export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     ...chordSeriesThemeableOptionsDef,
