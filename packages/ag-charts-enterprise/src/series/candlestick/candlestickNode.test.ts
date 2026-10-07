@@ -203,6 +203,25 @@ describe('CandlestickNode', () => {
             }
         });
 
+        it.each(['transparent', 'rgba(0, 0, 0, 0)', 'rgba(0, 0, 255, 0.5)'])(
+            'should cast the same shadow from a hollow body with a spread whether batched or not, with a %s fill',
+            (fill) => {
+                const style = { fill, shadowMode: 'silhouette' as const, fillShadow: { ...RED_SHADOW, spread: 10 } };
+                const region = () => Array.from(canvasCtx.getRenderContext2D().getImageData(60, 0, 80, 220).data);
+
+                renderNode(canvasCtx, candlestick(style));
+                const alone = region();
+
+                renderShadowBatch(canvasCtx, [candlestick(style), candlestick({ ...style, centerX: 300 })]);
+
+                expect(alone.some((value) => value !== 255)).toBe(true);
+                const batched = region();
+                // The mask and the shadow of a single item round the antialiased corners of the body differently.
+                const worst = Math.max(...batched.map((channel, i) => Math.abs(channel - alone[i])));
+                expect(worst).toBeLessThanOrEqual(3);
+            }
+        );
+
         it.each([undefined, 10])(
             'should cast no shadow from a wick with a transparent colour, with a spread of %s',
             (spread) => {

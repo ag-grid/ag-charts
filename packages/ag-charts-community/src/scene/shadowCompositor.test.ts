@@ -321,6 +321,31 @@ describe('Group shadow compositor', () => {
             });
         });
 
+        it.each([['transparent'], ['rgba(0, 0, 255, 0)'], ['rgba(0, 0, 255, 0.5)'], ['blue']])(
+            'should cast the same shadow as an item that casts for itself, from an opaque stroke over a %s fill',
+            (fill) => {
+                const item = (y: number) =>
+                    pathBox(40, y, 60, 50, {
+                        fill,
+                        stroke: 'black',
+                        strokeWidth: 6,
+                        fillShadow: { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 8 },
+                        shadowMode: 'silhouette',
+                    });
+                // Outside the edge, on the stroke, inside its footprint and in the middle of the fill.
+                const xs = [30, 34, 38, 41, 44, 48, 52, 70];
+
+                renderNodes([item(30), item(130)], false);
+                const alone = xs.map((x) => at(x, 55));
+
+                renderNodes([item(30), item(130)]);
+
+                expect(alone.some((pixel) => pixel[3] > 0)).toBe(true);
+                expect(xs.map((x) => at(x, 55))).toEqual(alone);
+                expect(xs.map((x) => at(x, 155))).toEqual(alone);
+            }
+        );
+
         it('should match the shadow of an item that casts for itself', () => {
             renderNodes([translucent(30, 12), translucent(130, 12)], false);
             const alone = Array.from(ctx().getImageData(40, 10, 100, 90).data);

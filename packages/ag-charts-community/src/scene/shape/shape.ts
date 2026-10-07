@@ -491,13 +491,20 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
         } else if (drawsStroke) {
             const globalAlpha = ctx.globalAlpha;
-            this.applyStrokeAndAlpha(ctx, bboxOverride);
+            const dilatesInFillPaint = drawsFill && path != null;
+            if (dilatesInFillPaint) {
+                this.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
+                ctx.strokeStyle = ctx.fillStyle;
+            } else {
+                this.applyStrokeAndAlpha(ctx, bboxOverride);
+            }
             this.shadowStrokeGrowth = spread * 2;
             ctx.save();
             try {
-                // The dilation is knocked out of the fill, so that where it overlaps the fill, a translucent paint casts a
-                // uniform shadow, as it does without a batch, instead of a darker one.
-                if (drawsFill && path != null) this.clipOutsideFill(ctx, path);
+                // A shape with a fill casts as strongly as the fill, and so does the dilation of its stroke. It is also
+                // knocked out of the fill, so that a translucent paint casts a uniform shadow, as it does without a
+                // batch, instead of a darker one where the two overlap.
+                if (dilatesInFillPaint) this.clipOutsideFill(ctx, path);
                 this.executeStroke(ctx, path);
             } finally {
                 this.shadowStrokeGrowth = 0;

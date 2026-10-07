@@ -220,7 +220,7 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         super.render(renderCtx);
     }
 
-    /** The rectangle, in the coordinates of the path's parent, that {@link render} clips to, or undefined if it does not clip. */
+    /** The rectangle, in the path's own coordinates, that {@link render} clips to, or undefined if it does not clip. */
     getShadowClip(): { x: number; y: number; width: number; height: number } | undefined {
         if (!this.clip || Number.isNaN(this._clipX) || Number.isNaN(this._clipY)) return;
 
