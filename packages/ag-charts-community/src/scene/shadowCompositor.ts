@@ -18,11 +18,14 @@ import { Shape } from './shape/shape';
  * 3. The casters draw as usual, without a shadow.
  *
  * All the shadows of a batch therefore sit beneath all of its items, so a later item's shadow no longer lands on an
- * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node, at a clipped path and at a change of shadow options.
+ * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node and at a change of shadow options or of the clip of a path.
  */
 
 /** How far a canvas shadow reaches past its source, in blurs: its Gaussian has a deviation of half the blur. */
 const SHADOW_BLUR_REACH = 1.5;
+
+/** The most that the mask extends past the layer on one side, in device pixels. Items further off the layer cast nothing. */
+const MAX_MASK_PAD = 4096;
 
 type ShadowCaster = Shape & { __fillShadow: NormalisedDropShadowOptions };
 
@@ -30,12 +33,26 @@ type ShadowCaster = Shape & { __fillShadow: NormalisedDropShadowOptions };
 export function getBatchedShadow(node: Node): NormalisedDropShadowOptions | undefined {
     if (!(node instanceof Shape)) return;
     const shadow = node.__fillShadow;
-    if (shadow?.enabled !== true) return;
     // A cutout erases the layer beneath it, and so also what the batch's shadow put there. It casts for itself.
-    if (node.__drawingMode === 'cutout') return;
-    // A clipped path (while it reveals) clips its shadow too, which a blurred mask can't, so it casts for itself.
-    if (node instanceof Path && node.clip) return;
-    return shadow;
+    return shadow?.enabled === true && node.__drawingMode !== 'cutout' ? shadow : undefined;
+}
+
+/** The rectangle, in the coordinates of the group, that a path clips its drawing and its shadow to. */
+interface ShadowClip {
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+}
+
+function getShadowClip(node: Node): ShadowClip | undefined {
+    return node instanceof Path ? node.getShadowClip() : undefined;
+}
+
+function sameClip(a: ShadowClip | undefined, b: ShadowClip | undefined) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 }
 
 function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
@@ -135,12 +152,13 @@ function renderPass(children: readonly Node[], renderCtx: RenderContext, state: 
     }
 }
 
-/** Draws a batch of casters that share `shadow`. Returns false, drawing nothing, if it can't batch. */
+/** Draws a batch of casters that share `shadow`. Returns false, drawing nothing, if the layer or the shadow is unusable. */
 function renderBatch(
     scene: object | undefined,
     user: object,
     casters: readonly ShadowCaster[],
     shadow: NormalisedDropShadowOptions,
+    clip: ShadowClip | undefined,
     renderCtx: RenderContext
 ): boolean {
     const { ctx, devicePixelRatio } = renderCtx;
@@ -154,13 +172,12 @@ function renderBatch(
     }
 
     // An item that overhangs the layer still casts its shadow onto it, so the mask extends past the layer by as far as a
-    // shadow can reach back. A shadow that reaches further than the layer is as large leaves the batch to cast for itself.
+    // shadow can reach back. That is never more than MAX_MASK_PAD, past which nothing is drawn, so the mask stays small.
     const reach = Math.ceil(blur * SHADOW_BLUR_REACH + Math.max(0, shadow.spread ?? 0) * devicePixelRatio);
-    const padLeft = Math.ceil(Math.max(0, offsetX)) + reach;
-    const padRight = Math.ceil(Math.max(0, -offsetX)) + reach;
-    const padTop = Math.ceil(Math.max(0, offsetY)) + reach;
-    const padBottom = Math.ceil(Math.max(0, -offsetY)) + reach;
-    if (padLeft + padRight > width || padTop + padBottom > height) return false;
+    const padLeft = Math.min(Math.ceil(Math.max(0, offsetX)) + reach, MAX_MASK_PAD);
+    const padRight = Math.min(Math.ceil(Math.max(0, -offsetX)) + reach, MAX_MASK_PAD);
+    const padTop = Math.min(Math.ceil(Math.max(0, offsetY)) + reach, MAX_MASK_PAD);
+    const padBottom = Math.min(Math.ceil(Math.max(0, -offsetY)) + reach, MAX_MASK_PAD);
 
     const maskWidth = width + padLeft + padRight;
     const maskHeight = height + padTop + padBottom;
@@ -189,6 +206,12 @@ function renderBatch(
     const distance = maskWidth;
     ctx.save();
     try {
+        // A path clips its shadow as well as its silhouette, so the shadow is clipped to what the path was drawn into.
+        if (clip != null) {
+            ctx.beginPath();
+            ctx.rect(clip.x, clip.y, clip.width, clip.height);
+            ctx.clip();
+        }
         ctx.resetTransform();
         ctx.globalAlpha = 1;
         ctx.shadowColor = shadow.color;
@@ -218,9 +241,10 @@ export function renderChildrenWithShadowBatches(
     let batches = 0;
     let run: ShadowCaster[] = [];
     let runShadow: NormalisedDropShadowOptions | undefined;
+    let runClip: ShadowClip | undefined;
 
     const flush = () => {
-        if (run.length > 0 && runShadow != null && renderBatch(scene, user, run, runShadow, renderCtx)) {
+        if (run.length > 0 && runShadow != null && renderBatch(scene, user, run, runShadow, runClip, renderCtx)) {
             batches++;
         } else {
             // The batch can't be drawn, so the casters cast for themselves.
@@ -228,6 +252,7 @@ export function renderChildrenWithShadowBatches(
         }
         run = [];
         runShadow = undefined;
+        runClip = undefined;
     };
 
     for (const child of children) {
@@ -241,8 +266,12 @@ export function renderChildrenWithShadowBatches(
         }
 
         const shadow = getBatchedShadow(child);
-        if (shadow != null && (runShadow == null || sameShadow(runShadow, shadow))) {
-            runShadow ??= shadow;
+        const clip = shadow == null ? undefined : getShadowClip(child);
+        if (shadow != null && (runShadow == null || (sameShadow(runShadow, shadow) && sameClip(runClip, clip)))) {
+            if (runShadow == null) {
+                runShadow = shadow;
+                runClip = clip;
+            }
             run.push(child as ShadowCaster);
             continue;
         }
@@ -252,6 +281,7 @@ export function renderChildrenWithShadowBatches(
             child.isolatedRender(renderCtx);
         } else {
             runShadow = shadow;
+            runClip = clip;
             run.push(child as ShadowCaster);
         }
     }

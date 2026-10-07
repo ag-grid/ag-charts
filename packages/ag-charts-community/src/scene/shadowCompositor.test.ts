@@ -534,39 +534,90 @@ describe('Group shadow compositor', () => {
             expect(batched).toEqual(unbatched);
         });
 
-        it('should cast for itself when its shadow reaches further than the layer is wide', () => {
-            const casters = () => [
-                box(20, 40, 40, 40, { fillShadow: { ...RED_HALF, xOffset: WIDTH * 2 } }),
-                box(20, 130, 40, 40, { fillShadow: { ...RED_HALF, xOffset: WIDTH * 2 } }),
-            ];
+        it('should draw a batch through the mask when its shadow reaches further than the layer is wide', () => {
             const before = offscreenCanvases();
-            renderNodes(casters());
+            const shadow = { ...RED_HALF, xOffset: WIDTH * 2 };
+            renderNodes([box(20, 40, 40, 40, { fillShadow: shadow }), box(20, 130, 40, 40, { fillShadow: shadow })]);
 
-            expect(createdSince(before)).toHaveLength(0);
+            expect(createdSince(before)).toHaveLength(1);
             expect(at(30, 60)).toEqual(BLACK);
+            expect(at(30, 150)).toEqual(BLACK);
+        });
+
+        it('should cast no shadow from transparent items, however far the shadow reaches', () => {
+            const transparentGradient = {
+                type: 'gradient' as const,
+                colorStops: [
+                    { color: 'rgba(0, 0, 0, 0)', stop: 0 },
+                    { color: 'rgba(255, 0, 0, 0)', stop: 1 },
+                ],
+            };
+            const shadow = { ...RED_HALF, xOffset: 300, blur: 40, spread: 6 };
+            renderNodes([
+                box(20, 40, 40, 40, { fill: transparentGradient, fillShadow: shadow }),
+                box(20, 130, 40, 40, { fill: transparentGradient, fillShadow: shadow }),
+            ]);
+
+            expect(paintedPixels()).toBe(0);
         });
     });
 
     describe('clipped paths', () => {
-        const clipped = (y: number) => {
-            const node = pathBox(20, y, 60, 50, { fillShadow: { ...RED_HALF, xOffset: 30 }, clip: true });
-            node.clipX = 90;
+        const clipped = (x: number, y: number, clipX: number, mixin: Partial<Path> = {}) => {
+            const node = pathBox(x, y, 60, 50, { fillShadow: { ...RED_HALF, xOffset: 30 }, clip: true, ...mixin });
+            node.clipX = clipX;
             node.clipY = HEIGHT;
             return node;
         };
 
-        it('should clip the shadow of a path that is clipped, as it does for itself', () => {
+        const renderBoth = (nodes: () => Shape[]) => {
             const render = (batchShadows: boolean) => {
-                renderNodes([clipped(20), clipped(100), box(200, 160, 40, 40, { fillShadow: RED_HALF })], batchShadows);
+                renderNodes(nodes(), batchShadows);
                 return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
             };
-
             const unbatched = render(false);
-            const batched = render(true);
+            return { unbatched, batched: render(true) };
+        };
+
+        it('should clip the shadow of a path that is clipped, as it does for itself', () => {
+            const { unbatched, batched } = renderBoth(() => [
+                clipped(20, 20, 90),
+                clipped(20, 100, 90),
+                box(200, 160, 40, 40, { fillShadow: RED_HALF }),
+            ]);
 
             // The paths are 20 to 80 across, and their shadows 50 to 110 are clipped at 90, with the shadow's own edge.
             expect(isHalfRed(at(85, 45))).toBe(true);
             expect(at(100, 45)).toEqual(CLEAR);
+            expect(batched).toEqual(unbatched);
+        });
+
+        it('should cast the shadow of the part of a path that is outside its clip into it', () => {
+            const shadow = { ...RED_HALF, xOffset: -60 };
+            const before = offscreenCanvases();
+            const { unbatched, batched } = renderBoth(() => [
+                clipped(100, 20, 90, { fillShadow: shadow }),
+                clipped(100, 100, 90, { fillShadow: shadow }),
+            ]);
+
+            // The paths are 100 to 160 across, outside their clip of 0 to 90, and their shadows are 40 to 100.
+            expect(createdSince(before)).toHaveLength(1);
+            expect(isHalfRed(at(60, 45))).toBe(true);
+            expect(at(95, 45)).toEqual(CLEAR);
+            expect(batched).toEqual(unbatched);
+        });
+
+        it('should clip each path to its own clip', () => {
+            const { unbatched, batched } = renderBoth(() => [
+                clipped(20, 20, 90),
+                clipped(20, 100, 100),
+                clipped(20, 150, 90),
+            ]);
+
+            // Their shadows are 50 to 110 across, outside the paths from 80, and are clipped at 90, 100 and 90.
+            expect(isHalfRed(at(95, 125))).toBe(true);
+            expect(at(95, 45)).toEqual(CLEAR);
+            expect(at(95, 175)).toEqual(CLEAR);
             expect(batched).toEqual(unbatched);
         });
     });
