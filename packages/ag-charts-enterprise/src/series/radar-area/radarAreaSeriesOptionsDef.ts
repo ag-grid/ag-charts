@@ -1,13 +1,53 @@
-import type { AgRadarAreaSeriesOptions } from 'ag-charts-community';
+import type {
+    AgRadarAreaSeriesOptions,
+    AgRadarAreaSeriesStyle,
+    AgRadarAreaSeriesThemeableOptions,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
+    boolean,
+    callbackDefs,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
-    radarAreaSeriesThemeableOptionsDef,
+    fillOptionsDef,
+    lineDashOptionsDef,
+    markerOptionsDefs,
+    markerStyleOptionsDefs,
+    multiSeriesShadowHighlightOptionsDef,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
+    shapeHighlightOptionsDef,
     string,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
     undocumented,
+    undocumentedLabelFitOptionsDefs,
 } from 'ag-charts-core';
+
+export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesThemeableOptions> = {
+    connectMissingData: boolean,
+    marker: markerOptionsDefs,
+    styler: callbackDefs<AgRadarAreaSeriesStyle>({
+        marker: markerStyleOptionsDefs,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
+    label: {
+        ...seriesLabelOptionsDefs,
+    },
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+};
+
+Object.assign(radarAreaSeriesThemeableOptionsDef.label, undocumentedLabelFitOptionsDefs);
 
 export const radarAreaSeriesOptionsDef: OptionsDefs<AgRadarAreaSeriesOptions> = {
     ...commonSeriesOptionsDefs,

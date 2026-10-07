@@ -4,7 +4,7 @@ import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, ChartAxisDirection } from 'ag-
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { CandlestickSeries } from './candlestickSeries';
-import { candlestickSeriesOptionsDef } from './candlestickSeriesOptionsDef';
+import { candlestickSeriesOptionsDef, candlestickSeriesThemeableOptionsDef } from './candlestickSeriesOptionsDef';
 import { CANDLESTICK_SERIES_THEME } from './candlestickThemes';
 
 const { predictCartesianFinancialAxis } = _ModuleSupport;
@@ -19,6 +19,8 @@ export const CandlestickSeriesModule: SeriesModuleDefinition<AgCandlestickSeries
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: candlestickSeriesOptionsDef,
+
+    themeOptions: candlestickSeriesThemeableOptionsDef,
     matchingKeys: ['xKey', 'lowKey', 'highKey', 'openKey', 'closeKey', 'normalizedTo'],
     predictAxis: predictCartesianFinancialAxis,
     defaultAxes: {

@@ -537,6 +537,32 @@ describe('Navigator', () => {
         });
     });
 
+    describe('theme validation', () => {
+        const createWithTheme = async (navigatorTheme: unknown) => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                theme: { overrides: { common: { navigator: navigatorTheme } } } as AgCartesianChartOptions['theme'],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        it('validates navigator theme overrides against the module theme schema', async () => {
+            await createWithTheme({ height: 'tall' });
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`theme.overrides.common.navigator.height` cannot be set to `"tall"`')],
+            ]);
+        });
+
+        it('accepts theme operators nested inside navigator theme overrides', async () => {
+            await createWithTheme({ mask: { fill: { $ref: 'foregroundColor' } }, height: { $if: [true, 20, 30] } });
+
+            expectWarningsCalls().toEqual([]);
+        });
+    });
+
     describe('mini chart shadow inheritance', () => {
         const SHADOW = { enabled: true, color: '#000000', xOffset: 3, yOffset: 3, blur: 5 };
         const ohlcData = Array.from({ length: 8 }, (_, i) => ({

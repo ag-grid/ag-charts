@@ -4,7 +4,10 @@ import { STROKE_STYLE_THEME_DEFAULTS, type SeriesModuleDefinition } from 'ag-cha
 import { TopologyChartModule } from '../../charts/topologyChartModule';
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapLineBackgroundSeries } from './mapLineBackgroundSeries';
-import { mapLineBackgroundSeriesOptionsDef } from './mapLineBackgroundSeriesOptionsDef';
+import {
+    mapLineBackgroundSeriesOptionsDef,
+    mapLineBackgroundSeriesThemeableOptionsDef,
+} from './mapLineBackgroundSeriesOptionsDef';
 
 export const MapLineBackgroundSeriesModule: SeriesModuleDefinition<AgMapLineBackgroundOptions> = {
     type: 'series',
@@ -15,6 +18,8 @@ export const MapLineBackgroundSeriesModule: SeriesModuleDefinition<AgMapLineBack
     dependencies: [TopologyChartModule],
 
     options: mapLineBackgroundSeriesOptionsDef,
+
+    themeOptions: mapLineBackgroundSeriesThemeableOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

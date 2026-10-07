@@ -3,19 +3,18 @@ import {
     type OptionsDefs,
     type PresetModuleDefinition,
     boolean,
-    commonChartOptionsDefs,
     defined,
-    linearGaugeSeriesOptionsDef,
     positiveNumber,
-    radialGaugeSeriesOptionsDef,
-    tooltipOptionsDefs,
     typeUnion,
     undocumented,
     without,
 } from 'ag-charts-core';
-import type { AgBaseGaugePresetOptions, AgChartTooltipOptions, AgGaugeOptions, AgSeriesTooltip } from 'ag-charts-types';
+import type { AgBaseGaugePresetOptions, AgGaugeOptions, AgSeriesTooltip } from 'ag-charts-types';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
+import { gaugeTooltipOptionsDef } from '../../series/gauge-util/gaugeOptionsDefs';
+import { linearGaugeSeriesOptionsDef } from '../../series/linear-gauge/linearGaugeSeriesOptionsDef';
+import { radialGaugeSeriesOptionsDef } from '../../series/radial-gauge/radialGaugeSeriesOptionsDef';
 import { GAUGE_FAST_UPDATE_KEYS, createGauge, gaugeFastUpdate } from './gaugePreset';
 
 const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {
@@ -36,10 +35,7 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
     subtitle: defined,
     footnote: defined,
     padding: defined,
-    tooltip: {
-        ...tooltipOptionsDefs,
-        ...(commonChartOptionsDefs.tooltip as OptionsDefs<AgChartTooltipOptions>),
-    },
+    tooltip: gaugeTooltipOptionsDef,
 };
 
 // @ts-expect-error undocumented option

@@ -10,6 +10,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
@@ -21,7 +22,7 @@ import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { HistogramSeries } from './histogramSeries';
-import { histogramSeriesOptionsDef } from './histogramSeriesOptionsDef';
+import { histogramSeriesOptionsDef, histogramSeriesThemeableOptionsDef } from './histogramSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
@@ -50,7 +51,7 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
             placement: 'inside-center',
         },
         shadow: SHADOW_THEME_DEFAULTS,
-        tooltip: { interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
     },
 };
@@ -64,6 +65,8 @@ export const HistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOpti
     dependencies: [CartesianChartModule],
 
     options: histogramSeriesOptionsDef,
+
+    themeOptions: histogramSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: {
         x: {

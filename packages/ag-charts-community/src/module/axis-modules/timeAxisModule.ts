@@ -2,6 +2,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedTimeAxisOptions,
+    cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
     parentLevelAxisThemeTemplate,
@@ -24,6 +25,8 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions, TimeAxis> =
     dependencies: [CartesianChartModule],
 
     options: timeAxisOptionsDefs,
+
+    themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(timeAxisOptionsDefs),
     themeTemplate: mergeDefaults(
         {
             maxThicknessRatio: 0.3,

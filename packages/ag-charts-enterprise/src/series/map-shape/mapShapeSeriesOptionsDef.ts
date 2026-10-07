@@ -1,14 +1,61 @@
-import type { AgMapShapeSeriesOptions } from 'ag-charts-community';
+import type {
+    AgMapShapeSeriesOptions,
+    AgMapShapeSeriesStyle,
+    AgMapShapeSeriesThemeableOptions,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
+    callbackDefs,
+    colorScaleOptionsDef,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    deprecated,
+    fillOptionsDef,
     geoJson,
-    mapShapeSeriesThemeableOptionsDef,
+    labelAutoFontSizeOptionsDefs,
+    labelFitOptionsDefs,
+    lineDashOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
+    overflowStrategy,
+    positiveNumber,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
+    shapeHighlightOptionsDef,
     string,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    undocumented,
     without,
 } from 'ag-charts-core';
+
+export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
+    colorScale: colorScaleOptionsDef,
+    padding: positiveNumber,
+    itemStyler: callbackDefs<AgMapShapeSeriesStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
+        lineHeight: positiveNumber,
+        overflowStrategy: deprecated(overflowStrategy, 'Use `truncate` instead.'),
+    },
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+};
+
+// @ts-expect-error undocumented option
+mapShapeSeriesThemeableOptionsDef.topologyIdKey = undocumented(string);
 
 export const mapShapeSeriesOptionsDef: OptionsDefs<AgMapShapeSeriesOptions> = {
     ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight']),

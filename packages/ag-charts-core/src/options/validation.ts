@@ -119,6 +119,8 @@ export interface ValidateParams {
      * positive.
      */
     silentAdvisories?: boolean;
+    /** Accept a theme operator (`{ $op: ... }`) wherever a value is expected, as theme templates and overrides may. */
+    themeOperators?: boolean;
 }
 
 export enum ErrorType {
@@ -200,6 +202,12 @@ export class UnknownError extends ValidationError {
     }
 }
 
+export function isThemeOperator(value: unknown) {
+    if (!isObject(value)) return false;
+    const keys = Object.keys(value);
+    return keys.length === 1 && keys[0].startsWith('$');
+}
+
 /**
  * Validates the provided options against the specified definitions.
  * @param options The options object to validate.
@@ -272,6 +280,11 @@ export function validate<T>(
                 unusedKeys.push(key);
             }
             if (!required || optionsDisabled) continue;
+        }
+
+        if (params.themeOperators && isThemeOperator(value)) {
+            cleared[key as keyof T] = value;
+            continue;
         }
 
         const keyPath = extendPath(path, key);
@@ -828,6 +841,14 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description = 'an object ar
 
         return { valid: true, cleared, invalid };
     }, description);
+
+/** Validates against `defs`, accepting a theme operator in place of any value. */
+export const withThemeOperators = <T>(defs: OptionsDefs<T>) =>
+    attachDescription((value, context) => {
+        if (!isObject(value)) return false;
+        const { cleared, invalid } = validate(value, defs, context.path, { ...context.params, themeOperators: true });
+        return { valid: true, cleared, invalid };
+    }, 'an object');
 
 export const callbackOf = (validator: Validator, description?: string) =>
     attachDescription((value, context) => {

@@ -1,17 +1,20 @@
 import type {
     AgActiveItemState,
     AgActiveState,
+    AgBaseThemeableChartOptions,
     AgCartesianChartOptions,
     AgCartesianSeriesAreaThemableOptions,
     AgChartValidationSeverity,
     AgChartValidationsOptions,
+    AgCommonThemeableChartOptions,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
     AgStandaloneChartOptions,
+    AgStateSerializableDate,
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
-import { commonChartOptionsDefs } from './chartDefaults';
+import { type ModuleOwnedChartOptions, commonChartOptionsDefs } from './chartDefaults';
 import { geoJson } from './geoJsonValidator';
 import { borderOptionsDef, padding, themeOperator } from './optionsDefaults';
 import {
@@ -21,22 +24,21 @@ import {
     arrayOfDefs,
     boolean,
     callback,
+    constant,
     defined,
     htmlElement,
     nonNegativeInteger,
     number,
     object,
+    optionsDefs,
     or,
     positiveNumber,
+    ratio,
     required,
     strictUnion,
     string,
     undocumented,
-    union,
 } from './validation';
-
-/** Chart-level keys owned by plugin modules; their defs arrive through the modules' contributions. */
-export type ModuleOwnedChartOptions = 'annotations' | 'navigator' | 'scrollbar';
 
 /** `seriesArea.backgroundRegions` is owned by the enterprise background regions module. */
 export type CartesianChartDefOptions = Omit<AgCartesianChartOptions, ModuleOwnedChartOptions | 'seriesArea'> & {
@@ -68,9 +70,18 @@ export const validationsOptionsDef: OptionsDefs<AgChartValidationsOptions> = {
     issueRaised: callback,
 };
 
+const initialStateLegendOptionsDef = arrayOfDefs<AgInitialStateLegendOptions>(
+    {
+        visible: boolean,
+        seriesId: string,
+        itemId: string,
+        legendItemName: string,
+    },
+    'legend state array'
+);
+
 // These options are being validated by other modules
 export const commonChartOptions = {
-    mode: undocumented(union('integrated', 'standalone')),
     withinStudio: undocumented(boolean),
     loading: boolean,
     validations: validationsOptionsDef,
@@ -83,15 +94,7 @@ export const commonChartOptions = {
         chartType: string,
         collapsed: arrayOf(or(string, number)),
         annotations: defined,
-        legend: arrayOfDefs<AgInitialStateLegendOptions>(
-            {
-                visible: boolean,
-                seriesId: string,
-                itemId: string,
-                legendItemName: string,
-            },
-            'legend state array'
-        ),
+        legend: initialStateLegendOptionsDef,
         legendPagination: nonNegativeInteger,
         zoom: defined,
     },
@@ -132,4 +135,39 @@ export const standaloneChartOptionsDefs: OptionsDefs<Omit<AgStandaloneChartOptio
     ...commonChartOptions,
     data: array,
     dataIdKey: string,
+};
+
+const serializableDate = optionsDefs<AgStateSerializableDate>(
+    {
+        __type: required(constant('date')),
+        value: or(string, number),
+    },
+    'a serializable date object'
+);
+
+const zoomRangeDef = { start: or(number, serializableDate), end: or(number, serializableDate) };
+const zoomRatioDef = { start: ratio, end: ratio };
+
+export const cartesianChartThemeOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, ModuleOwnedChartOptions>> = {
+    ...commonChartOptionsDefs,
+};
+// @ts-expect-error undocumented option, required by integrated charts
+cartesianChartThemeOptionsDefs.paired = undocumented(boolean);
+
+/** Theme overrides under `common`; axes and module-owned keys are composed in from the registered modules. */
+export const commonThemeOverridesOptionsDefs: OptionsDefs<
+    Omit<AgCommonThemeableChartOptions, ModuleOwnedChartOptions | 'axes'>
+> = {
+    ...commonChartOptionsDefs,
+    initialState: {
+        legend: initialStateLegendOptionsDef,
+        zoom: {
+            rangeX: zoomRangeDef,
+            rangeY: zoomRangeDef,
+            ratioX: zoomRatioDef,
+            ratioY: zoomRatioDef,
+            autoScaledAxes: arrayOf(constant('y')),
+        },
+    },
+    validations: validationsOptionsDef,
 };

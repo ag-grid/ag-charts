@@ -165,26 +165,4 @@ export const commonChartThemeTemplate = {
         },
     },
     listeners: {},
-    // TODO: remove this
-    series: {
-        tooltip: {
-            range: {
-                $if: [
-                    { $eq: [{ $path: ['/tooltip/range', 'exact'] }, 'area'] },
-                    'exact',
-                    { $path: ['/tooltip/range', 'exact'] },
-                ],
-            },
-            position: {
-                anchorTo: { $path: ['/tooltip/position/anchorTo', 'pointer'] },
-                placement: { $path: ['/tooltip/position/placement', undefined] },
-                xOffset: { $path: ['/tooltip/position/xOffset', 0] },
-                yOffset: { $path: ['/tooltip/position/yOffset', 0] },
-                // Chart-anchored tooltips sit flush; pointer/node use a 12px gap.
-                offset: {
-                    $path: ['/tooltip/position/offset', { $if: [{ $eq: [{ $path: './anchorTo' }, 'chart'] }, 0, 12] }],
-                },
-            },
-        },
-    },
 };

@@ -7,15 +7,16 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
-    linearGaugeSeriesOptionsDef,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { GaugePresetModule } from '../../preset/gauge/gaugePresetModule';
 import { LinearGaugeSeries } from './linearGaugeSeries';
+import { linearGaugeSeriesOptionsDef, linearGaugeThemeOptionsDef } from './linearGaugeSeriesOptionsDef';
 
 const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
     minWidth: 200,
@@ -75,8 +76,8 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             overflowStrategy: 'ellipsis',
         },
         tooltip: {
+            ...SERIES_TOOLTIP_THEME,
             range: { $path: ['/tooltip/range', 10] },
-            interaction: { enabled: false },
         },
         highlight: { enabled: true },
         selection: SERIES_SELECTION_THEME,
@@ -127,6 +128,7 @@ export const LinearGaugeModule: SeriesModuleDefinition<AgLinearGaugePreset> = {
     version: VERSION,
 
     options: linearGaugeSeriesOptionsDef,
+    themeOptions: linearGaugeThemeOptionsDef,
     themeTemplate,
 
     create: (ctx) => new LinearGaugeSeries(ctx),

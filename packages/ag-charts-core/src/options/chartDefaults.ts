@@ -26,7 +26,6 @@ import {
     type AgInitialFocus,
     type AgInterpolationType,
     type AgLineSeriesLabelOptions,
-    type AgRangesButton,
     type AgSeriesMarkerOptions,
     type AgSeriesMarkerStyle,
     type AgSeriesTooltip,
@@ -44,7 +43,6 @@ import {
     borderOptionsDef,
     colorOrRef,
     colorUnion,
-    fillCssOptionsDef,
     fillOptionsDef,
     fontOptionsDef,
     highlightOptionsDef,
@@ -70,7 +68,6 @@ import {
     type ValidatorResult,
     and,
     array,
-    arrayLength,
     arrayOf,
     arrayOfDefs,
     attachDescription,
@@ -88,7 +85,6 @@ import {
     lessThanOrEqual,
     number,
     numericValue,
-    object,
     optionsDefs,
     or,
     positiveNumber,
@@ -228,6 +224,8 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
 };
 // @ts-expect-error undocumented option
 chartCaptionOptionsDefs.truncate = undocumented(boolean);
+// @ts-expect-error undocumented option
+chartCaptionOptionsDefs.layoutStyle = undocumented(union('block', 'overlay'));
 
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
@@ -503,7 +501,25 @@ export const gradientLegendOptionsDefs: OptionsDefs<AgGradientLegendOptions> = {
     },
 };
 
-export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {
+/** Chart-level keys owned by plugin modules; their defs arrive through the modules' contributions. */
+export type ModuleOwnedChartOptions =
+    | 'animation'
+    | 'annotations'
+    | 'chartToolbar'
+    | 'contextMenu'
+    | 'dataSource'
+    | 'flashOnUpdate'
+    | 'gradientLegend'
+    | 'legend'
+    | 'locale'
+    | 'navigator'
+    | 'ranges'
+    | 'scrollbar'
+    | 'selection'
+    | 'sync'
+    | 'zoom';
+
+export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, ModuleOwnedChartOptions>> = {
     width: positiveNumber,
     height: positiveNumber,
     minWidth: positiveNumber,
@@ -519,8 +535,6 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         cornerRadius: number,
         padding: or(themeOperator, padding),
     },
-    legend: legendOptionsDefs,
-    gradientLegend: gradientLegendOptionsDefs,
     listeners: {
         seriesNodeClick: callback,
         seriesNodeDoubleClick: callback,
@@ -568,13 +582,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             offset: positiveNumber,
         },
     },
-    animation: object,
-    flashOnUpdate: object,
-    contextMenu: object,
     context: () => true,
-    dataSource: {
-        getData: callback,
-    },
     keyboard: {
         enabled: boolean,
         tabIndex: number,
@@ -582,102 +590,6 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     },
     touch: {
         dragAction: union('none', 'drag', 'hover'),
-    },
-    selection: object,
-    ranges: {
-        enabled: boolean,
-        enableOutOfRange: boolean,
-        position: union('top-left', 'top', 'top-right', 'bottom-left', 'bottom', 'bottom-right'),
-        spacing: positiveNumber,
-        buttonSize: positiveNumber,
-        button: {
-            ...fillCssOptionsDef,
-            ...strokeOptionsDef,
-            textColor: colorOrRef,
-            ...fontOptionsDef,
-            cornerRadius: positiveNumber,
-            padding: padding,
-            active: {
-                ...fillCssOptionsDef,
-                stroke: strokeOptionsDef.stroke,
-                textColor: colorOrRef,
-            },
-            disabled: {
-                ...fillCssOptionsDef,
-                stroke: strokeOptionsDef.stroke,
-                textColor: colorOrRef,
-            },
-            hover: {
-                ...fillCssOptionsDef,
-                stroke: strokeOptionsDef.stroke,
-                textColor: colorOrRef,
-            },
-        },
-        dropdown: {
-            visible: union('auto', 'always', 'never'),
-            ...fillCssOptionsDef,
-            ...strokeOptionsDef,
-            textColor: colorOrRef,
-            ...fontOptionsDef,
-            cornerRadius: positiveNumber,
-            padding: padding,
-            active: {
-                ...fillCssOptionsDef,
-                stroke: strokeOptionsDef.stroke,
-                textColor: colorOrRef,
-            },
-            disabled: {
-                ...fillCssOptionsDef,
-                stroke: strokeOptionsDef.stroke,
-                textColor: colorOrRef,
-            },
-            hover: {
-                ...fillCssOptionsDef,
-                stroke: strokeOptionsDef.stroke,
-                textColor: colorOrRef,
-            },
-        },
-        gap: positiveNumber,
-        ...fillCssOptionsDef,
-        ...strokeOptionsDef,
-        textColor: colorOrRef,
-        ...fontOptionsDef,
-        cornerRadius: positiveNumber,
-        padding: padding,
-        active: {
-            ...fillCssOptionsDef,
-            stroke: strokeOptionsDef.stroke,
-            textColor: colorOrRef,
-        },
-        disabled: {
-            ...fillCssOptionsDef,
-            stroke: strokeOptionsDef.stroke,
-            textColor: colorOrRef,
-        },
-        hover: {
-            ...fillCssOptionsDef,
-            stroke: strokeOptionsDef.stroke,
-            textColor: colorOrRef,
-        },
-        buttons: arrayOfDefs<AgRangesButton>(
-            {
-                ...toolbarButtonOptionsDefs,
-                enabled: boolean,
-                value: or(
-                    number,
-                    and(arrayOf(or(number, date)), arrayLength(2, 2)),
-                    timeInterval,
-                    timeIntervalUnit,
-                    callback
-                ),
-            },
-            'range button options array'
-        ),
-    },
-    // modules
-    locale: {
-        localeText: object,
-        getLocaleText: callbackOf(string),
     },
     background: {
         visible: boolean,
@@ -695,25 +607,12 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         },
     },
     styleNonce: string,
-    sync: object,
-    zoom: object,
-    scrollbar: object,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
     enableRtl: boolean,
 };
 
 // @ts-expect-error undocumented option
-commonChartOptionsDefs.dataSource.requestThrottle = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.dataSource.updateThrottle = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.dataSource.updateDuringInteraction = undocumented(boolean);
-
-// @ts-expect-error undocumented option
 commonChartOptionsDefs.statusBar = undocumented(defined);
-
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.ranges.minSize = undocumented(positiveNumber);
 
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.foreground = undocumented({
@@ -736,6 +635,8 @@ commonChartOptionsDefs.foreground = undocumented({
 commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
 // @ts-expect-error undocumented option
 commonChartOptionsDefs.displayNullData = undocumented(boolean);
+// @ts-expect-error undocumented option
+commonChartOptionsDefs.mode = undocumented(union('integrated', 'standalone'));
 
 export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeableOptions<any>> = {
     cursor: string,

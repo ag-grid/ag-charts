@@ -6,6 +6,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     cycledFillThemeTemplate,
@@ -15,7 +16,7 @@ import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SunburstSeries } from './sunburstSeries';
-import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
+import { sunburstSeriesOptionsDef, sunburstSeriesThemeableOptionsDef } from './sunburstSeriesOptionsDef';
 
 const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
     series: {
@@ -34,7 +35,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
             mode: 'continuous',
         },
-        tooltip: { interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         fillOpacity: 1,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         strokeOpacity: 1,
@@ -114,6 +115,8 @@ export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOption
     dependencies: [StandaloneChartModule],
 
     options: sunburstSeriesOptionsDef,
+
+    themeOptions: sunburstSeriesThemeableOptionsDef,
     themeTemplate,
 
     create: (ctx) => new SunburstSeries(ctx),
