@@ -130,8 +130,8 @@ function findNavigatorTarget(navigatorModule: unknown, clientX: number, clientY:
         .castProperty('minHandle', Node)
         .findProperty('maxHandle')
         .castProperty('maxHandle', Node)
-        .findProperty('mask')
-        .castProperty('mask', Node).value;
+        .findProperty('track')
+        .castProperty('track', Node).value;
     const domProxy = caster
         .accessProperty('domProxy')
         .findProperty('toolbar')
@@ -146,7 +146,7 @@ function findNavigatorTarget(navigatorModule: unknown, clientX: number, clientY:
         targetWidget = domProxy.sliders[0];
     } else if (Transformable.toCanvas(navigator.maxHandle).containsPoint(clientX, clientY)) {
         targetWidget = domProxy.sliders[2];
-    } else if (Transformable.toCanvas(navigator.mask).containsPoint(clientX, clientY)) {
+    } else if (Transformable.toCanvas(navigator.track).containsPoint(clientX, clientY)) {
         targetWidget = domProxy.sliders[1];
     }
 

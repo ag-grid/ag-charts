@@ -16,6 +16,7 @@ import {
     color,
     colorOrRef,
     defined,
+    deprecated,
     fontOptionsDef,
     isObject,
     number,
@@ -37,6 +38,8 @@ import type {
     AgNavigatorMiniChartLabelOptions,
     AgNavigatorOptions,
     AgNavigatorThemeableOptions,
+    AgNavigatorThumbOptions,
+    AgNavigatorTrackOptions,
     BarIgnoredProperties,
     BoxPlotIgnoredProperties,
     BubbleIgnoredProperties,
@@ -195,11 +198,21 @@ function miniChartSeriesDefs() {
 // once the theme has filled it in, so the pre-theme pass accepts it as a bare object.
 const untypedMiniChartSeries = attachDescription((value) => isObject(value) && value.type == null, 'an object');
 
-const navigatorMaskOptionsDef: OptionsDefs<AgNavigatorMaskOptions> = {
+const navigatorTrackOptionsDef: OptionsDefs<AgNavigatorTrackOptions> = {
     fill: color,
     fillOpacity: ratio,
     stroke: color,
     strokeWidth: positiveNumber,
+};
+
+const navigatorMaskOptionsDef: OptionsDefs<AgNavigatorMaskOptions> = deprecated(
+    navigatorTrackOptionsDef,
+    'Use `navigator.track` instead.'
+);
+
+const navigatorThumbOptionsDef: OptionsDefs<AgNavigatorThumbOptions> = {
+    fill: color,
+    fillOpacity: ratio,
 };
 
 const navigatorMiniChartLabelOptionsDef: OptionsDefs<AgNavigatorMiniChartLabelOptions> = {
@@ -223,6 +236,8 @@ export const navigatorOptionsDef: OptionsDefs<AgNavigatorOptions> = {
     spacing: positiveNumber,
     cornerRadius: number,
     mask: navigatorMaskOptionsDef,
+    track: navigatorTrackOptionsDef,
+    thumb: navigatorThumbOptionsDef,
     minHandle: navigatorHandleOptionsDef,
     maxHandle: navigatorHandleOptionsDef,
     miniChart: {
@@ -241,7 +256,12 @@ const navigatorHandleThemeOptionsDef: OptionsDefs<AgNavigatorHandleOptions> = {
 
 export const navigatorThemeOptionsDef: OptionsDefs<AgNavigatorThemeableOptions> = {
     ...navigatorOptionsDef,
-    mask: { ...navigatorMaskOptionsDef, fill: colorOrRef, stroke: colorOrRef },
+    mask: deprecated(
+        { ...navigatorTrackOptionsDef, fill: colorOrRef, stroke: colorOrRef },
+        'Use `navigator.track` instead.'
+    ),
+    track: { ...navigatorTrackOptionsDef, fill: colorOrRef, stroke: colorOrRef },
+    thumb: { ...navigatorThumbOptionsDef, fill: colorOrRef },
     minHandle: navigatorHandleThemeOptionsDef,
     maxHandle: navigatorHandleThemeOptionsDef,
     miniChart: {
