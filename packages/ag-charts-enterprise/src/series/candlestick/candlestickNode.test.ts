@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import { setupMockCanvas } from 'ag-charts-community-test';
 
-import { RED_SHADOW, allWhite, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../../test/utils';
+import {
+    RED_SHADOW,
+    allWhite,
+    blackColumns,
+    leftEdgeIsWhite,
+    pixelAt,
+    renderNode,
+    renderShadowBatch,
+} from '../../test/utils';
 import { CandlestickNode } from './candlestickNode';
 
 const candlestick = (mixin: Partial<CandlestickNode<unknown>>) => {
@@ -147,6 +155,42 @@ describe('CandlestickNode', () => {
                 renderNode(canvasCtx, node);
 
                 expect(allWhite(canvasCtx)).toBe(true);
+            }
+        });
+    });
+
+    describe('batched shadow', () => {
+        const canvasCtx = setupMockCanvas({ width: 400, height: 220 });
+
+        const wicked = (centerX: number, mixin: Partial<CandlestickNode<unknown>>) =>
+            candlestick({ centerX, wickStroke: 'black', wickStrokeWidth: 2, ...mixin });
+
+        it('should cast the shadow of a translucent wick once', () => {
+            const style = { wickStrokeOpacity: 0.5, fillShadow: { ...RED_SHADOW, xOffset: 20 } };
+            renderNode(canvasCtx, wicked(100, style));
+            const unbatched = pixelAt(canvasCtx, 120, 50);
+
+            renderShadowBatch(canvasCtx, [wicked(100, style), wicked(250, style)]);
+
+            // Drawn twice into the mask, the wick would cast a shadow of 0.75 rather than 0.5.
+            expect(unbatched).not.toEqual([255, 255, 255, 255]);
+            expect(pixelAt(canvasCtx, 120, 50)).toEqual(unbatched);
+            expect(pixelAt(canvasCtx, 270, 50)).toEqual(unbatched);
+        });
+
+        it('should spread the shadow of a wick with its own colour when the body stroke is transparent', () => {
+            const style = {
+                fill: 'none',
+                stroke: 'transparent',
+                fillShadow: { ...RED_SHADOW, spread: 10 },
+            };
+            renderShadowBatch(canvasCtx, [wicked(100, style), wicked(250, style)]);
+
+            for (const x of [100, 250]) {
+                for (const y of [11, 15, 19]) {
+                    expect(pixelAt(canvasCtx, x, y)).toEqual([255, 0, 0, 255]);
+                }
+                expect(pixelAt(canvasCtx, x, 5)).toEqual([255, 255, 255, 255]);
             }
         });
     });

@@ -86,13 +86,12 @@ function acquireShadowScratch(scene: object | undefined, user: object, width: nu
 
     let { scratch } = pool;
     if (scratch == null || scratch.canvas.width < width || scratch.canvas.height < height) {
-        const largest = scratch?.canvas;
+        // Read the size first, because freeing the canvas resizes it to 0 x 0.
+        const largestWidth = scratch?.canvas.width ?? 0;
+        const largestHeight = scratch?.canvas.height ?? 0;
         freeScratch(pool);
         const OffscreenCanvasCtor = getOffscreenCanvas();
-        const canvas = new OffscreenCanvasCtor(
-            Math.max(width, largest?.width ?? 0),
-            Math.max(height, largest?.height ?? 0)
-        );
+        const canvas = new OffscreenCanvasCtor(Math.max(width, largestWidth), Math.max(height, largestHeight));
         scratch = { canvas, context: canvas.getContext('2d')! };
         pool.scratch = scratch;
     }

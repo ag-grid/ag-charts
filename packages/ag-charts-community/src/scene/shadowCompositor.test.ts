@@ -564,6 +564,43 @@ describe('Group shadow compositor', () => {
             expect(inUse(createdSince(before)).length - unbatched).toBe(1);
         });
 
+        it('should grow the scratch canvas to fit layers of different proportions', () => {
+            const renderCtxFor = (layer: OffscreenCanvas) => ({
+                ctx: layer.getContext('2d')! as unknown as CanvasRenderingContext2D,
+                direction: 'ltr' as const,
+                width: layer.width,
+                height: layer.height,
+                devicePixelRatio: 1,
+                logger: new Logger(),
+                debugNodes: {},
+            });
+            const draw = (group: Group, layer: OffscreenCanvas) => {
+                const renderCtx = renderCtxFor(layer);
+                group.preRender(renderCtx);
+                group.render(renderCtx);
+            };
+            const wideLayer = new OffscreenCanvas(400, 200);
+            const tallLayer = new OffscreenCanvas(200, 400);
+            const wide = createGroup([shadowed(10, 10), shadowed(10, 80)]);
+            const tall = createGroup([shadowed(10, 10), shadowed(10, 80)]);
+            const before = offscreenCanvases();
+
+            draw(wide, wideLayer);
+            draw(tall, tallLayer);
+
+            // The canvas that fits the wide layer is replaced by one that fits both, which neither group replaces again.
+            const [scratch] = inUse(createdSince(before));
+            expect(scratch.width).toBe(400);
+            expect(scratch.height).toBe(400);
+            const created = createdSince(before).length;
+
+            draw(wide, wideLayer);
+            draw(tall, tallLayer);
+
+            expect(createdSince(before)).toHaveLength(created);
+            expect(inUse(createdSince(before))).toEqual([scratch]);
+        });
+
         it('should free the scratch canvas when shadows switch off', () => {
             const before = offscreenCanvases();
             const scene = newScene();

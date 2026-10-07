@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import { setupMockCanvas } from 'ag-charts-community-test';
 
-import { RED_SHADOW, allWhite, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../../test/utils';
+import {
+    RED_SHADOW,
+    allWhite,
+    blackColumns,
+    leftEdgeIsWhite,
+    pixelAt,
+    renderNode,
+    renderShadowBatch,
+} from '../../test/utils';
 import { BoxPlotNode } from './boxPlotNode';
 
 const boxPlot = (mixin: Partial<BoxPlotNode>) => {
@@ -166,6 +174,50 @@ describe('BoxPlotNode', () => {
             renderNode(canvasCtx, node);
 
             expect(leftEdgeIsWhite(canvasCtx)).toBe(true);
+        });
+    });
+
+    describe('batched shadow', () => {
+        const canvasCtx = setupMockCanvas({ width: 400, height: 220 });
+
+        const whiskers = (center: number, mixin: Partial<BoxPlotNode>) =>
+            boxPlot({
+                horizontal: false,
+                center,
+                thickness: 40,
+                min: 20,
+                q1: 70,
+                median: 100,
+                q3: 130,
+                max: 190,
+                wickStroke: 'rgb(0, 0, 0)',
+                wickStrokeWidth: 2,
+                ...mixin,
+            });
+
+        it('should cast the shadow of a translucent whisker once', () => {
+            const style = { wickStrokeOpacity: 0.5, fillShadow: { ...RED_SHADOW, xOffset: 20 } };
+            renderNode(canvasCtx, whiskers(100, style));
+            const unbatched = pixelAt(canvasCtx, 120, 40);
+
+            renderShadowBatch(canvasCtx, [whiskers(100, style), whiskers(250, style)]);
+
+            // Drawn twice into the mask, the whisker would cast a shadow of 0.75 rather than 0.5.
+            expect(unbatched).not.toEqual([255, 255, 255, 255]);
+            expect(pixelAt(canvasCtx, 120, 40)).toEqual(unbatched);
+            expect(pixelAt(canvasCtx, 270, 40)).toEqual(unbatched);
+        });
+
+        it('should spread the shadow of a whisker with its own colour when the body stroke is transparent', () => {
+            const style = { fill: 'none', stroke: 'transparent', fillShadow: { ...RED_SHADOW, spread: 10 } };
+            renderShadowBatch(canvasCtx, [whiskers(100, style), whiskers(250, style)]);
+
+            for (const x of [100, 250]) {
+                for (const y of [10, 14, 18]) {
+                    expect(pixelAt(canvasCtx, x, y)).toEqual([255, 0, 0, 255]);
+                }
+                expect(pixelAt(canvasCtx, x, 5)).toEqual([255, 255, 255, 255]);
+            }
         });
     });
 

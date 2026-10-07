@@ -181,6 +181,33 @@ export function renderNode(canvasCtx: MockCanvas, node: _ModuleSupport.Shape, pi
     ctx.restore();
 }
 
+/** Renders `nodes` over a white background as one batch of a group that casts its shadows with a single blur. */
+export function renderShadowBatch(canvasCtx: MockCanvas, nodes: readonly _ModuleSupport.Shape[]) {
+    const { width, height } = canvasCtx.nodeCanvas;
+    const ctx = canvasCtx.getRenderContext2D();
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, width, height);
+
+    const group = new _ModuleSupport.Group({ name: 'shadow-batch' });
+    group.batchShadows = true;
+    for (const node of nodes) group.appendChild(node);
+
+    const renderCtx = {
+        ctx,
+        direction: 'ltr' as const,
+        width,
+        height,
+        devicePixelRatio: 1,
+        logger: testLogger,
+        debugNodes: {},
+    };
+    group.preRender(renderCtx);
+    group.render(renderCtx);
+    // The group keeps a scratch canvas for the batch, which it gives up once it has fewer than two casters.
+    for (const node of nodes) node.fillShadow = undefined;
+    group.preRender(renderCtx);
+}
+
 /** The device-pixel columns that hold at least one opaque black pixel. */
 export function blackColumns(canvasCtx: MockCanvas) {
     const { width, height } = canvasCtx.nodeCanvas;

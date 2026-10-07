@@ -235,7 +235,10 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger) {
         super.drawPath(ctx, logger);
 
-        this.strokeWicks(ctx);
+        // A shadow batch's mask draws the wicks as extras, so they would be drawn twice.
+        if (!this.isDrawingShadowMask()) {
+            this.strokeWicks(ctx);
+        }
     }
 
     protected override renderSilhouetteExtras(ctx: _ModuleSupport.CanvasContext) {
@@ -246,6 +249,11 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         const { wickPath, strokeWidth, wickStrokeWidth = strokeWidth } = this;
         if (this.getSilhouetteExtrasOpacity() <= 0) return;
 
+        // The mask is drawn with real paint, so the dilation takes the wick's colour, which `strokeWicks` paints with.
+        const { wickStroke = this.stroke } = this;
+        if (this.isDrawingShadowMask() && typeof wickStroke === 'string') {
+            ctx.strokeStyle = wickStroke;
+        }
         ctx.lineWidth = wickStrokeWidth + growth;
         ctx.stroke(wickPath.getPath2D());
     }
