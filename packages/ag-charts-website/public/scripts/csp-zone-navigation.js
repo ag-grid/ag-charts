@@ -22,8 +22,6 @@
     var CSP_ZONES = [
         // Also matches the archived copies, which are served with the campaigns policy (CAMPAIGNS_PATH_CONDITION)
         { zone: 'campaigns', pattern: /^(?:\/archive\/[^/]+)?\/campaigns\// },
-        // Served the examples policy (CSP 'unsafe-inline'), unlike the other charts pages
-        { zone: 'charts-examples', pattern: /^\/charts\/examples(?:\/|$)/ },
         { zone: 'charts', pattern: /^\/charts(?:\/|$)/ },
         { zone: 'studio', pattern: /^\/studio(?:\/|$)/ },
     ];
