@@ -21,7 +21,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, AgLineSeriesStylerResult, AgLineSeriesThemeableOptions } from 'ag-charts-types';
 
@@ -48,10 +48,10 @@ export const lineSeriesThemeableOptionsDef: OptionsDefs<AgLineSeriesThemeableOpt
     ...lineDashOptionsDef,
     highlight,
     segmentation: lineSegmentation,
+    ...undocumentedDefs({
+        sparklineMode: boolean,
+    }),
 };
-
-// @ts-expect-error undocumented option
-lineSeriesThemeableOptionsDef.sparklineMode = undocumented(boolean);
 
 export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     ...lineSeriesThemeableOptionsDef,
@@ -69,13 +69,11 @@ export const lineSeriesOptionsDef: OptionsDefs<AgLineSeriesOptions> = {
     normalizedTo: number,
     legendItemName: string,
     errorBar: errorBarOptionsDefs,
+    ...undocumentedDefs({
+        // WARNING! selectedKey belongs to cross-filtering, an undocumented and unsupported feature unrelated to the
+        // official data selection API. Do not use.
+        selectedKey: string,
+        pickOutsideVisibleMinorAxis: boolean,
+        focusPriority: number,
+    }),
 };
-
-// WARNING! selectedKey belongs to cross-filtering, an undocumented and unsupported feature unrelated to the
-// official data selection API. Do not use.
-// @ts-expect-error undocumented option
-lineSeriesOptionsDef.selectedKey = undocumented(string);
-// @ts-expect-error undocumented option
-lineSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
-// @ts-expect-error undocumented option
-lineSeriesOptionsDef.focusPriority = undocumented(number);

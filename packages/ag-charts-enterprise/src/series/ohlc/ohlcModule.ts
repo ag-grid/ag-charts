@@ -22,7 +22,7 @@ import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { OhlcSeries } from './ohlcSeries';
-import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
+import { ohlcSeriesOptionsDef, ohlcSeriesThemeableOptionsDef } from './ohlcSeriesOptionsDef';
 
 const { predictCartesianFinancialAxis } = _ModuleSupport;
 
@@ -77,6 +77,8 @@ export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: ohlcSeriesOptionsDef,
+
+    themeOptions: ohlcSeriesThemeableOptionsDef,
     matchingKeys: ['xKey', 'lowKey', 'highKey', 'openKey', 'closeKey', 'normalizedTo'],
     predictAxis: predictCartesianFinancialAxis,
     defaultAxes: {

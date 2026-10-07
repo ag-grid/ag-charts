@@ -1,18 +1,85 @@
-import type { AgChordSeriesOptions } from 'ag-charts-community';
+import type {
+    AgChordSeriesLinkStyle,
+    AgChordSeriesNodeStyle,
+    AgChordSeriesOptions,
+    AgChordSeriesThemeableOptions,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
+    arrayOf,
+    callbackDefs,
     callbackOf,
-    chordSeriesThemeableOptionsDef,
+    colorOrRef,
+    colorUnion,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
     fillGradientDefaults,
     fillImageDefaults,
+    fillOptionsDef,
     fillPatternDefaults,
+    lineDashOptionsDef,
+    positiveNumber,
+    ratio,
     required,
+    seriesLabelOptionsDefs,
+    shadowHighlightOptionsDef,
+    shadowOptionsDefs,
+    shapeHighlightOptionsDef,
     string,
-    undocumented,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    undocumentedDefs,
+    undocumentedLabelFitOptionsDefs,
     without,
 } from 'ag-charts-core';
+
+export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableOptions> = {
+    fills: arrayOf(colorUnion),
+    strokes: arrayOf(colorOrRef),
+    label: {
+        spacing: positiveNumber,
+        maxWidth: positiveNumber,
+        ...seriesLabelOptionsDefs,
+        ...without(undocumentedLabelFitOptionsDefs, ['maxWidth']),
+    },
+    link: {
+        shadow: shadowOptionsDefs,
+        tension: ratio,
+        itemStyler: callbackDefs<AgChordSeriesLinkStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+            tension: ratio,
+        }),
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    node: {
+        shadow: shadowOptionsDefs,
+        width: positiveNumber,
+        spacing: positiveNumber,
+        cornerRadius: positiveNumber,
+        itemStyler: callbackDefs<AgChordSeriesNodeStyle>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            ...lineDashOptionsDef,
+            cornerRadius: positiveNumber,
+        }),
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
+    ...undocumentedDefs({
+        fillGradientDefaults: fillGradientDefaults,
+        fillPatternDefaults: fillPatternDefaults,
+        fillImageDefaults: fillImageDefaults,
+    }),
+};
 
 export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     ...chordSeriesThemeableOptionsDef,
@@ -24,10 +91,3 @@ export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     sizeName: string,
     getItemId: callbackOf(string),
 };
-
-// @ts-expect-error undocumented option
-chordSeriesOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
-// @ts-expect-error undocumented option
-chordSeriesOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
-// @ts-expect-error undocumented option
-chordSeriesOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);

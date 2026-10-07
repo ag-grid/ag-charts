@@ -20,7 +20,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefsWithArea,
-    undocumented,
+    undocumentedDefs,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, AgAreaSeriesStylerResult, AgAreaSeriesThemeableOptions } from 'ag-charts-types';
 
@@ -65,9 +65,9 @@ export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
+    ...undocumentedDefs({
+        // WARNING! This selectedKey belongs to cross-filtering, an undocumented and unsupported feature; it is
+        // unrelated to the data selection API in the options contract. Use with extreme caution.
+        selectedKey: string,
+    }),
 };
-
-// WARNING! This selectedKey belongs to cross-filtering, an undocumented and unsupported feature; it is
-// unrelated to the data selection API in the options contract. Use with extreme caution.
-// @ts-expect-error undocumented option
-areaSeriesOptionsDef.selectedKey = undocumented(string);

@@ -119,6 +119,8 @@ export interface ValidateParams {
      * positive.
      */
     silentAdvisories?: boolean;
+    /** Accept a theme operator (`{ $op: ... }`) wherever a value is expected, as theme templates and overrides may. */
+    themeOperators?: boolean;
 }
 
 export enum ErrorType {
@@ -200,6 +202,12 @@ export class UnknownError extends ValidationError {
     }
 }
 
+export function isThemeOperator(value: unknown) {
+    if (!isObject(value)) return false;
+    const keys = Object.keys(value);
+    return keys.length === 1 && keys[0].startsWith('$');
+}
+
 /**
  * Validates the provided options against the specified definitions.
  * @param options The options object to validate.
@@ -272,6 +280,11 @@ export function validate<T>(
                 unusedKeys.push(key);
             }
             if (!required || optionsDisabled) continue;
+        }
+
+        if (params.themeOperators && isThemeOperator(value)) {
+            cleared[key as keyof T] = value;
+            continue;
         }
 
         const keyPath = extendPath(path, key);
@@ -390,6 +403,7 @@ export function required<T extends Validator | OptionsDefs<any>>(validatorOrDefs
 
 export function undocumented(validatorOrDefs: Validator): Validator;
 export function undocumented<T extends OptionsDefs<any>>(validatorOrDefs: T): T;
+export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T): T;
 export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T) {
     return Object.assign(
         isFunction(validatorOrDefs)
@@ -397,6 +411,15 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
             : optionsDefs(validatorOrDefs),
         { [undocumentedSymbol]: true, [descriptionSymbol]: validatorOrDefs[descriptionSymbol] }
     ) as T;
+}
+
+/** Spread inside a defs literal for keys absent from its options type; typed as empty so the literal type-checks. */
+export function undocumentedDefs(defs: Record<string, Validator | OptionsDefs<any>>): Record<never, never> {
+    const result: Record<string, Validator | OptionsDefs<any>> = {};
+    for (const key of Object.keys(defs)) {
+        result[key] = undocumented(defs[key]);
+    }
+    return result;
 }
 
 /** `defs` with every required entry made optional, for options the theme supplies later. */
@@ -828,6 +851,14 @@ export const arrayOfDefs = <T>(defs: OptionsDefs<T>, description = 'an object ar
 
         return { valid: true, cleared, invalid };
     }, description);
+
+/** Validates against `defs`, accepting a theme operator in place of any value. */
+export const withThemeOperators = <T>(defs: OptionsDefs<T>) =>
+    attachDescription((value, context) => {
+        if (!isObject(value)) return false;
+        const { cleared, invalid } = validate(value, defs, context.path, { ...context.params, themeOperators: true });
+        return { valid: true, cleared, invalid };
+    }, 'an object');
 
 export const callbackOf = (validator: Validator, description?: string) =>
     attachDescription((value, context) => {

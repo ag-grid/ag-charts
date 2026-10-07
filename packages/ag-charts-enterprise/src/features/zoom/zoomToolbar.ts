@@ -56,7 +56,8 @@ export class ZoomToolbar {
     private anchorPointY?: AgZoomAnchorPoint;
 
     private readonly verticalSpacing = 10;
-    private readonly detectionRange = 38;
+    private buttonSize?: number;
+    private shown = false;
 
     private readonly container: _ModuleSupport.NativeWidget<HTMLDivElement>;
     private readonly toolbar: _ModuleSupport.Toolbar<ZoomToolbarButtonOptions>;
@@ -127,6 +128,35 @@ export class ZoomToolbar {
         }
         this.anchorPointX = anchorPointX;
         this.anchorPointY = anchorPointY;
+        this.applyButtonSize(options.buttonSize);
+    }
+
+    private get detectionRange() {
+        return this.buttonSize == null ? 38 : Math.max(38, this.buttonSize + 14);
+    }
+
+    private applyButtonSize(buttonSize: number | undefined) {
+        if (buttonSize === this.buttonSize) return;
+        this.buttonSize = buttonSize;
+
+        const { container, toolbar } = this;
+        const element = container.getElement();
+        container.toggleClass('ag-charts-zoom-buttons--sized', buttonSize != null);
+        if (buttonSize == null) {
+            element.style.removeProperty('--toolbar-button-size');
+        } else {
+            element.style.setProperty('--toolbar-button-size', `${buttonSize}px`);
+        }
+        toolbar.setButtonSize(buttonSize);
+
+        this.resetContainerHeight();
+        this.toggleVisibility(this.shown, true);
+    }
+
+    private resetContainerHeight() {
+        this.cachedContainerHeight = undefined;
+        this.container.getElement().style.height = '';
+        this.lastBottomY = undefined;
     }
 
     public toggleVisibleZoomed(maxZoom: boolean) {
@@ -164,9 +194,7 @@ export class ZoomToolbar {
 
         if (this.cachedButtonCount !== buttons.length) {
             this.cachedButtonCount = buttons.length;
-            this.cachedContainerHeight = undefined;
-            this.container.getElement().style.height = '';
-            this.lastBottomY = undefined;
+            this.resetContainerHeight();
         }
 
         const height = this.getContainerHeight();
@@ -217,6 +245,7 @@ export class ZoomToolbar {
     private toggleVisibility(visible: boolean, immediate: boolean = false) {
         const { toolbar, verticalSpacing } = this;
 
+        this.shown = visible;
         toolbar.toggleClass('ag-charts-zoom-buttons__toolbar--hidden', !visible);
 
         const element = toolbar.getElement();

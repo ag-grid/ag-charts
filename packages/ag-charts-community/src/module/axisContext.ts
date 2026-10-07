@@ -83,6 +83,10 @@ export interface AxisContext {
     axisId: AxisID;
     /** The key this axis was declared under in `axes`; `axisId` is the internal canonical id. */
     readonly userAxisId: string;
+    /** The user-provided `ariaLabel` option for this axis, if any. */
+    readonly ariaLabel: string | undefined;
+    /** Plain text of the axis title when the title is enabled and non-empty; otherwise `undefined`. */
+    readonly titleText: string | undefined;
     /** Static axis-type identifier (matches the axis module's name, e.g. `'number'`, `'angle-category'`). */
     readonly axisType: string;
     continuous: boolean;

@@ -37,6 +37,7 @@ import type {
     AxisValue,
 } from 'ag-charts-types';
 
+import { without } from '../data/object';
 import {
     collisionOptionsDef,
     labelAutoFontSizeOptionsDefs,
@@ -90,7 +91,7 @@ import {
     required,
     string,
     typeUnion,
-    undocumented,
+    undocumentedDefs,
     union,
     unionOrArray,
 } from './validation';
@@ -104,11 +105,8 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     cornerRadius: number,
     ...fontOptionsDef,
     ...fillOptionsDef,
+    ...undocumentedDefs({ overflow: union('pad-chart', 'realign-text', 'clip-text') }),
 };
-
-// Assigned before the defs below spread this object, so every cross-line variant picks it up.
-// @ts-expect-error undocumented option
-commonCrossLineLabelOptionsDefs.overflow = undocumented(union('pad-chart', 'realign-text', 'clip-text'));
 
 // `fill`/`fillOpacity` belong to the `range` variant only, and `id` identifies rather than styles a cross line.
 export const crossLineCommonStyleOptionsDefs: OptionsDefs<
@@ -232,10 +230,10 @@ export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLin
     collision: collisionOptionsDef,
     ...labelFitOptionsDefs,
     ...labelAutoFontSizeOptionsDefs,
+    ...undocumentedDefs({
+        reserveSpace: boolean,
+    }),
 };
-
-// @ts-expect-error undocumented option
-cartesianCrossLineLabelOptionsDefs.reserveSpace = undocumented(boolean);
 
 export const cartesianCrossLineOptionsDefs = crossLineOptionsDefs(defined, cartesianCrossLineLabelOptionsDefs);
 
@@ -295,6 +293,7 @@ export const commonAxisIntervalOptionsDefs: OptionsDefs<AgAxisBaseIntervalOption
 
 export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>> = {
     reverse: boolean,
+    ariaLabel: string,
     gridLine: {
         enabled: boolean,
         width: positiveNumber,
@@ -321,21 +320,17 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
     },
     tick: cartesianAxisTick,
     context: () => true,
+    ...undocumentedDefs({
+        layoutConstraints: {
+            stacked: required(boolean),
+            align: required(union('start', 'end')),
+            unit: required(union('percent', 'px')),
+            width: required(positiveNumber),
+        },
+        ignoreZoom: boolean,
+        linkZoom: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-commonAxisOptionsDefs.layoutConstraints = undocumented({
-    stacked: required(boolean),
-    align: required(union('start', 'end')),
-    unit: required(union('percent', 'px')),
-    width: required(positiveNumber),
-});
-
-// @ts-expect-error undocumented option
-commonAxisOptionsDefs.ignoreZoom = undocumented(boolean);
-
-// @ts-expect-error undocumented option
-commonAxisOptionsDefs.linkZoom = undocumented(string);
 
 export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
     enabled: boolean,
@@ -352,6 +347,7 @@ export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
 export const cartesianAxisCaptionOptionsDefs: OptionsDefs<AgCartesianAxisCaptionOptions> = {
     ...commonAxisCaptionOptionsDefs,
     orientation: union('horizontal', 'vertical', 'vertical-reversed'),
+    ...undocumentedDefs({ _enabledFromTheme: boolean }),
 };
 
 export const cartesianAxisOptionsDefs: OptionsDefs<
@@ -377,9 +373,6 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
         crossLineDoubleClick: callback,
     },
 };
-
-// @ts-expect-error undocumented option
-cartesianAxisOptionsDefs.title._enabledFromTheme = undocumented(boolean);
 
 export const cartesianAxisBandHighlightOptions: OptionsDefs<AgBandHighlightOptions> = {
     enabled: boolean,
@@ -590,3 +583,32 @@ export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
         'a cross-line options array'
     ),
 };
+
+function crossLineThemeOptionsDefs<LabelDefs>(label: LabelDefs) {
+    const range = { ...crossLineStyleOptionsDefs, label };
+    return { ...range, line: { ...crossLineCommonStyleOptionsDefs, label }, range };
+}
+
+/** Theme overrides for a cartesian axis type: its options plus per-position overrides, cross-lines styled by kind. */
+export function cartesianAxisThemeOptionsDefs(axisDefs: OptionsDefs<any>): OptionsDefs<any> {
+    const positioned = without(axisDefs, ['type', 'crossLines', 'position', 'ariaLabel']);
+    return {
+        ...without(axisDefs, ['type', 'crossLines', 'ariaLabel']),
+        top: positioned,
+        right: positioned,
+        bottom: positioned,
+        left: positioned,
+        crossLines: crossLineThemeOptionsDefs(cartesianCrossLineLabelOptionsDefs),
+    };
+}
+
+/** Theme overrides for a polar axis type, cross-lines styled by kind. */
+export function polarAxisThemeOptionsDefs(
+    axisDefs: OptionsDefs<any>,
+    crossLineLabel: OptionsDefs<any>
+): OptionsDefs<any> {
+    return {
+        ...without(axisDefs, ['type', 'crossLines', 'ariaLabel']),
+        crossLines: crossLineThemeOptionsDefs(crossLineLabel),
+    };
+}

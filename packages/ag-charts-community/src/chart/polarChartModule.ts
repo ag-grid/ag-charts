@@ -3,6 +3,7 @@ import {
     type ModuleOwnedChartOptions,
     UnknownError,
     ValidationError,
+    commonChartOptionsDefs,
     commonChartThemeTemplate,
     polarChartOptionsDefs,
     validate,
@@ -25,6 +26,8 @@ export const PolarChartModule: ChartModuleDefinition<Omit<AgPolarChartOptions, M
         dependencies: [SeriesAreaModule],
 
         options: polarChartOptionsDefs,
+
+        themeOptions: commonChartOptionsDefs,
 
         themeTemplate: commonChartThemeTemplate,
 

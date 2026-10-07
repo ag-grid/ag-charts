@@ -2,6 +2,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedUnitTimeAxisOptions,
+    cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
     parentLevelAxisThemeTemplate,
@@ -25,6 +26,8 @@ export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions, Uni
         dependencies: [CartesianChartModule],
 
         options: unitTimeAxisOptionsDefs,
+
+        themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(unitTimeAxisOptionsDefs),
         themeTemplate: mergeDefaults(
             {
                 groupPaddingInner: 0.1,

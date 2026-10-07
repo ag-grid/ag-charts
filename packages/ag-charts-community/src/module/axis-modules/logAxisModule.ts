@@ -2,6 +2,7 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedNumberAxisOptions,
+    cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     logAxisOptionsDefs,
     mergeDefaults,
@@ -23,6 +24,8 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions, LogAxis> = /*
     dependencies: [CartesianChartModule],
 
     options: logAxisOptionsDefs,
+
+    themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(logAxisOptionsDefs),
     themeTemplate: mergeDefaults(
         {
             base: 10,

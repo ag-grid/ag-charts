@@ -917,6 +917,82 @@ describe('Annotations', () => {
             expect(annotationsModule().yAxis?.button != null).toBe(true);
         });
 
+        describe('buttonSize', () => {
+            const sizeOf = (element: Element) =>
+                (element as HTMLElement).style.getPropertyValue('--toolbar-button-size');
+            const sharedButtons = () =>
+                Array.from(document.querySelectorAll('.ag-charts-shared-toolbar .ag-charts-toolbar__button'));
+            const sizedOptions = (chartToolbarEnabled: boolean): AgCartesianChartOptions => ({
+                ...withAnnotations({ enabled: true, toolbar: { enabled: true, buttonSize: 44 } }),
+                theme: { overrides: { common: { chartToolbar: { enabled: chartToolbarEnabled, buttonSize: 40 } } } },
+            });
+
+            it('sizes each shared toolbar section from its own option', async () => {
+                await prepareChart(undefined, sizedOptions(true));
+
+                const [chartToolbarButton, ...annotationButtons] = sharedButtons();
+                expect(sizeOf(chartToolbarButton)).toBe('40px');
+                expect(annotationButtons.length).toBeGreaterThan(0);
+                for (const button of annotationButtons) {
+                    expect(sizeOf(button)).toBe('44px');
+                    expect(button.classList).toContain('ag-charts-toolbar__button--sized');
+                }
+            });
+
+            it('keeps each section sized when the chart toolbar section is added in front', async () => {
+                await prepareChart(undefined, sizedOptions(false));
+                expect(
+                    sharedButtons()
+                        .map(sizeOf)
+                        .every((size) => size === '44px')
+                ).toBe(true);
+
+                await chart.update(prepareEnterpriseTestOptions(sizedOptions(true)));
+                await waitForChartStability(chart);
+
+                const [chartToolbarButton, ...annotationButtons] = sharedButtons();
+                expect(sizeOf(chartToolbarButton)).toBe('40px');
+                expect(annotationButtons.length).toBeGreaterThan(0);
+                expect(annotationButtons.map(sizeOf).every((size) => size === '44px')).toBe(true);
+            });
+
+            it('leaves the buttons unsized when not set', async () => {
+                await prepareChart(undefined, withAnnotations({ enabled: true, toolbar: { enabled: true } }));
+
+                const buttons = sharedButtons();
+                expect(buttons.length).toBeGreaterThan(0);
+                for (const button of buttons) {
+                    expect(sizeOf(button)).toBe('');
+                    expect(button.classList).not.toContain('ag-charts-toolbar__button--sized');
+                }
+            });
+
+            it('sizes the options toolbar buttons', async () => {
+                await prepareChart(
+                    {
+                        annotations: [
+                            {
+                                type: 'line',
+                                start: { x: { __type: 'date', value: '2024-03-01' }, y: 20 },
+                                end: { x: { __type: 'date', value: '2024-09-01' }, y: 80 },
+                            },
+                        ],
+                    },
+                    withAnnotations({ enabled: true, optionsToolbar: { buttonSize: 44 } })
+                );
+                const { optionsToolbar, annotationData } = annotationsModule();
+                optionsToolbar.updateButtons(annotationData.at(0));
+
+                const buttons = Array.from<Element>(
+                    optionsToolbar.toolbar.getElement().querySelectorAll('.ag-charts-toolbar__button')
+                );
+                expect(buttons.length).toBeGreaterThan(0);
+                for (const button of buttons) {
+                    expect(sizeOf(button)).toBe('44px');
+                }
+            });
+        });
+
         describe('axis button position', () => {
             const BUTTON_SIZE = 20;
 

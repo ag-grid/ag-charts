@@ -8,14 +8,15 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
-    radialGaugeSeriesOptionsDef,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { GaugePresetModule } from '../../preset/gauge/gaugePresetModule';
 import { RadialGaugeSeries } from './radialGaugeSeries';
+import { radialGaugeSeriesOptionsDef, radialGaugeThemeOptionsDef } from './radialGaugeSeriesOptionsDef';
 
 export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
     type: 'series',
@@ -26,6 +27,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
     version: VERSION,
 
     options: radialGaugeSeriesOptionsDef,
+    themeOptions: radialGaugeThemeOptionsDef,
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,
@@ -112,8 +114,8 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 truncate: AUTO_SIZED_LABEL_TRUNCATE,
             },
             tooltip: {
+                ...SERIES_TOOLTIP_THEME,
                 range: { $path: ['/tooltip/range', 10] },
-                interaction: { enabled: false },
             },
             highlight: { enabled: true },
             selection: SERIES_SELECTION_THEME,

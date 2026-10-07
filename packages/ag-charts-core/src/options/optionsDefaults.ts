@@ -46,6 +46,7 @@ import {
     color,
     constant,
     defined,
+    isThemeOperator,
     number,
     numericValue,
     optionsDefs,
@@ -58,14 +59,11 @@ import {
     stringLength,
     typeUnion,
     undocumented,
+    undocumentedDefs,
     union,
 } from './validation';
 
-export const themeOperator = (value: unknown) => {
-    if (!isObject(value)) return false;
-    const keys = Object.keys(value);
-    return keys.length === 1 && keys[0].startsWith('$');
-};
+export const themeOperator = isThemeOperator;
 
 const themeParams = [
     'accentColor',
@@ -375,14 +373,12 @@ export const simpleColorUnion = or(color, optionsDefs(colorObject, 'a color obje
 export const fillOptionsDef: OptionsDefs<FillOptions> = {
     fill: colorUnion,
     fillOpacity: ratio,
+    ...undocumentedDefs({
+        fillGradientDefaults: fillGradientDefaults,
+        fillPatternDefaults: fillPatternDefaults,
+        fillImageDefaults: fillImageDefaults,
+    }),
 };
-
-// @ts-expect-error undocumented option
-fillOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
-// @ts-expect-error undocumented option
-fillOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
-// @ts-expect-error undocumented option
-fillOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
 
 export const fillCssOptionsDef: OptionsDefs<FillCssOptions> = {
     fill: colorOrRef,

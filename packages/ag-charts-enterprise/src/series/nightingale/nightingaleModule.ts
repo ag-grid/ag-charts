@@ -2,7 +2,7 @@ import { type AgNightingaleSeriesOptions, PolarChartModule, VERSION } from 'ag-c
 import { ChartAxisDirection, POLAR_AXIS_TYPE, type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { NightingaleSeries } from './nightingaleSeries';
-import { nightingaleSeriesOptionsDef } from './nightingaleSeriesOptionsDef';
+import { nightingaleSeriesOptionsDef, nightingaleSeriesThemeableOptionsDef } from './nightingaleSeriesOptionsDef';
 import { NIGHTINGALE_SERIES_THEME } from './nightingaleThemes';
 
 export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeriesOptions> = {
@@ -17,6 +17,8 @@ export const NightingaleSeriesModule: SeriesModuleDefinition<AgNightingaleSeries
     dependencies: [PolarChartModule],
 
     options: nightingaleSeriesOptionsDef,
+
+    themeOptions: nightingaleSeriesThemeableOptionsDef,
     defaultAxes: { angle: { type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, radius: { type: POLAR_AXIS_TYPE.RADIUS_NUMBER } },
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate: NIGHTINGALE_SERIES_THEME,

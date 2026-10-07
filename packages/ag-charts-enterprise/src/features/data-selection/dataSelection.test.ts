@@ -25,13 +25,16 @@ import {
     deproxy,
     dragAction,
     getSeriesAggregationInternals,
+    isTooltipVisible,
     keyDownAction,
     mouseDownAction,
     mouseMoveAction,
     mouseUpAction,
     newFreezableMockInferred,
+    pressKey as pressSeriesAreaKey,
     setupMockCanvas,
     setupMockConsole,
+    tabIntoChart,
     waitForChartStability,
     withPreventDefault,
 } from 'ag-charts-community-test';
@@ -1454,6 +1457,37 @@ describe('DataSelection', () => {
                     expect(getErrorBarGroupOpacity()).toBe(1);
                 });
             }
+        });
+    });
+
+    describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
+        it('keeps the tooltip hidden despite the full redraw from the data selection Escape handler', async () => {
+            chart = await createChartInstance({
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 20 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                selection: { enabled: true },
+            });
+
+            await tabIntoChart(chart);
+            // jsdom cannot detect :focus-visible, so an arrow key switches to the keyboard device.
+            await pressSeriesAreaKey(chart, 'ArrowRight');
+            await pressSeriesAreaKey(chart, 'ArrowLeft');
+            expect(isTooltipVisible(deproxy(chart))).toBe(true);
+
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area')!;
+            const event = new KeyboardEvent('keydown', {
+                key: 'Escape',
+                code: 'Escape',
+                bubbles: true,
+                cancelable: true,
+            });
+            seriesArea.dispatchEvent(event);
+            await waitForChartStability(chart);
+
+            expect(isTooltipVisible(deproxy(chart))).toBe(false);
         });
     });
 

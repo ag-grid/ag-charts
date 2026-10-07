@@ -1,4 +1,4 @@
-import { type AgChartOptions, AgCharts, type AgGaugeOptions, _Scene } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, type AgGaugeOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     type PhasedPropertyExpectation,
@@ -124,16 +124,10 @@ export function mockCssVarColorSupport(container: HTMLElement, vars: Record<stri
  * Every `Shape` under `root`, for checking the drop shadow a series applies to its drawn shapes.
  * Kept `expect`-free since enterprise `src/test` is linted as shippable source.
  */
-export function collectShapes(root: _Scene.Group): _Scene.Shape[] {
-    const shapes: _Scene.Shape[] = [];
-    const visit = (node: unknown) => {
-        if (node instanceof _Scene.Shape) shapes.push(node);
-        if (node instanceof _Scene.Group) {
-            for (const child of node.children()) visit(child);
-        }
-    };
-    visit(root);
-    return shapes;
+export function collectShapes(root: _ModuleSupport.Group): _ModuleSupport.Shape[] {
+    return Array.from(root.descendants()).filter(
+        (node): node is _ModuleSupport.Shape => node instanceof _ModuleSupport.Shape
+    );
 }
 
 /** The theme-resolved `shadow` defaults of a fill series: present but disabled. */
@@ -142,13 +136,16 @@ export const DEFAULT_DISABLED_SHADOW = { enabled: false, xOffset: 3, yOffset: 3,
 /** The shadow the series tests turn on. */
 export const SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 6, yOffset: 6, blur: 8 };
 
+/** A smaller shadow than `SHADOW`, for the tests that turn on a second, distinct shadow (flow-proportion, map-shape, waterfall). */
+export const SMALL_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
+
 /** The shadow the highlight tests set on `highlightedItem`, distinct from `SHADOW` in every field. */
 export const HIGHLIGHT_SHADOW = { enabled: true, color: 'rgba(170, 0, 0, 1)', xOffset: 8, yOffset: 8, blur: 2 };
 
 /** A red shadow with no offset or blur, so a node test sees the shadow as exactly the node's own pixels. */
 export const RED_SHADOW = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
-export const shadowedShapes = (group: _Scene.Group) =>
+export const shadowedShapes = (group: _ModuleSupport.Group) =>
     collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
 
 /** The drawn item nodes of the first series, typed loosely so tests can read node-specific fields. */
@@ -157,7 +154,7 @@ export const itemNodes = (chart: any): any[] => collectShapes(chart.series[0].co
 type MockCanvas = ReturnType<typeof setupMockCanvas>;
 
 /** Renders `node` over a white background, at `pixelRatio` when the mock canvas is sized in device pixels. */
-export function renderNode(canvasCtx: MockCanvas, node: _Scene.Shape, pixelRatio = 1) {
+export function renderNode(canvasCtx: MockCanvas, node: _ModuleSupport.Shape, pixelRatio = 1) {
     const { width, height } = canvasCtx.nodeCanvas;
     const ctx = canvasCtx.getRenderContext2D();
     ctx.fillStyle = 'white';
@@ -208,6 +205,11 @@ export function leftEdgeIsWhite(canvasCtx: MockCanvas, columns = 2) {
         }
     }
     return true;
+}
+
+/** Whether every device pixel is still the opaque white background. */
+export function allWhite(canvasCtx: MockCanvas) {
+    return leftEdgeIsWhite(canvasCtx, canvasCtx.nodeCanvas.width);
 }
 
 /** The RGBA of the device pixel at (`x`, `y`). */

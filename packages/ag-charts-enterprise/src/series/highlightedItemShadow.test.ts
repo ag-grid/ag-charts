@@ -1,7 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
-import { AgCharts, _Scene } from 'ag-charts-community';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 
 import {
@@ -30,10 +30,10 @@ interface SeriesCase {
     series: (shadow: Shadow | undefined, highlight: object) => object;
     data: object[];
     /** The exact shape class that casts the shadow, so labels, lines and subclasses like sankey links are left out. */
-    kind: abstract new (...args: any[]) => _Scene.Shape;
+    kind: abstract new (...args: any[]) => _ModuleSupport.Shape;
     chartOptions?: object;
     /** The in-place and highlight-layer shapes, for series that keep both copies of an item in one group. */
-    layers?: (series: any) => { inPlace: _Scene.Shape[]; highlighted: _Scene.Shape[] };
+    layers?: (series: any) => { inPlace: _ModuleSupport.Shape[]; highlighted: _ModuleSupport.Shape[] };
     /** How many copies of the hovered item the highlight layer draws; range-area lights both its low and high marker. */
     hoveredCopies?: number;
     /** The datum to hover; defaults to the first of the series' node data. */
@@ -61,14 +61,14 @@ const SECOND_LEAF = (series: any) => {
 const FIRST_GROUP = (series: any) => series.rootNode.children[0];
 const SECOND_GROUP = (series: any) => series.rootNode.children[0].children[0];
 const SELECTION_LAYERS = (series: any) => ({
-    inPlace: [...series.datumSelection.nodes()] as _Scene.Shape[],
-    highlighted: [...series.highlightSelection.nodes()] as _Scene.Shape[],
+    inPlace: [...series.datumSelection.nodes()] as _ModuleSupport.Shape[],
+    highlighted: [...series.highlightSelection.nodes()] as _ModuleSupport.Shape[],
 });
 // Only groups cast in the group case, so the leaf rects that share the selection are left out.
 const GROUP_LAYERS = (series: any) => {
     const groups = (selection: any) => {
-        const nodes: _Scene.Shape[] = [];
-        selection.each((node: _Scene.Shape, datum: any) => {
+        const nodes: _ModuleSupport.Shape[] = [];
+        selection.each((node: _ModuleSupport.Shape, datum: any) => {
             if (datum.children.length > 0) nodes.push(node);
         });
         return nodes;
@@ -130,7 +130,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'sankey nodes',
         data: FLOW_DATA,
-        kind: _Scene.Rect,
+        kind: _ModuleSupport.Rect,
         hover: FLOW_NODE,
         hoverNext: SECOND_FLOW_NODE,
         layers: FLOW_LAYERS,
@@ -146,7 +146,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'chord nodes',
         data: FLOW_DATA,
-        kind: _Scene.Sector,
+        kind: _ModuleSupport.Sector,
         hover: FLOW_NODE,
         hoverNext: SECOND_FLOW_NODE,
         layers: FLOW_LAYERS,
@@ -195,7 +195,7 @@ const SERIES: SeriesCase[] = [
         // Tile and group highlights live under `tile.highlight` and `group.highlight`, not the series' `highlight`.
         name: 'treemap tiles',
         data: HIERARCHY_SHADOW_DATA,
-        kind: _Scene.Rect,
+        kind: _ModuleSupport.Rect,
         hover: FIRST_LEAF,
         hoverNext: SECOND_LEAF,
         layers: SELECTION_LAYERS,
@@ -210,7 +210,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'treemap groups',
         data: HIERARCHY_SHADOW_DATA,
-        kind: _Scene.Rect,
+        kind: _ModuleSupport.Rect,
         hover: FIRST_GROUP,
         hoverNext: SECOND_GROUP,
         layers: GROUP_LAYERS,
@@ -224,7 +224,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'sunburst',
         data: HIERARCHY_SHADOW_DATA,
-        kind: _Scene.Sector,
+        kind: _ModuleSupport.Sector,
         hover: FIRST_LEAF,
         hoverNext: SECOND_LEAF,
         layers: SELECTION_LAYERS,
@@ -233,7 +233,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'heatmap',
         data: GRID_DATA,
-        kind: _Scene.Rect,
+        kind: _ModuleSupport.Rect,
         series: (shadow, highlight) => ({
             type: 'heatmap',
             xKey: 'x',
@@ -246,7 +246,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'funnel',
         data: STAGE_DATA,
-        kind: _Scene.Rect,
+        kind: _ModuleSupport.Rect,
         series: (shadow, highlight) => ({ type: 'funnel', stageKey: 'stage', valueKey: 'value', shadow, highlight }),
     },
     {
@@ -258,7 +258,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'radial-column',
         data: POLAR_DATA,
-        kind: _Scene.RadialColumnShape,
+        kind: _ModuleSupport.RadialColumnShape,
         series: (shadow, highlight) => ({
             type: 'radial-column',
             angleKey: 'quarter',
@@ -270,7 +270,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'waterfall',
         data: WATERFALL_DATA,
-        kind: _Scene.Rect,
+        kind: _ModuleSupport.Rect,
         series: (shadow, highlight) => ({
             type: 'waterfall',
             xKey: 'x',
@@ -282,7 +282,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'radar markers',
         data: POLAR_DATA,
-        kind: _Scene.Marker,
+        kind: _ModuleSupport.Marker,
         series: (shadow, highlight) => ({
             type: 'radar-line',
             angleKey: 'quarter',
@@ -294,7 +294,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'radar-area markers',
         data: POLAR_DATA,
-        kind: _Scene.Marker,
+        kind: _ModuleSupport.Marker,
         series: (shadow, highlight) => ({
             type: 'radar-area',
             angleKey: 'quarter',
@@ -306,7 +306,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'range-area markers',
         data: RANGE_DATA,
-        kind: _Scene.Marker,
+        kind: _ModuleSupport.Marker,
         hoveredCopies: 2,
         series: (shadow, highlight) => ({
             type: 'range-area',
@@ -350,7 +350,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'range-bar',
         data: RANGE_DATA,
-        kind: _Scene.Rect,
+        kind: _ModuleSupport.Rect,
         series: (shadow, highlight) => ({
             type: 'range-bar',
             xKey: 'x',
@@ -386,7 +386,7 @@ const SERIES: SeriesCase[] = [
     {
         name: 'map-marker',
         data: ukData,
-        kind: _Scene.Marker,
+        kind: _ModuleSupport.Marker,
         chartOptions: { topology: ukTopology },
         series: (shadow, highlight) => ({ type: 'map-marker', idKey: 'name', shadow, highlight }),
     },
@@ -403,11 +403,11 @@ describe('highlightedItem.shadow (enterprise series)', () => {
         chart = undefined;
     });
 
-    const casts = (shape: _Scene.Shape) => shape.fillShadow?.enabled === true;
+    const casts = (shape: _ModuleSupport.Shape) => shape.fillShadow?.enabled === true;
 
     /** The visible in-place and highlight-layer shapes that cast (or would cast) the series' shadow. */
     const layersOf = (testCase: SeriesCase, series: any) => {
-        const drawn = (shapes: Iterable<_Scene.Shape>) =>
+        const drawn = (shapes: Iterable<_ModuleSupport.Shape>) =>
             [...shapes].filter((shape) => shape.constructor === testCase.kind && shape.visible);
         if (testCase.layers) {
             const { inPlace, highlighted } = testCase.layers(series);
@@ -576,15 +576,102 @@ describe('highlightedItem.shadow (enterprise series)', () => {
         });
     });
 
+    describe.each(SERIES)('$name spread', (testCase) => {
+        const SPREAD_SHADOW = { ...SHADOW, spread: 5 };
+        const NEGATIVE_SHADOW = { ...SHADOW, spread: -4 };
+        // Where the option sits in the path depends on the series: `shadow`, `node.shadow`, `tile.shadow` and so on,
+        // and a series that has several shadows, like a waterfall's, warns once for each.
+        const expectNegativeSpreadWarnings = (value: number) => {
+            const messages = (console.warn as any).mock.calls.map(([message]: [string]) => message);
+            expect(messages.length).toBeGreaterThan(0);
+            for (const message of messages) {
+                expect(message).toMatch(
+                    new RegExp(
+                        `^AG Charts - Option \`series\\[0\\]\\.[\\w.]*shadow\\.spread\` cannot be set to \`${value}\`; expecting a number greater than or equal to 0, ignoring\\.$`
+                    )
+                );
+            }
+            // One warning for each shadow, never repeated. Clear them so they are not reported as unexpected.
+            expect(new Set(messages).size).toBe(messages.length);
+            (console.warn as Mock).mockClear();
+        };
+
+        it('carries the series shadow spread to the items that cast', async () => {
+            const { inPlace, highlighted } = await hoverItem(testCase, SPREAD_SHADOW, {}, 'overlay');
+
+            expect(inPlace.filter(casts).length).toBeGreaterThan(0);
+            for (const shape of inPlace.filter(casts)) expect(shape.fillShadow).toMatchObject(SPREAD_SHADOW);
+            expect(highlighted.length).toBeGreaterThan(0);
+        });
+
+        it('carries the series shadow spread to the hovered item when the highlight cuts out', async () => {
+            const { highlighted } = await hoverItem(testCase, SPREAD_SHADOW);
+
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject(SPREAD_SHADOW);
+        });
+
+        it('merges highlightedItem.shadow.spread over the series shadow spread on the hovered item', async () => {
+            const { inPlace, highlighted } = await hoverItem(testCase, SPREAD_SHADOW, {
+                highlightedItem: { shadow: { spread: 9 } },
+            });
+
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject({ ...SPREAD_SHADOW, spread: 9 });
+            for (const shape of inPlace.filter(casts)) expect(shape.fillShadow).toMatchObject(SPREAD_SHADOW);
+        });
+
+        it('fills a missing highlightedItem.shadow.spread from the series shadow', async () => {
+            const { highlighted } = await hoverItem(testCase, SPREAD_SHADOW, {
+                highlightedItem: { shadow: { blur: 20 } },
+            });
+
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject({ ...SPREAD_SHADOW, blur: 20 });
+        });
+
+        it('applies highlightedItem.shadow.spread when the series shadow has none', async () => {
+            const { highlighted } = await hoverItem(testCase, SHADOW, {
+                highlightedItem: { shadow: { spread: 7 } },
+            });
+
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject({ ...SHADOW, spread: 7 });
+        });
+
+        it('has no spread unless configured', async () => {
+            const { inPlace } = await hoverItem(testCase, SHADOW, {}, 'overlay');
+
+            for (const shape of inPlace.filter(casts)) expect(shape.fillShadow?.spread ?? 0).toBe(0);
+        });
+
+        it('warns about and ignores a negative series shadow spread', async () => {
+            const { inPlace } = await hoverItem(testCase, NEGATIVE_SHADOW, {}, 'overlay');
+
+            expectNegativeSpreadWarnings(-4);
+            expect(inPlace.filter(casts).length).toBeGreaterThan(0);
+            for (const shape of inPlace.filter(casts)) {
+                expect(shape.fillShadow).toMatchObject(SHADOW);
+                expect(shape.fillShadow?.spread ?? 0).toBe(0);
+            }
+        });
+
+        it('warns about and ignores a negative highlightedItem.shadow.spread', async () => {
+            const { highlighted } = await hoverItem(testCase, SPREAD_SHADOW, {
+                highlightedItem: { shadow: { spread: -2 } },
+            });
+
+            expectNegativeSpreadWarnings(-2);
+            // The negative value is dropped, so the series shadow's spread shows through.
+            expect(highlighted.find(casts)?.fillShadow).toMatchObject(SPREAD_SHADOW);
+        });
+    });
+
     describe.each(SERIES.filter(({ name }) => /^(sankey|chord) (nodes|links)$/.test(name)))(
         '$name focus layer',
         (testCase) => {
             // Every copy of the hovered item: in place, on the focus layer beside its neighbours, and highlighted.
             const copiesOf = (series: any, hovered: unknown) => {
                 const copy = (names: string[]) => {
-                    const shapes: _Scene.Shape[] = [];
+                    const shapes: _ModuleSupport.Shape[] = [];
                     for (const name of names) {
-                        series[name].each((shape: _Scene.Shape, datum: unknown) => {
+                        series[name].each((shape: _ModuleSupport.Shape, datum: unknown) => {
                             if (datum === hovered) shapes.push(shape);
                         });
                     }
@@ -664,7 +751,7 @@ describe('highlightedItem.shadow (enterprise series)', () => {
             const testCase: SeriesCase = {
                 name: 'treemap groups',
                 data: HIERARCHY_SHADOW_DATA,
-                kind: _Scene.Rect,
+                kind: _ModuleSupport.Rect,
                 hover: FIRST_GROUP,
                 layers: GROUP_LAYERS,
                 series: (shadow, highlight) => ({

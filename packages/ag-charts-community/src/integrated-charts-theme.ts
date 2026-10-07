@@ -12,7 +12,6 @@ export const themeNames = Object.keys(themes);
 // TODO remove once ag-grid codebase has been updated
 export { ChartTheme } from './chart/themes/chartTheme';
 export { themes } from './chart/mapping/themes';
-export * from 'ag-charts-core';
 
 export function resolveOperation(operation: Operation): any {
     // Use the default theme params and palette, ignoring the grid's chosen theme

@@ -193,7 +193,7 @@ export type ResolvedChartOptions = Omit<
     mode: 'integrated' | 'standalone';
     withinStudio?: boolean;
     foreground?: NormalisedForegroundOptions;
-    chartToolbar?: { enabled: boolean };
+    chartToolbar?: { enabled: boolean; buttonSize?: number };
     statusBar?: NormalisedStatusBarOptions;
     annotations?: NormalisedAnnotationsOptions;
     validations?: AgChartValidationsOptions;

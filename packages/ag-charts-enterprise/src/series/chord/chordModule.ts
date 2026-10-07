@@ -6,6 +6,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     STROKE_STYLE_THEME_DEFAULTS,
@@ -15,7 +16,7 @@ import {
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { ChordSeries } from './chordSeries';
-import { chordSeriesOptionsDef } from './chordSeriesOptionsDef';
+import { chordSeriesOptionsDef, chordSeriesThemeableOptionsDef } from './chordSeriesOptionsDef';
 
 export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     type: 'series',
@@ -27,13 +28,15 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     dependencies: [StandaloneChartModule],
 
     options: chordSeriesOptionsDef,
+
+    themeOptions: chordSeriesThemeableOptionsDef,
     themeTemplate: {
         series: {
             ...COMMON_SERIES_THEME_DEFAULTS,
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
             highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
-            tooltip: { interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,

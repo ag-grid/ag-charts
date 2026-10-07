@@ -11,7 +11,7 @@ import {
     required,
     string,
     textOrSegments,
-    undocumented,
+    undocumentedDefs,
 } from 'ag-charts-core';
 import type { AgDonutInnerLabel, AgDonutSeriesOptions, AgDonutSeriesThemeableOptions } from 'ag-charts-types';
 
@@ -45,7 +45,7 @@ export const donutSeriesOptionsDef: OptionsDefs<AgDonutSeriesOptions> = {
         },
         'inner label options array'
     ),
+    ...undocumentedDefs({
+        angleFilterKey: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-donutSeriesOptionsDef.angleFilterKey = undocumented(string);
