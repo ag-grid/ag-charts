@@ -1,12 +1,18 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { SceneChangeDetection } from 'ag-charts-core';
+import { type Logger, SceneChangeDetection, createSvgElement } from 'ag-charts-core';
 
 const { Path, BBox, ExtendedPath2D, clippedRoundRect } = _ModuleSupport;
-export class RangeMask<D = unknown> extends Path<D> {
-    static override readonly className = 'RangeMask';
+export class RangeTrack<D = unknown> extends Path<D> {
+    static override readonly className = 'RangeTrack';
 
     @SceneChangeDetection()
     cornerRadius: number = 4;
+
+    @SceneChangeDetection()
+    thumbFill: string | undefined = undefined;
+
+    @SceneChangeDetection()
+    thumbFillOpacity: number = 1;
 
     override zIndex = 2;
 
@@ -38,7 +44,7 @@ export class RangeMask<D = unknown> extends Path<D> {
             this.min = min;
             this.max = max;
             this.dirtyPath = true;
-            this.markDirty('RangeMask.layout');
+            this.markDirty('RangeTrack.layout');
         }
     }
 
@@ -84,6 +90,39 @@ export class RangeMask<D = unknown> extends Path<D> {
         drawRect(path, ax, minX);
         drawRect(path, maxX, aw + ax);
         drawRect(visiblePath, minX, maxX);
+    }
+
+    protected override renderFill(
+        ctx: _ModuleSupport.CanvasContext,
+        logger: Logger,
+        path?: Path2D,
+        bboxOverride?: _ModuleSupport.BBox,
+        fillBBoxOverride?: _ModuleSupport.BBox
+    ): void {
+        super.renderFill(ctx, logger, path, bboxOverride, fillBBoxOverride);
+
+        const { thumbFill, thumbFillOpacity } = this;
+        if (thumbFill == null || thumbFill === 'none' || thumbFillOpacity <= 0) return;
+
+        const { globalAlpha } = ctx;
+        ctx.globalAlpha = globalAlpha * thumbFillOpacity;
+        ctx.fillStyle = thumbFill;
+        ctx.fill(this.visiblePath.getPath2D());
+        ctx.globalAlpha = globalAlpha;
+    }
+
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
+        const svg = super.toSVG();
+        const { thumbFill, thumbFillOpacity } = this;
+        if (svg == null || thumbFill == null || thumbFill === 'none' || thumbFillOpacity <= 0) return svg;
+
+        const thumb = createSvgElement('path');
+        thumb.setAttribute('d', this.visiblePath.toSVG());
+        thumb.setAttribute('fill', thumbFill);
+        thumb.setAttribute('fill-opacity', String(thumbFillOpacity));
+        thumb.setAttribute('stroke', 'none');
+
+        return { ...svg, elements: [...svg.elements, thumb] };
     }
 
     protected override renderStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
