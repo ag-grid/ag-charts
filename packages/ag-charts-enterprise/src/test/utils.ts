@@ -205,6 +205,11 @@ export function leftEdgeIsWhite(canvasCtx: MockCanvas, columns = 2) {
     return true;
 }
 
+/** Whether every device pixel is still the opaque white background. */
+export function allWhite(canvasCtx: MockCanvas) {
+    return leftEdgeIsWhite(canvasCtx, canvasCtx.nodeCanvas.width);
+}
+
 /** The RGBA of the device pixel at (`x`, `y`). */
 export function pixelAt(canvasCtx: MockCanvas, x: number, y: number) {
     return [...canvasCtx.getRenderContext2D().getImageData(x, y, 1, 1).data];

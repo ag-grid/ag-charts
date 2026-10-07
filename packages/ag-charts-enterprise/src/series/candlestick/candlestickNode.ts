@@ -160,6 +160,40 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         this.strokeWicks(ctx);
     }
 
+    protected override dilateFill(ctx: _ModuleSupport.CanvasContext, _path: Path2D) {
+        // Wicks that share the body's path are open, so the fill paints nothing for them and they must not be dilated.
+        const { x0, x1, yOpen, yClose } = this.alignedCoordinates();
+        if (Math.abs(x1 - x0) <= 3) return;
+
+        const boxStrokeAdjustment = this.strokeWidth / 2;
+        const boxTop = Math.min(yOpen, yClose) + boxStrokeAdjustment;
+        const rectHeight = Math.abs(yClose - yOpen) - 2 * boxStrokeAdjustment;
+        if (rectHeight <= 0) return;
+
+        ctx.beginPath();
+        ctx.rect(x0 + boxStrokeAdjustment, boxTop, x1 - x0 - 2 * boxStrokeAdjustment, rectHeight);
+        ctx.stroke();
+    }
+
+    protected override dilateSilhouetteExtras(ctx: _ModuleSupport.CanvasContext, growth: number) {
+        const { wickPath, strokeWidth, __wickStrokeWidth: wickStrokeWidth = strokeWidth } = this;
+        if (this.getSilhouetteExtrasOpacity() <= 0) return;
+
+        ctx.lineWidth = wickStrokeWidth + growth;
+        ctx.stroke(wickPath.getPath2D());
+    }
+
+    protected override getSilhouetteExtrasOpacity(): number {
+        const { wickPath, stroke, strokeWidth, strokeOpacity, __wickStroke: wickStroke = stroke } = this;
+        const {
+            __wickStrokeWidth: wickStrokeWidth = strokeWidth,
+            __wickStrokeOpacity: wickStrokeOpacity = strokeOpacity,
+        } = this;
+        // A wick casts a shadow only where `strokeWicks` paints it.
+        if (wickPath.isEmpty() || wickStrokeWidth === 0 || wickStroke === 'none') return 0;
+        return Math.max(0, wickStrokeOpacity);
+    }
+
     private strokeWicks(ctx: _ModuleSupport.CanvasContext) {
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
