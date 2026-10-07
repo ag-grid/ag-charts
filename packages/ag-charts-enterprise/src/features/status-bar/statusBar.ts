@@ -6,7 +6,6 @@ import {
     type NormalisedStatusBarOptions,
     ZIndexMap,
     cachedTextMeasurer,
-    calcLineHeight,
     isNumericValue,
 } from 'ag-charts-core';
 
@@ -277,8 +276,11 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
 
         this.labelGroup.translationY = layoutBox.y + spacingAbove;
 
-        const maxFontSize = Math.max(opts.title.fontSize, opts.positive.fontSize, opts.negative.fontSize);
-        const lineHeight = calcLineHeight(maxFontSize);
+        const fontMetrics = [opts.title, opts.positive, opts.negative].map((font) =>
+            cachedTextMeasurer(font).measureText('')
+        );
+        const ascent = Math.max(...fontMetrics.map((metrics) => metrics.ascent));
+        const lineHeight = ascent + Math.max(...fontMetrics.map((metrics) => metrics.descent));
 
         const labelConfigurations = chartConfigurations[this.getChartType()] ?? 0;
 
@@ -287,7 +289,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         let textVAlign: CanvasTextBaseline = 'alphabetic';
         if (opts.layoutStyle === 'block') {
             layoutBox.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
-            offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
+            offsetTop = ascent;
         } else {
             const { title } = this.ctx.chartService;
             textVAlign = 'top';

@@ -270,6 +270,12 @@ describe('wrapLines', () => {
     });
 
     describe('textWrap: on-space (default)', () => {
+        it('clips to maxHeight by an explicit lineHeight rather than the measured one', () => {
+            // Three 10px lines fit 35px; three measured 20px lines would not.
+            const result = wrapLines('Ab Cd Ef', { font, maxWidth: 30, maxHeight: 35, lineHeight: 10 });
+            expect(result).toEqual(['Ab', 'Cd', 'Ef']);
+        });
+
         it('should wrap at word boundary when line exceeds maxWidth', () => {
             // 'Hello World' = 110px, maxWidth = 60px → wraps between words
             const result = wrapLines('Hello World', { font, maxWidth: 60 });

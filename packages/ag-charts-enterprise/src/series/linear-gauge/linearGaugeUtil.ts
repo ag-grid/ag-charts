@@ -340,16 +340,17 @@ export function formatLinearGaugeLabels(
             layout = labelMeta?.[0];
         } else {
             const measurer = cachedTextMeasurer(labelDatum);
-            const { width, height } = isArray(labelText)
-                ? measureTextSegments(labelText, labelDatum)
-                : measurer.measureLines(toTextString(labelText));
-            layout = {
-                text: labelText,
-                fontSize: labelDatum.fontSize,
-                lineHeight: labelDatum.lineHeight ?? measurer.lineHeight(),
-                width,
-                height,
-            };
+            const lineHeight = labelDatum.lineHeight ?? measurer.lineHeight();
+            let width: number;
+            let height: number;
+            if (isArray(labelText)) {
+                ({ width, height } = measureTextSegments(labelText, labelDatum));
+            } else {
+                const { width: textWidth, lineMetrics } = measurer.measureLines(toTextString(labelText));
+                width = textWidth;
+                height = lineMetrics.length * lineHeight;
+            }
+            layout = { text: labelText, fontSize: labelDatum.fontSize, lineHeight, width, height };
         }
 
         if (layout == null) {
