@@ -11,6 +11,18 @@ import {
 // Text tiers draw no backing box until `fill` or `stroke` is set; these keep the box geometry defined.
 const NODE_TEXT_BOX_DEFAULTS = { cornerRadius: 0, fillOpacity: 1, strokeOpacity: 1, strokeWidth: 0 } as const;
 
+// The node always bounds its text, so the shared opt-in fit triggers do not apply: text wraps and truncates by
+// default. The deprecated `overflowStrategy` still decides `truncate` when it is set.
+const NODE_TEXT_FIT_DEFAULTS = {
+    truncate: {
+        $isUserOption: ['./overflowStrategy', { $eq: [{ $path: './overflowStrategy' }, 'ellipsis'] }, true],
+    },
+    collision: {
+        threshold: 0,
+        alwaysShow: false,
+    },
+} as const;
+
 export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
     zoom: {
         enabled: true,
@@ -124,7 +136,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 key: 'title',
                 // @ts-expect-error undocumented option
                 _isUserKey: { $isUserOption: './key' },
-                overflowStrategy: 'ellipsis',
+                ...NODE_TEXT_FIT_DEFAULTS,
                 padding: { $applyPadding: 0 },
                 spacing: 4,
                 textAlign: 'center',
@@ -141,7 +153,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                 key: 'subtitle',
                 // @ts-expect-error undocumented option
                 _isUserKey: { $isUserOption: './key' },
-                overflowStrategy: 'ellipsis',
+                ...NODE_TEXT_FIT_DEFAULTS,
                 padding: { $applyPadding: 0 },
                 spacing: 4,
                 textAlign: 'center',
@@ -156,7 +168,7 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
                     fontSize: { $rem: 11 / BASE_FONT_SIZE },
                     fontStyle: 'normal',
                     fontWeight: 'normal',
-                    overflowStrategy: 'ellipsis',
+                    ...NODE_TEXT_FIT_DEFAULTS,
                     padding: { $applyPadding: 0 },
                     spacing: 4,
                     textAlign: 'center',

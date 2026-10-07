@@ -93,13 +93,18 @@ export type NormalisedOrganizationSeriesNodeTextOptions = Normalised<
     | 'fontSize'
     | 'fontStyle'
     | 'fontWeight'
-    | 'overflowStrategy'
     | 'spacing'
     | 'strokeOpacity'
     | 'strokeWidth'
     | 'textAlign'
+    | 'truncate'
     | 'wrapping',
-    { color: CssColor; stroke?: CssColor; padding: NormalisedPaddingOptions }
+    {
+        color: CssColor;
+        stroke?: CssColor;
+        padding: NormalisedPaddingOptions;
+        collision: { threshold: number; alwaysShow: boolean };
+    }
 > & {
     /** Undocumented: set by the theme when `key` was configured rather than left at its theme default. */
     _isUserKey?: boolean;
