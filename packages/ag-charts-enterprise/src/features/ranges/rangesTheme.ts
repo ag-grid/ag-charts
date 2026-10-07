@@ -90,11 +90,14 @@ const componentTheme: WithThemeParams<AgRangesButtonStyles> = {
     textColor: { $path: '../textColor' },
 };
 
-const componentStateTheme = (state: 'active' | 'disabled' | 'hover') => ({
+const componentStateTheme = (state: 'active' | 'disabled' | 'hover'): WithThemeParams<AgRangesStateStyles> => ({
     fill: { $path: `../../${state}/fill` },
     fillOpacity: { $path: `../../${state}/fillOpacity` },
     stroke: { $path: `../../${state}/stroke` },
-    strokeWidth: { $path: `../../${state}/strokeWidth` },
+    // A user-set button or dropdown `strokeWidth` applies in every state, as `ranges.strokeWidth` does.
+    strokeWidth: {
+        $isUserOption: ['../strokeWidth', { $path: '../strokeWidth' }, { $path: `../../${state}/strokeWidth` }],
+    },
     textColor: { $path: `../../${state}/textColor` },
 });
 

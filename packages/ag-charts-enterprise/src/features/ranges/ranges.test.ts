@@ -536,6 +536,23 @@ describe('Ranges', () => {
             }
         });
 
+        it('a user-set button strokeWidth applies in every button state', async () => {
+            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                ranges: { enabled: true, button: { strokeWidth: 3 }, buttons: [{ label: 'All', value: [0, 19] }] },
+                theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
+            } as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+
+            for (const state of ['hover', 'active', 'disabled']) {
+                expect(ranges.button[state].strokeWidth).toBe(3);
+            }
+            expect(ranges.dropdown.hover.strokeWidth).toBe(6);
+        });
+
         it('button padding keeps its fixed default', async () => {
             const ranges = await resolvedRanges({});
 
