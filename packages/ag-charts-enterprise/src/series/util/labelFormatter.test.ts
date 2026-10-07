@@ -150,6 +150,24 @@ describe('label formatter', () => {
             expect(format.fontSize).toBe(10.5);
             expect(format.text).toContain('…');
         });
+
+        it('shrinks manually broken lines that do not wrap until they all fit', () => {
+            const [format] = formatSingleLabel(
+                'Fresh\nfruit',
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 16,
+                    minimumFontSize: 6,
+                    wrapping: 'never',
+                    truncate: true,
+                },
+                { padding: 0 },
+                () => ({ width: 1000, height: 20, meta: undefined })
+            )!;
+            expect(format.text).toBe('Fresh\nfruit');
+            expect(format.height).toBeLessThanOrEqual(20);
+        });
     });
 
     describe('formatStackedLabels', () => {

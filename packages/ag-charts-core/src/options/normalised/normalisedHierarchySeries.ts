@@ -21,6 +21,7 @@ import type {
     CssColor,
     Styler,
     TextAlign,
+    VerticalAlign,
 } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
@@ -33,7 +34,7 @@ import type {
 import type {
     NormalisedAutoSizedLabelOptions,
     NormalisedAutoSizedSecondaryLabelOptions,
-    NormalisedCollisionFreeSeriesLabelOptions,
+    NormalisedSeriesLabelOptions,
 } from './normalisedLabelOptions';
 import type { NormalisedColorScaleOptions } from './normalisedScatterSeries';
 import type { NormalisedItemHighlightShadow, NormalisedSeriesSelectionOptions } from './normalisedSeriesOptions';
@@ -79,11 +80,11 @@ export type NormalisedTreemapTileHighlightOptions = Normalised<
     }
 >;
 
-export type NormalisedTreemapGroupLabelOptions =
-    NormalisedCollisionFreeSeriesLabelOptions<AgTreemapSeriesLabelFormatterParams> & {
-        spacing: number;
-        textAlign: TextAlign;
-    };
+export type NormalisedTreemapGroupLabelOptions = NormalisedSeriesLabelOptions<AgTreemapSeriesLabelFormatterParams> & {
+    spacing: number;
+    textAlign: TextAlign;
+    verticalAlign: VerticalAlign;
+};
 
 type NormalisedTreemapTileLabelAlignment = Required<AgTreemapSeriesTileLabelAlignmentOptions>;
 

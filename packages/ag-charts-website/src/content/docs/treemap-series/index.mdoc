@@ -136,7 +136,7 @@ When `colorScale.fills` is used, the `fills` and `strokes` arrays are ignored.
 
 Both the labels for leaf and non-leaf nodes can be customised.
 
-For leaf nodes only, they can contain secondary labels, and their labels can also be shrunk to fit in the available space.
+Leaf nodes can also contain secondary labels. Labels on both can be shrunk, wrapped and truncated to fit in the available space.
 
 {% chartExampleRunner title="Custom Labels" name="labels" type="generated" /%}
 
@@ -175,7 +175,7 @@ Labels can be customised through the `group` and `tile` properties for non-leaf 
 In this configuration:
 
 - `fontSize` sets the size of the font
-- `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space (tiles only)
+- `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space
 - `spacing` controls the amount of space below a label
 - `padding` adds space between the edge of a group or tile and its contents
 - `formatter` allows customising the value of a label using a function

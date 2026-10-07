@@ -298,6 +298,8 @@ export function formatSingleLabel<Meta>(
             if (lines.length === 0) return;
 
             const { width, height } = measurer.measureLines(lines);
+            // `'never'` keeps every manual line whatever the height, so it can still be too tall here.
+            if (height > availableHeight) return;
             const text = lines.join('\n');
 
             return [{ width, height, text, fontSize, lineHeight }, sizeFitting.meta];
