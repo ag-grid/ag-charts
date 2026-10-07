@@ -865,6 +865,17 @@ describe('TreemapSeries', () => {
             expect(groups()[0].label).toBeUndefined();
         });
 
+        it('draws a wrapped group label at the height it was fitted to', async () => {
+            await render({ maxWidth: 100 });
+            const [fruit] = groups();
+            const text = [...chart.series[0].labelSelection.selectByClass(_ModuleSupport.Text)].find(
+                (node: any) => node.visible && node.text === fruit.label.text
+            );
+            const lineCount = fruit.label.text.split('\n').length;
+            expect(lineCount).toBeGreaterThan(1);
+            expect(text.lineHeight * lineCount).toBeCloseTo(fruit.groupTitle.title.labelHeight, 1);
+        });
+
         it('shrinks a manually broken group label to fit maxHeight', async () => {
             await render(
                 { fontSize: 16, minimumFontSize: 6, maxHeight: 20, wrapping: 'never' },

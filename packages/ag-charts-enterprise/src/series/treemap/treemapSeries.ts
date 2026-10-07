@@ -19,7 +19,6 @@ import {
     type ResolvedTextAlign,
     STROKE_STYLE_THEME_DEFAULTS,
     cachedTextMeasurer,
-    calcLineHeight,
     findDiscreteColorBinLabel,
     fontWithSize,
     formatValue,
@@ -61,6 +60,7 @@ class TreemapNode extends HierarchyNode<TreemapNode> {
 interface GroupTitle {
     text: NormalisedTextOrSegments;
     fontSize: number;
+    lineHeight: number;
     labelHeight: number;
     bandHeight: number;
 }
@@ -197,7 +197,13 @@ export class TreemapSeries extends HierarchySeries<
             wrapLines(labelValue, { maxWidth: width, font: label, textWrap: props.wrapping })
         );
         const bandHeight = Math.max(formatting.height, Math.min(Math.max(natural.height, fontSize), height));
-        return { text: formatting.text, fontSize: formatting.fontSize, labelHeight: formatting.height, bandHeight };
+        return {
+            text: formatting.text,
+            fontSize: formatting.fontSize,
+            lineHeight: formatting.lineHeight,
+            labelHeight: formatting.height,
+            bandHeight,
+        };
     }
 
     private getNodePadding(node: TreemapNode, bbox: _ModuleSupport.BBox) {
@@ -789,7 +795,7 @@ export class TreemapSeries extends HierarchySeries<
                 node.label = {
                     text: title.text,
                     fontSize: title.fontSize,
-                    lineHeight: calcLineHeight(title.fontSize),
+                    lineHeight: title.lineHeight,
                     fontStyle,
                     fontFamily,
                     fontWeight,
