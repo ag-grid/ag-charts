@@ -547,6 +547,30 @@ describe('Group shadow compositor', () => {
         });
     });
 
+    describe('clipped paths', () => {
+        const clipped = (y: number) => {
+            const node = pathBox(20, y, 60, 50, { fillShadow: { ...RED_HALF, xOffset: 30 }, clip: true });
+            node.clipX = 90;
+            node.clipY = HEIGHT;
+            return node;
+        };
+
+        it('should clip the shadow of a path that is clipped, as it does for itself', () => {
+            const render = (batchShadows: boolean) => {
+                renderNodes([clipped(20), clipped(100), box(200, 160, 40, 40, { fillShadow: RED_HALF })], batchShadows);
+                return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+            };
+
+            const unbatched = render(false);
+            const batched = render(true);
+
+            // The paths are 20 to 80 across, and their shadows 50 to 110 are clipped at 90, with the shadow's own edge.
+            expect(isHalfRed(at(85, 45))).toBe(true);
+            expect(at(100, 45)).toEqual(CLEAR);
+            expect(batched).toEqual(unbatched);
+        });
+    });
+
     describe('device pixel ratio', () => {
         it('should scale the offset of a batch by the device pixel ratio', () => {
             renderGroup(

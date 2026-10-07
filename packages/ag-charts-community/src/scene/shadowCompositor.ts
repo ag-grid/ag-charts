@@ -3,6 +3,7 @@ import type { NormalisedDropShadowOptions } from 'ag-charts-core';
 
 import type { Node, RenderContext } from './node';
 import { shadowPass } from './shadowPass';
+import { Path } from './shape/path';
 import { Shape } from './shape/shape';
 
 /**
@@ -17,7 +18,7 @@ import { Shape } from './shape/shape';
  * 3. The casters draw as usual, without a shadow.
  *
  * All the shadows of a batch therefore sit beneath all of its items, so a later item's shadow no longer lands on an
- * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node and at a change of shadow options.
+ * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node, at a clipped path and at a change of shadow options.
  */
 
 /** How far a canvas shadow reaches past its source, in blurs: its Gaussian has a deviation of half the blur. */
@@ -29,8 +30,12 @@ type ShadowCaster = Shape & { __fillShadow: NormalisedDropShadowOptions };
 export function getBatchedShadow(node: Node): NormalisedDropShadowOptions | undefined {
     if (!(node instanceof Shape)) return;
     const shadow = node.__fillShadow;
+    if (shadow?.enabled !== true) return;
     // A cutout erases the layer beneath it, and so also what the batch's shadow put there. It casts for itself.
-    return shadow?.enabled === true && node.__drawingMode !== 'cutout' ? shadow : undefined;
+    if (node.__drawingMode === 'cutout') return;
+    // A clipped path (while it reveals) clips its shadow too, which a blurred mask can't, so it casts for itself.
+    if (node instanceof Path && node.clip) return;
+    return shadow;
 }
 
 function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
