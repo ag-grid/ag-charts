@@ -125,14 +125,13 @@
 
     --ag-charts-button-hover-background-color: var(--ag-charts-focus-color);
     --ag-charts-button-hover-border-color: var(--ag-charts-button-border-color);
+    --ag-charts-button-hover-border-width: var(--ag-charts-button-border-width);
     --ag-charts-button-hover-text-color: var(--ag-charts-button-text-color);
 
     --ag-charts-button-active-background-color: var(--ag-charts-focus-color);
     --ag-charts-button-active-border-color: var(--ag-charts-accent-color);
+    --ag-charts-button-active-border-width: var(--ag-charts-button-border-width);
     --ag-charts-button-active-text-color: var(--ag-charts-accent-color);
-
-    --ag-charts-button-horizontal-padding: 9px;
-    --ag-charts-button-vertical-padding: 6px;
 
     --ag-charts-button-disabled-background-color: color-mix(
         in srgb,
@@ -140,6 +139,7 @@
         var(--ag-charts-foreground-color) 6%
     );
     --ag-charts-button-disabled-border-color: var(--ag-charts-button-border-color);
+    --ag-charts-button-disabled-border-width: var(--ag-charts-button-border-width);
     --ag-charts-button-disabled-text-color: color-mix(
         in srgb,
         var(--ag-charts-chrome-background-color),

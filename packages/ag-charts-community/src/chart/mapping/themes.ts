@@ -302,8 +302,6 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
         buttonDisabledBackgroundColor: colorOrRef,
         buttonDisabledBorder: or(boolean, themeParamBorder),
         buttonDisabledTextColor: colorOrRef,
-        buttonHorizontalPadding: positiveNumber,
-        buttonVerticalPadding: positiveNumber,
 
         inputBackgroundColor: colorOrRef,
         inputBorder: or(boolean, themeParamBorder),

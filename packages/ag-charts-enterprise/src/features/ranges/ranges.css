@@ -11,14 +11,17 @@
 
     --toolbar-button-background-color--active: var(--ag-charts-ranges__button-fill--active);
     --toolbar-button-border-color--active: var(--ag-charts-ranges__button-stroke--active);
+    --toolbar-button-border-width--active: var(--ag-charts-ranges__button-stroke-width--active);
     --toolbar-button-text-color--active: var(--ag-charts-ranges__button-text-color--active);
 
     --toolbar-button-background-color--disabled: var(--ag-charts-ranges__button-fill--disabled);
     --toolbar-button-border-color--disabled: var(--ag-charts-ranges__button-stroke--disabled);
+    --toolbar-button-border-width--disabled: var(--ag-charts-ranges__button-stroke-width--disabled);
     --toolbar-button-text-color--disabled: var(--ag-charts-ranges__button-text-color--disabled);
 
     --toolbar-button-background-color--hover: var(--ag-charts-ranges__button-fill--hover);
     --toolbar-button-border-color--hover: var(--ag-charts-ranges__button-stroke--hover);
+    --toolbar-button-border-width--hover: var(--ag-charts-ranges__button-stroke-width--hover);
     --toolbar-button-text-color--hover: var(--ag-charts-ranges__button-text-color--hover);
 }
 
@@ -32,14 +35,17 @@
 
     --toolbar-button-background-color--active: var(--ag-charts-ranges__dropdown-fill--active);
     --toolbar-button-border-color--active: var(--ag-charts-ranges__dropdown-stroke--active);
+    --toolbar-button-border-width--active: var(--ag-charts-ranges__dropdown-stroke-width--active);
     --toolbar-button-text-color--active: var(--ag-charts-ranges__dropdown-text-color--active);
 
     --toolbar-button-background-color--disabled: var(--ag-charts-ranges__dropdown-fill--disabled);
     --toolbar-button-border-color--disabled: var(--ag-charts-ranges__dropdown-stroke--disabled);
+    --toolbar-button-border-width--disabled: var(--ag-charts-ranges__dropdown-stroke-width--disabled);
     --toolbar-button-text-color--disabled: var(--ag-charts-ranges__dropdown-text-color--disabled);
 
     --toolbar-button-background-color--hover: var(--ag-charts-ranges__dropdown-fill--hover);
     --toolbar-button-border-color--hover: var(--ag-charts-ranges__dropdown-stroke--hover);
+    --toolbar-button-border-width--hover: var(--ag-charts-ranges__dropdown-stroke-width--hover);
     --toolbar-button-text-color--hover: var(--ag-charts-ranges__dropdown-text-color--hover);
 }
 
