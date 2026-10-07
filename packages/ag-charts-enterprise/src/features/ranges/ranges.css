@@ -92,15 +92,18 @@
     .ag-charts-toolbar__button[aria-disabled='true'] {
         + .ag-charts-toolbar__button:not(:hover, .ag-charts-toolbar__button--active) {
             border-inline-start-color: var(--toolbar-button-border-color);
+            border-inline-start-width: var(--toolbar-button-border-width);
         }
 
         + .ag-charts-toolbar__button[aria-disabled='true'] {
             border-inline-start-color: var(--toolbar-button-border-color--disabled);
+            border-inline-start-width: var(--toolbar-button-border-width);
         }
     }
 
     .ag-charts-toolbar__button:hover:not(.ag-charts-toolbar__button--active, [aria-disabled='true']) {
         border-inline-start-color: var(--toolbar-button-border-color--hover);
+        border-inline-start-width: var(--toolbar-button-border-width);
     }
 }
 
