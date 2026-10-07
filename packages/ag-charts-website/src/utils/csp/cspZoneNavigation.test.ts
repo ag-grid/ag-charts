@@ -44,21 +44,17 @@ describe('csp-zone-navigation script', () => {
     });
 
     it.each`
-        from                                         | to
-        ${'/'}                                       | ${'/campaigns/bryntum-gantt/'}
-        ${'/campaigns/bryntum-gantt/'}               | ${'/'}
-        ${'/'}                                       | ${'/archive/36.0.0/campaigns/bryntum-gantt/'}
-        ${'/javascript-data-grid/filtering/'}        | ${'/charts/'}
-        ${'/javascript-data-grid/filtering/'}        | ${'/charts'}
-        ${'/charts/'}                                | ${'/javascript-data-grid/filtering/'}
-        ${'/charts/'}                                | ${'/studio/'}
-        ${'/charts/'}                                | ${'/studio'}
-        ${'/studio/'}                                | ${'/example/'}
-        ${'/javascript-data-grid/getting-started/'}  | ${'/studio/license-pricing/'}
-        ${'/charts/'}                                | ${'/charts/examples/'}
-        ${'/charts/gallery/grouped-horizontal-bar/'} | ${'/charts/examples/'}
-        ${'/charts/'}                                | ${'/charts/examples'}
-        ${'/charts/examples/'}                       | ${'/charts/gallery/'}
+        from                                        | to
+        ${'/'}                                      | ${'/campaigns/bryntum-gantt/'}
+        ${'/campaigns/bryntum-gantt/'}              | ${'/'}
+        ${'/'}                                      | ${'/archive/36.0.0/campaigns/bryntum-gantt/'}
+        ${'/javascript-data-grid/filtering/'}       | ${'/charts/'}
+        ${'/javascript-data-grid/filtering/'}       | ${'/charts'}
+        ${'/charts/'}                               | ${'/javascript-data-grid/filtering/'}
+        ${'/charts/'}                               | ${'/studio/'}
+        ${'/charts/'}                               | ${'/studio'}
+        ${'/studio/'}                               | ${'/example/'}
+        ${'/javascript-data-grid/getting-started/'} | ${'/studio/license-pricing/'}
     `('loads $to as a new document when navigating from $from', async ({ from, to }) => {
         expect(await isLoadedAsNewDocument(from, to)).toBe(true);
     });
@@ -67,7 +63,7 @@ describe('csp-zone-navigation script', () => {
         from                           | to
         ${'/'}                         | ${'/javascript-data-grid/getting-started/'}
         ${'/example/'}                 | ${'/javascript-data-grid/getting-started/'}
-        ${'/charts/'}                  | ${'/charts/gallery/'}
+        ${'/charts/'}                  | ${'/charts/examples/'}
         ${'/studio/'}                  | ${'/studio/license-pricing/'}
         ${'/campaigns/bryntum-gantt/'} | ${'/campaigns/bryntum-scheduler/'}
     `('leaves $from to $to to the router', async ({ from, to }) => {
