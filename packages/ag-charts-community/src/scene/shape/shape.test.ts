@@ -920,6 +920,30 @@ describe('Shape', () => {
             expect(pixel(300, 90)).toEqual([255, 255, 255, 255]);
         });
 
+        describe.each([undefined, 10])('square caps with a spread of %s', (spread) => {
+            it('should not leave a copy of a diagonal stroke on the left edge', () => {
+                clearCanvas();
+                const path = new Path();
+                Object.assign(path, {
+                    fill: undefined,
+                    stroke: 'black',
+                    strokeWidth: 40,
+                    lineCap: 'square',
+                    lineJoin: 'round',
+                    shadowMode: 'silhouette',
+                    // No offset or blur, so a silhouette shadow is exactly the shape's own pixels.
+                    fillShadow: { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0, spread },
+                });
+                // A square cap on a 45° stroke points its corner straight along x, √2 half-strokes past the end.
+                path.path.moveTo(100, 40);
+                path.path.lineTo(160, 100);
+                renderNode(path);
+
+                const { data } = canvasCtx.getRenderContext2D().getImageData(0, 0, 40, canvasCtx.nodeCanvas.height);
+                expect(data.every((value) => value === 255)).toBe(true);
+            });
+        });
+
         it('should not paint a silhouette node past the right edge back on to the canvas', () => {
             clearCanvas();
             const width = canvasCtx.nodeCanvas.width;

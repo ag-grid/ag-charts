@@ -169,7 +169,7 @@ describe('BoxPlotNode', () => {
         });
     });
 
-    describe.each([1, 2, 3])('silhouette shadow at a device pixel ratio of %i', (pixelRatio) => {
+    describe.each([0.5, 1, 2, 3])('silhouette shadow at a device pixel ratio of %i', (pixelRatio) => {
         const canvasCtx = setupMockCanvas({ width: 400 * pixelRatio, height: 220 * pixelRatio });
 
         it('should not leave a sliver on the left edge for a crisp box plot with theme default strokes', () => {
@@ -212,6 +212,19 @@ describe('BoxPlotNode', () => {
                 q3: 130,
                 max: 190,
                 fillShadow: RED_SHADOW,
+            });
+            renderNode(canvasCtx, node, pixelRatio);
+
+            expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
+        });
+
+        it('should not leave a sliver on the left edge for a crisp box plot with a 1px round-joined stroke', () => {
+            const node = boxPlot({
+                max: 360.5,
+                strokeWidth: 1,
+                lineJoin: 'round',
+                wickStrokeWidth: 1,
+                crisp: true,
             });
             renderNode(canvasCtx, node, pixelRatio);
 

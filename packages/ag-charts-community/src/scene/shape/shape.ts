@@ -407,14 +407,17 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /** How far the pre-pass's strokes reach past the shape's bounds, in the shape's own units. */
-    private getShadowStrokeReach(spread: number): number {
+    private getShadowStrokeReach(spread: number, pixelRatio: number): number {
         const fillOnly = this.__shadowMode === 'fill';
         const halfStroke = (fillOnly ? 0 : this.getSilhouetteStrokeWidth() / 2) + spread;
         // A miter join reaches up to `miterLimit` half-strokes past a vertex (canvas default limit is 10).
         const miterLimit = fillOnly ? DILATION_MITER_LIMIT : (this.__miterLimit ?? 10);
         const joinReach = fillOnly || (this.__lineJoin ?? 'miter') === 'miter' ? halfStroke * miterLimit : halfStroke;
-        // A square cap reaches a half-stroke along the diagonal.
-        return spread > 0 ? Math.max(joinReach, halfStroke * Math.SQRT2) : joinReach;
+        // A square cap reaches a half-stroke along the diagonal. A spread dilation caps its open strokes too.
+        const squareCap = spread > 0 || (!fillOnly && this.__lineCap === 'square');
+        const strokeReach = squareCap ? Math.max(joinReach, halfStroke * Math.SQRT2) : joinReach;
+        // A crisp shape can snap up to a device pixel past its bounds, so pad it even without a stroke.
+        return strokeReach + (this.isCrisp() ? 1 / pixelRatio : 0);
     }
 
     /** Draws the shape off-canvas and shifts only its shadow back, so the stroke's shadow never lands on the fill. */
@@ -455,7 +458,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         let maxX = (canvasWidth ?? 0) + spread * pixelRatio;
         let maxY = canvasHeight ?? 0;
         if (localBBox != null) {
-            const strokeReach = this.getShadowStrokeReach(spread);
+            const strokeReach = this.getShadowStrokeReach(spread, pixelRatio);
             const halfWidth = localBBox.width / 2 + strokeReach;
             const halfHeight = localBBox.height / 2 + strokeReach;
             const centreX = localBBox.x + localBBox.width / 2;
@@ -631,6 +634,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /** The opacity the shape strokes its extra paths with, or 0 when it paints none, so they cast no shadow. */
     protected getSilhouetteExtrasOpacity(): number {
         return 0;
+    }
+
+    /** Whether the shape snaps its geometry to the device pixel grid, which can move it up to a pixel past its bounds. */
+    protected isCrisp(): boolean {
+        return false;
     }
 
     /** The widest stroke cast into the silhouette shadow, which the shape's off-canvas pre-pass has to clear. */
