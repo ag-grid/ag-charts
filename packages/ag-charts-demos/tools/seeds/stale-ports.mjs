@@ -1,8 +1,10 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 
 import {
+    DEMOS_SRC_DIR,
     MANIFEST_FILENAME,
     SEEDS_DIR,
     WORKSPACE_ROOT,
@@ -93,8 +95,11 @@ export function findStalePorts({
     return stale;
 }
 
+/** A path below the workspace as the repository-relative POSIX path git prints. */
+const toRepoPath = (path) => relative(WORKSPACE_ROOT, path).split(/[\\/]/).join('/');
+
 /** `packages/ag-charts-demos/seeds/`, as the paths `git diff --name-only` prints start. */
-const SEEDS_PATH_PREFIX = `${relative(WORKSPACE_ROOT, SEEDS_DIR).split(/[\\/]/).join('/')}/`;
+const SEEDS_PATH_PREFIX = `${toRepoPath(SEEDS_DIR)}/`;
 
 /**
  * Files that a pin update (`pin-ports.mjs`, run by `tools/bump-versions.sh` on every version bump
@@ -124,6 +129,64 @@ export function findTouchedStalePorts({ changedFiles, stale, seedsPathPrefix = S
         if (files.length > 0) touched.push({ ...port, files });
     }
     return touched;
+}
+
+/**
+ * Splits the ports a change edits (`findTouchedStalePorts`) by whether they were already stale at
+ * the base, given `staleAtBase` (`findStalePortsAtBase`). `introduced` are the ports that were in
+ * step with their demo at the base and are left stale: an alignment that forgot to restamp.
+ * `inherited` were behind before the change, so editing them (an API migration swept across every
+ * port, say) neither caused the drift nor is expected to clear it; the release-branch cut aligns them.
+ */
+export function splitTouchedByBaseStaleness({ touched, staleAtBase }) {
+    const wasStale = new Set(staleAtBase.map(({ demo, framework }) => `${demo}/${framework}`));
+    return {
+        introduced: touched.filter(({ demo, framework }) => !wasStale.has(`${demo}/${framework}`)),
+        inherited: touched.filter(({ demo, framework }) => wasStale.has(`${demo}/${framework}`)),
+    };
+}
+
+/**
+ * The ports that were already stale at `base`: `findStalePorts` over the demo sources and port
+ * manifests as committed there. Both are read out of `base`'s tree with `git archive` into a
+ * temporary folder, so, like `readChangedFiles`, it needs no merge base and works in a shallow
+ * clone once `base` is fetched. A port or demo that does not exist at `base` is not stale there.
+ * When `base` predates the seeds altogether nothing was stale at it, so every edited stale port is
+ * held to the restamp rule.
+ */
+export function findStalePortsAtBase(base, { demoIds = readDemoIds(), workspaceRoot = WORKSPACE_ROOT } = {}) {
+    const demosPath = toRepoPath(DEMOS_SRC_DIR);
+    const manifestsPath = `${SEEDS_PATH_PREFIX}*/*/${MANIFEST_FILENAME}`;
+    const tmp = mkdtempSync(join(tmpdir(), 'stale-ports-base-'));
+    try {
+        const archive = join(tmp, 'base.tar');
+        try {
+            execFileSync(
+                'git',
+                ['archive', '--format=tar', '-o', archive, base, '--', demosPath, `:(glob)${manifestsPath}`],
+                {
+                    cwd: workspaceRoot,
+                    stdio: ['ignore', 'pipe', 'pipe'],
+                }
+            );
+        } catch (error) {
+            if (/did not match any files/.test(String(error.stderr ?? ''))) return [];
+            throw error;
+        }
+        const tree = join(tmp, 'tree');
+        mkdirSync(tree);
+        execFileSync('tar', ['-xf', archive, '-C', tree], { stdio: ['ignore', 'pipe', 'pipe'] });
+
+        const srcDir = join(tree, ...demosPath.split('/'));
+        return findStalePorts({
+            seedsDir: join(tree, ...SEEDS_PATH_PREFIX.split('/')),
+            demoIds: demoIds.filter((demo) => existsSync(join(srcDir, demo))),
+            hashSource: (demo) => hashDemoSource(demo, srcDir),
+            readSourceCommit: () => null,
+        });
+    } finally {
+        rmSync(tmp, { recursive: true, force: true });
+    }
 }
 
 /**

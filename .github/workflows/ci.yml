@@ -378,7 +378,8 @@ jobs:
 
             # The blocking parity run skips stale ports, so a port this change edits must not be left
             # stale: an alignment that forgot to restamp the manifest would otherwise skip its own
-            # parity check. Pin-only edits (a version bump) do not count.
+            # parity check. Pin-only edits (a version bump) do not count, and neither does a port that
+            # was already stale at the base: that drift is not this change's, and is reported as a warning.
             - name: Edited demo ports are restamped
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --touched "${{ steps.setup.outputs.base }}"
