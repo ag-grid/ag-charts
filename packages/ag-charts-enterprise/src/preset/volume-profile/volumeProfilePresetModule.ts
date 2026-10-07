@@ -9,7 +9,7 @@ import {
     positiveNumberNonZero,
     required,
     string,
-    undocumented,
+    undocumentedDefs,
 } from 'ag-charts-core';
 import type { AgBaseFinancialPresetOptions, AgVolumeProfileChartPreset } from 'ag-charts-types';
 
@@ -36,12 +36,11 @@ const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgB
     dataSource: defined,
     formatter: defined,
     enableRtl: boolean,
+    ...undocumentedDefs({
+        overrideDevicePixelRatio: positiveNumber,
+        foreground: defined,
+    }),
 };
-
-// @ts-expect-error undocumented option
-volumeProfileChartOptionsDef.overrideDevicePixelRatio = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-volumeProfileChartOptionsDef.foreground = undocumented(defined);
 
 export const VolumeProfilePresetModule: PresetModuleDefinition<
     AgVolumeProfileChartPreset & AgBaseFinancialPresetOptions

@@ -17,7 +17,7 @@ import {
     shapeHighlightOptionsDef,
     string,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     without,
 } from 'ag-charts-core';
 import type {
@@ -57,8 +57,8 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     yKeyAxis: string,
     errorBar: errorBarOptionsDefs,
     highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    ...undocumentedDefs({
+        // WARNING: internal cross-filtering option, unrelated to the public data-selection API. Do not use.
+        selectedKey: string,
+    }),
 };
-
-// WARNING: internal cross-filtering option, unrelated to the public data-selection API. Do not use.
-// @ts-expect-error undocumented option
-scatterSeriesOptionsDef.selectedKey = undocumented(string);

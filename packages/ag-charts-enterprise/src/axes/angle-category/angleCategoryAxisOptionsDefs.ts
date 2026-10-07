@@ -10,6 +10,7 @@ import {
     defined,
     number,
     ratio,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 
@@ -32,7 +33,6 @@ export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOption
         ...commonAxisLabelOptionsDefs,
         orientation: union('fixed', 'parallel', 'perpendicular'),
     },
+    // Integrated sets this from the formatting panel, but it isn't relevant.
+    ...undocumentedDefs({ innerRadiusRatio: ratio }),
 };
-
-// @ts-expect-error integrated sets this from the formatting panel, but it isn't relevant.
-angleCategoryAxisOptionsDefs.innerRadiusRatio = ratio;

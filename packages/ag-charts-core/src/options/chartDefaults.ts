@@ -95,6 +95,7 @@ import {
     string,
     typeUnion,
     undocumented,
+    undocumentedDefs,
     union,
     unionOrArray,
     validate,
@@ -221,11 +222,11 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
         click: callback,
         doubleClick: callback,
     },
+    ...undocumentedDefs({
+        truncate: boolean,
+        layoutStyle: union('block', 'overlay'),
+    }),
 };
-// @ts-expect-error undocumented option
-chartCaptionOptionsDefs.truncate = undocumented(boolean);
-// @ts-expect-error undocumented option
-chartCaptionOptionsDefs.layoutStyle = undocumented(union('block', 'overlay'));
 
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
@@ -259,9 +260,10 @@ const contextMenuItemObjectDef: OptionsDefs<Extract<AgContextMenuItem, object>> 
     enabled: boolean,
     action: callback,
     items: (value: unknown, context: ValidatorContext) => contextMenuItemsArray(value, context),
+    ...undocumentedDefs({
+        iconUrl: string,
+    }),
 };
-// @ts-expect-error undocumented option
-contextMenuItemObjectDef.iconUrl = undocumented(string);
 
 const contextMenuItemObjectValidator: Validator = optionsDefs(contextMenuItemObjectDef);
 
@@ -380,10 +382,9 @@ const timeIntervalDefs: OptionsDefs<AgTimeInterval> = {
     step: positiveNumberNonZero,
     epoch: date,
     utc: boolean,
+    // Required for interop.
+    ...undocumentedDefs({ every: callback }),
 };
-
-// @ts-expect-error undocumented option - required for interop
-timeIntervalDefs.every = callback;
 
 export const timeInterval = optionsDefs<AgTimeInterval>(timeIntervalDefs, 'a time interval object');
 
@@ -609,34 +610,28 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     styleNonce: string,
     formatter: or(callbackOf(textOrSegments), formatObjectValidator),
     enableRtl: boolean,
+    ...undocumentedDefs({
+        statusBar: defined,
+        foreground: {
+            visible: boolean,
+            text: string,
+            image: {
+                url: string,
+                top: number,
+                right: number,
+                bottom: number,
+                left: number,
+                width: positiveNumber,
+                height: positiveNumber,
+                opacity: ratio,
+            },
+            ...fillOptionsDef,
+        },
+        overrideDevicePixelRatio: number,
+        displayNullData: boolean,
+        mode: union('integrated', 'standalone'),
+    }),
 };
-
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.statusBar = undocumented(defined);
-
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.foreground = undocumented({
-    visible: boolean,
-    text: string,
-    image: {
-        url: string,
-        top: number,
-        right: number,
-        bottom: number,
-        left: number,
-        width: positiveNumber,
-        height: positiveNumber,
-        opacity: ratio,
-    },
-    ...fillOptionsDef,
-});
-
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.overrideDevicePixelRatio = undocumented(number);
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.displayNullData = undocumented(boolean);
-// @ts-expect-error undocumented option
-commonChartOptionsDefs.mode = undocumented(union('integrated', 'standalone'));
 
 export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeableOptions<any>> = {
     cursor: string,
@@ -649,10 +644,10 @@ export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeable
     },
     highlight: highlightOptionsDef(shapeHighlightOptionsDef),
     selection: selectionOptionsDef(shapeSelectionOptionsDef),
+    ...undocumentedDefs({
+        allowNullKeys: boolean,
+    }),
 };
-
-// @ts-expect-error undocumented option
-commonSeriesThemeableOptionsDefs.allowNullKeys = undocumented(boolean);
 
 export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     ...commonSeriesThemeableOptionsDefs,
@@ -660,10 +655,10 @@ export const commonSeriesOptionsDefs: OptionsDefs<AgBaseSeriesOptions<any>> = {
     visible: boolean,
     context: () => true,
     data: array,
+    ...undocumentedDefs({
+        seriesGrouping: defined,
+    }),
 };
-
-// @ts-expect-error undocumented option
-commonSeriesOptionsDefs.seriesGrouping = undocumented(defined);
 
 export const shadowOptionsDefs: OptionsDefs<AgDropShadowOptions> = {
     enabled: boolean,
@@ -733,16 +728,16 @@ export const labelOrientationDef = unionOrArray('horizontal', 'vertical', 'verti
 export const collisionOptionsDef: OptionsDefs<AgChartLabelCollisionOptions> = {
     threshold: number,
     alwaysShow: boolean,
+    ...undocumentedDefs({
+        collideWith: {
+            markers: boolean,
+            labels: boolean,
+            seriesItems: boolean,
+            seriesArea: boolean,
+            axisLabels: boolean,
+        },
+    }),
 };
-
-// @ts-expect-error undocumented option
-collisionOptionsDef.collideWith = undocumented({
-    markers: boolean,
-    labels: boolean,
-    seriesItems: boolean,
-    seriesArea: boolean,
-    axisLabels: boolean,
-});
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
     enabled: boolean,

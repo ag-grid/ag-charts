@@ -32,7 +32,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -55,35 +55,38 @@ export const linearGaugeTargetOptionsDef: OptionsDefs<AgLinearGaugeTarget> = {
     ...lineDashOptionsDef,
 };
 
+const linearGaugeScaleOptionsDef: OptionsDefs<NonNullable<AgLinearGaugeThemeableOptions['scale']>> = {
+    min: and(numericValue, lessThan('max')),
+    max: and(numericValue, greaterThan('min')),
+    label: {
+        enabled: boolean,
+        formatter: callback,
+        rotation: number,
+        spacing: positiveNumber,
+        minSpacing: positiveNumber,
+        placement: union('before', 'after'),
+        avoidCollisions: boolean,
+        format: numberFormatValidator,
+        ...fontOptionsDef,
+    },
+    interval: {
+        values: arrayOf(numericValue),
+        step: numericValue,
+    },
+    ...fillsOptionsDef,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    ...undocumentedDefs({ defaultFill: color }),
+};
+
 export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThemeableOptions> = {
     ...without(commonSeriesThemeableOptionsDefs, ['listeners']),
     direction: union('horizontal', 'vertical'),
     cornerMode: union('container', 'item'),
     cornerRadius: positiveNumber,
     thickness: positiveNumber,
-    scale: {
-        min: and(numericValue, lessThan('max')),
-        max: and(numericValue, greaterThan('min')),
-        label: {
-            enabled: boolean,
-            formatter: callback,
-            rotation: number,
-            spacing: positiveNumber,
-            minSpacing: positiveNumber,
-            placement: union('before', 'after'),
-            avoidCollisions: boolean,
-            format: numberFormatValidator,
-            ...fontOptionsDef,
-        },
-        interval: {
-            values: arrayOf(numericValue),
-            step: numericValue,
-        },
-        ...fillsOptionsDef,
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-    },
+    scale: linearGaugeScaleOptionsDef,
     segmentation: {
         enabled: boolean,
         spacing: positiveNumber,
@@ -120,26 +123,20 @@ export const linearGaugeSeriesThemeableOptionsDef: OptionsDefs<AgLinearGaugeThem
         ),
     },
     tooltip: tooltipOptionsDefs,
+    ...undocumentedDefs({
+        defaultScale: linearGaugeScaleOptionsDef,
+        margin: number,
+        defaultColorRange: arrayOf(color),
+        defaultTarget: {
+            ...linearGaugeTargetOptionsDef,
+            value: number,
+            label: {
+                ...seriesLabelOptionsDefs,
+                spacing: number,
+            },
+        },
+    }),
 };
-
-// @ts-expect-error undocumented option
-linearGaugeSeriesThemeableOptionsDef.margin = undocumented(number);
-// @ts-expect-error undocumented option
-linearGaugeSeriesThemeableOptionsDef.defaultColorRange = undocumented(arrayOf(color));
-// @ts-expect-error undocumented option
-linearGaugeSeriesThemeableOptionsDef.defaultTarget = undocumented({
-    ...linearGaugeTargetOptionsDef,
-    value: number,
-    label: {
-        ...seriesLabelOptionsDefs,
-        spacing: number,
-    },
-});
-
-(linearGaugeSeriesThemeableOptionsDef as any).defaultScale = undocumented(
-    linearGaugeSeriesThemeableOptionsDef.scale as any
-);
-(linearGaugeSeriesThemeableOptionsDef.scale as any).defaultFill = undocumented(color);
 
 export const linearGaugeSeriesOptionsDef: OptionsDefs<AgLinearGaugePreset> = {
     ...without(commonSeriesOptionsDefs, ['listeners']),

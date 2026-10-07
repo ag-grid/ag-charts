@@ -18,6 +18,7 @@ import {
     textAlign,
     toolbarButtonOptionsDefs,
     undocumented,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 import type {
@@ -282,16 +283,13 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
             )
         ),
     },
+    ...undocumentedDefs({
+        data: array,
+        xKey: string,
+        volumeKey: string,
+        snap: boolean,
+    }),
 };
-
-// @ts-expect-error undocumented option
-annotationOptionsDef.data = undocumented(array);
-// @ts-expect-error undocumented option
-annotationOptionsDef.xKey = undocumented(string);
-// @ts-expect-error undocumented option
-annotationOptionsDef.volumeKey = undocumented(string);
-// @ts-expect-error undocumented option
-annotationOptionsDef.snap = undocumented(boolean);
 
 function withThemeTextAlign<T>(defs: OptionsDefs<T>): OptionsDefs<T> {
     return { ...defs, textAlign: undocumented(textAlign) };

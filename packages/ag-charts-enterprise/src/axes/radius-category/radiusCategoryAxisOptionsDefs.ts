@@ -11,6 +11,7 @@ import {
     number,
     radiusCrossLineLabelOptionsDefs,
     ratio,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 
@@ -31,8 +32,6 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOpti
         crossLineOptionsDefs(defined, radiusCrossLineLabelOptionsDefs),
         'a cross-line options array'
     ),
+    // The theme template emits `axis.options.shape = 'circle'`, which is absent from `AgRadiusCategoryAxisOptions`.
+    ...undocumentedDefs({ shape: union('polygon', 'circle') }),
 };
-
-// The theme template emits `axis.options.shape = 'circle'`, which is absent from `AgRadiusCategoryAxisOptions`.
-// @ts-expect-error theme-emitted, not user-facing
-radiusCategoryAxisOptionsDefs.shape = union('polygon', 'circle');

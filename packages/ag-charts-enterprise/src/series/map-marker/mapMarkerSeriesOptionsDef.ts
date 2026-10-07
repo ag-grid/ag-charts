@@ -20,7 +20,7 @@ import {
     shapeHighlightOptionsDef,
     string,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -41,10 +41,10 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
     highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    ...undocumentedDefs({
+        topologyIdKey: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-mapMarkerSeriesThemeableOptionsDef.topologyIdKey = undocumented(string);
 
 export const mapMarkerSeriesOptionsDef: OptionsDefs<AgMapMarkerSeriesOptions> = {
     ...without(commonSeriesOptionsDefs, ['highlightStyle', 'highlight']),

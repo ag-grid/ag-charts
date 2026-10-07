@@ -27,7 +27,7 @@ import {
     timeInterval,
     timeIntervalUnit,
     toolbarButtonOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 
@@ -82,10 +82,10 @@ export const rangesOptionsDefs: OptionsDefs<AgRangesOptions> = {
         },
         'range button options array'
     ),
+    ...undocumentedDefs({
+        minSize: positiveNumber,
+    }),
 };
-
-// @ts-expect-error undocumented option
-rangesOptionsDefs.minSize = undocumented(positiveNumber);
 
 const stateStylesThemeOptions: OptionsDefs<AgRangesStateStyles> = { ...stateStylesOptions, textColor: colorOrRef };
 

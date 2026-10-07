@@ -30,7 +30,7 @@ import {
     groupVolumeProfile,
 } from '../volume-profile/volumeProfile';
 
-type ChartTheme = _Theme.ChartTheme;
+type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
 

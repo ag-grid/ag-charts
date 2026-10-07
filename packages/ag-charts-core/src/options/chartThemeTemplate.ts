@@ -1,17 +1,14 @@
-// A fresh object per caption keeps the relative `$path`/`$isUserOption` padding expressions isolated.
-function captionBoxThemeDefaults() {
-    return {
-        cornerRadius: 4,
-        border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
-        padding: {
-            $if: [
-                { $path: './border/enabled' },
-                { left: 12, right: 12, top: 8, bottom: 8 },
-                { $isUserOption: ['./fill', { left: 12, right: 12, top: 8, bottom: 8 }, 0] },
-            ],
-        },
-    };
-}
+const CAPTION_BOX_THEME_DEFAULTS = {
+    cornerRadius: 4,
+    border: { enabled: false, strokeWidth: 1, stroke: { $foregroundOpacity: 0.08 } },
+    padding: {
+        $if: [
+            { $path: './border/enabled' },
+            { left: 12, right: 12, top: 8, bottom: 8 },
+            { $isUserOption: ['./fill', { left: 12, right: 12, top: 8, bottom: 8 }, 0] },
+        ],
+    },
+};
 
 function hasUserOptionLessThan1(key: string) {
     return {
@@ -86,7 +83,7 @@ export const commonChartThemeTemplate = {
         wrapping: 'hyphenate',
         layoutStyle: { $ref: 'captionLayoutStyle' },
         textAlign: { $ref: 'captionAlignment' },
-        ...captionBoxThemeDefaults(),
+        ...CAPTION_BOX_THEME_DEFAULTS,
     },
     subtitle: {
         enabled: false,
@@ -99,7 +96,7 @@ export const commonChartThemeTemplate = {
         wrapping: 'hyphenate',
         layoutStyle: { $ref: 'captionLayoutStyle' },
         textAlign: { $ref: 'captionAlignment' },
-        ...captionBoxThemeDefaults(),
+        ...CAPTION_BOX_THEME_DEFAULTS,
     },
     footnote: {
         enabled: false,
@@ -112,7 +109,7 @@ export const commonChartThemeTemplate = {
         wrapping: 'hyphenate',
         layoutStyle: { $ref: 'captionLayoutStyle' },
         textAlign: { $ref: 'captionAlignment' },
-        ...captionBoxThemeDefaults(),
+        ...CAPTION_BOX_THEME_DEFAULTS,
     },
     highlight: {
         enabled: true,

@@ -17,7 +17,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     undocumentedLabelFitOptionsDefs,
 } from 'ag-charts-core';
 
@@ -31,6 +31,7 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
     }),
     label: {
         ...seriesLabelOptionsDefs,
+        ...undocumentedLabelFitOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -38,8 +39,6 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
     ...lineDashOptionsDef,
     highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef),
 };
-
-Object.assign(radarLineSeriesThemeableOptionsDef.label, undocumentedLabelFitOptionsDefs);
 
 export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -50,9 +49,8 @@ export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = 
     angleName: string,
     radiusName: string,
     legendItemName: string,
+    ...undocumentedDefs({
+        angleKeyAxis: string,
+        radiusKeyAxis: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-radarLineSeriesOptionsDef.angleKeyAxis = undocumented(string);
-// @ts-expect-error undocumented option
-radarLineSeriesOptionsDef.radiusKeyAxis = undocumented(string);

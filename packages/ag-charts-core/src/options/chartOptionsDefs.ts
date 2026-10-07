@@ -38,6 +38,7 @@ import {
     strictUnion,
     string,
     undocumented,
+    undocumentedDefs,
 } from './validation';
 
 /** `seriesArea.backgroundRegions` is owned by the enterprise background regions module. */
@@ -150,9 +151,10 @@ const zoomRatioDef = { start: ratio, end: ratio };
 
 export const cartesianChartThemeOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, ModuleOwnedChartOptions>> = {
     ...commonChartOptionsDefs,
+    ...undocumentedDefs({
+        paired: boolean,
+    }),
 };
-// @ts-expect-error undocumented option, required by integrated charts
-cartesianChartThemeOptionsDefs.paired = undocumented(boolean);
 
 /** Theme overrides under `common`; axes and module-owned keys are composed in from the registered modules. */
 export const commonThemeOverridesOptionsDefs: OptionsDefs<

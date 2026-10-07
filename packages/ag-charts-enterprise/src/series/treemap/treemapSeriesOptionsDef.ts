@@ -28,7 +28,7 @@ import {
     strokeOptionsDef,
     textAlign,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -95,12 +95,11 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
     },
     tooltip: tooltipOptionsDefs,
     ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'selection', 'showInLegend']),
+    ...undocumentedDefs({
+        childrenKey: string,
+        undocumentedGroupStrokes: arrayOf(color),
+    }),
 };
-
-// @ts-expect-error undocumented option
-treemapSeriesThemeableOptionsDef.childrenKey = undocumented(string);
-// @ts-expect-error undocumented option
-treemapSeriesThemeableOptionsDef.undocumentedGroupStrokes = undocumented(arrayOf(color));
 
 export const treemapSeriesOptionsDef: OptionsDefs<AgTreemapSeriesOptions> = {
     ...treemapSeriesThemeableOptionsDef,

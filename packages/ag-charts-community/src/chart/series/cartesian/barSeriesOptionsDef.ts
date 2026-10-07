@@ -27,7 +27,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
     unionOrArray,
 } from 'ag-charts-core';
@@ -81,10 +81,10 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     segmentation: shapeSegmentation,
     width: positiveNumberNonZero,
     widthRatio: ratio,
+    ...undocumentedDefs({
+        sparklineMode: boolean,
+    }),
 };
-
-// @ts-expect-error undocumented option
-barSeriesThemeableOptionsDef.sparklineMode = undocumented(boolean);
 
 export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     ...barSeriesThemeableOptionsDef,
@@ -104,13 +104,10 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     normalizedTo: number,
     legendItemName: string,
     errorBar: errorBarOptionsDefs,
+    ...undocumentedDefs({
+        yFilterKey: string,
+        pickOutsideVisibleMinorAxis: boolean,
+        focusPriority: number,
+        simpleItemStyler: callback,
+    }),
 };
-
-// @ts-expect-error undocumented option
-barSeriesOptionsDef.yFilterKey = undocumented(string);
-// @ts-expect-error undocumented option
-barSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
-// @ts-expect-error undocumented option
-barSeriesOptionsDef.focusPriority = undocumented(number);
-// @ts-expect-error undocumented option
-barSeriesOptionsDef.simpleItemStyler = undocumented(callback);

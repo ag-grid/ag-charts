@@ -1,5 +1,5 @@
 import { VERSION } from 'ag-charts-community';
-import { type PluginModuleDefinition, boolean, positiveNumber, undocumented } from 'ag-charts-core';
+import { type PluginModuleDefinition, boolean, positiveNumber, undocumentedDefs } from 'ag-charts-core';
 import type { AgAnimationOptions } from 'ag-charts-types';
 
 import { Animation } from './animation';
@@ -13,6 +13,9 @@ export const AnimationModule: PluginModuleDefinition<AgAnimationOptions> = {
     options: {
         enabled: boolean,
         duration: positiveNumber,
+        ...undocumentedDefs({
+            maxAnimatableItems: positiveNumber,
+        }),
     },
     themeTemplate: {
         enabled: { $if: [{ $path: ['../flashOnUpdate/enabled', false] }, false, true] },
@@ -20,6 +23,3 @@ export const AnimationModule: PluginModuleDefinition<AgAnimationOptions> = {
 
     create: (ctx) => new Animation(ctx),
 };
-
-// @ts-expect-error undocumented option
-AnimationModule.options.maxAnimatableItems = undocumented(positiveNumber);

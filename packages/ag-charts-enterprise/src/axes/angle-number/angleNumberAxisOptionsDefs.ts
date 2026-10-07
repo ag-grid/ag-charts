@@ -11,6 +11,7 @@ import {
     number,
     numberFormatValidator,
     numericValue,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 
@@ -32,8 +33,6 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
         orientation: union('fixed', 'parallel', 'perpendicular'),
         format: numberFormatValidator,
     },
+    // The theme template emits `axis.options.shape = 'circle'`, which is absent from `AgAngleNumberAxisOptions`.
+    ...undocumentedDefs({ shape: union('polygon', 'circle') }),
 };
-
-// The theme template emits `axis.options.shape = 'circle'`, which is absent from `AgAngleNumberAxisOptions`.
-// @ts-expect-error theme-emitted, not user-facing
-angleNumberAxisOptionsDefs.shape = union('polygon', 'circle');

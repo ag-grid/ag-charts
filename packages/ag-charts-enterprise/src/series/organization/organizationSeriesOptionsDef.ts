@@ -43,7 +43,7 @@ import {
     textOrSegments,
     textWrap,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 
@@ -66,6 +66,10 @@ export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSe
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,
+    ...undocumentedDefs({
+        parentIdKey: string,
+        idKey: string,
+    }),
 };
 
 const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
@@ -160,14 +164,18 @@ const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeTitle | AgOrganizatio
 };
 
 // Theme-resolved: whether `key` was configured rather than left at its theme default.
-const nodeImageOptions: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = { ...nodeImage };
-// @ts-expect-error undocumented option
-nodeImageOptions._isUserKey = undocumented(boolean);
+const nodeImageOptions: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = {
+    ...nodeImage,
+    ...undocumentedDefs({
+        _isUserKey: boolean,
+    }),
+};
 const nodeTextOptions: OptionsDefs<AgOrganizationSeriesOptionsNodeTitle | AgOrganizationSeriesOptionsNodeSubtitle> = {
     ...nodeText,
+    ...undocumentedDefs({
+        _isUserKey: boolean,
+    }),
 };
-// @ts-expect-error undocumented option
-nodeTextOptions._isUserKey = undocumented(boolean);
 
 const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     ...fillOptionsDef,
@@ -204,11 +212,6 @@ const stackedLayout: OptionsDefs<AgOrganizationSeriesStackedLayoutOptions> = {
     nodeIndentation: positiveNumber,
     stackFromDepth: positiveNumberNonZero,
 };
-
-// @ts-expect-error undocumented option
-organizationSeriesThemeableOptionsDef.parentIdKey = undocumented(string);
-// @ts-expect-error undocumented option
-organizationSeriesThemeableOptionsDef.idKey = undocumented(string);
 
 export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptions> = {
     ...commonSeriesOptionsDefs,

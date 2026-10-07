@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { setupMockCanvas } from 'ag-charts-community-test';
 
 import { RED_SHADOW, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../test/utils';
 
-type ShadowMode = _Scene.Shape['shadowMode'];
+type ShadowMode = _ModuleSupport.Shape['shadowMode'];
 
 const RED = [255, 0, 0, 255];
 const WHITE = [255, 255, 255, 255];
@@ -15,9 +15,9 @@ const WIDTH = 400;
 const HEIGHT = 220;
 
 /** A 100 x 100 square from (150, 60), drawn with `RED_SHADOW` so the shadow is exactly the (dilated) shape. */
-const square = (mixin: Partial<_Scene.Path> & { spread?: number }, left = 150) => {
+const square = (mixin: Partial<_ModuleSupport.Path> & { spread?: number }, left = 150) => {
     const { spread, ...rest } = mixin;
-    const node = new _Scene.Path();
+    const node = new _ModuleSupport.Path();
     Object.assign(node, {
         fill: 'black',
         stroke: undefined,
@@ -35,7 +35,7 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
     /** The colour of the device pixel at (`x`, `y`) in CSS pixels. */
     const at = (x: number, y: number) => pixelAt(canvasCtx, Math.round(x * pixelRatio), Math.round(y * pixelRatio));
 
-    const render = (node: _Scene.Shape) => renderNode(canvasCtx, node, pixelRatio);
+    const render = (node: _ModuleSupport.Shape) => renderNode(canvasCtx, node, pixelRatio);
 
     describe('fill mode', () => {
         it('should grow only the shadow of a filled shape by the spread', () => {
@@ -118,7 +118,7 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
     });
 
     describe('stroke mode', () => {
-        const outline = (mixin: Partial<_Scene.Path> & { spread?: number }) =>
+        const outline = (mixin: Partial<_ModuleSupport.Path> & { spread?: number }) =>
             square({ fill: undefined, stroke: 'black', strokeWidth: 4, shadowMode: 'stroke', ...mixin });
 
         it('should grow the stroke shadow by the spread on both sides of the stroke', () => {
@@ -297,7 +297,7 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
             expect(at(262, 110)).toEqual(WHITE);
         });
 
-        it.each<[string, Partial<_Scene.Path>]>([
+        it.each<[string, Partial<_ModuleSupport.Path>]>([
             ['a translucent fill colour', { fill: 'rgba(0, 0, 0, 0.4)' }],
             ['a translucent fill opacity', { fillOpacity: 0.4 }],
         ])('should cast the spread shadow at the strength of %s, as without a spread', (_name, fillMixin) => {
@@ -319,8 +319,8 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
     });
 
     describe('rects', () => {
-        const rect = (spread?: number, mixin: Partial<_Scene.Rect> = {}) => {
-            const node = new _Scene.Rect();
+        const rect = (spread?: number, mixin: Partial<_ModuleSupport.Rect> = {}) => {
+            const node = new _ModuleSupport.Rect();
             Object.assign(node, {
                 x: 150,
                 y: 60,
@@ -378,7 +378,7 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
 
     describe('markers', () => {
         const marker = (shape: string, spread?: number) => {
-            const node = new _Scene.Marker();
+            const node = new _ModuleSupport.Marker();
             Object.assign(node, {
                 shape,
                 size: 40,
@@ -408,7 +408,7 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
     });
 
     describe.each<ShadowMode>(['fill', 'stroke', 'silhouette'])('%s mode reach', (shadowMode) => {
-        const styled = (mixin: Partial<_Scene.Path> & { spread?: number }, left?: number) =>
+        const styled = (mixin: Partial<_ModuleSupport.Path> & { spread?: number }, left?: number) =>
             square({ stroke: 'black', strokeWidth: 4, shadowMode, ...mixin }, left);
 
         it('should not leave the off-canvas copy of a shape that reaches the right edge on the left edge', () => {
@@ -462,7 +462,7 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
 
         /** An L of two 40px bars: one from -200 to 600 across and one from -100 to 400 down, so both overshoot the canvas. */
         const bars = (spread?: number) => {
-            const node = new _Scene.Path();
+            const node = new _ModuleSupport.Path();
             Object.assign(node, { fill: 'black', stroke: undefined, strokeWidth: 0, shadowMode });
             node.fillShadow = { ...SHADOW, spread };
             node.path.rect(-200, 60, 800, 40);
@@ -493,7 +493,7 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
             // The left edge crosses the blur margin (shadow offset 30 plus a reach of 12) one pixel per frame, so the
             // region is a different width each time, all of them wider than the 400px canvas.
             const pan = (left: number) => {
-                const node = new _Scene.Path();
+                const node = new _ModuleSupport.Path();
                 Object.assign(node, { fill: 'black', stroke: undefined, strokeWidth: 0, shadowMode });
                 node.fillShadow = { ...SHADOW, spread: 4 };
                 node.path.rect(left, 60, 800, 40);
@@ -515,7 +515,7 @@ describe.each([1, 2, 3])('shadow spread at a device pixel ratio of %i', (pixelRa
 describe('shadow spread without a spread', () => {
     const canvasCtx = setupMockCanvas({ width: WIDTH, height: HEIGHT });
 
-    const render = (node: _Scene.Shape) => {
+    const render = (node: _ModuleSupport.Shape) => {
         renderNode(canvasCtx, node);
         const { width, height } = canvasCtx.nodeCanvas;
         return Array.from(canvasCtx.getRenderContext2D().getImageData(0, 0, width, height).data);

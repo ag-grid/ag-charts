@@ -17,7 +17,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
 } from 'ag-charts-core';
 
 import { radialSeriesStylerDef } from '../radial-column/radialColumnSeriesOptionsDef';
@@ -49,9 +49,8 @@ export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
+    ...undocumentedDefs({
+        angleKeyAxis: string,
+        radiusKeyAxis: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-nightingaleSeriesOptionsDef.angleKeyAxis = undocumented(string);
-// @ts-expect-error undocumented option
-nightingaleSeriesOptionsDef.radiusKeyAxis = undocumented(string);

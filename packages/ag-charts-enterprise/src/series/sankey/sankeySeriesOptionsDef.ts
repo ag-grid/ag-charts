@@ -33,7 +33,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -81,18 +81,14 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     highlight: shadowHighlightOptionsDef(shapeHighlightOptionsDef),
+    ...undocumentedDefs({
+        fillGradientDefaults: fillGradientDefaults,
+        fillPatternDefaults: fillPatternDefaults,
+        fillImageDefaults: fillImageDefaults,
+        defaultColorRange: arrayOf(arrayOf(color)),
+        defaultPatternFills: arrayOf(color),
+    }),
 };
-
-// @ts-expect-error undocumented option
-sankeySeriesThemeableOptionsDef.fillGradientDefaults = undocumented(fillGradientDefaults);
-// @ts-expect-error undocumented option
-sankeySeriesThemeableOptionsDef.fillPatternDefaults = undocumented(fillPatternDefaults);
-// @ts-expect-error undocumented option
-sankeySeriesThemeableOptionsDef.fillImageDefaults = undocumented(fillImageDefaults);
-// @ts-expect-error undocumented option
-sankeySeriesThemeableOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
-// @ts-expect-error undocumented option
-sankeySeriesThemeableOptionsDef.defaultPatternFills = undocumented(arrayOf(color));
 
 export const sankeySeriesOptionsDef: OptionsDefs<AgSankeySeriesOptions> = {
     ...sankeySeriesThemeableOptionsDef,

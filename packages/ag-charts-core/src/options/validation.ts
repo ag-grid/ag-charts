@@ -403,6 +403,7 @@ export function required<T extends Validator | OptionsDefs<any>>(validatorOrDefs
 
 export function undocumented(validatorOrDefs: Validator): Validator;
 export function undocumented<T extends OptionsDefs<any>>(validatorOrDefs: T): T;
+export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T): T;
 export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T) {
     return Object.assign(
         isFunction(validatorOrDefs)
@@ -410,6 +411,15 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
             : optionsDefs(validatorOrDefs),
         { [undocumentedSymbol]: true, [descriptionSymbol]: validatorOrDefs[descriptionSymbol] }
     ) as T;
+}
+
+/** Spread inside a defs literal for keys absent from its options type; typed as empty so the literal type-checks. */
+export function undocumentedDefs(defs: Record<string, Validator | OptionsDefs<any>>): Record<never, never> {
+    const result: Record<string, Validator | OptionsDefs<any>> = {};
+    for (const key of Object.keys(defs)) {
+        result[key] = undocumented(defs[key]);
+    }
+    return result;
 }
 
 /** `defs` with every required entry made optional, for options the theme supplies later. */

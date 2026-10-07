@@ -1,4 +1,4 @@
-import { type AgChartOptions, AgCharts, type AgGaugeOptions, _Scene } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, type AgGaugeOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     type PhasedPropertyExpectation,
@@ -124,8 +124,10 @@ export function mockCssVarColorSupport(container: HTMLElement, vars: Record<stri
  * Every `Shape` under `root`, for checking the drop shadow a series applies to its drawn shapes.
  * Kept `expect`-free since enterprise `src/test` is linted as shippable source.
  */
-export function collectShapes(root: _Scene.Group): _Scene.Shape[] {
-    return Array.from(root.descendants()).filter((node): node is _Scene.Shape => node instanceof _Scene.Shape);
+export function collectShapes(root: _ModuleSupport.Group): _ModuleSupport.Shape[] {
+    return Array.from(root.descendants()).filter(
+        (node): node is _ModuleSupport.Shape => node instanceof _ModuleSupport.Shape
+    );
 }
 
 /** The theme-resolved `shadow` defaults of a fill series: present but disabled. */
@@ -143,7 +145,7 @@ export const HIGHLIGHT_SHADOW = { enabled: true, color: 'rgba(170, 0, 0, 1)', xO
 /** A red shadow with no offset or blur, so a node test sees the shadow as exactly the node's own pixels. */
 export const RED_SHADOW = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
-export const shadowedShapes = (group: _Scene.Group) =>
+export const shadowedShapes = (group: _ModuleSupport.Group) =>
     collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
 
 /** The drawn item nodes of the first series, typed loosely so tests can read node-specific fields. */
@@ -152,7 +154,7 @@ export const itemNodes = (chart: any): any[] => collectShapes(chart.series[0].co
 type MockCanvas = ReturnType<typeof setupMockCanvas>;
 
 /** Renders `node` over a white background, at `pixelRatio` when the mock canvas is sized in device pixels. */
-export function renderNode(canvasCtx: MockCanvas, node: _Scene.Shape, pixelRatio = 1) {
+export function renderNode(canvasCtx: MockCanvas, node: _ModuleSupport.Shape, pixelRatio = 1) {
     const { width, height } = canvasCtx.nodeCanvas;
     const ctx = canvasCtx.getRenderContext2D();
     ctx.fillStyle = 'white';

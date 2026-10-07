@@ -91,7 +91,7 @@ import {
     required,
     string,
     typeUnion,
-    undocumented,
+    undocumentedDefs,
     union,
     unionOrArray,
 } from './validation';
@@ -105,11 +105,8 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     cornerRadius: number,
     ...fontOptionsDef,
     ...fillOptionsDef,
+    ...undocumentedDefs({ overflow: union('pad-chart', 'realign-text', 'clip-text') }),
 };
-
-// Assigned before the defs below spread this object, so every cross-line variant picks it up.
-// @ts-expect-error undocumented option
-commonCrossLineLabelOptionsDefs.overflow = undocumented(union('pad-chart', 'realign-text', 'clip-text'));
 
 // `fill`/`fillOpacity` belong to the `range` variant only, and `id` identifies rather than styles a cross line.
 export const crossLineCommonStyleOptionsDefs: OptionsDefs<
@@ -233,10 +230,10 @@ export const cartesianCrossLineLabelOptionsDefs: OptionsDefs<AgCartesianCrossLin
     collision: collisionOptionsDef,
     ...labelFitOptionsDefs,
     ...labelAutoFontSizeOptionsDefs,
+    ...undocumentedDefs({
+        reserveSpace: boolean,
+    }),
 };
-
-// @ts-expect-error undocumented option
-cartesianCrossLineLabelOptionsDefs.reserveSpace = undocumented(boolean);
 
 export const cartesianCrossLineOptionsDefs = crossLineOptionsDefs(defined, cartesianCrossLineLabelOptionsDefs);
 
@@ -323,21 +320,17 @@ export const commonAxisOptionsDefs: OptionsDefs<Omit<AgBaseAxisOptions, 'type'>>
     },
     tick: cartesianAxisTick,
     context: () => true,
+    ...undocumentedDefs({
+        layoutConstraints: {
+            stacked: required(boolean),
+            align: required(union('start', 'end')),
+            unit: required(union('percent', 'px')),
+            width: required(positiveNumber),
+        },
+        ignoreZoom: boolean,
+        linkZoom: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-commonAxisOptionsDefs.layoutConstraints = undocumented({
-    stacked: required(boolean),
-    align: required(union('start', 'end')),
-    unit: required(union('percent', 'px')),
-    width: required(positiveNumber),
-});
-
-// @ts-expect-error undocumented option
-commonAxisOptionsDefs.ignoreZoom = undocumented(boolean);
-
-// @ts-expect-error undocumented option
-commonAxisOptionsDefs.linkZoom = undocumented(string);
 
 export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
     enabled: boolean,
@@ -354,6 +347,7 @@ export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
 export const cartesianAxisCaptionOptionsDefs: OptionsDefs<AgCartesianAxisCaptionOptions> = {
     ...commonAxisCaptionOptionsDefs,
     orientation: union('horizontal', 'vertical', 'vertical-reversed'),
+    ...undocumentedDefs({ _enabledFromTheme: boolean }),
 };
 
 export const cartesianAxisOptionsDefs: OptionsDefs<
@@ -379,9 +373,6 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
         crossLineDoubleClick: callback,
     },
 };
-
-// @ts-expect-error undocumented option
-cartesianAxisOptionsDefs.title._enabledFromTheme = undocumented(boolean);
 
 export const cartesianAxisBandHighlightOptions: OptionsDefs<AgBandHighlightOptions> = {
     enabled: boolean,

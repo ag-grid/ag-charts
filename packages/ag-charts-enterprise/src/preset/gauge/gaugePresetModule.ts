@@ -6,7 +6,7 @@ import {
     defined,
     positiveNumber,
     typeUnion,
-    undocumented,
+    undocumentedDefs,
     without,
 } from 'ag-charts-core';
 import type { AgBaseGaugePresetOptions, AgGaugeOptions, AgSeriesTooltip } from 'ag-charts-types';
@@ -36,14 +36,12 @@ const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgS
     footnote: defined,
     padding: defined,
     tooltip: gaugeTooltipOptionsDef,
+    ...undocumentedDefs({
+        overrideDevicePixelRatio: positiveNumber,
+        foreground: defined,
+        withinStudio: boolean,
+    }),
 };
-
-// @ts-expect-error undocumented option
-commonGaugeOptions.overrideDevicePixelRatio = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-commonGaugeOptions.foreground = undocumented(defined);
-// @ts-expect-error undocumented option
-commonGaugeOptions.withinStudio = undocumented(boolean);
 
 export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     type: 'preset',
