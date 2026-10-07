@@ -50,12 +50,14 @@
 .ag-charts-dialog__tab-button:hover {
     background: none;
     border-color: transparent;
+    border-width: 0 0 2px;
     color: var(--ag-charts-panel-subtle-text-color);
 }
 
 .ag-charts-dialog__tab-button--active,
 .ag-charts-dialog__tab-button--active:hover {
     border-color: var(--ag-charts-accent-color);
+    border-width: 0 0 2px;
     color: inherit;
 }
 
