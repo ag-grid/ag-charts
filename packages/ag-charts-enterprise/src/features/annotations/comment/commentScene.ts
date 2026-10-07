@@ -1,11 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Color, type Point, calcLineHeight } from 'ag-charts-core';
+import { Color, type Point } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType, type Padding } from '../annotationTypes';
 import type { TextualPointDatum } from '../datum/textualDatum';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualPointScene } from '../scenes/textualPointScene';
-import { ANNOTATION_TEXT_LINE_HEIGHT, uniformPadding } from '../text/util';
+import { annotationLineHeight, uniformPadding } from '../text/util';
 import type { CommentDatum } from './commentDatum';
 
 const { drawCorner } = _ModuleSupport;
@@ -115,7 +115,7 @@ export class CommentScene extends TextualPointScene<CommentDatum> {
         const top = y - height;
         const right = x + width;
 
-        const cornerRadius = (calcLineHeight(fontSize, ANNOTATION_TEXT_LINE_HEIGHT) + verticalPadding) / 2;
+        const cornerRadius = (annotationLineHeight(fontSize) + verticalPadding) / 2;
 
         const { path } = this.shape;
         path.clear();

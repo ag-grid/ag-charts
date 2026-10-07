@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, type Point, ZIndexMap, calcLineHeight, clamp, wrapText } from 'ag-charts-core';
+import { type BoxBounds, type Point, ZIndexMap, clamp, wrapText } from 'ag-charts-core';
 
 import { TranslatableSvgPath } from '../../../utils/svgPath';
 import { type AnnotationContext, AnnotationType, type Padding } from '../annotationTypes';
@@ -7,7 +7,7 @@ import type { TextualPointDatum } from '../datum/textualDatum';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { TextualPointScene } from '../scenes/textualPointScene';
-import { ANNOTATION_TEXT_LINE_HEIGHT, getBBox, uniformPadding } from '../text/util';
+import { annotationLineHeight, getBBox, uniformPadding } from '../text/util';
 import { convertPoint } from '../utils/values';
 import type { NoteDatum } from './noteDatum';
 
@@ -177,7 +177,7 @@ export class NoteScene extends TextualPointScene<NoteDatum> {
 
     protected override getLabelCoords(datum: NoteDatum, bbox: BoxBounds): Point {
         const isPositionTop = this.textPosition === 'top';
-        const padding = this.getPadding(datum).top + calcLineHeight(datum.fontSize, ANNOTATION_TEXT_LINE_HEIGHT) / 2;
+        const padding = this.getPadding(datum).top + annotationLineHeight(datum.fontSize) / 2;
 
         return { x: bbox.x, y: bbox.y + (isPositionTop ? padding / 2 : 0) };
     }
