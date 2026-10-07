@@ -8,6 +8,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
@@ -16,7 +17,7 @@ import {
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SankeySeries } from './sankeySeries';
-import { sankeySeriesOptionsDef } from './sankeySeriesOptionsDef';
+import { sankeySeriesOptionsDef, sankeySeriesThemeableOptionsDef } from './sankeySeriesOptionsDef';
 
 export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> = {
     type: 'series',
@@ -28,6 +29,8 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
     dependencies: [StandaloneChartModule],
 
     options: sankeySeriesOptionsDef,
+
+    themeOptions: sankeySeriesThemeableOptionsDef,
     themeTemplate: {
         seriesArea: {
             padding: {
@@ -45,7 +48,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                     opacity: 0.5,
                 },
             },
-            tooltip: { interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 ...LABEL_OVERFLOW_DEFAULTS,

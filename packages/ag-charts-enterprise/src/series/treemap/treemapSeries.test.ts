@@ -28,9 +28,12 @@ import {
     expectWarningsCalls,
     hierarchyChartAssertions,
     hoverAction,
+    isTooltipVisible,
+    pressKey,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
+    tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { deepClone } from 'ag-charts-core';
@@ -262,6 +265,69 @@ describe('TreemapSeries', () => {
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(tooltip).toBeInstanceOf(HTMLElement);
             expect(tooltip?.textContent).toEqual('Tile A1');
+        });
+    });
+
+    describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
+        const DATA = [
+            {
+                name: 'Group A',
+                children: [
+                    { name: 'Tile A1', size: 6 },
+                    { name: 'Tile A2', size: 4 },
+                ],
+            },
+            {
+                name: 'Group B',
+                children: [{ name: 'Tile B1', size: 5 }],
+            },
+        ];
+
+        const pressEscape = async () => {
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area')!;
+            seriesArea.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true })
+            );
+            await waitForChartStability(chart);
+        };
+
+        const tooltipText = () => document.querySelector('.ag-charts-tooltip')?.textContent;
+
+        it('hides the tooltip for a focused node and restores it on sibling and level moves', async () => {
+            const options: AgChartOptions = {
+                data: DATA,
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size' }],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            await tabIntoChart(chart);
+            // jsdom cannot detect :focus-visible, so an arrow key switches to the keyboard device.
+            await pressKey(chart, 'ArrowRight');
+            await pressKey(chart, 'ArrowLeft');
+            expect(isTooltipVisible(chart)).toBe(true);
+            const first = tooltipText();
+
+            await pressEscape();
+            expect(isTooltipVisible(chart)).toBe(false);
+
+            await pressKey(chart, 'ArrowRight');
+            expect(isTooltipVisible(chart)).toBe(true);
+            expect(tooltipText()).not.toEqual(first);
+
+            await pressEscape();
+            expect(isTooltipVisible(chart)).toBe(false);
+
+            await pressKey(chart, 'ArrowDown');
+            expect(isTooltipVisible(chart)).toBe(true);
+
+            await pressEscape();
+            expect(isTooltipVisible(chart)).toBe(false);
+
+            await pressKey(chart, 'ArrowUp');
+            expect(isTooltipVisible(chart)).toBe(true);
         });
     });
 

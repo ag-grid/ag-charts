@@ -601,10 +601,50 @@ export const FONT_THEME_DEFAULTS = {
 /** Disabled drop shadow; the theme value every series and marker `shadow` starts from. */
 export const SHADOW_THEME_DEFAULTS = { enabled: false, color: '#00000080', xOffset: 3, yOffset: 3, blur: 5 };
 
-/** Tooltip defaults for series that pick the nearest datum unless the chart sets `tooltip.range`. */
-export const NEAREST_TOOLTIP_THEME: WithThemeParams<Pick<AgSeriesTooltip<never>, 'range' | 'interaction'>> = {
-    range: { $path: ['/tooltip/range', 'nearest'] },
+type SeriesTooltipTheme = WithThemeParams<Pick<AgSeriesTooltip<never>, 'range' | 'position' | 'interaction'>>;
+
+/** Series tooltip defaults, following the chart `tooltip` range and position. */
+export const SERIES_TOOLTIP_THEME: SeriesTooltipTheme = {
+    range: {
+        $if: [
+            { $eq: [{ $path: ['/tooltip/range', 'exact'] }, 'area'] },
+            'exact',
+            { $path: ['/tooltip/range', 'exact'] },
+        ],
+    },
+    position: {
+        anchorTo: { $path: ['/tooltip/position/anchorTo', 'pointer'] },
+        placement: { $path: ['/tooltip/position/placement', undefined] },
+        xOffset: { $path: ['/tooltip/position/xOffset', 0] },
+        yOffset: { $path: ['/tooltip/position/yOffset', 0] },
+        // Chart-anchored tooltips sit flush; pointer/node use a 12px gap.
+        offset: {
+            $path: ['/tooltip/position/offset', { $if: [{ $eq: [{ $path: './anchorTo' }, 'chart'] }, 0, 12] }],
+        },
+    },
     interaction: { enabled: false },
+};
+
+/** Tooltip defaults for series that pick the nearest datum unless the chart sets `tooltip.range`. */
+export const NEAREST_TOOLTIP_THEME: SeriesTooltipTheme = {
+    ...SERIES_TOOLTIP_THEME,
+    range: { $path: ['/tooltip/range', 'nearest'] },
+};
+
+/** Tooltip defaults for marker series: the nearest datum, even for an `area` chart range, anchored to its node. */
+export const NEAREST_NODE_TOOLTIP_THEME: SeriesTooltipTheme = {
+    ...SERIES_TOOLTIP_THEME,
+    range: {
+        $if: [
+            { $eq: [{ $path: ['/tooltip/range', 'nearest'] }, 'area'] },
+            'nearest',
+            { $path: ['/tooltip/range', 'nearest'] },
+        ],
+    },
+    position: {
+        ...SERIES_TOOLTIP_THEME.position,
+        anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
+    },
 };
 
 /** A `fill` switched on its `type`: solid `defaultFill`, or `gradient`, image or pattern defaults. */

@@ -4,7 +4,7 @@ import { type SeriesModuleDefinition } from 'ag-charts-core';
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { ZoomModule } from '../../features/zoom/zoomModule';
 import { OrganizationSeries } from './organizationSeries';
-import { organizationSeriesOptionsDef } from './organizationSeriesOptionsDef';
+import { organizationSeriesOptionsDef, organizationSeriesThemeableOptionsDef } from './organizationSeriesOptionsDef';
 import { organizationSeriesTheme } from './organizationSeriesTheme';
 
 export const OrganizationSeriesModule: SeriesModuleDefinition<AgOrganizationSeriesOptions> = {
@@ -16,6 +16,7 @@ export const OrganizationSeriesModule: SeriesModuleDefinition<AgOrganizationSeri
     version: VERSION,
     dependencies: [StandaloneChartModule, ZoomModule],
     options: organizationSeriesOptionsDef,
+    themeOptions: organizationSeriesThemeableOptionsDef,
     themeTemplate: organizationSeriesTheme,
     create: (ctx) => new OrganizationSeries(ctx),
 };

@@ -42,14 +42,12 @@ import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultCol
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = '#ffffff';
 
-type OverridesKey = keyof AgThemeOverrides;
-
 const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
     'radial-gauge': true,
     'linear-gauge': true,
 };
 
-function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverrides {
+export function isPresetOverridesType(type: string): type is keyof AgPresetOverrides {
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
 }
 
@@ -405,11 +403,6 @@ export class ChartTheme {
                             ? getAxisThemeTemplate(axisModule.name, moduleRegistry)
                             : null
                     );
-                }
-
-                // TODO: remove this
-                if (seriesType === 'map-shape-background' || seriesType === 'map-line-background') {
-                    delete (result[seriesType].series as any).tooltip;
                 }
             }
 

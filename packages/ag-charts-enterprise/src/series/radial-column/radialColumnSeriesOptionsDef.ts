@@ -1,15 +1,53 @@
-import type { AgRadialColumnSeriesOptions } from 'ag-charts-community';
+import type {
+    AgRadialColumnSeriesOptions,
+    AgRadialColumnSeriesThemeableOptions,
+    AgRadialSeriesStyle,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
+    barHighlightOptionsDef,
     boolean,
+    callbackDefs,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    fillOptionsDef,
+    lineDashOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
-    radialColumnSeriesThemeableOptionsDef,
+    positiveNumber,
+    ratio,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     string,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
     undocumented,
 } from 'ag-charts-core';
+
+export const radialSeriesStylerDef = callbackDefs<AgRadialSeriesStyle>({
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+});
+
+export const radialColumnSeriesThemeableOptionsDef: OptionsDefs<AgRadialColumnSeriesThemeableOptions> = {
+    cornerRadius: positiveNumber,
+    columnWidthRatio: ratio,
+    maxColumnWidthRatio: ratio,
+    styler: radialSeriesStylerDef,
+    itemStyler: radialSeriesStylerDef,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    highlight: multiSeriesShadowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+};
 
 export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptions> = {
     ...commonSeriesOptionsDefs,

@@ -10,6 +10,7 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    NEAREST_NODE_TOOLTIP_THEME,
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
@@ -25,7 +26,7 @@ import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { LineSeries } from './lineSeries';
-import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
+import { lineSeriesOptionsDef, lineSeriesThemeableOptionsDef } from './lineSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'line'> = {
@@ -60,19 +61,7 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
             placement: 'top',
         },
-        tooltip: {
-            range: {
-                $if: [
-                    { $eq: [{ $path: ['/tooltip/range', 'nearest'] }, 'area'] },
-                    'nearest',
-                    { $path: ['/tooltip/range', 'nearest'] },
-                ],
-            },
-            position: {
-                anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
-            },
-            interaction: { enabled: false },
-        },
+        tooltip: NEAREST_NODE_TOOLTIP_THEME,
         highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
@@ -88,6 +77,8 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = /* 
     dependencies: [CartesianChartModule],
 
     options: lineSeriesOptionsDef,
+
+    themeOptions: lineSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: {
         y: {

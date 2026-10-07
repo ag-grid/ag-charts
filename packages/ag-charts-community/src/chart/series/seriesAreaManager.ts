@@ -254,6 +254,8 @@ export class SeriesAreaManager extends BaseManager {
         datumIndex: 0,
         datum: undefined as PickFocusOutputs['datum'] | undefined,
         pendingViewportFocus: undefined as PickViewportFocusInputs['where'] | undefined,
+        /** The focused datum whose tooltip the user dismissed with Escape; cleared when focus moves. */
+        dismissedTooltip: undefined as { series: UnknownSeries; datumIndex: number; otherIndex: number } | undefined,
     };
 
     private cachedTooltipContent:
@@ -777,6 +779,7 @@ export class SeriesAreaManager extends BaseManager {
     private onBlur(event: FocusEvent) {
         if (!this.isState(InteractionState.Focusable)) return;
         this.setHoverDevice('pointer');
+        this.focus.dismissedTooltip = undefined;
         if (!this.isState(InteractionState.Frozen) && !this.maybeEnterInteractiveTooltip(event)) {
             this.clearAll(true); // true = delayed
         }
@@ -822,11 +825,49 @@ export class SeriesAreaManager extends BaseManager {
                 return this.onExpandCollapse('series:keynav-expand', widgetEvent);
             case 'collapse':
                 return this.onExpandCollapse('series:keynav-collapse', widgetEvent);
+            case 'dismiss':
+                return this.onDismiss(widgetEvent);
             case 'delete':
                 return;
             default:
                 action?.name satisfies undefined; // check for switch-exhaustion
         }
+    }
+
+    private onDismiss(widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
+        const { focus } = this;
+        const { series, datumIndex, seriesIndex } = focus;
+        if (
+            series == null ||
+            this.getFocusedNodeDatum() == null ||
+            !this.isState(InteractionState.Focusable) ||
+            this.isState(InteractionState.Frozen) ||
+            this.getHoverDevice() !== 'keyboard' ||
+            !this.getFocusIndicator()?.isFocusVisible() ||
+            !this.isTooltipEnabled(series) ||
+            !this.chart.ctx.tooltipManager.isTooltipActive(this.id)
+        ) {
+            return;
+        }
+
+        // Hide only the tooltip: focus, the focus indicator and the highlight stay on the datum.
+        focus.dismissedTooltip = { series, datumIndex, otherIndex: seriesIndex };
+        this.clearTooltip();
+        widgetEvent.sourceEvent.preventDefault();
+    }
+
+    private isFocusedTooltipDismissed(): boolean {
+        const { dismissedTooltip, series, datumIndex, seriesIndex } = this.focus;
+        if (dismissedTooltip == null) return false;
+        if (
+            dismissedTooltip.series === series &&
+            dismissedTooltip.datumIndex === datumIndex &&
+            dismissedTooltip.otherIndex === seriesIndex
+        ) {
+            return true;
+        }
+        this.focus.dismissedTooltip = undefined;
+        return false;
     }
 
     private onPage(delta: SeriesKeyNavPanXEvent['delta'], widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
@@ -1219,11 +1260,12 @@ export class SeriesAreaManager extends BaseManager {
 
             if (!this.isState(InteractionState.Frozen)) {
                 const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
+                const tooltipDismissed = this.isFocusedTooltipDismissed();
                 this.pickManager.maybeActivate(
                     datum,
                     ({ series }): void => {
                         this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-                        if (this.isTooltipEnabled(series)) {
+                        if (!tooltipDismissed && this.isTooltipEnabled(series)) {
                             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
                         }
                     },

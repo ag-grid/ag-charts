@@ -18,7 +18,6 @@ import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
-        stroke: { $palette: 'stroke' },
         ...STROKE_STYLE_THEME_DEFAULTS,
         connectMissingData: false,
         label: {
@@ -67,6 +66,7 @@ export const RADAR_AREA_SERIES_THEME: ExtensibleSeriesTheme<'radar-area'> = merg
     {
         series: {
             fill: fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
+            stroke: { $palette: 'stroke' },
             fillOpacity: 0.8,
             strokeWidth: 2,
             shadow: SHADOW_THEME_DEFAULTS,

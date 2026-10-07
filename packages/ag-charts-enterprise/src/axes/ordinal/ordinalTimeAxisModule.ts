@@ -3,9 +3,9 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedOrdinalTimeAxisOptions,
+    cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
     mergeDefaults,
-    ordinalTimeAxisOptionsDefs,
     parentLevelAxisThemeTemplate,
     titleAxisThemeTemplate,
 } from 'ag-charts-core';
@@ -13,6 +13,7 @@ import {
 import { AxisInteractionModule } from '../../features/axis-interaction/axisInteractionModule';
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { OrdinalTimeAxis } from './ordinalTimeAxis';
+import { ordinalTimeAxisOptionsDefs } from './ordinalTimeAxisOptionsDefs';
 
 export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOptions, OrdinalTimeAxis> = {
     type: 'axis',
@@ -23,6 +24,8 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
     dependencies: [CartesianChartModule, AxisInteractionModule, BackgroundRegionsModule],
 
     options: ordinalTimeAxisOptionsDefs,
+
+    themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(ordinalTimeAxisOptionsDefs),
     themeTemplate: mergeDefaults(
         {
             groupPaddingInner: 0,

@@ -12,7 +12,10 @@ import {
 import { TopologyChartModule } from '../../charts/topologyChartModule';
 import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
 import { MapShapeBackgroundSeries } from './mapShapeBackgroundSeries';
-import { mapShapeBackgroundSeriesOptionsDef } from './mapShapeBackgroundSeriesOptionsDef';
+import {
+    mapShapeBackgroundSeriesOptionsDef,
+    mapShapeBackgroundSeriesThemeableOptionsDef,
+} from './mapShapeBackgroundSeriesOptionsDef';
 
 export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBackgroundOptions> = {
     type: 'series',
@@ -23,6 +26,8 @@ export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBa
     dependencies: [TopologyChartModule],
 
     options: mapShapeBackgroundSeriesOptionsDef,
+
+    themeOptions: mapShapeBackgroundSeriesThemeableOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {

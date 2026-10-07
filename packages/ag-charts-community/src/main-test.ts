@@ -9,6 +9,7 @@ export * from './chart/series/test/examples';
 export * from './chart/test/findTarget';
 export * from './chart/test/freezableMock';
 export * from './chart/test/legendItemName';
+export { themeOptionsDefFor } from './chart/mapping/themes';
+export { isPresetOverridesType } from './chart/themes/chartTheme';
 export * from './chart/test/shadowFixtures';
 export * from './chart/test/prepareOptions';
-export * from './chart/test/sharedOptionsDefs';

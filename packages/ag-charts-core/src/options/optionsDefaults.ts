@@ -46,6 +46,7 @@ import {
     color,
     constant,
     defined,
+    isThemeOperator,
     number,
     numericValue,
     optionsDefs,
@@ -61,11 +62,7 @@ import {
     union,
 } from './validation';
 
-export const themeOperator = (value: unknown) => {
-    if (!isObject(value)) return false;
-    const keys = Object.keys(value);
-    return keys.length === 1 && keys[0].startsWith('$');
-};
+export const themeOperator = isThemeOperator;
 
 const themeParams = [
     'accentColor',

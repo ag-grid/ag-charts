@@ -238,7 +238,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             if (s.type === 'bar') {
                 volumeDomain = [yDomain[0] as number, yDomain.at(-1) as number];
             } else {
-                // Price series (candlestick, ohlc, range-area, range-bar, line)
+                // Price series (candlestick, ohlc, hlc, range-bar, line)
                 priceDomain = [yDomain[0] as number, yDomain.at(-1) as number];
             }
         }

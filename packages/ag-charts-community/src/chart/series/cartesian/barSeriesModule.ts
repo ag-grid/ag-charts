@@ -11,6 +11,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
@@ -23,7 +24,7 @@ import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { BarSeries } from './barSeries';
-import { barSeriesOptionsDef } from './barSeriesOptionsDef';
+import { barSeriesOptionsDef, barSeriesThemeableOptionsDef } from './barSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
@@ -51,7 +52,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
             placement: 'inside-center',
         },
         shadow: SHADOW_THEME_DEFAULTS,
-        tooltip: { interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
@@ -68,6 +69,8 @@ export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = /* #_
     dependencies: [CartesianChartModule],
 
     options: barSeriesOptionsDef,
+
+    themeOptions: barSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
