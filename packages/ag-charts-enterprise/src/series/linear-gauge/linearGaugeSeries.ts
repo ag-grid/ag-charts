@@ -395,7 +395,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             fontFamily,
             lineHeight,
             wrapping,
-            overflowStrategy,
+            truncate,
+            collision,
             formatter = (params) => this.formatLabel(params.value),
         } = label;
         return {
@@ -415,7 +416,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             fontFamily,
             lineHeight,
             wrapping,
-            overflowStrategy,
+            truncate,
+            collision,
             formatter,
         };
     }

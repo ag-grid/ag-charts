@@ -343,6 +343,20 @@ export function formatRadialGaugeLabels(
         labelLayout = layout?.label;
         secondaryLabelLayout = layout?.secondaryLabel;
         height = layout?.height ?? 0;
+        if (layout == null) {
+            if (labelDatum.collision?.alwaysShow) {
+                labelLayout = formatSingleLabel(toPlainText(labelText), labelDatum, params, sizeFittingHeight)?.[0];
+            }
+            if (secondaryLabelDatum.collision?.alwaysShow) {
+                secondaryLabelLayout = formatSingleLabel(
+                    toPlainText(secondaryLabelText),
+                    secondaryLabelDatum,
+                    params,
+                    sizeFittingHeight
+                )?.[0];
+            }
+            height = (labelLayout?.height ?? 0) + (secondaryLabelLayout?.height ?? 0);
+        }
     } else {
         const layout = formatSingleLabel(toPlainText(labelText), labelDatum, params, sizeFittingHeight);
 

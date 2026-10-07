@@ -32,6 +32,10 @@ interface AutoSizedSecondaryLabelOptions extends AgChartAutoSizedSecondaryLabelO
     fontSize: FontSize;
 }
 
+function overflowAtFloor(props: AgChartAutoSizedBaseLabelOptions<unknown, any>): OverflowStrategy {
+    return props.truncate ? 'ellipsis' : 'hide';
+}
+
 type FontSizeCandidate = {
     labelFontSize: number;
     secondaryLabelFontSize: number;
@@ -182,7 +186,7 @@ export function formatStackedLabels<Meta>(
                 availableHeight,
                 labelFont,
                 labelProps.wrapping,
-                allowTruncation ? labelProps.overflowStrategy : 'hide'
+                allowTruncation ? overflowAtFloor(labelProps) : 'hide'
             );
         }
 
@@ -196,7 +200,7 @@ export function formatStackedLabels<Meta>(
                 availableHeight,
                 secondaryLabelFont,
                 secondaryLabelProps.wrapping,
-                allowTruncation ? secondaryLabelProps.overflowStrategy : 'hide'
+                allowTruncation ? overflowAtFloor(secondaryLabelProps) : 'hide'
             );
         }
 
@@ -234,17 +238,21 @@ function formatSingleSegmentsLabel<Meta>(
     const availableWidth = sizeFitting.width - sizeAdjust;
     const availableHeight = sizeFitting.height - sizeAdjust;
 
-    if (availableWidth <= 0 || availableHeight <= 0) return;
+    let wrapped =
+        availableWidth > 0 && availableHeight > 0
+            ? wrapTextSegments(segments, {
+                  maxWidth: availableWidth,
+                  maxHeight: availableHeight,
+                  font: baseFont,
+                  textWrap: props.wrapping,
+                  overflow: overflowAtFloor(props),
+              })
+            : [];
 
-    const wrapped = wrapTextSegments(segments, {
-        maxWidth: availableWidth,
-        maxHeight: availableHeight,
-        font: baseFont,
-        textWrap: props.wrapping,
-        overflow: props.overflowStrategy ?? 'hide',
-    });
-
-    if (wrapped.length === 0) return;
+    if (wrapped.length === 0) {
+        if (!props.collision?.alwaysShow) return;
+        wrapped = wrapTextSegments(segments, { maxWidth: Infinity, font: baseFont, textWrap: 'never' });
+    }
 
     const { width, height } = measureTextSegments(wrapped, baseFont);
 
@@ -266,7 +274,7 @@ export function formatSingleLabel<Meta>(
         fontWeight: props.fontWeight,
     };
 
-    return findLargestFittingFontSize<[LabelFormatting, Meta]>(
+    const fitted = findLargestFittingFontSize<[LabelFormatting, Meta]>(
         minimumFontSize,
         props.fontSize,
         (fontSize, allowTruncation) => {
@@ -284,7 +292,7 @@ export function formatSingleLabel<Meta>(
                 maxHeight: availableHeight,
                 font: currentFont,
                 textWrap: props.wrapping,
-                overflow: (allowTruncation ? props.overflowStrategy : null) ?? 'hide',
+                overflow: allowTruncation ? overflowAtFloor(props) : 'hide',
             });
 
             if (lines.length === 0) return;
@@ -295,6 +303,30 @@ export function formatSingleLabel<Meta>(
             return [{ width, height, text, fontSize, lineHeight }, sizeFitting.meta];
         }
     );
+    if (fitted != null || !props.collision?.alwaysShow) return fitted;
+    return formatOverflowingLabel(value, props, minimumFontSize, padding, sizeFittingHeight);
+}
+
+/** A label `collision.alwaysShow` keeps although it does not fit: drawn at its floor size, overflowing its bounds. */
+function formatOverflowingLabel<Meta>(
+    value: string,
+    props: AutoSizedBaseLabelOptions,
+    fontSize: number,
+    padding: number,
+    sizeFittingHeight: SizeFittingHeightFn<Meta>
+): [LabelFormatting, Meta] {
+    const font = { fontFamily: props.fontFamily, fontStyle: props.fontStyle, fontWeight: props.fontWeight, fontSize };
+    const measurer = cachedTextMeasurer(font);
+    const lineHeight = props.lineHeight ?? measurer.lineHeight();
+    const sizeFitting = sizeFittingHeight(lineHeight + 2 * padding, true);
+    const maxWidth = sizeFitting.width - 2 * padding;
+    let lines =
+        maxWidth > 0
+            ? wrapLines(value, { maxWidth, font, textWrap: props.wrapping, overflow: overflowAtFloor(props) })
+            : [];
+    if (lines.length === 0) lines = value.split('\n');
+    const { width, height } = measurer.measureLines(lines);
+    return [{ width, height, text: lines.join('\n'), fontSize, lineHeight }, sizeFitting.meta];
 }
 
 function formatSingleAny<Meta>(
@@ -376,13 +408,13 @@ function formatStackedAnyLabels<Meta>(
     const [label] = labelFormatted;
 
     const remainingHeight = availableHeight - label.height;
-    if (remainingHeight <= 0) return labelOnly(label);
+    if (remainingHeight <= 0 && !secondaryLabelProps.collision?.alwaysShow) return labelOnly(label);
 
     const secondaryFormatted = formatSingleAny(
         secondaryLabelValue,
         secondaryLabelProps,
         layoutParams,
-        fixedFitting(sizeFitting.width, remainingHeight, padding, sizeFitting.meta)
+        fixedFitting(sizeFitting.width, Math.max(0, remainingHeight), padding, sizeFitting.meta)
     );
     if (secondaryFormatted == null) return labelOnly(label);
     const [secondaryLabel] = secondaryFormatted;
@@ -443,36 +475,35 @@ export function formatLabels<Meta = never>(
         }
     }
 
-    let labelMeta: [LabelFormatting, Meta] | undefined;
-    if (value == null && labelValue != null) {
-        labelMeta = formatSingleAny(labelValue, labelProps, layoutParams, sizeFittingHeight);
-    }
-    if (labelMeta != null) {
+    if (value != null) return value;
+
+    const labelMeta =
+        labelValue == null ? undefined : formatSingleAny(labelValue, labelProps, layoutParams, sizeFittingHeight);
+    // The secondary label only stands in for a missing primary, unless `alwaysShow` keeps it beneath one.
+    const secondaryLabelMeta =
+        secondaryLabelValue != null && (labelValue == null || secondaryLabelProps.collision?.alwaysShow)
+            ? formatSingleAny(secondaryLabelValue, secondaryLabelProps, layoutParams, sizeFittingHeight)
+            : undefined;
+
+    if (labelMeta != null && secondaryLabelMeta != null) {
         const [label, meta] = labelMeta;
-        value = {
-            width: label.width,
-            height: label.height,
+        const [secondaryLabel] = secondaryLabelMeta;
+        return {
+            width: Math.max(label.width, secondaryLabel.width),
+            height: label.height + (labelProps.spacing ?? 0) + secondaryLabel.height,
             meta,
             label,
-            secondaryLabel: undefined,
-        };
-    }
-
-    let secondaryLabelMeta: [LabelFormatting, Meta] | undefined;
-    if (value == null && labelValue == null && secondaryLabelValue != null) {
-        secondaryLabelMeta = formatSingleAny(secondaryLabelValue, secondaryLabelProps, layoutParams, sizeFittingHeight);
-    }
-    if (secondaryLabelMeta != null) {
-        const [secondaryLabel, meta] = secondaryLabelMeta;
-        value = {
-            width: secondaryLabel.width,
-            height: secondaryLabel.height,
-            meta,
-            label: undefined,
             secondaryLabel,
         };
     }
-
+    if (labelMeta != null) {
+        const [label, meta] = labelMeta;
+        return { width: label.width, height: label.height, meta, label, secondaryLabel: undefined };
+    }
+    if (secondaryLabelMeta != null) {
+        const [secondaryLabel, meta] = secondaryLabelMeta;
+        return { width: secondaryLabel.width, height: secondaryLabel.height, meta, label: undefined, secondaryLabel };
+    }
     return value;
 }
 

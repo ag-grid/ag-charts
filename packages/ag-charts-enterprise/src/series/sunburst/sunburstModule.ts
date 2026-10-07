@@ -1,5 +1,6 @@
 import { type AgSunburstSeriesOptions, VERSION } from 'ag-charts-community';
 import {
+    AUTO_SIZED_LABEL_TRUNCATE,
     BASE_FONT_SIZE,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
     FONT_SIZE_RATIO,
@@ -49,7 +50,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             minimumFontSize: { $rem: [9 / BASE_FONT_SIZE, 'seriesLabelFontSize'] },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
-            overflowStrategy: 'ellipsis',
+            truncate: AUTO_SIZED_LABEL_TRUNCATE,
             wrapping: 'never',
             spacing: 2,
         },
@@ -61,7 +62,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             minimumFontSize: { $rem: [7 / BASE_FONT_SIZE, 'seriesLabelFontSize'] },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
-            overflowStrategy: 'ellipsis',
+            truncate: AUTO_SIZED_LABEL_TRUNCATE,
             wrapping: 'never',
         },
         innerLabels: {

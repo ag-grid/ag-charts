@@ -1,5 +1,6 @@
 import { type AgRadialGaugePreset, VERSION } from 'ag-charts-community';
 import {
+    AUTO_SIZED_LABEL_TRUNCATE,
     FONT_SIZE_RATIO,
     FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
@@ -98,7 +99,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'textColor' },
                 wrapping: 'on-space',
-                overflowStrategy: 'ellipsis',
+                truncate: AUTO_SIZED_LABEL_TRUNCATE,
                 spacing: 0,
             },
             secondaryLabel: {
@@ -110,7 +111,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
                 fontFamily: { $ref: 'fontFamily' },
                 color: { $ref: 'subtleTextColor' },
                 wrapping: 'on-space',
-                overflowStrategy: 'ellipsis',
+                truncate: AUTO_SIZED_LABEL_TRUNCATE,
             },
             tooltip: {
                 ...SERIES_TOOLTIP_THEME,

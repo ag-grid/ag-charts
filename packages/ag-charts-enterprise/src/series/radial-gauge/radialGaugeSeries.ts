@@ -683,6 +683,8 @@ export class RadialGaugeSeries
                 fontWeight,
                 fontFamily,
                 lineHeight,
+                truncate,
+                collision,
                 formatter = (params) => this.formatLabel(params.value),
             } = label;
             labelData.push({
@@ -698,6 +700,8 @@ export class RadialGaugeSeries
                 fontWeight,
                 fontFamily,
                 lineHeight,
+                truncate,
+                collision,
                 formatter,
             });
         }
@@ -712,6 +716,8 @@ export class RadialGaugeSeries
                 fontWeight,
                 fontFamily,
                 lineHeight,
+                truncate,
+                collision,
                 formatter,
             } = secondaryLabel;
             labelData.push({
@@ -727,6 +733,8 @@ export class RadialGaugeSeries
                 fontWeight,
                 fontFamily,
                 lineHeight,
+                truncate,
+                collision,
                 formatter,
             });
         }

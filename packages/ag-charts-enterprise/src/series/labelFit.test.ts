@@ -5,6 +5,7 @@ import { AgCharts } from 'ag-charts-community';
 import {
     compareImageSnapshot,
     deproxy,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -28,6 +29,12 @@ describe('series label fit', () => {
     afterEach(() => {
         chart?.destroy();
     });
+
+    const render = async (options: object) => {
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        await waitForChartStability(chart);
+    };
 
     const renderAndSnapshot = async (options: object) => {
         prepareEnterpriseTestOptions(options as AgChartOptions);
@@ -193,11 +200,6 @@ describe('series label fit', () => {
             ...extra,
         });
 
-        const render = async (options: object) => {
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
-            await waitForChartStability(chart);
-        };
         type LabelNode = { visible: boolean; fontSize: number; text: string };
         const drawnLabels = (): LabelNode[] =>
             (chart.series[0].labelSelection.nodes() as LabelNode[]).filter((node) => node.visible && node.text !== '');
@@ -669,7 +671,7 @@ describe('series label fit', () => {
                 },
             ],
         });
-        const render = async (options: object) => {
+        const renderNarrow = async (options: object) => {
             prepareEnterpriseTestOptions(options as AgChartOptions);
             chart = deproxy(AgCharts.create({ ...options, width: 500 } as AgChartOptions));
             await waitForChartStability(chart);
@@ -681,7 +683,7 @@ describe('series label fit', () => {
         const isTruncated = (node: LabelNode) => node.text.includes(ELLIPSIS);
 
         it('truncates labels on one line at their configured size when no fit option is set', async () => {
-            await render(sankeyChart({}));
+            await renderNarrow(sankeyChart({}));
             const rendered = drawnLabels();
             expect(rendered.length).toBe(6);
             expect(rendered.every((node) => node.fontSize === FONT_SIZE && !isWrapped(node))).toBe(true);
@@ -689,12 +691,12 @@ describe('series label fit', () => {
         });
 
         it('wraps a label rather than truncating it', async () => {
-            await render(sankeyChart({ wrapping: 'on-space' }));
+            await renderNarrow(sankeyChart({ wrapping: 'on-space' }));
             expect(drawnLabels().some((node) => isWrapped(node) && !isTruncated(node))).toBe(true);
         });
 
         it('keeps every label within maxWidth', async () => {
-            await render(sankeyChart({ maxWidth: 60 }));
+            await renderNarrow(sankeyChart({ maxWidth: 60 }));
             const rendered = drawnLabels();
             expect(rendered.length).toBe(6);
             expect(rendered.every((node) => node.getBBox().width <= 60.5)).toBe(true);
@@ -702,14 +704,14 @@ describe('series label fit', () => {
         });
 
         it('truncates the lines that do not fit within maxHeight', async () => {
-            await render(sankeyChart({ maxWidth: 60, maxHeight: FONT_SIZE * 1.5 }));
+            await renderNarrow(sankeyChart({ maxWidth: 60, maxHeight: FONT_SIZE * 1.5 }));
             const rendered = drawnLabels();
             expect(rendered.some(isWrapped)).toBe(false);
             expect(rendered.some(isTruncated)).toBe(true);
         });
 
         it('hides a label that does not fit when truncate is false', async () => {
-            await render(sankeyChart({ wrapping: 'never', truncate: false }));
+            await renderNarrow(sankeyChart({ wrapping: 'never', truncate: false }));
             const rendered = drawnLabels();
             expect(rendered.length).toBeGreaterThan(0);
             expect(rendered.length).toBeLessThan(6);
@@ -717,29 +719,31 @@ describe('series label fit', () => {
         });
 
         it('shrinks a label rather than truncating it', async () => {
-            await render(sankeyChart({ wrapping: 'never', minimumFontSize: 6 }));
+            await renderNarrow(sankeyChart({ wrapping: 'never', minimumFontSize: 6 }));
             expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE && !isTruncated(node))).toBe(true);
         });
 
         it('stops shrinking at minimumFontSize and truncates from there', async () => {
-            await render(sankeyChart({ wrapping: 'never', minimumFontSize: 12 }));
+            await renderNarrow(sankeyChart({ wrapping: 'never', minimumFontSize: 12 }));
             const rendered = drawnLabels();
             expect(rendered.every((node) => node.fontSize >= 12)).toBe(true);
             expect(rendered.some((node) => node.fontSize === 12 && isTruncated(node))).toBe(true);
         });
 
         it('resolves the other fit options once one is set', async () => {
-            await render(sankeyChart({}));
+            await renderNarrow(sankeyChart({}));
             const { wrapping, truncate } = chart.series[0].options.label;
             expect([wrapping, truncate]).toEqual([undefined, undefined]);
 
             chart.destroy();
-            await render(sankeyChart({ minimumFontSize: 6 }));
+            await renderNarrow(sankeyChart({ minimumFontSize: 6 }));
             expect(chart.series[0].options.label).toMatchObject({ wrapping: 'on-space', truncate: true });
         });
 
         it('takes the fit options from the theme', async () => {
-            await render(sankeyChart({}, { overrides: { sankey: { series: { label: { wrapping: 'on-space' } } } } }));
+            await renderNarrow(
+                sankeyChart({}, { overrides: { sankey: { series: { label: { wrapping: 'on-space' } } } } })
+            );
             expect(drawnLabels().some(isWrapped)).toBe(true);
         });
 
@@ -1008,6 +1012,230 @@ describe('series label fit', () => {
                     },
                 },
             ],
+        });
+    });
+    describe('tile labels (heatmap, treemap, sunburst)', () => {
+        const tileNames = [
+            'Supercalifragilistic',
+            'Antidisestablishment',
+            'Floccinaucinihilipilification',
+            'Pneumonoultramicroscopic',
+            'Hippopotomonstrosesquipedalian',
+            'Incomprehensibilities',
+        ];
+        const treemapData = [
+            { name: 'A broad tile label', value: 200 },
+            ...tileNames.map((name) => ({ name, value: 3 })),
+        ];
+        const treemapChart = (label: object, secondaryLabel?: object) => ({
+            data: treemapData.map((d) => ({ ...d, detail: 'Secondary detail text' })),
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'value',
+                    secondaryLabelKey: secondaryLabel ? 'detail' : undefined,
+                    tile: { label: { fontSize: 14, minimumFontSize: 10, ...label }, secondaryLabel },
+                },
+            ],
+        });
+        const sunburstChart = (label: object) => ({
+            data: tileNames.map((name) => ({ name: 'Group', children: tileNames.map(() => ({ name, value: 1 })) })),
+            series: [
+                {
+                    type: 'sunburst',
+                    labelKey: 'name',
+                    sizeKey: 'value',
+                    label: { fontSize: 14, minimumFontSize: 10, ...label },
+                },
+            ],
+        });
+        const heatmapChart = (label: object) => ({
+            data: tileNames.flatMap((name, x) => tileNames.map((_, y) => ({ x, y, color: x + y, name }))),
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'category', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'x',
+                    yKey: 'y',
+                    colorKey: 'color',
+                    label: { enabled: true, fontSize: 14, formatter: (p: any) => p.datum.name, ...label },
+                },
+            ],
+        });
+
+        const hierarchyLabelTexts = (): string[] => {
+            const texts: string[] = [];
+            chart.series[0].rootNode?.walk((node: any) => {
+                if (node.children.length === 0 && node.label != null) texts.push(String(node.label.text));
+            });
+            return texts;
+        };
+        const heatmapLabelTexts = (): string[] =>
+            (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: unknown }) => String(d.text));
+        const longNameShown = (texts: string[]) => tileNames.filter((name) => texts.includes(name)).length;
+
+        it.each([
+            ['treemap', treemapChart, hierarchyLabelTexts],
+            ['sunburst', sunburstChart, hierarchyLabelTexts],
+            ['heatmap', heatmapChart, heatmapLabelTexts],
+        ] as const)(
+            '%s truncates by default, hides with truncate off and keeps with alwaysShow',
+            async (_, build, texts) => {
+                await render(build({}));
+                expect(someTruncated(texts())).toBe(true);
+                const truncatedCount = texts().length;
+
+                await render(build({ truncate: false }));
+                expect(someTruncated(texts())).toBe(false);
+                expect(texts().length).toBeLessThan(truncatedCount);
+
+                await render(build({ truncate: false, collision: { alwaysShow: true } }));
+                expect(someTruncated(texts())).toBe(false);
+                expect(texts().length).toBe(truncatedCount);
+                expect(longNameShown(texts())).toBeGreaterThan(0);
+            }
+        );
+
+        it('keeps overflowing sunburst labels at a finite position', async () => {
+            await render({
+                data: [{ name: 'Root', children: tileNames.map((name) => ({ name: name.repeat(8), value: 1 })) }],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'value',
+                        label: { wrapping: 'never', truncate: false, collision: { alwaysShow: true } },
+                    },
+                ],
+            });
+            const labels: any[] = [];
+            chart.series[0].rootNode?.walk((node: any) => {
+                if (node.label != null) labels.push(node.label);
+            });
+            expect(labels.length).toBeGreaterThan(0);
+            for (const label of labels) {
+                expect(Number.isFinite(label.radius)).toBe(true);
+            }
+        });
+
+        it('keeps a secondary label that alwaysShow marks when the stack does not fit', async () => {
+            const options = treemapChart({}, { fontSize: 14, minimumFontSize: 14, truncate: false });
+            await render(options);
+            const secondaryCount = () => {
+                let count = 0;
+                chart.series[0].rootNode?.walk((node: any) => {
+                    if (node.children.length === 0 && node.secondaryLabel != null) count += 1;
+                });
+                return count;
+            };
+            const hidden = treemapData.length - secondaryCount();
+            expect(hidden).toBeGreaterThan(0);
+
+            await render(
+                treemapChart(
+                    {},
+                    { fontSize: 14, minimumFontSize: 14, truncate: false, collision: { alwaysShow: true } }
+                )
+            );
+            expect(secondaryCount()).toBe(treemapData.length);
+        });
+
+        it('warns on the deprecated overflowStrategy and maps `hide` onto truncate off', async () => {
+            await render(treemapChart({ overflowStrategy: 'hide' }));
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].tile.label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                ],
+              ]
+            `);
+            expect(chart.series[0].options.tile.label.truncate).toBe(false);
+            expect(someTruncated(hierarchyLabelTexts())).toBe(false);
+        });
+
+        it('renders whole, truncated, overflowing and hidden treemap labels', async () => {
+            // Mid-sized tiles truncate, `alwaysShow` keeps the slivers' labels overflowing, secondaries hide.
+            const data = [
+                { name: 'A broad tile label', value: 200 },
+                ...tileNames.map((name, i) => ({ name, value: i < 3 ? 8 : 0.1 })),
+            ];
+            await renderAndSnapshot({
+                data: data.map((d) => ({ ...d, detail: 'Secondary detail text' })),
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'value',
+                        secondaryLabelKey: 'detail',
+                        tile: {
+                            label: { fontSize: 14, minimumFontSize: 10, collision: { alwaysShow: true } },
+                            secondaryLabel: { truncate: false },
+                        },
+                    },
+                ],
+            });
+            const texts = hierarchyLabelTexts();
+            expect(someTruncated(texts)).toBe(true);
+            expect(texts.length).toBe(data.length);
+        });
+    });
+
+    describe('gauge labels', () => {
+        const longText = 'Supercalifragilistic'.repeat(6);
+        const gaugeLabelTexts = (): string[] =>
+            chart.series[0].labelSelection
+                .nodes()
+                .filter((node: any) => node.visible)
+                .map((node: any) => String(node.text));
+        const renderGauge = async (options: object) => {
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+            chart = deproxy(AgCharts.createGauge(options as any));
+            await waitForChartStability(chart);
+        };
+        const radialGauge = (label: object, secondaryLabel?: object) => ({
+            type: 'radial-gauge',
+            value: 50,
+            scale: { min: 0, max: 100 },
+            label: { text: longText, wrapping: 'never', fontSize: 14, minimumFontSize: 14, ...label },
+            secondaryLabel,
+        });
+        const linearGauge = (label: object) => ({
+            type: 'linear-gauge',
+            value: 50,
+            scale: { min: 0, max: 100 },
+            label: { enabled: true, text: longText, wrapping: 'never', ...label },
+        });
+
+        it.each([
+            ['radial-gauge', radialGauge],
+            ['linear-gauge', linearGauge],
+        ] as const)('%s truncates by default, hides with truncate off and keeps with alwaysShow', async (_, build) => {
+            await renderGauge(build({}));
+            expect(someTruncated(gaugeLabelTexts())).toBe(true);
+
+            await renderGauge(build({ truncate: false }));
+            expect(gaugeLabelTexts()).toEqual([]);
+
+            await renderGauge(build({ truncate: false, collision: { alwaysShow: true } }));
+            expect(gaugeLabelTexts()).toEqual([longText]);
+        });
+
+        it('keeps radial-gauge labels that alwaysShow marks when the stack does not fit', async () => {
+            const secondaryLabel = { text: longText, truncate: false };
+            await renderGauge(radialGauge({ text: 'Score' }, secondaryLabel));
+            expect(gaugeLabelTexts()).toEqual([]);
+
+            await renderGauge(
+                radialGauge(
+                    { text: 'Score', collision: { alwaysShow: true } },
+                    { ...secondaryLabel, collision: { alwaysShow: true } }
+                )
+            );
+            expect(gaugeLabelTexts()).toEqual(['Score', longText]);
         });
     });
 });
