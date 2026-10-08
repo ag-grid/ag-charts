@@ -586,7 +586,9 @@ describe('Navigator', () => {
                     navigatorHandleBorderRadius: 5,
                 },
             },
-            'true borders': { params: { borderColor: 'blue', navigatorTrackBorder: true, navigatorHandleBorder: true } },
+            'true borders': {
+                params: { borderColor: 'blue', navigatorTrackBorder: true, navigatorHandleBorder: true },
+            },
             'false borders': {
                 params: { borderColor: 'blue', navigatorTrackBorder: false, navigatorHandleBorder: false },
             },
