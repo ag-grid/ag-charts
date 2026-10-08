@@ -563,6 +563,128 @@ describe('Navigator', () => {
         });
     });
 
+    describe('theme params', () => {
+        const resolve = async (params: Record<string, unknown>, navigator: object = {}, baseTheme = 'ag-default') => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                navigator: { enabled: true, ...navigator },
+                theme: { baseTheme, params } as AgCartesianChartOptions['theme'],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return (deproxy(chart) as any).ctx.chartState.getValue('options', 'navigator');
+        };
+
+        const BASE_PARAMS = {
+            foregroundColor: 'red',
+            borderColor: 'blue',
+            chartBackgroundColor: 'green',
+            borderRadius: 7,
+        };
+
+        it('defaults follow the base params', async () => {
+            const navigator = await resolve(BASE_PARAMS);
+
+            expect(navigator.cornerRadius).toBe(7);
+            expect(navigator.track).toMatchObject({ fill: 'red', fillOpacity: 0.1, stroke: 'blue', strokeWidth: 1 });
+            expect(navigator.thumb).toMatchObject({ fill: 'transparent', fillOpacity: 1 });
+            for (const handle of [navigator.minHandle, navigator.maxHandle]) {
+                expect(handle).toMatchObject({ fill: 'green', stroke: 'blue', strokeWidth: 1, cornerRadius: 7 });
+            }
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('dark defaults share the border colour and keep the existing widths and radii', async () => {
+            const navigator = await resolve({}, {}, 'ag-default-dark');
+
+            expect(navigator.cornerRadius).toBe(4);
+            expect(navigator.track).toMatchObject({ fillOpacity: 0.1, strokeWidth: 1 });
+            expect(navigator.thumb.fill).toBe('transparent');
+            for (const handle of [navigator.minHandle, navigator.maxHandle]) {
+                expect(handle).toMatchObject({ stroke: navigator.track.stroke, strokeWidth: 1, cornerRadius: 4 });
+            }
+        });
+
+        it('defaults keep the existing radii and border width', async () => {
+            const navigator = await resolve({ borderWidth: 2 });
+
+            expect(navigator.cornerRadius).toBe(4);
+            expect(navigator.track.strokeWidth).toBe(1);
+            expect(navigator.minHandle).toMatchObject({ strokeWidth: 1, cornerRadius: 4 });
+        });
+
+        it('applies every param to its navigator part', async () => {
+            const navigator = await resolve({
+                navigatorTrackBackgroundColor: 'red',
+                navigatorTrackBorder: { color: 'blue', width: 3 },
+                navigatorTrackBorderRadius: 2,
+                navigatorThumbBackgroundColor: 'yellow',
+                navigatorHandleBackgroundColor: 'green',
+                navigatorHandleBorder: { color: 'purple', width: 2 },
+                navigatorHandleBorderRadius: 5,
+            });
+
+            expect(navigator.cornerRadius).toBe(2);
+            expect(navigator.track).toMatchObject({ fill: 'red', stroke: 'blue', strokeWidth: 3 });
+            expect(navigator.thumb.fill).toBe('yellow');
+            for (const handle of [navigator.minHandle, navigator.maxHandle]) {
+                expect(handle).toMatchObject({ fill: 'green', stroke: 'purple', strokeWidth: 2, cornerRadius: 5 });
+            }
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it.each([
+            [true, 'blue', 1],
+            [false, 'blue', 0],
+        ])('a boolean border of %s gives a borderColor stroke of width %s', async (border, stroke, strokeWidth) => {
+            const navigator = await resolve({
+                borderColor: 'blue',
+                navigatorTrackBorder: border,
+                navigatorHandleBorder: border,
+            });
+
+            expect(navigator.track).toMatchObject({ stroke, strokeWidth });
+            expect(navigator.minHandle).toMatchObject({ stroke, strokeWidth });
+            expect(navigator.maxHandle).toMatchObject({ stroke, strokeWidth });
+        });
+
+        it('applies the track params with the mini chart enabled', async () => {
+            const navigator = await resolve(
+                { navigatorTrackBorder: { color: 'blue', width: 3 }, navigatorTrackBorderRadius: 2 },
+                { miniChart: { enabled: true } }
+            );
+            const track = deproxy(chart).modulesManager.getModule<any>('navigator').track;
+
+            expect([navigator.cornerRadius, track.cornerRadius, track.strokeWidth]).toEqual([2, 2, 3]);
+        });
+
+        it('lets navigator options override the params', async () => {
+            const params = {
+                navigatorTrackBackgroundColor: 'red',
+                navigatorThumbBackgroundColor: 'red',
+                navigatorHandleBorderRadius: 5,
+            };
+            const navigator = await resolve(params, {
+                track: { fill: 'blue' },
+                thumb: { fill: 'blue' },
+                minHandle: { cornerRadius: 1 },
+            });
+
+            expect([navigator.track.fill, navigator.thumb.fill]).toEqual(['blue', 'blue']);
+            expect([navigator.minHandle.cornerRadius, navigator.maxHandle.cornerRadius]).toEqual([1, 5]);
+        });
+
+        it('lets the deprecated mask option override the track params', async () => {
+            const navigator = await resolve({ navigatorTrackBackgroundColor: 'red' }, { mask: { fill: 'blue' } });
+
+            expect(navigator.track.fill).toBe('blue');
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`navigator.mask` is deprecated. Use `navigator.track`')],
+            ]);
+        });
+    });
+
     describe('track and thumb options', () => {
         const create = async (navigator: object) => {
             const options: AgCartesianChartOptions = {

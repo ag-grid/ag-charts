@@ -262,6 +262,14 @@ export class ChartTheme {
                 width: { $ref: 'scrollbarThumbBorder.width' },
             },
 
+            navigatorTrackBackgroundColor: { $ref: 'foregroundColor' },
+            navigatorTrackBorder: { color: { $ref: 'borderColor' }, width: 1 },
+            navigatorTrackBorderRadius: { $ref: 'borderRadius' },
+            navigatorThumbBackgroundColor: 'transparent',
+            navigatorHandleBackgroundColor: { $ref: 'chartBackgroundColor' },
+            navigatorHandleBorder: { color: { $ref: 'borderColor' }, width: 1 },
+            navigatorHandleBorderRadius: { $ref: 'borderRadius' },
+
             seriesLabelBorder: false,
             seriesLabelBorderRadius: { $ref: 'borderRadius' },
             seriesLabelFontFamily: { $ref: 'fontFamily' },
