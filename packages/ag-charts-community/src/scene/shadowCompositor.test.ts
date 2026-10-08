@@ -416,6 +416,37 @@ describe('Group shadow compositor', () => {
             });
         });
 
+        it.each([false, true])(
+            'should cast a spread shadow as strong as the composited paint of a pattern (batched: %s)',
+            (batched) => {
+                // A background at 0.5 under a motif at 0.5 is 0.75 where they overlap.
+                const pattern = {
+                    type: 'pattern' as const,
+                    pattern: 'squares' as const,
+                    width: 10,
+                    height: 10,
+                    fill: 'black',
+                    fillOpacity: 0.5,
+                    backgroundFill: 'black',
+                    backgroundFillOpacity: 0.5,
+                    strokeWidth: 0,
+                };
+                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+                renderNodes(
+                    [
+                        box(20, 40, 40, 50, { fill: pattern, fillShadow: shadow }),
+                        box(20, 130, 40, 50, { fill: pattern, fillShadow: shadow }),
+                    ],
+                    batched
+                );
+
+                for (const pixel of [at(140, 65), at(115, 65), at(140, 155)]) {
+                    expect(pixel[3]).toBeGreaterThanOrEqual(190);
+                    expect(pixel[3]).toBeLessThanOrEqual(192);
+                }
+            }
+        );
+
         it('should fade the shadow of a crisp rectangle that is narrower than a pixel, as the rectangle fades', () => {
             const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 4 };
             const thin = () => [
@@ -508,6 +539,16 @@ describe('Group shadow compositor', () => {
                 ['fill opacity', { fill: 'black', fillOpacity: 0 }],
                 ['gradient', { fill: transparentGradient }],
                 ['pattern', { fill: transparentPattern }],
+                // A stop without a colour paints the colour of the stop before it.
+                [
+                    'gradient whose last stop inherits a transparent colour',
+                    {
+                        fill: {
+                            type: 'gradient' as const,
+                            colorStops: [{ color: 'rgba(0, 0, 0, 0)', stop: 0 }, { stop: 1 }],
+                        },
+                    },
+                ],
             ])('should cast no shadow from a transparent %s', (_name, mixin) => {
                 renderNodes([
                     box(20, 40, 40, 50, { ...mixin, fillShadow: shadow }),

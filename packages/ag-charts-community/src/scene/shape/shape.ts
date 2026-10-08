@@ -71,32 +71,30 @@ function colourAlpha(colour: unknown): number {
     }
 }
 
-function paintAlpha(colour: unknown, opacity: unknown = 1): number {
-    if (colour == null) return 0;
-    return colourAlpha(colour) * (typeof opacity === 'number' ? opacity : 1);
+function paintAlpha(colour: string, opacity: number): number {
+    return colourAlpha(colour) * opacity;
+}
+
+/** The most that a gradient paints: the alpha of its strongest resolved stop, where a stop without a colour has the last one's. */
+function gradientAlpha(gradient: Gradient): number {
+    const { stops } = gradient;
+    // A gradient without stops paints the default black.
+    return stops.length === 0 ? 1 : Math.max(...stops.map((stop) => colourAlpha(stop.color)));
 }
 
 /**
- * The most that a fill can contribute to a shadow mask: the alpha of a colour, the strongest stop of a gradient and the
- * strongest part of a pattern. Anything else (e.g. an image) counts as opaque, because it can't be told without drawing.
+ * The most that a pattern paints. Its background, fill and stroke are drawn over one another, and where all three
+ * overlap they composite, so that is `1 - (1 - a)(1 - b)(1 - c)`. `Pattern` paints nothing for a background or a fill that it
+ * was not given, and draws no stroke of 0px.
  */
-function maxFillAlpha(fill: unknown): number {
-    if (typeof fill !== 'object' || fill == null) return colourAlpha(fill);
-
-    const paint = fill as Record<string, any>;
-    if (paint.type === 'gradient' && Array.isArray(paint.colorStops)) {
-        return Math.max(0, ...paint.colorStops.map((stop: { color?: unknown }) => colourAlpha(stop?.color)));
-    }
-    if (paint.type === 'pattern') {
-        // These are the defaults of `Pattern`, which paints nothing for a fill or background it was not given, and a
-        // black line of 1px for a stroke.
-        return Math.max(
-            paintAlpha(paint.fill ?? 'none', paint.fillOpacity),
-            paintAlpha(paint.backgroundFill ?? 'none', paint.backgroundFillOpacity),
-            (paint.strokeWidth ?? 1) > 0 ? paintAlpha(paint.stroke ?? 'black', paint.strokeOpacity) : 0
-        );
-    }
-    return 1;
+function patternAlpha(pattern: Pattern): number {
+    const { fill, fillOpacity, backgroundFill, backgroundFillOpacity, stroke, strokeOpacity, strokeWidth } = pattern;
+    const parts = [
+        backgroundFill === 'none' ? 0 : paintAlpha(backgroundFill, backgroundFillOpacity),
+        fill === 'none' ? 0 : paintAlpha(fill, fillOpacity),
+        strokeWidth === 0 || Number.isNaN(strokeWidth) ? 0 : paintAlpha(stroke, strokeOpacity),
+    ];
+    return 1 - parts.reduce((clear, alpha) => clear * (1 - alpha), 1);
 }
 
 interface SpreadBounds {
@@ -258,9 +256,24 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return this._fillAlpha;
     }
 
-    /** The most that a fill can contribute to a shadow mask, see {@link maxFillAlpha}. A plain colour's alpha is cached. */
+    private _paintAlphaSource?: Gradient | Pattern;
+    private _paintAlpha: number = 1;
+
+    /**
+     * The most that a fill can contribute to a shadow mask: the alpha of a colour, of the strongest resolved stop of a
+     * gradient, or of what a pattern composites to. Anything else (e.g. an image) counts as opaque, because it can't be told
+     * without drawing. A plain colour's alpha, and that of a gradient or pattern, is cached.
+     */
     private getMaxFillAlpha(fill: ShapeColor): number {
-        return typeof fill === 'string' ? this.getFillAlpha(fill) : maxFillAlpha(fill);
+        if (typeof fill === 'string') return this.getFillAlpha(fill);
+
+        const paint = this.fillGradient ?? this.fillPattern;
+        if (paint == null) return 1;
+        if (paint !== this._paintAlphaSource) {
+            this._paintAlphaSource = paint;
+            this._paintAlpha = paint instanceof Pattern ? patternAlpha(paint) : gradientAlpha(paint);
+        }
+        return this._paintAlpha;
     }
 
     /** The alpha of {@link _alphaStroke}, cached like {@link _fillAlpha}. */
