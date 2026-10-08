@@ -176,4 +176,18 @@ describe('buttonBackgroundColor', () => {
         expect(properties['--ag-charts-button-background-color']).toBe('red');
         expect(properties['--ag-charts-chrome-background-color']).toBe('blue');
     });
+
+    test('drives the disabled fill instead of chromeBackgroundColor', async () => {
+        const disabledFill = async (params: AgChartThemeParams) =>
+            (await getThemeProperties({ baseTheme: 'ag-default', params }, charts))[
+                '--ag-charts-button-disabled-background-color'
+            ];
+
+        const withBlueChrome = await disabledFill({ buttonBackgroundColor: 'red', chromeBackgroundColor: 'blue' });
+        const withGreenChrome = await disabledFill({ buttonBackgroundColor: 'red', chromeBackgroundColor: 'green' });
+        const withRedChrome = await disabledFill({ chromeBackgroundColor: 'red' });
+
+        expect(withBlueChrome).toBe(withGreenChrome);
+        expect(withBlueChrome).toBe(withRedChrome);
+    });
 });
