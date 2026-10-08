@@ -325,23 +325,19 @@ export function renderChildrenWithShadowBatches(
 
         const shadow = getBatchedShadow(child);
         const clip = shadow == null ? undefined : getShadowClip(child);
-        if (shadow != null && (runShadow == null || (sameShadow(runShadow, shadow) && sameClip(runClip, clip)))) {
-            if (runShadow == null) {
-                runShadow = shadow;
-                runClip = clip;
-            }
-            run.push(child as ShadowCaster);
+        if (shadow == null || (runShadow != null && !(sameShadow(runShadow, shadow) && sameClip(runClip, clip)))) {
+            flush();
+        }
+        if (shadow == null) {
+            child.isolatedRender(renderCtx);
             continue;
         }
 
-        flush();
-        if (shadow == null) {
-            child.isolatedRender(renderCtx);
-        } else {
+        if (runShadow == null) {
             runShadow = shadow;
             runClip = clip;
-            run.push(child as ShadowCaster);
         }
+        run.push(child as ShadowCaster);
     }
     flush();
 }

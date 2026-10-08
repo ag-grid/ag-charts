@@ -862,19 +862,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         return 1;
     }
 
-    private _extrasColour?: unknown;
-    private _extrasColourAlpha: number = 1;
-
-    /**
-     * The alpha of a colour, for a shape to tell whether the paint of its extra paths casts a shadow. The alpha of the last
-     * colour is kept, so that an unchanged colour isn't parsed again on every render.
-     */
+    /** The alpha of a colour, for a shape to tell whether the paint of its extra paths casts a shadow. */
     protected getColourAlpha(colour: unknown): number {
-        if (colour !== this._extrasColour) {
-            this._extrasColour = colour;
-            this._extrasColourAlpha = colourAlpha(colour);
-        }
-        return this._extrasColourAlpha;
+        return colourAlpha(colour);
     }
 
     /** The opacity the shape strokes its extra paths with, or 0 when it paints none, so they cast no shadow. */
