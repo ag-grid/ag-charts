@@ -3,6 +3,7 @@
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import http from 'node:http';
+import net from 'node:net';
 import { join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
@@ -83,6 +84,15 @@ export function readPlan(path) {
     return plan.run;
 }
 
+/** Whether something is already listening on `port`, tried the way the static server binds it. */
+function portInUse(port) {
+    return new Promise((done) => {
+        const probe = net.createServer();
+        probe.once('error', (error) => done(error.code === 'EADDRINUSE'));
+        probe.listen(port, () => probe.close(() => done(false)));
+    });
+}
+
 /** Resolves once `url` answers, rejects when it does not within the timeout or `exited` settles first. */
 async function waitForServer(url, exited) {
     const deadline = Date.now() + SERVER_TIMEOUT_MS;
@@ -122,6 +132,12 @@ async function runPort(entry, options) {
         };
     }
 
+    // Any server already on the port would answer before ours failed to bind, and the specs would run
+    // against it, so the port has to be free before ours starts.
+    if (await portInUse(options.port)) {
+        return { name, ok: false, reason: `port ${options.port} is already in use; pass another --port-base` };
+    }
+
     const server = spawn(
         process.execPath,
         [join(DEMOS_ROOT, 'e2e', 'parity', 'serve-dist.mjs'), ...description.serveArgs],
@@ -136,6 +152,8 @@ async function runPort(entry, options) {
             cwd: DEMOS_ROOT,
             env: { ...process.env, ...description.env },
         });
+        // A server that died during the run means the specs were not all served by it.
+        if (server.exitCode !== null) return { name, ok: false, reason: 'the static server exited during the run' };
         return code === 0 ? { name, ok: true } : { name, ok: false, reason: `playwright exited with ${code}` };
     } catch (error) {
         return { name, ok: false, reason: error.message };

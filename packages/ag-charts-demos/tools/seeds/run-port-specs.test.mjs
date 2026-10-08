@@ -1,4 +1,5 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -194,6 +195,25 @@ describe('main', () => {
 
         expect(lines.some((line) => line.startsWith('FAILED procurement/angular: no built dist'))).toBe(true);
         expect(lines.some((line) => line.startsWith('::'))).toBe(false);
+    });
+
+    it('fails a port whose port is already served by something else, without running its specs', async () => {
+        vi.stubEnv('GITHUB_ACTIONS', '');
+        const lines = capture();
+        const busyPort = 30_000 + Math.floor(Math.random() * 20_000);
+        const other = createServer((_request, response) => response.end('another checkout'));
+        await new Promise((done) => other.listen(busyPort, done));
+        try {
+            const plan = writePlan([{ ...entry('procurement', 'angular', writeDist('a')), grep: 'procurement' }]);
+
+            await expect(main(['--plan', plan, '--port-base', String(busyPort), '--', '--list'])).resolves.toBe(1);
+        } finally {
+            await new Promise((done) => other.close(done));
+        }
+
+        expect(
+            lines.some((line) => line.includes(`FAILED procurement/angular: port ${busyPort} is already in use`))
+        ).toBe(true);
     });
 
     it('passes when the specs of every port pass, one port at a time', async () => {
