@@ -21,10 +21,12 @@ import type {
     ContextDefault,
     DatumDefault,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { CallbackParamRules, DynamicContext } from 'ag-charts-core';
+import { _ModuleSupport } from 'ag-charts-community';
+import type { CallbackParamRules, DynamicContext, WidgetEvent } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
+    MenuItemWidget,
+    MenuWidget,
     callWithContext,
     clamp,
     createElement,
@@ -108,7 +110,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
     // HTML elements
     private readonly element: HTMLElement;
-    private readonly menuWidget: _Widget.MenuWidget = new _Widget.MenuWidget();
+    private readonly menuWidget: MenuWidget = new MenuWidget();
     private readonly mutationObserver?: MutationObserver;
 
     constructor(readonly ctx: ContextMenuCtx) {
@@ -478,7 +480,7 @@ export class ContextMenu extends AbstractModuleInstance {
         this.element.style.display = 'none';
     }
 
-    private onSubMenuExpand(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
+    private onSubMenuExpand(button: MenuItemWidget, menu: MenuWidget) {
         const bounds = button.getBounds();
         button.setFocusOverride(true);
         button.getElement().insertAdjacentElement('afterend', menu.getElement());
@@ -519,7 +521,7 @@ export class ContextMenu extends AbstractModuleInstance {
             }
         }
     }
-    private onSubMenuCollapse(button: _Widget.MenuItemWidget, menu: _Widget.MenuWidget) {
+    private onSubMenuCollapse(button: MenuItemWidget, menu: MenuWidget) {
         button.setFocusOverride(undefined);
         // Removing HTML elements can fire a 'focusout' with `relatedTarget: null`, which would dismiss the whole
         // context menu.
@@ -535,7 +537,7 @@ export class ContextMenu extends AbstractModuleInstance {
         this.createMenuItems(event, menuWidget, expandedItems);
     }
 
-    private createMenuItems(event: ContextMenuEvent, menuWidget: _Widget.MenuWidget, expandedItems: ContextMenuItem[]) {
+    private createMenuItems(event: ContextMenuEvent, menuWidget: MenuWidget, expandedItems: ContextMenuItem[]) {
         for (const item of expandedItems) {
             switch (item.type) {
                 case 'separator': {
@@ -545,7 +547,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 }
                 case 'action': {
                     if (item.items.length === 0) {
-                        const btn = new _Widget.MenuItemWidget();
+                        const btn = new MenuItemWidget();
                         this.initButtonElement(event, btn, item);
                         menuWidget.addChild(btn);
                     } else {
@@ -567,7 +569,7 @@ export class ContextMenu extends AbstractModuleInstance {
         event: ContextMenuEvent,
         showOn: AgContextMenuItemShowOn,
         callback: ContextMenuCallback
-    ): (event: _Widget.WidgetEvent) => void {
+    ): (event: WidgetEvent) => void {
         const showEvent = event.widgetEvent.sourceEvent;
         // Agents: These params will be passed into user-options actions() callbacks. Returned functions must use
         // `CallbackParamRules` to ensure that these params comply with the user API contract.
@@ -721,7 +723,7 @@ export class ContextMenu extends AbstractModuleInstance {
         return { cellIcon, cellLabel, cellArrow };
     }
 
-    private initButtonElement(event: ContextMenuEvent, button: _Widget.MenuItemWidget, item: ContextMenuItem) {
+    private initButtonElement(event: ContextMenuEvent, button: MenuItemWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.setEnabled(item.enabled);
         const label = this.ctx.localeManager.t(item.label);

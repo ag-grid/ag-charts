@@ -3,7 +3,6 @@ import type {
     AgSelectionChangeEventSource,
     AgSelectionItem,
     AgTreemapSeriesGroupOptions,
-    _Widget,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
@@ -13,6 +12,7 @@ import {
     type DynamicContext,
     type NormalisedSelectionOptions,
 } from 'ag-charts-core';
+import type { DragWidgetEvent, KeyboardWidgetEvent } from 'ag-charts-core';
 
 import { DataSelectionChangeMap } from './dataSelectionChangeMap';
 import {
@@ -64,7 +64,7 @@ function upcastDataSelectionService(service: IDataSelectionService | undefined):
 }
 
 export class DataSelection extends AbstractModuleInstance implements _ModuleSupport.SelectionModuleFns {
-    private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
+    private dragStartEvent?: DragWidgetEvent<'drag-start'>;
     private readonly dragRect: _ModuleSupport.Rect;
     private readonly service: DataSelectionService;
 
@@ -251,7 +251,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         }
     }
 
-    private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
+    private onSeriesAreaDragStart(dragStartEvent: DragWidgetEvent<'drag-start'>) {
         if (!this.supportsSelectionDrag()) return;
 
         const { enableDrag } = this.opts;
@@ -266,7 +266,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         dragStartEvent.sourceEvent.preventDefault();
     }
 
-    private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
+    private onSeriesAreaDragMove(dragMoveEvent: DragWidgetEvent<'drag-move'>) {
         if (!this.supportsSelectionDrag()) return;
 
         const { enableDrag } = this.opts;
@@ -304,7 +304,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.redraw(ChartUpdateType.FULL);
     }
 
-    private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
+    private onSeriesAreaDragEnd(dragEndEvent: DragWidgetEvent<'drag-end'>) {
         if (!this.supportsSelectionDrag()) return;
 
         const { enableDrag } = this.opts;
@@ -376,7 +376,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         }
     }
 
-    private refreshCandidacyUnion(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown' | 'keyup'>): void {
+    private refreshCandidacyUnion(widgetEvent: KeyboardWidgetEvent<'keydown' | 'keyup'>): void {
         // Modifier keys can be pressed without any drag event, and itemStyler callbacks read candidateState.
         const oldCandidacyUnion = this.service.candidacyUnion;
         const newCandidacyUnion = hasAddToSelectionModifier(widgetEvent);
@@ -386,7 +386,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         }
     }
 
-    private onKeyDown(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown'>): void {
+    private onKeyDown(widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.enabled()) return;
         this.refreshCandidacyUnion(widgetEvent);
 
@@ -396,7 +396,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         }
     }
 
-    private onKeyUp(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keyup'>): void {
+    private onKeyUp(widgetEvent: KeyboardWidgetEvent<'keyup'>): void {
         if (!this.enabled()) return;
         this.refreshCandidacyUnion(widgetEvent);
     }
@@ -455,7 +455,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         return { countDelta: 0, items: new DataSelectionChangeMap() };
     }
 
-    private hasUnknownModifier(event: _Widget.DragWidgetEvent): boolean {
+    private hasUnknownModifier(event: DragWidgetEvent): boolean {
         return event.sourceEvent.altKey || event.sourceEvent.shiftKey;
     }
 

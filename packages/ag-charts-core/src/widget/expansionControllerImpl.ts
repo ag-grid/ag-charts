@@ -1,5 +1,4 @@
-import type { RequireOptional } from 'ag-charts-core';
-
+import type { RequireOptional } from '../types/global';
 import { CollapseMode } from './collapseMode';
 import type {
     CollapseWidgetEvent,

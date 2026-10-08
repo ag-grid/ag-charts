@@ -1,5 +1,6 @@
-import { type AgAnnotationsToolbar, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { type AgAnnotationsToolbar, _ModuleSupport } from 'ag-charts-community';
 import { type BoxBounds, ChartAxisDirection, CleanupRegistry, type DynamicContext, EventEmitter } from 'ag-charts-core';
+import type { ClickWidgetEvent, ExpansionControllerWidget, KeyboardWidgetEvent } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 import { AnnotationType } from './annotationTypes';
@@ -253,9 +254,9 @@ export class AnnotationsToolbar {
     }
 
     private onToolbarButtonPressShowMenu(
-        event: _Widget.ClickWidgetEvent,
+        event: ClickWidgetEvent,
         buttonBounds: BoxBounds,
-        controller: _Widget.ExpansionControllerWidget,
+        controller: ExpansionControllerWidget,
         menu: AnnotationsToolbarButtonValue,
         ariaLabel: string,
         items: Array<_ModuleSupport.MenuItem<AnnotationType>>
@@ -295,7 +296,7 @@ export class AnnotationsToolbar {
         this.events.emit('pressed-create-annotation', { annotation });
     }
 
-    private onKeyDown({ sourceEvent }: _ModuleSupport.KeyboardWidgetEvent) {
+    private onKeyDown({ sourceEvent }: KeyboardWidgetEvent) {
         if (sourceEvent.key === 'Escape') {
             this.events.emit('cancel-create-annotation', null);
         }

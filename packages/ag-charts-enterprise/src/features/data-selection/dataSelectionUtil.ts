@@ -1,6 +1,6 @@
 import type { AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AreExact } from 'ag-charts-core';
+import { type AreExact, type DragWidgetEvent } from 'ag-charts-core';
 
 import type { DataSelectionChangeMap } from './dataSelectionChangeMap';
 import type { DataSetSelection } from './dataSetSelection';
@@ -13,7 +13,6 @@ type DataSet = _ModuleSupport.DataSet<unknown>;
 type Group = _ModuleSupport.Group<unknown>;
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
-type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
 type Service = {
     clearSelection(): void;

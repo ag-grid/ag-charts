@@ -5,7 +5,6 @@ import {
     type FormatterParams,
     type TextValue,
     _ModuleSupport,
-    _Widget,
 } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
@@ -19,13 +18,13 @@ import {
     forceLtrNumbersIn,
     toPlainText,
 } from 'ag-charts-core';
+import type { ClickWidgetEvent, DragWidgetEvent, MouseWidgetEvent } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel } from './crosshairLabel';
 
 const { Group, TranslatableGroup, Line, BBox, FormatManager, InteractionState } = _ModuleSupport;
-type HoverLikeEvent =
-    _Widget.DragWidgetEvent | _Widget.MouseWidgetEvent<'mousemove'> | Extract<_Widget.ClickWidgetEvent, CurrentPoint>;
+type HoverLikeEvent = DragWidgetEvent | MouseWidgetEvent<'mousemove'> | Extract<ClickWidgetEvent, CurrentPoint>;
 
 interface FormatterCache {
     type: string;
@@ -260,7 +259,7 @@ export class Crosshair
         return toPlainText(this.axisCtx.formatScaleValue(value, 'crosshair', this));
     }
 
-    private onClick(event: _Widget.ClickWidgetEvent) {
+    private onClick(event: ClickWidgetEvent) {
         if (event.device === 'touch') {
             this.onMouseHoverLike(event);
         }

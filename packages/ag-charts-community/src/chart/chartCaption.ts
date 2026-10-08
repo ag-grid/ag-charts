@@ -1,7 +1,11 @@
 import type {
+    BoundedTextWidget,
     CanvasPoint,
+    ClickWidgetEvent,
+    DblClickWidgetEvent,
     DynamicContext,
     LabelFit,
+    MouseWidgetEvent,
     NormalisedChartCaptionOptions,
     NormalisedTextOrSegments,
 } from 'ag-charts-core';
@@ -28,8 +32,6 @@ import type { ChartRegistry } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
-import type { BoundedTextWidget } from '../widget/boundedTextWidget';
-import type { ClickWidgetEvent, DblClickWidgetEvent, MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
 import { expandLabelPadding } from './label';
 import type { TooltipContent } from './tooltip/tooltipContent';

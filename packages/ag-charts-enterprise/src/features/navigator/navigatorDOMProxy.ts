@@ -1,7 +1,6 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type BoxBounds, clamp } from 'ag-charts-core';
-
-const { SliderWidget } = _ModuleSupport;
+import { _ModuleSupport } from 'ag-charts-community';
+import { type BoxBounds, SliderWidget, clamp } from 'ag-charts-core';
+import type { DragWidgetEvent, MouseWidgetEvent, ToolbarWidget, Widget } from 'ag-charts-core';
 
 export type NavigatorButtonType = 'min' | 'max' | 'pan';
 
@@ -23,8 +22,8 @@ export class NavigatorDOMProxy {
 
     private dragStartX = 0;
 
-    private readonly toolbar: _ModuleSupport.ToolbarWidget;
-    private readonly sliders: [_ModuleSupport.SliderWidget, _ModuleSupport.SliderWidget, _ModuleSupport.SliderWidget];
+    private readonly toolbar: ToolbarWidget;
+    private readonly sliders: [SliderWidget, SliderWidget, SliderWidget];
 
     constructor(
         private readonly ctx: NavigatorDOMProxyModuleContext,
@@ -138,19 +137,19 @@ export class NavigatorDOMProxy {
         this.toolbar.moveChild(otherSlider, frontSlider.domIndex! - 1);
     }
 
-    private clearFocusOverride(slider: _Widget.Widget) {
+    private clearFocusOverride(slider: Widget) {
         slider.setFocusOverride(undefined);
     }
 
-    private onKeyDown(slider: _Widget.Widget) {
+    private onKeyDown(slider: Widget) {
         const elem = slider.getElement();
         if (elem === elem.ownerDocument.activeElement) {
             slider.setFocusOverride(true);
         }
     }
 
-    private onDragStart(index: number, event: _ModuleSupport.DragWidgetEvent<'drag-start'>, key: NavigatorButtonType) {
-        const slider: _ModuleSupport.SliderWidget = this.sliders[index];
+    private onDragStart(index: number, event: DragWidgetEvent<'drag-start'>, key: NavigatorButtonType) {
+        const slider: SliderWidget = this.sliders[index];
         const toolbarLeft = this.toolbar.cssLeft();
         const sliderLeft = slider.cssLeft();
         this.dragStartX = toolbarLeft + sliderLeft + event.offsetX;
@@ -161,18 +160,11 @@ export class NavigatorDOMProxy {
         this.sliderHandlers.onDragStart(key, this.toCanvasOffsets(event));
     }
 
-    private onDrag(
-        _slider: _ModuleSupport.SliderWidget,
-        event: _ModuleSupport.DragWidgetEvent<'drag-move'>,
-        key: NavigatorButtonType
-    ) {
+    private onDrag(_slider: SliderWidget, event: DragWidgetEvent<'drag-move'>, key: NavigatorButtonType) {
         this.sliderHandlers.onDrag(key, this.toCanvasOffsets(event));
     }
 
-    private onContextMenu(
-        slider: _ModuleSupport.SliderWidget,
-        widgetEvent: _ModuleSupport.MouseWidgetEvent<'contextmenu'>
-    ) {
+    private onContextMenu(slider: SliderWidget, widgetEvent: MouseWidgetEvent<'contextmenu'>) {
         const { offsetX, offsetY } = widgetEvent;
         const { x: toolbarX, y: toolbarY } = this.toolbar.getBounds();
         const { x: sliderX, y: sliderY } = slider.getBounds();

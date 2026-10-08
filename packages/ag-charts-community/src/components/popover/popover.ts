@@ -1,7 +1,7 @@
 import { AbstractModuleInstance, type DynamicContext, type Point, createElement, getLastFocus } from 'ag-charts-core';
+import type { ExpandableWidget, ExpansionControllerWidget } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 
 const canvasOverlay = 'canvas-overlay';
 

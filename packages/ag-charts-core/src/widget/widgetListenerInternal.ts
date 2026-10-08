@@ -1,6 +1,7 @@
-import type { AnyFn, CurrentPoint, OffsetPoint, PagePoint } from 'ag-charts-core';
-import { attachListener, partialAssign } from 'ag-charts-core';
-
+import { partialAssign } from '../data/object';
+import { attachListener } from '../dom/domEvents';
+import type { AnyFn } from '../types/global';
+import type { CurrentPoint, OffsetPoint, PagePoint } from '../types/scene';
 import type { DragWidgetEvent, WidgetEventMap_Internal } from './widgetEvents';
 import { WidgetEventUtil } from './widgetEvents';
 

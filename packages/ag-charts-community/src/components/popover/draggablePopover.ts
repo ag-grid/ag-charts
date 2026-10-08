@@ -1,8 +1,6 @@
-import type { Point } from 'ag-charts-core';
+import type { DragWidgetEvent, NativeWidget, Point } from 'ag-charts-core';
 import { Vec2 } from 'ag-charts-core';
 
-import type { NativeWidget } from '../../widget/nativeWidget';
-import type { DragWidgetEvent } from '../../widget/widgetEvents';
 import { Popover, type PopoverOptions } from './popover';
 
 export abstract class DraggablePopover<Options extends PopoverOptions = PopoverOptions> extends Popover<Options> {

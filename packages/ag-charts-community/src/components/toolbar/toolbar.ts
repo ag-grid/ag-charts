@@ -1,16 +1,18 @@
-import type { BoxBounds, DynamicContext } from 'ag-charts-core';
-import { Listeners } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    ClickWidgetEvent,
+    DynamicContext,
+    ExpandableWidget,
+    ExpansionControllerWidget,
+    RovingDirection,
+} from 'ag-charts-core';
+import { CollapseMode, Listeners, ToolbarWidget } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { CollapseMode } from '../../widget/collapseMode';
-import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
-import type { RovingDirection } from '../../widget/rovingDirection';
-import { ToolbarWidget } from '../../widget/toolbarWidget';
-import type { ClickWidgetEvent } from '../../widget/widgetEvents';
 import { ToolbarButtonWidget, type ToolbarButtonWidgetOptions } from './toolbarButtonWidget';
 
 const BUTTON_ACTIVE_CLASS = 'ag-charts-toolbar__button--active';

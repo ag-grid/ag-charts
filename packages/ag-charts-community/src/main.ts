@@ -8,7 +8,6 @@ export { ModuleRegistry } from 'ag-charts-core';
 
 // Undocumented APIs used by Enterprise Modules.
 export * as _ModuleSupport from './module-support';
-export * as _Widget from './widget/exports';
 
 // Module exports
 export { SparklinePresetModule } from './api/preset/presetModules';

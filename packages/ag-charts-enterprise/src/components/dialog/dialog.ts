@@ -8,6 +8,7 @@ import type {
 import {
     Color,
     type ElementID,
+    NativeWidget,
     type Point,
     Vec2,
     createButton,
@@ -27,7 +28,7 @@ import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../color-picker/colorPicker';
 
-const { DraggablePopover, NativeWidget } = _ModuleSupport;
+const { DraggablePopover } = _ModuleSupport;
 
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
 

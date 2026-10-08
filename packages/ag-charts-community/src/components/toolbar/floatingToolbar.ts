@@ -1,6 +1,7 @@
 import {
     type BoxBounds,
     type DynamicContext,
+    NativeWidget,
     type Point,
     clamp,
     createElement,
@@ -9,7 +10,6 @@ import {
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { NativeWidget } from '../../widget/nativeWidget';
 import { DraggablePopover } from '../popover/draggablePopover';
 import type { PopoverOptions } from '../popover/popover';
 import { BaseToolbar, type ToolbarButtonOptions, type ToolbarEventMap } from './toolbar';

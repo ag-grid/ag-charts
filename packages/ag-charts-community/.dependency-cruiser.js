@@ -209,7 +209,7 @@ module.exports = {
                 pathNot: [
                     'ag-charts-core',
                     'ag-charts-types',
-                    '^src/(dom|module|scene|widget|locale|util|core)/',
+                    '^src/(dom|module|scene|locale|util|core)/',
                     '^src/.*\\.css',
                     'node_modules',
                 ],
@@ -230,13 +230,6 @@ module.exports = {
                     'node_modules',
                 ],
             },
-        },
-        {
-            name: 'ag-isolated-widget',
-            comment: 'Widget modules should be isolated.',
-            severity: 'error',
-            from: { path: '^src/widget/' },
-            to: { pathNot: ['ag-charts-core', 'ag-charts-types', '^src/(widget|util|core)/', 'node_modules'] },
         },
         {
             name: 'ag-avoid-bundles',

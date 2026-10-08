@@ -1,5 +1,4 @@
-import type { ElementID } from 'ag-charts-core';
-
+import type { ElementID } from '../identity/idBranding';
 import type { CollapseMode } from './collapseMode';
 
 export type CollapseWidgetEvent = {

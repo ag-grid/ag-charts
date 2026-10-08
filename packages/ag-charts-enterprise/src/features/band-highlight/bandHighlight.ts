@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
@@ -10,6 +10,7 @@ import {
     ZIndexMap,
     createId,
 } from 'ag-charts-core';
+import type { ClickWidgetEvent, DragWidgetEvent, MouseWidgetEvent } from 'ag-charts-core';
 
 const { Range, TranslatableGroup, BBox, getShapeFill, InteractionState } = _ModuleSupport;
 
@@ -49,10 +50,7 @@ const BAND_FILL_IMAGE_DEFAULTS: RequiredInternalAgImageFill = {
     fit: 'contain',
 };
 
-type HoverLikeEvent =
-    | _Widget.ClickWidgetEvent
-    | _ModuleSupport.MouseWidgetEvent<'mousemove'>
-    | _ModuleSupport.DragWidgetEvent<'drag-move'>;
+type HoverLikeEvent = ClickWidgetEvent | MouseWidgetEvent<'mousemove'> | DragWidgetEvent<'drag-move'>;
 
 export class BandHighlight extends AbstractModuleInstance {
     static readonly className = 'BandHighlight';
@@ -122,7 +120,7 @@ export class BandHighlight extends AbstractModuleInstance {
         );
     }
 
-    private onClick(event: _Widget.ClickWidgetEvent) {
+    private onClick(event: ClickWidgetEvent) {
         if (event.device === 'touch') {
             this.onHoverLikeEvent(event);
         }

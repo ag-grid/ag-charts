@@ -1,4 +1,11 @@
-import { type BaseAttributeTypeMap, getIconClassNames, hasNoModifiers, setAttribute } from 'ag-charts-core';
+import {
+    type BaseAttributeTypeMap,
+    ButtonWidget,
+    getIconClassNames,
+    hasNoModifiers,
+    setAttribute,
+} from 'ag-charts-core';
+import type { KeyboardClickBindingPredicate, KeyboardWidgetEvent } from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
@@ -11,9 +18,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
-import type { KeyboardClickBindingPredicate } from '../../widget/abstractButtonWidget';
-import { ButtonWidget } from '../../widget/buttonWidget';
-import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 
 type ButtonValue =
     | 'menu'

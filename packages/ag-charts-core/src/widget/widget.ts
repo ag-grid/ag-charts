@@ -1,14 +1,9 @@
-import type { BaseAttributeTypeMap, BaseStyleTypeMap, BoxBounds, ElementID } from 'ag-charts-core';
-import {
-    getAttribute,
-    getElementBBox,
-    isNode,
-    setAttribute,
-    setElementBBox,
-    setElementStyle,
-    setElementStyles,
-} from 'ag-charts-core';
-
+import type { BaseAttributeTypeMap, BaseStyleTypeMap } from '../dom/attributeUtil';
+import { getAttribute, setAttribute, setElementStyle, setElementStyles } from '../dom/attributeUtil';
+import { getElementBBox, setElementBBox } from '../dom/domUtil';
+import { isNode } from '../dom/globalsProxy';
+import type { BoxBounds } from '../geometry/boxBounds';
+import type { ElementID } from '../identity/idBranding';
 import type { WidgetEvent, WidgetEventMap, WidgetEventMap_Internal } from './widgetEvents';
 import { WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';

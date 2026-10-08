@@ -1,4 +1,13 @@
 import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
+import {
+    AxisWidget,
+    BoundedTextWidget,
+    ListWidget,
+    NativeWidget,
+    SliderWidget,
+    ToolbarWidget,
+    Widget,
+} from 'ag-charts-core';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, type MockEvent, makeMockEvent } from 'ag-charts-test';
 
 import { BBox } from '../../scene/bbox';
@@ -6,13 +15,6 @@ import { TranslatableGroup } from '../../scene/group';
 import { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
-import { AxisWidget } from '../../widget/axisWidget';
-import { BoundedTextWidget } from '../../widget/boundedTextWidget';
-import { ListWidget } from '../../widget/listWidget';
-import { NativeWidget } from '../../widget/nativeWidget';
-import { SliderWidget } from '../../widget/sliderWidget';
-import { ToolbarWidget } from '../../widget/toolbarWidget';
-import { Widget } from '../../widget/widget';
 import type { Chart } from '../chart';
 import { ChartCaption } from '../chartCaption';
 import { WidgetSet } from '../interaction/widgetSet';
