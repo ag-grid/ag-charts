@@ -144,15 +144,15 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
     };
 }
 
-type HandleTheme = WithThemeParams<Required<AgNavigatorHandleOptions>>;
+type StrokeTheme = WithThemeParams<Required<Pick<AgNavigatorHandleOptions, 'stroke' | 'strokeWidth'>>>;
 type BorderParam = 'navigatorTrackBorder' | 'navigatorHandleBorder';
 
 // `true` means the default border colour at width 1, `false` disables the border.
-function borderStroke(param: BorderParam, colorRef: `${BorderParam}.color`): HandleTheme['stroke'] {
+function borderStroke(param: BorderParam, colorRef: `${BorderParam}.color`): StrokeTheme['stroke'] {
     return { $if: [{ $isType: [{ $ref: param }, 'boolean'] }, { $ref: 'borderColor' }, { $ref: colorRef }] };
 }
 
-function borderStrokeWidth(param: BorderParam, widthRef: `${BorderParam}.width`): HandleTheme['strokeWidth'] {
+function borderStrokeWidth(param: BorderParam, widthRef: `${BorderParam}.width`): StrokeTheme['strokeWidth'] {
     return { $if: [{ $isType: [{ $ref: param }, 'boolean'] }, { $if: [{ $ref: param }, 1, 0] }, { $ref: widthRef }] };
 }
 
