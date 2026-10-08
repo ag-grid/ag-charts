@@ -59,6 +59,11 @@ const SERIES: SeriesCase[] = [
         series: (shadow) => ({ type: 'area', xKey: 'x', yKey: 'y', marker: { enabled: true, shadow } }),
     },
     {
+        name: 'area fill',
+        data: XY_DATA,
+        series: (shadow) => ({ type: 'area', xKey: 'x', yKey: 'y', shadow }),
+    },
+    {
         name: 'donut',
         data: CATEGORY_DATA,
         series: (shadow) => ({ type: 'donut', angleKey: 'value', calloutLabelKey: 'category', shadow }),
