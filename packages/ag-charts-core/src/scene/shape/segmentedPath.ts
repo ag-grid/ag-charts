@@ -36,12 +36,7 @@ export class SegmentedPath<D = any> extends Path<D> {
         ctx.save();
         const Path2DCtor = getPath2D();
         const inverse = new Path2DCtor();
-        // `ctx.canvas` is in device pixels but the context transform draws in logical units, so the
-        // full-canvas mask must use logical dimensions or it under-covers when the ratio is below 1.
-        const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-        const canvasWidth = ctx.canvas.width / pixelRatio;
-        const canvasHeight = ctx.canvas.height / pixelRatio;
-        rect(inverse, { x0: 0, y0: 0, x1: canvasWidth, y1: canvasHeight }, false);
+        rect(inverse, getCanvasRect(ctx), false);
         for (const s of this.segments) {
             rect(inverse, s.clipRect);
         }
@@ -77,6 +72,38 @@ export class SegmentedPath<D = any> extends Path<D> {
             ctx.restore();
         }
     }
+}
+
+/**
+ * The canvas of `ctx` in its current coordinates. The canvas is in device pixels, which the transform maps to logical units
+ * by the pixel ratio, or, for the mask of a shadow, by a resolution below it as well.
+ */
+function getCanvasRect(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D): ClipRect {
+    const { width, height } = ctx.canvas;
+    const { a, b, c, d, e, f } = ctx.getTransform();
+    const det = a * d - b * c;
+    if (!Number.isFinite(det) || Math.abs(det) <= Number.EPSILON) return { x0: 0, y0: 0, x1: width, y1: height };
+
+    let x0 = Infinity;
+    let y0 = Infinity;
+    let x1 = -Infinity;
+    let y1 = -Infinity;
+    for (const [px, py] of [
+        [0, 0],
+        [width, 0],
+        [width, height],
+        [0, height],
+    ]) {
+        const dx = px - e;
+        const dy = py - f;
+        const x = (d * dx - c * dy) / det;
+        const y = (a * dy - b * dx) / det;
+        x0 = Math.min(x0, x);
+        y0 = Math.min(y0, y);
+        x1 = Math.max(x1, x);
+        y1 = Math.max(y1, y);
+    }
+    return { x0, y0, x1, y1 };
 }
 
 export function rect(path: Path2D, { x0, y0, x1, y1 }: ClipRect, clockwise = true) {

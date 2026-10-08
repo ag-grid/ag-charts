@@ -27,10 +27,10 @@ describe('SegmentedPath', () => {
         path.segments = [{ clipRect: { x0: 100, y0: 100, x1: 200, y1: 200 } }];
         // Drawn in logical space (the context transform scales by pixelRatio), so the inverse mask
         // must reach the logical canvas extent, not the smaller device-pixel extent.
-        vi.spyOn(path, 'layerManager', 'get').mockReturnValue({ canvas: { pixelRatio } } as any);
 
         const ctx = {
             canvas: { width: deviceWidth, height: deviceHeight },
+            getTransform: () => new DOMMatrix([pixelRatio, 0, 0, pixelRatio, 0, 0]),
             save: vi.fn(),
             restore: vi.fn(),
             clip: vi.fn(),

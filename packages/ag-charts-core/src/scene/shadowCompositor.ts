@@ -103,12 +103,13 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
  * and the items that it no longer reaches cast nothing. A layer too large by itself is drawn into a canvas of a lower
  * resolution, which is blitted back up to its size: a shadow is blurred anyway, so it loses little.
  */
-function fitMask(width: number, height: number, padX: number, padY: number) {
+function fitMask(width: number, height: number, padX: number, padY: number): { padScale: number; resolution: number } {
     for (let scale = 1; scale >= 1 / 16; scale /= 2) {
         if ((width + padX * scale) * (height + padY * scale) <= MAX_MASK_AREA)
             return { padScale: scale, resolution: 1 };
     }
     if (width * height <= MAX_MASK_AREA) return { padScale: 0, resolution: 1 };
+    // The padding stays whole, as the mask is drawn at a lower resolution than the layer by as much as it takes.
     return { padScale: 1, resolution: Math.sqrt(MAX_MASK_AREA / ((width + padX) * (height + padY))) };
 }
 
@@ -380,8 +381,9 @@ export function renderChildrenWithShadowBatches(
         if (run.length === 0) return;
 
         if (runShadow == null || !renderBatch(scene, user, run, runShadow, runClip, renderCtx)) {
-            // The one exception to drawing every shadow through the mask: no context to draw it with leaves the casters to
-            // cast for themselves. They size their shadow the way the mask does.
+            // The one exception to drawing every shadow through the mask: no mask to draw (no context, an empty layer
+            // or a shadow that is not finite) leaves the casters to cast for
+            // themselves. They size their shadow the way the mask does.
             for (const caster of run) caster.isolatedRender(renderCtx);
         }
         run = [];

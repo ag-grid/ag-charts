@@ -1,6 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Group, Logger, Path, Rect, Scene, SegmentedGroup, Translatable, releaseShadowScratch } from 'ag-charts-core';
+import {
+    Group,
+    Logger,
+    Path,
+    Rect,
+    Scene,
+    SegmentedGroup,
+    SegmentedPath,
+    Translatable,
+    releaseShadowScratch,
+} from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
@@ -1471,6 +1481,34 @@ describe('Group shadow compositor', () => {
                     expect([alpha(104, 155), alpha(176, 155), alpha(140, 114), alpha(140, 196)]).toEqual([0, 0, 0, 0]);
                 }
             );
+
+            it('should cast the shadow of a segmented path past the width that the mask reaches at its resolution', () => {
+                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)' };
+                // A segment that no item reaches, so that the item is drawn in the gap between segments.
+                const segments = [{ clipRect: { x0: 0, y0: 0, x1: 10, y1: 10 } }];
+                const segmentedBox = (x: number) => {
+                    const node = new SegmentedPath();
+                    Object.assign(node, {
+                        fill: 'black',
+                        stroke: undefined,
+                        strokeWidth: 0,
+                        fillShadow: shadow,
+                        segments,
+                    });
+                    node.path.rect(x, 40, 40, 50);
+                    return node;
+                };
+                const unbatched = renderLayer(8000, 3000, createGroup([segmentedBox(7000)], false));
+                const before = offscreenCanvases();
+                const { layer, alpha } = renderLayer(8000, 3000, createGroup([segmentedBox(7000)]));
+
+                // The mask is smaller than the layer, and its resolution leaves the right of the layer past its canvas.
+                const [mask] = inUse(createdSince(before).filter((canvas) => canvas !== layer));
+                expect(mask.width).toBeLessThan(7000);
+                expect(unbatched.alpha(7120, 65)).toBe(255);
+                expect([alpha(7120, 65), alpha(7120, 45), alpha(7120, 85)]).toEqual([255, 255, 255]);
+                expect(alpha(7220, 65)).toBe(0);
+            });
         });
 
         it('should share one scratch canvas between the groups of a scene', () => {
