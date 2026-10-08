@@ -131,8 +131,12 @@ export abstract class FlowProportionSeries<
 
     private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup', batchShadows: true }));
     private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup', batchShadows: true }));
-    private readonly focusLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
-    private readonly focusNodeGroup = this.highlightGroup.appendChild(new Group({ name: 'nodeGroup' }));
+    private readonly focusLinkGroup = this.highlightGroup.appendChild(
+        new Group({ name: 'linkGroup', batchShadows: true })
+    );
+    private readonly focusNodeGroup = this.highlightGroup.appendChild(
+        new Group({ name: 'nodeGroup', batchShadows: true })
+    );
     private readonly highlightLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
 
     private labelSelection: Selection<TLabel, TransformableText<TLabel>> = Selection.select(
