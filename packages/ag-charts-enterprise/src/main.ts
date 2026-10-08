@@ -25,6 +25,7 @@ export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisMod
 export { PolarCrossLinesModule } from './axes/polar-crosslines/polarCrossLinesModule';
 export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
+export { AxisInsetValueModule } from './features/axis-inset-value/axisInsetValueModule';
 export { AxisInteractionModule } from './features/axis-interaction/axisInteractionModule';
 export { BackgroundRegionsModule } from './features/background-regions/backgroundRegionsModule';
 export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';

@@ -15,7 +15,7 @@ import { CartesianChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
 import { getCrossLinesPlugin } from './crossline/getCrossLinesPlugin';
-import type { LayoutContext, ScrollbarLayoutMap } from './layout/layoutManager';
+import type { LayoutContext, ScrollbarLayoutMap, SeriesInsetMap } from './layout/layoutManager';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { UnknownSeries } from './series/series';
 
@@ -235,8 +235,8 @@ export class CartesianChart extends Chart {
     }
 
     updateAxes(layoutContext: LayoutContext) {
-        const { layoutBox, scrollbars } = layoutContext;
-        const { clipSeries, seriesRect, overflows } = this.resolveAxesLayout(layoutBox, scrollbars);
+        const { layoutBox, scrollbars, seriesInsets } = layoutContext;
+        const { clipSeries, seriesRect, overflows } = this.resolveAxesLayout(layoutBox, scrollbars, seriesInsets);
 
         for (const axis of this.axes) {
             axis.update();
@@ -249,7 +249,7 @@ export class CartesianChart extends Chart {
     }
 
     // X axis width affects Y axis range and vice-versa, so the fit has to be found iteratively.
-    private resolveAxesLayout(layoutBox: BBox, scrollbars: ScrollbarLayoutMap) {
+    private resolveAxesLayout(layoutBox: BBox, scrollbars: ScrollbarLayoutMap, seriesInsets: SeriesInsetMap) {
         let newState;
         let prevState;
         let iterations = 0;
@@ -261,12 +261,13 @@ export class CartesianChart extends Chart {
         do {
             // Start with a good approximation from the last update.
             // This should mean that in many resize cases that only a single pass is needed.
-            prevState = newState ?? this.getDefaultState();
+            prevState = newState ?? this.getDefaultState(seriesInsets);
             newState = this.updateAxesPass(
                 new Map(prevState.axisAreaWidths),
                 layoutBox.clone(),
                 crossAtAxes,
-                scrollbars
+                scrollbars,
+                seriesInsets
             );
 
             if (iterations++ > maxIterations) {
@@ -284,7 +285,8 @@ export class CartesianChart extends Chart {
         axisAreaWidths: AreaWidthMap,
         axisAreaBound: BBox,
         crossAtAxes: CartesianAxis[],
-        scrollbars: ScrollbarLayoutMap
+        scrollbars: ScrollbarLayoutMap,
+        seriesInsets: SeriesInsetMap
     ) {
         const axisWidths: Map<string, number> = new Map();
         const primaryTickCounts: Partial<Record<ChartAxisDirection, AxisPrimaryTickCount>> = {};
@@ -365,6 +367,11 @@ export class CartesianChart extends Chart {
         const newAxisAreaWidths: AreaWidthMap = new Map();
         const axisOffsets = new Map<string, number>();
 
+        for (const position of directions) {
+            const inset = Math.ceil(seriesInsets[position] ?? 0);
+            if (inset > 0 && axisGroups[position] == null) newAxisAreaWidths.set(position, inset);
+        }
+
         for (const [position, axes] of entries(axisGroups)) {
             // Snap the axis-area depth to the device grid only at fractional DPR, keyed off the resize-invariant outer bound so the offset never cycles as the container resizes.
             const isHorizontalAxis = position === 'top' || position === 'bottom';
@@ -383,7 +390,8 @@ export class CartesianChart extends Chart {
                 }
             }
 
-            newAxisAreaWidths.set(position, Math.ceil(totalAxisWidth));
+            // The inset sits between the innermost axis and the series area, so it widens the area after the axes.
+            newAxisAreaWidths.set(position, Math.ceil(totalAxisWidth) + Math.ceil(seriesInsets[position] ?? 0));
         }
 
         // Step 3) position all axes taking adjacent positions into account.
@@ -706,7 +714,7 @@ export class CartesianChart extends Chart {
         return this.series.every((series) => series instanceof CartesianSeries && series.shouldFlipXY());
     }
 
-    private getDefaultState(): State {
+    private getDefaultState(seriesInsets: SeriesInsetMap): State {
         const axisAreaWidths: AreaWidthMap = new Map();
 
         if (this.lastAreaWidths) {
@@ -715,6 +723,13 @@ export class CartesianChart extends Chart {
             for (const { position = 'left' } of this.axes) {
                 const areaWidth = this.lastAreaWidths.get(position);
                 if (areaWidth != null) {
+                    axisAreaWidths.set(position, areaWidth);
+                }
+            }
+            // An inset reserves its position even when no axis does.
+            for (const position of directions) {
+                const areaWidth = this.lastAreaWidths.get(position);
+                if (areaWidth != null && (seriesInsets[position] ?? 0) > 0) {
                     axisAreaWidths.set(position, areaWidth);
                 }
             }

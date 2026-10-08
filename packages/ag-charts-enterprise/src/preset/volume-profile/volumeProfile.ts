@@ -1,9 +1,11 @@
 import { _Theme } from 'ag-charts-community';
+import { type OptionsDefs, boolean, callback, color, fontOptionsDef, positiveNumber } from 'ag-charts-core';
 import type {
     AgBarSeriesOptions,
     AgCategoryAxisOptions,
     AgNumberAxisOptions,
     AgVolumeProfileOptions,
+    AgVolumeProfileTotalSegmentOptions,
     DatumDefault,
 } from 'ag-charts-types';
 
@@ -86,6 +88,55 @@ export function createVolumeProfileSeries(
     ];
 }
 
+/** Abbreviates a total with a suffix, such as `1.2K` or `3.4M`. */
+const COMPACT_NUMBER = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+const formatCompact = ({ value }: { value: number }) => COMPACT_NUMBER.format(value);
+
+export const volumeProfileTotalSegmentOptionsDef: OptionsDefs<AgVolumeProfileTotalSegmentOptions> = {
+    enabled: boolean,
+    fill: color,
+    width: positiveNumber,
+    minWidth: positiveNumber,
+    label: {
+        enabled: boolean,
+        ...fontOptionsDef,
+        formatter: callback,
+    },
+};
+
+/**
+ * The axis fragment that draws the total volume segment on a price axis: a column of each level's total,
+ * reserved on the side of the series area the bars grow from. Spread in so it stays outside the public axis types.
+ */
+export function createTotalSegmentAxisOptions(
+    totalSegment: AgVolumeProfileTotalSegmentOptions | undefined,
+    position: 'left' | 'right'
+) {
+    if (totalSegment?.enabled !== true) return undefined;
+
+    const { fill, width, minWidth, label } = totalSegment;
+    const { formatter, ...labelOptions } = label ?? {};
+
+    return {
+        axisInsetValue: {
+            enabled: true,
+            position,
+            width,
+            minWidth,
+            fill,
+            categoryKey: 'price',
+            valueKey: 'total',
+            label: {
+                ...labelOptions,
+                formatter: formatter
+                    ? (params: { category: unknown; value: number; datum: any }) =>
+                          formatter({ value: params.value, price: params.category, datum: params.datum })
+                    : formatCompact,
+            },
+        },
+    };
+}
+
 export function createVolumeProfileAxis(
     volumeProfile: AgVolumeProfileOptions | undefined
 ): Record<string, AgNumberAxisOptions | AgCategoryAxisOptions> {
@@ -128,6 +179,7 @@ export function createVolumeProfileAxis(
                 align: 'start',
             },
             linkZoom: 'y',
+            ...createTotalSegmentAxisOptions(volumeProfile.totalSegment, placedRight ? 'right' : 'left'),
         } satisfies AgCategoryAxisOptions,
     };
 }

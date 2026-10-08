@@ -589,6 +589,20 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'axis:plugin',
+        name: 'axisInsetValue',
+        moduleId: 'AxisInsetValueModule',
+        chartTypes: ['cartesian'],
+        enterprise: true,
+        axisTypes: ['category'],
+        contributes: [
+            {
+                path: 'axes[].axisInsetValue',
+                axisTypes: ['category'],
+            },
+        ],
+    },
+    {
+        type: 'axis:plugin',
         name: 'bandHighlight',
         moduleId: 'BandHighlightModule',
         chartTypes: ['cartesian'],

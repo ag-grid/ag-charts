@@ -38,3 +38,8 @@ function updateTickSize() {
     options.tickSize = tickSizeEnabled ? tickSize : undefined;
     chart.update(options);
 }
+
+function toggleTotalSegment(event: Event) {
+    options.totalSegment = { enabled: (event.target as HTMLInputElement).value === 'on' };
+    chart.update(options);
+}

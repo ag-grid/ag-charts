@@ -5,6 +5,7 @@ import { NumberAxisModule, TimeAxisModule } from '../axes/cartesian/cartesianAxi
 import { OrdinalTimeAxisModule } from '../axes/ordinal/ordinalTimeAxisModule';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
+import { AxisInsetValueModule } from '../features/axis-inset-value/axisInsetValueModule';
 import { BackgroundRegionsModule } from '../features/background-regions/backgroundRegionsModule';
 import { BandHighlightModule } from '../features/band-highlight/bandHighlightModule';
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
@@ -39,6 +40,7 @@ export const FinancialChartModule: ModuleDefinition[] = [
 
     AnimationModule,
     AnnotationsModule,
+    AxisInsetValueModule,
     BandHighlightModule,
     ChartToolbarModule,
     ContextMenuModule,

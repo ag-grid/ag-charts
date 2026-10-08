@@ -13,7 +13,8 @@ import {
 } from 'ag-charts-core';
 import type { AgBaseFinancialPresetOptions, AgVolumeProfileChartPreset } from 'ag-charts-types';
 
-import { groupVolumeProfile } from './volumeProfile';
+import { AxisInsetValueModule } from '../../features/axis-inset-value/axisInsetValueModule';
+import { groupVolumeProfile, volumeProfileTotalSegmentOptionsDef } from './volumeProfile';
 import { volumeProfileChart } from './volumeProfilePreset';
 
 const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgBaseFinancialPresetOptions> = {
@@ -21,6 +22,7 @@ const volumeProfileChartOptionsDef: OptionsDefs<AgVolumeProfileChartPreset & AgB
     upKey: required(string),
     downKey: required(string),
     tickSize: positiveNumberNonZero,
+    totalSegment: volumeProfileTotalSegmentOptionsDef,
     // Valid pass-through options
     theme: defined,
     container: defined,
@@ -50,6 +52,7 @@ export const VolumeProfilePresetModule: PresetModuleDefinition<
     apiName: 'AgCharts.createVolumeProfileChart',
     enterprise: true,
     version: VERSION,
+    dependencies: [AxisInsetValueModule],
 
     options: volumeProfileChartOptionsDef,
 

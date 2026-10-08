@@ -1,5 +1,5 @@
 import type { AxisID, EventListener } from 'ag-charts-core';
-import type { AgScrollbarPlacement } from 'ag-charts-types';
+import type { AgCartesianAxisPosition, AgScrollbarPlacement } from 'ag-charts-types';
 
 import type { AxisLayout, EventsHub } from '../../core/eventsHub';
 import { BBox } from '../../scene/bbox';
@@ -9,6 +9,7 @@ export interface LayoutContext {
     height: number;
     layoutBox: BBox;
     scrollbars: ScrollbarLayoutMap;
+    seriesInsets: SeriesInsetMap;
 }
 
 export interface ScrollbarLayout {
@@ -20,6 +21,9 @@ export interface ScrollbarLayout {
 }
 
 export type ScrollbarLayoutMap = Partial<Record<AxisID, ScrollbarLayout>>;
+
+/** The width reserved between the axes at each position and the series area. */
+export type SeriesInsetMap = Partial<Record<AgCartesianAxisPosition, number>>;
 
 export interface LayoutState {
     axes?: Record<string, AxisLayout>;
@@ -35,6 +39,7 @@ export enum LayoutElement {
     ToolbarBottom,
     Scrollbar,
     Navigator,
+    SeriesInset,
     Overlay,
 }
 
@@ -53,7 +58,13 @@ export class LayoutManager {
     }
 
     createContext(width: number, height: number): LayoutContext {
-        const context: LayoutContext = { width, height, layoutBox: new BBox(0, 0, width, height), scrollbars: {} };
+        const context: LayoutContext = {
+            width,
+            height,
+            layoutBox: new BBox(0, 0, width, height),
+            scrollbars: {},
+            seriesInsets: {},
+        };
         for (const element of Object.values(LayoutElement)) {
             if (typeof element !== 'number') continue;
             const listeners = this.elements.get(element);

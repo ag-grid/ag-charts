@@ -73,6 +73,7 @@ export const pluginOptionToModule = new Map([
 ]);
 export const chartOptionPathToModule = new Map([['seriesArea.backgroundRegions', 'BackgroundRegionsModule']]);
 export const axisPluginToModule = new Map([
+    ['axisInsetValue', 'AxisInsetValueModule'],
     ['bandHighlight', 'BandHighlightModule'],
     ['crosshair', 'CrosshairModule'],
     ['crossLines', 'CrossLinesModule'],
@@ -157,6 +158,7 @@ export const enterpriseModules = new Set([
     'AngleNumberAxisModule',
     'AnimationModule',
     'AnnotationsModule',
+    'AxisInsetValueModule',
     'AxisInteractionModule',
     'BackgroundRegionsModule',
     'BandHighlightModule',
@@ -380,6 +382,7 @@ export const bundleContents = new Map([
             'AnimationModule',
             'AnnotationsModule',
             'AreaSeriesModule',
+            'AxisInsetValueModule',
             'AxisInteractionModule',
             'BackgroundRegionsModule',
             'BandHighlightModule',
@@ -482,6 +485,7 @@ export const bundleContents = new Map([
         [
             'AnimationModule',
             'AnnotationsModule',
+            'AxisInsetValueModule',
             'AxisInteractionModule',
             'BackgroundRegionsModule',
             'BandHighlightModule',
@@ -671,6 +675,7 @@ export const validModuleIds = new Set([
     'AnimationModule',
     'AnnotationsModule',
     'AreaSeriesModule',
+    'AxisInsetValueModule',
     'AxisInteractionModule',
     'BackgroundRegionsModule',
     'BandHighlightModule',
@@ -757,6 +762,7 @@ export const moduleToPackage = new Map([
     ['AnimationModule', 'ag-charts-enterprise'],
     ['AnnotationsModule', 'ag-charts-enterprise'],
     ['AreaSeriesModule', 'ag-charts-community'],
+    ['AxisInsetValueModule', 'ag-charts-enterprise'],
     ['AxisInteractionModule', 'ag-charts-enterprise'],
     ['BackgroundRegionsModule', 'ag-charts-enterprise'],
     ['BandHighlightModule', 'ag-charts-enterprise'],
