@@ -455,22 +455,108 @@ describe('Ranges', () => {
             expect(ranges.button.hover.stroke).toBe('transparent');
         });
 
-        it('boolean state borders use borderColor', async () => {
-            const ranges = await resolvedRanges({ borderColor: 'purple', buttonActiveBorder: true });
+        it('a false state border keeps the base border width', async () => {
+            const ranges = await resolvedRanges({
+                buttonBorder: { color: 'black', width: 2 },
+                buttonHoverBorder: false,
+            });
 
-            expect(ranges.button.active.stroke).toBe('purple');
+            expect(ranges.button.hover).toMatchObject({ stroke: 'transparent', strokeWidth: 2 });
         });
 
-        it('button padding defaults to the button padding params', async () => {
+        it('state borders set to true inherit the buttonBorder colour and width', async () => {
+            const ranges = await resolvedRanges({
+                borderColor: 'purple',
+                buttonBorder: { color: 'black', width: 2 },
+                buttonHoverBorder: true,
+                buttonActiveBorder: true,
+                buttonDisabledBorder: true,
+            });
+
+            for (const state of ['hover', 'active', 'disabled']) {
+                expect(ranges.button[state]).toMatchObject({ stroke: 'black', strokeWidth: 2 });
+            }
+        });
+
+        it('state borders set to true follow a boolean buttonBorder', async () => {
+            const ranges = await resolvedRanges({
+                borderColor: 'purple',
+                buttonBorder: true,
+                buttonActiveBorder: true,
+            });
+
+            expect(ranges.button.active).toMatchObject({ stroke: 'purple', strokeWidth: 1 });
+        });
+
+        it('state border objects apply their width in that state', async () => {
+            const ranges = await resolvedRanges({
+                buttonHoverBorder: { color: 'orange', width: 6 },
+                buttonActiveBorder: { color: 'green', width: 6 },
+                buttonDisabledBorder: { color: 'red', width: 6 },
+            });
+
+            expect(ranges.button.strokeWidth).toBe(1);
+            expect(ranges.button.hover).toMatchObject({ stroke: 'orange', strokeWidth: 6 });
+            expect(ranges.button.active).toMatchObject({ stroke: 'green', strokeWidth: 6 });
+            expect(ranges.button.disabled).toMatchObject({ stroke: 'red', strokeWidth: 6 });
+        });
+
+        it('state border objects fill an unset colour or width from buttonBorder', async () => {
+            const ranges = await resolvedRanges({
+                buttonBorder: { color: 'black', width: 2 },
+                buttonHoverBorder: { width: 4 },
+                buttonDisabledBorder: { color: 'red' },
+            });
+
+            expect(ranges.button.hover).toMatchObject({ stroke: 'black', strokeWidth: 4 });
+            expect(ranges.button.disabled).toMatchObject({ stroke: 'red', strokeWidth: 2 });
+        });
+
+        it('state border widths default to the buttonBorder width', async () => {
+            const ranges = await resolvedRanges({ buttonBorder: { color: 'black', width: 3 } });
+
+            for (const state of ['hover', 'active', 'disabled']) {
+                expect(ranges.button[state].strokeWidth).toBe(3);
+            }
+        });
+
+        it('a user-set strokeWidth applies in every state', async () => {
+            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                ranges: { enabled: true, strokeWidth: 3, buttons: [{ label: 'All', value: [0, 19] }] },
+                theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
+            } as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+
+            for (const state of ['hover', 'active', 'disabled']) {
+                expect(ranges.button[state].strokeWidth).toBe(3);
+            }
+        });
+
+        it('a user-set button strokeWidth applies in every button state', async () => {
+            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                ranges: { enabled: true, button: { strokeWidth: 3 }, buttons: [{ label: 'All', value: [0, 19] }] },
+                theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
+            } as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+
+            for (const state of ['hover', 'active', 'disabled']) {
+                expect(ranges.button[state].strokeWidth).toBe(3);
+            }
+            expect(ranges.dropdown.hover.strokeWidth).toBe(6);
+        });
+
+        it('button padding keeps its fixed default', async () => {
             const ranges = await resolvedRanges({});
 
             expect(ranges.button.padding).toEqual({ top: 6, right: 9, bottom: 6, left: 9 });
-        });
-
-        it('button padding follows the button padding params', async () => {
-            const ranges = await resolvedRanges({ buttonHorizontalPadding: 12, buttonVerticalPadding: 3 });
-
-            expect(ranges.button.padding).toEqual({ top: 3, right: 12, bottom: 3, left: 12 });
         });
 
         const resolvedUserPadding = async (padding: unknown) => {
@@ -478,18 +564,17 @@ describe('Ranges', () => {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { enabled: true, padding, buttons: [{ label: 'All', value: [0, 19] }] },
-                theme: { params: { buttonHorizontalPadding: 12 } },
             } as any);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
             return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges').button.padding;
         };
 
-        it('a user-set padding number replaces the button padding params', async () => {
+        it('a user-set padding number replaces the default', async () => {
             expect(await resolvedUserPadding(4)).toBe(4);
         });
 
-        it('a user-set partial padding object replaces the button padding params', async () => {
+        it('a user-set partial padding object replaces the default', async () => {
             expect(await resolvedUserPadding({ top: 2 })).toEqual({ top: 2 });
         });
     });

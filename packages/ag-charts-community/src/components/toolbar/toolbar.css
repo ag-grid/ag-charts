@@ -7,19 +7,22 @@
     --toolbar-button-border-color: var(--ag-charts-button-border-color);
     --toolbar-button-border-width: var(--ag-charts-button-border-width);
     --toolbar-button-gap: 0;
-    --toolbar-button-padding: var(--ag-charts-button-vertical-padding); /* @todo Breaking Change: horizontal padding */
+    --toolbar-button-padding: 6px;
     --toolbar-button-text-color: var(--ag-charts-button-text-color);
 
     --toolbar-button-background-color--active: var(--ag-charts-button-active-background-color);
     --toolbar-button-border-color--active: var(--ag-charts-button-active-border-color);
+    --toolbar-button-border-width--active: var(--ag-charts-button-active-border-width);
     --toolbar-button-text-color--active: var(--ag-charts-button-active-text-color);
 
     --toolbar-button-background-color--disabled: var(--ag-charts-button-disabled-background-color);
     --toolbar-button-border-color--disabled: var(--ag-charts-button-disabled-border-color);
+    --toolbar-button-border-width--disabled: var(--ag-charts-button-disabled-border-width);
     --toolbar-button-text-color--disabled: var(--ag-charts-button-disabled-text-color);
 
     --toolbar-button-background-color--hover: var(--ag-charts-button-hover-background-color);
     --toolbar-button-border-color--hover: var(--ag-charts-button-hover-border-color);
+    --toolbar-button-border-width--hover: var(--ag-charts-button-hover-border-width);
     --toolbar-button-text-color--hover: var(--ag-charts-button-hover-text-color);
 
     align-items: center;
@@ -56,6 +59,7 @@
 }
 
 .ag-charts-toolbar__button:hover {
+    --toolbar-button-border-width: var(--toolbar-button-border-width--hover);
     background: var(--toolbar-button-background-color--hover);
     border-color: var(--toolbar-button-border-color--hover);
     color: var(--toolbar-button-text-color--hover);
@@ -70,6 +74,7 @@
 
 .ag-charts-toolbar__button--active,
 .ag-charts-toolbar__button--active:hover {
+    --toolbar-button-border-width: var(--toolbar-button-border-width--active);
     background: var(--toolbar-button-background-color--active);
     border-color: var(--toolbar-button-border-color--active);
     color: var(--toolbar-button-text-color--active);
@@ -77,6 +82,7 @@
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
+    --toolbar-button-border-width: var(--toolbar-button-border-width--disabled);
     background: var(--toolbar-button-background-color--disabled);
     border-color: var(--toolbar-button-border-color--disabled);
     color: var(--toolbar-button-text-color--disabled);
@@ -110,15 +116,18 @@
     .ag-charts-toolbar__button:hover:not(.ag-charts-toolbar__button--active, [aria-disabled='true'])
         + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active) {
         border-inline-start-color: var(--toolbar-button-border-color--hover);
+        border-inline-start-width: var(--toolbar-button-border-width--hover);
     }
 
     .ag-charts-toolbar__button[aria-disabled='true']
         + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active, :hover) {
         border-inline-start-color: var(--toolbar-button-border-color--disabled);
+        border-inline-start-width: var(--toolbar-button-border-width--disabled);
     }
 
     .ag-charts-toolbar__button--active + .ag-charts-toolbar__button {
         border-inline-start-color: var(--toolbar-button-border-color--active);
+        border-inline-start-width: var(--toolbar-button-border-width--active);
     }
 }
 
