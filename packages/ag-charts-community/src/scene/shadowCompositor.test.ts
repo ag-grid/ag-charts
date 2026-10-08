@@ -416,6 +416,23 @@ describe('Group shadow compositor', () => {
             });
         });
 
+        it('should fade the shadow of a crisp rectangle that is narrower than a pixel, as the rectangle fades', () => {
+            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 4 };
+            const thin = () => [
+                box(20, 40, 0.4, 50, { crisp: true, fillShadow: shadow }),
+                box(20, 130, 0.4, 50, { crisp: true, fillShadow: shadow }),
+            ];
+            renderNodes(thin(), false);
+            const alone = Array.from(ctx().getImageData(100, 20, 60, 180).data);
+
+            renderNodes(thin());
+            const batched = Array.from(ctx().getImageData(100, 20, 60, 180).data);
+
+            expect(alone.some((value) => value !== 0)).toBe(true);
+            expect(Math.max(...alone.filter((_, i) => i % 4 === 3))).toBeLessThan(255);
+            expect(batched).toEqual(alone);
+        });
+
         describe('a spread shadow at fractional coordinates', () => {
             const item = (y: number, mixin: Partial<Path>) =>
                 pathBox(60.5, y + 0.25, 40.25, 30.5, {

@@ -536,7 +536,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         } else {
             return;
         }
-        strength *= ctx.globalAlpha;
+        strength *= ctx.globalAlpha * this.getPaintOpacityScale();
         if (strength <= 0 || !isFiniteNumber(strength)) return;
 
         if (strength >= 1) {
@@ -842,6 +842,11 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     /** Strokes the paths the shape paints apart from its main one as a solid line `growth` wider, to dilate the shadow. */
     protected dilateSilhouetteExtras(_ctx: CanvasContext, _growth: number) {
         // Nothing to do by default.
+    }
+
+    /** What the shape's own {@link applyFillAndAlpha} and {@link applyStrokeAndAlpha} scale the opacity by, beyond its opacities. */
+    protected getPaintOpacityScale(): number {
+        return 1;
     }
 
     /** The alpha of a colour, for a shape to tell whether the paint of its extra paths casts a shadow. */
