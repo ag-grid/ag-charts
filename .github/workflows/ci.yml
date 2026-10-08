@@ -761,6 +761,8 @@ jobs:
 
     test:
         runs-on: ubuntu-24.04
+        # Healthy shards finish in under 8 minutes; a hung vitest worker would otherwise hold the runner for the 360 minute default.
+        timeout-minutes: 20
         name: Unit & Integration Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         permissions:
             contents: write
