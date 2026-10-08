@@ -1,16 +1,15 @@
+import { setAttribute } from '../dom/attributeUtil';
+import { isDirectionRtl } from '../dom/domUtil';
 import {
-    CleanupRegistry,
     addEscapeEventListener,
     addMouseCloseListener,
     addOverrideFocusVisibleEventListener,
     addTouchCloseListener,
-    createElementId,
     getLastFocus,
     hasNoModifiers,
-    isDirectionRtl,
-    setAttribute,
-} from 'ag-charts-core';
-
+} from '../dom/keynavUtil';
+import { createElementId } from '../identity/id';
+import { CleanupRegistry } from '../state/cleanupRegistry';
 import { CollapseMode } from './collapseMode';
 import type { CollapseOpts, ExpandOpts, ExpandableWidget } from './expandableWidget';
 import { MenuItemWidget } from './menuItemWidget';

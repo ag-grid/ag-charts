@@ -183,6 +183,19 @@ module.exports = {
             from: { path: 'src/.*' },
             to: { path: 'src/[^/]*\\.ts', pathNot: ['ag-charts-types/'] },
         },
+        {
+            name: 'ag-isolated-widget',
+            comment: 'Widget modules should be isolated.',
+            severity: 'error',
+            from: { path: '^src/widget/' },
+            to: {
+                pathNot: [
+                    '^src/(widget|data|dom|format|geometry|identity|state|types)/',
+                    'ag-charts-types',
+                    'node_modules',
+                ],
+            },
+        },
     ],
     options: {
         /* conditions specifying which files not to follow further when encountered:

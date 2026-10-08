@@ -1,6 +1,16 @@
 import type { AgAxisClickEvent } from 'ag-charts-community';
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CanvasPoint, CurrentPoint, DynamicContext } from 'ag-charts-core';
+import { _ModuleSupport } from 'ag-charts-community';
+import type {
+    AxisID,
+    AxisWidget,
+    CanvasPoint,
+    ClickWidgetEvent,
+    CurrentPoint,
+    DblClickWidgetEvent,
+    DragWidgetEvent,
+    DynamicContext,
+    MouseWidgetEvent,
+} from 'ag-charts-core';
 import { AbstractModuleInstance, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
 
 import { resolveAxisAriaLabels } from './axisAriaLabels';
@@ -10,7 +20,7 @@ type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 type ProxyAxis = {
     axisId: AxisID;
     direction: ChartAxisDirection;
-    div: _Widget.AxisWidget;
+    div: AxisWidget;
     bounds?: _ModuleSupport.BBox;
     ariaLabel?: string;
 };
@@ -251,7 +261,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         event.axis = this.pickAxisValue(axis.axisId, event);
     }
 
-    private onSeriesAreaDoubleClick(event: _Widget.DblClickWidgetEvent) {
+    private onSeriesAreaDoubleClick(event: DblClickWidgetEvent) {
         if (!this.isEnabled() || !this.isEnabledDoubleClick()) return;
 
         // Only continue if we know we have axes that overlap the series area.
@@ -268,7 +278,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         });
     }
 
-    private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
+    private onSeriesAreaDragStart(event: DragWidgetEvent<'drag-start'>) {
         if (!this.isEnabled() || !this.isEnabledDragging()) return;
 
         // Since the axis has already been hovered, we do not need to pick it.
@@ -292,7 +302,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         }
     }
 
-    private onSeriesAreaDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
+    private onSeriesAreaDragMove(event: DragWidgetEvent<'drag-move'>) {
         if (!this.isEnabled() || !this.isEnabledDragging() || this.draggingAxisId == null) return;
 
         // Check if the active axis is overlapping the series area, since it may have been set by dragging on the
@@ -310,7 +320,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         });
     }
 
-    private onSeriesAreaDragEnd(event: _Widget.DragWidgetEvent<'drag-end'>) {
+    private onSeriesAreaDragEnd(event: DragWidgetEvent<'drag-end'>) {
         if (this.draggingAxisId == null) return;
 
         // Check if the active axis is overlapping the series area, since it may have been set by dragging on the
@@ -332,7 +342,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(point);
     }
 
-    private toCanvasPoint(div: _Widget.AxisWidget, point: Readonly<CurrentPoint>): CanvasPoint {
+    private toCanvasPoint(div: AxisWidget, point: Readonly<CurrentPoint>): CanvasPoint {
         return { canvasX: point.currentX + div.cssLeft(), canvasY: point.currentY + div.cssTop() };
     }
 
@@ -340,7 +350,7 @@ export class AxisInteraction extends AbstractModuleInstance {
      * Fires the `axes[].listeners` callbacks and their chart-level `axisClick` / `axisDoubleClick`
      * counterparts. The picked value is resolved exactly as it is for the axis context menu.
      */
-    private dispatchAxisClick(axisId: AxisID, widgetEvent: _Widget.ClickWidgetEvent | _Widget.DblClickWidgetEvent) {
+    private dispatchAxisClick(axisId: AxisID, widgetEvent: ClickWidgetEvent | DblClickWidgetEvent) {
         // Keyboard-synthetic clicks carry no pointer coordinates, so there is nothing to pick.
         if (widgetEvent.device === 'keyboard') return;
 
@@ -395,7 +405,7 @@ export class AxisInteraction extends AbstractModuleInstance {
 
     private dispatchAxisContextMenu(
         axisId: AxisID,
-        widgetEvent: _Widget.MouseWidgetEvent<'contextmenu'>,
+        widgetEvent: MouseWidgetEvent<'contextmenu'>,
         canvasX: number,
         canvasY: number
     ) {

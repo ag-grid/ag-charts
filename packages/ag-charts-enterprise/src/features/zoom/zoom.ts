@@ -1,12 +1,16 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type {
     AxisID,
     BaseStyleTypeMap,
     CartesianAxisDirection,
+    DblClickWidgetEvent,
     DefinedZoomState,
+    DragWidgetEvent,
     DynamicContext,
     NormalisedSelectionOptions,
     NormalisedZoomOptions,
+    TouchWidgetEvent,
+    Widget,
     ZoomMinMax,
 } from 'ag-charts-core';
 import {
@@ -265,7 +269,7 @@ export class Zoom extends AbstractModuleInstance {
         this.destroyContextMenuActions = this.contextMenu.registerActions(enabled);
     }
 
-    private isIgnoredTouch(event: Pick<_Widget.DragWidgetEvent, 'device'> | undefined): boolean {
+    private isIgnoredTouch(event: Pick<DragWidgetEvent, 'device'> | undefined): boolean {
         if (event?.device !== 'touch') {
             return false;
         }
@@ -282,7 +286,7 @@ export class Zoom extends AbstractModuleInstance {
         return isMaxZoom(this.getZoom());
     }
 
-    private onSeriesAreaDoubleClick(event?: _Widget.DblClickWidgetEvent & { preventZoomDblClick?: boolean }) {
+    private onSeriesAreaDoubleClick(event?: DblClickWidgetEvent & { preventZoomDblClick?: boolean }) {
         const { enabled, enableDoubleClickToReset } = this.opts;
 
         if (!enabled || !enableDoubleClickToReset) return;
@@ -291,7 +295,7 @@ export class Zoom extends AbstractModuleInstance {
         this.resetZoom('zoom-seriesarea-dblclick');
     }
 
-    private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
+    private onSeriesAreaDragStart(event: DragWidgetEvent<'drag-start'>) {
         const { enabled, enablePanning, enableSelecting } = this.opts;
         const {
             ctx: { domManager },
@@ -332,7 +336,7 @@ export class Zoom extends AbstractModuleInstance {
         }
     }
 
-    private onSeriesAreaDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
+    private onSeriesAreaDragMove(event: DragWidgetEvent<'drag-move'>) {
         const { enabled } = this.opts;
         const {
             dragState,
@@ -508,7 +512,7 @@ export class Zoom extends AbstractModuleInstance {
         }
     }
 
-    private onAxisDragMove(axisId: AxisID, direction: ChartAxisDirection, event: _Widget.DragWidgetEvent<'drag-move'>) {
+    private onAxisDragMove(axisId: AxisID, direction: ChartAxisDirection, event: DragWidgetEvent<'drag-move'>) {
         const { anchorPointX, anchorPointY, enabled, enableAxisDragging } = this.opts;
         const {
             axisDragger,
@@ -740,20 +744,20 @@ export class Zoom extends AbstractModuleInstance {
         }
     }
 
-    private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>, current: _Widget.Widget) {
+    private onTouchStart(event: TouchWidgetEvent<'touchstart'>, current: Widget) {
         if (!this.opts.enableTwoFingerZoom || this.dragState !== DragState.None) return;
         if (this.twoFingers.start(event, current, this.getZoom())) {
             this.dragState = DragState.TwoFingers;
         }
     }
 
-    private onTouchMove(event: _Widget.TouchWidgetEvent<'touchmove'>, current: _Widget.Widget) {
+    private onTouchMove(event: TouchWidgetEvent<'touchmove'>, current: Widget) {
         if (!this.opts.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         const newZoom = this.twoFingers.update(event, current);
         this.updateZoom(userInteraction('zoom-seriesarea-twofingers'), constrainZoom(newZoom));
     }
 
-    private onTouchEnd(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>) {
+    private onTouchEnd(event: TouchWidgetEvent<'touchend' | 'touchcancel'>) {
         if (!this.opts.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         event.sourceEvent.preventDefault();
         if (this.twoFingers.end(event)) {

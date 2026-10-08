@@ -1,5 +1,4 @@
-import { createElement } from 'ag-charts-core';
-
+import { createElement } from '../dom/domElements';
 import { NativeWidget } from './nativeWidget';
 
 /**

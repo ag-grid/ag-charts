@@ -1,5 +1,4 @@
-import type { _Widget } from 'ag-charts-community';
-import type { DefinedZoomState, ZoomMinMax, ZoomState } from 'ag-charts-core';
+import type { DefinedZoomState, TouchWidgetEvent, Widget, ZoomMinMax, ZoomState } from 'ag-charts-core';
 
 // clientXY  (unit: px)          :  Touch screen points.
 // normalXY  (unit: N/A - ratio) :  Touch normalised points in [0, N] range.
@@ -51,7 +50,7 @@ export class ZoomTwoFingers {
     private readonly initialZoom: DefinedZoomState = { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } };
     private readonly previous = { a1: Number.NaN, a2: Number.NaN, b1: Number.NaN, b2: Number.NaN };
 
-    start(event: _Widget.TouchWidgetEvent<'touchstart'>, target: _Widget.Widget, zoom: ZoomState): boolean {
+    start(event: TouchWidgetEvent<'touchstart'>, target: Widget, zoom: ZoomState): boolean {
         if (event.sourceEvent.targetTouches.length !== 2) return false;
         event.sourceEvent.preventDefault();
 
@@ -91,7 +90,7 @@ export class ZoomTwoFingers {
         return true;
     }
 
-    update(event: _Widget.TouchWidgetEvent<'touchmove'>, target: _Widget.Widget): DefinedZoomState {
+    update(event: TouchWidgetEvent<'touchmove'>, target: Widget): DefinedZoomState {
         event.sourceEvent.preventDefault();
 
         const targetTouches = Array.from(event.sourceEvent.targetTouches);
@@ -110,7 +109,7 @@ export class ZoomTwoFingers {
         return this.twitchTolerantZoomPan4(x1, x2, a1, a2, y1, y2, b1, b2, Rx, Ry, Rw, Rh);
     }
 
-    end(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>): boolean {
+    end(event: TouchWidgetEvent<'touchend' | 'touchcancel'>): boolean {
         const identifiers = Array.from(event.sourceEvent.targetTouches).map((t) => t.identifier);
         return (
             !identifiers.includes(this.touchStart.origins[0].identifier) ||

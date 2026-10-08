@@ -1,5 +1,5 @@
-import type { _Widget } from 'ag-charts-community';
 import { debounce } from 'ag-charts-core';
+import type { WheelWidgetEvent } from 'ag-charts-core';
 
 export type ZoomWheelSequencerCbResult = 'abort' | 'capped' | 'uncapped';
 
@@ -14,7 +14,7 @@ export class ZoomWheelSequencer {
         this.wasFirstWheelEventZoomCapped = undefined;
     }, 100);
 
-    public onWheel(event: _Widget.WheelWidgetEvent, callback: ZoomWheelSequencerCb) {
+    public onWheel(event: WheelWidgetEvent, callback: ZoomWheelSequencerCb) {
         if (event.sourceEvent.cancelable === false) {
             return; // abort, because calling `preventDefault()` would have no effect (AG-16317).
         }

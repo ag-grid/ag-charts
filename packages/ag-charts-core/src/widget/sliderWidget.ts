@@ -1,5 +1,7 @@
-import { clamp, createElement, formatPercent, getAttribute, setAttribute } from 'ag-charts-core';
-
+import { clamp } from '../data/numbers';
+import { getAttribute, setAttribute } from '../dom/attributeUtil';
+import { createElement } from '../dom/domElements';
+import { formatPercent } from '../format/formatUtil';
 import type { RovingDirection } from './rovingDirection';
 import { Widget } from './widget';
 import type { FocusWidgetEvent, KeyboardWidgetEvent } from './widgetEvents';

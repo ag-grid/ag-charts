@@ -1,12 +1,9 @@
-import type { AxisID, BoxBounds, DynamicContext } from 'ag-charts-core';
+import type { AxisID, AxisWidget, BoundedTextWidget, BoxBounds, DynamicContext, Widget } from 'ag-charts-core';
+import { NativeWidget } from 'ag-charts-core';
 
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { AxisWidget } from '../../widget/axisWidget';
-import type { BoundedTextWidget } from '../../widget/boundedTextWidget';
-import { NativeWidget } from '../../widget/nativeWidget';
-import { type Widget } from '../../widget/widget';
 import { DragInterpreter, LongTapInterpreter } from './dragInterpreter';
 
 class DOMManagerWidget extends NativeWidget {

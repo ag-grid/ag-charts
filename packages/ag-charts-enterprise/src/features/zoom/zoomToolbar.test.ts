@@ -1,17 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { _ModuleSupport } from 'ag-charts-community';
+import { NativeWidget } from 'ag-charts-core';
 
 import { ZoomToolbar } from './zoomToolbar';
-
-const { NativeWidget } = _ModuleSupport;
 
 interface ZoomToolbarInternals {
     applyButtonSize(buttonSize: number | undefined): void;
     detectionRange: number;
     cachedContainerHeight: number | undefined;
     lastBottomY: number | undefined;
-    container: _ModuleSupport.NativeWidget<HTMLDivElement>;
+    container: NativeWidget<HTMLDivElement>;
     toolbar: { setButtonSize: (size?: number) => void; toggleClass: () => void; getElement: () => HTMLElement };
     verticalSpacing: number;
     shown: boolean;

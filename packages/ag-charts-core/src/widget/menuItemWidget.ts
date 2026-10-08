@@ -1,5 +1,5 @@
-import { createElement, setAttribute } from 'ag-charts-core';
-
+import { setAttribute } from '../dom/attributeUtil';
+import { createElement } from '../dom/domElements';
 import { AbstractButtonWidget } from './abstractButtonWidget';
 
 export class MenuItemWidget extends AbstractButtonWidget<HTMLDivElement> {

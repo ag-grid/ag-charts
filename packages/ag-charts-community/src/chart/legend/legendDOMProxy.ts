@@ -6,17 +6,20 @@ import {
     createElementId,
     toPlainText,
 } from 'ag-charts-core';
+import type {
+    ButtonWidget,
+    ClickWidgetEvent,
+    GroupWidget,
+    ListWidget,
+    MouseWidgetEvent,
+    SwitchWidget,
+} from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { Node } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
-import type { ButtonWidget } from '../../widget/buttonWidget';
-import type { GroupWidget } from '../../widget/groupWidget';
-import type { ListWidget } from '../../widget/listWidget';
-import type { SwitchWidget } from '../../widget/switchWidget';
-import type { ClickWidgetEvent, MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { Page } from '../gridLayout';
 import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';

@@ -1,15 +1,14 @@
-import type { ClientPoint } from 'ag-charts-core';
-import { CleanupRegistry, EventEmitter, attachListener } from 'ag-charts-core';
-
-import type { Widget } from '../../widget/widget';
 import type {
     ClickWidgetEvent,
+    ClientPoint,
     DblClickWidgetEvent,
     DragWidgetEvent,
     MouseWidgetEvent,
     TouchWidgetEvent,
+    Widget,
     WidgetEventMap,
-} from '../../widget/widgetEvents';
+} from 'ag-charts-core';
+import { CleanupRegistry, EventEmitter, attachListener } from 'ag-charts-core';
 
 const DRAG_THRESHOLD_PX = 3;
 const DOUBLE_TAP_TIMER_MS = 505;

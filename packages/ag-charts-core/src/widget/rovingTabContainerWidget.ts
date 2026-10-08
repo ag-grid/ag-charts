@@ -1,12 +1,7 @@
-import {
-    createElement,
-    getAttribute,
-    getPrevNextKeys,
-    hasNoModifiers,
-    isDirectionRtl,
-    setAttribute,
-} from 'ag-charts-core';
-
+import { getAttribute, setAttribute } from '../dom/attributeUtil';
+import { createElement } from '../dom/domElements';
+import { isDirectionRtl } from '../dom/domUtil';
+import { getPrevNextKeys, hasNoModifiers } from '../dom/keynavUtil';
 import type { ButtonWidget } from './buttonWidget';
 import type { MenuItemWidget } from './menuItemWidget';
 import type { NativeWidget } from './nativeWidget';

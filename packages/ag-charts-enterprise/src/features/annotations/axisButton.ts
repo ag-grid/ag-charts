@@ -1,6 +1,13 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { CurrentPoint, DynamicContext, Point } from 'ag-charts-core';
-import { AbstractModuleInstance, ChartAxisDirection, clamp, getIconClassNames } from 'ag-charts-core';
+import { _ModuleSupport } from 'ag-charts-community';
+import type {
+    ClickWidgetEvent,
+    CurrentPoint,
+    DragWidgetEvent,
+    DynamicContext,
+    MouseWidgetEvent,
+    Point,
+} from 'ag-charts-core';
+import { AbstractModuleInstance, ButtonWidget, ChartAxisDirection, clamp, getIconClassNames } from 'ag-charts-core';
 
 import { convert, invert } from './utils/values';
 
@@ -10,7 +17,7 @@ export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis
 export class AxisButton extends AbstractModuleInstance {
     public enabled = true;
 
-    private readonly button: _Widget.ButtonWidget;
+    private readonly button: ButtonWidget;
     private readonly snap: boolean = false;
     private padding: number = 0;
     private coords?: Point;
@@ -49,7 +56,7 @@ export class AxisButton extends AbstractModuleInstance {
     }
 
     private setup() {
-        const button = new _Widget.ButtonWidget();
+        const button = new ButtonWidget();
         button.addClass(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
         button.setTabIndex(-1);
         button.setAriaLabel(this.ctx.localeManager.t('ariaLabelAddHorizontalLine'));
@@ -61,11 +68,11 @@ export class AxisButton extends AbstractModuleInstance {
         this.ctx.domManager.removeChild('canvas-overlay', DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
     }
 
-    private onMouseMove(e: _Widget.MouseWidgetEvent<'mousemove'>) {
+    private onMouseMove(e: MouseWidgetEvent<'mousemove'>) {
         if (this.ctx.interactionManager.isState(InteractionState.Hoverable)) this.show(e);
     }
 
-    private onMouseDrag(e: _Widget.DragWidgetEvent) {
+    private onMouseDrag(e: DragWidgetEvent) {
         if (this.ctx.interactionManager.isState(InteractionState.AnnotationsMoveable)) this.show(e);
     }
 
@@ -73,7 +80,7 @@ export class AxisButton extends AbstractModuleInstance {
         if (this.ctx.interactionManager.isState(InteractionState.Hoverable)) this.hide();
     }
 
-    private onClick(e: _Widget.ClickWidgetEvent) {
+    private onClick(e: ClickWidgetEvent) {
         if (this.ctx.interactionManager.isState(InteractionState.Clickable) && e.device === 'touch') this.show(e);
     }
 

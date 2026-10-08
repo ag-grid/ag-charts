@@ -4,10 +4,15 @@ import type {
     CanvasPoint,
     ChartAxisDirection,
     ChartUpdateType,
+    DblClickWidgetEvent,
     DeepReadonly,
     DefinedZoomState,
+    DragWidgetEvent,
+    KeyboardWidgetEvent,
     LogIssue,
+    MouseWidgetEvent,
     Scale,
+    WheelWidgetEvent,
     ZoomMinMax,
     ZoomMinMaxDirection,
     ZoomState,
@@ -37,13 +42,6 @@ import type { AxisValuePick } from '../module/axisContext';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { SelectionInterface } from '../scene/selection';
-import type {
-    DblClickWidgetEvent,
-    DragWidgetEvent,
-    KeyboardWidgetEvent,
-    MouseWidgetEvent,
-    WheelWidgetEvent,
-} from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
 

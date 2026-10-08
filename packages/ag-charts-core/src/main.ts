@@ -179,6 +179,29 @@ export * from './dom/pixelRatioObserver';
 export * from './dom/sanitize';
 export * from './dom/sizeMonitor';
 
+// widget
+export * from './widget/abstractButtonWidget';
+export * from './widget/axisWidget';
+export * from './widget/boundedTextWidget';
+export * from './widget/buttonWidget';
+export * from './widget/collapseMode';
+export * from './widget/expandableWidget';
+export * from './widget/expansionControllerImpl';
+export * from './widget/groupWidget';
+export * from './widget/listWidget';
+export * from './widget/menuItemWidget';
+export * from './widget/menuWidget';
+export * from './widget/nativeWidget';
+export * from './widget/rovingDirection';
+export * from './widget/rovingTabContainerWidget';
+export * from './widget/sliderWidget';
+export * from './widget/switchWidget';
+export * from './widget/toolbarWidget';
+export * from './widget/widget';
+export * from './widget/widgetEvents';
+export * from './widget/widgetListenerHTML';
+export * from './widget/widgetListenerInternal';
+
 // rendering
 export * from './rendering/canvasUtil';
 export * from './rendering/changeDetectable';

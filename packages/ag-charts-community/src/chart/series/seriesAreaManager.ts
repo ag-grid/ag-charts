@@ -1,4 +1,19 @@
-import type { CallbackParamRules, CanvasPoint, CurrentPoint, DynamicContext, Point, Writeable } from 'ag-charts-core';
+import type {
+    CallbackParamRules,
+    CanvasPoint,
+    ClickWidgetEvent,
+    CurrentPoint,
+    DblClickWidgetEvent,
+    DragWidgetEvent,
+    DynamicContext,
+    KeyboardSyntheticWidgetEvent,
+    KeyboardWidgetEvent,
+    MouseWidgetEvent,
+    Point,
+    WheelWidgetEvent,
+    Widget,
+    Writeable,
+} from 'ag-charts-core';
 import { BaseManager, ChartUpdateType, Vec4, clamp, createId, debouncedAnimationFrame } from 'ag-charts-core';
 import type {
     AgActiveItemState,
@@ -29,16 +44,6 @@ import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import type { Node as SceneNode } from '../../scene/node';
 import { Transformable } from '../../scene/transformable';
-import type { Widget } from '../../widget/widget';
-import type {
-    ClickWidgetEvent,
-    DblClickWidgetEvent,
-    DragWidgetEvent,
-    KeyboardSyntheticWidgetEvent,
-    KeyboardWidgetEvent,
-    MouseWidgetEvent,
-    WheelWidgetEvent,
-} from '../../widget/widgetEvents';
 import type { ChartType } from '../chartType';
 import { type PendingCrossLineCallbacks, fireAllPendingCrossLineCallbacks } from '../crossline/crossLine';
 import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';

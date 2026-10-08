@@ -1,10 +1,4 @@
-import {
-    type AgAnnotation,
-    type AgAnnotationLineStyleType,
-    type Direction,
-    _ModuleSupport,
-    _Widget,
-} from 'ag-charts-community';
+import { type AgAnnotation, type AgAnnotationLineStyleType, type Direction, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
@@ -19,6 +13,7 @@ import {
     generateUUID,
     isValidDate,
 } from 'ag-charts-core';
+import type { ClickWidgetEvent, DblClickWidgetEvent, DragWidgetEvent, KeyboardWidgetEvent } from 'ag-charts-core';
 import type { AgAnnotationAxesButtons, AgNumericValue } from 'ag-charts-types';
 
 import { TextInput, type TextInputLayout } from '../text-input/textInput';
@@ -964,7 +959,7 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('hover', { offset, point, shiftKey, context });
     }
 
-    private onClick(event: _Widget.ClickWidgetEvent) {
+    private onClick(event: ClickWidgetEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -978,7 +973,7 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('click', { point, shiftKey, textInputValue, bbox });
     }
 
-    private onDoubleClick(event: _Widget.DblClickWidgetEvent) {
+    private onDoubleClick(event: DblClickWidgetEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -1030,13 +1025,13 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('resize', { textInputValue, bbox });
     }
 
-    private hoverTouchPreHandler(event: _Widget.ClickWidgetEvent | _Widget.DragWidgetEvent) {
+    private hoverTouchPreHandler(event: ClickWidgetEvent | DragWidgetEvent) {
         if (event.device === 'touch') {
             this.onHover(event);
         }
     }
 
-    private onDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
+    private onDragStart(event: DragWidgetEvent<'drag-start'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
 
         const context = this.getAnnotationContext();
@@ -1051,7 +1046,7 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('dragStart', { context, offset, point, textInputValue, bbox });
     }
 
-    private onDrag(event: _Widget.DragWidgetEvent<'drag-move'>) {
+    private onDrag(event: DragWidgetEvent<'drag-move'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
 
         const context = this.getAnnotationContext();
@@ -1070,7 +1065,7 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('dragEnd');
     }
 
-    private onCancel(widgetEvent?: _Widget.ClickWidgetEvent) {
+    private onCancel(widgetEvent?: ClickWidgetEvent) {
         const { sourceEvent } = widgetEvent ?? {};
         if (sourceEvent?.currentTarget !== sourceEvent?.target) return;
         this.cancel();
@@ -1098,7 +1093,7 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('textInput', { key, shiftKey, textInputValue, bbox, context });
     }
 
-    private onKeyDown(event: _Widget.KeyboardWidgetEvent<'keydown'>) {
+    private onKeyDown(event: KeyboardWidgetEvent<'keydown'>) {
         const { state } = this;
         const context = this.getAnnotationContext();
         if (!context) {
@@ -1162,7 +1157,7 @@ export class Annotations extends AbstractModuleInstance {
         }
     }
 
-    private onKeyUp(event: _Widget.KeyboardWidgetEvent<'keyup'>) {
+    private onKeyUp(event: KeyboardWidgetEvent<'keyup'>) {
         const { shiftKey } = event.sourceEvent;
         const context = this.getAnnotationContext();
         if (!context) {

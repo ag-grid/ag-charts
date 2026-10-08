@@ -1,6 +1,6 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { definedZoomState, entries } from 'ag-charts-core';
-import type { BoxBounds } from 'ag-charts-core';
+import type { BoxBounds, WheelWidgetEvent } from 'ag-charts-core';
 
 import { constrainZoom, dx, dy, pointToRatio, translateZoom } from '../zoom/zoomUtils';
 
@@ -10,13 +10,7 @@ type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
 const DELTA_SCALE = 200;
 
 export class ZoomScrollPanner {
-    update(
-        event: _Widget.WheelWidgetEvent,
-        step: number,
-        mode: 'pan' | 'zoom',
-        bbox: BoxBounds,
-        zooms: StateRetrieval
-    ): State {
+    update(event: WheelWidgetEvent, step: number, mode: 'pan' | 'zoom', bbox: BoxBounds, zooms: StateRetrieval): State {
         const deltaX = event.deltaX * step * DELTA_SCALE;
 
         // Remove the deltaY component if scrolling mode is zoom, to prevent leaking y scrolling when using a trackpad.

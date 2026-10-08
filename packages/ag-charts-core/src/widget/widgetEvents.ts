@@ -1,5 +1,5 @@
-import type { AreExact, ClientPoint, CurrentPoint, DeepReadonly } from 'ag-charts-core';
-
+import type { AreExact, DeepReadonly } from '../types/global';
+import type { ClientPoint, CurrentPoint } from '../types/scene';
 import type { CollapseWidgetEvent, ExpandControlledWidgetEvent, ExpandWidgetEvent } from './expandableWidget';
 
 // These types cannot be derived from `WIDGET_META`, because that would cause cyclical-referencing:

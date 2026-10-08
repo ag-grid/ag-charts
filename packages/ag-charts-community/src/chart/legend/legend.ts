@@ -1,4 +1,4 @@
-import type { DynamicContext } from 'ag-charts-core';
+import type { DynamicContext, MouseWidgetEvent, SwitchWidget } from 'ag-charts-core';
 import {
     type Callback,
     type CallbackParam,
@@ -37,8 +37,6 @@ import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Rect } from '../../scene/shape/rect';
 import { Transformable } from '../../scene/transformable';
-import type { SwitchWidget } from '../../widget/switchWidget';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ChartService } from '../chartService';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';

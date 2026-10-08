@@ -1,5 +1,5 @@
-import { createElement, setAttribute, setElementStyle } from 'ag-charts-core';
-
+import { setAttribute, setElementStyle } from '../dom/attributeUtil';
+import { createElement } from '../dom/domElements';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
 import type { SwitchWidget } from './switchWidget';
 import { type BeforeWidget, Widget } from './widget';
