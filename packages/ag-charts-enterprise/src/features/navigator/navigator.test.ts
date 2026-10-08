@@ -563,6 +563,76 @@ describe('Navigator', () => {
         });
     });
 
+    describe('theme params', () => {
+        const BASE_PARAMS = {
+            foregroundColor: 'red',
+            borderColor: 'blue',
+            chartBackgroundColor: 'green',
+            borderRadius: 7,
+        };
+
+        const PARAM_CASES: Record<string, { params: object; navigator?: object; baseTheme?: string }> = {
+            'defaults from the base params': { params: BASE_PARAMS },
+            'dark theme defaults': { params: {}, baseTheme: 'ag-default-dark' },
+            'defaults with a border width': { params: { borderWidth: 3 } },
+            'every param': {
+                params: {
+                    navigatorTrackBackgroundColor: 'red',
+                    navigatorTrackBorder: { color: 'blue', width: 3 },
+                    navigatorTrackBorderRadius: 2,
+                    navigatorThumbBackgroundColor: 'yellow',
+                    navigatorHandleBackgroundColor: 'green',
+                    navigatorHandleBorder: { color: 'purple', width: 2 },
+                    navigatorHandleBorderRadius: 5,
+                },
+            },
+            'true borders': {
+                params: { borderColor: 'blue', navigatorTrackBorder: true, navigatorHandleBorder: true },
+            },
+            'false borders': {
+                params: { borderColor: 'blue', navigatorTrackBorder: false, navigatorHandleBorder: false },
+            },
+            'navigator options over the params': {
+                params: {
+                    navigatorTrackBackgroundColor: 'red',
+                    navigatorThumbBackgroundColor: 'red',
+                    navigatorHandleBorderRadius: 5,
+                },
+                navigator: { track: { fill: 'blue' }, thumb: { fill: 'blue' }, minHandle: { cornerRadius: 1 } },
+            },
+        };
+
+        const render = async (params: object, navigator: object = {}, baseTheme = 'ag-default') => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                navigator: { enabled: true, miniChart: {}, ...navigator },
+                initialState: { zoom: { ratioX: { start: 0.2, end: 0.7 } } },
+                theme: { baseTheme, params } as AgCartesianChartOptions['theme'],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        };
+
+        it.each(Object.entries(PARAM_CASES))(
+            'for %s it should render to canvas as expected',
+            async (_name, { params, navigator, baseTheme }) => {
+                await render(params, navigator, baseTheme);
+
+                expectWarningsCalls().toEqual([]);
+            }
+        );
+
+        it('for the deprecated mask over the track params it should render to canvas as expected', async () => {
+            await render({ navigatorTrackBackgroundColor: 'red' }, { mask: { fill: 'blue' } });
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`navigator.mask` is deprecated. Use `navigator.track`')],
+            ]);
+        });
+    });
+
     describe('track and thumb options', () => {
         const create = async (navigator: object) => {
             const options: AgCartesianChartOptions = {

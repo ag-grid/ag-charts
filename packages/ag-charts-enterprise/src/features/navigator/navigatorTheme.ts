@@ -1,4 +1,9 @@
-import { type AgMiniChartSeriesOptions, type AgNavigatorOptions, type WithThemeParams } from 'ag-charts-community';
+import {
+    type AgMiniChartSeriesOptions,
+    type AgNavigatorHandleOptions,
+    type AgNavigatorOptions,
+    type WithThemeParams,
+} from 'ag-charts-community';
 import { FONT_SIZE_RATIO } from 'ag-charts-core';
 
 import {
@@ -139,17 +144,39 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
     };
 }
 
+type StrokeTheme = WithThemeParams<Required<Pick<AgNavigatorHandleOptions, 'stroke' | 'strokeWidth'>>>;
+type BorderParam = 'navigatorTrackBorder' | 'navigatorHandleBorder';
+
+// `true` means the default border colour at width 1, `false` disables the border.
+function borderStroke(param: BorderParam, colorRef: `${BorderParam}.color`): StrokeTheme['stroke'] {
+    return { $if: [{ $isType: [{ $ref: param }, 'boolean'] }, { $ref: 'borderColor' }, { $ref: colorRef }] };
+}
+
+function borderStrokeWidth(param: BorderParam, widthRef: `${BorderParam}.width`): StrokeTheme['strokeWidth'] {
+    return { $if: [{ $isType: [{ $ref: param }, 'boolean'] }, { $if: [{ $ref: param }, 1, 0] }, { $ref: widthRef }] };
+}
+
+const NAVIGATOR_HANDLE_THEME: WithThemeParams<AgNavigatorHandleOptions> = {
+    fill: { $ref: 'navigatorHandleBackgroundColor' },
+    stroke: borderStroke('navigatorHandleBorder', 'navigatorHandleBorder.color'),
+    strokeWidth: borderStrokeWidth('navigatorHandleBorder', 'navigatorHandleBorder.width'),
+    width: 12,
+    height: 24,
+    cornerRadius: { $ref: 'navigatorHandleBorderRadius' },
+};
+
 export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
     enabled: false,
     height: { $if: [{ $path: './miniChart/enabled' }, 40, 18] },
     spacing: 10,
-    cornerRadius: 4,
-    // Deprecated `mask` seeds `track`, so either name works and an explicit `track` wins.
+    cornerRadius: { $ref: 'navigatorTrackBorderRadius' },
+    // Deprecated `mask` seeds `track`, so either name works and an explicit `track` wins. The track params live here
+    // rather than on `track` so that a user `mask` still overrides them.
     mask: {
-        fill: { $ref: 'foregroundColor' },
+        fill: { $ref: 'navigatorTrackBackgroundColor' },
         fillOpacity: 0.1,
-        stroke: { $ref: 'borderColor' },
-        strokeWidth: 1,
+        stroke: borderStroke('navigatorTrackBorder', 'navigatorTrackBorder.color'),
+        strokeWidth: borderStrokeWidth('navigatorTrackBorder', 'navigatorTrackBorder.width'),
     },
     track: {
         fill: { $path: '../mask/fill' },
@@ -159,25 +186,11 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
     },
     // Transparent by default so the selected range looks as it did before `thumb` existed.
     thumb: {
-        fill: 'transparent',
+        fill: { $ref: 'navigatorThumbBackgroundColor' },
         fillOpacity: 1,
     },
-    minHandle: {
-        fill: { $ref: 'chartBackgroundColor' },
-        stroke: { $ref: 'borderColor' },
-        strokeWidth: 1,
-        width: 12,
-        height: 24,
-        cornerRadius: 4,
-    },
-    maxHandle: {
-        fill: { $ref: 'chartBackgroundColor' },
-        stroke: { $ref: 'borderColor' },
-        strokeWidth: 1,
-        width: 12,
-        height: 24,
-        cornerRadius: 4,
-    },
+    minHandle: NAVIGATOR_HANDLE_THEME,
+    maxHandle: NAVIGATOR_HANDLE_THEME,
     miniChart: {
         enabled: false,
         label: {
