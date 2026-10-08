@@ -263,11 +263,11 @@ export class ChartTheme {
             },
 
             navigatorTrackBackgroundColor: { $ref: 'foregroundColor' },
-            navigatorTrackBorder: { color: { $ref: 'borderColor' }, width: 1 },
+            navigatorTrackBorder: { color: { $ref: 'borderColor' }, width: { $ref: 'borderWidth' } },
             navigatorTrackBorderRadius: { $ref: 'borderRadius' },
             navigatorThumbBackgroundColor: 'transparent',
             navigatorHandleBackgroundColor: { $ref: 'chartBackgroundColor' },
-            navigatorHandleBorder: { color: { $ref: 'borderColor' }, width: 1 },
+            navigatorHandleBorder: { color: { $ref: 'borderColor' }, width: { $ref: 'borderWidth' } },
             navigatorHandleBorderRadius: { $ref: 'borderRadius' },
 
             seriesLabelBorder: false,
