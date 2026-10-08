@@ -122,11 +122,8 @@ function usePreserveWindowScrollWhileEditing(inputRef: RefObject<HTMLInputElemen
                 frame = undefined;
             }
         };
-        const onBeforeInput = () => {
-            cancelFrame();
-            saved = { x: window.scrollX, y: window.scrollY };
-        };
-        const onInput = () => {
+        // An edit can be cancelled or have no effect, so disarming must not depend on `input` firing.
+        const disarmAfterPaint = () => {
             cancelFrame();
             frame = requestAnimationFrame(() => {
                 frame = requestAnimationFrame(() => {
@@ -135,6 +132,10 @@ function usePreserveWindowScrollWhileEditing(inputRef: RefObject<HTMLInputElemen
                 });
             });
         };
+        const onBeforeInput = () => {
+            saved = { x: window.scrollX, y: window.scrollY };
+            disarmAfterPaint();
+        };
         const onScroll = () => {
             if (saved && (window.scrollX !== saved.x || window.scrollY !== saved.y)) {
                 window.scrollTo(saved.x, saved.y);
@@ -142,12 +143,12 @@ function usePreserveWindowScrollWhileEditing(inputRef: RefObject<HTMLInputElemen
         };
 
         input.addEventListener('beforeinput', onBeforeInput);
-        input.addEventListener('input', onInput);
+        input.addEventListener('input', disarmAfterPaint);
         window.addEventListener('scroll', onScroll, { passive: true });
         return () => {
             cancelFrame();
             input.removeEventListener('beforeinput', onBeforeInput);
-            input.removeEventListener('input', onInput);
+            input.removeEventListener('input', disarmAfterPaint);
             window.removeEventListener('scroll', onScroll);
         };
     }, [inputRef]);
