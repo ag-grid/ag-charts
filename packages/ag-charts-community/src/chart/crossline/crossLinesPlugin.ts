@@ -1,5 +1,6 @@
 import type {
     AxisPluginModuleInstance,
+    BBox,
     CallbackParamRules,
     CanvasPoint,
     DynamicContext,
@@ -8,14 +9,12 @@ import type {
     PlacedLabel,
     PointLabelDatum,
 } from 'ag-charts-core';
-import { AbstractModuleInstance, jsonDiff } from 'ag-charts-core';
+import { AbstractModuleInstance, Group, jsonDiff } from 'ag-charts-core';
 import type { AgCrossLineClickEvent } from 'ag-charts-types';
 
 import type { SeriesAreaCanvasClickEvent, SeriesAreaContextMenuEvent } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import type { ChartAxisRegistry } from '../../module/moduleContext';
-import type { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
 import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import type { PlacedLabelSource } from '../layout/labelManager';

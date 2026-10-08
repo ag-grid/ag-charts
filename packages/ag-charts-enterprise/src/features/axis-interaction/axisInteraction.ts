@@ -11,7 +11,7 @@ import type {
     DynamicContext,
     MouseWidgetEvent,
 } from 'ag-charts-core';
-import { AbstractModuleInstance, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
+import { AbstractModuleInstance, BBox, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
 
 import { resolveAxisAriaLabels } from './axisAriaLabels';
 
@@ -21,7 +21,7 @@ type ProxyAxis = {
     axisId: AxisID;
     direction: ChartAxisDirection;
     div: AxisWidget;
-    bounds?: _ModuleSupport.BBox;
+    bounds?: BBox;
     ariaLabel?: string;
 };
 
@@ -66,7 +66,7 @@ export class AxisInteraction extends AbstractModuleInstance {
     private hoveredAxisId: string | undefined;
     private draggingAxisId: string | undefined;
 
-    private seriesRect: _ModuleSupport.BBox | undefined;
+    private seriesRect: BBox | undefined;
 
     constructor(readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -179,7 +179,7 @@ export class AxisInteraction extends AbstractModuleInstance {
                 axis.bounds = undefined;
             } else {
                 this.ctx.widgets.axisWidgets.setRegionBounds(axis.axisId, bbox);
-                axis.bounds = new _ModuleSupport.BBox(bbox.x, bbox.y, bbox.width, bbox.height);
+                axis.bounds = new BBox(bbox.x, bbox.y, bbox.width, bbox.height);
             }
             // Signal interactivity only on axes that actually have a click listener.
             const needsCursor: boolean = !hasDraggableAxes(this.ctx) && hasAxisClickListener(chartService, axisCtx);

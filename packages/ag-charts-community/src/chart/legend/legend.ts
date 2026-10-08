@@ -1,5 +1,6 @@
-import type { DynamicContext, MouseWidgetEvent, SwitchWidget } from 'ag-charts-core';
+import type { DynamicContext, MouseWidgetEvent, Scene, SwitchWidget } from 'ag-charts-core';
 import {
+    BBox,
     type Callback,
     type CallbackParam,
     ChartUpdateType,
@@ -7,10 +8,16 @@ import {
     FILL_GRADIENT_BLANK_DEFAULTS,
     FILL_IMAGE_BLANK_DEFAULTS,
     FILL_PATTERN_BLANK_DEFAULTS,
+    Group,
     type ITextMeasurer,
     LineSplitter,
+    Node,
     type NormalisedLegendOptions,
     type NormalisedLegendPaginationOptions,
+    Rect,
+    Selection,
+    Transformable,
+    TranslatableGroup,
     ZIndexMap,
     cachedTextMeasurer,
     callWithContext,
@@ -30,13 +37,6 @@ import type { AgChartLegendContextMenuEvent, AgMarkerShapeFn } from 'ag-charts-t
 
 import type { ActiveLoadMementoEvent, HighlightNodeDatum } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
-import { Group, TranslatableGroup } from '../../scene/group';
-import { Node } from '../../scene/node';
-import type { Scene } from '../../scene/scene';
-import { Selection } from '../../scene/selection';
-import { Rect } from '../../scene/shape/rect';
-import { Transformable } from '../../scene/transformable';
 import type { ChartService } from '../chartService';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';

@@ -11,6 +11,9 @@ import type {
 } from 'ag-charts-core';
 import {
     FONT_SIZE,
+    PointerEvents,
+    RotatableText,
+    Transformable,
     callWithContext,
     createId,
     fitLabelTextAutoSize,
@@ -29,9 +32,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
-import { PointerEvents } from '../scene/node';
-import { RotatableText } from '../scene/shape/text';
-import { Transformable } from '../scene/transformable';
 import type { CaptionLike } from './captionLike';
 import { expandLabelPadding } from './label';
 import type { TooltipContent } from './tooltip/tooltipContent';

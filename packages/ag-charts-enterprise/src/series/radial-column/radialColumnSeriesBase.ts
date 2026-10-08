@@ -1,6 +1,7 @@
 import type { AgRadialSeriesLabelFormatterParams, AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type BBox,
     CategoryScale,
     ChartAxisDirection,
     type DomainWithMetadata,
@@ -10,7 +11,10 @@ import {
     type NormalisedRadialColumnSeriesBaseOwnOptions,
     type NormalisedTextOrSegments,
     type Point,
+    type RadialColumnShape,
     type RequireOptional,
+    type Sector,
+    type Selection,
     isDefined,
     isGradientFill,
     maxValue,
@@ -81,8 +85,7 @@ interface RadialColumnSeriesNodeDataContext extends _ModuleSupport.DataModelSeri
 }
 
 export abstract class RadialColumnSeriesBase<
-    ItemPathType extends
-        _ModuleSupport.Sector<RadialColumnNodeDatum> | _ModuleSupport.RadialColumnShape<RadialColumnNodeDatum>,
+    ItemPathType extends Sector<RadialColumnNodeDatum> | RadialColumnShape<RadialColumnNodeDatum>,
     TOptions extends NormalisedRadialColumnSeriesBaseOwnOptions = NormalisedRadialColumnSeriesBaseOwnOptions,
 > extends _ModuleSupport.PolarSeries<
     RadialColumnNodeDatum,
@@ -408,7 +411,7 @@ export abstract class RadialColumnSeriesBase<
         return Number.NaN;
     }
 
-    update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
+    update({ seriesRect }: { seriesRect?: BBox }) {
         const resize = this.checkResize(seriesRect);
         this.maybeRefreshNodeData();
 
@@ -433,10 +436,7 @@ export abstract class RadialColumnSeriesBase<
 
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
-    protected updateSectorSelection(
-        selection: _ModuleSupport.Selection<RadialColumnNodeDatum, ItemPathType>,
-        isHighlight: boolean
-    ) {
+    protected updateSectorSelection(selection: Selection<RadialColumnNodeDatum, ItemPathType>, isHighlight: boolean) {
         const { contextNodeData } = this;
         if (!contextNodeData) {
             return;

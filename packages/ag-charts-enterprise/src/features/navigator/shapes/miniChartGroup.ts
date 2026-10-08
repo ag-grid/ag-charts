@@ -1,7 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { SceneChangeDetection } from 'ag-charts-core';
-
-const { TranslatableGroup } = _ModuleSupport;
+import { SceneChangeDetection, TranslatableGroup } from 'ag-charts-core';
+import type { BBox, CanvasContext } from 'ag-charts-core';
 
 export class MiniChartGroup extends TranslatableGroup {
     @SceneChangeDetection()
@@ -10,7 +8,7 @@ export class MiniChartGroup extends TranslatableGroup {
     @SceneChangeDetection()
     cornerRadius = 0;
 
-    protected override applyClip(ctx: _ModuleSupport.CanvasContext, clipRect: _ModuleSupport.BBox) {
+    protected override applyClip(ctx: CanvasContext, clipRect: BBox) {
         const { cornerRadius, inset } = this;
         const { x, y, width, height } = clipRect;
 

@@ -1,12 +1,6 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-    type AgCartesianChartOptions,
-    type AgChartInstance,
-    type AgChartOptions,
-    AgCharts,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -35,6 +29,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
 import {
@@ -692,11 +687,7 @@ describe('OhlcSeries', () => {
             expect(nodeData).toBeDefined();
             const node = nodeData![nodeIndex];
             expect(node).toBeDefined();
-            return _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.centerX,
-                node.y + node.height / 2
-            );
+            return Transformable.toCanvasPoint(series.contentGroup, node.centerX, node.y + node.height / 2);
         }
 
         async function clickCandle(nodeIndex: number) {

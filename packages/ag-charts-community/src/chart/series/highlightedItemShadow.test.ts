@@ -1,12 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { Group, Rect, Sector, Shape } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import { Group } from '../../scene/group';
-import { Rect } from '../../scene/shape/rect';
-import { Sector } from '../../scene/shape/sector';
-import { Shape } from '../../scene/shape/shape';
 import { Marker } from '../marker/marker';
 import { HIGHLIGHT_SHADOW, SERIES_SHADOW } from '../test/shadowFixtures';
 import {

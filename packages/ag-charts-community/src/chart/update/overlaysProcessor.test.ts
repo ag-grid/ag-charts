@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { AgDocument, EventEmitter, Logger, getDocument } from 'ag-charts-core';
+import { AgDocument, BBox, EventEmitter, Logger, getDocument } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { BBox } from '../../scene/bbox';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import { ChartOverlays } from '../overlay/chartOverlays';

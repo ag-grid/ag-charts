@@ -10,6 +10,8 @@ import {
     type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
+    Sector,
+    SectorBox,
     angleBetween,
     isDefined,
     isGradientFill,
@@ -17,6 +19,7 @@ import {
     minValue,
     zeroLike,
 } from 'ag-charts-core';
+import type { BBox, GradientParams, Selection } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
@@ -40,8 +43,6 @@ const {
     seriesLabelFadeOutAnimation,
     animationValidation,
     createDatumId,
-    Sector,
-    SectorBox,
     motion,
     updateLabelNode,
     getItemStyles,
@@ -65,7 +66,7 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly outerRadius: number;
     readonly startAngle: number;
     readonly endAngle: number;
-    readonly clipSector: _ModuleSupport.SectorBox;
+    readonly clipSector: SectorBox;
     readonly reversed: boolean;
     readonly index: number;
     style?: Required<AgRadialSeriesStyle>;
@@ -81,7 +82,7 @@ export interface RadialBarSeriesNodeDataContext extends _ModuleSupport.DataModel
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
     NormalisedRadialBarSeriesOwnOptions,
-    _ModuleSupport.Sector<RadialBarNodeDatum>,
+    Sector<RadialBarNodeDatum>,
     RadialBarNodeDatum,
     RadialBarSeriesNodeDataContext
 > {
@@ -114,7 +115,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
-    protected override nodeFactory(): _ModuleSupport.Sector<RadialBarNodeDatum> {
+    protected override nodeFactory(): Sector<RadialBarNodeDatum> {
         return new Sector<RadialBarNodeDatum>();
     }
 
@@ -368,7 +369,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return context;
     }
 
-    update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
+    update({ seriesRect }: { seriesRect?: BBox }) {
         const resize = this.checkResize(seriesRect);
         this.maybeRefreshNodeData();
 
@@ -392,7 +393,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateSectorSelection(
-        selection: _ModuleSupport.Selection<RadialBarNodeDatum, _ModuleSupport.Sector<RadialBarNodeDatum>>,
+        selection: Selection<RadialBarNodeDatum, Sector<RadialBarNodeDatum>>,
         isHighlight: boolean
     ) {
         let selectionData: RadialBarNodeDatum[] = [];
@@ -463,7 +464,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 const cornerRadius = style.cornerRadius;
 
                 const fill = style.fill;
-                const fillParams: _ModuleSupport.GradientParams | undefined =
+                const fillParams: GradientParams | undefined =
                     isGradientFill(fill) && fill.bounds !== 'item' ? { centerX: 0, centerY: 0 } : undefined;
 
                 node.setStyleProperties(style as NormalisedRadialSeriesStyle, fillBBox, fillParams);

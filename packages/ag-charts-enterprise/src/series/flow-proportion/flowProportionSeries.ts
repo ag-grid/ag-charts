@@ -6,16 +6,21 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type {
+    BBox,
     ChartAnimationPhase,
     ChartAxisDirection,
     DistantObject,
     DomainWithMetadata,
     FillStrokeMorph,
     InternalAgColorType,
+    Node,
     Normalised,
     NormalisedFlowProportionSeriesKeys,
+    Path,
     Point,
+    Text,
 } from 'ag-charts-core';
+import { Group, Selection, TransformableText } from 'ag-charts-core';
 
 import {
     type FlowLinkDatumIndex,
@@ -32,18 +37,8 @@ import {
 } from './flowDatumIndex';
 import { computeNodeGraph } from './flowProportionUtil';
 
-const {
-    findNodeDatumInArray,
-    keyProperty,
-    valueProperty,
-    DataController,
-    DataSet,
-    Group,
-    HighlightState,
-    Selection,
-    Series,
-    TransformableText,
-} = _ModuleSupport;
+const { findNodeDatumInArray, keyProperty, valueProperty, DataController, DataSet, HighlightState, Series } =
+    _ModuleSupport;
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
@@ -97,8 +92,8 @@ export abstract class FlowProportionSeries<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
     TLabel,
     TOptions extends NormalisedFlowProportionSeriesKeys,
-    TNode extends _ModuleSupport.Node<TNodeDatum> & DistantObject,
-    TLink extends _ModuleSupport.Node<TLinkDatum> & DistantObject,
+    TNode extends Node<TNodeDatum> & DistantObject,
+    TLink extends Node<TLinkDatum> & DistantObject,
 > extends Series<
     TDatum<TNodeDatum, TLinkDatum>,
     TOptions,
@@ -140,29 +135,27 @@ export abstract class FlowProportionSeries<
     private readonly focusNodeGroup = this.highlightGroup.appendChild(new Group({ name: 'nodeGroup' }));
     private readonly highlightLinkGroup = this.highlightGroup.appendChild(new Group({ name: 'linkGroup' }));
 
-    private labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText<TLabel>> =
-        Selection.select(this.labelGroup, TransformableText<TLabel>);
-    public linkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.selectNoInference(
-        this.linkGroup,
-        () => this.linkFactory()
+    private labelSelection: Selection<TLabel, TransformableText<TLabel>> = Selection.select(
+        this.labelGroup,
+        TransformableText<TLabel>
     );
-    public nodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.selectNoInference(
-        this.nodeGroup,
-        () => this.nodeFactory()
+    public linkSelection: Selection<TLinkDatum, TLink> = Selection.selectNoInference(this.linkGroup, () =>
+        this.linkFactory()
     );
-    private focusLinkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.selectNoInference(
-        this.focusLinkGroup,
-        () => this.linkFactory()
+    public nodeSelection: Selection<TNodeDatum, TNode> = Selection.selectNoInference(this.nodeGroup, () =>
+        this.nodeFactory()
     );
-    private focusNodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.selectNoInference(
-        this.focusNodeGroup,
-        () => this.nodeFactory()
+    private focusLinkSelection: Selection<TLinkDatum, TLink> = Selection.selectNoInference(this.focusLinkGroup, () =>
+        this.linkFactory()
     );
-    private highlightLinkSelection: _ModuleSupport.Selection<TLinkDatum, TLink> = Selection.selectNoInference(
+    private focusNodeSelection: Selection<TNodeDatum, TNode> = Selection.selectNoInference(this.focusNodeGroup, () =>
+        this.nodeFactory()
+    );
+    private highlightLinkSelection: Selection<TLinkDatum, TLink> = Selection.selectNoInference(
         this.highlightLinkGroup,
         () => this.linkFactory()
     );
-    private highlightNodeSelection: _ModuleSupport.Selection<TNodeDatum, TNode> = Selection.selectNoInference(
+    private highlightNodeSelection: Selection<TNodeDatum, TNode> = Selection.selectNoInference(
         this.highlightNodeGroup,
         () => this.nodeFactory()
     );
@@ -450,7 +443,7 @@ export abstract class FlowProportionSeries<
         }
     }
 
-    override update(opts: { seriesRect?: _ModuleSupport.BBox }) {
+    override update(opts: { seriesRect?: BBox }) {
         const { seriesRect } = opts;
         const newNodeDataDependencies = {
             seriesRectWidth: seriesRect?.width ?? 0,
@@ -585,35 +578,33 @@ export abstract class FlowProportionSeries<
 
     protected abstract updateLabelSelection(opts: {
         labelData: TLabel[];
-        labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText<TLabel>>;
-    }): _ModuleSupport.Selection<TLabel, _ModuleSupport.TransformableText<TLabel>>;
+        labelSelection: Selection<TLabel, TransformableText<TLabel>>;
+    }): Selection<TLabel, TransformableText<TLabel>>;
 
-    protected abstract updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<TLabel, _ModuleSupport.Text<TLabel>>;
-    }): void;
+    protected abstract updateLabelNodes(opts: { labelSelection: Selection<TLabel, Text<TLabel>> }): void;
 
     protected abstract updateNodeSelection(opts: {
         nodeData: TNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<TNodeDatum, TNode>;
-    }): _ModuleSupport.Selection<TNodeDatum, TNode>;
+        datumSelection: Selection<TNodeDatum, TNode>;
+    }): Selection<TNodeDatum, TNode>;
 
     /**
      * `focusedDatum` is the hovered item when `datumSelection` is the focus layer, which redraws it among its
      * neighbours. That copy casts no shadow: the hovered item's shadow is cast by exactly one other copy.
      */
     protected abstract updateNodeNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<TNodeDatum, TNode>;
+        datumSelection: Selection<TNodeDatum, TNode>;
         isHighlight: boolean;
         focusedDatum?: TNodeDatum | TLinkDatum;
     }): void;
 
     protected abstract updateLinkSelection(opts: {
         nodeData: TLinkDatum[];
-        datumSelection: _ModuleSupport.Selection<TLinkDatum, TLink>;
-    }): _ModuleSupport.Selection<TLinkDatum, TLink>;
+        datumSelection: Selection<TLinkDatum, TLink>;
+    }): Selection<TLinkDatum, TLink>;
 
     protected abstract updateLinkNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<TLinkDatum, TLink>;
+        datumSelection: Selection<TLinkDatum, TLink>;
         isHighlight: boolean;
         focusedDatum?: TNodeDatum | TLinkDatum;
     }): void;
@@ -692,7 +683,7 @@ export abstract class FlowProportionSeries<
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
-        let minNode: _ModuleSupport.Node<unknown> | undefined;
+        let minNode: Node<unknown> | undefined;
 
         this.linkSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);
@@ -739,7 +730,7 @@ export abstract class FlowProportionSeries<
         }
     }
 
-    protected abstract computeFocusBounds(node: TNode | TLink): _ModuleSupport.BBox | _ModuleSupport.Path | undefined;
+    protected abstract computeFocusBounds(node: TNode | TLink): BBox | Path | undefined;
 
     public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
         const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;

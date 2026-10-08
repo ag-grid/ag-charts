@@ -4,12 +4,12 @@ import {
     type LabelFit,
     type NormalisedTextOrSegments,
     fitLabelText,
+    isPointInSector,
     resolveLabelFit,
     sectorLabelContainer,
 } from 'ag-charts-core';
 import type { TextWrap } from 'ag-charts-types';
 
-import { isPointInSector } from '../scene/util/sector';
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { setupMockConsole } from '../util/test/mockConsole';
 import {

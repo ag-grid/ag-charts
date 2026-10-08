@@ -1,4 +1,5 @@
 import {
+    BBox,
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
     ChartAxisDirection,
@@ -15,7 +16,6 @@ import {
 } from 'ag-charts-core';
 import type { AgCartesianSeriesOptions, DatumDefault, SeriesPredictAxis } from 'ag-charts-types';
 
-import { BBox } from '../../../scene/bbox';
 import type { ChartAxis } from '../../chartAxis';
 
 function isAxisReversed(axis: ChartAxis) {

@@ -6,6 +6,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type {
+    BBox,
     BoxBounds,
     DomainWithMetadata,
     DynamicContext,
@@ -21,9 +22,13 @@ import type {
     PointLabelDatum,
     PositionedCandidateResolver,
     RequireOptional,
+    Text,
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
+    Group,
+    PointerEvents,
+    Selection,
     SeriesZIndexMap,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
@@ -62,9 +67,6 @@ const {
     resetLabelFn,
     animationValidation,
     computeBarFocusBounds,
-    Group,
-    Selection,
-    PointerEvents,
     motion,
     checkCrisp,
     createDatumId,
@@ -147,7 +149,7 @@ export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum
     // Required for types
     readonly crisp: boolean;
     readonly opacity?: number;
-    readonly clipBBox?: _ModuleSupport.BBox;
+    readonly clipBBox?: BBox;
 }
 
 interface FunnelConnectorDatum {
@@ -722,7 +724,7 @@ export abstract class BaseFunnelSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: FunnelNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.NodeOf<TTypes>>;
+        datumSelection: Selection<FunnelNodeDatum, _ModuleSupport.NodeOf<TTypes>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -731,7 +733,7 @@ export abstract class BaseFunnelSeries<
 
     private updateConnectorSelection(opts: {
         connectorData: FunnelConnectorDatum[];
-        connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector<FunnelConnectorDatum>>;
+        connectorSelection: Selection<FunnelConnectorDatum, FunnelConnector<FunnelConnectorDatum>>;
     }) {
         const { connectorData, connectorSelection } = opts;
         return connectorSelection.update(this.connectorEnabled() ? connectorData : [], undefined, (connector) =>
@@ -740,7 +742,7 @@ export abstract class BaseFunnelSeries<
     }
 
     private updateConnectorNodes(opts: {
-        connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector<FunnelConnectorDatum>>;
+        connectorSelection: Selection<FunnelConnectorDatum, FunnelConnector<FunnelConnectorDatum>>;
     }) {
         const fillBBox = this.getShapeFillBBox();
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
@@ -786,7 +788,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<FunnelNodeLabelDatum, _ModuleSupport.Text<FunnelNodeLabelDatum>>;
+        labelSelection: Selection<FunnelNodeLabelDatum, Text<FunnelNodeLabelDatum>>;
         isHighlight?: boolean;
     }) {
         const params = this.labelStylerParams();
@@ -954,7 +956,7 @@ export abstract class BaseFunnelSeries<
         return this.options.label.enabled;
     }
 
-    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
     }
 

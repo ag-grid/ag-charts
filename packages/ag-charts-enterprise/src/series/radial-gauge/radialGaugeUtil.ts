@@ -8,20 +8,21 @@ import {
     type NormalisedRadialGaugeBarOptions,
     type NormalisedRadialGaugeScaleOptions,
     type NormalisedRadialGaugeTargetOptions,
+    SectorBox,
+    getColorStops,
     normalizeAngle360,
     normalizeAngle360Inclusive,
     toDegrees,
     toNumberOrUndefined,
     toPlainText,
 } from 'ag-charts-core';
+import type { Sector, Selection, Text } from 'ag-charts-core';
 import type { AgGaugeFillMode, AgNumericValue } from 'ag-charts-types';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
 import type { RadialGaugeNeedle } from './radialGaugeNeedle';
 import { LabelType, type RadialGaugeLabelDatum } from './radialGaugeTypes';
-
-const { SectorBox, getColorStops } = _ModuleSupport;
 
 export function createConicGradient(
     fills: NormalisedGaugeColorStop[] | undefined,
@@ -137,7 +138,7 @@ interface DefinedClipSector {
 type SectorAnimation = {
     startAngle: number;
     endAngle: number;
-    clipSector: _ModuleSupport.SectorBox | undefined;
+    clipSector: SectorBox | undefined;
 };
 
 type AnimatableNeedleDatum = {
@@ -166,7 +167,7 @@ function computeClipSector(datum: AnimatableSectorDatum) {
     );
 }
 
-function clipSectorVisibility(startAngle: number, endAngle: number, clipSector: _ModuleSupport.SectorBox) {
+function clipSectorVisibility(startAngle: number, endAngle: number, clipSector: SectorBox) {
     return Math.max(startAngle, clipSector.startAngle) <= Math.min(endAngle, clipSector.endAngle);
 }
 
@@ -183,11 +184,7 @@ function datumClipSector(datum: AnimatableSectorDatum & DefinedClipSector, zero:
 export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean, initialStartAngle: number) {
     const phase = initialLoad ? 'initial' : 'update';
 
-    const node: _ModuleSupport.FromToFns<
-        AnimatableSectorDatum,
-        _ModuleSupport.Sector<AnimatableSectorDatum>,
-        SectorAnimation
-    > = {
+    const node: _ModuleSupport.FromToFns<AnimatableSectorDatum, Sector<AnimatableSectorDatum>, SectorAnimation> = {
         fromFn(sect, datum) {
             const previousDatum = sect.previousDatum;
             let { startAngle, endAngle } = previousDatum ?? datum;
@@ -198,7 +195,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
                     : undefined;
             const nextClipSector = hasClipSector(datum) ? datumClipSector(datum, initialLoad) : undefined;
 
-            let clipSector: _ModuleSupport.SectorBox | undefined;
+            let clipSector: SectorBox | undefined;
             if (previousClipSector != null && nextClipSector != null) {
                 // Clip sector updated
                 clipSector = previousClipSector;
@@ -222,7 +219,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
         toFn(_sect, datum) {
             const { startAngle, endAngle } = datum;
 
-            let clipSector: _ModuleSupport.SectorBox | undefined;
+            let clipSector: SectorBox | undefined;
             if (hasClipSector(datum)) {
                 clipSector = datumClipSector(datum, false);
             }
@@ -271,7 +268,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
     return { node, needle };
 }
 
-export function resetRadialGaugeSeriesResetSectorFunction(_node: _ModuleSupport.Sector, datum: AnimatableSectorDatum) {
+export function resetRadialGaugeSeriesResetSectorFunction(_node: Sector, datum: AnimatableSectorDatum) {
     const { startAngle, endAngle } = datum;
     const clipSector = computeClipSector(datum);
     const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
@@ -292,7 +289,7 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 export function formatRadialGaugeLabels(
     series: _ModuleSupport.Series<any, any, any>,
     ctx: Ctx,
-    selection: _ModuleSupport.Selection<RadialGaugeLabelDatum, _ModuleSupport.Text<RadialGaugeLabelDatum>>,
+    selection: Selection<RadialGaugeLabelDatum, Text<RadialGaugeLabelDatum>>,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
     datumOverrides?: { label: AgNumericValue | undefined; secondaryLabel: AgNumericValue | undefined }

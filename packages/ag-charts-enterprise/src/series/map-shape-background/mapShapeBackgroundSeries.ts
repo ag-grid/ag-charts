@@ -1,5 +1,6 @@
 import { type AgMapShapeBackgroundThemeableOptions, _ModuleSupport } from 'ag-charts-community';
 import type {
+    BBox,
     DynamicContext,
     FeatureCollection,
     FillStrokeMorph,
@@ -7,6 +8,7 @@ import type {
     Normalised,
     NormalisedMapShapeBackgroundSeriesOwnOptions,
 } from 'ag-charts-core';
+import { Group, PointerEvents, Selection } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -16,7 +18,7 @@ import type { MercatorScale } from '../map-util/mercatorScale';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
 
-const { createDatumId, Selection, Group, PointerEvents } = _ModuleSupport;
+const { createDatumId } = _ModuleSupport;
 
 type NormalisedMapShapeBackgroundStyle = Normalised<AgMapShapeBackgroundThemeableOptions, never, FillStrokeMorph>;
 
@@ -187,13 +189,13 @@ export class MapShapeBackgroundSeries
 
     private updateDatumSelection(opts: {
         nodeData: MapShapeBackgroundNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<MapShapeBackgroundNodeDatum, GeoGeometry<MapShapeBackgroundNodeDatum>>;
+        datumSelection: Selection<MapShapeBackgroundNodeDatum, GeoGeometry<MapShapeBackgroundNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.index));
     }
 
     private updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<MapShapeBackgroundNodeDatum, GeoGeometry<MapShapeBackgroundNodeDatum>>;
+        datumSelection: Selection<MapShapeBackgroundNodeDatum, GeoGeometry<MapShapeBackgroundNodeDatum>>;
     }) {
         const { datumSelection } = opts;
 
@@ -227,7 +229,7 @@ export class MapShapeBackgroundSeries
         return undefined;
     }
 
-    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): BBox | undefined {
         return undefined;
     }
 

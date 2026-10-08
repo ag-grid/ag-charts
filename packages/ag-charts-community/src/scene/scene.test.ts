@@ -1,11 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { Logger, ambientLogger } from 'ag-charts-core';
+import { Group, Logger, Scene, ambientLogger } from 'ag-charts-core';
+import type { RenderContext } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
-import { Group } from './group';
-import { type RenderContext } from './node';
-import { Scene } from './scene';
 
 class CapturingGroup extends Group {
     captured?: RenderContext;

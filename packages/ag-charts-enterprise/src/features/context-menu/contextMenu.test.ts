@@ -15,7 +15,7 @@ import {
     setupMockPointerEvent,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { ChartAxisDirection } from 'ag-charts-core';
+import { ChartAxisDirection, Transformable } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
 import { pointOnPolarCrossLine, polarCanvasPoint, polarCrossLineAt } from '../../test/polarCrossLines';
@@ -106,7 +106,7 @@ describe('Context Menu', () => {
         const series = deproxy(chart).series[0] as any;
         const node = series.getNodeData()[datumIndex];
         expect(node).toBeDefined();
-        return _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
+        return Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
     }
 
     function seriesAreaCentre() {
@@ -133,7 +133,7 @@ describe('Context Menu', () => {
         const [crossLine] = _ModuleSupport.getCrossLinesPlugin(axis)?.getInstances() ?? [];
         expect(crossLine).toBeInstanceOf(_ModuleSupport.CartesianCrossLine);
         const { labelGroup } = crossLine as _ModuleSupport.CartesianCrossLine;
-        const { x, y, width, height } = _ModuleSupport.Transformable.toCanvas(labelGroup);
+        const { x, y, width, height } = Transformable.toCanvas(labelGroup);
         return { x: x + width / 2, y: y + height / 2 };
     }
 
@@ -252,11 +252,7 @@ describe('Context Menu', () => {
         const nodeCanvasPoint = (datumIndex: number) => {
             const series = deproxy(chart).series[0] as any;
             const node = series.getNodeData()[datumIndex];
-            return _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.x + node.width / 2,
-                node.y + node.height / 2
-            );
+            return Transformable.toCanvasPoint(series.contentGroup, node.x + node.width / 2, node.y + node.height / 2);
         };
 
         it('passes the bin source rows to getItems as datums', async () => {
@@ -675,7 +671,7 @@ describe('Context Menu', () => {
         function histogramBinCentre(datumIndex: number) {
             const series = deproxy(chart).series[0] as any;
             const node = series.getNodeData()[datumIndex];
-            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(
                 series.contentGroup,
                 node.x + node.width / 2,
                 node.y + node.height / 2
@@ -694,7 +690,7 @@ describe('Context Menu', () => {
         };
 
         function titleCentre() {
-            const { x, y, width, height } = _ModuleSupport.Transformable.toCanvas(deproxy(chart).title.node);
+            const { x, y, width, height } = Transformable.toCanvas(deproxy(chart).title.node);
             return { x: x + width / 2, y: y + height / 2 };
         }
 
@@ -792,7 +788,7 @@ describe('Context Menu', () => {
             // A caption maps a pointer event back into canvas space as `offset + bboxOrigin`, so the offsets
             // synthesised for it must be relative to the caption rather than to the canvas. The click was
             // aimed at the caption's centre.
-            const bbox = _ModuleSupport.Transformable.toCanvas(deproxy(chart).title.node);
+            const bbox = Transformable.toCanvas(deproxy(chart).title.node);
             expect((params.event as MouseEvent).offsetX).toBeCloseTo(bbox.width / 2, 5);
             expect((params.event as MouseEvent).offsetY).toBeCloseTo(bbox.height / 2, 5);
             expect(params.allShowOnParams).toHaveLength(1);

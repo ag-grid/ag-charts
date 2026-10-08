@@ -1,4 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { Line } from 'ag-charts-core';
 
 type AnimatableBarDatum = {
     x: number;
@@ -8,9 +8,6 @@ type AnimatableBarDatum = {
     opacity?: number;
 };
 
-export function resetLineSelectionsFn(
-    _node: _ModuleSupport.Line,
-    { x, y, width, height, opacity }: AnimatableBarDatum
-) {
+export function resetLineSelectionsFn(_node: Line, { x, y, width, height, opacity }: AnimatableBarDatum) {
     return { x1: x, y1: y, x2: x + width, y2: y + height, opacity: opacity ?? 1 };
 }

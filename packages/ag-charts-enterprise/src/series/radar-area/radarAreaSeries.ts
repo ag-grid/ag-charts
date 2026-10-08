@@ -11,18 +11,18 @@ import type {
     NormalisedRadarAreaSeriesOwnOptions,
     RequireOptional,
 } from 'ag-charts-core';
-import { ChartAxisDirection } from 'ag-charts-core';
+import { ChartAxisDirection, Group, Path, PointerEvents, Selection } from 'ag-charts-core';
 
 import { type RadarPathPoint, RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
 
-const { Group, HighlightState, Path, PointerEvents, Selection, toHighlightString, toSelectionString } = _ModuleSupport;
+const { HighlightState, toHighlightString, toSelectionString } = _ModuleSupport;
 
 export class RadarAreaSeries extends RadarSeries<AgRadarAreaSeriesStyle, NormalisedRadarAreaSeriesOwnOptions> {
     static override readonly className = 'RadarAreaSeries';
     static readonly type = 'radar-area' as const;
 
     private readonly areaGroup = this.contentGroup.appendChild(new Group<boolean>({ name: 'radar-area' }));
-    protected areaSelection = Selection.select<_ModuleSupport.Path<boolean>>(this.areaGroup, Path<boolean>);
+    protected areaSelection = Selection.select<Path<boolean>>(this.areaGroup, Path<boolean>);
 
     override resetInvalidToZero = true;
 

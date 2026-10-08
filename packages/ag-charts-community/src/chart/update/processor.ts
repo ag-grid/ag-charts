@@ -1,6 +1,4 @@
-import type { AxisID, ChartAxisDirection, Scale } from 'ag-charts-core';
-
-import type { Group } from '../../scene/group';
+import type { AxisID, ChartAxisDirection, Group, Scale } from 'ag-charts-core';
 
 /** Interface to abstract from the actual chart implementation. */
 export interface ChartLike {

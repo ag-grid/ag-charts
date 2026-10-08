@@ -1,9 +1,7 @@
-import type { Scale } from 'ag-charts-core';
+import type { BBox, Path, Scale } from 'ag-charts-core';
 import { ChartAxisDirection, ContinuousScale, type Point, clamp, objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
-import type { BBox } from '../../scene/bbox';
-import type { Path } from '../../scene/shape/path';
 import type { DataController } from '../data/dataController';
 import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
 import type { PropertyDefinition } from '../data/dataModelTypes';

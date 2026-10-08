@@ -1,15 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger } from 'ag-charts-core';
+import { Group, Logger, Path, Rect, Scene, Translatable, releaseShadowScratch } from 'ag-charts-core';
+import type { Shape } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
-import { Group } from './group';
-import { Scene } from './scene';
-import { releaseShadowScratch } from './shadowCompositor';
-import { Path } from './shape/path';
-import { Rect } from './shape/rect';
-import type { Shape } from './shape/shape';
-import { Translatable } from './transformable';
 
 const WIDTH = 400;
 const HEIGHT = 220;

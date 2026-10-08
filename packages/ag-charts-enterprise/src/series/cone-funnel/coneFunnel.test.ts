@@ -6,7 +6,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
@@ -24,6 +24,7 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 
 import {
     DEFAULT_DISABLED_SHADOW,
@@ -156,7 +157,7 @@ describe('ConeFunnelSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]
@@ -198,7 +199,7 @@ describe('ConeFunnelSeries', () => {
             for (const { legend } of deproxy(chart).modulesManager.legends()) {
                 const markerLabels = (legend as any).itemSelection?._nodes ?? [];
                 for (const label of markerLabels) {
-                    const { x, y } = _ModuleSupport.Transformable.toCanvas(label).computeCenter();
+                    const { x, y } = Transformable.toCanvas(label).computeCenter();
                     await clickAction(x, y)(chartInstance);
                     await waitForChartStability(chart);
                     await compare();

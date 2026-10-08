@@ -1,10 +1,9 @@
-import { CleanupRegistry, isUnsupportedBrowser } from 'ag-charts-core';
+import { BBox, CleanupRegistry, isUnsupportedBrowser } from 'ag-charts-core';
 
 import type { EventsHub, LayoutCompleteEvent } from '../../core/eventsHub';
 import type { DOMElementProxy } from '../../dom/domElementProxy';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { BBox } from '../../scene/bbox';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';

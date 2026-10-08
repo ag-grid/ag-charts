@@ -1,7 +1,7 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
-import { type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     BIG,
     type Chart,
@@ -24,6 +24,8 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Group, Rect, Transformable } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
 import {
@@ -44,11 +46,7 @@ async function hoverDatumByIndex(chart: Chart, seriesIndex: number, datumIndex: 
     expect(nodeData).toBeDefined();
     const datum = nodeData!.find((n) => n.datumIndex === datumIndex);
     expect(datum).toBeDefined();
-    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
-        series.contentGroup,
-        datum!.point.x,
-        datum!.point.y
-    );
+    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(series.contentGroup, datum!.point.x, datum!.point.y);
     await hoverAction(x, y)(chart);
     await waitForChartStability(chart, hideDelay);
 }
@@ -1359,10 +1357,10 @@ describe('HeatmapSeries', () => {
         // Rect.serializeProps() omits the corner-radius fields, so neither the image snapshot nor the
         // scene-graph JSON can witness this option — the node has to be read directly.
         const cellRects = (target: Chart) => {
-            const rects: _ModuleSupport.Rect[] = [];
-            const visit = (node: _ModuleSupport.Node) => {
-                if (node instanceof _ModuleSupport.Rect) rects.push(node);
-                if (node instanceof _ModuleSupport.Group) {
+            const rects: Rect[] = [];
+            const visit = (node: Node) => {
+                if (node instanceof Rect) rects.push(node);
+                if (node instanceof Group) {
                     for (const child of node.children()) visit(child);
                 }
             };

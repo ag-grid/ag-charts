@@ -1,9 +1,8 @@
 import type { CanvasPoint, Scale } from 'ag-charts-core';
-import { ChartAxisDirection, ZIndexMap, iterate } from 'ag-charts-core';
+import { BBox, ChartAxisDirection, ZIndexMap, iterate } from 'ag-charts-core';
 import type { AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
-import { BBox } from '../scene/bbox';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import { PolarChartAxes } from './chartAxes';

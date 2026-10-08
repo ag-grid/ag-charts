@@ -1,0 +1,111 @@
+import { clearContext, debugContext } from '../../rendering/canvasUtil';
+import { deviceDimension } from '../../rendering/pixel';
+import { releaseSpreadCanvas } from './spreadCanvas';
+
+// Work-around for typing issues with Angular 13+.
+type OffscreenCanvasRenderingContext2D = any;
+
+export interface CanvasOptions {
+    canvasElement: HTMLCanvasElement;
+    pixelRatio: number;
+    width?: number;
+    height?: number;
+    willReadFrequently?: boolean;
+}
+
+/**
+ * Wraps the native Canvas element and overrides its CanvasRenderingContext2D to
+ * provide resolution independent rendering based on `window.devicePixelRatio`.
+ */
+export class HdpiCanvas {
+    readonly element: HTMLCanvasElement;
+    readonly context: CanvasRenderingContext2D & { verifyDepthZero?: () => void };
+
+    width: number = 600;
+    height: number = 300;
+    pixelRatio: number;
+
+    private direction: CanvasDirection = 'ltr';
+
+    constructor(options: CanvasOptions) {
+        const { width, height, willReadFrequently = false } = options;
+
+        this.element = options.canvasElement;
+        this.pixelRatio = options.pixelRatio;
+
+        // iOS/iPadOS Safari runs out of memory or renders blurry unless width/height are set before
+        // getContext; `display: block` stops inline-block layout inflating the height.
+        this.element.style.display = 'block';
+        this.element.style.width = (width ?? this.width) + 'px';
+        this.element.style.height = (height ?? this.height) + 'px';
+        this.element.width = deviceDimension(this.pixelRatio, width ?? this.width);
+        this.element.height = deviceDimension(this.pixelRatio, height ?? this.height);
+
+        this.context = this.element.getContext('2d', { willReadFrequently })!;
+        this.context.direction = this.direction;
+
+        // Apply the DPR transform at construction: the first Scene.resize callback may match the
+        // seeded width/height and be short-circuited by its equality check.
+        this.resize(width ?? this.width, height ?? this.height, this.pixelRatio);
+
+        debugContext(this.context);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents -- OffscreenCanvasRenderingContext2D is intentionally `any` for Angular 13+ compatibility (AG-6969)
+    drawImage(context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, dx = 0, dy = 0) {
+        return context.drawImage(this.context.canvas, dx, dy);
+    }
+
+    toDataURL(type?: string): string {
+        return this.element.toDataURL(type);
+    }
+
+    resize(width: number, height: number, pixelRatio: number) {
+        if (!(width > 0 && height > 0)) return;
+
+        const { element, context } = this;
+        if (width !== this.width || height !== this.height || pixelRatio !== this.pixelRatio) {
+            // The scratch canvases are capped at the layer size, so they would otherwise pile up per size.
+            releaseSpreadCanvas(context);
+        }
+        element.width = deviceDimension(pixelRatio, width);
+        element.height = deviceDimension(pixelRatio, height);
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+        element.style.width = width + 'px';
+        element.style.height = height + 'px';
+
+        this.width = width;
+        this.height = height;
+        this.pixelRatio = pixelRatio;
+    }
+
+    setDirection(isRtl: boolean) {
+        this.direction = isRtl ? 'rtl' : 'ltr';
+        this.element.dir = this.direction;
+        this.context.direction = this.direction;
+    }
+
+    clear() {
+        clearContext(this);
+    }
+
+    destroy() {
+        this.element.remove();
+        releaseSpreadCanvas(this.context);
+
+        // Workaround memory allocation quirks in iOS Safari by resizing to 0x0 and clearing.
+        // See https://bugs.webkit.org/show_bug.cgi?id=195325.
+        this.element.width = 0;
+        this.element.height = 0;
+        this.context.clearRect(0, 0, 0, 0);
+
+        Object.freeze(this);
+    }
+
+    reset() {
+        this.context.reset();
+        this.context.verifyDepthZero?.();
+        this.context.direction = this.direction;
+    }
+}

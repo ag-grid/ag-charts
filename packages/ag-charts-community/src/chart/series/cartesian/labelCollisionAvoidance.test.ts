@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { Transformable } from 'ag-charts-core';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { Transformable } from '../../../scene/transformable';
 import { expectPixelIdenticalAcrossUpdate } from '../../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

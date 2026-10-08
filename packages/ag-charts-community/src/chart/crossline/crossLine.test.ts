@@ -1,11 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    BBox,
     ChartUpdateType,
     type CrossLineLabelOverflow,
     type DynamicContext,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
+    Transformable,
     cachedTextMeasurer,
     getDocument,
     mapValues,
@@ -24,8 +26,6 @@ import type {
 
 import { AgCharts } from '../../api/agCharts';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
-import { Transformable } from '../../scene/transformable';
 import type { Chart } from '../chart';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import type { CartesianTestCase } from '../test/utils';

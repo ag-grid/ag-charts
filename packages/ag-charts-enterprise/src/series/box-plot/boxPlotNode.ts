@@ -1,10 +1,15 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { Logger } from 'ag-charts-core';
-import { SceneArrayChangeDetection, SceneChangeDetection } from 'ag-charts-core';
+import type { CanvasContext, CornerRadii, Logger } from 'ag-charts-core';
+import {
+    BBox,
+    ExtendedPath2D,
+    Path,
+    Scalable,
+    SceneArrayChangeDetection,
+    SceneChangeDetection,
+    clippedRoundRect as baseClippedRoundRect,
+} from 'ag-charts-core';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
-
-const { Path, Scalable, ExtendedPath2D, BBox, clippedRoundRect: baseClippedRoundRect } = _ModuleSupport;
 
 export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     private readonly wickPath = new ExtendedPath2D();
@@ -68,7 +73,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     @SceneChangeDetection()
     wickStrokeAlignment: number = 0;
 
-    protected override computeBBox(): _ModuleSupport.BBox | undefined {
+    protected override computeBBox(): BBox | undefined {
         const { horizontal, center, thickness, min, max } = this;
         return horizontal
             ? new BBox(Math.min(min, max), center - thickness / 2, Math.abs(max - min), thickness)
@@ -76,7 +81,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     }
 
     /** The path's own bounds miss separately styled whiskers, which the silhouette pre-pass is sized from. */
-    override computeBBoxWithoutTransforms(): _ModuleSupport.BBox | undefined {
+    override computeBBoxWithoutTransforms(): BBox | undefined {
         return this.computeBBox();
     }
 
@@ -88,7 +93,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         return this.crisp;
     }
 
-    override computeDefaultGradientFillBBox(): _ModuleSupport.BBox {
+    override computeDefaultGradientFillBBox(): BBox {
         const { horizontal, center, thickness, q1, q3 } = this;
         return horizontal
             ? new BBox(Math.min(q1, q3), center - thickness / 2, Math.abs(q3 - q1), thickness)
@@ -241,11 +246,11 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         }
     }
 
-    protected override renderSilhouetteExtras(ctx: _ModuleSupport.CanvasContext) {
+    protected override renderSilhouetteExtras(ctx: CanvasContext) {
         this.strokeWicks(ctx);
     }
 
-    protected override dilateSilhouetteExtras(ctx: _ModuleSupport.CanvasContext, growth: number) {
+    protected override dilateSilhouetteExtras(ctx: CanvasContext, growth: number) {
         const { wickPath, strokeWidth, wickStrokeWidth = strokeWidth } = this;
         if (this.getSilhouetteExtrasOpacity() <= 0) return;
 
@@ -280,7 +285,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         return Math.max(0, wickStrokeOpacity) * this.getWickColourAlpha(wickStroke);
     }
 
-    private strokeWicks(ctx: _ModuleSupport.CanvasContext) {
+    private strokeWicks(ctx: CanvasContext) {
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
 
@@ -315,7 +320,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     }
 }
 
-function moveTo(path: _ModuleSupport.ExtendedPath2D, horizontal: boolean, x: number, y: number) {
+function moveTo(path: ExtendedPath2D, horizontal: boolean, x: number, y: number) {
     if (horizontal) {
         // eslint-disable-next-line sonarjs/arguments-order
         path.moveTo(y, x);
@@ -324,7 +329,7 @@ function moveTo(path: _ModuleSupport.ExtendedPath2D, horizontal: boolean, x: num
     }
 }
 
-function lineTo(path: _ModuleSupport.ExtendedPath2D, horizontal: boolean, x: number, y: number) {
+function lineTo(path: ExtendedPath2D, horizontal: boolean, x: number, y: number) {
     if (horizontal) {
         // eslint-disable-next-line sonarjs/arguments-order
         path.lineTo(y, x);
@@ -334,14 +339,14 @@ function lineTo(path: _ModuleSupport.ExtendedPath2D, horizontal: boolean, x: num
 }
 
 function clippedRoundRect(
-    path: _ModuleSupport.ExtendedPath2D,
+    path: ExtendedPath2D,
     horizontal: boolean,
     x: number,
     y: number,
     width: number,
     height: number,
-    cornerRadii: _ModuleSupport.CornerRadii,
-    clipBBox: _ModuleSupport.BBox | undefined
+    cornerRadii: CornerRadii,
+    clipBBox: BBox | undefined
 ) {
     if (horizontal) {
         baseClippedRoundRect(

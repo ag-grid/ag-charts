@@ -1,5 +1,5 @@
-import type { _ModuleSupport } from 'ag-charts-community';
 import { deproxy } from 'ag-charts-community-test';
+import type { Rect, Text } from 'ag-charts-core';
 
 interface SceneNode {
     readonly name?: string;
@@ -19,7 +19,7 @@ export function findSceneNodes<T extends SceneNode>(chart: Parameters<typeof dep
 }
 
 export const totalSegmentBlocks = (chart: Parameters<typeof deproxy>[0]) =>
-    findSceneNodes<_ModuleSupport.Rect>(chart, 'axis-inset-value-block').filter((node) => node.visible !== false);
+    findSceneNodes<Rect>(chart, 'axis-inset-value-block').filter((node) => node.visible !== false);
 
 export const totalSegmentLabels = (chart: Parameters<typeof deproxy>[0]) =>
-    findSceneNodes<_ModuleSupport.Text>(chart, 'axis-inset-value-label').filter((node) => node.visible !== false);
+    findSceneNodes<Text>(chart, 'axis-inset-value-label').filter((node) => node.visible !== false);

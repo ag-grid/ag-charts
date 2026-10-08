@@ -1,8 +1,7 @@
-import type { NormalisedBasePolarAxisOptions, Scale } from 'ag-charts-core';
+import type { BBox, NormalisedBasePolarAxisOptions, Scale } from 'ag-charts-core';
 import type { AgAxisCrossLineListeners } from 'ag-charts-types';
 
 import type { AxisContext, PolarAxisLayout } from '../../module/axisContext';
-import type { BBox } from '../../scene/bbox';
 import { Axis } from './axis';
 import type { TickInterval } from './axisTick';
 import { resetAxisLabelSelectionFn } from './axisUtil';

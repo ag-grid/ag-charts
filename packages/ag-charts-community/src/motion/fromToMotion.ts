@@ -1,8 +1,6 @@
-import { type Interpolating, easeOut } from 'ag-charts-core';
+import { type Interpolating, type Node, type SelectionInterface, easeOut } from 'ag-charts-core';
 
 import type { AnimationManager } from '../chart/interaction/animationManager';
-import type { Node } from '../scene/node';
-import type { SelectionInterface } from '../scene/selection';
 import type { AnimationPhase, AnimationValue } from './animation';
 import { deconstructSelectionsOrNodes } from './animation';
 

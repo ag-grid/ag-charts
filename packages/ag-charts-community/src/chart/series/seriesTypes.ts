@@ -1,9 +1,12 @@
 import type {
+    BBox,
     BoxBounds,
     CandidateStyleResolver,
     ChartAxisDirection,
     DomainWithMetadata,
+    Group,
     LabelObstacle,
+    Node,
     PlacedLabel,
     Point,
     PointLabelDatum,
@@ -21,9 +24,6 @@ import type {
     SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
 
-import type { BBox } from '../../scene/bbox';
-import type { Group } from '../../scene/group';
-import type { Node } from '../../scene/node';
 import type { ProcessedData } from '../data/dataModelTypes';
 import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';

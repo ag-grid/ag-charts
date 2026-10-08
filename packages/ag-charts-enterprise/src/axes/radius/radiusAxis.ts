@@ -4,16 +4,21 @@ import {
     type AxisID,
     ChartAxisDirection,
     type DynamicContext,
+    Group,
+    Line,
     type NormalisedBaseRadiusAxisOptions,
+    Path,
     type Scale,
+    Selection,
+    TransformableGroup,
     ZIndexMap,
     isNumberEqual,
     normalizeAngle360,
     toRadians,
 } from 'ag-charts-core';
+import type { Arc } from 'ag-charts-core';
 
-const { Group, TransformableGroup, Path, Line, Selection, generateTicks, getAxisLabelSideFlag, AxisGroupZIndexMap } =
-    _ModuleSupport;
+const { generateTicks, getAxisLabelSideFlag, AxisGroupZIndexMap } = _ModuleSupport;
 
 interface GeneratedTicks {
     ticks: _ModuleSupport.TickDatum[];
@@ -25,7 +30,7 @@ export abstract class RadiusAxis<
     D = unknown,
     TOptions extends NormalisedBaseRadiusAxisOptions = NormalisedBaseRadiusAxisOptions,
 > extends _ModuleSupport.PolarAxis<S, D, TOptions> {
-    protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line<_ModuleSupport.TickDatum>>(
+    protected gridLineGroupSelection = Selection.select<Line<_ModuleSupport.TickDatum>>(
         this.gridLineGroup,
         Line,
         false
@@ -217,7 +222,7 @@ export abstract class RadiusAxis<
         }
 
         const styleCount = style.length;
-        const setStyle = (node: _ModuleSupport.Path | _ModuleSupport.Arc, index: number) => {
+        const setStyle = (node: Path | Arc, index: number) => {
             const { stroke, lineDash } = style[index % styleCount];
             node.stroke = stroke;
             node.strokeWidth = width;
@@ -228,7 +233,7 @@ export abstract class RadiusAxis<
         const [startAngle, endAngle] = this.gridRange ?? [0, 2 * Math.PI];
         const isFullCircle = isNumberEqual(endAngle - startAngle, 2 * Math.PI);
 
-        const drawCircleShape = (node: _ModuleSupport.Path, value: any) => {
+        const drawCircleShape = (node: Path, value: any) => {
             const { path } = node;
             path.clear(true);
             const radius = this.getTickRadius(value);
@@ -244,7 +249,7 @@ export abstract class RadiusAxis<
             }
         };
 
-        const drawPolygonShape = (node: _ModuleSupport.Path, value: any) => {
+        const drawPolygonShape = (node: Path, value: any) => {
             const { path } = node;
             const angles = this.gridAngles;
             path.clear(true);

@@ -1,8 +1,8 @@
 import type { AxisID, EventListener } from 'ag-charts-core';
+import { BBox } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgScrollbarPlacement } from 'ag-charts-types';
 
 import type { AxisLayout, EventsHub } from '../../core/eventsHub';
-import { BBox } from '../../scene/bbox';
 
 export interface LayoutContext {
     width: number;

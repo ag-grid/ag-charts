@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { Chart } from 'ag-charts-community-test';
-import { ChartAxisDirection } from 'ag-charts-core';
+import { ChartAxisDirection, Transformable } from 'ag-charts-core';
 
 import type { PolarCrossLine } from '../axes/polar-crosslines/polarCrossLine';
 
@@ -21,7 +21,7 @@ export function polarCrossLineAt(target: Chart, axisId: string, index = 0) {
 }
 
 export function polarCanvasPoint(instance: PolarCrossLine, radius: number, angle: number) {
-    return _ModuleSupport.Transformable.toCanvasPoint(
+    return Transformable.toCanvasPoint(
         instance.type === 'range' ? instance.rangeGroup : instance.lineGroup,
         radius * Math.cos(angle),
         radius * Math.sin(angle)

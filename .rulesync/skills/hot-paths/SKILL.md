@@ -72,7 +72,7 @@ the threshold on a single PR.
 | Tier | Runs | Where |
 |------|------|-------|
 | 1 | per datum, per `SERIES_UPDATE` — up to 1e6 | `chart/series/**`, `enterprise/src/series/**`, `chart/data/data-model/**`, `chart/data/{dataModel,dataSet,processors,aggregateFunctions}.ts`, core `utils/aggregation.ts`, `utils/data/**`, `utils/geometry/**`, `utils/text/textWrapper.ts` |
-| 2 | per animation frame, per node | `scene/**`, `motion/**`, `chart/marker/**`, `series/**/*Node.ts`, `series/**/*Shape.ts` |
+| 2 | per animation frame, per node | core `scene/**`, `motion/**`, `chart/marker/**`, `series/**/*Node.ts`, `series/**/*Shape.ts` |
 | 3 | per pointer move, data transaction or chart update | `chart/interaction/**`, the rest of `chart/data/**`, `chart/axis/**`, `chart/tooltip/**`, `chart/series/{seriesAreaManager,pickManager}.ts`, core `chart/scale/**`, `dom/**`, `enterprise/src/features/**`, `chart.ts` |
 | 4 | once per bundle load | `module/**`, `module-bundles/**`, `main.ts` — a size-limit question, not a benchmark one |
 

@@ -10,7 +10,7 @@ import type {
     AgSelectionChangeEvent,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     BIG,
     type Chart,
@@ -40,6 +40,8 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { PointerEvents, Selection, Transformable, TransformableText } from 'ag-charts-core';
+import type { Sector } from 'ag-charts-core';
 
 import {
     DEFAULT_DISABLED_SHADOW,
@@ -216,7 +218,7 @@ describe('SunburstSeries', () => {
             const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = leaf;
             const r = (innerRadius + outerRadius) / 2;
             const theta = (startAngle + endAngle) / 2;
-            const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+            const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                 (series as any).contentGroup,
                 centerX + r * Math.cos(theta),
                 centerY + r * Math.sin(theta)
@@ -351,7 +353,7 @@ describe('SunburstSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]
@@ -1230,7 +1232,7 @@ describe('SunburstSeries', () => {
             return chart.series[0] as SunburstSeries;
         };
         const sectors = (series: SunburstSeries) => {
-            const nodes: _ModuleSupport.Sector[] = [];
+            const nodes: Sector[] = [];
             // The synthetic root node has a sector that is never shown.
             series.datumSelection.each((sector) => sector.visible && nodes.push(sector));
             return nodes;
@@ -1626,7 +1628,7 @@ describe('SunburstSeries', () => {
 
         const nameTooltip = { renderer: ({ datum }: any) => datum.name };
         const hoverAt = async (series: SunburstSeries, radius: number, theta: number, settleDelay?: number) => {
-            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(
                 (series as any).contentGroup,
                 radius * Math.cos(theta),
                 radius * Math.sin(theta)
@@ -1780,7 +1782,7 @@ describe('SunburstSeries', () => {
 
             const [circle] = circleNodes(series);
             expect(circle).toBeDefined();
-            expect(circle.parentNode.pointerEvents).toBe(_ModuleSupport.PointerEvents.None);
+            expect(circle.parentNode.pointerEvents).toBe(PointerEvents.None);
 
             let ancestor = circle.parentNode;
             while (ancestor != null && ancestor !== (series as any).scalingGroup) {
@@ -1947,15 +1949,13 @@ describe('SunburstSeries', () => {
                     return { y: node.y, visible: node.visible, width: bbox.width, height: bbox.height };
                 });
 
-            const rootPrimaryLabelText = (series: SunburstSeries): _ModuleSupport.TransformableText | undefined => {
+            const rootPrimaryLabelText = (series: SunburstSeries): TransformableText | undefined => {
                 let group: any;
                 (series as any).labelSelection.each((candidate: any, datum: any) => {
                     if (datum.depth === 0) group = candidate;
                 });
                 if (group == null) return undefined;
-                return _ModuleSupport.Selection.selectByClass(group, _ModuleSupport.TransformableText).find(
-                    (text) => text.tag === 0
-                );
+                return Selection.selectByClass(group, TransformableText).find((text) => text.tag === 0);
             };
 
             it('creates one node per innerLabels entry, each carrying its own font styling', async () => {
@@ -2118,9 +2118,9 @@ describe('SunburstSeries', () => {
                     innerLabels: [{ text: 'Total', fontSize: 16 }],
                 });
 
-                expect((series as any).innerLabelsGroup.pointerEvents).toBe(_ModuleSupport.PointerEvents.None);
+                expect((series as any).innerLabelsGroup.pointerEvents).toBe(PointerEvents.None);
                 for (const node of series.innerLabelsSelection.nodes()) {
-                    expect(node.pointerEvents).toBe(_ModuleSupport.PointerEvents.None);
+                    expect(node.pointerEvents).toBe(PointerEvents.None);
                 }
                 expectWarningsCalls().toEqual([]);
             });

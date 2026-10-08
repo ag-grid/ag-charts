@@ -1,9 +1,15 @@
-import { type NormalisedLegendPaginationOptions, clamp, createId } from 'ag-charts-core';
+import {
+    Group,
+    type NormalisedLegendPaginationOptions,
+    Text,
+    Transformable,
+    TranslatableGroup,
+    clamp,
+    createId,
+} from 'ag-charts-core';
+import type { RotatableType } from 'ag-charts-core';
 import type { AgChartLegendOrientation } from 'ag-charts-types';
 
-import { Group, TranslatableGroup } from '../../scene/group';
-import { Text } from '../../scene/shape/text';
-import { type RotatableType, Transformable } from '../../scene/transformable';
 import { Marker } from '../marker/marker';
 
 export type PaginationMarkerStyleValues = NormalisedLegendPaginationOptions['activeStyle'];

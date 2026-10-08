@@ -1,6 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { SectorBox } from 'ag-charts-core';
+import type { Path, Sector } from 'ag-charts-core';
 
-const { SectorBox, motion } = _ModuleSupport;
+const { motion } = _ModuleSupport;
 
 type AnimatableSectorDatum = {
     angleValue: any;
@@ -9,11 +11,11 @@ type AnimatableSectorDatum = {
     outerRadius: number;
     startAngle: number;
     endAngle: number;
-    clipSector: _ModuleSupport.SectorBox;
+    clipSector: SectorBox;
 };
 
 function fixRadialBarAnimationStatus(
-    node: _ModuleSupport.Path,
+    node: Path,
     datum: { innerRadius: number; outerRadius: number },
     status: _ModuleSupport.NodeUpdateState
 ) {
@@ -38,18 +40,14 @@ function fixRadialBarAnimationStatus(
 }
 
 export function prepareRadialBarSeriesAnimationFunctions(axisZeroAngle: number) {
-    const fromFn = (
-        sect: _ModuleSupport.Sector,
-        datum: AnimatableSectorDatum,
-        status: _ModuleSupport.NodeUpdateState
-    ) => {
+    const fromFn = (sect: Sector, datum: AnimatableSectorDatum, status: _ModuleSupport.NodeUpdateState) => {
         status = fixRadialBarAnimationStatus(sect, datum, status);
 
         let startAngle: number;
         let endAngle: number;
         let innerRadius: number;
         let outerRadius: number;
-        let clipSector: _ModuleSupport.SectorBox | undefined;
+        let clipSector: SectorBox | undefined;
         if (status === 'removed' || status === 'updated') {
             startAngle = sect.startAngle;
             endAngle = sect.endAngle;
@@ -66,16 +64,12 @@ export function prepareRadialBarSeriesAnimationFunctions(axisZeroAngle: number) 
         const phase = motion.NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
         return { startAngle, endAngle, innerRadius, outerRadius, clipSector, phase };
     };
-    const toFn = (
-        sect: _ModuleSupport.Sector,
-        datum: AnimatableSectorDatum,
-        status: _ModuleSupport.NodeUpdateState
-    ) => {
+    const toFn = (sect: Sector, datum: AnimatableSectorDatum, status: _ModuleSupport.NodeUpdateState) => {
         let startAngle: number;
         let endAngle: number;
         let innerRadius: number;
         let outerRadius: number;
-        let clipSector: _ModuleSupport.SectorBox | undefined;
+        let clipSector: SectorBox | undefined;
         if (status === 'removed') {
             startAngle = axisZeroAngle;
             endAngle = axisZeroAngle;
@@ -95,7 +89,7 @@ export function prepareRadialBarSeriesAnimationFunctions(axisZeroAngle: number) 
     return { toFn, fromFn };
 }
 
-export function resetRadialBarSelectionsFn(_node: _ModuleSupport.Sector, datum: AnimatableSectorDatum) {
+export function resetRadialBarSelectionsFn(_node: Sector, datum: AnimatableSectorDatum) {
     return {
         centerX: 0,
         centerY: 0,

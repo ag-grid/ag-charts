@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { BoxBounds, Point } from 'ag-charts-core';
+import type { BBox, BoxBounds, Point } from 'ag-charts-core';
+import { Text } from 'ag-charts-core';
 
 import type { TextInputLayout } from '../../text-input/textInput';
 import type { AnnotationContext, Padding } from '../annotationTypes';
@@ -23,7 +24,7 @@ export abstract class TextualPointScene<Datum extends TextualPointDatum> extends
     protected abstract readonly textAlignment: AnnotationTextAlignment;
     protected readonly textWidth?: number;
 
-    protected readonly label = new _ModuleSupport.Text({ zIndex: 1 });
+    protected readonly label = new Text({ zIndex: 1 });
 
     protected override anchor: _ModuleSupport.FloatingToolbarAnchor = {
         x: 0,
@@ -31,9 +32,9 @@ export abstract class TextualPointScene<Datum extends TextualPointDatum> extends
         position: 'above-left',
     };
 
-    private textInputBBox?: _ModuleSupport.BBox;
+    private textInputBBox?: BBox;
 
-    public setTextInputBBox(bbox?: _ModuleSupport.BBox) {
+    public setTextInputBBox(bbox?: BBox) {
         this.textInputBBox = bbox;
         this.markDirty('TextualPointScene');
     }
@@ -156,7 +157,7 @@ export abstract class TextualPointScene<Datum extends TextualPointDatum> extends
         return this.textPosition == 'center' ? 'middle' : this.textPosition;
     }
 
-    protected override getHandleCoords(_datum: Datum, _coords: Point, bbox: _ModuleSupport.BBox): Point {
+    protected override getHandleCoords(_datum: Datum, _coords: Point, bbox: BBox): Point {
         return bbox;
     }
 

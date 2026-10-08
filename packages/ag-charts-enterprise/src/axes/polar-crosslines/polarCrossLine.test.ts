@@ -11,7 +11,7 @@ import type {
     AgPolarChartOptions,
     AgRadiusCrossLineOptions,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import type { Chart } from 'ag-charts-community-test';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -24,6 +24,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 
 import {
     crossLineInstances,
@@ -476,7 +477,7 @@ describe('PolarCrossLine listeners', () => {
         );
         const series = chart.series[0] as any;
         const { x, y } = series.contextNodeData.nodeData[1].point;
-        const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, x, y);
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(series.contentGroup, x, y);
 
         await clickAction(canvasX, canvasY)(chart);
 

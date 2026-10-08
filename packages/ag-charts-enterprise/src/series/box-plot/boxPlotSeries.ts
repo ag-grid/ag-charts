@@ -7,6 +7,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type {
+    BBox,
     CallbackParamRules,
     DeepRequired,
     DynamicContext,
@@ -15,6 +16,8 @@ import type {
     Normalised,
     NormalisedBoxPlotSeriesOwnOptions,
     RequireOptional,
+    Selection,
+    Text,
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
@@ -662,7 +665,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     protected override updateDatumSelection(opts: {
         nodeData: BoxPlotNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
+        datumSelection: Selection<BoxPlotNodeDatum, BoxPlotNode>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
@@ -894,7 +897,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
+        datumSelection: Selection<BoxPlotNodeDatum, BoxPlotNode>;
         isHighlight: boolean;
     }) {
         const { itemStyler } = this.options;
@@ -949,7 +952,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
+        datumSelection: Selection<BoxPlotNodeDatum, BoxPlotNode>;
         isHighlight: boolean;
     }) {
         const { contextNodeData, options } = this;
@@ -1015,7 +1018,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     protected override updateLabelSelection(opts: {
         labelData: BoxPlotNodeDatum[];
-        labelSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, _ModuleSupport.Text<BoxPlotNodeDatum>>;
+        labelSelection: Selection<BoxPlotNodeDatum, Text<BoxPlotNodeDatum>>;
         seriesIdx: number;
     }) {
         const { labelData, labelSelection } = opts;
@@ -1026,7 +1029,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         return new BoxPlotNode();
     }
 
-    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]?.focusRect);
     }
 

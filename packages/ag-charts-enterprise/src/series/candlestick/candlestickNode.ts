@@ -1,10 +1,7 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { Logger } from 'ag-charts-core';
-import { DeclaredSceneChangeDetection, SceneArrayChangeDetection } from 'ag-charts-core';
+import type { CanvasContext, Logger } from 'ag-charts-core';
+import { BBox, DeclaredSceneChangeDetection, ExtendedPath2D, SceneArrayChangeDetection } from 'ag-charts-core';
 
 import { OhlcBaseNode } from '../ohlc/ohlcNode';
-
-const { ExtendedPath2D, BBox } = _ModuleSupport;
 
 export class CandlestickNode<D> extends OhlcBaseNode<D> {
     private readonly wickPath = new ExtendedPath2D();
@@ -70,7 +67,7 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         this.markDirty();
     }
 
-    protected override computeDefaultGradientFillBBox(): _ModuleSupport.BBox | undefined {
+    protected override computeDefaultGradientFillBBox(): BBox | undefined {
         const { __width: width, __centerX: centerX, __yOpen: yOpen, __yClose: yClose } = this;
 
         const boxTop = Math.min(yOpen, yClose);
@@ -158,11 +155,11 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         return Math.max(this.__strokeWidth, this.__wickStrokeWidth ?? 0);
     }
 
-    protected override renderSilhouetteExtras(ctx: _ModuleSupport.CanvasContext) {
+    protected override renderSilhouetteExtras(ctx: CanvasContext) {
         this.strokeWicks(ctx);
     }
 
-    protected override dilateFill(ctx: _ModuleSupport.CanvasContext, _path: Path2D) {
+    protected override dilateFill(ctx: CanvasContext, _path: Path2D) {
         // Wicks that share the body's path are open, so the fill paints nothing for them and they must not be dilated.
         const { x0, x1, yOpen, yClose } = this.alignedCoordinates();
         if (Math.abs(x1 - x0) <= 3) return;
@@ -177,7 +174,7 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         ctx.stroke();
     }
 
-    protected override dilateSilhouetteExtras(ctx: _ModuleSupport.CanvasContext, growth: number) {
+    protected override dilateSilhouetteExtras(ctx: CanvasContext, growth: number) {
         const { wickPath, strokeWidth, __wickStrokeWidth: wickStrokeWidth = strokeWidth } = this;
         if (this.getSilhouetteExtrasOpacity() <= 0) return;
 
@@ -208,7 +205,7 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         return Math.max(0, wickStrokeOpacity) * this.getWickColourAlpha(wickStroke);
     }
 
-    private strokeWicks(ctx: _ModuleSupport.CanvasContext) {
+    private strokeWicks(ctx: CanvasContext) {
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
 

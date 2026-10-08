@@ -1,11 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    BBox,
     type DynamicContext,
     LinearScale,
     type NormalisedGradientLegendIntervalOptions,
     type NormalisedGradientLegendLabelOptions,
     type NormalisedTextOrSegments,
     type ScaleTickParams,
+    Selection,
+    Text,
+    TranslatableGroup,
     ZIndexMap,
     cachedTextMeasurer,
     countFractionDigits,
@@ -19,12 +23,12 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
+import type { Group } from 'ag-charts-core';
 import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
 
-const { BBox, TranslatableGroup, Selection, Text, createAxisLabelFormatterCache, formatAxisLabelValue } =
-    _ModuleSupport;
+const { createAxisLabelFormatterCache, formatAxisLabelValue } = _ModuleSupport;
 
 interface TickDatum {
     tick: any;
@@ -41,7 +45,7 @@ export class AxisTicks {
     readonly id = createId(this);
 
     protected readonly axisGroup = new TranslatableGroup({ name: `${this.id}-AxisTicks`, zIndex: ZIndexMap.AXIS });
-    protected readonly labelSelection = Selection.select<_ModuleSupport.Text<TickDatum>>(this.axisGroup, Text);
+    protected readonly labelSelection = Selection.select<Text<TickDatum>>(this.axisGroup, Text);
 
     readonly scale = new LinearScale();
     readonly formatterCache = createAxisLabelFormatterCache();
@@ -70,7 +74,7 @@ export class AxisTicks {
         return this.placement.startsWith('top') || this.placement.startsWith('bottom');
     }
 
-    attachAxis(axisNode: _ModuleSupport.Group) {
+    attachAxis(axisNode: Group) {
         axisNode.appendChild(this.axisGroup);
     }
 
@@ -87,7 +91,7 @@ export class AxisTicks {
         this.axisGroup.translationY += dy;
     }
 
-    calculateLayout(): _ModuleSupport.BBox | undefined {
+    calculateLayout(): BBox | undefined {
         const { placement, translationX, translationY, horizontal, labelOptions } = this;
 
         function unreachable(_a: never): never {
@@ -122,7 +126,7 @@ export class AxisTicks {
                 unreachable(placement);
         }
 
-        const boxes: _ModuleSupport.BBox[] = [];
+        const boxes: BBox[] = [];
 
         const tickGenerationResult = this.generateTicks();
         const { ticks } = tickGenerationResult;

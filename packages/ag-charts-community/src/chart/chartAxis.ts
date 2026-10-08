@@ -1,11 +1,13 @@
 import type {
     AxisID,
     AxisPrimaryTickCount,
+    BBox,
     ChartAnimationPhase,
     ChartAxisDirection,
     ChartUpdateType,
     DomainWithMetadata,
     DynamicContext,
+    Group,
     NormalisedBaseAxisOptions,
     NormalisedPaddingOptions,
     Scale,
@@ -29,8 +31,6 @@ import type { AxisLayout } from '../core/eventsHub';
 import type { AxisContext, AxisFormattableLabel } from '../module/axisContext';
 import type { ChartAxisRegistry } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
-import type { BBox } from '../scene/bbox';
-import type { Group } from '../scene/group';
 import type { ScrollbarLayoutMap } from './layout/layoutManager';
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from './series/seriesTypes';
 

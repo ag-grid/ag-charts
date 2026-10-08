@@ -1,8 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BBox,
     ChartAxisDirection,
     type FontOptions,
+    Rect,
+    Selection,
+    Text,
+    TranslatableGroup,
     ZIndexMap,
     cachedTextMeasurer,
     callWithContext,
@@ -13,7 +18,7 @@ import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { AxisInsetValueLabelOptions, AxisInsetValueOptions } from './axisInsetValueTypes';
 
-const { LayoutElement, Rect, Selection, Text, TranslatableGroup, fitLabelToContainer } = _ModuleSupport;
+const { LayoutElement, fitLabelToContainer } = _ModuleSupport;
 
 type AxisContext = _ModuleSupport.AxisContext;
 
@@ -50,7 +55,7 @@ export class AxisInsetValue extends AbstractModuleInstance {
 
     private options: AxisInsetValueOptions | undefined;
     private readonly axisCtx: AxisContext;
-    private seriesRect: _ModuleSupport.BBox | undefined;
+    private seriesRect: BBox | undefined;
     private rowCache: { data: any[]; categoryKey: string; valueKey: string; rows: InsetRow[] } | undefined;
     private textCache:
         | { rows: readonly InsetRow[]; formatter: AxisInsetValueLabelOptions['formatter']; texts: readonly string[] }
@@ -58,18 +63,18 @@ export class AxisInsetValue extends AbstractModuleInstance {
     private autoWidth: { texts: readonly string[]; font: FontOptions; padding: number; width: number } | undefined;
 
     private readonly group = new TranslatableGroup({ name: 'axisInsetValue', zIndex: ZIndexMap.AXIS_FOREGROUND });
-    private readonly blockSelection: _ModuleSupport.Selection<InsetBlock, _ModuleSupport.Rect<InsetBlock>>;
-    private readonly labelSelection: _ModuleSupport.Selection<InsetBlock, _ModuleSupport.Text<InsetBlock>>;
+    private readonly blockSelection: Selection<InsetBlock, Rect<InsetBlock>>;
+    private readonly labelSelection: Selection<InsetBlock, Text<InsetBlock>>;
 
     constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<AxisContext>) {
         super();
 
         this.axisCtx = ctx.parent;
-        this.blockSelection = Selection.select<_ModuleSupport.Rect<InsetBlock>>(
+        this.blockSelection = Selection.select<Rect<InsetBlock>>(
             this.group,
             () => new Rect({ name: 'axis-inset-value-block' })
         );
-        this.labelSelection = Selection.select<_ModuleSupport.Text<InsetBlock>>(
+        this.labelSelection = Selection.select<Text<InsetBlock>>(
             this.group,
             () => new Text({ name: 'axis-inset-value-label' })
         );
@@ -128,7 +133,7 @@ export class AxisInsetValue extends AbstractModuleInstance {
         this.group.translationY = strip.y;
         // setClipRect takes canvas coordinates, so the clip follows the group's translation.
         this.group.setClipRect(
-            new _ModuleSupport.BBox(
+            new BBox(
                 this.group.translationX,
                 this.group.translationY,
                 horizontal ? length : width,
@@ -154,7 +159,7 @@ export class AxisInsetValue extends AbstractModuleInstance {
     }
 
     /** The top-left corner of the strip, which abuts the series area on the side given by `position`. */
-    private stripOrigin(position: AgCartesianAxisPosition, width: number, rect: _ModuleSupport.BBox) {
+    private stripOrigin(position: AgCartesianAxisPosition, width: number, rect: BBox) {
         const origins: Record<AgCartesianAxisPosition, { x: number; y: number }> = {
             left: { x: rect.x - width, y: rect.y },
             right: { x: rect.x + rect.width, y: rect.y },

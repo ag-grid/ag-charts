@@ -9,7 +9,6 @@ import {
     type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
     type AgSeriesMarkerStylerParams,
-    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     BIG,
@@ -42,6 +41,7 @@ import {
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
@@ -208,11 +208,7 @@ describe('RangeAreaSeries', () => {
             const series = deproxy(chart).series[0] as any;
             const node = series.getNodeData().find((d: any) => d.datum.month === month);
             expect(node).toBeDefined();
-            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.point.x,
-                node.point.y
-            );
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
             await clickAction(canvasX, canvasY)(chart);
             await waitForChartStability(chart);
         };

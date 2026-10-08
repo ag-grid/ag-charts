@@ -12,6 +12,7 @@ import {
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
+    BBox,
     type CallbackParamRules,
     ChartAxisDirection,
     DebugMetrics,
@@ -24,6 +25,7 @@ import {
     type NormalisedHlcSeriesOptions,
     type NormalisedHlcSeriesOwnOptions,
     type NormalisedSeriesMarkerStyle,
+    PointerEvents,
     type RequireOptional,
     clamp,
     extent,
@@ -35,6 +37,7 @@ import {
     minValue,
     toNumber,
 } from 'ag-charts-core';
+import type { Path, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
@@ -82,9 +85,7 @@ const {
     markerFadeInAnimation,
     fromToMotion,
     pathMotion,
-    PointerEvents,
     Marker,
-    BBox,
     processedDataIsAnimatable,
     cartesianMarkerDrawMode,
     getMarkerStyles,
@@ -797,11 +798,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         );
     }
 
-    protected override updatePathNodes(opts: {
-        paths: _ModuleSupport.SegmentedPath[];
-        visible: boolean;
-        animationEnabled: boolean;
-    }) {
+    protected override updatePathNodes(opts: { paths: SegmentedPath[]; visible: boolean; animationEnabled: boolean }) {
         const { visible } = opts;
         const [highFillPath, lowFillPath, highStrokePath, lowStrokePath, closeStrokePath] = opts.paths;
 
@@ -814,7 +811,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
             this.getHighlightStyle()
         );
 
-        const strokes: [_ModuleSupport.SegmentedPath, AgHlcSeriesItemType][] = [
+        const strokes: [SegmentedPath, AgHlcSeriesItemType][] = [
             [highStrokePath, 'high'],
             [lowStrokePath, 'low'],
             [closeStrokePath, 'close'],
@@ -838,7 +835,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         }
 
         const fillBBox = this.getShapeFillBBox();
-        const fills: [_ModuleSupport.SegmentedPath, HlcBandStyle][] = [
+        const fills: [SegmentedPath, HlcBandStyle][] = [
             [highFillPath, item.high],
             [lowFillPath, item.low],
         ];
@@ -854,11 +851,11 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         }
     }
 
-    protected override updatePaths(opts: { contextData: HlcContext; paths: _ModuleSupport.Path[] }) {
+    protected override updatePaths(opts: { contextData: HlcContext; paths: Path[] }) {
         this.updateHlcPaths(opts.paths, opts.contextData);
     }
 
-    private updateHlcPaths(paths: _ModuleSupport.Path[], contextData: HlcContext) {
+    private updateHlcPaths(paths: Path[], contextData: HlcContext) {
         for (const path of paths) {
             path.visible = contextData.visible;
             path.path.clear();
@@ -885,7 +882,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
 
     protected override updateDatumSelection(opts: {
         nodeData: HlcMarkerDatum[];
-        datumSelection: _ModuleSupport.Selection<HlcMarkerDatum, _ModuleSupport.Marker<HlcMarkerDatum>>;
+        datumSelection: Selection<HlcMarkerDatum, _ModuleSupport.Marker<HlcMarkerDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const { processedData, axes, options } = this;
@@ -995,7 +992,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<HlcMarkerDatum, _ModuleSupport.Marker<HlcMarkerDatum>>;
+        datumSelection: Selection<HlcMarkerDatum, _ModuleSupport.Marker<HlcMarkerDatum>>;
         isHighlight: boolean;
     }) {
         const { hideWithSize0 } = this;
@@ -1024,7 +1021,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<HlcMarkerDatum, _ModuleSupport.Marker<HlcMarkerDatum>>;
+        datumSelection: Selection<HlcMarkerDatum, _ModuleSupport.Marker<HlcMarkerDatum>>;
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
@@ -1068,14 +1065,12 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
 
     protected override updateLabelSelection(opts: {
         labelData: HlcMarkerDatum[];
-        labelSelection: _ModuleSupport.Selection<HlcMarkerDatum, _ModuleSupport.Text<HlcMarkerDatum>>;
+        labelSelection: Selection<HlcMarkerDatum, Text<HlcMarkerDatum>>;
     }) {
         return opts.labelSelection.update(opts.labelData);
     }
 
-    protected updateLabelNodes(_opts: {
-        labelSelection: _ModuleSupport.Selection<HlcMarkerDatum, _ModuleSupport.Text<HlcMarkerDatum>>;
-    }) {
+    protected updateLabelNodes(_opts: { labelSelection: Selection<HlcMarkerDatum, Text<HlcMarkerDatum>> }) {
         // Labels unsupported
     }
 
@@ -1478,7 +1473,7 @@ export class HlcSeries extends _ModuleSupport.CartesianSeries<HlcSeriesTypes> {
         );
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): BBox | undefined {
         const ctx = this.nodeDatumContext;
         if (ctx == null) return undefined;
 

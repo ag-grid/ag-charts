@@ -8,9 +8,11 @@ import type {
     Point,
     PointLabelDatum,
     SeriesLabelDefaults,
+    Text,
     Writeable,
 } from 'ag-charts-core';
 import {
+    PointerEvents,
     cachedTextMeasurer,
     measurePlacedLabel,
     resolveLabelFit,
@@ -19,8 +21,6 @@ import {
 } from 'ag-charts-core';
 import type { AgMarkerShape } from 'ag-charts-types';
 
-import { PointerEvents } from '../../../scene/node';
-import type { Text } from '../../../scene/shape/text';
 import {
     expandPlacementLabelBoxExtent,
     placedLabelTextOffset,

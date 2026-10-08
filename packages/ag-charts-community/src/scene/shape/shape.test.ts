@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger } from 'ag-charts-core';
+import { BarShape, Line, Logger, Path, Rect, Scalable } from 'ag-charts-core';
+import type { ShapeShadowMode } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type { AgPatternName } from 'ag-charts-types';
 
@@ -8,12 +9,6 @@ import { Marker } from '../../chart/marker/marker';
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
-import { Scalable } from '../transformable';
-import { BarShape } from './barShape';
-import { Line } from './line';
-import { Path } from './path';
-import { Rect } from './rect';
-import type { ShapeShadowMode } from './shape';
 
 describe('Shape', () => {
     setupMockConsole();
