@@ -26,16 +26,22 @@
     border-radius: var(--ag-charts-button-border-radius);
     border-style: solid;
     border-width: var(--ag-charts-button-border-width);
+    /* A state border wider than the base border is drawn inset, so the button keeps its size in every state. */
+    box-shadow: var(--button-state-border-shadow);
     color: var(--ag-charts-button-text-color);
     cursor: pointer;
     padding: var(--input-padding);
     transition-property: background, border-color;
+
+    --button-state-border-shadow: 0 0 0 0 transparent;
 }
 
 .ag-charts-button:hover {
     background: var(--ag-charts-button-hover-background-color);
     border-color: var(--ag-charts-button-hover-border-color);
-    border-width: var(--ag-charts-button-hover-border-width);
+    --button-state-border-shadow: inset 0 0 0
+        max(0px, var(--ag-charts-button-hover-border-width) - var(--ag-charts-button-border-width))
+        var(--ag-charts-button-hover-border-color);
     color: var(--ag-charts-button-hover-text-color);
 }
 
@@ -43,9 +49,15 @@
 .ag-charts-button[aria-disabled='true'] {
     background: var(--ag-charts-button-disabled-background-color);
     border-color: var(--ag-charts-button-disabled-border-color);
-    border-width: var(--ag-charts-button-disabled-border-width);
+    --button-state-border-shadow: inset 0 0 0
+        max(0px, var(--ag-charts-button-disabled-border-width) - var(--ag-charts-button-border-width))
+        var(--ag-charts-button-disabled-border-color);
     color: var(--ag-charts-button-disabled-text-color);
     cursor: default;
+}
+
+.ag-charts-button:focus-visible {
+    box-shadow: var(--button-state-border-shadow), var(--ag-charts-focus-border-shadow);
 }
 
 .ag-charts-button:has(.ag-charts-icon) {

@@ -50,15 +50,15 @@
 .ag-charts-dialog__tab-button:hover {
     background: none;
     border-color: transparent;
-    border-width: 0 0 2px;
     color: var(--ag-charts-panel-subtle-text-color);
+    --button-state-border-shadow: 0 0 0 0 transparent;
 }
 
 .ag-charts-dialog__tab-button--active,
 .ag-charts-dialog__tab-button--active:hover {
     border-color: var(--ag-charts-accent-color);
-    border-width: 0 0 2px;
     color: inherit;
+    --button-state-border-shadow: 0 0 0 0 transparent;
 }
 
 .ag-charts-dialog__drag-handle + .ag-charts-dialog__tab-button {
@@ -66,6 +66,7 @@
 }
 
 .ag-charts-button.ag-charts-dialog__close-button {
+    --button-state-border-shadow: 0 0 0 0 transparent;
     background: none;
     border: 0;
     margin-inline-start: auto;
