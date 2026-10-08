@@ -438,7 +438,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
         const { sourceEvent } = event.widgetEvent;
         if (this.opts.allowBrowserMenuWithModifierKey && (sourceEvent.ctrlKey || sourceEvent.metaKey)) {
-            // The browser menu opens instead, so an already-open chart menu must not stay visible beside it.
+            // Safety net: the mousedown close listener normally closes an open chart menu first.
             this.hide();
             return;
         }

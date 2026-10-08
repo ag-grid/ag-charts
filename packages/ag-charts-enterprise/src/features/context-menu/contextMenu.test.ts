@@ -137,6 +137,32 @@ describe('Context Menu', () => {
         return { x: x + width / 2, y: y + height / 2 };
     }
 
+    const TITLE_OPTIONS: AgChartOptions = {
+        ...EXAMPLE_OPTIONS,
+        title: { enabled: true, text: 'Captioned Chart' },
+    };
+
+    function histogramBinCentre(datumIndex: number) {
+        const series = deproxy(chart).series[0] as any;
+        const node = series.getNodeData()[datumIndex];
+        const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
+            series.contentGroup,
+            node.x + node.width / 2,
+            node.y + node.height / 2
+        );
+        return { x: canvasX, y: canvasY };
+    }
+
+    function legendItemPoint() {
+        const legendBBox = computeLegendBBox(deproxy(chart));
+        return { x: legendBBox.x + 2, y: legendBBox.y + 2 };
+    }
+
+    function titleCentre() {
+        const { x, y, width, height } = _ModuleSupport.Transformable.toCanvas(deproxy(chart).title.node);
+        return { x: x + width / 2, y: y + height / 2 };
+    }
+
     let cx: number = 0;
     let cy: number = 0;
 
@@ -672,32 +698,6 @@ describe('Context Menu', () => {
             expect(action.mock.calls[0][0].event).toBe(params.event);
         }
 
-        function histogramBinCentre(datumIndex: number) {
-            const series = deproxy(chart).series[0] as any;
-            const node = series.getNodeData()[datumIndex];
-            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.x + node.width / 2,
-                node.y + node.height / 2
-            );
-            return { x: canvasX, y: canvasY };
-        }
-
-        function legendItemPoint() {
-            const legendBBox = computeLegendBBox(deproxy(chart));
-            return { x: legendBBox.x + 2, y: legendBBox.y + 2 };
-        }
-
-        const TITLE_OPTIONS: AgChartOptions = {
-            ...EXAMPLE_OPTIONS,
-            title: { enabled: true, text: 'Captioned Chart' },
-        };
-
-        function titleCentre() {
-            const { x, y, width, height } = _ModuleSupport.Transformable.toCanvas(deproxy(chart).title.node);
-            return { x: x + width / 2, y: y + height / 2 };
-        }
-
         test('always', async () => {
             // Reuses the cross-line fixture's "clear of the label, outside the series area" point, which is
             // the one place in this suite where `always` is the primary region.
@@ -961,32 +961,6 @@ describe('Context Menu', () => {
     });
 
     describe('allowBrowserMenuWithModifierKey', () => {
-        const TITLE_OPTIONS: AgChartOptions = {
-            ...EXAMPLE_OPTIONS,
-            title: { enabled: true, text: 'Captioned Chart' },
-        };
-
-        function histogramBinCentre(datumIndex: number) {
-            const series = deproxy(chart).series[0] as any;
-            const node = series.getNodeData()[datumIndex];
-            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.x + node.width / 2,
-                node.y + node.height / 2
-            );
-            return { x: canvasX, y: canvasY };
-        }
-
-        function legendItemPoint() {
-            const legendBBox = computeLegendBBox(deproxy(chart));
-            return { x: legendBBox.x + 2, y: legendBBox.y + 2 };
-        }
-
-        function titleCentre() {
-            const { x, y, width, height } = _ModuleSupport.Transformable.toCanvas(deproxy(chart).title.node);
-            return { x: x + width / 2, y: y + height / 2 };
-        }
-
         function menuItemCount() {
             return document.body.getElementsByClassName(`${DEFAULT_CONTEXT_MENU_CLASS}__item`).length;
         }
@@ -1023,13 +997,13 @@ describe('Context Menu', () => {
         ) {
             const events: MouseEvent[] = [];
             const listener = (event: MouseEvent) => events.push(event);
-            window.addEventListener('contextmenu', listener, { capture: true });
+            globalThis.addEventListener('contextmenu', listener, { capture: true });
             try {
                 const { x, y } = point();
                 await contextMenuAction(x, y, { cancelable: true, ...modifiers })(chart);
                 await waitForChartStability(chart);
             } finally {
-                window.removeEventListener('contextmenu', listener, { capture: true });
+                globalThis.removeEventListener('contextmenu', listener, { capture: true });
             }
             expect(events).toHaveLength(1);
             return events[0];
