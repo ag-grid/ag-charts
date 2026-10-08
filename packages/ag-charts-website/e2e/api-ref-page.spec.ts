@@ -594,8 +594,7 @@ test.describe('api-ref-page', () => {
         await expect(getNavigationHighlight(page, /^series\b/)).toHaveCount(1);
     });
     test.describe('search input', () => {
-        // The pinned search caret sits on the edge of the root scroll-padding band, so the browser's
-        // caret reveal after each edit used to scroll the page by the overlap, once per keystroke.
+        // Raising the scroll-padding puts the pinned caret inside the band whatever the host's font metrics.
         test('typing does not scroll the page when the caret is inside the scroll-padding band', async ({ page }) => {
             await gotoUrl(page, toPageUrl('options/'));
             await waitForApiReady(page);
@@ -607,8 +606,8 @@ test.describe('api-ref-page', () => {
             await expectTypingKeepsWindowScroll(page, 'scroll-padding 160px');
         });
 
-        // CSS zoom approximates browser page zoom, whose layout rounding put the caret just inside
-        // the band. Which levels drift depends on the platform, hence the sweep.
+        // CSS zoom approximates browser page zoom; which levels round the caret into the band depends on
+        // the platform, hence the sweep.
         test('typing does not scroll the page at fractional zoom', async ({ page }) => {
             await gotoUrl(page, toPageUrl('options/'));
             await waitForApiReady(page);

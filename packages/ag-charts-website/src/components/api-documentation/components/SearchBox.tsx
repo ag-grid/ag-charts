@@ -103,12 +103,9 @@ export function SearchBox({
     );
 }
 
-// The input sits in a sticky panel whose caret lands on the edge of the root `scroll-padding-top`
-// band. Chromium and WebKit reveal the caret after every edit by scrolling each ancestor scroller,
-// and at some zoom levels rounding puts the caret just inside that band. Scrolling the window can
-// never move a sticky caret out of the band, so each keystroke drifts the page by another step.
-// CSS `scroll-margin` does not influence caret reveal, so the window scroll caused by an edit is
-// undone instead. Scroll events dispatch before animation frames, so the restore lands before paint.
+// The sticky input's caret can sit just inside the root `scroll-padding-top` band, where the browser's
+// caret reveal after each edit scrolls the window without ever moving the caret, so the page drifts on
+// every keystroke. `scroll-margin` does not affect caret reveal, so that scroll is undone before paint.
 function usePreserveWindowScrollWhileEditing(inputRef: RefObject<HTMLInputElement>) {
     useEffect(() => {
         const input = inputRef.current;
