@@ -142,7 +142,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
 
     override NodeClass = TreemapNode;
 
-    private readonly rectGroup = this.contentGroup.appendChild(new Group());
+    private readonly rectGroup = this.contentGroup.appendChild(new Group({ batchShadows: true }));
 
     protected readonly datumSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect<TreemapNode>);
     private readonly labelSelection = Selection.select<Group<TreemapNode>>(this.labelGroup, Group<TreemapNode>);

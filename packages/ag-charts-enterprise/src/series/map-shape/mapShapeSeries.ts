@@ -177,7 +177,7 @@ export class MapShapeSeries
 
     private readonly colorScale = new ColorScale();
 
-    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup', batchShadows: true }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
     public datumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.itemGroup, () => this.nodeFactory());

@@ -173,7 +173,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     static override readonly className = 'PyramidSeries';
     static readonly type = 'pyramid' as const;
 
-    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup', batchShadows: true }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
     private readonly stageLabelGroup = this.contentGroup.appendChild(new Group({ name: 'stageLabelGroup' }));
 

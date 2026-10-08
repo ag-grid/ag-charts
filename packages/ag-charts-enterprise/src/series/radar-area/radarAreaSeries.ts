@@ -21,7 +21,9 @@ export class RadarAreaSeries extends RadarSeries<AgRadarAreaSeriesStyle, Normali
     static override readonly className = 'RadarAreaSeries';
     static readonly type = 'radar-area' as const;
 
-    private readonly areaGroup = this.contentGroup.appendChild(new Group<boolean>({ name: 'radar-area' }));
+    private readonly areaGroup = this.contentGroup.appendChild(
+        new Group<boolean>({ name: 'radar-area', batchShadows: true })
+    );
     protected areaSelection = Selection.select<Path<boolean>>(this.areaGroup, Path<boolean>);
 
     override resetInvalidToZero = true;
