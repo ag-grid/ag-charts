@@ -4,6 +4,7 @@ import { SceneChangeDetection, createSvgElement } from 'ag-charts-core';
 import type { BBox } from '../bbox';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';
+import { shadowPass } from '../shadowPass';
 import { Shape } from './shape';
 
 export class Path<D = unknown> extends Shape<D> implements DistantObject {
@@ -191,14 +192,18 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
             ctx.save();
 
             try {
-                // Avoid clipping thick lines that touch the top, bottom and left edges of the clip rect
-                const margin = this.strokeWidth / 2;
-                this._clipPath ??= new ExtendedPath2D();
-                this._clipPath.clear();
-                this._clipPath.rect(-margin, -margin, this._clipX + margin, this._clipY + margin + margin);
+                // A shadow batch's mask is not clipped, because the batch clips the shadow it casts instead. See
+                // `getShadowClip`. That also lets what is outside the clip cast a shadow into it, as it does unbatched.
+                if (shadowPass.state !== 'mask') {
+                    // Avoid clipping thick lines that touch the top, bottom and left edges of the clip rect
+                    const margin = this.strokeWidth / 2;
+                    this._clipPath ??= new ExtendedPath2D();
+                    this._clipPath.clear();
+                    this._clipPath.rect(-margin, -margin, this._clipX + margin, this._clipY + margin + margin);
 
-                // Bound the shape rendered to the clipping path.
-                ctx.clip(this._clipPath?.getPath2D());
+                    // Bound the shape rendered to the clipping path.
+                    ctx.clip(this._clipPath?.getPath2D());
+                }
 
                 if (this._clipX > 0 && this._clipY > 0) {
                     this.drawPath(ctx, renderCtx.logger);
@@ -213,6 +218,14 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         }
 
         super.render(renderCtx);
+    }
+
+    /** The rectangle, in the path's own coordinates, that {@link render} clips to, or undefined if it does not clip. */
+    getShadowClip(): { x: number; y: number; width: number; height: number } | undefined {
+        if (!this.clip || Number.isNaN(this._clipX) || Number.isNaN(this._clipY)) return;
+
+        const margin = this.strokeWidth / 2;
+        return { x: -margin, y: -margin, width: this._clipX + margin, height: this._clipY + margin + margin };
     }
 
     drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger): void {

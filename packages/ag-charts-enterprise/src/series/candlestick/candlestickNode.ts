@@ -148,7 +148,10 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
     override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger) {
         super.drawPath(ctx, logger);
 
-        this.strokeWicks(ctx);
+        // A shadow batch's mask draws the wicks as extras, so they would be drawn twice.
+        if (!this.isDrawingShadowMask()) {
+            this.strokeWicks(ctx);
+        }
     }
 
     protected override getSilhouetteStrokeWidth(): number {
@@ -182,6 +185,18 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         ctx.stroke(wickPath.getPath2D());
     }
 
+    private wickColour?: unknown;
+    private wickColourAlpha = 1;
+
+    // Keeps the alpha of the last wick colour, so that an unchanged colour isn't parsed again on every render.
+    private getWickColourAlpha(colour: unknown): number {
+        if (colour !== this.wickColour) {
+            this.wickColour = colour;
+            this.wickColourAlpha = this.getColourAlpha(colour);
+        }
+        return this.wickColourAlpha;
+    }
+
     protected override getSilhouetteExtrasOpacity(): number {
         const { wickPath, stroke, strokeWidth, strokeOpacity, __wickStroke: wickStroke = stroke } = this;
         const {
@@ -190,7 +205,7 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         } = this;
         // A wick casts a shadow only where `strokeWicks` paints it.
         if (wickPath.isEmpty() || wickStrokeWidth === 0 || wickStroke === 'none') return 0;
-        return Math.max(0, wickStrokeOpacity);
+        return Math.max(0, wickStrokeOpacity) * this.getWickColourAlpha(wickStroke);
     }
 
     private strokeWicks(ctx: _ModuleSupport.CanvasContext) {

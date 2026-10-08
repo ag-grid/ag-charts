@@ -5,6 +5,7 @@ import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { ChildNodeCounts, IScene, RenderContext } from './node';
 import { Node, PointerEvents, SceneChangeDetection } from './node';
+import { getBatchedShadow, releaseShadowScratch, renderChildrenWithShadowBatches } from './shadowCompositor';
 import { type CanvasContext, Shape } from './shape/shape';
 import {
     Rotatable,
@@ -51,6 +52,17 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = 1;
+
+    /**
+     * Whether each run of children that share their shadow is drawn as a batch: the silhouettes of the run are blurred
+     * once, beneath all of the run's items, rather than each child casting a blurred shadow of its own. A group whose
+     * children cast no shadow is not affected. See {@link renderChildrenWithShadowBatches}.
+     */
+    @SceneChangeDetection()
+    batchShadows: boolean = false;
+
+    /** The children that cast a batched shadow, counted by {@link preRender}, or -1 until then. */
+    private shadowCasterCount = -1;
 
     override serialize(): SerializedNodeState {
         return { type: 'group', props: this.serializeProps() };
@@ -138,6 +150,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         const previousScene = this.scene;
         super.setScene(scene);
 
+        if (previousScene !== scene) {
+            releaseShadowScratch(previousScene, this);
+        }
+
         if (this.layer && previousScene && previousScene !== scene) {
             previousScene.layersManager.removeLayer(this.layer);
             this.layer = undefined;
@@ -173,6 +189,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     override markDirty(property?: string): void {
         this.dirty = true;
         this._childFontDirty = true;
+        this.shadowCasterCount = -1;
         super.markDirty(property);
     }
 
@@ -294,11 +311,19 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         if (this.dirty) {
             counts = super.preRender(renderCtx, 0);
 
+            const countCasters = this.batchShadows;
+            let casters = 0;
             for (const child of this.children()) {
                 const childCounts = child.preRender(renderCtx);
                 counts.groups += childCounts.groups;
                 counts.nonGroups += childCounts.nonGroups;
                 counts.complexity += childCounts.complexity;
+                if (countCasters && getBatchedShadow(child) != null) casters++;
+            }
+            this.shadowCasterCount = casters;
+            if (casters === 0) {
+                // A group with no casters has nothing to batch, so it gives up the scene's scratch canvas.
+                releaseShadowScratch(this.scene, this);
             }
 
             // Correct counts for this group.
@@ -454,6 +479,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 childRenderCtx.clipBBox = Transformable.toCanvas(this, this.clipRect);
             }
 
+            if (this.batchShadows && this.countShadowCasters() > 0) {
+                renderChildrenWithShadowBatches(this.children(), this.scene, this, childRenderCtx);
+                return;
+            }
+
             for (const child of this.children()) {
                 // Skip invisible children, but make sure their dirty flag is reset.
                 if (!child.visible) {
@@ -470,6 +500,18 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         } finally {
             ctx.restore();
         }
+    }
+
+    /** The number of children that cast a batched shadow, which is cached until the group is next marked dirty. */
+    private countShadowCasters(): number {
+        if (this.shadowCasterCount < 0) {
+            let casters = 0;
+            for (const child of this.children()) {
+                if (getBatchedShadow(child) != null) casters++;
+            }
+            this.shadowCasterCount = casters;
+        }
+        return this.shadowCasterCount;
     }
 
     private sortChildren(compareFn?: (a: Node, b: Node) => number) {

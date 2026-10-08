@@ -593,6 +593,10 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         ctx.globalAlpha *= this.microPixelEffectOpacity;
     }
 
+    protected override getPaintOpacityScale(): number {
+        return this.microPixelEffectOpacity;
+    }
+
     /** `Rect` has its own stroke pass, so only the `fill` shadow mode works. */
     protected override onShadowModeChange() {
         this.__shadowMode = 'fill';
