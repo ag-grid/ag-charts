@@ -9,6 +9,7 @@ import {
 import {
     type ChartAnimationPhase,
     type DynamicContext,
+    LinearScale,
     type NormalisedGaugeSeriesStyle,
     type NormalisedLinearGaugeLabelOptions,
     type NormalisedLinearGaugeSeriesOwnOptions,
@@ -63,7 +64,6 @@ const {
     Rect,
     Text,
     TransformableText,
-    LinearScale,
     generateTicks,
     NiceMode,
 } = _ModuleSupport;

@@ -1,13 +1,13 @@
+import type { Logger } from '../../logging/logger';
+import { ambientLogger } from '../../logging/logger';
 import type {
     DomainWithMetadata,
-    Logger,
     NormalizedDomain,
     Scale,
     ScaleAlignment,
     ScaleTickParams,
     ScaleType,
-} from 'ag-charts-core';
-import { ambientLogger } from 'ag-charts-core';
+} from '../../types/scales';
 
 export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> {
     logger: Logger = ambientLogger;

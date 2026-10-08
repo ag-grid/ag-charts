@@ -11,6 +11,8 @@ import type {
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
+    ContinuousScale,
+    DiscreteTimeScale,
     StateMachine,
     arraysEqual,
     cachedTextMeasurer,
@@ -34,8 +36,6 @@ import type { AxisContext } from '../../module/axisContext';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
-import { ContinuousScale } from '../../scale/continuousScale';
-import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';

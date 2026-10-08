@@ -1,6 +1,7 @@
 import type { AgRadialSeriesLabelFormatterParams, AgRadialSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    CategoryScale,
     ChartAxisDirection,
     type DomainWithMetadata,
     type DynamicContext,
@@ -38,7 +39,6 @@ const {
     animationValidation,
     createDatumId,
     SeriesNodePickMode,
-    CategoryScale,
     motion,
     updateLabelNode,
     getItemStyles,

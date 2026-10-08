@@ -6,8 +6,6 @@
 // DO NOT ADD EXPORTS UNLESS REQUIRED BY INTEGRATED CHARTS.
 export { Caption } from './chart/caption';
 export { Marker } from './chart/marker/marker';
-export { CategoryScale } from './scale/categoryScale';
-export { LinearScale } from './scale/linearScale';
 export { BBox } from './scene/bbox';
 export { Group, TranslatableGroup } from './scene/group';
 export { Scene } from './scene/scene';
@@ -18,4 +16,4 @@ export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialCol
 export { Rect } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';
 export { Shape } from './scene/shape/shape';
-export { toRadians } from 'ag-charts-core';
+export { CategoryScale, LinearScale, toRadians } from 'ag-charts-core';

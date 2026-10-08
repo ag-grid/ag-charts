@@ -1,14 +1,13 @@
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+
+import { datesSortOrder, sortAndUniqueDates } from '../../time/date';
 import {
     type DomainWithMetadata,
     type NormalizedDomain,
     ScaleAlignment,
     type ScaleTickParams,
     type ScaleTickResult,
-    datesSortOrder,
-    sortAndUniqueDates,
-} from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
-
+} from '../../types/scales';
 import { ContinuousScale } from './continuousScale';
 import { DiscreteTimeScale, type UniformityCheck, checkUniformityBySampling } from './discreteTimeScale';
 import { getDateTicksForInterval } from './timeScale';

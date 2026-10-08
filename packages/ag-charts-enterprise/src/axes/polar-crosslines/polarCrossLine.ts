@@ -1,8 +1,10 @@
 import type { AgCrossLineListeners } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    BandScale,
     type CanvasPoint,
     ChartAxisDirection,
+    ContinuousScale,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
     type Scale,
@@ -17,8 +19,6 @@ const {
     crossLineHitTolerance,
     getCrossLineValue,
     validateCrossLineValue,
-    BandScale,
-    ContinuousScale,
     Group,
     Path,
     RotatableText,

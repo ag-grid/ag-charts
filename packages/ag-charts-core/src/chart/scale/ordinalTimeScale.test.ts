@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+
+import { datesSortOrder } from '../../time/date';
 import {
-    datesSortOrder,
     durationDay,
     durationHour,
     durationMinute,
     durationMonth,
     durationWeek,
     durationYear,
-} from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
-
+} from '../../time/duration';
 import { OrdinalTimeScale } from './ordinalTimeScale';
 
 describe('OrdinalTimeScale', () => {

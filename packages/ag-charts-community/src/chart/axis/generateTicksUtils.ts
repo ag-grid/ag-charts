@@ -1,12 +1,17 @@
 import {
     type AxisPrimaryTickCount,
+    BandScale,
+    DiscreteTimeScale,
     EllipsisChar,
     type ITextMeasurer,
     type NormalisedTextOrSegments,
+    OrdinalTimeScale,
     type ResolvedTextAlign,
     type Scale,
     ScaleAlignment,
     type ScaleTickParams,
+    TimeScale,
+    UnitTimeScale,
     type WrapOptions,
     buildDateFormatter,
     cachedTextMeasurer,
@@ -37,11 +42,6 @@ import {
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, VerticalAlign } from 'ag-charts-types';
 
-import { BandScale } from '../../scale/bandScale';
-import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { TimeScale } from '../../scale/timeScale';
-import { UnitTimeScale } from '../../scale/unitTimeScale';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { expandLabelPadding } from '../label';
 import type { TickInterval } from './axisTick';

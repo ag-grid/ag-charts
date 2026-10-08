@@ -1,16 +1,16 @@
-import type { ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
+import type { AgNumericValue } from 'ag-charts-types';
+
+import { isBigInt } from '../../data/typeGuards';
 import {
     createBigIntTicks,
     createTicks,
-    isBigInt,
     isDenseInterval,
     niceBigIntDomain,
     niceTicksDomain,
     range,
     tickStep,
-} from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
-
+} from '../../time/ticks';
+import type { ScaleTickParams, ScaleTickResult } from '../../types/scales';
 import { ContinuousScale } from './continuousScale';
 
 /**

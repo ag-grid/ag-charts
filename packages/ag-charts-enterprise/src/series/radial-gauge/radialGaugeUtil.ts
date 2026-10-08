@@ -2,6 +2,7 @@ import { type TextAlign, type VerticalAlign, _ModuleSupport } from 'ag-charts-co
 import {
     type GradientColorStop,
     type InternalAgGradientColor,
+    type LinearScale,
     type NormalisedGaugeColorStop,
     type NormalisedGaugeSeriesStyle,
     type NormalisedRadialGaugeBarOptions,
@@ -26,7 +27,7 @@ export function createConicGradient(
     fills: NormalisedGaugeColorStop[] | undefined,
     fillMode: AgGaugeFillMode,
     defaultColorRange: string[],
-    scale: _ModuleSupport.LinearScale
+    scale: LinearScale
 ): InternalAgGradientColor {
     const { domain, range } = scale;
     const [startAngle, endAngle] = range;
@@ -59,7 +60,7 @@ export function createConicGradient(
 export function getRadialGaugeBarStyle(
     bar: NormalisedRadialGaugeBarOptions,
     defaultColorRange: string[],
-    scale: _ModuleSupport.LinearScale
+    scale: LinearScale
 ): Required<NormalisedGaugeSeriesStyle> {
     const {
         enabled,
@@ -81,7 +82,7 @@ export function getRadialGaugeScaleStyle(
     scaleOptions: NormalisedRadialGaugeScaleOptions,
     barEnabled: boolean,
     defaultColorRange: string[],
-    scale: _ModuleSupport.LinearScale
+    scale: LinearScale
 ): Required<NormalisedGaugeSeriesStyle> {
     const {
         fill,

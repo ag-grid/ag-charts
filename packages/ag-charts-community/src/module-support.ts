@@ -276,14 +276,6 @@ export { pathMotion } from './motion/pathMotion';
 export { DOMManager } from './dom/domManager';
 export { DOMElementProxy } from './dom/domElementProxy';
 export { QuadtreeNearest } from './scene/util/quadtree';
-export { UnitTimeScale } from './scale/unitTimeScale';
-export { LogScale } from './scale/logScale';
-export { BandScale } from './scale/bandScale';
-export { CategoryScale } from './scale/categoryScale';
-export { TimeScale } from './scale/timeScale';
-export { ColorScale } from './scale/colorScale';
-export { configureColorScale } from './scale/colorScaleUtil';
-export { LinearScale } from './scale/linearScale';
 export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';
 
 export { Node, PointerEvents } from './scene/node';
@@ -297,10 +289,6 @@ export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';
 export type { ShapeLineCap, ShapeColor } from './scene/shape/shape';
 export { Text, RotatableText, TransformableText } from './scene/shape/text';
-export { AbstractScale } from './scale/abstractScale';
-export { ContinuousScale } from './scale/continuousScale';
-export { OrdinalTimeScale } from './scale/ordinalTimeScale';
-export { APPROXIMATE_THRESHOLD } from './scale/discreteTimeScale';
 export {
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,

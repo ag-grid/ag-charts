@@ -1,5 +1,4 @@
-import { type DomainWithMetadata, type NormalizedDomain } from 'ag-charts-core';
-
+import { type DomainWithMetadata, type NormalizedDomain } from '../../types/scales';
 import { BandScale } from './bandScale';
 
 export class IrregularBandScale<D = string, I = number> extends BandScale<D, I> {

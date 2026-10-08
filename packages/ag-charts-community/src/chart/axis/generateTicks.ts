@@ -1,8 +1,14 @@
 import {
     type BoxBounds,
+    CategoryScale,
+    ContinuousScale,
+    DiscreteTimeScale,
+    OrdinalTimeScale,
     type Scale,
     ScaleAlignment,
     type ScaleTickParams,
+    TimeScale,
+    UnitTimeScale,
     axisLabelsOverlap,
     cachedTextMeasurer,
     calculateNiceSecondaryAxis,
@@ -20,12 +26,6 @@ import {
 } from 'ag-charts-core';
 import type { PaddingOptions, VerticalAlign } from 'ag-charts-types';
 
-import { CategoryScale } from '../../scale/categoryScale';
-import { ContinuousScale } from '../../scale/continuousScale';
-import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { TimeScale } from '../../scale/timeScale';
-import { UnitTimeScale } from '../../scale/unitTimeScale';
 import { expandLabelPadding } from '../label';
 import { getVerticalAlignShift } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';

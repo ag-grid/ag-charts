@@ -1,13 +1,8 @@
-import {
-    ScaleAlignment,
-    type ScaleTickParams,
-    type ScaleTickResult,
-    findMaxIndex,
-    findMinIndex,
-    timeValueToNumber,
-} from 'ag-charts-core';
 import type { AgNumericValue, AgTimeInterval, AgTimeIntervalUnit, AgTimeValue } from 'ag-charts-types';
 
+import { findMaxIndex, findMinIndex } from '../../data/binarySearch';
+import { timeValueToNumber } from '../../time/timeFormatDefaults';
+import { ScaleAlignment, type ScaleTickParams, type ScaleTickResult } from '../../types/scales';
 import { BandScale } from './bandScale';
 
 /** Result of uniformity check via sampling */

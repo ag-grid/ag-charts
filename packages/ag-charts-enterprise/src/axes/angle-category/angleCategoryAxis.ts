@@ -1,6 +1,8 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import {
     type AxisID,
+    type BandScale,
+    CategoryScale,
     type DynamicContext,
     type NormalisedAngleCategoryAxisOptions,
     type ScaleTickParams,
@@ -11,12 +13,7 @@ import {
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
-const { CategoryScale } = _ModuleSupport;
-export class AngleCategoryAxis extends AngleAxis<
-    string,
-    _ModuleSupport.BandScale<string>,
-    NormalisedAngleCategoryAxisOptions
-> {
+export class AngleCategoryAxis extends AngleAxis<string, BandScale<string>, NormalisedAngleCategoryAxisOptions> {
     static readonly className = 'AngleCategoryAxis';
     static readonly type = 'angle-category' as const;
 

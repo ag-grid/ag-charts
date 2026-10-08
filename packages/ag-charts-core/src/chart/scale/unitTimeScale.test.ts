@@ -1,8 +1,9 @@
 import { vi } from 'vitest';
 
-import { Logger, ScaleAlignment, type ScaleTickParams, ambientLogger } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
+import { Logger, ambientLogger } from '../../logging/logger';
+import { ScaleAlignment, type ScaleTickParams } from '../../types/scales';
 import { UnitTimeScale } from './unitTimeScale';
 
 type TickInterval = AgTimeInterval | AgTimeIntervalUnit | number;

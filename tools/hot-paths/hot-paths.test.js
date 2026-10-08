@@ -73,10 +73,10 @@ test('benchmark map: an uncovered series recommends nothing and says why', () =>
 test('benchmark map: scale paths do not leak into series tags', () => {
     // `line` must not match `linearScale`, and the generic time rule must not
     // claim the specialised time scales.
-    assert.ok(!tagsFor(['packages/ag-charts-community/src/scale/linearScale.ts']).types.includes('line'));
-    const unit = tagsFor(['packages/ag-charts-community/src/scale/unitTimeScale.ts']).types;
+    assert.ok(!tagsFor(['packages/ag-charts-core/src/chart/scale/linearScale.ts']).types.includes('line'));
+    const unit = tagsFor(['packages/ag-charts-core/src/chart/scale/unitTimeScale.ts']).types;
     assert.deepEqual(unit, ['unit-time']);
-    const ordinal = tagsFor(['packages/ag-charts-community/src/scale/ordinalTimeScale.ts']).types;
+    const ordinal = tagsFor(['packages/ag-charts-core/src/chart/scale/ordinalTimeScale.ts']).types;
     assert.deepEqual(ordinal, ['ordinal-time']);
 });
 
@@ -115,15 +115,15 @@ test('benchmark map: an unrecognised path recommends nothing rather than guessin
 });
 
 test('benchmark map: scale paths map to their axis type', () => {
-    assert.ok(tagsFor(['packages/ag-charts-community/src/scale/unitTimeScale.ts']).types.includes('unit-time'));
-    assert.ok(tagsFor(['packages/ag-charts-community/src/scale/ordinalTimeScale.ts']).types.includes('ordinal-time'));
+    assert.ok(tagsFor(['packages/ag-charts-core/src/chart/scale/unitTimeScale.ts']).types.includes('unit-time'));
+    assert.ok(tagsFor(['packages/ag-charts-core/src/chart/scale/ordinalTimeScale.ts']).types.includes('ordinal-time'));
 });
 
 test('benchmark map CLI: reads paths piped in on stdin', () => {
     // `input` gives the child a pipe, which is what made readFileSync(0) throw
     // EAGAIN — the documented `git diff --name-only | benchmark-map.js` form.
     const out = execFileSync(process.execPath, [path.join(__dirname, 'benchmark-map.js')], {
-        input: 'packages/ag-charts-community/src/scale/unitTimeScale.ts\n',
+        input: 'packages/ag-charts-core/src/chart/scale/unitTimeScale.ts\n',
         encoding: 'utf8',
     });
     const result = JSON.parse(out);
@@ -147,7 +147,7 @@ test('insideLoop: a loop opener whose body follows is not itself in-loop', () =>
 });
 
 test('benchmark map: a log-scale change is not evidenced by number-axis examples', () => {
-    const { tags, examples, notes } = recommend(['packages/ag-charts-community/src/scale/logScale.ts']);
+    const { tags, examples, notes } = recommend(['packages/ag-charts-core/src/chart/scale/logScale.ts']);
     assert.deepEqual(tags.types, ['log']);
     assert.deepEqual(examples, [], 'no example declares a log axis');
     assert.ok(notes.some((n) => /No benchmark example exercises log/.test(n)));
@@ -388,7 +388,7 @@ test('benchmark map: every tag is covered, or named in the notes', () => {
             'packages/ag-charts-community/src/chart/series/seriesAreaManager.ts',
         ],
         ['packages/ag-charts-community/src/chart/series/polar/polarSeries.ts'],
-        ['packages/ag-charts-community/src/scale/logScale.ts'],
+        ['packages/ag-charts-core/src/chart/scale/logScale.ts'],
     ];
 
     for (const paths of probes) {

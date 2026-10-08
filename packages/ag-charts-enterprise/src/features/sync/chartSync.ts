@@ -4,11 +4,14 @@ import {
     AsyncAwaitQueue,
     ChartAxisDirection,
     ChartUpdateType,
+    ContinuousScale,
     Debug,
     type DefinedZoomState,
     type DynamicContext,
     type NormalisedChartSyncOptions,
     type Scale,
+    TimeScale,
+    UnitTimeScale,
     arraysEqual,
     definedZoomState,
     findMinMax,
@@ -21,7 +24,7 @@ import {
 
 import { readDatum } from '../../utils/datum';
 
-const { CartesianAxis, ContinuousScale, TimeScale, UnitTimeScale, TooltipManager } = _ModuleSupport;
+const { CartesianAxis, TooltipManager } = _ModuleSupport;
 
 const debug = Debug.create('sync');
 

@@ -1,5 +1,6 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 import type { Scale } from 'ag-charts-core';
+import { BandScale, LogScale } from 'ag-charts-core';
 
 import { AnnotationType } from './annotationTypes';
 
@@ -16,7 +17,7 @@ export enum AnnotationOptions {
 }
 
 function channelMenuItemVisible(scale: Scale<any, any>) {
-    return !(scale instanceof _ModuleSupport.LogScale) && !(scale instanceof _ModuleSupport.BandScale);
+    return !(scale instanceof LogScale) && !(scale instanceof BandScale);
 }
 
 export const LINE_ANNOTATION_ITEMS: (_ModuleSupport.MenuItem<AnnotationType> & {

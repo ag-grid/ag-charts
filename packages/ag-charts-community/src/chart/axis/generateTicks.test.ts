@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { LinearScale, OrdinalTimeScale } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { LinearScale } from '../../scale/linearScale';
-import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { estimateScaleTickCount, generateTicks } from './generateTicks';
 import { withTemporaryDomain } from './generateTicksUtils';
 
