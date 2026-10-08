@@ -1,5 +1,6 @@
 import { type AgRadialSeriesLabelFormatterParams, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
+    CategoryScale,
     ChartAxisDirection,
     type DomainWithMetadata,
     type DynamicContext,
@@ -39,7 +40,6 @@ const {
     seriesLabelFadeOutAnimation,
     animationValidation,
     createDatumId,
-    CategoryScale,
     Sector,
     SectorBox,
     motion,

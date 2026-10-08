@@ -1,7 +1,8 @@
-import { type ColorScaleColorStop, type ColorScaleMode, type Logger, computeColorBins } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import type { Logger } from '../../logging/logger';
 import type { ColorScale } from './colorScale';
+import { type ColorScaleColorStop, type ColorScaleMode, computeColorBins } from './colorScaleUtil';
 
 export function configureColorScale(
     colorScale: ColorScale,

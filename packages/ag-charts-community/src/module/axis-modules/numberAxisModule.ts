@@ -1,6 +1,7 @@
 import {
     type AxisModuleDefinition,
     type DynamicContext,
+    LinearScale,
     type NormalisedNumberAxisOptions,
     cartesianAxisThemeOptionsDefs,
     commonAxisThemeTemplate,
@@ -12,7 +13,6 @@ import type { AgNumberAxisOptions } from 'ag-charts-types';
 
 import { NumberAxis } from '../../chart/axis/numberAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { LinearScale } from '../../scale/linearScale';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';

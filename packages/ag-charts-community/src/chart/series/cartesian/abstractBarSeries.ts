@@ -1,5 +1,8 @@
 import {
+    BandScale,
     ChartAxisDirection,
+    ContinuousScale,
+    IrregularBandScale,
     type Point,
     type Scaling,
     addValues,
@@ -10,9 +13,6 @@ import {
 } from 'ag-charts-core';
 import type { AgNumericValue, Direction } from 'ag-charts-types';
 
-import { BandScale } from '../../../scale/bandScale';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import { IrregularBandScale } from '../../../scale/irregularBandScale';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';

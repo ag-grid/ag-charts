@@ -1,9 +1,5 @@
 import type { Scale } from 'ag-charts-core';
-import { checkDatum } from 'ag-charts-core';
-
-import { BandScale } from '../scale/bandScale';
-import { ContinuousScale } from '../scale/continuousScale';
-import { DiscreteTimeScale } from '../scale/discreteTimeScale';
+import { BandScale, ContinuousScale, DiscreteTimeScale, checkDatum } from 'ag-charts-core';
 
 /** Whether a user-supplied value can be resolved against `scale`, rejecting both wrong value types
  * and values absent from a discrete domain. */

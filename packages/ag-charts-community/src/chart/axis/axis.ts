@@ -18,9 +18,12 @@ import type {
     Scale,
 } from 'ag-charts-core';
 import {
+    BandScale,
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
+    ContinuousScale,
+    DiscreteTimeScale,
     WeakCache,
     ZIndexMap,
     arraysEqual,
@@ -64,9 +67,6 @@ import type {
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import { BandScale } from '../../scale/bandScale';
-import { ContinuousScale } from '../../scale/continuousScale';
-import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';

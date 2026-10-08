@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import { durationDay, durationHour, durationMinute, durationMonth, durationWeek, durationYear } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
+import {
+    durationDay,
+    durationHour,
+    durationMinute,
+    durationMonth,
+    durationWeek,
+    durationYear,
+} from '../../time/duration';
 import { TimeScale } from './timeScale';
 
 describe('TimeScale', () => {

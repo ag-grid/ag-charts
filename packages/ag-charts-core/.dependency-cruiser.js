@@ -184,6 +184,15 @@ module.exports = {
             to: { path: 'src/[^/]*\\.ts', pathNot: ['ag-charts-types/'] },
         },
         {
+            name: 'ag-isolated-scales',
+            comment: 'Scales should be isolated from chart implementation modules.',
+            severity: 'error',
+            from: { path: '^src/chart/scale/' },
+            to: {
+                pathNot: ['^src/(chart/scale|data|format|logging|time|types)/', 'ag-charts-types', 'node_modules'],
+            },
+        },
+        {
             name: 'ag-isolated-widget',
             comment: 'Widget modules should be isolated.',
             severity: 'error',

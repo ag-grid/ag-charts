@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BandScale,
     type BoxBounds,
     ChartAxisDirection,
     type DynamicContext,
@@ -56,7 +57,7 @@ function classifyDiffCategories(
 function findPrimaryCategoryAxisContext(ctx: DynamicContext<_ModuleSupport.ChartRegistry>): AxisContext | undefined {
     for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y]) {
         for (const axisCtx of ctx.axisManager.getAxisContext(dir)) {
-            if (_ModuleSupport.BandScale.is(axisCtx.scale)) {
+            if (BandScale.is(axisCtx.scale)) {
                 return axisCtx;
             }
         }
@@ -320,7 +321,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
         }
 
         const { direction } = this.axisCtx;
-        const scale = this.axisCtx.scale as _ModuleSupport.BandScale<string>;
+        const scale = this.axisCtx.scale as BandScale<string>;
         const isHorizontal = direction === ChartAxisDirection.X;
         const axisSpan = isHorizontal ? this.seriesRect.width : this.seriesRect.height;
         const data = this.measureBandsBatch(scale, categoryPhases, isHorizontal);
@@ -333,7 +334,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
     }
 
     private measureBandsBatch(
-        scale: _ModuleSupport.BandScale<string>,
+        scale: BandScale<string>,
         categoryPhases: Map<string, FlashAnimationPhase>,
         isHorizontal: boolean
     ): BandFlashDatum[] {

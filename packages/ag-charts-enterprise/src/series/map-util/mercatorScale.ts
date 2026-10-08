@@ -1,7 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type DomainWithMetadata, type NormalizedDomain, type Position, unpackDomainMinMax } from 'ag-charts-core';
+import {
+    AbstractScale,
+    type DomainWithMetadata,
+    type NormalizedDomain,
+    type Position,
+    unpackDomainMinMax,
+} from 'ag-charts-core';
 
-const { AbstractScale, BBox } = _ModuleSupport;
+const { BBox } = _ModuleSupport;
 
 type XY = [x: number, y: number];
 

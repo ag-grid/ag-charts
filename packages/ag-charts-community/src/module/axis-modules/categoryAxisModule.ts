@@ -1,5 +1,6 @@
 import {
     type AxisModuleDefinition,
+    CategoryScale,
     type DynamicContext,
     type NormalisedCategoryAxisOptions,
     cartesianAxisThemeOptionsDefs,
@@ -12,7 +13,6 @@ import type { AgCategoryAxisOptions } from 'ag-charts-types';
 
 import { CategoryAxis } from '../../chart/axis/categoryAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { CategoryScale } from '../../scale/categoryScale';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';

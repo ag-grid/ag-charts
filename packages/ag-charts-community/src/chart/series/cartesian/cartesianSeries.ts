@@ -5,12 +5,16 @@ import type {
     Scaling,
 } from 'ag-charts-core';
 import {
+    BandScale,
     ChartAxisDirection,
+    ContinuousScale,
     Debug,
     DebugMetrics,
+    LogScale,
     type Point,
     type Scale,
     StateMachine,
+    UnitTimeScale,
     extractDomain,
     findMaxIndex,
     findMinIndex,
@@ -25,10 +29,6 @@ import type { AgDrawingMode, AgNumericValue } from 'ag-charts-types';
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
-import { BandScale } from '../../../scale/bandScale';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import { LogScale } from '../../../scale/logScale';
-import { UnitTimeScale } from '../../../scale/unitTimeScale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import type { Node, NodeWithOpacity } from '../../../scene/node';

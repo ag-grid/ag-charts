@@ -24,10 +24,14 @@ import type {
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
+    ColorScale,
+    ContinuousScale,
+    LinearScale,
     applySizeMode,
     applyStyledMarkerSize,
     cachedTextMeasurer,
     clamp,
+    configureColorScale,
     dateToNumber,
     extent,
     findDiscreteColorBinLabel,
@@ -65,10 +69,6 @@ import {
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
-import { ColorScale } from '../../../scale/colorScale';
-import { configureColorScale } from '../../../scale/colorScaleUtil';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import { LinearScale } from '../../../scale/linearScale';
 import type { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';

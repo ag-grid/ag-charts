@@ -44,6 +44,7 @@ const EMPTY_STATE_STYLES: Required<AgRangesStateStyles> = {
     fill: 'black',
     fillOpacity: 1,
     stroke: 'black',
+    strokeWidth: 1,
     textColor: 'black',
 };
 
@@ -393,6 +394,7 @@ export class Ranges extends AbstractModuleInstance {
             fillOpacity: stateStyles.fillOpacity,
             // Colour refs are resolved during theme-merge, so this is a concrete CSS colour by render.
             stroke: stateStyles.stroke as CssColor,
+            strokeWidth: stateStyles.strokeWidth,
             textColor: stateStyles.textColor,
         };
     }
