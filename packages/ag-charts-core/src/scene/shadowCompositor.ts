@@ -1,5 +1,6 @@
 import { isFiniteNumber } from '../data/typeGuards';
 import { getOffscreenCanvas } from '../dom/globalsProxy';
+import { Color } from '../format/color';
 import type { NormalisedDropShadowOptions } from '../options/normalised/normalisedCommonOptions';
 import { releaseSpreadCanvas } from './canvas/spreadCanvas';
 import type { Node, RenderContext } from './node';
@@ -7,6 +8,7 @@ import { shadowPass } from './shadowPass';
 import { Path } from './shape/path';
 import { Shape } from './shape/shape';
 import type { TranslatableType } from './transformable';
+import { compareZIndex } from './zIndex';
 
 /**
  * Layer shadow compositor.
@@ -21,12 +23,16 @@ import type { TranslatableType } from './transformable';
  * 3. The casters draw as usual, without a shadow.
  *
  * All the shadows of a batch therefore sit beneath all of its items, so a later item's shadow no longer lands on an
- * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node, and at a change of shadow options
- * or of the clip of a path.
+ * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node, and at a change of shadow options,
+ * of the clip of a path or of `zIndex`. A series gives its items a `zIndex` where one layer paints over another, like the
+ * depths of a treemap, so the shadow of an upper layer still lands on the lower one.
  */
 
 /** How far a canvas shadow reaches past its source, in blurs: its Gaussian has a deviation of half the blur. */
 const SHADOW_BLUR_REACH = 1.5;
+
+/** How far two casters' strengths may differ for the batch to cast them as one. */
+const UNIFORM_STRENGTH_TOLERANCE = 1 / 512;
 
 /** The most that the mask extends past the layer on one side, in device pixels. Items further off the layer cast nothing. */
 const MAX_MASK_PAD = 4096;
@@ -73,6 +79,12 @@ function sameClip(a: ShadowClip | undefined, b: ShadowClip | undefined) {
     if (a === b) return true;
     if (a == null || b == null) return false;
     return a.every((value, i) => value === b[i]);
+}
+
+function sameLayer(a: Node, b: Node) {
+    const aIndex = a.__zIndex;
+    const bIndex = b.__zIndex;
+    return aIndex === bIndex || compareZIndex(aIndex, bIndex) === 0;
 }
 
 function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
@@ -189,15 +201,54 @@ export function destroyShadowScratch(scene: object) {
     freeScratch(pool);
 }
 
-function renderPass(children: readonly Node[], renderCtx: RenderContext, state: 'mask' | 'suppress') {
-    const previous = shadowPass.state;
+function renderPass(
+    children: readonly Node[],
+    renderCtx: RenderContext,
+    state: 'mask' | 'suppress',
+    opaque: boolean = false
+) {
+    const previousState = shadowPass.state;
+    const previousOpaque = shadowPass.opaque;
     shadowPass.state = state;
+    shadowPass.opaque = opaque;
     try {
         for (const child of children) {
             child.isolatedRender(renderCtx);
         }
     } finally {
-        shadowPass.state = previous;
+        shadowPass.state = previousState;
+        shadowPass.opaque = previousOpaque;
+    }
+}
+
+/**
+ * The strength that every caster of a `spread` batch casts at, or undefined if they differ or a caster draws its silhouette
+ * some other way. Casting each translucent silhouette at its own strength takes a pass over the layer for it, which is slow
+ * for the many shapes of a large series. A series' shapes share the one opacity, so the batch draws them solid, and blurs
+ * and casts the mask at that strength once. Where such shapes overlap, they then cast one shadow, not a darker one.
+ */
+function getUniformSpreadStrength(casters: readonly ShadowCaster[]): number | undefined {
+    let uniform: number | undefined;
+    for (const caster of casters) {
+        const strength = caster.getSpreadMaskStrength();
+        if (strength == null) return;
+        if (strength <= 0) continue;
+        if (uniform == null) {
+            uniform = strength;
+        } else if (Math.abs(strength - uniform) > UNIFORM_STRENGTH_TOLERANCE) {
+            return;
+        }
+    }
+    return uniform;
+}
+
+/** The colour with its alpha scaled, or undefined if it can't be read. */
+function scaleColourAlpha(colour: string, scale: number): string | undefined {
+    try {
+        const { r, g, b, a } = Color.fromString(colour);
+        return new Color(r, g, b, a * scale).toRgbaString();
+    } catch {
+        return;
     }
 }
 
@@ -240,20 +291,35 @@ function renderBatch(
     if (acquired == null) return false;
     const { canvas, context: scratch } = acquired;
 
+    // A batch of casters at one translucent strength draws them solid, and casts the shadow at that strength.
+    let shadowColour = shadow.color;
+    let opaque = false;
+    if ((shadow.spread ?? 0) > 0) {
+        const strength = getUniformSpreadStrength(casters);
+        if (strength != null && strength * ctx.globalAlpha < 1) {
+            const scaled = scaleColourAlpha(shadow.color, strength * ctx.globalAlpha);
+            if (scaled != null) {
+                shadowColour = scaled;
+                opaque = true;
+            }
+        }
+    }
+
     scratch.save();
     try {
         scratch.setTransform(1, 0, 0, 1, 0, 0);
         scratch.clearRect(0, 0, maskWidth, maskHeight);
         const { a, b, c, d, e, f } = ctx.getTransform();
         scratch.setTransform(a, b, c, d, e + padL, f + padT);
-        scratch.globalAlpha = ctx.globalAlpha;
+        scratch.globalAlpha = opaque ? 1 : ctx.globalAlpha;
         scratch.direction = ctx.direction;
 
         // The casters draw their silhouettes again below, so the mask pass must not count them, or debug them, twice.
         renderPass(
             casters,
             { ...renderCtx, ctx: scratch, stats: undefined, debugNodeSearch: undefined, currentFont: undefined },
-            'mask'
+            'mask',
+            opaque
         );
     } finally {
         scratch.restore();
@@ -273,7 +339,7 @@ function renderBatch(
         }
         ctx.resetTransform();
         ctx.globalAlpha = 1;
-        ctx.shadowColor = shadow.color;
+        ctx.shadowColor = shadowColour;
         ctx.shadowOffsetX = offsetX + distance;
         ctx.shadowOffsetY = offsetY;
         ctx.shadowBlur = blur;
@@ -325,7 +391,11 @@ export function renderChildrenWithShadowBatches(
 
         const shadow = getBatchedShadow(child);
         const clip = shadow == null ? undefined : getShadowClip(child);
-        if (shadow == null || (runShadow != null && !(sameShadow(runShadow, shadow) && sameClip(runClip, clip)))) {
+        if (
+            shadow == null ||
+            (runShadow != null &&
+                !(sameShadow(runShadow, shadow) && sameClip(runClip, clip) && sameLayer(run[0], child)))
+        ) {
             flush();
         }
         if (shadow == null) {

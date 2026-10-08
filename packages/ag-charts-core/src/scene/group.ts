@@ -95,11 +95,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         readonly zIndex?: ZIndex;
         readonly renderToOffscreenCanvas?: boolean;
         readonly optimizeForInfrequentRedraws?: boolean;
+        readonly batchShadows?: boolean;
     }) {
         super(opts);
         this.isContainerNode = true;
         this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
         this.optimizeForInfrequentRedraws = opts?.optimizeForInfrequentRedraws === true;
+        this.batchShadows = opts?.batchShadows === true;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.

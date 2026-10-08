@@ -75,6 +75,11 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
         return lineDistanceSquared(px, py, x1, y1, x2, y2, Infinity);
     }
 
+    /** A line is stroked without a Path2D, so a `spread` widens its stroke rather than dilating a silhouette. */
+    protected override hasSpreadMaskPath(): boolean {
+        return false;
+    }
+
     override render(renderCtx: RenderContext) {
         const { ctx, devicePixelRatio } = renderCtx;
 

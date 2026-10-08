@@ -514,6 +514,49 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     /**
+     * The strength that a spread shadow's silhouette casts at, before the alpha of the layer it is drawn into: the fill's
+     * strongest alpha, else the stroke's, else the extras', or 0 if the shape casts nothing.
+     */
+    private getSpreadStrength(drawsFill: boolean, drawsStroke: boolean, hasExtras: boolean): number {
+        const { __opacity: opacity = 1, __fillOpacity: fillOpacity = 1, __strokeOpacity: strokeOpacity = 1 } = this;
+        let strength: number;
+        if (drawsFill) {
+            strength = this.getMaxFillAlpha(this.__fill!) * fillOpacity * opacity;
+        } else if (drawsStroke) {
+            strength = this.getStrokeAlpha(this.__stroke) * strokeOpacity * opacity;
+        } else if (hasExtras) {
+            strength = this.getSilhouetteExtrasOpacity() * opacity;
+        } else {
+            return 0;
+        }
+        return strength * this.getPaintOpacityScale();
+    }
+
+    /**
+     * The strength that this shape casts its spread shadow at in a layer shadow batch's mask, before the alpha of the layer,
+     * or 0 if it casts none. Returns undefined if the shape draws its silhouette some other way, which does not follow this
+     * strength. A batch whose casters all share a strength draws their silhouettes solid, and casts its one shadow at that
+     * strength, rather than each caster adding its silhouette at its own.
+     */
+    getSpreadMaskStrength(): number | undefined {
+        const shadow = this.__fillShadow;
+        if (shadow?.enabled !== true || (shadow.spread ?? 0) <= 0 || !this.hasSpreadMaskPath()) return;
+
+        const { __fill: fill, __fillOpacity: fillOpacity = 1, __shadowMode: mode } = this;
+        const drawsFill =
+            mode !== 'stroke' && fill != null && fill !== 'none' && fillOpacity > 0 && this.getMaxFillAlpha(fill) > 0;
+        const drawsStroke = mode !== 'fill' && this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
+        const hasExtras = mode !== 'fill' && this.getSilhouetteExtrasOpacity() > 0;
+        const strength = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras);
+        return isFiniteNumber(strength) ? strength : undefined;
+    }
+
+    /** False for a shape that has no Path2D to dilate by a `spread`, which `fillStroke()` is then given none of. */
+    protected hasSpreadMaskPath(): boolean {
+        return true;
+    }
+
+    /**
      * Draws the silhouette that casts a shape's shadow into a shadow batch's mask when it has a `spread`: what
      * {@link castSpreadShadow} blits for the shape without the blur. That is the fill, the dilated stroke and the dilated
      * extras, drawn solid at a single strength. Only that strength follows the paint: the fill's strongest alpha, else the
@@ -530,18 +573,21 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         hasExtras: boolean,
         bboxOverride?: BBox
     ) {
-        const { __opacity: opacity = 1, __fillOpacity: fillOpacity = 1, __strokeOpacity: strokeOpacity = 1 } = this;
-        let strength: number;
-        if (drawsFill) {
-            strength = this.getMaxFillAlpha(this.__fill!) * fillOpacity * opacity;
-        } else if (drawsStroke) {
-            strength = this.getStrokeAlpha(this.__stroke) * strokeOpacity * opacity;
-        } else if (hasExtras) {
-            strength = this.getSilhouetteExtrasOpacity() * opacity;
-        } else {
+        const base = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras);
+        if (shadowPass.opaque) {
+            // The batch casts its shadow at the strength shared by its casters. See `getSpreadMaskStrength`.
+            if (base <= 0) return;
+
+            ctx.save();
+            try {
+                this.drawSpreadSilhouette(ctx, path, spread, drawsFill, drawsStroke);
+            } finally {
+                ctx.restore();
+            }
             return;
         }
-        strength *= ctx.globalAlpha * this.getPaintOpacityScale();
+
+        const strength = base * ctx.globalAlpha;
         if (strength <= 0 || !isFiniteNumber(strength)) return;
 
         if (strength >= 1) {
