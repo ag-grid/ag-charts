@@ -786,8 +786,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const { __fill: fill, __fillOpacity: fillOpacity = 1, __shadowMode: mode } = this;
         const { x, y, width, height, maxWidth, maxHeight } = spreadRegion;
 
+        // The strength is worked out as it is for a shadow batch's mask, so that paint casting nothing there casts nothing here.
         const fillAlpha =
-            mode === 'stroke' || fill == null || fill === 'none' || fillOpacity <= 0 ? 0 : this.getFillAlpha(fill);
+            mode === 'stroke' || fill == null || fill === 'none' || fillOpacity <= 0 ? 0 : this.getMaxFillAlpha(fill);
         const drawsFill = fillAlpha > 0;
         // A transparent stroke colour casts nothing, so it must not suppress the extras' shadow below.
         const strokeAlpha = mode !== 'fill' && this.hasVisibleStroke() ? this.getStrokeAlpha(this.__stroke) : 0;

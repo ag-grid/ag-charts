@@ -306,7 +306,8 @@ export function renderChildrenWithShadowBatches(
         if (run.length > 0 && runShadow != null && renderBatch(scene, user, run, runShadow, runClip, renderCtx)) {
             batches++;
         } else {
-            // The batch can't be drawn, so the casters cast for themselves.
+            // The one exception to drawing every shadow through the mask: a layer too large for it, or no context to draw it
+            // with, leaves the casters to cast for themselves. They size their shadow the way the mask does.
             for (const caster of run) caster.isolatedRender(renderCtx);
         }
         run = [];

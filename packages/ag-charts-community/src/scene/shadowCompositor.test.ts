@@ -959,6 +959,45 @@ describe('Group shadow compositor', () => {
             expect(batched).toEqual(alone);
         });
 
+        it('should cast no shadow from transparent paint when the layer is too large for the mask', () => {
+            const transparentGradient = {
+                type: 'gradient' as const,
+                colorStops: [
+                    { color: 'rgba(0, 0, 0, 0)', stop: 0 },
+                    { color: 'rgba(255, 0, 0, 0)', stop: 1 },
+                ],
+            };
+            const shadow = { ...RED_HALF, spread: 8 };
+            // 4200 x 4100 is more pixels than the mask can have, so every caster casts for itself.
+            const layer = new OffscreenCanvas(4200, 4100);
+            const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
+            const renderCtx = {
+                ctx: layerCtx,
+                direction: 'ltr' as const,
+                width: layer.width,
+                height: layer.height,
+                devicePixelRatio: 1,
+                logger: new Logger(),
+                debugNodes: {},
+            };
+            const before = offscreenCanvases();
+            const group = createGroup([
+                box(20, 40, 40, 50, { fill: transparentGradient, fillShadow: shadow }),
+                box(20, 130, 40, 50, { fillShadow: shadow }),
+            ]);
+            group.preRender(renderCtx);
+            group.render(renderCtx);
+
+            // No mask was made for the layer, so the casters did cast for themselves.
+            expect(inUse(createdSince(before).filter((canvas) => canvas !== layer)).length).toBeLessThanOrEqual(1);
+            const alpha = (x: number, y: number) => layerCtx.getImageData(x, y, 1, 1).data[3];
+            // The shadow of the visible item sits 100px right of it, and the transparent one casts none, even as dilated.
+            expect(alpha(140, 155)).toBeGreaterThan(0);
+            expect(alpha(140, 65)).toBe(0);
+            expect(alpha(125, 45)).toBe(0);
+            expect(alpha(112, 65)).toBe(0);
+        });
+
         it('should share one scratch canvas between the groups of a scene', () => {
             const before = offscreenCanvases();
             const scene = newScene();
