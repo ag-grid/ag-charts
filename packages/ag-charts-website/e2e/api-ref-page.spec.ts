@@ -72,6 +72,57 @@ async function selectSearchOption(page: Page, text: string) {
     }
 }
 
+async function waitForFrames(page: Page) {
+    await page.evaluate(
+        () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+    );
+}
+
+// `locator.click()` scrolls its target into view first, honouring the root scroll-padding, so it
+// moves the page on its own. A click at the input's coordinates focuses it in place.
+async function focusSearchInPlace(page: Page) {
+    const box = await getSearchInput(page).boundingBox();
+    if (box == null) {
+        throw new Error('Search input has no bounding box');
+    }
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+    await expect(getSearchInput(page)).toBeFocused();
+}
+
+async function expectTypingKeepsWindowScroll(page: Page, label: string) {
+    await page.evaluate(() => window.scrollTo(0, 600));
+    await waitForFrames(page);
+    await focusSearchInPlace(page);
+    await waitForFrames(page);
+
+    const baseline = await page.evaluate(() => window.scrollY);
+    expect(baseline, label).toBeGreaterThan(0);
+
+    for (const key of ['b', 'a', 'r', 'Backspace', 'Backspace', 'Backspace']) {
+        await page.keyboard.press(key);
+        await waitForFrames(page);
+        expect(await page.evaluate(() => window.scrollY), `${label}, after ${key}`).toBe(baseline);
+    }
+
+    await getSearchInput(page).evaluate((input) => input.blur());
+}
+
+async function expectAnchorBelowStickyHeaders(page: Page, anchorId: string) {
+    await expect
+        .poll(() =>
+            page.evaluate((id) => {
+                const anchor = document.getElementById(id);
+                if (anchor == null) {
+                    return 'missing';
+                }
+                const top = anchor.getBoundingClientRect().top;
+                const stickyBottom = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+                return top >= stickyBottom - 2 && top < window.innerHeight ? 'visible' : `top=${top}`;
+            }, anchorId)
+        )
+        .toBe('visible');
+}
+
 test.describe('api-ref-page', () => {
     const consoleLogs = createConsoleLogs();
 
@@ -541,6 +592,65 @@ test.describe('api-ref-page', () => {
 
         await seriesLink.click();
         await expect(getNavigationHighlight(page, /^series\b/)).toHaveCount(1);
+    });
+    test.describe('search input', () => {
+        // The pinned search caret sits on the edge of the root scroll-padding band, so the browser's
+        // caret reveal after each edit used to scroll the page by the overlap, once per keystroke.
+        test('typing does not scroll the page when the caret is inside the scroll-padding band', async ({ page }) => {
+            await gotoUrl(page, toPageUrl('options/'));
+            await waitForApiReady(page);
+
+            await page.evaluate(() => {
+                document.documentElement.style.scrollPaddingTop = '160px';
+            });
+
+            await expectTypingKeepsWindowScroll(page, 'scroll-padding 160px');
+        });
+
+        // CSS zoom approximates browser page zoom, whose layout rounding put the caret just inside
+        // the band. Which levels drift depends on the platform, hence the sweep.
+        test('typing does not scroll the page at fractional zoom', async ({ page }) => {
+            await gotoUrl(page, toPageUrl('options/'));
+            await waitForApiReady(page);
+
+            for (const zoom of [1, 0.9, 0.8, 0.75, 0.67, 0.5, 0.33]) {
+                await page.evaluate((z) => {
+                    document.documentElement.style.zoom = String(z);
+                    window.scrollTo(0, 0);
+                }, zoom);
+                await waitForFrames(page);
+
+                await expectTypingKeepsWindowScroll(page, `zoom ${zoom}`);
+            }
+        });
+
+        test('choosing a result with Enter lands its anchor below the sticky headers', async ({ page }) => {
+            await gotoUrl(page, toPageUrl('options/'));
+            await waitForApiReady(page);
+
+            await page.evaluate(() => window.scrollTo(0, 600));
+            await focusSearchInPlace(page);
+            await page.keyboard.type('bar');
+            await selectSearchOption(page, 'series type bar');
+            await page.keyboard.press('Enter');
+
+            await page.waitForURL(/\/options\/series\/bar\/#reference-AgBarSeriesOptions-type$/);
+            await expectAnchorBelowStickyHeaders(page, 'reference-AgBarSeriesOptions-type');
+        });
+
+        test('choosing a result by click lands its anchor below the sticky headers', async ({ page }) => {
+            await gotoUrl(page, toPageUrl('options/'));
+            await waitForApiReady(page);
+
+            await page.evaluate(() => window.scrollTo(0, 600));
+            await focusSearchInPlace(page);
+            await page.keyboard.type('bar');
+            await selectSearchOption(page, 'series type bar');
+            await page.locator(`${SEARCH_OPTION_SELECTOR}[class*="selected"]`).click();
+
+            await page.waitForURL(/\/options\/series\/bar\/#reference-AgBarSeriesOptions-type$/);
+            await expectAnchorBelowStickyHeaders(page, 'reference-AgBarSeriesOptions-type');
+        });
     });
 });
 

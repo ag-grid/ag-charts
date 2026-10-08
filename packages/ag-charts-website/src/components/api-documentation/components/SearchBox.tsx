@@ -1,6 +1,14 @@
 import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
 import classnames from 'classnames';
-import { type AllHTMLAttributes, type FormEventHandler, type KeyboardEventHandler, useRef, useState } from 'react';
+import {
+    type AllHTMLAttributes,
+    type FormEventHandler,
+    type KeyboardEventHandler,
+    type RefObject,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
 
 import { INDEXED_SEARCH_FIELD, type SearchDatum, type SearchIndex } from '../apiReferenceHelpers';
 import { HighlightText } from './HighlightText';
@@ -26,6 +34,7 @@ export function SearchBox({
 }) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [inFocus, setInFocus] = useState(false);
+    usePreserveWindowScrollWhileEditing(inputRef);
     const {
         data,
         searchQuery,
@@ -92,6 +101,59 @@ export function SearchBox({
             )}
         </div>
     );
+}
+
+// The input sits in a sticky panel whose caret lands on the edge of the root `scroll-padding-top`
+// band. Chromium and WebKit reveal the caret after every edit by scrolling each ancestor scroller,
+// and at some zoom levels rounding puts the caret just inside that band. Scrolling the window can
+// never move a sticky caret out of the band, so each keystroke drifts the page by another step.
+// CSS `scroll-margin` does not influence caret reveal, so the window scroll caused by an edit is
+// undone instead. Scroll events dispatch before animation frames, so the restore lands before paint.
+function usePreserveWindowScrollWhileEditing(inputRef: RefObject<HTMLInputElement>) {
+    useEffect(() => {
+        const input = inputRef.current;
+        if (!input) {
+            return;
+        }
+
+        let saved: { x: number; y: number } | undefined;
+        let frame: number | undefined;
+
+        const cancelFrame = () => {
+            if (frame != null) {
+                cancelAnimationFrame(frame);
+                frame = undefined;
+            }
+        };
+        const onBeforeInput = () => {
+            cancelFrame();
+            saved = { x: window.scrollX, y: window.scrollY };
+        };
+        const onInput = () => {
+            cancelFrame();
+            frame = requestAnimationFrame(() => {
+                frame = requestAnimationFrame(() => {
+                    frame = undefined;
+                    saved = undefined;
+                });
+            });
+        };
+        const onScroll = () => {
+            if (saved && (window.scrollX !== saved.x || window.scrollY !== saved.y)) {
+                window.scrollTo(saved.x, saved.y);
+            }
+        };
+
+        input.addEventListener('beforeinput', onBeforeInput);
+        input.addEventListener('input', onInput);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => {
+            cancelFrame();
+            input.removeEventListener('beforeinput', onBeforeInput);
+            input.removeEventListener('input', onInput);
+            window.removeEventListener('scroll', onScroll);
+        };
+    }, [inputRef]);
 }
 
 function useSearch(
