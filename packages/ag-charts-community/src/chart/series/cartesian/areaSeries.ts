@@ -262,6 +262,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
         zIndex: SeriesZIndexMap.BACKGROUND,
+        batchShadows: true,
     });
 
     override get pickModeAxis() {
