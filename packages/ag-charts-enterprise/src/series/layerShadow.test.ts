@@ -359,4 +359,83 @@ describe('layer shadow batching of enterprise series', () => {
             );
         });
     });
+
+    describe('silhouette where a stroke meets a fill', () => {
+        // The first item is high on the chart, and its shadow lies in the gap to its right, which the other items are too
+        // low to reach. The stroke is centred on the edge of the item, so that it overlaps the fill on the inside.
+        const XOFFSET = 200;
+        const STROKE_WIDTH = 8;
+        const HALF_BLACK_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: XOFFSET, yOffset: 0, blur: 0 };
+        const paint = { fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: STROKE_WIDTH };
+
+        const candlestick = {
+            data: [
+                { x: 'A', open: 6, high: 9, low: 5, close: 8 },
+                ...['B', 'C', 'D'].map((x) => ({ x, open: 2, high: 3, low: 1, close: 2.5 })),
+            ],
+            series: [
+                {
+                    type: 'candlestick',
+                    xKey: 'x',
+                    openKey: 'open',
+                    highKey: 'high',
+                    lowKey: 'low',
+                    closeKey: 'close',
+                    item: { up: { ...paint, wick: { stroke: 'blue' } }, down: { ...paint, wick: { stroke: 'blue' } } },
+                    shadow: HALF_BLACK_SHADOW,
+                },
+            ],
+        };
+        const boxPlot = {
+            data: [
+                { x: 'A', min: 5, q1: 6, median: 7, q3: 8, max: 9 },
+                ...['B', 'C', 'D'].map((x) => ({ x, min: 1, q1: 1.5, median: 2, q3: 2.5, max: 3 })),
+            ],
+            series: [
+                {
+                    type: 'box-plot',
+                    xKey: 'x',
+                    minKey: 'min',
+                    q1Key: 'q1',
+                    medianKey: 'median',
+                    q3Key: 'q3',
+                    maxKey: 'max',
+                    ...paint,
+                    whisker: { stroke: 'blue' },
+                    shadow: HALF_BLACK_SHADOW,
+                },
+            ],
+        };
+
+        it.each([
+            [
+                'candlestick',
+                candlestick,
+                (item: any) => canvasPoint(item, item.centerX, (item.yOpen + item.yClose) / 2),
+            ],
+            ['box plot', boxPlot, (item: any) => canvasPoint(item, item.center, (item.q1 + item.q3) / 2)],
+        ])(
+            'should cast a %s shadow of one strength under where its stroke meets its fill',
+            async (_, options, middle) => {
+                const series = await create({
+                    animation: { enabled: false },
+                    legend: { enabled: false },
+                    ...options,
+                } as any);
+                const [item] = [...series.datumSelection.nodes()].filter((node: any) => node.visible);
+                const { x, width } = Transformable.toCanvas(item);
+
+                // A row through the middle of the first item, whose shadow is clear of every item.
+                const { y } = middle(item);
+                const row = [];
+                for (let dx = -STROKE_WIDTH; dx <= width + STROKE_WIDTH; dx++) row.push(pixelAt(x + dx + XOFFSET, y));
+
+                // The shadow is half black where it lies on the white, and nowhere darker, as it is where the fill and the
+                // stroke would add up were they cast one after the other.
+                const darkest = Math.min(...row.map(([r]) => r));
+                expect(darkest).toBeGreaterThanOrEqual(125);
+                expect(row.filter(([r]) => Math.abs(r - 127.5) <= 2).length).toBeGreaterThan(width * 0.9);
+            }
+        );
+    });
 });

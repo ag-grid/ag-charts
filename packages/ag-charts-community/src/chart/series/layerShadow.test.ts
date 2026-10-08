@@ -216,16 +216,31 @@ describe('layer shadow batching of series', () => {
             expect(pixelAt(x, y)).toEqual([255, 0, 0, 255]);
         });
 
+        // The marker is a 20px square, and its stroke is centred on its edge, so a 6px stroke fills the ring from 7 to 13px
+        // beyond its centre. The shadow lies 40px to the right: the fill casts from 30 to 49px, and a stroke that cast would
+        // add the ring from 27 to 33px and from 47 to 53px, which nothing else reaches.
+        const BESIDE_STROKE_RING = [28, 51];
+
         it('should cast no shadow from the stroke of a marker that has no fill', async () => {
             await createScatter([{ x: 3, y: 5 }], { fill: 'none', stroke: 'red', strokeWidth: 6 });
 
-            expect(pixelBesideMarker(40)).toEqual([255, 255, 255, 255]);
+            // Nothing but the stroke could cast here, and it is not drawn through the mask.
+            for (const dx of [...BESIDE_STROKE_RING, 30, 50]) {
+                expect(pixelBesideMarker(dx)).toEqual([255, 255, 255, 255]);
+            }
         });
 
         it('should cast the shadow of a filled marker with a stroke from its fill only', async () => {
             await createScatter([{ x: 3, y: 5 }], { fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: 6 });
 
-            expect(isHalfBlack(pixelBesideMarker(40))).toBe(true);
+            // The shadow of the fill is there, from one edge to the other.
+            for (const dx of [31, 40, 48]) {
+                expect(isHalfBlack(pixelBesideMarker(dx))).toBe(true);
+            }
+            // The shadow of the stroke is not.
+            for (const dx of BESIDE_STROKE_RING) {
+                expect(pixelBesideMarker(dx)).toEqual([255, 255, 255, 255]);
+            }
         });
     });
 
@@ -273,6 +288,65 @@ describe('layer shadow batching of series', () => {
             }
 
             expect(blits.length).toBe(1);
+        });
+    });
+
+    describe('spread shadow of paint that casts nothing', () => {
+        const SPREAD_SHADOW: AgDropShadowOptions = {
+            enabled: true,
+            color: 'rgba(255, 0, 0, 0.5)',
+            xOffset: 0,
+            yOffset: 0,
+            blur: 0,
+            spread: 8,
+        };
+        const TRANSPARENT_GRADIENT = {
+            type: 'gradient',
+            colorStops: [
+                { color: 'rgba(0, 0, 0, 0)', stop: 0 },
+                { color: 'rgba(255, 0, 0, 0)', stop: 1 },
+            ],
+        };
+        const TRANSPARENT_PATTERN = {
+            type: 'pattern',
+            pattern: 'squares',
+            width: 10,
+            height: 10,
+            fill: 'rgba(0, 0, 0, 0)',
+            backgroundFill: 'rgba(0, 0, 0, 0)',
+            strokeOpacity: 0,
+        };
+
+        const render = async (fill: unknown, shadow: AgDropShadowOptions) => {
+            await create({
+                data: CATEGORY_DATA,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'value', fill, fillOpacity: 1, strokeWidth: 0, shadow },
+                ],
+            } as AgCartesianChartOptions);
+            const pixels = [...chart.ctx.scene.canvas.context.getImageData(0, 0, 800, 600).data];
+            chart.destroy();
+            return pixels;
+        };
+
+        /** The number of pixels of the chart that the shadow changes. */
+        const shadowPixels = async (fill: unknown) => {
+            const without = await render(fill, { ...SPREAD_SHADOW, enabled: false });
+            const withShadow = await render(fill, SPREAD_SHADOW);
+            return withShadow.filter((channel, i) => channel !== without[i]).length;
+        };
+
+        it('should cast a spread shadow from an opaque fill', async () => {
+            expect(await shadowPixels('blue')).toBeGreaterThan(0);
+        });
+
+        it.each([
+            ['gradient', TRANSPARENT_GRADIENT],
+            ['pattern', TRANSPARENT_PATTERN],
+        ])('should cast no spread shadow from a transparent %s fill', async (_, fill) => {
+            expect(await shadowPixels(fill)).toBe(0);
         });
     });
 
