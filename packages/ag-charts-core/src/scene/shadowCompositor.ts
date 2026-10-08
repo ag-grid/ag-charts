@@ -212,12 +212,15 @@ function renderPass(
     children: readonly Node[],
     renderCtx: RenderContext,
     state: 'mask' | 'suppress',
-    opaque: boolean = false
+    opaque: boolean = false,
+    resolution: { x: number; y: number } = { x: 1, y: 1 }
 ) {
     const previousState = shadowPass.state;
     const previousOpaque = shadowPass.opaque;
+    const previousResolution = shadowPass.resolution;
     shadowPass.state = state;
     shadowPass.opaque = opaque;
+    shadowPass.resolution = resolution;
     try {
         for (const child of children) {
             child.isolatedRender(renderCtx);
@@ -225,6 +228,7 @@ function renderPass(
     } finally {
         shadowPass.state = previousState;
         shadowPass.opaque = previousOpaque;
+        shadowPass.resolution = previousResolution;
     }
 }
 
@@ -329,7 +333,8 @@ function renderBatch(
             casters,
             { ...renderCtx, ctx: scratch, stats: undefined, debugNodeSearch: undefined, currentFont: undefined },
             'mask',
-            opaque
+            opaque,
+            { x: scaleX, y: scaleY }
         );
     } finally {
         scratch.restore();
