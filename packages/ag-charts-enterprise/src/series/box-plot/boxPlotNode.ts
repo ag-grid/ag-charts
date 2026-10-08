@@ -249,11 +249,6 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         const { wickPath, strokeWidth, wickStrokeWidth = strokeWidth } = this;
         if (this.getSilhouetteExtrasOpacity() <= 0) return;
 
-        // The mask is drawn with real paint, so the dilation takes the wick's colour, which `strokeWicks` paints with.
-        const { wickStroke = this.stroke } = this;
-        if (this.isDrawingShadowMask() && typeof wickStroke === 'string') {
-            ctx.strokeStyle = wickStroke;
-        }
         ctx.lineWidth = wickStrokeWidth + growth;
         ctx.stroke(wickPath.getPath2D());
     }
@@ -270,7 +265,7 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         } = this;
         // A wick casts a shadow only where `strokeWicks` paints it.
         if (wickPath.isEmpty() || wickStrokeWidth === 0 || wickStroke === 'none') return 0;
-        return Math.max(0, wickStrokeOpacity);
+        return Math.max(0, wickStrokeOpacity) * this.getColourAlpha(wickStroke);
     }
 
     private strokeWicks(ctx: _ModuleSupport.CanvasContext) {

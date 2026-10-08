@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Logger } from 'ag-charts-core';
 
@@ -346,6 +346,111 @@ describe('Group shadow compositor', () => {
                 expect(xs.map((x) => at(x, 155))).toEqual(alone);
             }
         );
+
+        describe('a spread shadow of paint that is not a plain colour', () => {
+            const item = (y: number, mixin: Partial<Path>) =>
+                pathBox(40, y, 60, 50, {
+                    stroke: 'black',
+                    strokeWidth: 6,
+                    fillShadow: { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 8 },
+                    shadowMode: 'silhouette',
+                    ...mixin,
+                });
+
+            const alphaAcross = (y: number) => [30, 34, 38, 41, 44, 48, 52, 70].map((x) => at(x, y)[3]);
+
+            it.each([
+                [
+                    'a pattern',
+                    {
+                        type: 'pattern' as const,
+                        pattern: 'vertical-lines' as const,
+                        fill: 'blue',
+                        width: 6,
+                        height: 6,
+                        strokeWidth: 3,
+                    },
+                ],
+                [
+                    'a gradient',
+                    {
+                        type: 'gradient' as const,
+                        gradient: 'linear' as const,
+                        colorStops: [
+                            { color: 'rgba(0, 0, 255, 0.2)', stop: 0 },
+                            { color: 'rgba(0, 0, 255, 1)', stop: 1 },
+                        ],
+                    },
+                ],
+            ])('should cast a solid shadow, as it does for itself, from an opaque stroke over %s', (_name, fill) => {
+                renderNodes([item(30, { fill }), item(130, { fill })], false);
+                const alone = alphaAcross(55);
+
+                renderNodes([item(30, { fill }), item(130, { fill })]);
+
+                expect(alone.includes(255)).toBe(true);
+                expect(alphaAcross(55)).toEqual(alone);
+                expect(alphaAcross(155)).toEqual(alone);
+            });
+
+            it.each([
+                ['a transparent fill and stroke', { fill: 'rgba(0, 0, 0, 0)', stroke: 'rgba(0, 0, 0, 0)' }],
+                ['a visible stroke of no width', { fill: 'rgba(0, 0, 0, 0)', stroke: 'black', strokeWidth: 0 }],
+                ['no stroke, whose default is not drawn', { fill: 'none', stroke: 'rgba(0, 0, 0, 0)' }],
+            ])('should cast the stroke of a shape whose pattern paints nothing, with %s', (_name, paint) => {
+                // The background is `none`, as a theme resolves it.
+                const fill = {
+                    type: 'pattern' as const,
+                    pattern: 'squares' as const,
+                    backgroundFill: 'none',
+                    ...paint,
+                };
+                renderNodes([item(30, { fill }), item(130, { fill })], false);
+                const alone = [30, 34, 38].map((x) => at(x, 55)[3]);
+
+                renderNodes([item(30, { fill }), item(130, { fill })]);
+
+                // Outside the edge, which only the stroke's spread reaches.
+                expect(alone).toEqual([255, 255, 255]);
+                expect([30, 34, 38].map((x) => at(x, 55)[3])).toEqual(alone);
+            });
+        });
+
+        describe('a spread shadow at fractional coordinates', () => {
+            const item = (y: number, mixin: Partial<Path>) =>
+                pathBox(60.5, y + 0.25, 40.25, 30.5, {
+                    stroke: 'black',
+                    strokeWidth: 3,
+                    fillShadow: { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 6 },
+                    shadowMode: 'silhouette',
+                    ...mixin,
+                });
+            const region = () => Array.from(ctx().getImageData(40, 10, 100, 190).data);
+            const worstDifference = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i])));
+
+            it.each([['blue'], ['rgba(0, 0, 255, 1)']])(
+                'should leave no seam in the shadow of an opaque %s fill',
+                (fill) => {
+                    renderNodes([item(30, { fill }), item(130, { fill })], false);
+                    const alone = region();
+
+                    renderNodes([item(30, { fill }), item(130, { fill })]);
+
+                    expect(alone.some((value) => value !== 0)).toBe(true);
+                    expect(worstDifference(region(), alone)).toBe(0);
+                }
+            );
+
+            it('should cast the same shadow as an item that casts for itself from a translucent fill', () => {
+                const fill = 'rgba(0, 0, 255, 0.5)';
+                renderNodes([item(30, { fill }), item(130, { fill })], false);
+                const alone = region();
+
+                renderNodes([item(30, { fill }), item(130, { fill })]);
+
+                expect(worstDifference(region(), alone)).toBe(0);
+            });
+        });
 
         it('should match the shadow of an item that casts for itself', () => {
             renderNodes([translucent(30, 12), translucent(130, 12)], false);
@@ -815,6 +920,44 @@ describe('Group shadow compositor', () => {
         };
 
         const inUse = (canvases: OffscreenCanvas[]) => canvases.filter((canvas) => canvas.width > 0);
+
+        it('should keep the mask within what a browser can allocate, with a blur wider than the layer at 2x', () => {
+            const before = offscreenCanvases();
+            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, blur: 3000 };
+            renderGroup(
+                createGroup([
+                    box(20, 40, 40, 40, { fillShadow: shadow }),
+                    box(20, 130, 40, 40, { fillShadow: shadow }),
+                ]),
+                2
+            );
+
+            const [mask] = inUse(createdSince(before));
+            expect(mask.width * mask.height).toBeLessThanOrEqual(4096 * 4096);
+            // The item is still cast through the mask, which is blurred beyond the point where it can be seen.
+            expect(paintedPixels()).toBeGreaterThan(0);
+        });
+
+        it('should let the items cast for themselves when the browser gives no context for the mask', () => {
+            const nodes = () => [
+                box(20, 40, 40, 40, { fillShadow: RED_HALF }),
+                box(20, 130, 40, 40, { fillShadow: RED_HALF }),
+            ];
+            renderNodes(nodes(), false);
+            const alone = Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+
+            const noContext = vi.spyOn(OffscreenCanvas.prototype, 'getContext').mockReturnValue(null);
+            let batched: number[];
+            try {
+                renderNodes(nodes());
+                batched = Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+            } finally {
+                noContext.mockRestore();
+            }
+
+            expect(alone.some((value) => value !== 0)).toBe(true);
+            expect(batched).toEqual(alone);
+        });
 
         it('should share one scratch canvas between the groups of a scene', () => {
             const before = offscreenCanvases();

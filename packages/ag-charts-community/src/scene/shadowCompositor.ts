@@ -1,11 +1,12 @@
 import { getOffscreenCanvas, isFiniteNumber } from 'ag-charts-core';
 import type { NormalisedDropShadowOptions } from 'ag-charts-core';
 
+import { releaseSpreadCanvas } from './canvas/spreadCanvas';
 import type { Node, RenderContext } from './node';
 import { shadowPass } from './shadowPass';
-import type { TranslatableType } from './transformable';
 import { Path } from './shape/path';
 import { Shape } from './shape/shape';
+import type { TranslatableType } from './transformable';
 
 /**
  * Layer shadow compositor.
@@ -13,13 +14,15 @@ import { Shape } from './shape/shape';
  * A shadow that every shape casts for itself is one Gaussian blur per shape, which dominates the frame time of a large
  * series. The compositor instead draws each run of consecutive children that share their shadow options as a batch:
  *
- * 1. Every caster draws its silhouette, with its real paint, into a scratch canvas the size of the layer.
+ * 1. Every caster draws its silhouette, with its real paint, into a scratch canvas the size of the layer. With a `spread`
+ *    its silhouette is drawn solid, and as strong as its fill, as it is for a shape that casts for itself.
  * 2. That mask is blurred once, as it is blitted beneath the batch. It is blitted from off-canvas, shifted back by the
  *    shadow offset, so that only its shadow lands on the layer.
  * 3. The casters draw as usual, without a shadow.
  *
  * All the shadows of a batch therefore sit beneath all of its items, so a later item's shadow no longer lands on an
- * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node and at a change of shadow options or of the clip of a path.
+ * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node, and at a change of shadow options
+ * or of the clip of a path.
  */
 
 /** How far a canvas shadow reaches past its source, in blurs: its Gaussian has a deviation of half the blur. */
@@ -27,6 +30,9 @@ const SHADOW_BLUR_REACH = 1.5;
 
 /** The most that the mask extends past the layer on one side, in device pixels. Items further off the layer cast nothing. */
 const MAX_MASK_PAD = 4096;
+
+/** The most pixels that the mask has: a canvas larger than this is more than iOS Safari can allocate (4096 x 4096). */
+const MAX_MASK_AREA = 4096 * 4096;
 
 type ShadowCaster = Shape & { __fillShadow: NormalisedDropShadowOptions };
 
@@ -80,6 +86,14 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
     );
 }
 
+/** The share of the padding that keeps the mask within {@link MAX_MASK_AREA}, or undefined if the layer alone does not. */
+function fitPadding(width: number, height: number, padX: number, padY: number): number | undefined {
+    for (let scale = 1; scale >= 1 / 16; scale /= 2) {
+        if ((width + padX * scale) * (height + padY * scale) <= MAX_MASK_AREA) return scale;
+    }
+    return width * height <= MAX_MASK_AREA ? 0 : undefined;
+}
+
 interface ShadowScratch {
     readonly canvas: OffscreenCanvas;
     readonly context: OffscreenCanvasRenderingContext2D;
@@ -109,6 +123,7 @@ function freeScratch(pool: ScratchPool) {
     if (scratch == null) return;
 
     // Workaround memory allocation quirks in iOS Safari, as for the layer canvases.
+    releaseSpreadCanvas(scratch.context);
     scratch.canvas.width = 0;
     scratch.canvas.height = 0;
     pool.scratch = undefined;
@@ -119,7 +134,12 @@ function freeScratch(pool: ScratchPool) {
  * one after another, so they share it. It only grows, because layers differ in size, and each pass clears the part it
  * uses. `user` is the group, which keeps the canvas alive until it calls {@link releaseShadowScratch}.
  */
-function acquireShadowScratch(scene: object | undefined, user: object, width: number, height: number): ShadowScratch {
+function acquireShadowScratch(
+    scene: object | undefined,
+    user: object,
+    width: number,
+    height: number
+): ShadowScratch | undefined {
     const pool = getPool(scene);
     pool.users.add(user);
 
@@ -129,9 +149,24 @@ function acquireShadowScratch(scene: object | undefined, user: object, width: nu
         const largestWidth = scratch?.canvas.width ?? 0;
         const largestHeight = scratch?.canvas.height ?? 0;
         freeScratch(pool);
+
+        // The canvas only grows, but not past what a canvas can be, whatever the sizes that it grew to.
+        let canvasWidth = Math.max(width, largestWidth);
+        let canvasHeight = Math.max(height, largestHeight);
+        if (canvasWidth * canvasHeight > MAX_MASK_AREA) {
+            canvasWidth = width;
+            canvasHeight = height;
+        }
         const OffscreenCanvasCtor = getOffscreenCanvas();
-        const canvas = new OffscreenCanvasCtor(Math.max(width, largestWidth), Math.max(height, largestHeight));
-        scratch = { canvas, context: canvas.getContext('2d')! };
+        const canvas = new OffscreenCanvasCtor(canvasWidth, canvasHeight);
+        // A browser that can't allocate the canvas gives no context.
+        const context = canvas.getContext('2d');
+        if (context == null) {
+            canvas.width = 0;
+            canvas.height = 0;
+            return;
+        }
+        scratch = { canvas, context };
         pool.scratch = scratch;
     }
     return scratch;
@@ -193,16 +228,24 @@ function renderBatch(
     const padTop = Math.min(Math.ceil(Math.max(0, offsetY)) + reach, MAX_MASK_PAD);
     const padBottom = Math.min(Math.ceil(Math.max(0, -offsetY)) + reach, MAX_MASK_PAD);
 
-    const maskWidth = width + padLeft + padRight;
-    const maskHeight = height + padTop + padBottom;
-    const { canvas, context: scratch } = acquireShadowScratch(scene, user, maskWidth, maskHeight);
+    // A canvas of more pixels than a browser can allocate would give no context, so the padding is cut down to fit, and the
+    // items that it no longer reaches cast nothing. A layer that is too large by itself is left to its items.
+    const padScale = fitPadding(width, height, padLeft + padRight, padTop + padBottom);
+    if (padScale == null) return false;
+    const padL = Math.floor(padLeft * padScale);
+    const padT = Math.floor(padTop * padScale);
+    const maskWidth = width + padL + Math.floor(padRight * padScale);
+    const maskHeight = height + padT + Math.floor(padBottom * padScale);
+    const acquired = acquireShadowScratch(scene, user, maskWidth, maskHeight);
+    if (acquired == null) return false;
+    const { canvas, context: scratch } = acquired;
 
     scratch.save();
     try {
         scratch.setTransform(1, 0, 0, 1, 0, 0);
         scratch.clearRect(0, 0, maskWidth, maskHeight);
         const { a, b, c, d, e, f } = ctx.getTransform();
-        scratch.setTransform(a, b, c, d, e + padLeft, f + padTop);
+        scratch.setTransform(a, b, c, d, e + padL, f + padT);
         scratch.globalAlpha = ctx.globalAlpha;
         scratch.direction = ctx.direction;
 
@@ -234,7 +277,7 @@ function renderBatch(
         ctx.shadowOffsetX = offsetX + distance;
         ctx.shadowOffsetY = offsetY;
         ctx.shadowBlur = blur;
-        ctx.drawImage(canvas, 0, 0, maskWidth, maskHeight, -padLeft - distance, -padTop, maskWidth, maskHeight);
+        ctx.drawImage(canvas, 0, 0, maskWidth, maskHeight, -padL - distance, -padT, maskWidth, maskHeight);
     } finally {
         ctx.restore();
     }

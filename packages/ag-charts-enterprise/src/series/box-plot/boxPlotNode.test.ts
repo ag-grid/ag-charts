@@ -208,6 +208,28 @@ describe('BoxPlotNode', () => {
             expect(pixelAt(canvasCtx, 270, 40)).toEqual(unbatched);
         });
 
+        it('should cast the shadow of a translucent box and whisker once where they meet, with a spread', () => {
+            const style = {
+                fill: 'rgba(0, 0, 255, 0.5)',
+                stroke: 'rgba(0, 0, 0, 0.5)',
+                wickStroke: 'rgba(0, 0, 0, 0.5)',
+                wickStrokeWidth: 2,
+                shadowMode: 'silhouette' as const,
+                fillShadow: { ...RED_SHADOW, spread: 6 },
+            };
+            const region = () => Array.from(canvasCtx.getRenderContext2D().getImageData(100, 0, 280, 115).data);
+            renderNode(canvasCtx, boxPlot({ ...style, center: 70 }));
+            const alone = region();
+
+            renderShadowBatch(canvasCtx, [boxPlot({ ...style, center: 70 }), boxPlot({ ...style, center: 160 })]);
+
+            expect(alone.some((value) => value !== 255)).toBe(true);
+            const batched = region();
+            let worst = 0;
+            for (const [i, value] of batched.entries()) worst = Math.max(worst, Math.abs(value - alone[i]));
+            expect(worst).toBeLessThanOrEqual(3);
+        });
+
         it('should cast a uniform shadow from a translucent whisker with a spread', () => {
             // The body casts nothing, so that the strength of the shadow is that of the whisker alone.
             const style = {

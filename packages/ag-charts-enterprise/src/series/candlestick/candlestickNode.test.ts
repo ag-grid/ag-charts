@@ -178,6 +178,46 @@ describe('CandlestickNode', () => {
             expect(pixelAt(canvasCtx, 270, 50)).toEqual(unbatched);
         });
 
+        describe('with a spread', () => {
+            const region = () => Array.from(canvasCtx.getRenderContext2D().getImageData(60, 0, 80, 220).data);
+            const worst = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i])));
+            const shadow = { ...RED_SHADOW, spread: 6 };
+
+            it('should cast the shadow of a translucent body and wick once where they meet', () => {
+                const style = {
+                    fill: 'rgba(0, 0, 255, 0.5)',
+                    stroke: 'rgba(0, 0, 0, 0.5)',
+                    wickStroke: 'rgba(0, 0, 0, 0.5)',
+                    shadowMode: 'silhouette' as const,
+                    fillShadow: shadow,
+                };
+                renderNode(canvasCtx, wicked(100, style));
+                const alone = region();
+
+                renderShadowBatch(canvasCtx, [wicked(100, style), wicked(300, style)]);
+
+                // The shadow of the wick is not added to that of the body, as it is not for an item that casts for itself.
+                expect(alone.some((value) => value !== 255)).toBe(true);
+                expect(worst(region(), alone)).toBeLessThanOrEqual(3);
+            });
+
+            it.each([
+                ['fill', 100.4],
+                ['fill', 100.75],
+                ['silhouette', 100.4],
+                ['silhouette', 100.75],
+            ] as const)('should leave no seam in the %s shadow of an opaque body at x = %s', (shadowMode, x) => {
+                const style = { shadowMode, fillShadow: shadow, width: 7.3, yOpen: 80.4, yClose: 120.6 };
+                renderNode(canvasCtx, wicked(x, style));
+                const alone = region();
+
+                renderShadowBatch(canvasCtx, [wicked(x, style), wicked(300, style)]);
+
+                expect(alone.some((value) => value !== 255)).toBe(true);
+                expect(worst(region(), alone)).toBe(0);
+            });
+        });
+
         it('should cast a uniform shadow from a translucent wick with a spread', () => {
             // The body casts nothing, so that the strength of the shadow is that of the wick alone.
             const style = {
