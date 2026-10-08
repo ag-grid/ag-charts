@@ -436,7 +436,14 @@ export class ContextMenu extends AbstractModuleInstance {
     private onContext(event: ContextMenuEvent) {
         if (!(this.opts.enabled ?? true)) return;
 
-        event.widgetEvent.sourceEvent.preventDefault();
+        const { sourceEvent } = event.widgetEvent;
+        if (this.opts.allowBrowserMenuWithModifierKey && (sourceEvent.ctrlKey || sourceEvent.metaKey)) {
+            // The browser menu opens instead, so an already-open chart menu must not stay visible beside it.
+            this.hide();
+            return;
+        }
+
+        sourceEvent.preventDefault();
         this.x = event.canvasX;
         this.y = event.canvasY;
 

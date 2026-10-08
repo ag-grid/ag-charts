@@ -959,4 +959,147 @@ describe('Context Menu', () => {
             expect(getItems).not.toHaveBeenCalledWith(expect.objectContaining({ showOn: 'cross-line' }));
         });
     });
+
+    describe('allowBrowserMenuWithModifierKey', () => {
+        const TITLE_OPTIONS: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            title: { enabled: true, text: 'Captioned Chart' },
+        };
+
+        function histogramBinCentre(datumIndex: number) {
+            const series = deproxy(chart).series[0] as any;
+            const node = series.getNodeData()[datumIndex];
+            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
+                series.contentGroup,
+                node.x + node.width / 2,
+                node.y + node.height / 2
+            );
+            return { x: canvasX, y: canvasY };
+        }
+
+        function legendItemPoint() {
+            const legendBBox = computeLegendBBox(deproxy(chart));
+            return { x: legendBBox.x + 2, y: legendBBox.y + 2 };
+        }
+
+        function titleCentre() {
+            const { x, y, width, height } = _ModuleSupport.Transformable.toCanvas(deproxy(chart).title.node);
+            return { x: x + width / 2, y: y + height / 2 };
+        }
+
+        function menuItemCount() {
+            return document.body.getElementsByClassName(`${DEFAULT_CONTEXT_MENU_CLASS}__item`).length;
+        }
+
+        type Point = () => { x: number; y: number };
+
+        const AREAS: Array<[string, AgChartOptions, Point]> = [
+            ['series area', coordinatesOptions(), () => seriesAreaCentre()],
+            ['series node', HISTOGRAM_OPTIONS, () => histogramBinCentre(0)],
+            ['legend item', EXAMPLE_OPTIONS, legendItemPoint],
+            [
+                'axis',
+                coordinatesOptions(),
+                () => ({ x: seriesAreaCentre().x, y: axisBandCentre(ChartAxisDirection.X).y }),
+            ],
+            ['cross line', CROSS_LINE_OPTIONS, () => crossLineLabelCentre(ChartAxisDirection.X)],
+            ['caption', TITLE_OPTIONS, titleCentre],
+        ];
+
+        async function prepare(contextMenu: AgChartOptions['contextMenu'], baseOptions: AgChartOptions) {
+            const action = vi.fn();
+            const getItems = vi.fn((params: any) => [
+                ...params.defaultItems,
+                { type: 'action', label: 'Probe Item', action },
+            ]);
+            await prepareChart({ enabled: true, getItems, ...contextMenu }, baseOptions);
+            return { getItems, action };
+        }
+
+        // `cancelable` is required, otherwise `defaultPrevented` stays false whatever the chart does.
+        async function rightClick(
+            point: Point,
+            modifiers: { ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean }
+        ) {
+            const events: MouseEvent[] = [];
+            const listener = (event: MouseEvent) => events.push(event);
+            window.addEventListener('contextmenu', listener, { capture: true });
+            try {
+                const { x, y } = point();
+                await contextMenuAction(x, y, { cancelable: true, ...modifiers })(chart);
+                await waitForChartStability(chart);
+            } finally {
+                window.removeEventListener('contextmenu', listener, { capture: true });
+            }
+            expect(events).toHaveLength(1);
+            return events[0];
+        }
+
+        describe.each(AREAS)('on the %s', (_name, baseOptions, point) => {
+            it.each(['ctrlKey', 'metaKey'] as const)('lets the browser menu through with %s', async (modifier) => {
+                const { getItems, action } = await prepare({ allowBrowserMenuWithModifierKey: true }, baseOptions);
+
+                const event = await rightClick(point, { [modifier]: true });
+
+                expect(event.defaultPrevented).toBe(false);
+                expect(getItems).not.toHaveBeenCalled();
+                expect(action).not.toHaveBeenCalled();
+                expect(menuItemCount()).toBe(0);
+            });
+
+            it('still opens the chart menu without a modifier key', async () => {
+                const { getItems } = await prepare({ allowBrowserMenuWithModifierKey: true }, baseOptions);
+
+                const event = await rightClick(point, {});
+
+                expect(event.defaultPrevented).toBe(true);
+                expect(getItems).toHaveBeenCalledTimes(1);
+                expect(menuItemCount()).toBeGreaterThan(0);
+            });
+        });
+
+        it('still opens the chart menu with only Shift held', async () => {
+            const { getItems } = await prepare({ allowBrowserMenuWithModifierKey: true }, coordinatesOptions());
+
+            const event = await rightClick(seriesAreaCentre, { shiftKey: true });
+
+            expect(event.defaultPrevented).toBe(true);
+            expect(getItems).toHaveBeenCalledTimes(1);
+            expect(menuItemCount()).toBeGreaterThan(0);
+        });
+
+        it.each([
+            ['false', { allowBrowserMenuWithModifierKey: false }],
+            ['unset', {}],
+        ])('opens the chart menu on Ctrl/Cmd + right-click when the option is %s', async (_name, contextMenu) => {
+            const { getItems } = await prepare(contextMenu, coordinatesOptions());
+
+            const ctrlEvent = await rightClick(seriesAreaCentre, { ctrlKey: true });
+            const metaEvent = await rightClick(seriesAreaCentre, { metaKey: true });
+
+            expect(ctrlEvent.defaultPrevented).toBe(true);
+            expect(metaEvent.defaultPrevented).toBe(true);
+            expect(getItems).toHaveBeenCalledTimes(2);
+            expect(menuItemCount()).toBeGreaterThan(0);
+        });
+
+        it('closes an already-open chart menu when letting the browser menu through', async () => {
+            const { getItems } = await prepare({ allowBrowserMenuWithModifierKey: true }, coordinatesOptions());
+
+            await rightClick(seriesAreaCentre, {});
+            expect(menuItemCount()).toBeGreaterThan(0);
+
+            const event = await rightClick(seriesAreaCentre, { ctrlKey: true });
+
+            expect(event.defaultPrevented).toBe(false);
+            expect(getItems).toHaveBeenCalledTimes(1);
+            expect(menuItemCount()).toBe(0);
+        });
+
+        it('accepts the option without a validation warning', async () => {
+            await prepare({ allowBrowserMenuWithModifierKey: true }, EXAMPLE_OPTIONS);
+
+            expectWarningsCalls().toHaveLength(0);
+        });
+    });
 });
