@@ -222,10 +222,9 @@ function renderPass(
 }
 
 /**
- * The strength that every caster of a `spread` batch casts at, or undefined if they differ or a caster draws its silhouette
- * some other way. Casting each translucent silhouette at its own strength takes a pass over the layer for it, which is slow
- * for the many shapes of a large series. A series' shapes share the one opacity, so the batch draws them solid, and blurs
- * and casts the mask at that strength once. Where such shapes overlap, they then cast one shadow, not a darker one.
+ * The strength that every caster of a `spread` batch casts at, or undefined if they differ or one draws its silhouette
+ * another way. The batch then draws the silhouettes solid and casts its one shadow at that strength, which avoids a pass
+ * over the layer per translucent shape.
  */
 function getUniformSpreadStrength(casters: readonly ShadowCaster[]): number | undefined {
     let uniform: number | undefined;

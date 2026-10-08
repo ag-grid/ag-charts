@@ -574,20 +574,8 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         bboxOverride?: BBox
     ) {
         const base = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras);
-        if (shadowPass.opaque) {
-            // The batch casts its shadow at the strength shared by its casters. See `getSpreadMaskStrength`.
-            if (base <= 0) return;
-
-            ctx.save();
-            try {
-                this.drawSpreadSilhouette(ctx, path, spread, drawsFill, drawsStroke);
-            } finally {
-                ctx.restore();
-            }
-            return;
-        }
-
-        const strength = base * ctx.globalAlpha;
+        // A batch that casts at its casters' shared strength draws each silhouette solid. See `getSpreadMaskStrength`.
+        const strength = shadowPass.opaque && base > 0 ? 1 : base * ctx.globalAlpha;
         if (strength <= 0 || !isFiniteNumber(strength)) return;
 
         if (strength >= 1) {
