@@ -253,7 +253,11 @@ describe('the command line, against the committed ports', () => {
     const committed = readPortManifests();
 
     function runCli(args) {
-        return spawnSync(process.execPath, [SCRIPT, ...args], { encoding: 'utf8' });
+        // CI sets GITHUB_ACTIONS, which switches the plan output to workflow annotations; these assertions read the plain lines.
+        return spawnSync(process.execPath, [SCRIPT, ...args], {
+            encoding: 'utf8',
+            env: { ...process.env, GITHUB_ACTIONS: '' },
+        });
     }
 
     function writeReport(stale) {
