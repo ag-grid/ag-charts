@@ -145,7 +145,7 @@ export class MapMarkerSeries
     private readonly sizeScale = new LinearScale();
 
     private readonly markerGroup = this.contentGroup.appendChild(
-        new Group({ name: 'markerGroup', batchShadows: true })
+        new Group({ name: 'markerGroup', batchShadows: true, batchShadowLayers: true })
     );
 
     private labelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(this.labelGroup, Text, false);

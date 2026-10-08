@@ -168,6 +168,30 @@ describe('Group shadow compositor', () => {
             expect(at(65, 70)[0]).toBeGreaterThan(0);
             expect(at(65, 70)).not.toEqual(BLACK);
         });
+
+        // A series that gives each item a zIndex only to order them, as an aggregated scatter does, still has one batch.
+        it('should keep items of different zIndex in one batch', () => {
+            const [first, second] = leftShadowed();
+            first.zIndex = [-2, 0];
+            second.zIndex = [-2, 1];
+            renderNodes([first, second]);
+
+            expect(at(65, 70)).toEqual(BLACK);
+            expect(isHalfRed(at(90, 70))).toBe(true);
+        });
+
+        it('should end a batch at a change of zIndex in a group that batches by layer', () => {
+            const [first, second] = leftShadowed();
+            first.zIndex = 0;
+            second.zIndex = 1;
+            const group = createGroup([first, second]);
+            group.batchShadowLayers = true;
+            renderGroup(group);
+
+            // The shadow of the item on the upper layer lands on the item beneath it.
+            expect(at(65, 70)[0]).toBeGreaterThan(0);
+            expect(at(65, 70)).not.toEqual(BLACK);
+        });
     });
 
     describe('spread', () => {

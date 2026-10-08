@@ -64,6 +64,14 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     @SceneChangeDetection()
     batchShadows: boolean = false;
 
+    /**
+     * Whether a batch of shadows ends at a change of the children's `zIndex`, so that the shadow of a child on an upper
+     * layer still lands on the lower one, as the depths of a treemap do. A group whose children's `zIndex` only orders
+     * them, as the markers of an aggregated scatter do, leaves it off, so that they stay one batch.
+     */
+    @SceneChangeDetection()
+    batchShadowLayers: boolean = false;
+
     /** The children that cast a batched shadow, counted by {@link preRender}, or -1 until then. */
     private shadowCasterCount = -1;
 
@@ -96,12 +104,14 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         readonly renderToOffscreenCanvas?: boolean;
         readonly optimizeForInfrequentRedraws?: boolean;
         readonly batchShadows?: boolean;
+        readonly batchShadowLayers?: boolean;
     }) {
         super(opts);
         this.isContainerNode = true;
         this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
         this.optimizeForInfrequentRedraws = opts?.optimizeForInfrequentRedraws === true;
         this.batchShadows = opts?.batchShadows === true;
+        this.batchShadowLayers = opts?.batchShadowLayers === true;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.
@@ -485,7 +495,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             }
 
             if (this.batchShadows && this.countShadowCasters() > 0) {
-                renderChildrenWithShadowBatches(this.children(), this.scene, this, childRenderCtx);
+                renderChildrenWithShadowBatches(
+                    this.children(),
+                    this.scene,
+                    this,
+                    childRenderCtx,
+                    this.batchShadowLayers
+                );
                 return;
             }
 

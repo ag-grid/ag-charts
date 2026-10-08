@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Transformable } from 'ag-charts-core';
+import { ChartUpdateType, Transformable } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -226,6 +226,53 @@ describe('layer shadow batching of series', () => {
             await createScatter([{ x: 3, y: 5 }], { fill: 'red', fillOpacity: 1, stroke: 'blue', strokeWidth: 6 });
 
             expect(isHalfBlack(pixelBesideMarker(40))).toBe(true);
+        });
+    });
+
+    describe('aggregated markers', () => {
+        const MARKERS = 40;
+
+        it('should blur the shadow of aggregated markers as one batch, not once for each', async () => {
+            await create({
+                data: Array.from({ length: MARKERS }, (_, i) => ({
+                    x: i % 8,
+                    y: Math.floor(i / 8),
+                    size: 1 + (i % 5),
+                })),
+                animation: { enabled: false },
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'size',
+                        maxRenderedItems: 10,
+                        shadow: SERIES_SHADOW,
+                    },
+                ],
+            } as AgChartOptions);
+
+            // Aggregation gives each marker a zIndex of its own, which only orders them.
+            const nodes = [...chart.series[0].datumSelection.nodes()].filter((node: any) => node.visible);
+            expect(new Set(nodes.map((node: any) => node.zIndex.join())).size).toBeGreaterThan(1);
+
+            // Each batch blits its mask, through the shadow of the canvas, onto the layer of the series.
+            const blits: unknown[] = [];
+            const proto = Object.getPrototypeOf(chart.ctx.scene.canvas.context);
+            const drawImage = proto.drawImage;
+            proto.drawImage = function (this: CanvasRenderingContext2D, ...args: any[]) {
+                if (this.shadowBlur > 0) blits.push(args[0]);
+                return drawImage.apply(this, args);
+            };
+            try {
+                chart.update(ChartUpdateType.FULL);
+                await waitForChartStability(chart);
+            } finally {
+                proto.drawImage = drawImage;
+            }
+
+            expect(blits.length).toBe(1);
         });
     });
 

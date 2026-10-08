@@ -24,8 +24,8 @@ import { compareZIndex } from './zIndex';
  *
  * All the shadows of a batch therefore sit beneath all of its items, so a later item's shadow no longer lands on an
  * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node, and at a change of shadow options,
- * of the clip of a path or of `zIndex`. A series gives its items a `zIndex` where one layer paints over another, like the
- * depths of a treemap, so the shadow of an upper layer still lands on the lower one.
+ * of the clip of a path and, in a group that batches by layer, of `zIndex`. A series gives its items a `zIndex` where one
+ * layer paints over another, like the depths of a treemap, so the shadow of an upper layer still lands on the lower one.
  */
 
 /** How far a canvas shadow reaches past its source, in blurs: its Gaussian has a deviation of half the blur. */
@@ -358,7 +358,8 @@ export function renderChildrenWithShadowBatches(
     children: Iterable<Node>,
     scene: object | undefined,
     user: object,
-    renderCtx: RenderContext
+    renderCtx: RenderContext,
+    splitByLayer: boolean = false
 ): void {
     const { stats } = renderCtx;
     let run: ShadowCaster[] = [];
@@ -393,7 +394,11 @@ export function renderChildrenWithShadowBatches(
         if (
             shadow == null ||
             (runShadow != null &&
-                !(sameShadow(runShadow, shadow) && sameClip(runClip, clip) && sameLayer(run[0], child)))
+                !(
+                    sameShadow(runShadow, shadow) &&
+                    sameClip(runClip, clip) &&
+                    (!splitByLayer || sameLayer(run[0], child))
+                ))
         ) {
             flush();
         }
