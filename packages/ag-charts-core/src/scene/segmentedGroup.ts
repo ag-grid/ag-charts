@@ -31,10 +31,7 @@ export class SegmentedGroup extends TranslatableGroup {
         }
         ctx.clip(inverse);
 
-        for (const child of this.children()) {
-            if (!child.visible) continue;
-            child.render(childRenderCtx);
-        }
+        this.renderChildren(childRenderCtx);
         ctx.restore();
 
         // Draw the segments

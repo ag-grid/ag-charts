@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Group, Logger, Path, Rect, Scene, Translatable, releaseShadowScratch } from 'ag-charts-core';
+import { Group, Logger, Path, Rect, Scene, SegmentedGroup, Translatable, releaseShadowScratch } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
@@ -191,6 +191,44 @@ describe('Group shadow compositor', () => {
             // The shadow of the item on the upper layer lands on the item beneath it.
             expect(at(65, 70)[0]).toBeGreaterThan(0);
             expect(at(65, 70)).not.toEqual(BLACK);
+        });
+    });
+
+    describe('segmented group', () => {
+        const LEFT_SHADOW = { ...RED_HALF, xOffset: -50 };
+
+        // A segment that no item reaches, so that every item is drawn in the gaps between segments.
+        const segment = {
+            clipRect: { x0: 300, y0: 0, x1: 400, y1: 100 },
+            fill: 'green',
+            fillOpacity: 1,
+            stroke: 'green',
+            strokeOpacity: 1,
+            strokeWidth: 1,
+        };
+
+        const renderSegmented = (segments: (typeof segment)[]) => {
+            const group = new SegmentedGroup({ name: 'segmented-group', batchShadows: true });
+            group.segments = segments;
+            group.appendChild(box(20, 40, 60, 60, { fillShadow: LEFT_SHADOW }));
+            group.appendChild(box(100, 40, 60, 60, { fillShadow: LEFT_SHADOW }));
+            groups.push(group);
+            renderGroup(group);
+        };
+
+        it('should draw every shadow of a batch beneath every item when it has segments', () => {
+            renderSegmented([segment]);
+
+            expect(at(65, 70)).toEqual(BLACK);
+            expect(isHalfRed(at(90, 70))).toBe(true);
+            expect(at(105, 70)).toEqual(BLACK);
+        });
+
+        it('should draw the same shadows when it has no segments', () => {
+            renderSegmented([]);
+
+            expect(at(65, 70)).toEqual(BLACK);
+            expect(isHalfRed(at(90, 70))).toBe(true);
         });
     });
 

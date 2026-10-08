@@ -464,7 +464,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected renderInContext(childRenderCtx: RenderContext) {
-        const { ctx, stats } = childRenderCtx;
+        const { ctx } = childRenderCtx;
 
         if (this.dirtyZIndex) {
             this.sortChildren(Group.compareChildren);
@@ -494,32 +494,33 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 childRenderCtx.clipBBox = Transformable.toCanvas(this, this.clipRect);
             }
 
-            if (this.batchShadows && this.countShadowCasters() > 0) {
-                renderChildrenWithShadowBatches(
-                    this.children(),
-                    this.scene,
-                    this,
-                    childRenderCtx,
-                    this.batchShadowLayers
-                );
-                return;
-            }
-
-            for (const child of this.children()) {
-                // Skip invisible children, but make sure their dirty flag is reset.
-                if (!child.visible) {
-                    if (stats) {
-                        stats.nodesSkipped += child.childNodeCounts.nonGroups + child.childNodeCounts.groups;
-                        stats.opsSkipped += child.childNodeCounts.complexity;
-                    }
-                    continue;
-                }
-
-                // Render marks this node (and children) as clean - no need to explicitly markClean().
-                child.isolatedRender(childRenderCtx);
-            }
+            this.renderChildren(childRenderCtx);
         } finally {
             ctx.restore();
+        }
+    }
+
+    /** Renders the children in order, with each run that shares a shadow batched if {@link batchShadows} is on. */
+    protected renderChildren(childRenderCtx: RenderContext) {
+        const { stats } = childRenderCtx;
+
+        if (this.batchShadows && this.countShadowCasters() > 0) {
+            renderChildrenWithShadowBatches(this.children(), this.scene, this, childRenderCtx, this.batchShadowLayers);
+            return;
+        }
+
+        for (const child of this.children()) {
+            // Skip invisible children, but make sure their dirty flag is reset.
+            if (!child.visible) {
+                if (stats) {
+                    stats.nodesSkipped += child.childNodeCounts.nonGroups + child.childNodeCounts.groups;
+                    stats.opsSkipped += child.childNodeCounts.complexity;
+                }
+                continue;
+            }
+
+            // Render marks this node (and children) as clean - no need to explicitly markClean().
+            child.isolatedRender(childRenderCtx);
         }
     }
 
