@@ -612,6 +612,73 @@ describe('Group shadow compositor', () => {
                 // The translucent item's shadow beside it, the gap between the two, and the opaque item's shadow beside it.
                 expect([alphaAt(140, 65), alphaAt(140, 92), alphaAt(140, 120)]).toEqual([128, 255, 255]);
             });
+
+            it('should not let a caster that paints nothing stop the others casting at one strength', () => {
+                // The transparent item casts nothing, so it has no strength to differ by.
+                renderNodes([item(40, 0.5), item(95, 0), item(150, 0.5)]);
+
+                // Beside the first item and just below it, then 120, which only the transparent item's spread (83 to 157) would
+                // reach, then beside the last item.
+                expect([alphaAt(140, 65), alphaAt(140, 92), alphaAt(140, 120), alphaAt(140, 175)]).toEqual([
+                    128, 128, 0, 128,
+                ]);
+            });
+
+            it('should cast at the strength of the casters and the alpha of the layer together', () => {
+                const render = (batchShadows: boolean) => {
+                    const group = createGroup([item(40, 0.5), item(95, 0.5), item(150, 0.5)], batchShadows);
+                    group.opacity = 0.5;
+                    renderGroup(group);
+                    return [alphaAt(140, 65), alphaAt(140, 92)];
+                };
+                // Beside an item, a caster cast for itself is the same. Between two, the shadows of casters cast for themselves stack.
+                const [aloneBeside] = render(false);
+
+                const [batchedBeside, batchedBetween] = render(true);
+
+                // A quarter of 255, not the 0.5 of the group alone, and not stacked to 0.4375 between two items.
+                expect([aloneBeside, batchedBeside, batchedBetween]).toEqual([64, 64, 64]);
+            });
+
+            it('should treat casters whose strengths differ by less than the tolerance as one strength', () => {
+                // 0.5 and 0.5005 are within 1/512 of each other, so the shadow is cast once rather than twice over.
+                renderNodes([item(40, 0.5), item(95, 0.5005)]);
+
+                expect([alphaAt(140, 65), alphaAt(140, 92), alphaAt(140, 120)]).toEqual([128, 128, 128]);
+            });
+
+            it('should cast each caster for itself where one has no path to dilate', () => {
+                // A shape without a path to dilate has no strength, so the batch cannot cast its casters as one.
+                class NoSpreadPath extends Rect {
+                    protected override hasSpreadMaskPath() {
+                        return false;
+                    }
+                }
+                const unspread = (y: number) => {
+                    const node = new NoSpreadPath();
+                    Object.assign(node, {
+                        x: 20,
+                        y,
+                        width: 40,
+                        height: 50,
+                        fill: 'rgba(0, 0, 255, 0.5)',
+                        stroke: undefined,
+                        strokeWidth: 0,
+                        fillShadow: shadow,
+                    });
+                    return node;
+                };
+                const render = (batchShadows: boolean) => {
+                    renderNodes([item(40, 0.5), unspread(130)], batchShadows);
+                    return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+                };
+                const alone = render(false);
+
+                const batched = render(true);
+
+                expect(alone.some((value) => value !== 0)).toBe(true);
+                expect(batched).toEqual(alone);
+            });
         });
     });
 
