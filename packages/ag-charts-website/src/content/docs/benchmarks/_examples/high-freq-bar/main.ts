@@ -94,8 +94,9 @@ type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
 // Until a series opts in to batched layer shadows, these variants time the per-shape shadow renderer, which is the
 // baseline to compare a series against once it does.
-// `shadow` and `spread` need a release that has them on this series, so older versions skip those variants.
-const SHADOW_MIN_VERSION = '14.2.0';
+// The shadow `spread`, and the `shadow` of candlestick and OHLC series, are first in 14.3.0. Older releases ignore them, so
+// they are skipped there, or they would do less work than this version does. Builds that still report 14.2.0 skip them too.
+const SHADOW_MIN_VERSION = '14.3.0';
 const SHADOWS: Record<'on' | 'spread', AgDropShadowOptions> = {
     on: { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: 2, yOffset: 2, blur: 4 },
     spread: { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: 2, yOffset: 2, blur: 4, spread: 2 },

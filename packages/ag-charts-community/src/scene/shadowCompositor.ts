@@ -288,24 +288,22 @@ function renderBatch(
 
 /**
  * Renders the children of a group, drawing each run of children that share a shadow as a batch with one blur.
- * Returns the number of batches drawn.
  */
 export function renderChildrenWithShadowBatches(
     children: Iterable<Node>,
     scene: object | undefined,
     user: object,
     renderCtx: RenderContext
-): number {
+): void {
     const { stats } = renderCtx;
-    let batches = 0;
     let run: ShadowCaster[] = [];
     let runShadow: NormalisedDropShadowOptions | undefined;
     let runClip: ShadowClip | undefined;
 
     const flush = () => {
-        if (run.length > 0 && runShadow != null && renderBatch(scene, user, run, runShadow, runClip, renderCtx)) {
-            batches++;
-        } else {
+        if (run.length === 0) return;
+
+        if (runShadow == null || !renderBatch(scene, user, run, runShadow, runClip, renderCtx)) {
             // The one exception to drawing every shadow through the mask: a layer too large for it, or no context to draw it
             // with, leaves the casters to cast for themselves. They size their shadow the way the mask does.
             for (const caster of run) caster.isolatedRender(renderCtx);
@@ -346,6 +344,4 @@ export function renderChildrenWithShadowBatches(
         }
     }
     flush();
-
-    return batches;
 }

@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { setupMockCanvas } from 'ag-charts-community-test';
+import { Color } from 'ag-charts-core';
 
 import {
     RED_SHADOW,
@@ -216,6 +217,19 @@ describe('CandlestickNode', () => {
                 expect(alone.some((value) => value !== 255)).toBe(true);
                 expect(worst(region(), alone)).toBe(0);
             });
+        });
+
+        it('should parse the colour of a wick once, not on every render', () => {
+            const wickStroke = 'rgba(1, 2, 3, 0.5)';
+            const node = wicked(100, { wickStroke, fillShadow: { ...RED_SHADOW, spread: 4 } });
+            const fromString = vi.spyOn(Color, 'fromString');
+            try {
+                for (let i = 0; i < 3; i++) renderNode(canvasCtx, node);
+
+                expect(fromString.mock.calls.filter(([colour]) => colour === wickStroke)).toHaveLength(1);
+            } finally {
+                fromString.mockRestore();
+            }
         });
 
         it('should cast a uniform shadow from a translucent wick with a spread', () => {

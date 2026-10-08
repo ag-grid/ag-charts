@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { setupMockCanvas } from 'ag-charts-community-test';
+import { Color } from 'ag-charts-core';
 
 import {
     RED_SHADOW,
@@ -101,6 +102,20 @@ describe('BoxPlotNode', () => {
             expect(node['wickPath'].isEmpty()).toBe(false);
             // The lower whisker runs from 20 to 70 at x = 110, so its shadow lands at x = 210, clear of the box shadow.
             expect(pixelAt(canvasCtx, 210, 45)).toEqual([255, 0, 0, 255]);
+        });
+
+        it('should parse the colour of a whisker once, not on every render', () => {
+            const wickStroke = 'rgba(1, 2, 3, 0.5)';
+            const node = verticalWhiskers(4);
+            node.wickStroke = wickStroke;
+            const fromString = vi.spyOn(Color, 'fromString');
+            try {
+                for (let i = 0; i < 3; i++) renderNode(canvasCtx, node);
+
+                expect(fromString.mock.calls.filter(([colour]) => colour === wickStroke)).toHaveLength(1);
+            } finally {
+                fromString.mockRestore();
+            }
         });
 
         it('should grow the shadow of a separately styled whisker by the spread', () => {
