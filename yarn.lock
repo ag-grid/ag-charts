@@ -14340,7 +14340,7 @@ __metadata:
     "@angular/router": "npm:^20.0.0"
     "@types/jasmine": "npm:~6.0.0"
     "@types/node": "npm:^22.15.3"
-    ag-charts-community: "npm:14.2.0-beta.20261004"
+    ag-charts-community: "npm:14.2.0-beta.20261008"
     jasmine-core: "npm:~5.9.0"
     karma: "npm:~6.4.4"
     karma-chrome-launcher: "npm:~3.2.0"
@@ -14362,7 +14362,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ag-charts-community-examples@workspace:packages/ag-charts-community-examples"
   dependencies:
-    ag-charts-community: "npm:14.2.0-beta.20261004"
+    ag-charts-community: "npm:14.2.0-beta.20261008"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     tslib: "npm:^2.8.1"
@@ -14380,17 +14380,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ag-charts-community@npm:14.2.0-beta.20261004, ag-charts-community@workspace:packages/ag-charts-community":
+"ag-charts-community@npm:14.2.0-beta.20261008, ag-charts-community@workspace:packages/ag-charts-community":
   version: 0.0.0-use.local
   resolution: "ag-charts-community@workspace:packages/ag-charts-community"
   dependencies:
     "@types/node": "npm:^16.0.0"
     "@types/pixelmatch": "npm:^5.2.4"
     "@types/pngjs": "npm:6.0.5"
-    ag-charts-core: "npm:14.2.0-beta.20261004"
-    ag-charts-locale: "npm:14.2.0-beta.20261004"
-    ag-charts-test: "npm:14.2.0-beta.20261004"
-    ag-charts-types: "npm:14.2.0-beta.20261004"
+    ag-charts-core: "npm:14.2.0-beta.20261008"
+    ag-charts-locale: "npm:14.2.0-beta.20261008"
+    ag-charts-test: "npm:14.2.0-beta.20261008"
+    ag-charts-types: "npm:14.2.0-beta.20261008"
     jest-image-snapshot: "npm:^6.5.2"
     path2d: "npm:^0.3.4"
     skia-canvas: "npm:^3.0.8"
@@ -14408,11 +14408,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ag-charts-core@npm:14.2.0-beta.20261004, ag-charts-core@workspace:packages/ag-charts-core":
+"ag-charts-core@npm:14.2.0-beta.20261008, ag-charts-core@workspace:packages/ag-charts-core":
   version: 0.0.0-use.local
   resolution: "ag-charts-core@workspace:packages/ag-charts-core"
   dependencies:
-    ag-charts-types: "npm:14.2.0-beta.20261004"
+    ag-charts-types: "npm:14.2.0-beta.20261008"
     vitest: "npm:2.1.9"
   languageName: unknown
   linkType: soft
@@ -14440,10 +14440,10 @@ __metadata:
     "@types/react": "npm:^18.2.0"
     "@types/react-dom": "npm:^18.2.0"
     "@vitejs/plugin-vue": "npm:^6.0.9"
-    ag-charts-community: "npm:14.2.0-beta.20261004"
-    ag-charts-enterprise: "npm:14.2.0-beta.20261004"
-    ag-charts-react: "npm:14.2.0-beta.20261004"
-    ag-charts-vue3: "npm:14.2.0-beta.20261004"
+    ag-charts-community: "npm:14.2.0-beta.20261008"
+    ag-charts-enterprise: "npm:14.2.0-beta.20261008"
+    ag-charts-react: "npm:14.2.0-beta.20261008"
+    ag-charts-vue3: "npm:14.2.0-beta.20261008"
     ag-grid-angular: "npm:~36.2.0"
     ag-grid-community: "npm:~36.2.0"
     ag-grid-enterprise: "npm:~36.2.0"
@@ -14473,16 +14473,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ag-charts-enterprise@npm:14.2.0-beta.20261004, ag-charts-enterprise@workspace:packages/ag-charts-enterprise":
+"ag-charts-enterprise@npm:14.2.0-beta.20261008, ag-charts-enterprise@workspace:packages/ag-charts-enterprise":
   version: 0.0.0-use.local
   resolution: "ag-charts-enterprise@workspace:packages/ag-charts-enterprise"
   dependencies:
     "@babel/types": "npm:7.29.0"
     "@types/pixelmatch": "npm:^5.2.4"
     "@types/pngjs": "npm:6.0.5"
-    ag-charts-community: "npm:14.2.0-beta.20261004"
-    ag-charts-core: "npm:14.2.0-beta.20261004"
-    ag-charts-test: "npm:14.2.0-beta.20261004"
+    ag-charts-community: "npm:14.2.0-beta.20261008"
+    ag-charts-core: "npm:14.2.0-beta.20261008"
+    ag-charts-test: "npm:14.2.0-beta.20261008"
     del: "npm:^6.0.0"
     glob: "npm:8.0.3"
     jest-image-snapshot: "npm:^6.5.2"
@@ -14502,10 +14502,10 @@ __metadata:
     "@fontsource/ibm-plex-sans": "npm:5.3.0"
     "@nx/devkit": "npm:^18.3.4"
     "@swc/helpers": "npm:0.5.23"
-    ag-charts-community: "npm:14.2.0-beta.20261004"
-    ag-charts-enterprise: "npm:14.2.0-beta.20261004"
-    ag-charts-generate-example-files: "npm:14.2.0-beta.20261004"
-    ag-charts-test: "npm:14.2.0-beta.20261004"
+    ag-charts-community: "npm:14.2.0-beta.20261008"
+    ag-charts-enterprise: "npm:14.2.0-beta.20261008"
+    ag-charts-generate-example-files: "npm:14.2.0-beta.20261008"
+    ag-charts-test: "npm:14.2.0-beta.20261008"
     ag-shared: "npm:0.0.1"
     glob: "npm:8.0.3"
     jsdom: "npm:~26.1.0"
@@ -14528,14 +14528,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"ag-charts-generate-example-files@npm:14.2.0-beta.20261004, ag-charts-generate-example-files@workspace:plugins/ag-charts-generate-example-files":
+"ag-charts-generate-example-files@npm:14.2.0-beta.20261008, ag-charts-generate-example-files@workspace:plugins/ag-charts-generate-example-files":
   version: 0.0.0-use.local
   resolution: "ag-charts-generate-example-files@workspace:plugins/ag-charts-generate-example-files"
   dependencies:
     "@nx/devkit": "npm:^18.3.4"
     "@swc/helpers": "npm:0.5.23"
-    ag-charts-community: "npm:14.2.0-beta.20261004"
-    ag-charts-test: "npm:14.2.0-beta.20261004"
+    ag-charts-community: "npm:14.2.0-beta.20261008"
+    ag-charts-test: "npm:14.2.0-beta.20261008"
     ag-shared: "npm:0.0.1"
     cheerio: "npm:^1.2.0"
     glob: "npm:8.0.3"
@@ -14554,7 +14554,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ag-charts-locale@npm:14.2.0-beta.20261004, ag-charts-locale@workspace:packages/ag-charts-locale":
+"ag-charts-locale@npm:14.2.0-beta.20261008, ag-charts-locale@workspace:packages/ag-charts-locale":
   version: 0.0.0-use.local
   resolution: "ag-charts-locale@workspace:packages/ag-charts-locale"
   dependencies:
@@ -14563,13 +14563,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"ag-charts-react@npm:14.2.0-beta.20261004, ag-charts-react@workspace:packages/ag-charts-react":
+"ag-charts-react@npm:14.2.0-beta.20261008, ag-charts-react@workspace:packages/ag-charts-react":
   version: 0.0.0-use.local
   resolution: "ag-charts-react@workspace:packages/ag-charts-react"
   dependencies:
     "@types/react": "npm:^18"
     "@types/react-dom": "npm:^18"
-    ag-charts-community: "npm:14.2.0-beta.20261004"
+    ag-charts-community: "npm:14.2.0-beta.20261008"
     react: "npm:^18.0.0"
     react-dom: "npm:^18.0.0"
     rimraf: "npm:3.0.2"
@@ -14585,9 +14585,9 @@ __metadata:
   resolution: "ag-charts-server-side@workspace:packages/ag-charts-server-side"
   dependencies:
     "@types/jsdom": "npm:^20.0.0"
-    ag-charts-community: "npm:14.2.0-beta.20261004"
-    ag-charts-core: "npm:14.2.0-beta.20261004"
-    ag-charts-enterprise: "npm:14.2.0-beta.20261004"
+    ag-charts-community: "npm:14.2.0-beta.20261008"
+    ag-charts-core: "npm:14.2.0-beta.20261008"
+    ag-charts-enterprise: "npm:14.2.0-beta.20261008"
     jest-image-snapshot: "npm:^6.5.2"
     jsdom: "npm:^24.0.0"
     skia-canvas: "npm:^3.0.8"
@@ -14603,11 +14603,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"ag-charts-test@npm:14.2.0-beta.20261004, ag-charts-test@workspace:libraries/ag-charts-test":
+"ag-charts-test@npm:14.2.0-beta.20261008, ag-charts-test@workspace:libraries/ag-charts-test":
   version: 0.0.0-use.local
   resolution: "ag-charts-test@workspace:libraries/ag-charts-test"
   dependencies:
-    ag-charts-core: "npm:14.2.0-beta.20261004"
+    ag-charts-core: "npm:14.2.0-beta.20261008"
     pixelmatch: "npm:^5.2.1"
     pngjs: "npm:3.4.0"
     skia-canvas: "npm:^3.0.8"
@@ -14622,19 +14622,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ag-charts-types@npm:14.2.0-beta.20261004, ag-charts-types@workspace:packages/ag-charts-types":
+"ag-charts-types@npm:14.2.0-beta.20261008, ag-charts-types@workspace:packages/ag-charts-types":
   version: 0.0.0-use.local
   resolution: "ag-charts-types@workspace:packages/ag-charts-types"
   languageName: unknown
   linkType: soft
 
-"ag-charts-vue3@npm:14.2.0-beta.20261004, ag-charts-vue3@workspace:packages/ag-charts-vue3":
+"ag-charts-vue3@npm:14.2.0-beta.20261008, ag-charts-vue3@workspace:packages/ag-charts-vue3":
   version: 0.0.0-use.local
   resolution: "ag-charts-vue3@workspace:packages/ag-charts-vue3"
   dependencies:
     "@babel/types": "npm:7.29.0"
     "@types/node": "npm:18.19.130"
-    ag-charts-community: "npm:14.2.0-beta.20261004"
+    ag-charts-community: "npm:14.2.0-beta.20261008"
     rimraf: "npm:3.0.2"
     typescript: "npm:~5.8.3"
     vue: "npm:^3.5.43"
@@ -14669,9 +14669,9 @@ __metadata:
     "@radix-ui/react-select": "npm:^2.0.0"
     "@tanstack/react-query": "npm:^5.103.2"
     "@tweenjs/tween.js": "npm:^18.6.4"
-    ag-charts-community: "npm:14.2.0-beta.20261004"
-    ag-charts-enterprise: "npm:14.2.0-beta.20261004"
-    ag-charts-test: "npm:14.2.0-beta.20261004"
+    ag-charts-community: "npm:14.2.0-beta.20261008"
+    ag-charts-enterprise: "npm:14.2.0-beta.20261008"
+    ag-charts-test: "npm:14.2.0-beta.20261008"
     ag-grid-community: "npm:~36.2.0"
     ag-grid-enterprise: "npm:~36.2.0"
     ag-grid-react: "npm:~36.2.0"
