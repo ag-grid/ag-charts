@@ -98,12 +98,18 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
     );
 }
 
-/** The share of the padding that keeps the mask within {@link MAX_MASK_AREA}, or undefined if the layer alone does not. */
-function fitPadding(width: number, height: number, padX: number, padY: number): number | undefined {
+/**
+ * The size of the mask, in layer pixels, that keeps its canvas within {@link MAX_MASK_AREA}. The padding is cut down first,
+ * and the items that it no longer reaches cast nothing. A layer too large by itself is drawn into a canvas of a lower
+ * resolution, which is blitted back up to its size: a shadow is blurred anyway, so it loses little.
+ */
+function fitMask(width: number, height: number, padX: number, padY: number) {
     for (let scale = 1; scale >= 1 / 16; scale /= 2) {
-        if ((width + padX * scale) * (height + padY * scale) <= MAX_MASK_AREA) return scale;
+        if ((width + padX * scale) * (height + padY * scale) <= MAX_MASK_AREA)
+            return { padScale: scale, resolution: 1 };
     }
-    return width * height <= MAX_MASK_AREA ? 0 : undefined;
+    if (width * height <= MAX_MASK_AREA) return { padScale: 0, resolution: 1 };
+    return { padScale: 1, resolution: Math.sqrt(MAX_MASK_AREA / ((width + padX) * (height + padY))) };
 }
 
 interface ShadowScratch {
@@ -279,14 +285,18 @@ function renderBatch(
     const padBottom = Math.min(Math.ceil(Math.max(0, -offsetY)) + reach, MAX_MASK_PAD);
 
     // A canvas of more pixels than a browser can allocate would give no context, so the padding is cut down to fit, and the
-    // items that it no longer reaches cast nothing. A layer that is too large by itself is left to its items.
-    const padScale = fitPadding(width, height, padLeft + padRight, padTop + padBottom);
-    if (padScale == null) return false;
+    // items that it no longer reaches cast nothing. A layer that is too large by itself is masked at a lower resolution.
+    const { padScale, resolution } = fitMask(width, height, padLeft + padRight, padTop + padBottom);
     const padL = Math.floor(padLeft * padScale);
     const padT = Math.floor(padTop * padScale);
     const maskWidth = width + padL + Math.floor(padRight * padScale);
     const maskHeight = height + padT + Math.floor(padBottom * padScale);
-    const acquired = acquireShadowScratch(scene, user, maskWidth, maskHeight);
+    // The canvas of the mask, which is smaller than the mask, in layer pixels, when its resolution is lower.
+    const canvasWidth = Math.max(1, Math.floor(maskWidth * resolution));
+    const canvasHeight = Math.max(1, Math.floor(maskHeight * resolution));
+    const scaleX = canvasWidth / maskWidth;
+    const scaleY = canvasHeight / maskHeight;
+    const acquired = acquireShadowScratch(scene, user, canvasWidth, canvasHeight);
     if (acquired == null) return false;
     const { canvas, context: scratch } = acquired;
 
@@ -307,9 +317,9 @@ function renderBatch(
     scratch.save();
     try {
         scratch.setTransform(1, 0, 0, 1, 0, 0);
-        scratch.clearRect(0, 0, maskWidth, maskHeight);
+        scratch.clearRect(0, 0, canvasWidth, canvasHeight);
         const { a, b, c, d, e, f } = ctx.getTransform();
-        scratch.setTransform(a, b, c, d, e + padL, f + padT);
+        scratch.setTransform(a * scaleX, b * scaleY, c * scaleX, d * scaleY, (e + padL) * scaleX, (f + padT) * scaleY);
         scratch.globalAlpha = opaque ? 1 : ctx.globalAlpha;
         scratch.direction = ctx.direction;
 
@@ -342,7 +352,7 @@ function renderBatch(
         ctx.shadowOffsetX = offsetX + distance;
         ctx.shadowOffsetY = offsetY;
         ctx.shadowBlur = blur;
-        ctx.drawImage(canvas, 0, 0, maskWidth, maskHeight, -padL - distance, -padT, maskWidth, maskHeight);
+        ctx.drawImage(canvas, 0, 0, canvasWidth, canvasHeight, -padL - distance, -padT, maskWidth, maskHeight);
     } finally {
         ctx.restore();
     }
@@ -370,8 +380,8 @@ export function renderChildrenWithShadowBatches(
         if (run.length === 0) return;
 
         if (runShadow == null || !renderBatch(scene, user, run, runShadow, runClip, renderCtx)) {
-            // The one exception to drawing every shadow through the mask: a layer too large for it, or no context to draw it
-            // with, leaves the casters to cast for themselves. They size their shadow the way the mask does.
+            // The one exception to drawing every shadow through the mask: no context to draw it with leaves the casters to
+            // cast for themselves. They size their shadow the way the mask does.
             for (const caster of run) caster.isolatedRender(renderCtx);
         }
         run = [];
