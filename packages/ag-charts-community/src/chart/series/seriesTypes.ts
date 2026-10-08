@@ -182,6 +182,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
     isHighlightEnabled(): boolean;
     isSelectionEnabled(): boolean;
     isDatumSelectable(datumIndex: DatumIndex): boolean;
+    getSelectionGroup(): string | undefined;
     getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined;
     getSelectionStateString(
         datumIndex: DatumIndex | undefined,

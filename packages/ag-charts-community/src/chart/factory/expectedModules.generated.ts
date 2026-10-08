@@ -603,6 +603,20 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'axis:plugin',
+        name: 'axisSelectedBand',
+        moduleId: 'AxisSelectedBandModule',
+        chartTypes: ['cartesian'],
+        enterprise: true,
+        axisTypes: ['category'],
+        contributes: [
+            {
+                path: 'axes[].axisSelectedBand',
+                axisTypes: ['category'],
+            },
+        ],
+    },
+    {
+        type: 'axis:plugin',
         name: 'bandHighlight',
         moduleId: 'BandHighlightModule',
         chartTypes: ['cartesian'],

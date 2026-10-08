@@ -12,6 +12,7 @@ type DataSet<T = unknown> = _ModuleSupport.DataSet<T>;
 type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 type SelectionStateEnum = _ModuleSupport.SelectionState;
 type SeriesLike = Parameters<IDataSelectionService['getDataSelectionState']>[0];
+type LinkedSeries = _ModuleSupport.ChartRegistry['chartService']['series'][number];
 type Observer = Parameters<DynamicContext<ChartRegistry>['chartState']['observe']>[0];
 type ObserveGetter = Parameters<Observer>[0];
 
@@ -32,6 +33,8 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
 
     public totalSelectedCount = 0;
     public totalCandidacyCount = 0;
+    private readonly queuedCandidacySeries: SeriesLike[] = [];
+    private readonly queuedCandidacyIndices: number[] = [];
     // Distinguishes "no drag in progress" from "drag in progress with an empty candidacy list".
     public candidacyInProgress = false;
     // Control/Cmd unions candidacy with the existing selection instead of replacing it.
@@ -110,6 +113,59 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
 
     enableCandidacy(seriesId: string, data: DataSet): Bitfield {
         return getOrInsert(this.candidacy, seriesId, data, candidacyInserter);
+    }
+
+    /** The other selection-enabled series in `series`' selection group. */
+    getLinkedSeries(series: SeriesLike): LinkedSeries[] {
+        const group = series.getSelectionGroup();
+        if (group === undefined || this.ctx === undefined) return [];
+
+        return this.ctx.chartService.series.filter(
+            (other) => other !== series && other.getSelectionGroup() === group && other.isSelectionEnabled()
+        );
+    }
+
+    /** The items of the other series in `series`' selection group that share the category of its `datumIndex`. */
+    *iterateLinkedItems(
+        series: SeriesLike,
+        datumIndex: number
+    ): Generator<{ series: LinkedSeries; datumIndex: number }> {
+        const group = series.getSelectionGroup();
+        if (group === undefined || this.ctx === undefined) return;
+
+        const categoryValue = series.getCategoryValue(datumIndex);
+        if (categoryValue == null) return;
+
+        for (const other of this.ctx.chartService.series) {
+            if (other === series || other.getSelectionGroup() !== group || !other.isSelectionEnabled()) continue;
+
+            const otherIndex = other.datumIndexForCategoryValue(categoryValue);
+            if (otherIndex !== undefined) {
+                yield { series: other, datumIndex: otherIndex };
+            }
+        }
+    }
+
+    /** Queues the items linked to `series`' `datumIndex` (see `Series.getSelectionGroup`) to become candidates. */
+    queueLinkedCandidacy(series: SeriesLike, datumIndex: number): void {
+        this.queuedCandidacySeries.push(series);
+        this.queuedCandidacyIndices.push(datumIndex);
+    }
+
+    /** Marks the queued items' linked items as candidates, and empties the queue. */
+    applyLinkedCandidacy(): void {
+        const { queuedCandidacySeries, queuedCandidacyIndices } = this;
+        for (let i = 0; i < queuedCandidacySeries.length; i++) {
+            for (const linked of this.iterateLinkedItems(queuedCandidacySeries[i], queuedCandidacyIndices[i])) {
+                const data = linked.series.data;
+                if (!data || !linked.series.isDatumSelectable(linked.datumIndex)) continue;
+
+                this.enableCandidacy(linked.series.id, data).setBit(linked.datumIndex);
+                this.totalCandidacyCount++;
+            }
+        }
+        queuedCandidacySeries.length = 0;
+        queuedCandidacyIndices.length = 0;
     }
 
     *iterateDataSetSelections(): Generator<DataSetSelectionsIterator> {

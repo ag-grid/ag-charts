@@ -19,6 +19,7 @@ type Service = {
     clearSelection(): void;
     enableSelection(seriesId: string, dataSet: DataSet): DataSetSelection;
     iterateDataSetSelections(): Iterable<DataSetSelectionsIterator>;
+    iterateLinkedItems(series: Series, datumIndex: number): Iterable<{ series: Series; datumIndex: number }>;
 };
 
 export type DataSetSelectionsIterator = {
@@ -90,6 +91,7 @@ export function toggleSelection(changes: SelectionChanges, series: Series, srv: 
         }
     }
     changes.countDelta += selections.toggle(datumIndex);
+    syncLinkedItems(changes, series, srv, datumIndex, !wasSelected);
 }
 
 export function setSelected(changes: SelectionChanges, series: Series, srv: Service, datumIndex: number): void {
@@ -102,6 +104,36 @@ export function setSelected(changes: SelectionChanges, series: Series, srv: Serv
         changes.items.markAdded(series.id, data, datumIndex);
     }
     changes.countDelta += selections.select(datumIndex);
+    syncLinkedItems(changes, series, srv, datumIndex, true);
+}
+
+/** Brings the items linked to `series`' `datumIndex` (see `Series.getSelectionGroup`) to its new selected state. */
+function syncLinkedItems(
+    changes: SelectionChanges,
+    series: Series,
+    srv: Service,
+    datumIndex: number,
+    selected: boolean
+): void {
+    // Runs for every datum a drag picks, so skip the generator for the series that have no group.
+    if (series.getSelectionGroup() === undefined) return;
+
+    for (const linked of srv.iterateLinkedItems(series, datumIndex)) {
+        const data = linked.series.data;
+        if (!data || !linked.series.isDatumSelectable(linked.datumIndex)) continue;
+
+        const selections = srv.enableSelection(linked.series.id, data);
+        if (selections.isSelected(linked.datumIndex) === selected) continue;
+
+        if (changes.items !== undefined) {
+            if (selected) {
+                changes.items.markAdded(linked.series.id, data, linked.datumIndex);
+            } else {
+                changes.items.markRemoved(linked.series.id, data, linked.datumIndex);
+            }
+        }
+        changes.countDelta += selected ? selections.select(linked.datumIndex) : selections.deselect(linked.datumIndex);
+    }
 }
 
 export function setSelectedRange(

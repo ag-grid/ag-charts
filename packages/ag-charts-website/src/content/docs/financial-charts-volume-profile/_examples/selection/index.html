@@ -1,0 +1,25 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <span>Click Mode:</span>
+        <div class="button-group" role="group" aria-label="Click Mode">
+            <input
+                type="radio"
+                id="mode-single"
+                name="click-mode"
+                value="single"
+                checked
+                onchange="changeClickMode(event)"
+            />
+            <label for="mode-single">Single</label>
+            <input
+                type="radio"
+                id="mode-multiple"
+                name="click-mode"
+                value="multiple"
+                onchange="changeClickMode(event)"
+            />
+            <label for="mode-multiple">Multiple</label>
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>
