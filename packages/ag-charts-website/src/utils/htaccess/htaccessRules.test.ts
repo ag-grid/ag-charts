@@ -369,6 +369,118 @@ describe('htaccessRules markdown content negotiation', () => {
     });
 });
 
+describe('htaccessRules npm-packages tarballs', () => {
+    // Splits each `<If>` block into its condition and body, so assertions hold on what the
+    // generated rule matches rather than on its literal text.
+    const ifBlocks = (content: string) =>
+        [...content.matchAll(/<If "([^\n]*)">\n([\s\S]*?)<\/If>/g)].map(([, condition, body]) => ({
+            condition,
+            body,
+            pattern: condition.match(/REQUEST_URI\} =~ m#([^#]*)#/)?.[1],
+            preflightOnly: condition.includes("%{REQUEST_METHOD} == 'OPTIONS'"),
+        }));
+    const npmPackagesBlocks = (content: string) =>
+        ifBlocks(content).filter(({ body }) => body.includes('Access-Control') || body.includes('Cache-Control'));
+
+    const production = getHtaccessContent({ env: 'production' });
+    const staging = getHtaccessContent({ env: 'staging' });
+
+    it('serves .tgz as gzip, not as a transfer-encoded stream the browser would unpack', () => {
+        for (const content of [production, staging]) {
+            expect(content).toContain('AddType application/gzip .tgz');
+            expect(content).toContain('RemoveEncoding .tgz');
+        }
+    });
+
+    it('answers CORS preflights for the tarballs with a wildcard origin and headers, allowing GET, HEAD and OPTIONS', () => {
+        for (const content of [production, staging]) {
+            const preflight = npmPackagesBlocks(content).filter(({ preflightOnly }) => preflightOnly);
+            expect(preflight).toHaveLength(1);
+            expect(preflight[0].body).toContain('Header always set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"');
+            expect(preflight[0].body).toContain('Header always set Access-Control-Allow-Headers "*"');
+        }
+    });
+
+    it('sends the wildcard origin on the tarball responses themselves, which the browser checks after the preflight', () => {
+        for (const content of [production, staging]) {
+            const [responses] = npmPackagesBlocks(content).filter(({ preflightOnly }) => !preflightOnly);
+            expect(responses.body).toContain('Header always set Access-Control-Allow-Origin "*"');
+        }
+    });
+
+    it('makes caches revalidate the tarballs, as each deploy overwrites the same names', () => {
+        for (const content of [production, staging]) {
+            const [responses] = npmPackagesBlocks(content).filter(({ preflightOnly }) => !preflightOnly);
+            expect(responses.body).toContain('Header always set Cache-Control "no-cache"');
+            expect(responses.body).not.toMatch(/max-age|immutable/);
+        }
+    });
+
+    it('scopes every CORS and caching header to the npm-packages folder under the base', () => {
+        for (const content of [production, staging]) {
+            const blocks = npmPackagesBlocks(content);
+            expect(blocks).toHaveLength(2);
+            for (const { pattern } of blocks) {
+                const scope = new RegExp(pattern!);
+                expect(scope.test('/charts/npm-packages/ag-charts-react.tgz')).toBe(true);
+                expect(scope.test('/charts/npm-packages/ag-charts-vue3.tgz')).toBe(true);
+                expect(scope.test('/charts/react/line-series/')).toBe(false);
+                expect(scope.test('/charts/archive/14.2.0/npm-packages/ag-charts-react.tgz')).toBe(false);
+                expect(scope.test('/npm-packages/ag-charts-react.tgz')).toBe(false);
+            }
+        }
+    });
+
+    it('does not widen the headers beyond the tarballs: no unscoped CORS or Cache-Control line', () => {
+        for (const content of [production, staging]) {
+            const unscoped = content
+                .split('\n')
+                .filter((l) => !l.startsWith(' ') && /^Header .*(Access-Control|Cache-Control)/.test(l));
+            expect(unscoped).toEqual([]);
+        }
+    });
+});
+
+describe.each([
+    {
+        build: 'archive',
+        base: '/charts/archive/14.2.0/',
+        inScope: '/charts/archive/14.2.0',
+        outOfScope: ['/charts/archive/14.1.0', '/charts', '/charts/archive/14x2y0'],
+    },
+    { build: 'staging root', base: '/', inScope: '', outOfScope: ['/charts', '/archive/14.2.0'] },
+])('htaccessRules npm-packages tarballs ($build build)', ({ base, inScope, outOfScope }) => {
+    beforeEach(() => {
+        vi.resetModules();
+        vi.doMock('../../constants', async (importActual) => {
+            const actual = await importActual<typeof import('../../constants')>();
+            return { ...actual, SITE_BASE_URL: base };
+        });
+    });
+
+    afterEach(() => {
+        vi.doUnmock('../../constants');
+    });
+
+    it('carries the rule in its own .htaccess, scoped to its own base', async () => {
+        const { getHtaccessContent: getContent } = await import('./htaccessRules');
+        // Archives are generated with the production env; staging with the staging one.
+        for (const env of ['production', 'staging'] as const) {
+            const content = getContent({ env });
+            const conditions = [...content.matchAll(/<If "([^\n]*npm-packages[^\n]*)">/g)].map(([, c]) => c);
+            expect(conditions).toHaveLength(2);
+            expect(conditions.filter((c) => c.includes("== 'OPTIONS'"))).toHaveLength(1);
+            for (const condition of conditions) {
+                const scope = new RegExp(condition.match(/m#([^#]*)#/)![1]);
+                expect(scope.test(`${inScope}/npm-packages/ag-charts-core.tgz`)).toBe(true);
+                for (const other of outOfScope) {
+                    expect(scope.test(`${other}/npm-packages/ag-charts-core.tgz`), other).toBe(false);
+                }
+            }
+        }
+    });
+});
+
 describe('generated redirect rules snapshot', () => {
     // Snapshots render under the pinned `/charts` base, so they carry the production prefix.
     it('redirect rules output is unchanged', () => {

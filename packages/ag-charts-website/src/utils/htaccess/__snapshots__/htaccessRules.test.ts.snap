@@ -67,6 +67,28 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
     Header append Vary Accept
 </If>
 
+# Package tarballs (npm-packages/): fetched cross-origin by StackBlitz's in-browser npm.
+# Servers commonly map .tgz to "Content-Encoding: x-gzip", which makes the browser unpack the
+# tarball in transit and breaks its integrity check, so drop that and serve it as the gzip it is.
+<IfModule mod_mime.c>
+    RemoveEncoding .tgz
+    AddType application/gzip .tgz
+</IfModule>
+
+<If "%{REQUEST_URI} =~ m#^/charts/npm-packages/#">
+    # The tarball names are fixed and overwritten by each deploy, so shared caches and browsers
+    # must revalidate rather than keep serving the previous build.
+    Header always set Cache-Control "no-cache"
+    Header always set Access-Control-Allow-Origin "*"
+</If>
+
+# CORS preflight: the answer is the same for every tarball, and may be cached by the browser.
+<If "%{REQUEST_URI} =~ m#^/charts/npm-packages/# && %{REQUEST_METHOD} == 'OPTIONS'">
+    Header always set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+    Header always set Access-Control-Allow-Headers "*"
+    Header always set Access-Control-Max-Age "3600"
+</If>
+
 Redirect 301 /charts/javascript/bullet-series /charts/javascript/linear-gauge/#bullet-series
 Redirect 301 /charts/angular/bullet-series /charts/angular/linear-gauge/#bullet-series
 Redirect 301 /charts/react/bullet-series /charts/react/linear-gauge/#bullet-series
@@ -188,6 +210,28 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 # its default.
 <If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|(?:react|angular|vue)|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
     Header append Vary Accept
+</If>
+
+# Package tarballs (npm-packages/): fetched cross-origin by StackBlitz's in-browser npm.
+# Servers commonly map .tgz to "Content-Encoding: x-gzip", which makes the browser unpack the
+# tarball in transit and breaks its integrity check, so drop that and serve it as the gzip it is.
+<IfModule mod_mime.c>
+    RemoveEncoding .tgz
+    AddType application/gzip .tgz
+</IfModule>
+
+<If "%{REQUEST_URI} =~ m#^/charts/npm-packages/#">
+    # The tarball names are fixed and overwritten by each deploy, so shared caches and browsers
+    # must revalidate rather than keep serving the previous build.
+    Header always set Cache-Control "no-cache"
+    Header always set Access-Control-Allow-Origin "*"
+</If>
+
+# CORS preflight: the answer is the same for every tarball, and may be cached by the browser.
+<If "%{REQUEST_URI} =~ m#^/charts/npm-packages/# && %{REQUEST_METHOD} == 'OPTIONS'">
+    Header always set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+    Header always set Access-Control-Allow-Headers "*"
+    Header always set Access-Control-Max-Age "3600"
 </If>
 
 Redirect 301 /charts/javascript/bullet-series /charts/javascript/linear-gauge/#bullet-series
