@@ -274,9 +274,11 @@ Fails when a port the change edits is still stale: a file under `seeds/<demo>/<f
 between `<base>` and `HEAD`, and the port's manifest is behind its golden master. A port is aligned
 by editing it and restamping its manifest; edited and still stale means the restamp was forgotten,
 and the blocking parity run, which skips stale ports, would not compare it. The message names each
-port, the files that touched it and the stamp command. Changes to a port's `package.json` and
-`.seed-manifest.json` alone do not count: `pin-ports.mjs` rewrites those in every port on each
-version bump and at the release-branch cut, stale or not.
+port, the files that touched it and the stamp command. Changes to a port's `package.json`,
+`.seed-manifest.json` and root `README.md` alone do not count. `pin-ports.mjs` rewrites the first
+two in every port on each version bump and at the release-branch cut, stale or not; the README
+carries no demo behaviour and is not part of the demo source hash, so editing it aligns nothing. A
+README edited together with any other port file still counts, as does one below the port root.
 
 A stale port is excused only when it was already stale at `<base>` **and** the change moves its React
 demo's source hash. That is an API migration swept across the demo and every port (a rename that
