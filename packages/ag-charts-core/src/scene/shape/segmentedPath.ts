@@ -7,6 +7,7 @@ import {
     type NormalisedStrokeOptions,
 } from '../../options/normalised/normalisedCommonOptions';
 import { SceneRefChangeDetection } from '../../rendering/changeDetectable';
+import { shadowPass } from '../shadowPass';
 import { Path } from './path';
 
 export interface ClipRect {
@@ -37,10 +38,12 @@ export class SegmentedPath<D = any> extends Path<D> {
         const Path2DCtor = getPath2D();
         const inverse = new Path2DCtor();
         // `ctx.canvas` is in device pixels but the context transform draws in logical units, so the
-        // full-canvas mask must use logical dimensions or it under-covers when the ratio is below 1.
+        // full-canvas mask must use logical dimensions or it under-covers when the ratio is below 1. The canvas of a shadow
+        // mask is also smaller than its layer by its resolution, which the transform makes up for.
         const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-        const canvasWidth = ctx.canvas.width / pixelRatio;
-        const canvasHeight = ctx.canvas.height / pixelRatio;
+        const resolution = shadowPass.state === 'mask' ? shadowPass.resolution : { x: 1, y: 1 };
+        const canvasWidth = ctx.canvas.width / (pixelRatio * resolution.x);
+        const canvasHeight = ctx.canvas.height / (pixelRatio * resolution.y);
         rect(inverse, { x0: 0, y0: 0, x1: canvasWidth, y1: canvasHeight }, false);
         for (const s of this.segments) {
             rect(inverse, s.clipRect);
