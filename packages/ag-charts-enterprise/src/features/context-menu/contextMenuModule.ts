@@ -13,11 +13,13 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, _Mo
 
     options: {
         enabled: boolean,
+        allowBrowserMenuWithModifierKey: boolean,
         items: contextMenuItemsArray,
         getItems: callbackOf(contextMenuItemsArray, 'a menu items array'),
     },
     themeTemplate: {
         enabled: true,
+        allowBrowserMenuWithModifierKey: false,
     },
 
     // `register()` runs first and guarantees `contextMenuRegistry` is present, so we
