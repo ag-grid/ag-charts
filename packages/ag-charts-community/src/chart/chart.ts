@@ -76,7 +76,6 @@ import { SyncManager, type SyncStatus } from './interaction/syncManager';
 import { type LayoutContext, LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
-import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
@@ -2221,8 +2220,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
             newAxes.push(axis);
         }
-
-        guessInvalidPositions(newAxes);
 
         return newAxes;
     }

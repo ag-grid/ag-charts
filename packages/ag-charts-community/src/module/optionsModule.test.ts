@@ -3803,6 +3803,79 @@ describe('ChartOptions', () => {
                 });
             });
 
+            it('should position unreferenced axes without a position as secondary vertical axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'category' },
+                        y: { type: 'number' },
+                        myAxis: { type: 'number' },
+                        myOtherAxis: { type: 'number' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { position: 'bottom' },
+                    y: { position: 'left' },
+                    __AXIS_ID_2: { position: 'right' },
+                    __AXIS_ID_3: { position: 'left' },
+                });
+            });
+
+            it('should let a theme position place an unreferenced axis without one', () => {
+                const options: AgCartesianChartOptions = {
+                    theme: { overrides: { line: { axes: { number: { position: 'top' } } } } },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category' }, y: { type: 'number' }, myAxis: { type: 'number' } },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { position: 'bottom' },
+                    y: { position: 'left' },
+                    __AXIS_ID_2: { position: 'top' },
+                });
+            });
+
+            it.each([
+                {
+                    name: 'a primary axis',
+                    axes: { x: { position: 'middle' }, y: { type: 'number' } },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    expected: { x: { position: 'bottom' }, y: { position: 'left' } },
+                },
+                {
+                    name: 'a referenced secondary axis',
+                    axes: { x: { type: 'category' }, y: { type: 'number' }, y2: { position: 'middle' } },
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'z', yKeyAxis: 'y2' },
+                    ],
+                    expected: {
+                        x: { position: 'bottom' },
+                        y: { position: 'left' },
+                        __AXIS_ID_2: { position: 'right' },
+                    },
+                },
+                {
+                    name: 'a referenced secondary axis of a horizontal series',
+                    axes: { x: { type: 'number' }, y: { type: 'category' }, y2: { position: 'middle' } },
+                    series: [
+                        { type: 'bar', direction: 'horizontal', xKey: 'x', yKey: 'y' },
+                        { type: 'bar', direction: 'horizontal', xKey: 'x', yKey: 'z', yKeyAxis: 'y2' },
+                    ],
+                    expected: { __AXIS_ID_2: { position: 'top' } },
+                },
+            ])('should position $name without a type whose position is invalid', ({ axes, series, expected }) => {
+                const preparedOptions = prepareOptions({ axes, series } as AgCartesianChartOptions);
+
+                expect(preparedOptions.axes).toMatchObject(expected);
+                expect(String((console.warn as Mock).mock.calls[0]?.[0])).toContain('cannot be set to `"middle"`');
+            });
+
             // TODO: predict the axes based on their types?
             it.fails(
                 'should remap axes when no position is provided and keys are non-standard and axes are in wrong order',
