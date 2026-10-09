@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { type AgCartesianChartOptions, type AgChartInstance, AgCharts } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import {
+    deproxy,
+    expectWarningsCalls,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 import { ChartAxisDirection } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -95,6 +101,34 @@ describe('ChartSync', () => {
             expect(remainingAnimationTime[1]).toBeGreaterThan(6000);
             expect(remainingAnimationTime[2]).toBeGreaterThan(6000);
             expect(remainingAnimationTime[3]).toBeGreaterThan(6000);
+        });
+    });
+
+    describe('axes without series of their own', () => {
+        const sharedAxesChart = (yKeyAxis: string, axes: 'x' | 'xy'): AgCartesianChartOptions =>
+            prepareEnterpriseTestOptions({
+                data: [
+                    { x: 'a', y: 1 },
+                    { x: 'b', y: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', yKeyAxis }],
+                axes: {
+                    x: { type: 'category' },
+                    y: { type: 'number', position: 'left' },
+                    ySecondary: { type: 'number', position: 'right' },
+                },
+                sync: { axes },
+            } as AgCartesianChartOptions);
+
+        it('should only warn about an unused axis that sync does not cover', async () => {
+            charts = [
+                AgCharts.create(sharedAxesChart('y', 'xy')),
+                AgCharts.create(sharedAxesChart('ySecondary', 'xy')),
+                AgCharts.create(sharedAxesChart('ySecondary', 'x')),
+            ];
+            await waitForAllChartStability();
+
+            expectWarningsCalls().toEqual([['AG Charts - `axes.y` is not used by any series.']]);
         });
     });
 

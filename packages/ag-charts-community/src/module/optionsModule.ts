@@ -1162,9 +1162,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             defaultAxes,
             hasExtraImplicitDefaultSeriesAxisKeys
         );
-        if (chartType === 'cartesian') {
-            this.warnUnusedAxes(options, directions, axisKeys, remappedAxisKeys);
-        }
         this.predictAxesMissingTypesAndPositions(options, directions, newAxes, defaultAxes);
         this.alternateSecondaryAxisPositions(options, newAxes);
 
@@ -1216,30 +1213,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     continue;
                 }
                 return direction;
-            }
-        }
-    }
-
-    private warnUnusedAxes(
-        options: T,
-        directions: ChartAxisDirection[],
-        axisKeys: Set<string>,
-        remappedAxisKeys: Map<string, string>
-    ) {
-        const usedAxisKeys = new Set<unknown>();
-        for (const seriesOptions of options.series ?? []) {
-            for (const direction of directions) {
-                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
-                if (directionAxisKey != null && isKeyOf(directionAxisKey, seriesOptions)) {
-                    usedAxisKeys.add(seriesOptions[directionAxisKey]);
-                }
-            }
-        }
-        if (usedAxisKeys.size === 0) return;
-
-        for (const axisKey of axisKeys) {
-            if (!usedAxisKeys.has(remappedAxisKeys.get(axisKey))) {
-                this.logger.warn(`\`axes.${axisKey}\` is not used by any series.`);
             }
         }
     }

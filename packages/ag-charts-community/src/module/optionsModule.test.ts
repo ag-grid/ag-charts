@@ -3900,21 +3900,6 @@ describe('ChartOptions', () => {
                     ]);
                 });
 
-                it('should warn about an axes key that no series uses', () => {
-                    prepareOptions({ series, axes: { orphanKey: { type: 'number' } } } as AgCartesianChartOptions);
-
-                    expect(warnings()).toEqual([expect.stringContaining('`axes.orphanKey`')]);
-                });
-
-                it('should not warn when every axes key is used', () => {
-                    prepareOptions({
-                        series,
-                        axes: { axisA: { type: 'number' }, axisB: { type: 'number' } },
-                    } as AgCartesianChartOptions);
-
-                    expect(console.warn).not.toHaveBeenCalled();
-                });
-
                 it('should place an axis omitted from axes opposite one positioned on the right', () => {
                     const preparedOptions = prepareOptions({
                         series,

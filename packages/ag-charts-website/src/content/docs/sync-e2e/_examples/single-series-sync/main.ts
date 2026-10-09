@@ -74,6 +74,7 @@ const chartOptions3 = {
     ...commonOptions,
     container: document.getElementById('myChart3'),
     sync: { axes: 'x' },
+    axes: { x: commonOptions.axes?.x, ySecondary: commonOptions.axes?.ySecondary },
     title: {
         text: 'Benchmark 2',
     },
