@@ -2,12 +2,7 @@ import type { IconName } from '@ag-website-shared/components/icon/Icon';
 import { type PersistentAtom, atomWithJSONStorage } from '@ag-website-shared/theming/JSONStorage';
 import { useAtom } from 'jotai';
 
-import type {
-    AgCartesianChartOptions,
-    AgCartesianSeriesOptions,
-    AgChartOptions,
-    AgFinancialChartOptions,
-} from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgCartesianSeriesOptions, AgChartOptions } from 'ag-charts-community';
 
 import { type ChartFeatureId, type ChartFeatures, DEFAULT_CHART_FEATURES, isFeatureActive } from './chartFeatures';
 import {
@@ -21,15 +16,6 @@ import {
     totalsFor,
 } from './previewData';
 
-/** Either shape the preview can hand to `useChart`. */
-export type PreviewChartOptions = AgChartOptions | AgFinancialChartOptions;
-
-/**
- * An AG Charts preset a preview type is built through. The same string reaches
- * `ModuleRegistry` as the preset module's name.
- */
-export type PreviewPreset = 'price-volume';
-
 /**
  * A stable id for the nth series of a preview. Set by hand because the panel
  * names a series back to the chart through `setState`, and AG Charts' generated
@@ -42,6 +28,12 @@ export type PreviewTooltipTarget = { seriesId: string; itemId: number };
 
 /** Q2 of the first series: left of centre, so the tooltip opens over the chart. */
 const CARTESIAN_TOOLTIP_TARGET: PreviewTooltipTarget = { seriesId: previewSeriesId(0), itemId: 1 };
+
+/** Left of centre for the same reason, at the default (unzoomed) range. */
+const CANDLESTICK_TOOLTIP_TARGET: PreviewTooltipTarget = {
+    seriesId: previewSeriesId(0),
+    itemId: Math.floor(CANDLESTICK_DATA.length * 0.4),
+};
 
 /**
  * A chart type the preview can be switched to. Each entry builds its whole
@@ -57,18 +49,10 @@ export type PreviewChartType = {
     countLabel?: string;
     /** The features this type has a surface for; the popup leaves out the rest. */
     features: ChartFeatureId[];
-    /**
-     * Which factory builds it. Fixed at creation, so a pane switching in or out
-     * of a preset remounts rather than updates.
-     */
-    preset?: PreviewPreset;
-    /**
-     * The datum whose tooltip is held open while the tooltip params are edited.
-     * Absent where the preview cannot name a series: a preset generates its own ids.
-     */
+    /** The datum whose tooltip is held open while the tooltip params are edited. */
     tooltipTarget?: PreviewTooltipTarget;
     /** The main preview: the full chart, titled and with a legend. */
-    buildOptions: (seriesCount: number, features: ChartFeatures) => PreviewChartOptions;
+    buildOptions: (seriesCount: number, features: ChartFeatures) => AgChartOptions;
 };
 
 /**
@@ -134,7 +118,7 @@ const cartesianAxes = (features: ChartFeatures) => {
     };
 };
 
-/** Applied to every non-preset type, so one switch covers bars and donuts alike. */
+/** Applied to every type, so one switch covers bars and donuts alike. */
 const commonOptions = (features: ChartFeatures) => ({
     legend: { ...LEGEND, enabled: isFeatureActive(features, 'legend') },
     // Enabled by default once the module is registered, so this is as much
@@ -260,23 +244,41 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
         id: 'candlestick',
         label: 'Candlestick',
         icon: 'chartsCandlestick',
-        features: ['zoom', 'navigator', 'rangeButtons', 'toolbar', 'statusBar', 'volume'],
-        preset: 'price-volume',
         /**
-         * The one preview built for the chart's own UI rather than its series.
          * No series-strokes switch: daily candles render barely a pixel wide,
          * below the three AG Charts needs to draw a body rather than a wick.
          */
-        buildOptions: (_count, features) => ({
-            data: CANDLESTICK_DATA,
-            title: { text: 'Acme Corp.' },
-            navigator: isFeatureActive(features, 'navigator'),
-            rangeButtons: isFeatureActive(features, 'rangeButtons'),
-            statusBar: isFeatureActive(features, 'statusBar'),
-            toolbar: isFeatureActive(features, 'toolbar'),
-            volume: isFeatureActive(features, 'volume'),
-            zoom: isFeatureActive(features, 'zoom'),
-        }),
+        features: ['legend', 'crosshairs', 'contextMenu', 'zoom', 'navigator', 'rangeButtons', 'toolbar'],
+        tooltipTarget: CANDLESTICK_TOOLTIP_TARGET,
+        buildOptions: (_count, features) => {
+            const crosshair = { enabled: isFeatureActive(features, 'crosshairs') };
+            const toolbar = { enabled: isFeatureActive(features, 'toolbar') };
+            return {
+                data: CANDLESTICK_DATA,
+                title: { text: 'Acme Corp.' },
+                series: [
+                    {
+                        type: 'candlestick',
+                        id: previewSeriesId(0),
+                        xKey: 'date',
+                        openKey: 'open',
+                        highKey: 'high',
+                        lowKey: 'low',
+                        closeKey: 'close',
+                        yName: 'Share Price',
+                    },
+                ],
+                axes: {
+                    x: { type: 'ordinal-time', position: 'bottom', crosshair },
+                    y: { type: 'number', position: 'right', crosshair },
+                },
+                zoom: { enabled: isFeatureActive(features, 'zoom') },
+                navigator: { enabled: isFeatureActive(features, 'navigator') },
+                ranges: { enabled: isFeatureActive(features, 'rangeButtons') },
+                annotations: { ...toolbar, toolbar },
+                ...commonOptions(features),
+            };
+        },
     },
 ];
 
@@ -294,8 +296,8 @@ export const PREVIEW_PANE_LABELS: Record<PreviewPaneId, string> = {
 };
 
 /**
- * A plain chart and a chart made mostly of UI: bars answer for the palette, the
- * axes and the text, and the candlestick pane for the chrome params.
+ * Bars answer for the palette, the axes and the text, and the candlestick pane
+ * for the zoom, navigator and range-button chrome.
  */
 export const DEFAULT_CHART_TYPE_IDS: Record<PreviewPaneId, string> = {
     left: 'bar',
