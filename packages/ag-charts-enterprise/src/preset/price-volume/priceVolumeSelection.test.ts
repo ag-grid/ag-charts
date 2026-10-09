@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
-import type { _ModuleSupport } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -13,6 +12,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import type { Rect } from 'ag-charts-core';
 import type { AgChartInstance, AgFinancialChartOptions, AgVolumeProfileSelectionOptions } from 'ag-charts-types';
 
 import { setupEnterpriseModules } from '../../setup';
@@ -54,8 +54,7 @@ describe('priceVolume volume profile selection', () => {
     const allSeries = () => deproxy(chart).ctx.chartService.series;
     const profileSeries = () => allSeries().filter((s) => s.getSelectionGroup() === 'volumeProfile');
     const selected = () => Array.from(chart.getSelection(), ({ seriesId, itemId }) => `${seriesId}:${itemId}`);
-    const bands = () =>
-        findSceneNodes<_ModuleSupport.Rect>(chart, 'axis-selected-band').filter((n) => n.visible !== false);
+    const bands = () => findSceneNodes<Rect>(chart, 'axis-selected-band').filter((n) => n.visible !== false);
 
     async function clickProfileBar(seriesIndex: number, datumIndex: number) {
         const series = profileSeries()[seriesIndex];

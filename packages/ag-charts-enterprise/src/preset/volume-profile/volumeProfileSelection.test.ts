@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
-import type { _ModuleSupport } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -16,6 +15,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import type { Rect } from 'ag-charts-core';
 import type { AgChartInstance, AgSelectionChangeEvent, AgVolumeProfileChartOptions } from 'ag-charts-types';
 
 import { setupEnterpriseModules } from '../../setup';
@@ -238,8 +238,7 @@ describe('volumeProfile selection', () => {
     });
 
     describe('selected band', () => {
-        const bands = () =>
-            findSceneNodes<_ModuleSupport.Rect>(chart, 'axis-selected-band').filter((n) => n.visible !== false);
+        const bands = () => findSceneNodes<Rect>(chart, 'axis-selected-band').filter((n) => n.visible !== false);
 
         it('draws no band while nothing is selected', async () => {
             await create();
