@@ -244,7 +244,7 @@ describe('Sync the mirror', () => {
      * Stand-ins, first on the PATH, for what the step asks of the network: `sleep` returns at once,
      * `npm view <package>@<version>` answers unless `<package>@<version>` is among `unpublished`
      * (until it has been asked about `appearsAfter` times), and `gh api .../compare/<base>...<head>`
-     * answers `compare`.
+     * answers `compare` (`fail` makes it exit non-zero).
      */
     function stubBin({ unpublished, appearsAfter, compare }) {
         const bin = join(work, 'stubs');
@@ -267,7 +267,7 @@ describe('Sync the mirror', () => {
                 `printf '%s\\n' "\${2##*@}"`,
             ].join('\n')
         );
-        stub('gh', `printf '%s\\n' "${compare}"`);
+        stub('gh', compare === 'fail' ? 'echo "gh: HTTP 502" >&2; exit 1' : `printf '%s\\n' "${compare}"`);
         return bin;
     }
 
@@ -376,6 +376,19 @@ describe('Sync the mirror', () => {
 
             expect(result.status, result.stderr).toBe(0);
             expect(content('staging')).toBe('build A, again');
+        });
+
+        it('fails without syncing when GitHub cannot say how the two commits compare', () => {
+            seedMirror();
+            sync({ branch: 'staging', exported: 'build B\n', source: SHA('b') });
+            const staging = tip('staging');
+
+            const result = sync({ branch: 'staging', exported: 'build A\n', source: SHA('a'), compare: 'fail' });
+
+            expect(result.status).not.toBe(0);
+            expect(result.stdout).toContain('Could not compare');
+            expect(tip('staging')).toBe(staging);
+            expect(content('staging')).toBe('build B');
         });
 
         it('does not apply to a release branch, whose pushes are ordered by the branch itself', () => {

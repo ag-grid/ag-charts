@@ -205,14 +205,20 @@ jobs:
                   # site now serves in place of this commit's. The last synced commit is the one
                   # named in the mirror branch's head message; a run that changed nothing commits
                   # nothing, so that is the last commit that changed the seeds, which can only make
-                  # this guard miss a stale run, never block a current one.
+                  # this guard miss a stale run, never block a current one. When the comparison
+                  # cannot be made the run fails rather than syncing, because it is invoked as an
+                  # `if` condition, where a failed command would otherwise read as "not ahead" and
+                  # let the very stale run this guards against through; the job can be re-run.
                   staging_is_ahead() {
                       local synced status
                       synced=$(git log -1 --format=%s "origin/${MIRROR_BRANCH}" 2> /dev/null | sed -n 's|^Sync from [^@]*@\([0-9a-f]\{40\}\) .*|\1|p')
                       if [ -z "$synced" ] || [ "$synced" = "$GITHUB_SHA" ]; then
                           return 1
                       fi
-                      status=$(GH_TOKEN="$SOURCE_TOKEN" gh api "repos/${GITHUB_REPOSITORY}/compare/${GITHUB_SHA}...${synced}" --jq .status)
+                      status=$(GH_TOKEN="$SOURCE_TOKEN" gh api "repos/${GITHUB_REPOSITORY}/compare/${GITHUB_SHA}...${synced}" --jq .status) || {
+                          echo "::error::Could not compare ${GITHUB_SHA} with ${synced}, the commit mirror staging holds; not syncing it blind. Re-run the job."
+                          exit 1
+                      }
                       [ "$status" = ahead ]
                   }
 

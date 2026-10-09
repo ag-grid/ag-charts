@@ -135,7 +135,8 @@ The rules that follow from that:
   check. To re-sync `staging`, re-run the failed "Sync Demo Seeds (staging)" job; the workflow's
   manual dispatch syncs only release branches and release tags. A re-run for a commit older than the
   one the mirror's `staging` last synced (named in its head commit's message) leaves the branch as it
-  is, so it cannot undo a newer deployment's sync.
+  is, so it cannot undo a newer deployment's sync; if GitHub cannot compare the two commits the job
+  fails instead, and is re-run.
 - **A release branch can be ahead of its archive.** `bX.Y.Z` syncs on every push to the branch, and
   its tarball URLs resolve only once the archive for that release is deployed, so between a push and
   the next archive deploy the branch's seeds may install what the archive does not hold yet. This is
