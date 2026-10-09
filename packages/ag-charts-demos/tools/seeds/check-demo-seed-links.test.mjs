@@ -8,9 +8,11 @@ import {
     checkDemoSeedLinks,
     describeBuildPinProblems,
     describePreflightProblems,
+    describeTarballProblems,
     isArchiveUrl,
     parseDemoPages,
     parseSeedLinks,
+    readProductionChartsSiteUrl,
     readStagingSiteUrl,
     resolveSeedLink,
 } from '../../../../tools/ci/check-demo-seed-links.mjs';
@@ -89,12 +91,16 @@ const GOOD_PREFLIGHT = {
     headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' },
 };
 
+/** What a host that allows StackBlitz to download a tarball sends with the file. */
+const GOOD_TARBALL_HEADERS = { 'access-control-allow-origin': '*' };
+
 /**
  * A fetch that answers from `pages` (GET, URL to HTML), `json` (GET, URL to a parsed body) and
  * `statuses` (URL to status; 200 unless listed), recording every request. A mirror manifest not in
  * `pages` or `statuses` answers with `manifestText`, and a mirror `package.json` with the one in
  * `packages` (seed to object); a tarball's preflight (`OPTIONS`) answers `GOOD_PREFLIGHT` unless
- * `preflights` (URL to `{ status, headers }`) says otherwise. Anything else is a 404.
+ * `preflights` (URL to `{ status, headers }`) says otherwise, and a `HEAD` sends `GOOD_TARBALL_HEADERS`
+ * unless `heads` (URL to headers) says otherwise. Anything else is a 404.
  */
 function fakeFetch({
     pages = {},
@@ -102,6 +108,7 @@ function fakeFetch({
     json = {},
     packages = {},
     preflights = {},
+    heads = {},
     mirroredManifest = manifestText,
 } = {}) {
     const calls = [];
@@ -110,7 +117,10 @@ function fakeFetch({
         const method = init.method ?? 'GET';
         calls.push(`${method} ${url}`);
         inits.push({ url, ...init });
-        if (method === 'HEAD') return { status: statuses[url] ?? 200, ok: (statuses[url] ?? 200) === 200 };
+        if (method === 'HEAD') {
+            const status = statuses[url] ?? 200;
+            return { status, ok: status === 200, headers: new Headers(heads[url] ?? GOOD_TARBALL_HEADERS) };
+        }
         if (method === 'OPTIONS') {
             const { status, headers } = preflights[url] ?? GOOD_PREFLIGHT;
             return { status, ok: status < 300, headers: new Headers(headers) };
@@ -134,6 +144,7 @@ const base = {
     demoPages: [{ path: 'examples/', demoId: 'trading-terminal' }],
     productionSiteUrls: ['https://ag-grid.com', 'https://www.ag-grid.com'],
     stagingSiteUrl: STAGING,
+    productionChartsSiteUrl: PRODUCTION,
     readSeedManifest: manifestText,
     branch: () => 'latest',
     log: () => {},
@@ -190,6 +201,12 @@ describe('resolveSeedLink', () => {
         expect(resolveSeedLink({ kind: 'github', href: `${TREE}/staging/trading-terminal/vue/src` }).error).toMatch(
             /does not name/
         );
+    });
+});
+
+describe('readProductionChartsSiteUrl', () => {
+    it('reads the production charts base off the website constants', () => {
+        expect(readProductionChartsSiteUrl()).toBe(PRODUCTION);
     });
 });
 
@@ -254,6 +271,27 @@ describe('describePreflightProblems', () => {
                 answer({ 'access-control-allow-origin': 'https://example.com', 'access-control-allow-headers': '*' })
             )
         ).toEqual(['sends Access-Control-Allow-Origin "https://example.com" to the preflight']);
+    });
+});
+
+describe('describeTarballProblems', () => {
+    const answer = (headers, status = 200) => ({ status, headers: new Headers(headers) });
+
+    it('accepts a 200 that allows every origin or the StackBlitz one', () => {
+        expect(describeTarballProblems(answer(GOOD_TARBALL_HEADERS))).toEqual([]);
+        expect(describeTarballProblems(answer({ 'access-control-allow-origin': 'https://stackblitz.com' }))).toEqual(
+            []
+        );
+    });
+
+    it('rejects a missing file, no Access-Control-Allow-Origin and another origin', () => {
+        expect(describeTarballProblems(answer({}, 404))).toEqual(['responds 404']);
+        expect(describeTarballProblems(answer({}))).toEqual([
+            'sends Access-Control-Allow-Origin nothing with the tarball itself',
+        ]);
+        expect(describeTarballProblems(answer({ 'access-control-allow-origin': 'https://example.com' }))).toEqual([
+            'sends Access-Control-Allow-Origin "https://example.com" with the tarball itself',
+        ]);
     });
 });
 
@@ -502,6 +540,31 @@ describe('checkDemoSeedLinks', () => {
             expect(calls).toContain(`HEAD ${tarball('ag-charts-react')}`);
             expect(calls).toContain(`OPTIONS ${tarball('ag-charts-community')}`);
         });
+
+        it('expects the production base whichever origin the archive is checked at', async () => {
+            const apex = 'https://ag-grid.com/charts/archive/14.2.0';
+            const { fetchImpl, calls } = fakeFetch({
+                json: { [`${apex}/debug/meta.json`]: meta[`${ARCHIVE}/debug/meta.json`] },
+                pages: { [`${apex}/examples/`]: archived },
+                packages: { 'trading-terminal/react': rewrittenPackageJson('react', `${ARCHIVE}/npm-packages`) },
+                mirroredManifest: distTagManifest,
+            });
+
+            const result = await checkDemoSeedLinks({
+                ...base,
+                seeds: ['trading-terminal/react'],
+                readSeedManifest: distTagManifest,
+                siteUrl: apex,
+                branch: () => 'b14.2.0',
+                fetchImpl,
+            });
+
+            expect(result).toEqual({ ok: true, errors: [], warnings: [] });
+            expect(calls).toContain(`HEAD ${ARCHIVE}/npm-packages/ag-charts-react.tgz`);
+            expect(
+                calls.filter((call) => call.includes('https://ag-grid.com/charts/archive/14.2.0/npm-packages'))
+            ).toEqual([]);
+        });
     });
 
     describe('the build tarballs', () => {
@@ -543,6 +606,8 @@ describe('checkDemoSeedLinks', () => {
                     `OPTIONS ${tarball(name)}`,
                 ]),
             ]);
+            const head = inits.find((init) => init.url === tarball('ag-charts-types') && init.method === 'HEAD');
+            expect(head.headers).toEqual({ Origin: 'https://stackblitz.com' });
             const preflight = inits.find((init) => init.method === 'OPTIONS');
             expect(preflight.headers).toEqual({
                 Origin: 'https://stackblitz.com',
@@ -625,6 +690,15 @@ describe('checkDemoSeedLinks', () => {
 
             expect(result.errors).toEqual([
                 `${tarball('ag-charts-core')} (a dependency of trading-terminal/angular at staging) responds 404`,
+            ]);
+        });
+
+        it('fails when a host passes the preflight but serves the tarball without Access-Control-Allow-Origin', async () => {
+            const url = tarball('ag-charts-core');
+            const { result } = await run({ heads: { [url]: {} } });
+
+            expect(result.errors).toEqual([
+                `${url} (a dependency of trading-terminal/angular at staging) sends Access-Control-Allow-Origin nothing with the tarball itself`,
             ]);
         });
 

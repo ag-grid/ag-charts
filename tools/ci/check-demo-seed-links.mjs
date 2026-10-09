@@ -39,10 +39,12 @@ import {
  *    manifest has `pinSource` `dist-tag` with its `ag-charts-*` dependencies (and the matching
  *    `overrides`) pointing at the tarballs the site serves at `<site>/npm-packages/<name>.tgz`.
  *    The mirror's `package.json` of each such seed must carry exactly those URLs, and each URL must
- *    answer a `HEAD` with 200 and the CORS preflight StackBlitz's in-browser npm sends before every
- *    tarball fetch with `Access-Control-Allow-Origin` and `Access-Control-Allow-Headers` (the
- *    latter naming npm's own request headers, or `*`): without them the install dies in the browser
- *    however well the seed links resolve. The release tag's seeds install from npm and need none.
+ *    answer a `HEAD` from StackBlitz's origin with 200 and `Access-Control-Allow-Origin`, and the
+ *    CORS preflight StackBlitz's in-browser npm sends before every tarball fetch with
+ *    `Access-Control-Allow-Origin` and `Access-Control-Allow-Headers` (the latter naming npm's own
+ *    request headers, or `*`): a host can pass the preflight and still serve the file without
+ *    `Access-Control-Allow-Origin`, and the browser then blocks the download, so both are checked.
+ *    Without them the install dies in the browser however well the seed links resolve. The release tag's seeds install from npm and need none.
  *
  * The ref follows the website's own rule (`getSeedGitRef` in `seedLinks.ts`): a production site
  * links the release tag derived from its version, an archive (`<production>/archive/X.Y.Z`) the
@@ -119,6 +121,14 @@ export function readStagingSiteUrl(root = WORKSPACE_ROOT) {
     const source = readFileSync(join(root, WEBSITE_CONSTANTS), 'utf8');
     const match = /export const STAGING_SITE_URL\s*=\s*'([^']+)'/.exec(source);
     if (!match) throw new Error(`Cannot find STAGING_SITE_URL in ${WEBSITE_CONSTANTS}`);
+    return match[1];
+}
+
+/** The production charts site's base URL, read from the website constants (`PRODUCTION_CHARTS_SITE_URL`). */
+export function readProductionChartsSiteUrl(root = WORKSPACE_ROOT) {
+    const source = readFileSync(join(root, WEBSITE_CONSTANTS), 'utf8');
+    const match = /export const PRODUCTION_CHARTS_SITE_URL\s*=\s*'([^']+)'/.exec(source);
+    if (!match) throw new Error(`Cannot find PRODUCTION_CHARTS_SITE_URL in ${WEBSITE_CONSTANTS}`);
     return match[1];
 }
 
@@ -272,6 +282,26 @@ export function describeBuildPinProblems(packageJson, buildBase) {
     return problems;
 }
 
+/** The problem with an `Access-Control-Allow-Origin` value StackBlitz would reject, as a sentence; `null` when it accepts it. */
+function describeAllowOriginProblem(allowOrigin, where) {
+    if (allowOrigin === '*' || allowOrigin === PREFLIGHT_ORIGIN) return null;
+    return `sends Access-Control-Allow-Origin ${allowOrigin === null ? 'nothing' : `"${allowOrigin}"`} ${where}`;
+}
+
+/**
+ * What is wrong with a tarball's answer to a request from StackBlitz's origin (the file itself, not
+ * the preflight), as sentences; empty when the browser would let the download through: a 200 and
+ * `Access-Control-Allow-Origin` naming every origin or `PREFLIGHT_ORIGIN`.
+ */
+export function describeTarballProblems(response) {
+    if (response.status !== 200) return [`responds ${response.status}`];
+    const problem = describeAllowOriginProblem(
+        response.headers.get('access-control-allow-origin'),
+        'with the tarball itself'
+    );
+    return problem === null ? [] : [problem];
+}
+
 /**
  * What is wrong with a tarball's answer to the CORS preflight StackBlitz's npm sends, as
  * sentences; empty when it would be accepted: a 2xx status, `Access-Control-Allow-Origin` naming
@@ -283,12 +313,11 @@ export function describePreflightProblems(response) {
         return [`answers the CORS preflight (OPTIONS) with ${response.status}`];
     }
     const problems = [];
-    const allowOrigin = response.headers.get('access-control-allow-origin');
-    if (allowOrigin !== '*' && allowOrigin !== PREFLIGHT_ORIGIN) {
-        problems.push(
-            `sends Access-Control-Allow-Origin ${allowOrigin === null ? 'nothing' : `"${allowOrigin}"`} to the preflight`
-        );
-    }
+    const originProblem = describeAllowOriginProblem(
+        response.headers.get('access-control-allow-origin'),
+        'to the preflight'
+    );
+    if (originProblem !== null) problems.push(originProblem);
     const allowHeaders = response.headers.get('access-control-allow-headers');
     if (allowHeaders === null) {
         problems.push('sends no Access-Control-Allow-Headers to the preflight');
@@ -318,6 +347,7 @@ export async function checkDemoSeedLinks({
     demoPages = parseDemoPages(readFileSync(join(WORKSPACE_ROOT, DEMO_REGISTRY), 'utf8')),
     productionSiteUrls = readProductionSiteUrls(),
     stagingSiteUrl = readStagingSiteUrl(),
+    productionChartsSiteUrl = readProductionChartsSiteUrl(),
     branch = resolveBranch,
     log = console.log,
 }) {
@@ -434,8 +464,14 @@ export async function checkDemoSeedLinks({
 
     // 3. The build tarballs the rewritten seeds install; a release tag's seeds install from npm.
     if (!isReleaseTag) {
-        // An archive serves its own tarballs; staging, dev and preview sites link the staging ones.
-        const buildBase = `${isArchive ? site : stagingSiteUrl.replace(/\/$/, '')}/${NPM_PACKAGES_DIR}`;
+        // An archive serves its own tarballs; staging, dev and preview sites link the staging ones. The
+        // export writes the archive's URLs under the production charts base whichever origin the check is
+        // given (`ag-grid.com` or `www.ag-grid.com`), so the expected ones are built from that base too.
+        const archiveVersion = /\/archive\/([^/]+)/.exec(new URL(site).pathname)?.[1];
+        const siteBase = isArchive
+            ? `${productionChartsSiteUrl.replace(/\/$/, '')}/archive/${archiveVersion}`
+            : stagingSiteUrl.replace(/\/$/, '');
+        const buildBase = `${siteBase}/${NPM_PACKAGES_DIR}`;
         const tarballs = new Map();
         for (const seed of seeds) {
             if (JSON.parse(readSeedManifest(seed)).pinSource !== PIN_SOURCE.distTag) continue;
@@ -465,8 +501,11 @@ export async function checkDemoSeedLinks({
         }
         log(`Checking ${tarballs.size} build tarballs at ${buildBase}`);
         for (const [url, seed] of tarballs) {
-            const status = await resolveStatus(url);
-            const problems = status === 200 ? [] : [`responds ${status}`];
+            // Not `resolveStatus`: the browser sends the tarball request with an Origin and only
+            // reads the response's CORS headers when it has one.
+            const problems = describeTarballProblems(
+                await fetchImpl(url, { method: 'HEAD', redirect: 'follow', headers: { Origin: PREFLIGHT_ORIGIN } })
+            );
             const preflight = await fetchImpl(url, {
                 method: 'OPTIONS',
                 headers: {
