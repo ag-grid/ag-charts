@@ -1,11 +1,6 @@
-import { SceneChangeDetection } from 'ag-charts-core';
-import type { SwitchWidget } from 'ag-charts-core';
+import { BBox, Group, Line, SceneChangeDetection, Text, TranslatableGroup } from 'ag-charts-core';
+import type { ChildNodeCounts, RenderContext, SwitchWidget } from 'ag-charts-core';
 
-import { BBox } from '../../scene/bbox';
-import { Group, TranslatableGroup } from '../../scene/group';
-import type { ChildNodeCounts, RenderContext } from '../../scene/node';
-import { Line } from '../../scene/shape/line';
-import { Text } from '../../scene/shape/text';
 import { Marker } from '../marker/marker';
 import type { CategoryLegendDatum } from './legendDatum';
 

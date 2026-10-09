@@ -1,4 +1,5 @@
 import {
+    BBox,
     type BoxBounds,
     type CandidateStyleResolver,
     type LabelObstacle,
@@ -12,8 +13,6 @@ import {
     labelsAvoidAxisLabels,
     placeLabels,
 } from 'ag-charts-core';
-
-import { BBox } from '../../scene/bbox';
 
 /**
  * Anything taking part in a label solve. A source contributes obstacles whether or not it places

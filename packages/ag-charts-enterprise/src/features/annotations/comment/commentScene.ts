@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Color, type Point } from 'ag-charts-core';
+import { Color, Path, type Point, drawCorner } from 'ag-charts-core';
+import type { BBox } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType, type Padding } from '../annotationTypes';
 import type { TextualPointDatum } from '../datum/textualDatum';
@@ -7,8 +7,6 @@ import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualPointScene } from '../scenes/textualPointScene';
 import { annotationLineHeight, uniformPadding } from '../text/util';
 import type { CommentDatum } from './commentDatum';
-
-const { drawCorner } = _ModuleSupport;
 
 const DEFAULT_COMMENT_PADDING = {
     top: 8,
@@ -27,7 +25,7 @@ export class CommentScene extends TextualPointScene<CommentDatum> {
     protected override readonly textPosition = 'bottom' as const;
     protected override readonly textAlignment = 'left' as const;
 
-    private readonly shape = new _ModuleSupport.Path();
+    private readonly shape = new Path();
 
     constructor() {
         super();
@@ -62,7 +60,7 @@ export class CommentScene extends TextualPointScene<CommentDatum> {
         return uniformPadding(padding);
     }
 
-    protected override updateShape(datum: CommentDatum, bbox: _ModuleSupport.BBox) {
+    protected override updateShape(datum: CommentDatum, bbox: BBox) {
         const { shape } = this;
 
         // update shape styles
@@ -93,14 +91,14 @@ export class CommentScene extends TextualPointScene<CommentDatum> {
         };
     }
 
-    protected override updateAnchor(datum: CommentDatum, bbox: _ModuleSupport.BBox, context: AnnotationContext) {
+    protected override updateAnchor(datum: CommentDatum, bbox: BBox, context: AnnotationContext) {
         const anchor = super.updateAnchor(datum, bbox, context);
         const padding = this.getPadding(datum);
         anchor.y -= padding.bottom + padding.top;
         return anchor;
     }
 
-    private updatePath(datum: CommentDatum, bbox: _ModuleSupport.BBox) {
+    private updatePath(datum: CommentDatum, bbox: BBox) {
         const padding = this.getPadding(datum);
         const { x, y } = bbox;
         let { width, height } = bbox;

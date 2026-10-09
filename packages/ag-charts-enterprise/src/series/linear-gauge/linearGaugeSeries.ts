@@ -7,15 +7,22 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    BBox,
     type ChartAnimationPhase,
     type DynamicContext,
+    Group,
     LinearScale,
     type NormalisedGaugeSeriesStyle,
     type NormalisedLinearGaugeLabelOptions,
     type NormalisedLinearGaugeSeriesOwnOptions,
     type NormalisedTextOrSegments,
     type Point,
+    PointerEvents,
+    Rect,
+    Selection,
     StateMachine,
+    Text,
+    TransformableText,
     cachedTextMeasurer,
     easeOut,
     findRangeExtent,
@@ -52,21 +59,7 @@ import {
     resetLinearGaugeSeriesResetRectFunction,
 } from './linearGaugeUtil';
 
-const {
-    fromToMotion,
-    resetMotion,
-    SeriesNodePickMode,
-    createDatumId,
-    BBox,
-    Group,
-    PointerEvents,
-    Selection,
-    Rect,
-    Text,
-    TransformableText,
-    generateTicks,
-    NiceMode,
-} = _ModuleSupport;
+const { fromToMotion, resetMotion, SeriesNodePickMode, createDatumId, generateTicks, NiceMode } = _ModuleSupport;
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
@@ -157,30 +150,23 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     );
     private readonly tickGroup = this.contentGroup.appendChild(new Group({ name: 'tickGroup' }));
 
-    private scaleSelection = Selection.select<_ModuleSupport.Rect<LinearGaugeNodeDatum>>(this.scaleGroup, () =>
-        this.nodeFactory()
-    );
-    private datumSelection = Selection.select<_ModuleSupport.Rect<LinearGaugeNodeDatum>>(this.itemGroup, () =>
-        this.nodeFactory()
-    );
+    private scaleSelection = Selection.select<Rect<LinearGaugeNodeDatum>>(this.scaleGroup, () => this.nodeFactory());
+    private datumSelection = Selection.select<Rect<LinearGaugeNodeDatum>>(this.itemGroup, () => this.nodeFactory());
     public targetSelection = Selection.select<_ModuleSupport.Marker<LinearGaugeTargetDatum>>(this.itemTargetGroup, () =>
         this.markerFactory()
     );
-    private targetLabelSelection = Selection.select<_ModuleSupport.Text<LinearGaugeTargetDatum>>(
-        this.itemTargetLabelGroup,
-        Text
-    );
-    private labelSelection = Selection.select<_ModuleSupport.Text<LinearGaugeLabelDatum>>(this.itemLabelGroup, Text);
+    private targetLabelSelection = Selection.select<Text<LinearGaugeTargetDatum>>(this.itemTargetLabelGroup, Text);
+    private labelSelection = Selection.select<Text<LinearGaugeLabelDatum>>(this.itemLabelGroup, Text);
     private highlightTargetSelection = Selection.select<_ModuleSupport.Marker<LinearGaugeTargetDatum>>(
         this.highlightTargetGroup,
         () => this.markerFactory()
     );
-    private tickSelection = Selection.select<_ModuleSupport.TransformableText<_ModuleSupport.TickDatum>>(
+    private tickSelection = Selection.select<TransformableText<_ModuleSupport.TickDatum>>(
         this.tickGroup,
         TransformableText
     );
 
-    public datumUnion: DatumUnion<_ModuleSupport.Rect<LinearGaugeNodeDatum>> = new DatumUnion();
+    public datumUnion: DatumUnion<Rect<LinearGaugeNodeDatum>> = new DatumUnion();
     private readonly animationState: StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: LinearGaugeNodeDataContext;
@@ -231,7 +217,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return true;
     }
 
-    private nodeFactory(): _ModuleSupport.Rect<LinearGaugeNodeDatum> {
+    private nodeFactory(): Rect<LinearGaugeNodeDatum> {
         const rect = new Rect<LinearGaugeNodeDatum>();
         rect.crisp = true;
         return rect;
@@ -824,7 +810,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         }
     }
 
-    override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
+    override update({ seriesRect }: { seriesRect?: BBox }) {
         const {
             datumSelection,
             labelSelection,
@@ -883,16 +869,14 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateDatumSelection(opts: {
         nodeData: LinearGaugeNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<LinearGaugeNodeDatum, _ModuleSupport.Rect<LinearGaugeNodeDatum>>;
+        datumSelection: Selection<LinearGaugeNodeDatum, Rect<LinearGaugeNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
             return createDatumId(opts.nodeData.length, datum.itemId);
         });
     }
 
-    private updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<LinearGaugeNodeDatum, _ModuleSupport.Rect<LinearGaugeNodeDatum>>;
-    }) {
+    private updateDatumNodes(opts: { datumSelection: Selection<LinearGaugeNodeDatum, Rect<LinearGaugeNodeDatum>> }) {
         const { datumSelection } = opts;
         const { ctx } = this;
         const animationDisabled = ctx.animationManager.isSkipped();
@@ -907,7 +891,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             rect.topRightCornerRadius = topRightCornerRadius;
             rect.bottomRightCornerRadius = bottomRightCornerRadius;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius;
-            rect.pointerEvents = barEnabled ? _ModuleSupport.PointerEvents.All : _ModuleSupport.PointerEvents.None;
+            rect.pointerEvents = barEnabled ? PointerEvents.All : PointerEvents.None;
 
             if (animationDisabled || rect.previousDatum == null) {
                 rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
@@ -915,7 +899,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         });
 
         const { horizontal } = this;
-        this.datumUnion.update(datumSelection, this.itemGroup, _ModuleSupport.Rect, (node, first, last) => {
+        this.datumUnion.update(datumSelection, this.itemGroup, Rect, (node, first, last) => {
             const left = Math.min(first.x, last.x);
             const right = Math.max(first.x + first.width, last.x + last.width);
             const top = Math.min(first.y, last.y);
@@ -923,7 +907,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             const width = right - left;
             const height = bottom - top;
 
-            node.pointerEvents = _ModuleSupport.PointerEvents.None;
+            node.pointerEvents = PointerEvents.None;
             node.x = left;
             node.y = top;
             node.width = width;
@@ -947,16 +931,14 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateScaleSelection(opts: {
         scaleData: LinearGaugeNodeDatum[];
-        scaleSelection: _ModuleSupport.Selection<LinearGaugeNodeDatum, _ModuleSupport.Rect<LinearGaugeNodeDatum>>;
+        scaleSelection: Selection<LinearGaugeNodeDatum, Rect<LinearGaugeNodeDatum>>;
     }) {
         return opts.scaleSelection.update(opts.scaleData, undefined, (datum) => {
             return createDatumId(opts.scaleData.length, datum.itemId);
         });
     }
 
-    private updateScaleNodes(opts: {
-        scaleSelection: _ModuleSupport.Selection<LinearGaugeNodeDatum, _ModuleSupport.Rect<LinearGaugeNodeDatum>>;
-    }) {
+    private updateScaleNodes(opts: { scaleSelection: Selection<LinearGaugeNodeDatum, Rect<LinearGaugeNodeDatum>> }) {
         const { scaleSelection } = opts;
 
         const fillBBox = this.getShapeFillBBox();
@@ -979,19 +961,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateTargetSelection(opts: {
         targetData: LinearGaugeTargetDatum[];
-        targetSelection: _ModuleSupport.Selection<
-            LinearGaugeTargetDatum,
-            _ModuleSupport.Marker<LinearGaugeTargetDatum>
-        >;
+        targetSelection: Selection<LinearGaugeTargetDatum, _ModuleSupport.Marker<LinearGaugeTargetDatum>>;
     }) {
         return opts.targetSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
     private updateTargetNodes(opts: {
-        targetSelection: _ModuleSupport.Selection<
-            LinearGaugeTargetDatum,
-            _ModuleSupport.Marker<LinearGaugeTargetDatum>
-        >;
+        targetSelection: Selection<LinearGaugeTargetDatum, _ModuleSupport.Marker<LinearGaugeTargetDatum>>;
         isHighlight: boolean;
     }) {
         const { targetSelection, isHighlight } = opts;
@@ -1022,19 +998,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateTargetLabelSelection(opts: {
         targetData: LinearGaugeTargetDatum[];
-        targetLabelSelection: _ModuleSupport.Selection<
-            LinearGaugeTargetDatum,
-            _ModuleSupport.Text<LinearGaugeTargetDatum>
-        >;
+        targetLabelSelection: Selection<LinearGaugeTargetDatum, Text<LinearGaugeTargetDatum>>;
     }) {
         return opts.targetLabelSelection.update(opts.targetData);
     }
 
     private updateTargetLabelNodes(opts: {
-        targetLabelSelection: _ModuleSupport.Selection<
-            LinearGaugeTargetDatum,
-            _ModuleSupport.Text<LinearGaugeTargetDatum>
-        >;
+        targetLabelSelection: Selection<LinearGaugeTargetDatum, Text<LinearGaugeTargetDatum>>;
     }) {
         const { targetLabelSelection } = opts;
 
@@ -1059,19 +1029,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateTickSelection(opts: {
         tickData: _ModuleSupport.TickDatum[];
-        tickSelection: _ModuleSupport.Selection<
-            _ModuleSupport.TickDatum,
-            _ModuleSupport.TransformableText<_ModuleSupport.TickDatum>
-        >;
+        tickSelection: Selection<_ModuleSupport.TickDatum, TransformableText<_ModuleSupport.TickDatum>>;
     }) {
         return opts.tickSelection.update(opts.tickData, undefined, (datum) => datum.tickId);
     }
 
     private updateTickNodes(opts: {
-        tickSelection: _ModuleSupport.Selection<
-            _ModuleSupport.TickDatum,
-            _ModuleSupport.TransformableText<_ModuleSupport.TickDatum>
-        >;
+        tickSelection: Selection<_ModuleSupport.TickDatum, TransformableText<_ModuleSupport.TickDatum>>;
     }) {
         const { gaugeRect, options } = this;
         const { defaultScale } = options;
@@ -1131,14 +1095,12 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateLabelSelection(opts: {
         labelData: LinearGaugeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text<LinearGaugeLabelDatum>>;
+        labelSelection: Selection<LinearGaugeLabelDatum, Text<LinearGaugeLabelDatum>>;
     }) {
         return opts.labelSelection.update(opts.labelData, undefined, (_datum) => 'primary');
     }
 
-    private updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text<LinearGaugeLabelDatum>>;
-    }) {
+    private updateLabelNodes(opts: { labelSelection: Selection<LinearGaugeLabelDatum, Text<LinearGaugeLabelDatum>> }) {
         const { labelSelection } = opts;
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
@@ -1170,7 +1132,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const value = datum?.label ?? this.options.value;
 
-        let barRect: _ModuleSupport.BBox;
+        let barRect: BBox;
         if (horizontal) {
             const xValue = scale.convert(value);
             barRect = new BBox(x, y, xValue - x, height);

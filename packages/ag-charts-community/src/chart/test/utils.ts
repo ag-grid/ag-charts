@@ -4,7 +4,9 @@ import * as path from 'node:path';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
 import {
+    BBox,
     type CanvasPoint,
+    Group,
     type OffsetPoint,
     alignCentre,
     fromPairs,
@@ -12,6 +14,7 @@ import {
     mapValues,
     snapDeviceCentre,
 } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -57,9 +60,6 @@ import type {
 
 import { AgCharts } from '../../api/agCharts';
 import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
-import { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
-import type { Node } from '../../scene/node';
 import { extractImageData, type setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';

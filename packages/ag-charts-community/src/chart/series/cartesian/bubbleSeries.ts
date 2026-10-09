@@ -1,4 +1,5 @@
 import type {
+    BBox,
     BoxBounds,
     CallbackParamRules,
     CandidateStyleResolver,
@@ -19,7 +20,9 @@ import type {
     NormalisedSeriesOptions,
     PlacedLabel,
     Point,
+    QuadtreeNearest,
     RequireOptional,
+    Selection,
     SizedPoint,
 } from 'ag-charts-core';
 import {
@@ -27,6 +30,8 @@ import {
     ColorScale,
     ContinuousScale,
     LinearScale,
+    PointerEvents,
+    Text,
     applySizeMode,
     applyStyledMarkerSize,
     cachedTextMeasurer,
@@ -69,11 +74,6 @@ import {
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
-import type { BBox } from '../../../scene/bbox';
-import { PointerEvents } from '../../../scene/node';
-import type { Selection } from '../../../scene/selection';
-import { Text } from '../../../scene/shape/text';
-import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';

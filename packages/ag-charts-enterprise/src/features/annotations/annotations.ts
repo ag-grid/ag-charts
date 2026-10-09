@@ -1,12 +1,15 @@
 import { type AgAnnotation, type AgAnnotationLineStyleType, type Direction, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BBox,
     ChartAxisDirection,
     ChartUpdateType,
     type CurrentPoint,
     type DynamicContext,
+    Group,
     type NormalisedAnnotationsOptions,
     type Point,
+    Selection,
     Vec2,
     addValues,
     deepClone,
@@ -51,12 +54,12 @@ import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
 
-const { InteractionState, keyProperty, valueProperty, Selection, BBox, DataSet } = _ModuleSupport;
+const { InteractionState, keyProperty, valueProperty, DataSet } = _ModuleSupport;
 
 interface AnnotationAxis {
     layout: _ModuleSupport.AxisLayout;
     context: _ModuleSupport.AxisContext;
-    bounds: _ModuleSupport.BBox;
+    bounds: BBox;
     button?: AxisButton;
 }
 
@@ -96,8 +99,8 @@ export class Annotations extends AbstractModuleInstance {
     private processedData?: _ModuleSupport.ProcessedData<any>;
 
     // Elements
-    private seriesRect?: _ModuleSupport.BBox;
-    private readonly container = new _ModuleSupport.Group({ name: 'static-annotations' });
+    private seriesRect?: BBox;
+    private readonly container = new Group({ name: 'static-annotations' });
     private readonly annotations = new Selection<AnnotationDatum, AnnotationSceneNode<AnnotationDatum>>(
         this.container,
         this.createAnnotationScene.bind(this)
@@ -375,7 +378,7 @@ export class Annotations extends AbstractModuleInstance {
                 this.state.transition('updateTextInputBBox', bbox);
             },
 
-            updateTextInputBBox: (bbox?: _ModuleSupport.BBox) => {
+            updateTextInputBBox: (bbox?: BBox) => {
                 this.state.transition('updateTextInputBBox', bbox);
             },
 
@@ -790,11 +793,7 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('render');
     }
 
-    private getAxis(
-        axisLayout: _ModuleSupport.AxisLayout,
-        seriesRect: _ModuleSupport.BBox,
-        button?: AxisButton
-    ): AnnotationAxis {
+    private getAxis(axisLayout: _ModuleSupport.AxisLayout, seriesRect: BBox, button?: AxisButton): AnnotationAxis {
         const axisCtx = this.ctx.axisManager.getAxisContext(axisLayout.direction)[0];
 
         const { position: axisPosition = 'bottom', direction } = axisCtx;

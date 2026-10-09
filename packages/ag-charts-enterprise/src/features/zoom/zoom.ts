@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type {
     AxisID,
+    BBox,
     BaseStyleTypeMap,
     CartesianAxisDirection,
     DblClickWidgetEvent,
@@ -92,8 +93,8 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     // Scenes
-    private seriesRect?: _ModuleSupport.BBox;
-    private paddedRect?: _ModuleSupport.BBox;
+    private seriesRect?: BBox;
+    private paddedRect?: BBox;
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();

@@ -1,5 +1,6 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
 import {
+    BBox,
     type InternalAgGradientColor,
     type LinearScale,
     type NormalisedGaugeColorStop,
@@ -9,19 +10,19 @@ import {
     type NormalisedLinearGaugeScaleOptions,
     type NormalisedLinearGaugeTargetOptions,
     cachedTextMeasurer,
+    getColorStops,
     isArray,
     measureTextSegments,
     toNumberOrUndefined,
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
+import type { Rect, Selection, Text } from 'ag-charts-core';
 import type { AgGaugeFillMode, AgNumericValue } from 'ag-charts-types';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel } from '../util/labelFormatter';
 import type { LinearGaugeLabelDatum } from './linearGaugeTypes';
-
-const { BBox, getColorStops } = _ModuleSupport;
 
 export function createLinearGradient(
     fills: NormalisedGaugeColorStop[] | undefined,
@@ -137,7 +138,7 @@ function datumRect(datum: AnimatableRectDatum) {
     return { x, y, width, height };
 }
 
-function clipBBoxVisibility(datum: AnimatableRectDatum, clipBBox: _ModuleSupport.BBox | undefined) {
+function clipBBoxVisibility(datum: AnimatableRectDatum, clipBBox: BBox | undefined) {
     if (clipBBox == null) return true;
 
     const rect = datumRect(datum);
@@ -159,7 +160,7 @@ function hasClipBBox(datum: AnimatableRectDatum) {
     return (clipX0 != null && clipX1 != null) || (clipY0 != null && clipY1 != null);
 }
 
-function computeClipBBox(datum: AnimatableRectDatum): _ModuleSupport.BBox | undefined {
+function computeClipBBox(datum: AnimatableRectDatum): BBox | undefined {
     if (!hasClipBBox(datum)) return;
 
     const { x0, y0, x1, y1 } = datum;
@@ -196,7 +197,7 @@ function computeClipBBox(datum: AnimatableRectDatum): _ModuleSupport.BBox | unde
 
 export function prepareLinearGaugeSeriesAnimationFunctions(initialLoad: boolean, horizontal: boolean) {
     type D = RectAnimationParams;
-    type N = _ModuleSupport.Rect<D>;
+    type N = Rect<D>;
     type T = AnimatableRectDatum & Record<string, string | number | undefined>;
 
     const phase = initialLoad ? 'initial' : 'update';
@@ -255,7 +256,7 @@ export function prepareLinearGaugeSeriesAnimationFunctions(initialLoad: boolean,
     return { node };
 }
 
-export function resetLinearGaugeSeriesResetRectFunction(_node: _ModuleSupport.Rect, datum: AnimatableRectDatum) {
+export function resetLinearGaugeSeriesResetRectFunction(_node: Rect, datum: AnimatableRectDatum) {
     const { x, y, width, height } = datumRect(datum);
     const clipBBox = computeClipBBox(datum);
     const visible = clipBBoxVisibility(datum, clipBBox);
@@ -295,9 +296,9 @@ const verticalAlignFactors: Record<Align, number> = {
 export function formatLinearGaugeLabels(
     series: { id: string },
     ctx: Ctx,
-    selection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text<LinearGaugeLabelDatum>>,
+    selection: Selection<LinearGaugeLabelDatum, Text<LinearGaugeLabelDatum>>,
     opts: { padding: number; horizontal: boolean },
-    bboxes: { seriesRect: _ModuleSupport.BBox; gaugeRect: _ModuleSupport.BBox; barRect: _ModuleSupport.BBox },
+    bboxes: { seriesRect: BBox; gaugeRect: BBox; barRect: BBox },
     datumOverrides?: { label: AgNumericValue | undefined }
 ) {
     const { seriesRect, gaugeRect, barRect } = bboxes;

@@ -1,11 +1,16 @@
-import type { ChartAxisDirection, Scale, Scaling } from 'ag-charts-core';
+import type {
+    BBox,
+    ChartAxisDirection,
+    Node,
+    NodeWithOpacity,
+    Path,
+    Scale,
+    Scaling,
+    Segment,
+    Selection,
+    Text,
+} from 'ag-charts-core';
 
-import type { BBox } from '../../../scene/bbox';
-import type { Node, NodeWithOpacity } from '../../../scene/node';
-import type { Selection } from '../../../scene/selection';
-import type { Path } from '../../../scene/shape/path';
-import type { Segment } from '../../../scene/shape/segmentedPath';
-import type { Text } from '../../../scene/shape/text';
 import type { ChartAxis } from '../../chartAxis';
 import type { DataModelSeriesNodeDataContext, DataModelSeriesNodeDatum } from '../dataModelSeries';
 import type { SeriesNodeDatum } from '../seriesTypes';

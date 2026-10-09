@@ -1,18 +1,21 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BBox,
     ChartAxisDirection,
     ChartUpdateType,
     type NormalisedBandHighlightOptions,
+    Range,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
+    TranslatableGroup,
     ZIndexMap,
     createId,
 } from 'ag-charts-core';
 import type { ClickWidgetEvent, DragWidgetEvent, MouseWidgetEvent } from 'ag-charts-core';
 
-const { Range, TranslatableGroup, BBox, getShapeFill, InteractionState } = _ModuleSupport;
+const { getShapeFill, InteractionState } = _ModuleSupport;
 
 // Shape definitions `getShapeFill` completes a user-supplied non-flat fill with; internal only.
 const BAND_FILL_GRADIENT_DEFAULTS: RequiredInternalAgGradientColor = {
@@ -59,14 +62,14 @@ export class BandHighlight extends AbstractModuleInstance {
     private options: NormalisedBandHighlightOptions | undefined;
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
-    private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
+    private bounds: BBox = new BBox(0, 0, 0, 0);
     private axisLayout?: _ModuleSupport.AxisLayout;
 
     private readonly bandHighlightGroup = new TranslatableGroup({
         name: 'bandHighlight',
         zIndex: ZIndexMap.AXIS_BAND_HIGHLIGHT,
     });
-    private readonly rangeNode: _ModuleSupport.Range<any> = this.bandHighlightGroup.appendChild(new Range());
+    private readonly rangeNode: Range<any> = this.bandHighlightGroup.appendChild(new Range());
 
     private activeAxisHighlight?: _ModuleSupport.AxisBandDatum = undefined;
 

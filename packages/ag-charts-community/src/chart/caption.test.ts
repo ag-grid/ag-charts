@@ -1,10 +1,10 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 
+import { Transformable } from 'ag-charts-core';
 import type { AgCaptionListeners, AgCartesianChartOptions, AgChartOptions, TextAlign } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { ChartCaption } from './chartCaption';
 import {

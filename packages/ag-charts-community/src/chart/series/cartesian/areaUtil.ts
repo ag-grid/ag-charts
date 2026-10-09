@@ -2,14 +2,14 @@ import type {
     InternalAgColorType,
     NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
+    Path,
     Point,
+    Segment,
     SizedPoint,
 } from 'ag-charts-core';
 import { SpanJoin, isScaleValid, spanRange } from 'ag-charts-core';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
-import type { Path } from '../../../scene/shape/path';
-import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { SeriesNodeStyleContext } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeriesTypes';

@@ -6,13 +6,12 @@ import type {
     ExpansionControllerWidget,
     RovingDirection,
 } from 'ag-charts-core';
-import { CollapseMode, Listeners, ToolbarWidget } from 'ag-charts-core';
+import { BBox, CollapseMode, Listeners, ToolbarWidget } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
 import { ToolbarButtonWidget, type ToolbarButtonWidgetOptions } from './toolbarButtonWidget';
 
 const BUTTON_ACTIVE_CLASS = 'ag-charts-toolbar__button--active';

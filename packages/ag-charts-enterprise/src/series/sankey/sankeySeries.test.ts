@@ -10,7 +10,7 @@ import type {
     AgStandaloneChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     GALLERY_EXAMPLES,
@@ -28,6 +28,7 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 
 import { describeFlowProportionShadow, flowProportionShadowOptions } from '../../test/flowProportionShadowTests';
 import { SMALL_SHADOW, mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
@@ -473,7 +474,7 @@ describe('SankeySeries', () => {
             const node = series.contextNodeData.nodeData.find(
                 (d: any) => d.type === FlowProportionDatumType.Node && d.id === 'two'
             );
-            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
+            const { canvasX, canvasY } = Transformable.toCanvasPoint(
                 series.contentGroup,
                 node.x + node.width / 2,
                 node.y + node.height / 2
@@ -726,7 +727,7 @@ describe('SankeySeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]

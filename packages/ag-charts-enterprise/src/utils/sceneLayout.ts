@@ -1,11 +1,11 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { ResolvedTextAlign } from 'ag-charts-core';
+import type { Node, ResolvedTextAlign } from 'ag-charts-core';
+import { Group } from 'ag-charts-core';
 
 export type PositionedScene = Vec2Scene | Vec4Scene | TranslatableScene;
 
-type Vec2Scene = _ModuleSupport.Node & { x: number; y: number };
-type Vec4Scene = _ModuleSupport.Node & { x: number; y: number; x1: number; y1: number; x2: number; y2: number };
-type TranslatableScene = _ModuleSupport.Node & { translationX: number; translationY: number };
+type Vec2Scene = Node & { x: number; y: number };
+type Vec4Scene = Node & { x: number; y: number; x1: number; y1: number; x2: number; y2: number };
+type TranslatableScene = Node & { translationX: number; translationY: number };
 
 export function layoutScenesRow(
     scenes: Array<PositionedScene | Array<PositionedScene>>,
@@ -24,7 +24,7 @@ export function layoutScenesRow(
                 // anchor point, so the column width is over-counted without this shift.
                 alignSceneLeftEdge(scene_, x);
             }
-            x += _ModuleSupport.Group.computeChildrenBBox(scene).width + gap;
+            x += Group.computeChildrenBBox(scene).width + gap;
         } else {
             layoutSetX(scene, x);
             alignSceneLeftEdge(scene, x);
@@ -49,7 +49,7 @@ export function layoutScenesColumn(
                 layoutSetY(scene_, y);
                 alignSceneTopEdge(scene_, y);
             }
-            y += _ModuleSupport.Group.computeChildrenBBox(scene).height + gap;
+            y += Group.computeChildrenBBox(scene).height + gap;
         } else {
             layoutSetY(scene, y);
             alignSceneTopEdge(scene, y);

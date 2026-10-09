@@ -7,7 +7,11 @@ import type {
     WrapOptions,
 } from 'ag-charts-core';
 import {
+    BBox,
     GroupedCategoryScale,
+    PointerEvents,
+    Transformable,
+    TransformableText,
     angularPadding,
     createIdsGenerator,
     extent,
@@ -26,10 +30,6 @@ import {
 } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
-import { PointerEvents } from '../../scene/node';
-import { TransformableText } from '../../scene/shape/text';
-import { Transformable } from '../../scene/transformable';
 import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
 import type { AxisPickDatum, LabelNodeDatum } from './axis';

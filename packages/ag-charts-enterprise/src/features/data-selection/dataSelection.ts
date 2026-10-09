@@ -11,6 +11,7 @@ import {
     ChartUpdateType,
     type DynamicContext,
     type NormalisedSelectionOptions,
+    Rect,
 } from 'ag-charts-core';
 import type { DragWidgetEvent, KeyboardWidgetEvent } from 'ag-charts-core';
 
@@ -65,7 +66,7 @@ function upcastDataSelectionService(service: IDataSelectionService | undefined):
 
 export class DataSelection extends AbstractModuleInstance implements _ModuleSupport.SelectionModuleFns {
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
-    private readonly dragRect: _ModuleSupport.Rect;
+    private readonly dragRect: Rect;
     private readonly service: DataSelectionService;
 
     private get opts(): NormalisedSelectionOptions {
@@ -91,7 +92,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         super();
 
         this.service = upcastDataSelectionService(ctx.dataSelectionService);
-        this.dragRect = new _ModuleSupport.Rect();
+        this.dragRect = new Rect();
         this.dragRect.fill = SELECTION_FILL_VALID;
         this.dragRect.fillOpacity = SELECTION_FILLOPACITY;
         this.dragRect.stroke = SELECTION_STROKE;

@@ -15,6 +15,8 @@ import type {
     PositionedCandidateResolver,
     RequireOptional,
     Scale,
+    Segment,
+    Text,
 } from 'ag-charts-core';
 import {
     AGGREGATION_INDEX_UNSET,
@@ -23,9 +25,14 @@ import {
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
+    BBox,
     BandScale,
+    BarShape,
     ChartAxisDirection,
     DebugMetrics,
+    Group,
+    PointerEvents,
+    Selection,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
     areScalingEqual,
@@ -61,13 +68,6 @@ import type {
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
-import { PointerEvents } from '../../../scene/node';
-import { Selection } from '../../../scene/selection';
-import { BarShape } from '../../../scene/shape/barShape';
-import type { Segment } from '../../../scene/shape/segmentedPath';
-import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';

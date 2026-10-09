@@ -1,5 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { FillStrokeMorph, Normalised, NormalisedOhlcSeriesOwnOptions } from 'ag-charts-core';
+import type {
+    FillStrokeMorph,
+    Normalised,
+    NormalisedOhlcSeriesOwnOptions,
+    Selection,
+    ShapeColor,
+} from 'ag-charts-core';
 import { STROKE_STYLE_THEME_DEFAULTS } from 'ag-charts-core';
 
 import { OhlcNode } from './ohlcNode';
@@ -30,7 +36,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, OhlcSeriesTypes['node']>;
+        datumSelection: Selection<OhlcNodeDatum, OhlcSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -42,7 +48,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, OhlcSeriesTypes['node']>;
+        datumSelection: Selection<OhlcNodeDatum, OhlcSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
         const { contextNodeData, options } = this;
@@ -99,7 +105,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
             return [];
         }
 
-        const fill: _ModuleSupport.ShapeColor = {
+        const fill: ShapeColor = {
             type: 'gradient',
             gradient: 'linear',
             colorSpace: 'rgb',

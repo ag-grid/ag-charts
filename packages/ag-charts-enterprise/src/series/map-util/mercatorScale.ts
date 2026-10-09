@@ -1,13 +1,11 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractScale,
+    BBox,
     type DomainWithMetadata,
     type NormalizedDomain,
     type Position,
     unpackDomainMinMax,
 } from 'ag-charts-core';
-
-const { BBox } = _ModuleSupport;
 
 type XY = [x: number, y: number];
 
@@ -21,9 +19,9 @@ const yLat = (y: number) => (Math.atan(Math.exp(-y)) - Math.PI * 0.25) / (radsIn
 export class MercatorScale extends AbstractScale<Position, XY> {
     readonly type = 'mercator';
     readonly defaultTickCount = 0;
-    readonly bounds: _ModuleSupport.BBox;
+    readonly bounds: BBox;
 
-    static bounds(domain: Position[]): _ModuleSupport.BBox {
+    static bounds(domain: Position[]): BBox {
         const [[lon0, lat0], [lon1, lat1]] = domain;
 
         const x0 = lonX(lon0);

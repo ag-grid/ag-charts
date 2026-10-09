@@ -9,15 +9,21 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    BBox,
     type CallbackParamRules,
+    Group,
     type NormalisedColorType,
     type NormalisedTextOrSegments,
     type NormalisedTreemapSeriesOwnOptions,
     type NormalisedTreemapSeriesStyle,
     type Point,
+    Rect,
     type RequireOptional,
     type ResolvedTextAlign,
     STROKE_STYLE_THEME_DEFAULTS,
+    Selection,
+    Text,
+    Transformable,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
     fontWithSize,
@@ -40,8 +46,7 @@ import {
 } from '../hierarchy/hierarchySeries';
 import { formatLabels, formatSingleLabel } from '../util/labelFormatter';
 
-const { createDatumId, Rect, Group, BBox, Selection, SelectionState, Text, Transformable, getLabelStyles } =
-    _ModuleSupport;
+const { createDatumId, SelectionState, getLabelStyles } = _ModuleSupport;
 
 class TreemapNode extends HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
@@ -51,7 +56,7 @@ class TreemapNode extends HierarchyNode<TreemapNode> {
     secondaryLabelText: NormalisedTextOrSegments | undefined = undefined;
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
-    bbox: _ModuleSupport.BBox | undefined = undefined;
+    bbox: BBox | undefined = undefined;
     padding: Padding | undefined = undefined;
     // Layout probes the same group size repeatedly while squarifying.
     groupTitle: { width: number; height: number; title: GroupTitle | undefined } | undefined = undefined;
@@ -113,7 +118,7 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-function alignedX(bbox: _ModuleSupport.BBox, padding: number, textAlign: TextAlign, isRtl: boolean) {
+function alignedX(bbox: BBox, padding: number, textAlign: TextAlign, isRtl: boolean) {
     const factor = textAlignFactors[resolveTextAlign(textAlign, isRtl)] ?? 0.5;
     return bbox.x + padding + (bbox.width - 2 * padding) * factor;
 }
@@ -131,11 +136,7 @@ function clearOfEdge(
     return edgeAlign === 'top' ? Math.max(y, edgeY + gap) : Math.min(y, edgeY - gap);
 }
 
-export class TreemapSeries extends HierarchySeries<
-    TreemapNode,
-    _ModuleSupport.Rect<TreemapNode>,
-    NormalisedTreemapSeriesOwnOptions
-> {
+export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode>, NormalisedTreemapSeriesOwnOptions> {
     static override readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
 
@@ -143,15 +144,9 @@ export class TreemapSeries extends HierarchySeries<
 
     private readonly rectGroup = this.contentGroup.appendChild(new Group());
 
-    protected readonly datumSelection = Selection.select<_ModuleSupport.Rect<TreemapNode>>(
-        this.rectGroup,
-        Rect<TreemapNode>
-    );
-    private readonly labelSelection = Selection.select<_ModuleSupport.Group<TreemapNode>>(
-        this.labelGroup,
-        Group<TreemapNode>
-    );
-    private readonly highlightSelection = Selection.select<_ModuleSupport.Rect<TreemapNode>>(this.rectGroup, Rect);
+    protected readonly datumSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect<TreemapNode>);
+    private readonly labelSelection = Selection.select<Group<TreemapNode>>(this.labelGroup, Group<TreemapNode>);
+    private readonly highlightSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect);
 
     protected override _data?: HierarchyDataSet<any>;
     protected override _chartData?: HierarchyDataSet<any>;
@@ -163,7 +158,7 @@ export class TreemapSeries extends HierarchySeries<
         return result;
     }
 
-    private groupTitle(node: TreemapNode, bbox: _ModuleSupport.BBox): GroupTitle | undefined {
+    private groupTitle(node: TreemapNode, bbox: BBox): GroupTitle | undefined {
         const { label, padding } = this.options.group;
         const { labelValue } = node;
         if (!label.enabled || labelValue == null) return;
@@ -176,7 +171,7 @@ export class TreemapSeries extends HierarchySeries<
         return title;
     }
 
-    private fitGroupTitle(labelValue: string, bbox: _ModuleSupport.BBox, padding: number): GroupTitle | undefined {
+    private fitGroupTitle(labelValue: string, bbox: BBox, padding: number): GroupTitle | undefined {
         const heightRatioThreshold = 3;
         const { label } = this.options.group;
         const { fontSize, maxWidth = Infinity, maxHeight = Infinity } = label;
@@ -206,7 +201,7 @@ export class TreemapSeries extends HierarchySeries<
         };
     }
 
-    private getNodePadding(node: TreemapNode, bbox: _ModuleSupport.BBox) {
+    private getNodePadding(node: TreemapNode, bbox: BBox) {
         if (node.parent == null) {
             return { top: 0, right: 0, bottom: 0, left: 0 };
         } else if (node.children.length === 0) {
@@ -244,7 +239,7 @@ export class TreemapSeries extends HierarchySeries<
     }
 
     // A group whose box can't fit its own padding would render an empty container; leaves never count as collapsed.
-    private collapses(node: TreemapNode, bbox: _ModuleSupport.BBox): boolean {
+    private collapses(node: TreemapNode, bbox: BBox): boolean {
         if (node.children.length === 0) return false;
         if (bbox.width <= 0 || bbox.height <= 0) return true;
         const padding = node.datum == null ? { top: 0, right: 0, bottom: 0, left: 0 } : this.getNodePadding(node, bbox);
@@ -255,7 +250,7 @@ export class TreemapSeries extends HierarchySeries<
      * Squarified Treemap algorithm
      * https://www.win.tue.nl/~vanwijk/stm.pdf
      */
-    private squarify(node: TreemapNode, bbox: _ModuleSupport.BBox) {
+    private squarify(node: TreemapNode, bbox: BBox) {
         const { datum, children } = node;
 
         if (bbox.width <= 0 || bbox.height <= 0) {
@@ -327,13 +322,13 @@ export class TreemapSeries extends HierarchySeries<
     private layoutChildren(
         children: TreemapNode[],
         indices: number[],
-        innerBox: _ModuleSupport.BBox,
+        innerBox: BBox,
         allLeafNodes: boolean
-    ): { child: TreemapNode; bbox: _ModuleSupport.BBox }[] {
+    ): { child: TreemapNode; bbox: BBox }[] {
         const childAt = (i: number) => children[indices[i]];
         const numChildren = indices.length;
         const targetTileAspectRatio = 1; // The width and height will tend to this ratio
-        const result: { child: TreemapNode; bbox: _ModuleSupport.BBox }[] = [];
+        const result: { child: TreemapNode; bbox: BBox }[] = [];
 
         let stackSum = 0;
         let startIndex = 0;
@@ -413,9 +408,9 @@ export class TreemapSeries extends HierarchySeries<
         return result;
     }
 
-    private applyGap(innerBox: _ModuleSupport.BBox, childBox: _ModuleSupport.BBox, allLeafNodes: boolean) {
+    private applyGap(innerBox: BBox, childBox: BBox, allLeafNodes: boolean) {
         const gap = allLeafNodes ? this.options.tile.gap * 0.5 : this.options.group.gap * 0.5;
-        const getBounds = (box: _ModuleSupport.BBox): Record<Side, number> => ({
+        const getBounds = (box: BBox): Record<Side, number> => ({
             left: box.x,
             top: box.y,
             right: box.x + box.width,
@@ -551,7 +546,7 @@ export class TreemapSeries extends HierarchySeries<
 
         const descendants = Array.from(this.rootNode!);
 
-        const updateLabelGroup = (group: _ModuleSupport.Group) => {
+        const updateLabelGroup = (group: Group) => {
             group.append([new Text({ tag: TextNodeTag.Primary }), new Text({ tag: TextNodeTag.Secondary })]);
         };
 
@@ -813,7 +808,7 @@ export class TreemapSeries extends HierarchySeries<
             axis: new BBox(0, 0, width, height),
         };
 
-        const updateRectFn = (node: TreemapNode, rect: _ModuleSupport.Rect, isHighlight: boolean) => {
+        const updateRectFn = (node: TreemapNode, rect: Rect, isHighlight: boolean) => {
             const { bbox } = node;
             if (bbox == null) {
                 rect.visible = false;
@@ -866,12 +861,7 @@ export class TreemapSeries extends HierarchySeries<
             updateRectFn(datum, rect, true);
         });
 
-        const updateLabelFn = (
-            node: TreemapNode,
-            text: _ModuleSupport.Text,
-            tag: TextNodeTag,
-            highlighted: boolean
-        ) => {
+        const updateLabelFn = (node: TreemapNode, text: Text, tag: TextNodeTag, highlighted: boolean) => {
             const isLeaf = node.children.length === 0;
             const label = tag === TextNodeTag.Primary ? node.label : node.secondaryLabel;
             if (label == null) {
@@ -1186,7 +1176,7 @@ export class TreemapSeries extends HierarchySeries<
         );
     }
 
-    protected computeFocusBounds(node: _ModuleSupport.Rect): _ModuleSupport.BBox | undefined {
+    protected computeFocusBounds(node: Rect): BBox | undefined {
         return Transformable.toCanvas(this.contentGroup, node.getBBox());
     }
 

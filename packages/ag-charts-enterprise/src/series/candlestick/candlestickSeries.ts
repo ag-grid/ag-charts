@@ -4,6 +4,7 @@ import {
     type InternalAgGradientColor,
     type Normalised,
     type NormalisedCandlestickSeriesOwnOptions,
+    type Selection,
     isGradientFill,
     isImageFill,
     isPatternFill,
@@ -42,7 +43,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickSeriesTypes['node']>;
+        datumSelection: Selection<OhlcNodeDatum, CandlestickSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -54,7 +55,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickSeriesTypes['node']>;
+        datumSelection: Selection<OhlcNodeDatum, CandlestickSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
         const { contextNodeData, options } = this;

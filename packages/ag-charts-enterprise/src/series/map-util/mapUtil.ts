@@ -1,4 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+import type { Selection } from 'ag-charts-core';
 
 import type { GeoGeometry } from './geoGeometry';
 
@@ -30,7 +31,7 @@ export function prepareMapMarkerAnimationFunctions<D>() {
 
 type SomeMapSeries<TDatum> = {
     contextNodeData?: { nodeData: TDatum[] };
-    datumSelection: _ModuleSupport.Selection<TDatum, GeoGeometry<TDatum>>;
+    datumSelection: Selection<TDatum, GeoGeometry<TDatum>>;
 };
 
 export function findFocusedGeoGeometry<TDatum>(

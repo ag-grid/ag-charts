@@ -9,6 +9,7 @@ import type {
     DistantObject,
     DomainWithMetadata,
     DynamicContext,
+    Node,
     NormalisedChartLabelCollisionOptions,
     NormalisedColorType,
     NormalisedDropShadowOptions,
@@ -22,17 +23,23 @@ import type {
     PointLabelDatum,
     PositionedCandidateResolver,
     RequireOptional,
+    Selection,
     SeriesLabelDefaults,
     SeriesPluginModuleInstance,
     SizedPoint,
 } from 'ag-charts-core';
 import {
+    BBox,
     ChartAxisDirection,
     CleanupRegistry,
     EventEmitter,
+    Group,
     LRUCache,
+    PointerEvents,
     SeriesContentZIndexMap,
     SeriesZIndexMap,
+    Transformable,
+    TranslatableGroup,
     boxCollides,
     boxContains,
     callWithContext,
@@ -74,11 +81,6 @@ import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ChartRegistry, ChartSeriesRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesGrouping } from '../../module/seriesGrouping';
-import { BBox } from '../../scene/bbox';
-import { Group, TranslatableGroup } from '../../scene/group';
-import { type Node, PointerEvents } from '../../scene/node';
-import type { Selection } from '../../scene/selection';
-import { Transformable } from '../../scene/transformable';
 import type { ChartAxis } from '../chartAxis';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';

@@ -1,16 +1,20 @@
-import type { ChartAnimationPhase, DynamicContext } from 'ag-charts-core';
-import { ChartAxisDirection, PolarZIndexMap, StateMachine } from 'ag-charts-core';
+import type { ChartAnimationPhase, DynamicContext, Node } from 'ag-charts-core';
+import {
+    BBox,
+    ChartAxisDirection,
+    Group,
+    Path,
+    PointerEvents,
+    PolarZIndexMap,
+    Selection,
+    StateMachine,
+    Text,
+} from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ChartRegistry } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
-import { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
-import { type Node, PointerEvents } from '../../../scene/node';
-import { Selection } from '../../../scene/selection';
-import { Path } from '../../../scene/shape/path';
-import { Text } from '../../../scene/shape/text';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,

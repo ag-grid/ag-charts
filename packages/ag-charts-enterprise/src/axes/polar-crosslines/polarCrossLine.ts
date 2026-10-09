@@ -5,26 +5,23 @@ import {
     type CanvasPoint,
     ChartAxisDirection,
     ContinuousScale,
+    Group,
     type NormalisedAxisCrossLineLabelOptions,
     type NormalisedAxisCrossLineOptions,
+    Path,
+    RotatableText,
     type Scale,
+    Sector,
+    Transformable,
     clamp,
     createId,
     isNumberEqual,
     normalizeAngle360,
     normalizeAngle360FromDegrees,
 } from 'ag-charts-core';
+import type { BBox, Node } from 'ag-charts-core';
 
-const {
-    crossLineHitTolerance,
-    getCrossLineValue,
-    validateCrossLineValue,
-    Group,
-    Path,
-    RotatableText,
-    Sector,
-    Transformable,
-} = _ModuleSupport;
+const { crossLineHitTolerance, getCrossLineValue, validateCrossLineValue } = _ModuleSupport;
 
 /** Polar axes reserve no padding, so `overflow: 'pad-chart'` leaves the label at its configured position. */
 export type PolarCrossLineLabelOptions = NormalisedAxisCrossLineLabelOptions;
@@ -159,11 +156,11 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
         return this.polygonNode.visible && this.isWithinTolerance(this.polygonNode, x, y);
     }
 
-    private isWithinTolerance(node: _ModuleSupport.Path, x: number, y: number): boolean {
+    private isWithinTolerance(node: Path, x: number, y: number): boolean {
         return node.distanceSquared(x, y) <= crossLineHitTolerance(this.strokeWidth) ** 2;
     }
 
-    getLabelBox(): _ModuleSupport.BBox | undefined {
+    getLabelBox(): BBox | undefined {
         const { label, labelNode } = this;
         if (
             label.enabled === false ||
@@ -435,7 +432,7 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
         this.innerRadius = innerRadius;
     }
 
-    private drawRadiusPolygon(radius: number, angles: number[], polygon: _ModuleSupport.Path) {
+    private drawRadiusPolygon(radius: number, angles: number[], polygon: Path) {
         for (const [index, angle] of angles.entries()) {
             const x = radius * Math.cos(angle);
             const y = radius * Math.sin(angle);
@@ -550,7 +547,7 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
         return scale instanceof BandScale ? (step - bandwidth) / 2 : 0;
     }
 
-    private assignCrossLineGroup(isRange: boolean, crossLineRange: _ModuleSupport.Node) {
+    private assignCrossLineGroup(isRange: boolean, crossLineRange: Node) {
         if (isRange !== this._isRange) {
             if (isRange) {
                 this.rangeGroup.appendChild(crossLineRange);
@@ -561,7 +558,7 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
         this._isRange = isRange;
     }
 
-    private setSectorNodeProps(node: _ModuleSupport.Path | _ModuleSupport.Sector) {
+    private setSectorNodeProps(node: Path | Sector) {
         // A `line` cross-line is a single stroke; only the `range` variant is filled.
         node.fill = this.type === 'range' ? this.fill : undefined;
         node.fillOpacity = this.fillOpacity ?? 1;
@@ -572,7 +569,7 @@ export class PolarCrossLine implements _ModuleSupport.PolarCrossLine<PolarCrossL
     }
 
     private setLabelNodeProps(
-        node: _ModuleSupport.RotatableText,
+        node: RotatableText,
         x: number,
         y: number,
         baseline: CanvasTextBaseline,

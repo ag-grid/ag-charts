@@ -10,11 +10,22 @@ import type {
     KeyboardWidgetEvent,
     MouseWidgetEvent,
     Point,
+    Node as SceneNode,
+    TranslatableGroup,
     WheelWidgetEvent,
     Widget,
     Writeable,
 } from 'ag-charts-core';
-import { BaseManager, ChartUpdateType, Vec4, clamp, createId, debouncedAnimationFrame } from 'ag-charts-core';
+import {
+    BBox,
+    BaseManager,
+    ChartUpdateType,
+    Transformable,
+    Vec4,
+    clamp,
+    createId,
+    debouncedAnimationFrame,
+} from 'ag-charts-core';
 import type {
     AgActiveItemState,
     AgChartClickEvent,
@@ -40,10 +51,6 @@ import type {
     ZoomChangeCompleteEvent,
 } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
-import type { TranslatableGroup } from '../../scene/group';
-import type { Node as SceneNode } from '../../scene/node';
-import { Transformable } from '../../scene/transformable';
 import type { ChartType } from '../chartType';
 import { type PendingCrossLineCallbacks, fireAllPendingCrossLineCallbacks } from '../crossline/crossLine';
 import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';

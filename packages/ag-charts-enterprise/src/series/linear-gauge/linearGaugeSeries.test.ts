@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgLinearGaugeLabelPlacement, AgLinearGaugeOptions } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,
     type SceneNodeGeometry,
@@ -15,6 +15,7 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -287,7 +288,7 @@ describe('LinearGaugeSeries', () => {
 
             const series = chart.series[0];
             const lineNode = [...series.targetSelection.nodes()][0];
-            const lineBBox = _ModuleSupport.Transformable.toCanvas(lineNode);
+            const lineBBox = Transformable.toCanvas(lineNode);
             const lineCx = lineBBox.x + lineBBox.width / 2;
             const lineCy = lineBBox.y + lineBBox.height / 2;
             // Empty space above the bar, far enough from the line that it must not register as hovered.

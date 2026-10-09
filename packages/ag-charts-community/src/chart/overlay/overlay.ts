@@ -1,4 +1,5 @@
 import {
+    type BBox,
     type NormalisedChartOverlayOptions,
     type NormalisedTextOrSegments,
     callWithContext,
@@ -13,7 +14,6 @@ import {
 import type { AgChartOverlayRendererParams, DatumDefault, ImageSegment, Renderer } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
-import type { BBox } from '../../scene/bbox';
 import type { AnimationManager } from '../interaction/animationManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-charts-overlay';

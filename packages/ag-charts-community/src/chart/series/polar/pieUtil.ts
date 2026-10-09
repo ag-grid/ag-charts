@@ -1,14 +1,16 @@
-import type { BoxBounds, NormalisedColorType, Point } from 'ag-charts-core';
-import { boxContains, isBetweenAngles, toRadians } from 'ag-charts-core';
+import type { BoxBounds, Group, Node, NormalisedColorType, Point } from 'ag-charts-core';
+import {
+    BBox,
+    Sector,
+    Transformable,
+    boxContains,
+    boxOverlapsSector,
+    isBetweenAngles,
+    toRadians,
+} from 'ag-charts-core';
 import type { AgSelectionContainment } from 'ag-charts-types';
 
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
-import { BBox } from '../../../scene/bbox';
-import type { Group } from '../../../scene/group';
-import type { Node } from '../../../scene/node';
-import { Sector } from '../../../scene/shape/sector';
-import { Transformable } from '../../../scene/transformable';
-import { boxOverlapsSector } from '../../../scene/util/sector';
 import type { Marker } from '../../marker/marker';
 import type { PickNodesInBBoxPredicate, SeriesNodePickMatch } from '../pickTypes';
 

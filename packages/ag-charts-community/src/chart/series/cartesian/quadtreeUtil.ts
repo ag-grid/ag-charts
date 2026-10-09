@@ -1,8 +1,5 @@
-import type { DistantObject, Logger, Point } from 'ag-charts-core';
+import type { DistantObject, Group, Logger, Node, Point, QuadtreeNearest } from 'ag-charts-core';
 
-import type { Group } from '../../../scene/group';
-import type { Node } from '../../../scene/node';
-import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { SeriesNodePickMatch } from '../pickTypes';
 import type { SeriesNodeDatum } from '../seriesTypes';
 

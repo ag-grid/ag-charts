@@ -1,6 +1,6 @@
 import { type AgFunnelSeriesLabelPlacement, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { DynamicContext, NormalisedFunnelSeriesOwnOptions, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, mergeDefaults } from 'ag-charts-core';
+import type { DynamicContext, NormalisedFunnelSeriesOwnOptions, RequireOptional, Selection } from 'ag-charts-core';
+import { ChartAxisDirection, Rect, mergeDefaults } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -23,7 +23,6 @@ const {
     midpointStartingBarPosition,
     createDatumId,
     pickPlacementStyle,
-    Rect,
     motion,
 } = _ModuleSupport;
 
@@ -31,7 +30,7 @@ const {
  * Consolidated type interface for FunnelSeries.
  */
 interface FunnelSeriesTypes extends BaseFunnelSeriesTypes {
-    readonly node: _ModuleSupport.Rect<FunnelNodeDatum>;
+    readonly node: Rect<FunnelNodeDatum>;
     readonly options: NormalisedFunnelSeriesOwnOptions;
 }
 
@@ -69,7 +68,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         );
     }
 
-    protected override nodeFactory(): _ModuleSupport.Rect<FunnelNodeDatum> {
+    protected override nodeFactory(): Rect<FunnelNodeDatum> {
         return new Rect<FunnelNodeDatum>();
     }
 
@@ -141,7 +140,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.Rect<FunnelNodeDatum>>;
+        datumSelection: Selection<FunnelNodeDatum, Rect<FunnelNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -178,7 +177,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         return this.getItemStyle({ datum, datumIndex }, false);
     }
 
-    override animateEmptyUpdateReady(params: FunnelAnimationData<_ModuleSupport.Rect<FunnelNodeDatum>>) {
+    override animateEmptyUpdateReady(params: FunnelAnimationData<Rect<FunnelNodeDatum>>) {
         super.animateEmptyUpdateReady(params);
 
         const { datumSelection } = params;
@@ -189,7 +188,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], barFns);
     }
 
-    override animateWaitingUpdateReady(data: FunnelAnimationData<_ModuleSupport.Rect<FunnelNodeDatum>>) {
+    override animateWaitingUpdateReady(data: FunnelAnimationData<Rect<FunnelNodeDatum>>) {
         super.animateWaitingUpdateReady(data);
         const { datumSelection: datumSelections } = data;
         const { processedData } = this;

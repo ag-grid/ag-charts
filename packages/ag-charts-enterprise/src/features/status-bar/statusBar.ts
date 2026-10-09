@@ -3,13 +3,17 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     type DynamicContext,
+    Group,
     type NormalisedStatusBarOptions,
+    Rect,
+    Text,
+    TranslatableGroup,
     ZIndexMap,
     cachedTextMeasurer,
     isNumericValue,
 } from 'ag-charts-core';
 
-const { LayoutElement, Group, Rect, Text } = _ModuleSupport;
+const { LayoutElement } = _ModuleSupport;
 enum LabelConfiguration {
     Open = 2, // 1 << 1
     Close = 4, // 1 << 2
@@ -68,7 +72,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         name: 'StatusBar',
         zIndex: ZIndexMap.STATUS_BAR,
     });
-    private readonly labelGroup = this.layer.appendChild(new _ModuleSupport.TranslatableGroup());
+    private readonly labelGroup = this.layer.appendChild(new TranslatableGroup());
     private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [
         {

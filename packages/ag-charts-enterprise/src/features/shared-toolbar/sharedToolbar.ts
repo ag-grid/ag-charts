@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type DynamicContext } from 'ag-charts-core';
+import { AbstractModuleInstance, type BBox, type DynamicContext } from 'ag-charts-core';
 
 import type { SharedToolbarSection } from './sharedToolbarTypes';
 
@@ -18,7 +18,7 @@ export interface SharedToolbarWithSection<
     | 'toggleButtonEnabledByIndex'
     | 'clearActiveButton'
 > {
-    layout: (layoutBox: _ModuleSupport.BBox, padding?: number) => void;
+    layout: (layoutBox: BBox, padding?: number) => void;
     setButtonSize: (buttonSize: number | undefined) => void;
 }
 
@@ -86,7 +86,7 @@ export class SharedToolbar extends AbstractModuleInstance {
         const sharedToolbar = this.sharedToolbar!;
 
         const withSection = {
-            layout: (layoutBox: _ModuleSupport.BBox, padding: number = 0) => {
+            layout: (layoutBox: BBox, padding: number = 0) => {
                 // Only perform the layout for the first section to call to prevent multiple shrinkings per update
                 if (
                     this.firstLayoutSection != null &&

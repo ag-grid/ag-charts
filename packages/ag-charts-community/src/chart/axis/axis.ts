@@ -9,6 +9,7 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     MouseWidgetEvent,
+    Node,
     Normalised,
     NormalisedAxisTickOptions,
     NormalisedBaseAxisLabelOptions,
@@ -16,14 +17,23 @@ import type {
     NormalisedTextOrSegments,
     Point,
     Scale,
+    TextBoxingProperties,
+    TextSizeProperties,
 } from 'ag-charts-core';
 import {
+    BBox,
     BandScale,
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
     ContinuousScale,
     DiscreteTimeScale,
+    Group,
+    Selection,
+    Transformable,
+    TransformableGroup,
+    TransformableText,
+    TranslatableGroup,
     WeakCache,
     ZIndexMap,
     arraysEqual,
@@ -67,12 +77,6 @@ import type {
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import { BBox } from '../../scene/bbox';
-import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
-import type { Node } from '../../scene/node';
-import { Selection } from '../../scene/selection';
-import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
-import { Transformable } from '../../scene/transformable';
 import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import type { CrossLine } from '../crossline/crossLine';

@@ -1,11 +1,10 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { Vertex } from 'ag-charts-core';
+import type { ExtendedPath2D, Vertex } from 'ag-charts-core';
+import { BBox } from 'ag-charts-core';
 
 import { NetworkLayout, type NetworkLayoutUpdateOptions } from './networkLayout';
 import type { NetworkLinkInterpolation } from './networkTypes';
 
-type TBBox = _ModuleSupport.BBox;
-const { BBox } = _ModuleSupport;
+type TBBox = BBox;
 
 interface ContentBoundsAccumulator {
     count: number;
@@ -112,7 +111,7 @@ export abstract class NetworkDirectionalLayout<
     ): TBBox;
 
     protected abstract drawLink(
-        path: _ModuleSupport.ExtendedPath2D,
+        path: ExtendedPath2D,
         parentBBox: TBBox,
         childBBox: TBBox,
         interpolation: NetworkLinkInterpolation,
@@ -195,7 +194,7 @@ export abstract class NetworkDirectionalLayout<
             if (childrenBBoxes) {
                 for (const { vertex: childVertex, bbox } of childrenBBoxes) {
                     const interpolation = getLinkInterpolation(vertex, childVertex);
-                    layoutLinkNode(childVertex, (path: _ModuleSupport.ExtendedPath2D) =>
+                    layoutLinkNode(childVertex, (path: ExtendedPath2D) =>
                         childrenLayout.drawLink(path, layoutBBox, bbox, interpolation, options)
                     );
                 }

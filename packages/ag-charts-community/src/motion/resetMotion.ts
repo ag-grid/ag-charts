@@ -1,5 +1,5 @@
-import type { Node } from '../scene/node';
-import type { Selection } from '../scene/selection';
+import type { Node, Selection } from 'ag-charts-core';
+
 import { deconstructSelectionsOrNodes } from './animation';
 
 /**

@@ -1,5 +1,5 @@
 import type { AgChartLabelFormatterParams, RichFormatter, _ModuleSupport } from 'ag-charts-community';
-import { type NormalisedTextOrSegments, isArray } from 'ag-charts-core';
+import { type Node, type NormalisedTextOrSegments, isArray } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { formatWithContext } from '../../utils/formatter';
@@ -14,7 +14,7 @@ interface Ctx {
     chartService: { context?: unknown };
 }
 
-export const fadeInFns: _ModuleSupport.FromToFns<_ModuleSupport.Node, any, any> = {
+export const fadeInFns: _ModuleSupport.FromToFns<Node, any, any> = {
     fromFn: () => ({ opacity: 0, phase: 'initial' }),
     toFn: () => ({ opacity: 1 }),
 };

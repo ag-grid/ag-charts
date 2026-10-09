@@ -1,12 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { Bounds4, Point, Scale } from 'ag-charts-core';
-import { ContinuousScale, Vec2, Vec4, entries, toRadians } from 'ag-charts-core';
+import type { Bounds4, Node, Point, Scale } from 'ag-charts-core';
+import { ContinuousScale, Transformable, Vec2, Vec4, entries, toRadians } from 'ag-charts-core';
 
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import { convertPoint, invertCoords } from './values';
-
-const { Transformable } = _ModuleSupport;
-type Node = _ModuleSupport.Node;
 
 export const SNAP_TO_ANGLE = 45;
 

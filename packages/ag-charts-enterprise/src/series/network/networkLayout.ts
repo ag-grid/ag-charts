@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { Vertex } from 'ag-charts-core';
+import type { ExtendedPath2D, Vertex } from 'ag-charts-core';
+import { BBox } from 'ag-charts-core';
 
 import type { NetworkGraph } from './networkGraph';
 import type { NetworkLinkInterpolation } from './networkTypes';
@@ -9,27 +9,23 @@ export interface NetworkLayoutUpdateOptions<TVertex, TEdge> {
     width: number;
     graph: NetworkGraph<TVertex, TEdge>;
     vertices: Vertex<TVertex, TEdge>[];
-    getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => _ModuleSupport.BBox | undefined;
+    getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => BBox | undefined;
     getLinkInterpolation: (from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>) => NetworkLinkInterpolation;
-    layoutDatumNode: (
-        vertex: Vertex<TVertex, TEdge>,
-        groupBBox: _ModuleSupport.BBox,
-        regularBBox?: _ModuleSupport.BBox
-    ) => _ModuleSupport.BBox | undefined;
-    layoutLinkNode: (vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) => void;
+    layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: BBox, regularBBox?: BBox) => BBox | undefined;
+    layoutLinkNode: (vertex: Vertex<TVertex, TEdge>, drawLink: (path: ExtendedPath2D) => void) => void;
     isVertexCollapsed: (vertex: Vertex<TVertex, TEdge>) => boolean;
 }
 
 export abstract class NetworkLayout<TVertex, TEdge> {
-    protected contentBBox?: _ModuleSupport.BBox;
-    protected regularBBox?: _ModuleSupport.BBox;
+    protected contentBBox?: BBox;
+    protected regularBBox?: BBox;
 
     private readonly maxRegularDimensionsCount = 1000;
 
     abstract update(options: NetworkLayoutUpdateOptions<TVertex, TEdge>): void;
-    abstract getNodeBBox(vertex: Vertex<TVertex, TEdge>): _ModuleSupport.BBox | undefined;
+    abstract getNodeBBox(vertex: Vertex<TVertex, TEdge>): BBox | undefined;
 
-    getContentBBox(): _ModuleSupport.BBox | undefined {
+    getContentBBox(): BBox | undefined {
         return this.contentBBox;
     }
 
@@ -58,7 +54,7 @@ export abstract class NetworkLayout<TVertex, TEdge> {
         }
 
         if (maxWidth > 0 && maxHeight > 0) {
-            this.regularBBox = new _ModuleSupport.BBox(0, 0, maxWidth, maxHeight);
+            this.regularBBox = new BBox(0, 0, maxWidth, maxHeight);
         }
     }
 }

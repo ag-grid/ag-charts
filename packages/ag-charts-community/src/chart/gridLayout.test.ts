@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { BBox } from '../scene/bbox';
+import { BBox } from 'ag-charts-core';
+
 import { gridLayout } from './gridLayout';
 
 describe('GridLayout', () => {

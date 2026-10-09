@@ -4,46 +4,42 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    BBox,
     type CallbackParamRules,
     type DynamicContext,
+    Group,
     type NormalisedSunburstInnerLabelOptions,
     type NormalisedSunburstSeriesOwnOptions,
     type NormalisedSunburstSeriesStyle,
     type NormalisedTextOrSegments,
     type Point,
+    PointerEvents,
     type RequireOptional,
     STROKE_STYLE_THEME_DEFAULTS,
+    ScalableGroup,
+    Sector,
+    Selection,
+    Text,
+    TransformableText,
     findDiscreteColorBinLabel,
     formatValue,
     isGradientFill,
     mergeDefaults,
     normalizeAngle360,
 } from 'ag-charts-core';
+import type { Path } from 'ag-charts-core';
 import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { HierarchyNode, HierarchySeries, toHierarchyHighlightString } from '../hierarchy/hierarchySeries';
 import { formatLabels } from '../util/labelFormatter';
 
-const {
-    fromToMotion,
-    createDatumId,
-    PointerEvents,
-    Sector,
-    Group,
-    ScalableGroup,
-    Selection,
-    Text,
-    TransformableText,
-    BBox,
-    fitLabelToContainer,
-    getLabelStyles,
-} = _ModuleSupport;
+const { fromToMotion, createDatumId, fitLabelToContainer, getLabelStyles } = _ModuleSupport;
 
 class SunburstNode extends HierarchyNode<SunburstNode> {
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
     contentHeight: number = 0;
-    bbox: _ModuleSupport.BBox | undefined = undefined; // cspell:ignore bbox
+    bbox: BBox | undefined = undefined; // cspell:ignore bbox
     startAngle: number = 0;
     endAngle: number = 0;
 }
@@ -100,7 +96,7 @@ type ItemStyle = Required<NormalisedSunburstSeriesStyle> & { opacity: number };
 
 export class SunburstSeries extends HierarchySeries<
     SunburstNode,
-    _ModuleSupport.Sector<SunburstNode>,
+    Sector<SunburstNode>,
     NormalisedSunburstSeriesOwnOptions
 > {
     static override readonly className = 'SunburstSeries';
@@ -119,23 +115,14 @@ export class SunburstSeries extends HierarchySeries<
     // labels, and named so the scene sampler cannot renumber the unnamed groups around it.
     private readonly innerLabelsGroup = this.scalingGroup.appendChild(new Group({ name: 'innerLabels' }));
 
-    readonly datumSelection = Selection.select<_ModuleSupport.Sector<SunburstNode>>(
-        this.sectorGroup,
-        Sector<SunburstNode>
-    );
-    private readonly labelSelection = Selection.select<_ModuleSupport.Group<SunburstNode>>(
-        this.sectorLabelGroup,
-        Group
-    );
-    private readonly highlightSelection = Selection.select<_ModuleSupport.Sector<SunburstNode>>(
-        this.highlightSectorGroup,
-        Sector
-    );
-    private readonly innerCircleSelection = Selection.select<_ModuleSupport.Sector<{ radius: number }>>(
+    readonly datumSelection = Selection.select<Sector<SunburstNode>>(this.sectorGroup, Sector<SunburstNode>);
+    private readonly labelSelection = Selection.select<Group<SunburstNode>>(this.sectorLabelGroup, Group);
+    private readonly highlightSelection = Selection.select<Sector<SunburstNode>>(this.highlightSectorGroup, Sector);
+    private readonly innerCircleSelection = Selection.select<Sector<{ radius: number }>>(
         this.innerCircleGroup,
         Sector<{ radius: number }>
     );
-    readonly innerLabelsSelection = Selection.select<_ModuleSupport.Text<NormalisedSunburstInnerLabelOptions>>(
+    readonly innerLabelsSelection = Selection.select<Text<NormalisedSunburstInnerLabelOptions>>(
         this.innerLabelsGroup,
         Text
     );
@@ -175,7 +162,7 @@ export class SunburstSeries extends HierarchySeries<
 
         const descendants = Array.from(this.rootNode!);
 
-        const updateLabelGroup = (group: _ModuleSupport.Group) => {
+        const updateLabelGroup = (group: Group) => {
             group.append([
                 new TransformableText({ tag: TextNodeTag.Primary }),
                 new TransformableText({ tag: TextNodeTag.Secondary }),
@@ -541,7 +528,7 @@ export class SunburstSeries extends HierarchySeries<
             node.contentHeight = formatting.height;
         });
 
-        const updateSector = (nodeDatum: SunburstNode, sector: _ModuleSupport.Sector, highlighted: boolean) => {
+        const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean) => {
             const { depth, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
                 sector.visible = false;
@@ -607,12 +594,7 @@ export class SunburstSeries extends HierarchySeries<
 
         const highlightedNode = this.getActiveHighlightNode();
 
-        const updateText = (
-            node: SunburstNode,
-            text: _ModuleSupport.TransformableText,
-            tag: TextNodeTag,
-            highlighted: boolean
-        ) => {
+        const updateText = (node: SunburstNode, text: TransformableText, tag: TextNodeTag, highlighted: boolean) => {
             const { depth, contentHeight } = node;
             const primary = tag === TextNodeTag.Primary;
             const label = primary ? node.label : node.secondaryLabel;
@@ -702,7 +684,7 @@ export class SunburstSeries extends HierarchySeries<
 
     private updateInnerLabelNodes(centre: { radius: number }) {
         const { radius } = centre;
-        const textBBoxes: _ModuleSupport.BBox[] = [];
+        const textBBoxes: BBox[] = [];
         const margins: number[] = [];
         // The inner labels fit the square inscribed in the centre circle (diagonal 2·r ⇒ side r·√2).
         const extent = radius * Math.SQRT2;
@@ -876,21 +858,23 @@ export class SunburstSeries extends HierarchySeries<
     }
 
     protected override animateEmptyUpdateReady() {
-        fromToMotion<
-            SunburstNode,
-            _ModuleSupport.ScalableGroup<SunburstNode>,
-            Pick<_ModuleSupport.ScalableGroup, 'scalingX' | 'scalingY'>
-        >(this.id, 'nodes', this.ctx.animationManager, [this.scalingGroup] as any, {
-            toFn() {
-                return { scalingX: 1, scalingY: 1 };
-            },
-            fromFn() {
-                return { scalingX: 0, scalingY: 0 };
-            },
-        });
+        fromToMotion<SunburstNode, ScalableGroup<SunburstNode>, Pick<ScalableGroup, 'scalingX' | 'scalingY'>>(
+            this.id,
+            'nodes',
+            this.ctx.animationManager,
+            [this.scalingGroup] as any,
+            {
+                toFn() {
+                    return { scalingX: 1, scalingY: 1 };
+                },
+                fromFn() {
+                    return { scalingX: 0, scalingY: 0 };
+                },
+            }
+        );
     }
 
-    protected override computeFocusBounds(node: _ModuleSupport.Sector): _ModuleSupport.Path | undefined {
+    protected override computeFocusBounds(node: Sector): Path | undefined {
         return node;
     }
 

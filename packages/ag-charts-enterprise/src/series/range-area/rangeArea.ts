@@ -15,6 +15,7 @@ import {
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
+    BBox,
     type CallbackParamRules,
     type CandidateStyleResolver,
     ChartAxisDirection,
@@ -34,6 +35,7 @@ import {
     type NormalisedSeriesMarkerStyle,
     type PlacedLabel,
     type Point,
+    PointerEvents,
     type RequireOptional,
     type SeriesLabelDefaults,
     type SizedPoint,
@@ -51,6 +53,7 @@ import {
     toArray,
     toNumber,
 } from 'ag-charts-core';
+import type { Path, Segment, SegmentedPath, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
@@ -103,9 +106,7 @@ const {
     markerFadeInAnimation,
     fromToMotion,
     pathMotion,
-    PointerEvents,
     Marker,
-    BBox,
     processedDataIsAnimatable,
     cartesianMarkerDrawMode,
     getMarkerStyles,
@@ -901,7 +902,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             false
         );
 
-        let intersectionSegments: _ModuleSupport.Segment[] | undefined = undefined;
+        let intersectionSegments: Segment[] | undefined = undefined;
         if (this.options.invertedStyle.enabled) {
             const startsInverted = ctx.yHighValues[0] < ctx.yLowValues[0];
             const intersectionXValues = findRangeAreaIntersections(
@@ -1033,11 +1034,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         return itemStrokeWidthChange('low') || itemStrokeWidthChange('high');
     }
 
-    protected override updatePathNodes(opts: {
-        paths: _ModuleSupport.SegmentedPath[];
-        visible: boolean;
-        animationEnabled: boolean;
-    }) {
+    protected override updatePathNodes(opts: { paths: SegmentedPath[]; visible: boolean; animationEnabled: boolean }) {
         const { visible } = opts;
         const [fillPath, lowStrokePath, highStrokePath] = opts.paths;
 
@@ -1106,11 +1103,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         updateClipPath(this, highStrokePath);
     }
 
-    protected override updatePaths(opts: { contextData: RangeAreaContext; paths: _ModuleSupport.Path[] }) {
+    protected override updatePaths(opts: { contextData: RangeAreaContext; paths: Path[] }) {
         this.updateAreaPaths(opts.paths, opts.contextData);
     }
 
-    private updateAreaPaths(paths: _ModuleSupport.Path[], contextData: RangeAreaContext) {
+    private updateAreaPaths(paths: Path[], contextData: RangeAreaContext) {
         for (const path of paths) {
             path.visible = contextData.visible;
         }
@@ -1126,14 +1123,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         }
     }
 
-    private updateFillPath(paths: _ModuleSupport.Path[], contextData: RangeAreaContext) {
+    private updateFillPath(paths: Path[], contextData: RangeAreaContext) {
         const [fill] = paths;
         fill.path.clear();
         plotAreaPathFill(fill, contextData.fillData);
         fill.markDirty('RangeArea');
     }
 
-    private updateStrokePath(paths: _ModuleSupport.Path[], contextData: RangeAreaContext) {
+    private updateStrokePath(paths: Path[], contextData: RangeAreaContext) {
         const [, lowStroke, highStroke] = paths;
         lowStroke.path.clear();
         highStroke.path.clear();
@@ -1157,7 +1154,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     protected override updateDatumSelection(opts: {
         nodeData: RangeAreaMarkerDatum[];
-        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
+        datumSelection: Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const { processedData, axes, options } = this;
@@ -1279,7 +1276,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
+        datumSelection: Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
         isHighlight: boolean;
     }) {
         const { hideWithSize0 } = this;
@@ -1310,7 +1307,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
+        datumSelection: Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
@@ -1358,7 +1355,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     protected override updateLabelSelection(opts: {
         labelData: RangeAreaLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text<RangeAreaLabelDatum>>;
+        labelSelection: Selection<RangeAreaLabelDatum, Text<RangeAreaLabelDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
 
@@ -1395,7 +1392,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text<RangeAreaLabelDatum>>;
+        labelSelection: Selection<RangeAreaLabelDatum, Text<RangeAreaLabelDatum>>;
         isHighlight?: boolean;
     }) {
         const params = this.makeLabelStylerParams();
@@ -1891,7 +1888,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         );
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): BBox | undefined {
         const ctx = this.nodeDatumContext;
         if (!ctx) return undefined;
 

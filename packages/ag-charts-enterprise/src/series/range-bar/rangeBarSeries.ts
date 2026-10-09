@@ -26,7 +26,9 @@ import {
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
+    PointerEvents,
     type PositionedCandidateResolver,
+    Rect,
     type RequireOptional,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
@@ -53,6 +55,7 @@ import {
     toNumber,
     upsertNodeDatum,
 } from 'ag-charts-core';
+import type { BBox, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
 import {
@@ -92,8 +95,6 @@ const {
     computeBarFocusBounds,
     visibleRangeIndices,
     createDatumId,
-    Rect,
-    PointerEvents,
     motion,
     processedDataIsAnimatable,
     getItemStyles,
@@ -233,7 +234,7 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
     readonly labels: RangeBarNodeLabelDatum[];
     readonly crisp: boolean;
 
-    readonly clipBBox?: _ModuleSupport.BBox;
+    readonly clipBBox?: BBox;
     readonly opacity?: number;
     style?: Required<NormalisedRangeBarSeriesStyle>;
 }
@@ -253,7 +254,7 @@ interface RangeBarSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeries
  * Defines all type parameters in one place for the series.
  */
 interface RangeBarSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
-    readonly node: _ModuleSupport.Rect<RangeBarNodeDatum>;
+    readonly node: Rect<RangeBarNodeDatum>;
     readonly options: NormalisedRangeBarSeriesOwnOptions;
     readonly datum: RangeBarNodeDatum;
     readonly label: RangeBarNodeLabelDatum;
@@ -1239,7 +1240,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     protected override updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect<RangeBarNodeDatum>>;
+        datumSelection: Selection<RangeBarNodeDatum, Rect<RangeBarNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -1319,7 +1320,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     protected override updateDatumStyles(opts: {
-        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect<RangeBarNodeDatum>>;
+        datumSelection: Selection<RangeBarNodeDatum, Rect<RangeBarNodeDatum>>;
         isHighlight: boolean;
     }) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
@@ -1343,7 +1344,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect<RangeBarNodeDatum>>;
+        datumSelection: Selection<RangeBarNodeDatum, Rect<RangeBarNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -1516,7 +1517,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<RangeBarNodeLabelDatum, _ModuleSupport.Text<RangeBarNodeLabelDatum>>;
+        labelSelection: Selection<RangeBarNodeLabelDatum, Text<RangeBarNodeLabelDatum>>;
         isHighlight?: boolean;
     }) {
         const { isHighlight = false } = opts;
@@ -1716,7 +1717,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         return this.options.label.enabled;
     }
 
-    override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): BBox | undefined {
         const { datumIndex } = opts;
         const ctx = this.nodeDatumContext;
         if (!ctx) return undefined;

@@ -1,5 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type NormalisedFillOptions, type Point, Vec4 } from 'ag-charts-core';
+import { type Bounds4, type NormalisedFillOptions, type Path, type Point, Vec4 } from 'ag-charts-core';
 import type { FillOptions } from 'ag-charts-types';
 
 import type { AnnotationContext } from '../annotationTypes';
@@ -8,7 +7,7 @@ import type { AnnotationScene } from './annotationScene';
 export class WithBackgroundScene {
     static updateBackground<Datum extends { background: FillOptions }>(
         this: AnnotationScene<Datum> & {
-            background: _ModuleSupport.Path;
+            background: Path;
             getBackgroundStyles?(datum: Datum): FillOptions;
             getBackgroundPoints(datum: Datum, top: Bounds4, bottom: Bounds4, bounds: Bounds4): Point[];
         },

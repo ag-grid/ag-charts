@@ -1,0 +1,431 @@
+import { createSvgElement } from '../dom/domElements';
+import { SceneChangeDetection } from '../rendering/changeDetectable';
+import { type CanvasPoint, type Point } from '../types/scene';
+import type { BBox } from './bbox';
+import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
+import { Node, type RenderContext } from './node';
+
+type Constructor<T> = new (...args: any[]) => T;
+
+interface LocalToParentCoordinateSpaceTransforms {
+    /** Apply local node transforms to the given BBox. */
+    toParent(bbox: BBox): BBox;
+    /** Apply local node transforms to the given point. */
+    toParentPoint(x: number, y: number): { x: number; y: number };
+}
+
+interface ParentToLocalCoordinateSpaceTransforms {
+    /** Apply local node inverse transforms to the given BBox. */
+    fromParent(bbox: BBox): BBox;
+    /** Apply local node inverse transforms to the given point. */
+    fromParentPoint(x: number, y: number): { x: number; y: number };
+}
+
+type MatrixTransformType<T> = T &
+    LocalToParentCoordinateSpaceTransforms &
+    ParentToLocalCoordinateSpaceTransforms & {
+        updateMatrix(matrix: Matrix): void;
+        computeBBoxWithoutTransforms(): BBox | undefined;
+    };
+
+function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
+    return isMatrixTransformType(node.constructor as any);
+}
+
+const MATRIX_TRANSFORM_TYPE = Symbol('isMatrixTransform');
+function isMatrixTransformType<N extends Node>(cstr: Constructor<N>): cstr is Constructor<MatrixTransformType<N>> {
+    return (cstr as any)[MATRIX_TRANSFORM_TYPE] === true;
+}
+
+/**
+ * Base mixin type for operations that require matrix calculations.
+ *
+ * Only intended for use by concrete mixin types below.
+ */
+function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
+    const ParentNode = Parent as Constructor<Node>;
+
+    // Make sure we don't mixin `MatrixTransformInternal` multiple times.
+    if (isMatrixTransformType(Parent)) {
+        return Parent;
+    }
+
+    const TRANSFORM_MATRIX = Symbol('matrix_combined_transform');
+    class MatrixTransformInternal extends ParentNode implements MatrixTransformType<Node> {
+        public static readonly [MATRIX_TRANSFORM_TYPE] = true;
+        private [TRANSFORM_MATRIX] = new Matrix();
+
+        private _dirtyTransform = true;
+        override onChangeDetection(property: string): void {
+            super.onChangeDetection(property);
+            this._dirtyTransform = true;
+
+            if (this.batchLevel > 0) {
+                return;
+            }
+
+            this.markDirty('transform');
+        }
+
+        updateMatrix(_matrix: Matrix) {
+            // For override by sub-classes.
+        }
+
+        computeTransformMatrix() {
+            if (!this._dirtyTransform) return;
+
+            // Need to force parent re-calculation as we modify the matrix in place.
+            this[TRANSFORM_MATRIX].setElements(IDENTITY_MATRIX_ELEMENTS);
+            this.updateMatrix(this[TRANSFORM_MATRIX]);
+            this._dirtyTransform = false;
+        }
+
+        toParent(bbox: BBox) {
+            this.computeTransformMatrix();
+            if (this[TRANSFORM_MATRIX].identity) return bbox.clone();
+            return this[TRANSFORM_MATRIX].transformBBox(bbox);
+        }
+
+        toParentPoint(x: number, y: number) {
+            this.computeTransformMatrix();
+            if (this[TRANSFORM_MATRIX].identity) return { x, y };
+            return this[TRANSFORM_MATRIX].transformPoint(x, y);
+        }
+
+        fromParent(bbox: BBox) {
+            this.computeTransformMatrix();
+            if (this[TRANSFORM_MATRIX].identity) return bbox.clone();
+            return this[TRANSFORM_MATRIX].inverse().transformBBox(bbox);
+        }
+
+        fromParentPoint(x: number, y: number) {
+            this.computeTransformMatrix();
+            if (this[TRANSFORM_MATRIX].identity) return { x, y };
+            return this[TRANSFORM_MATRIX].inverse().transformPoint(x, y);
+        }
+
+        override computeBBox() {
+            const bbox = super.computeBBox();
+            if (!bbox) return bbox;
+
+            return this.toParent(bbox);
+        }
+
+        computeBBoxWithoutTransforms() {
+            return super.computeBBox();
+        }
+
+        override pickNode(x: number, y: number) {
+            ({ x, y } = this.fromParentPoint(x, y));
+            return super.pickNode(x, y);
+        }
+
+        override pickNodes(x: number, y: number, into?: Node<any>[]): Node<any>[] {
+            ({ x, y } = this.fromParentPoint(x, y));
+            return super.pickNodes(x, y, into);
+        }
+
+        override distanceSquared(x: number, y: number): number {
+            ({ x, y } = this.fromParentPoint(x, y));
+            return super.distanceSquared(x, y);
+        }
+
+        override render(renderCtx: RenderContext): void {
+            this.computeTransformMatrix();
+
+            const { ctx } = renderCtx;
+
+            const matrix = this[TRANSFORM_MATRIX];
+
+            let performRestore = false;
+            try {
+                if (!matrix.identity) {
+                    ctx.save();
+                    performRestore = true;
+                    matrix.toContext(ctx);
+                }
+
+                super.render(renderCtx);
+            } finally {
+                if (performRestore) {
+                    ctx.restore();
+                }
+            }
+        }
+
+        override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
+            this.computeTransformMatrix();
+
+            const svg = super.toSVG();
+
+            const matrix = this[TRANSFORM_MATRIX];
+            if (matrix.identity || svg == null) return svg;
+
+            const g = createSvgElement('g');
+            g.append(...svg.elements);
+
+            const [a, b, c, d, e, f] = matrix.e;
+            g.setAttribute('transform', `matrix(${a} ${b} ${c} ${d} ${e} ${f})`);
+
+            return {
+                elements: [g],
+                defs: svg.defs,
+            };
+        }
+    }
+    return MatrixTransformInternal as unknown as Constructor<MatrixTransformType<N>>;
+}
+
+export type RotatableType<T> = MatrixTransformType<
+    T & {
+        rotationCenterX: number;
+        rotationCenterY: number;
+        rotation: number;
+    }
+>;
+
+/** Type guard for nodes that carry the {@link Rotatable} mixin's rotation properties. */
+export function isRotatable<T extends Node>(node: T): node is RotatableType<T> {
+    return 'rotation' in node && 'rotationCenterX' in node && 'rotationCenterY' in node;
+}
+
+/** Mixin type for scene Nodes that are rotatable. */
+export function Rotatable<N extends Node<any>>(Parent: Constructor<N>): Constructor<RotatableType<N>> {
+    const ParentNode = Parent as Constructor<Node>;
+    const ROTATABLE_MATRIX = Symbol('matrix_rotation');
+    class RotatableInternal extends MatrixTransform(ParentNode) {
+        [ROTATABLE_MATRIX] = new Matrix();
+
+        @SceneChangeDetection()
+        rotationCenterX: number = 0;
+        @SceneChangeDetection()
+        rotationCenterY: number = 0;
+        @SceneChangeDetection()
+        rotation: number = 0;
+
+        override serialize() {
+            const state = super.serialize();
+            state.props.rotation = this.rotation;
+            return state;
+        }
+
+        override updateMatrix(matrix: Matrix) {
+            super.updateMatrix(matrix);
+
+            const { rotation, rotationCenterX, rotationCenterY } = this;
+            if (rotation === 0) return;
+
+            Matrix.updateTransformMatrix(this[ROTATABLE_MATRIX], 1, 1, rotation, 0, 0, {
+                rotationCenterX,
+                rotationCenterY,
+            });
+
+            matrix.multiplySelf(this[ROTATABLE_MATRIX]);
+        }
+    }
+    return RotatableInternal as unknown as Constructor<RotatableType<N>>;
+}
+
+export type ScalableType<T> = MatrixTransformType<
+    T & {
+        scalingX: number;
+        scalingY: number;
+        scalingCenterX: number | null;
+        scalingCenterY: number | null;
+        /**
+         * Optimised reset for animation hot paths.
+         * Bypasses SceneChangeDetection decorators by writing directly to backing fields.
+         */
+        resetScalingProperties(
+            scalingX: number,
+            scalingY: number,
+            scalingCenterX: number,
+            scalingCenterY: number
+        ): void;
+    }
+>;
+
+/**
+ * Type guard to check if a node has scalable properties.
+ * Used to determine if scaling transformations can be applied to a scene graph node.
+ */
+export function isScalable<T extends Node>(node: T): node is ScalableType<T> {
+    return 'scalingX' in node && 'scalingY' in node && 'scalingCenterX' in node && 'scalingCenterY' in node;
+}
+
+/** Mixin type for scene Nodes that are scalable. */
+export function Scalable<N extends Node<any>>(Parent: Constructor<N>): Constructor<ScalableType<N>> {
+    const ParentNode = Parent as Constructor<Node>;
+    const SCALABLE_MATRIX = Symbol('matrix_scale');
+    class ScalableInternal extends MatrixTransform(ParentNode) {
+        [SCALABLE_MATRIX] = new Matrix();
+
+        @SceneChangeDetection()
+        scalingX: number = 1;
+        declare __scalingX: number; // optimised field accessor
+        @SceneChangeDetection()
+        scalingY: number = 1;
+        declare __scalingY: number; // optimised field accessor
+        @SceneChangeDetection()
+        scalingCenterX: number = 0;
+        declare __scalingCenterX: number; // optimised field accessor
+        @SceneChangeDetection()
+        scalingCenterY: number = 0;
+        declare __scalingCenterY: number; // optimised field accessor
+
+        override serialize() {
+            const state = super.serialize();
+            state.props.scalingX = this.scalingX;
+            state.props.scalingY = this.scalingY;
+            return state;
+        }
+
+        override updateMatrix(matrix: Matrix) {
+            super.updateMatrix(matrix);
+
+            const { scalingX, scalingY, scalingCenterX, scalingCenterY } = this;
+            if (scalingX === 1 && scalingY === 1) return;
+
+            Matrix.updateTransformMatrix(this[SCALABLE_MATRIX], scalingX, scalingY, 0, 0, 0, {
+                scalingCenterX,
+                scalingCenterY,
+            });
+
+            matrix.multiplySelf(this[SCALABLE_MATRIX]);
+        }
+
+        /**
+         * Optimised reset for animation hot paths.
+         * Bypasses SceneChangeDetection decorators by writing directly to backing fields.
+         */
+        resetScalingProperties(
+            scalingX: number,
+            scalingY: number,
+            scalingCenterX: number,
+            scalingCenterY: number
+        ): void {
+            this.__scalingX = scalingX;
+            this.__scalingY = scalingY;
+            this.__scalingCenterX = scalingCenterX;
+            this.__scalingCenterY = scalingCenterY;
+            // Trigger transform matrix recalculation (sets _dirtyTransform = true)
+            this.onChangeDetection('scaling');
+        }
+    }
+    return ScalableInternal as unknown as Constructor<ScalableType<N>>;
+}
+
+export type TranslatableType<T> = MatrixTransformType<
+    T & {
+        translationX: number;
+        translationY: number;
+    }
+>;
+
+/** Mixin type for scene Nodes that are translatable. */
+export function Translatable<N extends Node<any>>(Parent: Constructor<N>): Constructor<TranslatableType<N>> {
+    const ParentNode = Parent as Constructor<Node>;
+    const TRANSLATABLE_MATRIX = Symbol('matrix_translation');
+    class TranslatableInternal extends MatrixTransform(ParentNode) {
+        [TRANSLATABLE_MATRIX] = new Matrix();
+
+        @SceneChangeDetection()
+        translationX: number = 0;
+        @SceneChangeDetection()
+        translationY: number = 0;
+
+        override serialize() {
+            const state = super.serialize();
+            state.props.translationX = this.translationX;
+            state.props.translationY = this.translationY;
+            return state;
+        }
+
+        override updateMatrix(matrix: Matrix) {
+            super.updateMatrix(matrix);
+
+            const { translationX, translationY } = this;
+            if (translationX === 0 && translationY === 0) return;
+
+            Matrix.updateTransformMatrix(this[TRANSLATABLE_MATRIX], 1, 1, 0, translationX, translationY);
+
+            matrix.multiplySelf(this[TRANSLATABLE_MATRIX]);
+        }
+    }
+    return TranslatableInternal as unknown as Constructor<TranslatableType<N>>;
+}
+
+/** Utility class for operations relating to matrix-transformable mixin types. */
+export class Transformable {
+    /**
+     * Converts a BBox from canvas coordinate space into the coordinate space of the given Node.
+     */
+    static fromCanvas(node: Node, bbox: BBox) {
+        const parents = [];
+        for (const parent of node.traverseUp()) {
+            if (isMatrixTransform(parent)) {
+                parents.unshift(parent);
+            }
+        }
+        for (const parent of parents) {
+            bbox = parent.fromParent(bbox);
+        }
+        if (isMatrixTransform(node)) {
+            bbox = node.fromParent(bbox);
+        }
+        return bbox;
+    }
+
+    /**
+     * Converts a Nodes BBox (or an arbitrary BBox if supplied) from local Node coordinate space
+     * into the Canvas coordinate space.
+     */
+    static toCanvas(node: Node, bbox?: BBox) {
+        if (bbox == null) {
+            bbox = node.getBBox();
+        } else if (isMatrixTransform(node)) {
+            bbox = node.toParent(bbox);
+        }
+        for (const parent of node.traverseUp()) {
+            if (isMatrixTransform(parent)) {
+                bbox = parent.toParent(bbox);
+            }
+        }
+        return bbox;
+    }
+
+    /**
+     * Converts a point from canvas coordinate space into the coordinate space of the given Node.
+     */
+    static fromCanvasPoint(node: Node, canvasPoint: CanvasPoint): Point {
+        let { canvasX: x, canvasY: y } = canvasPoint;
+        const parents = [];
+        for (const parent of node.traverseUp()) {
+            if (isMatrixTransform(parent)) {
+                parents.unshift(parent);
+            }
+        }
+        for (const parent of parents) {
+            ({ x, y } = parent.fromParentPoint(x, y));
+        }
+        if (isMatrixTransform(node)) {
+            ({ x, y } = node.fromParentPoint(x, y));
+        }
+        return { x, y };
+    }
+
+    /**
+     * Converts a point from a Nodes local coordinate space into the Canvas coordinate space.
+     */
+    static toCanvasPoint(node: Node, x: number, y: number): CanvasPoint {
+        if (isMatrixTransform(node)) {
+            ({ x, y } = node.toParentPoint(x, y));
+        }
+        for (const parent of node.traverseUp()) {
+            if (isMatrixTransform(parent)) {
+                ({ x, y } = parent.toParentPoint(x, y));
+            }
+        }
+        return { canvasX: x, canvasY: y };
+    }
+}

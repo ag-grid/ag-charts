@@ -7,8 +7,10 @@ import {
 import {
     type LabelPlacement,
     type NormalisedTextOrSegments,
+    type Path,
     type Point,
     type PointLabelDatum,
+    type Segment,
     type SizedPoint,
     areScalingEqual,
     isScaleValid,
@@ -84,7 +86,7 @@ export interface RangeAreaContext extends _ModuleSupport.CartesianSeriesNodeData
         low: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
         high: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
     };
-    intersectionSegments?: _ModuleSupport.Segment[];
+    intersectionSegments?: Segment[];
 }
 
 function prepareRangeAreaPathStrokeAnimationFns(
@@ -93,15 +95,15 @@ function prepareRangeAreaPathStrokeAnimationFns(
     lowSpans: _ModuleSupport.SpanAnimation,
     visibleToggleMode: 'fade' | 'none'
 ) {
-    const removePhaseFn = (ratio: number, path: _ModuleSupport.Path) => {
+    const removePhaseFn = (ratio: number, path: Path) => {
         plotInterpolatedLinePathStroke(ratio, path, highSpans.removed);
         plotInterpolatedLinePathStroke(ratio, path, lowSpans.removed);
     };
-    const updatePhaseFn = (ratio: number, path: _ModuleSupport.Path) => {
+    const updatePhaseFn = (ratio: number, path: Path) => {
         plotInterpolatedLinePathStroke(ratio, path, highSpans.moved);
         plotInterpolatedLinePathStroke(ratio, path, lowSpans.moved);
     };
-    const addPhaseFn = (ratio: number, path: _ModuleSupport.Path) => {
+    const addPhaseFn = (ratio: number, path: Path) => {
         plotInterpolatedLinePathStroke(ratio, path, highSpans.added);
         plotInterpolatedLinePathStroke(ratio, path, lowSpans.added);
     };

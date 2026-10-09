@@ -7,6 +7,7 @@ import {
     type Feature,
     type FeatureCollection,
     type Geometry,
+    Group,
     type ITextMeasurer,
     type LabelFit,
     LinearScale,
@@ -16,8 +17,11 @@ import {
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
+    PointerEvents,
+    Selection,
     type SizedPoint,
     StateMachine,
+    Text,
     applySizeMode,
     cachedTextMeasurer,
     configureColorScale,
@@ -30,6 +34,7 @@ import {
     resolveSeriesLabelDefaults,
     toArray,
 } from 'ag-charts-core';
+import type { BBox } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgMapMarkerSeriesItemStylerParams,
@@ -56,9 +61,6 @@ const {
     SeriesNodePickMode,
     valueProperty,
     computeMarkerFocusBounds,
-    Group,
-    Selection,
-    Text,
     Marker,
     getLabelStyles,
     expandLabelBoxExtent,
@@ -144,12 +146,8 @@ export class MapMarkerSeries
 
     private readonly markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
 
-    private labelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(
-        this.labelGroup,
-        Text,
-        false
-    );
-    private highlightLabelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(
+    private labelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(this.labelGroup, Text, false);
+    private highlightLabelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(
         this.highlightLabelGroup,
         Text,
         false
@@ -677,7 +675,7 @@ export class MapMarkerSeries
         return true;
     }
 
-    override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
+    override update({ seriesRect }: { seriesRect?: BBox }) {
         const resize = this.checkResize(seriesRect);
         const scaleChange = this.checkScaleChange();
 
@@ -719,7 +717,7 @@ export class MapMarkerSeries
     public override updatePlacedLabelData(labelData: PlacedLabel<MapMarkerNodeLabelDatum>[]) {
         this.placedLabelData = labelData;
         this.labelSelection = this.labelSelection.update(labelData, (text) => {
-            text.pointerEvents = _ModuleSupport.PointerEvents.None;
+            text.pointerEvents = PointerEvents.None;
         });
         this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
         this.updateHighlightLabelSelection();
@@ -729,10 +727,7 @@ export class MapMarkerSeries
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<
-            PlacedLabel<MapMarkerNodeLabelDatum>,
-            _ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>
-        >;
+        labelSelection: Selection<PlacedLabel<MapMarkerNodeLabelDatum>, Text<PlacedLabel<MapMarkerNodeLabelDatum>>>;
         isHighlight: boolean;
     }) {
         const { options } = this;
@@ -807,7 +802,7 @@ export class MapMarkerSeries
 
     private updateMarkerSelection(opts: {
         markerData: MapMarkerNodeDatum[];
-        markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker<MapMarkerNodeDatum>>;
+        markerSelection: Selection<MapMarkerNodeDatum, _ModuleSupport.Marker<MapMarkerNodeDatum>>;
     }) {
         const { markerData, markerSelection } = opts;
 
@@ -931,7 +926,7 @@ export class MapMarkerSeries
     }
 
     private updateMarkerNodes(opts: {
-        markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker<MapMarkerNodeDatum>>;
+        markerSelection: Selection<MapMarkerNodeDatum, _ModuleSupport.Marker<MapMarkerNodeDatum>>;
         isHighlight: boolean;
         highlightedDatum: MapMarkerNodeDatum | undefined;
         drawingMode: AgDrawingMode;
@@ -1257,7 +1252,7 @@ export class MapMarkerSeries
         return { size: format.size, shape: format.shape };
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
 

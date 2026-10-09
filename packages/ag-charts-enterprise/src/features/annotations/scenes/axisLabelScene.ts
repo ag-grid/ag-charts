@@ -1,5 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { calculateLabelTranslation } from 'ag-charts-core';
+import { Group, Rect, Text, calculateLabelTranslation } from 'ag-charts-core';
 import type { Padding, PaddingOptions } from 'ag-charts-types';
 
 import type { AxisLabelDatum } from '../annotationDatum';
@@ -22,11 +21,11 @@ type UpdateOpts = {
     context: AnnotationAxisContext;
 };
 
-export class AxisLabelScene extends _ModuleSupport.Group {
+export class AxisLabelScene extends Group {
     static override readonly className = 'AxisLabel';
 
-    private readonly label = new _ModuleSupport.Text({ zIndex: 1 });
-    private readonly rect = new _ModuleSupport.Rect();
+    private readonly label = new Text({ zIndex: 1 });
+    private readonly rect = new Rect();
 
     constructor() {
         super({ name: 'AnnotationAxisLabelGroup' });
