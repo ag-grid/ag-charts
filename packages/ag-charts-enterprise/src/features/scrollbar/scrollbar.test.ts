@@ -677,7 +677,7 @@ describe('Scrollbar thumb hover derives from the per-chart thumb style', () => {
 
 describe('Scrollbar stays within the chart when a long axis label widens the axis', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
 
     let proxy: ReturnType<typeof AgCharts.create> | undefined;
     afterEach(() => {
@@ -734,6 +734,17 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         expect(group.visible).toBe(true);
         expect(layoutRect.x).toBeGreaterThanOrEqual(0);
         expect(layoutRect.x + layoutRect.width).toBeLessThanOrEqual(chart.seriesRect.x);
+    });
+
+    it('renders the vertical scrollbar at the chart edge once a long category label scrolls into view', async () => {
+        const chart = await createLongLabelChart('left');
+
+        await scrollLongLabelIntoView(chart);
+
+        await compareImageSnapshot(proxy!, ctx, {
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: 'ag-18832-scrollbar-long-label-in-view',
+        });
     });
 
     it('keeps a right-positioned vertical scrollbar inside the chart once a long category label scrolls into view', async () => {
