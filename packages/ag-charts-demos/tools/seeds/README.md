@@ -80,6 +80,26 @@ The `latest` dist-tag makes `npm install` fetch the newest published release, so
 feature its demo already uses until that release ships. Production links the mirror's seeds at
 the `release-X.Y.Z` tag, where they pin `X.Y.Z` exactly; staging and local builds link `latest`.
 
+### Installing a build instead of `latest`
+
+A `dist-tag` seed installs the last release, which lags the build a staging site or a release branch
+was made from. The mirror export can point such a seed at that build instead: `export-seed-mirror.mjs
+--charts-build <prefix>`, where `<prefix>` is the `npm-packages` URL of the docs site that serves the
+build's tarballs (`https://charts-staging.ag-grid.com/npm-packages`; a trailing slash is fine). In
+the exported `package.json` of every seed whose manifest has `pinSource` `dist-tag`:
+
+- each `ag-charts-*` dependency becomes `<prefix>/<package>.tgz`;
+- an `overrides` block gives the same URL for `ag-charts-types`, `ag-charts-core`, `ag-charts-locale`,
+  `ag-charts-community`, `ag-charts-enterprise` and the seed's wrapper (`ag-charts-react`,
+  `ag-charts-angular` or `ag-charts-vue3`; a TypeScript seed has none). Without them,
+  `ag-grid-community`'s `ag-charts-types` dependency and `ag-grid-enterprise`'s optional AG Charts
+  dependencies would install a second, published copy beside the tarball, or fail to resolve.
+
+A `release` seed is never rewritten, flag or not, so a release tag and a merge-back pin keep
+installing `X.Y.Z` from npm. Without the flag the export is unchanged. Only the exported copy is
+rewritten: the committed seeds, and so `check-seeds.mjs`, never see the tarball URLs. An `ag-charts-*`
+dependency that is not one of the eight packages a docs site serves fails the export.
+
 ### A release carried in by a merge-back
 
 Release branches are merged back into `latest` several times per release, both directly and
@@ -277,7 +297,7 @@ node packages/ag-charts-demos/tools/seeds/port-spec-plan.mjs --out /tmp/plan.jso
 A port that is edited and restamped by the alignment PR at a release cut is current again, so this
 step runs its specs there.
 
-### `export-seed-mirror.mjs --out <dir> --ref <ref>`
+### `export-seed-mirror.mjs --out <dir> --ref <ref> [--charts-build <prefix>]`
 
 Builds the tree the "Mirror Demo Seeds" workflow publishes to `ag-grid/ag-charts-demos` (see "Seed
 projects" in the package README) into an empty folder, from the seeds in this checkout. Every
@@ -289,6 +309,14 @@ branch or tag being published; a link to a path that does not exist fails the ex
 
 ```sh
 node packages/ag-charts-demos/tools/seeds/export-seed-mirror.mjs --out /tmp/mirror --ref latest
+```
+
+`--charts-build <prefix>` additionally points the seeds pinned to the `latest` dist-tag at build
+tarballs served under `<prefix>` (see "Installing a build instead of `latest`" under "Pins"):
+
+```sh
+node packages/ag-charts-demos/tools/seeds/export-seed-mirror.mjs --out /tmp/mirror --ref staging \
+    --charts-build https://charts-staging.ag-grid.com/npm-packages
 ```
 
 ## How a port gets aligned
