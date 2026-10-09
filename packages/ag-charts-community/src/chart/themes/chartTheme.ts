@@ -19,6 +19,7 @@ import {
     mergeDefaults,
     mergeDefaultsShallowOperations,
     nestAtOptionsPath,
+    themeBorderColor,
 } from 'ag-charts-core';
 import type {
     AgChartAllThemeParams,
@@ -252,13 +253,7 @@ export class ChartTheme {
             },
             scrollbarThumbHoverBorder: {
                 // A boolean scrollbarThumbBorder has no members, and its thumb border uses borderColor.
-                color: {
-                    $if: [
-                        { $isType: [{ $ref: 'scrollbarThumbBorder' }, 'boolean'] },
-                        { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.075] },
-                        { $mix: [{ $ref: 'scrollbarThumbBorder.color' }, { $ref: 'foregroundColor' }, 0.075] },
-                    ],
-                },
+                color: { $mix: [themeBorderColor('scrollbarThumbBorder'), { $ref: 'foregroundColor' }, 0.075] },
                 width: { $ref: 'scrollbarThumbBorder.width' },
             },
 

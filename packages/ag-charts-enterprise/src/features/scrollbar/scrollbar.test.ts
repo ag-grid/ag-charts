@@ -674,3 +674,63 @@ describe('Scrollbar thumb hover derives from the per-chart thumb style', () => {
         );
     });
 });
+
+describe('Scrollbar border theme params', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    const chartRef: ChartRef = {};
+    afterEach(() => destroyChartRef(chartRef));
+
+    const create = async (params: object) => {
+        chartRef.current = await createEnterpriseChart({
+            data: DATA,
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            scrollbar: { enabled: true, visible: 'always' },
+            initialState: { zoom: { ratioX: { start: 0.2, end: 0.6 } } },
+            theme: { params },
+        });
+        const scrollbar = chartRef.current.modulesManager.getModule('scrollbar');
+        return { scrollbar, ...scrollbar.state.horizontal };
+    };
+
+    const BASE = { borderColor: '#112233', borderWidth: 2 };
+
+    it('uses borderColor at width 1 for a true border, and no width for a false border', async () => {
+        const enabled = await create({ ...BASE, scrollbarTrackBorder: true, scrollbarThumbBorder: true });
+        expect([enabled.track.stroke, enabled.track.strokeWidth]).toEqual(['#112233', 1]);
+        expect([enabled.thumb.stroke, enabled.thumb.strokeWidth]).toEqual(['#112233', 1]);
+        destroyChartRef(chartRef);
+
+        const disabled = await create({ ...BASE, scrollbarTrackBorder: false, scrollbarThumbBorder: false });
+        expect(disabled.track.strokeWidth).toBe(0);
+        expect(disabled.thumb.strokeWidth).toBe(0);
+    });
+
+    it('uses the colour and width of an object border', async () => {
+        const { track, thumb } = await create({
+            scrollbarTrackBorder: { color: '#445566', width: 3 },
+            scrollbarThumbBorder: { color: '#778899', width: 4 },
+        });
+        expect([track.stroke, track.strokeWidth]).toEqual(['#445566', 3]);
+        expect([thumb.stroke, thumb.strokeWidth]).toEqual(['#778899', 4]);
+    });
+
+    it('takes the hover border from scrollbarThumbHoverBorder', async () => {
+        const { scrollbar, thumb } = await create({ scrollbarThumbHoverBorder: { color: '#aabbcc', width: 5 } });
+
+        scrollbar.handleHoverChange('horizontal', true);
+        expect([thumb.stroke, thumb.strokeWidth]).toEqual(['#aabbcc', 5]);
+    });
+
+    it('hides the hover border for a false scrollbarThumbHoverBorder, and keeps the thumb width for a true one', async () => {
+        const hidden = await create({ scrollbarThumbHoverBorder: false });
+        hidden.scrollbar.handleHoverChange('horizontal', true);
+        expect(hidden.thumb.strokeWidth).toBe(0);
+        destroyChartRef(chartRef);
+
+        const shown = await create({ ...BASE, scrollbarThumbBorder: true, scrollbarThumbHoverBorder: true });
+        shown.scrollbar.handleHoverChange('horizontal', true);
+        expect(shown.thumb.strokeWidth).toBe(1);
+    });
+});
