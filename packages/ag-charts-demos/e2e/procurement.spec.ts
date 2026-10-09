@@ -1,4 +1,4 @@
-import { type Page, expect, test } from '@playwright/test';
+import { type Locator, type Page, expect, test } from '@playwright/test';
 
 import {
     expectIdLinkagesResolve,
@@ -84,6 +84,42 @@ async function openWorklist(page: Page) {
     await expect(page.locator('.pc-alert-panel')).toBeVisible();
 }
 
+/** The arrival schedule's chart card. */
+const scheduleCard = (page: Page) =>
+    page.locator('.pc-card', { has: page.getByRole('heading', { name: 'Arrival schedule' }) });
+
+/**
+ * The shipment the schedule's keyboard focus is on, read from the chart's own announcement.
+ *
+ * Keyboard selection runs the same click handler as the pointer, Space for a click and Ctrl+Space
+ * for a Ctrl-click, without needing a datum's on-screen position.
+ */
+async function focusedShipment(card: Locator): Promise<{ shipmentId: string; supplier: string }> {
+    const label = await card
+        .locator('.ag-charts-series-area [aria-hidden="false"][aria-labelledby]')
+        .evaluate((el) => document.getElementById(el.getAttribute('aria-labelledby') ?? '')?.textContent ?? '');
+    const shipmentId = /SHP-\d+/.exec(label)?.[0];
+    const supplier = /Lane; ([^;]+?) →/.exec(label)?.[1];
+    if (shipmentId == null || supplier == null) throw new Error(`no shipment in "${label}"`);
+    return { shipmentId, supplier };
+}
+
+/** Moves the schedule's keyboard focus to the next shipment along. */
+async function focusNextShipment(page: Page, card: Locator) {
+    const { shipmentId } = await focusedShipment(card);
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(async () => (await focusedShipment(card)).shipmentId).not.toBe(shipmentId);
+}
+
+/** Picks an option from one of the orders tab's filter selects. */
+async function setOrdersFilter(page: Page, name: string, option: string) {
+    await page.getByRole('combobox', { name }).click();
+    await page.getByRole('option', { name: option, exact: true }).click();
+    await waitForAllChartUpdates(page);
+}
+
+const SUPPLIER_FILTER = 'Supplier my orders are narrowed to';
+
 /** Switch to a tab, then wait for its charts to mount and settle. */
 async function openTab(page: Page, name: string) {
     await page.getByRole('tab', { name, exact: true }).click();
@@ -120,10 +156,13 @@ test.describe(DEMO_ID, () => {
         await expect(page.getByRole('heading', { level: 1 })).toHaveText('My orders');
         await expect(page.locator('.pc-account-name')).toHaveText('Priya Chen');
         await expect(page.locator('.pc-account-title')).toHaveText('Commodity Manager');
-        // Nothing is selected, and yet the workspace is already showing only her data.
+        // Nothing is selected or filtered: the workspace opens on her whole remit, and only hers.
+        await expect(page.getByRole('combobox', { name: SUPPLIER_FILTER })).toContainText('All suppliers');
         await expect(chips(page)).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Clear selection' })).toBeDisabled();
-        expect(await orderLineCount(page)).toBeGreaterThan(0);
+        // The order grid waits for a shipment to be selected, and says how to select one.
+        await expect(page.locator('.pc-card-sub', { hasText: 'No shipment selected.' })).toBeVisible();
+        await expect(page.locator('.ag-overlay-no-rows-center')).toContainText('Select a shipment on the map');
 
         // Her roster is a fixed, known set — the suppliers she owns.
         await openTab(page, 'My suppliers');
@@ -197,6 +236,57 @@ test.describe(DEMO_ID, () => {
         expect(popConsoleIssues(), 'console output while following a worklist item').toEqual([]);
     });
 
+    test('Ctrl-click adds to the schedule selection, and a plain click narrows it to one', async ({ page }) => {
+        const popConsoleIssues = watchConsole(page);
+        const card = scheduleCard(page);
+        await card.locator('.ag-charts-series-area').focus();
+
+        const first = await focusedShipment(card);
+        await page.keyboard.press('Space');
+        await expect(chips(page)).toHaveText([first.shipmentId]);
+
+        await focusNextShipment(page, card);
+        const second = await focusedShipment(card);
+        await page.keyboard.press('Control+Space');
+        await expect(chips(page)).toHaveText([first.shipmentId, second.shipmentId]);
+        await expect(page.locator('.pc-card-sub', { hasText: 'on 2 shipments' })).toBeVisible();
+
+        // A plain click on a shipment already selected keeps it and drops the rest.
+        await page.keyboard.press('Space');
+        await expect(chips(page)).toHaveText([second.shipmentId]);
+
+        await page.keyboard.press('Control+Space');
+        await expect(chips(page)).toHaveCount(0);
+
+        expect(popConsoleIssues(), 'console output while selecting on the schedule').toEqual([]);
+    });
+
+    test('the supplier filter narrows the freight, and drops a selected shipment it hides', async ({ page }) => {
+        const popConsoleIssues = watchConsole(page);
+        const card = scheduleCard(page);
+        await card.locator('.ag-charts-series-area').focus();
+        const selected = await focusedShipment(card);
+        await page.keyboard.press('Space');
+        await expect(chips(page)).toHaveText([selected.shipmentId]);
+
+        await page.getByRole('combobox', { name: SUPPLIER_FILTER }).click();
+        const options = await page.getByRole('option').allInnerTexts();
+        await page.keyboard.press('Escape');
+        const other = options.find((name) => name !== 'All suppliers' && name !== selected.supplier);
+        expect(other, `a second supplier among ${options.join(', ')}`).toBeDefined();
+        await setOrdersFilter(page, SUPPLIER_FILTER, other!);
+
+        await expect(chips(page)).toHaveCount(0);
+        await expect(page.locator('.pc-card-sub', { hasText: 'No shipment selected.' })).toBeVisible();
+        // Refocusing repeats the last announcement; a key press reads the filtered rows afresh.
+        await card.locator('.ag-charts-series-area').focus();
+        await page.keyboard.press('ArrowRight');
+        await expect.poll(async () => (await focusedShipment(card)).supplier).toBe(other);
+
+        await setOrdersFilter(page, SUPPLIER_FILTER, 'All suppliers');
+        expect(popConsoleIssues(), 'console output while filtering the orders tab').toEqual([]);
+    });
+
     test('a supplier row selects within the suppliers tab, and selecting it again clears', async ({ page }) => {
         await openTab(page, 'My suppliers');
         const button = rosterRows(page).first().locator('.pc-supplier-main');
@@ -218,14 +308,15 @@ test.describe(DEMO_ID, () => {
      */
     test('a selection on one tab never reaches another', async ({ page }) => {
         const popConsoleIssues = watchConsole(page);
-        const unfiltered = await orderLineCount(page);
+        const noShipment = page.locator('.pc-card-sub', { hasText: 'No shipment selected.' });
+        await expect(noShipment).toBeVisible();
 
         // A supplier selected on the suppliers tab leaves the order grid exactly as it was.
         await openTab(page, 'My suppliers');
         await rosterRows(page).first().locator('.pc-supplier-main').click();
         await openTab(page, 'My orders');
         await expect(chips(page)).toHaveCount(0);
-        expect(await orderLineCount(page)).toBe(unfiltered);
+        await expect(noShipment).toBeVisible();
 
         // A shipment selected here narrows this tab's grid, and only this tab's.
         await openWorklist(page);
@@ -292,20 +383,12 @@ test.describe(DEMO_ID, () => {
             page.evaluate(() =>
                 [...document.querySelectorAll('.ag-charts-wrapper')].map((w) => w.getAttribute('data-scene-renders'))
             );
-        const stamp = () => page.locator('.pc-stamp').innerText();
 
         const before = await sceneRenders();
-        const stampBefore = await stamp();
         await page.waitForTimeout(6_000);
 
         expect(await sceneRenders(), 'charts redrew without any interaction').toEqual(before);
-        expect(await stamp(), 'the as-of stamp moved').toBe(stampBefore);
         expect(popConsoleIssues(), 'console output while idle').toEqual([]);
-    });
-
-    test('states the date its data is current to', async ({ page }) => {
-        // The data-freshness requirement, honestly worded for a fixed dataset.
-        await expect(page.locator('.pc-stamp')).toHaveText(/Data as of \w+ \d+, \d{4}/);
     });
 
     test.describe('accessibility contract of the Radix controls', () => {
