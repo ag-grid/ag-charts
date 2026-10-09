@@ -1,6 +1,4 @@
-import type { NormalisedTextOrSegments } from 'ag-charts-core';
-
-import type { Text } from '../scene/shape/text';
+import type { NormalisedTextOrSegments, Text } from 'ag-charts-core';
 
 export interface CaptionLike {
     enabled: boolean;

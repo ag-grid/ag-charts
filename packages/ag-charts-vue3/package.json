@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-vue3",
   "description": "AG Charts Vue 3 Component",
-  "version": "14.2.0-beta.20261004",
+  "version": "14.2.0-beta.20261008",
   "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
   "main": "./dist/package/index.cjs.js",
@@ -41,12 +41,12 @@
     "lint": "echo 'ag-charts-vue3: lint disabled (vue-cli-service lint)'"
   },
   "dependencies": {
-    "ag-charts-community": "14.2.0-beta.20261004"
+    "ag-charts-community": "14.2.0-beta.20261008"
   },
   "devDependencies": {
     "@babel/types": "7.29.0",
     "@types/node": "18.19.130",
-    "ag-charts-community": "14.2.0-beta.20261004",
+    "ag-charts-community": "14.2.0-beta.20261008",
     "rimraf": "3.0.2",
     "typescript": "~5.8.3",
     "vue": "^3.5.43"

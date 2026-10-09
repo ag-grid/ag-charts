@@ -1,6 +1,6 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { TransformableText } from 'ag-charts-core';
 
-export class CollidableText<D> extends _ModuleSupport.TransformableText<D> {
+export class CollidableText<D> extends TransformableText<D> {
     private readonly growCollisionBox = {
         top: 4,
         right: 4,

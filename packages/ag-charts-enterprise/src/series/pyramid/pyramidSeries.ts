@@ -4,11 +4,13 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    BBox,
     type BoxBounds,
     type CallbackParamRules,
     type ChartAnimationPhase,
     type DomainWithMetadata,
     type DynamicContext,
+    Group,
     type LabelFit,
     type LabelObstacle,
     type NormalisedPyramidSeriesOwnOptions,
@@ -18,9 +20,12 @@ import {
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
+    PointerEvents,
     type PositionedCandidateResolver,
     type RequireOptional,
+    Selection,
     StateMachine,
+    Text,
     type Writeable,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
@@ -43,6 +48,7 @@ import {
     trapezoidOverlapsBox,
     withFitRegion,
 } from 'ag-charts-core';
+import type { Node, Path } from 'ag-charts-core';
 import type { AgFunnelSeriesLabelPlacement, AgNumericValue } from 'ag-charts-types';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
@@ -64,11 +70,6 @@ const {
     valueProperty,
     SeriesNodePickMode,
     createDatumId,
-    BBox,
-    Group,
-    Selection,
-    Text,
-    PointerEvents,
     fromToMotion,
     seriesLabelFadeInAnimation,
     getLabelStyles,
@@ -152,7 +153,7 @@ interface PyramidNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataC
     PyramidNodeLabelDatum
 > {
     stageLabelData: PyramidStageLabelDatum[] | undefined;
-    bounds: _ModuleSupport.BBox;
+    bounds: BBox;
 }
 
 type PyramidAnimationState = 'empty' | 'ready';
@@ -179,15 +180,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     public datumSelection = Selection.select<FunnelConnector<PyramidNodeDatum>>(this.itemGroup, () =>
         this.nodeFactory()
     );
-    private labelSelection = Selection.select<_ModuleSupport.Text<PyramidNodeLabelDatum>>(this.itemLabelGroup, Text);
-    private stageLabelSelection = Selection.select<_ModuleSupport.Text<PyramidStageLabelDatum>>(
-        this.stageLabelGroup,
-        Text
-    );
-    private highlightLabelSelection = Selection.select<_ModuleSupport.Text<PyramidNodeLabelDatum>>(
-        this.highlightLabelGroup,
-        Text
-    );
+    private labelSelection = Selection.select<Text<PyramidNodeLabelDatum>>(this.itemLabelGroup, Text);
+    private stageLabelSelection = Selection.select<Text<PyramidStageLabelDatum>>(this.stageLabelGroup, Text);
+    private highlightLabelSelection = Selection.select<Text<PyramidNodeLabelDatum>>(this.highlightLabelGroup, Text);
     private highlightDatumSelection = Selection.select<FunnelConnector<PyramidNodeDatum>>(this.highlightNodeGroup, () =>
         this.nodeFactory()
     );
@@ -376,7 +371,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
         const totalSpacing = spacing * (processedData.input.count - 1);
 
-        let bounds: _ModuleSupport.BBox;
+        let bounds: BBox;
         if (horizontal) {
             const verticalInset = maxLabelHeight + stageLabel.spacing;
             bounds = new BBox(
@@ -801,7 +796,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         this.usesPlacedLabels = this.routesThroughEngine();
     }
 
-    override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
+    override update({ seriesRect }: { seriesRect?: BBox }) {
         this.checkResize(seriesRect);
 
         const {
@@ -856,7 +851,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private updateDatumSelection(opts: {
         nodeData: PyramidNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
+        datumSelection: Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData);
     }
@@ -924,7 +919,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
+        datumSelection: Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
@@ -936,7 +931,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
+        datumSelection: Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { shadow } = this.options;
@@ -957,23 +952,20 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private updateLabelSelection(opts: {
         labelData: PyramidNodeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text<PyramidNodeLabelDatum>>;
+        labelSelection: Selection<PyramidNodeLabelDatum, Text<PyramidNodeLabelDatum>>;
     }) {
         return opts.labelSelection.update(this.options.label.enabled ? opts.labelData : []);
     }
 
     private updateStageLabelSelection(opts: {
         stageLabelData: PyramidStageLabelDatum[];
-        stageLabelSelection: _ModuleSupport.Selection<
-            PyramidStageLabelDatum,
-            _ModuleSupport.Text<PyramidStageLabelDatum>
-        >;
+        stageLabelSelection: Selection<PyramidStageLabelDatum, Text<PyramidStageLabelDatum>>;
     }) {
         return opts.stageLabelSelection.update(opts.stageLabelData);
     }
 
     private updateValueLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text<PyramidNodeLabelDatum>>;
+        labelSelection: Selection<PyramidNodeLabelDatum, Text<PyramidNodeLabelDatum>>;
         isHighlight: boolean;
     }) {
         const { label } = this.options;
@@ -1011,7 +1003,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private updateStageLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<PyramidStageLabelDatum, _ModuleSupport.Text<PyramidStageLabelDatum>>;
+        labelSelection: Selection<PyramidStageLabelDatum, Text<PyramidStageLabelDatum>>;
         labelProperties: NormalisedPyramidSeriesStageLabelOptions;
         isHighlight?: boolean;
         checkActiveHighlight?: boolean;
@@ -1057,9 +1049,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return undefined;
     }
 
-    protected override computeFocusBounds(
-        opts: _ModuleSupport.PickFocusInputs
-    ): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): BBox | Path | undefined {
         const datum = this.getNodeData()?.[opts.datumIndex];
         if (datum === undefined) return;
 
@@ -1124,7 +1114,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
-        let minNode: _ModuleSupport.Node<unknown> | undefined;
+        let minNode: Node<unknown> | undefined;
 
         this.datumSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);

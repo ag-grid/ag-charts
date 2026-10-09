@@ -10,7 +10,6 @@ import {
     type AgScatterSeriesOptions,
     type AgScatterSeriesTooltipRendererParams,
     type Styler,
-    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type Chart,
@@ -26,6 +25,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -171,7 +171,7 @@ describe('ErrorBars', () => {
     const getItemCoords = (itemIndex: number): { x: number; y: number } => {
         const series = chart['series'][0] as any;
         const item = series['contextNodeData'].nodeData[itemIndex];
-        const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+        const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
             series.contentGroup,
             item.midPoint.x,
             item.midPoint.y

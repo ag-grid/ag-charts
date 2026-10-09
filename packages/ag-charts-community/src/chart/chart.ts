@@ -7,17 +7,22 @@ import type {
     DynamicContext,
     ModuleInstance,
     NormalisedTextOrSegments,
+    Scene,
 } from 'ag-charts-core';
 import {
     AgDocument,
     AsyncAwaitQueue,
+    BBox,
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
     Color,
     Debug,
+    DebugSelectors,
+    Group,
     ModuleType,
     Mutex,
+    TranslatableGroup,
     ZIndexMap,
     callWithContext,
     createId,
@@ -55,10 +60,6 @@ import type { UpdateOpts } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import type { SeriesGrouping } from '../module/seriesGrouping';
-import { BBox } from '../scene/bbox';
-import { Group, TranslatableGroup } from '../scene/group';
-import type { Scene } from '../scene/scene';
-import { DebugSelectors } from '../scene/sceneDebug';
 import { Background } from './background/background';
 import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';

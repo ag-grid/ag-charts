@@ -1,7 +1,6 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type NormalisedStrokeOptions, Vec2 } from 'ag-charts-core';
+import { Group, type NormalisedStrokeOptions, Path, Vec2 } from 'ag-charts-core';
 
-export abstract class CapScene extends _ModuleSupport.Group {
+export abstract class CapScene extends Group {
     abstract type: string;
 
     abstract update(options: { x: number; y: number; angle: number } & NormalisedStrokeOptions): void;
@@ -10,7 +9,7 @@ export abstract class CapScene extends _ModuleSupport.Group {
 export class ArrowCapScene extends CapScene {
     override type = 'arrow' as const;
 
-    private readonly path = new _ModuleSupport.Path();
+    private readonly path = new Path();
     private readonly armLength = 6;
 
     constructor() {

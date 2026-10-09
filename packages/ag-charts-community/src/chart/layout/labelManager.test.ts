@@ -1,8 +1,8 @@
 import { vi } from 'vitest';
 
 import type { LabelObstacle, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import { BBox } from 'ag-charts-core';
 
-import { BBox } from '../../scene/bbox';
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
 import { AxisLabelSource } from './axisLabelSource';
 import { LabelManager } from './labelManager';

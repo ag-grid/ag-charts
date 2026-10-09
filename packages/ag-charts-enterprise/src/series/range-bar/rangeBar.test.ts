@@ -8,7 +8,6 @@ import {
     type AgRangeBarSeriesLabelPlacement,
     type AgRangeBarSeriesStyle,
     type AgRangeBarSeriesStylerParams,
-    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     BIG,
@@ -52,7 +51,7 @@ import {
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { roundTo } from 'ag-charts-core';
+import { Transformable, roundTo } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
 import {
@@ -2259,11 +2258,7 @@ describe('RangeBarSeries', () => {
             expect(nodeData).toBeDefined();
             const node = nodeData![nodeIndex];
             expect(node).toBeDefined();
-            return _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.x + node.width / 2,
-                node.y + node.height / 2
-            );
+            return Transformable.toCanvasPoint(series.contentGroup, node.x + node.width / 2, node.y + node.height / 2);
         }
 
         async function clickBar(seriesIndex: number, nodeIndex: number) {

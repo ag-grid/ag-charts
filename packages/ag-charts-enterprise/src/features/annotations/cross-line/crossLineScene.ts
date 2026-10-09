@@ -1,5 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, ChartAxisDirection, type Point, Vec2, Vec4 } from 'ag-charts-core';
+import { type BBox, type Bounds4, ChartAxisDirection, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -29,7 +28,7 @@ export class CrossLineScene extends AnnotationScene<never> {
     private axisLabel?: AxisLabelScene;
     public text?: CollidableText<never>;
 
-    private seriesRect?: _ModuleSupport.BBox;
+    private seriesRect?: BBox;
     private dragState?: {
         offset: Point;
         middle: Point;

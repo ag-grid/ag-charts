@@ -1,8 +1,6 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { Rotatable, Scalable, Translatable } from 'ag-charts-core';
 
 import { SvgPath } from '../../utils/svgPath';
-
-const { Rotatable, Translatable, Scalable } = _ModuleSupport;
 
 export class RadialGaugeNeedle extends Rotatable(Scalable(Translatable(SvgPath))) {
     static readonly defaultPathData =

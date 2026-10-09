@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ChartAxisDirection, deepClone } from 'ag-charts-core';
+import { ChartAxisDirection, Transformable, deepClone } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 import type {
     AgAreaSeriesMarkerItemStylerParams,
@@ -17,7 +17,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { Transformable } from '../../../scene/transformable';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import {
     BIG,

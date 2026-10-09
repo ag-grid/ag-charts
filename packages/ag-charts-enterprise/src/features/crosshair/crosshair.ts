@@ -8,10 +8,15 @@ import {
 } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BBox,
     ChartAxisDirection,
     ChartUpdateType,
     type CurrentPoint,
+    Group,
+    Line,
     type NormalisedCrosshairOptions,
+    Selection,
+    TranslatableGroup,
     ZIndexMap,
     coerceTextValue,
     createId,
@@ -23,7 +28,7 @@ import type { ClickWidgetEvent, DragWidgetEvent, MouseWidgetEvent } from 'ag-cha
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel } from './crosshairLabel';
 
-const { Group, TranslatableGroup, Line, BBox, FormatManager, InteractionState } = _ModuleSupport;
+const { FormatManager, InteractionState } = _ModuleSupport;
 type HoverLikeEvent = DragWidgetEvent | MouseWidgetEvent<'mousemove'> | Extract<ClickWidgetEvent, CurrentPoint>;
 
 interface FormatterCache {
@@ -48,8 +53,8 @@ export class Crosshair
     private readonly labels: { [key: string]: CrosshairLabel };
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
-    private seriesRect: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
-    private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
+    private seriesRect: BBox = new BBox(0, 0, 0, 0);
+    private bounds: BBox = new BBox(0, 0, 0, 0);
     private axisLayout?: _ModuleSupport.AxisLayout;
 
     private cachedFormatter: FormatterCache | undefined;
@@ -64,7 +69,7 @@ export class Crosshair
             zIndex: ZIndexMap.SERIES_CROSSHAIR,
         })
     );
-    protected lineGroupSelection = _ModuleSupport.Selection.select(this.lineGroup, Line<string>, false);
+    protected lineGroupSelection = Selection.select(this.lineGroup, Line<string>, false);
 
     private activeHighlight: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     private activeHighlightInViewport: boolean = false;

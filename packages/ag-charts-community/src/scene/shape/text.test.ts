@@ -1,15 +1,21 @@
 import { type Image, loadImage } from 'skia-canvas';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { LtrEmbedding, PopDirectionalFormatting, cachedTextMeasurer, wrapText } from 'ag-charts-core';
+import {
+    BBox,
+    LtrEmbedding,
+    PopDirectionalFormatting,
+    RotatableText,
+    Text,
+    cachedTextMeasurer,
+    wrapText,
+} from 'ag-charts-core';
+import type { IScene } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { expectWarningMessages, setupMockConsole } from '../../util/test/mockConsole';
-import { BBox } from '../bbox';
-import type { IScene } from '../node';
-import { RotatableText, Text } from './text';
 
 function setUpMockScene(canvasCtx: any): IScene {
     return {

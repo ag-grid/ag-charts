@@ -1,19 +1,31 @@
 import type {
     ChartAnimationPhase,
+    Node,
+    NodeWithOpacity,
     NormalisedCartesianSeriesOptionsCommon,
     NormalisedSeriesOptions,
     Scaling,
 } from 'ag-charts-core';
 import {
+    BBox,
     BandScale,
     ChartAxisDirection,
     ContinuousScale,
     Debug,
     DebugMetrics,
+    Group,
     LogScale,
+    Path,
     type Point,
+    QuadtreeNearest,
+    RotatableText,
     type Scale,
+    SegmentedGroup,
+    SegmentedPath,
+    Selection,
     StateMachine,
+    Text,
+    TranslatableGroup,
     UnitTimeScale,
     extractDomain,
     findMaxIndex,
@@ -29,15 +41,6 @@ import type { AgDrawingMode, AgNumericValue } from 'ag-charts-types';
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
-import { BBox } from '../../../scene/bbox';
-import { Group, TranslatableGroup } from '../../../scene/group';
-import type { Node, NodeWithOpacity } from '../../../scene/node';
-import { SegmentedGroup } from '../../../scene/segmentedGroup';
-import { Selection } from '../../../scene/selection';
-import { Path } from '../../../scene/shape/path';
-import { SegmentedPath } from '../../../scene/shape/segmentedPath';
-import { RotatableText, Text } from '../../../scene/shape/text';
-import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAxis } from '../../chartAxis';

@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type {
+    BBox,
     CheckboxOptions as CoreCheckboxOptions,
     SelectOptions as CoreSelectOptions,
     TextAreaOptions as CoreTextAreaOptions,
@@ -77,7 +78,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private readonly colorPicker = new ColorPicker(this.ctx, { detached: true });
     private colorPickerAnchorElement?: HTMLElement;
-    private seriesRect?: _ModuleSupport.BBox;
+    private seriesRect?: BBox;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id: string) {
         super(ctx, id);

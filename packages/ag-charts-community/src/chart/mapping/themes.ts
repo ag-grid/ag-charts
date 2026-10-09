@@ -353,6 +353,13 @@ const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
         scrollbarThumbBorderRadius: number,
         scrollbarThumbHoverBackgroundColor: colorOrRef,
         scrollbarThumbHoverBorder: or(boolean, themeParamBorder),
+        navigatorTrackBackgroundColor: colorOrRef,
+        navigatorTrackBorder: or(boolean, themeParamBorder),
+        navigatorTrackBorderRadius: number,
+        navigatorThumbBackgroundColor: colorOrRef,
+        navigatorHandleBackgroundColor: colorOrRef,
+        navigatorHandleBorder: or(boolean, themeParamBorder),
+        navigatorHandleBorderRadius: number,
 
         titleFontSize: number,
         titleFontWeight: fontWeight,

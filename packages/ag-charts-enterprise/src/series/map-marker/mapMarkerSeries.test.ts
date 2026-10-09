@@ -6,7 +6,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
@@ -28,6 +28,7 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
@@ -194,7 +195,7 @@ describe('MapMarkerSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]

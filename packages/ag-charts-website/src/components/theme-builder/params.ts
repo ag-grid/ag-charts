@@ -243,6 +243,20 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         ],
     },
     {
+        id: 'navigator',
+        label: 'Navigator',
+        collapsed: true,
+        params: [
+            { key: 'navigatorTrackBackgroundColor', label: 'Track Background' },
+            { key: 'navigatorTrackBorder', label: 'Track Border' },
+            { key: 'navigatorTrackBorderRadius', label: 'Track Radius', icon: 'radius', min: 0, max: 16 },
+            { key: 'navigatorThumbBackgroundColor', label: 'Thumb Background' },
+            { key: 'navigatorHandleBackgroundColor', label: 'Handle Background' },
+            { key: 'navigatorHandleBorder', label: 'Handle Border' },
+            { key: 'navigatorHandleBorderRadius', label: 'Handle Radius', icon: 'radius', min: 0, max: 16 },
+        ],
+    },
+    {
         id: 'effects',
         label: 'Effects',
         collapsed: true,

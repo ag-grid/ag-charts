@@ -1,5 +1,6 @@
 import { type TextOptions, _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type Point, Vec4 } from 'ag-charts-core';
+import { type Bounds4, Group, type Point, Range, Selection, Vec4 } from 'ag-charts-core';
+import type { BBox } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext, LineTextAlignment } from '../annotationTypes';
 import type { FibonacciDatum } from '../datum/fibonacciDatum';
@@ -18,25 +19,26 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
     protected readonly trendLine = new CollidableLine<never>();
     public text?: CollidableText<never>;
 
-    private readonly rangeFillsGroup: _ModuleSupport.Group = new _ModuleSupport.Group({
+    private readonly rangeFillsGroup: Group = new Group({
         name: `${this.id}-range-fills`,
     });
-    private readonly rangeFillsGroupSelection = _ModuleSupport.Selection.select<
-        _ModuleSupport.Range<FibonacciRangeDatum>
-    >(this.rangeFillsGroup, _ModuleSupport.Range);
+    private readonly rangeFillsGroupSelection = Selection.select<Range<FibonacciRangeDatum>>(
+        this.rangeFillsGroup,
+        Range
+    );
 
-    private readonly rangeStrokesGroup: _ModuleSupport.Group = new _ModuleSupport.Group({
+    private readonly rangeStrokesGroup: Group = new Group({
         name: `${this.id}-range-strokes`,
     });
-    private readonly rangeStrokesGroupSelection = _ModuleSupport.Selection.select<CollidableLine<FibonacciRangeDatum>>(
+    private readonly rangeStrokesGroupSelection = Selection.select<CollidableLine<FibonacciRangeDatum>>(
         this.rangeStrokesGroup,
         CollidableLine
     );
 
-    private readonly labelsGroup: _ModuleSupport.Group = new _ModuleSupport.Group({
+    private readonly labelsGroup: Group = new Group({
         name: `${this.id}-ranges-labels`,
     });
-    private readonly labelsGroupSelection = _ModuleSupport.Selection.select<CollidableText<FibonacciRangeDatum>>(
+    private readonly labelsGroupSelection = Selection.select<CollidableText<FibonacciRangeDatum>>(
         this.labelsGroup,
         CollidableText
     );
@@ -289,7 +291,7 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
         updateLineText(oneLine.id, oneLine, coords, textProperties, this.text, textProperties.label, strokeWidth);
     }
 
-    updateAnchor(_datum: Datum, coords: Bounds4, _context: AnnotationContext, _bbox?: _ModuleSupport.BBox) {
+    updateAnchor(_datum: Datum, coords: Bounds4, _context: AnnotationContext, _bbox?: BBox) {
         applySceneNodeTopCenterAnchor(this.trendLine, this.anchor, coords);
     }
 
@@ -357,10 +359,5 @@ export abstract class FibonacciScene<Datum extends FibonacciDatum> extends Annot
         return 'pointer';
     }
 
-    protected abstract updateHandles(
-        datum: Datum,
-        coords1: Bounds4,
-        coords2?: Bounds4,
-        bbox?: _ModuleSupport.BBox
-    ): void;
+    protected abstract updateHandles(datum: Datum, coords1: Bounds4, coords2?: Bounds4, bbox?: BBox): void;
 }

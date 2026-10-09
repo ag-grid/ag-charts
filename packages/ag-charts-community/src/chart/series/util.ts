@@ -1,9 +1,8 @@
 import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
-import { Color, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
+import { Color, Transformable, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
 import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
-import { Transformable } from '../../scene/transformable';
 import { highlightStates } from './seriesProperties';
 import type {
     ErrorBoundSeriesNodeDatum,

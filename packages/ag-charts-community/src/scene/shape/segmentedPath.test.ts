@@ -1,9 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getPath2D } from 'ag-charts-core';
+import { SegmentedPath, getPath2D } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
-
-import { SegmentedPath } from './segmentedPath';
 
 describe('SegmentedPath', () => {
     afterEach(() => {

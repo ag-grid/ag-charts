@@ -3,7 +3,7 @@ import { CollapsibleSection } from '@ag-website-shared/components/theme-builder/
 import { PaletteEditor } from '@ag-website-shared/components/theme-builder/PaletteEditor';
 import { ParamEditor } from '@ag-website-shared/components/theme-builder/ParamEditor';
 import { iconFor } from '@ag-website-shared/components/theme-builder/icons';
-import { useApplicationConfigAtom } from '@ag-website-shared/theming/application-config';
+import { useCollapsibleSections } from '@ag-website-shared/components/theme-builder/useCollapsibleSections';
 import styled from '@emotion/styled';
 
 import { InheritedValueNote } from './InheritedValueNote';
@@ -38,22 +38,9 @@ const paramEditor = (param: ChartsParamConfig) => (
 );
 
 export const EditorPanel = () => {
-    const [expanded, setExpanded] = useApplicationConfigAtom('expandedEditors');
+    const sectionProps = useCollapsibleSections(DEFAULT_OPEN_SECTIONS);
     const [palette, setPalette] = usePalette();
     const setEditedGroup = useSetEditedGroup();
-    const openSections = expanded ?? DEFAULT_OPEN_SECTIONS;
-
-    const toggleSection = (heading: string) => {
-        setExpanded(
-            openSections.includes(heading) ? openSections.filter((h) => h !== heading) : [...openSections, heading]
-        );
-    };
-
-    const sectionProps = (heading: string) => ({
-        heading,
-        isOpen: openSections.includes(heading),
-        onToggle: () => toggleSection(heading),
-    });
 
     // See `editedGroup.ts`. Capture handlers, so the panel clears the group and
     // the group under the pointer then names itself; anywhere else in the panel

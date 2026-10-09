@@ -7,7 +7,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     BIG,
     type Chart,
@@ -36,7 +36,8 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { deepClone } from 'ag-charts-core';
+import { Text, Transformable, deepClone } from 'ag-charts-core';
+import type { BBox, Rect } from 'ag-charts-core';
 
 import { DEFAULT_DISABLED_SHADOW, HIERARCHY_SHADOW_DATA, prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
@@ -254,7 +255,7 @@ describe('TreemapSeries', () => {
 
             const series = chart.series[0] as TreemapSeries;
             const tileNode = nodeAtPath(series, [0, 0]);
-            const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+            const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                 (series as any).contentGroup,
                 tileNode.bbox.x + tileNode.bbox.width / 2,
                 tileNode.bbox.y + tileNode.bbox.height / 2
@@ -736,7 +737,7 @@ describe('TreemapSeries', () => {
             return out;
         };
         const textBBoxes = () =>
-            [...chart.series[0].labelSelection.selectByClass(_ModuleSupport.Text)]
+            [...chart.series[0].labelSelection.selectByClass(Text)]
                 .filter((text: any) => text.visible && text.text)
                 .map((text: any) => text.getBBox());
 
@@ -934,7 +935,7 @@ describe('TreemapSeries', () => {
         it('draws a wrapped group label at the height it was fitted to', async () => {
             await render({ maxWidth: 100 });
             const [fruit] = groups();
-            const text = [...chart.series[0].labelSelection.selectByClass(_ModuleSupport.Text)].find(
+            const text = [...chart.series[0].labelSelection.selectByClass(Text)].find(
                 (node: any) => node.visible && node.text === fruit.label.text
             );
             const lineCount = fruit.label.text.split('\n').length;
@@ -1116,7 +1117,7 @@ describe('TreemapSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]
@@ -1845,7 +1846,7 @@ describe('TreemapSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
             const series = chart.series[0] as TreemapSeries;
-            const rects: { isLeaf: boolean; rect: _ModuleSupport.Rect }[] = [];
+            const rects: { isLeaf: boolean; rect: Rect }[] = [];
             series['datumSelection'].each((rect, node) => {
                 // The synthetic root node has a rect that is never shown.
                 if (rect.visible) rects.push({ isLeaf: node.children.length === 0, rect });
@@ -2054,8 +2055,8 @@ describe('TreemapSeries', () => {
         };
         const renderedTileCount = (series: TreemapSeries): number =>
             Array.from((series as any).datumSelection.nodes()).filter((rect: any) => rect.visible).length;
-        const leafBbox = (series: TreemapSeries, name: string): _ModuleSupport.BBox | undefined => {
-            let bbox: _ModuleSupport.BBox | undefined;
+        const leafBbox = (series: TreemapSeries, name: string): BBox | undefined => {
+            let bbox: BBox | undefined;
             (series as any).rootNode?.walk((node: any) => {
                 if (node.children.length === 0 && node.datum?.name === name) {
                     bbox = node.bbox;

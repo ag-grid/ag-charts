@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Vec2, type Vertex } from 'ag-charts-core';
+import { BBox, Vec2, type Vertex } from 'ag-charts-core';
+import type { ExtendedPath2D } from 'ag-charts-core';
 import type { AgNetworkSeriesTreeLayoutDirection } from 'ag-charts-types';
 
 import {
@@ -10,8 +10,7 @@ import {
 import type { NetworkLinkInterpolation } from './networkTypes';
 import { pathWithElbows } from './networkUtils';
 
-type TBBox = _ModuleSupport.BBox;
-const { BBox } = _ModuleSupport;
+type TBBox = BBox;
 
 export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkDirectionalLayoutUpdateOptions<
     TVertex,
@@ -157,7 +156,7 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkDirectionalLayout
     }
 
     protected override drawLink(
-        path: _ModuleSupport.ExtendedPath2D,
+        path: ExtendedPath2D,
         parentBBox: TBBox,
         childBBox: TBBox,
         interpolation: NetworkLinkInterpolation,
@@ -262,7 +261,7 @@ class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkDirectionalLayo
     }
 
     protected override drawLink(
-        path: _ModuleSupport.ExtendedPath2D,
+        path: ExtendedPath2D,
         parentBBox: TBBox,
         childBBox: TBBox,
         interpolation: NetworkLinkInterpolation,

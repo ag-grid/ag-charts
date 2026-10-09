@@ -1,5 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { ZIndexMap } from 'ag-charts-core';
+import { Rect, ZIndexMap } from 'ag-charts-core';
 
 import {
     SELECTION_FILLOPACITY,
@@ -7,7 +6,7 @@ import {
     SELECTION_FILL_VALID,
 } from '../../data-selection/dataSelectionConstants';
 
-export class ZoomRect extends _ModuleSupport.Rect {
+export class ZoomRect extends Rect {
     static override readonly className = 'ZoomRect';
 
     constructor() {

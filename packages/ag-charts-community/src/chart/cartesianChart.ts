@@ -1,10 +1,9 @@
-import type { AxisPrimaryTickCount, CanvasPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
+import type { AxisPrimaryTickCount, BBox, CanvasPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
 import { ChartAxisDirection, ContinuousScale, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
-import type { BBox } from '../scene/bbox';
 import { CartesianAxis } from './axis/cartesianAxis';
 import { CategoryAxis } from './axis/categoryAxis';
 import { NumberAxis } from './axis/numberAxis';

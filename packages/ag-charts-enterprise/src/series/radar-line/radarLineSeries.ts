@@ -5,10 +5,11 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { CallbackParamRules, NormalisedRadarLineSeriesOwnOptions, RequireOptional } from 'ag-charts-core';
+import { PointerEvents } from 'ag-charts-core';
 
 import { RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
 
-const { HighlightState, PointerEvents, toHighlightString, toSelectionString } = _ModuleSupport;
+const { HighlightState, toHighlightString, toSelectionString } = _ModuleSupport;
 
 export class RadarLineSeries extends RadarSeries<AgRadarLineSeriesStyle, NormalisedRadarLineSeriesOwnOptions> {
     static override readonly className = 'RadarLineSeries';

@@ -8,10 +8,12 @@ import {
     ModuleType,
     type Mutex,
     ReactiveState,
+    Scene,
     type StrictHTMLElement,
     createDynamicContext,
     moduleMatchesChartType,
 } from 'ag-charts-core';
+import type { Group } from 'ag-charts-core';
 
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
@@ -21,8 +23,6 @@ import { DOMManager } from '../dom/domManager';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
 import type { ChartRegistry } from '../module/moduleContext';
-import type { Group } from '../scene/group';
-import { Scene } from '../scene/scene';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import type { ChartState } from './chartState';

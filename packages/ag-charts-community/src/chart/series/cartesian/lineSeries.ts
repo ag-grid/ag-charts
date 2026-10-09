@@ -1,4 +1,5 @@
 import type {
+    BBox,
     CallbackParamRules,
     DeepPartial,
     DomainWithMetadata,
@@ -7,9 +8,12 @@ import type {
     NormalisedLineSeriesOwnOptions,
     NormalisedLineSeriesStylerResult,
     NormalisedSeriesMarkerStyle,
+    Path,
     Point,
     PointLabelDatum,
     RequireOptional,
+    SegmentedPath,
+    Selection,
     Writeable,
 } from 'ag-charts-core';
 import {
@@ -17,6 +21,7 @@ import {
     ChartAxisDirection,
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
+    PointerEvents,
     applyStyledMarkerSize,
     extent,
     isDefined,
@@ -37,11 +42,6 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import type { BBox } from '../../../scene/bbox';
-import { PointerEvents } from '../../../scene/node';
-import type { Selection } from '../../../scene/selection';
-import type { Path } from '../../../scene/shape/path';
-import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';

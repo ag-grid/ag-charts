@@ -29,6 +29,8 @@ Nothing lists the seeds. Everything that needs to know which seeds there are wal
   in `packages/ag-charts-website/src/components/demo-examples/seedLinks.ts`);
 - the parity harness, with `PARITY_DISCOVER=1`, serves and compares every port with a manifest
   that is not stale, and lists the stale ones it skips (`e2e/parity/README.md`, "Discovered ports");
+- the functional specs step (`port-spec-plan.mjs` and `run-port-specs.mjs` below) runs the demo's
+  `e2e/*.spec.ts` against every such port that is not stale;
 - `check-seeds.mjs --stale` reports every port with a manifest whose `sourceHash` is behind, and
   `check-seeds.mjs --pins` fails when one pins a different `ag-charts-*` version from the seeds';
 - the post-deploy check `tools/ci/check-demo-seed-links.mjs` reads the seed links the deployed
@@ -244,6 +246,37 @@ reporting it.
 node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs trading-terminal angular
 ```
 
+### `port-spec-plan.mjs` and `run-port-specs.mjs`
+
+The CI step "playwright functional specs on framework ports" runs the demos' functional specs
+(`e2e/*.spec.ts`, the `test:e2e` suite) against each port, in the same job as the parity run and
+from the same built seed `dist/`, so nothing is built twice. The two scripts split the work along the
+line the parity step already draws: git is set up on the runner, Playwright is in the container.
+
+`port-spec-plan.mjs [--stale-report <file>] [--out <file>]` runs on the runner. It lists every port
+with a manifest, drops the stale ones (read from the `check-seeds.mjs --stale` report the parity step
+wrote, or worked out with `findStalePorts` when none is given) and writes the plan, `{ run, skipped }`,
+as JSON. Each entry to run carries the port's `dist` and the `--grep` that selects only its demo's
+specs, since a port is a single-demo app and cannot answer the others'. Stale ports are named in a
+`::warning` annotation and in the job output, as in the parity step; when nothing is left to run it
+says so and the step passes.
+
+`run-port-specs.mjs --plan <file> [--port-base <port>] [-- <playwright args>]` runs in the
+container, from the demos package. For each port in turn it serves the `dist` with
+`e2e/parity/serve-dist.mjs`, runs `playwright test -g <demo>` with `DEMOS_BASE_URL` pointing at it,
+and stops the server. Each port gets its own JUnit report (`reports/ag-charts-demos-e2e-port-<demo>-<framework>.xml`)
+and results folder (`test-results/ports/<demo>-<framework>`). A failing port is named in an `::error`
+annotation and in the closing summary, and the exit status is non-zero if any port failed or could not
+run (no built `dist`). To try it by hand, build the ports, then:
+
+```sh
+node packages/ag-charts-demos/tools/seeds/port-spec-plan.mjs --out /tmp/plan.json
+(cd packages/ag-charts-demos && node tools/seeds/run-port-specs.mjs --plan /tmp/plan.json)
+```
+
+A port that is edited and restamped by the alignment PR at a release cut is current again, so this
+step runs its specs there.
+
 ### `export-seed-mirror.mjs --out <dir> --ref <ref>`
 
 Builds the tree the "Mirror Demo Seeds" workflow publishes to `ag-grid/ag-charts-demos` (see "Seed
@@ -276,5 +309,5 @@ node packages/ag-charts-demos/tools/seeds/export-seed-mirror.mjs --out /tmp/mirr
    `check-seeds.mjs --touched` fails a PR that aligns a port without restamping it.
 
 To align ports yourself on any branch, run `/port-showcases [demo] [framework]` in Claude Code. The
-functional specs should pass with `DEMOS_BASE_URL` pointing at an aligned port too
-(`e2e/parity/README.md`).
+functional specs must pass with `DEMOS_BASE_URL` pointing at an aligned port too: CI runs them against
+every current port (`port-spec-plan.mjs`, above; `e2e/parity/README.md`).

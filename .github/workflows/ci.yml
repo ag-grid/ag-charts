@@ -761,6 +761,8 @@ jobs:
 
     test:
         runs-on: ubuntu-24.04
+        # Healthy shards finish in under 8 minutes; a hung vitest worker would otherwise hold the runner for the 360 minute default.
+        timeout-minutes: 20
         name: Unit & Integration Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         permissions:
             contents: write
@@ -801,10 +803,12 @@ jobs:
               if: matrix.shard != 0
               id: test
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude tag:no-sharding --exclude all --shard=${{ matrix.shard }}/$((${{ strategy.job-total }} - 1))
+              timeout-minutes: 15
             - name: nx test (non-sharded)
               if: matrix.shard == 0
               id: test-no-shard
               run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude '*,!tag:no-sharding'
+              timeout-minutes: 15
             - name: nx test:validate-size
               if: matrix.shard == 0
               id: test-no-shard-validate-size
@@ -1556,6 +1560,35 @@ jobs:
                     -e PARITY_STALE_REPORT=/parity-input/stale-ports.json \
                     ${PLAYWRIGHT_IMAGE} \
                     npx playwright test -c playwright.parity.config.ts
+              timeout-minutes: 20
+
+            # Functional parity: the demos' functional specs (e2e/*.spec.ts, as run against the
+            # React app above) against every port the parity step compares, served from the same
+            # seed dist/ that step uses, so nothing is built a second time. A port is a single-demo
+            # app, so each runs only its own demo's specs. Stale ports are skipped and named, as
+            # in the parity step, and with no current port the step passes saying so. The plan
+            # (port-spec-plan.mjs) is made here on the runner, where the checkout's git is set
+            # up, from the stale report the parity step wrote when it ran; run-port-specs.mjs runs
+            # in the container and reports which demo and framework failed.
+            - name: playwright functional specs on framework ports ag-charts-demos
+              id: demos_port_specs
+              if: ${{ !cancelled() }}
+              run: |
+                  input="${RUNNER_TEMP}/parity-input"
+                  mkdir -p "${input}"
+                  stale_report=()
+                  if [ -f "${input}/stale-ports.json" ] ; then
+                    stale_report=(--stale-report "${input}/stale-ports.json")
+                  fi
+                  node packages/ag-charts-demos/tools/seeds/port-spec-plan.mjs "${stale_report[@]}" --out "${input}/port-spec-plan.json"
+                  docker run --rm --ipc=host --init \
+                    -v "$(pwd)":/data \
+                    -v "${input}":/parity-input:ro \
+                    -w /data/packages/ag-charts-demos \
+                    -e CI \
+                    -e GITHUB_ACTIONS \
+                    ${PLAYWRIGHT_IMAGE} \
+                    node tools/seeds/run-port-specs.mjs --plan /parity-input/port-spec-plan.json
               timeout-minutes: 20
 
             - name: Persist test results

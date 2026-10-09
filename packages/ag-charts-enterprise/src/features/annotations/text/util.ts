@@ -1,9 +1,8 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
-import { type FontOptions, type Point, cachedTextMeasurer, wrapText } from 'ag-charts-core';
+import { BBox, type FontOptions, type Point, cachedTextMeasurer, wrapText } from 'ag-charts-core';
+import type { Text } from 'ag-charts-core';
 
 import type { Padding } from '../annotationTypes';
-
-const { BBox } = _ModuleSupport;
 
 export type AnnotationTextPosition = 'top' | 'center' | 'bottom';
 export type AnnotationTextAlignment = 'left' | 'center' | 'right';
@@ -35,12 +34,7 @@ function measureAnnotationText(options: FontOptions, text: string) {
     return { width, height };
 }
 
-export function getBBox(
-    options: TextOptions & { width?: number },
-    text: string,
-    coords: Point,
-    bbox?: _ModuleSupport.BBox
-) {
+export function getBBox(options: TextOptions & { width?: number }, text: string, coords: Point, bbox?: BBox) {
     let width = bbox?.width ?? 0;
     let height = bbox?.height ?? 0;
 
@@ -53,7 +47,7 @@ export function getBBox(
 }
 
 export function updateTextNode(
-    node: _ModuleSupport.Text,
+    node: Text,
     text: string,
     isPlaceholder: boolean,
     config: TextOptions & { visible?: boolean; color?: string; placeholderColor?: string },

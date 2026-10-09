@@ -1,17 +1,16 @@
 import {
+    type BBox,
     type InternalAgColorType,
     type NormalisedColorType,
     type RequiredInternalAgColorType,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
+    type Shape,
     isGradientFill,
     isImageFill,
     isPatternFill,
 } from 'ag-charts-core';
-
-import type { BBox } from '../../scene/bbox';
-import type { Shape } from '../../scene/shape/shape';
 
 export type ShapeStyle = Partial<
     Pick<

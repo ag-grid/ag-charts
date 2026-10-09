@@ -1,7 +1,14 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type Logger, SceneChangeDetection, createSvgElement } from 'ag-charts-core';
+import {
+    BBox,
+    ExtendedPath2D,
+    type Logger,
+    Path,
+    SceneChangeDetection,
+    clippedRoundRect,
+    createSvgElement,
+} from 'ag-charts-core';
+import type { CanvasContext } from 'ag-charts-core';
 
-const { Path, BBox, ExtendedPath2D, clippedRoundRect } = _ModuleSupport;
 export class RangeTrack<D = unknown> extends Path<D> {
     static override readonly className = 'RangeTrack';
 
@@ -81,7 +88,7 @@ export class RangeTrack<D = unknown> extends Path<D> {
             bottomLeft: cornerRadius,
         };
 
-        const drawRect = (p: _ModuleSupport.ExtendedPath2D, x0: number, x1: number) => {
+        const drawRect = (p: ExtendedPath2D, x0: number, x1: number) => {
             if (x1 - x0 < 1) return;
             const bbox = new BBox(x0, ay, x1 - x0, ah);
             clippedRoundRect(p, ax, ay, aw, ah, cornerRadiusParams, bbox);
@@ -93,11 +100,11 @@ export class RangeTrack<D = unknown> extends Path<D> {
     }
 
     protected override renderFill(
-        ctx: _ModuleSupport.CanvasContext,
+        ctx: CanvasContext,
         logger: Logger,
         path?: Path2D,
-        bboxOverride?: _ModuleSupport.BBox,
-        fillBBoxOverride?: _ModuleSupport.BBox
+        bboxOverride?: BBox,
+        fillBBoxOverride?: BBox
     ): void {
         super.renderFill(ctx, logger, path, bboxOverride, fillBBoxOverride);
 
@@ -125,7 +132,7 @@ export class RangeTrack<D = unknown> extends Path<D> {
         return { ...svg, elements: [...svg.elements, thumb] };
     }
 
-    protected override renderStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
+    protected override renderStroke(ctx: CanvasContext, path?: Path2D): void {
         super.renderStroke(ctx, path);
         super.renderStroke(ctx, this.visiblePath.getPath2D());
     }

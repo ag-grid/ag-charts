@@ -1,20 +1,20 @@
 import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
 import {
     AxisWidget,
+    BBox,
     BoundedTextWidget,
     ListWidget,
     NativeWidget,
+    Node,
+    Selection,
     SliderWidget,
     ToolbarWidget,
+    Transformable,
+    TranslatableGroup,
     Widget,
 } from 'ag-charts-core';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, type MockEvent, makeMockEvent } from 'ag-charts-test';
 
-import { BBox } from '../../scene/bbox';
-import { TranslatableGroup } from '../../scene/group';
-import { Node } from '../../scene/node';
-import { Selection } from '../../scene/selection';
-import { Transformable } from '../../scene/transformable';
 import type { Chart } from '../chart';
 import { ChartCaption } from '../chartCaption';
 import { WidgetSet } from '../interaction/widgetSet';

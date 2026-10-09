@@ -9,7 +9,7 @@ import type {
     AgStandaloneChartOptions,
     TextAlign,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     type ChartTestCase,
     type SceneGeometrySample,
@@ -29,6 +29,8 @@ import {
     standaloneChartAssertions,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { BBox, Group, Rect, Selection, Text, Transformable } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -1022,12 +1024,10 @@ describe('OrganizationSeries', () => {
         );
     }
 
-    type Node<T = unknown> = _ModuleSupport.Node<T>;
-
     /** Every descendant of `node` (including itself) tagged `searchTag`, in DFS/paint order. */
     function findAllDescendantsByTag(node: Node, searchTag: number): Node[] {
         const found: Node[] = node.tag === searchTag ? [node] : [];
-        if (node instanceof _ModuleSupport.Group) {
+        if (node instanceof Group) {
             for (const child of node.children()) {
                 found.push(...findAllDescendantsByTag(child, searchTag));
             }
@@ -1039,7 +1039,7 @@ describe('OrganizationSeries', () => {
         const nodes = new Caster(deproxy(chart).series[0])
             .cast(OrganizationSeries)
             .accessProperty('datumSelection')
-            .cast(_ModuleSupport.Selection)
+            .cast(Selection)
             .value.nodes();
         const card = nodes.find((node: Node<any>) => node.datum?.itemId === itemId);
         expect(card).toBeDefined();
@@ -1055,7 +1055,7 @@ describe('OrganizationSeries', () => {
 
     /** Canvas-space centre of the scene node tagged `tag` within the card for `itemId`. */
     function centreOf(itemId: string, tag: OrganizationNodeTag): { x: number; y: number } {
-        return _ModuleSupport.Transformable.toCanvas(findTaggedNode(itemId, tag)).computeCenter();
+        return Transformable.toCanvas(findTaggedNode(itemId, tag)).computeCenter();
     }
 
     async function clickItem(itemId: string, tag: OrganizationNodeTag, opts?: { ctrlKey: boolean }): Promise<void> {
@@ -1645,7 +1645,7 @@ describe('OrganizationSeries', () => {
 
         /** The card `Rect`'s paint style, which is what the highlight alters. */
         function cardStyle(itemId: string) {
-            const card = new Caster(findTaggedNode(itemId, OrganizationNodeTag.Card)).cast(_ModuleSupport.Rect).value;
+            const card = new Caster(findTaggedNode(itemId, OrganizationNodeTag.Card)).cast(Rect).value;
             const { fill, stroke, strokeWidth, strokeOpacity } = card;
             return { fill, stroke, strokeWidth, strokeOpacity };
         }
@@ -1776,16 +1776,16 @@ describe('OrganizationSeries', () => {
         });
 
         /** The expander pill's own `Rect` scene node for the card belonging to `itemId`. */
-        function expanderShapeNode(itemId: string): _ModuleSupport.Rect {
-            return new Caster(findTaggedNode(itemId, OrganizationNodeTag.Expander)).cast(_ModuleSupport.Rect).value;
+        function expanderShapeNode(itemId: string): Rect {
+            return new Caster(findTaggedNode(itemId, OrganizationNodeTag.Expander)).cast(Rect).value;
         }
 
         /** The expander's child-count `Text` node — also tagged Expander, alongside the pill `Rect`. */
-        function expanderCountTextNode(itemId: string): _ModuleSupport.Text {
+        function expanderCountTextNode(itemId: string): Text {
             const candidates = findAllDescendantsByTag(findCardNode(itemId), OrganizationNodeTag.Expander);
-            const textNode = candidates.find((node) => node instanceof _ModuleSupport.Text);
+            const textNode = candidates.find((node) => node instanceof Text);
             expect(textNode).toBeDefined();
-            return new Caster(textNode).cast(_ModuleSupport.Text).value;
+            return new Caster(textNode).cast(Text).value;
         }
 
         async function hoverItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
@@ -2013,7 +2013,7 @@ describe('OrganizationSeries', () => {
             const seriesRect = new Caster(deproxy(chart))
                 .accessProperty('seriesAreaManager')
                 .accessProperty('seriesRect')
-                .cast(_ModuleSupport.BBox).value;
+                .cast(BBox).value;
             expect(seriesRect.containsPoint(2, 2)).toBe(false);
 
             // Outside the series rect a real 'mouseleave' fires, but the clear is debounced by
@@ -2054,7 +2054,7 @@ describe('OrganizationSeries', () => {
             ],
         });
 
-        function countCardStrokePixels(region: _ModuleSupport.BBox): number {
+        function countCardStrokePixels(region: BBox): number {
             const image = ctx.snapshot();
             let count = 0;
             for (let y = Math.ceil(region.y); y < Math.floor(region.y + region.height); y++) {
@@ -2076,14 +2076,12 @@ describe('OrganizationSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                const pill = _ModuleSupport.Transformable.toCanvas(findTaggedNode('ceo', OrganizationNodeTag.Expander));
+                const pill = Transformable.toCanvas(findTaggedNode('ceo', OrganizationNodeTag.Expander));
 
                 expect(countCardStrokePixels(pill.clone().shrink(1))).toBe(0);
                 // Control: the same border line is still drawn either side of the pill, so a zero
                 // count above means the cut-out worked rather than that the border never rendered.
-                expect(
-                    countCardStrokePixels(new _ModuleSupport.BBox(pill.x - 21, pill.y, 20, pill.height))
-                ).toBeGreaterThan(0);
+                expect(countCardStrokePixels(new BBox(pill.x - 21, pill.y, 20, pill.height))).toBeGreaterThan(0);
             }
         );
 
@@ -2096,19 +2094,15 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const pill = _ModuleSupport.Transformable.toCanvas(findTaggedNode('ceo', OrganizationNodeTag.Expander));
+            const pill = Transformable.toCanvas(findTaggedNode('ceo', OrganizationNodeTag.Expander));
             const radius = pill.height / 2;
 
             // Inside the arc, where the pill genuinely covers the border.
             expect(
-                countCardStrokePixels(
-                    new _ModuleSupport.BBox(pill.x + radius, pill.y + 1, pill.width - 2 * radius, pill.height - 2)
-                )
+                countCardStrokePixels(new BBox(pill.x + radius, pill.y + 1, pill.width - 2 * radius, pill.height - 2))
             ).toBe(0);
             // Outside it, in the pill's own bounding box — the border must survive here.
-            expect(countCardStrokePixels(new _ModuleSupport.BBox(pill.x, pill.y, radius, pill.height))).toBeGreaterThan(
-                0
-            );
+            expect(countCardStrokePixels(new BBox(pill.x, pill.y, radius, pill.height))).toBeGreaterThan(0);
         });
     });
 
@@ -2177,8 +2171,8 @@ describe('OrganizationSeries', () => {
             let target: { datumIndex: number; cardBox: any; fullBox: any } | undefined;
             series.datumSelection.each((node: any, datum: any) => {
                 if (target || datum.collapsedByAncestor) return;
-                const cardBox = _ModuleSupport.Transformable.toCanvas(node, node.getShapeBBox());
-                const fullBox = _ModuleSupport.Transformable.toCanvas(node, node.getFullBBox());
+                const cardBox = Transformable.toCanvas(node, node.getShapeBBox());
+                const fullBox = Transformable.toCanvas(node, node.getFullBBox());
                 if (fullBox.height > cardBox.height + 1) {
                     target = { datumIndex: datum.datumIndex, cardBox, fullBox };
                 }

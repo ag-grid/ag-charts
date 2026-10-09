@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
+import { HdpiCanvas, HdpiOffscreenCanvas, getSpreadCanvas, releaseSpreadCanvas } from 'ag-charts-core';
+
 import { setupMockCanvas } from '../../util/test/mockCanvas';
-import { HdpiCanvas } from './hdpiCanvas';
-import { HdpiOffscreenCanvas } from './hdpiOffscreenCanvas';
-import { getSpreadCanvas, releaseSpreadCanvas } from './spreadCanvas';
 
 type Layer = HdpiCanvas | HdpiOffscreenCanvas;
 

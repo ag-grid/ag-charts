@@ -198,6 +198,17 @@ export function isVersionStringAtOrAfter(currentVersion: string, minVersion: str
 }
 
 /**
+ * Whether `currentVersion` is a published release older than `minVersion`.
+ *
+ * A pre-release build (`14.2.0-beta.…`) is never below: it is a `latest`-equivalent build that already carries
+ * the feature, which is also how compare-browser-results.js treats a base. An unknown version is never below either.
+ */
+export function isReleaseBelow(currentVersion: string, minVersion: string): boolean {
+    if (currentVersion === 'unknown' || currentVersion.includes('-')) return false;
+    return !isVersionStringAtOrAfter(currentVersion, minVersion);
+}
+
+/**
  * Check if currentVersion < maxVersion (string arguments)
  */
 export function isVersionStringBefore(currentVersion: string, maxVersion: string): boolean {

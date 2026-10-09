@@ -1,11 +1,12 @@
 // @ag-skip-fws
 /* @ag-options-extract */
-import { AgCartesianChartOptions, AgCharts, VERSION } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgDropShadowOptions, VERSION } from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import {
     ChartRef,
     DataRef,
+    isVersionStringAtOrAfter,
     performAppend,
     performInitialLoad,
     performRemove,
@@ -104,6 +105,70 @@ const options: AgCartesianChartOptions = {
 
 const chartRef: ChartRef = { current: AgCharts.create(options) };
 
+type ShadowMode = 'off' | 'on' | 'spread';
+type Variants = BenchmarkConfig['testCases'][number]['variants'];
+
+// Until a series opts in to batched layer shadows, these variants time the per-shape shadow renderer, which is the
+// baseline to compare a series against once it does.
+// The shadow `spread`, and the `shadow` of candlestick and OHLC series, are first in 14.3.0. Older releases ignore them, so
+// they are skipped there, or they would do less work than this version does. Builds that still report 14.2.0 skip them too.
+const SHADOW_MIN_VERSION = '14.3.0';
+const SHADOWS: Record<'on' | 'spread', AgDropShadowOptions> = {
+    on: { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: 2, yOffset: 2, blur: 4 },
+    spread: { enabled: true, color: 'rgba(0, 0, 0, 0.5)', xOffset: 2, yOffset: 2, blur: 4, spread: 2 },
+};
+const SHADOW_LABELS: Record<'on' | 'spread', string> = { on: 'On', spread: 'On, with spread' };
+
+const shadowSeries = options.series![0] as { shadow?: AgDropShadowOptions };
+
+let shadowMode: ShadowMode = 'off';
+
+// Switches the series shadow, which is off unless set. Rebuilds the chart, outside the timing, once for each change of
+// shadow, so that a variant's iterations carry on from one another, as they do without a shadow.
+/** inScope */
+async function prepareShadow(mode: ShadowMode): Promise<void> {
+    if (mode === shadowMode) return;
+
+    shadowMode = mode;
+    if (mode === 'off') {
+        delete shadowSeries.shadow;
+    } else {
+        shadowSeries.shadow = SHADOWS[mode];
+    }
+    // Each shadow starts from the same data, because the variants before it have appended to or removed from it.
+    dataGenerator.reset();
+    dataRef.data = dataGenerator.take(INITIAL_POINTS);
+    options.data = dataRef.data;
+    chartRef.current?.destroy();
+    chartRef.current = AgCharts.create(options);
+    await chartRef.current.waitForUpdate();
+}
+
+// The variants of a test case: as given, with the series shadow off, then again with it on and with a `spread`.
+/** inScope */
+function withShadowModes(variants: Variants): Variants {
+    const withMode = (mode: ShadowMode, params?: Record<string, string>) =>
+        variants.map((variant) => ({
+            ...variant,
+            params: { ...variant.params, ...params },
+            // The later of the variant's own minimum and the one for the shadow.
+            minVersion:
+                mode !== 'off' &&
+                (variant.minVersion == null || isVersionStringAtOrAfter(SHADOW_MIN_VERSION, variant.minVersion))
+                    ? SHADOW_MIN_VERSION
+                    : variant.minVersion,
+            run: async () => {
+                await prepareShadow(mode);
+                return variant.run();
+            },
+        }));
+
+    return [
+        ...withMode('off'),
+        ...(['on', 'spread'] as const).flatMap((mode) => withMode(mode, { Shadow: SHADOW_LABELS[mode] })),
+    ];
+}
+
 /** inScope */
 async function localPerformInitialLoad(): Promise<number> {
     dataGenerator.reset();
@@ -119,39 +184,39 @@ function getBenchmarkConfig(): BenchmarkConfig {
             {
                 id: 'initial-load',
                 label: 'Initial Load',
-                variants: [
+                variants: withShadowModes([
                     {
                         params: { Operation: 'Chart Create' },
                         run: localPerformInitialLoad,
                     },
-                ],
+                ]),
             },
             {
                 id: 'append-batch',
                 label: 'Append Batch',
                 minVersion: '12.3.0',
-                variants: [
+                variants: withShadowModes([
                     {
                         params: { Operation: `Append ${BATCH_SIZE} points` },
                         run: () => performAppend(chartRef.current!, dataRef, dataGenerator, BATCH_SIZE),
                     },
-                ],
+                ]),
             },
             {
                 id: 'remove-batch',
                 label: 'Remove Batch',
                 minVersion: '12.3.0',
-                variants: [
+                variants: withShadowModes([
                     {
                         params: { Operation: `Remove ${BATCH_SIZE} points` },
                         run: () => performRemove(chartRef.current!, dataRef, BATCH_SIZE),
                     },
-                ],
+                ]),
             },
             {
                 id: 'rolling-window',
                 label: 'Rolling Window',
-                variants: [
+                variants: withShadowModes([
                     {
                         params: { 'Update Method': 'applyTransaction()' },
                         minVersion: '12.3.0',
@@ -169,7 +234,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
                         run: () =>
                             performRollingWindow(chartRef.current!, dataRef, dataGenerator, BATCH_SIZE, 'updateDelta'),
                     },
-                ],
+                ]),
             },
         ],
         config: {

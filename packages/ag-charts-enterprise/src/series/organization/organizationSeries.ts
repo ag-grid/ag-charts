@@ -18,6 +18,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    BBox,
     type BoxBounds,
     type CallbackParamRules,
     ChartUpdateType,
@@ -28,6 +29,7 @@ import {
     type NormalisedOrganizationSeriesNodeTextOptions,
     type NormalisedOrganizationSeriesOwnOptions,
     type NormalisedTextOrSegments,
+    Transformable,
     Vertex,
     boxCollides,
     boxContains,
@@ -35,6 +37,7 @@ import {
     mergeDefaults,
     toPlainText,
 } from 'ag-charts-core';
+import type { Node, Selection } from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
 import { AbstractNetworkSeries } from '../network/networkSeries';
@@ -228,12 +231,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     updateDatumSelection(
         nodeData: OrganizationDatum[],
-        datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>
+        datumSelection: Selection<OrganizationDatum, OrganizationNode>
     ) {
         datumSelection.update(nodeData);
     }
 
-    updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>) {
+    updateDatumNodes(datumSelection: Selection<OrganizationDatum, OrganizationNode>) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         datumSelection.each((node, datum) => {
@@ -301,9 +304,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         });
     }
 
-    updateLinkNodes(
-        linkSelection: _ModuleSupport.Selection<OrganizationLinkDatum, NetworkLinkNode<OrganizationLinkDatum>>
-    ) {
+    updateLinkNodes(linkSelection: Selection<OrganizationLinkDatum, NetworkLinkNode<OrganizationLinkDatum>>) {
         linkSelection.each((node, datum) => {
             const fromIndex = this.graph.findNeighbourValue(datum.from, 'datumIndex') as number;
             const toIndex = this.graph.findNeighbourValue(datum.to, 'datumIndex') as number;
@@ -321,7 +322,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         });
     }
 
-    positionDatumNode(node: OrganizationNode, bbox: _ModuleSupport.BBox, regularBBox?: _ModuleSupport.BBox) {
+    positionDatumNode(node: OrganizationNode, bbox: BBox, regularBBox?: BBox) {
         node.translationX = bbox.x;
         node.translationY = bbox.y;
 
@@ -333,7 +334,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const fullBBox = node.getFullBBox();
 
         // Add the bbox positions together to ensure the offset from expander is taken into account.
-        return new _ModuleSupport.BBox(bbox.x + fullBBox.x, bbox.y + fullBBox.y, fullBBox.width, fullBBox.height);
+        return new BBox(bbox.x + fullBBox.x, bbox.y + fullBBox.y, fullBBox.width, fullBBox.height);
     }
 
     getLinkInterpolation(
@@ -394,13 +395,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return changed;
     }
 
-    private isExpanderTarget(target: _ModuleSupport.Node<unknown> | undefined): boolean {
+    private isExpanderTarget(target: Node<unknown> | undefined): boolean {
         const Expander: number = OrganizationNodeTag.Expander;
         return target?.tag === Expander;
     }
 
     // The manager has already performed the pick; this hook only names the part it hit.
-    override getHighlightPart(target: _ModuleSupport.Node<unknown> | undefined): string | undefined {
+    override getHighlightPart(target: Node<unknown> | undefined): string | undefined {
         return this.isExpanderTarget(target) ? EXPANDER_HIGHLIGHT_PART : undefined;
     }
 
@@ -429,13 +430,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     // A pointer click toggles collapse only on the expander pill, which `clickToExpand` widens to the
     // whole card. Keyboard activations carry no pointer target, so they toggle only when it is enabled.
-    override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
+    override hasBuiltinListener(target: Node<unknown> | undefined): boolean {
         return this.isExpanderTarget(target) || this.options.node.clickToExpand;
     }
 
     // Expanding is a distinct interaction from activating a node, so the expander pill keeps its
     // clicks to itself; a card-body click still fires the node events even when it also toggles.
-    override firesUserClickListeners(target: _ModuleSupport.Node<unknown> | undefined): boolean {
+    override firesUserClickListeners(target: Node<unknown> | undefined): boolean {
         return !this.isExpanderTarget(target);
     }
 
@@ -456,7 +457,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const node = this.datumSelection.at(nextDatumIdx);
         if (!node) return;
 
-        const bounds = _ModuleSupport.Transformable.toCanvas(node, node.getFullBBox());
+        const bounds = Transformable.toCanvas(node, node.getFullBBox());
         if (!bounds?.isFinite()) return;
 
         const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
@@ -556,7 +557,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     // Exclude the expander pill from measurements — its overhang would compound into
     // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
-    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
+    protected override measureDatumNode(node: OrganizationNode): BBox {
         return node.getShapeBBox();
     }
 
@@ -564,10 +565,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     // so a drag-rect touching only the pill would wrongly pick the node.
     protected override pickNodesInBBoxPredicate() {
         const containment = this.options.selection?.containment ?? 'any';
-        return (selectionBox: BoxBounds, node: _ModuleSupport.Node): boolean => {
+        return (selectionBox: BoxBounds, node: Node): boolean => {
             // The card is the only selectable target; a node without one is never a hit.
             if (!(node instanceof OrganizationNode)) return false;
-            const cardBox = _ModuleSupport.Transformable.toCanvas(node, node.getShapeBBox());
+            const cardBox = Transformable.toCanvas(node, node.getShapeBBox());
             return containment === 'all'
                 ? boxContains(selectionBox, cardBox.x, cardBox.y, cardBox.width, cardBox.height)
                 : boxCollides(selectionBox, cardBox.x, cardBox.y, cardBox.width, cardBox.height);

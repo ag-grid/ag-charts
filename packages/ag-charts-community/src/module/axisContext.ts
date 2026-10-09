@@ -3,6 +3,8 @@ import type {
     BoxBounds,
     CanvasPoint,
     ChartAxisDirection,
+    Group,
+    Node,
     NormalisedTextOrSegments,
     Point,
     Scale,
@@ -15,9 +17,6 @@ import type {
     AgCartesianAxisPosition,
     FormatterParams,
 } from 'ag-charts-types';
-
-import type { Group } from '../scene/group';
-import type { Node } from '../scene/node';
 
 export type ContextFormatter<Params> = (
     fn: (params: Params) => NormalisedTextOrSegments | undefined,

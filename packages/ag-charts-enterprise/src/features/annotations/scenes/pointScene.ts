@@ -1,5 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { type Point, Vec2 } from 'ag-charts-core';
+import { type BBox, type Point, Vec2 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { PointDatum } from '../datum/pointDatum';
@@ -106,7 +106,7 @@ export abstract class PointScene<Datum extends PointDatum> extends AnnotationSce
         if (this.handle.containsPoint(x, y)) return 'handle';
     }
 
-    protected updateHandle(datum: Datum, point: Point, bbox?: _ModuleSupport.BBox) {
+    protected updateHandle(datum: Datum, point: Point, bbox?: BBox) {
         const { x, y } = this.getHandleCoords(datum, point, bbox);
         const styles = this.getHandleStyles(datum);
 
@@ -123,7 +123,7 @@ export abstract class PointScene<Datum extends PointDatum> extends AnnotationSce
         };
     }
 
-    protected getHandleCoords(_datum: Datum, point: Point, _bbox?: _ModuleSupport.BBox): Point {
+    protected getHandleCoords(_datum: Datum, point: Point, _bbox?: BBox): Point {
         return {
             x: point.x,
             y: point.y,

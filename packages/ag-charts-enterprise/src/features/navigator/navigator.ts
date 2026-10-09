@@ -1,9 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    type BBox,
     type BoxBounds,
     type DynamicContext,
+    type Group,
     type NormalisedNavigatorOptions,
+    type Path,
     clamp,
 } from 'ag-charts-core';
 
@@ -17,7 +20,7 @@ interface BBoxProvider {
     id: string;
     visible?: boolean;
     toCanvasBBox(): BoxBounds;
-    getBBox(): _ModuleSupport.BBox;
+    getBBox(): BBox;
 }
 
 export class Navigator extends AbstractModuleInstance {
@@ -39,8 +42,8 @@ export class Navigator extends AbstractModuleInstance {
 
     private readonly thumbBBox: BBoxProvider = {
         id: 'navigator-thumb',
-        getBBox: (): _ModuleSupport.BBox => this.track.computeVisibleRangeBBox(),
-        toCanvasBBox: (): _ModuleSupport.BBox => this.track.computeVisibleRangeBBox(),
+        getBBox: (): BBox => this.track.computeVisibleRangeBBox(),
+        toCanvasBBox: (): BBox => this.track.computeVisibleRangeBBox(),
     };
 
     protected x = 0;
@@ -100,7 +103,7 @@ export class Navigator extends AbstractModuleInstance {
     }
 
     private applyShapeOptions(
-        target: _ModuleSupport.Path,
+        target: Path,
         options: { fill?: string; fillOpacity?: number; stroke?: string; strokeWidth?: number }
     ) {
         if (options.fill != null) target.fill = options.fill;
@@ -117,7 +120,7 @@ export class Navigator extends AbstractModuleInstance {
         if (options.grip != null) target.grip = options.grip;
     }
 
-    public updateBackground(oldGroup?: _ModuleSupport.Group, newGroup?: _ModuleSupport.Group) {
+    public updateBackground(oldGroup?: Group, newGroup?: Group) {
         this.rangeSelector?.updateBackground(oldGroup, newGroup);
     }
 

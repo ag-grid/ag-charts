@@ -1,6 +1,6 @@
+import type { NodeWithOpacity, Selection } from 'ag-charts-core';
+
 import { staticFromToMotion } from '../../motion/fromToMotion';
-import type { NodeWithOpacity } from '../../scene/node';
-import type { Selection } from '../../scene/selection';
 import type { AnimationManager } from '../interaction/animationManager';
 
 export function seriesLabelFadeInAnimation<T>(

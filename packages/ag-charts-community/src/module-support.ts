@@ -275,20 +275,8 @@ export type { ExtraOpts, ApplyFn, FromToFns } from './motion/fromToMotion';
 export { pathMotion } from './motion/pathMotion';
 export { DOMManager } from './dom/domManager';
 export { DOMElementProxy } from './dom/domElementProxy';
-export { QuadtreeNearest } from './scene/util/quadtree';
 export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';
 
-export { Node, PointerEvents } from './scene/node';
-export type { RenderContext } from './scene/node';
-export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
-export { Selection, type SelectionInterface } from './scene/selection';
-export { type GradientParams } from './scene/gradient/gradient';
-export { getColorStops } from './scene/gradient/stops';
-export { sectorBox } from './scene/util/sector';
-export { drawCorner } from './scene/util/corner';
-export type { Corner } from './scene/util/corner';
-export type { ShapeLineCap, ShapeColor } from './scene/shape/shape';
-export { Text, RotatableText, TransformableText } from './scene/shape/text';
 export {
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
@@ -297,25 +285,10 @@ export {
     resolvePlacementLabelBoxExtent,
 } from './chart/label';
 export { Marker } from './chart/marker/marker';
-export { SectorBox } from './scene/sectorBox';
-export { Image } from './scene/image';
-export { ExtendedPath2D } from './scene/extendedPath2D';
 
 export const motion: typeof fromToMotion & typeof resetMotion = { ...fromToMotion, ...resetMotion };
 export type { NodeUpdateState, FromToMotionPropFn } from './motion/fromToMotion';
 
-export { BBox } from './scene/bbox';
-export { Group, TranslatableGroup, ScalableGroup, TransformableGroup } from './scene/group';
-export { Scene } from './scene/scene';
-export { Arc } from './scene/shape/arc';
-export { Line } from './scene/shape/line';
-export { Range } from './scene/shape/range';
-export { Path } from './scene/shape/path';
-export { SegmentedPath, type Segment } from './scene/shape/segmentedPath';
-export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialColumnShape';
-export { Rect, clippedRoundRect, type CornerRadii } from './scene/shape/rect';
-export { Sector } from './scene/shape/sector';
-export { Shape, type CanvasContext } from './scene/shape/shape';
 export { Menu } from './components/menu/menu';
 export type { MenuItem } from './components/menu/menu';
 export { AnchoredPopover } from './components/popover/anchoredPopover';

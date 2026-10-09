@@ -1,5 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type Point, Vec2 } from 'ag-charts-core';
+import { type Bounds4, type Point, type TransformableText, Vec2 } from 'ag-charts-core';
 
 import type { ChannelTextDatum, LineTextDatum } from '../annotationDatum';
 import type { CollidableLine } from '../scenes/collidableLineScene';
@@ -136,7 +135,7 @@ function positionAndAlignment(
 }
 
 function setProperties(
-    scene: _ModuleSupport.TransformableText,
+    scene: TransformableText,
     text: string,
     textProperties: LineTextDatum | ChannelTextDatum,
     point: Point,

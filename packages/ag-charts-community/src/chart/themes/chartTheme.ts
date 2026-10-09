@@ -163,7 +163,7 @@ export class ChartTheme {
             buttonActiveBorder: { color: { $ref: 'accentColor' } },
             buttonActiveTextColor: { $ref: 'accentColor' },
             buttonDisabledBackgroundColor: {
-                $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
+                $mix: [{ $ref: 'buttonBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
             },
             buttonDisabledBorder: { $ref: 'buttonBorder' },
             buttonDisabledTextColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'buttonTextColor' }, 0.5] },
@@ -261,6 +261,14 @@ export class ChartTheme {
                 },
                 width: { $ref: 'scrollbarThumbBorder.width' },
             },
+
+            navigatorTrackBackgroundColor: { $ref: 'foregroundColor' },
+            navigatorTrackBorder: { color: { $ref: 'borderColor' }, width: { $ref: 'borderWidth' } },
+            navigatorTrackBorderRadius: { $ref: 'borderRadius' },
+            navigatorThumbBackgroundColor: 'transparent',
+            navigatorHandleBackgroundColor: { $ref: 'chartBackgroundColor' },
+            navigatorHandleBorder: { color: { $ref: 'borderColor' }, width: { $ref: 'borderWidth' } },
+            navigatorHandleBorderRadius: { $ref: 'borderRadius' },
 
             seriesLabelBorder: false,
             seriesLabelBorderRadius: { $ref: 'borderRadius' },

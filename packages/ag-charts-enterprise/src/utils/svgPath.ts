@@ -1,6 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
-const { Path, Translatable } = _ModuleSupport;
+import { Path, Translatable } from 'ag-charts-core';
 
 export class SvgPath<D = any> extends Path<D> {
     private _d: string = '';

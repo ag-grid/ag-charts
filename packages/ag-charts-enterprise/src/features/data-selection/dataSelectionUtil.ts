@@ -1,6 +1,6 @@
 import type { AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AreExact, type DragWidgetEvent } from 'ag-charts-core';
+import { type AreExact, BBox, type DragWidgetEvent, type Group, Transformable } from 'ag-charts-core';
 
 import type { DataSelectionChangeMap } from './dataSelectionChangeMap';
 import type { DataSetSelection } from './dataSetSelection';
@@ -10,7 +10,6 @@ type SelectionChangesDeltaOnly = { countDelta: number; items?: never };
 
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = _ModuleSupport.DataSet<unknown>;
-type Group = _ModuleSupport.Group<unknown>;
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 
@@ -35,11 +34,11 @@ export function toStartAndLength(start: number, end: number): [number, number] {
     return [start, end - start];
 }
 
-export function toCanvasBBox(seriesRoot: Group, event1: DragWidgetEvent, event2: DragWidgetEvent): _ModuleSupport.BBox {
+export function toCanvasBBox(seriesRoot: Group, event1: DragWidgetEvent, event2: DragWidgetEvent): BBox {
     const [x, width] = toStartAndLength(event1.currentX, event2.currentX);
     const [y, height] = toStartAndLength(event1.currentY, event2.currentY);
-    const seriesBounds = new _ModuleSupport.BBox(x, y, width, height);
-    return _ModuleSupport.Transformable.toCanvas(seriesRoot, seriesBounds);
+    const seriesBounds = new BBox(x, y, width, height);
+    return Transformable.toCanvas(seriesRoot, seriesBounds);
 }
 
 export function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boolean; metaKey: boolean } }): boolean {

@@ -1,5 +1,11 @@
 import {
+    BBox,
+    Group,
+    PointerEvents,
+    Range,
     type TextMeasurer,
+    Transformable,
+    TransformableText,
     cachedTextMeasurer,
     clampArray,
     createId,
@@ -25,12 +31,6 @@ import type {
 import type { AgCartesianAxisPosition, AgCrossLineLabelPosition, AgCrossLineListeners } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
-import { PointerEvents } from '../../scene/node';
-import { Range } from '../../scene/shape/range';
-import { TransformableText } from '../../scene/shape/text';
-import { Transformable } from '../../scene/transformable';
 import { rangeAlignment } from '../rangeAlignment';
 import { bandRangeExpansion } from '../scaleValue';
 import { type Anchor, type AnchorDirection, resolveCrossLinePlacements } from './cartesianCrossLinePlacement';

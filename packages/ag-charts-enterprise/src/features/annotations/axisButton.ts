@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type {
+    BBox,
     ClickWidgetEvent,
     CurrentPoint,
     DragWidgetEvent,
@@ -26,7 +27,7 @@ export class AxisButton extends AbstractModuleInstance {
         private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
         private readonly axisCtx: _ModuleSupport.AxisContext & { snapToGroup: boolean },
         private readonly onButtonClick: (coords?: Point) => void,
-        private seriesRect: _ModuleSupport.BBox
+        private seriesRect: BBox
     ) {
         super();
 
@@ -50,7 +51,7 @@ export class AxisButton extends AbstractModuleInstance {
         );
     }
 
-    update(seriesRect: _ModuleSupport.BBox, padding: number) {
+    update(seriesRect: BBox, padding: number) {
         this.seriesRect = seriesRect;
         this.padding = padding;
     }

@@ -1,4 +1,5 @@
 import type {
+    BBox,
     BoxBounds,
     CallbackParamRules,
     DomainWithMetadata,
@@ -13,10 +14,16 @@ import type {
     Point,
     PointLabelDatum,
     PositionedCandidateResolver,
+    QuadtreeNearest,
     RequireOptional,
+    Selection,
+    Text,
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
+    Group,
+    PointerEvents,
+    Rect,
     addValues,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
@@ -57,13 +64,6 @@ import type {
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
-import { PointerEvents } from '../../../scene/node';
-import type { Selection } from '../../../scene/selection';
-import { Rect } from '../../../scene/shape/rect';
-import type { Text } from '../../../scene/shape/text';
-import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { ChartAxis } from '../../chartAxis';
 import { addAccumulated, area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';

@@ -1,8 +1,10 @@
 import {
+    BBox,
     type BoxBounds,
     type DynamicContext,
     type NormalisedTextOrSegments,
     type StrictHTMLElement,
+    Transformable,
     createElementId,
     toPlainText,
 } from 'ag-charts-core';
@@ -12,14 +14,12 @@ import type {
     GroupWidget,
     ListWidget,
     MouseWidgetEvent,
+    Node,
+    Selection,
     SwitchWidget,
 } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
-import type { Node } from '../../scene/node';
-import type { Selection } from '../../scene/selection';
-import { Transformable } from '../../scene/transformable';
 import type { Page } from '../gridLayout';
 import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';

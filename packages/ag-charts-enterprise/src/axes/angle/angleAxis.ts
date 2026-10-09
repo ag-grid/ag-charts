@@ -2,13 +2,20 @@ import type { AgAngleAxisLabelOrientation } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     type AxisID,
+    BBox,
     ChartAxisDirection,
     type DynamicContext,
+    Line,
     type NormalisedAngleAxisLabelOptions,
     type NormalisedBaseAngleAxisOptions,
     type NormalisedTextOrSegments,
+    Path,
+    RotatableText,
     type Scale,
     type ScaleTickParams,
+    Selection,
+    Transformable,
+    TransformableGroup,
     type WrapOptions,
     countFractionDigits,
     isNumberEqual,
@@ -18,7 +25,6 @@ import {
     wrapTextOrSegments,
 } from 'ag-charts-core';
 
-const { Path, RotatableText, Transformable, BBox, Selection, Line } = _ModuleSupport;
 export interface AngleAxisLabelDatum {
     text: NormalisedTextOrSegments;
     x: number;
@@ -27,7 +33,7 @@ export interface AngleAxisLabelDatum {
     rotation: number;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
-    box: _ModuleSupport.BBox | undefined;
+    box: BBox | undefined;
 }
 
 interface AngleAxisTickDatum<TDatum> {
@@ -41,12 +47,12 @@ export abstract class AngleAxis<
     TOptions extends NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions> =
         NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions>,
 > extends _ModuleSupport.PolarAxis<TScale, any, TOptions> {
-    protected tickLineGroupSelection = Selection.select<_ModuleSupport.Line<AngleAxisTickDatum<TDomain>>>(
+    protected tickLineGroupSelection = Selection.select<Line<AngleAxisTickDatum<TDomain>>>(
         this.tickLineGroup,
         Line,
         false
     );
-    protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line<AngleAxisTickDatum<TDomain>>>(
+    protected gridLineGroupSelection = Selection.select<Line<AngleAxisTickDatum<TDomain>>>(
         this.gridLineGroup,
         Line,
         false
@@ -55,8 +61,8 @@ export abstract class AngleAxis<
     protected labelData: AngleAxisLabelDatum[] = [];
     protected tickData: AngleAxisTickDatum<TDomain>[] = [];
 
-    protected radiusLineGroup = this.axisGroup.appendChild(new _ModuleSupport.TransformableGroup());
-    protected radiusLine: _ModuleSupport.Path = this.radiusLineGroup.appendChild(new Path());
+    protected radiusLineGroup = this.axisGroup.appendChild(new TransformableGroup());
+    protected radiusLine: Path = this.radiusLineGroup.appendChild(new Path());
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>, id: AxisID, scale: TScale, options: TOptions) {
         super(moduleCtx, id, scale, options);
@@ -90,7 +96,7 @@ export abstract class AngleAxis<
         rawTickCount: number | undefined;
         fractionDigits: number;
         timeInterval: undefined;
-        bbox: _ModuleSupport.BBox;
+        bbox: BBox;
     } {
         const { nice, scale } = this;
 
@@ -337,7 +343,7 @@ export abstract class AngleAxis<
     protected createLabelNodeData(
         ticks: any[],
         options: { hideWhenNecessary: boolean },
-        seriesRect: _ModuleSupport.BBox
+        seriesRect: BBox
     ): AngleAxisLabelDatum[] {
         const label = this.options.label;
         const { gridLength: radius, scale } = this;
@@ -386,8 +392,7 @@ export abstract class AngleAxis<
                 tempText.rotationCenterY = y;
             }
 
-            let box: _ModuleSupport.BBox | undefined =
-                rotation === 0 ? tempText.getBBox() : Transformable.toCanvas(tempText);
+            let box: BBox | undefined = rotation === 0 ? tempText.getBBox() : Transformable.toCanvas(tempText);
             if (box != null && options.hideWhenNecessary && rotation === 0) {
                 const overflowLeft = seriesLeft - box.x;
                 const overflowRight = box.x + box.width - seriesRight;
@@ -422,10 +427,10 @@ export abstract class AngleAxis<
 
     protected abstract avoidLabelCollisions(labelData: AngleAxisLabelDatum[]): void;
 
-    override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: _ModuleSupport.BBox) {
+    override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
         this.labelData = this.createLabelNodeData(this.tickData, options, seriesRect);
 
-        const textBoxes = this.labelData.map(({ box }) => box).filter((box): box is _ModuleSupport.BBox => box != null);
+        const textBoxes = this.labelData.map(({ box }) => box).filter((box): box is BBox => box != null);
 
         if (!this.options.label.enabled || textBoxes.length === 0) {
             return null;

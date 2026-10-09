@@ -1,8 +1,16 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import {
+    BBox,
+    ExtendedPath2D,
+    Group,
     type MeasuredSegment,
     type NormalisedPaddingOptions,
     type NormalisedTextOrSegments,
+    Path,
+    Rect,
+    Rotatable,
+    Text,
+    Translatable,
+    TranslatableGroup,
     type WrapOptions,
     cachedTextMeasurer,
     clipLines,
@@ -87,7 +95,7 @@ function hasVisibleContent(text: NormalisedTextOrSegments | MeasuredSegment[]): 
 // OPTIMIZATION: an unbounded card needs no vertical budget, so skip measuring the tier.
 function remainingTextHeight(
     maxHeight: number,
-    node: _ModuleSupport.Text | undefined,
+    node: Text | undefined,
     tierStyles: NormalisedOrganizationNodeTextStyle
 ): number {
     if (node == null || !Number.isFinite(maxHeight)) return maxHeight;
@@ -126,13 +134,13 @@ function wrapTextTier(
 
 // The expander pill straddles the card's edge: the exclusion is punched out of the border only, so
 // the card's fill stays continuous under a translucent pill rather than becoming a hole.
-class OrganizationCardRect extends _ModuleSupport.Rect {
-    private exclusion?: _ModuleSupport.BBox;
+class OrganizationCardRect extends Rect {
+    private exclusion?: BBox;
     private exclusionCornerRadius = 0;
-    private readonly exclusionPath = new _ModuleSupport.ExtendedPath2D();
+    private readonly exclusionPath = new ExtendedPath2D();
     private exclusionPathKey = '';
 
-    setStrokeExclusion(exclusion: _ModuleSupport.BBox | undefined, cornerRadius: number) {
+    setStrokeExclusion(exclusion: BBox | undefined, cornerRadius: number) {
         const unchanged =
             exclusion == null
                 ? this.exclusion == null
@@ -160,7 +168,7 @@ class OrganizationCardRect extends _ModuleSupport.Rect {
 
     // Winding-rule hole: card bounds anti-clockwise, pill footprint clockwise, so the nonzero rule
     // keeps everything but the pill.
-    private getExclusionPath(exclusion: _ModuleSupport.BBox) {
+    private getExclusionPath(exclusion: BBox) {
         const { x, y, width, height, strokeWidth, exclusionPath, exclusionCornerRadius } = this;
         const key = [
             x,
@@ -202,15 +210,15 @@ class OrganizationCardRect extends _ModuleSupport.Rect {
     }
 }
 
-export class OrganizationNode extends _ModuleSupport.TranslatableGroup<OrganizationDatum> {
+export class OrganizationNode extends TranslatableGroup<OrganizationDatum> {
     // Field initialisation order is the scene-graph z-order: card border below, `contentGroup`
     // above it, and the expander pill appended later in `updateExpanderNode` so it stays on top.
     private readonly shapeNode = this.appendChild(new OrganizationCardRect({ tag: OrganizationNodeTag.Card }));
-    private readonly contentGroup = this.appendChild(new _ModuleSupport.Group());
-    private imageNode?: _ModuleSupport.Rect;
-    private titleNode?: _ModuleSupport.Text;
-    private subtitleNode?: _ModuleSupport.Text;
-    private labelNodes?: (_ModuleSupport.Text | undefined)[];
+    private readonly contentGroup = this.appendChild(new Group());
+    private imageNode?: Rect;
+    private titleNode?: Text;
+    private subtitleNode?: Text;
+    private labelNodes?: (Text | undefined)[];
 
     private expanderNode?: OrganizationExpanderNode;
 
@@ -299,7 +307,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         layoutScenesColumn(columnScenes, styles.padding.top, columnGaps);
         layoutScenesRow(rowScenes, styles.padding.left, rowGaps);
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(styles.padding); // TODO: add stroke width by side
+        const bbox = Group.computeChildrenBBox(rowScenes.flat()).grow(styles.padding); // TODO: add stroke width by side
 
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
@@ -311,7 +319,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.intrinsicCardSize = { width: bbox.width, height: bbox.height };
     }
 
-    updateBBox(bbox: _ModuleSupport.BBox, direction: AgNetworkSeriesTreeLayoutDirection) {
+    updateBBox(bbox: BBox, direction: AgNetworkSeriesTreeLayoutDirection) {
         this.shapeNode.width = bbox.width;
         this.shapeNode.height = bbox.height;
 
@@ -341,7 +349,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             }
 
             this.shapeNode.setStrokeExclusion(
-                new _ModuleSupport.BBox(
+                new BBox(
                     this.expanderNode.translationX,
                     this.expanderNode.translationY,
                     expanderBBox.width,
@@ -358,12 +366,10 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         const overflows =
             intrinsic != null &&
             (intrinsic.width > bbox.width + CLIP_EPSILON || intrinsic.height > bbox.height + CLIP_EPSILON);
-        this.contentGroup.setClipRectCanvasSpace(
-            overflows ? new _ModuleSupport.BBox(0, 0, bbox.width, bbox.height) : undefined
-        );
+        this.contentGroup.setClipRectCanvasSpace(overflows ? new BBox(0, 0, bbox.width, bbox.height) : undefined);
     }
 
-    realign(bbox: _ModuleSupport.BBox) {
+    realign(bbox: BBox) {
         const styles = this.appliedStyles;
         if (!styles) return;
 
@@ -389,7 +395,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                 ? bbox.width - styles.padding.right - imageOffset
                 : bbox.width - styles.padding.right;
 
-        const alignTextNode = (node: _ModuleSupport.Text, textAlign: TextAlign) => {
+        const alignTextNode = (node: Text, textAlign: TextAlign) => {
             const resolvedTextAlign = resolveTextAlign(textAlign, this.isRtl);
             // Set the alignment before measuring: the text bbox is anchored off it.
             node.textAlign = resolvedTextAlign;
@@ -405,14 +411,14 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
     }
 
-    getShapeBBox(): _ModuleSupport.BBox {
-        return new _ModuleSupport.BBox(0, 0, this.shapeNode.width, this.shapeNode.height);
+    getShapeBBox(): BBox {
+        return new BBox(0, 0, this.shapeNode.width, this.shapeNode.height);
     }
 
-    getFullBBox(): _ModuleSupport.BBox {
+    getFullBBox(): BBox {
         const shapeBBox = this.getShapeBBox();
         if (!this.expanderNode) return shapeBBox;
-        return _ModuleSupport.BBox.merge([shapeBBox, this.expanderNode.getBBox()]);
+        return BBox.merge([shapeBBox, this.expanderNode.getBBox()]);
     }
 
     private updateShapeNode(styles: NormalisedOrganizationNodeStyle) {
@@ -428,7 +434,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             return;
         }
 
-        this.imageNode ??= this.contentGroup.appendChild(new _ModuleSupport.Rect());
+        this.imageNode ??= this.contentGroup.appendChild(new Rect());
 
         this.imageNode.fill = {
             type: 'image',
@@ -460,7 +466,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             return;
         }
 
-        this.titleNode ??= this.contentGroup.appendChild(new _ModuleSupport.Text());
+        this.titleNode ??= this.contentGroup.appendChild(new Text());
         this.titleNode.text = wrapTextTier(text, styles.title, textMaxWidth, textMaxHeight);
         applyTextStyles(this.titleNode, { ...styles.title, textAlign: 'left' });
         applyTextBoxingStyles(this.titleNode, styles.title);
@@ -478,7 +484,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             return;
         }
 
-        this.subtitleNode ??= this.contentGroup.appendChild(new _ModuleSupport.Text());
+        this.subtitleNode ??= this.contentGroup.appendChild(new Text());
         this.subtitleNode.text = wrapTextTier(text, styles.subtitle, textMaxWidth, textMaxHeight);
         applyTextStyles(this.subtitleNode, { ...styles.subtitle, textAlign: 'left' });
         applyTextBoxingStyles(this.subtitleNode, styles.subtitle);
@@ -502,7 +508,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                 index++;
                 continue;
             }
-            this.labelNodes[index] ??= this.contentGroup.appendChild(new _ModuleSupport.Text());
+            this.labelNodes[index] ??= this.contentGroup.appendChild(new Text());
             this.labelNodes[index]!.text = wrapTextTier(labelText, styles.labels[index], textMaxWidth, textMaxHeight);
             applyTextStyles(this.labelNodes[index]!, { ...styles.labels[index], textAlign: 'left' });
             applyTextBoxingStyles(this.labelNodes[index]!, styles.labels[index]);
@@ -601,11 +607,11 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 }
 
-class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
+class OrganizationExpanderNode extends TranslatableGroup {
     override name = 'organization-node-expander';
 
-    private shapeNode?: _ModuleSupport.Rect;
-    private countNode?: _ModuleSupport.Text;
+    private shapeNode?: Rect;
+    private countNode?: Text;
     private chevronNode?: ChevronPath;
 
     // Read back off the painted pill rather than the style, so the card's cut-out cannot disagree
@@ -621,7 +627,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         direction: AgNetworkSeriesTreeLayoutDirection,
         styles: NormalisedOrganizationNodeStyle
     ) {
-        this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect({ tag: OrganizationNodeTag.Expander }));
+        this.shapeNode ??= this.appendChild(new Rect({ tag: OrganizationNodeTag.Expander }));
 
         if (expanderText == '') {
             this.removeCountNode();
@@ -635,7 +641,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     }
 
     private updateCountNode(expanderText: NormalisedTextOrSegments, styles: NormalisedOrganizationNodeStyle) {
-        this.countNode ??= this.appendChild(new _ModuleSupport.Text({ tag: OrganizationNodeTag.Expander }));
+        this.countNode ??= this.appendChild(new Text({ tag: OrganizationNodeTag.Expander }));
         this.countNode.text = expanderText;
 
         this.countNode.y = styles.expander.padding.top;
@@ -683,7 +689,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         );
     }
 
-    private updateShapeNode(bbox: _ModuleSupport.BBox, styles: NormalisedOrganizationNodeStyle) {
+    private updateShapeNode(bbox: BBox, styles: NormalisedOrganizationNodeStyle) {
         if (!this.shapeNode) return;
 
         this.shapeNode.x = 0;
@@ -728,7 +734,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
             this.chevronNode.translationY = styles.expander.padding.top + (countHeight - chevronHeight) / 2;
         }
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox(nodes).grow(padding);
+        const bbox = Group.computeChildrenBBox(nodes).grow(padding);
 
         // Fix the height of the expander when there is no count node, since the chevron is smaller than the text.
         if (this.countNode == null) {
@@ -739,7 +745,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     }
 }
 
-class ChevronPath extends _ModuleSupport.Rotatable(_ModuleSupport.Translatable(_ModuleSupport.Path)) {
+class ChevronPath extends Rotatable(Translatable(Path)) {
     update(
         width: number,
         height: number,

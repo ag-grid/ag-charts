@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type BoxBounds, type Point, Vec4 } from 'ag-charts-core';
+import { type Bounds4, type BoxBounds, Group, Line, type Point, Rect, Text, Vec4 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { type PositionedScene, layoutScenesColumn, layoutScenesRow } from '../../../utils/sceneLayout';
@@ -13,17 +13,17 @@ export interface Statistics {
     volume?: AgNumericValue;
 }
 
-export class MeasurerStatisticsScene extends _ModuleSupport.Group {
+export class MeasurerStatisticsScene extends Group {
     override name = 'MeasurerStatisticsScene';
 
-    private readonly background = new _ModuleSupport.Rect();
-    private readonly dateRangeBarsText = new _ModuleSupport.Text();
-    private readonly dateRangeDivider = new _ModuleSupport.Line();
-    private readonly dateRangeValueText = new _ModuleSupport.Text();
-    private readonly priceRangeValueText = new _ModuleSupport.Text();
-    private readonly priceRangeDivider = new _ModuleSupport.Line();
-    private readonly priceRangePercentageText = new _ModuleSupport.Text();
-    private readonly volumeText = new _ModuleSupport.Text();
+    private readonly background = new Rect();
+    private readonly dateRangeBarsText = new Text();
+    private readonly dateRangeDivider = new Line();
+    private readonly dateRangeValueText = new Text();
+    private readonly priceRangeValueText = new Text();
+    private readonly priceRangeDivider = new Line();
+    private readonly priceRangePercentageText = new Text();
+    private readonly volumeText = new Text();
 
     private readonly volumeFormatter = new Intl.NumberFormat('en-US', {
         notation: 'compact',
@@ -59,7 +59,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
 
         const scenes = this.updateStatistics(datum, stats, anchor, context.localeManager);
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox(scenes.flat());
+        const bbox = Group.computeChildrenBBox(scenes.flat());
         const padding = 10;
         bbox.grow(padding);
 
@@ -187,7 +187,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         // Reposition center and below the anchor
         for (const scene of scenes) {
             if (Array.isArray(scene)) {
-                const rowWidth = _ModuleSupport.Group.computeChildrenBBox(scene).width;
+                const rowWidth = Group.computeChildrenBBox(scene).width;
                 for (const scene_ of scene) {
                     layoutAddX(scene_, offsetX - rowWidth / 2);
                     layoutAddY(scene_, offsetY);

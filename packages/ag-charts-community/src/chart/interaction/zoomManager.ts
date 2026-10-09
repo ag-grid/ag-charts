@@ -1,5 +1,6 @@
 import type {
     AxisID,
+    BBox,
     BoxBounds,
     CartesianAxisDirection,
     DeepReadonly,
@@ -49,7 +50,6 @@ import type {
     ZoomMementoRange,
 } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { BBox } from '../../scene/bbox';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 

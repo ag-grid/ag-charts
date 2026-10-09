@@ -1,13 +1,16 @@
 import { type AgCartesianAxisPosition, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BBox,
     ChartAxisDirection,
     ChartUpdateType,
     type DynamicContext,
     type FillStrokeMorph,
+    Group,
     type Normalised,
     type NormalisedScrollbarOptions,
     type NormalisedScrollbarOrientationOptions,
+    Rect,
     UNIT_MAX,
     UNIT_MIN,
     ZIndexMap,
@@ -20,7 +23,7 @@ import type { AgScrollbarThumbStyle, AgScrollbarTrackStyle } from 'ag-charts-typ
 import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
 import { ScrollbarDOMProxy } from './scrollbarDOMProxy';
 
-const { BBox, Group, Rect, LayoutElement, InteractionState } = _ModuleSupport;
+const { LayoutElement, InteractionState } = _ModuleSupport;
 
 type ScrollbarOrientation = 'horizontal' | 'vertical';
 
@@ -33,12 +36,12 @@ type NormalisedScrollbarThumbStyle = Normalised<
 
 interface ScrollbarOrientationState {
     orientation: ScrollbarOrientation;
-    group: _ModuleSupport.Group;
-    track: _ModuleSupport.Rect;
-    thumb: _ModuleSupport.Rect;
+    group: Group;
+    track: Rect;
+    thumb: Rect;
     dom: ScrollbarDOMProxy;
     properties: NormalisedScrollbarOrientationOptions;
-    layoutRect?: _ModuleSupport.BBox;
+    layoutRect?: BBox;
     position: AgCartesianAxisPosition;
     positionHasAxis: boolean;
     axisId?: string;
@@ -50,7 +53,7 @@ const SCROLLING_MODE = 'pan';
 
 export class Scrollbar extends AbstractModuleInstance {
     private readonly state: Record<ScrollbarOrientation, ScrollbarOrientationState>;
-    private seriesRect?: _ModuleSupport.BBox;
+    private seriesRect?: BBox;
 
     private readonly scrollPanner = new ZoomScrollPanner();
 
@@ -225,7 +228,7 @@ export class Scrollbar extends AbstractModuleInstance {
         state: ScrollbarOrientationState,
         orientation: ScrollbarOrientation,
         event: _ModuleSupport.LayoutCompleteEvent
-    ): _ModuleSupport.BBox | undefined {
+    ): BBox | undefined {
         const {
             properties: { thickness, spacing },
             position,
@@ -278,7 +281,7 @@ export class Scrollbar extends AbstractModuleInstance {
         }
     }
 
-    private updateTrack(state: ScrollbarOrientationState, bounds: _ModuleSupport.BBox) {
+    private updateTrack(state: ScrollbarOrientationState, bounds: BBox) {
         state.track.x = bounds.x;
         state.track.y = bounds.y;
         state.track.width = bounds.width;
@@ -287,7 +290,7 @@ export class Scrollbar extends AbstractModuleInstance {
         state.dom.updateBounds(bounds);
     }
 
-    private updateThumb(state: ScrollbarOrientationState, track: _ModuleSupport.BBox) {
+    private updateThumb(state: ScrollbarOrientationState, track: BBox) {
         const { min, max } = this.getZoomRange(state.orientation);
         const span = clamp(0, max - min, 1);
         const show = this.updateVisibility(state, span);

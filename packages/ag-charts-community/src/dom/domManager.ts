@@ -1,5 +1,6 @@
 import {
     AgDocument,
+    BBox,
     BaseManager,
     type ElementSize,
     GuardedElement,
@@ -24,7 +25,6 @@ import {
 import type { AgChartAllThemeParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../core/eventsHub';
-import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { DOMElementProxy, type DeferredMode } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';

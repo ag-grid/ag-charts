@@ -4,6 +4,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    BBox,
     type CallbackParamRules,
     type DynamicContext,
     type FontOptions,
@@ -11,14 +12,17 @@ import {
     type NormalisedSankeySeriesNodeOptions,
     type NormalisedSankeySeriesNodeStyle,
     type NormalisedSankeySeriesOwnOptions,
+    Rect,
     type RequireOptional,
     type TextMeasurer,
+    Transformable,
     cachedTextMeasurer,
     fitLabelTextAutoSize,
     fontWithSize,
     mergeDefaults,
     toPlainText,
 } from 'ag-charts-core';
+import type { Path, Selection, TransformableText } from 'ag-charts-core';
 import type { OverflowStrategy } from 'ag-charts-types';
 
 import { type FlowLinkDatumIndex, type FlowNodeDatumIndex, toFlowNodeOffset } from '../flow-proportion/flowDatumIndex';
@@ -30,7 +34,7 @@ import {
 import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
 import { SankeyLink, type SankeyLinkNodeEdge } from './sankeyLink';
 
-const { Transformable, SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles, Rect, BBox } = _ModuleSupport;
+const { SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles } = _ModuleSupport;
 
 interface SankeyNodeDatum extends FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum> {
     size: number;
@@ -115,7 +119,7 @@ export class SankeySeries extends FlowProportionSeries<
     SankeyLinkDatum,
     SankeyNodeLabelDatum,
     NormalisedSankeySeriesOwnOptions,
-    _ModuleSupport.Rect<SankeyNodeDatum>,
+    Rect<SankeyNodeDatum>,
     SankeyLink<SankeyLinkDatum>
 > {
     static override readonly className = 'SankeySeries';
@@ -855,20 +859,14 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected updateLabelSelection(opts: {
         labelData: SankeyNodeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<
-            SankeyNodeLabelDatum,
-            _ModuleSupport.TransformableText<SankeyNodeLabelDatum>
-        >;
+        labelSelection: Selection<SankeyNodeLabelDatum, TransformableText<SankeyNodeLabelDatum>>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<
-            SankeyNodeLabelDatum,
-            _ModuleSupport.TransformableText<SankeyNodeLabelDatum>
-        >;
+        labelSelection: Selection<SankeyNodeLabelDatum, TransformableText<SankeyNodeLabelDatum>>;
     }) {
         const activeHighlightDatum = this.getHighlightedDatum();
         opts.labelSelection.each((label, datum) => {
@@ -910,7 +908,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected updateNodeSelection(opts: {
         nodeData: SankeyNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<SankeyNodeDatum, _ModuleSupport.Rect<SankeyNodeDatum>>;
+        datumSelection: Selection<SankeyNodeDatum, Rect<SankeyNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.type, datum.id));
     }
@@ -1003,7 +1001,7 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected updateNodeNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<SankeyNodeDatum, _ModuleSupport.Rect<SankeyNodeDatum>>;
+        datumSelection: Selection<SankeyNodeDatum, Rect<SankeyNodeDatum>>;
         isHighlight: boolean;
         focusedDatum?: SankeyNodeDatum | SankeyLinkDatum;
     }) {
@@ -1037,7 +1035,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected updateLinkSelection(opts: {
         nodeData: SankeyLinkDatum[];
-        datumSelection: _ModuleSupport.Selection<SankeyLinkDatum, SankeyLink<SankeyLinkDatum>>;
+        datumSelection: Selection<SankeyLinkDatum, SankeyLink<SankeyLinkDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
             createDatumId(datum.type, datum.datumIndex, datum.fromNode.id, datum.toNode.id)
@@ -1109,7 +1107,7 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected updateLinkNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<SankeyLinkDatum, SankeyLink<SankeyLinkDatum>>;
+        datumSelection: Selection<SankeyLinkDatum, SankeyLink<SankeyLinkDatum>>;
         isHighlight: boolean;
         focusedDatum?: SankeyNodeDatum | SankeyLinkDatum;
     }) {
@@ -1139,9 +1137,7 @@ export class SankeySeries extends FlowProportionSeries<
         });
     }
 
-    protected computeFocusBounds(
-        node: _ModuleSupport.Rect | SankeyLink
-    ): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
+    protected computeFocusBounds(node: Rect | SankeyLink): BBox | Path | undefined {
         if (node instanceof Rect) {
             const { x, y, width, height } = node;
             const bbox = new BBox(x, y, width, height);

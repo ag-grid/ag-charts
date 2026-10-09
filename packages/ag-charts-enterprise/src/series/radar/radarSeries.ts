@@ -7,19 +7,24 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    BBox,
     type CallbackParam,
     ChartAxisDirection,
     type DeepPartial,
     type DomainWithMetadata,
     type DynamicContext,
+    Group,
     type NormalisedRadarSeriesMarkerOptions,
     type NormalisedRadarSeriesOwnOptions,
     type NormalisedSeriesMarkerStyle,
     type NormalisedSeriesOptions,
     type NormalisedTextOrSegments,
+    Path,
     type Point,
     type RequireOptional,
+    Selection,
     type SizedPoint,
+    Text,
     extent,
     fitLabelText,
     isFiniteNumber,
@@ -46,11 +51,6 @@ const {
     resetLabelFn,
     animationValidation,
     computeMarkerFocusBounds,
-    BBox,
-    Group,
-    Path,
-    Selection,
-    Text,
     Marker,
     updateLabelNode,
     getMarkerStyles,
@@ -147,7 +147,7 @@ export abstract class RadarSeries<
     }
 
     private readonly lineGroup = this.contentGroup.appendChild(new Group<boolean>({ name: 'radar-line' }));
-    protected lineSelection = Selection.select<_ModuleSupport.Path<boolean>>(this.lineGroup, Path<boolean>);
+    protected lineSelection = Selection.select<Path<boolean>>(this.lineGroup, Path<boolean>);
 
     protected resetInvalidToZero: boolean = false;
     private hideWithSize0 = false;
@@ -356,7 +356,7 @@ export abstract class RadarSeries<
         };
     }
 
-    update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
+    update({ seriesRect }: { seriesRect?: BBox }) {
         const resize = this.checkResize(seriesRect);
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -498,7 +498,7 @@ export abstract class RadarSeries<
     };
 
     protected updateDatumStyles(
-        selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
+        selection: Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean
     ) {
         const { hideWithSize0 } = this;
@@ -529,7 +529,7 @@ export abstract class RadarSeries<
     }
 
     protected updateMarkers(
-        selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
+        selection: Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean,
         drawingMode: AgDrawingMode
     ) {
@@ -747,7 +747,7 @@ export abstract class RadarSeries<
 
         this.maybeRefreshNodeData();
 
-        const textBoxes: _ModuleSupport.BBox[] = [];
+        const textBoxes: BBox[] = [];
         const tempText = new Text();
         for (const nodeDatum of this.nodeData) {
             if (!label.enabled || !nodeDatum.label) {
@@ -835,7 +835,7 @@ export abstract class RadarSeries<
         return points;
     }
 
-    protected animateSinglePath(pathNode: _ModuleSupport.Path, points: RadarPathPoint[], ratio: number) {
+    protected animateSinglePath(pathNode: Path, points: RadarPathPoint[], ratio: number) {
         const { path } = pathNode;
 
         path.clear(true);
@@ -976,7 +976,7 @@ export abstract class RadarSeries<
         return this.getMarkerStyle(marker, datum, { angleKey, radiusKey }, { isHighlight: true });
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
 

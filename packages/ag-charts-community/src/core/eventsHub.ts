@@ -1,5 +1,6 @@
 import type {
     AxisID,
+    BBox,
     BaseStyleTypeMap,
     CanvasPoint,
     ChartAxisDirection,
@@ -11,7 +12,9 @@ import type {
     KeyboardWidgetEvent,
     LogIssue,
     MouseWidgetEvent,
+    Node,
     Scale,
+    SelectionInterface,
     WheelWidgetEvent,
     ZoomMinMax,
     ZoomMinMaxDirection,
@@ -39,9 +42,6 @@ import type { ContextMenuRegionContexts, ContextShowOnMap } from '../chart/inter
 import type { ChartLegendType } from '../chart/legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { AxisValuePick } from '../module/axisContext';
-import type { BBox } from '../scene/bbox';
-import type { Node } from '../scene/node';
-import type { SelectionInterface } from '../scene/selection';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
 

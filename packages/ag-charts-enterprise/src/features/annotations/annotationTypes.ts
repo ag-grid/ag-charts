@@ -1,5 +1,5 @@
 import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import type { Logger } from 'ag-charts-core';
+import type { BBox, Logger } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { PointType } from './utils/scale';
@@ -107,7 +107,7 @@ export interface AnnotationAxisContext extends Pick<
     | 'inRange'
     | 'getRangeOverflow'
 > {
-    bounds: _ModuleSupport.BBox;
+    bounds: BBox;
     labelPadding: number;
     snapToGroup: boolean;
 }
@@ -115,7 +115,7 @@ export interface AnnotationAxisContext extends Pick<
 export interface AnnotationContext {
     logger: Logger;
     localeManager: _ModuleSupport.LocaleManager;
-    seriesRect: _ModuleSupport.BBox;
+    seriesRect: BBox;
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
     isRtl: boolean;

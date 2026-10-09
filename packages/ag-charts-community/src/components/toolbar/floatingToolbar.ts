@@ -1,4 +1,5 @@
 import {
+    BBox,
     type BoxBounds,
     type DynamicContext,
     NativeWidget,
@@ -9,7 +10,6 @@ import {
 } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
 import { DraggablePopover } from '../popover/draggablePopover';
 import type { PopoverOptions } from '../popover/popover';
 import { BaseToolbar, type ToolbarButtonOptions, type ToolbarEventMap } from './toolbar';

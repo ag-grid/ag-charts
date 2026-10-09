@@ -493,6 +493,48 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     scrollbarThumbHoverBorder?: boolean | AgBorderThemeParam;
     /**
+     * Background colour of the navigator track, the dimmed area outside the selected range. A colour string, or a theme-colour reference object.
+     *
+     * Default: `foregroundColor`
+     */
+    navigatorTrackBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the navigator track. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `borderColor`
+     */
+    navigatorTrackBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the navigator track. Also rounds the selected range and the mini chart.
+     *
+     * Default: `borderRadius`
+     */
+    navigatorTrackBorderRadius?: PixelSize;
+    /**
+     * Background colour of the navigator thumb, the selected range between the handles. A colour string, or a theme-colour reference object.
+     *
+     * Default: `transparent`
+     */
+    navigatorThumbBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Background colour of the navigator handles. A colour string, or a theme-colour reference object.
+     *
+     * Default: `chartBackgroundColor`
+     */
+    navigatorHandleBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the navigator handles. Its colour also colours the handle grip. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `borderColor`
+     */
+    navigatorHandleBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the navigator handles.
+     *
+     * Default: `borderRadius`
+     */
+    navigatorHandleBorderRadius?: PixelSize;
+    /**
      * Border around series labels. A border otherwise shows only where a series enables `label.border`. `true` for the default border, `false` to disable, or an object to customise it.
      *
      * Default: `false`

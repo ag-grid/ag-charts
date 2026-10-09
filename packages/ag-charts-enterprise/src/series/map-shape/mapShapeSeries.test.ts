@@ -8,7 +8,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -25,7 +25,7 @@ import {
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { ambientLogger } from 'ag-charts-core';
+import { Transformable, ambientLogger } from 'ag-charts-core';
 
 import {
     DEFAULT_DISABLED_SHADOW,
@@ -201,11 +201,7 @@ describe('MapShapeSeries', () => {
             const [datum] = series.contextNodeData?.nodeData ?? [];
             expect(datum).toBeDefined();
             const midPoint = series.datumMidPoint(datum);
-            const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                midPoint.x,
-                midPoint.y
-            );
+            const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(series.contentGroup, midPoint.x, midPoint.y);
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);
         };
@@ -453,7 +449,7 @@ describe('MapShapeSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]

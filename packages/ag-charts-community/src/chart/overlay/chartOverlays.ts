@@ -1,7 +1,6 @@
-import type { NormalisedChartOverlaysOptions } from 'ag-charts-core';
+import type { BBox, NormalisedChartOverlaysOptions } from 'ag-charts-core';
 
 import type { LocaleManager } from '../../locale/localeManager';
-import type { BBox } from '../../scene/bbox';
 import { Overlay } from './overlay';
 
 export class ChartOverlays {

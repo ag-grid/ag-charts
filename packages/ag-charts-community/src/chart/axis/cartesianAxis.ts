@@ -3,6 +3,7 @@ import type {
     AxisPrimaryTickCount,
     ChartAnimationPhase,
     DynamicContext,
+    Node,
     NormalisedBaseAxisLabelOptions,
     NormalisedBaseCartesianAxisOptions,
     ResolvedTextAlign,
@@ -10,10 +11,18 @@ import type {
     ZoomMinMax,
 } from 'ag-charts-core';
 import {
+    BBox,
     ChartAxisDirection,
     ContinuousScale,
     DiscreteTimeScale,
+    Line,
+    PointerEvents,
+    Rect,
+    Selection,
     StateMachine,
+    Transformable,
+    TransformableText,
+    TranslatableGroup,
     arraysEqual,
     cachedTextMeasurer,
     countLines,
@@ -36,14 +45,6 @@ import type { AxisContext } from '../../module/axisContext';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
-import { BBox } from '../../scene/bbox';
-import { TranslatableGroup } from '../../scene/group';
-import { type Node, PointerEvents } from '../../scene/node';
-import { Selection } from '../../scene/selection';
-import { Line } from '../../scene/shape/line';
-import { Rect } from '../../scene/shape/rect';
-import { TransformableText } from '../../scene/shape/text';
-import { Transformable } from '../../scene/transformable';
 import { Caption } from '../caption';
 import type { ChartLayout } from '../chartAxis';
 import type { AnimationManager } from '../interaction/animationManager';

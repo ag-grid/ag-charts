@@ -194,13 +194,6 @@ module.exports = {
             },
         },
         {
-            name: 'ag-isolated-scene',
-            comment: 'Options modules should be isolated from implementation modules.',
-            severity: 'error',
-            from: { path: '^src/scene/', pathNot: ['^src/scene/.*/.*.test.ts'] },
-            to: { pathNot: ['ag-charts-core', 'ag-charts-types', '^src/(scene|util|core)/', 'node_modules'] },
-        },
-        {
             name: 'ag-isolated-dom',
             comment: 'DOM modules should be isolated.',
             severity: 'error',
@@ -209,7 +202,7 @@ module.exports = {
                 pathNot: [
                     'ag-charts-core',
                     'ag-charts-types',
-                    '^src/(dom|module|scene|locale|util|core)/',
+                    '^src/(dom|module|locale|util|core)/',
                     '^src/.*\\.css',
                     'node_modules',
                 ],

@@ -6,7 +6,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     BIG,
     type Chart,
@@ -26,6 +26,8 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Group, Rect, Transformable } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 
 import {
@@ -190,7 +192,7 @@ describe('FunnelSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]
@@ -232,7 +234,7 @@ describe('FunnelSeries', () => {
             for (const { legend } of deproxy(chart).modulesManager.legends()) {
                 const markerLabels = (legend as any).itemSelection?._nodes ?? [];
                 for (const label of markerLabels) {
-                    const { x, y } = _ModuleSupport.Transformable.toCanvas(label).computeCenter();
+                    const { x, y } = Transformable.toCanvas(label).computeCenter();
                     await clickAction(x, y)(chartInstance);
                     await waitForChartStability(chart);
                     await compare();
@@ -710,10 +712,10 @@ describe('FunnelSeries', () => {
     describe('cornerRadius', () => {
         // Rect.serializeProps() omits the corner-radius fields, so read the nodes directly.
         const contentNodes = (target: Chart) => {
-            const nodes: _ModuleSupport.Node[] = [];
-            const visit = (node: _ModuleSupport.Node) => {
+            const nodes: Node[] = [];
+            const visit = (node: Node) => {
                 nodes.push(node);
-                if (node instanceof _ModuleSupport.Group) {
+                if (node instanceof Group) {
                     for (const child of node.children()) visit(child);
                 }
             };
@@ -722,7 +724,7 @@ describe('FunnelSeries', () => {
         };
 
         const segmentRects = (target: Chart) =>
-            contentNodes(target).filter((node): node is _ModuleSupport.Rect => node instanceof _ModuleSupport.Rect);
+            contentNodes(target).filter((node): node is Rect => node instanceof Rect);
 
         const dropOffConnectors = (target: Chart) =>
             contentNodes(target).filter((node): node is FunnelConnector => node instanceof FunnelConnector);

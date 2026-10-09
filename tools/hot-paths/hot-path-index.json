@@ -34,7 +34,7 @@
             "tier": 2,
             "frequency": "once per animation frame, per node \u2014 60Hz x node count",
             "globs": [
-                "packages/ag-charts-community/src/scene/**",
+                "packages/ag-charts-core/src/scene/**",
                 "packages/ag-charts-community/src/motion/**",
                 "packages/ag-charts-community/src/chart/marker/**",
                 "packages/ag-charts-community/src/chart/series/**/*Node.ts",

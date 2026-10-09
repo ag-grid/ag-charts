@@ -1,10 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { Group, Shape } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgCartesianChartOptions, AgDropShadowOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { Group } from '../../../scene/group';
-import { Shape } from '../../../scene/shape/shape';
 import { HIGHLIGHT_SHADOW, SERIES_SHADOW } from '../../test/shadowFixtures';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

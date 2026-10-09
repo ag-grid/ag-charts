@@ -205,6 +205,19 @@ module.exports = {
                 ],
             },
         },
+        {
+            name: 'ag-isolated-scene',
+            comment: 'Scene modules should be isolated from chart implementation modules.',
+            severity: 'error',
+            from: { path: '^src/scene/' },
+            to: {
+                pathNot: [
+                    '^src/(scene|chart/scale|data|dom|format|geometry|identity|logging|options|rendering|state|structures|text|types)/',
+                    'ag-charts-types',
+                    'node_modules',
+                ],
+            },
+        },
     ],
     options: {
         /* conditions specifying which files not to follow further when encountered:

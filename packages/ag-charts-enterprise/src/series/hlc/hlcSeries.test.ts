@@ -8,7 +8,6 @@ import {
     type AgHlcSeriesStyle,
     type AgHlcSeriesStylerParams,
     type AgSeriesMarkerStyle,
-    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     BIG,
@@ -41,7 +40,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { AGGREGATION_INDEX_UNSET } from 'ag-charts-core';
+import { AGGREGATION_INDEX_UNSET, Transformable } from 'ag-charts-core';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
@@ -96,11 +95,7 @@ describe('HlcSeries', () => {
     };
 
     const canvasPointOf = (series: any, node: { point: { x: number; y: number } }) => {
-        const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
-            series.contentGroup,
-            node.point.x,
-            node.point.y
-        );
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
         return { canvasX, canvasY };
     };
 

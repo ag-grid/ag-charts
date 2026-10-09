@@ -7,6 +7,7 @@ import {
 } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    type BBox,
     type BoxBounds,
     ChartAxisDirection,
     Color,
@@ -268,8 +269,8 @@ export class Ranges extends AbstractModuleInstance {
 
     private updateToolbarBounds(
         toolbar: _ModuleSupport.BaseToolbar,
-        seriesRect: _ModuleSupport.BBox,
-        layoutBox: Readonly<_ModuleSupport.BBox>,
+        seriesRect: BBox,
+        layoutBox: Readonly<BBox>,
         cachedBounds?: BoxBounds
     ) {
         const position = this.opts.position;

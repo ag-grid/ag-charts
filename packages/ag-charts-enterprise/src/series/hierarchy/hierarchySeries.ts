@@ -1,9 +1,19 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { ChartAnimationPhase, DynamicContext, NormalisedHierarchySeriesKeys } from 'ag-charts-core';
+import type {
+    BBox,
+    ChartAnimationPhase,
+    DynamicContext,
+    Node,
+    NormalisedHierarchySeriesKeys,
+    Path,
+    Selection,
+    SelectionInterface,
+} from 'ag-charts-core';
 import {
     type BoxBounds,
     ColorScale,
     type Point,
+    PointerEvents,
     StateMachine,
     arraysEqual,
     clamp,
@@ -16,7 +26,6 @@ import {
 import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 const {
-    PointerEvents,
     SeriesNodePickMode,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
@@ -57,10 +66,10 @@ type Mutable<T> = {
 };
 
 type HierarchyAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-type HierarchyAnimationEvent<TDatum, TNode extends _ModuleSupport.Node<TDatum>> = {
+type HierarchyAnimationEvent<TDatum, TNode extends Node<TDatum>> = {
     update: HierarchyAnimationData<TNode, TDatum>;
     updateData: undefined;
-    highlight: _ModuleSupport.Selection<TDatum, TNode>;
+    highlight: Selection<TDatum, TNode>;
     resize: HierarchyAnimationData<TNode, TDatum>;
     clear: HierarchyAnimationData<TNode, TDatum>;
     reset: undefined;
@@ -69,7 +78,7 @@ type HierarchyAnimationEvent<TDatum, TNode extends _ModuleSupport.Node<TDatum>> 
 
 export interface HierarchyNodeDatum extends _ModuleSupport.SeriesNodeDatum {}
 
-export interface HierarchyAnimationData<_TNode extends _ModuleSupport.Node, _TNodeClass> {}
+export interface HierarchyAnimationData<_TNode extends Node, _TNodeClass> {}
 
 export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatum = Record<string, any>>
     implements HierarchyNodeDatum, Pick<_ModuleSupport.HighlightNodeDatum, 'colorValue'>
@@ -140,7 +149,7 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
 
 export abstract class HierarchySeries<
     TNodeClass extends HierarchyNode,
-    TNode extends _ModuleSupport.Node<TNodeClass>,
+    TNode extends Node<TNodeClass>,
     TOptions extends NormalisedHierarchySeriesKeys,
 > extends _ModuleSupport.Series<TNodeClass, TOptions> {
     protected abstract NodeClass: new (...params: ConstructorParameters<typeof HierarchyNode<any, any>>) => TNodeClass;
@@ -295,7 +304,7 @@ export abstract class HierarchySeries<
 
     protected abstract updateNodes(): void;
 
-    override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
+    override update({ seriesRect }: { seriesRect?: BBox }) {
         this.updateSelections();
         this.updateNodes();
 
@@ -322,7 +331,7 @@ export abstract class HierarchySeries<
         this.resetAllAnimation(data);
     }
 
-    protected animateReadyHighlight(_data: _ModuleSupport.Selection<TNodeClass, TNode>) {
+    protected animateReadyHighlight(_data: Selection<TNodeClass, TNode>) {
         // No-op
     }
 
@@ -424,7 +433,7 @@ export abstract class HierarchySeries<
         return 0;
     }
 
-    protected abstract datumSelection: _ModuleSupport.SelectionInterface<TNodeClass, TNode>;
+    protected abstract datumSelection: SelectionInterface<TNodeClass, TNode>;
 
     /**
      * Yields in datum order, as `getSelection()` does; the base scene walk would yield in depth order, and would
@@ -439,7 +448,7 @@ export abstract class HierarchySeries<
         }
     }
 
-    protected abstract computeFocusBounds(node: TNode): _ModuleSupport.BBox | _ModuleSupport.Path | undefined;
+    protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
 
     public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
         if (this.rootNode == null || this.rootNode.children.length === 0) return undefined;
