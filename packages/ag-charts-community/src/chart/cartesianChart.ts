@@ -153,10 +153,22 @@ export class CartesianChart extends Chart {
         for (const axis of this.axes) {
             const syncedDomain = await this.getSyncedDomain(axis);
 
-            if (syncedDomain != null) {
+            if (syncedDomain == null) {
+                this.warnIfUnused(axis);
+            } else {
                 axis.setDomains({ domain: syncedDomain });
             }
         }
+    }
+
+    private readonly warnedUnusedAxes = new WeakSet<CartesianAxis>();
+
+    /** Axes that sync covers are left alone, as a sibling chart can supply their domain. */
+    private warnIfUnused(axis: CartesianAxis) {
+        if (this.series.length === 0 || axis.boundSeries.length > 0 || this.warnedUnusedAxes.has(axis)) return;
+
+        this.warnedUnusedAxes.add(axis);
+        this.ctx.logger.warn(`\`axes.${axis.userKey}\` is not used by any series.`);
     }
 
     private lastLayoutWidth = Number.NaN;
