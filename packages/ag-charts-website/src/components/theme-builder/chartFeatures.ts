@@ -12,8 +12,6 @@ export const CHART_FEATURE_IDS = [
     'navigator',
     'rangeButtons',
     'toolbar',
-    'statusBar',
-    'volume',
 ] as const;
 
 export type ChartFeatureId = (typeof CHART_FEATURE_IDS)[number];
@@ -51,15 +49,9 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
         requires: 'zoom',
     },
     { id: 'toolbar', label: 'Drawing Tools', hint: 'The annotation toolbar, its buttons and settings panel' },
-    { id: 'statusBar', label: 'Status Bar', hint: 'The open / high / low / close readout above the chart' },
-    { id: 'volume', label: 'Volume', hint: 'A second series and axis below the price' },
 ];
 
-/**
- * On by default, because a feature nobody switches on is a param nobody sees.
- * Volume is the exception: it takes a fifth of the series area for a series the
- * theme treats no differently from any other.
- */
+/** On by default, because a feature nobody switches on is a param nobody sees. */
 export const DEFAULT_CHART_FEATURES: ChartFeatures = {
     seriesStrokes: true,
     legend: true,
@@ -69,8 +61,6 @@ export const DEFAULT_CHART_FEATURES: ChartFeatures = {
     navigator: true,
     rangeButtons: true,
     toolbar: true,
-    statusBar: true,
-    volume: false,
 };
 
 const FEATURE_BY_ID: Record<ChartFeatureId, ChartFeatureConfig> = Object.fromEntries(

@@ -1,9 +1,9 @@
 import { type RefObject, useEffect, useRef } from 'react';
 
 import { AgCharts, ModuleRegistry } from 'ag-charts-enterprise';
-import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from 'ag-charts-enterprise';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-enterprise';
 
-import type { PreviewChartOptions, PreviewPreset, PreviewTooltipTarget } from './chartTypes';
+import type { PreviewTooltipTarget } from './chartTypes';
 import { PREVIEW_MODULES } from './previewModules';
 
 ModuleRegistry.registerModules(PREVIEW_MODULES);
@@ -12,16 +12,11 @@ ModuleRegistry.registerModules(PREVIEW_MODULES);
  * Mount a chart into a container and keep it in step with `options`, which must
  * be memoised by the caller - it is the update trigger. Updates rather than
  * remounts, so a keystroke does not flash the canvas or restart the animation.
- * `preset` is fixed for the life of the chart, so switching presets remounts.
  * `tooltipTarget` holds a tooltip open on one datum.
  */
-export const useChart = (
-    options: PreviewChartOptions,
-    preset?: PreviewPreset,
-    tooltipTarget?: PreviewTooltipTarget
-): RefObject<HTMLDivElement> => {
+export const useChart = (options: AgChartOptions, tooltipTarget?: PreviewTooltipTarget): RefObject<HTMLDivElement> => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const chartRef = useRef<AgChartInstance<PreviewChartOptions> | null>(null);
+    const chartRef = useRef<AgChartInstance | null>(null);
     // Read through a ref so mounting does not depend on the first options value,
     // which would recreate the chart whenever the caller's memo changed.
     const latestOptions = useRef(options);
@@ -30,10 +25,7 @@ export const useChart = (
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
-        chartRef.current =
-            preset === 'price-volume'
-                ? AgCharts.createFinancialChart({ ...(latestOptions.current as AgFinancialChartOptions), container })
-                : AgCharts.create({ ...(latestOptions.current as AgChartOptions), container });
+        chartRef.current = AgCharts.create({ ...latestOptions.current, container });
         return () => {
             chartRef.current?.destroy();
             chartRef.current = null;
