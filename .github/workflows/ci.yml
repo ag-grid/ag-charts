@@ -2187,7 +2187,8 @@ jobs:
     # (`--charts-build`, see .github/workflows/demo-seeds-mirror.yml), so they must not be published
     # before the tarballs they name exist. Part of the run, so Post-Deploy Page Verification (which
     # starts when CI succeeds, and checks the seed links) only ever sees the finished sync. `latest`
-    # runs are queued, not cancelled, so the staging mirror follows the deploys in order.
+    # runs are not cancelled (GitHub keeps one pending run per group, a newer one replacing it), so the
+    # staging mirror follows the deploys in order.
     sync_demo_seeds_staging:
         name: Sync Demo Seeds (staging)
         needs: [report]
