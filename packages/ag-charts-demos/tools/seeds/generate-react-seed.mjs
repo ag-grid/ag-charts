@@ -205,9 +205,12 @@ ${vendored.map((file) => `\n-   \`src/demos/${file}\``).join('')}
 const renderPinNote = ({ pinnedVersion, pinSource }) =>
     pinSource === PIN_SOURCE.release
         ? `The \`ag-charts-*\` dependencies are pinned to ${pinnedVersion}, the release this seed was generated for.`
-        : `The \`ag-charts-*\` dependencies use the npm \`${pinnedVersion}\` tag, so \`npm install\` fetches the newest
-published release. This seed follows the development branch, so the demo may already use features of
-a release that is not out yet; if so, it catches up when that release is published.`;
+        : `The \`ag-charts-*\` dependencies here use the npm \`${pinnedVersion}\` tag, so \`npm install\` fetches the newest
+published release; the demo may already use features of a release that is not out yet, and catches up
+when that release is published. The copy in \`ag-grid/ag-charts-demos\` installs differently by ref:
+\`staging\` and the release branches (\`bX.Y.Z\`) install the AG Charts build their docs site was made
+from, as package tarballs that site serves, and the \`release-X.Y.Z\` tags and the default branch
+\`latest\` install a published release from npm.`;
 
 const renderReadme = (demoId, vendored, pin) => `# AG Charts demo: ${humanLabel(demoId)} (React)
 

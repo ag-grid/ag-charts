@@ -75,6 +75,10 @@ describe('generateReactSeeds', () => {
         const pins = readGeneratedPins();
         expect(pins.dependencies.every(([, version]) => version === 'latest')).toBe(true);
         expect(pins).toMatchObject({ pinnedVersion: 'latest', pinSource: 'dist-tag' });
-        expect(pins.readme).toMatch(/use the npm `latest` tag/);
+        expect(pins.readme).toMatch(/dependencies here use the npm `latest` tag/);
+        expect(pins.readme).toMatch(/`staging` and the release branches \(`bX\.Y\.Z`\) install the AG Charts build/);
+        expect(pins.readme).toMatch(
+            /`release-X\.Y\.Z` tags and the default branch\s+`latest` install a published release from npm/
+        );
     });
 });

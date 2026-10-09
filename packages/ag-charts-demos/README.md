@@ -75,22 +75,28 @@ generated React seeds and the framework ports do not wait.
 ## Seed projects
 
 Each demo/framework pair is a standalone Vite project committed under `seeds/<id>/<framework>/`,
-with `ag-charts-*` pinned to something public npm resolves, and is opened in StackBlitz from the
-`ag-grid/ag-charts-demos` mirror below: the exact release at its `release-X.Y.Z` tag, npm's `latest` dist-tag for every
-pre-release, on release branches too. How the pin is chosen is under "Pins" in
-[`tools/seeds/README.md`](tools/seeds/README.md). There is no zip download.
+with `ag-charts-*` pinned to something public npm resolves (the exact release when the workspace is
+at one, npm's `latest` dist-tag for every pre-release, on release branches too), and is opened in
+StackBlitz from the `ag-grid/ag-charts-demos` mirror below. What the mirror's copy installs depends
+on its ref and on the seed's pin. A seed on npm's `latest` dist-tag installs the build the staging
+site was made from at `staging`, and the build of a release's archive at its branch `bX.Y.Z`; a seed
+pinned to a release (the `release-X.Y.Z` tags, a release branch once its workspace is at `X.Y.Z`)
+installs that release from npm. How the pin is chosen and how the mirror's refs differ is under
+"Pins" in [`tools/seeds/README.md`](tools/seeds/README.md).
+There is no zip download.
 
 The seeds are mirrored one way to
 [`ag-grid/ag-charts-demos`](https://github.com/ag-grid/ag-charts-demos), one folder per seed at
 `<id>/<framework>/`, and that mirror is what the website links. StackBlitz imports a folder by
 downloading its whole repository, which for this monorepo takes minutes; the mirror is a few MB.
-The "Mirror Demo Seeds" workflow (`.github/workflows/demo-seeds-mirror.yml`) syncs the mirror
-branch of the same name on every push to `latest` or a release branch, and on each `release-X.Y.Z`
-tag tags the tagged seeds `release-X.Y.Z` there too. `tools/seeds/export-seed-mirror.mjs` builds
-what is published: the seeds, their `PORTING.md` notes, and a root modelled on
-`ag-grid/ag-grid-demos` (README, per-demo READMEs, `.gitignore`, `.vscode/settings.json` and the MIT
-`LICENSE.txt`). Links that leave the seeds folder are rewritten to point back here. Never edit the
-mirror: each sync replaces its content.
+The "Mirror Demo Seeds" workflow (`.github/workflows/demo-seeds-mirror.yml`) syncs the mirror's
+`staging` branch from ag-charts `latest` once CI has deployed it to staging (not on a push to
+`latest`), the mirror's `bX.Y.Z` on every push to a release branch, and on each `release-X.Y.Z` tag
+tags the tagged seeds `release-X.Y.Z` there and moves the mirror's `latest`, which holds released
+seeds only. `tools/seeds/export-seed-mirror.mjs` builds what is published: the seeds, their
+`PORTING.md` notes, and a root modelled on `ag-grid/ag-grid-demos` (README, per-demo READMEs,
+`.gitignore`, `.vscode/settings.json` and the MIT `LICENSE.txt`). Links that leave the seeds folder
+are rewritten to point back here. Never edit the mirror: each sync replaces its content.
 
 - The React demo under `src/demos/<id>` is the golden master. The React seed is **generated** from it
   (`tools/seeds/generate-react-seed.mjs`) and CI fails if the committed seed is stale.
@@ -126,19 +132,25 @@ The links point at the seed folder in the mirror at a git ref chosen per build
 
 - production links the release tag matching the version the site displays (`release-14.2.0` for
   `PUBLIC_PACKAGE_VERSION=14.2.0`, or for a `14.2.0-beta.*`), so a reader opens the seed that
-  shipped with the version they are reading about;
-- every other build — dev, staging, PR previews — links the `latest` branch, which the mirror syncs
-  on every push to this repository's `latest`.
+  shipped with the version they are reading about, installing that release from npm;
+- an archive (`/charts/archive/X.Y.Z/`, the release candidate deployed before the release) links the
+  release branch `bX.Y.Z`, whose seeds install the tarballs that archive serves;
+- every other build — dev, staging, PR previews — links the `staging` branch, which the mirror syncs
+  after each staging deploy, and whose seeds install the tarballs staging serves.
 
-StackBlitz downloads the mirror at that ref, imports the linked sub-folder, runs `npm install` against the seed's pins (exact at a
-release tag, the newest published release from `latest`) and starts its `dev` script. After each staging deploy, `tools/ci/check-demo-seed-links.mjs` (run by
-`.github/workflows/post-deploy-verification.yml`) fetches the deployed demo pages, reads the
-StackBlitz and GitHub seed links they render, checks each targets the ref that site should link
-and HEADs the mirror folder it opens; it also HEADs the folder of every seed the manifests
-declare. A link that would 404, or a page that renders none, is caught. It also compares the
-mirror's copy of each `.seed-manifest.json` with the checkout's and warns on a difference, which
-is how a failed sync shows up. StackBlitz itself cannot
-be driven headlessly, so its link is checked through the GitHub folder it imports.
+The mirror's own `latest` is never linked: it moves only on release, to the released seeds.
+
+StackBlitz downloads the mirror at that ref, imports the linked sub-folder, runs `npm install`
+against the seed's dependencies (an exact release from npm at a release tag, the site's tarballs at
+`staging` and `bX.Y.Z`) and starts its `dev` script. After each staging deploy,
+`tools/ci/check-demo-seed-links.mjs` (run by `.github/workflows/post-deploy-verification.yml`)
+fetches the deployed demo pages, reads the StackBlitz and GitHub seed links they render, checks each
+targets the ref that site should link and HEADs the mirror folder it opens; it also HEADs the
+folder of every seed the manifests declare. A link that would 404, or a page that renders none, is
+caught. It also compares the mirror's copy of each `.seed-manifest.json` with the checkout's and
+warns on a difference, which is how a failed sync shows up, and checks that the tarballs the
+mirror's seeds install are served and answer the CORS preflight StackBlitz's npm sends. StackBlitz
+itself cannot be driven headlessly, so its link is checked through the GitHub folder it imports.
 
 ## Commands
 

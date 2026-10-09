@@ -19,9 +19,10 @@ import {
 /**
  * Builds the tree published to the `ag-grid/ag-charts-demos` mirror, one folder per seed at
  * `<demo>/<framework>/`, so StackBlitz can import a seed without first downloading the whole of
- * `ag-grid/ag-charts`. `.github/workflows/demo-seeds-mirror.yml` runs it on every push to `latest`
- * and to a release branch, and on every release tag, and publishes the result there. The mirror is
- * one-way: nothing is ever read back from it.
+ * `ag-grid/ag-charts`. `.github/workflows/demo-seeds-mirror.yml` runs it after each staging deploy
+ * (the mirror's `staging`), on every push to a release branch (its `bX.Y.Z`) and on every release
+ * tag (its `release-X.Y.Z` and, for the newest release, its `latest`), and publishes the result
+ * there. The mirror is one-way: nothing is ever read back from it.
  *
  * Its root follows `ag-grid/ag-grid-demos`: a README listing every demo and framework with a
  * support section, a README per demo, `.gitignore` and `.vscode/settings.json`, plus the MIT
@@ -56,7 +57,7 @@ export const CHARTS_BUILD_PACKAGES = [
  * `ag-grid-enterprise` has the AG Charts packages as optional dependencies, and without an override
  * npm nests the published version beside the tarball's, or fails to find it.
  */
-const CHARTS_BUILD_SHARED_PACKAGES = [
+export const CHARTS_BUILD_SHARED_PACKAGES = [
     'ag-charts-types',
     'ag-charts-core',
     'ag-charts-locale',
