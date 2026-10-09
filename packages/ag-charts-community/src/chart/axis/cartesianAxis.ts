@@ -793,6 +793,19 @@ export abstract class CartesianAxis<
         return { ...scrollbar, offset };
     }
 
+    /** Keeps an outer scrollbar within `maxThickness` of the series edge when the axis is capped below its content. */
+    clampScrollbarLayout(maxThickness: number) {
+        const scrollbar = this.layout.scrollbar;
+        if (scrollbar?.placement !== 'outer') return;
+
+        const { position } = this;
+        if (position === 'top' || position === 'left') {
+            scrollbar.offset = Math.max(scrollbar.offset, -maxThickness);
+        } else {
+            scrollbar.offset = Math.min(scrollbar.offset, maxThickness - scrollbar.thickness);
+        }
+    }
+
     protected applyScrollbarLayout(
         boxes: BBox[],
         labelThickness: number,
