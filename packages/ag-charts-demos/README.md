@@ -88,12 +88,12 @@ The seeds are mirrored one way to
 `<id>/<framework>/`, and that mirror is what the website links. StackBlitz imports a folder by
 downloading its whole repository, which for this monorepo takes minutes; the mirror is a few MB.
 The "Mirror Demo Seeds" workflow (`.github/workflows/demo-seeds-mirror.yml`) syncs the mirror's
-`staging` branch from `latest` once CI has deployed it to staging (not on a push to `latest`), the
-branch `bX.Y.Z` on every push to a release branch, and on each `release-X.Y.Z` tag tags the tagged
-seeds `release-X.Y.Z` there and moves the mirror's `latest`, which holds released seeds only.
-`tools/seeds/export-seed-mirror.mjs` builds what is published: the seeds, their `PORTING.md` notes, and a root modelled on
-`ag-grid/ag-grid-demos` (README, per-demo READMEs, `.gitignore`, `.vscode/settings.json` and the MIT
-`LICENSE.txt`). Links that leave the seeds folder are rewritten to point back here. Never edit the
+`staging` branch from ag-charts `latest` once CI has deployed it to staging (not on a push to
+`latest`), the mirror's `bX.Y.Z` on every push to a release branch, and on each `release-X.Y.Z` tag
+tags the tagged seeds `release-X.Y.Z` there and moves the mirror's `latest`, which holds released
+seeds only. `tools/seeds/export-seed-mirror.mjs` builds what is published: the seeds, their
+`PORTING.md` notes, and a root modelled on `ag-grid/ag-grid-demos` (README, per-demo READMEs,
+`.gitignore`, `.vscode/settings.json` and the MIT `LICENSE.txt`). Links that leave the seeds folder are rewritten to point back here. Never edit the
 mirror: each sync replaces its content.
 
 - The React demo under `src/demos/<id>` is the golden master. The React seed is **generated** from it

@@ -25,11 +25,10 @@ are rewritten as standalone Angular components with signals, the Radix UI contro
 over the Angular CDK. [`PORTING.md`](../angular.PORTING.md) records the mapping and the invariants the port
 keeps to, and `.seed-manifest.json` records which revision of the demo source it was ported from.
 
-The `ag-charts-*` dependencies are pinned to something public npm resolves: the exact release on a
-release tag and the npm `latest` tag otherwise, so `npm install` fetches the newest published
-release. What the copy in `ag-grid/ag-charts-demos` installs depends on its ref: `staging` and the
-release branches (`bX.Y.Z`) install the AG Charts build their docs site was made from, through
-package tarballs that site serves; the `release-X.Y.Z` tags install that release, and `latest` the
-newest one, from npm. The demo may already use features of a release that is not out yet; where a
-seed installs `latest`, it catches up when that release is published.
+The `ag-charts-*` dependencies here use the npm `latest` tag, so `npm install` fetches the newest
+published release; the demo may already use features of a release that is not out yet, and catches up
+when that release is published. The copy in `ag-grid/ag-charts-demos` installs differently by ref:
+`staging` and the release branches (`bX.Y.Z`) install the AG Charts build their docs site was made
+from, as package tarballs that site serves, and the `release-X.Y.Z` tags and the default branch
+`latest` install a published release from npm.
 AG Charts Enterprise features show a watermark until a licence key is set.
