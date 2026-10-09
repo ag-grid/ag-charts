@@ -28,6 +28,7 @@ import agGallerySeoChecker from './plugins/agGallerySeoChecker';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
 import agHtmlAsString from './plugins/agHtmlAsString';
+import agNpmPackages from './plugins/agNpmPackages';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
 import { FRAMEWORKS, FRAMEWORK_REDIRECT_PATH } from './src/constants';
 import { getIsBenchmarkOnlyBuild } from './src/utils/env';
@@ -52,6 +53,12 @@ const {
     PUBLIC_DEFAULT_FRAMEWORK,
     PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
     HTACCESS = 'false',
+    /**
+     * Serve the AG Charts package tarballs at `<base>/npm-packages/<name>.tgz`
+     *
+     * Set for builds that deploy (staging, archive); see `plugins/agNpmPackages.ts`
+     */
+    PUBLISH_NPM_PACKAGES = 'false',
     CHECK_LINKS = 'false',
     DISABLE_MARKDOWN_DOCS = 'false',
     /**
@@ -86,6 +93,7 @@ console.log(
             PUBLIC_DEFAULT_FRAMEWORK,
             PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
             HTACCESS,
+            PUBLISH_NPM_PACKAGES,
             CHECK_REDIRECTS,
             CHECK_LINKS,
             DISABLE_MARKDOWN_DOCS,
@@ -251,6 +259,7 @@ export default defineConfig({
                   },
               ]),
         agHtaccessGen({ htaccessEnv: HTACCESS }),
+        agNpmPackages({ enabled: ['1', 'true'].includes(PUBLISH_NPM_PACKAGES) }),
         agLinkChecker({
             include: CHECK_LINKS === 'true',
             prefix: PUBLIC_BASE_URL,

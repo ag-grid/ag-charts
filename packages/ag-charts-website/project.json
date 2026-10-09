@@ -6,7 +6,25 @@
   "targets": {
     "build": {
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
-      "dependsOn": ["^build", "^docs-resolved-interfaces", "generate-examples", "generate-thumbnails"],
+      "dependsOn": [
+        "^build",
+        "^docs-resolved-interfaces",
+        "generate-examples",
+        "generate-thumbnails",
+        {
+          "projects": [
+            "ag-charts-types",
+            "ag-charts-core",
+            "ag-charts-locale",
+            "ag-charts-community",
+            "ag-charts-enterprise",
+            "ag-charts-react",
+            "ag-charts-angular",
+            "ag-charts-vue3"
+          ],
+          "target": "pack"
+        }
+      ],
       "inputs": [
         "^production",
         "production",
@@ -26,9 +44,12 @@
         "cwd": "{projectRoot}"
       },
       "configurations": {
-        "staging": {},
+        "staging": {
+          "env": { "PUBLISH_NPM_PACKAGES": "true" }
+        },
         "archive": {
-          "args": "--clean-cache=true --run-second-build=true"
+          "args": "--clean-cache=true --run-second-build=true",
+          "env": { "PUBLISH_NPM_PACKAGES": "true" }
         },
         "production": {
           "args": "--clean-cache=true --run-second-build=true"
