@@ -120,8 +120,11 @@ The rules that follow from that:
 - **The mirror's `latest` is released seeds only.** A push to ag-charts `latest` does not sync it. It
   moves when a `release-X.Y.Z` tag is pushed, to that tag's seeds, and only if no newer release is
   already tagged in the mirror (a hotfix on an older line leaves it). The check is repeated on every
-  push attempt, so two tag runs in flight cannot leave it on the older release. So it always works from
-  published packages, whatever the state of the staging site or the release branches.
+  push attempt, so two tag runs in flight cannot leave it on the older release. The tag run also
+  waits (up to 20 minutes) for npm to serve the release's packages before it moves the branch, and
+  fails with the branch untouched if they do not appear; re-run it once the release is published. So
+  it always works from published packages, whatever the state of the staging site or the release
+  branches.
 - **Staging is synced after its deploy.** CI's "Sync Demo Seeds (staging)" job calls the workflow once
   the "Deploy to Staging" step has succeeded, because the seeds it publishes name tarballs that only
   exist once that deploy has put them on the site. The sync is for the deployed commit, so a seed
@@ -130,7 +133,9 @@ The rules that follow from that:
   sync and checks the staging links and tarballs (`tools/ci/check-demo-seed-links.mjs`). A failed
   sync fails the `latest` CI run, which skips the whole post-deploy verification, not only the seed
   check. To re-sync `staging`, re-run the failed "Sync Demo Seeds (staging)" job; the workflow's
-  manual dispatch syncs only release branches and release tags.
+  manual dispatch syncs only release branches and release tags. A re-run for a commit older than the
+  one the mirror's `staging` last synced (named in its head commit's message) leaves the branch as it
+  is, so it cannot undo a newer deployment's sync.
 - **A release branch can be ahead of its archive.** `bX.Y.Z` syncs on every push to the branch, and
   its tarball URLs resolve only once the archive for that release is deployed, so between a push and
   the next archive deploy the branch's seeds may install what the archive does not hold yet. This is

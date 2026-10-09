@@ -10,9 +10,11 @@ name: Mirror Demo Seeds
 # - `staging`: ag-charts `latest`, synced by ci.yml after a successful "Deploy to Staging" (it
 #   calls this workflow with `target: staging`; there is no push trigger for `latest`). The seeds
 #   pinned to the npm `latest` dist-tag are exported to install the package tarballs the staging
-#   site serves, so a seed opened from staging runs the build staging was made from.
+#   site serves, so a seed opened from staging runs the build staging was made from. A run for a
+#   commit older than the one the branch already holds leaves it as it is (a re-run of a failed job
+#   must not undo a newer deployment).
 # - `bX.Y.Z`: a push to the release branch of the same name, exported to install the tarballs of
-#   the archive deployed at <production>/archive/X.Y.Z/. It can be ahead of that archive between a
+#   the archive deployed at <production site>/charts/archive/X.Y.Z/. It can be ahead of that archive between a
 #   push and the next archive deploy: the links resolve only once the archive is deployed.
 # - `release-X.Y.Z` tags: the tagged commit's seeds, which pin X.Y.Z (`pinSource` `release`) and so
 #   are exported as they are, installing X.Y.Z from npm. The tag is on a commit on top of the
@@ -21,7 +23,8 @@ name: Mirror Demo Seeds
 #   being moved.
 # - `latest`, the mirror's default branch: moves only on a release, to the tagged seeds (and only
 #   when no newer release is already tagged there, checked again on every push attempt, so two tag
-#   runs in flight cannot leave it on the older), so it always installs from published packages.
+#   runs in flight cannot leave it on the older, and once npm serves the release's packages), so it
+#   always installs from published packages.
 #   It is never synced from a push to ag-charts `latest`.
 #
 # Each sync replaces the mirror branch's content with export-seed-mirror.mjs's output and commits
@@ -63,7 +66,7 @@ jobs:
     mirror:
         if: github.repository == 'ag-grid/ag-charts'
         runs-on: ubuntu-latest
-        timeout-minutes: 10
+        timeout-minutes: 30
         steps:
             - name: Checkout the seeds
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -151,6 +154,8 @@ jobs:
               if: steps.target.outputs.skip != 'true'
               env:
                   GH_TOKEN: ${{ steps.push-token.outputs.token }}
+                  # The mirror token reaches only the mirror; this one reads ag-charts.
+                  SOURCE_TOKEN: ${{ github.token }}
                   MIRROR_BRANCH: ${{ steps.target.outputs.branch }}
                   MIRROR_TAG: ${{ steps.target.outputs.tag }}
                   SOURCE: ${{ github.repository }}@${{ github.sha }} (${{ github.ref_name }})
@@ -194,6 +199,23 @@ jobs:
                       git tag --list 'release-*' | sed 's/^release-//' | { grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V | tail -n 1
                   }
 
+                  # Whether mirror `staging` already holds a commit of ag-charts `latest` that is
+                  # ahead of the one being synced. A re-run of an older commit's failed job would
+                  # otherwise fast-forward staging back over a newer deployment, whose tarballs the
+                  # site now serves in place of this commit's. The last synced commit is the one
+                  # named in the mirror branch's head message; a run that changed nothing commits
+                  # nothing, so that is the last commit that changed the seeds, which can only make
+                  # this guard miss a stale run, never block a current one.
+                  staging_is_ahead() {
+                      local synced status
+                      synced=$(git log -1 --format=%s "origin/${MIRROR_BRANCH}" 2> /dev/null | sed -n 's|^Sync from [^@]*@\([0-9a-f]\{40\}\) .*|\1|p')
+                      if [ -z "$synced" ] || [ "$synced" = "$GITHUB_SHA" ]; then
+                          return 1
+                      fi
+                      status=$(GH_TOKEN="$SOURCE_TOKEN" gh api "repos/${GITHUB_REPOSITORY}/compare/${GITHUB_SHA}...${synced}" --jq .status)
+                      [ "$status" = ahead ]
+                  }
+
                   # Builds mirror branch $1 and pushes it, rebuilding on the mirror's new head when
                   # another run got there first. With $2 set, the branch moves only while the release
                   # being synced is the newest tagged in the mirror, checked again on every attempt
@@ -205,6 +227,10 @@ jobs:
                       local branch="$1" only_if_newest="${2:-}" attempt newest
                       for attempt in 1 2 3; do
                           git fetch --quiet --prune --tags origin
+                          if [ "$branch" = staging ] && staging_is_ahead; then
+                              echo "Mirror staging left as it is: it already holds a commit newer than ${SOURCE}." | tee -a "$GITHUB_STEP_SUMMARY"
+                              return 0
+                          fi
                           if [ -n "$only_if_newest" ]; then
                               newest=$(newest_release)
                               if [ "$(printf '%s\n%s\n' "${MIRROR_TAG#release-}" "$newest" | sort -V | tail -n 1)" != "${MIRROR_TAG#release-}" ]; then
@@ -253,9 +279,34 @@ jobs:
                       echo "Tagged ${MIRROR_REPOSITORY} ${head} as ${MIRROR_TAG} from ${SOURCE}." >> "$GITHUB_STEP_SUMMARY"
                   fi
 
+                  # The packages the tagged seeds install must be on npm before the default branch
+                  # moves to them: this run starts with the tag, which prod-release.yml publishes from
+                  # in parallel and takes minutes to build and validate first. If publication fails
+                  # or is late the run fails with the branch untouched, and is re-run once it lands.
+                  wait_for_npm() {
+                      local version="${MIRROR_TAG#release-}" packages pending package attempt
+                      packages=$({ grep -rhoE '"ag-charts-[a-z0-9-]+"[[:space:]]*:' "$export" --include=package.json || true; } | sed 's/^"\([^"]*\)".*$/\1/' | sort -u)
+                      for attempt in $(seq 1 40); do
+                          pending=""
+                          for package in $packages; do
+                              if [ -z "$(npm view "${package}@${version}" version 2> /dev/null)" ]; then
+                                  pending="${pending} ${package}"
+                              fi
+                          done
+                          if [ -z "$pending" ]; then
+                              return 0
+                          fi
+                          echo "Waiting for npm to serve ${version} of:${pending} (attempt ${attempt} of 40)"
+                          sleep 30
+                      done
+                      echo "::error::Mirror latest not moved: ${version} is not on npm for:${pending}. Re-run this job once the release is published."
+                      exit 1
+                  }
+
                   # The mirror's default branch moves only here, to the released seeds, so it always
                   # installs published packages. Only to the newest release tagged in the mirror: a
                   # hotfix tagged on an older line must not move it back, whichever of two runs for
                   # different releases gets here first. This also runs when the tag already existed,
                   # so a run that tagged but failed to move the branch can be re-run.
+                  wait_for_npm
                   sync_branch latest newest

@@ -78,9 +78,11 @@ Each demo/framework pair is a standalone Vite project committed under `seeds/<id
 with `ag-charts-*` pinned to something public npm resolves (the exact release when the workspace is
 at one, npm's `latest` dist-tag for every pre-release, on release branches too), and is opened in
 StackBlitz from the `ag-grid/ag-charts-demos` mirror below. What the mirror's copy installs depends
-on its ref: the build the staging site was made from at `staging`, the build of a release's archive
-at its branch `bX.Y.Z`, the exact release from npm at its `release-X.Y.Z` tag. How the pin is chosen
-and how the mirror's refs differ is under "Pins" in [`tools/seeds/README.md`](tools/seeds/README.md).
+on its ref and on the seed's pin. A seed on npm's `latest` dist-tag installs the build the staging
+site was made from at `staging`, and the build of a release's archive at its branch `bX.Y.Z`; a seed
+pinned to a release (the `release-X.Y.Z` tags, a release branch once its workspace is at `X.Y.Z`)
+installs that release from npm. How the pin is chosen and how the mirror's refs differ is under
+"Pins" in [`tools/seeds/README.md`](tools/seeds/README.md).
 There is no zip download.
 
 The seeds are mirrored one way to

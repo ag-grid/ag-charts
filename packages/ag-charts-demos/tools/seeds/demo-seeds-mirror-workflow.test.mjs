@@ -238,8 +238,54 @@ describe('Sync the mirror', () => {
     const content = (ref) => git(mirror, 'show', `${ref}:package.json`);
     const refs = () => git(mirror, 'for-each-ref', '--format=%(refname:short)').split('\n');
 
-    /** Runs the step on a fresh runner, with the export folder holding `exported`. */
-    function sync({ branch, tag = '', exported, path = process.env.PATH }) {
+    const SHA = (digit) => digit.repeat(40);
+
+    /**
+     * Stand-ins, first on the PATH, for what the step asks of the network: `sleep` returns at once,
+     * `npm view <package>@<version>` answers unless `<package>@<version>` is among `unpublished`
+     * (until it has been asked about `appearsAfter` times), and `gh api .../compare/<base>...<head>`
+     * answers `compare`.
+     */
+    function stubBin({ unpublished, appearsAfter, compare }) {
+        const bin = join(work, 'stubs');
+        mkdirSync(bin, { recursive: true });
+        const stub = (name, body) => {
+            writeFileSync(join(bin, name), `#!/bin/bash\n${body}\n`);
+            chmodSync(join(bin, name), 0o755);
+        };
+        stub('sleep', 'exit 0');
+        const asked = join(work, 'npm-asked');
+        mkdirSync(asked, { recursive: true });
+        stub(
+            'npm',
+            [
+                `case " ${unpublished.join(' ')} " in *" $2 "*)`,
+                `    n=$(cat '${asked}'/"$2" 2> /dev/null || echo 0)`,
+                `    echo $((n + 1)) > '${asked}'/"$2"`,
+                `    [ "$n" -ge ${appearsAfter} ] || exit 1;;`,
+                'esac',
+                `printf '%s\\n' "\${2##*@}"`,
+            ].join('\n')
+        );
+        stub('gh', `printf '%s\\n' "${compare}"`);
+        return bin;
+    }
+
+    /**
+     * Runs the step on a fresh runner, with the export folder holding `exported`. `source` is the
+     * commit of ag-charts the run is for, `unpublished` the `package@version` that npm does not yet
+     * serve, and `compare` what GitHub says of the commit the mirror's `staging` holds relative to it.
+     */
+    function sync({
+        branch,
+        tag = '',
+        exported,
+        path = process.env.PATH,
+        source = 'abc',
+        unpublished = [],
+        appearsAfter = Infinity,
+        compare = 'behind',
+    }) {
         rmSync(join(work, 'export'), { recursive: true, force: true });
         rmSync(join(work, 'mirror'), { recursive: true, force: true });
         mkdirSync(join(work, 'export'), { recursive: true });
@@ -247,14 +293,17 @@ describe('Sync the mirror', () => {
         return spawnSync('bash', ['-c', script], {
             encoding: 'utf8',
             env: {
-                PATH: path,
+                PATH: `${stubBin({ unpublished, appearsAfter, compare })}:${path}`,
                 HOME: work,
                 RUNNER_TEMP: work,
                 MIRROR_REPOSITORY: 'ag-grid/ag-charts-demos',
                 GH_TOKEN: 'token',
                 MIRROR_BRANCH: branch,
                 MIRROR_TAG: tag,
-                SOURCE: 'ag-grid/ag-charts@abc (test)',
+                SOURCE: `ag-grid/ag-charts@${source} (test)`,
+                GITHUB_SHA: source,
+                GITHUB_REPOSITORY: 'ag-grid/ag-charts',
+                SOURCE_TOKEN: 'source-token',
                 GITHUB_STEP_SUMMARY: join(work, 'summary'),
                 GIT_CONFIG_GLOBAL: '/dev/null',
                 GIT_CONFIG_COUNT: '1',
@@ -287,6 +336,61 @@ describe('Sync the mirror', () => {
         expect(sync({ branch: 'staging', exported: 'build 2\n' }).status).toBe(0);
         expect(content('staging')).toBe('build 2');
         expect(git(mirror, 'rev-parse', 'staging^')).toBe(first);
+    });
+
+    describe('staging after a retry', () => {
+        it('leaves staging alone when a run for an older commit is re-run after a newer one synced it', () => {
+            seedMirror();
+            expect(sync({ branch: 'staging', exported: 'build B\n', source: SHA('b') }).status).toBe(0);
+            const staging = tip('staging');
+
+            // GitHub says the commit staging holds (B) is ahead of the one being re-run (A).
+            const result = sync({ branch: 'staging', exported: 'build A\n', source: SHA('a'), compare: 'ahead' });
+
+            expect(result.status, result.stderr).toBe(0);
+            expect(result.stdout).toContain('Mirror staging left as it is');
+            expect(tip('staging')).toBe(staging);
+            expect(content('staging')).toBe('build B');
+        });
+
+        it('moves staging on to a newer commit', () => {
+            seedMirror();
+            sync({ branch: 'staging', exported: 'build A\n', source: SHA('a') });
+
+            const result = sync({ branch: 'staging', exported: 'build B\n', source: SHA('b'), compare: 'behind' });
+
+            expect(result.status, result.stderr).toBe(0);
+            expect(content('staging')).toBe('build B');
+        });
+
+        it('syncs a re-run of the commit staging already holds', () => {
+            seedMirror();
+            sync({ branch: 'staging', exported: 'build A\n', source: SHA('a') });
+
+            const result = sync({
+                branch: 'staging',
+                exported: 'build A, again\n',
+                source: SHA('a'),
+                compare: 'ahead',
+            });
+
+            expect(result.status, result.stderr).toBe(0);
+            expect(content('staging')).toBe('build A, again');
+        });
+
+        it('does not apply to a release branch, whose pushes are ordered by the branch itself', () => {
+            seedMirror({ 'b14.2.0': 'archive build\n' });
+
+            const result = sync({
+                branch: 'b14.2.0',
+                exported: 'archive build 2\n',
+                source: SHA('a'),
+                compare: 'ahead',
+            });
+
+            expect(result.status, result.stderr).toBe(0);
+            expect(content('b14.2.0')).toBe('archive build 2');
+        });
     });
 
     it('syncs a release branch without touching the default branch or staging', () => {
@@ -431,6 +535,55 @@ describe('Sync the mirror', () => {
             expect(content('latest')).toBe('released 14.3.0');
             expect(tip('latest')).toBe(newer);
             expect(result.stdout).toContain('is older than the newest release tagged there (release-14.3.0)');
+        });
+
+        describe('waiting for npm', () => {
+            const seeds = JSON.stringify({
+                dependencies: { 'ag-charts-community': '14.2.0', 'ag-charts-react': '14.2.0' },
+            });
+
+            it('moves latest once npm serves every package the seeds install', () => {
+                seedMirror();
+
+                const result = sync({ branch: 'b14.2.0', tag: 'release-14.2.0', exported: seeds });
+
+                expect(result.status, result.stderr).toBe(0);
+                expect(content('latest')).toBe(seeds);
+            });
+
+            it('waits for a package that is not published yet, then moves latest', () => {
+                seedMirror();
+
+                const result = sync({
+                    branch: 'b14.2.0',
+                    tag: 'release-14.2.0',
+                    exported: seeds,
+                    unpublished: ['ag-charts-react@14.2.0'],
+                    appearsAfter: 3,
+                });
+
+                expect(result.status, result.stderr).toBe(0);
+                expect(result.stdout).toContain('Waiting for npm to serve 14.2.0 of: ag-charts-react');
+                expect(content('latest')).toBe(seeds);
+            });
+
+            it('fails with latest untouched when a package is still not on npm after the wait', () => {
+                seedMirror();
+                const latest = tip('latest');
+
+                const result = sync({
+                    branch: 'b14.2.0',
+                    tag: 'release-14.2.0',
+                    exported: seeds,
+                    unpublished: ['ag-charts-react@14.2.0'],
+                });
+
+                expect(result.status).not.toBe(0);
+                expect(result.stdout + result.stderr).toContain('14.2.0 is not on npm for: ag-charts-react');
+                expect(tip('latest')).toBe(latest);
+                // The tag is already there, so a re-run once the release is published only moves latest.
+                expect(tip('release-14.2.0')).not.toBe('');
+            });
         });
 
         it('compares versions numerically, so 14.10.0 is newer than 14.9.0', () => {

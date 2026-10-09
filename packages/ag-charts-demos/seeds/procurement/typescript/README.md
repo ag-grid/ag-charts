@@ -32,7 +32,9 @@ workspace is on a pre-release, on any branch (release branches included), so `np
 the newest published release; they pin the release exactly once the workspace is at `X.Y.Z`. The
 demo may already use features of a release that is not out yet; if so, it catches up when that
 release is published. The copy in `ag-grid/ag-charts-demos` is exported per ref, so read its
-`package.json` for what it installs: `staging` and the release branches (`bX.Y.Z`) install the AG
-Charts build their docs site was made from, as package tarballs that site serves; the `release-X.Y.Z`
-tags pin that release on npm; the default branch `latest` follows the newest release.
+`package.json` for what it installs. Dependencies on the `latest` tag install, at `staging` and the
+release branches (`bX.Y.Z`), the AG Charts build their docs site was made from, as package tarballs
+that site serves. Dependencies pinned to a release (the `release-X.Y.Z` tags, a release branch once
+its workspace is at `X.Y.Z`) install that release from npm. The default branch `latest` follows the
+newest release.
 AG Charts Enterprise and AG Grid Enterprise features show a watermark until a licence key is set.
