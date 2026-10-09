@@ -60,9 +60,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      * Whether each run of children that share their shadow is drawn as a batch: the silhouettes of the run are blurred
      * once, beneath all of the run's items, rather than each child casting a blurred shadow of its own. A group whose
      * children cast no shadow is not affected. See {@link renderChildrenWithShadowBatches}.
+     *
+     * `'by-layer'` also ends a batch at a change of the children's `zIndex`, so that the shadow of a child on an upper
+     * layer still lands on the lower one, as the depths of a treemap do. A group whose children's `zIndex` only orders
+     * them, as the markers of an aggregated scatter do, uses `true`, so that they stay one batch.
      */
     @SceneChangeDetection()
-    batchShadows: boolean = false;
+    batchShadows: boolean | 'by-layer' = false;
 
     /** The children that cast a batched shadow, counted by {@link preRender}, or -1 until then. */
     private shadowCasterCount = -1;
@@ -95,11 +99,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         readonly zIndex?: ZIndex;
         readonly renderToOffscreenCanvas?: boolean;
         readonly optimizeForInfrequentRedraws?: boolean;
+        readonly batchShadows?: boolean | 'by-layer';
     }) {
         super(opts);
         this.isContainerNode = true;
         this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
         this.optimizeForInfrequentRedraws = opts?.optimizeForInfrequentRedraws === true;
+        this.batchShadows = opts?.batchShadows ?? false;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.
@@ -314,7 +320,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         if (this.dirty) {
             counts = super.preRender(renderCtx, 0);
 
-            const countCasters = this.batchShadows;
+            const countCasters = this.batchShadows !== false;
             let casters = 0;
             for (const child of this.children()) {
                 const childCounts = child.preRender(renderCtx);
@@ -452,7 +458,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected renderInContext(childRenderCtx: RenderContext) {
-        const { ctx, stats } = childRenderCtx;
+        const { ctx } = childRenderCtx;
 
         if (this.dirtyZIndex) {
             this.sortChildren(Group.compareChildren);
@@ -482,27 +488,45 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 childRenderCtx.clipBBox = Transformable.toCanvas(this, this.clipRect);
             }
 
-            if (this.batchShadows && this.countShadowCasters() > 0) {
-                renderChildrenWithShadowBatches(this.children(), this.scene, this, childRenderCtx);
-                return;
-            }
-
-            for (const child of this.children()) {
-                // Skip invisible children, but make sure their dirty flag is reset.
-                if (!child.visible) {
-                    if (stats) {
-                        stats.nodesSkipped += child.childNodeCounts.nonGroups + child.childNodeCounts.groups;
-                        stats.opsSkipped += child.childNodeCounts.complexity;
-                    }
-                    continue;
-                }
-
-                // Render marks this node (and children) as clean - no need to explicitly markClean().
-                child.isolatedRender(childRenderCtx);
-            }
+            this.renderChildren(childRenderCtx);
         } finally {
             ctx.restore();
         }
+    }
+
+    /** Renders the children in order, with each run that shares a shadow batched if {@link batchShadows} is on. */
+    protected renderChildren(childRenderCtx: RenderContext) {
+        const { stats } = childRenderCtx;
+
+        if (this.hasBatchedShadows()) {
+            renderChildrenWithShadowBatches(
+                this.children(),
+                this.scene,
+                this,
+                childRenderCtx,
+                this.batchShadows === 'by-layer'
+            );
+            return;
+        }
+
+        for (const child of this.children()) {
+            // Skip invisible children, but make sure their dirty flag is reset.
+            if (!child.visible) {
+                if (stats) {
+                    stats.nodesSkipped += child.childNodeCounts.nonGroups + child.childNodeCounts.groups;
+                    stats.opsSkipped += child.childNodeCounts.complexity;
+                }
+                continue;
+            }
+
+            // Render marks this node (and children) as clean - no need to explicitly markClean().
+            child.isolatedRender(childRenderCtx);
+        }
+    }
+
+    /** Whether the group batches the shadows of its children, and has any child that casts one. */
+    protected hasBatchedShadows(): boolean {
+        return this.batchShadows !== false && this.countShadowCasters() > 0;
     }
 
     /** The number of children that cast a batched shadow, which is cached until the group is next marked dirty. */

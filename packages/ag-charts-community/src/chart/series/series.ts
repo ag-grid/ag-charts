@@ -289,6 +289,7 @@ export abstract class Series<
     readonly contentGroup = new TranslatableGroup({
         name: `${this.internalId}-content`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
+        batchShadows: true,
     });
 
     // The group node that contains all highlighted series items. This is a performance optimisation
@@ -297,10 +298,11 @@ export abstract class Series<
     readonly highlightGroup = new TranslatableGroup({
         name: `${this.internalId}-highlight`,
         zIndex: SeriesZIndexMap.ANY_CONTENT,
+        batchShadows: true,
     });
 
     readonly highlightNodeGroup = this.highlightGroup.appendChild(
-        new Group<TDatum>({ name: `${this.internalId}-highlight-node` })
+        new Group<TDatum>({ name: `${this.internalId}-highlight-node`, batchShadows: true })
     );
 
     readonly highlightLabelGroup = this.highlightGroup.appendChild(

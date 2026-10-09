@@ -92,8 +92,8 @@ const chartRef: ChartRef = { current: AgCharts.create(options) };
 type ShadowMode = 'off' | 'on' | 'spread';
 type Variants = BenchmarkConfig['testCases'][number]['variants'];
 
-// Until a series opts in to batched layer shadows, these variants time the per-shape shadow renderer, which is the
-// baseline to compare a series against once it does.
+// These variants time the series with its shadow off, on, and on with a `spread`. A shadow is blurred once per layer, so
+// on and off should be close.
 // The shadow `spread`, and the `shadow` of candlestick and OHLC series, are first in 14.3.0. Older releases ignore them, so
 // they are skipped there, or they would do less work than this version does. Builds that still report 14.2.0 skip them too.
 const SHADOW_MIN_VERSION = '14.3.0';

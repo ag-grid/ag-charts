@@ -396,7 +396,7 @@ const SERIES: SeriesCase[] = [
 
 describe('highlightedItem.shadow (enterprise series)', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const canvasCtx = setupMockCanvas();
 
     let chart: any;
 
@@ -662,6 +662,34 @@ describe('highlightedItem.shadow (enterprise series)', () => {
             expectNegativeSpreadWarnings(-2);
             // The negative value is dropped, so the series shadow's spread shows through.
             expect(highlighted.find(casts)?.fillShadow).toMatchObject(SPREAD_SHADOW);
+        });
+    });
+
+    describe.each(SERIES)('$name layer shadow batching', (testCase) => {
+        // A batch blurs its mask once, and the mask is a scratch canvas, so a series that batches draws one more canvas
+        // than the same chart without a shadow. A hover is left out, because it cuts the other items out of their layer.
+        const canvasesInUse = async (shadow: Shadow | undefined) => {
+            const before = new Set(canvasCtx.getActiveOffscreenCanvasInstances());
+            const options = {
+                data: testCase.data,
+                animation: { enabled: false },
+                legend: { enabled: false },
+                ...testCase.chartOptions,
+                series: [testCase.series(shadow, {})],
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return canvasCtx
+                .getActiveOffscreenCanvasInstances()
+                .filter((canvas) => !before.has(canvas) && canvas.width > 0).length;
+        };
+
+        it('draws its shadows through a mask', async () => {
+            const withoutShadow = await canvasesInUse(undefined);
+            chart.destroy();
+
+            expect(await canvasesInUse(SHADOW)).toBeGreaterThan(withoutShadow);
         });
     });
 
