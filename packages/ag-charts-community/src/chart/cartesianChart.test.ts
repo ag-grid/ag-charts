@@ -265,6 +265,20 @@ describe('CartesianChart', () => {
         });
     });
 
+    it('should render an unreferenced axis that has no position', async () => {
+        const options: AgCartesianChartOptions = {
+            data: getData(),
+            series: [{ type: 'line', xKey: 'year', yKey: 'adults' }],
+            axes: { x: { type: 'category' }, y: { type: 'number' }, y2: { type: 'number' } },
+        };
+        prepareTestOptions(options);
+
+        chart = deproxy(AgCharts.create(options)) as CartesianChart;
+        await waitForChartStability(chart);
+
+        expect(chart.axes.map((axis) => axis.position)).toEqual(['bottom', 'left', 'right']);
+    });
+
     describe('Small chart width', () => {
         it.each([80, 160, 240, 320, 400])('should render chart correctly at width [%s]', async (width) => {
             const options: AgCartesianChartOptions = {
