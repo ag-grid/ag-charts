@@ -475,13 +475,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         if (shadow?.enabled !== true) return;
 
         const spread = shadow.spread ?? 0;
-        const { __fill: fill, __fillOpacity: fillOpacity = 1, __shadowMode: mode } = this;
-        // A fill with no alpha casts nothing.
-        const drawsFill =
-            mode !== 'stroke' && fill != null && fill !== 'none' && fillOpacity > 0 && this.getMaxFillAlpha(fill) > 0;
-        // A transparent stroke colour casts nothing.
-        const drawsStroke = mode !== 'fill' && this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
-        const hasExtras = mode !== 'fill' && this.getSilhouetteExtrasOpacity() > 0;
+        const drawsFill = this.castsShadowFromFill();
+        const drawsStroke = this.castsShadowFromStroke();
+        const hasExtras = this.castsShadowFromExtras();
 
         if (spread > 0 && path != null) {
             this.renderSpreadMask(ctx, path, spread, drawsFill, drawsStroke, hasExtras, bboxOverride);
@@ -513,6 +509,24 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
+    /** Whether the fill is part of the silhouette that casts the shadow. A fill with no alpha casts nothing. */
+    private castsShadowFromFill(): boolean {
+        const { __fill: fill, __fillOpacity: fillOpacity = 1, __shadowMode: mode } = this;
+        return (
+            mode !== 'stroke' && fill != null && fill !== 'none' && fillOpacity > 0 && this.getMaxFillAlpha(fill) > 0
+        );
+    }
+
+    /** Whether the stroke is part of the silhouette that casts the shadow. A transparent stroke colour casts nothing. */
+    private castsShadowFromStroke(): boolean {
+        return this.__shadowMode !== 'fill' && this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
+    }
+
+    /** Whether the extras, such as a candlestick's wicks, are part of the silhouette that casts the shadow. */
+    private castsShadowFromExtras(): boolean {
+        return this.__shadowMode !== 'fill' && this.getSilhouetteExtrasOpacity() > 0;
+    }
+
     /**
      * The strength that a spread shadow's silhouette casts at, before the alpha of the layer it is drawn into: the fill's
      * strongest alpha, else the stroke's, else the extras', or 0 if the shape casts nothing.
@@ -542,18 +556,17 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const shadow = this.__fillShadow;
         if (shadow?.enabled !== true || (shadow.spread ?? 0) <= 0 || !this.hasSpreadMaskPath()) return;
 
-        const { __fill: fill, __fillOpacity: fillOpacity = 1, __shadowMode: mode } = this;
-        const drawsFill =
-            mode !== 'stroke' && fill != null && fill !== 'none' && fillOpacity > 0 && this.getMaxFillAlpha(fill) > 0;
-        const drawsStroke = mode !== 'fill' && this.hasVisibleStroke() && this.getStrokeAlpha(this.__stroke) > 0;
-        const hasExtras = mode !== 'fill' && this.getSilhouetteExtrasOpacity() > 0;
-        const strength = this.getSpreadStrength(drawsFill, drawsStroke, hasExtras);
+        const strength = this.getSpreadStrength(
+            this.castsShadowFromFill(),
+            this.castsShadowFromStroke(),
+            this.castsShadowFromExtras()
+        );
         return isFiniteNumber(strength) ? strength : undefined;
     }
 
-    /** False for a shape that has no Path2D to dilate by a `spread`, which `fillStroke()` is then given none of. */
+    /** Whether `fillStroke()` is given a Path2D to dilate by a `spread`. A shape that has none widens its stroke instead. */
     protected hasSpreadMaskPath(): boolean {
-        return true;
+        return false;
     }
 
     /**

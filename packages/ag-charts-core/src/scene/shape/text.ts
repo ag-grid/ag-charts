@@ -621,11 +621,6 @@ export class Text<D = unknown> extends Shape<D> {
         }
     }
 
-    /** Text is stroked and filled without a Path2D, so a `spread` widens its stroke rather than dilating a silhouette. */
-    protected override hasSpreadMaskPath(): boolean {
-        return false;
-    }
-
     override render(renderCtx: RenderContext): void {
         const { ctx, stats } = renderCtx;
 

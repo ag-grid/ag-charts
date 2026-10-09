@@ -222,17 +222,17 @@ function renderPass(
 }
 
 /**
- * The strength that every caster of a `spread` batch casts at, or undefined if they differ or one draws its silhouette
- * another way. The batch then draws the silhouettes solid and casts its one shadow at that strength, which avoids a pass
- * over the layer per translucent shape.
+ * The strength that every caster of a `spread` batch casts at, 0 if none of them casts, or undefined if they differ or one
+ * draws its silhouette another way. The batch then draws the silhouettes solid and casts its one shadow at that strength,
+ * which avoids a pass over the layer per translucent shape.
  */
 function getUniformSpreadStrength(casters: readonly ShadowCaster[]): number | undefined {
-    let uniform: number | undefined;
+    let uniform = 0;
     for (const caster of casters) {
         const strength = caster.getSpreadMaskStrength();
         if (strength == null) return;
         if (strength <= 0) continue;
-        if (uniform == null) {
+        if (uniform === 0) {
             uniform = strength;
         } else if (Math.abs(strength - uniform) > UNIFORM_STRENGTH_TOLERANCE) {
             return;
@@ -261,6 +261,15 @@ function renderBatch(
     renderCtx: RenderContext
 ): boolean {
     const { ctx, devicePixelRatio } = renderCtx;
+
+    // A batch whose casters all cast nothing, such as one fading in from zero opacity, has no mask or blur to draw.
+    const spread = shadow.spread ?? 0;
+    const strength = spread > 0 ? getUniformSpreadStrength(casters) : undefined;
+    if (strength === 0) {
+        renderPass(casters, renderCtx, 'suppress');
+        return true;
+    }
+
     const width = Math.ceil(ctx.canvas.width);
     const height = Math.ceil(ctx.canvas.height);
     const blur = shadow.blur * devicePixelRatio;
@@ -272,7 +281,7 @@ function renderBatch(
 
     // An item that overhangs the layer still casts its shadow onto it, so the mask extends past the layer by as far as a
     // shadow can reach back. That is never more than MAX_MASK_PAD, past which nothing is drawn, so the mask stays small.
-    const reach = Math.ceil(blur * SHADOW_BLUR_REACH + Math.max(0, shadow.spread ?? 0) * devicePixelRatio);
+    const reach = Math.ceil(blur * SHADOW_BLUR_REACH + Math.max(0, spread) * devicePixelRatio);
     const padLeft = Math.min(Math.ceil(Math.max(0, offsetX)) + reach, MAX_MASK_PAD);
     const padRight = Math.min(Math.ceil(Math.max(0, -offsetX)) + reach, MAX_MASK_PAD);
     const padTop = Math.min(Math.ceil(Math.max(0, offsetY)) + reach, MAX_MASK_PAD);
@@ -293,14 +302,11 @@ function renderBatch(
     // A batch of casters at one translucent strength draws them solid, and casts the shadow at that strength.
     let shadowColour = shadow.color;
     let opaque = false;
-    if ((shadow.spread ?? 0) > 0) {
-        const strength = getUniformSpreadStrength(casters);
-        if (strength != null && strength * ctx.globalAlpha < 1) {
-            const scaled = scaleColourAlpha(shadow.color, strength * ctx.globalAlpha);
-            if (scaled != null) {
-                shadowColour = scaled;
-                opaque = true;
-            }
+    if (strength != null && strength * ctx.globalAlpha < 1) {
+        const scaled = scaleColourAlpha(shadow.color, strength * ctx.globalAlpha);
+        if (scaled != null) {
+            shadowColour = scaled;
+            opaque = true;
         }
     }
 
@@ -391,17 +397,14 @@ export function renderChildrenWithShadowBatches(
 
         const shadow = getBatchedShadow(child);
         const clip = shadow == null ? undefined : getShadowClip(child);
-        if (
-            shadow == null ||
-            (runShadow != null &&
-                !(
-                    sameShadow(runShadow, shadow) &&
-                    sameClip(runClip, clip) &&
-                    (!splitByLayer || sameLayer(run[0], child))
-                ))
-        ) {
-            flush();
-        }
+        const joinsRun =
+            shadow != null &&
+            runShadow != null &&
+            sameShadow(runShadow, shadow) &&
+            sameClip(runClip, clip) &&
+            (!splitByLayer || sameLayer(run[0], child));
+        // A child that casts no shadow, or one that does not continue the run, ends it.
+        if (!joinsRun) flush();
         if (shadow == null) {
             child.isolatedRender(renderCtx);
             continue;

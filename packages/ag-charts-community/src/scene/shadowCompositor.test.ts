@@ -185,7 +185,7 @@ describe('Group shadow compositor', () => {
             first.zIndex = 0;
             second.zIndex = 1;
             const group = createGroup([first, second]);
-            group.batchShadowLayers = true;
+            group.batchShadows = 'by-layer';
             renderGroup(group);
 
             // The shadow of the item on the upper layer lands on the item beneath it.
@@ -665,6 +665,64 @@ describe('Group shadow compositor', () => {
             expect(at(140, 155)[3]).toBe(255);
             expect(at(140, 65)[3]).toBeGreaterThan(0);
             expect(at(140, 65)[3]).toBeLessThan(255);
+        });
+    });
+
+    describe('strength of a spread batch', () => {
+        // The shadow is opaque and lands 100px right of the items, so that its alpha is that of the mask under it.
+        const SPREAD = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 100, yOffset: 0, blur: 0, spread: 6 };
+
+        // Two items that overlap at 50 to 80 across, and 60 to 90 down, so their shadows overlap there.
+        const overlapping = (first: Partial<Rect>, second: Partial<Rect>) => [
+            box(20, 40, 60, 50, { fill: 'blue', fillShadow: SPREAD, ...first }),
+            box(50, 60, 60, 50, { fill: 'blue', fillShadow: SPREAD, ...second }),
+        ];
+
+        const alphaAt = (x: number, y: number) => at(x, y)[3];
+        const expectAlpha = (x: number, y: number, alpha: number) => {
+            expect(Math.abs(alphaAt(x, y) - alpha)).toBeLessThanOrEqual(2);
+        };
+
+        it('should cast the overlap of items at a shared translucent strength at that strength', () => {
+            renderNodes(overlapping({ fillOpacity: 0.5 }, { fillOpacity: 0.5 }));
+
+            // Each shadow alone, and where the two overlap, which is not the 0.75 that two translucent shadows add up to.
+            expectAlpha(130, 50, 128);
+            expectAlpha(190, 100, 128);
+            expectAlpha(160, 75, 128);
+        });
+
+        it('should scale a shared translucent strength by the opacity of the layer', () => {
+            const group = createGroup(overlapping({ fillOpacity: 0.5 }, { fillOpacity: 0.5 }));
+            group.opacity = 0.5;
+            renderGroup(group);
+
+            expectAlpha(130, 50, 64);
+            expectAlpha(160, 75, 64);
+        });
+
+        it('should cast each item at its own strength when the strengths differ', () => {
+            renderNodes(overlapping({ fillOpacity: 0.5 }, { fillOpacity: 0.25 }));
+
+            // The shadows add where they overlap: 1 - (1 - 0.5) * (1 - 0.25) = 0.625.
+            expectAlpha(130, 50, 128);
+            expectAlpha(190, 100, 64);
+            expectAlpha(160, 75, 159);
+        });
+
+        it('should cast items whose strengths differ by less than the tolerance as one', () => {
+            renderNodes(overlapping({ fillOpacity: 0.5 }, { fillOpacity: 0.501 }));
+
+            expectAlpha(160, 75, 128);
+        });
+
+        it('should skip the mask of a batch whose items all cast nothing', () => {
+            const before = offscreenCanvases();
+
+            renderNodes(overlapping({ fillOpacity: 0 }, { fillOpacity: 0 }));
+
+            expect(createdSince(before)).toHaveLength(0);
+            expect(paintedPixels()).toBe(0);
         });
     });
 

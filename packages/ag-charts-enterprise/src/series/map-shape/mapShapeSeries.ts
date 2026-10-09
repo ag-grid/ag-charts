@@ -178,7 +178,7 @@ export class MapShapeSeries
     private readonly colorScale = new ColorScale();
 
     private readonly itemGroup = this.contentGroup.appendChild(
-        new Group({ name: 'itemGroup', batchShadows: true, batchShadowLayers: true })
+        new Group({ name: 'itemGroup', batchShadows: 'by-layer' })
     );
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
