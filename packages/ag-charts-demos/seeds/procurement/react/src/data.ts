@@ -693,21 +693,21 @@ function bucketIndexOf(buckets: TimeBucket[], time: number): number {
 }
 
 /**
- * Committed spend per bucket, split by subcategory.
+ * Committed spend per bucket, with one column per key.
  *
  * Bucketed by order date: this is what she committed in each bucket, which is the figure a run
- * rate is read off. Every subcategory gets a series in every bucket, zero included — a month she
- * bought no galvanized steel really is a zero, unlike a delivery rate, which would be `null`.
+ * rate is read off. Every key gets a column in every bucket, zero included — a month she bought no
+ * galvanized steel really is a zero, unlike a delivery rate, which would be `null`.
  */
-export function spendByBucketAndSubcategory(
-    commodity: Commodity,
+function spendByBucket(
     orders: PurchaseOrder[],
+    keys: readonly string[],
+    keyOf: (order: PurchaseOrder) => string,
     buckets: TimeBucket[]
 ): SpendTrendRow[] {
-    const subcategories = SUBCATEGORIES[commodity];
     const rows = buckets.map<SpendTrendRow>((bucket) => {
         const row: SpendTrendRow = { start: bucket.start, label: bucket.label };
-        for (const subcategory of subcategories) row[subcategory] = 0;
+        for (const key of keys) row[key] = 0;
         return row;
     });
 
@@ -715,11 +715,30 @@ export function spendByBucketAndSubcategory(
         const index = bucketIndexOf(buckets, order.orderDate);
         if (index === -1) continue;
         const row = rows[index];
-        // An order from another commodity has no column here, and must not create one.
-        if (typeof row[order.subcategory] !== 'number') continue;
-        row[order.subcategory] = (row[order.subcategory] as number) + order.totalCost;
+        const key = keyOf(order);
+        // A key outside `keys` has no column here, and must not create one.
+        if (typeof row[key] !== 'number') continue;
+        row[key] += order.totalCost;
     }
     return rows;
+}
+
+/** Committed spend per bucket, split by subcategory. */
+export function spendByBucketAndSubcategory(
+    commodity: Commodity,
+    orders: PurchaseOrder[],
+    buckets: TimeBucket[]
+): SpendTrendRow[] {
+    return spendByBucket(orders, SUBCATEGORIES[commodity], (order) => order.subcategory, buckets);
+}
+
+/** The same totals as `spendByBucketAndSubcategory`, split by supplier id instead. */
+export function spendByBucketAndSupplier(
+    orders: PurchaseOrder[],
+    supplierIds: string[],
+    buckets: TimeBucket[]
+): SpendTrendRow[] {
+    return spendByBucket(orders, supplierIds, (order) => order.supplierId, buckets);
 }
 
 /**
@@ -955,9 +974,9 @@ export function supplierTrendByMonth(
 }
 
 /**
- * Spend per supplier within each subcategory, for a normalised stacked bar.
+ * Spend per supplier within each subcategory, for the supplier × subcategory share heatmap.
  *
- * Answers the single-sourcing question directly: a subcategory that is one full-width band is a
+ * Answers the single-sourcing question directly: a subcategory with one filled cell is a
  * subcategory with no second source. The sunburst carries the same data but as angles inside
  * separate parents, which is much harder to compare across subcategories.
  */
