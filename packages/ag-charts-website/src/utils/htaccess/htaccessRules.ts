@@ -171,17 +171,20 @@ export function getNpmPackagesRules() {
 </IfModule>
 
 <If "${inNpmPackages}">
+    # Plain "set", not "always set": the server config already sends these on success, and Apache
+    # keeps the always and on-success tables apart, so "always" would emit a second copy, which
+    # browsers reject for Access-Control-Allow-Origin. "set" replaces the server's value instead.
     # The tarball names are fixed and overwritten by each deploy, so shared caches and browsers
     # must revalidate rather than keep serving the previous build.
-    Header always set Cache-Control "no-cache"
-    Header always set Access-Control-Allow-Origin "*"
+    Header set Cache-Control "no-cache"
+    Header set Access-Control-Allow-Origin "*"
 </If>
 
 # CORS preflight: the answer is the same for every tarball, and may be cached by the browser.
 <If "${inNpmPackages} && %{REQUEST_METHOD} == 'OPTIONS'">
-    Header always set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
-    Header always set Access-Control-Allow-Headers "*"
-    Header always set Access-Control-Max-Age "3600"
+    Header set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+    Header set Access-Control-Allow-Headers "*"
+    Header set Access-Control-Max-Age "3600"
 </If>`;
 }
 

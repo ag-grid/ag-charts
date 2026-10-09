@@ -396,23 +396,35 @@ describe('htaccessRules npm-packages tarballs', () => {
         for (const content of [production, staging]) {
             const preflight = npmPackagesBlocks(content).filter(({ preflightOnly }) => preflightOnly);
             expect(preflight).toHaveLength(1);
-            expect(preflight[0].body).toContain('Header always set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"');
-            expect(preflight[0].body).toContain('Header always set Access-Control-Allow-Headers "*"');
+            expect(preflight[0].body).toContain('Header set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"');
+            expect(preflight[0].body).toContain('Header set Access-Control-Allow-Headers "*"');
         }
     });
 
     it('sends the wildcard origin on the tarball responses themselves, which the browser checks after the preflight', () => {
         for (const content of [production, staging]) {
             const [responses] = npmPackagesBlocks(content).filter(({ preflightOnly }) => !preflightOnly);
-            expect(responses.body).toContain('Header always set Access-Control-Allow-Origin "*"');
+            expect(responses.body).toContain('Header set Access-Control-Allow-Origin "*"');
         }
     });
 
     it('makes caches revalidate the tarballs, as each deploy overwrites the same names', () => {
         for (const content of [production, staging]) {
             const [responses] = npmPackagesBlocks(content).filter(({ preflightOnly }) => !preflightOnly);
-            expect(responses.body).toContain('Header always set Cache-Control "no-cache"');
+            expect(responses.body).toContain('Header set Cache-Control "no-cache"');
             expect(responses.body).not.toMatch(/max-age|immutable/);
+        }
+    });
+
+    it('replaces the server-wide CORS and cache headers rather than adding a second copy with "always"', () => {
+        for (const content of [production, staging]) {
+            const headerLines = npmPackagesBlocks(content)
+                .flatMap(({ body }) => body.split('\n'))
+                .filter((l) => /^\s*Header /.test(l));
+            expect(headerLines.length).toBeGreaterThan(0);
+            for (const line of headerLines) {
+                expect(line).toMatch(/^\s*Header set /);
+            }
         }
     });
 

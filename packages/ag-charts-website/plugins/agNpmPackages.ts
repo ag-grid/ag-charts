@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { publishNpmPackageTarballs } from '../src/utils/publishNpmPackages';
 
 type Options = {
-    /** Whether this build deploys, and so serves the tarballs. Off for dev and PR builds to keep them fast. */
+    /** Whether this build deploys, and so serves the tarballs. Off for dev and PR builds, which skip the copy (the cached `pack` tasks still run). */
     enabled: boolean;
 };
 
