@@ -171,7 +171,6 @@ export function buildKpis(summary: MySummary): Kpi[] {
             value: fmtPct(summary.onTimeRate),
             detail: `${fmtInt(summary.deliveredCount)} deliveries, rolling 12 months · ${fmtPct(ON_TIME_TARGET)} target`,
             tone: belowTarget ? 'bad' : 'good',
-            icon: belowTarget ? '▼' : '▲',
             gauge: {
                 value: summary.onTimeRate,
                 target: ON_TIME_TARGET,
@@ -183,8 +182,8 @@ export function buildKpis(summary: MySummary): Kpi[] {
             label: 'My at-risk shipments',
             value: fmtInt(summary.atRiskShipments),
             detail: `Of ${fmtInt(inTransit)} in transit from my suppliers`,
-            tone: summary.atRiskShipments > 0 ? 'bad' : 'good',
-            icon: summary.atRiskShipments > 0 ? '▲' : '●',
+            // The segmented bar already shows how many are late, so the tile carries no threshold state.
+            tone: 'neutral',
             // Worst first, so the bands she is being measured on lead the bar.
             segments: SEGMENT_ORDER.map((status) => ({
                 label: status,
@@ -228,7 +227,6 @@ export function buildSpendKpis({ position, label, projectionLabel }: SpendKpis):
             value: fmtCurrencyCompact(position.spend),
             detail: `${fmtPct(position.used)} of my ${fmtCurrencyCompact(position.budget)} ${position.budgetLabel} · ${fmtPct(position.elapsed)} of the ${position.windowLabel} elapsed`,
             tone,
-            icon: tone === 'neutral' ? '●' : '▲',
             // The allocation is the ceiling, so the target sits at the far end of the scale.
             gauge: { value: position.used, target: 1, targetLabel: position.budgetLabel },
         },
@@ -239,27 +237,18 @@ export function buildSpendKpis({ position, label, projectionLabel }: SpendKpis):
             // Says the assumption out loud: a run rate is a projection, not a commitment.
             detail: `${fmtCurrencyCompact(Math.abs(overrun))} ${overrun >= 0 ? 'over' : 'under'} my ${fmtCurrencyCompact(position.budget)} ${position.budgetLabel} at my recent run rate`,
             tone: overrun > 0 ? 'bad' : 'good',
-            icon: overrun > 0 ? '▲' : '▼',
             gauge: { value: projectedShare, target: 1, targetLabel: position.budgetLabel },
         },
     ];
 }
 
-/** Tiles share the row evenly, however many of them a view passes. */
+/** Tiles share one card evenly, however many of them a view passes. */
 export function KpiStrip({ kpis }: { kpis: Kpi[] }) {
     return (
         <div className="pc-kpis" style={{ '--pc-kpi-columns': kpis.length } as CSSProperties}>
             {kpis.map((kpi) => (
-                <div key={kpi.key} className={kpi.tone === 'neutral' ? 'pc-kpi' : `pc-kpi is-${kpi.tone}`}>
-                    <span className="pc-kpi-label">
-                        {kpi.label}
-                        {/* The glyph restates the threshold state the accent colour carries. */}
-                        {kpi.tone !== 'neutral' && (
-                            <span className="pc-kpi-icon" aria-hidden="true">
-                                {kpi.icon}
-                            </span>
-                        )}
-                    </span>
+                <div key={kpi.key} className="pc-kpi">
+                    <span className="pc-kpi-label">{kpi.label}</span>
                     <span className="pc-kpi-value">{kpi.value}</span>
                     {kpi.gauge && <KpiGaugeBar gauge={kpi.gauge} tone={kpi.tone} />}
                     {kpi.segments && <KpiSegmentBar segments={kpi.segments} />}
