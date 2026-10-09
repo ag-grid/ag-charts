@@ -1,6 +1,8 @@
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import {
@@ -10,6 +12,7 @@ import {
     rewriteChartsBuildPins,
     rewriteMarkdownLinks,
 } from './export-seed-mirror.mjs';
+import { SEEDS_DIR } from './seed-common.mjs';
 
 const TREE = 'https://github.com/ag-grid/ag-charts/tree/latest/packages/ag-charts-demos';
 const BLOB = 'https://github.com/ag-grid/ag-charts/blob/latest/packages/ag-charts-demos';
@@ -397,5 +400,101 @@ describe('exportSeedMirror with a charts build', () => {
     it('rejects a prefix that is not an http(s) URL', () => {
         expect(() => run({ chartsBuild: '' })).toThrow(/--charts-build/);
         expect(() => run({ chartsBuild: 'charts-staging.ag-grid.com/npm-packages' })).toThrow(/--charts-build/);
+    });
+});
+
+describe('exportSeedMirror with a charts build, on the committed seeds', () => {
+    const PREFIX = 'https://charts-staging.ag-grid.com/npm-packages';
+    const SHARED = [
+        'ag-charts-types',
+        'ag-charts-core',
+        'ag-charts-locale',
+        'ag-charts-community',
+        'ag-charts-enterprise',
+    ];
+    const WRAPPERS = { react: 'ag-charts-react', angular: 'ag-charts-angular', vue: 'ag-charts-vue3' };
+    const readManifest = (path) => JSON.parse(readFileSync(path, 'utf8'));
+    let outDir;
+
+    beforeEach(() => {
+        outDir = join(root, 'out');
+    });
+
+    it('installs the build in every seed pinned to the dist-tag, for every framework and demo', () => {
+        const written = exportSeedMirror({ outDir, ref: 'staging', chartsBuild: PREFIX });
+        const packageJsons = written.filter((path) => /^[^/]+\/[^/]+\/package\.json$/.test(path));
+        const frameworks = new Set(packageJsons.map((path) => path.split('/')[1]));
+        expect(packageJsons.length).toBeGreaterThanOrEqual(12);
+        expect([...frameworks].sort()).toEqual(['angular', 'react', 'typescript', 'vue']);
+
+        for (const path of packageJsons) {
+            const [demo, framework] = path.split('/');
+            const manifest = readManifest(join(SEEDS_DIR, demo, framework, '.seed-manifest.json'));
+            const packageJson = JSON.parse(readFileSync(join(outDir, path), 'utf8'));
+            const chartsDependencies = Object.entries(packageJson.dependencies).filter(([name]) =>
+                name.startsWith('ag-charts-')
+            );
+            expect(chartsDependencies.length, path).toBeGreaterThan(0);
+            if (manifest.pinSource !== 'dist-tag') {
+                expect(packageJson, path).toEqual(JSON.parse(readFileSync(join(SEEDS_DIR, path), 'utf8')));
+                continue;
+            }
+            for (const [name, version] of chartsDependencies)
+                expect(version, `${path} ${name}`).toBe(`${PREFIX}/${name}.tgz`);
+            const wrapper = WRAPPERS[framework];
+            if (wrapper) expect(packageJson.dependencies[wrapper], path).toBe(`${PREFIX}/${wrapper}.tgz`);
+            const overridden = [...SHARED, ...(wrapper ? [wrapper] : [])];
+            expect(packageJson.overrides, path).toEqual(
+                Object.fromEntries(overridden.map((name) => [name, `${PREFIX}/${name}.tgz`]))
+            );
+            expect(JSON.stringify(packageJson), path).not.toMatch(/"ag-charts-[a-z0-9]+": "(latest|\d)/);
+        }
+    });
+
+    it('copies the committed seeds byte for byte without the option', () => {
+        const written = exportSeedMirror({ outDir, ref: 'latest' });
+        for (const path of written.filter((file) => /^[^/]+\/[^/]+\/package\.json$/.test(file))) {
+            expect(readFileSync(join(outDir, path), 'utf8'), path).toBe(readFileSync(join(SEEDS_DIR, path), 'utf8'));
+        }
+    });
+});
+
+describe('export-seed-mirror command line', () => {
+    const SCRIPT = fileURLToPath(new URL('./export-seed-mirror.mjs', import.meta.url));
+    const PREFIX = 'https://charts-staging.ag-grid.com/npm-packages';
+    const cli = (...args) => spawnSync(process.execPath, [SCRIPT, ...args], { encoding: 'utf8' });
+    let outDir;
+
+    beforeEach(() => {
+        outDir = join(root, 'out');
+    });
+
+    it('rewrites the dist-tag seeds with --charts-build', () => {
+        const result = cli('--out', outDir, '--ref', 'staging', '--charts-build', PREFIX);
+        expect(result.status, result.stderr).toBe(0);
+        const packageJson = JSON.parse(readFileSync(join(outDir, 'trading-terminal', 'react', 'package.json'), 'utf8'));
+        expect(packageJson.dependencies['ag-charts-react']).toBe(`${PREFIX}/ag-charts-react.tgz`);
+        expect(packageJson.overrides['ag-charts-react']).toBe(`${PREFIX}/ag-charts-react.tgz`);
+    });
+
+    it('leaves the seeds as committed without --charts-build', () => {
+        const result = cli('--out', outDir, '--ref', 'latest');
+        expect(result.status, result.stderr).toBe(0);
+        const exported = readFileSync(join(outDir, 'trading-terminal', 'react', 'package.json'), 'utf8');
+        expect(exported).toBe(readFileSync(join(SEEDS_DIR, 'trading-terminal', 'react', 'package.json'), 'utf8'));
+    });
+
+    it('needs a value after --charts-build', () => {
+        const result = cli('--out', outDir, '--ref', 'staging', '--charts-build');
+        expect(result.status).not.toBe(0);
+        expect(result.stderr).toMatch(/--charts-build needs a value/);
+        expect(readdirSync(root)).not.toContain('out');
+    });
+
+    it('rejects a --charts-build that is not an http(s) URL without writing anything', () => {
+        const result = cli('--out', outDir, '--ref', 'staging', '--charts-build', 'npm-packages');
+        expect(result.status).not.toBe(0);
+        expect(result.stderr).toMatch(/--charts-build needs an http\(s\) URL/);
+        expect(readdirSync(root)).not.toContain('out');
     });
 });
