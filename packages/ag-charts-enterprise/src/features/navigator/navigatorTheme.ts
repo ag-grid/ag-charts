@@ -4,7 +4,7 @@ import {
     type AgNavigatorOptions,
     type WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth } from 'ag-charts-core';
 
 import {
     barIgnoredMiniChartProperties,
@@ -144,22 +144,10 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
     };
 }
 
-type StrokeTheme = WithThemeParams<Required<Pick<AgNavigatorHandleOptions, 'stroke' | 'strokeWidth'>>>;
-type BorderParam = 'navigatorTrackBorder' | 'navigatorHandleBorder';
-
-// `true` means the default border colour at width 1, `false` disables the border.
-function borderStroke(param: BorderParam, colorRef: `${BorderParam}.color`): StrokeTheme['stroke'] {
-    return { $if: [{ $isType: [{ $ref: param }, 'boolean'] }, { $ref: 'borderColor' }, { $ref: colorRef }] };
-}
-
-function borderStrokeWidth(param: BorderParam, widthRef: `${BorderParam}.width`): StrokeTheme['strokeWidth'] {
-    return { $if: [{ $isType: [{ $ref: param }, 'boolean'] }, { $if: [{ $ref: param }, 1, 0] }, { $ref: widthRef }] };
-}
-
 const NAVIGATOR_HANDLE_THEME: WithThemeParams<AgNavigatorHandleOptions> = {
     fill: { $ref: 'navigatorHandleBackgroundColor' },
-    stroke: borderStroke('navigatorHandleBorder', 'navigatorHandleBorder.color'),
-    strokeWidth: borderStrokeWidth('navigatorHandleBorder', 'navigatorHandleBorder.width'),
+    stroke: themeBorderColor('navigatorHandleBorder'),
+    strokeWidth: themeBorderWidth('navigatorHandleBorder', { on: 1 }),
     width: 12,
     height: 24,
     cornerRadius: { $ref: 'navigatorHandleBorderRadius' },
@@ -175,8 +163,8 @@ export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
     mask: {
         fill: { $ref: 'navigatorTrackBackgroundColor' },
         fillOpacity: 0.1,
-        stroke: borderStroke('navigatorTrackBorder', 'navigatorTrackBorder.color'),
-        strokeWidth: borderStrokeWidth('navigatorTrackBorder', 'navigatorTrackBorder.width'),
+        stroke: themeBorderColor('navigatorTrackBorder'),
+        strokeWidth: themeBorderWidth('navigatorTrackBorder', { on: 1 }),
     },
     track: {
         fill: { $path: '../mask/fill' },
