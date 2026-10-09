@@ -109,5 +109,6 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
         pickOutsideVisibleMinorAxis: boolean,
         focusPriority: number,
         simpleItemStyler: callback,
+        selectionGroup: string,
     }),
 };

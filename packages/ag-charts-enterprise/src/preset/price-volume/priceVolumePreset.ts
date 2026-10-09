@@ -25,6 +25,7 @@ import type {
 } from 'ag-charts-types';
 
 import {
+    createSelectionChartOptions,
     createVolumeProfileAxis,
     createVolumeProfileSeries,
     groupVolumeProfile,
@@ -103,13 +104,18 @@ export function priceVolume(
     const shownVolumeKey = volume ? volumeKey : undefined;
     const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
 
+    const chartSelection = createSelectionChartOptions(volumeProfile?.selection);
+    // A chart-level `selection` object makes every series selectable, so the price and volume series opt out; only
+    // the Volume Profile series opt in.
+    const seriesSelection = chartSelection === undefined ? undefined : { enabled: false };
+
     return {
         animation: { enabled: false },
         legend: { enabled: false },
         series: [
-            ...createVolumeSeries(getTheme, keys, shownVolumeKey),
+            ...createVolumeSeries(getTheme, keys, shownVolumeKey, seriesSelection),
             ...createPriceVolumeProfileSeries(getTheme, volumeProfile, tickSize),
-            ...createPriceSeries(chartType, keys, logger),
+            ...createPriceSeries(chartType, keys, logger, seriesSelection),
         ],
         axes: {
             ...createPriceAxis(),
@@ -126,6 +132,7 @@ export function priceVolume(
         ...createStatusBarOptions(statusBar, keys, shownVolumeKey),
         ...createSyncOptions(sync),
         ...createZoomOptions(zoom),
+        ...chartSelection,
         ...unusedOpts,
     } satisfies AgCartesianChartOptions<DatumDefault, never>;
 }
@@ -133,6 +140,7 @@ export function priceVolume(
 interface PriceSeriesCommon {
     pickOutsideVisibleMinorAxis: boolean;
     tooltip: { enabled: boolean };
+    selection?: { enabled: boolean };
 }
 
 interface PriceSeriesKeys {
@@ -148,7 +156,12 @@ interface PriceSeriesSingleKeys {
     yKey: string;
 }
 
-function createPriceSeries(chartType: AgPriceVolumeChartType, keys: PriceSeriesKeys, logger: Logger) {
+function createPriceSeries(
+    chartType: AgPriceVolumeChartType,
+    keys: PriceSeriesKeys,
+    logger: Logger,
+    selection: { enabled: boolean } | undefined
+) {
     const singleKeys: PriceSeriesSingleKeys = {
         xKey: keys.xKey,
         yKey: keys.closeKey,
@@ -156,6 +169,7 @@ function createPriceSeries(chartType: AgPriceVolumeChartType, keys: PriceSeriesK
     const common: PriceSeriesCommon = {
         tooltip: { enabled: false },
         pickOutsideVisibleMinorAxis: true,
+        ...(selection === undefined ? undefined : { selection }),
     };
 
     switch (chartType) {
@@ -246,7 +260,8 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
 function createVolumeSeries(
     getTheme: () => ChartTheme,
     { xKey, openKey, closeKey }: PriceSeriesKeys,
-    volumeKey: string | undefined
+    volumeKey: string | undefined,
+    selection: { enabled: boolean } | undefined
 ) {
     if (volumeKey == null) return [];
 
@@ -257,6 +272,7 @@ function createVolumeSeries(
             yKey: volumeKey,
             yKeyAxis: 'yVolume',
             tooltip: { enabled: false },
+            ...(selection === undefined ? undefined : { selection }),
             grouped: false,
             // @ts-expect-error undocumented options: simpleItemStyler, focusPriority
             simpleItemStyler(datum: DatumDefault) {
@@ -277,7 +293,7 @@ function createPriceVolumeProfileSeries(
     if (volumeProfile == null) return [];
 
     const levels = groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize);
-    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels);
+    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, volumeProfile.selection);
 }
 
 function createPriceAxis() {

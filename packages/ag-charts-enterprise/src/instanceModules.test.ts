@@ -185,10 +185,12 @@ describe('preset module dependencies', () => {
     it.each([
         ['volume-profile', VolumeProfilePresetModule],
         ['price-volume', PriceVolumePresetModule],
-    ])('registers the axis plugin behind the total segment with the %s preset', (_name, preset) => {
+    ])('registers the modules behind the total segment and selection with the %s preset', (_name, preset) => {
         const scope = new ModuleScope();
         scope.register(preset);
 
         expect(scope.hasModule('axisInsetValue')).toBe(true);
+        expect(scope.hasModule('axisSelectedBand')).toBe(true);
+        expect(scope.hasModule('selection')).toBe(true);
     });
 });

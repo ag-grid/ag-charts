@@ -1,4 +1,5 @@
-import type { CssColor, DatumDefault, PixelSize, Ratio } from '../../chart/types';
+import type { AgSelectionClickMode, AgSelectionStyleOptions } from '../../chart/selectionOptions';
+import type { CssColor, DatumDefault, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { TextOptions, Toggleable } from '../../series/cartesian/commonOptions';
 
 export type AgPriceVolumeChartType =
@@ -86,12 +87,7 @@ export interface AgPriceVolumePreset {
     sync?: boolean;
 }
 
-export interface AgVolumeProfileOptions {
-    /** Whether to show the Volume Profile.
-     *
-     * Default: `true`
-     */
-    enabled?: boolean;
+export interface AgVolumeProfileOptions extends Toggleable {
     /** The price levels to display, supplied separately from the chart's own `data`. */
     data: DatumDefault[];
     /** The key used to retrieve the price of each level from the data.
@@ -115,14 +111,58 @@ export interface AgVolumeProfileOptions {
     widthRatio?: Ratio;
     /** A fixed-width column showing each level's total volume, set between the price axis and the up and down bars. */
     totalSegment?: AgVolumeProfileTotalSegmentOptions;
+    /** Selection of price levels. */
+    selection?: AgVolumeProfileSelectionOptions;
 }
 
-export interface AgVolumeProfileTotalSegmentOptions {
-    /** Whether to show the total volume segment.
+export interface AgVolumeProfileSelectionOptions extends Toggleable {
+    /** `'single'` replaces the selected level with each click; `'multiple'` toggles each clicked level, allowing any set of levels to be selected.
+     *
+     * Default: `'single'`
+     */
+    clickMode?: AgSelectionClickMode;
+    /** Whether dragging a rectangle across the chart selects every price level it covers. Holding the Ctrl key while dragging adds to the selection instead of replacing it.
      *
      * Default: `false`
      */
-    enabled?: boolean;
+    enableDrag?: boolean;
+    /** Styling for the up and down segments of a selected level.
+     *
+     * Default: `{ strokeWidth: 2 }`
+     */
+    selectedItem?: AgSelectionStyleOptions;
+    /** Styling for the up and down segments of the levels that are not selected, while any level is selected.
+     *
+     * Default: `{ opacity: 0.6 }`
+     */
+    unselectedItem?: AgSelectionStyleOptions;
+    /** Styling for the background drawn behind each selected level. */
+    selectedBand?: AgVolumeProfileSelectedBandOptions;
+}
+
+export interface AgVolumeProfileSelectedBandOptions {
+    /** The fill of the band.
+     *
+     * Default: the theme's neutral fill
+     */
+    fill?: CssColor;
+    /** The opacity of the band's fill.
+     *
+     * Default: `0.2`
+     */
+    fillOpacity?: Opacity;
+    /** The colour of the band's outline. */
+    stroke?: CssColor;
+    /** The width of the band's outline, in pixels.
+     *
+     * Default: `0`
+     */
+    strokeWidth?: PixelSize;
+    /** An array specifying the length in pixels of alternating dashes and gaps in the band's outline. */
+    lineDash?: PixelSize[];
+}
+
+export interface AgVolumeProfileTotalSegmentOptions extends Toggleable {
     /** The fill of each level's block.
      *
      * Default: the theme's blue

@@ -440,6 +440,12 @@ export abstract class Series<
         return true;
     }
 
+    /** Series returning the same group select and deselect their items of a shared category together. */
+    public getSelectionGroup(): string | undefined {
+        // Override point for subclasses
+        return undefined;
+    }
+
     setChartData(input: DataSet | undefined) {
         this._chartData = input;
         if (this.data === input) {

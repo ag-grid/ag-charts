@@ -235,7 +235,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const { series, datumIndex } = clickedNode;
             if (clickMode === 'multiple' || modifierPressed) {
                 toggleSelection(changes, series, this.service, datumIndex);
-                internalRefreshTargets = [series];
+                internalRefreshTargets = [series, ...this.service.getLinkedSeries(series)];
             } else {
                 clickMode satisfies 'single';
                 clearAllSelections(changes, this.service);
@@ -290,13 +290,20 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
             const bitfield = this.service.enableCandidacy(series.id, data);
             bitfield.clear();
+            const linked = series.getSelectionGroup() !== undefined;
 
             for (const { datumIndex } of series.pickNodesInBBox(canvasBounds)) {
                 if (!series.isDatumSelectable(datumIndex)) continue;
                 bitfield.setBit(datumIndex);
                 this.service.totalCandidacyCount++;
+                if (linked) {
+                    this.service.queueLinkedCandidacy(series, datumIndex);
+                }
             }
         }
+        // Linked items follow their series' items, as they do when the drag is released. Applied once every series
+        // has been cleared, so that the candidates of one series are not wiped by the clearing of its linked series.
+        this.service.applyLinkedCandidacy();
 
         this.dragRect.x = canvasBounds.x;
         this.dragRect.y = canvasBounds.y;
@@ -364,6 +371,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
             if (changed) {
                 changedSeries.add(series);
+                // Linked items follow their series' items, wherever they fall in the dragged rectangle.
+                for (const linked of this.service.getLinkedSeries(series)) {
+                    changedSeries.add(linked);
+                }
             }
         }
 
