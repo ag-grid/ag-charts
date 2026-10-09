@@ -423,11 +423,16 @@ jobs:
                       continue
                     fi
                     failed=0
+                    failed_names=()
                     for f in "${head_shards[@]}" "${base_shards[@]}"; do
                       failed=$((failed + $(jq '(.summary.error // 0) + (.summary.timeout // 0)' "$f")))
+                      side=$(basename "$f" | cut -d- -f1)
+                      while IFS= read -r name; do
+                        failed_names+=("${side}:${name}")
+                      done < <(jq -r '.examples | to_entries[] | select(.value.status == "error" or .value.status == "timeout") | "\(.key) (\(.value.status))"' "$f")
                     done
                     if [[ $failed -ne 0 ]]; then
-                      echo "::warning::Run ${run} has ${failed} failed/timed-out example(s) across its shards; skipping"
+                      echo "::warning::Run ${run} has ${failed} failed/timed-out example(s) across its shards; skipping: ${failed_names[*]}"
                       continue
                     fi
                     node ./tools/benchmark/merge-browser-results.js --output "reports/browser-benchmarks/head.r${run}.json" "${head_shards[@]}"
