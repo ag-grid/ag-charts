@@ -1,9 +1,16 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, ChartAxisDirection, ZIndexMap, createId } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    BBox,
+    ChartAxisDirection,
+    Rect,
+    Selection,
+    TranslatableGroup,
+    ZIndexMap,
+    createId,
+} from 'ag-charts-core';
 
 import type { AxisSelectedBandOptions } from './axisSelectedBandTypes';
-
-const { BBox, Rect, Selection, TranslatableGroup } = _ModuleSupport;
 
 type AxisContext = _ModuleSupport.AxisContext;
 
@@ -28,16 +35,16 @@ export class AxisSelectedBand extends AbstractModuleInstance {
 
     private options: AxisSelectedBandOptions | undefined;
     private readonly axisCtx: AxisContext;
-    private seriesRect: _ModuleSupport.BBox | undefined;
+    private seriesRect: BBox | undefined;
 
     private readonly group = new TranslatableGroup({ name: 'axisSelectedBand', zIndex: ZIndexMap.AXIS_BAND_HIGHLIGHT });
-    private readonly bandSelection: _ModuleSupport.Selection<SelectedBand, _ModuleSupport.Rect<SelectedBand>>;
+    private readonly bandSelection: Selection<SelectedBand, Rect<SelectedBand>>;
 
     constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<AxisContext>) {
         super();
 
         this.axisCtx = ctx.parent;
-        this.bandSelection = Selection.select<_ModuleSupport.Rect<SelectedBand>>(
+        this.bandSelection = Selection.select<Rect<SelectedBand>>(
             this.group,
             () => new Rect({ name: 'axis-selected-band' })
         );
