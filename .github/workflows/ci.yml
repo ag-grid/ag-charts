@@ -1745,6 +1745,10 @@ jobs:
                 playwright_image,
             ]
         if: cancelled() != true
+        outputs:
+            # Whether this run deployed to staging, for the jobs that must follow a deploy
+            # (the staging step is skipped everywhere but `latest`, and when CI failed).
+            staging_deployed: ${{ steps.deploy_to_staging.outcome == 'success' }}
         # SLACK_BOT_OAUTH_TOKEN is hoisted to job level on purpose: a step's OWN
         # env: block is not in scope for that same step's if: (the if is evaluated
         # before step env is applied). The Slack alert step below gates on
@@ -2177,6 +2181,23 @@ jobs:
               run: |
                   echo "Workflow failed, failing the build."
                   exit 1
+
+    # Mirrors the demo seeds to the `staging` branch of ag-grid/ag-charts-demos once the staging deploy has
+    # put this commit's package tarballs on the site: the mirrored seeds install them
+    # (`--charts-build`, see .github/workflows/demo-seeds-mirror.yml), so they must not be published
+    # before the tarballs they name exist. Part of the run, so Post-Deploy Page Verification (which
+    # starts when CI succeeds, and checks the seed links) only ever sees the finished sync. `latest`
+    # runs are queued, not cancelled, so the staging mirror follows the deploys in order.
+    sync_demo_seeds_staging:
+        name: Sync Demo Seeds (staging)
+        needs: [report]
+        if: ${{ !cancelled() && github.ref == 'refs/heads/latest' && needs.report.outputs.staging_deployed == 'true' }}
+        permissions:
+            contents: read
+        uses: ./.github/workflows/demo-seeds-mirror.yml
+        with:
+            target: staging
+        secrets: inherit
 
     # Asynchronous, NON-GATING snapshot review. Runs the /snapshot-review reports for the PR and
     # writes the `snapshot-review` section of the consolidated PR comment. `report` does NOT depend

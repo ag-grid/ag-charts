@@ -23,7 +23,11 @@ Files under `src/vendored/` are copied from sibling demos that this one shares s
 
 - `src/demos/web-analytics/topology.ts`
 
-The `ag-charts-*` dependencies use the npm `latest` tag, so `npm install` fetches the newest
-published release. This seed follows the development branch, so the demo may already use features of
-a release that is not out yet; if so, it catches up when that release is published.
+The `ag-charts-*` dependencies are pinned to something public npm resolves: the exact release on a
+release tag and the npm `latest` tag otherwise, so `npm install` fetches the newest published
+release. What the copy in `ag-grid/ag-charts-demos` installs depends on its ref: `staging` and the
+release branches (`bX.Y.Z`) install the AG Charts build their docs site was made from, through
+package tarballs that site serves; the `release-X.Y.Z` tags install that release, and `latest` the
+newest one, from npm. The demo may already use features of a release that is not out yet; where a
+seed installs `latest`, it catches up when that release is published.
 AG Charts Enterprise features show a watermark until a licence key is set.
