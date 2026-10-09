@@ -13,6 +13,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     deproxy,
+    expectWarningsCalls,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -265,18 +266,54 @@ describe('CartesianChart', () => {
         });
     });
 
-    it('should render an unreferenced axis that has no position', async () => {
-        const options: AgCartesianChartOptions = {
-            data: getData(),
-            series: [{ type: 'line', xKey: 'year', yKey: 'adults' }],
-            axes: { x: { type: 'category' }, y: { type: 'number' }, y2: { type: 'number' } },
+    describe('axes without a position', () => {
+        const createChart = async (axes: Record<string, object>) => {
+            const options = {
+                data: getData(),
+                series: [{ type: 'line', xKey: 'year', yKey: 'adults' }],
+                axes,
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            await waitForChartStability(chart);
+            return chart;
         };
-        prepareTestOptions(options);
+        const axisPositions = () => chart.axes.map((axis) => axis.position);
 
-        chart = deproxy(AgCharts.create(options)) as CartesianChart;
-        await waitForChartStability(chart);
+        it('should render an unreferenced axis', async () => {
+            await createChart({ x: { type: 'category' }, y: { type: 'number' }, y2: { type: 'number' } });
 
-        expect(chart.axes.map((axis) => axis.position)).toEqual(['bottom', 'left', 'right']);
+            expect(axisPositions()).toEqual(['bottom', 'left', 'right']);
+            expectWarningsCalls().toEqual([[expect.stringContaining('`axes.y2` is not used by any series.')]]);
+        });
+
+        it('should render an untyped axis whose position is invalid', async () => {
+            await createChart({ x: { position: 'middle' }, y: { type: 'number' } });
+
+            expect(axisPositions()).toEqual(['bottom', 'left']);
+            expectWarningsCalls().toEqual([[expect.stringContaining('cannot be set to `"middle"`')]]);
+        });
+
+        it('should render after an update removes an unreferenced axis position', async () => {
+            await createChart({
+                x: { type: 'category' },
+                y: { type: 'number' },
+                y2: { type: 'number', position: 'top' },
+            });
+
+            await chart.publicApi?.update({
+                data: getData(),
+                series: [{ type: 'line', xKey: 'year', yKey: 'adults' }],
+                axes: { x: { type: 'category' }, y: { type: 'number' }, y2: { type: 'number' } },
+            });
+            await waitForChartStability(chart);
+
+            expect(axisPositions()).toEqual(['bottom', 'left', 'right']);
+            expectWarningsCalls().toEqual(
+                Array(2).fill([expect.stringContaining('`axes.y2` is not used by any series.')])
+            );
+        });
     });
 
     describe('Small chart width', () => {

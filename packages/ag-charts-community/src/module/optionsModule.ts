@@ -204,6 +204,13 @@ const POSITION_DIRECTIONS = {
     left: ChartAxisDirection.Y,
     right: ChartAxisDirection.Y,
 };
+type AxisPosition = keyof typeof POSITION_DIRECTIONS;
+const OPPOSITE_POSITIONS: Record<AxisPosition, AxisPosition> = {
+    top: 'bottom',
+    bottom: 'top',
+    left: 'right',
+    right: 'left',
+};
 
 const SIZE_BOUND_KEYS: Record<string, [min: string, max: string]> = {
     bubble: ['minSize', 'maxSize'],
@@ -1123,6 +1130,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return;
         }
 
+        if (chartType === 'cartesian') {
+            this.removeMismatchedAxisPositions(options, directions);
+        }
+
         // The primary axis for each direction is remapped to the standard naming, e.g. a user's `myXAxis`
         // becomes `x`.
         const axisKeys = 'axes' in options ? new Set(Object.keys(options.axes ?? {})) : new Set<string>();
@@ -1151,6 +1162,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             defaultAxes,
             hasExtraImplicitDefaultSeriesAxisKeys
         );
+        if (chartType === 'cartesian') {
+            this.warnUnusedAxes(options, directions, axisKeys, remappedAxisKeys);
+        }
         this.predictAxesMissingTypesAndPositions(options, directions, newAxes, defaultAxes);
         this.alternateSecondaryAxisPositions(options, newAxes);
 
@@ -1172,6 +1186,62 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return isFlipped && seriesModule.axisKeysFlipped
             ? seriesModule.axisKeysFlipped[direction]
             : seriesModule.axisKeys?.[direction];
+    }
+
+    private removeMismatchedAxisPositions(options: T, directions: ChartAxisDirection[]) {
+        if (!('axes' in options) || options.axes == null) return;
+
+        const axes: Record<string, unknown> = options.axes;
+        for (const [axisKey, axis] of entries(axes)) {
+            if (!isPlainObject(axis) || !isKeyOf(axis.position, POSITION_DIRECTIONS)) continue;
+
+            const seriesDirection = this.getSeriesReferenceDirection(options, directions, axisKey);
+            if (seriesDirection == null || seriesDirection === POSITION_DIRECTIONS[axis.position]) continue;
+
+            this.logger.warn(
+                `\`axes.${axisKey}.position\` cannot be \`"${axis.position}"\` because series use this axis as a ${seriesDirection} axis, ignoring.`
+            );
+            delete axis.position;
+        }
+    }
+
+    /** The direction series reference an axis key for, ignoring references that only name the default direction. */
+    private getSeriesReferenceDirection(options: T, directions: ChartAxisDirection[], axisKey: string) {
+        for (const seriesOptions of options.series ?? []) {
+            for (const direction of directions) {
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
+                if (directionAxisKey == null || !isKeyOf(directionAxisKey, seriesOptions)) continue;
+
+                if ((seriesOptions[directionAxisKey] as string) !== axisKey || axisKey === (direction as string)) {
+                    continue;
+                }
+                return direction;
+            }
+        }
+    }
+
+    private warnUnusedAxes(
+        options: T,
+        directions: ChartAxisDirection[],
+        axisKeys: Set<string>,
+        remappedAxisKeys: Map<string, string>
+    ) {
+        const usedAxisKeys = new Set<unknown>();
+        for (const seriesOptions of options.series ?? []) {
+            for (const direction of directions) {
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
+                if (directionAxisKey != null && isKeyOf(directionAxisKey, seriesOptions)) {
+                    usedAxisKeys.add(seriesOptions[directionAxisKey]);
+                }
+            }
+        }
+        if (usedAxisKeys.size === 0) return;
+
+        for (const axisKey of axisKeys) {
+            if (!usedAxisKeys.has(remappedAxisKeys.get(axisKey))) {
+                this.logger.warn(`\`axes.${axisKey}\` is not used by any series.`);
+            }
+        }
     }
 
     /**
@@ -1541,36 +1611,33 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * If the first secondary axis in either direction does not have a specified position, it will be placed in the
-     * alternate position to the primary axis (i.e. right or top).
+     * If the first secondary axis in either direction does not have a specified position, it will be placed opposite
+     * the primary axis.
      */
     private alternateSecondaryAxisPositions(options: T, newAxes: Record<string, unknown>) {
-        let xAxisCount = 0;
-        let yAxisCount = 0;
+        const primaryPositions = new Map<ChartAxisDirection, AxisPosition>();
+        const secondaryDirections = new Set<ChartAxisDirection>();
 
         for (const [axisKey, axis] of entries(newAxes)) {
-            if (!isPlainObject(axis) || !('position' in axis)) continue;
+            if (!isPlainObject(axis) || !isKeyOf(axis.position, POSITION_DIRECTIONS)) continue;
+
+            const direction = POSITION_DIRECTIONS[axis.position];
+            const primaryPosition = primaryPositions.get(direction);
+            if (primaryPosition == null) {
+                primaryPositions.set(direction, axis.position);
+                continue;
+            }
+            if (secondaryDirections.has(direction)) continue;
+            secondaryDirections.add(direction);
 
             const unmappedAxisKey = this.unmappedAxisKeys.get(axisKey);
             const unmappedAxis =
                 'axes' in options && options.axes && unmappedAxisKey != null && unmappedAxisKey in options.axes
                     ? options.axes[unmappedAxisKey]
                     : undefined;
-            const unmappedAxisPosition = unmappedAxis && 'position' in unmappedAxis ? unmappedAxis.position : undefined;
-
-            if (axis.position === 'top' || axis.position === 'bottom') {
-                xAxisCount += 1;
-                if (xAxisCount === 2 && unmappedAxisPosition == null) {
-                    axis.position = 'top';
-                }
-            } else if (axis.position === 'left' || axis.position === 'right') {
-                yAxisCount += 1;
-                if (yAxisCount === 2 && unmappedAxisPosition == null) {
-                    axis.position = 'right';
-                }
+            if (unmappedAxis == null || !('position' in unmappedAxis) || unmappedAxis.position == null) {
+                axis.position = OPPOSITE_POSITIONS[primaryPosition];
             }
-
-            if (xAxisCount > 1 && yAxisCount > 1) break;
         }
     }
 
@@ -1579,24 +1646,25 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (this.chartDef?.name !== 'cartesian' || !('axes' in options) || options.axes == null) return;
 
         const axes: Record<string, unknown> = options.axes;
-        const directionCounts = new Map<ChartAxisDirection, number>();
+        const directionPositions = new Map<ChartAxisDirection, AxisPosition[]>();
         const axesWithoutPosition: Array<[PlainObject, ChartAxisDirection]> = [];
         for (const [key, axis] of entries(axes)) {
             if (!isPlainObject(axis)) continue;
 
             if (isKeyOf(axis.position, POSITION_DIRECTIONS)) {
                 const direction = POSITION_DIRECTIONS[axis.position];
-                directionCounts.set(direction, (directionCounts.get(direction) ?? 0) + 1);
+                directionPositions.set(direction, [...(directionPositions.get(direction) ?? []), axis.position]);
             } else {
                 axesWithoutPosition.push([axis, this.getAxisKeyDirection(options, key)]);
             }
         }
 
         for (const [axis, direction] of axesWithoutPosition) {
-            const [primary, opposite] = direction === ChartAxisDirection.X ? ['bottom', 'top'] : ['left', 'right'];
-            const count = directionCounts.get(direction) ?? 0;
-            axis.position = count === 1 ? opposite : primary;
-            directionCounts.set(direction, count + 1);
+            const positions = directionPositions.get(direction) ?? [];
+            const primaryPosition = direction === ChartAxisDirection.X ? 'bottom' : 'left';
+            const position = positions.length === 1 ? OPPOSITE_POSITIONS[positions[0]] : primaryPosition;
+            axis.position = position;
+            directionPositions.set(direction, [...positions, position]);
         }
     }
 

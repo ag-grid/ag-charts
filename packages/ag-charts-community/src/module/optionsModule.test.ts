@@ -3876,6 +3876,72 @@ describe('ChartOptions', () => {
                 expect(String((console.warn as Mock).mock.calls[0]?.[0])).toContain('cannot be set to `"middle"`');
             });
 
+            describe('series referencing axes by key', () => {
+                const series = [
+                    { type: 'line', xKey: 'x', yKey: 'total', yKeyAxis: 'axisA' },
+                    { type: 'line', xKey: 'x', yKey: 'gold', yKeyAxis: 'axisB' },
+                ];
+                const seriesAxes = (preparedOptions: AgCartesianChartOptions) =>
+                    preparedOptions.series?.map((s: any) => ({
+                        x: (preparedOptions.axes as any)[s.xKeyAxis],
+                        y: (preparedOptions.axes as any)[s.yKeyAxis],
+                    }));
+                const warnings = () => (console.warn as Mock).mock.calls.map(([m]) => String(m));
+
+                it('should place each series on its own vertical axis when an axes key matches no series', () => {
+                    const preparedOptions = prepareOptions({
+                        series,
+                        axes: { orphanKey: { type: 'number' } },
+                    } as AgCartesianChartOptions);
+
+                    expect(seriesAxes(preparedOptions)).toMatchObject([
+                        { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                        { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'right' } },
+                    ]);
+                });
+
+                it('should warn about an axes key that no series uses', () => {
+                    prepareOptions({ series, axes: { orphanKey: { type: 'number' } } } as AgCartesianChartOptions);
+
+                    expect(warnings()).toEqual([expect.stringContaining('`axes.orphanKey`')]);
+                });
+
+                it('should not warn when every axes key is used', () => {
+                    prepareOptions({
+                        series,
+                        axes: { axisA: { type: 'number' }, axisB: { type: 'number' } },
+                    } as AgCartesianChartOptions);
+
+                    expect(console.warn).not.toHaveBeenCalled();
+                });
+
+                it('should place an axis omitted from axes opposite one positioned on the right', () => {
+                    const preparedOptions = prepareOptions({
+                        series,
+                        axes: { axisB: { position: 'right' } },
+                    } as AgCartesianChartOptions);
+
+                    expect(seriesAxes(preparedOptions)).toMatchObject([
+                        { y: { position: 'left' } },
+                        { y: { position: 'right' } },
+                    ]);
+                });
+
+                it('should ignore and warn about a position that does not match how a series uses the axis', () => {
+                    const preparedOptions = prepareOptions({
+                        series,
+                        axes: { axisA: { position: 'top' } },
+                    } as AgCartesianChartOptions);
+
+                    // Placed as `axisA: {}` would be: an unpositioned user axis is secondary.
+                    expect(seriesAxes(preparedOptions)).toMatchObject([
+                        { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'right' } },
+                        { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    ]);
+                    expect(warnings()).toEqual([expect.stringContaining('`axes.axisA.position`')]);
+                });
+            });
+
             // TODO: predict the axes based on their types?
             it.fails(
                 'should remap axes when no position is provided and keys are non-standard and axes are in wrong order',

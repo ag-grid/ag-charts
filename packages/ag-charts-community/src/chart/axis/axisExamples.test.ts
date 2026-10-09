@@ -19,6 +19,7 @@ import {
     compareImageSnapshot,
     createChart,
     deproxy,
+    expectWarningsCalls,
     repeat,
     reverseAxes,
     setupMockCanvas,
@@ -629,6 +630,14 @@ describe('Axis Examples', () => {
     });
 
     describe('complex layout cases', () => {
+        afterEach(() => {
+            expectWarningsCalls().toEqual(
+                ['yStart1', 'yStart2', 'yEnd1', 'yEnd2'].map((key) => [
+                    expect.stringContaining(`\`axes.${key}\` is not used by any series.`),
+                ])
+            );
+        });
+
         for (const [exampleName, example] of Object.entries(EXAMPLES_LAYOUT)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
                 chart = await createChart(example.options);
