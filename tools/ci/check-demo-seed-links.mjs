@@ -186,7 +186,7 @@ export function parseSeedLinks(html) {
 /**
  * The mirror folder a rendered seed link opens, and the ref and `<demo>/<framework>` path it
  * names, or an `error` when the link does not point at a seed folder of the mirror. The mirror's
- * refs (`latest`, `release-X.Y.Z`) never contain a slash, so the ref is the first path segment.
+ * refs (`staging`, `bX.Y.Z`, `release-X.Y.Z`, `latest`) never contain a slash, so the ref is the first path segment.
  */
 export function resolveSeedLink({ kind, href }) {
     const prefix = kind === 'stackblitz' ? STACKBLITZ_TREE_PREFIX : GITHUB_TREE_PREFIX;

@@ -15,12 +15,13 @@ name: Mirror Demo Seeds
 #   the archive deployed at <production>/archive/X.Y.Z/. It can be ahead of that archive between a
 #   push and the next archive deploy: the links resolve only once the archive is deployed.
 # - `release-X.Y.Z` tags: the tagged commit's seeds, which pin X.Y.Z (`pinSource` `release`) and so
-#   are exported as they are, installing X.Y.Z from npm. The tag is on the head of the mirror's
-#   `bX.Y.Z` when that already holds them, on a commit on top of it otherwise; it never moves the
-#   branch itself, and a mirror tag that already holds different content fails the run rather than
+#   are exported as they are, installing X.Y.Z from npm. The tag is on a commit on top of the
+#   mirror's `bX.Y.Z` (the export names its ref, so it never equals the branch's own); it never
+#   moves the branch itself, and a mirror tag that already holds different content fails the run rather than
 #   being moved.
 # - `latest`, the mirror's default branch: moves only on a release, to the tagged seeds (and only
-#   when no newer release is already tagged there), so it always installs from published packages.
+#   when no newer release is already tagged there, checked again on every push attempt, so two tag
+#   runs in flight cannot leave it on the older), so it always installs from published packages.
 #   It is never synced from a push to ag-charts `latest`.
 #
 # Each sync replaces the mirror branch's content with export-seed-mirror.mjs's output and commits
@@ -187,11 +188,27 @@ jobs:
                       fi
                   }
 
+                  # The newest release (as a version) tagged in the mirror, as of the last fetch.
+                  newest_release() {
+                      git tag --list 'release-*' | sed 's/^release-//' | { grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V | tail -n 1
+                  }
+
                   # Builds mirror branch $1 and pushes it, rebuilding on the mirror's new head when
-                  # another run got there first.
+                  # another run got there first. With $2 set, the branch moves only while the release
+                  # being synced is the newest tagged in the mirror, checked again on every attempt: a
+                  # run for a newer release tags before it moves the branch, so a push this run lost to
+                  # it is followed by a check that sees that tag and leaves the branch to it.
                   sync_branch() {
-                      local branch="$1" attempt
+                      local branch="$1" only_if_newest="${2:-}" attempt newest
                       for attempt in 1 2 3; do
+                          if [ -n "$only_if_newest" ]; then
+                              git fetch --quiet --prune --tags origin
+                              newest=$(newest_release)
+                              if [ "$(printf '%s\n%s\n' "${MIRROR_TAG#release-}" "$newest" | sort -V | tail -n 1)" != "${MIRROR_TAG#release-}" ]; then
+                                  echo "Mirror ${branch} left as it is: ${MIRROR_TAG} is older than the newest release tagged there (release-${newest})." | tee -a "$GITHUB_STEP_SUMMARY"
+                                  return 0
+                              fi
+                          fi
                           build "$branch"
                           if git push --quiet origin "HEAD:refs/heads/${branch}"; then
                               break
@@ -213,8 +230,8 @@ jobs:
 
                   # A tag run pushes the tag, and moves the mirror's default branch (below); it never
                   # moves the release branch, which may already carry fixes made after the release
-                  # that re-running an older tag must not undo. The tag lands on the branch head when
-                  # that already holds the tagged content, and on a commit on top of it otherwise. The
+                  # that re-running an older tag must not undo. The tag lands on the branch head if
+                  # that happens to hold the tagged content, and on a commit on top of it otherwise. The
                   # tagged seeds pin the release, so the export is the same whether or not the
                   # branch's own push has synced them yet.
                   build "$MIRROR_BRANCH"
@@ -234,12 +251,7 @@ jobs:
 
                   # The mirror's default branch moves only here, to the released seeds, so it always
                   # installs published packages. Only to the newest release tagged in the mirror: a
-                  # hotfix tagged on an older line must not move it back. This also runs when the tag
-                  # already existed, so a run that tagged but failed to move the branch can be re-run.
-                  version="${MIRROR_TAG#release-}"
-                  newest=$(git tag --list 'release-*' | sed 's/^release-//' | { grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' || true; } | sort -V | tail -n 1)
-                  if [ "$(printf '%s\n%s\n' "$version" "$newest" | sort -V | tail -n 1)" = "$version" ]; then
-                      sync_branch latest
-                  else
-                      echo "Mirror latest left as it is: ${MIRROR_TAG} is older than the newest release tagged there (release-${newest})." | tee -a "$GITHUB_STEP_SUMMARY"
-                  fi
+                  # hotfix tagged on an older line must not move it back, whichever of two runs for
+                  # different releases gets here first. This also runs when the tag already existed,
+                  # so a run that tagged but failed to move the branch can be re-run.
+                  sync_branch latest newest

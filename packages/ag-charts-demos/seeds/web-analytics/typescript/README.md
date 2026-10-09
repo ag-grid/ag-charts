@@ -23,10 +23,11 @@ React demo unchanged; the components are rewritten against the DOM, `AgCharts.cr
 `createGrid`. [`PORTING.md`](../typescript.PORTING.md) records the mapping and the invariants the port keeps
 to, and `.seed-manifest.json` records which revision of the demo source it was ported from.
 
-The `ag-charts-*` dependencies here use the npm `latest` tag, so `npm install` fetches the newest
-published release; the demo may already use features of a release that is not out yet, and catches up
-when that release is published. The copy in `ag-grid/ag-charts-demos` installs differently by ref:
-`staging` and the release branches (`bX.Y.Z`) install the AG Charts build their docs site was made
-from, as package tarballs that site serves, and the `release-X.Y.Z` tags and the default branch
-`latest` install a published release from npm.
+In the committed seeds the `ag-charts-*` dependencies use the npm `latest` tag on the development
+branch, so `npm install` fetches the newest published release; on a release branch they pin that
+release exactly. The demo may already use features of a release that is not out yet; if so, it
+catches up when that release is published. The copy in `ag-grid/ag-charts-demos` is exported per
+ref, so read its `package.json` for what it installs: `staging` and the release branches (`bX.Y.Z`)
+install the AG Charts build their docs site was made from, as package tarballs that site serves; the
+`release-X.Y.Z` tags pin that release on npm; the default branch `latest` follows the newest release.
 AG Charts Enterprise features show a watermark until a licence key is set.

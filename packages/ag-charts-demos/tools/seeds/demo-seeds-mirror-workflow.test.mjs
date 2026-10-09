@@ -339,6 +339,49 @@ describe('Sync the mirror', () => {
             expect(content('latest')).toBe('released 14.2.0');
         });
 
+        it('leaves the default branch to a newer release that tagged and moved it while this run was pushing', () => {
+            seedMirror();
+            // The commit the run of release-14.3.0 would push to latest, made ahead of time (a hook
+            // cannot write objects that outlive the push it rejects).
+            const racer = join(work, 'racer');
+            git(work, 'clone', '--quiet', mirror, racer);
+            git(racer, 'config', 'user.name', 'test');
+            git(racer, 'config', 'user.email', 'test@example.com');
+            writeFileSync(join(racer, 'package.json'), 'released 14.3.0\n');
+            git(racer, 'commit', '--quiet', '-am', 'release 14.3.0');
+            git(racer, 'push', '--quiet', 'origin', 'HEAD:refs/heads/racer');
+            const newer = git(racer, 'rev-parse', 'HEAD');
+            // Stands in for that run: on the first push to latest it tags the release, moves latest to
+            // its seeds and rejects the push, as the real run's own push would have. (Ref updates are
+            // forbidden in a hook's quarantine environment unless that is unset.)
+            const marker = join(work, 'raced');
+            const hook = join(mirror, 'hooks', 'pre-receive');
+            writeFileSync(
+                hook,
+                [
+                    '#!/bin/sh',
+                    'while read old new ref; do',
+                    `  if [ "$ref" = refs/heads/latest ] && [ ! -e '${marker}' ]; then`,
+                    `    touch '${marker}'`,
+                    `    env -u GIT_QUARANTINE_PATH git update-ref refs/tags/release-14.3.0 ${newer}`,
+                    `    env -u GIT_QUARANTINE_PATH git update-ref refs/heads/latest ${newer}`,
+                    '    exit 1',
+                    '  fi',
+                    'done',
+                    '',
+                ].join('\n')
+            );
+            chmodSync(hook, 0o755);
+
+            const result = sync({ branch: 'b14.2.1', tag: 'release-14.2.1', exported: 'released 14.2.1\n' });
+
+            expect(result.status, result.stderr).toBe(0);
+            expect(content('latest')).toBe('released 14.3.0');
+            expect(result.stdout).toContain('Push rejected');
+            expect(result.stdout).toContain('is older than the newest release tagged there (release-14.3.0)');
+            expect(tip('release-14.2.1')).not.toBe('');
+        });
+
         it('compares versions numerically, so 14.10.0 is newer than 14.9.0', () => {
             seedMirror();
             sync({ branch: 'b14.9.0', tag: 'release-14.9.0', exported: 'released 14.9.0\n' });

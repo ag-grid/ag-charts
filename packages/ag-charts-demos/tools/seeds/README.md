@@ -119,23 +119,27 @@ The rules that follow from that:
 
 - **The mirror's `latest` is released seeds only.** A push to ag-charts `latest` does not sync it. It
   moves when a `release-X.Y.Z` tag is pushed, to that tag's seeds, and only if no newer release is
-  already tagged in the mirror (a hotfix on an older line leaves it). So it always works from
+  already tagged in the mirror (a hotfix on an older line leaves it). The check is repeated on every
+  push attempt, so two tag runs in flight cannot leave it on the older release. So it always works from
   published packages, whatever the state of the staging site or the release branches.
 - **Staging is synced after its deploy.** CI's "Sync Demo Seeds (staging)" job calls the workflow once
   the "Deploy to Staging" step has succeeded, because the seeds it publishes name tarballs that only
   exist once that deploy has put them on the site. The sync is for the deployed commit, so a seed
   opened from staging installs the build staging was made from. The post-deploy verification
   (`.github/workflows/post-deploy-verification.yml`) starts when CI succeeds, so it runs after the
-  sync and checks the staging links and tarballs (`tools/ci/check-demo-seed-links.mjs`).
+  sync and checks the staging links and tarballs (`tools/ci/check-demo-seed-links.mjs`). A failed
+  sync fails the `latest` CI run, which skips the whole post-deploy verification, not only the seed
+  check. To re-sync `staging`, re-run the failed "Sync Demo Seeds (staging)" job; the workflow's
+  manual dispatch syncs only release branches and release tags.
 - **A release branch can be ahead of its archive.** `bX.Y.Z` syncs on every push to the branch, and
   its tarball URLs resolve only once the archive for that release is deployed, so between a push and
   the next archive deploy the branch's seeds may install what the archive does not hold yet. This is
   known and accepted; the demo pages link `bX.Y.Z` only from the archive itself.
 - **A release tag is exported as tagged.** The tagged commit's seeds pin `X.Y.Z` (`pinSource`
-  `release`), so they are not rewritten. The tag lands on the head of `bX.Y.Z` when that already
-  holds them, and on a commit on top of it otherwise (the branch's push can run after the tag's, and
-  until it has, the branch holds the last rewritten seeds). The tag run never moves `bX.Y.Z`, and a
-  mirror tag that already holds different content fails the run.
+  `release`), so they are not rewritten. The export names the ref it was made for, so the tag lands
+  on a commit on top of the mirror's `bX.Y.Z` (the branch holds the rewritten seeds, and its own push
+  can run after the tag's). The tag run never moves `bX.Y.Z`, and a mirror tag that already holds
+  different content fails the run.
 - **A release pin carried in by a merge-back is not rewritten.** Where ag-charts `latest` carries an
   `X.Y.Z` pin from a merge-back (see below), its seeds are `release` seeds, so `staging` installs
   that release from npm instead of the build until the next beta bump restores `latest`.
