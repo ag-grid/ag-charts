@@ -22,7 +22,6 @@ const BASE_PRICE = 100;
 // The hlc series is first in 14.3.0. A published 14.2.0 reports "Unknown type `hlc`", draws no series, and its
 // applyTransaction() never settles, which holds the run for the whole per-example timeout. Skip it on such a base.
 const HLC_MIN_VERSION = '14.3.0';
-const hlcSupported = !isReleaseBelow(VERSION, HLC_MIN_VERSION);
 
 type Datum = {
     timestamp: number;
@@ -120,17 +119,23 @@ async function localPerformInitialLoad(): Promise<number> {
 type TestCases = BenchmarkConfig['testCases'];
 
 /** inScope */
+function isHlcSupported(): boolean {
+    return !isReleaseBelow(VERSION, HLC_MIN_VERSION);
+}
+
+/** inScope */
 function whereHlcSupported(testCases: TestCases): TestCases {
+    const available = isHlcSupported();
     return testCases.map((testCase) => ({
         ...testCase,
-        variants: testCase.variants.map((variant) => ({ ...variant, available: hlcSupported })),
+        variants: testCase.variants.map((variant) => ({ ...variant, available })),
     }));
 }
 
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
     return {
-        warnings: hlcSupported ? undefined : [`Skipped (the hlc series requires >= ${HLC_MIN_VERSION})`],
+        warnings: isHlcSupported() ? undefined : [`Skipped (the hlc series requires >= ${HLC_MIN_VERSION})`],
         testCases: whereHlcSupported([
             {
                 id: 'initial-load',
