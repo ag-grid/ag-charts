@@ -6,6 +6,7 @@ import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
 import {
     ChartRef,
     DataRef,
+    isReleaseBelow,
     performAppend,
     performInitialLoad,
     performRemove,
@@ -17,6 +18,10 @@ const BATCH_SIZE = 100;
 const DATA_INTERVAL_MS = 250;
 const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
 const BASE_PRICE = 100;
+
+// The hlc series is first in 14.3.0. A published 14.2.0 reports "Unknown type `hlc`", draws no series, and its
+// applyTransaction() never settles, which holds the run for the whole per-example timeout. Skip it on such a base.
+const HLC_MIN_VERSION = '14.3.0';
 
 type Datum = {
     timestamp: number;
@@ -111,10 +116,27 @@ async function localPerformInitialLoad(): Promise<number> {
     return performInitialLoad(options, chartRef, (opts) => AgCharts.create(opts));
 }
 
+type TestCases = BenchmarkConfig['testCases'];
+
+/** inScope */
+function isHlcSupported(): boolean {
+    return !isReleaseBelow(VERSION, HLC_MIN_VERSION);
+}
+
+/** inScope */
+function whereHlcSupported(testCases: TestCases): TestCases {
+    const available = isHlcSupported();
+    return testCases.map((testCase) => ({
+        ...testCase,
+        variants: testCase.variants.map((variant) => ({ ...variant, available })),
+    }));
+}
+
 /** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
     return {
-        testCases: [
+        warnings: isHlcSupported() ? undefined : [`Skipped (the hlc series requires >= ${HLC_MIN_VERSION})`],
+        testCases: whereHlcSupported([
             {
                 id: 'initial-load',
                 label: 'Initial Load',
@@ -167,7 +189,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     },
                 ],
             },
-        ],
+        ]),
         config: {
             updatesPerTest: 100,
             maxCollectionTimeMs: 10000,
@@ -179,6 +201,8 @@ function getBenchmarkConfig(): BenchmarkConfig {
             dataIntervalMs: DATA_INTERVAL_MS,
             seriesType: 'hlc',
             version: VERSION,
+            // Compared with a published base only when that base has the hlc series.
+            minVersion: HLC_MIN_VERSION,
             expectedRetainedSizeMB: undefined,
             expectedCanvasCount: 3,
         },
