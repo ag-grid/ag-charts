@@ -164,10 +164,11 @@ jobs:
                   git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
                   # Checks out mirror branch $1 (or where a new one starts), lays the export over it
-                  # and commits the difference, if any.
+                  # and commits the difference, if any. It does not fetch: it builds on what the
+                  # caller's last fetch saw, so a check made after that fetch holds for the build's
+                  # parent.
                   build() {
                       local branch="$1"
-                      git fetch --quiet --prune --tags origin
                       if git rev-parse --verify --quiet "refs/remotes/origin/${branch}" > /dev/null; then
                           git checkout --quiet -B "$branch" "origin/${branch}"
                       elif git rev-parse --verify --quiet refs/remotes/origin/latest > /dev/null; then
@@ -195,14 +196,16 @@ jobs:
 
                   # Builds mirror branch $1 and pushes it, rebuilding on the mirror's new head when
                   # another run got there first. With $2 set, the branch moves only while the release
-                  # being synced is the newest tagged in the mirror, checked again on every attempt: a
-                  # run for a newer release tags before it moves the branch, so a push this run lost to
-                  # it is followed by a check that sees that tag and leaves the branch to it.
+                  # being synced is the newest tagged in the mirror, checked again on every attempt
+                  # against the same fetch that the build then uses as its parent: a run for a newer
+                  # release tags before it moves the branch, so either the fetch sees that tag, or the
+                  # branch is still where the fetch saw it and a push over it is rejected once the
+                  # newer run has moved it, which is followed by a check that sees the tag.
                   sync_branch() {
                       local branch="$1" only_if_newest="${2:-}" attempt newest
                       for attempt in 1 2 3; do
+                          git fetch --quiet --prune --tags origin
                           if [ -n "$only_if_newest" ]; then
-                              git fetch --quiet --prune --tags origin
                               newest=$(newest_release)
                               if [ "$(printf '%s\n%s\n' "${MIRROR_TAG#release-}" "$newest" | sort -V | tail -n 1)" != "${MIRROR_TAG#release-}" ]; then
                                   echo "Mirror ${branch} left as it is: ${MIRROR_TAG} is older than the newest release tagged there (release-${newest})." | tee -a "$GITHUB_STEP_SUMMARY"
@@ -234,6 +237,7 @@ jobs:
                   # that happens to hold the tagged content, and on a commit on top of it otherwise. The
                   # tagged seeds pin the release, so the export is the same whether or not the
                   # branch's own push has synced them yet.
+                  git fetch --quiet --prune --tags origin
                   build "$MIRROR_BRANCH"
                   head=$(git rev-parse HEAD)
                   existing=$(git ls-remote origin "refs/tags/${MIRROR_TAG}" | cut -f1)

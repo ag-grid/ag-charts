@@ -239,7 +239,7 @@ describe('Sync the mirror', () => {
     const refs = () => git(mirror, 'for-each-ref', '--format=%(refname:short)').split('\n');
 
     /** Runs the step on a fresh runner, with the export folder holding `exported`. */
-    function sync({ branch, tag = '', exported }) {
+    function sync({ branch, tag = '', exported, path = process.env.PATH }) {
         rmSync(join(work, 'export'), { recursive: true, force: true });
         rmSync(join(work, 'mirror'), { recursive: true, force: true });
         mkdirSync(join(work, 'export'), { recursive: true });
@@ -247,7 +247,7 @@ describe('Sync the mirror', () => {
         return spawnSync('bash', ['-c', script], {
             encoding: 'utf8',
             env: {
-                PATH: process.env.PATH,
+                PATH: path,
                 HOME: work,
                 RUNNER_TEMP: work,
                 MIRROR_REPOSITORY: 'ag-grid/ag-charts-demos',
@@ -380,6 +380,57 @@ describe('Sync the mirror', () => {
             expect(result.stdout).toContain('Push rejected');
             expect(result.stdout).toContain('is older than the newest release tagged there (release-14.3.0)');
             expect(tip('release-14.2.1')).not.toBe('');
+        });
+
+        it('leaves the default branch to a newer release that tagged and moved it between the order check and the build', () => {
+            seedMirror();
+            const racer = join(work, 'racer');
+            git(work, 'clone', '--quiet', mirror, racer);
+            git(racer, 'config', 'user.name', 'test');
+            git(racer, 'config', 'user.email', 'test@example.com');
+            writeFileSync(join(racer, 'package.json'), 'released 14.3.0\n');
+            git(racer, 'commit', '--quiet', '-am', 'release 14.3.0');
+            git(racer, 'push', '--quiet', 'origin', 'HEAD:refs/heads/racer');
+            const newer = git(racer, 'rev-parse', 'HEAD');
+            // A git that lets the first fetch after the run has pushed its own tag complete (the one the
+            // order check reads), then has the run of release-14.3.0 tag and move latest before the next
+            // command: where a build that fetched again would take the newer head as its parent and push
+            // the older seeds on top of it, a fast-forward.
+            const tagged = join(work, 'tagged');
+            const bin = join(work, 'bin');
+            mkdirSync(bin);
+            const marker = join(work, 'raced');
+            const realGit = spawnSync('which', ['git'], { encoding: 'utf8' }).stdout.trim();
+            const shim = join(bin, 'git');
+            writeFileSync(
+                shim,
+                [
+                    '#!/bin/sh',
+                    `'${realGit}' "$@"`,
+                    'status=$?',
+                    `if [ "$1" = push ] && [ "$4" = refs/tags/release-14.2.1 ]; then touch '${tagged}'; fi`,
+                    `if [ "$1" = fetch ] && [ -e '${tagged}' ] && [ ! -e '${marker}' ]; then`,
+                    `    touch '${marker}'`,
+                    `    '${realGit}' --git-dir '${mirror}' update-ref refs/tags/release-14.3.0 ${newer}`,
+                    `    '${realGit}' --git-dir '${mirror}' update-ref refs/heads/latest ${newer}`,
+                    'fi',
+                    'exit $status',
+                    '',
+                ].join('\n')
+            );
+            chmodSync(shim, 0o755);
+
+            const result = sync({
+                branch: 'b14.2.1',
+                tag: 'release-14.2.1',
+                exported: 'released 14.2.1\n',
+                path: `${bin}:${process.env.PATH}`,
+            });
+
+            expect(result.status, result.stderr).toBe(0);
+            expect(content('latest')).toBe('released 14.3.0');
+            expect(tip('latest')).toBe(newer);
+            expect(result.stdout).toContain('is older than the newest release tagged there (release-14.3.0)');
         });
 
         it('compares versions numerically, so 14.10.0 is newer than 14.9.0', () => {
