@@ -58,7 +58,8 @@ function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentR
     const docs = `${siteRoot}${chartsDocsPrefix}/`;
     return {
         quickStart: `${docs}quick-start/`,
-        options: `${docs}options/`,
+        // The options reference is framework-agnostic: it has no per-framework docs page.
+        options: `${siteRoot}options/`,
         gallery: `${siteRoot}gallery/`,
         community: `${siteRoot}community/`,
         documentationArchive: `${siteRoot}documentation-archive/`,

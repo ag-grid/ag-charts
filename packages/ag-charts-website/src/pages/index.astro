@@ -76,7 +76,6 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
             <div class:list={[styles.heroInner, 'layout-max-width-small']}>
                 <div class={styles.heroHeadings}>
                     <noscript>
-                        <h1>{hero.heading}</h1>
                         <style>
                             .only-script {
                                 display: none !important;
@@ -84,12 +83,15 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
                         </style>
                     </noscript>
 
-                    <h1 class="only-script">
-                        <span class={styles.heroTopLine}>
+                    {/* One H1 for both cases: the animated heading needs script, so the static
+                        text stands in for it when script is off. */}
+                    <h1>
+                        <noscript>{hero.heading}</noscript>
+                        <span class:list={[styles.heroTopLine, 'only-script']}>
                             The Best&nbsp;
                             <FrameworkTextAnimation client:load />
                         </span>
-                        <span>Charts in the World</span>
+                        <span class="only-script">Charts in the World</span>
                     </h1>
 
                     <h2>{hero.subHeading}</h2>
