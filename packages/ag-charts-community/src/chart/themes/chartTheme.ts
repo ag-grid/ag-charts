@@ -163,7 +163,7 @@ export class ChartTheme {
             buttonActiveBorder: { color: { $ref: 'accentColor' } },
             buttonActiveTextColor: { $ref: 'accentColor' },
             buttonDisabledBackgroundColor: {
-                $mix: [{ $ref: 'buttonBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
+                $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
             },
             buttonDisabledBorder: { $ref: 'buttonBorder' },
             buttonDisabledTextColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'buttonTextColor' }, 0.5] },

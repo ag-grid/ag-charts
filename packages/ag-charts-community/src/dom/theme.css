@@ -135,7 +135,7 @@
 
     --ag-charts-button-disabled-background-color: color-mix(
         in srgb,
-        var(--ag-charts-button-background-color),
+        var(--ag-charts-chrome-background-color),
         var(--ag-charts-foreground-color) 6%
     );
     --ag-charts-button-disabled-border-color: var(--ag-charts-button-border-color);
