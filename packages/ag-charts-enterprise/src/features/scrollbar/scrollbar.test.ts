@@ -674,3 +674,87 @@ describe('Scrollbar thumb hover derives from the per-chart thumb style', () => {
         );
     });
 });
+
+describe('Scrollbar stays within the chart when a long axis label widens the axis', () => {
+    setupMockConsole();
+    const ctx = setupMockCanvas();
+
+    let proxy: ReturnType<typeof AgCharts.create> | undefined;
+    afterEach(() => {
+        proxy?.destroy();
+        proxy = undefined;
+    });
+
+    // Every 50th category label is long enough to push the axis past its `maxThicknessRatio` cap.
+    const LONG_LABEL_DATA = Array.from({ length: 200 }, (_, index) => ({
+        x: `test${index}${index > 1 && index % 50 === 0 ? 'testtesttesttesttesttest' : ''}`,
+        y: (index * 37) % 1000,
+    }));
+
+    async function createLongLabelChart(position: AgCartesianAxisPosition) {
+        proxy = AgCharts.create({
+            ...prepareEnterpriseTestOptions({
+                data: LONG_LABEL_DATA,
+                series: [{ type: 'bar', direction: 'horizontal', xKey: 'x', yKey: 'y', width: 20 }],
+                axes: { y: { type: 'category', position } },
+                scrollbar: { enabled: true },
+            }),
+            width: 500,
+            height: 300,
+        });
+        await waitForChartStability(proxy);
+        return deproxy(proxy) as any;
+    }
+
+    function getVerticalScrollbarState(chart: any) {
+        return chart.modulesManager.getModule('scrollbar').state.vertical;
+    }
+
+    async function scrollLongLabelIntoView(chart: any) {
+        const { min, max } = chart.ctx.chartState.getValue('zoom').y;
+        chart.ctx.zoomManager.updateZoom(
+            { source: 'user-interaction', sourceDetail: 'scrollbar' },
+            { y: { min: 0.75 - (max - min), max: 0.75 } }
+        );
+        await waitForChartStability(proxy!);
+
+        const labels = chart.axes.find((axis: any) => axis.id === 'y').tickLayout.labels.map((l: any) => l.text);
+        expect(labels).toContain('test50testtesttesttesttesttest');
+    }
+
+    it('keeps the vertical scrollbar inside the chart once a long category label scrolls into view', async () => {
+        const chart = await createLongLabelChart('left');
+
+        const before = getVerticalScrollbarState(chart).layoutRect;
+        expect(before.x).toBeCloseTo(20.98, 1);
+
+        await scrollLongLabelIntoView(chart);
+
+        const { group, layoutRect } = getVerticalScrollbarState(chart);
+        expect(group.visible).toBe(true);
+        expect(layoutRect.x).toBeGreaterThanOrEqual(0);
+        expect(layoutRect.x + layoutRect.width).toBeLessThanOrEqual(chart.seriesRect.x);
+    });
+
+    it('renders the vertical scrollbar at the chart edge once a long category label scrolls into view', async () => {
+        const chart = await createLongLabelChart('left');
+
+        await scrollLongLabelIntoView(chart);
+
+        await compareImageSnapshot(proxy!, ctx, {
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: 'ag-18832-scrollbar-long-label-in-view',
+        });
+    });
+
+    it('keeps a right-positioned vertical scrollbar inside the chart once a long category label scrolls into view', async () => {
+        const chart = await createLongLabelChart('right');
+
+        await scrollLongLabelIntoView(chart);
+
+        const { group, layoutRect } = getVerticalScrollbarState(chart);
+        expect(group.visible).toBe(true);
+        expect(layoutRect.x).toBeGreaterThanOrEqual(chart.seriesRect.x + chart.seriesRect.width);
+        expect(layoutRect.x + layoutRect.width).toBeLessThanOrEqual(500);
+    });
+});
