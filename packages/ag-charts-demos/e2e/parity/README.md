@@ -93,6 +93,10 @@ also skips the dev server:
 DEMOS_BASE_URL=http://localhost:4710 npx playwright test
 ```
 
+A port serves only its own demo, so against one, select that demo's specs with `-g <demo>`. CI does
+this for every current (not stale) port, in the step after the pixel comparison; see
+`tools/seeds/README.md`, "`port-spec-plan.mjs` and `run-port-specs.mjs`".
+
 ## What is compared
 
 For every target, each state in `states.ts` is reached at 1440×900 and 1024×768 with the locale,
