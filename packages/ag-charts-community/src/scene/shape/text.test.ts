@@ -673,7 +673,12 @@ describe('Text', () => {
             node: Text,
             text: unknown[],
             imagesByUri: Record<string, Image>,
-            { x = 200, y = 120, textAlign = BASE_OPTIONS.textAlign, direction = 'ltr' as CanvasDirection } = {}
+            {
+                x = 200,
+                y = 120,
+                textAlign = BASE_OPTIONS.textAlign,
+                direction = 'ltr',
+            }: { x?: number; y?: number; textAlign?: CanvasTextAlign; direction?: CanvasDirection } = {}
         ) {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';

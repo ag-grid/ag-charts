@@ -357,8 +357,8 @@ describe('Category Axis', () => {
                     label: {
                         ...label,
                         formatter: ({ value }: { value: unknown }) => [
-                            { text: `label 1 ${value}`, fontSize: 22 },
-                            { text: `\nlabel 2 ${value}`, fontSize: 8 },
+                            { text: `label 1 ${String(value)}`, fontSize: 22 },
+                            { text: `\nlabel 2 ${String(value)}`, fontSize: 8 },
                         ],
                     },
                 },
