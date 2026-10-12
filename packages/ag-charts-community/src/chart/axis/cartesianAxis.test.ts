@@ -1080,6 +1080,258 @@ describe('CartesianAxis', () => {
         });
     });
 
+    describe('AG-18833 label maxWidth / maxHeight', () => {
+        const LONG_NO_SPACES = `test${'x'.repeat(50)}`;
+        const LONG_WITH_SPACES = 'one two three four five six seven eight nine ten';
+
+        const leftCategoryOptions = (label: Record<string, unknown>, labels: string[]): AgCartesianChartOptions => ({
+            data: labels.map((category, i) => ({ category, value: i + 1 })),
+            axes: {
+                x: { type: 'category', position: 'left', label },
+                y: { type: 'number', position: 'bottom' },
+            },
+            series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+        });
+
+        const bottomCategoryOptions = (
+            label: Record<string, unknown>,
+            labels: string[],
+            width: number
+        ): AgCartesianChartOptions => ({
+            data: labels.map((category, i) => ({ category, value: i + 1 })),
+            width,
+            axes: {
+                x: { type: 'category', position: 'bottom', label },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+        });
+
+        const render = async (options: AgCartesianChartOptions) => {
+            const width = options.width;
+            prepareTestOptions(options);
+            if (width != null) options.width = width;
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        const getAxis = (position: string) => {
+            const axis = (deproxy(chart as any) as any).axes.find((a: any) => a.position === position);
+            expect(axis).toBeDefined();
+            return axis;
+        };
+
+        const getVisibleNodes = (position: string): any[] =>
+            Array.from(getAxis(position).tickLabelGroupSelection.nodes()).filter((n: any) => n.datum.visible);
+
+        const getAxisThickness = (position: string): number => {
+            const box = getAxis(position).getBBox();
+            return position === 'left' || position === 'right' ? box.width : box.height;
+        };
+
+        const findLongNode = (position: string, prefix: string) => {
+            const node = getVisibleNodes(position).find((n) => n.datum.text.replaceAll('\n', '').startsWith(prefix));
+            expect(node).toBeDefined();
+            return node;
+        };
+
+        describe('validation', () => {
+            const axisOptions: Record<string, () => AgCartesianChartOptions> = {
+                number: () => ({
+                    data: NUMERIC_DATA,
+                    axes: {
+                        x: { type: 'number', position: 'bottom', label: { maxWidth: 50 } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                }),
+                log: () => ({
+                    data: LOG_DATA,
+                    axes: {
+                        x: { type: 'number', position: 'bottom' },
+                        y: { type: 'log', position: 'left', label: { maxWidth: 50 } },
+                    },
+                    series: [{ type: 'line', xKey: 'x2', yKey: 'y2' }],
+                }),
+                time: () => ({
+                    data: TIME_DATA,
+                    axes: {
+                        x: { type: 'time', position: 'bottom', label: { maxWidth: 50 } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+                }),
+                'unit-time': () => ({
+                    data: TIME_DATA,
+                    axes: {
+                        x: { type: 'unit-time', position: 'bottom', label: { maxWidth: 50 } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                }),
+                category: () => ({
+                    data: CATEGORY_DATA,
+                    axes: {
+                        x: { type: 'category', position: 'bottom', label: { maxWidth: 50 } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                }),
+            };
+
+            it.each(Object.keys(axisOptions))('accepts label.maxWidth on a %s axis without warning', async (type) => {
+                await render(axisOptions[type]());
+                expect(getVisibleNodes('bottom').length + getVisibleNodes('left').length).toBeGreaterThan(0);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('warns for maxWidth on a time axis parentLevel label', async () => {
+                const options = axisOptions.time();
+                (options.axes as any).x.parentLevel = { enabled: true, label: { maxWidth: 50 } };
+                await render(options);
+                expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.maxWidth')]]);
+            });
+
+            it('warns for maxWidth on a grouped-category axis label', async () => {
+                await render({
+                    data: GROUPED_CATEGORY_DATA,
+                    axes: {
+                        x: { type: 'grouped-category', position: 'bottom', label: { maxWidth: 50 } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'bar', xKey: 'location', yKey: 'gold' }],
+                } as AgCartesianChartOptions);
+                expectWarningsCalls().toEqual([[expect.stringContaining('label.maxWidth')]]);
+            });
+        });
+
+        describe('left category axis', () => {
+            const labels = ['A', LONG_NO_SPACES, LONG_WITH_SPACES];
+
+            it('truncates a long unbreakable label to maxWidth with an ellipsis', async () => {
+                await render(leftCategoryOptions({ maxWidth: 80 }, labels));
+
+                const nodes = getVisibleNodes('left');
+                expect(nodes).toHaveLength(3);
+                for (const node of nodes) {
+                    expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
+                }
+                expect(findLongNode('left', 'test').datum.text.endsWith('…')).toBe(true);
+                expectWarningsCalls().toEqual([]);
+            });
+
+            it('wraps a long label within maxWidth when wrapping is always', async () => {
+                await render(leftCategoryOptions({ maxWidth: 80, wrapping: 'always' }, labels));
+
+                const node = findLongNode('left', 'one');
+                const lines = node.datum.text.split('\n');
+                expect(lines.length).toBeGreaterThan(1);
+                expect(node.datum.text.endsWith('…')).toBe(false);
+                for (const n of getVisibleNodes('left')) {
+                    expect(Transformable.toCanvas(n).width).toBeLessThanOrEqual(80.5);
+                }
+            });
+
+            it('truncates wrapped text to maxHeight with an ellipsis', async () => {
+                await render(leftCategoryOptions({ maxWidth: 60, maxHeight: 20, wrapping: 'always' }, labels));
+
+                const node = findLongNode('left', 'one');
+                expect(Transformable.toCanvas(node).height).toBeLessThanOrEqual(20.5);
+                expect(node.datum.text.endsWith('…')).toBe(true);
+            });
+
+            it('hides an overflowing label when truncate is false', async () => {
+                await render(leftCategoryOptions({ maxWidth: 30, truncate: false }, labels));
+
+                for (const node of getVisibleNodes('left')) {
+                    expect(node.datum.text).not.toContain('test');
+                    expect(node.datum.text).not.toContain('one');
+                }
+                expect(getVisibleNodes('left').some((n) => n.datum.text === 'A')).toBe(true);
+            });
+
+            it('still truncates when avoidCollisions is false', async () => {
+                await render(leftCategoryOptions({ maxWidth: 80, avoidCollisions: false }, labels));
+
+                const node = findLongNode('left', 'test');
+                expect(node.datum.text.endsWith('…')).toBe(true);
+                expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
+            });
+
+            it('does not grow the axis to maxWidth when labels are short', async () => {
+                const shortLabels = ['A', 'BB', 'CCC'];
+                await render(leftCategoryOptions({}, shortLabels));
+                const unfitted = getAxisThickness('left');
+                chart.destroy();
+
+                await render(leftCategoryOptions({ maxWidth: 500 }, shortLabels));
+                expect(getAxisThickness('left')).toBeCloseTo(unfitted, 5);
+                expect(getAxisThickness('left')).toBeLessThan(100);
+            });
+        });
+
+        describe('auto-rotated bottom category axis', () => {
+            const labels = [
+                'International Freight Services',
+                'Long Distance Transport Links',
+                'Domestic Distribution Centres',
+                'Customs Clearance Operations',
+                'Warehousing And Storage',
+            ];
+
+            it('truncates rotated labels and shrinks the axis', async () => {
+                await render(bottomCategoryOptions({ wrapping: 'never' }, labels, 300));
+                const unfittedThickness = getAxisThickness('bottom');
+                expect(getVisibleNodes('bottom').every((n) => n.datum.rotation !== 0)).toBe(true);
+                chart.destroy();
+
+                await render(bottomCategoryOptions({ maxWidth: 100, wrapping: 'never' }, labels, 300));
+                const nodes = getVisibleNodes('bottom');
+                expect(nodes.length).toBeGreaterThan(0);
+                for (const node of nodes) {
+                    expect(node.datum.rotation).not.toBe(0);
+                    expect(node.datum.text.endsWith('…')).toBe(true);
+                }
+                expect(getAxisThickness('bottom')).toBeLessThan(unfittedThickness);
+            });
+        });
+
+        describe('when neither maxWidth nor maxHeight is set', () => {
+            const labels = [
+                'International Freight Services',
+                'Long Distance Transport Links',
+                'Domestic Distribution Centres',
+                'Customs Clearance Operations',
+                'Warehousing And Storage',
+            ];
+
+            const snapshotAxis = (position: string) => ({
+                thickness: getAxisThickness(position),
+                labels: getVisibleNodes(position).map((n) => ({
+                    text: n.datum.text,
+                    rotation: n.datum.rotation,
+                    x: n.datum.x,
+                    y: n.datum.y,
+                    box: Transformable.toCanvas(n),
+                })),
+            });
+
+            it.each([
+                ['bottom', (label: Record<string, unknown>) => bottomCategoryOptions(label, labels, 300)],
+                ['left', (label: Record<string, unknown>) => leftCategoryOptions(label, labels)],
+            ] as const)('renders a %s axis identically to explicitly undefined limits', async (position, factory) => {
+                await render(factory({}));
+                const unset = snapshotAxis(position);
+                expect(unset.labels.length).toBeGreaterThan(0);
+                chart.destroy();
+
+                await render(factory({ maxWidth: undefined, maxHeight: undefined }));
+                expect(snapshotAxis(position)).toEqual(unset);
+                expectWarningsCalls().toEqual([]);
+            });
+        });
+    });
+
     // Auto-rotation must trigger when category labels would collide on a narrow chart.
     describe('CRT-1048 axis label collision', () => {
         it('should detect overlap when three labels collide with padding', () => {

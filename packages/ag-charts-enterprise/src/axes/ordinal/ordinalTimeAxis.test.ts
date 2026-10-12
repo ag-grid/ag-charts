@@ -12,6 +12,7 @@ import type { ChartOrProxy } from 'ag-charts-community-test';
 import {
     cartesianChartAssertions,
     compareImageSnapshot,
+    expectWarningsCalls,
     reverseAxes,
     setupMockCanvas,
     setupMockConsole,
@@ -804,5 +805,38 @@ describe('Ordinal Time Axis Examples', () => {
         const [node] = crossLine.labelGroup.children();
         expect(node.text).toContain('\n');
         expect(node.getBBox().width).toBeLessThanOrEqual(40);
+    });
+
+    it('accepts label.maxWidth and truncates a long formatted label', async () => {
+        chart = await createEnterpriseChart(
+            prepareEnterpriseTestOptions({
+                data: DATA.slice(0, 3),
+                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+                axes: {
+                    x: {
+                        type: 'ordinal-time',
+                        position: 'bottom',
+                        label: {
+                            maxWidth: 60,
+                            wrapping: 'never',
+                            formatter: () => 'A formatted ordinal time label that is far too long',
+                        },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+            })
+        );
+        await waitForChartStability(chart);
+
+        const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
+        const nodes = Array.from((axis as any).tickLabelGroupSelection.nodes() as Iterable<any>).filter(
+            (node) => node.datum.visible
+        );
+        expect(nodes.length).toBeGreaterThan(0);
+        for (const node of nodes) {
+            expect(node.datum.text.endsWith('…')).toBe(true);
+            expect(node.getBBox().width).toBeLessThanOrEqual(60.5);
+        }
+        expectWarningsCalls().toEqual([]);
     });
 });

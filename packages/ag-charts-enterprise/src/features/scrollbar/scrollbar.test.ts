@@ -12,6 +12,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 import { WheelDeltaMode, dispatchEvent, makeMockEvent, mouseEnterEvent } from 'ag-charts-test';
 import type { AgCartesianAxisPosition, AgCartesianChartOptions } from 'ag-charts-types';
 
@@ -845,6 +846,62 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
             }
         }
     );
+
+    function getFittedLongLabelExtent(chart: any, position: AgCartesianAxisPosition) {
+        const axis = getScrollbarAxis(chart, position);
+        const node = axis.tickLabelGroupSelection
+            .nodes()
+            .find((n: any) => n.datum.textUntruncated === LONG_LABEL || n.text?.startsWith('test50'));
+        expect(node).toBeDefined();
+        const { x, y, width, height } = Transformable.toCanvas(node);
+        const { seriesRect } = chart;
+        switch (position) {
+            case 'left':
+                return { near: seriesRect.x - x - width, far: seriesRect.x - x };
+            case 'right':
+                return { near: x - seriesRect.x - seriesRect.width, far: x + width - seriesRect.x - seriesRect.width };
+            case 'top':
+                return { near: seriesRect.y - y - height, far: seriesRect.y - y };
+            case 'bottom':
+                return {
+                    near: y - seriesRect.y - seriesRect.height,
+                    far: y + height - seriesRect.y - seriesRect.height,
+                };
+        }
+    }
+
+    it.each<{ position: AgCartesianAxisPosition; limit: Record<string, number> }>([
+        { position: 'left', limit: { maxWidth: 120 } },
+        { position: 'right', limit: { maxWidth: 120 } },
+        { position: 'top', limit: { maxWidth: 120 } },
+        { position: 'bottom', limit: { maxWidth: 120 } },
+        { position: 'left', limit: { maxHeight: 20 } },
+        { position: 'right', limit: { maxHeight: 20 } },
+        { position: 'top', limit: { maxHeight: 20 } },
+        { position: 'bottom', limit: { maxHeight: 20 } },
+    ])('keeps a fitted label clear of a $position scrollbar with $limit', async ({ position, limit }) => {
+        const vertical = isVerticalPosition(position);
+        const label = { ...(vertical ? {} : { rotation: 90 }), ...limit };
+        const chart = await createLongLabelChart({ position, axis: { label } });
+
+        await scrollLongLabelIntoView(chart, position);
+
+        const track = getTrackExtent(chart, position);
+        const fitted = getFittedLongLabelExtent(chart, position);
+        expect(fitted.far).toBeLessThanOrEqual(track.near + 0.5);
+        expectTrackBetweenSeriesAndPaddingEdge(chart, position);
+    });
+
+    it('renders a fitted long label clear of the scrollbar', async () => {
+        const chart = await createLongLabelChart({ position: 'left', axis: { label: { maxWidth: 120 } } });
+
+        await scrollLongLabelIntoView(chart, 'left');
+
+        await compareImageSnapshot(chart, ctx, {
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: 'ag-18833-scrollbar-long-label-fitted',
+        });
+    });
 
     it('keeps a grouped-category scrollbar within an explicit axis thickness thinner than its labels', async () => {
         const axisThickness = 30;
