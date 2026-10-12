@@ -36,15 +36,12 @@ export class UnitTimeScale extends DiscreteTimeScale {
     }
 
     private _domain: Date[] = [];
-    private _uniformityCache: UniformityCheck | undefined;
-    private _domainBoundaries: { d0: number; dNext: number } | undefined;
     private _bandRangeCache: { start: Date; stop: Date } | undefined;
-    /** Encoded band values (internal encoding, not timestamps) */
-    private _encodedBands: number[] | undefined;
-    /** Encoding params needed to decode encoded bands to Date/timestamp */
-    private _encodingParams: IntervalRangeNumericResult['encodingParams'] | undefined;
-    /** Cached linear params for O(1) findIndex */
-    private _linearParams: { firstBandTime: number; intervalMs: number } | undefined;
+    /** Entry for the current domain and interval, or undefined until resolved. */
+    private _active: BandEntry | undefined;
+    /** Last entry built for a band range; outlives temporary domain swaps, including to `[]`. */
+    private _kept: BandEntry | undefined;
+    private _emptyEntry: BandEntry | undefined;
 
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
@@ -60,7 +57,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         this._domain = domain;
 
         if (!skipCacheInvalidation) {
-            this.invalidateCaches();
+            this.invalidateBandRange();
         }
     }
     override get domain(): Date[] {
@@ -76,115 +73,104 @@ export class UnitTimeScale extends DiscreteTimeScale {
         if (this._interval?.unit === normalized?.unit && this._interval?.step === normalized?.step) return;
 
         this._interval = normalized;
-        this.invalidateCaches();
+        this.invalidateBandRange();
     }
 
-    private invalidateCaches() {
-        this._bands = undefined;
-        this._numericBands = undefined;
-        this._uniformityCache = undefined;
-        this._domainBoundaries = undefined;
+    /** Only drops the floored endpoints; band caches are revalidated against them in `entry`. */
+    private invalidateBandRange() {
         this._bandRangeCache = undefined;
-        this._encodedBands = undefined;
-        this._encodingParams = undefined;
-        this._linearParams = undefined;
+        this._active = undefined;
     }
 
-    private _bands: Date[] | undefined = undefined;
-    get bands(): readonly Date[] {
-        if (this._bands === undefined) {
-            // Lazily decode from encoded bands
-            this.ensureEncodedBands();
-            if (this._encodedBands != null && this._encodingParams != null) {
-                const params = this._encodingParams;
-                this._bands = this._encodedBands.map((e) => decodeIntervalValue(e, params));
-            } else {
-                this._bands = [];
-            }
-        }
-        return this._bands;
+    private get entry(): BandEntry {
+        return this._active ?? this.resolveEntry();
     }
 
-    private _numericBands: number[] | undefined;
-    protected override get numericBands(): number[] {
-        if (this._numericBands === undefined) {
-            // Compute timestamps from encoded bands without creating Date objects first
-            this.ensureEncodedBands();
-            if (this._encodedBands != null && this._encodingParams != null) {
-                const params = this._encodingParams;
-                this._numericBands = this._encodedBands.map((e) => encodedToTimestamp(e, params));
-            } else {
-                this._numericBands = [];
-            }
-        }
-        return this._numericBands;
+    private resolveEntry(): BandEntry {
+        const entry = this.findOrBuildEntry();
+        this._active = entry;
+        return entry;
     }
 
-    /**
-     * Ensure encoded bands are computed. This is the numeric-first optimization:
-     * we compute just the encoded values (cheap numbers) and defer Date creation.
-     */
-    private ensureEncodedBands(): void {
-        if (this._encodedBands !== undefined) return;
-
-        const { domain, interval } = this;
-        if (domain.length < 2 || interval == null) {
-            this._encodedBands = [];
-            return;
-        }
-
+    private findOrBuildEntry(): BandEntry {
+        const { interval } = this;
         const bandRange = this.getCachedBandRange();
-        if (bandRange == null) {
-            this._encodedBands = [];
-            return;
+        if (bandRange == null || interval == null) {
+            this._emptyEntry ??= createBandEntry(undefined, undefined);
+            return this._emptyEntry;
         }
 
         const [start, stop] = bandRange;
+        const kept = this._kept;
+        if (kept?.key != null && sameBandKey(kept.key, start, stop, interval)) return kept;
+
+        const entry = this.buildEntry(bandKey(start, stop, interval), interval, start, stop);
+        this._kept = entry;
+        return entry;
+    }
+
+    private buildEntry(key: BandKey, interval: AgTimeInterval, start: Date, stop: Date): BandEntry {
         const rangeParams = { visibleRange: [0, 1] as [number, number], extend: false };
 
         if (intervalRangeCount(interval, start, stop, rangeParams) > MAX_BANDS) {
             this.logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
-            this._encodedBands = [];
-            return;
+            return createBandEntry(key, undefined);
         }
 
-        const { encodedValues, encodingParams } = intervalRangeNumeric(interval, start, stop, rangeParams);
-        this._encodedBands = encodedValues;
-        this._encodingParams = encodingParams;
+        return createBandEntry(key, intervalRangeNumeric(interval, start, stop, rangeParams));
+    }
+
+    get bands(): readonly Date[] {
+        const entry = this.entry;
+        if (entry.bands === undefined) {
+            // Lazily decode from encoded bands
+            const params = entry.encodingParams;
+            entry.bands = params == null ? [] : entry.encodedBands.map((e) => decodeIntervalValue(e, params));
+        }
+        return entry.bands;
+    }
+
+    protected override get numericBands(): number[] {
+        const entry = this.entry;
+        if (entry.numericBands === undefined) {
+            // Compute timestamps from encoded bands without creating Date objects first
+            const params = entry.encodingParams;
+            entry.numericBands = params == null ? [] : entry.encodedBands.map((e) => encodedToTimestamp(e, params));
+        }
+        return entry.numericBands;
     }
 
     /** Override to return band count without triggering Date materialization */
     public override getBandCountForUpdate(): number {
-        this.ensureEncodedBands();
-        return this._encodedBands?.length ?? 0;
+        return this.entry.encodedBands.length;
     }
 
     override getUniformityCache(visibleRange?: [number, number]): UniformityCheck | undefined {
-        const n = this.getBandCountForUpdate();
+        const entry = this.entry;
+        const { encodedBands, encodingParams } = entry;
+        const n = encodedBands.length;
 
         // For full range or no visible range, use cached whole-domain check
         if (!visibleRange || (visibleRange[0] === 0 && visibleRange[1] === 1)) {
-            if (n > APPROXIMATE_THRESHOLD && this._uniformityCache === undefined) {
+            if (n > APPROXIMATE_THRESHOLD && entry.uniformityCache === undefined) {
                 // UnitTimeScale bands are inherently uniform (generated from fixed interval)
                 // We can compute the interval from encoding params without materializing bands
-                this.ensureEncodedBands();
-                if (this._encodingParams != null && this._encodedBands != null && this._encodedBands.length >= 2) {
-                    const t0 = encodedToTimestamp(this._encodedBands[0], this._encodingParams);
-                    const t1 = encodedToTimestamp(this._encodedBands[1], this._encodingParams);
-                    this._uniformityCache = { isUniform: true, interval: t1 - t0 };
+                if (encodingParams != null && n >= 2) {
+                    const t0 = encodedToTimestamp(encodedBands[0], encodingParams);
+                    const t1 = encodedToTimestamp(encodedBands[1], encodingParams);
+                    entry.uniformityCache = { isUniform: true, interval: t1 - t0 };
                 } else {
-                    this._uniformityCache = { isUniform: false };
+                    entry.uniformityCache = { isUniform: false };
                 }
             }
-            return this._uniformityCache;
+            return entry.uniformityCache;
         }
 
         // For partial visible range, UnitTimeScale is still uniform
         // Compute interval from encoded bands at the visible range boundaries
-        this.ensureEncodedBands();
-        if (this._encodingParams != null && this._encodedBands != null && this._encodedBands.length >= 2) {
-            const t0 = encodedToTimestamp(this._encodedBands[0], this._encodingParams);
-            const t1 = encodedToTimestamp(this._encodedBands[1], this._encodingParams);
+        if (encodingParams != null && n >= 2) {
+            const t0 = encodedToTimestamp(encodedBands[0], encodingParams);
+            const t1 = encodedToTimestamp(encodedBands[1], encodingParams);
             return { isUniform: true, interval: t1 - t0 };
         }
         return { isUniform: false };
@@ -207,19 +193,17 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
     private getDomainBoundaries(): { d0: number; dNext: number } | undefined {
         const { interval } = this;
-        if (interval == null) return undefined;
+        const entry = this.entry;
+        if (interval == null || entry.key == null) return undefined;
 
-        if (this._domainBoundaries === undefined) {
-            const bandRange = this.getCachedBandRange();
-            if (bandRange == null) return undefined;
-
-            const [start, stop] = bandRange;
-            const d0 = Math.min(start.valueOf(), stop.valueOf());
-            const d1 = Math.max(start.valueOf(), stop.valueOf());
+        if (entry.domainBoundaries === undefined) {
+            const { start, stop } = entry.key;
+            const d0 = Math.min(start, stop);
+            const d1 = Math.max(start, stop);
             const dNext = intervalNext(interval, new Date(d1)).valueOf();
-            this._domainBoundaries = { d0, dNext };
+            entry.domainBoundaries = { d0, dNext };
         }
-        return this._domainBoundaries;
+        return entry.domainBoundaries;
     }
 
     protected override get lastBandEnd(): number {
@@ -228,23 +212,24 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
     /** Get linear params for O(1) index calculation and scaling metadata */
     public getLinearParams(): { firstBandTime: number; intervalMs: number } | undefined {
-        if (this._linearParams === undefined) {
-            this.ensureEncodedBands();
-            if (this._encodedBands != null && this._encodingParams != null && this._encodedBands.length >= 2) {
-                const firstBandTime = encodedToTimestamp(this._encodedBands[0], this._encodingParams);
-                const secondBandTime = encodedToTimestamp(this._encodedBands[1], this._encodingParams);
-                this._linearParams = {
+        const entry = this.entry;
+        if (entry.linearParams === undefined) {
+            const { encodedBands, encodingParams } = entry;
+            if (encodingParams != null && encodedBands.length >= 2) {
+                const firstBandTime = encodedToTimestamp(encodedBands[0], encodingParams);
+                const secondBandTime = encodedToTimestamp(encodedBands[1], encodingParams);
+                entry.linearParams = {
                     firstBandTime,
                     intervalMs: secondBandTime - firstBandTime,
                 };
             }
         }
-        return this._linearParams;
+        return entry.linearParams;
     }
 
     /** Check if current encoding uses a linear unit (exact arithmetic, no DST issues) */
     private isLinearUnit(): boolean {
-        const unit = this._encodingParams?.unit;
+        const unit = this.entry.encodingParams?.unit;
         return unit === 'millisecond' || unit === 'second' || unit === 'minute' || unit === 'hour';
     }
 
@@ -419,6 +404,58 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
         return ticks;
     }
+}
+
+interface BandKey {
+    start: number;
+    stop: number;
+    unit: AgTimeIntervalUnit;
+    step: number | undefined;
+    epoch: number | undefined;
+    utc: boolean | undefined;
+}
+
+/** Band-derived caches for one band range and interval. */
+interface BandEntry {
+    key: BandKey | undefined;
+    /** Encoded band values (internal encoding, not timestamps) */
+    encodedBands: number[];
+    /** Encoding params needed to decode encoded bands to Date/timestamp */
+    encodingParams: IntervalRangeNumericResult['encodingParams'] | undefined;
+    bands: Date[] | undefined;
+    numericBands: number[] | undefined;
+    uniformityCache: UniformityCheck | undefined;
+    domainBoundaries: { d0: number; dNext: number } | undefined;
+    /** Cached linear params for O(1) findIndex */
+    linearParams: { firstBandTime: number; intervalMs: number } | undefined;
+}
+
+function createBandEntry(key: BandKey | undefined, result: IntervalRangeNumericResult | undefined): BandEntry {
+    return {
+        key,
+        encodedBands: result?.encodedValues ?? [],
+        encodingParams: result?.encodingParams,
+        bands: undefined,
+        numericBands: undefined,
+        uniformityCache: undefined,
+        domainBoundaries: undefined,
+        linearParams: undefined,
+    };
+}
+
+function bandKey(start: Date, stop: Date, { unit, step, epoch, utc }: AgTimeInterval): BandKey {
+    return { start: start.valueOf(), stop: stop.valueOf(), unit, step, epoch: epoch?.valueOf(), utc };
+}
+
+function sameBandKey(key: BandKey, start: Date, stop: Date, { unit, step, epoch, utc }: AgTimeInterval): boolean {
+    return (
+        key.start === start.valueOf() &&
+        key.stop === stop.valueOf() &&
+        key.unit === unit &&
+        key.step === step &&
+        key.epoch === epoch?.valueOf() &&
+        key.utc === utc
+    );
 }
 
 function supportsInterval(

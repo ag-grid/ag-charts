@@ -1,15 +1,29 @@
-import { vi } from 'vitest';
+import { type Mock, vi } from 'vitest';
 
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { Logger, ambientLogger } from '../../logging/logger';
+import { intervalRangeNumeric } from '../../time/range';
 import { ScaleAlignment, type ScaleTickParams } from '../../types/scales';
 import { UnitTimeScale } from './unitTimeScale';
+
+vi.mock('../../time/range', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../time/range')>();
+    return { ...actual, intervalRangeNumeric: vi.fn(actual.intervalRangeNumeric) };
+});
+
+const intervalRangeNumericSpy = intervalRangeNumeric as Mock<typeof intervalRangeNumeric>;
+
+class ExposedUnitTimeScale extends UnitTimeScale {
+    get exposedNumericBands() {
+        return this.numericBands;
+    }
+}
 
 type TickInterval = AgTimeInterval | AgTimeIntervalUnit | number;
 
 function createScale(domain: [Date, Date], interval: AgTimeIntervalUnit | AgTimeInterval) {
-    const scale = new UnitTimeScale();
+    const scale = new ExposedUnitTimeScale();
     scale.range = [0, 100];
     scale.domain = domain;
     scale.interval = interval;
@@ -31,6 +45,10 @@ function tickTimestamps(
 }
 
 describe('UnitTimeScale', () => {
+    beforeEach(() => {
+        intervalRangeNumericSpy.mockClear();
+    });
+
     it('converts a monthly value in the final band', () => {
         const scale = new UnitTimeScale();
         scale.range = [0, 100];
@@ -211,6 +229,194 @@ describe('UnitTimeScale', () => {
             const bands2 = scale.bands;
             expect(bands2).not.toBe(bands1);
             expect(bands2.length).toBeGreaterThan(bands1.length);
+        });
+    });
+
+    describe('band caches across temporary domain swaps', () => {
+        const DOMAIN: [Date, Date] = [new Date(2020, 0, 1), new Date(2024, 0, 1)];
+        const sameDomain = (): [Date, Date] => [new Date(DOMAIN[0]), new Date(DOMAIN[1])];
+
+        function observe(scale: ExposedUnitTimeScale) {
+            const probe = new Date(2022, 5, 15, 10);
+            return {
+                convert: scale.convert(probe),
+                convertClamped: scale.convert(new Date(2030, 0, 1), { clamp: true }),
+                invert: scale.invert(37)?.valueOf(),
+                invertNearest: scale.invert(61, true)?.valueOf(),
+                ticks: tickTimestamps(scale, { unit: 'month', step: 1 }),
+                partialTicks: tickTimestamps(scale, { unit: 'month', step: 1 }, undefined, [0.25, 0.75]),
+                findIndexLeading: scale.findIndex(probe),
+                findIndexTrailing: scale.findIndex(probe, ScaleAlignment.Trailing),
+                bands: scale.bands.map((d) => d.valueOf()),
+                numericBands: [...scale.exposedNumericBands],
+                linearParams: scale.getLinearParams(),
+                uniformity: scale.getUniformityCache(),
+                partialUniformity: scale.getUniformityCache([0.25, 0.75]),
+            };
+        }
+
+        it('reuses the bands across a [] → D → [] → D round trip', () => {
+            const scale = createScale(DOMAIN, 'day');
+            const bands = scale.bands;
+            const numericBands = scale.exposedNumericBands;
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+
+            scale.domain = [];
+            scale.domain = sameDomain();
+            scale.domain = [];
+            scale.domain = sameDomain();
+
+            expect(scale.bands).toBe(bands);
+            expect(scale.exposedNumericBands).toBe(numericBands);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns identical results after a round trip', () => {
+            const scale = createScale(DOMAIN, 'day');
+            const before = observe(scale);
+            expect(before.uniformity?.isUniform).toBe(true);
+
+            scale.domain = [];
+            scale.domain = sameDomain();
+
+            expect(observe(scale)).toEqual(before);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('keeps the bands when different endpoints floor to the same band range', () => {
+            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+            const bands = scale.bands;
+
+            scale.domain = [new Date(2024, 0, 1, 6), new Date(2024, 0, 10, 18)];
+
+            expect(scale.bands).toBe(bands);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('rebuilds when the floored endpoints change', () => {
+            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+            const bands = scale.bands;
+
+            scale.domain = [new Date(2024, 0, 1), new Date(2024, 0, 11)];
+
+            expect(scale.bands).not.toBe(bands);
+            expect(scale.bands).toHaveLength(bands.length + 1);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it('rebuilds when the floored endpoints change across an empty domain', () => {
+            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+            const bands = scale.bands;
+
+            scale.domain = [];
+            scale.domain = [new Date(2024, 0, 2), new Date(2024, 0, 10)];
+
+            expect(scale.bands).not.toBe(bands);
+            expect(scale.bands).toHaveLength(bands.length - 1);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it.each([
+            ['unit', { unit: 'hour' }],
+            ['step', { unit: 'day', step: 2 }],
+        ] as const)('rebuilds when the interval %s changes', (_field, changed) => {
+            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+            const bands = scale.bands;
+
+            scale.interval = changed;
+
+            expect(scale.bands).not.toBe(bands);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it('reuses the bands when the interval is set to an equal value', () => {
+            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+            const bands = scale.bands;
+
+            scale.interval = { unit: 'day' };
+
+            expect(scale.bands).toBe(bands);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+        });
+
+        // The interval setter ignores epoch and utc changes, so they only reach the scale
+        // when the interval object is edited in place.
+        it.each([
+            ['epoch', (interval: AgTimeInterval) => (interval.epoch = new Date(2024, 0, 3))],
+            ['utc', (interval: AgTimeInterval) => (interval.utc = true)],
+        ])('rebuilds when the interval %s changes', (_field, mutate) => {
+            const interval: AgTimeInterval = { unit: 'day', step: 1 };
+            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], interval);
+            const bands = scale.bands;
+
+            mutate(interval);
+            scale.domain = [];
+            scale.domain = [new Date(2024, 0, 1), new Date(2024, 0, 10)];
+
+            expect(scale.bands).not.toBe(bands);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it('returns no bands while the domain is empty and keeps the entry for the return', () => {
+            const scale = createScale(DOMAIN, 'day');
+            const bands = scale.bands;
+
+            scale.domain = [];
+
+            expect(scale.bands).toEqual([]);
+            expect(scale.exposedNumericBands).toEqual([]);
+            expect(scale.getBandCountForUpdate()).toBe(0);
+            expect(scale.getLinearParams()).toBeUndefined();
+            expect(scale.getUniformityCache()).toBeUndefined();
+            expect(scale.convert(DOMAIN[0])).toBeNaN();
+
+            scale.domain = sameDomain();
+
+            expect(scale.bands).toBe(bands);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns no bands for a single-element domain and keeps the entry for the return', () => {
+            const scale = createScale(DOMAIN, 'day');
+            const bands = scale.bands;
+
+            scale.domain = [DOMAIN[0]];
+            expect(scale.bands).toEqual([]);
+
+            scale.domain = sameDomain();
+            expect(scale.bands).toBe(bands);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('returns no bands without an interval and keeps the entry for the return', () => {
+            const scale = createScale(DOMAIN, 'day');
+            const bands = scale.bands;
+
+            scale.interval = undefined;
+            expect(scale.bands).toEqual([]);
+            expect(scale.getBandCountForUpdate()).toBe(0);
+
+            scale.interval = 'day';
+            expect(scale.bands).toBe(bands);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not return a stale entry after an over-limit domain swap', () => {
+            const ambientWarn = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
+            const small: [Date, Date] = [new Date(2024, 0, 1), new Date(2024, 0, 2)];
+            const scale = createScale(small, 'second');
+            const smallBands = scale.bands.map((d) => d.valueOf());
+            expect(smallBands.length).toBeGreaterThan(0);
+
+            scale.domain = [new Date(1970, 0, 1), new Date(2024, 0, 1)];
+            expect(scale.bands).toEqual([]);
+            expect(scale.getBandCountForUpdate()).toBe(0);
+            expect(scale.exposedNumericBands).toEqual([]);
+
+            scale.domain = small;
+            expect(scale.bands.map((d) => d.valueOf())).toEqual(smallBands);
+
+            ambientWarn.mockRestore();
         });
     });
 
