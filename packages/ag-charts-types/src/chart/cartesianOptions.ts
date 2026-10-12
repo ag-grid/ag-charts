@@ -109,10 +109,15 @@ export interface AgTimeAxisParentLevel<TContext = ContextDefault> {
     /** Enables parent level labels and ticks. */
     enabled?: boolean;
     /** Configuration for the axis labels, shown next to the ticks. */
-    label?: AgCartesianTimeAxisLabelOptions<TContext>;
+    label?: AgTimeAxisParentLevelLabelOptions<TContext>;
     /** Configuration for the axis ticks. */
     tick?: AgAxisBaseTickOptions;
 }
+
+export interface AgTimeAxisParentLevelLabelOptions<TContext = ContextDefault> extends Omit<
+    AgCartesianTimeAxisLabelOptions<TContext>,
+    'maxWidth' | 'maxHeight'
+> {}
 
 export interface AgCartesianAxisLabelOptions<TContext = ContextDefault>
     extends AgBaseCartesianAxisLabelOptions<TContext>, AgNumericAxisFormattableLabelOptions<TContext> {}
@@ -139,6 +144,20 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
      * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
      */
     truncate?: boolean;
+    /**
+     * Used to constrain the size of each label along the text direction before wrapping or truncation.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxWidth?: PixelSize;
+    /**
+     * Used to constrain the size of each label across the text direction before wrapping or truncation.
+     *
+     * Labels are also kept within the space the axis has available, clear of any scrollbar.
+     * Text that still does not fit after wrapping is truncated with an ellipsis, or hidden when `truncate` is `false`.
+     */
+    maxHeight?: PixelSize;
 }
 
 export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault> extends Omit<

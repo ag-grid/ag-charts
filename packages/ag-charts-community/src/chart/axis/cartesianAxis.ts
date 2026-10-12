@@ -81,6 +81,7 @@ import {
     resetAxisLineSelectionFn,
 } from './axisUtil';
 import { generateTicks } from './generateTicks';
+import { isLabelFitEnabled } from './generateTicksUtils';
 
 type AxisAnimationState = 'empty' | 'ready';
 type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
@@ -411,6 +412,7 @@ export abstract class CartesianAxis<
             axisRotation: this.horizontal ? Math.PI / -2 : 0,
             isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
+            labelRoom: isLabelFitEnabled(label) ? this.getLabelRoom(scrollbar, scrollbarThickness) : undefined,
             inRange: (translation: number) => this.inRange(translation, 0.001),
             labelBaseline: this.resolveLabelBaseline(label.verticalAlign),
             labelBandOffsets: this.bandFlushesLabels()
@@ -764,6 +766,27 @@ export abstract class CartesianAxis<
         } else {
             caption.computeTextWrap(axisLength, thickness);
         }
+    }
+
+    private getLabelRoom(scrollbar: ScrollbarLayout | undefined, scrollbarThickness: number) {
+        const label = this.options.label;
+        const padding = expandLabelPadding(label);
+        const labelPadding = this.horizontal ? padding.top + padding.bottom : padding.left + padding.right;
+        const outerScrollbar =
+            scrollbar?.enabled && scrollbar.placement !== 'inner' ? scrollbar.spacing + scrollbar.thickness : 0;
+        const room =
+            (this.chartLayout?.sizeLimit ?? Infinity) -
+            this.getTickSize() -
+            this.getTickSpacing() -
+            this.seriesAreaPadding -
+            scrollbarThickness -
+            outerScrollbar -
+            labelPadding;
+        return Math.max(0, Math.floor(room));
+    }
+
+    protected override isLabelFitEnabled() {
+        return isLabelFitEnabled(this.options.label);
     }
 
     protected getScrollbarThickness(scrollbar?: ScrollbarLayout): number {

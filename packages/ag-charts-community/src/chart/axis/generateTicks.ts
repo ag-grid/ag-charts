@@ -39,6 +39,8 @@ import {
     getTextAlign,
     getTextBaseline,
     getTimeIntervalTicks,
+    isLabelFitEnabled,
+    refitAutoRotatedLabels,
     ticksEqual,
     ticksSpacing,
     timeIntervalMaxLabelSize,
@@ -145,6 +147,10 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         avoidCollisions,
         tryAutoRotate ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335) : undefined
     );
+
+    if (autoRotation !== 0 && isLabelFitEnabled(label)) {
+        refitAutoRotatedLabels(options, tickData.ticks, autoRotation);
+    }
 
     const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
     const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);

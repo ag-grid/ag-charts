@@ -894,9 +894,16 @@ export abstract class Axis<
         this.tickLayout = undefined;
     }
 
+    protected isLabelFitEnabled() {
+        return false;
+    }
+
     private getScrollbarLayoutCacheKey(chartLayout?: ChartLayout): string {
         const scrollbar = chartLayout?.scrollbars?.[this.id];
-        if (!scrollbar?.enabled) return 'none';
+        if (!scrollbar?.enabled) {
+            // Fitted labels depend on the axis cap even without a scrollbar.
+            return this.isLabelFitEnabled() ? `none:${chartLayout?.sizeLimit}` : 'none';
+        }
         return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}:${chartLayout?.sizeLimit}`;
     }
 
