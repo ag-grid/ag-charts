@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
+import { AllCommunityModule } from 'ag-charts-community';
 import { isPresetOverridesType, themeOptionsDefFor } from 'ag-charts-community-test';
 import {
     Logger,
+    type ModuleDefinition,
     ModuleScope,
     ModuleType,
+    type OptionsContribution,
     contributionMatchesAxisType,
     contributionMatchesChartType,
     contributionMatchesSeriesType,
+    describeValidator,
     nestAtOptionsPath,
     validate,
 } from 'ag-charts-core';
@@ -51,11 +55,16 @@ function* moduleTemplatePlacements(scope: ModuleScope): Generator<Placement> {
     }
 }
 
-function* contributionTemplatePlacements(scope: ModuleScope): Generator<Placement> {
+type ContributionValue = (definition: ModuleDefinition, contribution: OptionsContribution) => unknown;
+
+function* contributionTemplatePlacements(
+    scope: ModuleScope,
+    valueOf: ContributionValue = (_, contribution) => contribution.themeTemplate
+): Generator<Placement> {
     const axes = [...scope.listModulesByType(ModuleType.Axis)];
     const series = [...scope.listModulesByType(ModuleType.Series)];
     for (const { definition, contribution, host, relative } of scope.optionsContributions()) {
-        const template = contribution.themeTemplate;
+        const template = valueOf(definition, contribution);
         if (template == null) continue;
         const label = `${definition.type}:${definition.name}@${contribution.path}`;
         const nested = nestAtOptionsPath(relative, template);
@@ -78,11 +87,39 @@ function* contributionTemplatePlacements(scope: ModuleScope): Generator<Placemen
 
 /** Validates every module's `themeTemplate` where a user theme override would put it. */
 function checkModuleThemeTemplates(scope: ModuleScope) {
-    const defs = themeOptionsDefFor(scope);
+    return checkPlacements(themeOptionsDefFor(scope), [
+        ...moduleTemplatePlacements(scope),
+        ...contributionTemplatePlacements(scope),
+    ]);
+}
+
+/** An empty value of the shape a contribution's theme overrides take. */
+function themeShapeSample(contribution: OptionsContribution): unknown {
+    const validator = contribution.themeOptions ?? contribution.options;
+    if (validator == null) return;
+    switch (describeValidator(validator)) {
+        case 'a function':
+            return () => {};
+        case 'an array':
+        case 'an object array':
+            return [];
+        default:
+            return {};
+    }
+}
+
+/** Validates a theme-shaped value for each contribution of `scope` that `schemaScope` lacks the module for. */
+function checkPlaceholderThemeShapes(scope: ModuleScope, schemaScope: ModuleScope) {
+    const placements = contributionTemplatePlacements(scope, (definition, contribution) =>
+        schemaScope.hasModule(definition.name) ? undefined : themeShapeSample(contribution)
+    );
+    return checkPlacements(themeOptionsDefFor(schemaScope), [...placements]);
+}
+
+function checkPlacements(defs: ReturnType<typeof themeOptionsDefFor>, placements: Placement[]) {
     const logger = new Logger();
     const checked: string[] = [];
     const errors: string[] = [];
-    const placements = [...moduleTemplatePlacements(scope), ...contributionTemplatePlacements(scope)];
     for (const [label, overrides] of placements) {
         checked.push(label);
         const { invalid } = validate({ overrides }, defs, 'theme', { logger });
@@ -99,6 +136,18 @@ describe('module theme templates', () => {
         const { checked, errors } = checkModuleThemeTemplates(scope);
 
         expect(checked).toContain('plugin:navigator@navigator[line]');
+        expect(errors).toEqual([]);
+    });
+
+    it('take the same shape from the placeholders when their modules are not registered', () => {
+        const scope = new ModuleScope();
+        scope.registerModules([AllEnterpriseModule]);
+        const communityScope = new ModuleScope();
+        communityScope.registerModules([AllCommunityModule]);
+
+        const { checked, errors } = checkPlaceholderThemeShapes(scope, communityScope);
+
+        expect(checked).toContain('plugin:background-regions@seriesArea.backgroundRegions[line]');
         expect(errors).toEqual([]);
     });
 });

@@ -3,26 +3,17 @@ import type {
     AgRangesButtonValueFunctionParams,
     AgRangesOptions,
     AgRangesStateStyles,
-    Operation,
     WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, undocumentedThemeOptions } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth, undocumentedThemeOptions } from 'ag-charts-core';
 
 const DAY = 1000 * 60 * 60 * 24;
 const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
 // Resolved colour and width of `buttonBorder`, which may be a boolean or a `{ color, width }` object.
-const buttonBorderColor: Operation = {
-    $if: [{ $isType: [{ $ref: 'buttonBorder' }, 'boolean'] }, { $ref: 'borderColor' }, { $ref: 'buttonBorder.color' }],
-};
-const buttonBorderWidth: Operation = {
-    $if: [
-        { $isType: [{ $ref: 'buttonBorder' }, 'boolean'] },
-        { $if: [{ $ref: 'buttonBorder' }, 1, 0] },
-        { $ref: 'buttonBorder.width' },
-    ],
-};
+const buttonBorderColor = themeBorderColor('buttonBorder');
+const buttonBorderWidth = themeBorderWidth('buttonBorder', { on: 1 });
 
 const stylesTheme: WithThemeParams<AgRangesOptions> = {
     cornerRadius: { $ref: 'buttonBorderRadius' },

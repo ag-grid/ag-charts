@@ -1,4 +1,4 @@
-import type { ColDef, ICellRendererParams, ValueFormatterParams } from 'ag-grid-community';
+import type { ColDef, ICellRendererParams, OverlayComponentUserParams, ValueFormatterParams } from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import { useMemo } from 'react';
 
@@ -40,7 +40,15 @@ const PO_ACTIONS: { kind: PoActionKind; label: string }[] = [
     { kind: 'Escalated', label: 'Escalate' },
 ];
 
+// No selection means no rows at all, so the grid shows `noRows`; `noMatchingRows`
+// needs rows that the column filters then exclude.
+const overlayComponentParams: OverlayComponentUserParams = {
+    noRows: { overlayText: 'Select a shipment on the map or arrival schedule above to display its order lines.' },
+    noMatchingRows: { overlayText: 'No order lines match the current filters. Try adjusting your filters.' },
+};
+
 interface PurchaseOrderGridProps {
+    /** The lines on the selected shipments; empty until one is selected, which shows the `noRows` prompt. */
     orders: PurchaseOrder[];
     /** What she has already recorded against a line, by PO id. */
     poActions: Record<string, PoActionKind>;
@@ -157,6 +165,7 @@ export function PurchaseOrderGrid({ orders, poActions, onAction }: PurchaseOrder
                 rowData={orders}
                 columnDefs={columnDefs}
                 defaultColDef={defaultColDef}
+                overlayComponentParams={overlayComponentParams}
                 rowHeight={36}
                 headerHeight={38}
                 domLayout="autoHeight"

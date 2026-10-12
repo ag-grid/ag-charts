@@ -395,34 +395,71 @@ const labelBoxingFillDefaults = (placement?: SeriesLabelPlacement): WithThemePar
     },
 });
 
-// `false` keeps the subtle border shown when a series enables `label.border`; `true` and objects follow borderColor/borderWidth.
-const seriesLabelBorderValue = (
-    key: 'color' | 'width',
-    base: 'borderColor' | 'borderWidth',
-    offValue: Operation | number
-): Operation => ({
-    $isType: [
-        { $ref: 'seriesLabelBorder' },
-        'boolean',
-        { $if: [{ $ref: 'seriesLabelBorder' }, { $ref: base }, offValue] },
-        {
-            $isType: [
-                { $ref: `seriesLabelBorder.${key}` },
-                'nullish',
-                { $ref: base },
-                { $ref: `seriesLabelBorder.${key}` },
-            ],
-        },
-    ],
-});
+/** A theme param of the form `*Border`, which is either a `boolean` or a `{ color, width }` object. */
+export type ThemeBorderParam = Extract<keyof AgChartAllThemeParams, `${string}Border`>;
+
+type BorderOperand = Operation | string | number;
+
+export interface ThemeBorderOptions {
+    /** Value when the param is `true`. */
+    on?: BorderOperand;
+    /** Value when the param is `false`. */
+    off?: BorderOperand;
+    /** Value when the param is an object that leaves the member unset; without it the member is read as is. */
+    unset?: BorderOperand;
+}
+
+interface ResolvedBorderOptions {
+    on: BorderOperand;
+    off: BorderOperand;
+    unset?: BorderOperand;
+}
+
+function themeBorderMember(
+    param: ThemeBorderParam,
+    member: 'color' | 'width',
+    { on, off, unset }: ResolvedBorderOptions
+): Operation {
+    const memberRef: Operation = { $ref: `${param}.${member}` };
+    return {
+        $isType: [
+            { $ref: param },
+            'boolean',
+            { $if: [{ $ref: param }, on, off] },
+            unset === undefined ? memberRef : { $isType: [memberRef, 'nullish', unset, memberRef] },
+        ],
+    };
+}
+
+/**
+ * Resolves the colour of a `*Border` theme param. `true` gives `on` (default `borderColor`), `false` gives `off`
+ * (default `on`), and an object gives its `color`, or `unset` if it has none.
+ */
+export function themeBorderColor(param: ThemeBorderParam, options: ThemeBorderOptions = {}): Operation {
+    const { on = { $ref: 'borderColor' }, off = on, unset } = options;
+    return themeBorderMember(param, 'color', { on, off, unset });
+}
+
+/**
+ * Resolves the width of a `*Border` theme param. `true` gives `on` (default `borderWidth`), `false` gives `off`
+ * (default `0`), and an object gives its `width`, or `unset` if it has none.
+ */
+export function themeBorderWidth(param: ThemeBorderParam, options: ThemeBorderOptions = {}): Operation {
+    const { on = { $ref: 'borderWidth' }, off = 0, unset } = options;
+    return themeBorderMember(param, 'width', { on, off, unset });
+}
 
 const LABEL_BOXING_BORDER_DEFAULTS: WithThemeParams<Pick<LabelBoxOptions, 'border'>> = {
     border: {
         enabled: {
             $or: [{ $isUserOption: '../border' }, { $not: { $eq: [{ $ref: 'seriesLabelBorder' }, false] } }],
         },
-        strokeWidth: seriesLabelBorderValue('width', 'borderWidth', 1),
-        stroke: seriesLabelBorderValue('color', 'borderColor', { $foregroundOpacity: 0.08 }),
+        // `false` keeps the subtle border shown when a series enables `label.border`; `true` and objects follow borderColor/borderWidth.
+        strokeWidth: themeBorderWidth('seriesLabelBorder', { off: 1, unset: { $ref: 'borderWidth' } }),
+        stroke: themeBorderColor('seriesLabelBorder', {
+            off: { $foregroundOpacity: 0.08 },
+            unset: { $ref: 'borderColor' },
+        }),
     },
 };
 
@@ -712,30 +749,12 @@ export const LEGEND_CONTAINER_THEME: any = {
     border: {
         enabled: { $isType: [{ $ref: 'legendBorder' }, 'boolean', { $ref: 'legendBorder' }, true] },
         // `legendBorder: false` keeps the legend's own stroke for a border enabled through the legend options.
-        stroke: {
-            $isType: [
-                { $ref: 'legendBorder' },
-                'boolean',
-                { $if: [{ $ref: 'legendBorder' }, { $ref: 'borderColor' }, { $foregroundBackgroundMix: 0.25 }] },
-                { $if: [{ $ref: 'legendBorder.color' }, { $ref: 'legendBorder.color' }, { $ref: 'borderColor' }] },
-            ],
-        },
+        stroke: themeBorderColor('legendBorder', {
+            off: { $foregroundBackgroundMix: 0.25 },
+            unset: { $ref: 'borderColor' },
+        }),
         strokeOpacity: 1,
-        strokeWidth: {
-            $isType: [
-                { $ref: 'legendBorder' },
-                'boolean',
-                { $if: [{ $ref: 'legendBorder' }, { $ref: 'borderWidth' }, 1] },
-                {
-                    $isType: [
-                        { $ref: 'legendBorder.width' },
-                        'number',
-                        { $ref: 'legendBorder.width' },
-                        { $ref: 'borderWidth' },
-                    ],
-                },
-            ],
-        },
+        strokeWidth: themeBorderWidth('legendBorder', { off: 1, unset: { $ref: 'borderWidth' } }),
     },
     cornerRadius: { $ref: 'legendBorderRadius' },
     fillOpacity: 1,

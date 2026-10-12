@@ -19,6 +19,7 @@ import {
     mergeDefaults,
     mergeDefaultsShallowOperations,
     nestAtOptionsPath,
+    themeBorderColor,
 } from 'ag-charts-core';
 import type {
     AgChartAllThemeParams,
@@ -32,7 +33,6 @@ import type {
     AgPresetOverrides,
     AgThemeOverrides,
     CssColor,
-    Operation,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -42,11 +42,6 @@ import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultCol
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = '#ffffff';
-
-// The hover and disabled border colours follow `buttonBorder`, which is `{ color, width }` unless set to a boolean.
-const BUTTON_BORDER_COLOR: Operation = {
-    $if: [{ $isType: [{ $ref: 'buttonBorder' }, 'boolean'] }, { $ref: 'borderColor' }, { $ref: 'buttonBorder.color' }],
-};
 
 const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
     'radial-gauge': true,
@@ -163,7 +158,7 @@ export class ChartTheme {
             buttonFontWeight: 400,
             buttonTextColor: { $ref: 'chromeTextColor' },
             buttonHoverBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
-            buttonHoverBorderColor: BUTTON_BORDER_COLOR,
+            buttonHoverBorderColor: themeBorderColor('buttonBorder'),
             buttonHoverTextColor: { $ref: 'buttonTextColor' },
             buttonActiveBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
             buttonActiveBorderColor: { $ref: 'accentColor' },
@@ -172,7 +167,7 @@ export class ChartTheme {
             buttonDisabledBackgroundColor: {
                 $mix: [{ $ref: 'buttonBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
             },
-            buttonDisabledBorderColor: BUTTON_BORDER_COLOR,
+            buttonDisabledBorderColor: themeBorderColor('buttonBorder'),
             buttonDisabledTextColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'buttonTextColor' }, 0.5] },
 
             inputBackgroundColor: { $ref: 'backgroundColor' },
@@ -259,13 +254,7 @@ export class ChartTheme {
             },
             scrollbarThumbHoverBorder: {
                 // A boolean scrollbarThumbBorder has no members, and its thumb border uses borderColor.
-                color: {
-                    $if: [
-                        { $isType: [{ $ref: 'scrollbarThumbBorder' }, 'boolean'] },
-                        { $mix: [{ $ref: 'borderColor' }, { $ref: 'foregroundColor' }, 0.075] },
-                        { $mix: [{ $ref: 'scrollbarThumbBorder.color' }, { $ref: 'foregroundColor' }, 0.075] },
-                    ],
-                },
+                color: { $mix: [themeBorderColor('scrollbarThumbBorder'), { $ref: 'foregroundColor' }, 0.075] },
                 width: { $ref: 'scrollbarThumbBorder.width' },
             },
 

@@ -12,22 +12,110 @@ import {
     sumSpend,
 } from './data';
 import {
+    ALL_FILTER,
+    DEFAULT_ORDERS_FILTER,
     DEFAULT_PERIOD,
     MANAGER,
     MY_ORDERS,
     MY_SHIPMENTS,
     MY_SUPPLIERS,
     MY_TRACKED_SHIPMENTS,
+    applySelectionChange,
     myAttentionItems,
+    myOrdersFilterOptions,
     myOrdersInRange,
+    myOrdersScope,
     myPeriod,
     myScorecard,
     mySpendTree,
     mySpendTrend,
     mySummary,
     ordersOnShipment,
+    ordersOnShipments,
     shipmentCarryingOrder,
 } from './workspace';
+
+describe('shipment selection', () => {
+    it('applies a chart change, keeping the order shipments were picked in', () => {
+        expect(applySelectionChange([], ['A'], [])).toEqual(['A']);
+        expect(applySelectionChange(['A'], ['B'], [])).toEqual(['A', 'B']);
+        expect(applySelectionChange(['A', 'B', 'C'], [], ['B'])).toEqual(['A', 'C']);
+        // A plain click replaces: everything else is removed and the clicked one added.
+        expect(applySelectionChange(['A', 'B'], ['C'], ['A', 'B'])).toEqual(['C']);
+        // A plain click on a selected shipment removes only the others.
+        expect(applySelectionChange(['A', 'B'], [], ['B'])).toEqual(['A']);
+        // A click on empty space clears.
+        expect(applySelectionChange(['A', 'B'], [], ['A', 'B'])).toEqual([]);
+    });
+
+    it('reads the lines of every selected shipment', () => {
+        const [first, second] = MY_SHIPMENTS;
+        expect(ordersOnShipments(MY_ORDERS, [first.shipmentId, second.shipmentId])).toEqual([
+            ...ordersOnShipment(MY_ORDERS, first.shipmentId),
+            ...ordersOnShipment(MY_ORDERS, second.shipmentId),
+        ]);
+    });
+});
+
+describe('orders tab filters', () => {
+    const [supplierId] = MANAGER.supplierIds;
+    const [subcategory] = myOrdersFilterOptions({ supplierId, subcategory: ALL_FILTER }).subcategories;
+
+    it('leaves her whole remit in view when unfiltered', () => {
+        const scope = myOrdersScope(DEFAULT_ORDERS_FILTER);
+        expect(scope.orders).toBe(MY_ORDERS);
+        expect(scope.shipments).toBe(MY_TRACKED_SHIPMENTS);
+    });
+
+    it('narrows her orders and restates her freight over what is left', () => {
+        const scope = myOrdersScope({ supplierId, subcategory });
+        expect(scope.orders.length).toBeGreaterThan(0);
+        expect(scope.orders.length).toBeLessThan(MY_ORDERS.length);
+        for (const order of scope.orders) {
+            expect(order.supplierId).toBe(supplierId);
+            expect(order.subcategory).toBe(subcategory);
+        }
+        for (const shipment of scope.shipments) {
+            expect(shipment.supplierId).toBe(supplierId);
+            // Every shipment shown carries at least one matching line, and quotes only those.
+            const lines = ordersOnShipment(scope.orders, shipment.shipmentId);
+            expect(lines.length).toBe(shipment.lineCount);
+            expect(sumSpend(lines)).toBeCloseTo(shipment.value);
+        }
+    });
+
+    it('applies each filter on its own', () => {
+        const bySupplier = myOrdersScope({ supplierId, subcategory: ALL_FILTER });
+        expect(bySupplier.orders).toEqual(MY_ORDERS.filter((order) => order.supplierId === supplierId));
+        const anySubcategory = SUBCATEGORIES[MANAGER.commodity][0];
+        const bySubcategory = myOrdersScope({ supplierId: ALL_FILTER, subcategory: anySubcategory });
+        expect(bySubcategory.orders).toEqual(MY_ORDERS.filter((order) => order.subcategory === anySubcategory));
+    });
+
+    it('offers only pairs that hold orders, and every pair that does', () => {
+        const unfiltered = myOrdersFilterOptions(DEFAULT_ORDERS_FILTER);
+        expect(unfiltered.supplierIds).toEqual(MANAGER.supplierIds);
+        expect(unfiltered.subcategories).toEqual(SUBCATEGORIES[MANAGER.commodity]);
+
+        for (const id of MANAGER.supplierIds) {
+            const offered = myOrdersFilterOptions({ supplierId: id, subcategory: ALL_FILTER }).subcategories;
+            for (const name of SUBCATEGORIES[MANAGER.commodity]) {
+                const held = myOrdersScope({ supplierId: id, subcategory: name }).orders.length > 0;
+                expect(offered.includes(name)).toBe(held);
+                expect(
+                    myOrdersFilterOptions({ supplierId: ALL_FILTER, subcategory: name }).supplierIds.includes(id)
+                ).toBe(held);
+            }
+        }
+    });
+
+    it('scopes the headline figures to the filtered freight', () => {
+        const scope = myOrdersScope({ supplierId, subcategory: ALL_FILTER });
+        const summary = mySummary([], scope);
+        const counted = Object.values(summary.shipmentsByStatus).reduce((total, count) => total + count, 0);
+        expect(counted).toBe(scope.shipments.length);
+    });
+});
 
 /**
  * The access model is the load-bearing claim of a personal view: not "the portfolio filtered
@@ -270,6 +358,18 @@ describe('her spend trend', () => {
                     expect(typeof row[subcategory]).toBe('number');
                 }
             }
+        }
+    });
+
+    it('splits the same totals by supplier, so switching the split never moves a bar', () => {
+        for (const period of ['ytd', 'quarter'] as const) {
+            const { rows, supplierRows } = mySpendTrend(period);
+            expect(supplierRows.length).toBe(rows.length);
+            rows.forEach((row, index) => {
+                const bySubcategory = SUBCATEGORIES[MANAGER.commodity].reduce((sum, key) => sum + Number(row[key]), 0);
+                const bySupplier = MANAGER.supplierIds.reduce((sum, key) => sum + Number(supplierRows[index][key]), 0);
+                expect(bySupplier).toBeCloseTo(bySubcategory, 6);
+            });
         }
     });
 });
