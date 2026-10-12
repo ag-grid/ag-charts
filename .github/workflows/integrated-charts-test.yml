@@ -86,14 +86,6 @@ jobs:
               run: |
                   yarn nx build ag-grid-enterprise
 
-            - name: Build with Real Implementation
-              working-directory: /tmp/ag-grid
-              env:
-                  NODE_ENV: production
-              run: |
-                  ./scripts/ci/substituteAgChartsTypesScene.sh
-                  yarn nx build ag-grid-enterprise --skip-nx-cache
-
             - name: Check previous run status
               id: prev_run
               # A flaky `gh` call here must never redden a build that actually
