@@ -113,6 +113,7 @@ describe('AG-18833 rotated label fitting', () => {
     const formatOptions = (domain: string[]) => ({
         niceDomain: domain,
         rawTicks: domain,
+        rawFirstTickIndex: 0,
         generatePrimaryTicks: false,
         primaryTicksIndices: undefined,
         alignment: undefined,
