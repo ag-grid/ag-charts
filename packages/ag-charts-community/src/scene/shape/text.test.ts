@@ -942,8 +942,12 @@ describe('Text', () => {
                 { text: '\nlabel 2', fontSize: 8, fontFamily: 'Verdana' },
             ];
 
+            function lineChildren(node: Text): Text[] {
+                return [...(node as any).richText.children()];
+            }
+
             function lineEdges(node: Text) {
-                return [...(node as any).richText.children()].map((child: Text) => {
+                return lineChildren(node).map((child) => {
                     const { x, width } = child.getBBox();
                     return { left: x, centre: x + width / 2, right: x + width };
                 });
@@ -962,7 +966,7 @@ describe('Text', () => {
             });
 
             it('relays out the lines when the scene direction flips a start alignment', () => {
-                const lineXs = (node: Text) => [...(node as any).richText.children()].map((child: Text) => child.x);
+                const lineXs = (node: Text) => lineChildren(node).map((child) => child.x);
                 const rightAligned = lineXs(renderSegments(new Text(), RAGGED, {}, { textAlign: 'right' }).node);
                 const node = new Text();
 
