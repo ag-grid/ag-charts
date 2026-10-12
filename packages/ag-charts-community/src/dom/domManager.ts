@@ -41,8 +41,6 @@ const DOM_ELEMENT_CLASSES = [
     'tooltip-container',
     'style-sensors',
 ] as const;
-// State borders inherit unset parts from `buttonBorder`, and `false` hides the colour rather than the width.
-const BUTTON_STATE_BORDER_KEYS = new Set(['buttonHoverBorder', 'buttonActiveBorder', 'buttonDisabledBorder']);
 
 const MINIMAL_DOM_ELEMENT_ROLES = new Set(['styles', 'canvas-container', 'canvas', 'tooltip-container']);
 const CONTAINER_MODIFIERS = {
@@ -562,13 +560,6 @@ export class DOMManager extends BaseManager {
 
         // Flatten theme params into a single object ready for the css variables
         for (const [key, value] of entries(params as Record<string, any>)) {
-            if (BUTTON_STATE_BORDER_KEYS.has(key)) {
-                const { color, width } = isObject(value) ? (value as { color?: string; width?: number }) : {};
-                variables[`${key}Color`] =
-                    value === false ? 'transparent' : (color ?? 'var(--ag-charts-button-border-color)');
-                variables[`${key}Width`] = width ?? 'var(--ag-charts-button-border-width)';
-                continue;
-            }
             if (!isObject(value)) {
                 variables[key] = value;
                 continue;

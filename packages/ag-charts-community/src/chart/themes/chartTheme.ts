@@ -32,6 +32,7 @@ import type {
     AgPresetOverrides,
     AgThemeOverrides,
     CssColor,
+    Operation,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -41,6 +42,11 @@ import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultCol
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = '#ffffff';
+
+// The hover and disabled border colours follow `buttonBorder`, which is `{ color, width }` unless set to a boolean.
+const BUTTON_BORDER_COLOR: Operation = {
+    $if: [{ $isType: [{ $ref: 'buttonBorder' }, 'boolean'] }, { $ref: 'borderColor' }, { $ref: 'buttonBorder.color' }],
+};
 
 const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
     'radial-gauge': true,
@@ -157,15 +163,16 @@ export class ChartTheme {
             buttonFontWeight: 400,
             buttonTextColor: { $ref: 'chromeTextColor' },
             buttonHoverBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
-            buttonHoverBorder: { $ref: 'buttonBorder' },
+            buttonHoverBorderColor: BUTTON_BORDER_COLOR,
             buttonHoverTextColor: { $ref: 'buttonTextColor' },
             buttonActiveBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
-            buttonActiveBorder: { color: { $ref: 'accentColor' } },
+            buttonActiveBorderColor: { $ref: 'accentColor' },
             buttonActiveTextColor: { $ref: 'accentColor' },
+            // `buttonBackgroundColor` defaults to `chromeBackgroundColor`, so the default look is unchanged.
             buttonDisabledBackgroundColor: {
-                $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
+                $mix: [{ $ref: 'buttonBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
             },
-            buttonDisabledBorder: { $ref: 'buttonBorder' },
+            buttonDisabledBorderColor: BUTTON_BORDER_COLOR,
             buttonDisabledTextColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'buttonTextColor' }, 0.5] },
 
             inputBackgroundColor: { $ref: 'backgroundColor' },

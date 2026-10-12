@@ -12,17 +12,14 @@
 
     --toolbar-button-background-color--active: var(--ag-charts-button-active-background-color);
     --toolbar-button-border-color--active: var(--ag-charts-button-active-border-color);
-    --toolbar-button-border-width--active: var(--ag-charts-button-active-border-width);
     --toolbar-button-text-color--active: var(--ag-charts-button-active-text-color);
 
     --toolbar-button-background-color--disabled: var(--ag-charts-button-disabled-background-color);
     --toolbar-button-border-color--disabled: var(--ag-charts-button-disabled-border-color);
-    --toolbar-button-border-width--disabled: var(--ag-charts-button-disabled-border-width);
     --toolbar-button-text-color--disabled: var(--ag-charts-button-disabled-text-color);
 
     --toolbar-button-background-color--hover: var(--ag-charts-button-hover-background-color);
     --toolbar-button-border-color--hover: var(--ag-charts-button-hover-border-color);
-    --toolbar-button-border-width--hover: var(--ag-charts-button-hover-border-width);
     --toolbar-button-text-color--hover: var(--ag-charts-button-hover-text-color);
 
     align-items: center;
@@ -59,7 +56,6 @@
 }
 
 .ag-charts-toolbar__button:hover {
-    --toolbar-button-border-width: var(--toolbar-button-border-width--hover);
     background: var(--toolbar-button-background-color--hover);
     border-color: var(--toolbar-button-border-color--hover);
     color: var(--toolbar-button-text-color--hover);
@@ -74,7 +70,6 @@
 
 .ag-charts-toolbar__button--active,
 .ag-charts-toolbar__button--active:hover {
-    --toolbar-button-border-width: var(--toolbar-button-border-width--active);
     background: var(--toolbar-button-background-color--active);
     border-color: var(--toolbar-button-border-color--active);
     color: var(--toolbar-button-text-color--active);
@@ -82,7 +77,6 @@
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
-    --toolbar-button-border-width: var(--toolbar-button-border-width--disabled);
     background: var(--toolbar-button-background-color--disabled);
     border-color: var(--toolbar-button-border-color--disabled);
     color: var(--toolbar-button-text-color--disabled);
@@ -112,22 +106,24 @@
     }
 
     /* Draw dividers on the next button's inline-start border: growing a button's own
-       inline-end border is absorbed by min-width clamping, so the row shifts. */
+       inline-end border is absorbed by min-width clamping, so the row shifts. A button that starts
+       a group is not adjacent to the previous one and draws its own border, so it is excluded. */
     .ag-charts-toolbar__button:hover:not(.ag-charts-toolbar__button--active, [aria-disabled='true'])
-        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active) {
+        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active, .ag-charts-toolbar__button--first) {
         border-inline-start-color: var(--toolbar-button-border-color--hover);
-        border-inline-start-width: var(--toolbar-button-border-width--hover);
     }
 
     .ag-charts-toolbar__button[aria-disabled='true']
-        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active, :hover) {
+        + .ag-charts-toolbar__button:not(
+            .ag-charts-toolbar__button--active,
+            .ag-charts-toolbar__button--first,
+            :hover
+        ) {
         border-inline-start-color: var(--toolbar-button-border-color--disabled);
-        border-inline-start-width: var(--toolbar-button-border-width--disabled);
     }
 
-    .ag-charts-toolbar__button--active + .ag-charts-toolbar__button {
+    .ag-charts-toolbar__button--active + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--first) {
         border-inline-start-color: var(--toolbar-button-border-color--active);
-        border-inline-start-width: var(--toolbar-button-border-width--active);
     }
 }
 

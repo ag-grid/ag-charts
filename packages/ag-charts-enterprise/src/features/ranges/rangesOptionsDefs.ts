@@ -34,7 +34,6 @@ import {
 const stateStylesOptions: OptionsDefs<AgRangesStateStyles> = {
     ...fillCssOptionsDef,
     stroke: strokeOptionsDef.stroke,
-    strokeWidth: strokeOptionsDef.strokeWidth,
     textColor: color,
 };
 
