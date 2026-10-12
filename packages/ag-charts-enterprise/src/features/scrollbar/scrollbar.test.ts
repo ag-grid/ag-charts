@@ -871,7 +871,16 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         await scrollLongLabelIntoView(chart, 'left');
 
         expectLongLabelDrawn(chart);
-        expectTrackBetweenSeriesAndPaddingEdge(chart, 'left');
+        // The room to the padding edge spans both axes, so measure the track against the scrollbar axis's own width.
+        const axis = getScrollbarAxis(chart, 'left');
+        const grantedWidth = axis.chartLayout.sizeLimit + axis.options.label.spacing;
+        expect(axis.layout.labelThickness).toBeGreaterThan(grantedWidth);
+
+        const { group, layoutRect } = getScrollbarState(chart, 'left');
+        const axisLine = axis.translation.x;
+        expect(group.visible).toBe(true);
+        expect(axisLine - layoutRect.x - layoutRect.width).toBeGreaterThanOrEqual(0);
+        expect(axisLine - layoutRect.x).toBeLessThanOrEqual(grantedWidth);
     });
 
     it('leaves an inner scrollbar where it was when a long label scrolls into view', async () => {
