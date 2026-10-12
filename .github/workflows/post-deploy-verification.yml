@@ -110,10 +110,15 @@ jobs:
               run: /tmp/pw/node_modules/.bin/playwright test --config playwright.staging.config.ts --project=chromium
 
             # The demo pages link each seed project on GitHub (and in StackBlitz): staging and every
-            # other non-production site link the latest branch, production links the release tag
-            # matching the deployed version, which is the bX.Y.Z branch this workflow must then run
-            # from. Fetches the deployed demo pages, reads the seed links they render and verifies
-            # the folders they open resolve, as do those of every committed seed manifest.
+            # other non-production site link the mirror's staging branch, an archive its bX.Y.Z
+            # branch, production the release tag matching the deployed version; the last two mean
+            # this workflow must run from the bX.Y.Z branch. CI syncs the mirror's staging branch
+            # after the staging deploy (the "Sync Demo Seeds (staging)" job), and this workflow starts
+            # when CI succeeds, so it only ever runs after that sync. Fetches the deployed demo
+            # pages, reads the seed links they render and verifies the folders they open resolve, as
+            # do those of every committed seed manifest. The staging seeds install the package
+            # tarballs staging serves, so it also checks that each one the mirror's seeds name is
+            # served and answers the CORS preflight StackBlitz's npm sends first.
             # StackBlitz itself cannot be driven headlessly; it imports the same GitHub folder.
             - name: Check demo seed links resolve
               if: always() && steps.run_tests.outcome != 'skipped'

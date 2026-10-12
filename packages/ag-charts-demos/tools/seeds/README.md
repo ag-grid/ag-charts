@@ -77,8 +77,10 @@ pin follows the workspace version, whatever the branch (`readPinnedChartsVersion
 | A pre-release, while every seed carries one released `X.Y.Z` in from a merge-back | that `X.Y.Z`, until the next version bump | `release`   |
 
 The `latest` dist-tag makes `npm install` fetch the newest published release, so a seed may lag a
-feature its demo already uses until that release ships. Production links the mirror's seeds at
-the `release-X.Y.Z` tag, where they pin `X.Y.Z` exactly; staging and local builds link `latest`.
+feature its demo already uses until that release ships. That is what the committed seeds pin, and
+what `check-seeds.mjs` checks, so a publication never turns a pull request red. The copy the mirror
+publishes is not always the committed one: see "Installing a build instead of `latest`" and "Mirror
+refs and sync order" below for what the `staging`, `bX.Y.Z` and `release-X.Y.Z` refs install.
 
 ### Installing a build instead of `latest`
 
@@ -99,6 +101,54 @@ A `release` seed is never rewritten, flag or not, so a release tag and a merge-b
 installing `X.Y.Z` from npm. Without the flag the export is unchanged. Only the exported copy is
 rewritten: the committed seeds, and so `check-seeds.mjs`, never see the tarball URLs. An `ag-charts-*`
 dependency that is not one of the eight packages a docs site serves fails the export.
+
+### Mirror refs and sync order
+
+The "Mirror Demo Seeds" workflow (`.github/workflows/demo-seeds-mirror.yml`) publishes the export to
+`ag-grid/ag-charts-demos`. Each ref there installs the AG Charts packages differently, and the demo
+pages link the ref that suits the site (`getSeedGitRef` in `seedLinks.ts`):
+
+| Mirror ref      | Synced from                                                      | Seeds pinned to the `latest` dist-tag install                                                          | Linked by                                        |
+| --------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| `staging`       | ag-charts `latest`, after a successful "Deploy to Staging" in CI | the tarballs staging serves, `https://charts-staging.ag-grid.com/npm-packages/<package>.tgz`           | staging, local and preview builds                |
+| `bX.Y.Z`        | a push to the release branch `bX.Y.Z`                            | the tarballs of that release's archive, `<production>/charts/archive/X.Y.Z/npm-packages/<package>.tgz` | the archive deployed at `/charts/archive/X.Y.Z/` |
+| `release-X.Y.Z` | the tag `release-X.Y.Z`, whose seeds pin `X.Y.Z` (`release`)     | not applicable: `X.Y.Z` from npm, as tagged                                                            | production, for version `X.Y.Z`                  |
+| `latest`        | the newest `release-X.Y.Z` tag only                              | not applicable: the released seeds, `X.Y.Z` from npm                                                   | nothing                                          |
+
+The rules that follow from that:
+
+- **The mirror's `latest` is released seeds only.** A push to ag-charts `latest` does not sync it. It
+  moves when a `release-X.Y.Z` tag is pushed, to that tag's seeds, and only if no newer release is
+  already tagged in the mirror (a hotfix on an older line leaves it). The check is repeated on every
+  push attempt, so two tag runs in flight cannot leave it on the older release. The tag run also
+  waits (up to 20 minutes) for npm to serve the release's packages before it moves the branch, and
+  fails with the branch untouched if they do not appear; re-run it once the release is published. So
+  it always works from published packages, whatever the state of the staging site or the release
+  branches.
+- **Staging is synced after its deploy.** CI's "Sync Demo Seeds (staging)" job calls the workflow once
+  the "Deploy to Staging" step has succeeded, because the seeds it publishes name tarballs that only
+  exist once that deploy has put them on the site. The sync is for the deployed commit, so a seed
+  opened from staging installs the build staging was made from. The post-deploy verification
+  (`.github/workflows/post-deploy-verification.yml`) starts when CI succeeds, so it runs after the
+  sync and checks the staging links and tarballs (`tools/ci/check-demo-seed-links.mjs`). A failed
+  sync fails the `latest` CI run, which skips the whole post-deploy verification, not only the seed
+  check. To re-sync `staging`, re-run the failed "Sync Demo Seeds (staging)" job; the workflow's
+  manual dispatch syncs only release branches and release tags. A re-run for a commit older than the
+  one the mirror's `staging` last synced (named in its head commit's message) leaves the branch as it
+  is, so it cannot undo a newer deployment's sync; if GitHub cannot compare the two commits the job
+  fails instead, and is re-run.
+- **A release branch can be ahead of its archive.** `bX.Y.Z` syncs on every push to the branch, and
+  its tarball URLs resolve only once the archive for that release is deployed, so between a push and
+  the next archive deploy the branch's seeds may install what the archive does not hold yet. This is
+  known and accepted; the demo pages link `bX.Y.Z` only from the archive itself.
+- **A release tag is exported as tagged.** The tagged commit's seeds pin `X.Y.Z` (`pinSource`
+  `release`), so they are not rewritten. The export names the ref it was made for, so the tag lands
+  on a commit on top of the mirror's `bX.Y.Z` (the branch holds the rewritten seeds, and its own push
+  can run after the tag's). The tag run never moves `bX.Y.Z`, and a mirror tag that already holds
+  different content fails the run.
+- **A release pin carried in by a merge-back is not rewritten.** Where ag-charts `latest` carries an
+  `X.Y.Z` pin from a merge-back (see below), its seeds are `release` seeds, so `staging` installs
+  that release from npm instead of the build until the next beta bump restores `latest`.
 
 ### A release carried in by a merge-back
 
@@ -230,9 +280,11 @@ Fails when a port the change edits is still stale: a file under `seeds/<demo>/<f
 between `<base>` and `HEAD`, and the port's manifest is behind its golden master. A port is aligned
 by editing it and restamping its manifest; edited and still stale means the restamp was forgotten,
 and the blocking parity run, which skips stale ports, would not compare it. The message names each
-port, the files that touched it and the stamp command. Changes to a port's `package.json` and
-`.seed-manifest.json` alone do not count: `pin-ports.mjs` rewrites those in every port on each
-version bump and at the release-branch cut, stale or not.
+port, the files that touched it and the stamp command. Changes to a port's `package.json`,
+`.seed-manifest.json` and root `README.md` alone do not count. `pin-ports.mjs` rewrites the first
+two in every port on each version bump and at the release-branch cut, stale or not; the README
+carries no demo behaviour and is not part of the demo source hash, so editing it aligns nothing. A
+README edited together with any other port file still counts, as does one below the port root.
 
 A stale port is excused only when it was already stale at `<base>` **and** the change moves its React
 demo's source hash. That is an API migration swept across the demo and every port (a rename that

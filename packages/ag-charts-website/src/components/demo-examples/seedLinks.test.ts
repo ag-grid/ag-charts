@@ -5,11 +5,12 @@ import { fileURLToPath } from 'node:url';
 
 import type { SeedManifestEntry } from './seedLinks';
 import {
-    SEED_DEVELOPMENT_REF,
+    SEED_STAGING_REF,
     getAvailableSeedFrameworks,
     getDemoOpenInLinks,
     getSeedGitRef,
     getSeedGithubUrl,
+    getSeedReleaseBranch,
     getSeedReleaseTag,
     getSeedStackBlitzUrl,
     readSeedManifests,
@@ -41,31 +42,95 @@ describe('seedLinks', () => {
         });
     });
 
-    describe('getSeedGitRef', () => {
-        test('production links the release tag for the version', () => {
-            expect(getSeedGitRef({ version: '14.2.0-beta.20260920', isProduction: true })).toBe('release-14.2.0');
+    describe('getSeedReleaseBranch', () => {
+        test.each`
+            version                     | expected
+            ${'14.2.0'}                 | ${'b14.2.0'}
+            ${'14.2.1'}                 | ${'b14.2.1'}
+            ${'14.2.0-beta.20260920'}   | ${'b14.2.0'}
+            ${'15.0.0-beta.20260920.9'} | ${'b15.0.0'}
+        `('maps $version to $expected', ({ version, expected }) => {
+            expect(getSeedReleaseBranch(version)).toBe(expected);
         });
 
-        test('every other build links the latest branch, whatever the version', () => {
-            expect(getSeedGitRef({ version: '14.2.0-beta.20260920', isProduction: false })).toBe('latest');
-            expect(getSeedGitRef({ version: '14.2.0', isProduction: false })).toBe(SEED_DEVELOPMENT_REF);
+        test('rejects a version it cannot parse', () => {
+            expect(() => getSeedReleaseBranch('unknown')).toThrow('unknown');
+        });
+    });
+
+    describe('getSeedGitRef', () => {
+        test('production links the release tag for the version', () => {
+            expect(getSeedGitRef({ version: '14.2.0-beta.20260920', isProduction: true, isArchive: false })).toBe(
+                'release-14.2.0'
+            );
+        });
+
+        test('an archive build links the release branch for the version', () => {
+            expect(getSeedGitRef({ version: '14.2.0', isProduction: true, isArchive: true })).toBe('b14.2.0');
+            expect(getSeedGitRef({ version: '14.2.0-beta.20260920', isProduction: true, isArchive: true })).toBe(
+                'b14.2.0'
+            );
+        });
+
+        test('every other build links the staging branch, whatever the version', () => {
+            expect(getSeedGitRef({ version: '14.2.0-beta.20260920', isProduction: false, isArchive: false })).toBe(
+                'staging'
+            );
+            expect(getSeedGitRef({ version: '14.2.0', isProduction: false, isArchive: false })).toBe(SEED_STAGING_REF);
+        });
+
+        test('no build links the mirror default branch, which moves only on release', () => {
+            const refs = [
+                getSeedGitRef({ version: '14.2.0', isProduction: true, isArchive: false }),
+                getSeedGitRef({ version: '14.2.0', isProduction: true, isArchive: true }),
+                getSeedGitRef({ version: '14.2.0', isProduction: false, isArchive: false }),
+            ];
+            expect(refs).not.toContain('latest');
         });
 
         test('a non-production build never needs a parseable version', () => {
-            expect(getSeedGitRef({ version: 'unknown', isProduction: false })).toBe('latest');
+            expect(getSeedGitRef({ version: 'unknown', isProduction: false, isArchive: false })).toBe('staging');
+        });
+
+        test('a build that is not production is never an archive', () => {
+            expect(getSeedGitRef({ version: '14.2.0', isProduction: false, isArchive: true })).toBe('staging');
         });
     });
 
     test('getSeedGithubUrl points at the seed folder at the release tag in production', () => {
         expect(
-            getSeedGithubUrl({ demoId: 'trading-terminal', framework: 'react', version: '14.2.0', isProduction: true })
+            getSeedGithubUrl({
+                demoId: 'trading-terminal',
+                framework: 'react',
+                version: '14.2.0',
+                isProduction: true,
+                isArchive: false,
+            })
         ).toBe('https://github.com/ag-grid/ag-charts-demos/tree/release-14.2.0/trading-terminal/react');
     });
 
-    test('getSeedGithubUrl points at the seed folder on latest outside production', () => {
+    test('getSeedGithubUrl points at the seed folder on the release branch in an archive', () => {
         expect(
-            getSeedGithubUrl({ demoId: 'trading-terminal', framework: 'react', version: '14.2.0', isProduction: false })
-        ).toBe('https://github.com/ag-grid/ag-charts-demos/tree/latest/trading-terminal/react');
+            getSeedGithubUrl({
+                demoId: 'trading-terminal',
+                framework: 'react',
+                version: '14.2.0',
+                isProduction: true,
+                isArchive: true,
+            })
+        ).toBe('https://github.com/ag-grid/ag-charts-demos/tree/b14.2.0/trading-terminal/react');
+    });
+
+    test('getSeedGithubUrl points at the seed folder on staging outside production', () => {
+        expect(
+            getSeedGithubUrl({
+                demoId: 'trading-terminal',
+                framework: 'react',
+                version: '14.2.0',
+                isProduction: false,
+                isArchive: false,
+            })
+        ).toBe('https://github.com/ag-grid/ag-charts-demos/tree/staging/trading-terminal/react');
     });
 
     test('getSeedStackBlitzUrl opens the same folder with an encoded project title', () => {
@@ -76,6 +141,7 @@ describe('seedLinks', () => {
                 title: 'Web Analytics',
                 version: '14.2.0-beta.20260920',
                 isProduction: true,
+                isArchive: false,
             })
         ).toBe(
             'https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/release-14.2.0/web-analytics/react?title=AG%20Charts%20Web%20Analytics%20(React)'
@@ -118,6 +184,7 @@ describe('seedLinks', () => {
                 title: 'Trading Terminal',
                 version: '14.2.0',
                 isProduction: true,
+                isArchive: false,
                 manifests: MANIFESTS,
             });
             expect(links.map((link) => link.framework)).toEqual(['React', 'Angular', 'Vue', 'TypeScript']);
@@ -141,6 +208,7 @@ describe('seedLinks', () => {
                     title: 'Web Analytics',
                     version: '14.2.0',
                     isProduction: true,
+                    isArchive: false,
                     manifests: MANIFESTS,
                 })
             ).toEqual([
@@ -159,23 +227,44 @@ describe('seedLinks', () => {
                     title: 'Procurement',
                     version: '14.2.0',
                     isProduction: true,
+                    isArchive: false,
                     manifests: MANIFESTS,
                 })
             ).toEqual([]);
         });
 
-        test('follows latest on a staging build', () => {
+        test('follows the staging branch on a staging build', () => {
             const [react] = getDemoOpenInLinks({
                 demoId: 'web-analytics',
                 title: 'Web Analytics',
                 version: '14.2.0-beta.20260920',
                 isProduction: false,
+                isArchive: false,
                 manifests: MANIFESTS,
             });
             expect(react.href).toBe(
-                'https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/latest/web-analytics/react?title=AG%20Charts%20Web%20Analytics%20(React)'
+                'https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/staging/web-analytics/react?title=AG%20Charts%20Web%20Analytics%20(React)'
             );
-            expect(react.sourceHref).toBe('https://github.com/ag-grid/ag-charts-demos/tree/latest/web-analytics/react');
+            expect(react.sourceHref).toBe(
+                'https://github.com/ag-grid/ag-charts-demos/tree/staging/web-analytics/react'
+            );
+        });
+
+        test('follows the release branch on an archive build', () => {
+            const [react] = getDemoOpenInLinks({
+                demoId: 'web-analytics',
+                title: 'Web Analytics',
+                version: '14.2.0',
+                isProduction: true,
+                isArchive: true,
+                manifests: MANIFESTS,
+            });
+            expect(react.href).toBe(
+                'https://stackblitz.com/github/ag-grid/ag-charts-demos/tree/b14.2.0/web-analytics/react?title=AG%20Charts%20Web%20Analytics%20(React)'
+            );
+            expect(react.sourceHref).toBe(
+                'https://github.com/ag-grid/ag-charts-demos/tree/b14.2.0/web-analytics/react'
+            );
         });
     });
 

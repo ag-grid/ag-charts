@@ -203,6 +203,23 @@ describe('findTouchedStalePorts', () => {
         expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([]);
     });
 
+    it('does not count an edit to a port-root README.md alone', () => {
+        const changedFiles = [`${SEEDS}trading-terminal/angular/README.md`, `${SEEDS}trading-terminal/vue/README.md`];
+        expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([]);
+    });
+
+    it('counts a README.md edited together with a source file, and a nested README.md on its own', () => {
+        const changedFiles = [
+            `${SEEDS}trading-terminal/angular/README.md`,
+            `${SEEDS}trading-terminal/angular/src/main.ts`,
+            `${SEEDS}trading-terminal/vue/src/data/README.md`,
+        ];
+        expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([
+            { ...stalePort('trading-terminal', 'angular'), files: ['src/main.ts'] },
+            { ...stalePort('trading-terminal', 'vue'), files: ['src/data/README.md'] },
+        ]);
+    });
+
     it('counts a nested package.json, which no pin update writes', () => {
         const changedFiles = [`${SEEDS}trading-terminal/vue/src/data/package.json`];
         expect(findTouchedStalePorts({ changedFiles, stale })).toEqual([

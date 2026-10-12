@@ -102,11 +102,13 @@ const toRepoPath = (path) => relative(WORKSPACE_ROOT, path).split(/[\\/]/).join(
 const SEEDS_PATH_PREFIX = `${toRepoPath(SEEDS_DIR)}/`;
 
 /**
- * Files that a pin update (`pin-ports.mjs`, run by `tools/bump-versions.sh` on every version bump
- * and at a release-branch cut) rewrites in every port, stale or not. Changing only these does not
- * count as touching the port, or a release cut would fail on the ports it is about to align.
+ * Files at a port's root whose edit does not count as touching the port. A pin update
+ * (`pin-ports.mjs`, run by `tools/bump-versions.sh` on every version bump and at a release-branch
+ * cut) rewrites `package.json` and the manifest in every port, stale or not, so a release cut would
+ * fail on the ports it is about to align. `README.md` carries no demo behaviour and is not part of
+ * the demo source hash, so editing it neither aligns the port nor needs a restamp.
  */
-const PIN_FILES = new Set(['package.json', MANIFEST_FILENAME]);
+const UNCOUNTED_PORT_FILES = new Set(['package.json', MANIFEST_FILENAME, 'README.md']);
 
 /**
  * The stale ports a change edits: every entry of `stale` (as `findStalePorts` returns them) with a
@@ -126,7 +128,7 @@ export function findTouchedStalePorts({ changedFiles, stale, seedsPathPrefix = S
         const files = changedFiles
             .filter((file) => file.startsWith(portPrefix))
             .map((file) => file.slice(portPrefix.length))
-            .filter((file) => !PIN_FILES.has(file));
+            .filter((file) => !UNCOUNTED_PORT_FILES.has(file));
         if (files.length > 0) touched.push({ ...port, files });
     }
     return touched;

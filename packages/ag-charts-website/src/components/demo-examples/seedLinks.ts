@@ -1,7 +1,7 @@
 import type { DemoPageOpenIn } from '@ag-website-shared/components/demo-page/types';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { agChartsVersion } from '@constants';
-import { getIsProduction } from '@utils/env';
+import { getIsArchive, getIsProduction } from '@utils/env';
 import { getRootUrl } from '@utils/pages';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
@@ -27,9 +27,10 @@ export const SEED_FRAMEWORK_ORDER: readonly SeedFramework[] = ['react', 'angular
 
 /**
  * The repository the seed links open. `.github/workflows/demo-seeds-mirror.yml` copies every seed
- * there as the folder `<demo>/<framework>`, with the same refs as this repository. StackBlitz
- * imports a folder by downloading its whole repository, so a small mirror opens in seconds where
- * this monorepo takes minutes.
+ * there as the folder `<demo>/<framework>`: the `staging` branch after each staging deploy, a
+ * `bX.Y.Z` branch for each release branch, and a `release-X.Y.Z` tag for each release (see
+ * `getSeedGitRef`). StackBlitz imports a folder by downloading its whole repository, so a small
+ * mirror opens in seconds where this monorepo takes minutes.
  */
 const SEED_REPOSITORY = 'ag-grid/ag-charts-demos';
 /** Where the seeds live in this checkout; only used to find them on disk. */
@@ -45,8 +46,12 @@ function defaultSeedsDir(): string {
     return join(fileURLToPath(getRootUrl()), SEEDS_PATH);
 }
 
-/** The branch every non-production build links to: it always carries the current seeds. */
-export const SEED_DEVELOPMENT_REF = 'latest';
+/**
+ * The branch every build that is neither production nor an archive links to (staging, dev, PR
+ * previews). The mirror syncs it after each staging deploy, with the seeds exported to install the
+ * AG Charts build that deploy serves, so a staging seed runs the build staging was made from.
+ */
+export const SEED_STAGING_REF = 'staging';
 
 /** One committed seed, as its `.seed-manifest.json` declares it. */
 export interface SeedManifestEntry {
@@ -57,8 +62,10 @@ export interface SeedManifestEntry {
 interface SeedRefParams {
     /** The package version the site displays; defaults to the build's `PUBLIC_PACKAGE_VERSION`. */
     version?: string;
-    /** Whether this is a production build; defaults to the build's own environment. */
+    /** Whether this is a production build, archives included; defaults to the build's own environment. */
     isProduction?: boolean;
+    /** Whether this is an archived release build (`/charts/archive/X.Y.Z/`); defaults to the build's own environment. */
+    isArchive?: boolean;
 }
 
 interface SeedLinkParams extends SeedRefParams {
@@ -139,17 +146,39 @@ export function getSeedReleaseTag(version: string): string {
 }
 
 /**
- * The git ref of the mirror a seed link targets. Production links the release tag matching the
- * site's version, so the seed a reader opens is the one that shipped. Every other build (dev,
- * staging, preview) links the `latest` branch, which the mirror syncs on every push to this
- * repository's `latest`, so those links never 404 while a release is still pending.
+ * The release branch an archive build's seed link targets for a given package version: the
+ * archive deployed to `/charts/archive/X.Y.Z/` links `bX.Y.Z`, whose seeds install that archive's
+ * own package tarballs until the release is published. A beta such as `14.2.0-beta.20260920` maps
+ * to `b14.2.0`, like the release tag.
  */
-export function getSeedGitRef({ version, isProduction }: Required<SeedRefParams>): string {
-    return isProduction ? getSeedReleaseTag(version) : SEED_DEVELOPMENT_REF;
+export function getSeedReleaseBranch(version: string): string {
+    return `b${getSeedReleaseTag(version).replace(/^release-/, '')}`;
 }
 
-function resolveSeedGitRef({ version = agChartsVersion, isProduction = getIsProduction() }: SeedRefParams): string {
-    return getSeedGitRef({ version, isProduction });
+/**
+ * The git ref of the mirror a seed link targets, by the kind of build:
+ *
+ * - production (`/charts`) links the release tag matching the site's version, so the seed a reader
+ *   opens is the one that shipped, installing that release from npm;
+ * - an archive (`/charts/archive/X.Y.Z/`, the release candidate deployed before the release) links
+ *   the release branch `bX.Y.Z`, whose seeds install the packages that archive serves;
+ * - every other build (dev, staging, preview) links the `staging` branch, which the mirror syncs
+ *   after each staging deploy, so those links never 404 while a release is pending and the seed
+ *   installs the build staging was made from.
+ *
+ * The mirror's `latest` is never linked: it moves only on release.
+ */
+export function getSeedGitRef({ version, isProduction, isArchive }: Required<SeedRefParams>): string {
+    if (!isProduction) return SEED_STAGING_REF;
+    return isArchive ? getSeedReleaseBranch(version) : getSeedReleaseTag(version);
+}
+
+function resolveSeedGitRef({
+    version = agChartsVersion,
+    isProduction = getIsProduction(),
+    isArchive = getIsArchive(),
+}: SeedRefParams): string {
+    return getSeedGitRef({ version, isProduction, isArchive });
 }
 
 /** Folder of the seed inside the mirror, relative to its root. */
