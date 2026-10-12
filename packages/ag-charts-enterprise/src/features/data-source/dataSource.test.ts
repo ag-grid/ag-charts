@@ -1,4 +1,4 @@
-import { type Mock, afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import {
     type AgCartesianChartOptions,

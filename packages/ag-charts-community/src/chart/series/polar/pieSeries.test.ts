@@ -280,7 +280,9 @@ describe('PieSeries', () => {
             const fillsByIndex = () => {
                 const fills = new Map<number, unknown>();
                 for (const node of chart.series[0].contentGroup.descendants()) {
-                    if (!(node instanceof Sector) || node.datum == null) continue;
+                    if (!(node instanceof Sector) || node.datum == null) {
+                        continue;
+                    }
                     const { fill } = node;
                     fills.set(
                         (node.datum as { datumIndex: number }).datumIndex,
