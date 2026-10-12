@@ -209,6 +209,16 @@ describe('themes.ts', () => {
             expectWarningsCalls().toEqual([]);
         });
 
+        it('checks an unregistered contribution against its theme shape', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: { overrides: { bar: { seriesArea: { backgroundRegions: { fill: 'tomato' } } } } },
+            });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+        });
+
         it('checks the shape of an unregistered module key', async () => {
             const chart = AgCharts.create({
                 ...opts,

@@ -403,6 +403,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
             {
                 path: 'seriesArea.backgroundRegions',
                 options: array,
+                themeOptions: object,
             },
         ],
     },
