@@ -1062,7 +1062,7 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     const [sizeVertex, defaultValuesVertex, operationVertex] = values;
 
     const size = graph.resolveVertexValue(vertex, sizeVertex);
-    if (typeof size !== 'number') return;
+    if (size !== null && typeof size !== 'number') return;
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
@@ -1073,8 +1073,9 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     if (!Array.isArray(cycledValues)) return;
 
     const operation = operationVertex == null ? undefined : graph.getVertexValue(operationVertex);
+    const cycleSize = size ?? cyclePeriod(graph, cycledValues.length, operation);
 
-    for (let index = 0; index < size; index++) {
+    for (let index = 0; index < cycleSize; index++) {
         const value = cycledValues[index % cycledValues.length];
         if (value == null) continue;
         if (userOption || !hasThemeOverride) {
@@ -1086,6 +1087,64 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     }
 
     return RESOLVED_TO_BRANCH;
+}
+
+/**
+ * The length after which a cycle repeats exactly: per-item `$palette` lookups in the operation are indexed by
+ * item, so the period must also be a multiple of every palette array they read.
+ */
+function cyclePeriod(graph: OptionsGraphInterface, valuesLength: number, operation: unknown) {
+    let period = Math.max(1, valuesLength);
+    for (const paletteArray of indexedPaletteArrays(graph, operation)) {
+        if (paletteArray.length > 0) {
+            period = leastCommonMultiple(period, paletteArray.length);
+        }
+    }
+    return period;
+}
+
+function indexedPaletteArrays(graph: OptionsGraphInterface, operation: unknown, arrays = new Set<unknown[]>()) {
+    if (Array.isArray(operation)) {
+        for (const item of operation) {
+            indexedPaletteArrays(graph, item, arrays);
+        }
+    } else if (isObject(operation)) {
+        for (const key of Object.keys(operation)) {
+            const value = operation[key];
+            if ((key === '$palette' || key === '$mapPalette') && isString(value)) {
+                const paletteArray = indexedPaletteArray(graph, value);
+                if (paletteArray) {
+                    arrays.add(paletteArray);
+                }
+            } else {
+                indexedPaletteArrays(graph, value, arrays);
+            }
+        }
+    }
+    return arrays;
+}
+
+function indexedPaletteArray(graph: OptionsGraphInterface, key: string) {
+    switch (key) {
+        case 'fill':
+        case 'range2':
+            return graph.palette.fills;
+        case 'fillFallback':
+            return graph.palette.fillsFallback;
+        case 'stroke':
+            return graph.palette.strokes;
+        case 'gradient':
+            return graph.palette.sequentialColors;
+    }
+}
+
+function leastCommonMultiple(a: number, b: number) {
+    let x = a;
+    let y = b;
+    while (y !== 0) {
+        [x, y] = [y, x % y];
+    }
+    return (a / x) * b;
 }
 
 function withoutIndices(pathArray: Array<string>) {

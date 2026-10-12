@@ -78,16 +78,13 @@ export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
         spacingRatio: 0.25,
         fills: {
             $applyCycle: [
-                { $size: { $path: ['./data', { $path: '/data' }] } },
+                null,
                 [{ $path: ['/0', undefined, { $palette: 'fills' }] }],
                 cycledFillThemeTemplate(FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS, FILL_PATTERN_SINGLE_DEFAULTS),
             ],
         },
         strokes: {
-            $applyCycle: [
-                { $size: { $path: ['./data', { $path: '/data' }] } },
-                [{ $path: ['/0', undefined, { $palette: 'strokes' }] }],
-            ],
+            $applyCycle: [null, [{ $path: ['/0', undefined, { $palette: 'strokes' }] }]],
         },
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,

@@ -1,4 +1,4 @@
-import { type Mock, afterEach, describe, expect, it } from 'vitest';
+import { type Mock, afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -11,7 +11,9 @@ import {
     clickAction,
     compareImageSnapshot,
     delay,
+    deproxy,
     dragAction,
+    expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
     extractImageData,
     scrollAction,
@@ -942,5 +944,66 @@ describe('DataSource', () => {
             await response;
             await compare();
         });
+    });
+
+    describe('per-item colours', () => {
+        const ROWS = [
+            { label: 'A', value: 10 },
+            { label: 'B', value: 20 },
+            { label: 'C', value: 30 },
+        ];
+
+        const SERIES_OPTIONS: Record<string, AgChartOptions> = {
+            pie: { series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'label' }] },
+            donut: { series: [{ type: 'donut', angleKey: 'value', legendItemKey: 'label', innerRadiusRatio: 0.5 }] },
+            funnel: { series: [{ type: 'funnel', stageKey: 'label', valueKey: 'value' }] },
+            'cone-funnel': { series: [{ type: 'cone-funnel', stageKey: 'label', valueKey: 'value' }] },
+            pyramid: { series: [{ type: 'pyramid', stageKey: 'label', valueKey: 'value' }] },
+            treemap: { series: [{ type: 'treemap', labelKey: 'label', sizeKey: 'value' }] },
+            sunburst: { series: [{ type: 'sunburst', labelKey: 'label', sizeKey: 'value' }] },
+        };
+
+        const createLoadedChart = async (options: AgChartOptions) => {
+            const loaded = deproxy(AgCharts.create(prepareEnterpriseTestOptions({ ...options })));
+            await waitForChartStabilityUntil(
+                loaded,
+                () => !loaded.ctx.dataService.isLoading(),
+                'the data source to load'
+            );
+            return loaded;
+        };
+
+        const dataSourceOptions = (base: AgChartOptions, data?: typeof ROWS): AgChartOptions => ({
+            ...base,
+            data,
+            dataSource: {
+                // @ts-expect-error Set undocumented options to instantly resolve for tests
+                requestThrottle: 0,
+                updateThrottle: 0,
+                getData: () => Promise.resolve(ROWS),
+            },
+        });
+
+        const dataOptions = (base: AgChartOptions): AgChartOptions => ({ ...base, data: ROWS });
+
+        for (const [name, base] of Object.entries(SERIES_OPTIONS)) {
+            it(`should colour ${name} items as with inline data when there is no initial data`, async () => {
+                await expectPixelIdenticalAcrossUpdate(
+                    ctx,
+                    createLoadedChart,
+                    dataSourceOptions(base),
+                    dataOptions(base)
+                );
+            });
+
+            it(`should colour ${name} items as with inline data when there are fewer initial rows`, async () => {
+                await expectPixelIdenticalAcrossUpdate(
+                    ctx,
+                    createLoadedChart,
+                    dataSourceOptions(base, ROWS.slice(0, 1)),
+                    dataOptions(base)
+                );
+            });
+        }
     });
 });

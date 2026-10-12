@@ -25,6 +25,7 @@ import {
     Text,
     Transformable,
     cachedTextMeasurer,
+    cycledValue,
     findDiscreteColorBinLabel,
     fontWithSize,
     formatValue,
@@ -497,8 +498,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             fillOpacity,
             strokeWidth,
             strokeOpacity,
-            fill = fills[index % fills.length],
-            stroke = isLeaf ? strokes[index % strokes.length] : strokes[Math.min(index, strokes.length)],
+            fill = cycledValue(fills, index),
+            stroke = isLeaf ? cycledValue(strokes, index) : strokes[Math.min(index, strokes.length)],
         } = isLeaf ? this.options.tile : this.options.group;
         return { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, opacity: 1 };
     }

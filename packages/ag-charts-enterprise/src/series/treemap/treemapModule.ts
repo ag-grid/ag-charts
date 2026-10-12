@@ -36,14 +36,10 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
         series: {
             ...SERIES_INTERACTION_THEME_DEFAULTS,
             fills: {
-                $applyCycle: [
-                    { $size: { $path: ['./data', { $path: '/data' }] } },
-                    { $palette: 'fills' },
-                    cycledFillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
-                ],
+                $applyCycle: [null, { $palette: 'fills' }, cycledFillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS)],
             },
             strokes: {
-                $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
+                $applyCycle: [null, { $palette: 'strokes' }],
             },
             colorScale: {
                 fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },

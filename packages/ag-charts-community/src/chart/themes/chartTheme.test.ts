@@ -1,6 +1,7 @@
 import { fail } from 'assert';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
+import { cycledValue } from 'ag-charts-core';
 import { classCast, expectWarningsCalls } from 'ag-charts-test';
 import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
 
@@ -288,8 +289,21 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            expect(pieSeries.options.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
-            expect(pieSeries.options.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
+            const rowIndices = [0, 1, 2, 3, 4];
+            expect(rowIndices.map((i) => cycledValue(pieSeries.options.fills, i))).toEqual([
+                'red',
+                'green',
+                'blue',
+                'red',
+                'green',
+            ]);
+            expect(rowIndices.map((i) => cycledValue(pieSeries.options.strokes, i))).toEqual([
+                'cyan',
+                'cyan',
+                'cyan',
+                'cyan',
+                'cyan',
+            ]);
             expect(pieSeries.options.calloutLabel.enabled).toBe(true);
             expect(pieSeries.options.calloutLabel.color).toBe('yellow');
             expect(pieSeries.options.calloutLabel.fontSize).toBe(18);
@@ -465,8 +479,21 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            expect(pieSeries.options.fills).toEqual(['red', 'green', 'blue', 'red', 'green']);
-            expect(pieSeries.options.strokes).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
+            const rowIndices = [0, 1, 2, 3, 4];
+            expect(rowIndices.map((i) => cycledValue(pieSeries.options.fills, i))).toEqual([
+                'red',
+                'green',
+                'blue',
+                'red',
+                'green',
+            ]);
+            expect(rowIndices.map((i) => cycledValue(pieSeries.options.strokes, i))).toEqual([
+                'cyan',
+                'cyan',
+                'cyan',
+                'cyan',
+                'cyan',
+            ]);
             expect(pieSeries.options.calloutLabel.enabled).toBe(true);
             expect(pieSeries.options.calloutLabel.color).toBe('yellow');
             expect(pieSeries.options.calloutLabel.fontSize).toBe(18);

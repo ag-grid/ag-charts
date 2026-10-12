@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { ChartUpdateType, Transformable } from 'ag-charts-core';
+import { ChartUpdateType, Color, Sector, Transformable } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 import type { AgChartInstance, AgChartOptions, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
@@ -270,6 +270,38 @@ describe('PieSeries', () => {
             const android = spans(trajectory, 'series[0]/sector[56.9]');
             expectMonotonic(android, 'increasing');
             expect(android.at(-1)! - android[0], 'Android span growth').toBeGreaterThan(0.1);
+        });
+
+        it('remove data: dropped sectors keep their fill while they collapse', async () => {
+            const proxy = AgCharts.create(pieOptions());
+            chart = deproxy(proxy);
+            await frames.runToEnd(proxy);
+
+            const fillsByIndex = () => {
+                const fills = new Map<number, unknown>();
+                for (const node of chart.series[0].contentGroup.descendants()) {
+                    if (!(node instanceof Sector) || node.datum == null) continue;
+                    const { fill } = node;
+                    fills.set(
+                        (node.datum as { datumIndex: number }).datumIndex,
+                        typeof fill === 'string' ? Color.fromString(fill).toHexString() : fill
+                    );
+                }
+                return fills;
+            };
+            const settledFills = fillsByIndex();
+            expect(settledFills.size).toBe(6);
+
+            await proxy.update(pieOptions(dropLastTwo(DATA_MARKET_SHARE)));
+            const trajectory = await frames.captureAnimationFrames(proxy, fillsByIndex);
+
+            const collapsing = trajectory.filter((fills) => fills.size === 6);
+            expect(collapsing.length, 'frames with the dropped sectors present').toBeGreaterThan(0);
+            expect(settledFills.get(4)).toBeDefined();
+            for (const fills of collapsing) {
+                expect(fills.get(4)).toBe(settledFills.get(4));
+                expect(fills.get(5)).toBe(settledFills.get(5));
+            }
         });
 
         // "Add Data" — the two restored sectors grow their span from zero while the survivors shrink to
@@ -1490,8 +1522,8 @@ describe('PieSeries', () => {
             pieSeries = undefined!;
         });
 
-        test('reprocesses palette entries for new data', async () => {
-            expect(pieSeries.options.fills).toEqual(['red', 'green']);
+        test('colours new rows from the palette', async () => {
+            expect((pieSeries.getNodeData() ?? []).map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green']);
 
             await chartProxy.applyTransaction({
                 add: [
@@ -1502,7 +1534,6 @@ describe('PieSeries', () => {
             await waitForChartStability(chart);
 
             const nodeData = pieSeries.getNodeData() ?? [];
-            expect(pieSeries.options.fills).toEqual(['red', 'green', 'red', 'green']);
             expect(nodeData).toHaveLength(4);
             expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);
         });

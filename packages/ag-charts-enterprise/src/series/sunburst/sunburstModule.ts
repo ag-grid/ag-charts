@@ -24,13 +24,13 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         ...SERIES_INTERACTION_THEME_DEFAULTS,
         fills: {
             $applyCycle: [
-                { $size: { $path: ['./data', { $path: '/data' }] } },
+                null,
                 { $palette: 'fills' },
                 cycledFillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS),
             ],
         },
         strokes: {
-            $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
+            $applyCycle: [null, { $palette: 'strokes' }],
         },
         colorScale: {
             fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
