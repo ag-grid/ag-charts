@@ -418,6 +418,47 @@ describe('UnitTimeScale', () => {
 
             ambientWarn.mockRestore();
         });
+
+        it('keeps the valid entry across an over-limit domain swap', () => {
+            const ambientWarn = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
+            const small: [Date, Date] = [new Date(2024, 0, 1), new Date(2024, 0, 2)];
+            const scale = createScale(small, 'second');
+            const bands = scale.bands;
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+
+            scale.domain = [new Date(1970, 0, 1), new Date(2024, 0, 1)];
+            expect(scale.bands).toEqual([]);
+
+            scale.domain = small;
+            expect(scale.bands).toBe(bands);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+
+            ambientWarn.mockRestore();
+        });
+
+        it('returns identical results after a round trip with a linear unit', () => {
+            const hourly: [Date, Date] = [new Date(2024, 0, 1), new Date(2024, 0, 3)];
+            const scale = createScale(hourly, 'hour');
+            const probe = new Date(2024, 0, 2, 10, 30);
+            const observeLinear = () => ({
+                convert: scale.convert(probe),
+                invert: scale.invert(37)?.valueOf(),
+                findIndexLeading: scale.findIndex(probe),
+                findIndexTrailing: scale.findIndex(probe, ScaleAlignment.Trailing),
+                bands: scale.bands.map((d) => d.valueOf()),
+                numericBands: [...scale.exposedNumericBands],
+                linearParams: scale.getLinearParams(),
+                uniformity: scale.getUniformityCache(),
+            });
+            const before = observeLinear();
+            expect(before.linearParams?.intervalMs).toBe(3_600_000);
+
+            scale.domain = [];
+            scale.domain = [new Date(hourly[0]), new Date(hourly[1])];
+
+            expect(observeLinear()).toEqual(before);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('edge cases', () => {

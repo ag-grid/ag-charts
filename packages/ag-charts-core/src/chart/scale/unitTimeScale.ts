@@ -104,20 +104,17 @@ export class UnitTimeScale extends DiscreteTimeScale {
         const kept = this._kept;
         if (kept?.key != null && sameBandKey(kept.key, start, stop, interval)) return kept;
 
-        const entry = this.buildEntry(bandKey(start, stop, interval), interval, start, stop);
-        this._kept = entry;
-        return entry;
-    }
-
-    private buildEntry(key: BandKey, interval: AgTimeInterval, start: Date, stop: Date): BandEntry {
+        const key = bandKey(start, stop, interval);
         const rangeParams = { visibleRange: [0, 1] as [number, number], extend: false };
-
         if (intervalRangeCount(interval, start, stop, rangeParams) > MAX_BANDS) {
             this.logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
+            // Not kept: a valid entry for another range stays available for when the domain returns to it.
             return createBandEntry(key, undefined);
         }
 
-        return createBandEntry(key, intervalRangeNumeric(interval, start, stop, rangeParams));
+        const entry = createBandEntry(key, intervalRangeNumeric(interval, start, stop, rangeParams));
+        this._kept = entry;
+        return entry;
     }
 
     get bands(): readonly Date[] {
