@@ -2892,6 +2892,83 @@ describe('CartesianAxis', () => {
             });
         });
 
+        describe('rotated label spacing from the axis line', () => {
+            const STACKED_DATA = [
+                { category: 'Ant', value: 10 },
+                { category: 'Ant Bee', value: 20 },
+                { category: 'Ant Bee Cricket', value: 15 },
+            ];
+
+            const formatters = {
+                plain: ({ value }: { value: unknown }) => String(value).split(' ').join('\n'),
+                segmented: ({ value }: { value: unknown }) =>
+                    String(value)
+                        .split(' ')
+                        .map((word, i) => ({ text: i === 0 ? word : `\n${word}`, fontSize: i === 0 ? 18 : 10 })),
+            };
+
+            const stackedOptions = (
+                position: 'bottom' | 'left',
+                formatter: keyof typeof formatters,
+                rotation: number
+            ): AgCartesianChartOptions => {
+                const categoryAxis: any = {
+                    type: 'category',
+                    position,
+                    label: { rotation, avoidCollisions: false, formatter: formatters[formatter] },
+                };
+                const valueAxis: any = { type: 'number', position: position === 'bottom' ? 'left' : 'bottom' };
+                return {
+                    data: STACKED_DATA,
+                    width: 600,
+                    height: 400,
+                    axes: position === 'bottom' ? { x: categoryAxis, y: valueAxis } : { x: valueAxis, y: categoryAxis },
+                    series: [
+                        position === 'bottom'
+                            ? { type: 'bar', xKey: 'category', yKey: 'value' }
+                            : { type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' },
+                    ],
+                };
+            };
+
+            // How far the edge of each label's rendered box nearest the axis line sits from the series area.
+            const innerGaps = (position: 'bottom' | 'left') => {
+                const seriesRect = getSeriesRect(chart);
+                return getAxisLabelNodes(chart, position).map((n) => {
+                    const box = Transformable.toCanvas(n);
+                    return position === 'bottom'
+                        ? box.y - (seriesRect.y + seriesRect.height)
+                        : seriesRect.x - (box.x + box.width);
+                });
+            };
+
+            it.each(
+                (['bottom', 'left'] as const).flatMap((position) =>
+                    (['plain', 'segmented'] as const).flatMap((formatter) =>
+                        [-30, 45].map((rotation) => [position, formatter, rotation] as const)
+                    )
+                )
+            )(
+                'keeps every %s axis label box at the unrotated gap (%s text, rotation %d)',
+                async (position, formatter, rotation) => {
+                    await renderChart(stackedOptions(position, formatter, 0));
+                    const unrotated = innerGaps(position);
+                    expect(unrotated.length).toBe(3);
+                    expect(Math.max(...unrotated) - Math.min(...unrotated)).toBeLessThanOrEqual(1);
+
+                    await renderChart(stackedOptions(position, formatter, rotation));
+                    const nodes = getAxisLabelNodes(chart, position);
+                    // Anti-vacuous: the labels must differ in line count, or a common edge holds for any anchor.
+                    const heights = nodes.map((n: any) => n.computeBBoxWithoutTransforms().height);
+                    expect(Math.max(...heights) - Math.min(...heights)).toBeGreaterThan(10);
+
+                    for (const gap of innerGaps(position)) {
+                        expect(gap).toBeCloseTo(unrotated[0], 0);
+                    }
+                }
+            );
+        });
+
         // The offsets collision avoidance measures are read off the label nodes, which carry the
         // rotation the axis RENDERS with - not the frame the overlap check compares in, which a
         // parallel axis lays out a quarter turn from it. An unrotated horizontal axis flushes purely
