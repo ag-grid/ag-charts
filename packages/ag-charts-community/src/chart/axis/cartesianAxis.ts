@@ -1171,12 +1171,19 @@ export abstract class CartesianAxis<
 
             // Decided before anything is measured: this runs twice per layout per axis, so a tier the
             // anchor already places correctly must not pay for a measurement pass it cannot use.
-            const alignsAcross = horizontal ? verticalAlign != null : textAlign != null;
-            if (!alignsAcross && !anchorRotated) continue;
+            const alignment = horizontal ? verticalAlign : textAlign;
+            if (alignment == null && !anchorRotated) continue;
 
-            // `getBBox()` includes the box padding where the label is boxed, but the alignments
-            // anchor the text, so the extents are taken from the glyph box.
+            // `tempText` measures unboxed glyphs; the pin grows them by the padding to keep the drawn box's gap.
             const padding = expandLabelPadding(tierLabel);
+            let innerPadding = 0;
+            if (alignment == null) {
+                if (horizontal) {
+                    innerPadding = outward > 0 ? padding.top : padding.bottom;
+                } else {
+                    innerPadding = outward > 0 ? padding.left : padding.right;
+                }
+            }
 
             const measured: { datum: LabelNodeDatum; extent: LabelExtent }[] = [];
             let maxLabelExtent = 0;
@@ -1192,13 +1199,21 @@ export abstract class CartesianAxis<
                 const box = tempText.computeBBoxWithoutTransforms();
                 if (box == null) continue;
 
-                const glyphBox = {
-                    x: box.x + padding.left,
-                    y: box.y + padding.top,
-                    width: box.width - padding.left - padding.right,
-                    height: box.height - padding.top - padding.bottom,
-                };
-                const extent = getRotatedLabelExtent(glyphBox, datum.x, datum.y, rotation);
+                const measuredBox =
+                    alignment == null
+                        ? {
+                              x: box.x - padding.left,
+                              y: box.y - padding.top,
+                              width: box.width + padding.left + padding.right,
+                              height: box.height + padding.top + padding.bottom,
+                          }
+                        : {
+                              x: box.x + padding.left,
+                              y: box.y + padding.top,
+                              width: box.width - padding.left - padding.right,
+                              height: box.height - padding.top - padding.bottom,
+                          };
+                const extent = getRotatedLabelExtent(measuredBox, datum.x, datum.y, rotation);
                 measured.push({ datum, extent });
                 // The band runs across the axis, so its depth is the deepest label in that direction.
                 const labelExtent = horizontal ? extent.y1 - extent.y0 : extent.x1 - extent.x0;
@@ -1207,7 +1222,6 @@ export abstract class CartesianAxis<
 
             if (maxLabelExtent <= 0) continue;
 
-            const alignment = horizontal ? verticalAlign : textAlign;
             for (const { datum, extent } of measured) {
                 // `inner` is the band edge nearest the axis line - the anchor, taken verbatim so the
                 // tick, padding and scrollbar terms are inherited rather than re-derived.
@@ -1215,11 +1229,12 @@ export abstract class CartesianAxis<
                 const outer = inner + outward * maxLabelExtent;
                 const bandStart = Math.min(inner, outer);
                 const bandEnd = Math.max(inner, outer);
-                const [lo, hi] = horizontal ? [extent.y0, extent.y1] : [extent.x0, extent.x1];
+                const lo = horizontal ? extent.y0 : extent.x0;
+                const hi = horizontal ? extent.y1 : extent.x1;
 
                 let position;
-                if (!alignsAcross) {
-                    position = outward > 0 ? bandStart - lo : bandEnd - hi;
+                if (alignment == null) {
+                    position = inner - outward * innerPadding - (outward > 0 ? lo : hi);
                 } else if (alignment === 'top' || alignment === 'left') {
                     position = bandStart - lo;
                 } else if (alignment === 'bottom' || alignment === 'right') {

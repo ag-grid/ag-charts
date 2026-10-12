@@ -2153,8 +2153,7 @@ describe('CartesianAxis', () => {
             });
         });
 
-        // A horizontal axis reserves its band on the opposite side of the axis line from a vertical
-        // one, so the edge the correction pins over is the other one.
+        // A top axis reserves its band on the opposite side of the axis line from a bottom one.
         it('keeps rotated labels out of the series area on a top-positioned axis', async () => {
             const options: AgCartesianChartOptions = {
                 data: TEXT_ALIGN_CATEGORY_DATA,
@@ -2899,32 +2898,38 @@ describe('CartesianAxis', () => {
                 { category: 'Ant Bee Cricket', value: 15 },
             ];
 
-            const formatters = {
-                plain: ({ value }: { value: unknown }) => String(value).split(' ').join('\n'),
-                segmented: ({ value }: { value: unknown }) =>
-                    String(value)
-                        .split(' ')
-                        .map((word, i) => ({ text: i === 0 ? word : `\n${word}`, fontSize: i === 0 ? 18 : 10 })),
+            const multiline = ({ value }: { value: unknown }) => String(value).split(' ').join('\n');
+            const labelVariants = {
+                plain: { formatter: multiline },
+                segmented: {
+                    formatter: ({ value }: { value: unknown }) =>
+                        String(value)
+                            .split(' ')
+                            .map((word, i) => ({ text: i === 0 ? word : `\n${word}`, fontSize: i === 0 ? 18 : 10 })),
+                },
+                boxed: { formatter: multiline, fill: 'lightgrey', padding: { top: 4, right: 12, bottom: 8, left: 2 } },
             };
+            type Position = 'bottom' | 'left' | 'top' | 'right';
 
             const stackedOptions = (
-                position: 'bottom' | 'left',
-                formatter: keyof typeof formatters,
+                position: Position,
+                variant: keyof typeof labelVariants,
                 rotation: number
             ): AgCartesianChartOptions => {
+                const horizontal = position === 'bottom' || position === 'top';
                 const categoryAxis: any = {
                     type: 'category',
                     position,
-                    label: { rotation, avoidCollisions: false, formatter: formatters[formatter] },
+                    label: { rotation, avoidCollisions: false, ...labelVariants[variant] },
                 };
-                const valueAxis: any = { type: 'number', position: position === 'bottom' ? 'left' : 'bottom' };
+                const valueAxis: any = { type: 'number', position: horizontal ? 'left' : 'bottom' };
                 return {
                     data: STACKED_DATA,
                     width: 600,
                     height: 400,
-                    axes: position === 'bottom' ? { x: categoryAxis, y: valueAxis } : { x: valueAxis, y: categoryAxis },
+                    axes: horizontal ? { x: categoryAxis, y: valueAxis } : { x: valueAxis, y: categoryAxis },
                     series: [
-                        position === 'bottom'
+                        horizontal
                             ? { type: 'bar', xKey: 'category', yKey: 'value' }
                             : { type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' },
                     ],
@@ -2932,37 +2937,44 @@ describe('CartesianAxis', () => {
             };
 
             // How far the edge of each label's rendered box nearest the axis line sits from the series area.
-            const innerGaps = (position: 'bottom' | 'left') => {
+            const innerGaps = (nodes: any[], position: Position) => {
                 const seriesRect = getSeriesRect(chart);
-                return getAxisLabelNodes(chart, position).map((n) => {
+                return nodes.map((n) => {
                     const box = Transformable.toCanvas(n);
-                    return position === 'bottom'
-                        ? box.y - (seriesRect.y + seriesRect.height)
-                        : seriesRect.x - (box.x + box.width);
+                    switch (position) {
+                        case 'bottom':
+                            return box.y - (seriesRect.y + seriesRect.height);
+                        case 'top':
+                            return seriesRect.y - (box.y + box.height);
+                        case 'left':
+                            return seriesRect.x - (box.x + box.width);
+                        case 'right':
+                            return box.x - (seriesRect.x + seriesRect.width);
+                    }
                 });
             };
 
             it.each(
-                (['bottom', 'left'] as const).flatMap((position) =>
-                    (['plain', 'segmented'] as const).flatMap((formatter) =>
-                        [-30, 45].map((rotation) => [position, formatter, rotation] as const)
+                (['bottom', 'left', 'top', 'right'] as const).flatMap((position) =>
+                    (['plain', 'segmented', 'boxed'] as const).flatMap((variant) =>
+                        [-30, 45].map((rotation) => [position, variant, rotation] as const)
                     )
                 )
             )(
                 'keeps every %s axis label box at the unrotated gap (%s text, rotation %d)',
-                async (position, formatter, rotation) => {
-                    await renderChart(stackedOptions(position, formatter, 0));
-                    const unrotated = innerGaps(position);
+                async (position, variant, rotation) => {
+                    await renderChart(stackedOptions(position, variant, 0));
+                    const unrotated = innerGaps(getAxisLabelNodes(chart, position), position);
                     expect(unrotated.length).toBe(3);
                     expect(Math.max(...unrotated) - Math.min(...unrotated)).toBeLessThanOrEqual(1);
 
-                    await renderChart(stackedOptions(position, formatter, rotation));
+                    await renderChart(stackedOptions(position, variant, rotation));
                     const nodes = getAxisLabelNodes(chart, position);
                     // Anti-vacuous: the labels must differ in line count, or a common edge holds for any anchor.
                     const heights = nodes.map((n: any) => n.computeBBoxWithoutTransforms().height);
                     expect(Math.max(...heights) - Math.min(...heights)).toBeGreaterThan(10);
 
-                    for (const gap of innerGaps(position)) {
+                    for (const gap of innerGaps(nodes, position)) {
                         expect(gap).toBeCloseTo(unrotated[0], 0);
                     }
                 }
