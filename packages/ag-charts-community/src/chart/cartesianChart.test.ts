@@ -611,6 +611,20 @@ describe('CartesianChart', () => {
             await expectPixelIdenticalAcrossUpdate(ctx, createTestChart, options(), options(0.5), options());
         });
 
+        it('should keep the series area padding when clipping to a full-length band', async () => {
+            const options = (lengthRatio?: number): AgCartesianChartOptions => ({
+                data: getData(),
+                seriesArea: { padding: { left: 20, right: 20, top: 20, bottom: 20 } },
+                series: [{ type: 'line', xKey: 'adults', yKey: 'children', marker: { size: 20 } }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', nice: false, lengthRatio },
+                    y: { type: 'number', position: 'left', max: 20 },
+                },
+            });
+
+            await expectPixelIdenticalAcrossUpdate(ctx, createTestChart, options(), options(1));
+        });
+
         it('should stack ratio-sized axes at the same position outwards', async () => {
             await createChart({
                 data: getData(),

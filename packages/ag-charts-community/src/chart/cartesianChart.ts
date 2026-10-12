@@ -1,5 +1,13 @@
 import type { AxisPrimaryTickCount, BBox, CanvasPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
-import { ChartAxisDirection, ContinuousScale, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    ContinuousScale,
+    clampArray,
+    entries,
+    findMinMax,
+    fromPairs,
+    groupBy,
+} from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
@@ -133,41 +141,50 @@ export class CartesianChart extends Chart {
         const { seriesRoot, annotationRoot } = this;
         seriesRoot.setClipRect(clipRect);
         annotationRoot.setClipRect(clipRect);
+        this.applySeriesBandClips();
     }
 
     private lastUpdateClipRect: BBox | undefined = undefined;
 
+    private seriesBands = new Map<object, BBox>();
     private bandClippedSeries = new Set<object>();
 
-    private clipSeriesToAxisBands(seriesRect: BBox, enableClip: boolean) {
+    private updateSeriesBands(seriesRect: BBox, seriesPaddedRect: BBox, enableClip: boolean) {
         const bands = new Map<object, BBox>();
         for (const axis of enableClip ? this.axes : []) {
             if (axis.options.lengthRatio == null || axis.lineRange == null) continue;
 
-            const [lineStart, lineEnd] = axis.lineRange;
-            const bandStart = Math.min(lineStart, lineEnd);
-            const bandLength = Math.abs(lineEnd - lineStart);
             const isHorizontal = axis.position === 'top' || axis.position === 'bottom';
+            const [rectStart, rectLength, paddedStart, paddedLength] = isHorizontal
+                ? [seriesRect.x, seriesRect.width, seriesPaddedRect.x, seriesPaddedRect.width]
+                : [seriesRect.y, seriesRect.height, seriesPaddedRect.y, seriesPaddedRect.height];
+            const [bandStart, bandEnd] = findMinMax(axis.lineRange);
+            // Band ends on the series area edge keep the series area padding, as the root clip does.
+            const start = bandStart <= 0 ? paddedStart : rectStart + bandStart;
+            const end = bandEnd >= rectLength - 1e-6 ? paddedStart + paddedLength : rectStart + bandEnd;
             for (const series of axis.boundSeries) {
-                const band = bands.get(series) ?? seriesRect.clone();
+                const band = bands.get(series) ?? seriesPaddedRect.clone();
                 if (isHorizontal) {
-                    band.x = seriesRect.x + bandStart;
-                    band.width = bandLength;
+                    band.x = start;
+                    band.width = end - start;
                 } else {
-                    band.y = seriesRect.y + bandStart;
-                    band.height = bandLength;
+                    band.y = start;
+                    band.height = end - start;
                 }
                 bands.set(series, band);
             }
         }
+        this.seriesBands = bands;
+    }
 
-        const previouslyClipped = this.bandClippedSeries;
-        if (bands.size === 0 && previouslyClipped.size === 0) return;
+    // Applied alongside the root clip so it tracks the animated series-root translation.
+    private applySeriesBandClips() {
+        const { seriesBands, bandClippedSeries } = this;
+        if (seriesBands.size === 0 && bandClippedSeries.size === 0) return;
 
-        this.bandClippedSeries = new Set(bands.keys());
         for (const series of this.series) {
-            const band = bands.get(series);
-            if (band == null && !previouslyClipped.has(series)) continue;
+            const band = seriesBands.get(series);
+            if (band == null && !bandClippedSeries.has(series)) continue;
 
             for (const group of [
                 series.contentGroup,
@@ -178,6 +195,7 @@ export class CartesianChart extends Chart {
                 group.setClipRect(band);
             }
         }
+        this.bandClippedSeries = new Set(seriesBands.keys());
     }
 
     override async processData(): Promise<void> {
@@ -253,6 +271,7 @@ export class CartesianChart extends Chart {
         const alwaysClip = this.series.some((s) => s.alwaysClip);
         const enableClip = alwaysClip || (this.seriesArea.clip ?? false) || clipSeries;
         const clipRect = enableClip ? seriesPaddedRect : undefined;
+        this.updateSeriesBands(seriesRect, seriesPaddedRect, enableClip);
         const { lastUpdateClipRect } = this;
         this.lastUpdateClipRect = clipRect;
 
@@ -270,7 +289,6 @@ export class CartesianChart extends Chart {
         } else {
             this.setRootClipRects(clipRect);
         }
-        this.clipSeriesToAxisBands(seriesRect, enableClip);
 
         // Update the series area modules and always clip them to the series padded rect area.
         this.seriesArea.update(seriesRect, seriesPaddedRect);
