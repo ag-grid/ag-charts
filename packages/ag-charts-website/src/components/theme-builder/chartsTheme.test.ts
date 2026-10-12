@@ -48,7 +48,15 @@ describe('AG Charts param translation', () => {
                 collectOperations(params[property], operations);
             }
         }
-        expect([...operations].sort()).toEqual(['$foregroundBackgroundMix', '$mix', '$multiply', '$ref', '$rem']);
+        expect([...operations].sort()).toEqual([
+            '$foregroundBackgroundMix',
+            '$if',
+            '$isType',
+            '$mix',
+            '$multiply',
+            '$ref',
+            '$rem',
+        ]);
     });
 
     describe('colour references', () => {
@@ -92,6 +100,14 @@ describe('AG Charts param translation', () => {
             expect(
                 toStackParamValue('colorPickerColorBorderRadius', { $multiply: [0.5, { $ref: 'borderRadius' }] })
             ).toEqual({ calc: 'borderRadius * 0.5' });
+        });
+
+        it('maps a border member default to the border colour it takes when the param is on', () => {
+            expect(
+                toStackParamValue('buttonHoverBorderColor', _Theme.themes['ag-default']().params.buttonHoverBorderColor)
+            ).toEqual({
+                ref: 'borderColor',
+            });
         });
 
         it('translates the members of a composite param', () => {

@@ -97,6 +97,18 @@ export const toStackParamValue = (property: string, value: ChartsParamValue): un
         return undefined;
     }
 
+    if ('$isType' in value) {
+        // `themeBorderColor` output; a param reference cannot follow a custom member colour, so use the `on` colour.
+        const [, type, whenType] = value.$isType as [unknown, unknown, unknown, unknown];
+        const on = isOperation(whenType) && Array.isArray(whenType.$if) ? whenType.$if[1] : undefined;
+        if (type === 'boolean' && on !== undefined) {
+            return toStackParamValue(property, on);
+        }
+        // eslint-disable-next-line no-console
+        console.warn(`[charts theme builder] cannot express $isType for "${property}" as a param reference`);
+        return undefined;
+    }
+
     // Composite params such as `buttonBorder: { color, width }`, whose members
     // are themselves operations.
     return Object.fromEntries(
