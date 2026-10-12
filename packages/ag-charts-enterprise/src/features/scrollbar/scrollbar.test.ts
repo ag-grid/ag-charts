@@ -677,85 +677,235 @@ describe('Scrollbar thumb hover derives from the per-chart thumb style', () => {
 
 describe('Scrollbar stays within the chart when a long axis label widens the axis', () => {
     setupMockConsole();
-    const ctx = setupMockCanvas();
+    const CHART_WIDTH = 500;
+    const CHART_HEIGHT = 300;
+    const ctx = setupMockCanvas({ width: CHART_WIDTH, height: CHART_HEIGHT });
 
-    let proxy: ReturnType<typeof AgCharts.create> | undefined;
-    afterEach(() => {
-        proxy?.destroy();
-        proxy = undefined;
-    });
+    const chartRef: ChartRef = {};
+    afterEach(() => destroyChartRef(chartRef));
 
     // Every 50th category label is long enough to push the axis past its `maxThicknessRatio` cap.
+    const LONG_LABEL = 'test50testtesttesttesttesttest';
     const LONG_LABEL_DATA = Array.from({ length: 200 }, (_, index) => ({
         x: `test${index}${index > 1 && index % 50 === 0 ? 'testtesttesttesttesttest' : ''}`,
         y: (index * 37) % 1000,
+        y2: (index * 53) % 1000,
     }));
+    const LONG_LABEL_INDEX = LONG_LABEL_DATA.findIndex(({ x }) => x === LONG_LABEL);
 
-    async function createLongLabelChart(position: AgCartesianAxisPosition) {
-        proxy = AgCharts.create({
-            ...prepareEnterpriseTestOptions({
-                data: LONG_LABEL_DATA,
-                series: [{ type: 'bar', direction: 'horizontal', xKey: 'x', yKey: 'y', width: 20 }],
-                axes: { y: { type: 'category', position } },
-                scrollbar: { enabled: true },
-            }),
-            width: 500,
-            height: 300,
+    async function createSizedChart(options: AgCartesianChartOptions) {
+        // `prepareEnterpriseTestOptions` sizes the chart to the default canvas, so set the size afterwards.
+        const proxy = AgCharts.create({
+            ...prepareEnterpriseTestOptions(options),
+            width: CHART_WIDTH,
+            height: CHART_HEIGHT,
         });
-        await waitForChartStability(proxy);
-        return deproxy(proxy) as any;
+        chartRef.current = deproxy(proxy);
+        await waitForChartStability(chartRef.current);
+        return chartRef.current;
     }
 
-    function getVerticalScrollbarState(chart: any) {
-        return chart.modulesManager.getModule('scrollbar').state.vertical;
+    type LongLabelCase = {
+        position: AgCartesianAxisPosition;
+        axis?: Record<string, unknown>;
+        scrollbar?: Record<string, unknown>;
+        stacked?: boolean;
+    };
+
+    function isVerticalPosition(position: AgCartesianAxisPosition) {
+        return position === 'left' || position === 'right';
     }
 
-    async function scrollLongLabelIntoView(chart: any) {
-        const { min, max } = chart.ctx.chartState.getValue('zoom').y;
+    async function createLongLabelChart({ position, axis, scrollbar, stacked }: LongLabelCase) {
+        const vertical = isVerticalPosition(position);
+        const categoryKey = vertical ? 'y' : 'x';
+        const label = vertical ? {} : { rotation: 90 };
+        const axes: Record<string, any> = {
+            [categoryKey]: { type: 'category', position, label, ...axis },
+        };
+        const direction = vertical ? 'horizontal' : 'vertical';
+        // Fixed-width bars overflow the chart, so the scrollbar zooms in to a window of readable labels.
+        const series: any[] = [{ type: 'bar', direction, xKey: 'x', yKey: 'y', width: 20 }];
+        if (stacked) {
+            axes[`${categoryKey}Stacked`] = { type: 'category', position, label };
+            series.push({ ...series[0], yKey: 'y2', xKeyAxis: `${categoryKey}Stacked` });
+        }
+
+        return createSizedChart({
+            data: LONG_LABEL_DATA,
+            series,
+            axes,
+            scrollbar: { enabled: true, ...scrollbar },
+            legend: { enabled: false },
+        });
+    }
+
+    function getScrollbarState(chart: any, position: AgCartesianAxisPosition) {
+        const orientation = isVerticalPosition(position) ? 'vertical' : 'horizontal';
+        return chart.modulesManager.getModule('scrollbar').state[orientation];
+    }
+
+    function getScrollbarAxis(chart: any, position: AgCartesianAxisPosition) {
+        const { axisId } = getScrollbarState(chart, position);
+        return chart.axes.find((axis: any) => axis.id === axisId);
+    }
+
+    async function scrollLongLabelIntoView(chart: any, position: AgCartesianAxisPosition) {
+        const vertical = isVerticalPosition(position);
+        const zoom = chart.ctx.chartState.getValue('zoom');
+        const { min, max } = vertical ? zoom.y : zoom.x;
+        const span = max - min;
+        // The vertical category axis runs top to bottom, so its first category sits at ratio 1.
+        const ratio = (LONG_LABEL_INDEX + 0.5) / LONG_LABEL_DATA.length;
+        const centre = vertical ? 1 - ratio : ratio;
+        const window = { min: centre - span / 2, max: centre + span / 2 };
         chart.ctx.zoomManager.updateZoom(
             { source: 'user-interaction', sourceDetail: 'scrollbar' },
-            { y: { min: 0.75 - (max - min), max: 0.75 } }
+            vertical ? { y: window } : { x: window }
         );
-        await waitForChartStability(proxy!);
-
-        const labels = chart.axes.find((axis: any) => axis.id === 'y').tickLayout.labels.map((l: any) => l.text);
-        expect(labels).toContain('test50testtesttesttesttesttest');
+        await waitForChartStability(chart);
     }
 
-    it('keeps the vertical scrollbar inside the chart once a long category label scrolls into view', async () => {
-        const chart = await createLongLabelChart('left');
+    function expectLongLabelDrawn(chart: any) {
+        const labels = chart.axes.flatMap((axis: any) => axis.tickLayout?.labels?.map((l: any) => l.text) ?? []);
+        expect(labels).toContain(LONG_LABEL);
+    }
 
-        const before = getVerticalScrollbarState(chart).layoutRect;
-        expect(before.x).toBeCloseTo(20.98, 1);
+    /** Distance from the series edge to the near and far sides of the track. */
+    function getTrackExtent(chart: any, position: AgCartesianAxisPosition) {
+        const { layoutRect } = getScrollbarState(chart, position);
+        const { seriesRect } = chart;
+        switch (position) {
+            case 'left':
+                return { near: seriesRect.x - layoutRect.x - layoutRect.width, far: seriesRect.x - layoutRect.x };
+            case 'right':
+                return {
+                    near: layoutRect.x - seriesRect.x - seriesRect.width,
+                    far: layoutRect.x + layoutRect.width - seriesRect.x - seriesRect.width,
+                };
+            case 'top':
+                return { near: seriesRect.y - layoutRect.y - layoutRect.height, far: seriesRect.y - layoutRect.y };
+            case 'bottom':
+                return {
+                    near: layoutRect.y - seriesRect.y - seriesRect.height,
+                    far: layoutRect.y + layoutRect.height - seriesRect.y - seriesRect.height,
+                };
+        }
+    }
 
-        await scrollLongLabelIntoView(chart);
+    /** Distance from the series edge to the chart's padding edge on the axis side. */
+    function getRoomToPaddingEdge(chart: any, position: AgCartesianAxisPosition) {
+        const padding = chart.ctx.chartState.getValue('options', 'padding');
+        const { seriesRect } = chart;
+        switch (position) {
+            case 'left':
+                return seriesRect.x - padding.left;
+            case 'right':
+                return CHART_WIDTH - padding.right - seriesRect.x - seriesRect.width;
+            case 'top':
+                return seriesRect.y - padding.top;
+            case 'bottom':
+                return CHART_HEIGHT - padding.bottom - seriesRect.y - seriesRect.height;
+        }
+    }
 
-        const { group, layoutRect } = getVerticalScrollbarState(chart);
+    function expectTrackBetweenSeriesAndPaddingEdge(chart: any, position: AgCartesianAxisPosition) {
+        const { group } = getScrollbarState(chart, position);
+        const { near, far } = getTrackExtent(chart, position);
         expect(group.visible).toBe(true);
-        expect(layoutRect.x).toBeGreaterThanOrEqual(0);
-        expect(layoutRect.x + layoutRect.width).toBeLessThanOrEqual(chart.seriesRect.x);
-    });
+        expect(near).toBeGreaterThanOrEqual(0);
+        expect(far).toBeLessThanOrEqual(getRoomToPaddingEdge(chart, position));
+    }
 
-    it('renders the vertical scrollbar at the chart edge once a long category label scrolls into view', async () => {
-        const chart = await createLongLabelChart('left');
+    it.each<AgCartesianAxisPosition>(['left', 'right', 'top', 'bottom'])(
+        'keeps a %s scrollbar between the series area and the padding edge once a long label scrolls into view',
+        async (position) => {
+            const chart = await createLongLabelChart({ position });
+            const { spacing } = getScrollbarState(chart, position).properties;
 
-        await scrollLongLabelIntoView(chart);
+            // Short labels: the track sits just past the labels, as it did before the clamp.
+            expect(getTrackExtent(chart, position).near).toBeCloseTo(
+                getScrollbarAxis(chart, position).layout.labelThickness + spacing,
+                0
+            );
 
-        await compareImageSnapshot(proxy!, ctx, {
-            ...IMAGE_SNAPSHOT_DEFAULTS,
-            customSnapshotIdentifier: 'ag-18832-scrollbar-long-label-in-view',
+            await scrollLongLabelIntoView(chart, position);
+
+            expectLongLabelDrawn(chart);
+            // The labels alone need more room than the axis was granted, so the clamp is what keeps the track in.
+            expect(getScrollbarAxis(chart, position).layout.labelThickness).toBeGreaterThan(
+                getRoomToPaddingEdge(chart, position)
+            );
+            expectTrackBetweenSeriesAndPaddingEdge(chart, position);
+            if (position === 'left') {
+                await compareImageSnapshot(chart, ctx, {
+                    ...IMAGE_SNAPSHOT_DEFAULTS,
+                    customSnapshotIdentifier: 'ag-18832-scrollbar-long-label-in-view',
+                });
+            }
+        }
+    );
+
+    it('keeps a grouped-category scrollbar within an explicit axis thickness thinner than its labels', async () => {
+        const axisThickness = 30;
+        const chart = await createSizedChart({
+            data: LONG_LABEL_DATA.map(({ x, y }, index) => ({ x: [`group${Math.floor(index / 10)}`, x], y })),
+            series: [{ type: 'bar', direction: 'horizontal', xKey: 'x', yKey: 'y', width: 20 }],
+            axes: { y: { type: 'grouped-category', position: 'left', thickness: axisThickness } },
+            scrollbar: { enabled: true },
+            legend: { enabled: false },
         });
+
+        const { spacing, thickness } = getScrollbarState(chart, 'left').properties;
+        expect(getScrollbarAxis(chart, 'left').layout.labelThickness + spacing + thickness).toBeGreaterThan(
+            axisThickness
+        );
+        const { near, far } = getTrackExtent(chart, 'left');
+        expect(near).toBeGreaterThanOrEqual(0);
+        expect(far).toBeCloseTo(axisThickness, 0);
     });
 
-    it('keeps a right-positioned vertical scrollbar inside the chart once a long category label scrolls into view', async () => {
-        const chart = await createLongLabelChart('right');
+    it('keeps the scrollbar inside the chart when two category axes are stacked on its side', async () => {
+        const chart = await createLongLabelChart({ position: 'left', stacked: true });
 
-        await scrollLongLabelIntoView(chart);
+        await scrollLongLabelIntoView(chart, 'left');
 
-        const { group, layoutRect } = getVerticalScrollbarState(chart);
-        expect(group.visible).toBe(true);
-        expect(layoutRect.x).toBeGreaterThanOrEqual(chart.seriesRect.x + chart.seriesRect.width);
-        expect(layoutRect.x + layoutRect.width).toBeLessThanOrEqual(500);
+        expectLongLabelDrawn(chart);
+        expectTrackBetweenSeriesAndPaddingEdge(chart, 'left');
+    });
+
+    it('leaves an inner scrollbar where it was when a long label scrolls into view', async () => {
+        const chart = await createLongLabelChart({ position: 'left', scrollbar: { placement: 'inner' } });
+        const before = getTrackExtent(chart, 'left');
+
+        await scrollLongLabelIntoView(chart, 'left');
+
+        expectLongLabelDrawn(chart);
+        expect(getTrackExtent(chart, 'left')).toEqual(before);
+        expect(before.near).toBeCloseTo(getScrollbarState(chart, 'left').properties.spacing);
+    });
+
+    it('keeps the scrollbar within an explicit axis thickness', async () => {
+        const thickness = 60;
+        const chart = await createLongLabelChart({ position: 'left', axis: { thickness } });
+
+        await scrollLongLabelIntoView(chart, 'left');
+        expectLongLabelDrawn(chart);
+
+        const { near, far } = getTrackExtent(chart, 'left');
+        expect(near).toBeGreaterThanOrEqual(0);
+        expect(far).toBeCloseTo(thickness, 0);
+    });
+
+    it('keeps the track outside the series area when the axis is thinner than the scrollbar', async () => {
+        const chart = await createLongLabelChart({ position: 'left', axis: { thickness: 4 } });
+
+        await scrollLongLabelIntoView(chart, 'left');
+        expectLongLabelDrawn(chart);
+
+        const { thickness } = getScrollbarState(chart, 'left').properties;
+        expect(thickness).toBeGreaterThan(4);
+        expect(getTrackExtent(chart, 'left')).toEqual({ near: 0, far: thickness });
     });
 });
 
