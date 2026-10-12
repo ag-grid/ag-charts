@@ -67,6 +67,8 @@ export class Text<D = unknown> extends Shape<D> {
     // Any field affecting segment layout must be `@SceneChangeDetection`-tracked (which invalidates
     // this via `markDirty`) or clear it explicitly, or it silently serves stale metrics.
     private segmentMetrics?: ReturnType<typeof measureTextSegments>;
+    // Scene direction changes don't mark the node dirty, so the map is keyed on the alignment it was built for.
+    private textMapAlign?: CanvasTextAlign;
     private generatingTextMap = false;
     private suppressedDirtyDuringGenerate = false;
 
@@ -321,7 +323,7 @@ export class Text<D = unknown> extends Shape<D> {
         if (!this.hasRenderableText()) {
             return new BBox(this.x, this.y, 0, 0);
         }
-        this.generateTextMap();
+        this.generateTextMap(this.scene?.isRtl);
         if (this.textMap != null && this.textMap.size > 0 && isArray(this.text)) {
             const bbox = BBox.merge(this.textMap.values());
             const { height, lineMetrics } = this.getSegmentMetrics(this.text);
@@ -394,14 +396,20 @@ export class Text<D = unknown> extends Shape<D> {
         super.setScene(scene);
     }
 
-    private generateTextMap() {
-        if (!isArray(this.text) || (this.textMap?.size ?? 0) > 0) return;
+    private generateTextMap(isRtl: boolean | undefined) {
+        if (!isArray(this.text)) return;
+        const align = resolveTextAlign(this.textAlign, isRtl);
+        if ((this.textMap?.size ?? 0) > 0) {
+            if (this.textMapAlign === align) return;
+            this.textMap!.clear();
+        }
 
         this.textMap ??= new Map();
+        this.textMapAlign = align;
         this.generatingTextMap = true;
         this.suppressedDirtyDuringGenerate = false;
         try {
-            this.buildTextMap(this.text);
+            this.buildTextMap(this.text, align);
         } finally {
             this.generatingTextMap = false;
             if (this.suppressedDirtyDuringGenerate) {
@@ -417,12 +425,12 @@ export class Text<D = unknown> extends Shape<D> {
         return this.segmentMetrics;
     }
 
-    private buildTextMap(text: NormalisedContentSegment[]) {
+    private buildTextMap(text: NormalisedContentSegment[], align: CanvasTextAlign) {
         const childNodes = this.richText!.children();
         const { width: totalWidth, lineMetrics } = this.getSegmentMetrics(text);
 
-        // Block rows anchor at `labelLeft` to preserve strip+column geometry, while single-segment
-        // lines centre on the label origin. The asymmetry is deliberate.
+        // Block rows anchor at `labelLeft` to preserve strip+column geometry, while other lines align
+        // within the block per `textAlign`. The asymmetry is deliberate.
         const labelLeft = this.x - totalWidth / 2;
         let offsetY = 0;
 
@@ -438,7 +446,8 @@ export class Text<D = unknown> extends Shape<D> {
                 continue;
             }
 
-            offsetY = this.renderLine(line, this.x - line.width / 2, offsetY, childNodes);
+            const lineLeft = labelLeft + Text.calcLeftOffset(totalWidth - line.width, align);
+            offsetY = this.renderLine(line, lineLeft, offsetY, childNodes);
             lineIndex += 1;
         }
     }
@@ -630,7 +639,7 @@ export class Text<D = unknown> extends Shape<D> {
         }
 
         if (isArray(this.text) && this.richText) {
-            this.generateTextMap();
+            this.generateTextMap(renderCtx.direction === 'rtl');
             const richTextBBox = this.richText.getBBox();
             const { width, height, lineMetrics } = this.getSegmentMetrics(this.text);
 

@@ -1,12 +1,76 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-MINIMATCH-15353387:
+    - ag-shared@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.558Z
+  SNYK-JS-ISAACSBRACEEXPANSION-15208653:
+    - ag-shared@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.556Z
+  SNYK-JS-BRACEEXPANSION-20244952:
+    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.684Z
+    - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.469Z
+    - '@nx/devkit@18.3.4 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.467Z
+    - ag-shared@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.556Z
+  SNYK-JS-BRACEEXPANSION-20244948:
+    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.058Z
+    - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.810Z
+    - '@nx/devkit@18.3.4 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.805Z
+    - ag-shared@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.556Z
   SNYK-JS-TMP-17315641:
+    - ag-shared@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.559Z
     - '@nx/devkit@18.3.4 > tmp@0.2.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-24T13:43:11.598Z
   SNYK-JS-MINIMATCH-15353389:
+    - ag-shared@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.557Z
     - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
@@ -20,6 +84,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T17:27:16.225Z
   SNYK-JS-MINIMATCH-15309438:
+    - ag-shared@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.557Z
     - '@nx/devkit@18.3.4 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
@@ -33,6 +102,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-02T16:59:07.674Z
   SNYK-JS-TMP-16881240:
+    - ag-shared@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.558Z
     - '@nx/devkit@18.3.4 > tmp@0.2.1':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z

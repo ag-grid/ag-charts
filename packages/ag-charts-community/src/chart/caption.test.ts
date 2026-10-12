@@ -70,6 +70,26 @@ describe('Caption', () => {
             });
         });
 
+        describe('segmented text align', () => {
+            test.each(['left', 'center', 'right'] as const)(
+                'aligns explicit and wrapped segment lines to textAlign=%s',
+                async (textAlign) => {
+                    chart = await createChart({
+                        title: {
+                            textAlign,
+                            maxWidth: 260,
+                            maxHeight: 200,
+                            text: [
+                                { text: 'Quarterly revenue by region and sales channel', fontSize: 20 },
+                                { text: '\nfiscal year 2023', fontSize: 11 },
+                            ],
+                        },
+                    });
+                    await compare();
+                }
+            );
+        });
+
         describe('truncate', () => {
             const longText =
                 'This is an extremely long title that should definitely exceed the width of the chart container and be truncated under normal circumstances';

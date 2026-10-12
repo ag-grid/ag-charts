@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 // The post-deploy check lives with the other CI scripts under tools/ci; its tests run here,
@@ -151,15 +150,41 @@ const base = {
 };
 
 describe('parseDemoPages', () => {
-    it('reads the listed demo pages off the website registry, skipping commented-out entries', () => {
-        const registry = readFileSync(
-            new URL('../../../ag-charts-website/src/components/demo-examples/exampleRegistry.ts', import.meta.url),
-            'utf8'
-        );
+    // Mirrors the shape of the website's exampleRegistry.ts. Inline rather than read from the
+    // website project, so the test neither depends across the Nx project boundary nor breaks when
+    // a demo is listed or unlisted.
+    const registry = `export const DEMO_EXAMPLES: DemoExample[] = [
+    {
+        id: 'trading-terminal',
+        title: 'Trading Terminal',
+        path: './examples/',
+        demoAppId: 'trading-terminal',
+    },
+    {
+        id: 'web-analytics',
+        title: 'Web Analytics',
+        path: './examples-web-analytics/',
+        demoAppId: 'web-analytics',
+    },
+    // Uncomment once the real-time demo app exists.
+    // {
+    //     id: 'real-time',
+    //     path: './examples-real-time/',
+    //     demoAppId: 'real-time',
+    // },
+];`;
+
+    it('reads the listed demo pages off the registry, skipping commented-out entries', () => {
         expect(parseDemoPages(registry)).toEqual([
             { path: 'examples/', demoId: 'trading-terminal' },
             { path: 'examples-web-analytics/', demoId: 'web-analytics' },
         ]);
+    });
+
+    it('throws when a listed page has no demo id', () => {
+        expect(() => parseDemoPages(registry.replace("        demoAppId: 'web-analytics',\n", ''))).toThrow(
+            /found 2 page paths and 1 demo ids/
+        );
     });
 });
 

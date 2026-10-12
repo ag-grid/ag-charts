@@ -338,4 +338,45 @@ describe('Category Axis', () => {
             });
         });
     });
+
+    describe('segmented labels on separate lines', () => {
+        const segmentedLabelOptions = (
+            label: Record<string, unknown>,
+            position: 'left' | 'right' = 'left'
+        ): AgCartesianChartOptions => ({
+            data: [
+                { label: 'Q1', value: 4 },
+                { label: 'Q2', value: 7 },
+                { label: 'Q3', value: 3 },
+            ],
+            series: [{ type: 'bar', direction: 'horizontal', xKey: 'label', yKey: 'value' }],
+            axes: {
+                y: {
+                    type: 'category',
+                    position,
+                    label: {
+                        ...label,
+                        formatter: ({ value }: { value: unknown }) => [
+                            { text: `label 1 ${String(value)}`, fontSize: 22 },
+                            { text: `\nlabel 2 ${String(value)}`, fontSize: 8 },
+                        ],
+                    },
+                },
+                x: { type: 'number', position: 'bottom' },
+            },
+        });
+
+        it.each(['left', 'center', 'right'] as const)('aligns every line to textAlign=%s', async (textAlign) => {
+            chart = await createChart(segmentedLabelOptions({ textAlign }));
+            await compare();
+        });
+
+        it.each(['left', 'right'] as const)(
+            'aligns every line to the default textAlign on a %s axis',
+            async (position) => {
+                chart = await createChart(segmentedLabelOptions({}, position));
+                await compare();
+            }
+        );
+    });
 });
