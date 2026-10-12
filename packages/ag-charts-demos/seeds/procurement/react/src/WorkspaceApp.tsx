@@ -3,29 +3,36 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { supplierColors as buildSupplierColors } from './chartTheme';
 import { AttentionAlert } from './components/AttentionAlert';
+import { DemoNotice } from './components/DemoNotice';
+import { HelpCard } from './components/HelpCard';
 import { buildKpis, buildSpendKpis } from './components/KpiStrip';
 import { OrdersView } from './components/OrdersView';
+import { SidebarActions } from './components/SidebarActions';
 import { SpendView } from './components/SpendView';
 import { SuppliersView } from './components/SuppliersView';
-import { DEMO_NOW, SUBCATEGORIES } from './data';
+import { SUBCATEGORIES } from './data';
 import { fmtDate, fmtInt } from './format';
 import type { AttentionAction, AttentionItem, PoActionKind } from './types';
 import { Select } from './ui';
 import {
+    ALL_FILTER,
+    DEFAULT_ORDERS_FILTER,
     DEFAULT_PERIOD,
     DEFAULT_SPEND_PERIOD,
     MANAGER,
-    MY_OPEN_ORDERS,
-    MY_ORDERS,
     MY_SUPPLIERS,
     MY_TRACKED_SHIPMENTS,
+    type OrdersFilter,
     PERIOD_OPTIONS,
     type PeriodMonths,
     SPEND_PERIOD_OPTIONS,
     type SpendPeriod,
+    applySelectionChange,
     myAttentionItems,
     myBurnUp,
+    myOrdersFilterOptions,
     myOrdersInRange,
+    myOrdersScope,
     myPeriod,
     myQualityCost,
     myScorecard,
@@ -37,7 +44,7 @@ import {
     mySummary,
     mySupplierShare,
     mySupplierTrend,
-    ordersOnShipment,
+    ordersOnShipments,
     periodLabel,
     shipmentCarryingOrder,
     spendKpiLabel,
@@ -66,12 +73,6 @@ const INITIALS = MANAGER.name
     .join('');
 
 /**
- * When the dataset is current to. Fixed, because the data is: a moving wall-clock stamp would
- * claim a freshness the workspace does not have.
- */
-const DATA_AS_OF = fmtDate(DEMO_NOW);
-
-/**
  * The tabs follow her own working cadences, which the spec spells out: she checks the workspace
  * daily, reviews scorecard trends weekly, and does spend and contract work quarterly. Grouping by
  * cadence rather than by chart type is what keeps each tab answerable in one screen.
@@ -95,7 +96,7 @@ export function WorkspaceApp() {
      * carried across would rescope a grid on a tab the reader is not looking at — and the two
      * scopes rarely intersect, so it would as often empty a view as narrow it.
      */
-    const [selectedShipmentId, setSelectedShipmentId] = useState<string>();
+    const [selectedShipmentIds, setSelectedShipmentIds] = useState<string[]>([]);
     const [selectedSupplierId, setSelectedSupplierId] = useState<string>();
     /** Items she has acted on, and what she chose — resolved items leave the list. */
     const [resolved, setResolved] = useState<Record<string, string>>({});
@@ -104,6 +105,36 @@ export function WorkspaceApp() {
     const [months, setMonths] = useState<PeriodMonths>(DEFAULT_PERIOD);
     /** The calendar window the spend tab is read over, and budgeted against. */
     const [spendPeriod, setSpendPeriod] = useState<SpendPeriod>(DEFAULT_SPEND_PERIOD);
+    /** The supplier and material subcategory the orders tab is narrowed to. */
+    const [ordersFilter, setOrdersFilter] = useState<OrdersFilter>(DEFAULT_ORDERS_FILTER);
+
+    const ordersScope = useMemo(() => myOrdersScope(ordersFilter), [ordersFilter]);
+
+    /** Each filter's choices, led by the option that narrows nothing. */
+    const ordersFilterOptions = useMemo(() => {
+        const { supplierIds, subcategories } = myOrdersFilterOptions(ordersFilter);
+        return {
+            suppliers: [
+                { value: ALL_FILTER, label: 'All suppliers' },
+                ...supplierIds.map((supplierId) => ({ value: supplierId, label: SUPPLIER_NAMES.get(supplierId)! })),
+            ],
+            subcategories: [
+                { value: ALL_FILTER, label: 'All subcategories' },
+                ...subcategories.map((subcategory) => ({ value: subcategory, label: subcategory })),
+            ],
+        };
+    }, [ordersFilter]);
+
+    // The grid lists the selected shipments' lines, so a shipment the filters hide cannot stay selected.
+    const onOrdersFilterChange = useCallback(
+        (change: Partial<OrdersFilter>) => {
+            const next = { ...ordersFilter, ...change };
+            const visible = new Set(myOrdersScope(next).shipments.map((shipment) => shipment.shipmentId));
+            setOrdersFilter(next);
+            setSelectedShipmentIds((selected) => selected.filter((id) => visible.has(id)));
+        },
+        [ordersFilter]
+    );
 
     const supplierRange = useMemo(() => myPeriod(months), [months]);
     const supplierOrders = useMemo(() => myOrdersInRange(supplierRange), [supplierRange]);
@@ -116,12 +147,20 @@ export function WorkspaceApp() {
         setSelectedSupplierId((prev) => (prev === supplierId ? undefined : supplierId));
     }, []);
 
-    const onSelectShipment = useCallback((shipmentId: string) => {
-        setSelectedShipmentId((prev) => (prev === shipmentId ? undefined : shipmentId));
+    const onShipmentSelectionChange = useCallback((added: string[], removed: string[]) => {
+        setSelectedShipmentIds((prev) => applySelectionChange(prev, added, removed));
     }, []);
 
-    // The worklist sits on the orders tab, so following an item selects within it.
-    const onSelectAttention = useCallback((shipmentId: string) => setSelectedShipmentId(shipmentId), []);
+    // The worklist ignores the filters, so following an item clears any that hide its shipment.
+    const onSelectAttention = useCallback(
+        (shipmentId: string) => {
+            if (!ordersScope.shipments.some((shipment) => shipment.shipmentId === shipmentId)) {
+                setOrdersFilter(DEFAULT_ORDERS_FILTER);
+            }
+            setSelectedShipmentIds([shipmentId]);
+        },
+        [ordersScope]
+    );
 
     /** Acting on an item resolves it in place. */
     const onResolveAttention = useCallback((item: AttentionItem, action: AttentionAction) => {
@@ -138,7 +177,7 @@ export function WorkspaceApp() {
         if (shipmentId != null) setResolved((prev) => ({ ...prev, [`shipment-${shipmentId}`]: kind }));
     }, []);
 
-    const clearSelection = useCallback(() => setSelectedShipmentId(undefined), []);
+    const clearSelection = useCallback(() => setSelectedShipmentIds([]), []);
 
     const attentionItems = useMemo(
         () => ALL_ATTENTION_ITEMS.filter((item) => resolved[item.itemId] == null),
@@ -166,16 +205,16 @@ export function WorkspaceApp() {
     const spendTrend = useMemo(() => mySpendTrend(spendPeriod), [spendPeriod]);
 
     /**
-     * A selected shipment scopes the grid over her whole order book rather than her open lines: a
-     * shipment is a live entity, and its lines were typically raised long before the tab's default
-     * view of what is still outstanding.
+     * The grid starts empty and is filled by selecting a shipment on the map or the schedule. A
+     * shipment's lines are read over her filtered order book, delivered lines included: a shipment
+     * is a live entity, and its lines were typically raised long before they were due.
      */
     const gridOrders = useMemo(
-        () => (selectedShipmentId == null ? MY_OPEN_ORDERS : ordersOnShipment(MY_ORDERS, selectedShipmentId)),
-        [selectedShipmentId]
+        () => ordersOnShipments(ordersScope.orders, selectedShipmentIds),
+        [ordersScope, selectedShipmentIds]
     );
 
-    const summary = useMemo(() => mySummary(spendOrders), [spendOrders]);
+    const summary = useMemo(() => mySummary(spendOrders, ordersScope), [spendOrders, ordersScope]);
     const kpis = useMemo(() => buildKpis(summary), [summary]);
     const spendPosition = useMemo(() => mySpendPosition(spendPeriod), [spendPeriod]);
     const spendKpis = useMemo(
@@ -188,24 +227,28 @@ export function WorkspaceApp() {
         [spendPosition, spendPeriod]
     );
     const gridSubtitle = useMemo(() => {
-        const shown = fmtInt(gridOrders.length);
-        // A shipment's lines are read over her whole order book, delivered ones included, so this
-        // one cannot claim to be showing open lines.
-        return selectedShipmentId == null
-            ? `${shown} of my open order lines`
-            : `${shown} of my order lines on ${selectedShipmentId}`;
-    }, [gridOrders.length, selectedShipmentId]);
+        if (selectedShipmentIds.length === 0) return 'No shipment selected.';
+        // Delivered lines are included, so this cannot claim to be showing open lines.
+        const on =
+            selectedShipmentIds.length === 1
+                ? selectedShipmentIds[0]
+                : `${fmtInt(selectedShipmentIds.length)} shipments`;
+        return `${fmtInt(gridOrders.length)} of my order lines on ${on}`;
+    }, [gridOrders.length, selectedShipmentIds]);
 
     return (
         <RTabs.Root className="pc-app" orientation="vertical" value={tab} onValueChange={setTab}>
             <aside className="pc-sidebar">
-                <span className="pc-brand">
-                    <svg className="pc-brand-mark" viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 2.5 21 7v10l-9 4.5L3 17V7z" className="pc-brand-mark-box" />
-                        <path d="M3 7l9 4.5L21 7M12 11.5V21.5" className="pc-brand-mark-edge" />
-                    </svg>
-                    Procurement Workspace
-                </span>
+                <div className="pc-brand-row">
+                    <span className="pc-brand">
+                        <svg className="pc-brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 2.5 21 7v10l-9 4.5L3 17V7z" className="pc-brand-mark-box" />
+                            <path d="M3 7l9 4.5L21 7M12 11.5V21.5" className="pc-brand-mark-edge" />
+                        </svg>
+                        Supply Desk
+                    </span>
+                    <DemoNotice />
+                </div>
                 <RTabs.List className="pc-tabs-list" aria-label="Workspace views">
                     {TABS.map((entry) => (
                         <RTabs.Trigger key={entry.value} className="pc-tab-trigger" value={entry.value}>
@@ -214,7 +257,8 @@ export function WorkspaceApp() {
                     ))}
                 </RTabs.List>
                 <span className="pc-sidebar-spacer" />
-                <span className="pc-stamp">Data as of {DATA_AS_OF}</span>
+                <HelpCard />
+                <SidebarActions />
                 <div className="pc-account">
                     {/* Titled because the name beside it is hidden in the collapsed layout. */}
                     <span className="pc-avatar" title={`${MANAGER.name} · ${MANAGER.title}`}>
@@ -235,9 +279,9 @@ export function WorkspaceApp() {
                             {/*
                              * The period control belongs to the tab it scopes, and the two tabs that
                              * have one do not share a window — so it is rendered per tab rather than
-                             * once for the workspace. The orders tab has none: its grid is her open
-                             * order book and its KPIs are absolute, so there is nothing for a period
-                             * to narrow.
+                             * once for the workspace. The orders tab has none: its KPIs follow the
+                             * supplier and subcategory filters and its grid the shipment selection,
+                             * so there is nothing for a period to narrow.
                              */}
                             {tab === 'suppliers' && (
                                 <div className="pc-page-controls">
@@ -277,11 +321,29 @@ export function WorkspaceApp() {
                             {/* Her landing view only: the worklist's items resolve into the order
                                 book and the grid below it, so the alert lives where they land. */}
                             {tab === 'orders' && (
-                                <AttentionAlert
-                                    items={attentionItems}
-                                    onSelect={onSelectAttention}
-                                    onResolve={onResolveAttention}
-                                />
+                                <>
+                                    <div className="pc-page-controls">
+                                        <Select
+                                            label="Supplier"
+                                            ariaLabel="Supplier my orders are narrowed to"
+                                            value={ordersFilter.supplierId}
+                                            onValueChange={(supplierId) => onOrdersFilterChange({ supplierId })}
+                                            options={ordersFilterOptions.suppliers}
+                                        />
+                                        <Select
+                                            label="Subcategory"
+                                            ariaLabel="Material subcategory my orders are narrowed to"
+                                            value={ordersFilter.subcategory}
+                                            onValueChange={(subcategory) => onOrdersFilterChange({ subcategory })}
+                                            options={ordersFilterOptions.subcategories}
+                                        />
+                                    </div>
+                                    <AttentionAlert
+                                        items={attentionItems}
+                                        onSelect={onSelectAttention}
+                                        onResolve={onResolveAttention}
+                                    />
+                                </>
                             )}
                         </div>
                     </div>
@@ -289,15 +351,15 @@ export function WorkspaceApp() {
                     <RTabs.Content className="pc-tab-content" value="orders">
                         <OrdersView
                             kpis={kpis}
-                            shipments={MY_TRACKED_SHIPMENTS}
-                            selectedShipmentId={selectedShipmentId}
-                            onSelectShipment={onSelectShipment}
+                            shipments={ordersScope.shipments}
+                            selectedShipmentIds={selectedShipmentIds}
+                            onShipmentSelectionChange={onShipmentSelectionChange}
                             orders={gridOrders}
                             gridSubtitle={gridSubtitle}
                             poActions={poActions}
                             onPoAction={onPoAction}
                             onClearSelection={clearSelection}
-                            canClearSelection={selectedShipmentId != null}
+                            canClearSelection={selectedShipmentIds.length > 0}
                         />
                     </RTabs.Content>
 

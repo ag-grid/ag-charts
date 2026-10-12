@@ -3,20 +3,27 @@ import { useMemo } from 'react';
 import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
-import { SEGMENT_SEPARATOR, SUBCATEGORY_RAMP, THEME } from '../chartTheme';
+import { SEGMENT_SEPARATOR, THEME } from '../chartTheme';
 import { fmtCurrency, fmtCurrencyCompact, fmtPct } from '../format';
 import type { SpendTrendGrain, SpendTrendRow } from '../types';
 
+/** One stacked band: the row key it reads, the name it is shown under and its colour. */
+export interface SpendTrendStack {
+    key: string;
+    name: string;
+    fill: string;
+}
+
 interface SpendTrendChartProps {
     rows: SpendTrendRow[];
-    /** Her commodity's subcategories, in the order the sunburst rings them. */
-    subcategories: string[];
+    /** The bands, bottom first — her subcategories in sunburst order, or her suppliers in roster order. */
+    stacks: SpendTrendStack[];
     /** What one bar covers, which every figure in the tooltip has to name. */
     grain: SpendTrendGrain;
 }
 
 /**
- * Committed spend per month or per week, stacked by subcategory.
+ * Committed spend per month or per week, stacked by subcategory or by supplier.
  *
  * The tab's other charts all collapse time: the sunburst is a snapshot, the burn-up is cumulative
  * within one quarter, and the waterfall reduces a whole period's movement to three bars. So a mix
@@ -28,28 +35,28 @@ interface SpendTrendChartProps {
  * grouped bars make four subcategories comparable to each other but lose the month's total, which
  * is the run rate she is being measured on.
  *
- * Takes the subcategory ramp rather than the categorical palette, matching the sunburst's inner
- * ring — the same "what did I buy" question in the same hue, leaving categorical colour to mean
- * supplier identity everywhere in the workspace.
+ * The caller picks the colours: the subcategory ramp when split by material, matching the
+ * sunburst's inner ring, and the suppliers' identity colours when split by supplier — so
+ * categorical colour still means supplier identity everywhere in the workspace.
  */
-export function SpendTrendChart({ rows, subcategories, grain }: SpendTrendChartProps) {
+export function SpendTrendChart({ rows, stacks, grain }: SpendTrendChartProps) {
     const options = useMemo<AgCartesianChartOptions<SpendTrendRow>>(() => {
         // A week's label is the day it starts on, which only reads as a span if it says so.
         const spanOf = (label: string) => (grain === 'week' ? `week of ${label}` : label);
-        const series = subcategories.map<AgBarSeriesOptions<SpendTrendRow>>((subcategory, index) => ({
+        const series = stacks.map<AgBarSeriesOptions<SpendTrendRow>>(({ key, name, fill }) => ({
             type: 'bar',
             xKey: 'label',
-            yKey: subcategory,
-            yName: subcategory,
+            yKey: key,
+            yName: name,
             stacked: true,
-            fill: SUBCATEGORY_RAMP[index % SUBCATEGORY_RAMP.length],
+            fill,
             ...SEGMENT_SEPARATOR,
             tooltip: {
                 renderer: ({ datum }) => {
-                    const spend = Number(datum[subcategory] ?? 0);
-                    const total = subcategories.reduce((sum, key) => sum + Number(datum[key] ?? 0), 0);
+                    const spend = Number(datum[key] ?? 0);
+                    const total = stacks.reduce((sum, stack) => sum + Number(datum[stack.key] ?? 0), 0);
                     return {
-                        title: `${subcategory} · ${spanOf(datum.label)}`,
+                        title: `${name} · ${spanOf(datum.label)}`,
                         data: [
                             { label: 'Committed', value: fmtCurrency(spend) },
                             { label: `Share of ${grain}`, value: total > 0 ? fmtPct(spend / total) : '—' },
@@ -76,7 +83,7 @@ export function SpendTrendChart({ rows, subcategories, grain }: SpendTrendChartP
             legend: { enabled: true, position: 'bottom' },
             padding: { top: 8, right: 12, bottom: 4, left: 4 },
         };
-    }, [rows, subcategories, grain]);
+    }, [rows, stacks, grain]);
 
     return <AgCharts options={options} style={{ height: '100%', width: '100%' }} />;
 }

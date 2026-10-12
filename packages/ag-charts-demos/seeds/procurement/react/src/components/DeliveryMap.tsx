@@ -1,6 +1,11 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
-import type { AgMapLineSeriesOptions, AgMapMarkerSeriesOptions, AgTopologyChartOptions } from 'ag-charts-community';
+import type {
+    AgMapLineSeriesOptions,
+    AgMapMarkerSeriesOptions,
+    AgSelectionItemIds,
+    AgTopologyChartOptions,
+} from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { NEUTRAL, STATUS_COLORS, STATUS_SHAPES, THEME } from '../chartTheme';
@@ -8,13 +13,14 @@ import { PLANTS } from '../data';
 import { fmtCurrency, fmtDate, fmtDaysToGo, fmtPct, fmtSlack } from '../format';
 import { ROUTE_TOPOLOGY, WORLD_TOPOLOGY } from '../routes';
 import type { ShipmentStatus, TrackedShipment } from '../types';
+import { useShipmentSelection } from './useShipmentSelection';
 
 interface DeliveryMapProps {
     shipments: TrackedShipment[];
-    /** The shipment currently selected, if any. */
-    selectedShipmentId?: string;
-    /** A marker was clicked. Clicking the selected shipment again clears it. */
-    onShipmentClick: (shipmentId: string) => void;
+    /** The shipments currently selected; empty when none is. */
+    selectedShipmentIds: string[];
+    /** The user changed the selection on the map. */
+    onSelectionChange: (added: string[], removed: string[]) => void;
 }
 
 /**
@@ -36,6 +42,10 @@ interface MapPoint {
 // Worst-last, so a late marker draws over an on-time one where routes converge on a plant.
 const STATUS_DRAW_ORDER: ShipmentStatus[] = ['On time', 'At risk', 'Late'];
 
+const markerSeriesId = (status: ShipmentStatus) => `shipments-${status}`;
+
+const shipmentIdOf = (point: MapPoint) => point.shipment?.shipmentId;
+
 const PLANT_POINTS: MapPoint[] = PLANTS.map((plant) => ({
     id: plant.plantId,
     label: plant.name,
@@ -43,21 +53,45 @@ const PLANT_POINTS: MapPoint[] = PLANTS.map((plant) => ({
     longitude: plant.destination.longitude,
 }));
 
-export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: DeliveryMapProps) {
-    const points = useMemo<MapPoint[]>(
+export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange }: DeliveryMapProps) {
+    // Series data is not chart data, so `dataIdKey` does not reach it: items are addressed by index.
+    const pointsByStatus = useMemo(
         () =>
-            shipments.map((shipment) => ({
-                id: shipment.shipmentId,
-                label: shipment.shipmentId,
-                latitude: shipment.position.latitude,
-                longitude: shipment.position.longitude,
-                shipment,
-            })),
+            new Map(
+                STATUS_DRAW_ORDER.map((status) => [
+                    status,
+                    shipments
+                        .filter((shipment) => shipment.status === status)
+                        .map<MapPoint>((shipment) => ({
+                            id: shipment.shipmentId,
+                            label: shipment.shipmentId,
+                            latitude: shipment.position.latitude,
+                            longitude: shipment.position.longitude,
+                            shipment,
+                        })),
+                ])
+            ),
         [shipments]
     );
 
+    const itemsFor = useCallback(
+        (shipmentId: string): AgSelectionItemIds[] =>
+            STATUS_DRAW_ORDER.flatMap((status) => {
+                const itemId = pointsByStatus.get(status)!.findIndex((point) => point.id === shipmentId);
+                return itemId < 0 ? [] : [{ seriesId: markerSeriesId(status), itemId }];
+            }),
+        [pointsByStatus]
+    );
+
+    const { chartRef, onChartSelectionChange } = useShipmentSelection({
+        selectedShipmentIds,
+        onSelectionChange,
+        shipmentIdOf,
+        itemsFor,
+    });
+
     const options = useMemo<AgTopologyChartOptions<MapPoint>>(() => {
-        const dimmed = (id: string) => selectedShipmentId != null && id !== selectedShipmentId;
+        const dimmed = (id: string) => selectedShipmentIds.length > 0 && !selectedShipmentIds.includes(id);
 
         // One route series per status, so a lane's line and marker agree on colour without a per-datum styler.
         const routeSeries = STATUS_DRAW_ORDER.map<AgMapLineSeriesOptions<MapPoint>>((status) => ({
@@ -65,7 +99,7 @@ export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: 
             topology: ROUTE_TOPOLOGY,
             topologyIdKey: 'id',
             idKey: 'id',
-            data: points.filter((point) => point.shipment?.status === status),
+            data: pointsByStatus.get(status),
             stroke: STATUS_COLORS[status],
             // Light weight: at a heavier one, overlapping lanes blend into a wash that reads as neither status colour.
             strokeWidth: 1,
@@ -73,26 +107,28 @@ export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: 
             // The status key is rendered as HTML beside the card, so nothing needs a legend.
             showInLegend: false,
             itemStyler: ({ datum }) => (dimmed(datum.id) ? { strokeOpacity: 0.08 } : {}),
-            // The marker carries the tooltip; a hit on the line as well would fight it.
+            // The marker carries the tooltip and the selection; a hit on the line as well would fight it.
             tooltip: { enabled: false },
             highlight: { enabled: false },
+            selection: { enabled: false },
         }));
 
         // One series per status, so status never rests on colour alone.
         const markerSeries = STATUS_DRAW_ORDER.map<AgMapMarkerSeriesOptions<MapPoint>>((status) => ({
             type: 'map-marker',
+            id: markerSeriesId(status),
             // Positional, so deliberately no `idKey`: with one the series would warn it cannot match the topology.
             latitudeKey: 'latitude',
             longitudeKey: 'longitude',
-            data: points.filter((point) => point.shipment?.status === status),
+            data: pointsByStatus.get(status),
             showInLegend: false,
             shape: STATUS_SHAPES[status],
             size: 11,
             fill: STATUS_COLORS[status],
+            fillOpacity: 1,
             stroke: 'var(--pc-panel)',
             strokeWidth: 1.5,
-            itemStyler: ({ datum }) =>
-                dimmed(datum.id) ? { fillOpacity: 0.25, strokeOpacity: 0.25 } : { fillOpacity: 1, strokeOpacity: 1 },
+            selection: { unselectedItem: { opacity: 0.25 }, unselectedSeries: { opacity: 0.25 } },
             tooltip: {
                 renderer: ({ datum }) => {
                     const shipment = datum.shipment;
@@ -117,9 +153,6 @@ export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: 
                         ],
                     };
                 },
-            },
-            listeners: {
-                seriesNodeClick: ({ datum }) => onShipmentClick(datum.id),
             },
         }));
 
@@ -149,13 +182,20 @@ export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: 
                 }),
             },
             highlight: { enabled: false },
+            selection: { enabled: false },
         };
 
         return {
             theme: THEME,
             topology: WORLD_TOPOLOGY,
             series: [
-                { type: 'map-shape-background', fill: 'var(--pc-panel-2)', stroke: NEUTRAL, strokeWidth: 0.5 },
+                {
+                    type: 'map-shape-background',
+                    fill: 'var(--pc-panel-2)',
+                    stroke: NEUTRAL,
+                    strokeWidth: 0.5,
+                    selection: { enabled: false },
+                },
                 ...routeSeries,
                 plants,
                 ...markerSeries,
@@ -163,8 +203,11 @@ export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: 
             // The status legend is rendered as HTML alongside the board, carrying the same glyphs as the tiles.
             legend: { enabled: false },
             padding: 0,
+            // Ctrl/Cmd-click adds or removes a marker; a click on empty sea clears.
+            selection: { enabled: true },
+            listeners: { selectionChange: onChartSelectionChange },
         };
-    }, [points, selectedShipmentId, onShipmentClick]);
+    }, [pointsByStatus, selectedShipmentIds, onChartSelectionChange]);
 
-    return <AgCharts options={options} style={{ height: '100%', width: '100%' }} />;
+    return <AgCharts ref={chartRef} options={options} style={{ height: '100%', width: '100%' }} />;
 }

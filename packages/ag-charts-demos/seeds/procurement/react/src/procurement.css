@@ -117,7 +117,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 232px;
+    width: 180px;
     flex: 0 0 auto;
     padding: 18px 16px;
     background: var(--pc-panel);
@@ -127,14 +127,143 @@
 .pc-sidebar-spacer {
     flex: 1 1 auto;
 }
-/* The dataset's as-of stamp, per the data-freshness requirement. */
-.pc-stamp {
+/* Where to get help. Dismissable; see HelpCard. */
+.pc-help {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 10px 12px 12px;
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius-sm);
+    background: var(--pc-panel-2);
+}
+.pc-help-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+.pc-help-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+}
+.pc-help-close {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 12px;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    border-radius: var(--pc-radius-sm);
+    background: transparent;
     color: var(--pc-muted);
-    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+}
+.pc-help-close:hover {
+    background: var(--pc-accent-soft);
+    color: var(--pc-accent-strong);
+}
+.pc-help-close:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 1px;
+}
+.pc-help-body {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--pc-muted);
+    overflow-wrap: anywhere;
+}
+/* Account actions; placeholders, see SidebarActions. */
+.pc-side-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.pc-side-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 7px 12px;
+    border: none;
+    border-radius: var(--pc-radius-sm);
+    background: transparent;
+    color: var(--pc-muted);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+.pc-side-action:hover {
+    color: var(--pc-text);
+    background: var(--pc-panel-2);
+}
+.pc-side-action:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 1px;
+}
+.pc-side-action-icon {
+    flex: none;
+}
+.pc-brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+/* About this demo; see DemoNotice. */
+.pc-notice {
+    display: inline-flex;
+    align-items: center;
+}
+.pc-notice-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: var(--pc-radius-sm);
+    background: transparent;
+    color: var(--pc-muted);
+    cursor: pointer;
+}
+.pc-notice-trigger:hover {
+    background: var(--pc-accent-soft);
+    color: var(--pc-accent-strong);
+}
+.pc-notice-trigger:focus-visible {
+    outline: 2px solid var(--pc-accent);
+    outline-offset: 1px;
+}
+/* Placed and capped in width by DemoNotice; see there for why it is fixed rather than absolute. */
+.pc-notice-tip {
+    position: fixed;
+    z-index: 60;
+    width: max-content;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid var(--pc-border);
+    border-radius: var(--pc-radius-sm);
+    background: var(--pc-panel);
+    box-shadow: var(--pc-shadow-popover);
+    color: var(--pc-muted);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+    font-variant-numeric: normal;
+    pointer-events: none;
 }
 /* The application name — whose workspace this is belongs in the body. */
 .pc-brand {
@@ -388,43 +517,17 @@
     display: grid;
     /* Column count comes from the tile count the view passes — see `KpiStrip`. */
     grid-template-columns: repeat(var(--pc-kpi-columns, 3), minmax(0, 1fr));
-    gap: 14px;
-}
-.pc-kpi {
-    position: relative;
     background: var(--pc-panel);
     border: 1px solid var(--pc-border);
     border-radius: var(--pc-radius);
+    overflow: hidden;
+}
+.pc-kpi {
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
     gap: 4px;
     overflow: hidden;
-}
-/* Deliberately not on every tile: the rule marks a metric that wants acting on, and giving a
-   healthy figure one too would reduce the motif to decoration. */
-.pc-kpi.is-warn::before,
-.pc-kpi.is-bad::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto;
-    height: 3px;
-}
-.pc-kpi.is-warn::before {
-    background: var(--pc-warn-fill);
-}
-.pc-kpi.is-bad::before {
-    background: var(--pc-bad-fill);
-}
-/* Threshold state, restated by the tile's glyph so it does not rest on colour. */
-.pc-kpi.is-good {
-    color: var(--pc-ok);
-}
-.pc-kpi.is-warn {
-    color: var(--pc-warn);
-}
-.pc-kpi.is-bad {
-    color: var(--pc-bad);
 }
 .pc-kpi-label {
     display: flex;
@@ -436,19 +539,10 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
-.pc-kpi-icon {
-    font-size: 11px;
-}
-.pc-kpi.is-good .pc-kpi-icon,
-.pc-kpi.is-warn .pc-kpi-icon,
-.pc-kpi.is-bad .pc-kpi-icon {
-    color: currentcolor;
-}
 .pc-kpi-value {
     font-size: 26px;
     font-weight: 700;
     letter-spacing: -0.02em;
-    /* Text ink, not the threshold colour — the top rule and glyph already carry that. */
     color: var(--pc-text);
     font-variant-numeric: tabular-nums;
 }
@@ -908,6 +1002,11 @@
         background 0.12s ease,
         color 0.12s ease;
 }
+.pc-toggle-item--icon {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+}
 .pc-toggle-item:hover {
     background: var(--pc-panel-2);
     color: var(--pc-text);
@@ -1121,6 +1220,19 @@
         border-top: none;
     }
     .pc-account-text {
+        display: none;
+    }
+    .pc-side-actions {
+        flex-direction: row;
+    }
+    .pc-side-action {
+        padding: 7px;
+    }
+    .pc-side-action-label {
+        display: none;
+    }
+    /* A card has no place in a one-line bar. */
+    .pc-help {
         display: none;
     }
 }
