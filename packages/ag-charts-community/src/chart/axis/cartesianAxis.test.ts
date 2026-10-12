@@ -2918,13 +2918,14 @@ describe('CartesianAxis', () => {
             const stackedOptions = (
                 position: Position,
                 variant: keyof typeof labelVariants,
-                rotation: number
+                rotation: number,
+                alignment: object = {}
             ): AgCartesianChartOptions => {
                 const horizontal = position === 'bottom' || position === 'top';
                 const categoryAxis: any = {
                     type: 'category',
                     position,
-                    label: { rotation, avoidCollisions: false, ...labelVariants[variant] },
+                    label: { rotation, avoidCollisions: false, ...labelVariants[variant], ...alignment },
                 };
                 const valueAxis: any = { type: 'number', position: horizontal ? 'left' : 'bottom' };
                 return {
@@ -2983,6 +2984,24 @@ describe('CartesianAxis', () => {
                     }
                 }
             );
+
+            // The alignment that already holds for an unrotated label must leave its drawn box alone.
+            it.each([
+                ['bottom', { verticalAlign: 'top' }],
+                ['top', { verticalAlign: 'bottom' }],
+                ['left', { textAlign: 'right' }],
+                ['right', { textAlign: 'left' }],
+            ] as const)('keeps an unrotated boxed %s axis label box in place under %o', async (position, alignment) => {
+                await renderChart(stackedOptions(position, 'boxed', 0));
+                const natural = innerGaps(getAxisLabelNodes(chart, position), position);
+
+                await renderChart(stackedOptions(position, 'boxed', 0, alignment));
+                const aligned = innerGaps(getAxisLabelNodes(chart, position), position);
+                expect(aligned.length).toBe(3);
+                for (const [i, gap] of aligned.entries()) {
+                    expect(gap).toBeCloseTo(natural[i], 0);
+                }
+            });
 
             // The pin moves labels of differing line counts by differing amounts, so collision
             // avoidance has to see the move on a vertical axis too.

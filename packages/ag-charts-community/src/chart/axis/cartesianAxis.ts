@@ -53,6 +53,7 @@ import { AxisLabelSource } from '../layout/axisLabelSource';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
 import {
+    type LabelBox,
     type LabelExtent,
     getAxisLabelSideFlag,
     getBandEdgeOffset,
@@ -1174,8 +1175,6 @@ export abstract class CartesianAxis<
             const alignment = horizontal ? verticalAlign : textAlign;
             if (alignment == null && !anchorRotated) continue;
 
-            const tierPadding = expandLabelPadding(tierLabel);
-
             const measured: { datum: LabelNodeDatum; extent: LabelExtent; innerPadding: number }[] = [];
             let maxLabelExtent = 0;
             for (let i = 0; i < labels.length; i += 1) {
@@ -1190,9 +1189,9 @@ export abstract class CartesianAxis<
                 const box = tempText.computeBBoxWithoutTransforms();
                 if (box == null) continue;
 
-                // `tempText` measures unboxed glyphs; the pin grows them by the label's own resolved
-                // padding, which an `itemStyler` can set, to keep the drawn box's gap.
-                let measuredBox;
+                // `tempText` measures unboxed glyphs, which is what the alignments anchor; the pin grows
+                // them by the label's own resolved padding, which an `itemStyler` can set.
+                let measuredBox: LabelBox = box;
                 let innerPadding = 0;
                 if (alignment == null) {
                     const padding = expandLabelPadding(datum);
@@ -1207,13 +1206,6 @@ export abstract class CartesianAxis<
                     } else {
                         innerPadding = outward > 0 ? padding.left : padding.right;
                     }
-                } else {
-                    measuredBox = {
-                        x: box.x + tierPadding.left,
-                        y: box.y + tierPadding.top,
-                        width: box.width - tierPadding.left - tierPadding.right,
-                        height: box.height - tierPadding.top - tierPadding.bottom,
-                    };
                 }
                 const extent = getRotatedLabelExtent(measuredBox, datum.x, datum.y, rotation);
                 measured.push({ datum, extent, innerPadding });
