@@ -366,7 +366,6 @@ export class CartesianChart extends Chart {
             if (axis.options.thickness == null) {
                 axisWidth = Math.min(getSize(isVertical, bbox) ?? 0, axisWidth);
             }
-            axis.clampScrollbarLayout(axisWidth);
             axisWidths.set(axis.id, Math.ceil(axisWidth));
         }
 

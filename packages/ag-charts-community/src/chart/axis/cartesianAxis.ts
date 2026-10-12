@@ -785,25 +785,13 @@ export abstract class CartesianAxis<
             return { ...scrollbar, offset };
         }
 
-        const offset =
-            direction === 1
-                ? labelThickness + scrollbar.spacing
-                : -labelThickness - scrollbar.spacing - scrollbar.thickness;
+        // Keep the track within the axis width granted by the chart, but never inside the series area.
+        const maxThickness = (this.chartLayout?.sizeLimit ?? Infinity) + this.options.label.spacing;
+        const naturalExtent = labelThickness + scrollbar.spacing + scrollbar.thickness;
+        const extent = Math.min(naturalExtent, Math.max(maxThickness, scrollbar.thickness));
+        const offset = direction === 1 ? extent - scrollbar.thickness : -extent;
 
         return { ...scrollbar, offset };
-    }
-
-    /** Keeps an outer scrollbar within `maxThickness` of the series edge when the axis is capped below its content. */
-    clampScrollbarLayout(maxThickness: number) {
-        const scrollbar = this.layout.scrollbar;
-        if (scrollbar?.placement !== 'outer') return;
-
-        const { position } = this;
-        if (position === 'top' || position === 'left') {
-            scrollbar.offset = Math.max(scrollbar.offset, -maxThickness);
-        } else {
-            scrollbar.offset = Math.min(scrollbar.offset, maxThickness - scrollbar.thickness);
-        }
     }
 
     protected applyScrollbarLayout(
@@ -817,7 +805,8 @@ export abstract class CartesianAxis<
         if (scrollbarLayout) {
             const { offset, thickness, placement } = scrollbarLayout;
             if (placement === 'outer') {
-                spacing += scrollbarLayout.spacing + thickness;
+                // Distance from the series edge to the far side of the track, whichever side it is on.
+                spacing = Math.max(offset + thickness, -offset);
             }
             if (this.horizontal) {
                 boxes.push(new BBox(0, offset, 0, thickness));
