@@ -39,7 +39,11 @@
     "test": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build"],
-      "inputs": ["default", "^production"],
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/packages/ag-charts-website/src/components/demo-examples/exampleRegistry.ts"
+      ],
       "outputs": ["{workspaceRoot}/reports/ag-charts-demos.xml"],
       "cache": true,
       "options": {
