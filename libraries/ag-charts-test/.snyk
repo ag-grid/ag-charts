@@ -2,4 +2,52 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+    SNYK-JS-VITESTMOCKER-19497933:
+        - ag-charts-core@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.224Z
+    SNYK-JS-VITEST-17120326:
+        - ag-charts-core@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.218Z
+    SNYK-JS-TAR-17909152:
+        - ag-charts-core@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.215Z
+    SNYK-JS-TAR-17909068:
+        - ag-charts-core@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.211Z
+    SNYK-JS-ROLLUP-15340920:
+        - ag-charts-core@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.193Z
+    SNYK-JS-POSTCSS-18313038:
+        - ag-charts-core@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.188Z
+    SNYK-JS-POSTCSS-18313036:
+        - ag-charts-core@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.172Z
+    SNYK-JS-ESBUILD-17750822:
+        - ag-charts-core@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.164Z
 patch: {}
