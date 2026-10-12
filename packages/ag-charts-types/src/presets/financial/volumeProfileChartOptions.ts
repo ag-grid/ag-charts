@@ -1,4 +1,4 @@
-import type { AgVolumeProfileTotalSegmentOptions } from './priceVolumeOptions';
+import type { AgVolumeProfileSelectionOptions, AgVolumeProfileTotalSegmentOptions } from './priceVolumeOptions';
 
 export interface AgVolumeProfileChartPreset {
     priceKey?: string;
@@ -7,4 +7,6 @@ export interface AgVolumeProfileChartPreset {
     tickSize?: number;
     /** A fixed-width column showing each level's total volume, set between the price axis and the up and down bars. */
     totalSegment?: AgVolumeProfileTotalSegmentOptions;
+    /** Selection of price levels. */
+    selection?: AgVolumeProfileSelectionOptions;
 }

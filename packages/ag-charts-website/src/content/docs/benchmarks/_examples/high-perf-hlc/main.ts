@@ -77,6 +77,9 @@ function getBenchmarkConfig(): BenchmarkConfig {
             seriesCount: seriesCount,
             seriesType: 'hlc',
             version: VERSION,
+            // The hlc series is first in 14.3.0; an older published base draws no series, so the compare step
+            // skips this example when the base is below minVersion.
+            minVersion: '14.3.0',
             expectedRetainedSizeMB: undefined,
             expectedCanvasCount: 5,
         },

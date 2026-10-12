@@ -403,6 +403,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
             {
                 path: 'seriesArea.backgroundRegions',
                 options: array,
+                themeOptions: object,
             },
         ],
     },
@@ -597,6 +598,20 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         contributes: [
             {
                 path: 'axes[].axisInsetValue',
+                axisTypes: ['category'],
+            },
+        ],
+    },
+    {
+        type: 'axis:plugin',
+        name: 'axisSelectedBand',
+        moduleId: 'AxisSelectedBandModule',
+        chartTypes: ['cartesian'],
+        enterprise: true,
+        axisTypes: ['category'],
+        contributes: [
+            {
+                path: 'axes[].axisSelectedBand',
                 axisTypes: ['category'],
             },
         ],

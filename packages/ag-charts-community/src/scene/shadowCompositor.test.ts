@@ -1,6 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Group, Logger, Path, Rect, Scene, Translatable, releaseShadowScratch } from 'ag-charts-core';
+import {
+    Group,
+    Logger,
+    Path,
+    Rect,
+    Scene,
+    SegmentedGroup,
+    SegmentedPath,
+    Translatable,
+    releaseShadowScratch,
+} from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
@@ -14,6 +24,8 @@ const BLUE = { enabled: true, color: 'rgba(0, 0, 255, 1)', xOffset: 100, yOffset
 const IN_PLACE = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0 };
 
 const BLACK = [0, 0, 0, 255];
+
+const maxAlphaOf = (data: number[]) => data.reduce((max, value, i) => (i % 4 === 3 ? Math.max(max, value) : max), 0);
 const BLUE_PIXEL = [0, 0, 255, 255];
 const CLEAR = [0, 0, 0, 0];
 
@@ -73,29 +85,52 @@ describe('Group shadow compositor', () => {
         return group;
     };
 
-    const renderGroup = (group: Group, devicePixelRatio = 1) => {
+    const pixels = () => Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+
+    const drawGroup = (
+        group: Group,
+        context: CanvasRenderingContext2D,
+        width: number,
+        height: number,
+        devicePixelRatio = 1
+    ) => {
         const renderCtx = {
-            ctx: ctx(),
+            ctx: context,
             direction: 'ltr' as const,
-            width: WIDTH,
-            height: HEIGHT,
+            width,
+            height,
             devicePixelRatio,
             logger: new Logger(),
             debugNodes: {},
         };
+        group.preRender(renderCtx);
+        group.render(renderCtx);
+    };
+
+    const renderGroup = (group: Group, devicePixelRatio = 1) => {
         clearCanvas();
         ctx().save();
         ctx().scale(devicePixelRatio, devicePixelRatio);
-        group.preRender(renderCtx);
-        group.render(renderCtx);
+        drawGroup(group, ctx(), WIDTH, HEIGHT, devicePixelRatio);
         ctx().restore();
     };
+
+    const drawOnLayer = (group: Group, layer: OffscreenCanvas) =>
+        drawGroup(group, layer.getContext('2d')! as unknown as CanvasRenderingContext2D, layer.width, layer.height);
 
     // Nodes draw in the order they were created, so the children must be created in the order they should draw.
     const renderNodes = (children: readonly Shape[], batchShadows = true) => {
         const group = createGroup(children, batchShadows);
         renderGroup(group);
         return group;
+    };
+
+    // The pixels of the batched and the unbatched render of the same nodes, which are created afresh for each.
+    const renderBoth = (nodes: () => Shape[]) => {
+        renderNodes(nodes(), false);
+        const unbatched = pixels();
+        renderNodes(nodes());
+        return { unbatched, batched: pixels() };
     };
 
     const paintedPixels = () => {
@@ -168,6 +203,68 @@ describe('Group shadow compositor', () => {
             expect(at(65, 70)[0]).toBeGreaterThan(0);
             expect(at(65, 70)).not.toEqual(BLACK);
         });
+
+        // A series that gives each item a zIndex only to order them, as an aggregated scatter does, still has one batch.
+        it('should keep items of different zIndex in one batch', () => {
+            const [first, second] = leftShadowed();
+            first.zIndex = [-2, 0];
+            second.zIndex = [-2, 1];
+            renderNodes([first, second]);
+
+            expect(at(65, 70)).toEqual(BLACK);
+            expect(isHalfRed(at(90, 70))).toBe(true);
+        });
+
+        it('should end a batch at a change of zIndex in a group that batches by layer', () => {
+            const [first, second] = leftShadowed();
+            first.zIndex = 0;
+            second.zIndex = 1;
+            const group = createGroup([first, second]);
+            group.batchShadows = 'by-layer';
+            renderGroup(group);
+
+            // The shadow of the item on the upper layer lands on the item beneath it.
+            expect(at(65, 70)[0]).toBeGreaterThan(0);
+            expect(at(65, 70)).not.toEqual(BLACK);
+        });
+    });
+
+    describe('segmented group', () => {
+        const LEFT_SHADOW = { ...RED_HALF, xOffset: -50 };
+
+        // A segment that no item reaches, so that every item is drawn in the gaps between segments.
+        const segment = {
+            clipRect: { x0: 300, y0: 0, x1: 400, y1: 100 },
+            fill: 'green',
+            fillOpacity: 1,
+            stroke: 'green',
+            strokeOpacity: 1,
+            strokeWidth: 1,
+        };
+
+        const renderSegmented = (segments: (typeof segment)[]) => {
+            const group = new SegmentedGroup({ name: 'segmented-group', batchShadows: true });
+            group.segments = segments;
+            group.appendChild(box(20, 40, 60, 60, { fillShadow: LEFT_SHADOW }));
+            group.appendChild(box(100, 40, 60, 60, { fillShadow: LEFT_SHADOW }));
+            groups.push(group);
+            renderGroup(group);
+        };
+
+        it('should draw every shadow of a batch beneath every item when it has segments', () => {
+            renderSegmented([segment]);
+
+            expect(at(65, 70)).toEqual(BLACK);
+            expect(isHalfRed(at(90, 70))).toBe(true);
+            expect(at(105, 70)).toEqual(BLACK);
+        });
+
+        it('should draw the same shadows when it has no segments', () => {
+            renderSegmented([]);
+
+            expect(at(65, 70)).toEqual(BLACK);
+            expect(isHalfRed(at(90, 70))).toBe(true);
+        });
     });
 
     describe('spread', () => {
@@ -177,13 +274,7 @@ describe('Group shadow compositor', () => {
                 const shadow = { ...RED_HALF, xOffset: 0, spread: 10 };
                 const item = (y: number) =>
                     pathBox(60, y, 40, 50, { fillShadow: shadow, shadowMode: 'silhouette', stroke, strokeWidth: 6 });
-                const render = (batchShadows: boolean) => {
-                    renderNodes([item(40), item(130)], batchShadows);
-                    return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
-                };
-
-                const unbatched = render(false);
-                const batched = render(true);
+                const { unbatched, batched } = renderBoth(() => [item(40), item(130)]);
 
                 // The shadow reaches the spread past the fill, as the item casts it for itself.
                 expect(isHalfRed(at(105, 65))).toBe(true);
@@ -225,6 +316,414 @@ describe('Group shadow compositor', () => {
             expect(isHalfRed(at(125, 60))).toBe(true);
             expect(at(115, 60)).toEqual(CLEAR);
             expect(at(165, 60)).toEqual(CLEAR);
+        });
+
+        it.each([false, true])(
+            'should cast a spread shadow as strong as the composited paint of a pattern (batched: %s)',
+            (batched) => {
+                // A background at 0.5 under a motif at 0.5 is 0.75 where they overlap.
+                const pattern = {
+                    type: 'pattern' as const,
+                    pattern: 'squares' as const,
+                    width: 10,
+                    height: 10,
+                    fill: 'black',
+                    fillOpacity: 0.5,
+                    backgroundFill: 'black',
+                    backgroundFillOpacity: 0.5,
+                    strokeWidth: 0,
+                };
+                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+                renderNodes(
+                    [
+                        box(20, 40, 40, 50, { fill: pattern, fillShadow: shadow }),
+                        box(20, 130, 40, 50, { fill: pattern, fillShadow: shadow }),
+                    ],
+                    batched
+                );
+
+                for (const pixel of [at(140, 65), at(115, 65), at(140, 155)]) {
+                    expect(pixel[3]).toBeGreaterThanOrEqual(190);
+                    expect(pixel[3]).toBeLessThanOrEqual(192);
+                }
+            }
+        );
+
+        it('should fade the shadow of a crisp rectangle that is narrower than a pixel, as the rectangle fades', () => {
+            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 4 };
+            const thin = () => [
+                box(20, 40, 0.4, 50, { crisp: true, fillShadow: shadow }),
+                box(20, 130, 0.4, 50, { crisp: true, fillShadow: shadow }),
+            ];
+            renderNodes(thin(), false);
+            const alone = Array.from(ctx().getImageData(100, 20, 60, 180).data);
+
+            renderNodes(thin());
+            const batched = Array.from(ctx().getImageData(100, 20, 60, 180).data);
+
+            expect(alone.some((value) => value !== 0)).toBe(true);
+            expect(Math.max(...alone.filter((_, i) => i % 4 === 3))).toBeLessThan(255);
+            expect(batched).toEqual(alone);
+        });
+
+        describe('a crisp rectangle that is narrower than a pixel', () => {
+            const SOLID = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 4 };
+            // A bar that is 0.4 across, or high, which crisp rendering fades rather than widening to a pixel.
+            const bars = {
+                thin: () => [
+                    box(20, 40, 0.4, 50, { crisp: true, fillShadow: SOLID }),
+                    box(20, 130, 0.4, 50, { crisp: true, fillShadow: SOLID }),
+                ],
+                short: () => [
+                    box(20, 40, 50, 0.4, { crisp: true, fillShadow: SOLID }),
+                    box(20, 130, 50, 0.4, { crisp: true, fillShadow: SOLID }),
+                ],
+            };
+            const rendered = (devicePixelRatio: number, children: readonly Shape[], batchShadows = true) => {
+                renderGroup(createGroup(children, batchShadows), devicePixelRatio);
+                return pixels();
+            };
+
+            it.each([['thin'], ['short']] as const)(
+                'should fade the shadow of a %s crisp bar, as the bar fades',
+                (name) => {
+                    const alone = rendered(1, bars[name](), false);
+
+                    expect(alone.some((value) => value !== 0)).toBe(true);
+                    expect(maxAlphaOf(alone)).toBeLessThan(255);
+                    expect(rendered(1, bars[name]())).toEqual(alone);
+                }
+            );
+
+            it.each([['thin'], ['short']] as const)(
+                'should fade the shadow of a %s crisp bar at a device pixel ratio of 2, as the bar fades',
+                (name) => {
+                    // A scene gives the casters the layer's pixel ratio, which they size and snap their own shadows by.
+                    const renderScene = (batchShadows: boolean) => {
+                        const scene = new Scene({ canvasElement: document.createElement('canvas'), pixelRatio: 2 });
+                        scene.resize(WIDTH, HEIGHT, 2);
+                        const root = new Group({ name: 'root' });
+                        root.appendChild(createGroup(bars[name](), batchShadows));
+                        scene.setRoot(root);
+                        scene.render();
+                        const { context } = scene.canvas;
+                        const data = Array.from(context.getImageData(0, 0, WIDTH * 2, HEIGHT * 2).data);
+                        scene.destroy();
+                        return data;
+                    };
+                    const alone = renderScene(false);
+
+                    expect(alone.some((value) => value !== 0)).toBe(true);
+                    expect(maxAlphaOf(alone)).toBeLessThan(255);
+                    expect(renderScene(true)).toEqual(alone);
+                }
+            );
+
+            it.each([['thin'], ['short']] as const)(
+                'should leave a %s crisp bar to cast for itself when the browser gives no context for the mask',
+                (name) => {
+                    const alone = rendered(1, bars[name](), false);
+
+                    // The mask is the first canvas that the batch makes, and the casters then draw their own spread.
+                    const noContext = vi.spyOn(OffscreenCanvas.prototype, 'getContext').mockReturnValueOnce(null);
+                    let batched: number[];
+                    try {
+                        batched = rendered(1, bars[name]());
+                        expect(noContext).toHaveBeenCalled();
+                    } finally {
+                        noContext.mockRestore();
+                    }
+
+                    expect(alone.some((value) => value !== 0)).toBe(true);
+                    expect(batched).toEqual(alone);
+                }
+            );
+        });
+
+        describe('a pattern of several parts', () => {
+            const SOLID = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+
+            it.each([false, true])(
+                'should cast the shadow of a pattern with a background, a fill and a visible stroke (batched: %s)',
+                (batched) => {
+                    // 0.5 under 0.5 under 0.5 is 0.875 where all three overlap.
+                    const pattern = {
+                        type: 'pattern' as const,
+                        pattern: 'squares' as const,
+                        width: 10,
+                        height: 10,
+                        fill: 'black',
+                        fillOpacity: 0.5,
+                        backgroundFill: 'black',
+                        backgroundFillOpacity: 0.5,
+                        stroke: 'black',
+                        strokeOpacity: 0.5,
+                        strokeWidth: 2,
+                    };
+                    renderNodes(
+                        [
+                            box(20, 40, 40, 50, { fill: pattern, fillShadow: SOLID }),
+                            box(20, 130, 40, 50, { fill: pattern, fillShadow: SOLID }),
+                        ],
+                        batched
+                    );
+
+                    for (const pixel of [at(140, 65), at(115, 65), at(140, 155)]) {
+                        expect(pixel[3]).toBeGreaterThanOrEqual(222);
+                        expect(pixel[3]).toBeLessThanOrEqual(225);
+                    }
+                }
+            );
+        });
+
+        describe('a gradient whose last stop has no colour', () => {
+            it.each([false, true])(
+                'should cast the shadow at the alpha of the colour that the stop inherits (batched: %s)',
+                (batched) => {
+                    const gradient = {
+                        type: 'gradient' as const,
+                        gradient: 'linear' as const,
+                        colorStops: [{ color: 'rgba(0, 0, 255, 0.4)', stop: 0 }, { stop: 1 }],
+                    };
+                    const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+                    renderNodes(
+                        [
+                            box(20, 40, 40, 50, { fill: gradient, fillShadow: shadow }),
+                            box(20, 130, 40, 50, { fill: gradient, fillShadow: shadow }),
+                        ],
+                        batched
+                    );
+
+                    // 0.4 of 255 is 102.
+                    for (const pixel of [at(140, 65), at(115, 65), at(140, 155)]) {
+                        expect(pixel[3]).toBeGreaterThanOrEqual(101);
+                        expect(pixel[3]).toBeLessThanOrEqual(103);
+                    }
+                }
+            );
+        });
+
+        describe('line patterns', () => {
+            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
+
+            it.each([['forward-slanted-lines'], ['backward-slanted-lines'], ['vertical-lines'], ['horizontal-lines']])(
+                'should cast no shadow from a %s pattern with no stroke, as its fill is open segments that paint nothing',
+                (name) => {
+                    // The lines are open segments, so the fill paints nothing, and the stroke is not drawn at 0px.
+                    const pattern = {
+                        type: 'pattern' as const,
+                        pattern: name as 'vertical-lines',
+                        fill: 'black',
+                        backgroundFill: 'none',
+                        strokeWidth: 0,
+                    };
+                    for (const batched of [false, true]) {
+                        renderNodes(
+                            [
+                                box(20, 40, 40, 50, { fill: pattern, fillShadow: shadow }),
+                                box(20, 130, 40, 50, { fill: pattern, fillShadow: shadow }),
+                            ],
+                            batched
+                        );
+
+                        expect(at(140, 65)).toEqual(CLEAR);
+                        expect(at(115, 65)).toEqual(CLEAR);
+                    }
+                }
+            );
+
+            it.each([
+                ['an invalid', 'not a path', CLEAR],
+                ['a valid', 'M 0 0 L 4 0 L 4 4 Z', undefined],
+            ])(
+                'should count the fill of a line pattern with %s custom path as the pattern does',
+                (_name, path, clear) => {
+                    // A path that does not parse leaves the pattern drawing its lines, whose fill paints nothing.
+                    const pattern = {
+                        type: 'pattern' as const,
+                        pattern: 'vertical-lines' as const,
+                        path,
+                        fill: 'black',
+                        backgroundFill: 'none',
+                        strokeWidth: 0,
+                    };
+                    for (const batched of [false, true]) {
+                        renderNodes(
+                            [
+                                box(20, 40, 40, 50, { fill: pattern, fillShadow: shadow }),
+                                box(20, 130, 40, 50, { fill: pattern, fillShadow: shadow }),
+                            ],
+                            batched
+                        );
+
+                        if (clear == null) expect(at(140, 65)[3]).toBeGreaterThan(0);
+                        else expect(at(140, 65)).toEqual(clear);
+                    }
+                }
+            );
+
+            it.each([['forward-slanted-lines'], ['backward-slanted-lines'], ['vertical-lines'], ['horizontal-lines']])(
+                'should cast the shadow of the strokes of a %s pattern, at the strength of the stroke',
+                (name) => {
+                    const pattern = {
+                        type: 'pattern' as const,
+                        pattern: name as 'vertical-lines',
+                        // A fill that would count at 0.9 if the lines were closed.
+                        fill: 'black',
+                        fillOpacity: 0.9,
+                        backgroundFill: 'none',
+                        stroke: 'black',
+                        strokeOpacity: 0.5,
+                        strokeWidth: 2,
+                    };
+                    for (const batched of [false, true]) {
+                        renderNodes(
+                            [
+                                box(20, 40, 40, 50, { fill: pattern, fillShadow: shadow }),
+                                box(20, 130, 40, 50, { fill: pattern, fillShadow: shadow }),
+                            ],
+                            batched
+                        );
+
+                        expect(at(140, 65)[3]).toBeGreaterThanOrEqual(127);
+                        expect(at(140, 65)[3]).toBeLessThanOrEqual(129);
+                    }
+                }
+            );
+        });
+
+        describe('a shape that paints only extras', () => {
+            // A shape that paints a stroke apart from its main path, and scales the opacity of what it paints.
+            class ExtrasPath extends Path {
+                extrasX = 0;
+                extrasY = 0;
+                protected override getSilhouetteExtrasOpacity() {
+                    return 1;
+                }
+                protected override getPaintOpacityScale() {
+                    return 0.5;
+                }
+                protected override dilateSilhouetteExtras(target: CanvasRenderingContext2D, growth: number) {
+                    const extras = new Path2D();
+                    extras.moveTo(this.extrasX, this.extrasY);
+                    extras.lineTo(this.extrasX, this.extrasY + 50);
+                    target.lineWidth = 8 + growth;
+                    target.stroke(extras);
+                }
+            }
+
+            it('should cast its spread shadow at the scaled opacity, whether or not the shadow is batched', () => {
+                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', xOffset: 0, spread: 4 };
+                const extras = (x: number, y: number) => {
+                    const node = new ExtrasPath();
+                    Object.assign(node, { fill: 'none', stroke: undefined, strokeWidth: 0, fillShadow: shadow });
+                    Object.assign(node, { shadowMode: 'silhouette', extrasX: x, extrasY: y });
+                    node.path.moveTo(x, y);
+                    node.path.lineTo(x, y + 50);
+                    return node;
+                };
+                const alphaAt = (batchShadows: boolean) => {
+                    renderNodes([extras(100, 40), extras(200, 130)], batchShadows);
+                    return [at(100, 65)[3], at(200, 155)[3]];
+                };
+
+                // Half of 255.
+                expect(alphaAt(false)).toEqual([128, 128]);
+                expect(alphaAt(true)).toEqual([128, 128]);
+            });
+        });
+
+        describe('the strength of the casters of a batch', () => {
+            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 12 };
+            const item = (y: number, alpha: number) =>
+                box(20, y, 40, 50, { fill: `rgba(0, 0, 255, ${alpha})`, fillShadow: shadow });
+            const alphaAt = (x: number, y: number) => at(x, y)[3];
+
+            it('should cast casters of one translucent strength as one shadow, where their spreads overlap', () => {
+                // The items are 5px apart, so their 12px spreads overlap in the gap, at y 90 to 95.
+                renderNodes([item(40, 0.5), item(95, 0.5), item(150, 0.5)]);
+
+                // Half of 255, beside an item, between two of them, and above the first. Not 0.75, as stacked shadows would be.
+                expect([alphaAt(140, 65), alphaAt(140, 92), alphaAt(140, 120), alphaAt(140, 34)]).toEqual([
+                    128, 128, 128, 128,
+                ]);
+            });
+
+            it('should cast casters of different strengths each at their own, where their spreads do not meet', () => {
+                const { unbatched: alone, batched } = renderBoth(() => [item(40, 0.5), item(130, 1)]);
+
+                expect([alphaAt(140, 65), alphaAt(140, 155)]).toEqual([128, 255]);
+                expect(batched).toEqual(alone);
+            });
+
+            it('should cast the stronger of casters of different strengths, where their spreads overlap', () => {
+                // 5px apart, so their spreads overlap in the gap at y 90 to 95.
+                renderNodes([item(40, 0.5), item(95, 1)]);
+
+                // The translucent item's shadow beside it, the gap between the two, and the opaque item's shadow beside it.
+                expect([alphaAt(140, 65), alphaAt(140, 92), alphaAt(140, 120)]).toEqual([128, 255, 255]);
+            });
+
+            it('should not let a caster that paints nothing stop the others casting at one strength', () => {
+                // The transparent item casts nothing, so it has no strength to differ by.
+                renderNodes([item(40, 0.5), item(95, 0), item(150, 0.5)]);
+
+                // Beside the first item and just below it, then 120, which only the transparent item's spread (83 to 157) would
+                // reach, then beside the last item.
+                expect([alphaAt(140, 65), alphaAt(140, 92), alphaAt(140, 120), alphaAt(140, 175)]).toEqual([
+                    128, 128, 0, 128,
+                ]);
+            });
+
+            it('should cast at the strength of the casters and the alpha of the layer together', () => {
+                const render = (batchShadows: boolean) => {
+                    const group = createGroup([item(40, 0.5), item(95, 0.5), item(150, 0.5)], batchShadows);
+                    group.opacity = 0.5;
+                    renderGroup(group);
+                    return [alphaAt(140, 65), alphaAt(140, 92)];
+                };
+                // Beside an item, a caster cast for itself is the same. Between two, the shadows of casters cast for themselves stack.
+                const [aloneBeside] = render(false);
+
+                const [batchedBeside, batchedBetween] = render(true);
+
+                // A quarter of 255, not the 0.5 of the group alone, and not stacked to 0.4375 between two items.
+                expect([aloneBeside, batchedBeside, batchedBetween]).toEqual([64, 64, 64]);
+            });
+
+            it('should treat casters whose strengths differ by less than the tolerance as one strength', () => {
+                // 0.5 and 0.5005 are within 1/512 of each other, so the shadow is cast once rather than twice over.
+                renderNodes([item(40, 0.5), item(95, 0.5005)]);
+
+                expect([alphaAt(140, 65), alphaAt(140, 92), alphaAt(140, 120)]).toEqual([128, 128, 128]);
+            });
+
+            it('should cast each caster for itself where one has no path to dilate', () => {
+                // A shape without a path to dilate has no strength, so the batch cannot cast its casters as one.
+                class NoSpreadPath extends Rect {
+                    protected override hasSpreadMaskPath() {
+                        return false;
+                    }
+                }
+                const unspread = (y: number) => {
+                    const node = new NoSpreadPath();
+                    Object.assign(node, {
+                        x: 20,
+                        y,
+                        width: 40,
+                        height: 50,
+                        fill: 'rgba(0, 0, 255, 0.5)',
+                        stroke: undefined,
+                        strokeWidth: 0,
+                        fillShadow: shadow,
+                    });
+                    return node;
+                };
+                const { unbatched: alone, batched } = renderBoth(() => [item(40, 0.5), unspread(130)]);
+
+                expect(alone.some((value) => value !== 0)).toBe(true);
+                expect(batched).toEqual(alone);
+            });
         });
     });
 
@@ -410,54 +909,6 @@ describe('Group shadow compositor', () => {
             });
         });
 
-        it.each([false, true])(
-            'should cast a spread shadow as strong as the composited paint of a pattern (batched: %s)',
-            (batched) => {
-                // A background at 0.5 under a motif at 0.5 is 0.75 where they overlap.
-                const pattern = {
-                    type: 'pattern' as const,
-                    pattern: 'squares' as const,
-                    width: 10,
-                    height: 10,
-                    fill: 'black',
-                    fillOpacity: 0.5,
-                    backgroundFill: 'black',
-                    backgroundFillOpacity: 0.5,
-                    strokeWidth: 0,
-                };
-                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 10 };
-                renderNodes(
-                    [
-                        box(20, 40, 40, 50, { fill: pattern, fillShadow: shadow }),
-                        box(20, 130, 40, 50, { fill: pattern, fillShadow: shadow }),
-                    ],
-                    batched
-                );
-
-                for (const pixel of [at(140, 65), at(115, 65), at(140, 155)]) {
-                    expect(pixel[3]).toBeGreaterThanOrEqual(190);
-                    expect(pixel[3]).toBeLessThanOrEqual(192);
-                }
-            }
-        );
-
-        it('should fade the shadow of a crisp rectangle that is narrower than a pixel, as the rectangle fades', () => {
-            const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 4 };
-            const thin = () => [
-                box(20, 40, 0.4, 50, { crisp: true, fillShadow: shadow }),
-                box(20, 130, 0.4, 50, { crisp: true, fillShadow: shadow }),
-            ];
-            renderNodes(thin(), false);
-            const alone = Array.from(ctx().getImageData(100, 20, 60, 180).data);
-
-            renderNodes(thin());
-            const batched = Array.from(ctx().getImageData(100, 20, 60, 180).data);
-
-            expect(alone.some((value) => value !== 0)).toBe(true);
-            expect(Math.max(...alone.filter((_, i) => i % 4 === 3))).toBeLessThan(255);
-            expect(batched).toEqual(alone);
-        });
-
         describe('a spread shadow at fractional coordinates', () => {
             const item = (y: number, mixin: Partial<Path>) =>
                 pathBox(60.5, y + 0.25, 40.25, 30.5, {
@@ -606,6 +1057,64 @@ describe('Group shadow compositor', () => {
         });
     });
 
+    describe('strength of a spread batch', () => {
+        // The shadow is opaque and lands 100px right of the items, so that its alpha is that of the mask under it.
+        const SPREAD = { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 100, yOffset: 0, blur: 0, spread: 6 };
+
+        // Two items that overlap at 50 to 80 across, and 60 to 90 down, so their shadows overlap there.
+        const overlapping = (first: Partial<Rect>, second: Partial<Rect>) => [
+            box(20, 40, 60, 50, { fill: 'blue', fillShadow: SPREAD, ...first }),
+            box(50, 60, 60, 50, { fill: 'blue', fillShadow: SPREAD, ...second }),
+        ];
+
+        const alphaAt = (x: number, y: number) => at(x, y)[3];
+        const expectAlpha = (x: number, y: number, alpha: number) => {
+            expect(Math.abs(alphaAt(x, y) - alpha)).toBeLessThanOrEqual(2);
+        };
+
+        it('should cast the overlap of items at a shared translucent strength at that strength', () => {
+            renderNodes(overlapping({ fillOpacity: 0.5 }, { fillOpacity: 0.5 }));
+
+            // Each shadow alone, and where the two overlap, which is not the 0.75 that two translucent shadows add up to.
+            expectAlpha(130, 50, 128);
+            expectAlpha(190, 100, 128);
+            expectAlpha(160, 75, 128);
+        });
+
+        it('should scale a shared translucent strength by the opacity of the layer', () => {
+            const group = createGroup(overlapping({ fillOpacity: 0.5 }, { fillOpacity: 0.5 }));
+            group.opacity = 0.5;
+            renderGroup(group);
+
+            expectAlpha(130, 50, 64);
+            expectAlpha(160, 75, 64);
+        });
+
+        it('should cast each item at its own strength when the strengths differ', () => {
+            renderNodes(overlapping({ fillOpacity: 0.5 }, { fillOpacity: 0.25 }));
+
+            // The shadows add where they overlap: 1 - (1 - 0.5) * (1 - 0.25) = 0.625.
+            expectAlpha(130, 50, 128);
+            expectAlpha(190, 100, 64);
+            expectAlpha(160, 75, 159);
+        });
+
+        it('should cast items whose strengths differ by less than the tolerance as one', () => {
+            renderNodes(overlapping({ fillOpacity: 0.5 }, { fillOpacity: 0.501 }));
+
+            expectAlpha(160, 75, 128);
+        });
+
+        it('should skip the mask of a batch whose items all cast nothing', () => {
+            const before = offscreenCanvases();
+
+            renderNodes(overlapping({ fillOpacity: 0 }, { fillOpacity: 0 }));
+
+            expect(createdSince(before)).toHaveLength(0);
+            expect(paintedPixels()).toBe(0);
+        });
+    });
+
     describe('cutout', () => {
         // The cutout is 200 to 260 across. The shadow of the first batch lands on its left part, and that of the
         // second batch on its right part.
@@ -743,16 +1252,9 @@ describe('Group shadow compositor', () => {
             ['bottom', { xOffset: 0, yOffset: -60 }, [box(100, HEIGHT + 20, 40, 40), box(200, HEIGHT + 20, 40, 40)]],
         ])('should cast a blurred shadow onto the layer from items off the %s edge', (_edge, offset, items) => {
             const shadow = { ...RED_HALF, ...offset, blur: 8, spread: 4 };
-            const render = (batchShadows: boolean) => {
-                renderNodes(
-                    items.map((item) => box(item.x, item.y, item.width, item.height, { fillShadow: shadow })),
-                    batchShadows
-                );
-                return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
-            };
-
-            const unbatched = render(false);
-            const batched = render(true);
+            const { unbatched, batched } = renderBoth(() =>
+                items.map((item) => box(item.x, item.y, item.width, item.height, { fillShadow: shadow }))
+            );
 
             expect(unbatched.some((value) => value !== 0)).toBe(true);
             expect(batched).toEqual(unbatched);
@@ -792,15 +1294,6 @@ describe('Group shadow compositor', () => {
             node.clipX = clipX;
             node.clipY = HEIGHT;
             return node;
-        };
-
-        const renderBoth = (nodes: () => Shape[]) => {
-            const render = (batchShadows: boolean) => {
-                renderNodes(nodes(), batchShadows);
-                return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
-            };
-            const unbatched = render(false);
-            return { unbatched, batched: render(true) };
         };
 
         it('should clip the shadow of a path that is clipped, as it does for itself', () => {
@@ -902,11 +1395,11 @@ describe('Group shadow compositor', () => {
             const before = offscreenCanvases();
 
             renderNodes(plain());
-            const batching = Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+            const batching = pixels();
             expect(createdSince(before)).toHaveLength(0);
 
             renderNodes(plain(), false);
-            expect(Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data)).toEqual(batching);
+            expect(pixels()).toEqual(batching);
             expect(paintedPixels()).toBe(3 * 60 * 60);
         });
 
@@ -996,13 +1489,13 @@ describe('Group shadow compositor', () => {
                 box(20, 130, 40, 40, { fillShadow: RED_HALF }),
             ];
             renderNodes(nodes(), false);
-            const alone = Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+            const alone = pixels();
 
             const noContext = vi.spyOn(OffscreenCanvas.prototype, 'getContext').mockReturnValue(null);
             let batched: number[];
             try {
                 renderNodes(nodes());
-                batched = Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+                batched = pixels();
             } finally {
                 noContext.mockRestore();
             }
@@ -1011,7 +1504,7 @@ describe('Group shadow compositor', () => {
             expect(batched).toEqual(alone);
         });
 
-        it('should cast no shadow from transparent paint when the layer is too large for the mask', () => {
+        describe('a layer too large for the mask', () => {
             const transparentGradient = {
                 type: 'gradient' as const,
                 colorStops: [
@@ -1019,35 +1512,70 @@ describe('Group shadow compositor', () => {
                     { color: 'rgba(255, 0, 0, 0)', stop: 1 },
                 ],
             };
-            const shadow = { ...RED_HALF, spread: 8 };
-            // 4200 x 4100 is more pixels than the mask can have, so every caster casts for itself.
-            const layer = new OffscreenCanvas(4200, 4100);
-            const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
-            const renderCtx = {
-                ctx: layerCtx,
-                direction: 'ltr' as const,
-                width: layer.width,
-                height: layer.height,
-                devicePixelRatio: 1,
-                logger: new Logger(),
-                debugNodes: {},
-            };
-            const before = offscreenCanvases();
-            const group = createGroup([
-                box(20, 40, 40, 50, { fill: transparentGradient, fillShadow: shadow }),
-                box(20, 130, 40, 50, { fillShadow: shadow }),
-            ]);
-            group.preRender(renderCtx);
-            group.render(renderCtx);
 
-            // No mask was made for the layer, so the casters did cast for themselves.
-            expect(inUse(createdSince(before).filter((canvas) => canvas !== layer)).length).toBeLessThanOrEqual(1);
-            const alpha = (x: number, y: number) => layerCtx.getImageData(x, y, 1, 1).data[3];
-            // The shadow of the visible item sits 100px right of it, and the transparent one casts none, even as dilated.
-            expect(alpha(140, 155)).toBeGreaterThan(0);
-            expect(alpha(140, 65)).toBe(0);
-            expect(alpha(125, 45)).toBe(0);
-            expect(alpha(112, 65)).toBe(0);
+            const renderLayer = (layerWidth: number, layerHeight: number, group: Group) => {
+                const layer = new OffscreenCanvas(layerWidth, layerHeight);
+                drawOnLayer(group, layer);
+                const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
+                return { layer, alpha: (x: number, y: number) => layerCtx.getImageData(x, y, 1, 1).data[3] };
+            };
+
+            it.each([
+                [4200, 4100],
+                [8000, 3000],
+            ])(
+                'should cast the shadow through a mask of a lower resolution, for a layer of %i x %i',
+                (width, height) => {
+                    const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)', spread: 8 };
+                    const before = offscreenCanvases();
+                    const group = createGroup([
+                        box(20, 40, 40, 50, { fill: transparentGradient, fillShadow: shadow }),
+                        box(20, 130, 40, 50, { fillShadow: shadow }),
+                    ]);
+
+                    const { layer, alpha } = renderLayer(width, height, group);
+
+                    // One mask, within what a browser can allocate, was made for the layer, and the casters did not cast for themselves.
+                    const masks = inUse(createdSince(before).filter((canvas) => canvas !== layer));
+                    const [mask] = masks;
+                    expect(mask.width * mask.height).toBeLessThanOrEqual(4096 * 4096);
+                    expect(mask.width).toBeLessThan(width);
+                    // The shadow of the visible item sits 100px right of it, at its full strength and in its place, and the
+                    // transparent one casts none, even as dilated.
+                    expect([alpha(140, 155), alpha(140, 130), alpha(140, 180)]).toEqual([255, 255, 255]);
+                    expect([alpha(140, 65), alpha(125, 45), alpha(112, 65)]).toEqual([0, 0, 0]);
+                    // Well past the 8px of spread, which a mask of a lower resolution blurs the edge of by a pixel.
+                    expect([alpha(104, 155), alpha(176, 155), alpha(140, 114), alpha(140, 196)]).toEqual([0, 0, 0, 0]);
+                }
+            );
+
+            it('should cast the shadow of a segmented path past the width that the mask reaches at its resolution', () => {
+                const shadow = { ...RED_HALF, color: 'rgba(255, 0, 0, 1)' };
+                // A segment that no item reaches, so that the item is drawn in the gap between segments.
+                const segments = [{ clipRect: { x0: 0, y0: 0, x1: 10, y1: 10 } }];
+                const segmentedBox = (x: number) => {
+                    const node = new SegmentedPath();
+                    Object.assign(node, {
+                        fill: 'black',
+                        stroke: undefined,
+                        strokeWidth: 0,
+                        fillShadow: shadow,
+                        segments,
+                    });
+                    node.path.rect(x, 40, 40, 50);
+                    return node;
+                };
+                const unbatched = renderLayer(8000, 3000, createGroup([segmentedBox(7000)], false));
+                const before = offscreenCanvases();
+                const { layer, alpha } = renderLayer(8000, 3000, createGroup([segmentedBox(7000)]));
+
+                // The mask is smaller than the layer, and its resolution leaves the right of the layer past its canvas.
+                const [mask] = inUse(createdSince(before).filter((canvas) => canvas !== layer));
+                expect(mask.width).toBeLessThan(7000);
+                expect(unbatched.alpha(7120, 65)).toBe(255);
+                expect([alpha(7120, 65), alpha(7120, 45), alpha(7120, 85)]).toEqual([255, 255, 255]);
+                expect(alpha(7220, 65)).toBe(0);
+            });
         });
 
         it('should share one scratch canvas between the groups of a scene', () => {
@@ -1067,28 +1595,14 @@ describe('Group shadow compositor', () => {
         });
 
         it('should grow the scratch canvas to fit layers of different proportions', () => {
-            const renderCtxFor = (layer: OffscreenCanvas) => ({
-                ctx: layer.getContext('2d')! as unknown as CanvasRenderingContext2D,
-                direction: 'ltr' as const,
-                width: layer.width,
-                height: layer.height,
-                devicePixelRatio: 1,
-                logger: new Logger(),
-                debugNodes: {},
-            });
-            const draw = (group: Group, layer: OffscreenCanvas) => {
-                const renderCtx = renderCtxFor(layer);
-                group.preRender(renderCtx);
-                group.render(renderCtx);
-            };
             const wideLayer = new OffscreenCanvas(400, 200);
             const tallLayer = new OffscreenCanvas(200, 400);
             const wide = createGroup([shadowed(10, 10), shadowed(10, 80)]);
             const tall = createGroup([shadowed(10, 10), shadowed(10, 80)]);
             const before = offscreenCanvases();
 
-            draw(wide, wideLayer);
-            draw(tall, tallLayer);
+            drawOnLayer(wide, wideLayer);
+            drawOnLayer(tall, tallLayer);
 
             // The canvas that fits the wide layer is replaced by one that fits both, which neither group replaces again.
             const [scratch] = inUse(createdSince(before));
@@ -1098,8 +1612,8 @@ describe('Group shadow compositor', () => {
             expect(scratch.height).toBe(400);
             const created = createdSince(before).length;
 
-            draw(wide, wideLayer);
-            draw(tall, tallLayer);
+            drawOnLayer(wide, wideLayer);
+            drawOnLayer(tall, tallLayer);
 
             expect(createdSince(before)).toHaveLength(created);
             expect(inUse(createdSince(before))).toEqual([scratch]);

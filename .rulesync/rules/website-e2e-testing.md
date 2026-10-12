@@ -39,7 +39,7 @@ function recordStyler(kind: StylerCall['kind'], params: { seriesId?: string; hig
 const calls = await page.evaluate(() => (window as any).agE2E.popStylerCalls());
 ```
 
-Precedents: `e2e/state.spec.ts` (`popChartEvents`) and `active-e2e/_examples/line-example/main.ts`. A pull accessor is deterministic — the test reads after it has waited for the chart to settle — whereas console scraping is at the mercy of log ordering and flush timing.
+Precedents: `e2e/state.spec.ts` (`popChartEvents`) and `src/content/docs/active-e2e/_examples/line-example/main.ts`. A pull accessor is deterministic — the test reads after it has waited for the chart to settle — whereas console scraping is at the mercy of log ordering and flush timing.
 
 Constraints for the hook:
 

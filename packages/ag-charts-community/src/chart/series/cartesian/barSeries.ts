@@ -1769,9 +1769,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (simpleItemStyler && processedData != null && datumIndex != null) {
             const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
             const overrides = simpleItemStyler(datum);
+            // It sees only the datum, so it cannot react to selection; the selected and unselected styles outrank it.
             return mergeDefaults(
-                overrides,
                 selectionStyle,
+                overrides,
                 highlightStyle,
                 this.getStyle(false, highlightState, selectionState, candidateState)
             ) as Required<NormalisedBarSeriesStyle>;
@@ -2234,6 +2235,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             ? { x: alongStart, y: crossStart, width: alongLength, height: crossWidth }
             : { x: crossStart, y: alongStart, width: crossWidth, height: alongLength };
         return computeBarFocusBounds(this, datumBox);
+    }
+
+    public override getSelectionGroup(): string | undefined {
+        return this.options.selectionGroup;
     }
 
     protected override hasItemStylers(): boolean {

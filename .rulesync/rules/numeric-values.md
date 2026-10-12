@@ -18,7 +18,7 @@ AG Charts accepts `bigint` data values for integers beyond `Number.MAX_SAFE_INTE
 
 ## Utilities to use instead of `Math.*` and operators
 
-All from `ag-charts-core` (`utils/data/numbers.ts`, `utils/data/extent.ts`, `utils/types/typeGuards.ts`):
+All from `ag-charts-core` (`data/numbers.ts`, `data/extent.ts`, `data/typeGuards.ts`):
 
 | Instead of                          | Use                                            |
 | ----------------------------------- | ---------------------------------------------- |

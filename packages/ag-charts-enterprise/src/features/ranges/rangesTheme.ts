@@ -6,52 +6,27 @@ import type {
     Operation,
     WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, undocumentedThemeOptions } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth, undocumentedThemeOptions } from 'ag-charts-core';
 
 const DAY = 1000 * 60 * 60 * 24;
 const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
 // Resolved colour and width of `buttonBorder`, which may be a boolean or a `{ color, width }` object.
-const buttonBorderColor: Operation = {
-    $if: [{ $isType: [{ $ref: 'buttonBorder' }, 'boolean'] }, { $ref: 'borderColor' }, { $ref: 'buttonBorder.color' }],
-};
-const buttonBorderWidth: Operation = {
-    $if: [
-        { $isType: [{ $ref: 'buttonBorder' }, 'boolean'] },
-        { $if: [{ $ref: 'buttonBorder' }, 1, 0] },
-        { $ref: 'buttonBorder.width' },
-    ],
-};
+const buttonBorderColor = themeBorderColor('buttonBorder');
+const buttonBorderWidth = themeBorderWidth('buttonBorder', { on: 1 });
 
 type ButtonStateBorderParam = 'buttonHoverBorder' | 'buttonActiveBorder' | 'buttonDisabledBorder';
 
 // A state border set to `true` inherits `buttonBorder`, `false` hides the colour but keeps the base width, and an
 // object applies its own colour and width, falling back to `buttonBorder` for either one left unset.
-const stateBorderColor = (param: ButtonStateBorderParam): Operation => ({
-    $if: [
-        { $isType: [{ $ref: param }, 'boolean'] },
-        { $if: [{ $ref: param }, buttonBorderColor, 'transparent'] },
-        { $if: [{ $isType: [{ $ref: `${param}.color` }, 'string'] }, { $ref: `${param}.color` }, buttonBorderColor] },
-    ],
-});
+const stateBorderColor = (param: ButtonStateBorderParam): Operation =>
+    themeBorderColor(param, { on: buttonBorderColor, off: 'transparent', unset: buttonBorderColor });
 const stateBorderWidth = (param: ButtonStateBorderParam): Operation => ({
     $isUserOption: [
         '../strokeWidth',
         { $path: '../strokeWidth' },
-        {
-            $if: [
-                { $isType: [{ $ref: param }, 'boolean'] },
-                buttonBorderWidth,
-                {
-                    $if: [
-                        { $isType: [{ $ref: `${param}.width` }, 'number'] },
-                        { $ref: `${param}.width` },
-                        buttonBorderWidth,
-                    ],
-                },
-            ],
-        },
+        themeBorderWidth(param, { on: buttonBorderWidth, off: buttonBorderWidth, unset: buttonBorderWidth }),
     ],
 });
 

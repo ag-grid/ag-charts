@@ -506,6 +506,14 @@ export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
                 formatter: callback,
             },
         },
+        axisSelectedBand: {
+            enabled: boolean,
+            fill: colorOrRef,
+            fillOpacity: ratio,
+            stroke: colorOrRef,
+            strokeWidth: positiveNumber,
+            lineDash: arrayOf(positiveNumber),
+        },
     }),
 };
 

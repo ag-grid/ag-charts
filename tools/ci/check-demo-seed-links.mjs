@@ -4,12 +4,22 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { RELEASE_BRANCH, resolveBranch } from '../../packages/ag-charts-demos/tools/seeds/seed-common.mjs';
+import {
+    CHARTS_BUILD_PACKAGES,
+    CHARTS_BUILD_SHARED_PACKAGES,
+} from '../../packages/ag-charts-demos/tools/seeds/export-seed-mirror.mjs';
+import {
+    PIN_SOURCE,
+    RELEASE_BRANCH,
+    readChartsPins,
+    resolveBranch,
+} from '../../packages/ag-charts-demos/tools/seeds/seed-common.mjs';
 
 /**
- * Post-deploy check that the demo pages' seed links resolve. The links open the seeds in the
- * `ag-grid/ag-charts-demos` mirror (`.github/workflows/demo-seeds-mirror.yml` keeps it in step),
- * where each seed is the folder `<demo>/<framework>`. Two checks, both against GitHub:
+ * Post-deploy check that the demo pages' seed links resolve, and that what they open installs. The
+ * links open the seeds in the `ag-grid/ag-charts-demos` mirror (`.github/workflows/demo-seeds-mirror.yml`
+ * keeps it in step), where each seed is the folder `<demo>/<framework>`. Three checks, against
+ * GitHub and the site:
  *
  * 1. The deployed pages. Every demo page the site lists (`DEMO_EXAMPLES` in
  *    `packages/ag-charts-website/src/components/demo-examples/exampleRegistry.ts`) is fetched from
@@ -25,33 +35,61 @@ import { RELEASE_BRANCH, resolveBranch } from '../../packages/ag-charts-demos/to
  *    does not list. A manifest naming a different folder fails here as it fails the site build.
  *    The mirror's copy of each manifest is compared with the checkout's, and a difference is a
  *    warning: the mirror is behind (a sync failed) or already ahead (a later commit synced first).
+ * 3. The build tarballs. At the `staging` and `bX.Y.Z` refs the mirror exports every seed whose
+ *    manifest has `pinSource` `dist-tag` with its `ag-charts-*` dependencies (and the matching
+ *    `overrides`) pointing at the tarballs the site serves at `<site>/npm-packages/<name>.tgz`.
+ *    The mirror's `package.json` of each such seed must carry exactly those URLs, and each URL must
+ *    answer a `HEAD` from StackBlitz's origin with 200 and `Access-Control-Allow-Origin`, and the
+ *    CORS preflight StackBlitz's in-browser npm sends before every tarball fetch with
+ *    `Access-Control-Allow-Origin` and `Access-Control-Allow-Headers` (the latter naming npm's own
+ *    request headers, or `*`): a host can pass the preflight and still serve the file without
+ *    `Access-Control-Allow-Origin`, and the browser then blocks the download, so both are checked.
+ *    Without them the install dies in the browser however well the seed links resolve. The release tag's seeds install from npm and need none.
  *
  * The ref follows the website's own rule (`getSeedGitRef` in `seedLinks.ts`): a production site
- * links the release tag derived from its version, and every other site, staging included, links
- * the `latest` branch. Production is recognised the same way the site does it, by matching the
- * origin against `PRODUCTION_SITE_URLS` in the website constants.
+ * links the release tag derived from its version, an archive (`<production>/archive/X.Y.Z`) the
+ * release branch `bX.Y.Z`, and every other site, staging included, the `staging` branch. Production
+ * and archives are recognised the same way the site does it, by matching the origin against
+ * `PRODUCTION_SITE_URLS` in the website constants and, for an archive, `archive` in the base path.
  *
- * Production is deployed from a release branch, `bX.Y.Z` for version X.Y.Z, so against a
- * production site this check must run from that branch: the version comes from the branch name
- * and the seeds listed are the ones that deployment carries. The site's own `/debug/meta.json`
- * is read as a cross-check and a disagreement fails the run, since it means the checkout is not
- * what was deployed. The branch is resolved by `resolveBranch` in
+ * Production and archives are deployed from a release branch, `bX.Y.Z` for version X.Y.Z, so
+ * against either this check must run from that branch: the version comes from the branch name and
+ * the seeds listed are the ones that deployment carries. The site's own `/debug/meta.json` is read
+ * as a cross-check and a disagreement fails the run, since it means the checkout is not what was
+ * deployed. The branch is resolved by `resolveBranch` in
  * `packages/ag-charts-demos/tools/seeds/seed-common.mjs`: `GITHUB_REF_NAME` in a workflow run, the
  * checked-out branch locally, or `AG_CHARTS_SEED_BRANCH` ahead of either.
  *
- * Usage: node tools/ci/check-demo-seed-links.mjs <site-url>   (from a bX.Y.Z branch for production)
+ * Usage: node tools/ci/check-demo-seed-links.mjs <site-url>   (from a bX.Y.Z branch for production or an archive)
  *   <site-url> includes the site's base path: `https://charts-staging.ag-grid.com` for staging,
- *   `https://www.ag-grid.com/charts` for production.
+ *   `https://www.ag-grid.com/charts` for production and `https://www.ag-grid.com/charts/archive/X.Y.Z`
+ *   for an archive.
  * Exits non-zero on any failure. One exception: a release with no tag in the mirror predates the
- * mirror, so on production that is a warning until the next release is tagged. On `latest` the
- * mirror has the seeds from the first sync, so a miss there is always a failure.
+ * mirror, so on production that is a warning until the next release is tagged. At the `staging`
+ * and `bX.Y.Z` refs a miss is always a failure: the mirror syncs `staging` after the staging
+ * deploy, and a release branch on every push to it.
  */
 
 /** The repository the seed links open; the seeds live in this one under `SEEDS_PATH`. */
 export const MIRROR_REPOSITORY = 'ag-grid/ag-charts-demos';
 export const SEEDS_PATH = 'packages/ag-charts-demos/seeds';
 const MANIFEST_FILENAME = '.seed-manifest.json';
-export const DEVELOPMENT_REF = 'latest';
+/** The mirror branch every site that is neither production nor an archive links. */
+export const STAGING_REF = 'staging';
+/** Where a site serves its package tarballs, relative to its base: `<site>/npm-packages/<name>.tgz`. */
+export const NPM_PACKAGES_DIR = 'npm-packages';
+/**
+ * The request headers StackBlitz's in-browser npm sends with every tarball fetch (npm's own and
+ * pacote's), which is what makes the browser preflight it; a host must allow them.
+ */
+export const PREFLIGHT_REQUEST_HEADERS = [
+    'npm-auth-type',
+    'npm-command',
+    'pacote-pkg-id',
+    'pacote-req-type',
+    'pacote-version',
+];
+const PREFLIGHT_ORIGIN = 'https://stackblitz.com';
 const WEBSITE_CONSTANTS = 'packages/ag-charts-website/src/constants.ts';
 const DEMO_REGISTRY = 'packages/ag-charts-website/src/components/demo-examples/exampleRegistry.ts';
 
@@ -76,6 +114,27 @@ export function readProductionSiteUrls(root = WORKSPACE_ROOT) {
     const match = /export const PRODUCTION_SITE_URLS\s*=\s*\[([^\]]*)\]/.exec(source);
     if (!match) throw new Error(`Cannot find PRODUCTION_SITE_URLS in ${WEBSITE_CONSTANTS}`);
     return [...match[1].matchAll(/'([^']+)'/g)].map(([, url]) => url);
+}
+
+/** The staging site's origin, read from the website constants (`STAGING_SITE_URL`). */
+export function readStagingSiteUrl(root = WORKSPACE_ROOT) {
+    const source = readFileSync(join(root, WEBSITE_CONSTANTS), 'utf8');
+    const match = /export const STAGING_SITE_URL\s*=\s*'([^']+)'/.exec(source);
+    if (!match) throw new Error(`Cannot find STAGING_SITE_URL in ${WEBSITE_CONSTANTS}`);
+    return match[1];
+}
+
+/** The production charts site's base URL, read from the website constants (`PRODUCTION_CHARTS_SITE_URL`). */
+export function readProductionChartsSiteUrl(root = WORKSPACE_ROOT) {
+    const source = readFileSync(join(root, WEBSITE_CONSTANTS), 'utf8');
+    const match = /export const PRODUCTION_CHARTS_SITE_URL\s*=\s*'([^']+)'/.exec(source);
+    if (!match) throw new Error(`Cannot find PRODUCTION_CHARTS_SITE_URL in ${WEBSITE_CONSTANTS}`);
+    return match[1];
+}
+
+/** Whether a site URL is an archive (`<production>/archive/X.Y.Z`), as `getIsArchive` decides it on the site. */
+export function isArchiveUrl(siteUrl) {
+    return `${new URL(siteUrl).pathname.replace(/\/$/, '')}/`.includes('/archive/');
 }
 
 /**
@@ -137,7 +196,7 @@ export function parseSeedLinks(html) {
 /**
  * The mirror folder a rendered seed link opens, and the ref and `<demo>/<framework>` path it
  * names, or an `error` when the link does not point at a seed folder of the mirror. The mirror's
- * refs (`latest`, `release-X.Y.Z`) never contain a slash, so the ref is the first path segment.
+ * refs (`staging`, `bX.Y.Z`, `release-X.Y.Z`, `latest`) never contain a slash, so the ref is the first path segment.
  */
 export function resolveSeedLink({ kind, href }) {
     const prefix = kind === 'stackblitz' ? STACKBLITZ_TREE_PREFIX : GITHUB_TREE_PREFIX;
@@ -192,7 +251,90 @@ export function readManifest(seed, root = WORKSPACE_ROOT) {
 }
 
 /**
- * Runs both checks. Everything that touches the outside world is injected, so the unit tests can
+ * The AG Charts packages the mirror's export of a seed installs from tarballs, in
+ * `CHARTS_BUILD_PACKAGES` order: the ones the seed depends on and the shared ones npm reaches
+ * through `ag-grid-community` and `ag-grid-enterprise`, which the export overrides.
+ */
+function listBuildPackages(packageJson) {
+    const wanted = new Set([...CHARTS_BUILD_SHARED_PACKAGES, ...Object.keys(readChartsPins(packageJson))]);
+    return CHARTS_BUILD_PACKAGES.filter((name) => wanted.has(name));
+}
+
+/**
+ * What is wrong with a seed's `package.json` as the mirror exports it for a build served at
+ * `<buildBase>/<name>.tgz` (`rewriteChartsBuildPins`), as sentences; empty when it is right: every
+ * `ag-charts-*` dependency is its tarball URL, and `overrides` holds the same URL for the shared
+ * packages and for each AG Charts package the seed depends on directly.
+ */
+export function describeBuildPinProblems(packageJson, buildBase) {
+    const urlOf = (name) => `${buildBase}/${name}.tgz`;
+    const problems = Object.entries(readChartsPins(packageJson))
+        .filter(([name, version]) => version !== urlOf(name))
+        .map(([name, version]) => `depends on ${name} "${version}", expected ${urlOf(name)}`);
+    for (const name of listBuildPackages(packageJson)) {
+        const override = packageJson.overrides?.[name];
+        if (override !== urlOf(name)) {
+            problems.push(
+                `overrides ${name} with ${override === undefined ? 'nothing' : `"${override}"`}, expected ${urlOf(name)}`
+            );
+        }
+    }
+    return problems;
+}
+
+/** The problem with an `Access-Control-Allow-Origin` value StackBlitz would reject, as a sentence; `null` when it accepts it. */
+function describeAllowOriginProblem(allowOrigin, where) {
+    if (allowOrigin === '*' || allowOrigin === PREFLIGHT_ORIGIN) return null;
+    return `sends Access-Control-Allow-Origin ${allowOrigin === null ? 'nothing' : `"${allowOrigin}"`} ${where}`;
+}
+
+/**
+ * What is wrong with a tarball's answer to a request from StackBlitz's origin (the file itself, not
+ * the preflight), as sentences; empty when the browser would let the download through: a 200 and
+ * `Access-Control-Allow-Origin` naming every origin or `PREFLIGHT_ORIGIN`.
+ */
+export function describeTarballProblems(response) {
+    if (response.status !== 200) return [`responds ${response.status}`];
+    const problem = describeAllowOriginProblem(
+        response.headers.get('access-control-allow-origin'),
+        'with the tarball itself'
+    );
+    return problem === null ? [] : [problem];
+}
+
+/**
+ * What is wrong with a tarball's answer to the CORS preflight StackBlitz's npm sends, as
+ * sentences; empty when it would be accepted: a 2xx status, `Access-Control-Allow-Origin` naming
+ * every origin or `PREFLIGHT_ORIGIN`, and `Access-Control-Allow-Headers` allowing every header in
+ * `PREFLIGHT_REQUEST_HEADERS` (`*` allows them all).
+ */
+export function describePreflightProblems(response) {
+    if (!(response.status >= 200 && response.status < 300)) {
+        return [`answers the CORS preflight (OPTIONS) with ${response.status}`];
+    }
+    const problems = [];
+    const originProblem = describeAllowOriginProblem(
+        response.headers.get('access-control-allow-origin'),
+        'to the preflight'
+    );
+    if (originProblem !== null) problems.push(originProblem);
+    const allowHeaders = response.headers.get('access-control-allow-headers');
+    if (allowHeaders === null) {
+        problems.push('sends no Access-Control-Allow-Headers to the preflight');
+    } else {
+        const allowed = allowHeaders.split(',').map((header) => header.trim().toLowerCase());
+        const missing = PREFLIGHT_REQUEST_HEADERS.filter((header) => !allowed.includes(header));
+        if (!allowed.includes('*') && missing.length > 0) {
+            problems.push(
+                `does not allow the request headers ${missing.join(', ')} in Access-Control-Allow-Headers "${allowHeaders}"`
+            );
+        }
+    }
+    return problems;
+}
+
+/**
+ * Runs the checks. Everything that touches the outside world is injected, so the unit tests can
  * run it offline: `fetchImpl` answers every request, `seeds`, `demoPages` and `readSeedManifest`
  * stand in for the checkout, `branch` for the current branch (`null` when none is checked out).
  * Returns `{ ok, warnings, errors }` and logs progress through `log`.
@@ -204,6 +346,8 @@ export async function checkDemoSeedLinks({
     readSeedManifest = readManifest,
     demoPages = parseDemoPages(readFileSync(join(WORKSPACE_ROOT, DEMO_REGISTRY), 'utf8')),
     productionSiteUrls = readProductionSiteUrls(),
+    stagingSiteUrl = readStagingSiteUrl(),
+    productionChartsSiteUrl = readProductionChartsSiteUrl(),
     branch = resolveBranch,
     log = console.log,
 }) {
@@ -212,7 +356,8 @@ export async function checkDemoSeedLinks({
     const site = siteUrl.replace(/\/$/, '');
     const isProduction = productionSiteUrls.includes(new URL(site).origin);
 
-    let ref = DEVELOPMENT_REF;
+    let ref = STAGING_REF;
+    const isArchive = isProduction && isArchiveUrl(site);
     if (isProduction) {
         const branchName = branch() ?? 'none, HEAD is detached';
         const release = RELEASE_BRANCH.exec(branchName);
@@ -222,21 +367,23 @@ export async function checkDemoSeedLinks({
             );
             return { ok: false, errors, warnings };
         }
-        ref = toReleaseTag(release[1]);
+        const releaseTag = toReleaseTag(release[1]);
+        ref = isArchive ? branchName : releaseTag;
         const metaResponse = await fetchImpl(`${site}/debug/meta.json`);
         if (!metaResponse.ok) {
             errors.push(`${site}/debug/meta.json responded ${metaResponse.status}`);
             return { ok: false, errors, warnings };
         }
         const siteVersion = (await metaResponse.json()).versions?.charts;
-        if (toReleaseTag(siteVersion) !== ref) {
+        if (toReleaseTag(siteVersion) !== releaseTag) {
             errors.push(
                 `${site} reports version ${siteVersion} but this checkout is branch ${branchName}; run the check from the branch the site was deployed from.`
             );
             return { ok: false, errors, warnings };
         }
-        log(`Production site at version ${siteVersion}, deployed from ${branchName}`);
+        log(`${isArchive ? 'Archive' : 'Production site'} at version ${siteVersion}, deployed from ${branchName}`);
     }
+    const isReleaseTag = isProduction && !isArchive;
 
     const statuses = new Map();
     const resolveStatus = (url) => {
@@ -251,7 +398,7 @@ export async function checkDemoSeedLinks({
     const treeUrl = `${GITHUB_TREE_PREFIX}${ref}`;
 
     const mirrorRootStatus = await resolveStatus(treeUrl);
-    if (mirrorRootStatus === 404 && isProduction) {
+    if (mirrorRootStatus === 404 && isReleaseTag) {
         warnings.push(
             `${MIRROR_REPOSITORY} has no ${ref} yet; the demo pages' seed links resolve once a release is tagged with the seeds.`
         );
@@ -312,6 +459,66 @@ export async function checkDemoSeedLinks({
             warnings.push(
                 `${MIRROR_REPOSITORY} ${ref} has a different ${seed}/${MANIFEST_FILENAME} from this checkout: the mirror is behind (check the "Mirror Demo Seeds" runs) or already carries a later commit.`
             );
+        }
+    }
+
+    // 3. The build tarballs the rewritten seeds install; a release tag's seeds install from npm.
+    if (!isReleaseTag) {
+        // An archive serves its own tarballs; staging, dev and preview sites link the staging ones. The
+        // export writes the archive's URLs under the production charts base whichever origin the check is
+        // given (`ag-grid.com` or `www.ag-grid.com`), so the expected ones are built from that base too.
+        const archiveVersion = /\/archive\/([^/]+)/.exec(new URL(site).pathname)?.[1];
+        const siteBase = isArchive
+            ? `${productionChartsSiteUrl.replace(/\/$/, '')}/archive/${archiveVersion}`
+            : stagingSiteUrl.replace(/\/$/, '');
+        const buildBase = `${siteBase}/${NPM_PACKAGES_DIR}`;
+        const tarballs = new Map();
+        for (const seed of seeds) {
+            if (JSON.parse(readSeedManifest(seed)).pinSource !== PIN_SOURCE.distTag) continue;
+            const manifestUrl = `${RAW_PREFIX}${ref}/${seed}/package.json`;
+            const mirrored = await fetchImpl(manifestUrl);
+            if (!mirrored.ok) {
+                errors.push(`${manifestUrl} responded ${mirrored.status}`);
+                continue;
+            }
+            let packageJson;
+            try {
+                packageJson = JSON.parse(await mirrored.text());
+            } catch (error) {
+                errors.push(`${manifestUrl} is not valid JSON: ${error.message}`);
+                continue;
+            }
+            const problems = describeBuildPinProblems(packageJson, buildBase);
+            for (const problem of problems) {
+                errors.push(`${MIRROR_REPOSITORY} ${ref} ${seed}/package.json ${problem}`);
+            }
+            if (problems.length === 0) {
+                for (const name of listBuildPackages(packageJson)) {
+                    const url = `${buildBase}/${name}.tgz`;
+                    if (!tarballs.has(url)) tarballs.set(url, seed);
+                }
+            }
+        }
+        log(`Checking ${tarballs.size} build tarballs at ${buildBase}`);
+        for (const [url, seed] of tarballs) {
+            // Not `resolveStatus`: the browser sends the tarball request with an Origin and only
+            // reads the response's CORS headers when it has one.
+            const problems = describeTarballProblems(
+                await fetchImpl(url, { method: 'HEAD', redirect: 'follow', headers: { Origin: PREFLIGHT_ORIGIN } })
+            );
+            const preflight = await fetchImpl(url, {
+                method: 'OPTIONS',
+                headers: {
+                    Origin: PREFLIGHT_ORIGIN,
+                    'Access-Control-Request-Method': 'GET',
+                    'Access-Control-Request-Headers': PREFLIGHT_REQUEST_HEADERS.join(','),
+                },
+            });
+            problems.push(...describePreflightProblems(preflight));
+            for (const problem of problems) {
+                errors.push(`${url} (a dependency of ${seed} at ${ref}) ${problem}`);
+            }
+            if (problems.length === 0) log(`ok   tarball    ${url}`);
         }
     }
 

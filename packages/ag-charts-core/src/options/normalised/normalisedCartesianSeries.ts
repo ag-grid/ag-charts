@@ -190,6 +190,8 @@ export type NormalisedBarSeriesOwnOptions = Normalised<
     yFilterKey?: string;
     /** Undocumented: datum-only styler that bypasses options-graph resolution. */
     simpleItemStyler?: (datum: unknown) => AgBarSeriesStyle | undefined;
+    /** Undocumented: bars sharing a group select and deselect together, matched by category. */
+    selectionGroup?: string;
 };
 
 export type NormalisedBarSeriesOptions = NormalisedSeriesOptions<NormalisedBarSeriesOwnOptions> &

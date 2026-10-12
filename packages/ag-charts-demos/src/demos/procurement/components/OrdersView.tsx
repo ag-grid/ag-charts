@@ -10,9 +10,9 @@ import { StatusLegend } from './StatusLegend';
 interface OrdersViewProps {
     kpis: Kpi[];
     shipments: TrackedShipment[];
-    selectedShipmentId?: string;
-    onSelectShipment: (shipmentId: string) => void;
-    /** Her order lines under the current selection — the landing point for every selection. */
+    selectedShipmentIds: string[];
+    onShipmentSelectionChange: (added: string[], removed: string[]) => void;
+    /** Her order lines on the selected shipments; empty until one is selected. */
     orders: PurchaseOrder[];
     /** What the grid is showing, stated in the card's subtitle. */
     gridSubtitle: string;
@@ -33,8 +33,8 @@ interface OrdersViewProps {
 export function OrdersView({
     kpis,
     shipments,
-    selectedShipmentId,
-    onSelectShipment,
+    selectedShipmentIds,
+    onShipmentSelectionChange,
     orders,
     gridSubtitle,
     poActions,
@@ -51,7 +51,9 @@ export function OrdersView({
                     <div className="pc-card-head">
                         <div>
                             <h2 className="pc-card-title">My suppliers — in transit</h2>
-                            <span className="pc-card-sub">Select a marker to filter the orders.</span>
+                            <span className="pc-card-sub">
+                                Select a marker to filter the orders; Ctrl- or ⌘-click to select several.
+                            </span>
                         </div>
                         <StatusLegend />
                     </div>
@@ -59,13 +61,13 @@ export function OrdersView({
                         {shipments.length > 0 ? (
                             <DeliveryMap
                                 shipments={shipments}
-                                selectedShipmentId={selectedShipmentId}
-                                onShipmentClick={onSelectShipment}
+                                selectedShipmentIds={selectedShipmentIds}
+                                onSelectionChange={onShipmentSelectionChange}
                             />
                         ) : (
                             <EmptyState
-                                message="Nothing in transit for this supplier"
-                                hint="Clear the supplier selection to see all my lanes."
+                                message="Nothing in transit for these filters"
+                                hint="Clear the supplier and subcategory filters to see all my lanes."
                             />
                         )}
                     </div>
@@ -75,20 +77,22 @@ export function OrdersView({
                     <div className="pc-card-head">
                         <div>
                             <h2 className="pc-card-title">Arrival schedule</h2>
-                            <span className="pc-card-sub">Select a bar to filter the orders.</span>
+                            <span className="pc-card-sub">
+                                Select a bar to filter the orders; Ctrl- or ⌘-click to select several.
+                            </span>
                         </div>
                     </div>
                     <div className="pc-chart-box-md">
                         {shipments.length > 0 ? (
                             <ShipmentSchedule
                                 shipments={shipments}
-                                selectedShipmentId={selectedShipmentId}
-                                onSelect={onSelectShipment}
+                                selectedShipmentIds={selectedShipmentIds}
+                                onSelectionChange={onShipmentSelectionChange}
                             />
                         ) : (
                             <EmptyState
-                                message="Nothing in transit"
-                                hint="Clear the supplier selection to see all my lanes."
+                                message="Nothing in transit for these filters"
+                                hint="Clear the supplier and subcategory filters to see all my lanes."
                             />
                         )}
                     </div>
@@ -99,23 +103,32 @@ export function OrdersView({
             <section className="pc-card">
                 <div className="pc-card-head">
                     <div>
-                        <h2 className="pc-card-title">My purchase orders</h2>
+                        <h2 className="pc-card-title">Purchase orders</h2>
                         <span className="pc-card-sub">{gridSubtitle}</span>
                     </div>
                     <div className="pc-chips">
-                        {selectedShipmentId != null && <span className="pc-chip">{selectedShipmentId}</span>}
+                        {selectedShipmentIds.map((shipmentId) => (
+                            <span key={shipmentId} className="pc-chip">
+                                {shipmentId}
+                            </span>
+                        ))}
                         <Button onClick={onClearSelection} disabled={!canClearSelection}>
                             Clear selection
                         </Button>
                     </div>
                 </div>
-                {orders.length > 0 ? (
-                    <PurchaseOrderGrid orders={orders} poActions={poActions} onAction={onPoAction} />
-                ) : (
+                {/* With nothing selected the grid stays mounted and empty, showing its own prompt overlay. */}
+                {selectedShipmentIds.length > 0 && orders.length === 0 ? (
                     <EmptyState
-                        message="No orders match this selection"
-                        hint="Clear the selection, or widen the period."
+                        message={
+                            selectedShipmentIds.length === 1
+                                ? 'No order lines on this shipment'
+                                : 'No order lines on these shipments'
+                        }
+                        hint="Select another shipment."
                     />
+                ) : (
+                    <PurchaseOrderGrid orders={orders} poActions={poActions} onAction={onPoAction} />
                 )}
             </section>
         </div>

@@ -2,7 +2,7 @@
 root: false
 targets: ['*']
 description: 'Public API contract boundaries and the undocumented-options validator pattern'
-globs: ['packages/ag-charts-types/**/*.ts', 'packages/ag-charts-*/src/config/**/*.ts', 'packages/ag-charts-*/src/**/*OptionsDef*.ts', 'packages/ag-charts-core/src/options/*.ts']
+globs: ['packages/ag-charts-types/**/*.ts', 'packages/ag-charts-*/src/**/*OptionsDef*.ts', 'packages/ag-charts-core/src/options/*.ts']
 ---
 
 # API Contracts and Undocumented Options

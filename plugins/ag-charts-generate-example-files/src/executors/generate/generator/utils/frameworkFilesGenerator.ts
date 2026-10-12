@@ -144,12 +144,15 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             mainJs = `const { ${localeImports.join(', ')} } = agChartsLocale;` + '\n' + mainJs;
         }
 
-        // Chart classes that need scoping
+        // Chart classes that need scoping. Module names are only unpacked when still referenced (e.g. passed
+        // per chart via `AgCharts.create(options, { modules })`) - the registration call has been stripped.
         const chartsExports = new Set(['time', 'AgCharts', 'VERSION', 'Marker', 'AG_CHARTS_LOCALE_EN_US']);
         const chartImports = typedBindings.imports
             .filter((i) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise'))
             .flatMap((imp) => imp.imports)
-            .filter((imp) => chartsExports.has(imp) || imp.endsWith('Module'));
+            .filter(
+                (imp) => chartsExports.has(imp) || (imp.endsWith('Module') && new RegExp(`\\b${imp}\\b`).test(mainJs))
+            );
         if (chartImports.length > 0) {
             mainJs = `const { ${chartImports.join(', ')} } = agCharts;` + '\n' + mainJs;
         }

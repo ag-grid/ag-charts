@@ -52,6 +52,8 @@ type ThemeParam =
     | 'buttonDisabledBorder.width'
     | 'inputBorder.color'
     | 'inputBorder.width'
+    | 'legendBorder.color'
+    | 'legendBorder.width'
     | 'menuBorder.color'
     | 'menuBorder.width'
     | 'navigatorHandleBorder.color'

@@ -17,6 +17,7 @@ import {
     DEMO_NOW,
     ON_TIME_TARGET,
     RANGE_PRESETS,
+    SUBCATEGORIES,
     SUPPLIER_BY_ID,
     YEAR_START,
     buildSpendTree,
@@ -31,6 +32,7 @@ import {
     slipDistributions,
     spendBurnUp,
     spendByBucketAndSubcategory,
+    spendByBucketAndSupplier,
     sumSpend,
     supplierShareBySubcategory,
     supplierTrendByMonth,
@@ -117,16 +119,6 @@ export const MY_BUDGET = COMMODITY_BUDGETS[MANAGER.commodity];
 /** Her orders raised within `range`. */
 export const myOrdersInRange = (range: DateRange) => inRange(MY_ORDERS, range);
 
-/**
- * Her order lines not yet delivered — the scope of the orders tab's grid.
- *
- * Deliberately not date-scoped. That tab is her daily check: what it has to show is everything
- * still in flight, and a line raised eight months ago that has not landed is exactly the line she
- * most needs in front of her. Delivered history is read on the suppliers and spend tabs, both of
- * which have a period control to scope it with.
- */
-export const MY_OPEN_ORDERS = MY_ORDERS.filter((order) => order.actualDate == null);
-
 /** Her spend hierarchy for a period: commodity → subcategory → supplier. */
 export const mySpendTree = (orders: PurchaseOrder[]): SpendNode =>
     buildSpendTree(MANAGER.commodity, orders, MANAGER.supplierIds);
@@ -154,7 +146,7 @@ export function myScorecard(
 /**
  * Her order lines on one shipment.
  *
- * The orders tab's only selection, and the only one in the workspace that narrows a grid. A
+ * The orders tab's shipment selection is the only one in the workspace that narrows a grid. A
  * selection made on the suppliers or spend tab stays there: each tab answers its own question over
  * its own window, and a selection carried across would silently rescope a grid the reader is not
  * looking at. Note this only ever narrows within her scope — it can never reach another manager's
@@ -163,6 +155,20 @@ export function myScorecard(
 export function ordersOnShipment(orders: PurchaseOrder[], shipmentId: string): PurchaseOrder[] {
     const poIds = MY_PO_IDS_BY_SHIPMENT.get(shipmentId);
     return poIds == null ? [] : orders.filter((order) => poIds.has(order.poId));
+}
+
+/** Her order lines on any of several shipments, in selection order. */
+export function ordersOnShipments(orders: PurchaseOrder[], shipmentIds: string[]): PurchaseOrder[] {
+    return shipmentIds.flatMap((shipmentId) => ordersOnShipment(orders, shipmentId));
+}
+
+/**
+ * The shipment selection after a chart reports a change to it. Kept shipments hold their place and
+ * added ones join the end, so the chips read in the order she picked them.
+ */
+export function applySelectionChange(selected: string[], added: string[], removed: string[]): string[] {
+    const kept = selected.filter((id) => !removed.includes(id));
+    return [...kept, ...added.filter((id) => !kept.includes(id))];
 }
 
 /**
@@ -176,6 +182,74 @@ export function shipmentCarryingOrder(poId: string): string | undefined {
         if (poIds.has(poId)) return shipmentId;
     }
     return undefined;
+}
+
+// --- orders tab filters -------------------------------------------------------
+
+/** The value each orders-tab filter takes when it narrows nothing. */
+export const ALL_FILTER = 'all';
+
+/** What the orders tab is narrowed to; `ALL_FILTER` on either leaves that half open. */
+export interface OrdersFilter {
+    supplierId: string;
+    subcategory: string;
+}
+
+export const DEFAULT_ORDERS_FILTER: OrdersFilter = { supplierId: ALL_FILTER, subcategory: ALL_FILTER };
+
+/** Her order book and freight as the orders tab reads them, once its filters are applied. */
+export interface OrdersScope {
+    orders: PurchaseOrder[];
+    shipments: TrackedShipment[];
+}
+
+/** The values each orders-tab filter offers, given what the other is set to. */
+export interface OrdersFilterOptions {
+    supplierIds: string[];
+    subcategories: string[];
+}
+
+/**
+ * What each filter can be set to without emptying the tab.
+ *
+ * A supplier is approved for only some of her subcategories, so the two filters are offered
+ * against each other: picking a supplier leaves only the subcategories she buys from it, and the
+ * reverse. Any pair the reader can reach therefore holds orders, and no headline is ever read off
+ * an empty book.
+ */
+export function myOrdersFilterOptions({ supplierId, subcategory }: OrdersFilter): OrdersFilterOptions {
+    const suppliers = new Set<string>();
+    const subcategories = new Set<string>();
+    for (const order of MY_ORDERS) {
+        if (subcategory === ALL_FILTER || order.subcategory === subcategory) suppliers.add(order.supplierId);
+        if (supplierId === ALL_FILTER || order.supplierId === supplierId) subcategories.add(order.subcategory);
+    }
+    return {
+        supplierIds: MANAGER.supplierIds.filter((id) => suppliers.has(id)),
+        subcategories: SUBCATEGORIES[MANAGER.commodity].filter((name) => subcategories.has(name)),
+    };
+}
+
+/**
+ * Her orders tab, narrowed to one supplier, one material subcategory, or both.
+ *
+ * Filters her order book rather than the shipment feed, and restates the freight over what is
+ * left, for the reason `MY_SHIPMENTS` is derived that way: a consolidated shipment carrying lines
+ * from two subcategories is shown under either, quoting only the lines that match. Only ever
+ * narrows — `MY_ORDERS` is the ceiling, so clearing the filters returns her whole remit, not more.
+ */
+export function myOrdersScope({ supplierId, subcategory }: OrdersFilter): OrdersScope {
+    if (supplierId === ALL_FILTER && subcategory === ALL_FILTER) {
+        return { orders: MY_ORDERS, shipments: MY_TRACKED_SHIPMENTS };
+    }
+    const orders = MY_ORDERS.filter(
+        (order) =>
+            (supplierId === ALL_FILTER || order.supplierId === supplierId) &&
+            (subcategory === ALL_FILTER || order.subcategory === subcategory)
+    );
+    const now = DEMO_NOW.getTime();
+    const shipments = shipmentsCarrying(orders).shipments.map((shipment) => trackShipment(shipment, now));
+    return { orders, shipments };
 }
 
 // --- her scorecard figures ----------------------------------------------------
@@ -223,11 +297,20 @@ export interface MySummary {
  * figure in the headline that no supplier card agrees with, and rest it on the handful of orders
  * that both were placed and landed inside one quarter. The period selector drives the spend views
  * instead — the sunburst, the scorecard's commercial columns, and the grid.
+ *
+ * All of them read over `scope`, the orders tab's filtered book and freight — see `myOrdersScope`;
+ * it defaults to her whole remit.
  */
-export function mySummary(rangeOrders: PurchaseOrder[]): MySummary {
+export function mySummary(
+    rangeOrders: PurchaseOrder[],
+    { orders, shipments }: { orders: PurchaseOrder[]; shipments: Shipment[] } = {
+        orders: MY_ORDERS,
+        shipments: MY_SHIPMENTS,
+    }
+): MySummary {
     let spendYtd = 0;
     let openOrders = 0;
-    for (const order of MY_ORDERS) {
+    for (const order of orders) {
         if (order.orderDate >= YEAR_START) spendYtd += order.totalCost;
         if (order.actualDate == null) openOrders += 1;
     }
@@ -235,17 +318,17 @@ export function mySummary(rangeOrders: PurchaseOrder[]): MySummary {
     // Scoped by delivery date, as `myScorecard` is, or the headline quotes a figure no supplier card agrees with.
     let delivered = 0;
     let onTime = 0;
-    for (const order of deliveredInRange(MY_ORDERS, trailingMonths(PERFORMANCE_MONTHS))) {
+    for (const order of deliveredInRange(orders, trailingMonths(PERFORMANCE_MONTHS))) {
         if (order.actualDate == null) continue;
         delivered += 1;
         if (order.actualDate <= order.expectedDate) onTime += 1;
     }
 
     const spendInRange = sumSpend(rangeOrders);
-    const spendQuarter = sumSpend(inRange(MY_ORDERS, CURRENT_QUARTER));
+    const spendQuarter = sumSpend(inRange(orders, CURRENT_QUARTER));
 
     const shipmentsByStatus: Record<ShipmentStatus, number> = { 'On time': 0, 'At risk': 0, Late: 0 };
-    for (const shipment of MY_SHIPMENTS) shipmentsByStatus[shipment.status] += 1;
+    for (const shipment of shipments) shipmentsByStatus[shipment.status] += 1;
 
     return {
         spendYtd,
@@ -512,11 +595,14 @@ export function mySpendTrend(period: SpendPeriod): SpendTrend {
             : mySpendPeriod(period);
 
     const buckets = grain === 'month' ? monthBuckets(range) : weekBuckets(range);
-    const rows = spendByBucketAndSubcategory(MANAGER.commodity, inRange(MY_ORDERS, range), buckets);
+    const orders = inRange(MY_ORDERS, range);
+    const rows = spendByBucketAndSubcategory(MANAGER.commodity, orders, buckets);
+    const supplierRows = spendByBucketAndSupplier(orders, MANAGER.supplierIds, buckets);
     const last = buckets.at(-1);
 
     return {
         rows,
+        supplierRows,
         grain,
         // Inclusive: a bucket's `end` is the next one's start, so the last day it covers is before it.
         end: new Date((last?.end ?? range.start.getTime()) - 1),

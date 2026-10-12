@@ -559,7 +559,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     seriesLabelFontSize?: FontSize;
     /**
-     * Font weight used for series labels.
+     * Font weight used for series labels. Treemap secondary labels and map-shape labels keep their own default weights (normal and bold) unless this differs from `fontWeight`. To change them when the two are equal, set `fontWeight` on the series label directly.
      *
      * Default: `fontWeight`
      */

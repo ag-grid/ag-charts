@@ -143,7 +143,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     private readonly paths: SegmentedPath[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
-        new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
+        new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1, batchShadows: true })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup<LabelOf<TTypes>>({ name: `${this.id}-series-labels` })

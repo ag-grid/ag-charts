@@ -230,6 +230,11 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         return { x: -margin, y: -margin, width: this._clipX + margin, height: this._clipY + margin + margin };
     }
 
+    /** A path is filled and stroked with a Path2D, which a `spread` dilates into the silhouette of its shadow. */
+    protected override hasSpreadMaskPath(): boolean {
+        return true;
+    }
+
     drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger): void {
         this.fillStroke(ctx, logger, this.path.getPath2D());
     }

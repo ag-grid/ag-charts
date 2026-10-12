@@ -1,5 +1,6 @@
 import { isFiniteNumber } from '../data/typeGuards';
 import { getOffscreenCanvas } from '../dom/globalsProxy';
+import { Color } from '../format/color';
 import type { NormalisedDropShadowOptions } from '../options/normalised/normalisedCommonOptions';
 import { releaseSpreadCanvas } from './canvas/spreadCanvas';
 import type { Node, RenderContext } from './node';
@@ -7,6 +8,7 @@ import { shadowPass } from './shadowPass';
 import { Path } from './shape/path';
 import { Shape } from './shape/shape';
 import type { TranslatableType } from './transformable';
+import { compareZIndex } from './zIndex';
 
 /**
  * Layer shadow compositor.
@@ -21,12 +23,16 @@ import type { TranslatableType } from './transformable';
  * 3. The casters draw as usual, without a shadow.
  *
  * All the shadows of a batch therefore sit beneath all of its items, so a later item's shadow no longer lands on an
- * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node, and at a change of shadow options
- * or of the clip of a path.
+ * earlier item. Runs end at a node that casts no batched shadow, at a `cutout` node, and at a change of shadow options,
+ * of the clip of a path and, in a group that batches by layer, of `zIndex`. A series gives its items a `zIndex` where one
+ * layer paints over another, like the depths of a treemap, so the shadow of an upper layer still lands on the lower one.
  */
 
 /** How far a canvas shadow reaches past its source, in blurs: its Gaussian has a deviation of half the blur. */
 const SHADOW_BLUR_REACH = 1.5;
+
+/** How far two casters' strengths may differ for the batch to cast them as one. */
+const UNIFORM_STRENGTH_TOLERANCE = 1 / 512;
 
 /** The most that the mask extends past the layer on one side, in device pixels. Items further off the layer cast nothing. */
 const MAX_MASK_PAD = 4096;
@@ -75,6 +81,12 @@ function sameClip(a: ShadowClip | undefined, b: ShadowClip | undefined) {
     return a.every((value, i) => value === b[i]);
 }
 
+function sameLayer(a: Node, b: Node) {
+    const aIndex = a.__zIndex;
+    const bIndex = b.__zIndex;
+    return aIndex === bIndex || compareZIndex(aIndex, bIndex) === 0;
+}
+
 function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptions) {
     return (
         a === b ||
@@ -86,12 +98,9 @@ function sameShadow(a: NormalisedDropShadowOptions, b: NormalisedDropShadowOptio
     );
 }
 
-/** The share of the padding that keeps the mask within {@link MAX_MASK_AREA}, or undefined if the layer alone does not. */
-function fitPadding(width: number, height: number, padX: number, padY: number): number | undefined {
-    for (let scale = 1; scale >= 1 / 16; scale /= 2) {
-        if ((width + padX * scale) * (height + padY * scale) <= MAX_MASK_AREA) return scale;
-    }
-    return width * height <= MAX_MASK_AREA ? 0 : undefined;
+/** The resolution that keeps a mask canvas within {@link MAX_MASK_AREA}. A shadow is blurred anyway, so it loses little. */
+function fitMask(maskWidth: number, maskHeight: number): number {
+    return Math.min(1, Math.sqrt(MAX_MASK_AREA / (maskWidth * maskHeight)));
 }
 
 interface ShadowScratch {
@@ -189,15 +198,57 @@ export function destroyShadowScratch(scene: object) {
     freeScratch(pool);
 }
 
-function renderPass(children: readonly Node[], renderCtx: RenderContext, state: 'mask' | 'suppress') {
-    const previous = shadowPass.state;
+function renderPass(
+    children: readonly Node[],
+    renderCtx: RenderContext,
+    state: 'mask' | 'suppress',
+    opaque: boolean = false,
+    resolution: { x: number; y: number } = { x: 1, y: 1 }
+) {
+    const previousState = shadowPass.state;
+    const previousOpaque = shadowPass.opaque;
+    const previousResolution = shadowPass.resolution;
     shadowPass.state = state;
+    shadowPass.opaque = opaque;
+    shadowPass.resolution = resolution;
     try {
         for (const child of children) {
             child.isolatedRender(renderCtx);
         }
     } finally {
-        shadowPass.state = previous;
+        shadowPass.state = previousState;
+        shadowPass.opaque = previousOpaque;
+        shadowPass.resolution = previousResolution;
+    }
+}
+
+/**
+ * The strength that every caster of a `spread` batch casts at, 0 if none of them casts, or undefined if they differ or one
+ * draws its silhouette another way. The batch then draws the silhouettes solid and casts its one shadow at that strength,
+ * which avoids a pass over the layer per translucent shape.
+ */
+function getUniformSpreadStrength(casters: readonly ShadowCaster[]): number | undefined {
+    let uniform = 0;
+    for (const caster of casters) {
+        const strength = caster.getSpreadMaskStrength();
+        if (strength == null) return;
+        if (strength <= 0) continue;
+        if (uniform === 0) {
+            uniform = strength;
+        } else if (Math.abs(strength - uniform) > UNIFORM_STRENGTH_TOLERANCE) {
+            return;
+        }
+    }
+    return uniform;
+}
+
+/** The colour with its alpha scaled, or undefined if it can't be read. */
+function scaleColourAlpha(colour: string, scale: number): string | undefined {
+    try {
+        const { r, g, b, a } = Color.fromString(colour);
+        return new Color(r, g, b, a * scale).toRgbaString();
+    } catch {
+        return;
     }
 }
 
@@ -211,6 +262,15 @@ function renderBatch(
     renderCtx: RenderContext
 ): boolean {
     const { ctx, devicePixelRatio } = renderCtx;
+
+    // A batch whose casters all cast nothing, such as one fading in from zero opacity, has no mask or blur to draw.
+    const spread = shadow.spread ?? 0;
+    const strength = spread > 0 ? getUniformSpreadStrength(casters) : undefined;
+    if (strength === 0) {
+        renderPass(casters, renderCtx, 'suppress');
+        return true;
+    }
+
     const width = Math.ceil(ctx.canvas.width);
     const height = Math.ceil(ctx.canvas.height);
     const blur = shadow.blur * devicePixelRatio;
@@ -222,38 +282,59 @@ function renderBatch(
 
     // An item that overhangs the layer still casts its shadow onto it, so the mask extends past the layer by as far as a
     // shadow can reach back. That is never more than MAX_MASK_PAD, past which nothing is drawn, so the mask stays small.
-    const reach = Math.ceil(blur * SHADOW_BLUR_REACH + Math.max(0, shadow.spread ?? 0) * devicePixelRatio);
+    const reach = Math.ceil(blur * SHADOW_BLUR_REACH + Math.max(0, spread) * devicePixelRatio);
     const padLeft = Math.min(Math.ceil(Math.max(0, offsetX)) + reach, MAX_MASK_PAD);
     const padRight = Math.min(Math.ceil(Math.max(0, -offsetX)) + reach, MAX_MASK_PAD);
     const padTop = Math.min(Math.ceil(Math.max(0, offsetY)) + reach, MAX_MASK_PAD);
     const padBottom = Math.min(Math.ceil(Math.max(0, -offsetY)) + reach, MAX_MASK_PAD);
 
-    // A canvas of more pixels than a browser can allocate would give no context, so the padding is cut down to fit, and the
-    // items that it no longer reaches cast nothing. A layer that is too large by itself is left to its items.
-    const padScale = fitPadding(width, height, padLeft + padRight, padTop + padBottom);
-    if (padScale == null) return false;
-    const padL = Math.floor(padLeft * padScale);
-    const padT = Math.floor(padTop * padScale);
-    const maskWidth = width + padL + Math.floor(padRight * padScale);
-    const maskHeight = height + padT + Math.floor(padBottom * padScale);
-    const acquired = acquireShadowScratch(scene, user, maskWidth, maskHeight);
+    // A canvas of more pixels than a browser can allocate would give no context, so a mask that is too large is drawn at a
+    // lower resolution, which is blitted back up to its size.
+    const maskWidth = width + padLeft + padRight;
+    const maskHeight = height + padTop + padBottom;
+    const resolution = fitMask(maskWidth, maskHeight);
+    const canvasWidth = Math.max(1, Math.floor(maskWidth * resolution));
+    const canvasHeight = Math.max(1, Math.floor(maskHeight * resolution));
+    const scaleX = canvasWidth / maskWidth;
+    const scaleY = canvasHeight / maskHeight;
+    const acquired = acquireShadowScratch(scene, user, canvasWidth, canvasHeight);
     if (acquired == null) return false;
     const { canvas, context: scratch } = acquired;
+
+    // A batch of casters at one translucent strength draws them solid, and casts the shadow at that strength.
+    let shadowColour = shadow.color;
+    let opaque = false;
+    if (strength != null && strength * ctx.globalAlpha < 1) {
+        const scaled = scaleColourAlpha(shadow.color, strength * ctx.globalAlpha);
+        if (scaled != null) {
+            shadowColour = scaled;
+            opaque = true;
+        }
+    }
 
     scratch.save();
     try {
         scratch.setTransform(1, 0, 0, 1, 0, 0);
-        scratch.clearRect(0, 0, maskWidth, maskHeight);
+        scratch.clearRect(0, 0, canvasWidth, canvasHeight);
         const { a, b, c, d, e, f } = ctx.getTransform();
-        scratch.setTransform(a, b, c, d, e + padL, f + padT);
-        scratch.globalAlpha = ctx.globalAlpha;
+        scratch.setTransform(
+            a * scaleX,
+            b * scaleY,
+            c * scaleX,
+            d * scaleY,
+            (e + padLeft) * scaleX,
+            (f + padTop) * scaleY
+        );
+        scratch.globalAlpha = opaque ? 1 : ctx.globalAlpha;
         scratch.direction = ctx.direction;
 
         // The casters draw their silhouettes again below, so the mask pass must not count them, or debug them, twice.
         renderPass(
             casters,
             { ...renderCtx, ctx: scratch, stats: undefined, debugNodeSearch: undefined, currentFont: undefined },
-            'mask'
+            'mask',
+            opaque,
+            { x: scaleX, y: scaleY }
         );
     } finally {
         scratch.restore();
@@ -273,11 +354,11 @@ function renderBatch(
         }
         ctx.resetTransform();
         ctx.globalAlpha = 1;
-        ctx.shadowColor = shadow.color;
+        ctx.shadowColor = shadowColour;
         ctx.shadowOffsetX = offsetX + distance;
         ctx.shadowOffsetY = offsetY;
         ctx.shadowBlur = blur;
-        ctx.drawImage(canvas, 0, 0, maskWidth, maskHeight, -padL - distance, -padT, maskWidth, maskHeight);
+        ctx.drawImage(canvas, 0, 0, canvasWidth, canvasHeight, -padLeft - distance, -padTop, maskWidth, maskHeight);
     } finally {
         ctx.restore();
     }
@@ -293,7 +374,8 @@ export function renderChildrenWithShadowBatches(
     children: Iterable<Node>,
     scene: object | undefined,
     user: object,
-    renderCtx: RenderContext
+    renderCtx: RenderContext,
+    splitByLayer: boolean = false
 ): void {
     const { stats } = renderCtx;
     let run: ShadowCaster[] = [];
@@ -304,8 +386,7 @@ export function renderChildrenWithShadowBatches(
         if (run.length === 0) return;
 
         if (runShadow == null || !renderBatch(scene, user, run, runShadow, runClip, renderCtx)) {
-            // The one exception to drawing every shadow through the mask: a layer too large for it, or no context to draw it
-            // with, leaves the casters to cast for themselves. They size their shadow the way the mask does.
+            // No mask to draw (no context, an empty layer or a non-finite shadow): the casters cast for themselves.
             for (const caster of run) caster.isolatedRender(renderCtx);
         }
         run = [];
@@ -325,9 +406,14 @@ export function renderChildrenWithShadowBatches(
 
         const shadow = getBatchedShadow(child);
         const clip = shadow == null ? undefined : getShadowClip(child);
-        if (shadow == null || (runShadow != null && !(sameShadow(runShadow, shadow) && sameClip(runClip, clip)))) {
-            flush();
-        }
+        const joinsRun =
+            shadow != null &&
+            runShadow != null &&
+            sameShadow(runShadow, shadow) &&
+            sameClip(runClip, clip) &&
+            (!splitByLayer || sameLayer(run[0], child));
+        // A child that casts no shadow, or one that does not continue the run, ends it.
+        if (!joinsRun) flush();
         if (shadow == null) {
             child.isolatedRender(renderCtx);
             continue;

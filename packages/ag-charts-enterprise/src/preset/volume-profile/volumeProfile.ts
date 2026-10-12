@@ -1,10 +1,24 @@
 import { _Theme } from 'ag-charts-community';
-import { type OptionsDefs, boolean, callback, color, fontOptionsDef, positiveNumber } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    arrayOf,
+    boolean,
+    callback,
+    color,
+    fontOptionsDef,
+    positiveNumber,
+    ratio,
+    shapeSelectionOptionsDef,
+    strictUnion,
+} from 'ag-charts-core';
 import type {
     AgBarSeriesOptions,
     AgCategoryAxisOptions,
     AgNumberAxisOptions,
+    AgSelectionClickMode,
     AgVolumeProfileOptions,
+    AgVolumeProfileSelectedBandOptions,
+    AgVolumeProfileSelectionOptions,
     AgVolumeProfileTotalSegmentOptions,
     DatumDefault,
 } from 'ag-charts-types';
@@ -29,13 +43,16 @@ export function groupVolumeProfile(
 export function createVolumeProfileSeries(
     getTheme: () => ChartTheme,
     priceAxisKey: string,
-    levels?: VolumeProfileDatum[]
+    levels?: VolumeProfileDatum[],
+    selection?: AgVolumeProfileSelectionOptions
 ) {
     const seriesData = levels == null ? {} : { data: levels };
+    const seriesSelection = createSeriesSelectionOptions(selection);
 
     return [
         {
             ...seriesData,
+            ...seriesSelection,
             type: 'bar',
             direction: 'horizontal',
             xKey: 'price',
@@ -60,6 +77,7 @@ export function createVolumeProfileSeries(
         } satisfies AgBarSeriesOptions,
         {
             ...seriesData,
+            ...seriesSelection,
             type: 'bar',
             direction: 'horizontal',
             xKey: 'price',
@@ -88,6 +106,29 @@ export function createVolumeProfileSeries(
     ];
 }
 
+/**
+ * Selection is opted into by the two profile series alone, never through the chart-level `enabled`, which the theme
+ * carries to every series and would make the candles and volume bars selectable in the Financial Chart.
+ */
+function createSeriesSelectionOptions(selection: AgVolumeProfileSelectionOptions | undefined) {
+    if (selection?.enabled !== true) return undefined;
+
+    const { selectedItem, unselectedItem } = selection;
+    return { selection: { enabled: true, selectedItem, unselectedItem }, selectionGroup: 'volumeProfile' };
+}
+
+/** The chart-level options a preset's `selection` contributes: the click mode and drag, which are not per-series options. */
+export function createSelectionChartOptions(selection: AgVolumeProfileSelectionOptions | undefined) {
+    if (selection?.enabled !== true) return undefined;
+
+    const { clickMode, enableDrag } = selection;
+    const chartSelection = {
+        ...(clickMode == null ? undefined : { clickMode }),
+        ...(enableDrag == null ? undefined : { enableDrag }),
+    };
+    return Object.keys(chartSelection).length === 0 ? undefined : { selection: chartSelection };
+}
+
 /** Abbreviates a total with a suffix, such as `1.2K` or `3.4M`. */
 const COMPACT_NUMBER = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
 const formatCompact = ({ value }: { value: number }) => COMPACT_NUMBER.format(value);
@@ -102,6 +143,21 @@ export const volumeProfileTotalSegmentOptionsDef: OptionsDefs<AgVolumeProfileTot
         ...fontOptionsDef,
         formatter: callback,
     },
+};
+
+export const volumeProfileSelectionOptionsDef: OptionsDefs<AgVolumeProfileSelectionOptions> = {
+    enabled: boolean,
+    clickMode: strictUnion<AgSelectionClickMode>()('single', 'multiple'),
+    enableDrag: boolean,
+    selectedItem: shapeSelectionOptionsDef,
+    unselectedItem: shapeSelectionOptionsDef,
+    selectedBand: {
+        fill: color,
+        fillOpacity: ratio,
+        stroke: color,
+        strokeWidth: positiveNumber,
+        lineDash: arrayOf(positiveNumber),
+    } satisfies OptionsDefs<AgVolumeProfileSelectedBandOptions>,
 };
 
 /**
@@ -135,6 +191,13 @@ export function createTotalSegmentAxisOptions(
             },
         },
     };
+}
+
+/** The axis fragment that draws a band behind each selected level on a price axis. */
+export function createSelectedBandAxisOptions(selection: AgVolumeProfileSelectionOptions | undefined) {
+    if (selection?.enabled !== true) return undefined;
+
+    return { axisSelectedBand: { enabled: true, ...selection.selectedBand } };
 }
 
 export function createVolumeProfileAxis(
@@ -180,6 +243,7 @@ export function createVolumeProfileAxis(
             },
             linkZoom: 'y',
             ...createTotalSegmentAxisOptions(volumeProfile.totalSegment, placedRight ? 'right' : 'left'),
+            ...createSelectedBandAxisOptions(volumeProfile.selection),
         } satisfies AgCategoryAxisOptions,
     };
 }
