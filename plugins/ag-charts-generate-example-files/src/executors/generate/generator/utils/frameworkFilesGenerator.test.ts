@@ -20,7 +20,7 @@ const generateVanillaMainJs = async (srcFile: string) => {
         styleFileNames: [],
         isDev: false,
     });
-    return files['main.js'] as string;
+    return files['main.js'];
 };
 
 describe('frameworkFilesGenerator.vanilla', () => {
