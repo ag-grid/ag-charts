@@ -5,6 +5,7 @@ import {
     type PlainObject,
     circularSliceArray,
     clamp,
+    cycledValue,
     isArray,
     isBoolean,
     isDate,
@@ -768,7 +769,20 @@ function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface
     return !infersEnablement && graph.hasThemeOverride(path);
 }
 
-const PALETTE_INDEX_KEYS = new Set(['fill', 'fillFallback', 'stroke', 'gradient', 'range2']);
+/** The palette array a per-item `$palette`/`$mapPalette` key reads at the item's index. */
+function indexedPaletteArray(graph: OptionsGraphInterface, key: string) {
+    switch (key) {
+        case 'fill':
+        case 'range2':
+            return graph.palette.fills;
+        case 'fillFallback':
+            return graph.palette.fillsFallback;
+        case 'stroke':
+            return graph.palette.strokes;
+        case 'gradient':
+            return graph.palette.sequentialColors;
+    }
+}
 
 function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [keyVertex] = values;
@@ -776,26 +790,16 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
 
     if (!isString(key)) return;
 
-    if (PALETTE_INDEX_KEYS.has(key)) {
+    const paletteArray = indexedPaletteArray(graph, key);
+    if (paletteArray) {
         const pathArray = graph.getPathArray(vertex);
         const index = getPathLastIndex(pathArray);
 
         if (Number.isNaN(index)) return;
 
-        switch (key) {
-            case 'fill':
-                return circularSliceArray(graph.palette.fills, 1, index)[0];
-            case 'fillFallback':
-                return circularSliceArray(graph.palette.fillsFallback, 1, index)[0];
-            case 'stroke':
-                return circularSliceArray(graph.palette.strokes, 1, index)[0];
-            case 'gradient':
-                return circularSliceArray(graph.palette.sequentialColors, 1, index)[0];
-            case 'range2':
-                return circularSliceArray(graph.palette.fills, 2, index);
-        }
-
-        return;
+        return key === 'range2'
+            ? circularSliceArray(paletteArray, 2, index)
+            : circularSliceArray(paletteArray, 1, index)[0];
     }
 
     if (key === 'gradients') {
@@ -819,7 +823,8 @@ function mapPaletteOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     const key = graph.resolveVertexValue(vertex, keyVertex);
 
     if (!isString(key)) return;
-    if (PALETTE_INDEX_KEYS.has(key)) {
+    const paletteArray = indexedPaletteArray(graph, key);
+    if (paletteArray) {
         const pathArray = graph.getPathArray(vertex);
         let index = getPathLastIndex(pathArray);
 
@@ -836,20 +841,9 @@ function mapPaletteOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
 
         if (Number.isNaN(index)) return;
 
-        switch (key) {
-            case 'fill':
-                return circularSliceArray(graph.palette.fills, 1, index)[0];
-            case 'fillFallback':
-                return circularSliceArray(graph.palette.fillsFallback, 1, index)[0];
-            case 'stroke':
-                return circularSliceArray(graph.palette.strokes, 1, index)[0];
-            case 'gradient':
-                return circularSliceArray(graph.palette.sequentialColors, 1, index)[0];
-            case 'range2':
-                return circularSliceArray(graph.palette.fills, 2, index);
-        }
-
-        return;
+        return key === 'range2'
+            ? circularSliceArray(paletteArray, 2, index)
+            : circularSliceArray(paletteArray, 1, index)[0];
     }
 
     if (key === 'gradients') {
@@ -1073,10 +1067,10 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     if (!Array.isArray(cycledValues)) return;
 
     const operation = operationVertex == null ? undefined : graph.getVertexValue(operationVertex);
-    const cycleSize = size ?? cyclePeriod(graph, cycledValues.length, operation);
+    const cycleSize = size ?? cyclePeriod(graph, Math.max(1, cycledValues.length), operation);
 
     for (let index = 0; index < cycleSize; index++) {
-        const value = cycledValues[index % cycledValues.length];
+        const value = cycledValue(cycledValues, index);
         if (value == null) continue;
         if (userOption || !hasThemeOverride) {
             graph.graftValue(vertex, `${index}`, value, undefined, graftEdge);
@@ -1093,49 +1087,22 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
  * The length after which a cycle repeats exactly: per-item `$palette` lookups in the operation are indexed by
  * item, so the period must also be a multiple of every palette array they read.
  */
-function cyclePeriod(graph: OptionsGraphInterface, valuesLength: number, operation: unknown) {
-    let period = Math.max(1, valuesLength);
-    for (const paletteArray of indexedPaletteArrays(graph, operation)) {
-        if (paletteArray.length > 0) {
-            period = leastCommonMultiple(period, paletteArray.length);
+function cyclePeriod(graph: OptionsGraphInterface, period: number, operation: unknown): number {
+    if (isArray(operation)) {
+        for (const item of operation) {
+            period = cyclePeriod(graph, period, item);
+        }
+    } else if (isPlainObject(operation)) {
+        const paletteKey = operation[LocationOperation.Palette] ?? operation[LocationOperation.MapPalette];
+        const paletteArray = isString(paletteKey) ? indexedPaletteArray(graph, paletteKey) : undefined;
+        if (paletteArray?.length) {
+            return leastCommonMultiple(period, paletteArray.length);
+        }
+        for (const key of Object.keys(operation)) {
+            period = cyclePeriod(graph, period, operation[key]);
         }
     }
     return period;
-}
-
-function indexedPaletteArrays(graph: OptionsGraphInterface, operation: unknown, arrays = new Set<unknown[]>()) {
-    if (Array.isArray(operation)) {
-        for (const item of operation) {
-            indexedPaletteArrays(graph, item, arrays);
-        }
-    } else if (isObject(operation)) {
-        for (const key of Object.keys(operation)) {
-            const value = operation[key];
-            if ((key === '$palette' || key === '$mapPalette') && isString(value)) {
-                const paletteArray = indexedPaletteArray(graph, value);
-                if (paletteArray) {
-                    arrays.add(paletteArray);
-                }
-            } else {
-                indexedPaletteArrays(graph, value, arrays);
-            }
-        }
-    }
-    return arrays;
-}
-
-function indexedPaletteArray(graph: OptionsGraphInterface, key: string) {
-    switch (key) {
-        case 'fill':
-        case 'range2':
-            return graph.palette.fills;
-        case 'fillFallback':
-            return graph.palette.fillsFallback;
-        case 'stroke':
-            return graph.palette.strokes;
-        case 'gradient':
-            return graph.palette.sequentialColors;
-    }
 }
 
 function leastCommonMultiple(a: number, b: number) {

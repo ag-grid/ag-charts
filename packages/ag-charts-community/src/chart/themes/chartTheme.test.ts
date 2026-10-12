@@ -23,6 +23,9 @@ const data = [
     { label: 'Windows', v1: 2.8, v2: 1.908, v3: 7.48, v4: 5.29, v5: 8.8 },
 ];
 
+const firstCycled = (values: unknown[], count: number) =>
+    Array.from({ length: count }, (_, index) => cycledValue(values, index));
+
 describe('ChartTheme', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -289,21 +292,8 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            const rowIndices = [0, 1, 2, 3, 4];
-            expect(rowIndices.map((i) => cycledValue(pieSeries.options.fills, i))).toEqual([
-                'red',
-                'green',
-                'blue',
-                'red',
-                'green',
-            ]);
-            expect(rowIndices.map((i) => cycledValue(pieSeries.options.strokes, i))).toEqual([
-                'cyan',
-                'cyan',
-                'cyan',
-                'cyan',
-                'cyan',
-            ]);
+            expect(firstCycled(pieSeries.options.fills, 5)).toEqual(['red', 'green', 'blue', 'red', 'green']);
+            expect(firstCycled(pieSeries.options.strokes, 5)).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
             expect(pieSeries.options.calloutLabel.enabled).toBe(true);
             expect(pieSeries.options.calloutLabel.color).toBe('yellow');
             expect(pieSeries.options.calloutLabel.fontSize).toBe(18);
@@ -479,21 +469,8 @@ describe('ChartTheme', () => {
 
             expect(chart.series[0].type).toBe('pie');
             const pieSeries = classCast(chart.series[0], PieSeries);
-            const rowIndices = [0, 1, 2, 3, 4];
-            expect(rowIndices.map((i) => cycledValue(pieSeries.options.fills, i))).toEqual([
-                'red',
-                'green',
-                'blue',
-                'red',
-                'green',
-            ]);
-            expect(rowIndices.map((i) => cycledValue(pieSeries.options.strokes, i))).toEqual([
-                'cyan',
-                'cyan',
-                'cyan',
-                'cyan',
-                'cyan',
-            ]);
+            expect(firstCycled(pieSeries.options.fills, 5)).toEqual(['red', 'green', 'blue', 'red', 'green']);
+            expect(firstCycled(pieSeries.options.strokes, 5)).toEqual(['cyan', 'cyan', 'cyan', 'cyan', 'cyan']);
             expect(pieSeries.options.calloutLabel.enabled).toBe(true);
             expect(pieSeries.options.calloutLabel.color).toBe('yellow');
             expect(pieSeries.options.calloutLabel.fontSize).toBe(18);

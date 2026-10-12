@@ -964,7 +964,7 @@ describe('DataSource', () => {
         };
 
         const createLoadedChart = async (options: AgChartOptions) => {
-            const loaded = deproxy(AgCharts.create(prepareEnterpriseTestOptions({ ...options })));
+            const loaded = deproxy(AgCharts.create(prepareEnterpriseTestOptions(options)));
             await waitForChartStabilityUntil(
                 loaded,
                 () => !loaded.ctx.dataService.isLoading(),
@@ -1005,5 +1005,37 @@ describe('DataSource', () => {
                 );
             });
         }
+
+        it('should cycle pie colours past one palette period', async () => {
+            const fills = ['#111111', '#222222', '#333333'];
+            const strokes = ['#444444', '#555555'];
+            const rows = Array.from({ length: 32 }, (_, index) => ({ label: `R${index}`, value: 10 + index }));
+            const styled = new Map<string, { fill: unknown; stroke: unknown }>();
+            const loaded = await createLoadedChart({
+                theme: { palette: { fills, strokes } },
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'value',
+                        legendItemKey: 'label',
+                        itemStyler: ({ datum, fill, stroke }) => {
+                            styled.set(datum.label, { fill, stroke });
+                            return undefined;
+                        },
+                    },
+                ],
+                dataSource: {
+                    // @ts-expect-error Set undocumented options to instantly resolve for tests
+                    requestThrottle: 0,
+                    updateThrottle: 0,
+                    getData: () => Promise.resolve(rows),
+                },
+            });
+
+            expect(rows.map(({ label }) => styled.get(label))).toEqual(
+                rows.map((_, i) => ({ fill: fills[i % fills.length], stroke: strokes[i % strokes.length] }))
+            );
+            loaded.destroy();
+        });
     });
 });
