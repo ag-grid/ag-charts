@@ -1,6 +1,8 @@
 import styled from '@emotion/styled';
 import { useMemo } from 'react';
 
+import type { AgChartTheme } from 'ag-charts-enterprise';
+
 import { ChartPreview } from './ChartPreview';
 import { PreviewOptions } from './PreviewOptions';
 import {
@@ -10,12 +12,11 @@ import {
     usePreviewFeatures,
     usePreviewSeriesCount,
 } from './chartTypes';
-import type { ChartsTheme } from './chartsThemeOutput';
 import { useSetEditedGroup } from './editedGroup';
 
 interface Props {
     pane: PreviewPaneId;
-    theme: ChartsTheme;
+    theme: AgChartTheme;
     /** Whether the palette has strokes for an outline to be drawn in. */
     strokesEnabled: boolean;
 }
@@ -63,15 +64,7 @@ export const PreviewPane = ({ pane, theme, strokesEnabled }: Props) => {
                 />
             </Toolbar>
             <Chart>
-                {/* Keyed on the factory, not the type: a preset is fixed at
-                    creation, so moving in or out of one has to remount. */}
-                <ChartPreview
-                    key={chartType.preset ?? 'plain'}
-                    theme={theme}
-                    chartType={chartType}
-                    seriesCount={seriesCount}
-                    features={activeFeatures}
-                />
+                <ChartPreview theme={theme} chartType={chartType} seriesCount={seriesCount} features={activeFeatures} />
             </Chart>
         </Pane>
     );

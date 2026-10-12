@@ -59,20 +59,13 @@ const toChartThemeParams = (overriddenParams: Record<string, unknown>): AgChartT
             .map((property) => [property, toChartParamValue(property, overriddenParams[property])])
     );
 
-/**
- * A base theme, params and a palette. `overrides` is dropped because it carries
- * the datum context `AgChartTheme` is invariant in, so a theme typed with one
- * cannot drive both a plain chart and the price-volume preset.
- */
-export type ChartsTheme = Omit<AgChartTheme, 'overrides'>;
-
 export type ChartsThemeSelection = {
     baseTheme: AgChartThemeName;
     params: Record<string, unknown>;
     palette: Palette;
 };
 
-export const toChartTheme = ({ baseTheme, params, palette }: ChartsThemeSelection): ChartsTheme => {
+export const toChartTheme = ({ baseTheme, params, palette }: ChartsThemeSelection): AgChartTheme => {
     const themeParams = toChartThemeParams(params);
     return {
         baseTheme,
