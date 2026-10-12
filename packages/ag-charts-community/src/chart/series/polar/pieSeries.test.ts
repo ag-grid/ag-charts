@@ -1493,6 +1493,30 @@ describe('PieSeries', () => {
         });
     });
 
+    test('colours rows past the theme override fills from the palette', async () => {
+        const paletteFills = ['#111111', '#222222', '#333333', '#444444'];
+        const overrideFills = ['red', 'green', 'blue'];
+        const data = Array.from({ length: 24 }, (_, index) => ({ food: `F${index}`, value: 10 + index }));
+        chart = deproxy(
+            AgCharts.create(
+                prepareTestOptions({
+                    theme: {
+                        palette: { fills: paletteFills },
+                        overrides: { pie: { series: { fills: overrideFills } } },
+                    },
+                    data,
+                    series: [{ type: 'pie', angleKey: 'value' }],
+                })
+            )
+        );
+        await waitForChartStability(chart);
+
+        const pieSeries = classCast(chart.series[0], PieSeries);
+        expect((pieSeries.getNodeData() ?? []).map((datum) => datum.sectorFormat.fill)).toEqual(
+            data.map((_, i) => overrideFills[i] ?? paletteFills[i % paletteFills.length])
+        );
+    });
+
     describe('applyTransaction', () => {
         let chartProxy: AgChartProxy;
         let pieSeries: PieSeries;

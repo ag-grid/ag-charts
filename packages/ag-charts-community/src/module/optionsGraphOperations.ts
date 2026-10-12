@@ -1067,7 +1067,11 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     if (!Array.isArray(cycledValues)) return;
 
     const operation = operationVertex == null ? undefined : graph.getVertexValue(operationVertex);
-    const cycleSize = size ?? cyclePeriod(graph, Math.max(1, cycledValues.length), operation);
+    const themeOverride =
+        userOption == null && hasThemeOverride ? graph.dangerouslyGetThemeOverride(pathArray) : undefined;
+    const overrideLength = Array.isArray(themeOverride) ? Math.max(1, themeOverride.length) : 1;
+    const valuesPeriod = leastCommonMultiple(Math.max(1, cycledValues.length), overrideLength);
+    const cycleSize = size ?? cyclePeriod(graph, valuesPeriod, operation);
 
     for (let index = 0; index < cycleSize; index++) {
         const value = cycledValue(cycledValues, index);
