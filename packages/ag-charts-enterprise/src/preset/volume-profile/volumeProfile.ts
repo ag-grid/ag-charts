@@ -217,13 +217,8 @@ export function createVolumeProfileAxis(
             crosshair: { enabled: false },
             gridLine: { enabled: false },
             reverse: placedRight,
+            lengthRatio: volumeProfile.widthRatio ?? 0.5,
             // @ts-expect-error undocumented option
-            layoutConstraints: {
-                stacked: false,
-                width: (volumeProfile.widthRatio ?? 0.5) * 100,
-                unit: 'percent',
-                align: placedRight ? 'end' : 'start',
-            },
             ignoreZoom: true,
         } satisfies AgNumberAxisOptions,
         xVolumeProfilePrice: {

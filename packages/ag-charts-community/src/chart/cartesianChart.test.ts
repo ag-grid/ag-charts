@@ -9,10 +9,12 @@ import { AgCharts } from '../api/agCharts';
 import type { CartesianChart } from './cartesianChart';
 import type { Chart } from './chart';
 import type { SeriesNodeDataContext } from './series/series';
+import { expectPixelIdenticalAcrossUpdate } from './test/bigintExamples';
 import * as examples from './test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
+    createChart as createTestChart,
     deproxy,
     expectWarningsCalls,
     prepareTestOptions,
@@ -419,6 +421,211 @@ describe('CartesianChart', () => {
             chart = deproxy(AgCharts.create(options)) as CartesianChart;
             await waitForChartStability(chart);
             await compare(chart);
+        });
+    });
+
+    describe('axis lengthRatio', () => {
+        const createChart = async (options: AgCartesianChartOptions) => {
+            prepareTestOptions(options);
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            await waitForChartStability(chart);
+        };
+
+        const getAxis = (key: string) => {
+            const axis = chart.axes.find((a) => a.userKey === key);
+            if (axis == null) fail(`No axis found for key ${key}`);
+            return axis;
+        };
+
+        const domainEndPixels = (key: string) => {
+            const { scale } = getAxis(key);
+            const domain: number[] = scale.domain;
+            return { min: scale.convert(Math.min(...domain)), max: scale.convert(Math.max(...domain)) };
+        };
+
+        const seriesLength = (direction: 'vertical' | 'horizontal') => {
+            const { seriesRect } = chart;
+            if (seriesRect == null) fail('No seriesRect');
+            return direction === 'vertical' ? seriesRect.height : seriesRect.width;
+        };
+
+        const volumeChart = (yVolume: object): AgCartesianChartOptions => ({
+            data: getData(),
+            series: [
+                { type: 'line', xKey: 'year', yKey: 'adults' },
+                { type: 'bar', xKey: 'year', yKey: 'children', yKeyAxis: 'yVolume' },
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'right' },
+                yVolume: { type: 'number', position: 'left', ...yVolume },
+            },
+        });
+
+        const scatterChart = (x: object): AgCartesianChartOptions => ({
+            data: getData(),
+            series: [{ type: 'scatter', xKey: 'adults', yKey: 'children' }],
+            axes: {
+                x: { type: 'number', position: 'bottom', ...x },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        it('should span the full series area when unset', async () => {
+            await createChart(volumeChart({}));
+
+            const height = seriesLength('vertical');
+            const { min, max } = domainEndPixels('yVolume');
+            expect(min).toBeCloseTo(height);
+            expect(max).toBeCloseTo(0);
+        });
+
+        it('should anchor a vertical number axis at the bottom', async () => {
+            await createChart(volumeChart({ lengthRatio: 0.25 }));
+
+            const height = seriesLength('vertical');
+            const { min, max } = domainEndPixels('yVolume');
+            expect(min).toBeCloseTo(height);
+            expect(max).toBeCloseTo(height * 0.75);
+        });
+
+        it('should anchor a reversed vertical number axis at the top', async () => {
+            await createChart(volumeChart({ lengthRatio: 0.25, reverse: true }));
+
+            const height = seriesLength('vertical');
+            const { min, max } = domainEndPixels('yVolume');
+            expect(min).toBeCloseTo(0);
+            expect(max).toBeCloseTo(height * 0.25);
+        });
+
+        it('should anchor a horizontal number axis at the left', async () => {
+            await createChart(scatterChart({ lengthRatio: 0.5 }));
+
+            const width = seriesLength('horizontal');
+            const { min, max } = domainEndPixels('x');
+            expect(min).toBeCloseTo(0);
+            expect(max).toBeCloseTo(width * 0.5);
+        });
+
+        it('should anchor a reversed horizontal number axis at the right', async () => {
+            await createChart(scatterChart({ lengthRatio: 0.5, reverse: true }));
+
+            const width = seriesLength('horizontal');
+            const { min, max } = domainEndPixels('x');
+            expect(min).toBeCloseTo(width);
+            expect(max).toBeCloseTo(width * 0.5);
+        });
+
+        it('should anchor a vertical category axis at the end of its first category', async () => {
+            const options = (x: object): AgCartesianChartOptions => ({
+                data: getData(),
+                series: [{ type: 'bar', direction: 'horizontal', xKey: 'year', yKey: 'adults' }],
+                axes: {
+                    x: { type: 'category', position: 'left', ...x },
+                    y: { type: 'number', position: 'bottom' },
+                },
+            });
+            const categoryPixels = () => {
+                const { scale } = getAxis('x');
+                return scale.domain.map((category: unknown) => scale.convert(category));
+            };
+
+            await createChart(options({}));
+            const fullPixels = categoryPixels();
+            const firstAtTop = fullPixels[0] < fullPixels.at(-1)!;
+
+            await chart.publicApi!.update(prepareTestOptions(options({ lengthRatio: 0.5 })));
+            await waitForChartStability(chart);
+
+            const height = seriesLength('vertical');
+            const pixels = categoryPixels();
+            const [lower, upper] = firstAtTop ? [0, height * 0.5] : [height * 0.5, height];
+            for (const pixel of pixels) {
+                expect(pixel).toBeGreaterThanOrEqual(lower);
+                expect(pixel).toBeLessThanOrEqual(upper);
+            }
+            expect(pixels[0] < pixels.at(-1)!).toBe(firstAtTop);
+        });
+
+        const fixedWidthBarChart = (barWidth: number, x: object): AgCartesianChartOptions => ({
+            data: getData(),
+            series: [{ type: 'bar', xKey: 'year', yKey: 'adults', width: barWidth }],
+            axes: {
+                x: { type: 'category', position: 'bottom', lengthRatio: 0.5, ...x },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        it('should align fixed-width bars within the shortened axis', async () => {
+            await createChart(fixedWidthBarChart(10, { bandAlignment: 'end' }));
+
+            const width = seriesLength('horizontal');
+            const [start, end] = getAxis('x').range;
+            expect(end).toBeCloseTo(width * 0.5);
+            expect(start).toBeGreaterThan(0);
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('should ignore lengthRatio when fixed-width bars need more room than it allows', async () => {
+            await createChart(fixedWidthBarChart(200, {}));
+
+            const [start, end] = getAxis('x').range;
+            expect(start).toBeCloseTo(0);
+            expect(end - start).toBeGreaterThan(seriesLength('horizontal') * 0.5);
+            expectWarningsCalls().toEqual([
+                [
+                    expect.stringContaining(
+                        '`axes.x.lengthRatio` is ignored because the fixed-width bars need more room'
+                    ),
+                ],
+            ]);
+        });
+
+        it('should render series within the band of their ratio-sized axes', async () => {
+            await createChart({
+                data: getData(),
+                series: [
+                    { type: 'scatter', xKey: 'adults', yKey: 'portions' },
+                    { type: 'line', xKey: 'adults', yKey: 'children', yKeyAxis: 'yBand' },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom', lengthRatio: 0.6, reverse: true },
+                    y: { type: 'number', position: 'left' },
+                    yBand: { type: 'number', position: 'right', lengthRatio: 0.3, max: 12, line: { enabled: true } },
+                },
+            });
+
+            await compare(chart);
+        });
+
+        it('should stop clipping series to the band once lengthRatio is removed', async () => {
+            const options = (lengthRatio?: number): AgCartesianChartOptions => ({
+                data: getData(),
+                series: [{ type: 'line', xKey: 'adults', yKey: 'children' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', max: 15, lengthRatio },
+                },
+            });
+
+            await expectPixelIdenticalAcrossUpdate(ctx, createTestChart, options(), options(0.5), options());
+        });
+
+        it('should stack ratio-sized axes at the same position outwards', async () => {
+            await createChart({
+                data: getData(),
+                series: [
+                    { type: 'line', xKey: 'year', yKey: 'adults', yKeyAxis: 'yA' },
+                    { type: 'line', xKey: 'year', yKey: 'children', yKeyAxis: 'yB' },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    yA: { type: 'number', position: 'left', lengthRatio: 0.5 },
+                    yB: { type: 'number', position: 'left', lengthRatio: 0.5 },
+                },
+            });
+
+            expect(getAxis('yA').translation.x).not.toBeCloseTo(getAxis('yB').translation.x);
         });
     });
 });

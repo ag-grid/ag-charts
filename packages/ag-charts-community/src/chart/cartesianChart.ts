@@ -137,6 +137,49 @@ export class CartesianChart extends Chart {
 
     private lastUpdateClipRect: BBox | undefined = undefined;
 
+    private bandClippedSeries = new Set<object>();
+
+    private clipSeriesToAxisBands(seriesRect: BBox, enableClip: boolean) {
+        const bands = new Map<object, BBox>();
+        for (const axis of enableClip ? this.axes : []) {
+            if (axis.options.lengthRatio == null || axis.lineRange == null) continue;
+
+            const [lineStart, lineEnd] = axis.lineRange;
+            const bandStart = Math.min(lineStart, lineEnd);
+            const bandLength = Math.abs(lineEnd - lineStart);
+            const isHorizontal = axis.position === 'top' || axis.position === 'bottom';
+            for (const series of axis.boundSeries) {
+                const band = bands.get(series) ?? seriesRect.clone();
+                if (isHorizontal) {
+                    band.x = seriesRect.x + bandStart;
+                    band.width = bandLength;
+                } else {
+                    band.y = seriesRect.y + bandStart;
+                    band.height = bandLength;
+                }
+                bands.set(series, band);
+            }
+        }
+
+        const previouslyClipped = this.bandClippedSeries;
+        if (bands.size === 0 && previouslyClipped.size === 0) return;
+
+        this.bandClippedSeries = new Set(bands.keys());
+        for (const series of this.series) {
+            const band = bands.get(series);
+            if (band == null && !previouslyClipped.has(series)) continue;
+
+            for (const group of [
+                series.contentGroup,
+                series.highlightGroup,
+                series.labelGroup,
+                series.annotationGroup,
+            ]) {
+                group.setClipRect(band);
+            }
+        }
+    }
+
     override async processData(): Promise<void> {
         await super.processData();
 
@@ -227,6 +270,7 @@ export class CartesianChart extends Chart {
         } else {
             this.setRootClipRects(clipRect);
         }
+        this.clipSeriesToAxisBands(seriesRect, enableClip);
 
         // Update the series area modules and always clip them to the series padded rect area.
         this.seriesArea.update(seriesRect, seriesPaddedRect);
@@ -611,32 +655,26 @@ export class CartesianChart extends Chart {
         const isLeftRight = position === 'left' || position === 'right';
 
         const { width, height } = seriesRect;
-        const maxEnd = isLeftRight ? height : width;
+        const [bandStart, bandLength] = this.axisBand(axis, isLeftRight ? height : width, isLeftRight && isNumberAxis);
+        const bandEnd = bandStart + bandLength;
 
-        let start = 0;
-        let end = maxEnd;
         // Per-axis zoom is axis-local — secondary axes in independent-axes mode diverge from their
         // direction primary. Read directly from the axis rather than the central chart state.
         let { min, max } = axis.getZoom();
 
         const { width: axisWidth, unit, align } = axis.layoutConstraints;
+        const size = unit === 'px' ? axisWidth : (bandLength * axisWidth) / 100;
 
-        if (unit === 'px') {
-            end = start + axisWidth;
-        } else {
-            end = (end * axisWidth) / 100;
-        }
-
-        const size = end - start;
+        let start = bandStart;
+        let end = bandStart + size;
         if (align === 'end') {
-            start = maxEnd - size;
-            end = maxEnd;
+            start = bandEnd - size;
+            end = bandEnd;
         } else if (align === 'center') {
-            const center = start + (maxEnd - start) / 2;
-            start = center - size / 2;
-            end = center + size / 2;
+            start = bandStart + (bandLength - size) / 2;
+            end = start + size;
         } else if (align === 'justify') {
-            end = maxEnd;
+            end = bandEnd;
         }
 
         if (isLeftRight) {
@@ -650,7 +688,25 @@ export class CartesianChart extends Chart {
         axis.range = [start, end];
         axis.visibleRange = this.linkedVisibleRange(axis, start, end) ?? [min, max];
         axis.gridLength = isLeftRight ? width : height;
-        axis.lineRange = isLeftRight ? [height, 0] : [0, width];
+        axis.lineRange = isLeftRight ? [bandEnd, bandStart] : [bandStart, bandEnd];
+    }
+
+    /** The part of the series area length the axis is laid out in, as `[start, length]`. */
+    private axisBand(axis: CartesianAxis, fullLength: number, minAtEnd: boolean): [number, number] {
+        const { lengthRatio, reverse } = axis.options;
+        if (lengthRatio == null) return [0, fullLength];
+
+        const bandLength = fullLength * lengthRatio;
+        const { width, unit } = axis.layoutConstraints;
+        if (unit === 'px' && width > bandLength) {
+            this.ctx.logger.warnOnce(
+                `\`axes.${axis.userKey}.lengthRatio\` is ignored because the fixed-width bars need more room than it allows.`
+            );
+            return [0, fullLength];
+        }
+
+        const anchoredAtEnd = minAtEnd !== reverse;
+        return [anchoredAtEnd ? fullLength - bandLength : 0, bandLength];
     }
 
     // Centres each band of a `linkZoom` category axis on its category's value in the linked axis' scale,

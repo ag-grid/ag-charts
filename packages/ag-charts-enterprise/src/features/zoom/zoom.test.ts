@@ -232,6 +232,32 @@ describe('Zoom', () => {
         });
     });
 
+    describe('lengthRatio', () => {
+        it('should zoom a ratio-sized axis within its length', async () => {
+            const baseOptions: AgCartesianChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                axes: {
+                    x: { type: 'number', position: 'bottom', nice: false, lengthRatio: 0.5 },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            await prepareChart(undefined, { ratioX: { start: 0.25, end: 0.75 } }, baseOptions, false);
+            await waitForChartStability(chart);
+
+            const { axes, seriesRect } = deproxy(chart);
+            const xAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
+            expect(xAxis).toBeDefined();
+            expect(seriesRect).toBeDefined();
+            const { scale } = xAxis!;
+            const [min, max] = scale.domain as number[];
+            const length = max - min;
+
+            expect(scale.convert(min + 0.25 * length)).toBeCloseTo(0);
+            expect(scale.convert(min + 0.75 * length)).toBeCloseTo(seriesRect!.width * 0.5);
+        });
+    });
+
     describe('scrolling', () => {
         it('should zoom in', async () => {
             await prepareChart();

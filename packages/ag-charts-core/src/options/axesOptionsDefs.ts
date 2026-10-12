@@ -366,6 +366,7 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     position: union('top', 'right', 'bottom', 'left'),
     thickness: positiveNumber,
     maxThicknessRatio: ratio,
+    lengthRatio: ratio,
     listeners: {
         click: callback,
         doubleClick: callback,

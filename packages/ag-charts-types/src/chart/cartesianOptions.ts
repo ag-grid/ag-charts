@@ -65,6 +65,12 @@ export interface AgBaseCartesianAxisOptions<
      * Default: `0.3`
      */
     maxThicknessRatio?: Ratio;
+    /**
+     * The length of the axis, as a ratio of the length of the area it is drawn in. The axis starts at the end where its minimum value or first category sits, or at the opposite end when `reverse` is `true`.
+     *
+     * If not set, the axis spans the full length.
+     */
+    lengthRatio?: Ratio;
     /** Configuration for the title shown next to the axis. */
     title?: AgCartesianAxisCaptionOptions;
     /** Configuration for the axis crosshair. */
