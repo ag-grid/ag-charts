@@ -31,15 +31,13 @@ export const DEMO_EXAMPLES: DemoExample[] = [
         demoAppId: 'web-analytics',
         image: '/images/demos/web-analytics.webp',
     },
-    // Uncomment to re-list the procurement demo, restoring `src/pages/examples-procurement.astro`
-    // and its `.md.ts` twin alongside it. Its copy is still in DEMO_PAGE_CONTENT.
-    // {
-    //     id: 'procurement',
-    //     title: 'Procurement Manager',
-    //     path: './examples-procurement/',
-    //     description: 'Spend, supplier and delivery charts for a procurement manager workspace.',
-    //     demoAppId: 'procurement',
-    // },
+    {
+        id: 'procurement',
+        title: 'Procurement Manager',
+        path: './examples-procurement/',
+        description: 'Spend, supplier and delivery charts for a procurement manager workspace.',
+        demoAppId: 'procurement',
+    },
     // Uncomment once the real-time demo app exists, restoring `src/pages/examples-real-time.astro`
     // and its `.md.ts` twin alongside it. Its copy is still in DEMO_PAGE_CONTENT.
     // {
