@@ -526,6 +526,58 @@ describe('ChartTheme', () => {
         );
     });
 
+    describe('border theme params', () => {
+        const BASE_PARAMS = { borderColor: '#112233', borderWidth: 2 };
+
+        const create = async (params: object, options: Partial<AgCartesianChartOptions> = {}) => {
+            chart = deproxy(
+                AgCharts.create({
+                    data,
+                    series: [{ type: 'bar', xKey: 'label', yKey: 'v1', label: { enabled: true } }],
+                    theme: { params: { ...BASE_PARAMS, ...params } },
+                    ...options,
+                } as AgCartesianChartOptions)
+            );
+            await waitForChartStability(chart);
+            return chart.chartOptions.processedOptions as any;
+        };
+
+        test.each([
+            ['true', true, { enabled: true, stroke: '#112233', strokeWidth: 2 }],
+            ['an object width', { width: 3 }, { enabled: true, stroke: '#112233', strokeWidth: 3 }],
+            ['an object colour', { color: '#445566' }, { enabled: true, stroke: '#445566', strokeWidth: 2 }],
+        ])('legendBorder as %s resolves the legend border', async (_name, legendBorder, expected) => {
+            const { legend } = await create({ legendBorder });
+
+            expect(legend.border).toMatchObject(expected);
+        });
+
+        test('legendBorder false disables the border but keeps the legend stroke and a width of 1', async () => {
+            const { legend } = await create({ legendBorder: false });
+
+            expect(legend.border.enabled).toBe(false);
+            expect(legend.border.stroke).not.toBe('#112233');
+            expect(legend.border.strokeWidth).toBe(1);
+        });
+
+        test.each([
+            ['true', true, { enabled: true, stroke: '#112233', strokeWidth: 2 }],
+            ['an object width', { width: 3 }, { enabled: true, stroke: '#112233', strokeWidth: 3 }],
+            ['an object colour', { color: '#445566' }, { enabled: true, stroke: '#445566', strokeWidth: 2 }],
+        ])('seriesLabelBorder as %s resolves the series label border', async (_name, seriesLabelBorder, expected) => {
+            const { series } = await create({ seriesLabelBorder });
+
+            expect(series[0].label.border).toMatchObject(expected);
+        });
+
+        test('seriesLabelBorder false leaves the label border off, with a width of 1', async () => {
+            const { series } = await create({ seriesLabelBorder: false });
+
+            expect(series[0].label.border.enabled).toBe(false);
+            expect(series[0].label.border.strokeWidth).toBe(1);
+        });
+    });
+
     describe('legend padding overrides (CRT-1145, CRT-1146)', () => {
         const baseOptions = (legend: AgCartesianChartOptions['legend']): AgCartesianChartOptions => ({
             data,
