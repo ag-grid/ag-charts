@@ -159,6 +159,7 @@ describe('parseDemoPages', () => {
         expect(parseDemoPages(registry)).toEqual([
             { path: 'examples/', demoId: 'trading-terminal' },
             { path: 'examples-web-analytics/', demoId: 'web-analytics' },
+            { path: 'examples-procurement/', demoId: 'procurement' },
         ]);
     });
 });
