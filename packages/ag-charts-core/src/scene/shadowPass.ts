@@ -15,4 +15,9 @@ export const shadowPass: {
      * paint, because the batch casts its shadow at the one strength that all of its casters share.
      */
     opaque: boolean;
-} = { state: 'none', opaque: false };
+    /**
+     * During a `mask` pass, how many device pixels the scratch canvas has per pixel of the layer, along each axis. It is
+     * below 1 for a layer too large to mask at full resolution, and 1 otherwise.
+     */
+    resolution: { x: number; y: number };
+} = { state: 'none', opaque: false, resolution: { x: 1, y: 1 } };
