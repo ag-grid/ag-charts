@@ -2908,6 +2908,10 @@ describe('CartesianAxis', () => {
                             .map((word, i) => ({ text: i === 0 ? word : `\n${word}`, fontSize: i === 0 ? 18 : 10 })),
                 },
                 boxed: { formatter: multiline, fill: 'lightgrey', padding: { top: 4, right: 12, bottom: 8, left: 2 } },
+                styled: {
+                    formatter: multiline,
+                    itemStyler: () => ({ fill: 'lightgrey', padding: { top: 4, right: 12, bottom: 8, left: 2 } }),
+                },
             };
             type Position = 'bottom' | 'left' | 'top' | 'right';
 
@@ -2956,7 +2960,7 @@ describe('CartesianAxis', () => {
 
             it.each(
                 (['bottom', 'left', 'top', 'right'] as const).flatMap((position) =>
-                    (['plain', 'segmented', 'boxed'] as const).flatMap((variant) =>
+                    (['plain', 'segmented', 'boxed', 'styled'] as const).flatMap((variant) =>
                         [-30, 45].map((rotation) => [position, variant, rotation] as const)
                     )
                 )
@@ -2979,6 +2983,45 @@ describe('CartesianAxis', () => {
                     }
                 }
             );
+
+            // The pin moves labels of differing line counts by differing amounts, so collision
+            // avoidance has to see the move on a vertical axis too.
+            describe('collision avoidance on a rotated vertical axis', () => {
+                // Five line counts cycling, so whichever ticks thinning keeps, neighbours still differ.
+                const LINES = ['A', 'B C', 'D E F G', 'H I', 'J K L M N'];
+                const denseOptions = (
+                    count: number,
+                    rotation: number,
+                    avoidCollisions: boolean
+                ): AgCartesianChartOptions => ({
+                    data: Array.from({ length: count }, (_, i) => ({ category: `${LINES[i % 5]}${i}`, value: i })),
+                    width: 600,
+                    height: 400,
+                    axes: {
+                        x: { type: 'number', position: 'bottom' },
+                        y: {
+                            type: 'category',
+                            position: 'left',
+                            label: { rotation, avoidCollisions, formatter: multiline },
+                        },
+                    },
+                    series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+                });
+
+                it.each([
+                    [40, 60],
+                    [60, 45],
+                ])('leaves no overlapping pair of %d labels at rotation %d', async (count, rotation) => {
+                    await renderChart(denseOptions(count, rotation, false));
+                    // Anti-vacuous: without avoidance this geometry really does overlap.
+                    expect(collidingPairs(getAxisLabelNodes(chart, 'left'))).toBeGreaterThan(0);
+
+                    await renderChart(denseOptions(count, rotation, true));
+                    const nodes = getAxisLabelNodes(chart, 'left');
+                    expect(nodes.length).toBeGreaterThan(1);
+                    expect(collidingPairs(nodes)).toBe(0);
+                });
+            });
         });
 
         // The offsets collision avoidance measures are read off the label nodes, which carry the

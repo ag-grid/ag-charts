@@ -410,10 +410,8 @@ export abstract class CartesianAxis<
             sizeLimit: this.chartLayout?.sizeLimit,
             inRange: (translation: number) => this.inRange(translation, 0.001),
             labelBaseline: this.resolveLabelBaseline(label.verticalAlign),
-            labelBandOffsets: this.horizontal
-                ? (ticks, rotation, textAlign, textBaseline) =>
-                      this.measureLabelBandOffsets(ticks, { rotation, textAlign, textBaseline }, scrollbarThickness)
-                : undefined,
+            labelBandOffsets: (ticks, rotation, textAlign, textBaseline) =>
+                this.measureLabelBandOffsets(ticks, { rotation, textAlign, textBaseline }, scrollbarThickness),
             tickFormatter: (...args) => this.tickFormatter(...args),
         });
 
@@ -1130,9 +1128,11 @@ export abstract class CartesianAxis<
             return undefined;
         }
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult, scrollbarThickness));
-        const before = labels.map((l) => l.y);
+        // `getTickLabelProps` places the label offset at `-y` on a horizontal axis and at `x` on a vertical one.
+        const crossOffset = this.horizontal ? (l: LabelNodeDatum) => -l.y : (l: LabelNodeDatum) => l.x;
+        const before = labels.map(crossOffset);
         this.alignLabelBands(ticks, labels, tickGenerationResult);
-        return labels.map((l, i) => l.y - before[i]);
+        return labels.map((l, i) => crossOffset(l) - before[i]);
     }
 
     /**
@@ -1174,18 +1174,9 @@ export abstract class CartesianAxis<
             const alignment = horizontal ? verticalAlign : textAlign;
             if (alignment == null && !anchorRotated) continue;
 
-            // `tempText` measures unboxed glyphs; the pin grows them by the padding to keep the drawn box's gap.
-            const padding = expandLabelPadding(tierLabel);
-            let innerPadding = 0;
-            if (alignment == null) {
-                if (horizontal) {
-                    innerPadding = outward > 0 ? padding.top : padding.bottom;
-                } else {
-                    innerPadding = outward > 0 ? padding.left : padding.right;
-                }
-            }
+            const tierPadding = expandLabelPadding(tierLabel);
 
-            const measured: { datum: LabelNodeDatum; extent: LabelExtent }[] = [];
+            const measured: { datum: LabelNodeDatum; extent: LabelExtent; innerPadding: number }[] = [];
             let maxLabelExtent = 0;
             for (let i = 0; i < labels.length; i += 1) {
                 if ((ticks[i].isPrimary && primaryEnabled) !== primaryTier) continue;
@@ -1199,22 +1190,33 @@ export abstract class CartesianAxis<
                 const box = tempText.computeBBoxWithoutTransforms();
                 if (box == null) continue;
 
-                const measuredBox =
-                    alignment == null
-                        ? {
-                              x: box.x - padding.left,
-                              y: box.y - padding.top,
-                              width: box.width + padding.left + padding.right,
-                              height: box.height + padding.top + padding.bottom,
-                          }
-                        : {
-                              x: box.x + padding.left,
-                              y: box.y + padding.top,
-                              width: box.width - padding.left - padding.right,
-                              height: box.height - padding.top - padding.bottom,
-                          };
+                // `tempText` measures unboxed glyphs; the pin grows them by the label's own resolved
+                // padding, which an `itemStyler` can set, to keep the drawn box's gap.
+                let measuredBox;
+                let innerPadding = 0;
+                if (alignment == null) {
+                    const padding = expandLabelPadding(datum);
+                    measuredBox = {
+                        x: box.x - padding.left,
+                        y: box.y - padding.top,
+                        width: box.width + padding.left + padding.right,
+                        height: box.height + padding.top + padding.bottom,
+                    };
+                    if (horizontal) {
+                        innerPadding = outward > 0 ? padding.top : padding.bottom;
+                    } else {
+                        innerPadding = outward > 0 ? padding.left : padding.right;
+                    }
+                } else {
+                    measuredBox = {
+                        x: box.x + tierPadding.left,
+                        y: box.y + tierPadding.top,
+                        width: box.width - tierPadding.left - tierPadding.right,
+                        height: box.height - tierPadding.top - tierPadding.bottom,
+                    };
+                }
                 const extent = getRotatedLabelExtent(measuredBox, datum.x, datum.y, rotation);
-                measured.push({ datum, extent });
+                measured.push({ datum, extent, innerPadding });
                 // The band runs across the axis, so its depth is the deepest label in that direction.
                 const labelExtent = horizontal ? extent.y1 - extent.y0 : extent.x1 - extent.x0;
                 maxLabelExtent = Math.max(maxLabelExtent, labelExtent);
@@ -1222,7 +1224,7 @@ export abstract class CartesianAxis<
 
             if (maxLabelExtent <= 0) continue;
 
-            for (const { datum, extent } of measured) {
+            for (const { datum, extent, innerPadding } of measured) {
                 // `inner` is the band edge nearest the axis line - the anchor, taken verbatim so the
                 // tick, padding and scrollbar terms are inherited rather than re-derived.
                 const inner = horizontal ? datum.y : datum.x;

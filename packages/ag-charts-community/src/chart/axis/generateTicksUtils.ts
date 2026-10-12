@@ -85,7 +85,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
      */
     labelBaseline?: VerticalAlign;
     /**
-     * Per-label displacement, across the axis, that `CartesianAxis.alignLabelBands` will apply once
+     * Per-label displacement, outward along the label offset, that `CartesianAxis.alignLabelBands` will apply once
      * the ticks are laid out (a configured `label.verticalAlign` flush, or a rotated label's box
      * pinned to its anchor). Collision avoidance runs before that move, so without this the labels it
      * approved can still be moved into each other. Returns `undefined` when nothing will move.
