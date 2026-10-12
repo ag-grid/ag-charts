@@ -84,6 +84,7 @@ export const PRESETS: ChartsPreset[] = [
             borderColor: '#E2E8F0',
             borderRadius: 8,
             chartPadding: 24,
+            tooltipBorder: false,
         },
         palette: toPalette({
             series: [
@@ -121,6 +122,7 @@ export const PRESETS: ChartsPreset[] = [
             borderColor: '#2A5C3D',
             borderRadius: 0,
             chartPadding: 16,
+            legendBorder: true,
         },
         palette: toPalette({
             series: [
@@ -194,6 +196,7 @@ export const PRESETS: ChartsPreset[] = [
             borderColor: '#3B3266',
             borderRadius: 12,
             chartPadding: 24,
+            tooltipBorder: false,
         },
         palette: toPalette({
             series: [
@@ -230,6 +233,7 @@ export const PRESETS: ChartsPreset[] = [
             borderColor: '#7FA3C4',
             borderRadius: 0,
             chartPadding: 20,
+            legendBorder: true,
         },
         palette: toPalette({
             series: [

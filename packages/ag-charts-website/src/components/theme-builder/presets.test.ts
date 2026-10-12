@@ -27,6 +27,16 @@ describe('charts theme builder presets', () => {
         expect(PRESETS[1].palette).toEqual(getPalette('ag-default-dark'));
     });
 
+    it('spans compact to spacious, square to rounded, and borders on and off', () => {
+        const defaults = _Theme.ChartTheme.getDefaultPublicParameters();
+        const values = (key: string) => PRESETS.map(({ params }) => params[key]).filter((value) => value != null);
+        expect(values('chartPadding').some((padding) => (padding as number) < defaults.chartPadding)).toBe(true);
+        expect(values('chartPadding').some((padding) => (padding as number) > defaults.chartPadding)).toBe(true);
+        expect(new Set(values('borderRadius')).size).toBeGreaterThan(1);
+        expect(values('legendBorder')).toContain(true);
+        expect(values('tooltipBorder')).toContain(false);
+    });
+
     it('sets only params AG Charts actually has', () => {
         // A mistyped key is applied to nothing and reported by nobody, so the
         // preset just quietly loses one of its decisions.
