@@ -268,21 +268,27 @@ function sortedPlaceholders(catalogue: ModuleCatalogue) {
                 axisTypes: definition.axisTypes,
                 seriesTypes: definition.seriesTypes,
                 apiName: definition.apiName,
-                contributes: placeholderContributions(definition)?.map((contribution) =>
-                    compact({
+                contributes: placeholderContributions(definition)?.map((contribution) => {
+                    const options = placeholderValidator(contribution.options);
+                    const themeOptions = placeholderValidator(contribution.themeOptions);
+                    return compact({
                         path: contribution.path,
-                        options: placeholderValidator(contribution.options),
-                        themeOptions: placeholderValidator(contribution.themeOptions),
+                        options,
+                        themeOptions: themeOptions === options ? undefined : themeOptions,
                         chartTypes: inheritedChartTypes(definition, contribution) ? undefined : contribution.chartTypes,
                         axisTypes: contribution.axisTypes,
                         seriesTypes: contribution.seriesTypes,
                         requested: contribution.requested,
                         apiName: contribution.apiName,
-                    })
-                ),
+                    });
+                }),
             })
         );
 }
+
+type Placeholder = ReturnType<typeof sortedPlaceholders>[number];
+
+const validatorKeys = new Set(['options', 'themeOptions']);
 
 function literal(value: unknown, indent: string): string {
     if (value instanceof RawIdentifier) return value.name;
@@ -319,31 +325,28 @@ function setLiteral(values: Iterable<string>): string {
 const generatedBanner = (kind: string) =>
     `// ${kind} generated from the exported module definitions by\n// packages/ag-charts-enterprise/src/moduleTables.test.ts. Do not edit by hand:\n// ${refreshHint}\n`;
 
-function withRawValidators(placeholders: object[]): object[] {
-    return placeholders.map((placeholder) => {
-        const { contributes } = placeholder as {
-            contributes?: { options?: PlaceholderValidator; themeOptions?: PlaceholderValidator }[];
-        };
+function withRawValidators(placeholders: Placeholder[], used: Set<PlaceholderValidator>): object[] {
+    return placeholders.map(({ contributes, ...placeholder }) => {
         if (contributes == null) return placeholder;
         return {
             ...placeholder,
-            contributes: contributes.map(({ options, themeOptions, ...contribution }) =>
-                compact({
-                    path: undefined,
-                    options: options == null ? undefined : new RawIdentifier(options),
-                    themeOptions: themeOptions == null ? undefined : new RawIdentifier(themeOptions),
-                    ...contribution,
-                })
+            contributes: contributes.map((contribution) =>
+                Object.fromEntries(
+                    Object.entries(contribution).map(([key, value]) => {
+                        if (!validatorKeys.has(key)) return [key, value];
+                        used.add(value as PlaceholderValidator);
+                        return [key, new RawIdentifier(value as PlaceholderValidator)];
+                    })
+                )
             ),
         };
     });
 }
 
-function expectedModulesSource(placeholders: object[]): string {
-    const table = literal(withRawValidators(placeholders), '');
-    const validators = (['array', 'callback', 'defined', 'object'] as const).filter((name) =>
-        new RegExp(String.raw`\b(options|themeOptions): ${name},`).test(table)
-    );
+function expectedModulesSource(placeholders: Placeholder[]): string {
+    const used = new Set<PlaceholderValidator>();
+    const table = literal(withRawValidators(placeholders, used), '');
+    const validators = [...used].sort((a, b) => a.localeCompare(b));
     return [
         generatedBanner('Module placeholders'),
         ...(validators.length > 0 ? [`import { ${validators.join(', ')} } from 'ag-charts-core';`, ''] : []),
