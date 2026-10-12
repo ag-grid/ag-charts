@@ -40,11 +40,7 @@ export type ChartsPreset = {
      * not expose, so a dark design on `ag-default` gets white slice separators.
      */
     baseTheme: AgChartThemeName;
-    /**
-     * The page the chart is imagined to sit on. Not part of the theme and not
-     * drawn anywhere yet, but required by the shared `Preset`, so each preset
-     * names a colour that belongs with it rather than a placeholder.
-     */
+    /** The page the chart sits on in its card. Not part of the theme. */
     pageBackgroundColor: string;
     params: Record<string, unknown>;
     palette: Palette;
