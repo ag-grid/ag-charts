@@ -1126,7 +1126,9 @@ export abstract class CartesianAxis<
         tickGenerationResult: { rotation: number; textAlign: ResolvedTextAlign; textBaseline: VerticalAlign },
         scrollbarThickness: number
     ): number[] | undefined {
-        if (tickGenerationResult.rotation === 0 && !this.bandFlushesLabels()) return undefined;
+        if (tickGenerationResult.rotation === 0 && !this.bandFlushesLabels()) {
+            return undefined;
+        }
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult, scrollbarThickness));
         const before = labels.map((l) => l.y);
         this.alignLabelBands(ticks, labels, tickGenerationResult);
@@ -1134,10 +1136,8 @@ export abstract class CartesianAxis<
     }
 
     /**
-     * Re-anchor labels across the axis line. A configured `label.verticalAlign` (horizontal axis) or
-     * `label.textAlign` (vertical axis) aligns each tier within the band the axis reserved; otherwise a
-     * rotated label's box is pinned to the anchor, the edge an unrotated label's box sits at, so the gap
-     * to the axis line does not shrink as the label grows taller.
+     * Re-anchor labels across the axis line: a configured cross-axis alignment flushes each tier within
+     * its reserved band, otherwise a rotated label's box is pinned to the anchor to keep the unrotated gap.
      */
     private alignLabelBands(
         ticks: TickDatum[],
@@ -1160,8 +1160,7 @@ export abstract class CartesianAxis<
         }
 
         const { horizontal, tempText } = this;
-        // `getTickLabelProps` negates the label offset on `y`, so outward of the axis line is `-sideFlag`
-        // on a horizontal axis and `sideFlag` on a vertical one.
+        // `getTickLabelProps` negates the label offset on `y`, flipping outward on a horizontal axis.
         const outward = horizontal ? -getAxisLabelSideFlag(this.mirrored) : getAxisLabelSideFlag(this.mirrored);
         const primaryEnabled = primaryLabel?.enabled ?? false;
 
