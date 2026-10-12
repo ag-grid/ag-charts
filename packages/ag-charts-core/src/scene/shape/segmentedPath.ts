@@ -21,6 +21,8 @@ export interface Segment extends NormalisedStrokeOptions, NormalisedFillOptions,
     clipRect: ClipRect;
 }
 
+const FULL_RESOLUTION = { x: 1, y: 1 };
+
 export class SegmentedPath<D = any> extends Path<D> {
     @SceneRefChangeDetection()
     segments?: Segment[];
@@ -41,7 +43,7 @@ export class SegmentedPath<D = any> extends Path<D> {
         // full-canvas mask must use logical dimensions or it under-covers when the ratio is below 1. The canvas of a shadow
         // mask is also smaller than its layer by its resolution, which the transform makes up for.
         const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-        const resolution = shadowPass.state === 'mask' ? shadowPass.resolution : { x: 1, y: 1 };
+        const resolution = shadowPass.state === 'mask' ? shadowPass.resolution : FULL_RESOLUTION;
         const canvasWidth = ctx.canvas.width / (pixelRatio * resolution.x);
         const canvasHeight = ctx.canvas.height / (pixelRatio * resolution.y);
         rect(inverse, { x0: 0, y0: 0, x1: canvasWidth, y1: canvasHeight }, false);

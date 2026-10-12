@@ -29,6 +29,7 @@ import {
 } from '../../rendering/changeDetectable';
 import type { AlignedInterval } from '../../rendering/pixel';
 import { align, alignCentre, centreSnapApplies, deviceDimension } from '../../rendering/pixel';
+import { parseSvg } from '../../rendering/svg';
 import { setSvgLineDashAttributes, setSvgStrokeAttributes } from '../../rendering/svgUtil';
 import type { SerializedNodeState, SerializedShapeProps } from '../../types/scene';
 import type { BBox } from '../bbox';
@@ -86,11 +87,12 @@ const LINE_PATTERNS: ReadonlySet<string> = new Set([
  * The most that a pattern paints. Its background, fill and stroke are drawn over one another, and where all three
  * overlap they composite, so that is `1 - (1 - a)(1 - b)(1 - c)`. `Pattern` paints nothing for a background or a fill that it
  * was not given, and draws no stroke of 0px. The line patterns draw open segments, so their fill paints nothing either,
- * unless a custom `path` replaces the segments.
+ * unless a custom `path` replaces the segments, which it does only if it parses.
  */
 function patternAlpha(pattern: Pattern): number {
     const { fill, fillOpacity, backgroundFill, backgroundFillOpacity, stroke, strokeOpacity, strokeWidth } = pattern;
-    const fillsNothing = LINE_PATTERNS.has(pattern.pattern) && (pattern.path == null || pattern.path === '');
+    const customPath = pattern.path != null && pattern.path !== '' && parseSvg(pattern.path) != null;
+    const fillsNothing = LINE_PATTERNS.has(pattern.pattern) && !customPath;
     const parts = [
         backgroundFill === 'none' ? 0 : paintAlpha(backgroundFill, backgroundFillOpacity),
         fill === 'none' || fillsNothing ? 0 : paintAlpha(fill, fillOpacity),
