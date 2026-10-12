@@ -5,7 +5,7 @@ import {
     type SeriesColor,
     fromSeriesColors,
 } from '@ag-website-shared/components/theme-builder/palette';
-import { createPart, createSharedTheme } from 'ag-stack';
+import { type Theme, createPart, createSharedTheme } from 'ag-stack';
 
 import { _Theme } from 'ag-charts-community';
 import type { AgChartThemeName, AgPaletteColors } from 'ag-charts-community';
@@ -172,12 +172,21 @@ export const DEFAULT_THEME_NAME: AgChartThemeName = 'ag-default';
 
 export const CHARTS_PARAM_DEFAULTS = getStackParams(DEFAULT_THEME_NAME);
 
+const shadowThemes = new Map<AgChartThemeName, Theme>();
+
 /**
- * The shadow theme the shared model reads from. `createSharedTheme` starts empty,
- * so the catalogue is exactly AG Charts' params and nothing else.
+ * The shadow theme the shared model reads from for one stock theme.
+ * `createSharedTheme` starts empty, so the catalogue is exactly AG Charts' params.
  */
-export const chartsShadowTheme = createSharedTheme(themeLogger).withPart(
-    // Keyed by AG Charts' names rather than ag-stack's, so the values are
-    // validated at runtime through `themeLogger`.
-    createPart({ feature: 'agCharts', params: CHARTS_PARAM_DEFAULTS })
-);
+export const getShadowTheme = (themeName: AgChartThemeName): Theme => {
+    let theme = shadowThemes.get(themeName);
+    if (!theme) {
+        theme = createSharedTheme(themeLogger).withPart(
+            // Keyed by AG Charts' names rather than ag-stack's, so the values are
+            // validated at runtime through `themeLogger`.
+            createPart({ feature: 'agCharts', params: getStackParams(themeName) })
+        );
+        shadowThemes.set(themeName, theme);
+    }
+    return theme;
+};

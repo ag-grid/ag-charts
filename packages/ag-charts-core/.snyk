@@ -2,6 +2,18 @@
 version: v1.25.1
 
 ignore:
+    SNYK-JS-TAR-17909152:
+        - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T11:18:24.354Z
+    SNYK-JS-TAR-17909068:
+        - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T11:17:57.612Z
     # Dev-only, and there is no in-range fix. @vitest/mocker ships as part of
     # vitest, which this repo pins to the exact version 2.1.9 in five manifests
     # (root, ag-charts-community, ag-charts-core, ag-charts-enterprise,
