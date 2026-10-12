@@ -344,6 +344,27 @@ describe('CartesianChart', () => {
 
             expectWarningsCalls().toEqual([]);
         });
+
+        it('should render a series whose referenced axes swap positions', async () => {
+            const options = {
+                data: getData(),
+                series: [{ type: 'line', xKey: 'year', yKey: 'adults', xKeyAxis: 'years' }],
+                axes: {
+                    years: { type: 'number', position: 'left' },
+                    y: { type: 'category', position: 'bottom' },
+                },
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            await waitForChartStability(chart);
+
+            expect(chart.axes.map((axis) => [axis.type, axis.position, axis.boundSeries.length])).toEqual([
+                ['category', 'bottom', 1],
+                ['number', 'left', 1],
+            ]);
+            expectWarningsCalls().toEqual([]);
+        });
     });
 
     describe('Small chart width', () => {

@@ -1131,6 +1131,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         if (chartType === 'cartesian') {
+            this.transposeSwappedSeriesAxes(options, directions);
             this.removeMismatchedAxisPositions(options, directions);
         }
 
@@ -1183,6 +1184,38 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return isFlipped && seriesModule.axisKeysFlipped
             ? seriesModule.axisKeysFlipped[direction]
             : seriesModule.axisKeys?.[direction];
+    }
+
+    /** Swaps a series' axis keys when both axes are positioned for the other direction, as with swapped `x` and `y`. */
+    private transposeSwappedSeriesAxes(options: T, directions: ChartAxisDirection[]) {
+        if (!('axes' in options) || options.axes == null) return;
+
+        const axes: Record<string, unknown> = options.axes;
+        for (const seriesOptions of options.series ?? []) {
+            const seriesAxisKeys: unknown = seriesOptions;
+            if (!isPlainObject(seriesAxisKeys)) continue;
+
+            const references = directions.map((direction) => {
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
+                const seriesAxisKey = directionAxisKey == null ? undefined : seriesAxisKeys[directionAxisKey];
+                const axisKey = typeof seriesAxisKey === 'string' ? seriesAxisKey : (direction as string);
+                const axis = axes[axisKey];
+                const position =
+                    isPlainObject(axis) && isKeyOf(axis.position, POSITION_DIRECTIONS) ? axis.position : undefined;
+                const isSwapped = position != null && POSITION_DIRECTIONS[position] !== direction;
+                return { direction, directionAxisKey, axisKey, isSwapped };
+            });
+
+            const [first, second] = references;
+            if (first?.directionAxisKey == null || second?.directionAxisKey == null) continue;
+            if (!first.isSwapped || !second.isSwapped) continue;
+
+            const usesDefaultAxisKeys = references.every(({ direction, axisKey }) => axisKey === (direction as string));
+            if (usesDefaultAxisKeys) continue;
+
+            seriesAxisKeys[first.directionAxisKey] = second.axisKey;
+            seriesAxisKeys[second.directionAxisKey] = first.axisKey;
+        }
     }
 
     private removeMismatchedAxisPositions(options: T, directions: ChartAxisDirection[]) {

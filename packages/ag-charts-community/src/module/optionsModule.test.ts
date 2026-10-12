@@ -3925,6 +3925,33 @@ describe('ChartOptions', () => {
                     ]);
                     expect(warnings()).toEqual([expect.stringContaining('`axes.axisA.position`')]);
                 });
+
+                it('should keep swapped positions on the default axes keys', () => {
+                    const preparedOptions = prepareOptions({
+                        series: [{ type: 'line', xKey: 'x', yKey: 'total' }],
+                        axes: { x: { type: 'number', position: 'left' }, y: { type: 'category', position: 'bottom' } },
+                    } as AgCartesianChartOptions);
+
+                    expect(seriesAxes(preparedOptions)).toMatchObject([
+                        { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    ]);
+                    expect(warnings()).toEqual([]);
+                });
+
+                it('should keep swapped positions on axes keys that series reference', () => {
+                    const preparedOptions = prepareOptions({
+                        series: [{ type: 'line', xKey: 'x', yKey: 'total', xKeyAxis: 'axisA' }],
+                        axes: {
+                            axisA: { type: 'number', position: 'left' },
+                            y: { type: 'category', position: 'bottom' },
+                        },
+                    } as AgCartesianChartOptions);
+
+                    expect(seriesAxes(preparedOptions)).toMatchObject([
+                        { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                    ]);
+                    expect(warnings()).toEqual([]);
+                });
             });
 
             // TODO: predict the axes based on their types?
