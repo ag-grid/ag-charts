@@ -304,6 +304,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 isPrimary,
                 index: i + rawFirstTickIndex,
                 textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
+                segmentsUntruncated: fitOptions != null && isTruncated && isArray(inputText) ? inputText : undefined,
                 textMetrics: isSegmented
                     ? measureTextSegments(tickLabel, label)
                     : measurer.measureLines(toTextString(tickLabel)),
@@ -323,11 +324,22 @@ function isWrapFitted(wrapped: NormalisedTextOrSegments) {
     return wrapped !== '' && wrapped !== EllipsisChar;
 }
 
-function getInnerRectSize(rotation: number, width: number, height: number) {
+export function getInnerRectSize(rotation: number, width: number, height: number) {
     // The inner-rect solver needs a finite width; the same box turned a quarter-turn has the same answer.
-    return Number.isFinite(width)
-        ? getMaxInnerRectSize(rotation, width, height)
-        : getMaxInnerRectSize(rotation + 90, height, width);
+    if (!Number.isFinite(width)) return getMaxInnerRectSize(rotation + 90, height, width);
+    if (!Number.isFinite(height)) return getMaxInnerRectSize(rotation, width, height);
+
+    // The solver's closed form assumes a rectangle touching all four sides of the box. In a box too narrow for
+    // that, its answer overflows once rotated, so use the largest rectangle touching only the two long sides.
+    const angle = (rotation % 180) * (Math.PI / 180);
+    const sin = Math.abs(Math.sin(angle));
+    const cos = Math.abs(Math.cos(angle));
+    const short = Math.min(width, height);
+    if (sin === 0 || cos === 0 || short > 2 * sin * cos * Math.max(width, height)) {
+        return getMaxInnerRectSize(rotation, width, height);
+    }
+    const half = short / 2;
+    return width <= height ? { width: half / cos, height: half / sin } : { width: half / sin, height: half / cos };
 }
 
 function labelFitWrapOptions(
@@ -374,7 +386,7 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
         const maxWidth = Math.max(0, Math.min(roomWidth, label.maxWidth ?? Infinity));
         if (textMetrics.width <= maxWidth) continue;
 
-        const source = tick.textUntruncated ?? tickLabel;
+        const source = tick.segmentsUntruncated ?? tick.textUntruncated ?? tickLabel;
         const fitted = wrapTextOrSegments(source, {
             font: label,
             maxWidth,

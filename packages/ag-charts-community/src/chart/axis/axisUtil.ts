@@ -25,6 +25,8 @@ export interface TickDatum {
     tickId: string;
     translation: number;
     textUntruncated: string | undefined;
+    /** Formatter output of a truncated segmented label, kept so it can be re-fitted without losing its styling. */
+    segmentsUntruncated?: NormalisedTextOrSegments;
     isPrimary: boolean;
     textMetrics: Size;
 }
