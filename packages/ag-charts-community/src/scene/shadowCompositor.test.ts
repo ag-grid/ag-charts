@@ -85,29 +85,52 @@ describe('Group shadow compositor', () => {
         return group;
     };
 
-    const renderGroup = (group: Group, devicePixelRatio = 1) => {
+    const pixels = () => Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+
+    const drawGroup = (
+        group: Group,
+        context: CanvasRenderingContext2D,
+        width: number,
+        height: number,
+        devicePixelRatio = 1
+    ) => {
         const renderCtx = {
-            ctx: ctx(),
+            ctx: context,
             direction: 'ltr' as const,
-            width: WIDTH,
-            height: HEIGHT,
+            width,
+            height,
             devicePixelRatio,
             logger: new Logger(),
             debugNodes: {},
         };
+        group.preRender(renderCtx);
+        group.render(renderCtx);
+    };
+
+    const renderGroup = (group: Group, devicePixelRatio = 1) => {
         clearCanvas();
         ctx().save();
         ctx().scale(devicePixelRatio, devicePixelRatio);
-        group.preRender(renderCtx);
-        group.render(renderCtx);
+        drawGroup(group, ctx(), WIDTH, HEIGHT, devicePixelRatio);
         ctx().restore();
     };
+
+    const drawOnLayer = (group: Group, layer: OffscreenCanvas) =>
+        drawGroup(group, layer.getContext('2d')! as unknown as CanvasRenderingContext2D, layer.width, layer.height);
 
     // Nodes draw in the order they were created, so the children must be created in the order they should draw.
     const renderNodes = (children: readonly Shape[], batchShadows = true) => {
         const group = createGroup(children, batchShadows);
         renderGroup(group);
         return group;
+    };
+
+    // The pixels of the batched and the unbatched render of the same nodes, which are created afresh for each.
+    const renderBoth = (nodes: () => Shape[]) => {
+        renderNodes(nodes(), false);
+        const unbatched = pixels();
+        renderNodes(nodes());
+        return { unbatched, batched: pixels() };
     };
 
     const paintedPixels = () => {
@@ -251,13 +274,7 @@ describe('Group shadow compositor', () => {
                 const shadow = { ...RED_HALF, xOffset: 0, spread: 10 };
                 const item = (y: number) =>
                     pathBox(60, y, 40, 50, { fillShadow: shadow, shadowMode: 'silhouette', stroke, strokeWidth: 6 });
-                const render = (batchShadows: boolean) => {
-                    renderNodes([item(40), item(130)], batchShadows);
-                    return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
-                };
-
-                const unbatched = render(false);
-                const batched = render(true);
+                const { unbatched, batched } = renderBoth(() => [item(40), item(130)]);
 
                 // The shadow reaches the spread past the fill, as the item casts it for itself.
                 expect(isHalfRed(at(105, 65))).toBe(true);
@@ -364,7 +381,7 @@ describe('Group shadow compositor', () => {
             };
             const rendered = (devicePixelRatio: number, children: readonly Shape[], batchShadows = true) => {
                 renderGroup(createGroup(children, batchShadows), devicePixelRatio);
-                return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+                return pixels();
             };
 
             it.each([['thin'], ['short']] as const)(
@@ -515,6 +532,36 @@ describe('Group shadow compositor', () => {
                 }
             );
 
+            it.each([
+                ['an invalid', 'not a path', CLEAR],
+                ['a valid', 'M 0 0 L 4 0 L 4 4 Z', undefined],
+            ])(
+                'should count the fill of a line pattern with %s custom path as the pattern does',
+                (_name, path, clear) => {
+                    // A path that does not parse leaves the pattern drawing its lines, whose fill paints nothing.
+                    const pattern = {
+                        type: 'pattern' as const,
+                        pattern: 'vertical-lines' as const,
+                        path,
+                        fill: 'black',
+                        backgroundFill: 'none',
+                        strokeWidth: 0,
+                    };
+                    for (const batched of [false, true]) {
+                        renderNodes(
+                            [
+                                box(20, 40, 40, 50, { fill: pattern, fillShadow: shadow }),
+                                box(20, 130, 40, 50, { fill: pattern, fillShadow: shadow }),
+                            ],
+                            batched
+                        );
+
+                        if (clear == null) expect(at(140, 65)[3]).toBeGreaterThan(0);
+                        else expect(at(140, 65)).toEqual(clear);
+                    }
+                }
+            );
+
             it.each([['forward-slanted-lines'], ['backward-slanted-lines'], ['vertical-lines'], ['horizontal-lines']])(
                 'should cast the shadow of the strokes of a %s pattern, at the strength of the stroke',
                 (name) => {
@@ -603,13 +650,7 @@ describe('Group shadow compositor', () => {
             });
 
             it('should cast casters of different strengths each at their own, where their spreads do not meet', () => {
-                const render = (batchShadows: boolean) => {
-                    renderNodes([item(40, 0.5), item(130, 1)], batchShadows);
-                    return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
-                };
-                const alone = render(false);
-
-                const batched = render(true);
+                const { unbatched: alone, batched } = renderBoth(() => [item(40, 0.5), item(130, 1)]);
 
                 expect([alphaAt(140, 65), alphaAt(140, 155)]).toEqual([128, 255]);
                 expect(batched).toEqual(alone);
@@ -678,13 +719,7 @@ describe('Group shadow compositor', () => {
                     });
                     return node;
                 };
-                const render = (batchShadows: boolean) => {
-                    renderNodes([item(40, 0.5), unspread(130)], batchShadows);
-                    return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
-                };
-                const alone = render(false);
-
-                const batched = render(true);
+                const { unbatched: alone, batched } = renderBoth(() => [item(40, 0.5), unspread(130)]);
 
                 expect(alone.some((value) => value !== 0)).toBe(true);
                 expect(batched).toEqual(alone);
@@ -1159,16 +1194,9 @@ describe('Group shadow compositor', () => {
             ['bottom', { xOffset: 0, yOffset: -60 }, [box(100, HEIGHT + 20, 40, 40), box(200, HEIGHT + 20, 40, 40)]],
         ])('should cast a blurred shadow onto the layer from items off the %s edge', (_edge, offset, items) => {
             const shadow = { ...RED_HALF, ...offset, blur: 8, spread: 4 };
-            const render = (batchShadows: boolean) => {
-                renderNodes(
-                    items.map((item) => box(item.x, item.y, item.width, item.height, { fillShadow: shadow })),
-                    batchShadows
-                );
-                return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
-            };
-
-            const unbatched = render(false);
-            const batched = render(true);
+            const { unbatched, batched } = renderBoth(() =>
+                items.map((item) => box(item.x, item.y, item.width, item.height, { fillShadow: shadow }))
+            );
 
             expect(unbatched.some((value) => value !== 0)).toBe(true);
             expect(batched).toEqual(unbatched);
@@ -1208,15 +1236,6 @@ describe('Group shadow compositor', () => {
             node.clipX = clipX;
             node.clipY = HEIGHT;
             return node;
-        };
-
-        const renderBoth = (nodes: () => Shape[]) => {
-            const render = (batchShadows: boolean) => {
-                renderNodes(nodes(), batchShadows);
-                return Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
-            };
-            const unbatched = render(false);
-            return { unbatched, batched: render(true) };
         };
 
         it('should clip the shadow of a path that is clipped, as it does for itself', () => {
@@ -1318,11 +1337,11 @@ describe('Group shadow compositor', () => {
             const before = offscreenCanvases();
 
             renderNodes(plain());
-            const batching = Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+            const batching = pixels();
             expect(createdSince(before)).toHaveLength(0);
 
             renderNodes(plain(), false);
-            expect(Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data)).toEqual(batching);
+            expect(pixels()).toEqual(batching);
             expect(paintedPixels()).toBe(3 * 60 * 60);
         });
 
@@ -1412,13 +1431,13 @@ describe('Group shadow compositor', () => {
                 box(20, 130, 40, 40, { fillShadow: RED_HALF }),
             ];
             renderNodes(nodes(), false);
-            const alone = Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+            const alone = pixels();
 
             const noContext = vi.spyOn(OffscreenCanvas.prototype, 'getContext').mockReturnValue(null);
             let batched: number[];
             try {
                 renderNodes(nodes());
-                batched = Array.from(ctx().getImageData(0, 0, WIDTH, HEIGHT).data);
+                batched = pixels();
             } finally {
                 noContext.mockRestore();
             }
@@ -1438,18 +1457,8 @@ describe('Group shadow compositor', () => {
 
             const renderLayer = (layerWidth: number, layerHeight: number, group: Group) => {
                 const layer = new OffscreenCanvas(layerWidth, layerHeight);
+                drawOnLayer(group, layer);
                 const layerCtx = layer.getContext('2d')! as unknown as CanvasRenderingContext2D;
-                const renderCtx = {
-                    ctx: layerCtx,
-                    direction: 'ltr' as const,
-                    width: layer.width,
-                    height: layer.height,
-                    devicePixelRatio: 1,
-                    logger: new Logger(),
-                    debugNodes: {},
-                };
-                group.preRender(renderCtx);
-                group.render(renderCtx);
                 return { layer, alpha: (x: number, y: number) => layerCtx.getImageData(x, y, 1, 1).data[3] };
             };
 
@@ -1528,28 +1537,14 @@ describe('Group shadow compositor', () => {
         });
 
         it('should grow the scratch canvas to fit layers of different proportions', () => {
-            const renderCtxFor = (layer: OffscreenCanvas) => ({
-                ctx: layer.getContext('2d')! as unknown as CanvasRenderingContext2D,
-                direction: 'ltr' as const,
-                width: layer.width,
-                height: layer.height,
-                devicePixelRatio: 1,
-                logger: new Logger(),
-                debugNodes: {},
-            });
-            const draw = (group: Group, layer: OffscreenCanvas) => {
-                const renderCtx = renderCtxFor(layer);
-                group.preRender(renderCtx);
-                group.render(renderCtx);
-            };
             const wideLayer = new OffscreenCanvas(400, 200);
             const tallLayer = new OffscreenCanvas(200, 400);
             const wide = createGroup([shadowed(10, 10), shadowed(10, 80)]);
             const tall = createGroup([shadowed(10, 10), shadowed(10, 80)]);
             const before = offscreenCanvases();
 
-            draw(wide, wideLayer);
-            draw(tall, tallLayer);
+            drawOnLayer(wide, wideLayer);
+            drawOnLayer(tall, tallLayer);
 
             // The canvas that fits the wide layer is replaced by one that fits both, which neither group replaces again.
             const [scratch] = inUse(createdSince(before));
@@ -1559,8 +1554,8 @@ describe('Group shadow compositor', () => {
             expect(scratch.height).toBe(400);
             const created = createdSince(before).length;
 
-            draw(wide, wideLayer);
-            draw(tall, tallLayer);
+            drawOnLayer(wide, wideLayer);
+            drawOnLayer(tall, tallLayer);
 
             expect(createdSince(before)).toHaveLength(created);
             expect(inUse(createdSince(before))).toEqual([scratch]);
