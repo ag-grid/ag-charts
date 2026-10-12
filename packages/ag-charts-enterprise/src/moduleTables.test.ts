@@ -272,6 +272,7 @@ function sortedPlaceholders(catalogue: ModuleCatalogue) {
                     compact({
                         path: contribution.path,
                         options: placeholderValidator(contribution.options),
+                        themeOptions: placeholderValidator(contribution.themeOptions),
                         chartTypes: inheritedChartTypes(definition, contribution) ? undefined : contribution.chartTypes,
                         axisTypes: contribution.axisTypes,
                         seriesTypes: contribution.seriesTypes,
@@ -320,14 +321,19 @@ const generatedBanner = (kind: string) =>
 
 function withRawValidators(placeholders: object[]): object[] {
     return placeholders.map((placeholder) => {
-        const { contributes } = placeholder as { contributes?: { options?: PlaceholderValidator }[] };
+        const { contributes } = placeholder as {
+            contributes?: { options?: PlaceholderValidator; themeOptions?: PlaceholderValidator }[];
+        };
         if (contributes == null) return placeholder;
         return {
             ...placeholder,
-            contributes: contributes.map((contribution) =>
-                contribution.options == null
-                    ? contribution
-                    : { ...contribution, options: new RawIdentifier(contribution.options) }
+            contributes: contributes.map(({ options, themeOptions, ...contribution }) =>
+                compact({
+                    path: undefined,
+                    options: options == null ? undefined : new RawIdentifier(options),
+                    themeOptions: themeOptions == null ? undefined : new RawIdentifier(themeOptions),
+                    ...contribution,
+                })
             ),
         };
     });
@@ -336,7 +342,7 @@ function withRawValidators(placeholders: object[]): object[] {
 function expectedModulesSource(placeholders: object[]): string {
     const table = literal(withRawValidators(placeholders), '');
     const validators = (['array', 'callback', 'defined', 'object'] as const).filter((name) =>
-        table.includes(`options: ${name},`)
+        new RegExp(String.raw`\b(options|themeOptions): ${name},`).test(table)
     );
     return [
         generatedBanner('Module placeholders'),

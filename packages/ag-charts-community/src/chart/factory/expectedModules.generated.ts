@@ -365,6 +365,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
             {
                 path: 'annotations',
                 options: object,
+                themeOptions: object,
             },
         ],
     },
@@ -403,6 +404,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
             {
                 path: 'seriesArea.backgroundRegions',
                 options: array,
+                themeOptions: object,
             },
         ],
     },
@@ -499,6 +501,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
             {
                 path: 'navigator',
                 options: object,
+                themeOptions: object,
             },
         ],
     },
@@ -512,6 +515,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
             {
                 path: 'ranges',
                 options: object,
+                themeOptions: object,
             },
         ],
     },
