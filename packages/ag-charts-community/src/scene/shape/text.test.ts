@@ -666,18 +666,31 @@ describe('Text', () => {
         });
 
         function renderSegmentsSnapshot(text: unknown[], imagesByUri: Record<string, Image>, x = 200, y = 120) {
+            return renderSegments(new Text(), text, imagesByUri, { x, y }).image;
+        }
+
+        function renderSegments(
+            node: Text,
+            text: unknown[],
+            imagesByUri: Record<string, Image>,
+            {
+                x = 200,
+                y = 120,
+                textAlign = BASE_OPTIONS.textAlign,
+                direction = 'ltr',
+            }: { x?: number; y?: number; textAlign?: CanvasTextAlign; direction?: CanvasDirection } = {}
+        ) {
             const ctx = canvasCtx.getRenderContext2D();
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 800, canvasCtx.nodeCanvas.height ?? 600);
 
-            const node = new Text();
-            Object.assign(node, { ...BASE_OPTIONS, textBaseline: 'middle', text, x, y });
-            node.setScene(makeImageLoaderScene(imagesByUri));
+            Object.assign(node, { ...BASE_OPTIONS, textBaseline: 'middle', textAlign, text, x, y });
+            node.setScene({ ...makeImageLoaderScene(imagesByUri), isRtl: direction === 'rtl' });
 
             ctx.save();
             node.render({
                 ctx,
-                direction: 'ltr',
+                direction,
                 width: canvasCtx.nodeCanvas.width,
                 height: canvasCtx.nodeCanvas.height,
                 devicePixelRatio: 1,
@@ -685,7 +698,7 @@ describe('Text', () => {
                 debugNodes: {},
             });
             ctx.restore();
-            return extractImageData(canvasCtx);
+            return { node, image: extractImageData(canvasCtx) };
         }
 
         const BLOCK_A = 'https://example.com/blockA.png';
@@ -920,6 +933,49 @@ describe('Text', () => {
                         {}
                     )
                 ).toMatchImageSnapshot();
+            });
+        });
+
+        describe('segment line alignment', () => {
+            const RAGGED = [
+                { text: 'label 1 wide', fontSize: 22, fontFamily: 'Verdana' },
+                { text: '\nlabel 2', fontSize: 8, fontFamily: 'Verdana' },
+            ];
+
+            function lineChildren(node: Text): Text[] {
+                return [...(node as any).richText.children()];
+            }
+
+            function lineEdges(node: Text) {
+                return lineChildren(node).map((child) => {
+                    const { x, width } = child.getBBox();
+                    return { left: x, centre: x + width / 2, right: x + width };
+                });
+            }
+
+            it.each([
+                ['left', 'left'],
+                ['center', 'centre'],
+                ['right', 'right'],
+            ] as const)('aligns every line to textAlign=%s', (textAlign, edge) => {
+                const { node, image } = renderSegments(new Text(), RAGGED, {}, { textAlign });
+
+                const [first, second] = lineEdges(node);
+                expect(second[edge]).toBeCloseTo(first[edge]);
+                expect(image).toMatchImageSnapshot();
+            });
+
+            it('relays out the lines when the scene direction flips a start alignment', () => {
+                const lineXs = (node: Text) => lineChildren(node).map((child) => child.x);
+                const rightAligned = lineXs(renderSegments(new Text(), RAGGED, {}, { textAlign: 'right' }).node);
+                const node = new Text();
+
+                renderSegments(node, RAGGED, {}, { textAlign: 'start', direction: 'ltr' });
+                const [ltrFirst, ltrSecond] = lineEdges(node);
+                expect(ltrSecond.left).toBeCloseTo(ltrFirst.left);
+
+                renderSegments(node, RAGGED, {}, { textAlign: 'start', direction: 'rtl' });
+                expect(lineXs(node)).toEqual(rightAligned);
             });
         });
     });
