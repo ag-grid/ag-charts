@@ -12,7 +12,13 @@ import { PreviewPane } from './PreviewPane';
 import { PREVIEW_PANES } from './chartTypes';
 import { type ChartsThemeSelection, toChartTheme } from './chartsThemeOutput';
 import { completePalette, setStoredPalette, useStoredPalette } from './paletteModel';
-import { getSelectedPresetId, setSelectedPresetId, useImportedBaseTheme, useSelectedPresetId } from './presetModel';
+import {
+    getSelectedPresetId,
+    setInitialBaseTheme,
+    setSelectedPresetId,
+    useBaseThemeName,
+    useSelectedPresetId,
+} from './presetModel';
 import { type ChartsPreset, findPreset } from './presets';
 
 export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }) => {
@@ -23,24 +29,24 @@ export const RootContainer = ({ initialPreset }: { initialPreset: ChartsPreset }
 
     const selectedPresetId = useSelectedPresetId();
     const preset = findPreset(selectedPresetId) ?? initialPreset;
-    const importedBaseTheme = useImportedBaseTheme();
+    const baseTheme = useBaseThemeName();
 
     // The palette and the preset live outside the shared param model, so a first
     // visit seeds them here. Guarded separately: a returning user may have edited
     // their palette without having chosen a preset, or the reverse.
     useLayoutEffect(() => {
+        setInitialBaseTheme(store, initialPreset.baseTheme);
         if (getSelectedPresetId(store) === undefined) setSelectedPresetId(store, initialPreset.id);
         if (storedPalette == null) setStoredPalette(store, completePalette(initialPreset.palette));
     }, []);
 
     const selection: ChartsThemeSelection = useMemo(
         () => ({
-            // An imported theme names its own base, and wins until a preset is chosen.
-            baseTheme: importedBaseTheme ?? preset.baseTheme,
+            baseTheme,
             params: overriddenParams,
             palette: storedPalette ?? preset.palette,
         }),
-        [importedBaseTheme, preset, overriddenParams, storedPalette]
+        [baseTheme, preset, overriddenParams, storedPalette]
     );
     const previewTheme = useMemo(() => toChartTheme(selection), [selection]);
 
