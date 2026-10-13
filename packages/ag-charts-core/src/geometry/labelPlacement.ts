@@ -1013,10 +1013,7 @@ function retreatSpread(pin: number, slideLimit: number): number {
     return slideLimit === 0 && pin === 0 ? 2 : 1;
 }
 
-/**
- * Evens out a centred axis whose retreat would slide it past its limit, so it shrinks about its anchor by
- * the larger retreat instead.
- */
+/** A centred axis that would slide past its limit shrinks about its anchor by the larger retreat instead. */
 function balanceCentredIntrusion() {
     const { left, right, top, bottom } = shrinkIntrusion;
     if (shrinkPinX === 0 && Math.abs(left - right) / 2 > shrinkSlideLimitX) {
@@ -1077,9 +1074,9 @@ function measureShrinkReduction(
     floorY: number,
     widthCap: number,
     heightCap: number,
-    slideLimitX: number,
-    slideLimitY: number,
-    region?: BoxBounds
+    region?: BoxBounds,
+    slideLimitX = Infinity,
+    slideLimitY = Infinity
 ): boolean {
     shrinkWidthCap = widthCap;
     shrinkHeightCap = heightCap;
@@ -1817,19 +1814,7 @@ function shrinkCompassCandidate(
     const heightCap = upright ? affordableHeight : affordableWidth;
     // Neither axis can give anything up, so no reduction the obstacles ask for is worth measuring.
     if (widthCap <= 0 && heightCap <= 0) return false;
-    if (
-        !measureShrinkReduction(
-            vec?.x ?? 0,
-            vec?.y ?? 0,
-            cascadeInflate,
-            floorX,
-            floorY,
-            widthCap,
-            heightCap,
-            Infinity,
-            Infinity
-        )
-    ) {
+    if (!measureShrinkReduction(vec?.x ?? 0, vec?.y ?? 0, cascadeInflate, floorX, floorY, widthCap, heightCap)) {
         return false;
     }
     const source = unstyled ? cascadeFitSource : styledFitSource(fit, font);
@@ -1888,9 +1873,9 @@ function shrinkPositionedCandidate(
             lineHeight,
             Infinity,
             Infinity,
+            region,
             c.slideAxis === 'x' ? MAX_NUDGE : 0,
-            c.slideAxis === 'y' ? MAX_NUDGE : 0,
-            region
+            c.slideAxis === 'y' ? MAX_NUDGE : 0
         )
     ) {
         return false;
@@ -2105,13 +2090,13 @@ function placeBestChoice(index: number, d: PointLabelDatum): PlacedLabel | undef
     };
 }
 
-// A label kept despite overflowing or colliding is kept at its minimum font size: the font ladder's floor
-// trial records it, holding the configured-size choice here in case the floor records nothing.
+// A kept label that overflows or collides at every size is kept at its floor; this holds its configured-size
+// choice in case the floor trial records nothing.
 const keptChoiceBackup: CandidateChoice = { ...bestChoice };
 let floorRecordsKept = false;
 
 function beginFloorFallback() {
-    if (bestChoice.tier < TIER_COLLIDING) return;
+    if (bestChoice.tier < TIER_COLLIDING || bestChoice.tier === Infinity) return;
     Object.assign(keptChoiceBackup, bestChoice);
     bestChoice.tier = Infinity;
     bestChoice.score = Infinity;
@@ -2246,8 +2231,8 @@ function recordShrunkChoice(
  * exhausting its placement fallbacks and before it is hidden or falls back to a colliding candidate.
  * `undefined` when the label cannot shrink or no size clears.
  */
-function shrinkToClear(): PlacedLabel | undefined {
-    const { fit } = cascadeDatum;
+function shrinkToClear(d: PointLabelDatum, pass: () => PlacedLabel | undefined): PlacedLabel | undefined {
+    const { fit } = d;
     const minimumFontSize = fit?.policy.minimumFontSize;
     if (fit == null || minimumFontSize == null) return undefined;
     const { fontSize } = fit.font;
@@ -2260,7 +2245,7 @@ function shrinkToClear(): PlacedLabel | undefined {
         return findLargestFontSizeDescending(floor, fontSize, function trialFontSize(size, atFloor) {
             candidateTrialFontSize = size;
             if (atFloor) beginFloorFallback();
-            return cascadeCandidates();
+            return pass();
         });
     } finally {
         // A styler throwing mid-trial would otherwise leave every later label sized at the trial size.
@@ -2338,22 +2323,19 @@ function placeAvoidingLabel(
     const placed = cascadeCandidates();
     if (placed != null) return placed;
 
-    const shrunk = shrinkToClear();
+    const shrunk = shrinkToClear(d, cascadeCandidates);
     if (shrunk != null) return shrunk;
 
     return placeBestChoice(index, d);
 }
 
-// Per-datum inputs to `positionedCandidatesPass`, refilled by `placeFromPositionedCandidates` so the font
-// ladder can re-run the pass without allocating.
+// Per-datum inputs to `positionedCandidatesPass`, so the font ladder can re-run it without allocating.
 let positionedDatum: PointLabelDatum;
 let positionedIndex = 0;
 let positionedBounds: BoxBounds;
 let positionedResolve: PositionedCandidateResolver | undefined;
 let positionedFitSource: { width: number; height: number } | undefined;
-let positionedThreshold = 0;
-// A candidate turned away by an obstacle or its region, rather than by its own fit: the only failure a
-// smaller font can answer.
+// A candidate turned away by an obstacle or its region: the only failure a smaller font can answer.
 let positionedBlocked = false;
 // Glyph budget of a never-drop label's last resort: its container, at least one line tall at its floor size.
 const keptLineContainer = { width: 0, height: 0 };
@@ -2396,30 +2378,25 @@ function placeFromPositionedCandidates(
     positionedIndex = index;
     positionedBounds = bounds;
     positionedResolve = resolveCandidate;
-    positionedThreshold = threshold;
     positionedBlocked = false;
 
     const placed = positionedCandidatesPass();
     if (placed != null) return placed;
 
     if (positionedBlocked) {
-        const shrunk = shrinkPositionedToClear();
+        const shrunk = shrinkToClear(d, positionedCandidatesPass);
         if (shrunk != null) return shrunk;
     }
 
     return placeBestChoice(index, d);
 }
 
-/**
- * One pass over the positioned candidates set up on the `positioned*` scratch; see {@link
- * placeFromPositionedCandidates}. Inside a font-size trial a candidate can only win outright, except at a kept
- * label's floor, and a candidate whose text cannot be re-fitted at the trial size is skipped.
- */
+/** One pass of {@link placeFromPositionedCandidates}; a trial records nothing except at a kept label's floor. */
 function positionedCandidatesPass(): PlacedLabel | undefined {
     const d = positionedDatum;
     const candidates = d.positionedCandidates!;
     const { fit } = d;
-    const threshold = positionedThreshold;
+    const threshold = candidateThreshold;
     const inflate = Math.max(threshold, 0);
     const containThreshold = containmentThreshold(threshold);
     const trial = candidateTrialFontSize != null;
@@ -2532,13 +2509,15 @@ let nudgeAlongY = false;
 
 function measureNudge(o: LabelObstacle): void {
     if (!obstacleOverlapsCandidate(o)) return;
-    const testBox = candidateTestBox()!;
+    const { x, y, width, height } = candidateTestBox()!;
     if (nudgeAlongY) {
-        nudgeBefore = Math.min(nudgeBefore, o.box.y - (testBox.y + testBox.height));
-        nudgeAfter = Math.max(nudgeAfter, o.box.y + o.box.height - testBox.y);
+        writeObstacleSpanY(o, x, x + width);
+        nudgeBefore = Math.min(nudgeBefore, obstacleSpan.min - (y + height));
+        nudgeAfter = Math.max(nudgeAfter, obstacleSpan.max - y);
     } else {
-        nudgeBefore = Math.min(nudgeBefore, o.box.x - (testBox.x + testBox.width));
-        nudgeAfter = Math.max(nudgeAfter, o.box.x + o.box.width - testBox.x);
+        writeObstacleSpanX(o, y, y + height);
+        nudgeBefore = Math.min(nudgeBefore, obstacleSpan.min - (x + width));
+        nudgeAfter = Math.max(nudgeAfter, obstacleSpan.max - x);
     }
 }
 
@@ -2559,29 +2538,20 @@ function nudgeCandidate(axis: 'x' | 'y' | undefined, region: BoxBounds, inflate:
 
 function tryNudge(shift: number, region: BoxBounds, inflate: number): boolean {
     if (shift === 0 || Math.abs(shift) > MAX_NUDGE) return false;
-    const { x, y, width, height } = candidateBox;
+    const { x, y } = candidateBox;
     if (nudgeAlongY) {
         candidateBox.y = y + shift;
     } else {
         candidateBox.x = x + shift;
     }
-    inflateBoxInto(queryBox, candidateBox, inflate);
-    if (
-        boxContains(region, candidateBox.x, candidateBox.y, width, height) &&
-        !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)
-    ) {
-        return true;
-    }
+    if (shrunkCandidateIsClear(region, inflate)) return true;
     candidateBox.x = x;
     candidateBox.y = y;
     inflateBoxInto(queryBox, candidateBox, inflate);
     return false;
 }
 
-/**
- * Fits the label's text to one positioned candidate into {@link fittedLabel}. `false` when nothing is left
- * to draw there, except for a never-drop label, which keeps one line at its smallest size rather than vanish.
- */
+/** Fits into {@link fittedLabel}; `false` when nothing is left to draw, after a never-drop label's floor fallback. */
 function fitPositionedCandidate(
     d: PointLabelDatum,
     fit: LabelFitDescriptor,
@@ -2614,27 +2584,6 @@ function fitPositionedCandidate(
         fittedLabel.fontSize = floor;
     }
     return true;
-}
-
-/** {@link shrinkToClear} for the positioned-candidate path: the largest size at which a candidate places cleanly. */
-function shrinkPositionedToClear(): PlacedLabel | undefined {
-    const { fit } = positionedDatum;
-    const minimumFontSize = fit?.policy.minimumFontSize;
-    if (fit == null || minimumFontSize == null) return undefined;
-    const { fontSize } = fit.font;
-    const floor = resolveMinimumFontSize(minimumFontSize, fontSize);
-    if (floor >= fontSize) return undefined;
-
-    try {
-        return findLargestFontSizeDescending(floor, fontSize, function trialPositionedFontSize(size, atFloor) {
-            candidateTrialFontSize = size;
-            if (atFloor) beginFloorFallback();
-            return positionedCandidatesPass();
-        });
-    } finally {
-        candidateTrialFontSize = undefined;
-        endFloorFallback();
-    }
 }
 
 /** Rebuilds {@link candidateBox} as the rotated footprint of a re-fitted box, recentred on its anchor. */

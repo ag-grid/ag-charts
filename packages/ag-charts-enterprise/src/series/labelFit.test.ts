@@ -612,32 +612,35 @@ describe('series label fit', () => {
                 for (const node of rendered) {
                     expect(node.text.includes(ELLIPSIS) ? node.fontSize : MINIMUM).toBe(MINIMUM);
                 }
+                expect(rendered.some((node) => node.fontSize < FONT_SIZE)).toBe(true);
             });
 
-            // Cone-funnel labels sit on a stage divider rather than inside a stage, so only the others are height-bound.
-            describe.each([
-                ['funnel', 'inside-start', true],
-                ['funnel', 'inside-center', true],
-                ['cone-funnel', 'middle-center', false],
-                ['pyramid', 'inside-center', true],
-            ])('%s %s', (type, placement, stageBound) => {
-                it.runIf(stageBound)('shrinks unwrapped labels to the stage height', async () => {
-                    await renderAt(380, 120, type, { placement });
-                    const rendered = stageLabels();
-                    expect(rendered.length).toBe(stages.length);
-                    for (const node of rendered) {
-                        const fits = node.getBBox().height <= stageRect(node).height + 0.5;
-                        expect(fits || node.fontSize === MINIMUM).toBe(true);
-                    }
-                    expect(rendered.some((node) => node.fontSize < FONT_SIZE)).toBe(true);
-                });
+            // Cone-funnel labels sit on a stage divider rather than inside a stage, so are not height-bound.
+            const stageBound = [
+                ['funnel', 'inside-start'],
+                ['funnel', 'inside-center'],
+                ['pyramid', 'inside-center'],
+            ];
 
+            it.each(stageBound)('shrinks unwrapped %s %s labels to the stage height', async (type, placement) => {
+                await renderAt(380, 120, type, { placement });
+                const rendered = stageLabels();
+                expect(rendered.length).toBe(stages.length);
+                for (const node of rendered) {
+                    const fits = node.getBBox().height <= stageRect(node).height + 0.5;
+                    expect(fits || node.fontSize === MINIMUM).toBe(true);
+                }
+                expect(rendered.some((node) => node.fontSize < FONT_SIZE)).toBe(true);
+            });
+
+            describe.each([...stageBound, ['cone-funnel', 'middle-center']])('%s %s', (type, placement) => {
                 it.each([
                     ['never', 380, 80, MINIMUM],
                     ['on-space', 380, 120, MINIMUM],
+                    ['on-space', 380, 200, MINIMUM],
                     ['on-space', 380, 200, undefined],
                 ])(
-                    'keeps every %s-wrapped label at %ix%i when alwaysShow is true',
+                    'keeps every %s-wrapped label at %ix%i with minimumFontSize %s when alwaysShow is true',
                     async (wrapping, width, height, minimumFontSize) => {
                         await renderAt(width, height, type, { placement, wrapping, minimumFontSize });
                         const rendered = stageLabels();

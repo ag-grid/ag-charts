@@ -119,7 +119,7 @@ function shouldHideOverflow(clippedResult: string[], options: WrapOptions, sourc
 
 function firstLineOverflows(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
     if (lines.length === 0 || !isFiniteNumber(options.maxHeight)) return false;
-    const lineHeight = options.lineHeight ?? measurer.measureLines(lines).lineMetrics[0].height;
+    const lineHeight = options.lineHeight ?? measurer.measureLines(lines[0]).lineMetrics[0].height;
     return lineHeight > options.maxHeight;
 }
 
