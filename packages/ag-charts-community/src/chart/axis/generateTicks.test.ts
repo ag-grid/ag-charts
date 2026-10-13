@@ -539,11 +539,11 @@ describe('AG-18833 rotated label fitting', () => {
         const ticks = formatTicks(options, formatOptions(domain));
         const refitted = refitAutoRotatedLabels(options, ticks, autoRotation, true);
 
-        refitted.forEach(({ tickLabel, textMetrics }, i) => {
+        for (const [i, { tickLabel, textMetrics }] of refitted.entries()) {
             expect(toPlainText(tickLabel)).not.toContain('\n');
             expect(textMetrics.width).toBeLessThanOrEqual(ticks[i].textMetrics.width);
             expect(textMetrics.height).toBeLessThanOrEqual(ticks[i].textMetrics.height);
-        });
+        }
     });
 
     it('keeps wrapped labels auto-rotated to a shallow angle clear of their neighbours', () => {
