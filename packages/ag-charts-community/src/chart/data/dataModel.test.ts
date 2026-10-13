@@ -2148,6 +2148,299 @@ describe('DataModel', () => {
         });
     });
 
+    describe('aggregation result isolation and allocation', () => {
+        // 120 rows in three equal buckets of 40, so every bucket aggregates 40 datums.
+        const bucketOf40: GroupByFn = () => (keys) => {
+            const bucket = Math.floor((keys[0] as number) / 40);
+            return [bucket * 40, bucket * 40 + 40];
+        };
+        const bucketedRows = (offset = 0) => Array.from({ length: 120 }, (_, x) => ({ x, y: (x % 7) - 3 + offset }));
+        const sumOfBucket = (rows: { x: number; y: number }[], bucket: number): [number, number] => {
+            let negative = 0;
+            let positive = 0;
+            for (const row of rows.slice(bucket * 40, bucket * 40 + 40)) {
+                if (row.y < 0) negative += row.y;
+                if (row.y > 0) positive += row.y;
+            }
+            return [negative, positive];
+        };
+
+        it('should normalise stacked columns that hold negative and missing values', () => {
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('kp'),
+                        value('a', 'all'),
+                        value('b', 'all'),
+                        sum('all'),
+                        normaliseGroupTo('all', 100),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
+            const data = basicDataSet([
+                { kp: 'Q1', a: 30, b: -10 },
+                { kp: 'Q2', a: undefined, b: 20 },
+                { kp: 'Q3', a: -8, b: -2 },
+                { kp: 'Q4', a: undefined, b: undefined },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.groups.map((g) => g.aggregation)).toEqual([
+                [[expect.closeTo(-100 / 3), 100]],
+                [[0, 100]],
+                [[-125, 0]],
+                [[0, 0]],
+            ]);
+            expect(result.domain.aggValues).toEqual([[-125, 100]]);
+        });
+
+        it('should aggregate a stacked area with negative and missing values', () => {
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all'), range('all')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
+            const data = basicDataSet([
+                { kp: 'Q1', a: 4, b: 6 },
+                { kp: 'Q2', a: undefined, b: 3 },
+                { kp: 'Q3', a: -2, b: 5 },
+                { kp: 'Q4', a: 1, b: undefined },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            // Layers are a running total in column order; a missing value is skipped and stays missing.
+            expect(resolveGroupColumn(result, 0, 0)).toEqual([4]);
+            expect(resolveGroupColumn(result, 0, 1)).toEqual([10]);
+            expect(resolveGroupColumn(result, 1, 0)).toEqual([undefined]);
+            expect(resolveGroupColumn(result, 1, 1)).toEqual([3]);
+            expect(resolveGroupColumn(result, 2, 0)).toEqual([-2]);
+            expect(resolveGroupColumn(result, 2, 1)).toEqual([3]);
+            expect(resolveGroupColumn(result, 3, 0)).toEqual([1]);
+            expect(resolveGroupColumn(result, 3, 1)).toEqual([undefined]);
+            expect(result.groups.map((g) => g.aggregation[0])).toEqual([
+                [4, 10],
+                [3, 3],
+                [-2, 3],
+                [1, 1],
+            ]);
+            expect(result.domain.aggValues).toEqual([[-2, 10]]);
+        });
+
+        it('should aggregate ungrouped data per datum with distinct tuples', () => {
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [
+                        rangeKey('x'),
+                        value('a', 'all'),
+                        value('b', 'all'),
+                        sum('all'),
+                        range('all'),
+                        groupCount(),
+                    ],
+                },
+                testLogger
+            );
+            const data = basicDataSet([
+                { x: 1, a: 5, b: -3 },
+                { x: 2, a: undefined, b: 2 },
+                { x: 3, a: -4, b: -1 },
+                { x: 4, a: 1, b: undefined },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.type).toEqual('ungrouped');
+            expect(result.aggregation).toEqual([
+                [
+                    [-3, 5],
+                    [-3, 5],
+                    [0, 1],
+                ],
+                [
+                    [0, 2],
+                    [2, 2],
+                    [0, 1],
+                ],
+                [
+                    [-5, 0],
+                    [-4, -1],
+                    [0, 1],
+                ],
+                [
+                    [0, 1],
+                    [1, 1],
+                    [0, 1],
+                ],
+            ]);
+            expect(result.domain.aggValues).toEqual([
+                [-5, 5],
+                [-4, 5],
+                [0, 1],
+            ]);
+
+            const tuples = result.aggregation!.flat();
+            expect(new Set([...tuples, ...result.domain.aggValues!]).size).toBe(tuples.length + 3);
+        });
+
+        it('should aggregate ungrouped bigint values exactly', () => {
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('a', 'all'), value('b', 'all'), sum('all'), range('all')],
+                },
+                testLogger
+            );
+            const big = 9007199254740993n;
+            const data = basicDataSet([
+                { x: 1, a: big, b: big },
+                { x: 2, a: -big, b: 1n },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.aggregation).toEqual([
+                [
+                    [0, big + big],
+                    [big, big],
+                ],
+                [
+                    [-big, 1n],
+                    [-big, 1n],
+                ],
+            ]);
+            expect(result.domain.aggValues).toEqual([
+                [-big, big + big],
+                [-big, big],
+            ]);
+        });
+
+        it('should not change a processed result when the model processes another data set', () => {
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        rangeKey('x'),
+                        value('y', 'yy'),
+                        sum('yy'),
+                        range('yy'),
+                        groupCount(),
+                        groupAverage('yy'),
+                        area('yy', groupSum('areaSum', { matchGroupId: 'yy' })),
+                        SORT_DOMAIN_GROUPS,
+                    ],
+                    groupByFn: bucketOf40,
+                },
+                testLogger
+            );
+
+            const first = dataModel.processData(basicDataSet(bucketedRows()))!;
+            const firstAggregation = structuredClone(first.groups.map((g) => g.aggregation));
+            const firstAggValues = structuredClone(first.domain.aggValues);
+
+            const second = dataModel.processData(basicDataSet(bucketedRows(10)))!;
+
+            expect(first.groups.map((g) => g.aggregation)).toEqual(firstAggregation);
+            expect(first.domain.aggValues).toEqual(firstAggValues);
+            expect(second.groups.map((g) => g.aggregation)).not.toEqual(firstAggregation);
+
+            const secondAgain = dataModel.processData(basicDataSet(bucketedRows()))!;
+            expect(secondAgain.groups.map((g) => g.aggregation)).toEqual(firstAggregation);
+            expect(secondAgain.domain.aggValues).toEqual(firstAggValues);
+        });
+
+        it('should not allocate a values array or an output tuple per datum', () => {
+            const seenValues = new Set<unknown>();
+            const seenOut = new Set<unknown>();
+            let calls = 0;
+            const probe = scoped({
+                id: 'probe',
+                matchGroupIds: ['yy'],
+                type: 'aggregate' as const,
+                aggregateFunction: (values: any[], _keys?: any[], out?: [number, number]) => {
+                    calls++;
+                    seenValues.add(values);
+                    const result: [number, number] = out ?? [0, 0];
+                    if (out) seenOut.add(out);
+                    result[0] = 0;
+                    result[1] = 0;
+                    for (const v of values) {
+                        if (typeof v !== 'number') continue;
+                        if (v < 0) result[0] += v;
+                        if (v > 0) result[1] += v;
+                    }
+                    return result;
+                },
+                groupAggregateFunction: (next?: [number, number], acc: [number, number] = [0, 0]) => {
+                    acc[0] += next?.[0] ?? 0;
+                    acc[1] += next?.[1] ?? 0;
+                    return acc;
+                },
+            });
+            const dataModel = new DataModel<any, any, true>(
+                { props: [rangeKey('x'), value('y', 'yy'), probe, SORT_DOMAIN_GROUPS], groupByFn: bucketOf40 },
+                testLogger
+            );
+            const rows = bucketedRows();
+
+            const result = dataModel.processData(basicDataSet(rows))!;
+
+            expect(calls).toBe(120);
+            // One scratch per aggregate is the design; allow up to one per group, never one per datum.
+            expect(seenValues.size).toBeGreaterThan(0);
+            expect(seenValues.size).toBeLessThanOrEqual(3);
+            expect(seenOut.size).toBeGreaterThan(0);
+            expect(seenOut.size).toBeLessThanOrEqual(3);
+            expect(result.groups.map((g) => g.aggregation[0])).toEqual([
+                sumOfBucket(rows, 0),
+                sumOfBucket(rows, 1),
+                sumOfBucket(rows, 2),
+            ]);
+            // The stored tuples are not the scratch tuple the aggregate function was given.
+            for (const group of result.groups) {
+                expect(seenOut.has(group.aggregation[0])).toBe(false);
+            }
+            expect(new Set(result.groups.map((g) => g.aggregation[0])).size).toBe(3);
+        });
+
+        it('should support an aggregate function that ignores the output tuple', () => {
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        rangeKey('x'),
+                        value('y', 'yy'),
+                        scoped({
+                            id: 'legacy',
+                            matchGroupIds: ['yy'],
+                            type: 'aggregate' as const,
+                            aggregateFunction: (values: any[]): [number, number] => {
+                                const numbers = values.filter((v) => typeof v === 'number');
+                                return [Math.min(0, ...numbers), Math.max(0, ...numbers)];
+                            },
+                        }),
+                        SORT_DOMAIN_GROUPS,
+                    ],
+                    groupByFn: bucketOf40,
+                },
+                testLogger
+            );
+            const rows = bucketedRows();
+
+            const result = dataModel.processData(basicDataSet(rows))!;
+
+            // Each datum yields its own tuple; the group domain extends over them: [min(0, y), max(0, y)] of the rows.
+            expect(result.groups.map((g) => g.aggregation[0])).toEqual([
+                [-3, 3],
+                [-3, 3],
+                [-3, 3],
+            ]);
+            expect(result.domain.aggValues).toEqual([[-3, 3]]);
+        });
+    });
+
     describe('stacking on a date column (AG-16608)', () => {
         it('should reject a stacked date-tagged column with a warning and render empty', () => {
             const dataModel = new DataModel<any, any, true>(
