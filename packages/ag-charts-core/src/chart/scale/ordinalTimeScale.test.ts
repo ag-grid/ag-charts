@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
@@ -11,6 +11,7 @@ import {
     durationWeek,
     durationYear,
 } from '../../time/duration';
+import { ScaleAlignment } from '../../types/scales';
 import { OrdinalTimeScale } from './ordinalTimeScale';
 
 const minutes = (count: number, step = 1) => Array.from({ length: count }, (_, i) => new Date(2024, 0, 1, 0, i * step));
@@ -1108,6 +1109,123 @@ describe('OrdinalTimeScale', () => {
             expect(scale.domain).toBe(first);
             expect(numericBandsOf(scale)).not.toBe(before.numericBands);
             expect(numericBandsOf(scale)).toEqual(first.map((d) => d.valueOf()));
+        });
+    });
+    // `findIndex` and `convert` are the first reads of a freshly set domain (once per tick pass). They search `bands`
+    // themselves until enough lookups have been made to justify building `numericBands`, a number per band.
+    describe('lookups before numericBands is built', () => {
+        const BANDS_PER_UNBUILT_LOOKUP = 64;
+        const BAND_COUNT = 6400;
+        // Lookups on an unbuilt scale before the next one builds `numericBands`.
+        const LOOKUP_LIMIT = BAND_COUNT / BANDS_PER_UNBUILT_LOOKUP;
+        const buildsOf = () => vi.spyOn(OrdinalTimeScale.prototype as any, 'numericBands', 'get');
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        function scaleOf(domain: Date[]) {
+            const scale = new OrdinalTimeScale();
+            scale.domain = domain;
+            scale.range = [0, 1000];
+            return scale;
+        }
+
+        const alignments = [ScaleAlignment.Leading, ScaleAlignment.Trailing];
+
+        function probes(domain: Date[]) {
+            const first = domain[0].valueOf();
+            const last = domain.at(-1)!.valueOf();
+            const [lo, hi] = first < last ? [first, last] : [last, first];
+            const step = (hi - lo) / 37;
+            // Before, inside (on and between bands) and after the domain.
+            return Array.from({ length: 40 }, (_, i) => new Date(lo - step + i * step + (i % 2) * 17_000));
+        }
+
+        it.each([
+            ['ascending', minutes(BAND_COUNT)],
+            ['reversed', minutes(BAND_COUNT).reverse()],
+        ])('does not build them for a few lookups on %s bands', (_, domain) => {
+            const builds = buildsOf();
+            const scale = scaleOf(domain);
+
+            for (const alignment of alignments) {
+                scale.findIndex(domain[0], alignment);
+                scale.findIndex(domain.at(-1)!, alignment, true);
+                scale.convert(domain[100], { alignment });
+            }
+            scale.ticks({ nice: [false, false], tickCount: 10, minTickCount: 0, maxTickCount: Infinity });
+
+            expect(builds).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ['ascending', minutes(BAND_COUNT)],
+            ['reversed', minutes(BAND_COUNT).reverse()],
+        ])('answers as it does once they are built, on %s bands', (_, domain) => {
+            const unbuilt = scaleOf(domain);
+            const built = scaleOf(domain);
+            numericBandsOf(built);
+
+            for (const target of probes(domain)) {
+                for (const alignment of alignments) {
+                    for (const exclusive of [false, true]) {
+                        expect(unbuilt.findIndex(target, alignment, exclusive)).toBe(
+                            built.findIndex(target, alignment, exclusive)
+                        );
+                    }
+                    expect(unbuilt.convert(target, { alignment })).toBe(built.convert(target, { alignment }));
+                }
+            }
+        });
+
+        it('builds them once lookups have been made on a fraction of the bands', () => {
+            const builds = buildsOf();
+            const scale = scaleOf(minutes(BAND_COUNT));
+
+            for (let i = 0; i < LOOKUP_LIMIT - 1; i++) scale.findIndex(new Date(2024, 0, 1, 0, i));
+            expect(builds).not.toHaveBeenCalled();
+
+            scale.findIndex(new Date(2024, 0, 1, 0, 7));
+            expect(builds).toHaveBeenCalledTimes(1);
+
+            const built = numericBandsOf(scale);
+            scale.findIndex(new Date(2024, 0, 1, 0, 9));
+            expect(numericBandsOf(scale)).toBe(built);
+        });
+
+        it('builds them on first use for a small domain', () => {
+            const builds = buildsOf();
+            const scale = scaleOf(minutes(12));
+
+            scale.findIndex(new Date(2024, 0, 1, 0, 3));
+
+            expect(builds).toHaveBeenCalledTimes(1);
+        });
+
+        it('counts lookups per domain, not per scale', () => {
+            const builds = buildsOf();
+            const scale = scaleOf(minutes(BAND_COUNT));
+            for (let i = 0; i < LOOKUP_LIMIT - 1; i++) scale.findIndex(new Date(2024, 0, 1, 0, i));
+
+            scale.domain = minutes(BAND_COUNT, 2);
+            scale.findIndex(new Date(2024, 0, 1, 0, 3));
+
+            expect(builds).not.toHaveBeenCalled();
+        });
+
+        it('clamped and interpolated conversions still build them and agree with an unclamped lookup', () => {
+            const domain = minutes(BAND_COUNT);
+            const scale = scaleOf(domain);
+            const control = scaleOf(domain);
+            numericBandsOf(control);
+            const target = new Date(2024, 0, 1, 0, 500, 30);
+
+            for (const options of [{ clamp: true }, { alignment: ScaleAlignment.Interpolate }]) {
+                expect(scale.convert(target, options)).toBe(control.convert(target, options));
+            }
+            expect(scale.convert(new Date(2023, 0, 1), { clamp: true })).toBe(0);
+            expect(scale.convert(new Date(2025, 0, 1), { clamp: true })).toBe(1000);
         });
     });
 });

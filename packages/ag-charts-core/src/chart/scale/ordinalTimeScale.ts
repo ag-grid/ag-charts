@@ -14,10 +14,19 @@ import { getDateTicksForInterval } from './timeScale';
 
 const APPROXIMATE_THRESHOLD = 1000;
 
+/**
+ * A lookup over `Date`s costs about three times one over numbers, but the numbers cost a pass over every band to
+ * build. Lookups search `bands` until there has been one per this many bands, then the numbers are built: the
+ * extra spent searching `Date`s stays near the cost of that build.
+ */
+const BANDS_PER_UNBUILT_LOOKUP = 64;
+
 /** Lazily built values derived from one domain array; dropped as a unit when the domain changes. */
 interface BandCache {
     bands?: Date[];
     numericBands?: number[];
+    /** Lookups answered from `bands` while `numericBands` was unbuilt; see `numericBandsForLookup`. */
+    unbuiltLookups?: number;
     uniformity?: UniformityCheck;
     uniformityVisibleStart?: number;
     uniformityVisibleEnd?: number;
@@ -89,6 +98,16 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     protected override get numericBands(): number[] {
         this._cache.numericBands ??= this.bands.map((d) => d.valueOf());
         return this._cache.numericBands;
+    }
+
+    protected override numericBandsForLookup(): number[] | undefined {
+        const cache = this._cache;
+        if (cache.numericBands !== undefined) return cache.numericBands;
+
+        // A large domain that is only looked up a few times (e.g. once per tick pass) never builds them.
+        const lookups = (cache.unbuiltLookups ?? 0) + 1;
+        cache.unbuiltLookups = lookups;
+        return lookups < this.bands.length / BANDS_PER_UNBUILT_LOOKUP ? undefined : this.numericBands;
     }
 
     override getUniformityCache(visibleRange?: [number, number]): UniformityCheck | undefined {

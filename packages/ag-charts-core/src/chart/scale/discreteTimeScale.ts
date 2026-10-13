@@ -79,6 +79,15 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         return this.bands.map((d) => d.valueOf());
     }
 
+    /**
+     * The numeric band values a lookup should search, or undefined when it should search `bands` directly.
+     * Subclasses whose `numericBands` costs a pass over every band can answer undefined for the first few lookups,
+     * so a handful of lookups (tick generation makes a few per pass) doesn't pay for building all of them.
+     */
+    protected numericBandsForLookup(): number[] | undefined {
+        return this.numericBands;
+    }
+
     /** Exclusive end of the last band; subclasses with a known band width override this. */
     protected get lastBandEnd(): number {
         return this.numericBands.at(-1)!;
@@ -89,8 +98,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
 
         if (!(value instanceof Date)) value = new Date(timeValueToNumber(value));
         const { domain, reversed } = this;
-        const numericBands = this.numericBands;
-        const bandCount = numericBands.length;
+        const bandCount = this.getBandCountForUpdate();
 
         if (domain.length <= 0) return Number.NaN;
 
@@ -103,6 +111,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
 
         if (options?.clamp === true) {
             const { range } = this;
+            const numericBands = this.numericBands;
             const v = value.valueOf();
             const lastBand = numericBands.at(-1)!;
             if (v < numericBands[0]) return range[0];
@@ -126,6 +135,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
             dIndex = 1;
         }
 
+        const numericBands = this.numericBands;
         const v0 = numericBands[bandIndex];
         const v1 = numericBands[bandIndex + dIndex];
 
@@ -174,7 +184,9 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
     ): number | undefined {
         if (value == null) return undefined;
 
-        const numericBands = this.numericBands;
+        const numericBands = this.numericBandsForLookup();
+        if (numericBands === undefined) return this.findIndexInBands(value, alignment, alignmentExclusive);
+
         const n = numericBands.length;
 
         if (n === 0) return undefined;
@@ -187,5 +199,22 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
             return findMinIndex(0, n - 1, (index) => numericBands[index] >= target);
         }
         return findMaxIndex(0, n - 1, (index) => numericBands[index] <= target);
+    }
+
+    /** `findIndex` over `bands` themselves, for lookups that don't (yet) justify building `numericBands`. */
+    private findIndexInBands(value: Date, alignment: ScaleAlignment, alignmentExclusive: boolean): number | undefined {
+        const { bands } = this;
+        const n = bands.length;
+
+        if (n === 0) return undefined;
+        if (n === 1) return 0;
+
+        const target = value.valueOf();
+
+        const isTrailing = alignment === ScaleAlignment.Trailing;
+        if (isTrailing !== alignmentExclusive) {
+            return findMinIndex(0, n - 1, (index) => bands[index].valueOf() >= target);
+        }
+        return findMaxIndex(0, n - 1, (index) => bands[index].valueOf() <= target);
     }
 }
