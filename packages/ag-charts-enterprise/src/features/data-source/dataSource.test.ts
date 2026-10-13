@@ -403,6 +403,22 @@ describe('DataSource', () => {
                 expect(issued.map((request) => request.source)).toEqual(['user-interaction']);
             });
 
+            it('only requests data for the pan itself when a pan changes the data granularity', async () => {
+                await prepareZoomableChart();
+                for (let step = 0; step < 30; step++) {
+                    const [latest] = (await zoomIn(1)).slice(-1);
+                    if (latest.end - latest.start < week * 13) break;
+                }
+
+                const sources: Array<AgDataSourceRequestSource | undefined> = [];
+                for (const dragTo of [cx + cx / 4, cx - cx / 4, cx + cx / 4, cx - cx / 4]) {
+                    const issued = await settleAfter(() => dragAction({ x: cx, y: cy }, { x: dragTo, y: cy })(chart));
+                    sources.push(...issued.map((request) => request.source));
+                }
+
+                expect(sources.filter((source) => source !== 'user-interaction')).toEqual([]);
+            });
+
             itExpected('moves the visible window earlier, without resizing it, when panning left', async () => {
                 await prepareZoomableChart();
                 await zoomIn(3);
