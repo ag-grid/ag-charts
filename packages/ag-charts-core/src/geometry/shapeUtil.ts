@@ -43,6 +43,36 @@ export function getMaxInnerRectSize(
 }
 
 /**
+ * Like `getMaxInnerRectSize`, but always returns a rectangle that fits its container once rotated, including
+ * containers with one infinite side and containers too narrow for a rectangle touching all four sides.
+ *
+ * @param rotationDeg - Rotation angle in degrees.
+ * @param containerWidth - Width of the outer container.
+ * @param containerHeight - Height of the outer container.
+ * @returns The largest inner rectangle size that fits when rotated.
+ */
+export function getInnerRectSize(rotationDeg: number, containerWidth: number, containerHeight: number): Size {
+    if (!Number.isFinite(containerWidth)) {
+        return getMaxInnerRectSize(rotationDeg + 90, containerHeight, containerWidth);
+    }
+    if (!Number.isFinite(containerHeight)) return getMaxInnerRectSize(rotationDeg, containerWidth, containerHeight);
+
+    const angle = (rotationDeg % 180) * (Math.PI / 180);
+    const sin = Math.abs(Math.sin(angle));
+    const cos = Math.abs(Math.cos(angle));
+    const short = Math.min(containerWidth, containerHeight);
+    if (sin === 0 || cos === 0 || short > 2 * sin * cos * Math.max(containerWidth, containerHeight)) {
+        return getMaxInnerRectSize(rotationDeg, containerWidth, containerHeight);
+    }
+
+    // Too narrow for the four-sided solution: take the largest rectangle touching only the two long sides.
+    const half = short / 2;
+    return containerWidth <= containerHeight
+        ? { width: half / cos, height: half / sin }
+        : { width: half / sin, height: half / cos };
+}
+
+/**
  * Calculates the minimum axis-aligned outer rectangle that fully contains
  * an inner rectangle of the given size when rotated by a specified angle.
  *

@@ -785,10 +785,6 @@ export abstract class CartesianAxis<
         return Math.max(0, Math.floor(room));
     }
 
-    protected override isLabelFitEnabled() {
-        return isLabelFitEnabled(this.options.label);
-    }
-
     protected getScrollbarThickness(scrollbar?: ScrollbarLayout): number {
         if (!scrollbar?.enabled) return 0;
         return scrollbar.placement === 'inner' ? scrollbar.spacing + scrollbar.thickness : 0;

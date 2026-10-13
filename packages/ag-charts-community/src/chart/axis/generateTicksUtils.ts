@@ -15,11 +15,14 @@ import {
     type WrapOptions,
     buildDateFormatter,
     cachedTextMeasurer,
+    clipLines,
     compareDates,
     createIdsGenerator,
     dropFirstWhile,
     dropLastWhile,
+    getInnerRectSize,
     getMaxInnerRectSize,
+    hasRealChars,
     intervalCeil,
     intervalExtent,
     intervalFloor,
@@ -75,10 +78,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     interval: AxisIntervalOptions<TScale> | undefined;
     minimumTimeGranularity?: AgTimeIntervalUnit;
     sizeLimit?: number;
-    /**
-     * Room across the axis for tick label text once the axis line, ticks, padding and any scrollbar are
-     * taken out of the axis cap. Only supplied when `label.maxWidth` or `label.maxHeight` is set.
-     */
+    /** Room across the axis for label text, net of ticks, padding and scrollbars; set only when fitting. */
     labelRoom?: number;
     isVertical?: boolean;
     inRange?: (value: number) => boolean;
@@ -240,13 +240,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             maxHeight = innerRect.height;
         }
 
-        const wrapOptions: WrapOptions = {
-            font: label,
-            maxWidth,
-            maxHeight,
-            overflow: label.truncate ? 'ellipsis' : 'hide',
-            textWrap: label.wrapping ?? 'never',
-        };
+        const wrapOptions = labelWrapOptions(label, maxWidth, maxHeight, label.truncate ? 'ellipsis' : 'hide');
 
         let fitOptions: { banded: WrapOptions; unbanded: WrapOptions } | undefined;
         if (isLabelFitEnabled(label)) {
@@ -268,11 +262,10 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             let wrappedLabel: NormalisedTextOrSegments | null = null;
             if (fitOptions != null && !isPrimary) {
-                // Labels that overflow their band keep their full width along the axis, so they still
-                // collide and drive auto-rotation and thinning.
+                // Labels overflowing their band stay full width so they still drive rotation and thinning.
                 const fitsBand =
                     maxBandwidth === Infinity ||
-                    (label.avoidCollisions && isWrapFitted(wrapTextOrSegments(inputText, wrapOptions)));
+                    (label.avoidCollisions && hasRealChars(wrapTextOrSegments(inputText, wrapOptions)));
                 wrappedLabel = wrapTextOrSegments(inputText, fitsBand ? fitOptions.banded : fitOptions.unbanded);
             } else if (label.avoidCollisions) {
                 const wrapped = wrapTextOrSegments(inputText, wrapOptions);
@@ -316,30 +309,22 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
     return ticks;
 }
 
-export function isLabelFitEnabled(label: ChartAxisLabel) {
+export function isLabelFitEnabled(label: { maxWidth?: number; maxHeight?: number }) {
     return label.maxWidth != null || label.maxHeight != null;
 }
 
-function isWrapFitted(wrapped: NormalisedTextOrSegments) {
-    return wrapped !== '' && wrapped !== EllipsisChar;
+function labelWrapOptions(
+    label: ChartAxisLabel,
+    maxWidth: number,
+    maxHeight: number,
+    overflow: WrapOptions['overflow'],
+    textWrap: WrapOptions['textWrap'] = label.wrapping ?? 'never'
+): WrapOptions {
+    return { font: label, maxWidth, maxHeight, overflow, textWrap };
 }
 
-export function getInnerRectSize(rotation: number, width: number, height: number) {
-    // The inner-rect solver needs a finite width; the same box turned a quarter-turn has the same answer.
-    if (!Number.isFinite(width)) return getMaxInnerRectSize(rotation + 90, height, width);
-    if (!Number.isFinite(height)) return getMaxInnerRectSize(rotation, width, height);
-
-    // The solver's closed form assumes a rectangle touching all four sides of the box. In a box too narrow for
-    // that, its answer overflows once rotated, so use the largest rectangle touching only the two long sides.
-    const angle = (rotation % 180) * (Math.PI / 180);
-    const sin = Math.abs(Math.sin(angle));
-    const cos = Math.abs(Math.cos(angle));
-    const short = Math.min(width, height);
-    if (sin === 0 || cos === 0 || short > 2 * sin * cos * Math.max(width, height)) {
-        return getMaxInnerRectSize(rotation, width, height);
-    }
-    const half = short / 2;
-    return width <= height ? { width: half / cos, height: half / sin } : { width: half / sin, height: half / cos };
+function labelFitOverflow(label: ChartAxisLabel): WrapOptions['overflow'] {
+    return label.truncate === false ? 'hide' : 'ellipsis';
 }
 
 function labelFitWrapOptions(
@@ -353,18 +338,17 @@ function labelFitWrapOptions(
     if (label.rotation != null && label.rotation !== 0) {
         ({ width, height } = getInnerRectSize(label.rotation, width, height));
     }
-    return {
-        font: label,
-        maxWidth: Math.max(0, Math.min(width, label.maxWidth ?? Infinity)),
-        maxHeight: Math.max(0, Math.min(height, label.maxHeight ?? Infinity)),
-        overflow: label.truncate === false ? 'hide' : 'ellipsis',
-        textWrap: label.wrapping ?? 'never',
-    };
+    return labelWrapOptions(
+        label,
+        Math.max(0, Math.min(width, label.maxWidth ?? Infinity)),
+        Math.max(0, Math.min(height, label.maxHeight ?? Infinity)),
+        labelFitOverflow(label)
+    );
 }
 
 /**
- * Re-fits labels that `thinTickLabels` decided to auto-rotate, so their rotated extent across the axis
- * stays within the label room. Only ever shortens text, so it cannot introduce new collisions.
+ * Re-fits auto-rotated labels onto one line so their rotated extent stays within the label room.
+ * Only ever shortens text, so it cannot introduce new collisions.
  */
 export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S>>, D>(
     options: GenerateTicksOptions<S, D>,
@@ -376,30 +360,44 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
     const cos = Math.abs(Math.cos(autoRotation));
     const widthFactor = isVertical ? cos : sin;
     const heightFactor = isVertical ? sin : cos;
+    const maxHeight = Math.min(label.maxHeight ?? Infinity, heightFactor === 0 ? Infinity : labelRoom / heightFactor);
     const measurer = cachedTextMeasurer(label);
+    const widthBudget = (height: number) =>
+        Math.max(
+            0,
+            Math.min(
+                widthFactor === 0 ? Infinity : (labelRoom - height * heightFactor) / widthFactor,
+                label.maxWidth ?? Infinity
+            )
+        );
+    const measure = (text: NormalisedTextOrSegments) =>
+        isArray(text) ? measureTextSegments(text, label) : measurer.measureLines(toTextString(text));
 
     for (const tick of ticks) {
         const { tickLabel, textMetrics } = tick;
         if (tick.isPrimary || tickLabel == null) continue;
-
-        const roomWidth = widthFactor === 0 ? Infinity : (labelRoom - textMetrics.height * heightFactor) / widthFactor;
-        const maxWidth = Math.max(0, Math.min(roomWidth, label.maxWidth ?? Infinity));
-        if (textMetrics.width <= maxWidth) continue;
+        if (textMetrics.width <= widthBudget(textMetrics.height) && textMetrics.height <= maxHeight) continue;
 
         const source = tick.segmentsUntruncated ?? tick.textUntruncated ?? tickLabel;
-        const fitted = wrapTextOrSegments(source, {
-            font: label,
-            maxWidth,
-            maxHeight: label.maxHeight ?? Infinity,
-            overflow: label.truncate === false ? 'hide' : 'ellipsis',
-            textWrap: 'never',
-        });
-        const isSegmented = isArray(fitted);
+        const fit = (maxWidth: number) => {
+            const wrapOptions = labelWrapOptions(label, maxWidth, maxHeight, labelFitOverflow(label), 'never');
+            const fitted = wrapTextOrSegments(source, wrapOptions);
+            // `textWrap: 'never'` does not apply maxHeight to explicit line breaks.
+            return isArray(fitted) ? fitted : clipLines(fitted.split('\n'), measurer, wrapOptions).join('\n');
+        };
+
+        // Narrowing never adds lines, so the height measured here bounds the final label.
+        let fitted = fit(label.maxWidth ?? Infinity);
+        let metrics = measure(fitted);
+        const maxWidth = widthBudget(metrics.height);
+        if (metrics.width > maxWidth) {
+            fitted = fit(maxWidth);
+            metrics = measure(fitted);
+        }
+
         tick.tickLabel = fitted;
         tick.textUntruncated = toPlainText(source);
-        tick.textMetrics = isSegmented
-            ? measureTextSegments(fitted, label)
-            : measurer.measureLines(toTextString(fitted));
+        tick.textMetrics = metrics;
     }
 }
 
