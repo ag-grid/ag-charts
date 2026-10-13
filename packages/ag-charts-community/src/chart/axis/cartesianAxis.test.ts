@@ -1483,6 +1483,37 @@ describe('CartesianAxis', () => {
             const truncatedNodes = labelNodes.filter((node: any) => node.datum.textUntruncated != null);
             expect(truncatedNodes.length).toBeGreaterThan(0);
         });
+
+        it('should truncate labels in bands thinner than a line', async () => {
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 60 }, (_, i) => ({
+                    category: `A very long category label that cannot fit ${i}`,
+                    value: i,
+                })),
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: { rotation: 90, truncate: true, wrapping: 'never' },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+                seriesArea: { padding: { right: 600 } },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart as any) as any;
+            const categoryAxis = chartInstance.axes.find((axis: any) => axis.position === 'bottom');
+            const labelNodes: any[] = Array.from(categoryAxis.tickLabelGroupSelection.nodes());
+            expect(labelNodes.length).toBeGreaterThan(0);
+            for (const node of labelNodes) {
+                expect(node.datum.textUntruncated).toBeDefined();
+            }
+        });
     });
 
     // At a fractional DPR a resizing axis must not oscillate; a sawtooth position is the 1px jitter.

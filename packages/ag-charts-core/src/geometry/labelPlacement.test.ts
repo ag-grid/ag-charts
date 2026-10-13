@@ -2285,6 +2285,66 @@ describe('placeLabels per-candidate fit', () => {
             expect(placed.width).toBe(40);
             expect(placed.y).toBe(140);
         });
+
+        describe('nudging along the bar', () => {
+            const region = { x: 20, y: 20, width: 60, height: 60 };
+            const placeNudged = (obstacle: LabelObstacle) =>
+                placeLabels(
+                    new Map([
+                        [
+                            's',
+                            seriesLabels([
+                                buildBarPositionedLabelDatum(
+                                    TEXT,
+                                    50,
+                                    20,
+                                    [
+                                        {
+                                            box: { x: 25, y: 40, width: 50, height: 20 },
+                                            region,
+                                            slideAxis: 'y',
+                                            fitTo: { container: { width: 60, height: 60 }, anchor, padding },
+                                        },
+                                    ],
+                                    target(),
+                                    region,
+                                    false,
+                                    {},
+                                    0,
+                                    true,
+                                    { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
+                                ),
+                            ]),
+                        ],
+                    ]),
+                    bounds,
+                    0,
+                    [obstacle]
+                ).get('s')!;
+            const obstacle = (x: number, y: number, width: number, height: number): LabelObstacle => ({
+                kind: 'rect',
+                box: { x, y, width, height },
+                category: 'label',
+            });
+
+            it('nudges a label clear of an obstacle a few pixels along the bar', () => {
+                const [placed] = placeNudged(obstacle(0, 30, 100, 13));
+                expect(placed.text).toBe(TEXT);
+                expect(placed.x).toBe(25);
+                expect(placed.y).toBe(43);
+            });
+
+            it('hides a label that would need more than the nudge allowance', () => {
+                expect(placeNudged(obstacle(0, 30, 100, 16))).toEqual([]);
+            });
+
+            it('truncates in place rather than nudging a label across the bar', () => {
+                const [placed] = placeNudged(obstacle(0, 40, 27, 20));
+                expect(placed.text).toBe('WWW…');
+                expect(placed.x + placed.width / 2).toBe(50);
+                expect(placed.y).toBe(40);
+            });
+        });
     });
 });
 

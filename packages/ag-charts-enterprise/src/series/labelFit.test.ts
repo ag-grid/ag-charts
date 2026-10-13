@@ -609,9 +609,10 @@ describe('series label fit', () => {
                 await renderAt(220, 440, type, { placement });
                 const rendered = stageLabels();
                 expect(rendered.length).toBe(stages.length);
-                for (const node of rendered) {
-                    expect(node.text.includes(ELLIPSIS) ? node.fontSize : MINIMUM).toBe(MINIMUM);
-                }
+                const truncatedAboveMinimum = rendered.filter(
+                    (n) => n.text.includes(ELLIPSIS) && n.fontSize !== MINIMUM
+                );
+                expect(truncatedAboveMinimum).toEqual([]);
                 expect(rendered.some((node) => node.fontSize < FONT_SIZE)).toBe(true);
             });
 
@@ -626,10 +627,10 @@ describe('series label fit', () => {
                 await renderAt(380, 120, type, { placement });
                 const rendered = stageLabels();
                 expect(rendered.length).toBe(stages.length);
-                for (const node of rendered) {
-                    const fits = node.getBBox().height <= stageRect(node).height + 0.5;
-                    expect(fits || node.fontSize === MINIMUM).toBe(true);
-                }
+                const tallerAboveMinimum = rendered.filter(
+                    (n) => n.getBBox().height > stageRect(n).height + 0.5 && n.fontSize !== MINIMUM
+                );
+                expect(tallerAboveMinimum).toEqual([]);
                 expect(rendered.some((node) => node.fontSize < FONT_SIZE)).toBe(true);
             });
 
