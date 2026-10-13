@@ -1,3 +1,5 @@
+import type { Page } from '@playwright/test';
+
 import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
@@ -7,6 +9,8 @@ const RED = 'rgb(255, 0, 0)';
 
 // Longer than the toolbar's 0.25s border-colour transition, so a leaked colour has finished arriving.
 const TRANSITION_SETTLE_MS = 400;
+
+const zoomButtons = (page: Page) => page.locator('.ag-charts-zoom-buttons');
 
 test.describe('button state theme params', () => {
     setupIntrinsicAssertions(test);
@@ -30,6 +34,7 @@ test.describe('button state theme params', () => {
         await page.waitForTimeout(TRANSITION_SETTLE_MS);
 
         await expect(panLeft).toHaveCSS('border-inline-start-color', BLACK);
+        await expect(zoomButtons(page)).toHaveScreenshot('button-state-hover-zoom-in.png', { animations: 'disabled' });
     });
 
     test('a disabled zoom button does not recolour the first button of the next group', async ({ page }) => {
@@ -47,6 +52,9 @@ test.describe('button state theme params', () => {
         await page.waitForTimeout(TRANSITION_SETTLE_MS);
 
         await expect(page.getByTitle('Reset the zoom')).toHaveCSS('border-inline-start-color', BLACK);
+        await expect(zoomButtons(page)).toHaveScreenshot('button-state-disabled-zoom-buttons.png', {
+            animations: 'disabled',
+        });
     });
 
     test('disabled button background follows buttonBackgroundColor', async ({ page }) => {
@@ -68,5 +76,8 @@ test.describe('button state theme params', () => {
         expect(r).toBeGreaterThan(200);
         expect(g).toBeLessThan(60);
         expect(b).toBeLessThan(60);
+        await expect(zoomButtons(page)).toHaveScreenshot('button-disabled-background.png', {
+            animations: 'disabled',
+        });
     });
 });
