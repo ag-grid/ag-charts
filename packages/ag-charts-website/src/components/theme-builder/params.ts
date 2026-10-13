@@ -1,8 +1,7 @@
 /**
- * The curated editor layout. Value type and default are derived by the shared
- * layer, so only presentation hints live here. Every public param must appear in
- * exactly one group, which `params.test.ts` asserts so that a new API param
- * cannot quietly go missing from the builder.
+ * The curated editor layout: the essentials, in panel order. Every other public
+ * param is reached through the panel's All Parameters search. Value type and
+ * default are derived by the shared layer, so only presentation hints live here.
  */
 import type { LengthIcon } from '@ag-website-shared/components/theme-builder/icons';
 import { paramToVariableName } from '@ag-website-shared/theming/utils';
@@ -25,12 +24,14 @@ export interface ChartsParamConfig {
     max?: number;
 }
 
+/** A single param, or a pair laid out side by side on one row. */
+export type ChartsParamEntry = ChartsParamConfig | [ChartsParamConfig, ChartsParamConfig];
+
 export interface ChartsParamGroup {
     id: string;
     label: string;
-    /** Groups past the essentials start collapsed to keep the panel scannable. */
     collapsed?: boolean;
-    params: ChartsParamConfig[];
+    params: ChartsParamEntry[];
 }
 
 export const PARAM_GROUPS: ChartsParamGroup[] = [
@@ -38,13 +39,21 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
         id: 'general',
         label: 'General',
         params: [
-            { key: 'fontFamily', label: 'Font Family' },
-            { key: 'fontSize', label: 'Font Size', min: 8, max: 24 },
-            { key: 'fontWeight', label: 'Font Weight' },
+            [
+                { key: 'fontFamily', label: 'Font Family' },
+                { key: 'fontSize', label: 'Font Size', min: 8, max: 24 },
+            ],
             { key: 'backgroundColor', label: 'Background Color' },
             { key: 'foregroundColor', label: 'Foreground Color' },
             { key: 'accentColor', label: 'Accent Color' },
-            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
+        ],
+    },
+    {
+        id: 'borders',
+        label: 'Borders & Spacing',
+        collapsed: true,
+        params: [
+            { key: 'borderColor', label: 'Border Color' },
             {
                 key: 'borderRadius',
                 label: 'Border Radius',
@@ -53,225 +62,60 @@ export const PARAM_GROUPS: ChartsParamGroup[] = [
                 min: 0,
                 max: 24,
             },
-            { key: 'textColor', label: 'Text Color' },
-            { key: 'subtleTextColor', label: 'Subtle Text Color' },
-            // Follows the background colour by default, so it sits beside it.
-            { key: 'chartBackgroundColor', label: 'Chart Background' },
+            { key: 'chartPadding', label: 'Chart Padding', icon: 'horizontalSpacing', min: 0, max: 60 },
         ],
     },
     {
         id: 'axes',
-        label: 'Axes & Grid',
+        label: 'Axis & Grid',
+        collapsed: true,
         params: [
-            { key: 'axisLineColor', label: 'Axis Line Color' },
-            { key: 'axisLineWidth', label: 'Axis Line Width', min: 0, max: 8 },
-            { key: 'axisLabelColor', label: 'Axis Label Color' },
-            { key: 'axisLabelFontFamily', label: 'Axis Label Font Family' },
-            { key: 'axisLabelFontSize', label: 'Axis Label Font Size', min: 8, max: 24 },
-            { key: 'axisLabelFontWeight', label: 'Axis Label Font Weight' },
-            { key: 'axisTitleColor', label: 'Axis Title Color' },
             { key: 'axisTitleFontFamily', label: 'Axis Title Font Family' },
-            { key: 'axisTitleFontSize', label: 'Axis Title Font Size', min: 8, max: 24 },
-            { key: 'axisTitleFontWeight', label: 'Axis Title Font Weight' },
+            [
+                { key: 'axisTitleColor', label: 'Axis Title Color' },
+                { key: 'axisTitleFontSize', label: 'Axis Title Size', min: 8, max: 24 },
+            ],
+            { key: 'axisLineColor', label: 'Axis Line Color' },
             { key: 'gridLineColor', label: 'Grid Line Color' },
-            { key: 'gridLineWidth', label: 'Grid Line Width', min: 0, max: 8 },
-            { key: 'groupedCategoryLineColor', label: 'Grouped Category Line' },
-            { key: 'bandHighlightColor', label: 'Band Highlight Color' },
-            { key: 'crosshairLabelBackgroundColor', label: 'Crosshair Label Background' },
-            { key: 'crosshairLabelTextColor', label: 'Crosshair Label Text' },
         ],
     },
     {
         id: 'captions',
-        label: 'Titles and Captions',
+        label: 'Titles & Footnote',
         collapsed: true,
         params: [
             { key: 'titleFontFamily', label: 'Title Font Family' },
-            { key: 'titleFontSize', label: 'Title Font Size', min: 8, max: 32 },
-            { key: 'titleFontWeight', label: 'Title Font Weight' },
-            { key: 'titleColor', label: 'Title Color' },
+            [
+                { key: 'titleColor', label: 'Title Color' },
+                { key: 'titleFontSize', label: 'Title Size', min: 8, max: 32 },
+            ],
             { key: 'subtitleFontFamily', label: 'Subtitle Font Family' },
-            { key: 'subtitleFontSize', label: 'Subtitle Font Size', min: 8, max: 32 },
-            { key: 'subtitleFontWeight', label: 'Subtitle Font Weight' },
-            { key: 'subtitleColor', label: 'Subtitle Color' },
+            [
+                { key: 'subtitleColor', label: 'Subtitle Color' },
+                { key: 'subtitleFontSize', label: 'Subtitle Size', min: 8, max: 32 },
+            ],
             { key: 'footnoteFontFamily', label: 'Footnote Font Family' },
-            { key: 'footnoteFontSize', label: 'Footnote Font Size', min: 8, max: 32 },
-            { key: 'footnoteFontWeight', label: 'Footnote Font Weight' },
-            { key: 'footnoteColor', label: 'Footnote Color' },
-        ],
-    },
-    {
-        id: 'seriesLabels',
-        label: 'Series Labels',
-        collapsed: true,
-        params: [
-            { key: 'seriesLabelFontFamily', label: 'Font Family' },
-            { key: 'seriesLabelFontSize', label: 'Font Size', min: 8, max: 24 },
-            { key: 'seriesLabelFontWeight', label: 'Font Weight' },
-            { key: 'seriesLabelInsideTextColor', label: 'Inside Text Color' },
-            { key: 'seriesLabelInsideBackgroundColor', label: 'Inside Background' },
-            { key: 'seriesLabelOutsideTextColor', label: 'Outside Text Color' },
-            { key: 'seriesLabelOutsideBackgroundColor', label: 'Outside Background' },
-            { key: 'seriesLabelBorder', label: 'Border' },
-            { key: 'seriesLabelBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
-        ],
-    },
-    {
-        id: 'borders',
-        label: 'Borders & Spacing',
-        params: [
-            { key: 'borderColor', label: 'Border Color' },
-            { key: 'borderWidth', label: 'Border Width', min: 0, max: 8 },
-        ],
-    },
-    {
-        id: UI_GROUP_ID,
-        label: 'UI Elements',
-        collapsed: true,
-        params: [
-            { key: 'chromeBackgroundColor', label: 'Background Color' },
-            { key: 'chromeTextColor', label: 'Text Color' },
-            { key: 'chromeSubtleTextColor', label: 'Subtle Text Color' },
-            { key: 'chromeFontFamily', label: 'Font Family' },
-            { key: 'chromeFontSize', label: 'Font Size', min: 8, max: 24 },
-            { key: 'chromeFontWeight', label: 'Font Weight' },
-            { key: 'menuBackgroundColor', label: 'Menu Background' },
-            { key: 'menuTextColor', label: 'Menu Text' },
-            { key: 'menuBorder', label: 'Menu Border' },
-            { key: 'menuBorderRadius', label: 'Menu Radius', icon: 'radius', min: 0, max: 24 },
-            { key: 'menuSeparatorColor', label: 'Menu Separator' },
-            { key: 'panelBackgroundColor', label: 'Panel Background' },
-            { key: 'panelSubtleTextColor', label: 'Panel Subtle Text' },
-            { key: 'dragHandleColor', label: 'Drag Handle' },
-            { key: 'colorPickerThumbSize', label: 'Color Picker Thumb Size', min: 8, max: 32 },
-            { key: 'colorPickerThumbBorderWidth', label: 'Color Picker Thumb Border', min: 0, max: 8 },
-            { key: 'colorPickerTrackSize', label: 'Color Picker Track Size', min: 4, max: 24 },
-            {
-                key: 'colorPickerTrackBorderRadius',
-                label: 'Color Picker Track Radius',
-                icon: 'radius',
-                min: 0,
-                max: 24,
-            },
-            {
-                key: 'colorPickerColorBorderRadius',
-                label: 'Color Picker Swatch Radius',
-                icon: 'radius',
-                min: 0,
-                max: 8,
-            },
-        ],
-    },
-    {
-        id: TOOLTIPS_GROUP_ID,
-        label: 'Tooltips',
-        collapsed: true,
-        params: [
-            { key: 'tooltipBackgroundColor', label: 'Background Color' },
-            { key: 'tooltipTextColor', label: 'Text Color' },
-            { key: 'tooltipSubtleTextColor', label: 'Subtle Text Color' },
-            { key: 'tooltipBorder', label: 'Border' },
-            { key: 'tooltipBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
-        ],
-    },
-    {
-        id: 'legend',
-        label: 'Legend',
-        collapsed: true,
-        params: [
-            { key: 'legendBorder', label: 'Border' },
-            { key: 'legendBorderRadius', label: 'Border Radius', icon: 'radius', min: 0, max: 24 },
-            { key: 'legendPadding', label: 'Padding', icon: 'horizontalSpacing', min: 0, max: 40 },
-            {
-                key: 'legendItemVerticalPadding',
-                label: 'Item Vertical Padding',
-                icon: 'verticalSpacing',
-                min: 0,
-                max: 40,
-            },
-            {
-                key: 'legendItemHorizontalPadding',
-                label: 'Item Horizontal Padding',
-                icon: 'horizontalSpacing',
-                min: 0,
-                max: 40,
-            },
-            { key: 'legendLabelColor', label: 'Label Color' },
-            { key: 'legendLabelFontFamily', label: 'Label Font Family' },
-            { key: 'legendLabelFontSize', label: 'Label Font Size', min: 8, max: 24 },
-            { key: 'legendLabelFontWeight', label: 'Label Font Weight' },
-            { key: 'legendMarkerSize', label: 'Marker Size', min: 4, max: 40 },
-        ],
-    },
-    {
-        id: CONTROLS_GROUP_ID,
-        label: 'Buttons & Inputs',
-        collapsed: true,
-        params: [
-            { key: 'buttonBackgroundColor', label: 'Button Background' },
-            { key: 'buttonTextColor', label: 'Button Text' },
-            { key: 'buttonBorder', label: 'Button Border' },
-            { key: 'buttonBorderRadius', label: 'Button Radius', icon: 'radius', min: 0, max: 24 },
-            { key: 'buttonFontWeight', label: 'Button Font Weight' },
-            { key: 'buttonHoverBackgroundColor', label: 'Button Hover Background' },
-            { key: 'buttonHoverTextColor', label: 'Button Hover Text' },
-            { key: 'buttonHoverBorder', label: 'Button Hover Border' },
-            { key: 'buttonActiveBackgroundColor', label: 'Button Active Background' },
-            { key: 'buttonActiveTextColor', label: 'Button Active Text' },
-            { key: 'buttonActiveBorder', label: 'Button Active Border' },
-            { key: 'buttonDisabledBackgroundColor', label: 'Button Disabled Background' },
-            { key: 'buttonDisabledTextColor', label: 'Button Disabled Text' },
-            { key: 'buttonDisabledBorder', label: 'Button Disabled Border' },
-            { key: 'inputBackgroundColor', label: 'Input Background' },
-            { key: 'inputTextColor', label: 'Input Text' },
-            { key: 'inputPlaceholderTextColor', label: 'Input Placeholder Text' },
-            { key: 'inputBorder', label: 'Input Border' },
-            { key: 'inputBorderRadius', label: 'Input Radius', icon: 'radius', min: 0, max: 24 },
-        ],
-    },
-    {
-        id: SCROLLBAR_GROUP_ID,
-        label: 'Scrollbar',
-        collapsed: true,
-        params: [
-            { key: 'scrollbarThickness', label: 'Thickness', min: 4, max: 32 },
-            { key: 'scrollbarTrackBackgroundColor', label: 'Track Background' },
-            { key: 'scrollbarTrackBorder', label: 'Track Border' },
-            { key: 'scrollbarTrackBorderRadius', label: 'Track Radius', icon: 'radius', min: 0, max: 16 },
-            { key: 'scrollbarThumbBackgroundColor', label: 'Thumb Background' },
-            { key: 'scrollbarThumbBorder', label: 'Thumb Border' },
-            { key: 'scrollbarThumbBorderRadius', label: 'Thumb Radius', icon: 'radius', min: 0, max: 16 },
-            { key: 'scrollbarThumbHoverBackgroundColor', label: 'Thumb Hover Background' },
-            { key: 'scrollbarThumbHoverBorder', label: 'Thumb Hover Border' },
-        ],
-    },
-    {
-        id: 'navigator',
-        label: 'Navigator',
-        collapsed: true,
-        params: [
-            { key: 'navigatorTrackBackgroundColor', label: 'Track Background' },
-            { key: 'navigatorTrackBorder', label: 'Track Border' },
-            { key: 'navigatorTrackBorderRadius', label: 'Track Radius', icon: 'radius', min: 0, max: 16 },
-            { key: 'navigatorThumbBackgroundColor', label: 'Thumb Background' },
-            { key: 'navigatorHandleBackgroundColor', label: 'Handle Background' },
-            { key: 'navigatorHandleBorder', label: 'Handle Border' },
-            { key: 'navigatorHandleBorderRadius', label: 'Handle Radius', icon: 'radius', min: 0, max: 16 },
-        ],
-    },
-    {
-        id: 'effects',
-        label: 'Effects',
-        collapsed: true,
-        params: [
-            { key: 'focusShadow', label: 'Focus Shadow' },
-            { key: 'popupShadow', label: 'Popup Shadow' },
-            { key: 'cardShadow', label: 'Card Shadow' },
+            [
+                { key: 'footnoteColor', label: 'Footnote Color' },
+                { key: 'footnoteFontSize', label: 'Footnote Size', min: 8, max: 32 },
+            ],
         ],
     },
 ];
 
-export const CURATED_KEYS = PARAM_GROUPS.flatMap((group) => group.params.map(({ key }) => key));
+export const groupParams = (group: ChartsParamGroup): ChartsParamConfig[] => group.params.flat();
+
+export const CURATED_KEYS = PARAM_GROUPS.flatMap((group) => groupParams(group).map(({ key }) => key));
+
+export const PALETTE_SECTION = 'Palette';
+export const ALL_PARAMS_SECTION = 'All Parameters';
+
+/** A param pinned into All Parameters was asked for explicitly, so a closed section would hide it. */
+export const defaultOpenSections = (hasPinnedParams: boolean): string[] => [
+    PALETTE_SECTION,
+    ...PARAM_GROUPS.filter((group) => !group.collapsed).map((group) => group.label),
+    ...(hasPinnedParams ? [ALL_PARAMS_SECTION] : []),
+];
 
 /**
  * Whether a param's default is derived from another param rather than chosen.

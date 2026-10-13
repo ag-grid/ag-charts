@@ -4,22 +4,21 @@ import { PaletteEditor } from '@ag-website-shared/components/theme-builder/Palet
 import { ParamEditor } from '@ag-website-shared/components/theme-builder/ParamEditor';
 import { iconFor } from '@ag-website-shared/components/theme-builder/icons';
 import { useCollapsibleSections } from '@ag-website-shared/components/theme-builder/useCollapsibleSections';
+import { enabledAdvancedParamsAtom } from '@ag-website-shared/theming/advanced-params';
 import styled from '@emotion/styled';
+import { useAtomValue } from 'jotai';
 
 import { InheritedValueNote } from './InheritedValueNote';
-import { useSetEditedGroup } from './editedGroup';
 import { usePalette } from './paletteModel';
-import { type ChartsParamConfig, PARAM_GROUPS } from './params';
-
-const PALETTE_SECTION = 'Palette';
-const ALL_PARAMS_SECTION = 'All Parameters';
-
-const DEFAULT_OPEN_SECTIONS = [
-    PALETTE_SECTION,
-    ...PARAM_GROUPS.filter((group) => !group.collapsed).map((group) => group.label),
-    // A param pinned here was asked for explicitly; a closed section would hide it.
+import {
     ALL_PARAMS_SECTION,
-];
+    type ChartsParamConfig,
+    type ChartsParamEntry,
+    type ChartsParamGroup,
+    PALETTE_SECTION,
+    PARAM_GROUPS,
+    defaultOpenSections,
+} from './params';
 
 const paramEditor = (param: ChartsParamConfig) => (
     <ParamEditor
@@ -37,39 +36,29 @@ const paramEditor = (param: ChartsParamConfig) => (
     />
 );
 
-export const EditorPanel = () => {
-    const sectionProps = useCollapsibleSections(DEFAULT_OPEN_SECTIONS);
-    const [palette, setPalette] = usePalette();
-    const setEditedGroup = useSetEditedGroup();
+const paramEntry = (entry: ChartsParamEntry) =>
+    Array.isArray(entry) ? <Row key={entry[0].key}>{entry.map(paramEditor)}</Row> : paramEditor(entry);
 
-    // See `editedGroup.ts`. Capture handlers, so the panel clears the group and
-    // the group under the pointer then names itself; anywhere else in the panel
-    // clears it and stops there. No release on blur: colour pickers render in a
-    // portal, so a swatch click would read as abandoning the panel.
-    const releaseGroup = {
-        onFocusCapture: () => setEditedGroup(null),
-        onPointerDownCapture: () => setEditedGroup(null),
-    };
-    const holdGroup = (id: string) => ({
-        onFocusCapture: () => setEditedGroup(id),
-        onPointerDownCapture: () => setEditedGroup(id),
-    });
+const [GENERAL_GROUP, ...OTHER_GROUPS] = PARAM_GROUPS;
+
+export const EditorPanel = () => {
+    const hasPinnedParams = useAtomValue(enabledAdvancedParamsAtom).size > 0;
+    const sectionProps = useCollapsibleSections(defaultOpenSections(hasPinnedParams));
+    const [palette, setPalette] = usePalette();
+
+    const groupSection = (group: ChartsParamGroup) => (
+        <CollapsibleSection key={group.id} {...sectionProps(group.label)}>
+            <Fields>{group.params.map(paramEntry)}</Fields>
+        </CollapsibleSection>
+    );
 
     return (
-        <PanelWrapper {...releaseGroup}>
+        <PanelWrapper>
+            {groupSection(GENERAL_GROUP)}
             <CollapsibleSection {...sectionProps(PALETTE_SECTION)}>
                 <PaletteEditor value={palette} onChange={setPalette} />
             </CollapsibleSection>
-            {/* Every group, and every param in it - including params that follow
-                another one, since the panel is where you find out what a theme
-                can change. */}
-            {PARAM_GROUPS.map((group) => (
-                <CollapsibleSection key={group.id} {...sectionProps(group.label)}>
-                    <Fields {...holdGroup(group.id)}>{group.params.map(paramEditor)}</Fields>
-                </CollapsibleSection>
-            ))}
-            {/* The same params, searchable, for finding one without knowing
-                which section holds it. */}
+            {OTHER_GROUPS.map(groupSection)}
             <CollapsibleSection {...sectionProps(ALL_PARAMS_SECTION)}>
                 <AdvancedParamSelector />
             </CollapsibleSection>
@@ -88,4 +77,14 @@ const Fields = styled('div')`
     display: flex;
     flex-direction: column;
     gap: 12px;
+`;
+
+const Row = styled('div')`
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    > * {
+        min-width: 0;
+    }
 `;

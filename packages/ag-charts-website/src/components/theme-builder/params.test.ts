@@ -1,3 +1,4 @@
+import { ParamModel } from '@ag-website-shared/theming/ParamModel';
 import { describe, expect, it } from 'vitest';
 
 import { type AgChartThemeName, _Theme } from 'ag-charts-community';
@@ -5,19 +6,56 @@ import { type AgChartThemeName, _Theme } from 'ag-charts-community';
 import { PUBLIC_PARAM_NAMES, getStackParams } from './chartsTheme';
 import {
     CURATED_KEYS,
+    type ChartsParamEntry,
     INHERITED_KEYS,
     INHERITED_SOURCES,
     PARAM_GROUPS,
+    defaultOpenSections,
+    groupParams,
     inheritedKeysOf,
     inheritedSourcesOf,
 } from './params';
+// Side-effect import, as in the builder itself: it registers the curated keys
+// with the shared param model.
+import './registerThemeBuilderConfig';
+
+const keysOf = (entry: ChartsParamEntry) => (Array.isArray(entry) ? entry.map(({ key }) => key) : entry.key);
 
 describe('charts theme builder param layout', () => {
-    it('covers every public AG Charts theme param', () => {
-        // A new param in the AG Charts API should show up here as a failure,
-        // not as a control the builder silently never offers.
-        const missing = PUBLIC_PARAM_NAMES.filter((name) => !CURATED_KEYS.includes(name));
-        expect(missing).toEqual([]);
+    it('lays out the groups and params in panel order, pairing each size with its row-mate', () => {
+        expect(PARAM_GROUPS.map((group) => ({ label: group.label, params: group.params.map(keysOf) }))).toEqual([
+            {
+                label: 'General',
+                params: [['fontFamily', 'fontSize'], 'backgroundColor', 'foregroundColor', 'accentColor'],
+            },
+            { label: 'Borders & Spacing', params: ['borderColor', 'borderRadius', 'chartPadding'] },
+            {
+                label: 'Axis & Grid',
+                params: [
+                    'axisTitleFontFamily',
+                    ['axisTitleColor', 'axisTitleFontSize'],
+                    'axisLineColor',
+                    'gridLineColor',
+                ],
+            },
+            {
+                label: 'Titles & Footnote',
+                params: [
+                    'titleFontFamily',
+                    ['titleColor', 'titleFontSize'],
+                    'subtitleFontFamily',
+                    ['subtitleColor', 'subtitleFontSize'],
+                    'footnoteFontFamily',
+                    ['footnoteColor', 'footnoteFontSize'],
+                ],
+            },
+        ]);
+        expect(CURATED_KEYS).toHaveLength(22);
+    });
+
+    it('opens General and Palette by default, and All Parameters only once a param is pinned there', () => {
+        expect(defaultOpenSections(false)).toEqual(['Palette', 'General']);
+        expect(defaultOpenSections(true)).toEqual(['Palette', 'General', 'All Parameters']);
     });
 
     it('offers no param AG Charts does not have', () => {
@@ -28,12 +66,18 @@ describe('charts theme builder param layout', () => {
     it('places each param in exactly one group', () => {
         const seen = new Map<string, string[]>();
         for (const group of PARAM_GROUPS) {
-            for (const { key } of group.params) {
+            for (const { key } of groupParams(group)) {
                 seen.set(key, [...(seen.get(key) ?? []), group.id]);
             }
         }
         const duplicated = [...seen.entries()].filter(([, groups]) => groups.length > 1);
         expect(duplicated).toEqual([]);
+    });
+
+    it('registers every grouped param as editable outside All Parameters', () => {
+        // The panel's editor throws on a param only All Parameters may edit.
+        const advancedOnly = CURATED_KEYS.filter((key) => ParamModel.for(key).onlyEditableAsAdvancedParam);
+        expect(advancedOnly).toEqual([]);
     });
 });
 
@@ -55,10 +99,6 @@ describe('params with an inherited value', () => {
         expect(INHERITED_SOURCES.titleFontSize).toEqual(['fontSize']);
         expect(INHERITED_KEYS.has('axisTitleFontSize')).toBe(true);
         expect(INHERITED_SOURCES.axisTitleFontSize).toEqual(['fontSize']);
-    });
-
-    it('names only params the builder offers', () => {
-        expect([...INHERITED_KEYS].filter((key) => !CURATED_KEYS.includes(key))).toEqual([]);
     });
 
     it('classifies every stock theme the same way', () => {
@@ -116,13 +156,5 @@ describe('what a param inherits from', () => {
         // nothing to name would render an unfinished sentence.
         const unexplained = [...INHERITED_KEYS].filter((key) => (INHERITED_SOURCES[key]?.length ?? 0) === 0);
         expect(unexplained).toEqual([]);
-    });
-
-    it('inherits only from params the builder offers', () => {
-        const offered = new Set(CURATED_KEYS);
-        const dangling = Object.values(INHERITED_SOURCES)
-            .flat()
-            .filter((source) => !offered.has(source));
-        expect(dangling).toEqual([]);
     });
 });
