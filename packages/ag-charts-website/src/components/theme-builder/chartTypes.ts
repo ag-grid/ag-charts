@@ -61,17 +61,17 @@ export type PreviewChartType = {
  * diverging a few slots in.
  */
 export const THUMBNAIL_OPTIONS: AgChartOptions = {
-    // Fewer columns than the data carries: eight grouped bars across six
-    // columns would be hair-thin at card size.
-    data: THUMBNAIL_DATA.slice(0, 3),
+    data: THUMBNAIL_DATA,
     series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'bar', xKey: 'period', yKey: key })),
+    // Text, so a preset's typography shows on its card.
+    title: { text: 'Quarterly Revenue' },
     axes: {
-        x: { type: 'category', position: 'bottom', label: { enabled: false } },
-        // With no labels there are only a couple of ticks, and rounding the
-        // domain out to the next one leaves the series area half empty.
-        y: { type: 'number', position: 'left', label: { enabled: false }, nice: false },
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
     },
     legend: { enabled: false },
+    // A preset's padding is sized for a full chart and swamps one at card size.
+    padding: 8,
 };
 
 const TITLE = { text: 'Quarterly Revenue by Country' };

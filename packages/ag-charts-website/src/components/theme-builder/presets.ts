@@ -40,11 +40,7 @@ export type ChartsPreset = {
      * not expose, so a dark design on `ag-default` gets white slice separators.
      */
     baseTheme: AgChartThemeName;
-    /**
-     * The page the chart is imagined to sit on. Not part of the theme and not
-     * drawn anywhere yet, but required by the shared `Preset`, so each preset
-     * names a colour that belongs with it rather than a placeholder.
-     */
+    /** The page the chart sits on in its card. Not part of the theme. */
     pageBackgroundColor: string;
     params: Record<string, unknown>;
     palette: Palette;
@@ -88,6 +84,7 @@ export const PRESETS: ChartsPreset[] = [
             borderColor: '#E2E8F0',
             borderRadius: 8,
             chartPadding: 24,
+            tooltipBorder: false,
         },
         palette: toPalette({
             series: [
@@ -125,6 +122,7 @@ export const PRESETS: ChartsPreset[] = [
             borderColor: '#2A5C3D',
             borderRadius: 0,
             chartPadding: 16,
+            legendBorder: true,
         },
         palette: toPalette({
             series: [
@@ -198,6 +196,7 @@ export const PRESETS: ChartsPreset[] = [
             borderColor: '#3B3266',
             borderRadius: 12,
             chartPadding: 24,
+            tooltipBorder: false,
         },
         palette: toPalette({
             series: [
@@ -234,6 +233,7 @@ export const PRESETS: ChartsPreset[] = [
             borderColor: '#7FA3C4',
             borderRadius: 0,
             chartPadding: 20,
+            legendBorder: true,
         },
         palette: toPalette({
             series: [
