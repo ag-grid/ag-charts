@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { LinearScale, OrdinalTimeScale, UnitTimeScale } from 'ag-charts-core';
+import { LinearScale, OrdinalTimeScale, ScaleAlignment, UnitTimeScale } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { NiceMode } from './axisUtil';
@@ -190,6 +190,49 @@ describe('generateTicks on an ordinal-time scale', () => {
         expect(labels(second)).toEqual(labels(first));
         expect(labels(fresh)).toEqual(labels(first));
         expect(second.tickData.niceDomain).toEqual(first.tickData.niceDomain);
+    });
+
+    describe('without numericBands built beforehand', () => {
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        // A bar series reads a handful of positions after the axis has laid out its ticks; neither step may
+        // pay for a Date -> number pass over every band of a large domain.
+        it.each([
+            ['nice domain', [NiceMode.TickAndDomain]],
+            ['ticks only', [NiceMode.TicksOnly]],
+        ])('builds none for a tick pass and a few lookups (%s)', (_name, niceMode) => {
+            const builds = vi.spyOn(OrdinalTimeScale.prototype as any, 'numericBands', 'get');
+            const scale = create(domain);
+
+            run(scale, tickDomain, niceMode);
+            const bandWidth = 3 * 60_000;
+            for (const index of [0, 5_000, 12_345, 19_999]) {
+                const date = domain[index];
+                scale.convert(date);
+                scale.convert(new Date(date.valueOf() + bandWidth / 3));
+                scale.findIndex(date);
+            }
+
+            expect(builds).not.toHaveBeenCalled();
+        });
+
+        it('positions values as a scale that has its numericBands built', () => {
+            const lazy = create(domain);
+            const built = create(domain);
+            numericBandsOf(built);
+
+            run(lazy, tickDomain, [NiceMode.TickAndDomain]);
+
+            for (const index of [0, 1, 7_777, 19_998, 19_999]) {
+                const date = new Date(domain[index].valueOf() + 60_000);
+                expect(lazy.convert(date)).toBe(built.convert(date));
+                expect(lazy.convert(date, { alignment: ScaleAlignment.Trailing })).toBe(
+                    built.convert(date, { alignment: ScaleAlignment.Trailing })
+                );
+            }
+        });
     });
 
     it('rebuilds the band arrays for a new domain set between passes', () => {

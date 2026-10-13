@@ -1227,5 +1227,73 @@ describe('OrdinalTimeScale', () => {
             expect(scale.convert(new Date(2023, 0, 1), { clamp: true })).toBe(0);
             expect(scale.convert(new Date(2025, 0, 1), { clamp: true })).toBe(1000);
         });
+
+        // Bands that are neither evenly spaced nor distinct: only `Date` values decide the answer.
+        it.each([
+            ['irregularly spaced', false],
+            ['repeated', true],
+        ])('answers as it does once they are built, on %s bands', (_name, repeated) => {
+            let time = new Date(2024, 0, 1).valueOf();
+            const domain = Array.from({ length: BAND_COUNT }, (_item, i) => {
+                if (!repeated || i % 3 !== 0) time += (1 + ((i * 7919) % 13)) * 60_000;
+                return new Date(time);
+            });
+            const unbuilt = scaleOf(domain);
+            const built = scaleOf(domain);
+            numericBandsOf(built);
+            const builds = buildsOf();
+
+            // 24 targets x 4 lookups stays under the limit, so every answer of the unbuilt scale is from `bands`.
+            const targets = [
+                ...probes(domain)
+                    .filter((_probe, i) => i % 3 === 0)
+                    .slice(0, 12),
+                ...Array.from({ length: 12 }, (_item, i) => domain[i * 523]),
+            ];
+            expect(targets.length * alignments.length * 2).toBeLessThan(LOOKUP_LIMIT);
+            for (const target of targets) {
+                for (const alignment of alignments) {
+                    for (const exclusive of [false, true]) {
+                        expect(unbuilt.findIndex(target, alignment, exclusive)).toBe(
+                            built.findIndex(target, alignment, exclusive)
+                        );
+                    }
+                }
+            }
+            expect(builds).not.toHaveBeenCalled();
+        });
+
+        it('answers an unreadable date as it does once they are built', () => {
+            const domain = minutes(BAND_COUNT);
+            const unbuilt = scaleOf(domain);
+            const built = scaleOf(domain);
+            numericBandsOf(built);
+            const invalid = new Date(Number.NaN);
+
+            for (const alignment of alignments) {
+                expect(unbuilt.findIndex(invalid, alignment)).toBe(built.findIndex(invalid, alignment));
+            }
+            expect(unbuilt.convert(invalid)).toBe(built.convert(invalid));
+        });
+
+        it('answers from the restored domain after lookups on a temporary one', () => {
+            const domain = minutes(BAND_COUNT);
+            const temporary = minutes(BAND_COUNT / 2, 5);
+            const control = scaleOf(domain);
+            numericBandsOf(control);
+            const subject = scaleOf(domain);
+
+            const target = new Date(2024, 0, 1, 0, 1234, 30);
+            const before = subject.findIndex(target);
+            const snapshot = subject.snapshotDomain();
+            subject.domain = temporary;
+            // Index of the same instant in the temporary domain, which has a different band spacing.
+            expect(subject.findIndex(target)).toBe(246);
+            subject.restoreDomain(snapshot);
+
+            expect(before).toBe(control.findIndex(target));
+            expect(subject.findIndex(target)).toBe(control.findIndex(target));
+            expect(subject.convert(target)).toBe(control.convert(target));
+        });
     });
 });
