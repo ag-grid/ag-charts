@@ -360,7 +360,7 @@ export interface SeriesAggregationInternals {
     id: string;
     data: { getItemIdFromIndex(datumIndex: number): string | number } | undefined;
     dataAggregation: object | undefined;
-    aggregateIndexSet?: Map<number, number[]>;
+    aggregateIndexSet?: Map<number, Uint32Array>;
     contextNodeData?: { nodeData?: ReadonlyArray<unknown> };
     /** Present on series that aggregate via `AggregationManager` (e.g. range-bar). */
     aggregationManager?: { getFilterForRange(range: number): { maxRange: number } | undefined };

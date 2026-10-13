@@ -493,7 +493,7 @@ interface IndexSetBucketLookupManagerOpts {
     series: SeriesLike;
     dataSelectionService: IDataSelectionService | undefined;
     /** Cluster-keyed map of representative datum index to underlying datum indices. */
-    getIndexSetMap: () => Map<number, number[]> | undefined;
+    getIndexSetMap: () => ReadonlyMap<number, ArrayLike<number>> | undefined;
 }
 
 /**
@@ -534,7 +534,9 @@ export class IndexSetBucketLookupManager implements BucketLookupFeature {
     }
 
     getIndexSet(datumIndex: number): Iterable<number> | undefined {
-        return this.opts.getIndexSetMap()?.get(datumIndex);
+        const indices = this.opts.getIndexSetMap()?.get(datumIndex);
+        // A cluster's indices are grouped by quadrant; hand them out in datum order, as selection changes list them.
+        return indices === undefined ? undefined : Uint32Array.from(indices).sort();
     }
 
     refresh(): void {

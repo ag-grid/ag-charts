@@ -410,7 +410,7 @@ export abstract class BubbleScatterSeries<
     protected abstract markerSizeRange(): { size: number; maxSize: number };
 
     private dataAggregation: BubbleAggregation | undefined = undefined;
-    private aggregateIndexSet: Map<number, number[]> | undefined = undefined;
+    private aggregateIndexSet: Map<number, Uint32Array> | undefined = undefined;
     private nodeDatumContext: BubbleSeriesNodeDatumContext | undefined = undefined;
 
     private readonly sizeScale = new LinearScale();
@@ -894,7 +894,7 @@ export abstract class BubbleScatterSeries<
             aggregationOptions
         );
 
-        const aggregateIndexSet = new Map<number, number[]>();
+        const aggregateIndexSet = new Map<number, Uint32Array>();
         for (const { datumIndex, count, dilation, area, indices } of groupedAggregation) {
             scratch.count = count;
             scratch.dilation = dilation;

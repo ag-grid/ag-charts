@@ -26,6 +26,12 @@ export interface BubbleAggregation {
     filters: BubbleAggregationFilter[];
     xNeedsValueOf: boolean;
     yNeedsValueOf: boolean;
+    /**
+     * Datum indices of every node, partitioned in place by the quadtree: a node's datums are
+     * `indices[start, end)`. A parent's range holds its children's ranges back to back (quadrant by quadrant),
+     * so only a leaf's range is in ascending datum order.
+     */
+    indices: Uint32Array;
 }
 
 export interface BubbleAggregationFilter {
@@ -39,17 +45,12 @@ export interface BubbleAggregationNode {
     y0: any;
     x1: any;
     y1: any;
-    indices: number[];
+    /** Inclusive start of this node's datums in {@link BubbleAggregation.indices}. */
+    start: number;
+    /** Exclusive end of this node's datums in {@link BubbleAggregation.indices}. */
+    end: number;
     primaryDatumIndex: number;
     children: BubbleAggregationNode[] | null;
-}
-
-interface ChildBucket {
-    indices: number[];
-    x0: number;
-    y0: number;
-    x1: number;
-    y1: number;
 }
 
 interface BubbleAggregationContext {
@@ -61,6 +62,25 @@ interface BubbleAggregationContext {
     yNeedsValueOf: boolean;
 }
 
+/**
+ * Working buffers for building the quadtree, so that partitioning a node allocates nothing per call:
+ * `scratch` and `codes` are indexed like `order`; `quadrants` holds, per tree depth, the bounds and count of each of
+ * the four child quadrants (a node's children are built after it, one level deeper, so each level needs its own slot).
+ */
+interface BubbleBuildContext extends BubbleAggregationContext {
+    order: Uint32Array;
+    scratch: Uint32Array;
+    codes: Uint8Array;
+    quadrants: Float64Array;
+    cursors: Uint32Array;
+}
+
+// Per quadrant: x0, y0, x1, y1 of the datums in it, then how many there are.
+const QUADRANT_STRIDE = 5;
+const QUADRANT_COUNT = 4;
+const DEPTH_STRIDE = QUADRANT_COUNT * QUADRANT_STRIDE;
+const INITIAL_DEPTH_CAPACITY = 32;
+
 interface QuadBounds {
     x0: number;
     y0: number;
@@ -68,23 +88,36 @@ interface QuadBounds {
     y1: number;
 }
 
-function getPrimaryDatumIndex(context: BubbleAggregationContext, indices: number[], bounds: QuadBounds): number {
+function getPrimaryDatumIndex(
+    context: BubbleAggregationContext,
+    order: Uint32Array,
+    start: number,
+    end: number,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number
+): number {
     const { xValues, yValues, xDomain, yDomain, xNeedsValueOf, yNeedsValueOf } = context;
-    const { x0, y0, x1, y1 } = bounds;
 
     let currentIndex = 0;
     let currentDistanceSquared = Infinity;
     const midX = (x0 + x1) / 2;
     const midY = (y0 + y1) / 2;
-    for (const datumIndex of indices) {
+    for (let i = start; i < end; i += 1) {
+        const datumIndex = order[i];
         const xValue = xValues[datumIndex];
         const yValue = yValues[datumIndex];
         if (xValue == null || yValue == null) continue;
         const xRatio = aggregationXRatioForXValue(xValue, xDomain.min, xDomain.max, xNeedsValueOf);
         const yRatio = aggregationXRatioForXValue(yValue, yDomain.min, yDomain.max, yNeedsValueOf);
 
+        // A non-leaf range is no longer in datum order, so break distance ties towards the lowest datum index.
         const distanceSquared = (xRatio - midX) ** 2 + (yRatio - midY) ** 2;
-        if (distanceSquared < currentDistanceSquared) {
+        if (
+            distanceSquared < currentDistanceSquared ||
+            (distanceSquared === currentDistanceSquared && datumIndex < currentIndex)
+        ) {
             currentDistanceSquared = distanceSquared;
             currentIndex = datumIndex;
         }
@@ -92,12 +125,19 @@ function getPrimaryDatumIndex(context: BubbleAggregationContext, indices: number
     return currentIndex;
 }
 
-function countVisibleItems(context: BubbleAggregationContext, indices: number[], bounds: QuadBounds) {
+function countVisibleItems(
+    context: BubbleAggregationContext,
+    order: Uint32Array,
+    start: number,
+    end: number,
+    bounds: QuadBounds
+) {
     const { xValues, yValues, xDomain, yDomain, xNeedsValueOf, yNeedsValueOf } = context;
     const { x0, y0, x1, y1 } = bounds;
 
     let count = 0;
-    for (const datumIndex of indices) {
+    for (let i = start; i < end; i += 1) {
+        const datumIndex = order[i];
         const xValue = xValues[datumIndex];
         const yValue = yValues[datumIndex];
         if (xValue == null || yValue == null) continue;
@@ -112,46 +152,166 @@ function countVisibleItems(context: BubbleAggregationContext, indices: number[],
     return count;
 }
 
+const NULL_QUADRANT = QUADRANT_COUNT;
+
+/**
+ * Partitions `context.order[start, end)` into its four quadrants in place (stable, so each quadrant stays in
+ * datum order), with datums that have a null x/y value moved to the tail, and builds a node per non-empty quadrant.
+ * The range keeps exactly the datums it started with.
+ *
+ * `pending` says the range's datums are still in `scratch` (where the parent partitioned them) rather than `order`.
+ * Reading them to bucket them copies them across, so a partition is written once and copied back lazily.
+ */
 function quadChildren(
-    context: BubbleAggregationContext,
-    indices: number[],
-    bounds: QuadBounds
+    context: BubbleBuildContext,
+    start: number,
+    end: number,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    depth: number,
+    pending: boolean
 ): BubbleAggregationNode[] {
-    const { xValues, yValues, xDomain, yDomain, xNeedsValueOf, yNeedsValueOf } = context;
-    const { x0, y0, x1, y1 } = bounds;
+    const { order, scratch, codes, cursors, xValues, yValues, xDomain, yDomain, xNeedsValueOf, yNeedsValueOf } =
+        context;
 
-    const childBuckets: ChildBucket[] = [
-        { x0: 1, y0: 1, x1: 0, y1: 0, indices: [] },
-        { x0: 1, y0: 1, x1: 0, y1: 0, indices: [] },
-        { x0: 1, y0: 1, x1: 0, y1: 0, indices: [] },
-        { x0: 1, y0: 1, x1: 0, y1: 0, indices: [] },
-    ];
+    const base = depth * DEPTH_STRIDE;
+    if (context.quadrants.length < base + DEPTH_STRIDE) {
+        const grown = new Float64Array(Math.max(context.quadrants.length * 2, base + DEPTH_STRIDE));
+        grown.set(context.quadrants);
+        context.quadrants = grown;
+    }
+    const { quadrants } = context;
 
+    // The bounds and count of each quadrant are accumulated in locals: this loop runs once per datum per level.
+    let ax0 = 1,
+        ay0 = 1,
+        ax1 = 0,
+        ay1 = 0,
+        an = 0;
+    let bx0 = 1,
+        by0 = 1,
+        bx1 = 0,
+        by1 = 0,
+        bn = 0;
+    let cx0 = 1,
+        cy0 = 1,
+        cx1 = 0,
+        cy1 = 0,
+        cn = 0;
+    let dx0 = 1,
+        dy0 = 1,
+        dx1 = 0,
+        dy1 = 0,
+        dn = 0;
+    const source = pending ? scratch : order;
     const midX = (x0 + x1) / 2;
     const midY = (y0 + y1) / 2;
-    for (const datumIndex of indices) {
+    for (let i = start; i < end; i += 1) {
+        const datumIndex = source[i];
+        if (pending) order[i] = datumIndex;
         const xValue = xValues[datumIndex];
         const yValue = yValues[datumIndex];
-        if (xValue == null || yValue == null) continue;
+        if (xValue == null || yValue == null) {
+            codes[i] = NULL_QUADRANT;
+            continue;
+        }
         const xRatio = aggregationXRatioForXValue(xValue, xDomain.min, xDomain.max, xNeedsValueOf);
         const yRatio = aggregationXRatioForXValue(yValue, yDomain.min, yDomain.max, yNeedsValueOf);
 
-        const childIndex = (xRatio > midX ? 1 : 0) + (yRatio > midY ? 2 : 0);
-        const childBucket = childBuckets[childIndex];
-        childBucket.indices.push(datumIndex);
-        childBucket.x0 = Math.min(childBucket.x0, xRatio);
-        childBucket.y0 = Math.min(childBucket.y0, yRatio);
-        childBucket.x1 = Math.max(childBucket.x1, xRatio);
-        childBucket.y1 = Math.max(childBucket.y1, yRatio);
+        const quadrant = (xRatio > midX ? 1 : 0) + (yRatio > midY ? 2 : 0);
+        codes[i] = quadrant;
+        // Math.min/max rather than comparisons, so a NaN ratio poisons the bounds as it always has.
+        if (quadrant === 0) {
+            ax0 = Math.min(ax0, xRatio);
+            ay0 = Math.min(ay0, yRatio);
+            ax1 = Math.max(ax1, xRatio);
+            ay1 = Math.max(ay1, yRatio);
+            an += 1;
+        } else if (quadrant === 1) {
+            bx0 = Math.min(bx0, xRatio);
+            by0 = Math.min(by0, yRatio);
+            bx1 = Math.max(bx1, xRatio);
+            by1 = Math.max(by1, yRatio);
+            bn += 1;
+        } else if (quadrant === 2) {
+            cx0 = Math.min(cx0, xRatio);
+            cy0 = Math.min(cy0, yRatio);
+            cx1 = Math.max(cx1, xRatio);
+            cy1 = Math.max(cy1, yRatio);
+            cn += 1;
+        } else {
+            dx0 = Math.min(dx0, xRatio);
+            dy0 = Math.min(dy0, yRatio);
+            dx1 = Math.max(dx1, xRatio);
+            dy1 = Math.max(dy1, yRatio);
+            dn += 1;
+        }
+    }
+    quadrants[base + 0] = ax0;
+    quadrants[base + 1] = ay0;
+    quadrants[base + 2] = ax1;
+    quadrants[base + 3] = ay1;
+    quadrants[base + 4] = an;
+    quadrants[base + 5] = bx0;
+    quadrants[base + 6] = by0;
+    quadrants[base + 7] = bx1;
+    quadrants[base + 8] = by1;
+    quadrants[base + 9] = bn;
+    quadrants[base + 10] = cx0;
+    quadrants[base + 11] = cy0;
+    quadrants[base + 12] = cx1;
+    quadrants[base + 13] = cy1;
+    quadrants[base + 14] = cn;
+    quadrants[base + 15] = dx0;
+    quadrants[base + 16] = dy0;
+    quadrants[base + 17] = dx1;
+    quadrants[base + 18] = dy1;
+    quadrants[base + 19] = dn;
+
+    let offset = start;
+    let inOneQuadrant = false;
+    for (let quadrant = 0; quadrant < QUADRANT_COUNT; quadrant += 1) {
+        const count = quadrants[base + quadrant * QUADRANT_STRIDE + 4];
+        cursors[quadrant] = offset;
+        offset += count;
+        inOneQuadrant ||= count === end - start;
+    }
+    cursors[NULL_QUADRANT] = offset;
+    // When everything falls in one quadrant (and none is null) the datums are already where they belong.
+    if (!inOneQuadrant) {
+        for (let i = start; i < end; i += 1) {
+            scratch[cursors[codes[i]]++] = order[i];
+        }
+        // Nothing builds a node from the null tail, so it is the one part that is not copied back lazily.
+        for (let i = offset; i < end; i += 1) {
+            order[i] = scratch[i];
+        }
     }
 
+    // Building a child may grow `context.quadrants`, so read each quadrant's slot from the context.
     const children: BubbleAggregationNode[] = [];
-    for (const childBucket of childBuckets) {
-        const { indices: childIndices, x0: cx0, x1: cx1, y0: cy0, y1: cy1 } = childBucket;
-        if (childIndices.length === 0) continue;
+    let childStart = start;
+    for (let quadrant = 0; quadrant < QUADRANT_COUNT; quadrant += 1) {
+        const q = base + quadrant * QUADRANT_STRIDE;
+        const count = context.quadrants[q + 4];
+        if (count === 0) continue;
 
-        const child = aggregateQuad(context, childIndices, { x0: cx0, y0: cy0, x1: cx1, y1: cy1 });
+        const { quadrants: slots } = context;
+        const child = aggregateQuad(
+            context,
+            childStart,
+            childStart + count,
+            slots[q],
+            slots[q + 1],
+            slots[q + 2],
+            slots[q + 3],
+            depth + 1,
+            !inOneQuadrant
+        );
         children.push(child);
+        childStart += count;
     }
 
     return children;
@@ -168,21 +328,35 @@ function ratioDomain(d0: number, d1: number): [number, number] {
 }
 
 function aggregateQuad(
-    context: BubbleAggregationContext,
-    indices: number[],
-    bounds: QuadBounds
+    context: BubbleBuildContext,
+    start: number,
+    end: number,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    depth: number,
+    pending: boolean
 ): BubbleAggregationNode {
-    const { x0, y0, x1, y1 } = bounds;
-
     const terminate =
         !Number.isFinite(x1 - x0) ||
         !Number.isFinite(y1 - y0) ||
-        (indices.length < FILTER_DATUM_THRESHOLD &&
+        (end - start < FILTER_DATUM_THRESHOLD &&
             x1 - x0 < FILTER_RANGE_THRESHOLD &&
             y1 - y0 < FILTER_RANGE_THRESHOLD) ||
         (x0 === x1 && y0 === y1);
 
-    let children = terminate ? null : quadChildren(context, indices, bounds);
+    let children: BubbleAggregationNode[] | null = null;
+    if (terminate) {
+        if (pending) {
+            const { order, scratch } = context;
+            for (let i = start; i < end; i += 1) {
+                order[i] = scratch[i];
+            }
+        }
+    } else {
+        children = quadChildren(context, start, end, x0, y0, x1, y1, depth, pending);
+    }
 
     if (children?.length === 1) {
         // Flatten the tree if there's only one child
@@ -192,8 +366,8 @@ function aggregateQuad(
     }
 
     const scale = Math.hypot(x1 - x0, y1 - y0);
-    const primaryDatumIndex = getPrimaryDatumIndex(context, indices, bounds);
-    return { scale, x0, y0, x1, y1, indices, primaryDatumIndex, children };
+    const primaryDatumIndex = getPrimaryDatumIndex(context, context.order, start, end, x0, y0, x1, y1);
+    return { scale, x0, y0, x1, y1, start, end, primaryDatumIndex, children };
 }
 
 /**
@@ -243,47 +417,73 @@ export function computeBubbleAggregation(
     const [sd0, sd1] = sizeDomain;
     const { xNeedsValueOf, yNeedsValueOf } = options;
 
-    const context: BubbleAggregationContext = {
+    // Every node's datums live in this one buffer, which `aggregateQuad` partitions in place, quadrant by quadrant.
+    // The size buckets are laid out back to back, each in datum order.
+    let order: Uint32Array;
+    const bucketEnds: number[] = [];
+    const quantised = sizeValues != null && sd1 > sd0;
+    if (quantised) {
+        const bucketOf = (datumIndex: number) => {
+            const sizeRatio = (sizeValues[datumIndex] - sd0) / (sd1 - sd0);
+            const sizeIndex = Math.trunc(sizeRatio * SIZE_QUANTIZATION);
+            return sizeIndex >= 0 && sizeIndex < SIZE_QUANTIZATION ? sizeIndex : -1;
+        };
+
+        const cursors: number[] = Array.from({ length: SIZE_QUANTIZATION }, () => 0);
+        for (let datumIndex = 0; datumIndex < sizeValues.length; datumIndex += 1) {
+            const sizeIndex = bucketOf(datumIndex);
+            if (sizeIndex !== -1) cursors[sizeIndex] += 1;
+        }
+
+        let total = 0;
+        for (let i = 0; i < SIZE_QUANTIZATION; i += 1) {
+            const count = cursors[i];
+            cursors[i] = total;
+            total += count;
+            bucketEnds.push(total);
+        }
+
+        order = new Uint32Array(total);
+        for (let datumIndex = 0; datumIndex < sizeValues.length; datumIndex += 1) {
+            const sizeIndex = bucketOf(datumIndex);
+            if (sizeIndex !== -1) order[cursors[sizeIndex]++] = datumIndex;
+        }
+    } else {
+        order = new Uint32Array(xValues.length);
+        for (let datumIndex = 0; datumIndex < order.length; datumIndex += 1) {
+            order[datumIndex] = datumIndex;
+        }
+        bucketEnds.push(order.length);
+    }
+
+    const context: BubbleBuildContext = {
         xValues,
         yValues,
         xDomain: { min: xd0, max: xd1 },
         yDomain: { min: yd0, max: yd1 },
         xNeedsValueOf,
         yNeedsValueOf,
+        order,
+        scratch: new Uint32Array(order.length),
+        codes: new Uint8Array(order.length),
+        quadrants: new Float64Array(INITIAL_DEPTH_CAPACITY * DEPTH_STRIDE),
+        cursors: new Uint32Array(QUADRANT_COUNT + 1),
     };
 
     const filters: BubbleAggregationFilter[] = [];
-    if (sizeValues != null && sd1 > sd0) {
-        const sizeIndices = Array.from({ length: SIZE_QUANTIZATION }, (): number[] => []);
-        for (let datumIndex = 0; datumIndex < sizeValues.length; datumIndex += 1) {
-            const sizeValue = sizeValues[datumIndex];
-            const sizeRatio = (sizeValue - sd0) / (sd1 - sd0);
-            const sizeIndex = Math.trunc(sizeRatio * SIZE_QUANTIZATION);
-            if (sizeIndex >= 0 && sizeIndex < SIZE_QUANTIZATION) {
-                sizeIndices[sizeIndex].push(datumIndex);
-            }
-        }
-
-        for (let i = 0; i < sizeIndices.length; i += 1) {
-            const indices = sizeIndices[i];
-            const node = aggregateQuad(context, indices, { x0: 0, y0: 0, x1: 1, y1: 1 });
-
-            if (node != null) {
-                const sizeRatio = i / SIZE_QUANTIZATION;
-                filters.push({ sizeRatio, node });
-            }
-        }
-    } else {
-        const indices = xValues.map((_, i) => i);
-        const node = aggregateQuad(context, indices, { x0: 0, y0: 0, x1: 1, y1: 1 });
+    let start = 0;
+    for (let i = 0; i < bucketEnds.length; i += 1) {
+        const end = bucketEnds[i];
+        const node = aggregateQuad(context, start, end, 0, 0, 1, 1, 0, false);
+        start = end;
 
         if (node != null) {
-            filters.push({ sizeRatio: 0, node });
+            filters.push({ sizeRatio: quantised ? i / SIZE_QUANTIZATION : 0, node });
         }
     }
 
     return filters.length > 0
-        ? { xValues, yValues, xd0, xd1, yd0, yd1, filters, xNeedsValueOf, yNeedsValueOf }
+        ? { xValues, yValues, xd0, xd1, yd0, yd1, filters, xNeedsValueOf, yNeedsValueOf, indices: order }
         : undefined;
 }
 
@@ -399,7 +599,8 @@ export interface GroupedAggregation {
     count: number;
     area: number;
     dilation: number;
-    indices: number[];
+    /** The node's datum indices: a view of {@link BubbleAggregation.indices}, grouped by quadrant. */
+    indices: Uint32Array;
 }
 
 function computeBubbleAggregationCountIndices(
@@ -419,7 +620,7 @@ function computeBubbleAggregationCountIndices(
         maxSize,
         sizeMode,
     } = options;
-    const { xValues, yValues, xd0, xd1, yd0, yd1, xNeedsValueOf, yNeedsValueOf } = dataAggregation;
+    const { xValues, yValues, xd0, xd1, yd0, yd1, xNeedsValueOf, yNeedsValueOf, indices: order } = dataAggregation;
     const baseScalingFactor = 1 / Math.min(xRange / (xvr1 - xvr0), yRange / (yvr1 - yvr0));
 
     const context: BubbleAggregationContext = {
@@ -458,21 +659,25 @@ function computeBubbleAggregationCountIndices(
                 }
                 groupedAggregation?.push({
                     datumIndex: item.primaryDatumIndex,
-                    count: item.indices.length,
+                    count: item.end - item.start,
                     area: (item.x1 - item.x0) * (item.y1 - item.y0),
                     dilation: clamp(1, item.scale / baseMinScale, dilation),
-                    indices: item.indices,
+                    indices: order.subarray(item.start, item.end),
                 });
             } else if (item.children == null) {
-                const { indices } = item;
+                const { start, end } = item;
                 if (counter != null) {
                     const fullyVisible = item.x0 >= xvr0 && item.x1 <= xvr1 && item.y0 >= yvr0 && item.y1 <= yvr1;
                     const itemCount = fullyVisible
-                        ? indices.length
-                        : countVisibleItems(context, indices, { x0: xvr0, y0: yvr0, x1: xvr1, y1: yvr1 });
+                        ? end - start
+                        : countVisibleItems(context, order, start, end, { x0: xvr0, y0: yvr0, x1: xvr1, y1: yvr1 });
                     counter.count += itemCount;
                 }
-                singleDatumIndices?.push(...indices);
+                if (singleDatumIndices != null) {
+                    for (let i = start; i < end; i += 1) {
+                        singleDatumIndices.push(order[i]);
+                    }
+                }
             } else {
                 queue.push(...item.children);
             }

@@ -1,15 +1,23 @@
+import { aggregationXRatioForXValue, areaSizeAtRatio, clamp } from 'ag-charts-core';
+
 import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 import { stubAggregationDataModel } from '../../test/aggregationStubs';
 import { BIG } from '../../test/bigintExamples';
-import type { BubbleAggregationNode } from './bubbleAggregation';
+import type { BubbleAggregation, BubbleAggregationNode, BubbleAggregationOptions } from './bubbleAggregation';
 import {
     aggregateBubbleDataFromDataModel,
     computeBubbleAggregation,
     computeBubbleAggregationCount,
+    computeBubbleAggregationData,
 } from './bubbleAggregation';
 
 const SIZE_QUANTIZATION = 3;
+
+/** The datum indices a node represents, as a plain array. */
+function nodeIndices(aggregation: BubbleAggregation, node: BubbleAggregationNode): number[] {
+    return Array.from(aggregation.indices.subarray(node.start, node.end));
+}
 
 function expectFiniteBounds(node: BubbleAggregationNode) {
     expect(Number.isFinite(node.x0)).toBe(true);
@@ -105,15 +113,16 @@ describe('computeBubbleAggregation', () => {
             const node = result!.filters[0].node;
             expect(node).toBeDefined();
             expect(node).toHaveProperty('scale');
-            expect(node).toHaveProperty('indices');
+            expect(node).toHaveProperty('start');
+            expect(node).toHaveProperty('end');
             expect(node).toHaveProperty('primaryDatumIndex');
             expect(node).toHaveProperty('children');
             // Verify node structure
-            expect(node!.indices.length).toBeGreaterThan(0);
-            expect(node!.indices.length).toBeLessThanOrEqual(100);
+            expect(nodeIndices(result!, node!).length).toBeGreaterThan(0);
+            expect(nodeIndices(result!, node!).length).toBeLessThanOrEqual(100);
             expect(node!.primaryDatumIndex).toBeGreaterThanOrEqual(0);
             expect(node!.primaryDatumIndex).toBeLessThan(100);
-            expect(node!.indices).toContain(node!.primaryDatumIndex);
+            expect(nodeIndices(result!, node!)).toContain(node!.primaryDatumIndex);
         });
 
         it('should have nodes with valid bounds', () => {
@@ -166,7 +175,7 @@ describe('computeBubbleAggregation', () => {
             function validateNode(node: any) {
                 expect(node.primaryDatumIndex).toBeGreaterThanOrEqual(0);
                 expect(node.primaryDatumIndex).toBeLessThan(xValues.length);
-                expect(node.indices).toContain(node.primaryDatumIndex);
+                expect(nodeIndices(result!, node)).toContain(node.primaryDatumIndex);
 
                 if (node.children) {
                     for (const child of node.children) {
@@ -210,7 +219,7 @@ describe('computeBubbleAggregation', () => {
             // Verify each filter has a node with indices
             for (const filter of result!.filters) {
                 expect(filter.node).toBeDefined();
-                expect(filter.node!.indices.length).toBeGreaterThan(0);
+                expect(nodeIndices(result!, filter.node!).length).toBeGreaterThan(0);
             }
         });
 
@@ -235,8 +244,8 @@ describe('computeBubbleAggregation', () => {
             const allIndices = new Set<number>();
             for (const filter of result!.filters) {
                 expect(filter.node).toBeDefined();
-                expect(filter.node!.indices.length).toBeGreaterThan(0);
-                for (const idx of filter.node!.indices) {
+                expect(nodeIndices(result!, filter.node!).length).toBeGreaterThan(0);
+                for (const idx of nodeIndices(result!, filter.node!)) {
                     allIndices.add(idx);
                 }
             }
@@ -402,7 +411,7 @@ describe('computeBubbleAggregation', () => {
 
             // Bubble aggregation returns a structure even for empty data (with empty indices)
             expect(result).toBeDefined();
-            expect(result!.filters[0].node!.indices).toEqual([]);
+            expect(nodeIndices(result!, result!.filters[0].node!)).toEqual([]);
         });
 
         it('should handle single point', () => {
@@ -419,7 +428,7 @@ describe('computeBubbleAggregation', () => {
 
             expect(result).toBeDefined();
             expect(result!.filters[0].node).toBeDefined();
-            expect(result!.filters[0].node!.indices).toEqual([0]);
+            expect(nodeIndices(result!, result!.filters[0].node!)).toEqual([0]);
         });
 
         it('should handle a single-valued X domain', () => {
@@ -438,7 +447,7 @@ describe('computeBubbleAggregation', () => {
             expect(result).toBeDefined();
             const node = result!.filters[0].node;
             expect(node).toBeDefined();
-            expect(node!.indices).toHaveLength(count);
+            expect(nodeIndices(result!, node!)).toHaveLength(count);
             expectFiniteBounds(node!);
         });
 
@@ -458,7 +467,7 @@ describe('computeBubbleAggregation', () => {
             expect(result).toBeDefined();
             const node = result!.filters[0].node;
             expect(node).toBeDefined();
-            expect(node!.indices).toHaveLength(count);
+            expect(nodeIndices(result!, node!)).toHaveLength(count);
             expectFiniteBounds(node!);
         });
     });
@@ -666,5 +675,350 @@ describe('computeBubbleAggregationCount sizeMode', () => {
             expect(count).toBeLessThanOrEqual(diameterCounts[i]);
         }
         expect(areaCounts).not.toEqual(diameterCounts);
+    });
+});
+
+/**
+ * The quadtree as it was built before the datum indices were partitioned in place: every node owned its own
+ * `indices` array, copied from its parent. Kept as an oracle for the shared-buffer implementation.
+ */
+interface ReferenceNode {
+    scale: number;
+    x0: number;
+    y0: number;
+    x1: number;
+    y1: number;
+    indices: number[];
+    primaryDatumIndex: number;
+    children: ReferenceNode[] | null;
+}
+
+interface ReferenceContext {
+    xValues: any[];
+    yValues: any[];
+    xd0: number;
+    xd1: number;
+    yd0: number;
+    yd1: number;
+}
+
+type Bounds = { x0: number; y0: number; x1: number; y1: number };
+
+function referenceRatios(ctx: ReferenceContext, datumIndex: number): [number, number] | undefined {
+    const xValue = ctx.xValues[datumIndex];
+    const yValue = ctx.yValues[datumIndex];
+    if (xValue == null || yValue == null) return undefined;
+    return [
+        aggregationXRatioForXValue(xValue, ctx.xd0, ctx.xd1, false),
+        aggregationXRatioForXValue(yValue, ctx.yd0, ctx.yd1, false),
+    ];
+}
+
+function referenceQuad(ctx: ReferenceContext, indices: number[], bounds: Bounds): ReferenceNode {
+    const { x0, y0, x1, y1 } = bounds;
+    const terminate =
+        !Number.isFinite(x1 - x0) ||
+        !Number.isFinite(y1 - y0) ||
+        (indices.length < 5 && x1 - x0 < 0.05 && y1 - y0 < 0.05) ||
+        (x0 === x1 && y0 === y1);
+
+    let children: ReferenceNode[] | null = null;
+    if (!terminate) {
+        const buckets = Array.from({ length: 4 }, () => ({ x0: 1, y0: 1, x1: 0, y1: 0, indices: [] as number[] }));
+        const midX = (x0 + x1) / 2;
+        const midY = (y0 + y1) / 2;
+        for (const datumIndex of indices) {
+            const ratios = referenceRatios(ctx, datumIndex);
+            if (ratios == null) continue;
+            const [xRatio, yRatio] = ratios;
+            const bucket = buckets[(xRatio > midX ? 1 : 0) + (yRatio > midY ? 2 : 0)];
+            bucket.indices.push(datumIndex);
+            bucket.x0 = Math.min(bucket.x0, xRatio);
+            bucket.y0 = Math.min(bucket.y0, yRatio);
+            bucket.x1 = Math.max(bucket.x1, xRatio);
+            bucket.y1 = Math.max(bucket.y1, yRatio);
+        }
+        children = buckets.filter((b) => b.indices.length > 0).map((b) => referenceQuad(ctx, b.indices, b));
+        if (children.length === 1) return children[0];
+        if (children.length === 0) children = null;
+    }
+
+    let primaryDatumIndex = 0;
+    let best = Infinity;
+    for (const datumIndex of indices) {
+        const ratios = referenceRatios(ctx, datumIndex);
+        if (ratios == null) continue;
+        const d = (ratios[0] - (x0 + x1) / 2) ** 2 + (ratios[1] - (y0 + y1) / 2) ** 2;
+        if (d < best) {
+            best = d;
+            primaryDatumIndex = datumIndex;
+        }
+    }
+    return { scale: Math.hypot(x1 - x0, y1 - y0), x0, y0, x1, y1, indices, primaryDatumIndex, children };
+}
+
+function referenceTrees(
+    aggregation: BubbleAggregation,
+    sizeValues: number[] | undefined,
+    sizeDomain: [number, number]
+): Array<{ sizeRatio: number; node: ReferenceNode }> {
+    const ctx: ReferenceContext = aggregation;
+    const unit = { x0: 0, y0: 0, x1: 1, y1: 1 };
+    const [sd0, sd1] = sizeDomain;
+    if (sizeValues == null || sd1 <= sd0) {
+        const all = aggregation.xValues.map((_, i) => i);
+        return [{ sizeRatio: 0, node: referenceQuad(ctx, all, unit) }];
+    }
+    const buckets = Array.from({ length: SIZE_QUANTIZATION }, () => [] as number[]);
+    for (const [datumIndex, sizeValue] of sizeValues.entries()) {
+        const sizeIndex = Math.trunc(((sizeValue - sd0) / (sd1 - sd0)) * SIZE_QUANTIZATION);
+        if (sizeIndex >= 0 && sizeIndex < SIZE_QUANTIZATION) buckets[sizeIndex].push(datumIndex);
+    }
+    return buckets.map((indices, i) => ({ sizeRatio: i / SIZE_QUANTIZATION, node: referenceQuad(ctx, indices, unit) }));
+}
+
+function referenceWalk(
+    trees: Array<{ sizeRatio: number; node: ReferenceNode }>,
+    ctx: ReferenceContext,
+    dilation: number,
+    options: BubbleAggregationOptions
+) {
+    const { xRange, yRange, minSize, maxSize, sizeMode } = options;
+    const [xvr0, xvr1] = options.xVisibleRange;
+    const [yvr0, yvr1] = options.yVisibleRange;
+    const baseScalingFactor = 1 / Math.min(xRange / (xvr1 - xvr0), yRange / (yvr1 - yvr0));
+    const grouped: Array<{ datumIndex: number; count: number; area: number; dilation: number; indices: number[] }> = [];
+    const singles: number[] = [];
+    let count = 0;
+
+    for (const { sizeRatio, node } of trees) {
+        const diameter =
+            sizeMode === 'area'
+                ? areaSizeAtRatio(sizeRatio, minSize, maxSize)
+                : minSize + sizeRatio * (maxSize - minSize);
+        const radius = 0.5 * diameter;
+        const baseMinScale = radius * baseScalingFactor;
+        const minScale = dilation * baseMinScale;
+        const x0 = xvr0 - radius / xRange;
+        const x1 = xvr1 + radius / xRange;
+        const y0 = yvr0 - radius / yRange;
+        const y1 = yvr1 + radius / yRange;
+
+        const queue = [node];
+        while (queue.length > 0) {
+            const item = queue.pop()!;
+            if (item.x1 < x0 || item.x0 > x1 || item.y1 < y0 || item.y0 > y1) continue;
+
+            if (dilation !== 1 && item.scale <= minScale) {
+                count += 1;
+                grouped.push({
+                    datumIndex: item.primaryDatumIndex,
+                    count: item.indices.length,
+                    area: (item.x1 - item.x0) * (item.y1 - item.y0),
+                    dilation: clamp(1, item.scale / baseMinScale, dilation),
+                    indices: item.indices,
+                });
+            } else if (item.children == null) {
+                const fullyVisible = item.x0 >= xvr0 && item.x1 <= xvr1 && item.y0 >= yvr0 && item.y1 <= yvr1;
+                for (const datumIndex of item.indices) {
+                    singles.push(datumIndex);
+                    if (fullyVisible) continue;
+                    const ratios = referenceRatios(ctx, datumIndex);
+                    if (ratios != null && ratios[0] >= xvr0 && ratios[0] <= xvr1 && ratios[1] >= yvr0) {
+                        if (ratios[1] <= yvr1) count += 1;
+                    }
+                }
+                if (fullyVisible) count += item.indices.length;
+            } else {
+                queue.push(...item.children);
+            }
+        }
+    }
+    return { grouped, singles, count };
+}
+
+function groupSummary({
+    datumIndex,
+    count,
+    area,
+    dilation,
+}: {
+    datumIndex: number;
+    count: number;
+    area: number;
+    dilation: number;
+}) {
+    return { datumIndex, count, area, dilation };
+}
+
+function expectSameTree(aggregation: BubbleAggregation, node: BubbleAggregationNode, expected: ReferenceNode) {
+    expect(node.scale).toBe(expected.scale);
+    expect([node.x0, node.y0, node.x1, node.y1]).toEqual([expected.x0, expected.y0, expected.x1, expected.y1]);
+    expect(node.primaryDatumIndex).toBe(expected.primaryDatumIndex);
+
+    const indices = nodeIndices(aggregation, node);
+    if (node.children == null) {
+        // A leaf's range is never partitioned again, so it keeps its datum order.
+        expect(indices).toEqual(expected.indices);
+        expect(expected.children).toBeNull();
+        return;
+    }
+
+    expect([...indices].sort((a, b) => a - b)).toEqual(expected.indices);
+    expect(node.children.length).toBe(expected.children!.length);
+    for (const [i, child] of node.children.entries()) {
+        expectSameTree(aggregation, child, expected.children![i]);
+    }
+}
+
+describe('computeBubbleAggregation partitions indices in place', () => {
+    function random(seed: number) {
+        let state = seed;
+        return () => {
+            state = (state + 0x6d2b79f5) >>> 0;
+            let t = Math.imul(state ^ (state >>> 15), 1 | state);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+
+    interface Dataset {
+        xValues: Array<number | null | undefined>;
+        yValues: Array<number | null | undefined>;
+        sizeValues: number[];
+    }
+
+    function dataset(count: number, seed: number, make: (r: () => number, i: number) => number[]): Dataset {
+        const r = random(seed);
+        const points = Array.from({ length: count }, (_, i) => make(r, i));
+        return {
+            xValues: points.map((p) => p[0]),
+            yValues: points.map((p) => p[1]),
+            sizeValues: points.map((p) => p[2]),
+        };
+    }
+
+    const uniform = dataset(3000, 1, (r) => [r() * 1000, r() * 500, r() * 100]);
+    const clustered = dataset(2500, 2, (r, i) =>
+        i < 3 ? [i * 5000, i * 5000, 50] : [1000 + r() * 4, 1000 + r() * 4, r() * 100]
+    );
+    const withNulls = dataset(2000, 3, (r) => [r() * 100, r() * 100, r() * 100]);
+    for (let i = 0; i < withNulls.xValues.length; i++) {
+        if (i % 17 === 0) withNulls.xValues[i] = undefined;
+        if (i % 29 === 0) withNulls.yValues[i] = null;
+    }
+    const leadingNulls = dataset(400, 4, (r) => [r() * 10, r() * 10, r() * 100]);
+    for (let i = 0; i < 40; i++) leadingNulls.xValues[i] = undefined;
+    const allEqual = dataset(600, 5, () => [7, 7, 40]);
+    const sizeOutOfDomain = dataset(1500, 6, (r) => [r() * 100, r() * 100, r() * 160 - 30]);
+    sizeOutOfDomain.sizeValues[10] = Number.NaN;
+    const lattice = dataset(1800, 7, (r) => [Math.floor(r() * 20), Math.floor(r() * 20), r() * 100]);
+
+    // Geometrically nested points peel off one per level while five or more remain, so the tree gets deeper than
+    // the build's initial per-depth buffers.
+    const nested = Array.from({ length: 40 }, (_, k) => 2 ** -k * 1e-3);
+    const deepCluster: Dataset = {
+        xValues: [0, 1, ...nested.map((d) => 0.3 + d)],
+        yValues: [0, 1, ...nested.map((d) => 0.6 + d)],
+        sizeValues: Array.from({ length: nested.length + 2 }, (_, i) => i * 2),
+    };
+
+    const datasets: Array<[string, Dataset]> = [
+        ['deep cluster', deepCluster],
+        ['uniform', uniform],
+        ['clustered', clustered],
+        ['nulls', withNulls],
+        ['leading nulls', leadingNulls],
+        ['all equal', allEqual],
+        ['size out of domain', sizeOutOfDomain],
+        ['lattice', lattice],
+    ];
+
+    const domainOf = (values: Array<number | null | undefined>): [number, number] => {
+        const numbers = values.filter((v): v is number => v != null);
+        return [Math.min(...numbers), Math.max(...numbers)];
+    };
+
+    const walkOptions: BubbleAggregationOptions[] = [
+        { xRange: 400, yRange: 300, xVisibleRange: [0, 1], yVisibleRange: [0, 1], minSize: 4, maxSize: 40 },
+        {
+            xRange: 400,
+            yRange: 300,
+            xVisibleRange: [0.2, 0.55],
+            yVisibleRange: [0.3, 0.9],
+            minSize: 4,
+            maxSize: 40,
+            sizeMode: 'area',
+        },
+    ];
+
+    describe.each(datasets)('%s', (_name, data) => {
+        for (const withSize of [false, true]) {
+            it(`matches the per-node arrays ${withSize ? 'with' : 'without'} size quantisation`, () => {
+                const sizeValues = withSize ? data.sizeValues : undefined;
+                const sizeDomain: [number, number] = withSize ? [0, 100] : [0, 0];
+                const aggregation = computeBubbleAggregation(
+                    domainOf(data.xValues),
+                    domainOf(data.yValues),
+                    data.xValues,
+                    data.yValues,
+                    sizeValues,
+                    sizeDomain,
+                    { xNeedsValueOf: false, yNeedsValueOf: false }
+                )!;
+                expect(aggregation).toBeDefined();
+
+                const trees = referenceTrees(aggregation, sizeValues, sizeDomain);
+                expect(aggregation.filters.map((f) => f.sizeRatio)).toEqual(trees.map((t) => t.sizeRatio));
+                for (const [i, filter] of aggregation.filters.entries()) {
+                    expectSameTree(aggregation, filter.node!, trees[i].node);
+                }
+
+                for (const options of walkOptions) {
+                    for (const dilation of [1, 2.5, 12, 80]) {
+                        const expected = referenceWalk(trees, aggregation, dilation, options);
+                        const actual = computeBubbleAggregationData(dilation, aggregation, options);
+
+                        expect(actual.singleDatumIndices).toEqual(expected.singles);
+                        expect(actual.groupedAggregation.map(groupSummary)).toEqual(expected.grouped.map(groupSummary));
+                        const actualGroups = actual.groupedAggregation.map((g) => [...g.indices].sort((a, b) => a - b));
+                        expect(actualGroups).toEqual(expected.grouped.map((g) => g.indices));
+                        expect(computeBubbleAggregationCount(dilation, aggregation, options)).toBe(expected.count);
+                    }
+                }
+            });
+        }
+    });
+
+    it('builds trees deeper than its initial per-depth buffers', () => {
+        const aggregation = computeBubbleAggregation(
+            [0, 1],
+            [0, 1],
+            deepCluster.xValues,
+            deepCluster.yValues,
+            undefined,
+            [0, 0],
+            { xNeedsValueOf: false, yNeedsValueOf: false }
+        )!;
+
+        const depthOf = (node: BubbleAggregationNode): number =>
+            1 + Math.max(0, ...(node.children ?? []).map((child) => depthOf(child)));
+        expect(depthOf(aggregation.filters[0].node!)).toBeGreaterThan(32);
+    });
+
+    it('keeps every datum of a node inside the shared buffer exactly once per size bucket', () => {
+        const aggregation = computeBubbleAggregation(
+            domainOf(withNulls.xValues),
+            domainOf(withNulls.yValues),
+            withNulls.xValues,
+            withNulls.yValues,
+            withNulls.sizeValues,
+            [0, 100],
+            { xNeedsValueOf: false, yNeedsValueOf: false }
+        )!;
+
+        const seen = [...aggregation.indices].sort((a, b) => a - b);
+        expect(seen).toEqual(Array.from({ length: withNulls.xValues.length }, (_, i) => i));
+        expect(aggregation.filters.reduce((n, f) => n + f.node!.end - f.node!.start, 0)).toBe(seen.length);
     });
 });
