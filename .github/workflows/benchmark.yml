@@ -10,7 +10,8 @@ name: Benchmark
 #   benchmark — matrix of shards; each shard runs its example subset against
 #              BOTH the head and base site on the SAME runner VM, so the
 #              relative comparison stays valid despite heterogeneous shared
-#              runner hardware.
+#              runner hardware. A separate heap-sampling memory pass then runs
+#              once per side to record allocated MB per iteration.
 #   report   — merges shard results, compares head vs base, posts the PR
 #              comment table and/or Slack notification.
 
@@ -57,6 +58,10 @@ env:
     # cross-run CV — a single run per side cannot separate a real change from shared-runner CPU
     # drift (~half the suite has a >10% run-to-run noise floor on hosted VMs).
     AG_BENCHMARK_RUNS: 3
+    # Examples (regex over example names) that get the memory pass. Heap sampling adds one
+    # pass per side to each shard, so it is limited to the examples whose allocation the
+    # performance work targets; set to '.' to cover every example.
+    AG_MEMORY_EXAMPLE_PATTERN: '^(high-perf-|data-selection-zoom-)'
     IBM_TELEMETRY_DISABLED: 'true'
 
 permissions:
@@ -363,6 +368,35 @@ jobs:
                     run_one base "${BASE_PORT}" "${run}"
                   done
 
+            # Allocated MB per iteration comes from V8 heap sampling, which slows the page, so it is
+            # a separate pass rather than part of the timing runs above (those never attach the
+            # sampler). Allocation is near-deterministic, so one pass per side is enough, unlike
+            # wall time. Advisory: a failure here is a warning and leaves "—" in the comparison;
+            # it never fails the job or touches the timing gate.
+            - name: Run memory pass (heap sampling, once per side)
+              env:
+                  SHARD_EXAMPLES: ${{ matrix.examples }}
+              run: |
+                  mkdir -p reports/browser-benchmarks/shards
+                  memory_examples=$(tr ',' '\n' <<< "${SHARD_EXAMPLES// /,}" | grep -E "${AG_MEMORY_EXAMPLE_PATTERN}" | paste -sd, - || true)
+                  if [[ -z "${memory_examples}" ]]; then
+                    echo "No examples in this shard match AG_MEMORY_EXAMPLE_PATTERN; skipping the memory pass."
+                    exit 0
+                  fi
+                  echo "Memory pass examples: ${memory_examples}"
+                  memory_one() {
+                    local role=$1
+                    local port=$2
+                    ./tools/benchmark/serve-and-run.sh \
+                        --dist "${RUNNER_TEMP}/site-${role}" \
+                        --port "${port}" \
+                        --output "reports/browser-benchmarks/shards/${role}-${{ strategy.job-index }}.mem.json" \
+                        -- --examples "${memory_examples}" --timeout 600000 --memory || \
+                      echo "::warning::${role} memory pass had failures; allocation data may be incomplete"
+                  }
+                  memory_one head 4601
+                  memory_one base "${BASE_PORT}"
+
             - name: Upload shard results
               if: always()
               uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -446,6 +480,15 @@ jobs:
                   fi
                   echo "Merged ${good_runs} complete run(s)."
 
+                  # Memory-pass reports: one per shard per side, absent for shards with no covered
+                  # examples. Advisory, so a missing or partial pass just leaves "—" in the report.
+                  for side in head base; do
+                    mem_shards=(reports/browser-benchmarks/shards/${side}-*.mem.json)
+                    if [[ ${#mem_shards[@]} -gt 0 ]]; then
+                      node ./tools/benchmark/merge-browser-results.js --output "reports/browser-benchmarks/${side}.mem.json" "${mem_shards[@]}"
+                    fi
+                  done
+
             - name: Compare results
               id: compare
               run: |
@@ -453,9 +496,13 @@ jobs:
                   base_args=() compare_args=()
                   for f in reports/browser-benchmarks/base.r*.json; do base_args+=(--base "$f"); done
                   for f in reports/browser-benchmarks/head.r*.json; do compare_args+=(--compare "$f"); done
+                  # Allocation columns, when the memory pass produced reports. Reported, never gated.
+                  memory_args=()
+                  if [[ -f reports/browser-benchmarks/base.mem.json ]]; then memory_args+=(--base-memory reports/browser-benchmarks/base.mem.json); fi
+                  if [[ -f reports/browser-benchmarks/head.mem.json ]]; then memory_args+=(--compare-memory reports/browser-benchmarks/head.mem.json); fi
                   compare() {
                     node ./tools/benchmark/compare-browser-results.js \
-                        "${base_args[@]}" "${compare_args[@]}" \
+                        "${base_args[@]}" "${compare_args[@]}" ${memory_args[@]+"${memory_args[@]}"} \
                         --base-label "${{ needs.resolve.outputs.base-label }}" \
                         --compare-label "${{ needs.resolve.outputs.branch }}" \
                         --report-only --format "$1"

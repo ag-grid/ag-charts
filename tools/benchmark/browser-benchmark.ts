@@ -12,10 +12,11 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { chromium } from 'playwright';
+import { type BrowserContext, type Page, chromium } from 'playwright';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
+import { sumSamplingProfileBytes } from './allocation';
 import { parseExamplesArg, resolveExamples } from './benchmark-examples';
 import { type Contention, type HostInfo, diffContention, readCpuSample, readHostInfo } from './contention';
 
@@ -46,7 +47,57 @@ interface BenchmarkReport {
         timeout: number;
         totalDurationMs: number;
     };
+    /** Present only on a memory pass: its timings are distorted by heap sampling and must not be compared. */
+    memoryPass?: { samplingIntervalBytes: number };
     examples: Record<string, BenchmarkExampleResult>;
+}
+
+/**
+ * Attach V8 allocation sampling to a page for the memory pass.
+ *
+ * Exposes `__benchmarkMemoryStart` / `__benchmarkMemoryStop`, which the in-page harness calls
+ * around each measured iteration (and only when they exist). `stop` resolves to the bytes sampled
+ * since `start`, counting objects already collected by minor and major GC, or null if sampling
+ * failed. Neither hook ever rejects, so a CDP failure costs the example its allocation data
+ * rather than the whole benchmark.
+ */
+async function attachMemorySampling(
+    context: BrowserContext,
+    page: Page,
+    samplingIntervalBytes: number,
+    label: string
+): Promise<void> {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send('HeapProfiler.enable');
+
+    let warned = false;
+    const warnOnce = (error: unknown) => {
+        if (warned) return;
+        warned = true;
+        console.warn(`[${label}] Heap sampling failed, allocation not recorded: ${String(error)}`);
+    };
+
+    await page.exposeFunction('__benchmarkMemoryStart', async () => {
+        try {
+            await cdp.send('HeapProfiler.startSampling', {
+                samplingInterval: samplingIntervalBytes,
+                includeObjectsCollectedByMinorGC: true,
+                includeObjectsCollectedByMajorGC: true,
+            });
+        } catch (error) {
+            warnOnce(error);
+        }
+    });
+
+    await page.exposeFunction('__benchmarkMemoryStop', async (): Promise<number | null> => {
+        try {
+            const { profile } = await cdp.send('HeapProfiler.stopSampling');
+            return sumSamplingProfileBytes(profile);
+        } catch (error) {
+            warnOnce(error);
+            return null;
+        }
+    });
 }
 
 async function main() {
@@ -89,6 +140,20 @@ async function main() {
             default: 2,
             describe: 'Device pixel ratio',
         })
+        .option('memory', {
+            type: 'boolean',
+            default: false,
+            describe:
+                'Memory pass: record allocated bytes per measured iteration with CDP heap sampling. ' +
+                'Sampling slows the page, so timings from this pass are distorted — run it separately ' +
+                'from the timing passes and give its report to compare-browser-results.js via ' +
+                '--base-memory / --compare-memory.',
+        })
+        .option('sampling-interval', {
+            type: 'number',
+            default: 4096,
+            describe: 'Memory pass heap sampling interval in bytes (smaller is more precise and slower)',
+        })
         .strict()
         .help()
         .parse();
@@ -112,6 +177,9 @@ async function main() {
     console.log(`Base URL: ${argv['base-url']}`);
     console.log(`Viewport: ${vpWidth}x${vpHeight} @ ${argv.dpr}x DPR`);
     console.log(`Timeout: ${argv.timeout}ms per example`);
+    if (argv.memory) {
+        console.log(`Memory pass: heap sampling every ${argv['sampling-interval']} bytes (timings are distorted)`);
+    }
     console.log();
 
     const browser = await chromium.launch({
@@ -137,6 +205,7 @@ async function main() {
             host: readHostInfo(),
         },
         summary: { total: exampleNames.length, success: 0, error: 0, timeout: 0, totalDurationMs: 0 },
+        ...(argv.memory && { memoryPass: { samplingIntervalBytes: argv['sampling-interval'] } }),
         examples: {},
     };
 
@@ -151,6 +220,11 @@ async function main() {
         const page = await context.newPage();
         const pageErrors: string[] = [];
         page.on('pageerror', (err) => pageErrors.push(String(err)));
+        if (argv.memory) {
+            await attachMemorySampling(context, page, argv['sampling-interval'], name).catch((error: unknown) =>
+                console.warn(`[${name}] Could not attach heap sampling, allocation not recorded: ${String(error)}`)
+            );
+        }
 
         const exampleStart = Date.now();
         const cpuBefore = readCpuSample();

@@ -105,6 +105,20 @@ interface GcStats {
     allocationRateBytesPerSec: number;
 }
 
+/**
+ * JS heap allocation across the measured iterations, recorded only in the runner's memory pass.
+ * Unlike `GcStats` it counts objects that were already collected by GC, so it sees allocation
+ * inside a single long task.
+ */
+interface AllocationStats {
+    /** Estimated bytes allocated per measured iteration (`totalBytes / iterations`). */
+    bytesPerIteration: number;
+    /** Estimated bytes allocated across all measured iterations; warmup is excluded. */
+    totalBytes: number;
+    /** Measured iterations that contributed. */
+    iterations: number;
+}
+
 interface BenchmarkResult {
     testCase: string;
     params: Record<string, string>;
@@ -115,6 +129,7 @@ interface BenchmarkResult {
     timings: number[];
     frameStats?: FrameStats;
     gcStats?: GcStats;
+    allocation?: AllocationStats;
 }
 
 interface CompactResult {
@@ -1383,6 +1398,25 @@ function readPerformanceMemory(): MemoryInfo | null {
 }
 
 /**
+ * Start/stop hooks the Playwright runner exposes on `window` for its memory pass. `start` begins
+ * V8 allocation sampling and `stop` ends it, resolving to the bytes sampled in between (null if
+ * sampling failed). Absent in timing passes and in the browser, where nothing is sampled.
+ */
+interface MemoryHooks {
+    start: () => Promise<void>;
+    stop: () => Promise<number | null>;
+}
+
+function getMemoryHooks(): MemoryHooks | null {
+    const w = window as unknown as { __benchmarkMemoryStart?: unknown; __benchmarkMemoryStop?: unknown };
+    if (typeof w.__benchmarkMemoryStart !== 'function' || typeof w.__benchmarkMemoryStop !== 'function') return null;
+    return {
+        start: w.__benchmarkMemoryStart as MemoryHooks['start'],
+        stop: w.__benchmarkMemoryStop as MemoryHooks['stop'],
+    };
+}
+
+/**
  * Samples frame cadence, long-animation-frame entries, and JS heap usage during a measurement
  * window. The rAF counter is portable. Long-frame detail requires Chromium 123+. GC stats require
  * `performance.memory` (Chromium-only); for byte-precise GC detection in CI, launch Chromium with
@@ -1755,6 +1789,29 @@ class BenchmarkRunner {
 
         const { updatesPerTest, maxCollectionTimeMs, warmupUpdates } = this.config.config;
 
+        // The runner's memory pass exposes start/stop hooks around CDP heap sampling. Without them
+        // `measuredRun` is `variant.run` unchanged, so the timing passes execute exactly as before.
+        const memoryHooks = getMemoryHooks();
+        const allocation = { totalBytes: 0, iterations: 0 };
+        const variantRun = variant.run;
+        const measuredRun = memoryHooks
+            ? async () => {
+                  await memoryHooks.start();
+                  let elapsed = 0;
+                  try {
+                      elapsed = await variantRun();
+                  } finally {
+                      const bytes = await memoryHooks.stop();
+                      // Only iterations that enter `timings` count towards the per-iteration mean.
+                      if (elapsed > 0 && bytes !== null) {
+                          allocation.totalBytes += bytes;
+                          allocation.iterations++;
+                      }
+                  }
+                  return elapsed;
+              }
+            : variantRun;
+
         // Emit `<testCaseId>:<warmup|iter>-<N>:start|end` marks so Chrome traces slice cleanly per iter.
         const phase = testCase.id;
         const markIteration = async (label: string, index: number, run: () => Promise<number>): Promise<number> => {
@@ -1820,6 +1877,14 @@ class BenchmarkRunner {
                         timings: [...timings],
                         frameStats: samplerResult?.frameStats,
                         gcStats: samplerResult?.gcStats,
+                        allocation:
+                            allocation.iterations > 0
+                                ? {
+                                      bytesPerIteration: allocation.totalBytes / allocation.iterations,
+                                      totalBytes: allocation.totalBytes,
+                                      iterations: allocation.iterations,
+                                  }
+                                : undefined,
                     });
                     return;
                 }
@@ -1827,7 +1892,7 @@ class BenchmarkRunner {
                 if (!updateInFlight) {
                     updateInFlight = true;
                     try {
-                        const elapsed = await markIteration('iter', updateCount, variant.run);
+                        const elapsed = await markIteration('iter', updateCount, measuredRun);
                         if (elapsed > 0) {
                             timings.push(elapsed);
                             updateCount++;
@@ -1988,6 +2053,7 @@ class BenchmarkRunner {
                 timings: r.timings,
                 frameStats: r.frameStats,
                 gcStats: r.gcStats,
+                allocation: r.allocation,
             })),
         };
     }

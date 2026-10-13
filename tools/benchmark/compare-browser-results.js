@@ -6,12 +6,15 @@
  * Usage:
  *   node compare-browser-results.js --base base.json --compare head.json
  *   node compare-browser-results.js --base base.json --compare head.json --format json
+ *   node compare-browser-results.js --base base.json --compare head.json \
+ *       --base-memory base.mem.json --compare-memory head.mem.json
  */
 
 const fs = require('fs');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
 
+const { aggregateAllocation, allocationChange, formatMb } = require('./allocation');
 const { formatPercentageChange } = require('./format-utils');
 
 const argv = yargs(hideBin(process.argv))
@@ -28,6 +31,20 @@ const argv = yargs(hideBin(process.argv))
         array: true,
         demandOption: true,
         describe: 'Path(s) to compare (head) browser benchmark JSON report(s). Multiple = independent runs.',
+    })
+    .option('base-memory', {
+        type: 'string',
+        array: true,
+        default: [],
+        describe:
+            'Path(s) to base memory-pass report(s) (browser-benchmark.ts --memory). Adds allocated MB per ' +
+            'iteration next to the timings; reported only, never gated.',
+    })
+    .option('compare-memory', {
+        type: 'string',
+        array: true,
+        default: [],
+        describe: 'Path(s) to compare (head) memory-pass report(s).',
     })
     .option('min-pct', {
         type: 'number',
@@ -74,6 +91,19 @@ const argv = yargs(hideBin(process.argv))
 function loadReport(filePath) {
     const raw = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(raw);
+}
+
+/** Timing reports must come from passes without heap sampling attached. */
+function loadTimingReport(filePath) {
+    const report = loadReport(filePath);
+    if (report.memoryPass) {
+        console.error(
+            `${filePath} is a memory-pass report: its timings are distorted by heap sampling. ` +
+                'Pass it with --base-memory / --compare-memory instead.'
+        );
+        process.exit(2);
+    }
+    return report;
 }
 
 /**
@@ -256,13 +286,20 @@ function extractResults(reports) {
 
 // --- Compare ---
 
-const baseReports = argv.base.map(loadReport);
-const compareReports = argv.compare.map(loadReport);
+const baseReports = argv.base.map(loadTimingReport);
+const compareReports = argv.compare.map(loadTimingReport);
 
 const base = extractResults(baseReports);
 const compare = extractResults(compareReports);
 
 const runCount = Math.min(baseReports.length, compareReports.length);
+
+// Allocation comes from separate memory passes. The columns appear only when memory reports are
+// supplied; a side (or test) without data then reads as `—` and is left out of the allocation
+// ranking, so an older base harness never fails or skews the comparison.
+const baseAllocation = aggregateAllocation(argv['base-memory'].map(loadReport), comparisonKey);
+const compareAllocation = aggregateAllocation(argv['compare-memory'].map(loadReport), comparisonKey);
+const showAllocation = argv['base-memory'].length > 0 || argv['compare-memory'].length > 0;
 
 const baseKeys = new Set(base.results.keys());
 const compareKeys = new Set(compare.results.keys());
@@ -309,6 +346,7 @@ for (const key of baseKeys) {
             afterMinMs: timeFormat(c.minTime),
             beforeSamples: b.sampleCount,
             afterSamples: c.sampleCount,
+            ...allocationChange(baseAllocation.get(key), compareAllocation.get(key)),
         });
     }
 }
@@ -359,6 +397,25 @@ function isNotableRegression(r) {
 }
 const notable = rankedByTime.filter(isNotableRegression);
 
+// Allocation is reported, not gated: it never feeds `notable` or the exit code. Smallest delta
+// first, matching the time ranking (wins at the top, growth at the bottom).
+const rankedByAllocation = matched.filter((r) => r.deltaMb !== null).toSorted((a, b) => a.deltaMb - b.deltaMb);
+
+/** Before/After/delta MB columns for a table row; empty when no memory reports were supplied. */
+function allocationColumns(r) {
+    if (!showAllocation) return {};
+    return {
+        'Before (MB)': formatMb(r.beforeMb),
+        'After (MB)': formatMb(r.afterMb),
+        'Δ (MB)': formatMb(r.deltaMb, { signed: true }),
+    };
+}
+
+/** First 5 and last 5 rows with a blank separator, as the time table does. */
+function topAndBottom(rows) {
+    return rows.length > 10 ? [...rows.slice(0, 5), {}, ...rows.slice(-5)] : rows;
+}
+
 // --- Output ---
 
 const baseLabel = argv['base-label'];
@@ -388,11 +445,9 @@ if (argv.format === 'table') {
         }
     }
 
-    const rankedOutput =
-        rankedByTime.length > 10 ? [...rankedByTime.slice(0, 5), {}, ...rankedByTime.slice(-5)] : rankedByTime;
     console.log('Time (top 5/bottom 5)');
     console.table(
-        rankedOutput.map((r) =>
+        topAndBottom(rankedByTime).map((r) =>
             Object.keys(r).length === 0
                 ? {}
                 : {
@@ -400,9 +455,29 @@ if (argv.format === 'table') {
                       '%': formatPercentageChange(r.pctTimeChange) + (r.noisy ? ' ~' : ''),
                       'Before (ms)': r.beforeMs,
                       'After (ms)': r.afterMs,
+                      ...allocationColumns(r),
                   }
         )
     );
+
+    if (showAllocation) {
+        console.log(
+            `\nAllocation per iteration (top 5/bottom 5 by change; ${rankedByAllocation.length} of ${matched.length} with data on both sides)`
+        );
+        if (rankedByAllocation.length > 0) {
+            console.table(
+                topAndBottom(rankedByAllocation).map((r) =>
+                    Object.keys(r).length === 0
+                        ? {}
+                        : { test: r.test, '%': formatPercentageChange(r.pctChange), ...allocationColumns(r) }
+                )
+            );
+        } else {
+            console.log(
+                '  — no test has allocation data on both sides (is the base harness older than the memory pass?)'
+            );
+        }
+    }
 
     if (added.length > 0) {
         console.log(`\nAdded (${added.length}):`);
@@ -427,6 +502,13 @@ if (argv.format === 'table') {
     const improvements = rankedByTime.filter((r) => r.pctTimeChange !== null && r.pctTimeChange < 0).length;
     const regressions = rankedByTime.filter((r) => r.pctTimeChange !== null && r.pctTimeChange > 0).length;
     console.log(`\nSummary: ${improvements} improved, ${regressions} regressed, ${matched.length} total`);
+    if (showAllocation) {
+        const lower = rankedByAllocation.filter((r) => r.deltaMb < 0).length;
+        const higher = rankedByAllocation.filter((r) => r.deltaMb > 0).length;
+        console.log(
+            `Allocation: ${lower} lower, ${higher} higher, ${rankedByAllocation.length} of ${matched.length} with data (not gated)`
+        );
+    }
 } else if (argv.format === 'json') {
     console.log(
         JSON.stringify(
@@ -437,6 +519,7 @@ if (argv.format === 'table') {
                 thresholds: { minPct: MIN_PCT, minAbsMs: MIN_ABS_MS, noiseBandFactor: NOISE_BAND_FACTOR },
                 notable: notable.map((r) => r.test),
                 rankedByTime,
+                rankedByAllocation,
                 added,
                 removed,
                 errors,
