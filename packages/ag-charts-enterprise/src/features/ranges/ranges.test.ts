@@ -420,13 +420,13 @@ describe('Ranges', () => {
             const ranges = await resolvedRanges({
                 buttonHoverBackgroundColor: 'rgb(1, 1, 1)',
                 buttonHoverTextColor: 'rgb(2, 2, 2)',
-                buttonHoverBorderColor: 'rgb(3, 3, 3)',
+                buttonHoverBorder: { color: 'rgb(3, 3, 3)' },
                 buttonActiveBackgroundColor: 'rgb(4, 4, 4)',
                 buttonActiveTextColor: 'rgb(5, 5, 5)',
-                buttonActiveBorderColor: 'rgb(6, 6, 6)',
+                buttonActiveBorder: { color: 'rgb(6, 6, 6)' },
                 buttonDisabledBackgroundColor: 'rgb(7, 7, 7)',
                 buttonDisabledTextColor: 'rgb(8, 8, 8)',
-                buttonDisabledBorderColor: 'rgb(9, 9, 9)',
+                buttonDisabledBorder: { color: 'rgb(9, 9, 9)' },
             });
 
             expect(ranges.button.hover).toMatchObject({
@@ -470,28 +470,108 @@ describe('Ranges', () => {
             expect(ranges.button.disabled.stroke).toBe('green');
         });
 
-        it('hover and disabled border colours default to the buttonBorder colour', async () => {
-            const ranges = await resolvedRanges({ buttonBorder: { color: 'black', width: 2 }, accentColor: 'teal' });
+        it('a false state border hides the border colour', async () => {
+            const ranges = await resolvedRanges({ buttonHoverBorder: false });
 
-            expect(ranges.button.hover.stroke).toBe('black');
-            expect(ranges.button.disabled.stroke).toBe('black');
-            expect(ranges.button.active.stroke).toBe('teal');
+            expect(ranges.button.hover.stroke).toBe('transparent');
         });
 
-        it('hover and disabled border colours follow borderColor when buttonBorder is a boolean', async () => {
-            const ranges = await resolvedRanges({ borderColor: 'purple', buttonBorder: true });
+        it('a false state border keeps the base border width', async () => {
+            const ranges = await resolvedRanges({
+                buttonBorder: { color: 'black', width: 2 },
+                buttonHoverBorder: false,
+            });
 
-            expect(ranges.button.hover.stroke).toBe('purple');
-            expect(ranges.button.disabled.stroke).toBe('purple');
+            expect(ranges.button.hover).toMatchObject({ stroke: 'transparent', strokeWidth: 2 });
         });
 
-        it('states have no border width of their own', async () => {
+        it('state borders set to true inherit the buttonBorder colour and width', async () => {
+            const ranges = await resolvedRanges({
+                borderColor: 'purple',
+                buttonBorder: { color: 'black', width: 2 },
+                buttonHoverBorder: true,
+                buttonActiveBorder: true,
+                buttonDisabledBorder: true,
+            });
+
+            for (const state of ['hover', 'active', 'disabled']) {
+                expect(ranges.button[state]).toMatchObject({ stroke: 'black', strokeWidth: 2 });
+            }
+        });
+
+        it('state borders set to true follow a boolean buttonBorder', async () => {
+            const ranges = await resolvedRanges({
+                borderColor: 'purple',
+                buttonBorder: true,
+                buttonActiveBorder: true,
+            });
+
+            expect(ranges.button.active).toMatchObject({ stroke: 'purple', strokeWidth: 1 });
+        });
+
+        it('state border objects apply their width in that state', async () => {
+            const ranges = await resolvedRanges({
+                buttonHoverBorder: { color: 'orange', width: 6 },
+                buttonActiveBorder: { color: 'green', width: 6 },
+                buttonDisabledBorder: { color: 'red', width: 6 },
+            });
+
+            expect(ranges.button.strokeWidth).toBe(1);
+            expect(ranges.button.hover).toMatchObject({ stroke: 'orange', strokeWidth: 6 });
+            expect(ranges.button.active).toMatchObject({ stroke: 'green', strokeWidth: 6 });
+            expect(ranges.button.disabled).toMatchObject({ stroke: 'red', strokeWidth: 6 });
+        });
+
+        it('state border objects fill an unset colour or width from buttonBorder', async () => {
+            const ranges = await resolvedRanges({
+                buttonBorder: { color: 'black', width: 2 },
+                buttonHoverBorder: { width: 4 },
+                buttonDisabledBorder: { color: 'red' },
+            });
+
+            expect(ranges.button.hover).toMatchObject({ stroke: 'black', strokeWidth: 4 });
+            expect(ranges.button.disabled).toMatchObject({ stroke: 'red', strokeWidth: 2 });
+        });
+
+        it('state border widths default to the buttonBorder width', async () => {
             const ranges = await resolvedRanges({ buttonBorder: { color: 'black', width: 3 } });
 
-            expect(ranges.button.strokeWidth).toBe(3);
             for (const state of ['hover', 'active', 'disabled']) {
-                expect(ranges.button[state].strokeWidth).toBeUndefined();
+                expect(ranges.button[state].strokeWidth).toBe(3);
             }
+        });
+
+        it('a user-set strokeWidth applies in every state', async () => {
+            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                ranges: { enabled: true, strokeWidth: 3, buttons: [{ label: 'All', value: [0, 19] }] },
+                theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
+            } as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+
+            for (const state of ['hover', 'active', 'disabled']) {
+                expect(ranges.button[state].strokeWidth).toBe(3);
+            }
+        });
+
+        it('a user-set button strokeWidth applies in every button state', async () => {
+            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                ranges: { enabled: true, button: { strokeWidth: 3 }, buttons: [{ label: 'All', value: [0, 19] }] },
+                theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
+            } as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
+
+            for (const state of ['hover', 'active', 'disabled']) {
+                expect(ranges.button[state].strokeWidth).toBe(3);
+            }
+            expect(ranges.dropdown.hover.strokeWidth).toBe(6);
         });
 
         it('button padding keeps its fixed default', async () => {

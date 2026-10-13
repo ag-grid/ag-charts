@@ -53,7 +53,7 @@ export interface AgRangesStyles extends FillCssOptions, FontOptions, Omit<Stroke
     hover?: AgRangesStateStyles;
 }
 
-export interface AgRangesStateStyles extends FillCssOptions, Pick<StrokeOptions, 'stroke'> {
+export interface AgRangesStateStyles extends FillCssOptions, Pick<StrokeOptions, 'stroke' | 'strokeWidth'> {
     textColor?: CssColor;
 }
 

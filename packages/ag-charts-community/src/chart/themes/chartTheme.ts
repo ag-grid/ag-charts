@@ -158,16 +158,16 @@ export class ChartTheme {
             buttonFontWeight: 400,
             buttonTextColor: { $ref: 'chromeTextColor' },
             buttonHoverBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
-            buttonHoverBorderColor: themeBorderColor('buttonBorder'),
+            buttonHoverBorder: { $ref: 'buttonBorder' },
             buttonHoverTextColor: { $ref: 'buttonTextColor' },
             buttonActiveBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
-            buttonActiveBorderColor: { $ref: 'accentColor' },
+            buttonActiveBorder: { color: { $ref: 'accentColor' } },
             buttonActiveTextColor: { $ref: 'accentColor' },
             // `buttonBackgroundColor` defaults to `chromeBackgroundColor`, so the default look is unchanged.
             buttonDisabledBackgroundColor: {
                 $mix: [{ $ref: 'buttonBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
             },
-            buttonDisabledBorderColor: themeBorderColor('buttonBorder'),
+            buttonDisabledBorder: { $ref: 'buttonBorder' },
             buttonDisabledTextColor: { $mix: [{ $ref: 'chromeBackgroundColor' }, { $ref: 'buttonTextColor' }, 0.5] },
 
             inputBackgroundColor: { $ref: 'backgroundColor' },

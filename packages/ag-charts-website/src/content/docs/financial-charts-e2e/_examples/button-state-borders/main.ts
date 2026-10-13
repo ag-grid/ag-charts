@@ -12,9 +12,9 @@ const options: AgFinancialChartOptions = {
     theme: {
         params: {
             buttonBorder: { color: '#000000', width: 4 },
-            buttonHoverBorderColor: '#ff6d00',
-            buttonActiveBorderColor: '#00c853',
-            buttonDisabledBorderColor: '#d50000',
+            buttonHoverBorder: { color: '#ff6d00' },
+            buttonActiveBorder: { color: '#00c853' },
+            buttonDisabledBorder: { color: '#d50000' },
         },
         overrides: {
             common: {

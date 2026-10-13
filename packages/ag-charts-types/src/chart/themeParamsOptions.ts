@@ -73,10 +73,10 @@ export interface AgBaseChartThemeParams {
     /** Background colour of buttons when hovered. A colour string, or a theme-colour reference object. */
     buttonHoverBackgroundColor?: AgCssColorOrRef;
     /**
-     * Border colour of buttons when hovered. The border width always follows `buttonBorder`. A colour string, or a
-     * theme-colour reference object.
+     * Border of buttons when hovered. `true` to use `buttonBorder`, `false` for no visible border, or an object
+     * to customise it. Any colour or width left unset in the object follows `buttonBorder`.
      */
-    buttonHoverBorderColor?: AgCssColorOrRef;
+    buttonHoverBorder?: boolean | AgBorderThemeParam;
     /** Text colour of buttons when hovered. A colour string, or a theme-colour reference object. */
     buttonHoverTextColor?: AgCssColorOrRef;
     /**
@@ -85,19 +85,19 @@ export interface AgBaseChartThemeParams {
      */
     buttonActiveBackgroundColor?: AgCssColorOrRef;
     /**
-     * Border colour of buttons in the active (toggled or selected) state. The border width always follows
-     * `buttonBorder`. A colour string, or a theme-colour reference object.
+     * Border of buttons in the active (toggled or selected) state. `true` to use `buttonBorder`, `false` for no visible
+     * border, or an object to customise it. Any colour or width left unset in the object follows `buttonBorder`.
      */
-    buttonActiveBorderColor?: AgCssColorOrRef;
+    buttonActiveBorder?: boolean | AgBorderThemeParam;
     /** Text colour of buttons in the active (toggled or selected) state. A colour string, or a theme-colour reference object. */
     buttonActiveTextColor?: AgCssColorOrRef;
     /** Background colour of disabled buttons. A colour string, or a theme-colour reference object. */
     buttonDisabledBackgroundColor?: AgCssColorOrRef;
     /**
-     * Border colour of disabled buttons. The border width always follows `buttonBorder`. A colour string, or a
-     * theme-colour reference object.
+     * Border of disabled buttons. `true` to use `buttonBorder`, `false` for no visible border, or an object
+     * to customise it. Any colour or width left unset in the object follows `buttonBorder`.
      */
-    buttonDisabledBorderColor?: AgCssColorOrRef;
+    buttonDisabledBorder?: boolean | AgBorderThemeParam;
     /** Text colour of disabled buttons. A colour string, or a theme-colour reference object. */
     buttonDisabledTextColor?: AgCssColorOrRef;
     /**
