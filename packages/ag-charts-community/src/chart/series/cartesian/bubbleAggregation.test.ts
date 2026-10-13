@@ -1036,7 +1036,7 @@ describe('computeBubbleAggregation partitions indices in place', () => {
 
 describe('computeBubbleAggregation node contents', () => {
     const NUMBERS = { xNeedsValueOf: false, yNeedsValueOf: false };
-    // Every size bubble is 100px across and the plot is 100px square, so a dilation of 4 groups any node whose
+    // Every size bubble is 100px across and the series area is 100px square, so a dilation of 4 groups any node whose
     // diagonal is at most 2 (the unit square's is 1.41).
     const WALK: BubbleAggregationOptions = {
         xRange: 100,
@@ -1227,7 +1227,7 @@ describe('computeBubbleAggregation tree invariants', () => {
             aggregationXRatioForXValue(xValues[i], xd0, xd1, false),
             aggregationXRatioForXValue(yValues[i], yd0, yd1, false),
         ];
-        const isPlotted = (i: number) => xValues[i] != null && yValues[i] != null;
+        const hasXY = (i: number) => xValues[i] != null && yValues[i] != null;
 
         let leaves = 0;
         function check(node: BubbleAggregationNode, parent: BubbleAggregationNode | undefined) {
@@ -1238,10 +1238,10 @@ describe('computeBubbleAggregation tree invariants', () => {
                 expect(node.end).toBeLessThanOrEqual(parent.end);
             }
 
-            const plotted = members.filter(isPlotted);
-            if (plotted.length > 0) {
-                const xs = plotted.map((i) => ratios(i)[0]);
-                const ys = plotted.map((i) => ratios(i)[1]);
+            const positioned = members.filter(hasXY);
+            if (positioned.length > 0) {
+                const xs = positioned.map((i) => ratios(i)[0]);
+                const ys = positioned.map((i) => ratios(i)[1]);
                 // A node split from the unit square keeps its own bounds there; below it, the bounds are tight.
                 if (parent != null) {
                     expect([node.x0, node.y0, node.x1, node.y1]).toEqual([
@@ -1251,7 +1251,7 @@ describe('computeBubbleAggregation tree invariants', () => {
                         Math.max(...ys),
                     ]);
                 }
-                expect(plotted).toContain(node.primaryDatumIndex);
+                expect(positioned).toContain(node.primaryDatumIndex);
             }
             expect(node.scale).toBe(Math.hypot(node.x1 - node.x0, node.y1 - node.y0));
 
@@ -1263,7 +1263,7 @@ describe('computeBubbleAggregation tree invariants', () => {
 
             expect(node.children.length).toBeGreaterThan(1);
             const childMembers = node.children.flatMap((child) => nodeIndices(aggregation, child));
-            expect([...childMembers].sort((a, b) => a - b)).toEqual([...plotted].sort((a, b) => a - b));
+            expect([...childMembers].sort((a, b) => a - b)).toEqual([...positioned].sort((a, b) => a - b));
             for (const child of node.children) {
                 check(child, node);
             }
@@ -1275,7 +1275,7 @@ describe('computeBubbleAggregation tree invariants', () => {
             const expected = Array.from({ length: count }, (_, d) => d).filter((d) => bucketOf(d) === i);
             const members = nodeIndices(aggregation, node!);
             expect([...members].sort((a, b) => a - b)).toEqual(
-                node!.children == null ? expected : expected.filter(isPlotted)
+                node!.children == null ? expected : expected.filter(hasXY)
             );
             check(node!, undefined);
         }
