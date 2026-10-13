@@ -77,9 +77,6 @@ export function getBandEdgeOffset(bandwidth: number, textAlign: ResolvedTextAlig
     return BAND_EDGE_FRACTION[textAlign] * Math.abs(bandwidth);
 }
 
-/** Offset of a text box's left edge from its anchor, as a fraction of the box's width. */
-const ANCHOR_OFFSET_FRACTION: Record<ResolvedTextAlign, number> = { left: 0, center: 0.5, right: 1 };
-
 const VERTICAL_BAND_EDGE_FRACTION: Record<VerticalAlign, number> = { top: -0.5, middle: 0, bottom: 0.5 };
 
 /**
@@ -148,14 +145,6 @@ export function getRotatedLabelExtent(box: LabelBox, anchorX: number, anchorY: n
         extent.y1 = Math.max(extent.y1, ry);
     }
     return extent;
-}
-
-/**
- * Horizontal shift that takes a text box measured under `from` to where `to` would place it. Both
- * alignments anchor the same glyphs, so the box only slides along its own width.
- */
-export function getTextAlignShift(width: number, from: ResolvedTextAlign, to: ResolvedTextAlign): number {
-    return (ANCHOR_OFFSET_FRACTION[from] - ANCHOR_OFFSET_FRACTION[to]) * width;
 }
 
 export function formatAxisLabelValue(

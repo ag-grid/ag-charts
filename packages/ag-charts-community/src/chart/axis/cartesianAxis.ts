@@ -58,9 +58,7 @@ import {
     getAxisLabelSideFlag,
     getBandEdgeOffset,
     getRotatedLabelExtent,
-    getTextAlignShift,
     getTickLabelEdgeOffsets,
-    getVerticalAlignShift,
     getVerticalBandEdgeOffset,
 } from './axisLabelUtil';
 import type {
@@ -413,10 +411,8 @@ export abstract class CartesianAxis<
             sizeLimit: this.chartLayout?.sizeLimit,
             inRange: (translation: number) => this.inRange(translation, 0.001),
             labelBaseline: this.resolveLabelBaseline(label.verticalAlign),
-            labelBandOffsets: this.bandFlushesLabels()
-                ? (ticks, rotation, textAlign, textBaseline) =>
-                      this.measureLabelBandOffsets(ticks, { rotation, textAlign, textBaseline }, scrollbarThickness)
-                : undefined,
+            labelBandOffsets: (ticks, rotation, textAlign, textBaseline) =>
+                this.measureLabelBandOffsets(ticks, { rotation, textAlign, textBaseline }, scrollbarThickness),
             tickFormatter: (...args) => this.tickFormatter(...args),
         });
 
@@ -1122,7 +1118,7 @@ export abstract class CartesianAxis<
     }
 
     /**
-     * How far the band flush will move each label across the axis, run on a throwaway copy of the
+     * How far `alignLabelBands` will move each label across the axis, run on a throwaway copy of the
      * label data so collision avoidance can measure the geometry it will actually render. Shares
      * `alignLabelBands` rather than restating its band maths, so the two cannot drift apart.
      */
@@ -1130,24 +1126,21 @@ export abstract class CartesianAxis<
         ticks: TickDatum[],
         tickGenerationResult: { rotation: number; textAlign: ResolvedTextAlign; textBaseline: VerticalAlign },
         scrollbarThickness: number
-    ): number[] {
+    ): number[] | undefined {
+        if (tickGenerationResult.rotation === 0 && !this.bandFlushesLabels()) {
+            return undefined;
+        }
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult, scrollbarThickness));
-        const before = labels.map((l) => l.y);
+        // `getTickLabelProps` places the label offset at `-y` on a horizontal axis and at `x` on a vertical one.
+        const crossOffset = this.horizontal ? (l: LabelNodeDatum) => -l.y : (l: LabelNodeDatum) => l.x;
+        const before = labels.map(crossOffset);
         this.alignLabelBands(ticks, labels, tickGenerationResult);
-        return labels.map((l, i) => l.y - before[i]);
+        return labels.map((l, i) => crossOffset(l) - before[i]);
     }
 
     /**
-     * Re-anchor labels so that a configured `label.textAlign` / `label.verticalAlign` aligns them
-     * within the band the axis reserved, rather than around their own anchor point - the latter
-     * grows the glyphs inwards across the axis line and over the series area, where the series
-     * paints over them.
-     *
-     * Each option owns the axis's cross direction for the orientation it acts across: `textAlign` on
-     * a vertical axis and `verticalAlign` on a horizontal one. In the other orientation the option
-     * acts along the axis instead, so only rotation can carry the glyphs across the axis line; the
-     * correction there restores the cross-axis placement the axis's own computed alignment would
-     * have produced, leaving the along-axis alignment alone.
+     * Re-anchor labels across the axis line: a configured cross-axis alignment flushes each tier within
+     * its reserved band, otherwise a rotated label's box is pinned to the anchor to keep the unrotated gap.
      */
     private alignLabelBands(
         ticks: TickDatum[],
@@ -1156,8 +1149,11 @@ export abstract class CartesianAxis<
     ) {
         const leafLabel = this.options.label;
         const { primaryLabel } = this;
+        const { rotation } = tickGenerationResult;
+        const anchorRotated = rotation !== 0;
 
         if (
+            !anchorRotated &&
             leafLabel.textAlign == null &&
             primaryLabel?.textAlign == null &&
             leafLabel.verticalAlign == null &&
@@ -1166,40 +1162,23 @@ export abstract class CartesianAxis<
             return;
         }
 
-        const { rotation, textAlign: computedTextAlign, textBaseline: computedTextBaseline } = tickGenerationResult;
         const { horizontal, tempText } = this;
-        const sideFlag = getAxisLabelSideFlag(this.mirrored);
+        // `getTickLabelProps` negates the label offset on `y`, flipping outward on a horizontal axis.
+        const outward = horizontal ? -getAxisLabelSideFlag(this.mirrored) : getAxisLabelSideFlag(this.mirrored);
         const primaryEnabled = primaryLabel?.enabled ?? false;
-        // Only a rotated label can swing its glyphs across the axis line without the band flush
-        // below; an unrotated one is already placed by its own alignment.
-        const anchorRotated = rotation !== 0;
 
-        // Each label tier occupies its own band, so a tier that leaves both options unset keeps
-        // today's anchor.
         for (const primaryTier of [false, true]) {
             const tierLabel = primaryTier ? primaryLabel : leafLabel;
             const textAlign = this.resolveLabelTextAlign(tierLabel?.textAlign);
             const verticalAlign = tierLabel?.verticalAlign;
 
-            // Whether this tier needs geometry at all, decided before anything is measured: this
-            // runs twice per layout per axis, so a tier the anchor already places correctly must not
-            // pay for a measurement pass it cannot use.
-            const alignsAcross = horizontal ? verticalAlign != null : textAlign != null;
-            // A band flush is a stronger guarantee than restoring the computed cross-axis offset, so
-            // where both options are set the flush owns the direction and suppresses the correction.
-            const correctsRotation =
-                anchorRotated && !alignsAcross && (horizontal ? textAlign != null : verticalAlign != null);
-            if (!alignsAcross && !correctsRotation) continue;
+            // Decided before anything is measured: this runs twice per layout per axis, so a tier the
+            // anchor already places correctly must not pay for a measurement pass it cannot use.
+            const alignment = horizontal ? verticalAlign : textAlign;
+            if (alignment == null && !anchorRotated) continue;
 
-            // `getBBox()` includes the box padding where the label is boxed, but the alignments
-            // anchor the text, so the extents are taken from the glyph box.
-            const padding = expandLabelPadding(tierLabel);
-
-            const measured: { datum: LabelNodeDatum; glyphBox: LabelBox; extent: LabelExtent }[] = [];
+            const measured: { datum: LabelNodeDatum; extent: LabelExtent; innerPadding: number }[] = [];
             let maxLabelExtent = 0;
-            // The edge of the reserved band nearest the axis line, taken across the whole tier - see
-            // the band it is turned into below.
-            let bandInner: number | undefined;
             for (let i = 0; i < labels.length; i += 1) {
                 if ((ticks[i].isPrimary && primaryEnabled) !== primaryTier) continue;
 
@@ -1212,42 +1191,26 @@ export abstract class CartesianAxis<
                 const box = tempText.computeBBoxWithoutTransforms();
                 if (box == null) continue;
 
-                const glyphBox = {
-                    x: box.x + padding.left,
-                    y: box.y + padding.top,
-                    width: box.width - padding.left - padding.right,
-                    height: box.height - padding.top - padding.bottom,
-                };
-                const extent = getRotatedLabelExtent(glyphBox, datum.x, datum.y, rotation);
-                if (horizontal && verticalAlign != null) {
-                    // Where the axis's own computed alignment would have put these glyphs, which is
-                    // the space the axis actually reserved. A rotated label swings on both
-                    // alignments, so both are restored: taking the baseline alone would derive the
-                    // band from a label still carrying a configured `textAlign`, and place it inside
-                    // the series area.
-                    const computedExtent = getRotatedLabelExtent(
-                        {
-                            ...glyphBox,
-                            x:
-                                textAlign == null
-                                    ? glyphBox.x
-                                    : glyphBox.x + getTextAlignShift(glyphBox.width, textAlign, computedTextAlign),
-                            y: glyphBox.y + getVerticalAlignShift(glyphBox.height, verticalAlign, computedTextBaseline),
-                        },
-                        datum.x,
-                        datum.y,
-                        rotation
-                    );
-                    // `getTickLabelProps` negates the label offset on `y`, so outward of the axis
-                    // line is `-sideFlag` here - the opposite sign to the vertical axis's `x` below.
-                    const labelInner = datum.y + (sideFlag === -1 ? computedExtent.y0 : computedExtent.y1);
-                    bandInner ??= labelInner;
-                    // One band per tier, not one per label: labels of differing size must flush to a
-                    // common edge, so the origin is the natural placement reaching nearest the axis
-                    // line - the same edge the axis sized its reservation from.
-                    bandInner = sideFlag === -1 ? Math.min(bandInner, labelInner) : Math.max(bandInner, labelInner);
+                // `tempText` measures unboxed glyphs, which is what the alignments anchor; the pin grows
+                // them by the label's own resolved padding, which an `itemStyler` can set.
+                let measuredBox: LabelBox = box;
+                let innerPadding = 0;
+                if (alignment == null) {
+                    const padding = expandLabelPadding(datum);
+                    measuredBox = {
+                        x: box.x - padding.left,
+                        y: box.y - padding.top,
+                        width: box.width + padding.left + padding.right,
+                        height: box.height + padding.top + padding.bottom,
+                    };
+                    if (horizontal) {
+                        innerPadding = outward > 0 ? padding.top : padding.bottom;
+                    } else {
+                        innerPadding = outward > 0 ? padding.left : padding.right;
+                    }
                 }
-                measured.push({ datum, glyphBox, extent });
+                const extent = getRotatedLabelExtent(measuredBox, datum.x, datum.y, rotation);
+                measured.push({ datum, extent, innerPadding });
                 // The band runs across the axis, so its depth is the deepest label in that direction.
                 const labelExtent = horizontal ? extent.y1 - extent.y0 : extent.x1 - extent.x0;
                 maxLabelExtent = Math.max(maxLabelExtent, labelExtent);
@@ -1255,125 +1218,36 @@ export abstract class CartesianAxis<
 
             if (maxLabelExtent <= 0) continue;
 
-            // The tier's shared band: `maxLabelExtent` deep, outward of the natural inner edge.
-            let band: { start: number; end: number } | undefined;
-            if (bandInner != null) {
-                const bandOuter = bandInner - sideFlag * maxLabelExtent;
-                band = { start: Math.min(bandInner, bandOuter), end: Math.max(bandInner, bandOuter) };
-            }
-
-            for (const { datum, glyphBox, extent } of measured) {
-                if (correctsRotation) {
-                    if (horizontal && textAlign != null) {
-                        datum.y += this.getCrossAxisCorrection(
-                            datum,
-                            glyphBox,
-                            extent,
-                            rotation,
-                            textAlign,
-                            computedTextAlign
-                        );
-                        datum.rotationCenterY = datum.y;
-                    } else if (!horizontal && verticalAlign != null) {
-                        datum.x += this.getVerticalCrossAxisCorrection(
-                            datum,
-                            glyphBox,
-                            extent,
-                            rotation,
-                            this.resolveLabelBaseline(verticalAlign)!,
-                            computedTextBaseline
-                        );
-                        datum.rotationCenterX = datum.x;
-                    }
-                    continue;
-                }
-
-                if (band != null) {
-                    let y;
-                    if (verticalAlign === 'top') {
-                        y = band.start - extent.y0;
-                    } else if (verticalAlign === 'bottom') {
-                        y = band.end - extent.y1;
-                    } else {
-                        y = (band.start + band.end) / 2 - (extent.y0 + extent.y1) / 2;
-                    }
-
-                    datum.y = y;
-                    datum.rotationCenterY = y;
-                    continue;
-                }
-
-                // `inner` is the band edge nearest the axis line - taken verbatim so the tick,
-                // padding and scrollbar terms are inherited rather than re-derived.
-                const inner = datum.x;
-                const outer = inner + sideFlag * maxLabelExtent;
+            for (const { datum, extent, innerPadding } of measured) {
+                // `inner` is the band edge nearest the axis line - the anchor, taken verbatim so the
+                // tick, padding and scrollbar terms are inherited rather than re-derived.
+                const inner = horizontal ? datum.y : datum.x;
+                const outer = inner + outward * maxLabelExtent;
                 const bandStart = Math.min(inner, outer);
                 const bandEnd = Math.max(inner, outer);
+                const lo = horizontal ? extent.y0 : extent.x0;
+                const hi = horizontal ? extent.y1 : extent.x1;
 
-                let x;
-                if (textAlign === 'left') {
-                    x = bandStart - extent.x0;
-                } else if (textAlign === 'right') {
-                    x = bandEnd - extent.x1;
+                let position;
+                if (alignment == null) {
+                    position = inner - outward * innerPadding - (outward > 0 ? lo : hi);
+                } else if (alignment === 'top' || alignment === 'left') {
+                    position = bandStart - lo;
+                } else if (alignment === 'bottom' || alignment === 'right') {
+                    position = bandEnd - hi;
                 } else {
-                    x = (bandStart + bandEnd) / 2 - (extent.x0 + extent.x1) / 2;
+                    position = (bandStart + bandEnd) / 2 - (lo + hi) / 2;
                 }
 
-                datum.x = x;
-                datum.rotationCenterX = x;
+                if (horizontal) {
+                    datum.y = position;
+                    datum.rotationCenterY = position;
+                } else {
+                    datum.x = position;
+                    datum.rotationCenterX = position;
+                }
             }
         }
-    }
-
-    /**
-     * Shift that moves a rotated label back to the cross-axis offset the axis's computed alignment
-     * would have given it, so the reserved band still contains it.
-     */
-    private getCrossAxisCorrection(
-        datum: LabelNodeDatum,
-        glyphBox: LabelBox,
-        extent: LabelExtent,
-        rotation: number,
-        textAlign: ResolvedTextAlign,
-        computedTextAlign: ResolvedTextAlign
-    ) {
-        const shift = getTextAlignShift(glyphBox.width, textAlign, computedTextAlign);
-        const computedExtent = getRotatedLabelExtent(
-            { ...glyphBox, x: glyphBox.x + shift },
-            datum.x,
-            datum.y,
-            rotation
-        );
-        // The band lies outward of the axis line, so the edge to pin is the one facing it.
-        return getAxisLabelSideFlag(this.mirrored) === -1
-            ? computedExtent.y0 - extent.y0
-            : computedExtent.y1 - extent.y1;
-    }
-
-    /**
-     * Shift that moves a rotated label back to the cross-axis offset the axis's computed baseline
-     * would have given it, so the reserved column still contains it. The transpose of
-     * `getCrossAxisCorrection`, for a vertical axis where `verticalAlign` acts along the axis.
-     */
-    private getVerticalCrossAxisCorrection(
-        datum: LabelNodeDatum,
-        glyphBox: LabelBox,
-        extent: LabelExtent,
-        rotation: number,
-        textBaseline: VerticalAlign,
-        computedTextBaseline: VerticalAlign
-    ) {
-        const shift = getVerticalAlignShift(glyphBox.height, textBaseline, computedTextBaseline);
-        const computedExtent = getRotatedLabelExtent(
-            { ...glyphBox, y: glyphBox.y + shift },
-            datum.x,
-            datum.y,
-            rotation
-        );
-        // The column lies outward of the axis line, so the edge to pin is the one facing it.
-        return getAxisLabelSideFlag(this.mirrored) === -1
-            ? computedExtent.x0 - extent.x0
-            : computedExtent.x1 - extent.x1;
     }
 
     protected updateSelections() {

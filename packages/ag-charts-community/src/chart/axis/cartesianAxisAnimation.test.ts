@@ -115,7 +115,11 @@ describe('CartesianAxis animation', () => {
         // The rotated labels shrink the bottom gutter, so the whole plot reflows a few pixels
         // down alongside the rotation tween.
         expectSceneTrajectory(trajectory, {
-            'axis[bottom]/text[l:*]': { rotation: duringUpdate('increases', 'progresses', 'bounded') },
+            // Rotating a label swings its box towards the axis line, so its anchor moves outwards to keep the gap.
+            'axis[bottom]/text[l:*]': {
+                rotation: duringUpdate('increases', 'progresses', 'bounded'),
+                y: duringUpdate('increases', 'bounded'),
+            },
             'axis[bottom]/group[*]': { translationY: duringUpdate('decreases', 'bounded') },
             'axis[bottom]/grid/line[*]': { y2: duringUpdate('increases', 'bounded') },
             'axis[left]/text[*]': { y: duringUpdate('decreases', 'bounded') },
