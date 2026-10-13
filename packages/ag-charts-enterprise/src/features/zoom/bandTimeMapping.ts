@@ -15,6 +15,7 @@ export function resolveBandTimeMapping(lazy: boolean, scale: unknown): BandTimeM
     if (!lazy || !OrdinalTimeScale.is(scale)) return;
 
     const { bands, domain } = scale;
+    // A descending domain lays out latest-first, so zoom ratios run against the ascending `bands` the mapping is built on.
     if (domain.length > 1 && domain[0].valueOf() > domain.at(-1)!.valueOf()) return;
 
     if (!mappings.has(bands)) {

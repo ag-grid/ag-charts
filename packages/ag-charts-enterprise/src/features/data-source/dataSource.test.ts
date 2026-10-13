@@ -394,6 +394,21 @@ describe('DataSource', () => {
                 expect(max - min).toBeCloseTo((end - start) / (dataEnd - dataStart), 1);
             });
 
+            it('requests the time the navigator minimum handle is dragged to', async () => {
+                await prepareZoomableChart();
+                await zoomIn(3);
+                const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
+                const target = 0.1;
+
+                const issued = await settleAfter(() => {
+                    navigator.onDrag('min', { offsetX: navigator.x + navigator.width * target });
+                    return Promise.resolve();
+                });
+                const [{ start }] = issued.slice(-1);
+
+                expect(Math.abs(start - (dataStart + target * (dataEnd - dataStart)))).toBeLessThan(week * 4);
+            });
+
             it('only requests data for the pan itself when panning left', async () => {
                 await prepareZoomableChart();
                 await zoomIn(3);
