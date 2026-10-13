@@ -638,6 +638,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             phantomSpans = seriesBelowStackContext?.fillSpans;
         } else {
             const baselineY = yScale.convert(0);
+            // Each bucket ends on the datum that starts the next, so its x is carried over rather than converted twice.
+            let nextX0 = 0;
             for (let metaIndex = m0; metaIndex < m1; metaIndex += 1) {
                 const startIndex = metaIndices[metaIndex];
                 const endIndex = metaIndices[metaIndex + 1];
@@ -648,12 +650,15 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 const xValue0 = xValues[startDatumIndex];
                 const xValue1 = xValues[endDatumIndex];
 
+                const x0 = metaIndex === m0 ? xScale.convert(xValue0) + xOffset : nextX0;
+                nextX0 = xScale.convert(xValue1) + xOffset;
+
                 const span: LinePathSpan['span'] = {
                     type: 'linear',
                     moveTo: false,
-                    x0: xScale.convert(xValue0) + xOffset,
+                    x0,
                     y0: baselineY,
-                    x1: xScale.convert(xValue1) + xOffset,
+                    x1: nextX0,
                     y1: baselineY,
                 };
 
@@ -671,6 +676,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const fillSpans: LinePathSpan[] = [];
         const strokeSpans: LinePathSpan[] = [];
         let phantomIndex = 0;
+        // The last datum of a bucket is also the first of the next, so keep its converted position to use it twice.
+        let carriedDatumIndex = -1;
+        let carriedX = 0;
+        let carriedY = 0;
         for (let metaIndex = m0; metaIndex < m1; metaIndex += 1) {
             const startIndex = metaIndices[metaIndex];
             const endIndex = metaIndices[metaIndex + 1];
@@ -700,6 +709,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             let yDatum1: any;
             let x1 = 0;
             let y1 = 0;
+            let datumIndex1 = -1;
             let midPoints: Point[] | undefined;
             for (let i = startIndex; i <= endIndex; i++) {
                 const datumIndex = indices[i];
@@ -710,8 +720,15 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 if (!isContinuous(yValue)) continue;
 
                 const xDatum = xValues[datumIndex];
-                const x = xScale.convert(xDatum) + xOffset;
-                const y = yScale.convert(yValue);
+                let x: number;
+                let y: number;
+                if (datumIndex === carriedDatumIndex) {
+                    x = carriedX;
+                    y = carriedY;
+                } else {
+                    x = xScale.convert(xDatum) + xOffset;
+                    y = yScale.convert(yValue);
+                }
 
                 if (validCount === 0) {
                     xDatum0 = xDatum;
@@ -728,8 +745,13 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 yDatum1 = yValue;
                 x1 = x;
                 y1 = y;
+                datumIndex1 = datumIndex;
                 validCount++;
             }
+
+            carriedDatumIndex = datumIndex1;
+            carriedX = x1;
+            carriedY = y1;
 
             if (validCount < 2) {
                 fillSpans.push(phantomSpanDatum);
