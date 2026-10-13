@@ -266,7 +266,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 const fitsBand =
                     maxBandwidth === Infinity ||
                     (label.avoidCollisions && hasRealChars(wrapTextOrSegments(inputText, wrapOptions)));
-                wrappedLabel = wrapTextOrSegments(inputText, fitsBand ? fitOptions.banded : fitOptions.unbanded);
+                wrappedLabel = wrapLabelToFit(inputText, fitsBand ? fitOptions.banded : fitOptions.unbanded, measurer);
             } else if (label.avoidCollisions) {
                 const wrapped = wrapTextOrSegments(inputText, wrapOptions);
                 wrappedLabel = wrapped === '' ? null : wrapped;
@@ -321,6 +321,13 @@ function labelWrapOptions(
     textWrap: WrapOptions['textWrap'] = label.wrapping ?? 'never'
 ): WrapOptions {
     return { font: label, maxWidth, maxHeight, overflow, textWrap };
+}
+
+function wrapLabelToFit(text: NormalisedTextOrSegments, wrapOptions: WrapOptions, measurer: ITextMeasurer) {
+    const fitted = wrapTextOrSegments(text, wrapOptions);
+    if (isArray(fitted) || wrapOptions.textWrap !== 'never') return fitted;
+    // `textWrap: 'never'` does not apply maxHeight, to a single line or to explicit line breaks.
+    return clipLines(fitted.split('\n'), measurer, wrapOptions).join('\n');
 }
 
 function labelFitOverflow(label: ChartAxisLabel): WrapOptions['overflow'] {
@@ -380,12 +387,8 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
 
         const source = tick.fitSource ?? tickLabel;
         const heightLimit = Math.min(maxHeight, textMetrics.height);
-        const fit = (maxWidth: number) => {
-            const wrapOptions = labelWrapOptions(label, maxWidth, heightLimit, labelFitOverflow(label), 'never');
-            const fitted = wrapTextOrSegments(source, wrapOptions);
-            // `textWrap: 'never'` does not apply maxHeight to explicit line breaks.
-            return isArray(fitted) ? fitted : clipLines(fitted.split('\n'), measurer, wrapOptions).join('\n');
-        };
+        const fit = (maxWidth: number) =>
+            wrapLabelToFit(source, labelWrapOptions(label, maxWidth, heightLimit, labelFitOverflow(label), 'never'), measurer);
 
         // Narrowing never adds lines, so the height measured here bounds the final label.
         let fitted = fit(label.maxWidth ?? Infinity);
