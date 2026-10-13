@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { LinearScale, OrdinalTimeScale } from 'ag-charts-core';
+import { LinearScale, OrdinalTimeScale, UnitTimeScale } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { estimateScaleTickCount, generateTicks } from './generateTicks';
@@ -63,6 +63,26 @@ describe('withTemporaryDomain', () => {
         const p7 = scale.convert(lo + 7n);
         expect(p5).toBeLessThan(p6);
         expect(p6).toBeLessThan(p7);
+    });
+
+    // Tick generation swaps the domain in and out once per phase; rebuilding the bands each time is what
+    // made a million-point unit-time create allocate them repeatedly.
+    it('reuses the unit-time bands across repeated swaps from an empty scale domain', () => {
+        const scale = new UnitTimeScale();
+        scale.range = [0, 1000];
+        scale.interval = 'day';
+        const niceDomain = () => [new Date(2024, 0, 1), new Date(2024, 11, 31)];
+
+        let bands: readonly Date[] | undefined;
+        for (let i = 0; i < 3; i++) {
+            withTemporaryDomain(scale, niceDomain(), () => {
+                bands ??= scale.bands;
+                expect(scale.bands).toBe(bands);
+            });
+            expect(scale.domain).toEqual([]);
+        }
+
+        expect(bands).toHaveLength(366);
     });
 });
 
