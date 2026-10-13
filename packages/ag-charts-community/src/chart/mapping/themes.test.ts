@@ -271,6 +271,51 @@ describe('themes.ts', () => {
                 [expect.stringContaining('`theme.palette.fills` cannot be set to `{"$ref":"foregroundColor"}`')],
             ]);
         });
+
+        it('rejects theme operators in params, colour or not', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: {
+                    params: {
+                        accentColor: { $ref: 'foregroundColor' },
+                        buttonBorder: { color: { $ref: 'foregroundColor' } },
+                        fontFamily: { $ref: 'axisLabelFontFamily' },
+                        fontSize: { $ref: 'axisLabelFontSize' },
+                    },
+                } as unknown as AgChartTheme,
+            });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`theme.params.accentColor` cannot be set to `{"$ref":"foregroundColor"}`')],
+                [
+                    expect.stringContaining(
+                        '`theme.params.fontFamily` cannot be set to `{"$ref":"axisLabelFontFamily"}`'
+                    ),
+                ],
+                [expect.stringContaining('`theme.params.fontSize` cannot be set to `{"$ref":"axisLabelFontSize"}`')],
+                [
+                    expect.stringContaining(
+                        '`theme.params.buttonBorder.color` cannot be set to `{"$ref":"foregroundColor"}`'
+                    ),
+                ],
+            ]);
+        });
+
+        it('accepts a colour ref and a font family list in params', async () => {
+            const chart = AgCharts.create({
+                ...opts,
+                theme: {
+                    params: {
+                        accentColor: { ref: 'foregroundColor' },
+                        fontFamily: [{ googleFont: 'Roboto' }, 'sans-serif'],
+                    },
+                },
+            });
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+        });
     });
 
     describe('theme caching across repeat chart creates', () => {

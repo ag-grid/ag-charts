@@ -4851,6 +4851,33 @@ describe('ChartOptions', () => {
             expect((chartOptions.themeParameters as any).accentColor).toBeDefined();
         });
 
+        it('warns and uses the theme default for an operator in a theme param', () => {
+            const create = (accentColor?: unknown) =>
+                new ChartOptions(
+                    {
+                        data: [{ x: 'a', y: 1 }],
+                        series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                        axes: { x: { type: 'category' }, y: { type: 'number' } },
+                        theme: { params: { accentColor } },
+                    } as any,
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {}
+                );
+            const defaultAccentColor = (create().themeParameters as any).accentColor;
+            (console.warn as Mock).mockClear();
+
+            const chartOptions = create({ $ref: 'foregroundColor' });
+
+            const message = (console.warn as Mock).mock.calls
+                .map(([m]) => String(m))
+                .find((m) => m.includes('theme.params.accentColor'));
+            expect(message).toContain('Option `theme.params.accentColor`');
+            expect(message).toContain('ignoring.');
+            expect((chartOptions.themeParameters as any).accentColor).toEqual(defaultAccentColor);
+        });
+
         it('rejects an lch() color stop in colorScale.fills[].color', () => {
             ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.Enterprise);
             try {
