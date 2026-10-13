@@ -1492,15 +1492,14 @@ describe('PieSeries', () => {
         });
     });
 
-    test('colours rows past the theme override fills from the palette', async () => {
-        const paletteFills = ['#111111', '#222222', '#333333', '#444444'];
+    test('cycles theme override fills past their length', async () => {
         const overrideFills = ['red', 'green', 'blue'];
-        const data = Array.from({ length: 24 }, (_, index) => ({ food: `F${index}`, value: 10 + index }));
+        const data = Array.from({ length: 70 }, (_, index) => ({ food: `F${index}`, value: 10 + index }));
         chart = deproxy(
             AgCharts.create(
                 prepareTestOptions({
                     theme: {
-                        palette: { fills: paletteFills },
+                        palette: { fills: ['#111111', '#222222', '#333333', '#444444'] },
                         overrides: { pie: { series: { fills: overrideFills } } },
                     },
                     data,
@@ -1512,8 +1511,28 @@ describe('PieSeries', () => {
 
         const pieSeries = classCast(chart.series[0], PieSeries);
         expect((pieSeries.getNodeData() ?? []).map((datum) => datum.sectorFormat.fill)).toEqual(
-            data.map((_, i) => overrideFills[i] ?? paletteFills[i % paletteFills.length])
+            data.map((_, i) => overrideFills[i % overrideFills.length])
         );
+    });
+
+    test('sizes the cycled fills and strokes by the palettes each one reads', async () => {
+        const colours = (count: number) =>
+            Array.from({ length: count }, (_, index) => `#${index.toString(16).padStart(6, '0')}`);
+        chart = deproxy(
+            AgCharts.create(
+                prepareTestOptions({
+                    theme: { palette: { fills: colours(101), strokes: colours(103) } },
+                    data: [{ value: 1 }, { value: 2 }, { value: 3 }],
+                    series: [{ type: 'pie', angleKey: 'value' }],
+                })
+            )
+        );
+        await waitForChartStability(chart);
+
+        const { fills, strokes } = classCast(chart.series[0], PieSeries).options;
+        expect(strokes).toHaveLength(103);
+        expect(fills.length % 101).toBe(0);
+        expect(fills.length).toBeLessThan(101 * 103);
     });
 
     describe('applyTransaction', () => {

@@ -1026,25 +1026,22 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
-    const hasThemeOverride = graph.hasThemeOverride(pathArray);
+    const themeOverride = graph.dangerouslyGetThemeOverride(pathArray);
     const graftEdge = userOption == null ? undefined : USER_OPTIONS_EDGE;
 
-    const cycledValues = userOption ?? graph.resolveVertexValue(vertex, defaultValuesVertex);
+    const overrideValues = Array.isArray(themeOverride) ? themeOverride : undefined;
+    const cycledValues = userOption ?? overrideValues ?? graph.resolveVertexValue(vertex, defaultValuesVertex);
     if (!Array.isArray(cycledValues)) return;
 
+    // A theme override's own operation owns each value, which a grafted value would otherwise shadow.
+    const graftsValue = userOption != null || overrideValues != null || themeOverride == null;
     const operation = operationVertex == null ? undefined : graph.getVertexValue(operationVertex);
-    const themeOverride =
-        userOption == null && hasThemeOverride ? graph.dangerouslyGetThemeOverride(pathArray) : undefined;
-    const overrideLength = Array.isArray(themeOverride) ? Math.max(1, themeOverride.length) : 1;
-    const cycleSize = leastCommonMultiple(
-        leastCommonMultiple(Math.max(1, cycledValues.length), overrideLength),
-        indexedPalettesPeriod(graph)
-    );
+    const cycleSize = cyclePeriod(graph, Math.max(1, cycledValues.length), operation);
 
     for (let index = 0; index < cycleSize; index++) {
         const value = cycledValue(cycledValues, index);
         if (value == null) continue;
-        if (userOption || !hasThemeOverride) {
+        if (graftsValue) {
             graph.graftValue(vertex, `${index}`, value, undefined, graftEdge);
         }
         if (operation) {
@@ -1055,12 +1052,21 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     return RESOLVED_TO_BRANCH;
 }
 
-/** Shared by every cycle so a theme override and the default it overrides graft the same indices. */
-function indexedPalettesPeriod(graph: OptionsGraphInterface) {
-    const { fills, fillsFallback, strokes, sequentialColors } = graph.palette;
-    let period = 1;
-    for (const { length } of [fills, fillsFallback, strokes, sequentialColors]) {
-        period = leastCommonMultiple(period, Math.max(1, length));
+/** Per-item `$palette` lookups in the operation are indexed by item, so the period must be a multiple of each. */
+function cyclePeriod(graph: OptionsGraphInterface, period: number, operation: unknown): number {
+    if (isArray(operation)) {
+        for (const item of operation) {
+            period = cyclePeriod(graph, period, item);
+        }
+    } else if (isPlainObject(operation)) {
+        const paletteKey = operation[LocationOperation.Palette] ?? operation[LocationOperation.MapPalette];
+        const paletteArray = isString(paletteKey) ? indexedPaletteArray(graph, paletteKey) : undefined;
+        if (paletteArray?.length) {
+            return leastCommonMultiple(period, paletteArray.length);
+        }
+        for (const key of Object.keys(operation)) {
+            period = cyclePeriod(graph, period, operation[key]);
+        }
     }
     return period;
 }

@@ -215,6 +215,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     // supplied, allowing the operation to transform the user option.
     private static readonly TRANSFORM_USER_KEY_OPERATION_PAIRS: Record<string, string> = {
         padding: '$applyPadding',
+        fills: '$applyCycle',
+        strokes: '$applyCycle',
     };
 
     public readonly paletteType: PaletteType;
