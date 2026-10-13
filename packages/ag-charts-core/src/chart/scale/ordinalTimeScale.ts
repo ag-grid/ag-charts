@@ -14,6 +14,16 @@ import { getDateTicksForInterval } from './timeScale';
 
 const APPROXIMATE_THRESHOLD = 1000;
 
+/** Lazily built values derived from one domain array; dropped as a unit when the domain changes. */
+interface BandCache {
+    bands?: Date[];
+    numericBands?: number[];
+    uniformity?: UniformityCheck;
+    uniformityVisibleStart?: number;
+    uniformityVisibleEnd?: number;
+    uniformityVisible?: UniformityCheck;
+}
+
 export class OrdinalTimeScale extends DiscreteTimeScale {
     readonly type = 'ordinal-time';
     readonly defaultTickCount = ContinuousScale.defaultTickCount;
@@ -24,66 +34,90 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
     private _domain: Date[] = [];
     private isReversed: boolean = false;
-    private _uniformityCache: UniformityCheck | undefined;
-    private _uniformityCacheVisibleStart: number | undefined;
-    private _uniformityCacheVisibleEnd: number | undefined;
-    private _uniformityCacheVisible: UniformityCheck | undefined;
+    private _cache: BandCache = {};
+    /** The domain captured by `snapshotDomain`, with the caches built for it, until the matching `restoreDomain`. */
+    private _snapshot: { domain: Date[]; cache: BandCache } | undefined;
+    /**
+     * The temporary domain `restoreDomain` swapped out, with its caches. Tick generation sets that domain more
+     * than once and the axis then adopts it, so the next `domain` set reuses these rather than rebuilding them;
+     * any other set drops them, which bounds this to the gap between a restore and the next domain change.
+     */
+    private _kept: { domain: Date[]; cache: BandCache } | undefined;
 
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
 
+        const kept = this._kept;
+        this._kept = undefined;
         this.invalid = true;
         this._domain = domain;
-        this._bands = undefined;
-        this._numericBands = undefined;
-        this._uniformityCache = undefined;
-        this._uniformityCacheVisibleStart = undefined;
-        this._uniformityCacheVisibleEnd = undefined;
-        this._uniformityCacheVisible = undefined;
+        this._cache = kept?.domain === domain ? kept.cache : {};
         this.isReversed = domainReversed(domain);
     }
     override get domain(): Date[] {
         return this._domain;
     }
 
-    private _bands: Date[] | undefined;
-    get bands() {
-        this._bands ??= this.isReversed ? this.domain.slice().reverse() : this.domain;
-        return this._bands;
+    /**
+     * Tick generation swaps in a temporary domain and back. Carry the caches built for either domain through
+     * that round trip, rather than rebuilding them (one `Date` -> number pass per band) on each swap.
+     */
+    override snapshotDomain(): Date[] {
+        const domain = this._domain;
+        this._snapshot = { domain, cache: this._cache };
+        return domain;
     }
 
-    private _numericBands: number[] | undefined;
+    override restoreDomain(snapshot: Date[]): void {
+        const snapped = this._snapshot;
+        this._snapshot = undefined;
+        if (snapshot === this._domain) return;
+
+        const temporary = { domain: this._domain, cache: this._cache };
+        this.domain = snapshot;
+        if (snapped?.domain === snapshot) {
+            this._cache = snapped.cache;
+        }
+        this._kept = temporary;
+    }
+
+    get bands() {
+        this._cache.bands ??= this.isReversed ? this.domain.slice().reverse() : this.domain;
+        return this._cache.bands;
+    }
+
     protected override get numericBands(): number[] {
-        this._numericBands ??= this.bands.map((d) => d.valueOf());
-        return this._numericBands;
+        this._cache.numericBands ??= this.bands.map((d) => d.valueOf());
+        return this._cache.numericBands;
     }
 
     override getUniformityCache(visibleRange?: [number, number]): UniformityCheck | undefined {
         const { bands } = this;
+        const cache = this._cache;
         const n = bands.length;
 
         // For full range or no visible range, use cached whole-domain check
         if (!visibleRange || (visibleRange[0] === 0 && visibleRange[1] === 1)) {
-            if (n > APPROXIMATE_THRESHOLD && this._uniformityCache === undefined) {
-                this._uniformityCache = checkUniformityBySampling(bands);
+            if (n > APPROXIMATE_THRESHOLD && cache.uniformity === undefined) {
+                cache.uniformity = checkUniformityBySampling(bands);
             }
-            return this._uniformityCache;
+            return cache.uniformity;
         }
 
         // Partial-range result cached by (startIdx, endIdx) — per-datum render loops re-call with the same visibleRange.
         const startIdx = Math.floor(visibleRange[0] * n);
         const endIdx = Math.min(Math.ceil(visibleRange[1] * n), n - 1);
         if (
-            this._uniformityCacheVisible !== undefined &&
-            this._uniformityCacheVisibleStart === startIdx &&
-            this._uniformityCacheVisibleEnd === endIdx
+            cache.uniformityVisible !== undefined &&
+            cache.uniformityVisibleStart === startIdx &&
+            cache.uniformityVisibleEnd === endIdx
         ) {
-            return this._uniformityCacheVisible;
+            return cache.uniformityVisible;
         }
         const result = checkUniformityBySampling(bands, startIdx, endIdx);
-        this._uniformityCacheVisibleStart = startIdx;
-        this._uniformityCacheVisibleEnd = endIdx;
-        this._uniformityCacheVisible = result;
+        cache.uniformityVisibleStart = startIdx;
+        cache.uniformityVisibleEnd = endIdx;
+        cache.uniformityVisible = result;
         return result;
     }
 

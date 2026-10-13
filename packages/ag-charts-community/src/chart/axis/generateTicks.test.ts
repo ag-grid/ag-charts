@@ -66,6 +66,28 @@ describe('withTemporaryDomain', () => {
     });
 });
 
+// Tick generation narrows an ordinal-time scale to the nice domain and back; rebuilding the original's
+// band arrays on every restore costs one Date -> number pass per band on large domains.
+describe('withTemporaryDomain on an ordinal-time scale', () => {
+    it('keeps the band caches of the original domain', () => {
+        const domain = Array.from({ length: 5000 }, (_, i) => new Date(2023, 0, 1, 0, i));
+        const scale = new OrdinalTimeScale();
+        scale.domain = domain;
+        scale.range = [0, 1000];
+
+        const { bands } = scale;
+        const numericBands = (scale as any).numericBands as number[];
+
+        withTemporaryDomain(scale, domain.slice(100, 200), () => {
+            expect(scale.bands).toHaveLength(100);
+        });
+
+        expect(scale.domain).toBe(domain);
+        expect(scale.bands).toBe(bands);
+        expect((scale as any).numericBands).toBe(numericBands);
+    });
+});
+
 // The band flush is measured off the label nodes, which carry the rotation the axis renders with,
 // while `createLabelData` compares in a frame that adds `defaultRotation` - so handing the callback
 // the latter measures a layout a quarter turn from the one that will be applied.
