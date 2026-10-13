@@ -367,7 +367,7 @@ describe('DataSource', () => {
 
             const itExpected = axisType === 'ordinal-time' ? it.fails : it;
 
-            itExpected('requests data once per zoom step', async () => {
+            it('requests data once per zoom step', async () => {
                 await prepareZoomableChart();
 
                 const issued = await zoomIn(1);
