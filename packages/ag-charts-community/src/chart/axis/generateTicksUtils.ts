@@ -348,7 +348,7 @@ function labelFitWrapOptions(
 
 /**
  * Re-fits auto-rotated labels onto one line so their rotated extent stays within the label room.
- * Only ever shortens text, so it cannot introduce new collisions.
+ * A re-fitted label is never taller than before, so rotated neighbours that were clear stay clear.
  */
 export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S>>, D>(
     options: GenerateTicksOptions<S, D>,
@@ -379,8 +379,9 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
         if (textMetrics.width <= widthBudget(textMetrics.height) && textMetrics.height <= maxHeight) continue;
 
         const source = tick.fitSource ?? tickLabel;
+        const heightLimit = Math.min(maxHeight, textMetrics.height);
         const fit = (maxWidth: number) => {
-            const wrapOptions = labelWrapOptions(label, maxWidth, maxHeight, labelFitOverflow(label), 'never');
+            const wrapOptions = labelWrapOptions(label, maxWidth, heightLimit, labelFitOverflow(label), 'never');
             const fitted = wrapTextOrSegments(source, wrapOptions);
             // `textWrap: 'never'` does not apply maxHeight to explicit line breaks.
             return isArray(fitted) ? fitted : clipLines(fitted.split('\n'), measurer, wrapOptions).join('\n');
