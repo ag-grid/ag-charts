@@ -376,6 +376,14 @@ describe('DataSource', () => {
                 expect(issued.map((request) => request.source)).toEqual(['user-interaction']);
             });
 
+            it('only requests data for the zoom itself across several zoom steps', async () => {
+                await prepareZoomableChart();
+
+                const issued = await zoomIn(6);
+
+                expect(issued.map((request) => request.source)).toEqual(Array(6).fill('user-interaction'));
+            });
+
             it('keeps the navigator range proportional to the visible time', async () => {
                 await prepareZoomableChart();
                 await zoomIn(3);
@@ -384,6 +392,15 @@ describe('DataSource', () => {
                 const { _min: min, _max: max } = deproxy(chart).modulesManager.getModule<any>('navigator').domProxy;
 
                 expect(max - min).toBeCloseTo((end - start) / (dataEnd - dataStart), 1);
+            });
+
+            it('only requests data for the pan itself when panning left', async () => {
+                await prepareZoomableChart();
+                await zoomIn(3);
+
+                const issued = await settleAfter(() => dragAction({ x: cx, y: cy }, { x: cx + cx / 4, y: cy })(chart));
+
+                expect(issued.map((request) => request.source)).toEqual(['user-interaction']);
             });
 
             itExpected('moves the visible window earlier, without resizing it, when panning left', async () => {
