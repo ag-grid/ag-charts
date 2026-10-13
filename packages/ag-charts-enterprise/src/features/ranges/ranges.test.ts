@@ -373,7 +373,7 @@ describe('Ranges', () => {
             expect(textColor).toBe(expected);
         });
 
-        it('disabled button background derives from buttonBackgroundColor, as the disabled text does', async () => {
+        it('disabled button background derives from buttonBackgroundColor rather than chromeBackgroundColor', async () => {
             const { fill } = (await resolvedRanges({ buttonBackgroundColor: 'red', chromeBackgroundColor: 'blue' }))
                 .button.disabled;
             chart.destroy();
