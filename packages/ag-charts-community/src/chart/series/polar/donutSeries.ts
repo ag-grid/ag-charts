@@ -37,6 +37,7 @@ import {
     cachedTextMeasurer,
     canRenderTextOffscreen,
     clockwiseAngles,
+    cycledValue,
     extractDomain,
     findLargestFontSizeDescending,
     fitLabelTextAutoSize,
@@ -984,7 +985,9 @@ export class DonutSeries extends PolarSeries<
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues);
         const selectionStyle = withSelection ? this.getSelectionStyle(datumIndex) : undefined;
-        const defaultStyle = { fill: fills[datumIndex], stroke: strokes[datumIndex], ...this.getSeriesStyle() };
+        const fillIndex = datumIndex % fills.length;
+        const strokeIndex = datumIndex % strokes.length;
+        const defaultStyle = { fill: fills[fillIndex], stroke: strokes[strokeIndex], ...this.getSeriesStyle() };
 
         const {
             fill,
@@ -1016,7 +1019,7 @@ export class DonutSeries extends PolarSeries<
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
                         this.callWithContext(itemStyler, params),
-                        { proxyPaths: { fill: ['fills', `${datumIndex}`], stroke: ['strokes', `${datumIndex}`] } }
+                        { proxyPaths: { fill: ['fills', `${fillIndex}`], stroke: ['strokes', `${strokeIndex}`] } }
                     );
                 }
             );
@@ -1489,7 +1492,7 @@ export class DonutSeries extends PolarSeries<
             if (label?.text != null && label.text !== '' && !label.hidden && outerRadius !== 0) {
                 line.visible = true;
                 line.strokeWidth = calloutStrokeWidth;
-                line.stroke = color ?? calloutColors[datumIndex % calloutColors.length];
+                line.stroke = color ?? cycledValue(calloutColors, datumIndex);
                 line.strokeOpacity =
                     this.getHighlightStyle(isDatumHighlighted, datum.datumIndex, undefined, legendItemValues).opacity ??
                     1;

@@ -78,13 +78,12 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
         },
         fills: {
             $applyCycle: [
-                { $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } },
                 { $palette: 'fills' },
                 cycledFillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS),
             ],
         },
         strokes: {
-            $applyCycle: [{ $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } }, { $palette: 'strokes' }],
+            $applyCycle: [{ $palette: 'strokes' }],
         },
         fillOpacity: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,

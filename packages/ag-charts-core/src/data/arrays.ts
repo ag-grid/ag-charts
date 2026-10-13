@@ -84,6 +84,11 @@ export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] 
     return result;
 }
 
+/** The item at `index` of a repeating cycle of `values`. */
+export function cycledValue<T>(values: readonly T[], index: number): T {
+    return values[index % values.length];
+}
+
 /**
  * Sorts a base array according to the order defined in a reference array.
  * @param baseArray - The array to sort.

@@ -215,14 +215,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     // supplied, allowing the operation to transform the user option.
     private static readonly TRANSFORM_USER_KEY_OPERATION_PAIRS: Record<string, string> = {
         padding: '$applyPadding',
+        fills: '$applyCycle',
+        strokes: '$applyCycle',
     };
-
-    // A cache of values that persists between chart updates, use sparingly.
-    private static readonly valueCache = new Map();
-
-    public static clearValueCache() {
-        OptionsGraph.valueCache.clear();
-    }
 
     public readonly paletteType: PaletteType;
 
@@ -682,16 +677,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
     getResolvedPath(path: Array<string>) {
         return getPathSafe(this.resolved!, path);
-    }
-
-    getCachedValue(path: string[], key: string): unknown {
-        const cacheKey = [...path, key].join('.');
-        return OptionsGraph.valueCache.get(cacheKey);
-    }
-
-    setCachedValue(path: string[], key: string, value: unknown): void {
-        const cacheKey = [...path, key].join('.');
-        OptionsGraph.valueCache.set(cacheKey, value);
     }
 
     setResolveFresh(fresh: boolean) {

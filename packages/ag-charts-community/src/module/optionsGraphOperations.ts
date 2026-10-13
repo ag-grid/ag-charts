@@ -5,6 +5,7 @@ import {
     type PlainObject,
     circularSliceArray,
     clamp,
+    cycledValue,
     isArray,
     isBoolean,
     isDate,
@@ -37,7 +38,6 @@ import {
 } from './optionsGraphUtils';
 
 export type Operation =
-    | CacheOperation
     | ChartOperation
     | ColorOperation
     | FontOperation
@@ -154,36 +154,6 @@ function getOperationTargetVertex(graph: OptionsGraphInterface, vertex: VertexIn
         case TransformOperation.Value:
             return vertex;
     }
-}
-
-// --- CACHE ---
-
-enum CacheOperation {
-    CacheMax = '$cacheMax',
-}
-
-const cacheOperations: Record<CacheOperation, OperationFns> = {
-    $cacheMax: cacheMaxOperation,
-};
-
-function cacheMaxOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [valueVertex] = values;
-
-    const pathArray = graph.getPathArray(vertex);
-    const cached = graph.getCachedValue(pathArray, CacheOperation.CacheMax);
-
-    const value = graph.resolveVertexValue(vertex, valueVertex);
-    if (typeof value !== 'number') return cached;
-
-    if (typeof cached !== 'number') {
-        graph.setCachedValue(pathArray, CacheOperation.CacheMax, value);
-        return value;
-    }
-
-    const maxValue = Math.max(cached, value);
-    graph.setCachedValue(pathArray, CacheOperation.CacheMax, maxValue);
-
-    return maxValue;
 }
 
 // --- CHART ---
@@ -768,7 +738,20 @@ function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface
     return !infersEnablement && graph.hasThemeOverride(path);
 }
 
-const PALETTE_INDEX_KEYS = new Set(['fill', 'fillFallback', 'stroke', 'gradient', 'range2']);
+/** The palette array a per-item `$palette`/`$mapPalette` key reads at the item's index. */
+function indexedPaletteArray(graph: OptionsGraphInterface, key: string) {
+    switch (key) {
+        case 'fill':
+        case 'range2':
+            return graph.palette.fills;
+        case 'fillFallback':
+            return graph.palette.fillsFallback;
+        case 'stroke':
+            return graph.palette.strokes;
+        case 'gradient':
+            return graph.palette.sequentialColors;
+    }
+}
 
 function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [keyVertex] = values;
@@ -776,26 +759,16 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
 
     if (!isString(key)) return;
 
-    if (PALETTE_INDEX_KEYS.has(key)) {
+    const paletteArray = indexedPaletteArray(graph, key);
+    if (paletteArray) {
         const pathArray = graph.getPathArray(vertex);
         const index = getPathLastIndex(pathArray);
 
         if (Number.isNaN(index)) return;
 
-        switch (key) {
-            case 'fill':
-                return circularSliceArray(graph.palette.fills, 1, index)[0];
-            case 'fillFallback':
-                return circularSliceArray(graph.palette.fillsFallback, 1, index)[0];
-            case 'stroke':
-                return circularSliceArray(graph.palette.strokes, 1, index)[0];
-            case 'gradient':
-                return circularSliceArray(graph.palette.sequentialColors, 1, index)[0];
-            case 'range2':
-                return circularSliceArray(graph.palette.fills, 2, index);
-        }
-
-        return;
+        return key === 'range2'
+            ? circularSliceArray(paletteArray, 2, index)
+            : circularSliceArray(paletteArray, 1, index)[0];
     }
 
     if (key === 'gradients') {
@@ -819,7 +792,8 @@ function mapPaletteOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     const key = graph.resolveVertexValue(vertex, keyVertex);
 
     if (!isString(key)) return;
-    if (PALETTE_INDEX_KEYS.has(key)) {
+    const paletteArray = indexedPaletteArray(graph, key);
+    if (paletteArray) {
         const pathArray = graph.getPathArray(vertex);
         let index = getPathLastIndex(pathArray);
 
@@ -836,20 +810,9 @@ function mapPaletteOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
 
         if (Number.isNaN(index)) return;
 
-        switch (key) {
-            case 'fill':
-                return circularSliceArray(graph.palette.fills, 1, index)[0];
-            case 'fillFallback':
-                return circularSliceArray(graph.palette.fillsFallback, 1, index)[0];
-            case 'stroke':
-                return circularSliceArray(graph.palette.strokes, 1, index)[0];
-            case 'gradient':
-                return circularSliceArray(graph.palette.sequentialColors, 1, index)[0];
-            case 'range2':
-                return circularSliceArray(graph.palette.fills, 2, index);
-        }
-
-        return;
+        return key === 'range2'
+            ? circularSliceArray(paletteArray, 2, index)
+            : circularSliceArray(paletteArray, 1, index)[0];
     }
 
     if (key === 'gradients') {
@@ -1059,25 +1022,26 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 }
 
 function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [sizeVertex, defaultValuesVertex, operationVertex] = values;
-
-    const size = graph.resolveVertexValue(vertex, sizeVertex);
-    if (typeof size !== 'number') return;
+    const [defaultValuesVertex, operationVertex] = values;
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
-    const hasThemeOverride = graph.hasThemeOverride(pathArray);
+    const themeOverride = graph.dangerouslyGetThemeOverride(pathArray);
     const graftEdge = userOption == null ? undefined : USER_OPTIONS_EDGE;
 
-    const cycledValues = userOption ?? graph.resolveVertexValue(vertex, defaultValuesVertex);
+    const overrideValues = Array.isArray(themeOverride) ? themeOverride : undefined;
+    const cycledValues = userOption ?? overrideValues ?? graph.resolveVertexValue(vertex, defaultValuesVertex);
     if (!Array.isArray(cycledValues)) return;
 
+    // A theme override's own operation owns each value, which a grafted value would otherwise shadow.
+    const graftsValue = userOption != null || overrideValues != null || themeOverride == null;
     const operation = operationVertex == null ? undefined : graph.getVertexValue(operationVertex);
+    const cycleSize = cyclePeriod(graph, Math.max(1, cycledValues.length), operation);
 
-    for (let index = 0; index < size; index++) {
-        const value = cycledValues[index % cycledValues.length];
+    for (let index = 0; index < cycleSize; index++) {
+        const value = cycledValue(cycledValues, index);
         if (value == null) continue;
-        if (userOption || !hasThemeOverride) {
+        if (graftsValue) {
             graph.graftValue(vertex, `${index}`, value, undefined, graftEdge);
         }
         if (operation) {
@@ -1086,6 +1050,34 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     }
 
     return RESOLVED_TO_BRANCH;
+}
+
+/** Per-item `$palette` lookups in the operation are indexed by item, so the period must be a multiple of each. */
+function cyclePeriod(graph: OptionsGraphInterface, period: number, operation: unknown): number {
+    if (isArray(operation)) {
+        for (const item of operation) {
+            period = cyclePeriod(graph, period, item);
+        }
+    } else if (isPlainObject(operation)) {
+        const paletteKey = operation[LocationOperation.Palette] ?? operation[LocationOperation.MapPalette];
+        const paletteArray = isString(paletteKey) ? indexedPaletteArray(graph, paletteKey) : undefined;
+        if (paletteArray?.length) {
+            return leastCommonMultiple(period, paletteArray.length);
+        }
+        for (const key of Object.keys(operation)) {
+            period = cyclePeriod(graph, period, operation[key]);
+        }
+    }
+    return period;
+}
+
+function leastCommonMultiple(a: number, b: number) {
+    let x = a;
+    let y = b;
+    while (y !== 0) {
+        [x, y] = [y, x % y];
+    }
+    return (a / x) * b;
 }
 
 function withoutIndices(pathArray: Array<string>) {
@@ -1389,7 +1381,6 @@ function multiplyOperation(graph: OptionsGraphInterface, vertex: VertexInterface
 // --- EXPORTS ---
 
 export const operations: Record<Operation, OperationFns> = {
-    ...cacheOperations,
     ...chartOperations,
     ...colorOperations,
     ...fontOperations,
