@@ -698,14 +698,20 @@ let candidateFontSize: number | undefined;
 let candidateTrialFontSize: number | undefined;
 // The candidate font at the trial size, refilled per candidate while a trial is running.
 const trialFont: FontOptions = { fontSize: 0 };
+// Largest size the current label's candidates resolved to outside a trial, where its shrink search starts.
+let candidateLargestFontSize = 0;
 
 /**
  * `font` resized to the size the collision-shrink search is trialling, or `font` itself outside a trial.
- * The ladder runs from the configured size, so a trial above a size an `itemStyler` resolved lower is
- * clamped back to it; only the size is overridden, keeping the family and weight the styler chose.
+ * A trial above a size an `itemStyler` resolved lower is clamped back to it; only the size is overridden,
+ * keeping the family and weight the styler chose.
  */
 function candidateFontAt(font: FontOptions): FontOptions {
-    if (candidateTrialFontSize == null || candidateTrialFontSize >= font.fontSize) return font;
+    if (candidateTrialFontSize == null) {
+        candidateLargestFontSize = Math.max(candidateLargestFontSize, font.fontSize);
+        return font;
+    }
+    if (candidateTrialFontSize >= font.fontSize) return font;
     trialFont.fontSize = candidateTrialFontSize;
     trialFont.fontStyle = font.fontStyle;
     trialFont.fontWeight = font.fontWeight;
@@ -2235,7 +2241,7 @@ function shrinkToClear(d: PointLabelDatum, pass: () => PlacedLabel | undefined):
     const { fit } = d;
     const minimumFontSize = fit?.policy.minimumFontSize;
     if (fit == null || minimumFontSize == null) return undefined;
-    const { fontSize } = fit.font;
+    const fontSize = candidateLargestFontSize > 0 ? candidateLargestFontSize : fit.font.fontSize;
     const floor = resolveMinimumFontSize(minimumFontSize, fontSize);
     if (floor >= fontSize) return undefined;
 
@@ -2293,6 +2299,7 @@ function placeAvoidingLabel(
     cascadeMeasurer = fit == null ? undefined : cachedTextMeasurer(fit.font);
     cascadeDatum = d;
     cascadeIndex = index;
+    candidateLargestFontSize = 0;
     cascadePlacements = placements;
     cascadeOrientations = orientationsOf(d);
     cascadeSingleOrientation = singleOrientationOf(d);
@@ -2376,6 +2383,7 @@ function placeFromPositionedCandidates(
     styledSourceFont = '';
     positionedDatum = d;
     positionedIndex = index;
+    candidateLargestFontSize = 0;
     positionedBounds = bounds;
     positionedResolve = resolveCandidate;
     positionedBlocked = false;

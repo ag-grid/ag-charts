@@ -31,6 +31,7 @@ import {
     type OrientationAnchor,
     type PlacedLabel,
     type PointLabelDatum,
+    type PositionedCandidateResolver,
     type PositionedLabelCandidate,
     type SeriesLabelDefaults,
     type SeriesLabels,
@@ -2755,6 +2756,69 @@ describe('placeLabels collision shrink', () => {
             const [placed] = place([datum], [wide]);
             expect(placed.fontSize).toBeUndefined();
             expect(placed.width).toBe(50);
+        });
+    });
+
+    describe('when the itemStyler resolves a larger font', () => {
+        // 'WWWWW' centred on x=200 measures 100px at 24px, so it clears an obstacle ending at x=157 from 20px
+        // down (83.3px wide, left edge 158.3) but not at 21px (87.5px wide, left edge 156.25).
+        const blocker: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 100, y: 180, width: 57, height: 20 },
+            category: 'label',
+        };
+        const STYLED = { ...FONT, fontSize: 24 };
+        const datum = () =>
+            shrinkable(200, {
+                fit: {
+                    text: TEXT,
+                    policy: { minimumFontSize: 8 },
+                    font: FONT,
+                    boxPadding: NO_PADDING,
+                    boundByRegion: false,
+                },
+            });
+
+        it('compass path: shrinks from the styled size to the largest that clears', () => {
+            const resolveCandidateStyle: CandidateStyleResolver = () => ({ font: STYLED, boxPadding: NO_PADDING });
+            const [placed] = placeLabels(new Map([['s', { datums: [datum()], resolveCandidateStyle }]]), bounds, 0, [
+                blocker,
+            ]).get('s')!;
+            expect(placed.fontSize).toBe(20);
+        });
+
+        it('control: unblocked styled labels draw at the styled size', () => {
+            const resolveCandidateStyle: CandidateStyleResolver = () => ({ font: STYLED, boxPadding: NO_PADDING });
+            const [placed] = placeLabels(new Map([['s', { datums: [datum()], resolveCandidateStyle }]]), bounds, 0).get(
+                's'
+            )!;
+            expect(placed.width).toBe(100);
+        });
+
+        it('positioned path: shrinks from the styled size to the largest that clears', () => {
+            const anchor: OrientationAnchor = { x: 200, y: 190, textAlign: 'center', textBaseline: 'middle' };
+            const padding = NO_PADDING;
+            const d = buildBarPositionedLabelDatum(
+                TEXT,
+                50,
+                20,
+                [{ box: { x: 175, y: 180, width: 50, height: 20 }, fitTo: { anchor, padding } }],
+                { rotation: 0 },
+                { x: 0, y: 300, width: 10, height: 10 },
+                false,
+                {},
+                0,
+                false,
+                { text: TEXT, policy: { minimumFontSize: 8 }, font: FONT, boxPadding: NO_PADDING }
+            );
+            const resolveCandidate: PositionedCandidateResolver = (_d, c) => ({
+                ...c,
+                fitTo: { ...c.fitTo!, font: STYLED },
+            });
+            const [placed] = placeLabels(new Map([['s', { datums: [d], resolveCandidate }]]), bounds, 0, [blocker]).get(
+                's'
+            )!;
+            expect(placed.fontSize).toBe(20);
         });
     });
 
