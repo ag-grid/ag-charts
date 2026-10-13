@@ -55,15 +55,19 @@ export function getInnerRectSize(rotationDeg: number, containerWidth: number, co
     const W = containerWidth;
     const H = containerHeight;
 
+    const angle = (rotationDeg % 180) * (Math.PI / 180);
+    const sin = Math.abs(Math.sin(angle));
+    const cos = Math.abs(Math.cos(angle));
+    // Snap quarter-turns, where floating point leaves a residue such as cos(π/2) ≈ 6e-17.
+    if (sin < 1e-10) return { width: W, height: H };
+    if (cos < 1e-10) return { width: H, height: W };
+
     // A box with an infinite width has the same answer as the box turned a quarter-turn.
     if (!Number.isFinite(W)) return getMaxInnerRectSize(rotationDeg + 90, H, W);
     if (!Number.isFinite(H)) return getMaxInnerRectSize(rotationDeg, W, H);
 
-    const angle = (rotationDeg % 180) * (Math.PI / 180);
-    const sin = Math.abs(Math.sin(angle));
-    const cos = Math.abs(Math.cos(angle));
     const short = Math.min(W, H);
-    if (sin === 0 || cos === 0 || short > 2 * sin * cos * Math.max(W, H)) {
+    if (short > 2 * sin * cos * Math.max(W, H)) {
         return getMaxInnerRectSize(rotationDeg, W, H);
     }
 

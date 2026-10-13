@@ -363,6 +363,31 @@ describe('AG-18833 rotated label fitting', () => {
         }
     );
 
+    it.each([90, 270, -90])('inner rect at %d° in a box with one infinite side keeps the finite side', (rotation) => {
+        expect(getInnerRectSize(rotation, 20, Infinity)).toEqual({ width: Infinity, height: 20 });
+        expect(getInnerRectSize(rotation, Infinity, 20)).toEqual({ width: 20, height: Infinity });
+    });
+
+    it.each([90, 270])('keeps the labels of a vertical number axis rotated %d° in a tight label room', (rotation) => {
+        const domain = [0, 50, 100];
+        const labelRoom = 20;
+        const options = {
+            scale: numberScale(domain),
+            label: { ...font, rotation, maxWidth: 200 },
+            isVertical: true,
+            labelRoom,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain as any));
+
+        expect(ticks).toHaveLength(3);
+        for (const { tickLabel, textMetrics } of ticks) {
+            expect(tickLabel).not.toBe('');
+            expect(textMetrics.height).toBeLessThanOrEqual(labelRoom);
+        }
+    });
+
     it('hides the labels of a vertical axis with no label room left', () => {
         const domain = [0, 50, 100];
         const options = {
