@@ -1,38 +1,9 @@
 // @ag-skip-fws
-import {
-    AgCartesianChartOptions,
-    AgCharts,
-    AnimationModule,
-    ContextMenuModule,
-    CrosshairModule,
-    DataSourceModule,
-    LegendModule,
-    LineSeriesModule,
-    ModuleRegistry,
-    NavigatorModule,
-    NumberAxisModule,
-    OrdinalTimeAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
-    ZoomModule,
-} from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 
 import { FakeServer } from './fakeServer';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    ContextMenuModule,
-    CrosshairModule,
-    DataSourceModule,
-    LegendModule,
-    LineSeriesModule,
-    NavigatorModule,
-    NumberAxisModule,
-    OrdinalTimeAxisModule,
-    TimeAxisModule,
-    UnitTimeAxisModule,
-    ZoomModule,
-]);
+ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 type AxisType = 'ordinal-time' | 'unit-time' | 'time';
 type XAxisOptions = NonNullable<NonNullable<AgCartesianChartOptions['axes']>['x']>;
