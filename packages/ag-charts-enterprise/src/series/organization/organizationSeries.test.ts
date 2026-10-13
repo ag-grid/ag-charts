@@ -1010,6 +1010,12 @@ describe('OrganizationSeries', () => {
         await compareImageSnapshot(chart, ctx, options);
     };
 
+    async function createChart(options: AgChartOptions): Promise<void> {
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+    }
+
     function getZoomRatios(c: any) {
         return c.getState()?.zoom as
             { ratioX?: { start?: number; end?: number }; ratioY?: { start?: number; end?: number } } | undefined;
@@ -1617,12 +1623,6 @@ describe('OrganizationSeries', () => {
                 },
             ],
         });
-
-        async function createChart(options: AgChartOptions): Promise<void> {
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-        }
 
         async function setActive(itemId: string | number | undefined): Promise<void> {
             await chart.setState({
@@ -3552,14 +3552,6 @@ describe('OrganizationSeries', () => {
     // Expanding or collapsing reflows the tree around the interacted node, which without any
     // correction moves that node — far enough, on this data, to carry it clean out of the viewport.
     describe('AG-17206 keep the interacted node fully visible', () => {
-        async function createChart() {
-            const options: AgChartOptions = { ...TEAM_DIRECTORY_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-        }
-
         // Holds the window size and moves only the midpoint, as a drag does: a request that also
         // resizes the window is refused outright while the chart sits at a zoom limit.
         async function panToOrigin() {
@@ -3576,7 +3568,7 @@ describe('OrganizationSeries', () => {
         it('should fit and centre the chart when a collapse leaves the held view unreachable', async () => {
             // Collapsing the CTO shrinks the content past the view it was being held at, so the node
             // cannot stay where it was; the whole chart is shown rather than a clipped part of it.
-            await createChart();
+            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
             await clickItem('Joseph Howe', OrganizationNodeTag.Expander);
             // Guards the snapshot against a click that missed the expander entirely.
@@ -3586,7 +3578,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should hold a node in place when expanding would clip it', async () => {
-            await createChart();
+            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
             setZoom(chart, 0.3, 0.7, 0.3, 0.7);
             await waitForChartStability(chart);
             await panToOrigin();
@@ -3600,7 +3592,7 @@ describe('OrganizationSeries', () => {
         it('should fit and centre the chart when a collapse raises the content-fits floor', async () => {
             // The node's centre could still be held here, but only by rescaling the chart around it and
             // leaving the rest of the tree hanging off the edge of the series area; showing all of it wins.
-            await createChart();
+            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
             await clickItem('Gary Garcia', OrganizationNodeTag.Expander);
             // Guards the snapshot against a click that missed the expander entirely.
@@ -3613,13 +3605,201 @@ describe('OrganizationSeries', () => {
             // Expanding then collapsing the same node returns the content to the bounds it started at,
             // so nothing forces the view to move: the baseline here is the chart's opening view,
             // unchanged. A fallback that fired when it was not needed would re-centre and show up.
-            await createChart();
+            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
             await clickItem('Jeffrey Brown', OrganizationNodeTag.Expander);
             expect(deproxy(chart).ctx.collapsedManager.isCollapsed('Jeffrey Brown')).toBe(false);
 
             await clickItem('Jeffrey Brown', OrganizationNodeTag.Expander);
             expect(deproxy(chart).ctx.collapsedManager.isCollapsed('Jeffrey Brown')).toBe(true);
+
+            await compare();
+        });
+    });
+
+    // An options or state change, or a resize of the series area, shows the whole chart fitted and centred,
+    // wherever the view had been panned to; an interaction holds the interacted node in place instead.
+    describe('re-fit and centre on update', () => {
+        // The content's edges projected into the series area, with the zoom window that produced them.
+        function getView(c: any) {
+            const series = deproxy(c).series[0] as any;
+            const { viewportGroup } = series;
+            const contentBBox = series.layout.getContentBBox();
+            const round = (n: number) => Math.round(n * 100) / 100;
+
+            return {
+                scale: round(viewportGroup.scalingX),
+                left: round(contentBBox.x * viewportGroup.scalingX + viewportGroup.translationX),
+                right: round((contentBBox.x + contentBBox.width) * viewportGroup.scalingX + viewportGroup.translationX),
+                top: round(contentBBox.y * viewportGroup.scalingY + viewportGroup.translationY),
+                bottom: round(
+                    (contentBBox.y + contentBBox.height) * viewportGroup.scalingY + viewportGroup.translationY
+                ),
+                zoom: getZoomRatios(c),
+            };
+        }
+
+        // Reads the view of a second chart; the mock canvas only snapshots the first chart a test creates.
+        async function getFreshView(options: AgChartOptions) {
+            prepareEnterpriseTestOptions(options);
+            const fresh = AgCharts.create(options);
+            await waitForChartStability(fresh);
+            const view = getView(fresh);
+            fresh.destroy();
+            return view;
+        }
+
+        function getOrganizationSeries(base: AgChartOptions): AgOrganizationSeriesOptions {
+            const series = base.series?.[0];
+            if (series?.type !== 'organization') throw new Error('Expected an organization series');
+            return series;
+        }
+
+        function withSeries(base: AgChartOptions, change: Partial<AgOrganizationSeriesOptions>): AgChartOptions {
+            return { ...base, series: [{ ...getOrganizationSeries(base), ...change }] };
+        }
+
+        const NODE = getOrganizationSeries(SIMPLE_ORG_CHART).node!;
+
+        const OPTION_CHANGES: [string, Partial<AgOrganizationSeriesOptions>][] = [
+            ['node.labels removed', { node: { ...NODE, labels: [] } }],
+            ['node.title.fontSize', { node: { ...NODE, title: { ...NODE.title, fontSize: 30 } } }],
+            ['node.subtitle.enabled', { node: { ...NODE, subtitle: { ...NODE.subtitle, enabled: false } } }],
+            ['depthSpacing', { depthSpacing: 200 }],
+            ['a change that does not move the layout (node.fill)', { node: { ...NODE, fill: '#fff1e5' } }],
+        ];
+
+        it.each(OPTION_CHANGES)('should fit and centre the chart when %s changes', async (_name, change) => {
+            await createChart({ ...SIMPLE_ORG_CHART });
+
+            const target = withSeries(SIMPLE_ORG_CHART, change);
+            prepareEnterpriseTestOptions(target);
+            await chart.update(target);
+            await waitForChartStability(chart);
+
+            await compare();
+            expect(getView(chart)).toEqual(await getFreshView(withSeries(SIMPLE_ORG_CHART, change)));
+        });
+
+        it('should fit and centre the chart when its data changes', async () => {
+            await createChart({ ...SIMPLE_ORG_CHART });
+
+            const data = SIMPLE_ORG_CHART.data!.slice(0, 4);
+            await chart.updateDelta({ data });
+            await waitForChartStability(chart);
+
+            await compare();
+            expect(getView(chart)).toEqual(await getFreshView({ ...SIMPLE_ORG_CHART, data }));
+        });
+
+        it('should fit and centre the chart when a chart-level option moves the series area', async () => {
+            await createChart({ ...SIMPLE_ORG_CHART });
+
+            const target: AgChartOptions = { ...SIMPLE_ORG_CHART, title: { text: 'Leadership team' } };
+            prepareEnterpriseTestOptions(target);
+            await chart.update(target);
+            await waitForChartStability(chart);
+
+            await compare();
+            expect(getView(chart)).toEqual(
+                await getFreshView({ ...SIMPLE_ORG_CHART, title: { text: 'Leadership team' } })
+            );
+        });
+
+        // Grows rather than shrinks: the mock canvas only clears the new, smaller area, so a shrink leaves the
+        // old frame's pixels behind in the snapshot.
+        it('should fit and centre the chart when the chart is resized', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+            Object.assign(options, { width: 560, height: 420 });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await chart.update({ ...chart.getOptions(), width: 800, height: 600 });
+            await waitForChartStability(chart);
+
+            await compare();
+            expect(getView(chart)).toEqual(await getFreshView({ ...SIMPLE_ORG_CHART }));
+        });
+
+        it('should discard a pan when the options change', async () => {
+            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+
+            const ratios = getZoomRatios(chart);
+            const xSize = (ratios?.ratioX?.end ?? 0) - (ratios?.ratioX?.start ?? 0);
+            const ySize = (ratios?.ratioY?.end ?? 0) - (ratios?.ratioY?.start ?? 0);
+            setZoom(chart, 0, xSize, 0, ySize);
+            await waitForChartStability(chart);
+
+            const panned = getView(chart);
+            const change = { node: { ...getOrganizationSeries(TEAM_DIRECTORY_ORG_CHART).node, fill: '#fff1e5' } };
+            const target = withSeries(TEAM_DIRECTORY_ORG_CHART, change);
+            prepareEnterpriseTestOptions(target);
+            await chart.update(target);
+            await waitForChartStability(chart);
+
+            await compare();
+            const refitted = getView(chart);
+            expect(refitted.zoom).not.toEqual(panned.zoom);
+            expect(refitted).toEqual(await getFreshView(withSeries(TEAM_DIRECTORY_ORG_CHART, change)));
+        });
+
+        it('should fit and centre the chart when the collapsed state is set', async () => {
+            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+
+            const ratios = getZoomRatios(chart);
+            const xSize = (ratios?.ratioX?.end ?? 0) - (ratios?.ratioX?.start ?? 0);
+            const ySize = (ratios?.ratioY?.end ?? 0) - (ratios?.ratioY?.start ?? 0);
+            setZoom(chart, 0, xSize, 0, ySize);
+            await waitForChartStability(chart);
+
+            await chart.setState({ version: '13.3.0', collapsed: ['Justin Contreras'] });
+            await waitForChartStability(chart);
+            expect(deproxy(chart).ctx.collapsedManager.isCollapsed('Justin Contreras')).toBe(true);
+
+            await compare();
+            expect(getView(chart)).toEqual(
+                await getFreshView({ ...TEAM_DIRECTORY_ORG_CHART, initialState: { collapsed: ['Justin Contreras'] } })
+            );
+        });
+
+        it('should fit and centre on an options change that follows a zoom-only restore', async () => {
+            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+
+            await chart.setState({
+                version: '13.3.0',
+                zoom: { ratioX: { start: 0.1, end: 0.4 }, ratioY: { start: 0.1, end: 0.4 } },
+            });
+            await waitForChartStability(chart);
+            const restored = getView(chart);
+
+            const change = { node: { ...getOrganizationSeries(TEAM_DIRECTORY_ORG_CHART).node, fill: '#fff1e5' } };
+            const target = withSeries(TEAM_DIRECTORY_ORG_CHART, change);
+            prepareEnterpriseTestOptions(target);
+            await chart.update(target);
+            await waitForChartStability(chart);
+
+            await compare();
+            const refitted = getView(chart);
+            expect(refitted.zoom).not.toEqual(restored.zoom);
+            expect(refitted).toEqual(await getFreshView(withSeries(TEAM_DIRECTORY_ORG_CHART, change)));
+        });
+
+        it('should keep the zoom a state restores alongside a collapsed change', async () => {
+            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+
+            await chart.setState({
+                version: '13.3.0',
+                collapsed: ['Justin Contreras'],
+                zoom: { ratioX: { start: 0.1, end: 0.4 }, ratioY: { start: 0.1, end: 0.4 } },
+            });
+            await waitForChartStability(chart);
+
+            const refitted = await getFreshView({
+                ...TEAM_DIRECTORY_ORG_CHART,
+                initialState: { collapsed: ['Justin Contreras'] },
+            });
+            expect(getView(chart).zoom).not.toEqual(refitted.zoom);
 
             await compare();
         });
