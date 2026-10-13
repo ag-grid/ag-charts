@@ -1,4 +1,4 @@
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
+import { configureToMatchImageSnapshot } from 'jest-image-snapshot';
 import { URL } from 'node:url';
 import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
@@ -82,6 +82,8 @@ globalThis.MouseEvent = function MouseEvent(type: string, eventInitDict?: MouseE
 globalThis.MouseEvent.prototype = OrigMouseEvent.prototype;
 Object.setPrototypeOf(globalThis.MouseEvent, OrigMouseEvent);
 
+// The default out-of-process diff child can deadlock in `process.exit` on Node 24, hanging the worker forever.
+const toMatchImageSnapshot = configureToMatchImageSnapshot({ runInProcess: true });
 expect.extend({ toMatchImageSnapshot, toMatchImage });
 
 installPointerCapture();
