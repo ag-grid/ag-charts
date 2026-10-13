@@ -2673,15 +2673,29 @@ describe('placeLabels collision shrink', () => {
         expect(place([shrinkable(200, { fit: undefined })], [leftBlocker])).toEqual([]);
     });
 
-    it('keeps the full-size fallback when no size clears and the label is kept', () => {
+    describe('when no size clears and the label is kept', () => {
         const wide: LabelObstacle = {
             kind: 'rect',
             box: { x: 100, y: 180, width: 105, height: 20 },
             category: 'label',
         };
-        const [placed] = place([shrinkable(200, { alwaysShow: true })], [wide]);
-        expect(placed.fontSize).toBeUndefined();
-        expect(placed.width).toBe(50);
+
+        it('keeps the fallback at minimumFontSize', () => {
+            const [placed] = place([shrinkable(200, { alwaysShow: true })], [wide]);
+            expect(placed.fontSize).toBe(6);
+            expect(placed.width).toBeCloseTo(25);
+            expect(placed.text).toBe(TEXT);
+        });
+
+        it('keeps the fallback at its configured size without a minimumFontSize', () => {
+            const datum = shrinkable(200, {
+                alwaysShow: true,
+                fit: { text: TEXT, policy: {}, font: FONT, boxPadding: NO_PADDING, boundByRegion: false },
+            });
+            const [placed] = place([datum], [wide]);
+            expect(placed.fontSize).toBeUndefined();
+            expect(placed.width).toBe(50);
+        });
     });
 
     it('blocks a later label by the shrunken box rather than the full-size one', () => {

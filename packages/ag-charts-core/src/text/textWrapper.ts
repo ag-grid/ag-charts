@@ -117,6 +117,12 @@ function shouldHideOverflow(clippedResult: string[], options: WrapOptions, sourc
     return keptCharacterCount(clippedResult.join('')) < keptCharacterCount(source);
 }
 
+function firstLineOverflows(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
+    if (lines.length === 0 || !isFiniteNumber(options.maxHeight)) return false;
+    const lineHeight = options.lineHeight ?? measurer.measureLines(lines).lineMetrics[0].height;
+    return lineHeight > options.maxHeight;
+}
+
 function keptCharacterCount(text: string) {
     return survivingCharacters(unguardTextEdges(text));
 }
@@ -738,6 +744,8 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             result.push(truncatedLine);
             widthOffset = 0;
         }
+        // Lines past `maxHeight` are the caller's to clip or hide, but a first line taller than it cannot fit at all.
+        if (firstLineOverflows(result, measurer, options)) return [];
         return shouldHideOverflow(result, options, text) ? [] : result;
     }
 
