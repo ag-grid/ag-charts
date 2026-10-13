@@ -68,6 +68,7 @@ env:
     ISSUE_KEY: ${{ github.event.client_payload.issue_key || inputs.issue_key }}
     DEV_PROMPTS_CHANNEL: canary
     NX_NO_CLOUD: 'true'
+    IBM_TELEMETRY_DISABLED: 'true'
 
 jobs:
     # -------------------------------------------------- concurrency key
