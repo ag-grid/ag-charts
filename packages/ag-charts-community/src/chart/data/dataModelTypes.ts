@@ -320,7 +320,12 @@ export type AggregatePropertyDefinition<
 > = Omit<PropertyIdentifiers, 'scopes'> &
     PropertySelectors & {
         type: 'aggregate';
-        aggregateFunction: (values: D[K][], keys?: D[K][]) => R;
+        /**
+         * Called once per datum. `out`, when provided, is a caller-owned scratch tuple the function may re-seed,
+         * fill and return instead of allocating. `values` and `out` are reused across calls, so neither may be
+         * retained, and callers must use the returned tuple.
+         */
+        aggregateFunction: (values: D[K][], keys?: D[K][], out?: R) => R;
         groupAggregateFunction?: (next?: R, acc?: R2) => R2;
         finalFunction?: (result: R2) => [number, number];
     };

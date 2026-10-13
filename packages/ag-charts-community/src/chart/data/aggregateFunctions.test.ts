@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
-import { accumulatedValue, addAccumulated, area, sum, sumValues, trailingAccumulatedValue } from './aggregateFunctions';
+import {
+    accumulatedValue,
+    addAccumulated,
+    area,
+    groupCount,
+    groupSum,
+    range,
+    sum,
+    sumValues,
+    trailingAccumulatedValue,
+} from './aggregateFunctions';
 
 describe('aggregateFunctions bigint support (AG-16608)', () => {
     describe('sumValues', () => {
@@ -64,6 +74,42 @@ describe('aggregateFunctions bigint support (AG-16608)', () => {
             expect(trailing(5n, 0)).toBe(0n);
             expect(trailing(3n, 1)).toBe(5n);
             expect(trailing(2n, 2)).toBe(8n);
+        });
+    });
+
+    describe('caller-provided output tuple', () => {
+        it('re-seeds and returns the tuple instead of allocating', () => {
+            const out: [number | bigint, number | bigint] = [99n, 99n];
+
+            expect(sum('s', 'g').aggregateFunction([3, -1], undefined, out)).toBe(out);
+            expect(out).toEqual([-1, 3]);
+            expect(sum('s', 'g').aggregateFunction([], undefined, out)).toBe(out);
+            expect(out).toEqual([0, 0]);
+            expect(groupSum('gs').aggregateFunction([2n, -5n], undefined, out)).toBe(out);
+            expect(out).toEqual([-5n, 2n]);
+            expect(range('r', 'g').aggregateFunction([4, 9, 1], undefined, out)).toBe(out);
+            expect(out).toEqual([1, 9]);
+            expect(range('r', 'g').aggregateFunction([], undefined, out)).toBe(out);
+            expect(out).toEqual([Infinity, -Infinity]);
+
+            const countOut: [number, number] = [99, 99];
+            expect(groupCount('gc').aggregateFunction([], undefined, countOut)).toBe(countOut);
+            expect(countOut).toEqual([0, 1]);
+        });
+
+        it('narrows the inner result of an area in place', () => {
+            const out: [number, number] = [99, 99];
+
+            const density = area('a', sum('s', 'g')).aggregateFunction([20, -10], [0, 8], out);
+
+            expect(density).toBe(out);
+            expect(out).toEqual([-1.25, 2.5]);
+        });
+
+        it('allocates a fresh tuple per call when none is provided', () => {
+            const aggregate = sum('s', 'g').aggregateFunction;
+
+            expect(aggregate([1])).not.toBe(aggregate([1]));
         });
     });
 

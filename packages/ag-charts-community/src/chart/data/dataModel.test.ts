@@ -6,6 +6,7 @@ import { testLogger } from 'ag-charts-test';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
 import { expectWarningsCalls, setupMockConsole } from '../test/utils';
+import { groupSum } from './aggregateFunctions';
 import {
     accumulatedGroupValues,
     accumulatedPropertyValue,
@@ -1925,6 +1926,225 @@ describe('DataModel', () => {
             expect(result.type).toEqual('grouped');
             expect(resolveGroupColumn(result, 0, 0)).toEqual([5n]); // first stack layer
             expect(resolveGroupColumn(result, 0, 1)).toEqual([12n]); // stacked on top: 5n + 7n
+        });
+    });
+
+    describe('grouped aggregation with reused scratch buffers', () => {
+        const histogramGroupBy: GroupByFn = () => (keys) => {
+            const x = keys[0];
+            if (typeof x === 'number' && x < 10) return [0, 10];
+            if (typeof x === 'number' && x < 20) return [10, 20];
+            return [20, 30];
+        };
+
+        it('should sum positive, negative and missing values of each datum', () => {
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('kp'), value('a', 'all'), value('b', 'all'), sum('all'), range('all')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
+            const data = basicDataSet([
+                { kp: 'Q1', a: 5, b: -3 },
+                { kp: 'Q2', a: undefined, b: 2 },
+                { kp: 'Q3', a: -4, b: -1 },
+                { kp: 'Q4', a: 1, b: undefined },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.groups.map((g) => g.aggregation)).toEqual([
+                [
+                    [-3, 5],
+                    [-3, 5],
+                ],
+                [
+                    [0, 2],
+                    [2, 2],
+                ],
+                [
+                    [-5, 0],
+                    [-4, -1],
+                ],
+                [
+                    [0, 1],
+                    [1, 1],
+                ],
+            ]);
+            expect(result.domain.aggValues).toEqual([
+                [-5, 5],
+                [-4, 5],
+            ]);
+        });
+
+        it('should keep bigint totals exact beyond Number.MAX_SAFE_INTEGER', () => {
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('kp'), value('a', 'all'), value('b', 'all'), sum('all'), range('all')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
+            const big = 9007199254740993n;
+            const data = basicDataSet([
+                { kp: 'Q1', a: big, b: -2n },
+                { kp: 'Q2', a: 1n, b: 5n },
+                { kp: 'Q3', a: big, b: big },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.groups.map((g) => g.aggregation)).toEqual([
+                [
+                    [-2n, big],
+                    [-2n, big],
+                ],
+                [
+                    [0, 6n],
+                    [1n, 5n],
+                ],
+                [
+                    [0, big + big],
+                    [big, big],
+                ],
+            ]);
+            expect(result.domain.aggValues).toEqual([
+                [-2n, big + big],
+                [-2n, big],
+            ]);
+        });
+
+        it('should keep bigint totals exact across the datums of a bucket', () => {
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        rangeKey('x'),
+                        value('y', 'yy'),
+                        scoped(groupSum('groupSum', { matchGroupId: 'yy' })),
+                        SORT_DOMAIN_GROUPS,
+                    ],
+                    groupByFn: histogramGroupBy,
+                },
+                testLogger
+            );
+            const big = 9007199254740993n;
+            const data = basicDataSet([
+                { x: 1, y: big },
+                { x: 2, y: 1n },
+                { x: 3, y: -3n },
+                { x: 12, y: big },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.groups.map((g) => g.aggregation)).toEqual([[[-3n, big + 1n]], [[0, big]]]);
+            expect(result.domain.aggValues).toEqual([[-3n, big + 1n]]);
+        });
+
+        it('should store a distinct aggregation tuple per group and in the domain', () => {
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('kp'), value('a', 'all'), sum('all'), range('all'), groupCount()],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
+            const data = basicDataSet([
+                { kp: 'Q1', a: 1 },
+                { kp: 'Q2', a: 2 },
+                { kp: 'Q3', a: 3 },
+                { kp: 'Q4', a: -4 },
+            ]);
+
+            const result = dataModel.processData(data)!;
+            const tuples = result.groups.flatMap((g) => g.aggregation);
+            const aggValues = result.domain.aggValues!;
+
+            expect(tuples).toHaveLength(12);
+            expect(new Set([...tuples, ...aggValues]).size).toBe(tuples.length + aggValues.length);
+            expect(result.groups.map((g) => g.aggregation)).toEqual([
+                [
+                    [0, 1],
+                    [1, 1],
+                    [0, 1],
+                ],
+                [
+                    [0, 2],
+                    [2, 2],
+                    [0, 1],
+                ],
+                [
+                    [0, 3],
+                    [3, 3],
+                    [0, 1],
+                ],
+                [
+                    [-4, 0],
+                    [-4, -4],
+                    [0, 1],
+                ],
+            ]);
+        });
+
+        it('should aggregate histogram buckets with count, sum, average and area', () => {
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        rangeKey('x'),
+                        value('y', 'yy'),
+                        groupCount(),
+                        scoped(groupSum('groupSum', { matchGroupId: 'yy' })),
+                        groupAverage('yy'),
+                        area('yy', groupSum('areaSum', { matchGroupId: 'yy' })),
+                        SORT_DOMAIN_GROUPS,
+                    ],
+                    groupByFn: histogramGroupBy,
+                },
+                testLogger
+            );
+            const data = basicDataSet([
+                { x: 1, y: 4 },
+                { x: 2, y: -2 },
+                { x: 3, y: undefined },
+                { x: 12, y: 6 },
+                { x: 15, y: 10 },
+                { x: 25, y: -8 },
+            ]);
+
+            const result = dataModel.processData(data)!;
+
+            expect(result.groups.map((g) => g.keys)).toEqual([
+                [0, 10],
+                [10, 20],
+                [20, 30],
+            ]);
+            expect(result.groups.map((g) => g.aggregation)).toEqual([
+                [
+                    [0, 3],
+                    [-2, 4],
+                    [0, expect.closeTo(2 / 3)],
+                    [-0.2, 0.4],
+                ],
+                [
+                    [0, 2],
+                    [0, 16],
+                    [0, 8],
+                    [0, 1.6],
+                ],
+                [
+                    [0, 1],
+                    [-8, 0],
+                    [-8, 0],
+                    [-0.8, 0],
+                ],
+            ]);
+            expect(result.domain.aggValues).toEqual([
+                [0, 3],
+                [-8, 16],
+                [-8, 8],
+                [-0.8, 1.6],
+            ]);
         });
     });
 

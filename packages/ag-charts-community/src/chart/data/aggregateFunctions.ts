@@ -9,6 +9,19 @@ export function addAccumulated(acc: AgNumericValue, value: AgNumericValue): AgNu
     return addValues(acc, value);
 }
 
+/** Seeds a caller-provided scratch tuple in place; `undefined` passes through so the callee allocates its own. */
+function seedTuple<T extends [AgNumericValue, AgNumericValue]>(
+    out: T | undefined,
+    first: AgNumericValue,
+    second: AgNumericValue
+): T | undefined {
+    if (out !== undefined) {
+        out[0] = first;
+        out[1] = second;
+    }
+    return out;
+}
+
 export function sumValues(
     values: any[],
     accumulator: [AgNumericValue, AgNumericValue] = [0, 0]
@@ -33,7 +46,7 @@ export function sum(id: string, matchGroupId: string) {
         id,
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
-        aggregateFunction: (values) => sumValues(values),
+        aggregateFunction: (values, _keys, out) => sumValues(values, seedTuple(out, 0, 0)),
     };
 
     return result;
@@ -48,7 +61,7 @@ export function groupSum(
         id,
         type: 'aggregate',
         matchGroupIds: opts?.matchGroupId == null ? undefined : [opts.matchGroupId],
-        aggregateFunction: (values) => sumValues(values),
+        aggregateFunction: (values, _keys, out) => sumValues(values, seedTuple(out, 0, 0)),
         groupAggregateFunction: (next, acc = [0, 0]) => {
             if (visible) {
                 acc[0] = addAccumulated(acc[0], next?.[0] ?? 0);
@@ -64,7 +77,8 @@ export function range(id: string, matchGroupId: string) {
         id,
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
-        aggregateFunction: (values) => ContinuousDomain.extendDomain(values),
+        aggregateFunction: (values, _keys, out) =>
+            ContinuousDomain.extendDomain(values, seedTuple(out, Infinity, -Infinity)),
     };
 
     return result;
@@ -78,7 +92,7 @@ export function groupCount(
     return {
         id,
         type: 'aggregate',
-        aggregateFunction: () => [0, 1],
+        aggregateFunction: (_values, _keys, out) => seedTuple(out, 0, 1) ?? [0, 1],
         groupAggregateFunction: (next, acc = [0, 0]) => {
             if (visible) {
                 acc[0] += next?.[0] ?? 0;
@@ -100,7 +114,7 @@ export function groupAverage(id: string, opts?: { matchGroupId?: string; visible
         id,
         matchGroupIds: opts?.matchGroupId == null ? undefined : [opts.matchGroupId],
         type: 'aggregate',
-        aggregateFunction: (values) => sumValues(values),
+        aggregateFunction: (values, _keys, out) => sumValues(values, seedTuple(out, 0, 0)),
         groupAggregateFunction: (next, acc = [0, 0, -1]) => {
             if (visible) {
                 acc[0] = addAccumulated(acc[0], next?.[0] ?? 0);
@@ -127,10 +141,14 @@ export function area(id: string, aggFn: AggregatePropertyDefinition<any, any, an
         id,
         matchGroupIds: matchGroupId == null ? undefined : [matchGroupId],
         type: 'aggregate',
-        aggregateFunction: (values, keyRange = []) => {
+        aggregateFunction: (values, keyRange = [], out) => {
             // Subtract bigint key edges before narrowing: narrowing first collapses the width to 0 beyond a double's ULP.
             const keyWidth = Number(subtractValues(keyRange[1], keyRange[0]));
-            return aggFn.aggregateFunction(values).map((v: AgNumericValue) => Number(v) / keyWidth) as [number, number];
+            // Narrow in place: the inner result is `out` when the inner function honours it, else its own tuple.
+            const density: [number, number] = aggFn.aggregateFunction(values, undefined, out);
+            density[0] = Number(density[0]) / keyWidth;
+            density[1] = Number(density[1]) / keyWidth;
+            return density;
         },
     };
 

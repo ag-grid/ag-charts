@@ -88,7 +88,13 @@ export const sum = (groupId: string): AggregatePropertyDefinition<any, any, [AgN
     id: `sum-${groupId}`,
     matchGroupIds: [groupId],
     type: 'aggregate',
-    aggregateFunction: (values) => sumValues(values),
+    aggregateFunction: (values, _keys, out) => {
+        if (out) {
+            out[0] = 0;
+            out[1] = 0;
+        }
+        return sumValues(values, out);
+    },
 });
 
 export const scopedSum = (scopes: string[], groupId: string) => ({ ...sum(groupId), scopes });
