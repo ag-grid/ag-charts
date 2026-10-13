@@ -897,7 +897,7 @@ export abstract class Axis<
     private getScrollbarLayoutCacheKey(chartLayout?: ChartLayout): string {
         const scrollbar = chartLayout?.scrollbars?.[this.id];
         if (!scrollbar?.enabled) return 'none';
-        return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}`;
+        return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}:${chartLayout?.sizeLimit}`;
     }
 
     abstract calculateTickLayout(
