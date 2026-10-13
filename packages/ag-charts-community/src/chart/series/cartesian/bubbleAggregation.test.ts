@@ -1022,3 +1022,252 @@ describe('computeBubbleAggregation partitions indices in place', () => {
         expect(aggregation.filters.reduce((n, f) => n + f.node!.end - f.node!.start, 0)).toBe(seen.length);
     });
 });
+
+describe('computeBubbleAggregation node contents', () => {
+    const NUMBERS = { xNeedsValueOf: false, yNeedsValueOf: false };
+    // Every size bubble is 100px across and the plot is 100px square, so a dilation of 4 groups any node whose
+    // diagonal is at most 2 (the unit square's is 1.41).
+    const WALK: BubbleAggregationOptions = {
+        xRange: 100,
+        yRange: 100,
+        xVisibleRange: [0, 1],
+        yVisibleRange: [0, 1],
+        minSize: 100,
+        maxSize: 100,
+    };
+
+    const aggregate = (
+        xValues: Array<number | null | undefined>,
+        yValues: Array<number | null | undefined>,
+        sizeValues?: number[],
+        domain: [number, number] = [0, 100],
+        sizeDomain: [number, number] = [0, 0]
+    ) => computeBubbleAggregation(domain, domain, xValues, yValues, sizeValues, sizeDomain, NUMBERS)!;
+
+    // A datum in each corner of the domain, listed against quadrant order (so datum order differs from the order of
+    // the quadrants) and followed by a datum with no x and a datum with no y.
+    const corners = {
+        xValues: [100, 0, 100, 0, null, 50],
+        yValues: [100, 100, 0, 0, 50, undefined],
+    };
+
+    it('keeps datums with a null x/y on the node that was split, but not on its children', () => {
+        const aggregation = aggregate(corners.xValues, corners.yValues);
+        const root = aggregation.filters[0].node!;
+
+        expect(root.children).toHaveLength(4);
+        expect([...nodeIndices(aggregation, root)].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5]);
+
+        // Children are in quadrant order: low x/low y first, then high x, then high y.
+        expect(root.children!.map((child) => nodeIndices(aggregation, child))).toEqual([[3], [2], [1], [0]]);
+        expect(root.children!.map((child) => child.primaryDatumIndex)).toEqual([3, 2, 1, 0]);
+        expect(root.children!.map((child) => child.children)).toEqual([null, null, null, null]);
+    });
+
+    it('picks the lowest datum index when several datums are equally close to the middle of a node', () => {
+        const aggregation = aggregate(corners.xValues, corners.yValues);
+        const root = aggregation.filters[0].node!;
+
+        // All four corners are the same distance from (0.5, 0.5); datum 0 is the first of them in datum order,
+        // though it is the last in the node's own range.
+        expect(root.primaryDatumIndex).toBe(0);
+    });
+
+    it('counts and lists the datums with a null x/y when a split node is rendered as one group', () => {
+        const aggregation = aggregate(corners.xValues, corners.yValues);
+
+        const { groupedAggregation, singleDatumIndices } = computeBubbleAggregationData(4, aggregation, WALK);
+        expect(singleDatumIndices).toEqual([]);
+        expect(groupedAggregation).toHaveLength(1);
+        const [group] = groupedAggregation;
+        expect(group.datumIndex).toBe(0);
+        expect(group.count).toBe(6);
+        expect([...group.indices].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5]);
+    });
+
+    it('lists the datums of unsplit leaves, skipping the ones with a null x/y', () => {
+        const aggregation = aggregate(corners.xValues, corners.yValues);
+
+        const { groupedAggregation, singleDatumIndices } = computeBubbleAggregationData(1, aggregation, WALK);
+        expect(groupedAggregation).toEqual([]);
+        expect([...singleDatumIndices].sort((a, b) => a - b)).toEqual([0, 1, 2, 3]);
+        expect(computeBubbleAggregationCount(1, aggregation, WALK)).toBe(4);
+    });
+
+    it('returns the only child of a node in place of the node itself', () => {
+        // Four close datums share a quadrant, so the unit square has one child, and that child is what is returned:
+        // the datums with a null x/y belong to the discarded parent, not to the node that is kept.
+        const aggregation = aggregate([null, 10, 11, 11.4, 13, 50], [20, 10, 11, 11.4, 13, undefined]);
+        const root = aggregation.filters[0].node!;
+
+        expect(nodeIndices(aggregation, root)).toEqual([1, 2, 3, 4]);
+        expect(root.children).toBeNull();
+        expect(root.x0).toBeCloseTo(0.1, 12);
+        expect(root.y0).toBeCloseTo(0.1, 12);
+        expect(root.x1).toBeCloseTo(0.13, 12);
+        expect(root.y1).toBeCloseTo(0.13, 12);
+        expect(root.scale).toBeCloseTo(Math.hypot(0.03, 0.03), 12);
+        // Nearest to the middle of the kept node (0.115), not of the unit square.
+        expect(root.primaryDatumIndex).toBe(3);
+    });
+
+    it('collapses datums that are all equal into one leaf in datum order', () => {
+        // A zero-width domain; the datums are the same distance from the middle, so the first is the primary.
+        const xValues = Array.from({ length: 12 }, () => 5);
+        const yValues = Array.from({ length: 12 }, () => 5);
+        yValues[3] = null as any;
+
+        const aggregation = aggregate(xValues, yValues, undefined, [5, 5]);
+        const root = aggregation.filters[0].node!;
+
+        expect(aggregation.xd1).toBeGreaterThan(aggregation.xd0);
+        expect(nodeIndices(aggregation, root)).toEqual([0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11]);
+        expect(root.children).toBeNull();
+        expect([root.x0, root.y0, root.x1, root.y1, root.scale]).toEqual([0, 0, 0, 0, 0]);
+        expect(root.primaryDatumIndex).toBe(0);
+    });
+
+    it('keeps a node holding only datums with a null x/y as an unsplit leaf', () => {
+        const aggregation = aggregate([null, 3, null], [4, null, undefined]);
+        const root = aggregation.filters[0].node!;
+
+        expect(root.children).toBeNull();
+        expect(nodeIndices(aggregation, root)).toEqual([0, 1, 2]);
+        expect(root.primaryDatumIndex).toBe(0);
+        expect(computeBubbleAggregationCount(1, aggregation, WALK)).toBe(3);
+    });
+
+    it('buckets datums by size in datum order, leaving out sizes outside the domain', () => {
+        // One location, so each bucket is a single leaf: its range is exactly the datums of that bucket.
+        const sizeValues = [60, 0, 80, 10, 40, 100, -50, Number.NaN, 20];
+        const aggregation = aggregate(
+            sizeValues.map(() => 50),
+            sizeValues.map(() => 50),
+            sizeValues,
+            [0, 100],
+            [0, 100]
+        );
+
+        expect(aggregation.filters.map((f) => f.sizeRatio)).toEqual([0, 1 / 3, 2 / 3]);
+        expect(aggregation.filters.map((f) => nodeIndices(aggregation, f.node!))).toEqual([[1, 3, 8], [0, 4], [2]]);
+        expect([...aggregation.indices].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 8]);
+    });
+
+    it('keeps a filter, with an empty node, for a size bucket no datum falls in', () => {
+        const sizeValues = [1, 2, 3];
+        const aggregation = aggregate([10, 20, 30], [10, 20, 30], sizeValues, [0, 100], [0, 100]);
+
+        expect(aggregation.filters.map((f) => f.sizeRatio)).toEqual([0, 1 / 3, 2 / 3]);
+        const [low, mid, high] = aggregation.filters.map((f) => f.node!);
+        expect(nodeIndices(aggregation, low)).toEqual([0, 1, 2]);
+        expect(nodeIndices(aggregation, mid)).toEqual([]);
+        expect(nodeIndices(aggregation, high)).toEqual([]);
+        expect(mid.children).toBeNull();
+        expect(high.children).toBeNull();
+    });
+
+    it('reads the same datums for any walk, whatever order the nodes are visited in', () => {
+        // Walking twice, and walking with a different dilation in between, must not disturb the shared buffer.
+        const aggregation = aggregate(corners.xValues, corners.yValues);
+        const before = Array.from(aggregation.indices);
+
+        const first = computeBubbleAggregationData(4, aggregation, WALK);
+        computeBubbleAggregationData(1, aggregation, WALK);
+        computeBubbleAggregationCount(2, aggregation, WALK);
+        const second = computeBubbleAggregationData(4, aggregation, WALK);
+
+        expect(Array.from(aggregation.indices)).toEqual(before);
+        expect(second.groupedAggregation.map((g) => [...g.indices])).toEqual(
+            first.groupedAggregation.map((g) => [...g.indices])
+        );
+    });
+});
+
+describe('computeBubbleAggregation tree invariants', () => {
+    // Checked against the data itself rather than a model of the algorithm: for every node, the bounds are those of
+    // its datums, its children split exactly its non-null datums, and a leaf lists them in datum order.
+    function lcg(seed: number) {
+        let state = seed;
+        return () => {
+            state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+            return state / 4294967296;
+        };
+    }
+
+    const cases: Array<[string, number, (r: () => number, i: number) => [number | null, number | null]]> = [
+        ['scattered', 4000, (r) => [r() * 1000, r() * 1000]],
+        ['scattered with gaps', 3000, (r, i) => [i % 11 === 0 ? null : r() * 50, i % 13 === 0 ? null : r() * 50]],
+        ['clumped', 3000, (r, i) => (i % 3 === 0 ? [r() * 1000, r() * 1000] : [500 + r(), 500 + r()])],
+        ['whole numbers', 3000, (r) => [Math.floor(r() * 10), Math.floor(r() * 10)]],
+    ];
+
+    it.each(cases)('%s', (_name, count, make) => {
+        const r = lcg(count);
+        const points = Array.from({ length: count }, (_, i) => make(r, i));
+        const xValues = points.map((p) => p[0]);
+        const yValues = points.map((p) => p[1]);
+        const sizeValues = points.map(() => r() * 100);
+        const aggregation = computeBubbleAggregation([0, 1000], [0, 1000], xValues, yValues, sizeValues, [0, 100], {
+            xNeedsValueOf: false,
+            yNeedsValueOf: false,
+        })!;
+        const { xd0, xd1, yd0, yd1 } = aggregation;
+        const ratios = (i: number) => [
+            aggregationXRatioForXValue(xValues[i], xd0, xd1, false),
+            aggregationXRatioForXValue(yValues[i], yd0, yd1, false),
+        ];
+        const isPlotted = (i: number) => xValues[i] != null && yValues[i] != null;
+
+        let leaves = 0;
+        function check(node: BubbleAggregationNode, parent: BubbleAggregationNode | undefined) {
+            const members = nodeIndices(aggregation, node);
+            expect(new Set(members).size).toBe(members.length);
+            if (parent != null) {
+                expect(node.start).toBeGreaterThanOrEqual(parent.start);
+                expect(node.end).toBeLessThanOrEqual(parent.end);
+            }
+
+            const plotted = members.filter(isPlotted);
+            if (plotted.length > 0) {
+                const xs = plotted.map((i) => ratios(i)[0]);
+                const ys = plotted.map((i) => ratios(i)[1]);
+                // A node split from the unit square keeps its own bounds there; below it, the bounds are tight.
+                if (parent != null) {
+                    expect([node.x0, node.y0, node.x1, node.y1]).toEqual([
+                        Math.min(...xs),
+                        Math.min(...ys),
+                        Math.max(...xs),
+                        Math.max(...ys),
+                    ]);
+                }
+                expect(plotted).toContain(node.primaryDatumIndex);
+            }
+            expect(node.scale).toBe(Math.hypot(node.x1 - node.x0, node.y1 - node.y0));
+
+            if (node.children == null) {
+                leaves += 1;
+                expect(members).toEqual([...members].sort((a, b) => a - b));
+                return;
+            }
+
+            expect(node.children.length).toBeGreaterThan(1);
+            const childMembers = node.children.flatMap((child) => nodeIndices(aggregation, child));
+            expect([...childMembers].sort((a, b) => a - b)).toEqual([...plotted].sort((a, b) => a - b));
+            for (const child of node.children) {
+                check(child, node);
+            }
+        }
+
+        // Each size bucket is a tree over the datums whose size falls in it.
+        const bucketOf = (i: number) => Math.trunc((sizeValues[i] / 100) * SIZE_QUANTIZATION);
+        for (const [i, { node }] of aggregation.filters.entries()) {
+            const expected = Array.from({ length: count }, (_, d) => d).filter((d) => bucketOf(d) === i);
+            const members = nodeIndices(aggregation, node!);
+            expect([...members].sort((a, b) => a - b)).toEqual(
+                node!.children == null ? expected : expected.filter(isPlotted)
+            );
+            check(node!, undefined);
+        }
+        expect(leaves).toBeGreaterThan(0);
+    });
+});
