@@ -99,9 +99,10 @@ export const useChart = (
                 changed = true;
             }
 
-            // Left alone when already zoomed, as then the scrollbar is showing.
+            // Read from the chart, as a change of axis type drops its zoom. Left alone when already
+            // zoomed, as then the scrollbar is showing.
             const { start = 0, end = 1 } = state.zoom?.ratioX ?? {};
-            if (zoomed && !appliedZoom.current && start === 0 && end === 1) {
+            if (zoomed && start === 0 && end === 1) {
                 appliedZoom.current = true;
                 state.zoom = SCROLLBAR_ZOOM;
                 changed = true;
