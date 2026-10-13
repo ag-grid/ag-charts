@@ -69,6 +69,8 @@ export class Aggregator<D extends object, K extends keyof D & string> {
         });
         processedData.aggregation = rawData?.map((_, datumIndex) => {
             const aggregation: [AgNumericValue, AgNumericValue][] = [];
+            // Independent of the aggregate definition, so built once per datum rather than once per aggregate.
+            const k = datumKeys(keys, datumIndex, allowNull);
 
             for (const [index, def] of this.ctx.aggregates.entries()) {
                 const { indices, valuesToAgg, out } = scratch[index];
@@ -76,7 +78,6 @@ export class Aggregator<D extends object, K extends keyof D & string> {
                 for (let i = 0; i < indices.length; i++) {
                     valuesToAgg[i] = columns[indices[i]][datumIndex] as D[K];
                 }
-                const k = datumKeys(keys, datumIndex, allowNull);
                 const valuesAgg = k == null ? undefined : def.aggregateFunction(valuesToAgg, k, out);
                 if (valuesAgg) {
                     groupAggValues =
