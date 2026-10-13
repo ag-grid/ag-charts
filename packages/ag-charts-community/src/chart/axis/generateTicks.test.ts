@@ -321,6 +321,83 @@ describe('AG-18833 rotated label fitting', () => {
         }
     );
 
+    it.each([undefined, 30])(
+        'hides a number label when maxWidth is narrower than the ellipsis (rotation %s)',
+        (rotation) => {
+            const domain = [0, 50, 100];
+            const options = {
+                scale: numberScale(domain),
+                label: { ...font, rotation, maxWidth: 5 },
+                isVertical: false,
+                labelRoom: 200,
+                tickFormatter: () => (value: unknown) => String(value),
+            } as any;
+
+            const ticks = formatTicks(options, formatOptions(domain as any));
+
+            expect(ticks).toHaveLength(3);
+            for (const { tickLabel } of ticks) {
+                expect(tickLabel).toBe('');
+            }
+        }
+    );
+
+    it('hides the labels of a vertical axis with no label room left', () => {
+        const domain = [0, 50, 100];
+        const options = {
+            scale: numberScale(domain),
+            label: { ...font, maxHeight: 100 },
+            isVertical: true,
+            labelRoom: 0,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain as any));
+
+        expect(ticks).toHaveLength(3);
+        for (const { tickLabel } of ticks) {
+            expect(tickLabel).toBe('');
+        }
+    });
+
+    it('hides a rich-text label when maxWidth is narrower than the ellipsis', () => {
+        const domain = ['a'];
+        const options = {
+            scale: categoryScale(domain, 1000),
+            label: { ...font, maxWidth: 5 },
+            isVertical: false,
+            labelRoom: 200,
+            tickFormatter: () => () => [
+                { text: 'Styled ', color: 'red' },
+                { text: 'label', color: 'blue' },
+            ],
+        } as any;
+
+        const [{ tickLabel }] = formatTicks(options, formatOptions(domain));
+
+        expect(toPlainText(tickLabel)).toBe('');
+    });
+
+    it('hides an auto-rotated label when the width left by its re-fit is narrower than the ellipsis', () => {
+        const domain = ['International Freight Services'];
+        const options = {
+            scale: categoryScale(domain, 1000),
+            label: { ...font, maxWidth: 300 },
+            isVertical: false,
+            labelRoom: 200,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any;
+        const ticks = formatTicks(options, formatOptions(domain));
+        const { height } = ticks[0].textMetrics;
+        const sin = Math.abs(Math.sin(autoRotation));
+        const cos = Math.abs(Math.cos(autoRotation));
+
+        // Room for the label's height plus 2px of rotated width, less than an ellipsis needs.
+        refitAutoRotatedLabels({ ...options, labelRoom: height * cos + 2 * sin }, ticks, autoRotation);
+
+        expect(ticks[0].tickLabel).toBe('');
+    });
+
     it('does not erase a rich-text label wider than its band when it fits maxWidth with truncate false', () => {
         const domain = ['a', 'b', 'c', 'd'];
         const segments = [

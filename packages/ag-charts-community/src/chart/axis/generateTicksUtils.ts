@@ -325,10 +325,17 @@ function labelWrapOptions(
 }
 
 function wrapLabelToFit(text: NormalisedTextOrSegments, wrapOptions: WrapOptions, measurer: ITextMeasurer) {
-    const fitted = wrapTextOrSegments(text, wrapOptions);
-    if (isArray(fitted) || wrapOptions.textWrap !== 'never') return fitted;
-    // `textWrap: 'never'` does not apply maxHeight, to a single line or to explicit line breaks.
-    return clipLines(fitted.split('\n'), measurer, wrapOptions).join('\n');
+    let fitted = wrapTextOrSegments(text, wrapOptions);
+    if (!isArray(fitted) && wrapOptions.textWrap === 'never') {
+        // `textWrap: 'never'` does not apply maxHeight, to a single line or to explicit line breaks.
+        fitted = clipLines(fitted.split('\n'), measurer, wrapOptions).join('\n');
+    }
+    // A width narrower than the ellipsis still gets one, so a label that needs it is hidden.
+    const { maxWidth } = wrapOptions;
+    const ellipsisOverflows = isArray(fitted)
+        ? fitted.some((s) => s.type !== 'image' && s.text.includes(EllipsisChar) && s.textMetrics.width > maxWidth)
+        : fitted.includes(EllipsisChar) && measurer.textWidth(EllipsisChar) > maxWidth;
+    return ellipsisOverflows ? '' : fitted;
 }
 
 function labelFitOverflow(label: ChartAxisLabel): WrapOptions['overflow'] {
