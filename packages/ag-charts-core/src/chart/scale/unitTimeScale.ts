@@ -36,10 +36,13 @@ export class UnitTimeScale extends DiscreteTimeScale {
     }
 
     private _domain: Date[] = [];
-    private _bandRangeCache: { start: Date; stop: Date } | undefined;
     /** Entry for the current domain and interval, or undefined until resolved. */
     private _active: BandEntry | undefined;
-    /** Last entry built for a band range; outlives temporary domain swaps, including to `[]`. */
+    /**
+     * Last entry built for a band range; outlives temporary domain swaps, including to `[]`. Bounded to
+     * one entry, so an empty domain (e.g. every series hidden) keeps that entry's bands until a
+     * different band range replaces it.
+     */
     private _kept: BandEntry | undefined;
     private _emptyEntry: BandEntry | undefined;
 
@@ -57,7 +60,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         this._domain = domain;
 
         if (!skipCacheInvalidation) {
-            this.invalidateBandRange();
+            this._active = undefined;
         }
     }
     override get domain(): Date[] {
@@ -73,38 +76,28 @@ export class UnitTimeScale extends DiscreteTimeScale {
         if (this._interval?.unit === normalized?.unit && this._interval?.step === normalized?.step) return;
 
         this._interval = normalized;
-        this.invalidateBandRange();
-    }
-
-    /** Only drops the floored endpoints; band caches are revalidated against them in `entry`. */
-    private invalidateBandRange() {
-        this._bandRangeCache = undefined;
         this._active = undefined;
     }
 
+    /** A domain or interval change only drops `_active`; `_kept` is revalidated against its key on resolve. */
     private get entry(): BandEntry {
-        return this._active ?? this.resolveEntry();
-    }
-
-    private resolveEntry(): BandEntry {
-        const entry = this.findOrBuildEntry();
-        this._active = entry;
-        return entry;
+        this._active ??= this.findOrBuildEntry();
+        return this._active;
     }
 
     private findOrBuildEntry(): BandEntry {
-        const { interval } = this;
-        const bandRange = this.getCachedBandRange();
-        if (bandRange == null || interval == null) {
+        const { domain, interval } = this;
+        if (domain.length < 2 || interval == null) {
             this._emptyEntry ??= createBandEntry(undefined, undefined);
             return this._emptyEntry;
         }
 
-        const [start, stop] = bandRange;
-        const kept = this._kept;
-        if (kept?.key != null && sameBandKey(kept.key, start, stop, interval)) return kept;
-
+        const start = intervalFloor(interval, domain[0]);
+        const stop = intervalFloor(interval, domain[1]);
         const key = bandKey(start, stop, interval);
+        const kept = this._kept;
+        if (kept?.key != null && sameBandKey(kept.key, key)) return kept;
+
         const rangeParams = { visibleRange: [0, 1] as [number, number], extend: false };
         if (intervalRangeCount(interval, start, stop, rangeParams) > MAX_BANDS) {
             this.logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
@@ -175,17 +168,6 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
     override normalizeDomains(...domains: DomainWithMetadata<Date>[]): NormalizedDomain<Date> {
         return normalizeContinuousDomains(...domains);
-    }
-
-    private getCachedBandRange(): [Date, Date] | undefined {
-        const { domain, interval } = this;
-        if (domain.length < 2 || interval == null) return undefined;
-
-        this._bandRangeCache ??= {
-            start: intervalFloor(interval, domain[0]),
-            stop: intervalFloor(interval, domain[1]),
-        };
-        return [this._bandRangeCache.start, this._bandRangeCache.stop];
     }
 
     private getDomainBoundaries(): { d0: number; dNext: number } | undefined {
@@ -403,13 +385,14 @@ export class UnitTimeScale extends DiscreteTimeScale {
     }
 }
 
+/** Everything that determines the generated bands; `step` and `utc` carry the defaults `range.ts` applies. */
 interface BandKey {
     start: number;
     stop: number;
     unit: AgTimeIntervalUnit;
-    step: number | undefined;
+    step: number;
     epoch: number | undefined;
-    utc: boolean | undefined;
+    utc: boolean;
 }
 
 /** Band-derived caches for one band range and interval. */
@@ -441,17 +424,24 @@ function createBandEntry(key: BandKey | undefined, result: IntervalRangeNumericR
 }
 
 function bandKey(start: Date, stop: Date, { unit, step, epoch, utc }: AgTimeInterval): BandKey {
-    return { start: start.valueOf(), stop: stop.valueOf(), unit, step, epoch: epoch?.valueOf(), utc };
+    return {
+        start: start.valueOf(),
+        stop: stop.valueOf(),
+        unit,
+        step: step ?? 1,
+        epoch: epoch?.valueOf(),
+        utc: utc ?? false,
+    };
 }
 
-function sameBandKey(key: BandKey, start: Date, stop: Date, { unit, step, epoch, utc }: AgTimeInterval): boolean {
+function sameBandKey(a: BandKey, b: BandKey): boolean {
     return (
-        key.start === start.valueOf() &&
-        key.stop === stop.valueOf() &&
-        key.unit === unit &&
-        key.step === step &&
-        key.epoch === epoch?.valueOf() &&
-        key.utc === utc
+        a.start === b.start &&
+        a.stop === b.stop &&
+        a.unit === b.unit &&
+        a.step === b.step &&
+        a.epoch === b.epoch &&
+        a.utc === b.utc
     );
 }
 

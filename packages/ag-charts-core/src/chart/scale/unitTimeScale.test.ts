@@ -234,10 +234,10 @@ describe('UnitTimeScale', () => {
 
     describe('band caches across temporary domain swaps', () => {
         const DOMAIN: [Date, Date] = [new Date(2020, 0, 1), new Date(2024, 0, 1)];
-        const sameDomain = (): [Date, Date] => [new Date(DOMAIN[0]), new Date(DOMAIN[1])];
+        const SHORT_DOMAIN: [Date, Date] = [new Date(2024, 0, 1), new Date(2024, 0, 10)];
+        const copyOf = ([start, end]: [Date, Date]): [Date, Date] => [new Date(start), new Date(end)];
 
-        function observe(scale: ExposedUnitTimeScale) {
-            const probe = new Date(2022, 5, 15, 10);
+        function observe(scale: ExposedUnitTimeScale, probe = new Date(2022, 5, 15, 10)) {
             return {
                 convert: scale.convert(probe),
                 convertClamped: scale.convert(new Date(2030, 0, 1), { clamp: true }),
@@ -262,9 +262,9 @@ describe('UnitTimeScale', () => {
             expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
 
             scale.domain = [];
-            scale.domain = sameDomain();
+            scale.domain = copyOf(DOMAIN);
             scale.domain = [];
-            scale.domain = sameDomain();
+            scale.domain = copyOf(DOMAIN);
 
             expect(scale.bands).toBe(bands);
             expect(scale.exposedNumericBands).toBe(numericBands);
@@ -277,14 +277,14 @@ describe('UnitTimeScale', () => {
             expect(before.uniformity?.isUniform).toBe(true);
 
             scale.domain = [];
-            scale.domain = sameDomain();
+            scale.domain = copyOf(DOMAIN);
 
             expect(observe(scale)).toEqual(before);
             expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
         });
 
         it('keeps the bands when different endpoints floor to the same band range', () => {
-            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+            const scale = createScale(SHORT_DOMAIN, 'day');
             const bands = scale.bands;
 
             scale.domain = [new Date(2024, 0, 1, 6), new Date(2024, 0, 10, 18)];
@@ -294,7 +294,7 @@ describe('UnitTimeScale', () => {
         });
 
         it('rebuilds when the floored endpoints change', () => {
-            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+            const scale = createScale(SHORT_DOMAIN, 'day');
             const bands = scale.bands;
 
             scale.domain = [new Date(2024, 0, 1), new Date(2024, 0, 11)];
@@ -305,7 +305,7 @@ describe('UnitTimeScale', () => {
         });
 
         it('rebuilds when the floored endpoints change across an empty domain', () => {
-            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+            const scale = createScale(SHORT_DOMAIN, 'day');
             const bands = scale.bands;
 
             scale.domain = [];
@@ -320,7 +320,7 @@ describe('UnitTimeScale', () => {
             ['unit', { unit: 'hour' }],
             ['step', { unit: 'day', step: 2 }],
         ] as const)('rebuilds when the interval %s changes', (_field, changed) => {
-            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+            const scale = createScale(SHORT_DOMAIN, 'day');
             const bands = scale.bands;
 
             scale.interval = changed;
@@ -329,11 +329,16 @@ describe('UnitTimeScale', () => {
             expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(2);
         });
 
-        it('reuses the bands when the interval is set to an equal value', () => {
-            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], 'day');
+        it.each([
+            ['an object without defaults', { unit: 'day' }],
+            ['an object spelling out the defaults', { unit: 'day', step: 1, utc: false }],
+        ] as const)('reuses the bands when the interval is set to %s', (_name, equal) => {
+            const scale = createScale(SHORT_DOMAIN, 'day');
             const bands = scale.bands;
 
-            scale.interval = { unit: 'day' };
+            scale.interval = equal;
+            scale.domain = [];
+            scale.domain = copyOf(SHORT_DOMAIN);
 
             expect(scale.bands).toBe(bands);
             expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
@@ -346,12 +351,12 @@ describe('UnitTimeScale', () => {
             ['utc', (interval: AgTimeInterval) => (interval.utc = true)],
         ])('rebuilds when the interval %s changes', (_field, mutate) => {
             const interval: AgTimeInterval = { unit: 'day', step: 1 };
-            const scale = createScale([new Date(2024, 0, 1), new Date(2024, 0, 10)], interval);
+            const scale = createScale(SHORT_DOMAIN, interval);
             const bands = scale.bands;
 
             mutate(interval);
             scale.domain = [];
-            scale.domain = [new Date(2024, 0, 1), new Date(2024, 0, 10)];
+            scale.domain = copyOf(SHORT_DOMAIN);
 
             expect(scale.bands).not.toBe(bands);
             expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(2);
@@ -370,7 +375,7 @@ describe('UnitTimeScale', () => {
             expect(scale.getUniformityCache()).toBeUndefined();
             expect(scale.convert(DOMAIN[0])).toBeNaN();
 
-            scale.domain = sameDomain();
+            scale.domain = copyOf(DOMAIN);
 
             expect(scale.bands).toBe(bands);
             expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
@@ -383,7 +388,7 @@ describe('UnitTimeScale', () => {
             scale.domain = [DOMAIN[0]];
             expect(scale.bands).toEqual([]);
 
-            scale.domain = sameDomain();
+            scale.domain = copyOf(DOMAIN);
             expect(scale.bands).toBe(bands);
             expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
         });
@@ -401,35 +406,20 @@ describe('UnitTimeScale', () => {
             expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
         });
 
-        it('does not return a stale entry after an over-limit domain swap', () => {
+        it('returns no bands for an over-limit domain and keeps the valid entry for the return', () => {
             const ambientWarn = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
             const small: [Date, Date] = [new Date(2024, 0, 1), new Date(2024, 0, 2)];
             const scale = createScale(small, 'second');
-            const smallBands = scale.bands.map((d) => d.valueOf());
-            expect(smallBands.length).toBeGreaterThan(0);
+            const bands = scale.bands;
+            expect(bands.length).toBeGreaterThan(0);
+            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
 
             scale.domain = [new Date(1970, 0, 1), new Date(2024, 0, 1)];
             expect(scale.bands).toEqual([]);
             expect(scale.getBandCountForUpdate()).toBe(0);
             expect(scale.exposedNumericBands).toEqual([]);
 
-            scale.domain = small;
-            expect(scale.bands.map((d) => d.valueOf())).toEqual(smallBands);
-
-            ambientWarn.mockRestore();
-        });
-
-        it('keeps the valid entry across an over-limit domain swap', () => {
-            const ambientWarn = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
-            const small: [Date, Date] = [new Date(2024, 0, 1), new Date(2024, 0, 2)];
-            const scale = createScale(small, 'second');
-            const bands = scale.bands;
-            expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
-
-            scale.domain = [new Date(1970, 0, 1), new Date(2024, 0, 1)];
-            expect(scale.bands).toEqual([]);
-
-            scale.domain = small;
+            scale.domain = copyOf(small);
             expect(scale.bands).toBe(bands);
             expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
 
@@ -440,23 +430,13 @@ describe('UnitTimeScale', () => {
             const hourly: [Date, Date] = [new Date(2024, 0, 1), new Date(2024, 0, 3)];
             const scale = createScale(hourly, 'hour');
             const probe = new Date(2024, 0, 2, 10, 30);
-            const observeLinear = () => ({
-                convert: scale.convert(probe),
-                invert: scale.invert(37)?.valueOf(),
-                findIndexLeading: scale.findIndex(probe),
-                findIndexTrailing: scale.findIndex(probe, ScaleAlignment.Trailing),
-                bands: scale.bands.map((d) => d.valueOf()),
-                numericBands: [...scale.exposedNumericBands],
-                linearParams: scale.getLinearParams(),
-                uniformity: scale.getUniformityCache(),
-            });
-            const before = observeLinear();
+            const before = observe(scale, probe);
             expect(before.linearParams?.intervalMs).toBe(3_600_000);
 
             scale.domain = [];
-            scale.domain = [new Date(hourly[0]), new Date(hourly[1])];
+            scale.domain = copyOf(hourly);
 
-            expect(observeLinear()).toEqual(before);
+            expect(observe(scale, probe)).toEqual(before);
             expect(intervalRangeNumericSpy).toHaveBeenCalledTimes(1);
         });
     });
