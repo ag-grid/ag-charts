@@ -1791,6 +1791,9 @@ class BenchmarkRunner {
 
         // The runner's memory pass exposes start/stop hooks around CDP heap sampling. Without them
         // `measuredRun` is `variant.run` unchanged, so the timing passes execute exactly as before.
+        // The bracket covers all of `variant.run`, which can include setup that the returned timing
+        // excludes (e.g. destroying the previous chart), so allocation may slightly exceed what the
+        // timed span alone would account for.
         const memoryHooks = getMemoryHooks();
         const allocation = { totalBytes: 0, iterations: 0 };
         const variantRun = variant.run;

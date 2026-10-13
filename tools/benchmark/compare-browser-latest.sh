@@ -73,7 +73,7 @@ if ! [[ "$runs" =~ ^[1-9][0-9]*$ ]]; then
     exit 1
 fi
 
-base_ref=${1:?Usage: compare-browser-latest.sh [-j] <base-ref|npm:version> [-- <browser-benchmark.ts args>]}
+base_ref=${1:?Usage: compare-browser-latest.sh [-j] [-m] <base-ref|npm:version> [-- <browser-benchmark.ts args>]}
 shift
 
 # npm:<version> selects published-library mode (head site + published bundles).

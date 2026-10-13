@@ -261,6 +261,59 @@ test('only one side having a memory report still compares, with the other side a
     );
 });
 
+test('a merged memory report keeps its marker, so it is rejected as a timing input', () => {
+    withFiles(
+        {
+            timing,
+            shard0: report({ 'high-perf-bar': [testResult('create', { allocationMb: 30 })] }, { memory: true }),
+            shard1: report(
+                { 'data-selection-zoom-line-area': [testResult('line', { allocationMb: 12.5 })] },
+                { memory: true }
+            ),
+        },
+        (p) => {
+            const mergedPath = path.join(p.dir, 'merged.json');
+            const merged = merge(mergedPath, [p.shard0, p.shard1]);
+            assert.deepEqual(merged.memoryPass, { samplingIntervalBytes: 4096 });
+
+            const asBase = node(COMPARE, ['--base', mergedPath, '--compare', p.timing]);
+            assert.equal(asBase.status, 2);
+            assert.match(asBase.stderr, /memory-pass report/);
+
+            const asCompare = node(COMPARE, ['--base', p.timing, '--compare', mergedPath]);
+            assert.equal(asCompare.status, 2);
+            assert.match(asCompare.stderr, /memory-pass report/);
+        }
+    );
+});
+
+test('merged timing reports carry no memory marker', () => {
+    withFiles(
+        {
+            shard0: report({ 'high-perf-bar': [testResult('create')] }),
+            shard1: report({ 'data-selection-zoom-line-area': [testResult('line')] }),
+        },
+        (p) => {
+            const merged = merge(path.join(p.dir, 'merged.json'), [p.shard0, p.shard1]);
+            assert.equal('memoryPass' in merged, false);
+        }
+    );
+});
+
+test('memory-pass and timing shards cannot be merged together', () => {
+    withFiles(
+        {
+            mem: report({ 'high-perf-bar': [testResult('create', { allocationMb: 30 })] }, { memory: true }),
+            time: report({ 'data-selection-zoom-line-area': [testResult('line')] }),
+        },
+        (p) => {
+            const proc = node(MERGE, ['--output', path.join(p.dir, 'merged.json'), p.mem, p.time]);
+            assert.equal(proc.status, 1);
+            assert.match(proc.stderr, /cannot be merged together/);
+        }
+    );
+});
+
 // --- CI workflow wiring ---
 
 const workflow = yaml.load(fs.readFileSync(path.join(REPO_ROOT, '.github/workflows/benchmark.yml'), 'utf8'));
