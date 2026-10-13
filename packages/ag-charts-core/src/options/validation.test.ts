@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 import { Logger, reset as resetLogger } from '../logging/logger';
 import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
 import { textOrSegments } from './chartDefaults';
-import { colorOrRef, padding } from './optionsDefaults';
+import { colorOrRef, colorOrRefNoOperator, fontFamilyFull, fontFamilyNoOperator, padding } from './optionsDefaults';
 import {
     type OptionsDefs,
     type ValidateParams,
@@ -761,6 +761,38 @@ describe('Validation utils', () => {
             expect(validate(validOptions, complexOptionsDef)).toMatchSnapshot();
             expect(validate(invalidOptions, complexOptionsDef)).toMatchSnapshot();
             expect(validate({ employees: [] }, complexOptionsDef)).toMatchSnapshot();
+        });
+    });
+
+    describe('colorOrRefNoOperator', () => {
+        it('accepts a colour string and a colour ref', () => {
+            expect(isValid({ c: 'red' }, { c: colorOrRefNoOperator })).toBe(true);
+            expect(isValid({ c: { ref: 'accentColor' } }, { c: colorOrRefNoOperator })).toBe(true);
+            expect(
+                isValid({ c: { ref: 'accentColor', mix: 0.5, onto: 'backgroundColor' } }, { c: colorOrRefNoOperator })
+            ).toBe(true);
+        });
+
+        it('rejects a theme operator, which colorOrRef accepts', () => {
+            const operator = { $ref: 'foregroundColor' };
+            expect(isValid({ c: operator }, { c: colorOrRef })).toBe(true);
+            expect(isValid({ c: operator }, { c: colorOrRefNoOperator })).toBe(false);
+            expect(validate({ c: operator }, { c: colorOrRefNoOperator }).cleared).toEqual({});
+        });
+    });
+
+    describe('fontFamilyNoOperator', () => {
+        it('accepts a string, a google font and a list of them', () => {
+            expect(isValid({ f: 'serif' }, { f: fontFamilyNoOperator })).toBe(true);
+            expect(isValid({ f: { googleFont: 'Roboto' } }, { f: fontFamilyNoOperator })).toBe(true);
+            expect(isValid({ f: [{ googleFont: 'Roboto' }, 'serif'] }, { f: fontFamilyNoOperator })).toBe(true);
+        });
+
+        it('rejects a theme operator, which fontFamilyFull accepts', () => {
+            const operator = { $ref: 'axisLabelFontFamily' };
+            expect(isValid({ f: operator }, { f: fontFamilyFull })).toBe(true);
+            expect(isValid({ f: operator }, { f: fontFamilyNoOperator })).toBe(false);
+            expect(validate({ f: operator }, { f: fontFamilyNoOperator }).cleared).toEqual({});
         });
     });
 

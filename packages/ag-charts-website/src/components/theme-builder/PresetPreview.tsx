@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { memo, useLayoutEffect, useMemo } from 'react';
+import { type CSSProperties, memo, useLayoutEffect, useMemo } from 'react';
 
 import type { AgChartOptions } from 'ag-charts-community';
 
@@ -19,15 +19,13 @@ interface Props {
  * frame and reads as disconnected blocks of colour.
  */
 export const PresetPreview = memo(({ preset }: Props) => {
-    const options = useMemo<AgChartOptions>(() => {
-        const theme = toChartTheme({ baseTheme: preset.baseTheme, params: preset.params, palette: preset.palette });
-        return {
+    const options = useMemo<AgChartOptions>(
+        () => ({
             ...THUMBNAIL_OPTIONS,
-            // Pinned because the presets choose their own, and a card laid out
-            // differently from its neighbours stops reading as a comparable swatch.
-            theme: { ...theme, params: { ...theme.params, chartPadding: 6 } },
-        };
-    }, [preset]);
+            theme: toChartTheme({ baseTheme: preset.baseTheme, params: preset.params, palette: preset.palette }),
+        }),
+        [preset]
+    );
     const containerRef = useChart(options);
 
     useLayoutEffect(() => {
@@ -37,37 +35,39 @@ export const PresetPreview = memo(({ preset }: Props) => {
     }, [containerRef]);
 
     return (
-        <Card className="preset-preview">
+        <Card
+            className="preset-preview"
+            style={{ '--page-background-color': preset.pageBackgroundColor } as CSSProperties}
+        >
             <ChartContainer ref={containerRef} />
         </Card>
     );
 });
 
+// Drawn from the preset's own page colour, never the site's, so a card looks
+// the same whichever mode the site is in. Grey reads on both light and dark.
 const Card = styled('div')`
-    width: 248px;
+    width: 350px;
     height: 100%;
     position: relative;
     overflow: hidden;
     border-radius: 12px;
     cursor: pointer;
 
-    background-color: color-mix(in srgb, var(--color-bg-primary), var(--color-fg-primary) 3%);
-    border: solid 1px color-mix(in srgb, var(--color-bg-primary), var(--color-fg-primary) 7%);
+    background-color: var(--page-background-color);
+    border: solid 1px color-mix(in srgb, var(--page-background-color), #808080 25%);
 
-    transition:
-        background-color 0.25s,
-        border-color 0.25s;
+    transition: border-color 0.25s;
 
     &:hover {
-        border-color: color-mix(in srgb, var(--color-bg-primary), var(--color-fg-primary) 10%);
-        background-color: color-mix(in srgb, var(--color-bg-primary), var(--color-fg-primary) 6%);
+        border-color: color-mix(in srgb, var(--page-background-color), #808080 50%);
     }
 `;
 
 // Inset rather than bled, the way a real chart sits in a real page.
 const ChartContainer = styled('div')`
     position: absolute;
-    inset: 10px;
+    inset: 5px;
     pointer-events: none;
 
     transition: transform 0.25s;

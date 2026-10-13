@@ -163,10 +163,6 @@ const Main = styled('div')`
     position: relative;
     gap: 12px;
     padding: 16px 0 20px 16px;
-
-    // Shorter than the shared scroller's default, which is sized for grid's
-    // live-grid thumbnails.
-    --preset-scroller-height: 152px;
 `;
 
 // Side by side rather than stacked: the panes share the height they would

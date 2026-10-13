@@ -98,7 +98,7 @@ export type PlacementStyledLabelOptions = NormalisedChartLabelStyleOptions & {
 };
 
 type LabelBoxingMixin = {
-    border?: { enabled?: boolean; stroke?: string; strokeWidth?: number };
+    border?: { enabled?: boolean; stroke?: unknown; strokeWidth?: number };
     fill?: unknown;
     padding?: Padding;
 };

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { _Theme } from 'ag-charts-community';
 
-import { PUBLIC_PARAM_NAMES } from './chartsTheme';
+import { PUBLIC_PARAM_NAMES, getPalette } from './chartsTheme';
 import { CHARTS_FONT_FAMILY_OPTIONS } from './fonts';
 import { PRESETS } from './presets';
 
@@ -18,6 +18,24 @@ describe('charts theme builder presets', () => {
         for (const preset of PRESETS) {
             expect(themeNames, preset.id).toContain(preset.baseTheme);
         }
+    });
+
+    it('leads with the untouched stock light theme, then the stock dark one', () => {
+        expect(PRESETS[0]).toMatchObject({ baseTheme: 'ag-default', params: {} });
+        expect(PRESETS[1]).toMatchObject({ baseTheme: 'ag-default-dark', params: {} });
+        expect(PRESETS[0].palette).toEqual(getPalette('ag-default'));
+        expect(PRESETS[1].palette).toEqual(getPalette('ag-default-dark'));
+    });
+
+    it('spans compact to spacious, square to rounded, and borders on and off', () => {
+        const defaults = _Theme.ChartTheme.getDefaultPublicParameters();
+        const values = (key: string) => PRESETS.map(({ params }) => params[key]).filter((value) => value != null);
+        const paddings = values('chartPadding').filter((padding) => typeof padding === 'number');
+        expect(paddings.some((padding) => padding < defaults.chartPadding)).toBe(true);
+        expect(paddings.some((padding) => padding > defaults.chartPadding)).toBe(true);
+        expect(new Set(values('borderRadius')).size).toBeGreaterThan(1);
+        expect(values('legendBorder')).toContain(true);
+        expect(values('tooltipBorder')).toContain(false);
     });
 
     it('sets only params AG Charts actually has', () => {

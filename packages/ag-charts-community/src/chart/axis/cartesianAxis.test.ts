@@ -2153,8 +2153,7 @@ describe('CartesianAxis', () => {
             });
         });
 
-        // A horizontal axis reserves its band on the opposite side of the axis line from a vertical
-        // one, so the edge the correction pins over is the other one.
+        // A top axis reserves its band on the opposite side of the axis line from a bottom one.
         it('keeps rotated labels out of the series area on a top-positioned axis', async () => {
             const options: AgCartesianChartOptions = {
                 data: TEXT_ALIGN_CATEGORY_DATA,
@@ -2889,6 +2888,158 @@ describe('CartesianAxis', () => {
                         expect(collidingPairs(nodes)).toBe(0);
                     }
                 );
+            });
+        });
+
+        describe('rotated label spacing from the axis line', () => {
+            const STACKED_DATA = [
+                { category: 'Ant', value: 10 },
+                { category: 'Ant Bee', value: 20 },
+                { category: 'Ant Bee Cricket', value: 15 },
+            ];
+
+            const multiline = ({ value }: { value: unknown }) => String(value).split(' ').join('\n');
+            const labelVariants = {
+                plain: { formatter: multiline },
+                segmented: {
+                    formatter: ({ value }: { value: unknown }) =>
+                        String(value)
+                            .split(' ')
+                            .map((word, i) => ({ text: i === 0 ? word : `\n${word}`, fontSize: i === 0 ? 18 : 10 })),
+                },
+                boxed: { formatter: multiline, fill: 'lightgrey', padding: { top: 4, right: 12, bottom: 8, left: 2 } },
+                styled: {
+                    formatter: multiline,
+                    itemStyler: () => ({ fill: 'lightgrey', padding: { top: 4, right: 12, bottom: 8, left: 2 } }),
+                },
+            };
+            type Position = 'bottom' | 'left' | 'top' | 'right';
+
+            const stackedOptions = (
+                position: Position,
+                variant: keyof typeof labelVariants,
+                rotation: number,
+                alignment: object = {}
+            ): AgCartesianChartOptions => {
+                const horizontal = position === 'bottom' || position === 'top';
+                const categoryAxis: any = {
+                    type: 'category',
+                    position,
+                    label: { rotation, avoidCollisions: false, ...labelVariants[variant], ...alignment },
+                };
+                const valueAxis: any = { type: 'number', position: horizontal ? 'left' : 'bottom' };
+                return {
+                    data: STACKED_DATA,
+                    width: 600,
+                    height: 400,
+                    axes: horizontal ? { x: categoryAxis, y: valueAxis } : { x: valueAxis, y: categoryAxis },
+                    series: [
+                        horizontal
+                            ? { type: 'bar', xKey: 'category', yKey: 'value' }
+                            : { type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' },
+                    ],
+                };
+            };
+
+            // How far the edge of each label's rendered box nearest the axis line sits from the series area.
+            const innerGaps = (nodes: any[], position: Position) => {
+                const seriesRect = getSeriesRect(chart);
+                return nodes.map((n) => {
+                    const box = Transformable.toCanvas(n);
+                    switch (position) {
+                        case 'bottom':
+                            return box.y - (seriesRect.y + seriesRect.height);
+                        case 'top':
+                            return seriesRect.y - (box.y + box.height);
+                        case 'left':
+                            return seriesRect.x - (box.x + box.width);
+                        case 'right':
+                            return box.x - (seriesRect.x + seriesRect.width);
+                    }
+                });
+            };
+
+            it.each(
+                (['bottom', 'left', 'top', 'right'] as const).flatMap((position) =>
+                    (['plain', 'segmented', 'boxed', 'styled'] as const).flatMap((variant) =>
+                        [-30, 45].map((rotation) => [position, variant, rotation] as const)
+                    )
+                )
+            )(
+                'keeps every %s axis label box at the unrotated gap (%s text, rotation %d)',
+                async (position, variant, rotation) => {
+                    await renderChart(stackedOptions(position, variant, 0));
+                    const unrotated = innerGaps(getAxisLabelNodes(chart, position), position);
+                    expect(unrotated.length).toBe(3);
+                    expect(Math.max(...unrotated) - Math.min(...unrotated)).toBeLessThanOrEqual(1);
+
+                    await renderChart(stackedOptions(position, variant, rotation));
+                    const nodes = getAxisLabelNodes(chart, position);
+                    // Anti-vacuous: the labels must differ in line count, or a common edge holds for any anchor.
+                    const heights = nodes.map((n: any) => n.computeBBoxWithoutTransforms().height);
+                    expect(Math.max(...heights) - Math.min(...heights)).toBeGreaterThan(10);
+
+                    for (const gap of innerGaps(nodes, position)) {
+                        expect(gap).toBeCloseTo(unrotated[0], 0);
+                    }
+                }
+            );
+
+            // The alignment that already holds for an unrotated label must leave its drawn box alone.
+            it.each([
+                ['bottom', { verticalAlign: 'top' }],
+                ['top', { verticalAlign: 'bottom' }],
+                ['left', { textAlign: 'right' }],
+                ['right', { textAlign: 'left' }],
+            ] as const)('keeps an unrotated boxed %s axis label box in place under %o', async (position, alignment) => {
+                await renderChart(stackedOptions(position, 'boxed', 0));
+                const natural = innerGaps(getAxisLabelNodes(chart, position), position);
+
+                await renderChart(stackedOptions(position, 'boxed', 0, alignment));
+                const aligned = innerGaps(getAxisLabelNodes(chart, position), position);
+                expect(aligned.length).toBe(3);
+                for (const [i, gap] of aligned.entries()) {
+                    expect(gap).toBeCloseTo(natural[i], 0);
+                }
+            });
+
+            // The pin moves labels of differing line counts by differing amounts, so collision
+            // avoidance has to see the move on a vertical axis too.
+            describe('collision avoidance on a rotated vertical axis', () => {
+                // Five line counts cycling, so whichever ticks thinning keeps, neighbours still differ.
+                const LINES = ['A', 'B C', 'D E F G', 'H I', 'J K L M N'];
+                const denseOptions = (
+                    count: number,
+                    rotation: number,
+                    avoidCollisions: boolean
+                ): AgCartesianChartOptions => ({
+                    data: Array.from({ length: count }, (_, i) => ({ category: `${LINES[i % 5]}${i}`, value: i })),
+                    width: 600,
+                    height: 400,
+                    axes: {
+                        x: { type: 'number', position: 'bottom' },
+                        y: {
+                            type: 'category',
+                            position: 'left',
+                            label: { rotation, avoidCollisions, formatter: multiline },
+                        },
+                    },
+                    series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+                });
+
+                it.each([
+                    [40, 60],
+                    [60, 45],
+                ])('leaves no overlapping pair of %d labels at rotation %d', async (count, rotation) => {
+                    await renderChart(denseOptions(count, rotation, false));
+                    // Anti-vacuous: without avoidance this geometry really does overlap.
+                    expect(collidingPairs(getAxisLabelNodes(chart, 'left'))).toBeGreaterThan(0);
+
+                    await renderChart(denseOptions(count, rotation, true));
+                    const nodes = getAxisLabelNodes(chart, 'left');
+                    expect(nodes.length).toBeGreaterThan(1);
+                    expect(collidingPairs(nodes)).toBe(0);
+                });
             });
         });
 
