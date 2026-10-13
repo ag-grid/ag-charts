@@ -323,7 +323,8 @@ export type AggregatePropertyDefinition<
         /**
          * Called once per datum. `out`, when provided, is a caller-owned scratch tuple the function may re-seed,
          * fill and return instead of allocating. `values` and `out` are reused across calls, so neither may be
-         * retained, and callers must use the returned tuple.
+         * retained, and callers must use the returned tuple. The returned tuple must be `out` or a fresh array,
+         * never a retained or shared one, because callers (e.g. `area`) may modify it in place.
          */
         aggregateFunction: (values: D[K][], keys?: D[K][], out?: R) => R;
         groupAggregateFunction?: (next?: R, acc?: R2) => R2;

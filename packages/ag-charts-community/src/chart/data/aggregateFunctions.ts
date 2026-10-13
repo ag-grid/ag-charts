@@ -22,23 +22,26 @@ function seedTuple<T extends [AgNumericValue, AgNumericValue]>(
     return out;
 }
 
+/** Splits `values` into negative and positive totals, re-seeding `out` to `[0, 0]` first. */
 export function sumValues(
     values: any[],
-    accumulator: [AgNumericValue, AgNumericValue] = [0, 0]
+    out: [AgNumericValue, AgNumericValue] = [0, 0]
 ): [AgNumericValue, AgNumericValue] {
+    out[0] = 0;
+    out[1] = 0;
     for (const value of values) {
         if (typeof value !== 'number' && typeof value !== 'bigint') {
             continue;
         }
         // addAccumulated keeps bigint totals exact; the unused-sign side retains its Number seed (mixed accumulator type).
         if (value < 0) {
-            accumulator[0] = addAccumulated(accumulator[0], value);
+            out[0] = addAccumulated(out[0], value);
         }
         if (value > 0) {
-            accumulator[1] = addAccumulated(accumulator[1], value);
+            out[1] = addAccumulated(out[1], value);
         }
     }
-    return accumulator;
+    return out;
 }
 
 export function sum(id: string, matchGroupId: string) {
@@ -46,7 +49,7 @@ export function sum(id: string, matchGroupId: string) {
         id,
         matchGroupIds: [matchGroupId],
         type: 'aggregate',
-        aggregateFunction: (values, _keys, out) => sumValues(values, seedTuple(out, 0, 0)),
+        aggregateFunction: (values, _keys, out) => sumValues(values, out),
     };
 
     return result;
@@ -61,7 +64,7 @@ export function groupSum(
         id,
         type: 'aggregate',
         matchGroupIds: opts?.matchGroupId == null ? undefined : [opts.matchGroupId],
-        aggregateFunction: (values, _keys, out) => sumValues(values, seedTuple(out, 0, 0)),
+        aggregateFunction: (values, _keys, out) => sumValues(values, out),
         groupAggregateFunction: (next, acc = [0, 0]) => {
             if (visible) {
                 acc[0] = addAccumulated(acc[0], next?.[0] ?? 0);
@@ -114,7 +117,7 @@ export function groupAverage(id: string, opts?: { matchGroupId?: string; visible
         id,
         matchGroupIds: opts?.matchGroupId == null ? undefined : [opts.matchGroupId],
         type: 'aggregate',
-        aggregateFunction: (values, _keys, out) => sumValues(values, seedTuple(out, 0, 0)),
+        aggregateFunction: (values, _keys, out) => sumValues(values, out),
         groupAggregateFunction: (next, acc = [0, 0, -1]) => {
             if (visible) {
                 acc[0] = addAccumulated(acc[0], next?.[0] ?? 0);

@@ -1,5 +1,4 @@
 import { testLogger } from 'ag-charts-test';
-import type { AgNumericValue } from 'ag-charts-types';
 
 import {
     accumulatedValue,
@@ -7,7 +6,7 @@ import {
     groupAverage as actualGroupAverage,
     groupCount as actualGroupCount,
     range as actualRange,
-    sumValues,
+    sum as actualSum,
 } from '../../aggregateFunctions';
 import type { AggregatePropertyDefinition, GroupedData, PropertyId, Scoped } from '../../dataModel';
 import { DataModel } from '../../dataModel';
@@ -84,18 +83,7 @@ export const accumulatedPropertyValue = (property: string, groupId: string = pro
     processor: accumulatedValue(true),
 });
 
-export const sum = (groupId: string): AggregatePropertyDefinition<any, any, [AgNumericValue, AgNumericValue]> => ({
-    id: `sum-${groupId}`,
-    matchGroupIds: [groupId],
-    type: 'aggregate',
-    aggregateFunction: (values, _keys, out) => {
-        if (out) {
-            out[0] = 0;
-            out[1] = 0;
-        }
-        return sumValues(values, out);
-    },
-});
+export const sum = (groupId: string) => actualSum(`sum-${groupId}`, groupId);
 
 export const scopedSum = (scopes: string[], groupId: string) => ({ ...sum(groupId), scopes });
 

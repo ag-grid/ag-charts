@@ -1929,7 +1929,9 @@ describe('DataModel', () => {
         });
     });
 
-    describe('grouped aggregation with reused scratch buffers', () => {
+    describe('aggregation with reused scratch buffers', () => {
+        const big = 9_007_199_254_740_993n; // 2^53 + 1, not representable as a Number
+
         const histogramGroupBy: GroupByFn = () => (keys) => {
             const x = keys[0];
             if (typeof x === 'number' && x < 10) return [0, 10];
@@ -1937,83 +1939,109 @@ describe('DataModel', () => {
             return [20, 30];
         };
 
-        it('should sum positive, negative and missing values of each datum', () => {
-            const dataModel = new DataModel<any, any, true>(
-                {
-                    props: [categoryKey('kp'), value('a', 'all'), value('b', 'all'), sum('all'), range('all')],
-                    groupByKeys: true,
-                },
-                testLogger
-            );
-            const data = basicDataSet([
-                { kp: 'Q1', a: 5, b: -3 },
-                { kp: 'Q2', a: undefined, b: 2 },
-                { kp: 'Q3', a: -4, b: -1 },
-                { kp: 'Q4', a: 1, b: undefined },
-            ]);
+        // One datum per group when grouped, so both layouts yield the same per-datum aggregation tuples.
+        const aggregatePerDatum = (layout: 'grouped' | 'ungrouped', props: any[], rows: Record<string, unknown>[]) => {
+            const keyedRows = rows.map((row, i) => ({ kp: `Q${i + 1}`, x: i + 1, ...row }));
+            if (layout === 'grouped') {
+                const dataModel = new DataModel<any, any, true>(
+                    { props: [categoryKey('kp'), ...props], groupByKeys: true },
+                    testLogger
+                );
+                const result = dataModel.processData(basicDataSet(keyedRows))!;
+                expect(result.type).toEqual('grouped');
+                return { aggregation: result.groups.map((g) => g.aggregation), aggValues: result.domain.aggValues! };
+            }
+            const dataModel = new DataModel<any, any>({ props: [rangeKey('x'), ...props] }, testLogger);
+            const result = dataModel.processData(basicDataSet(keyedRows))!;
+            expect(result.type).toEqual('ungrouped');
+            return { aggregation: result.aggregation!, aggValues: result.domain.aggValues! };
+        };
 
-            const result = dataModel.processData(data)!;
+        it.each(['grouped', 'ungrouped'] as const)(
+            'should sum positive, negative and missing values of each datum (%s)',
+            (layout) => {
+                const { aggregation, aggValues } = aggregatePerDatum(
+                    layout,
+                    [value('a', 'all'), value('b', 'all'), sum('all'), range('all'), groupCount()],
+                    [
+                        { a: 5, b: -3 },
+                        { a: undefined, b: 2 },
+                        { a: -4, b: -1 },
+                        { a: 1, b: undefined },
+                    ]
+                );
 
-            expect(result.groups.map((g) => g.aggregation)).toEqual([
-                [
-                    [-3, 5],
-                    [-3, 5],
-                ],
-                [
-                    [0, 2],
-                    [2, 2],
-                ],
-                [
-                    [-5, 0],
-                    [-4, -1],
-                ],
-                [
+                expect(aggregation).toEqual([
+                    [
+                        [-3, 5],
+                        [-3, 5],
+                        [0, 1],
+                    ],
+                    [
+                        [0, 2],
+                        [2, 2],
+                        [0, 1],
+                    ],
+                    [
+                        [-5, 0],
+                        [-4, -1],
+                        [0, 1],
+                    ],
+                    [
+                        [0, 1],
+                        [1, 1],
+                        [0, 1],
+                    ],
+                ]);
+                expect(aggValues).toEqual([
+                    [-5, 5],
+                    [-4, 5],
                     [0, 1],
-                    [1, 1],
-                ],
-            ]);
-            expect(result.domain.aggValues).toEqual([
-                [-5, 5],
-                [-4, 5],
-            ]);
-        });
+                ]);
+                // Every stored tuple is its own array, distinct from the domain's.
+                const tuples = aggregation.flat();
+                expect(new Set([...tuples, ...aggValues]).size).toBe(tuples.length + aggValues.length);
+            }
+        );
 
-        it('should keep bigint totals exact beyond Number.MAX_SAFE_INTEGER', () => {
-            const dataModel = new DataModel<any, any, true>(
-                {
-                    props: [categoryKey('kp'), value('a', 'all'), value('b', 'all'), sum('all'), range('all')],
-                    groupByKeys: true,
-                },
-                testLogger
-            );
-            const big = 9007199254740993n;
-            const data = basicDataSet([
-                { kp: 'Q1', a: big, b: -2n },
-                { kp: 'Q2', a: 1n, b: 5n },
-                { kp: 'Q3', a: big, b: big },
-            ]);
+        it.each(['grouped', 'ungrouped'] as const)(
+            'should keep bigint totals exact beyond Number.MAX_SAFE_INTEGER (%s)',
+            (layout) => {
+                const { aggregation, aggValues } = aggregatePerDatum(
+                    layout,
+                    [value('a', 'all'), value('b', 'all'), sum('all'), range('all')],
+                    [
+                        { a: big, b: -2n },
+                        { a: 1n, b: 5n },
+                        { a: big, b: big },
+                        { a: -big, b: 1n },
+                    ]
+                );
 
-            const result = dataModel.processData(data)!;
-
-            expect(result.groups.map((g) => g.aggregation)).toEqual([
-                [
-                    [-2n, big],
-                    [-2n, big],
-                ],
-                [
-                    [0, 6n],
-                    [1n, 5n],
-                ],
-                [
-                    [0, big + big],
-                    [big, big],
-                ],
-            ]);
-            expect(result.domain.aggValues).toEqual([
-                [-2n, big + big],
-                [-2n, big],
-            ]);
-        });
+                expect(aggregation).toEqual([
+                    [
+                        [-2n, big],
+                        [-2n, big],
+                    ],
+                    [
+                        [0, 6n],
+                        [1n, 5n],
+                    ],
+                    [
+                        [0, big + big],
+                        [big, big],
+                    ],
+                    [
+                        [-big, 1n],
+                        [-big, 1n],
+                    ],
+                ]);
+                expect(aggValues).toEqual([
+                    [-big, big + big],
+                    [-big, big],
+                ]);
+            }
+        );
 
         it('should keep bigint totals exact across the datums of a bucket', () => {
             const dataModel = new DataModel<any, any, true>(
@@ -2028,7 +2056,6 @@ describe('DataModel', () => {
                 },
                 testLogger
             );
-            const big = 9007199254740993n;
             const data = basicDataSet([
                 { x: 1, y: big },
                 { x: 2, y: 1n },
@@ -2232,93 +2259,6 @@ describe('DataModel', () => {
             expect(result.domain.aggValues).toEqual([[-2, 10]]);
         });
 
-        it('should aggregate ungrouped data per datum with distinct tuples', () => {
-            const dataModel = new DataModel<any, any>(
-                {
-                    props: [
-                        rangeKey('x'),
-                        value('a', 'all'),
-                        value('b', 'all'),
-                        sum('all'),
-                        range('all'),
-                        groupCount(),
-                    ],
-                },
-                testLogger
-            );
-            const data = basicDataSet([
-                { x: 1, a: 5, b: -3 },
-                { x: 2, a: undefined, b: 2 },
-                { x: 3, a: -4, b: -1 },
-                { x: 4, a: 1, b: undefined },
-            ]);
-
-            const result = dataModel.processData(data)!;
-
-            expect(result.type).toEqual('ungrouped');
-            expect(result.aggregation).toEqual([
-                [
-                    [-3, 5],
-                    [-3, 5],
-                    [0, 1],
-                ],
-                [
-                    [0, 2],
-                    [2, 2],
-                    [0, 1],
-                ],
-                [
-                    [-5, 0],
-                    [-4, -1],
-                    [0, 1],
-                ],
-                [
-                    [0, 1],
-                    [1, 1],
-                    [0, 1],
-                ],
-            ]);
-            expect(result.domain.aggValues).toEqual([
-                [-5, 5],
-                [-4, 5],
-                [0, 1],
-            ]);
-
-            const tuples = result.aggregation!.flat();
-            expect(new Set([...tuples, ...result.domain.aggValues!]).size).toBe(tuples.length + 3);
-        });
-
-        it('should aggregate ungrouped bigint values exactly', () => {
-            const dataModel = new DataModel<any, any>(
-                {
-                    props: [rangeKey('x'), value('a', 'all'), value('b', 'all'), sum('all'), range('all')],
-                },
-                testLogger
-            );
-            const big = 9007199254740993n;
-            const data = basicDataSet([
-                { x: 1, a: big, b: big },
-                { x: 2, a: -big, b: 1n },
-            ]);
-
-            const result = dataModel.processData(data)!;
-
-            expect(result.aggregation).toEqual([
-                [
-                    [0, big + big],
-                    [big, big],
-                ],
-                [
-                    [-big, 1n],
-                    [-big, 1n],
-                ],
-            ]);
-            expect(result.domain.aggValues).toEqual([
-                [-big, big + big],
-                [-big, big],
-            ]);
-        });
-
         it('should not change a processed result when the model processes another data set', () => {
             const dataModel = new DataModel<any, any, true>(
                 {
@@ -2389,11 +2329,9 @@ describe('DataModel', () => {
             const result = dataModel.processData(basicDataSet(rows))!;
 
             expect(calls).toBe(120);
-            // One scratch per aggregate is the design; allow up to one per group, never one per datum.
-            expect(seenValues.size).toBeGreaterThan(0);
-            expect(seenValues.size).toBeLessThanOrEqual(3);
-            expect(seenOut.size).toBeGreaterThan(0);
-            expect(seenOut.size).toBeLessThanOrEqual(3);
+            // One values array and one output tuple per aggregate, shared by every datum of every group.
+            expect(seenValues.size).toBe(1);
+            expect(seenOut.size).toBe(1);
             expect(result.groups.map((g) => g.aggregation[0])).toEqual([
                 sumOfBucket(rows, 0),
                 sumOfBucket(rows, 1),
