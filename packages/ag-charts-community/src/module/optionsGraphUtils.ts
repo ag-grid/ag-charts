@@ -11,6 +11,7 @@ export interface OverrideTypeKeys {
 }
 
 export interface OptionsGraphInterface {
+    readonly isDark: boolean;
     readonly palette: PlainObject;
     readonly paletteType: PaletteType;
     readonly moduleRegistry: ModuleScope;

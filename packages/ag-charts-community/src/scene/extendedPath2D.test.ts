@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { ExtendedPath2D } from './extendedPath2D';
+import { ExtendedPath2D } from 'ag-charts-core';
 
 const square = (path: ExtendedPath2D, half: number, reverse = false) => {
     const corners = [

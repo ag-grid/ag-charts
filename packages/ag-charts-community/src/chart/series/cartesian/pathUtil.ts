@@ -1,6 +1,6 @@
+import type { Path, Selection } from 'ag-charts-core';
+
 import { staticFromToMotion } from '../../../motion/fromToMotion';
-import type { Selection } from '../../../scene/selection';
-import type { Path } from '../../../scene/shape/path';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { NodeDataDependant } from '../seriesTypes';
 

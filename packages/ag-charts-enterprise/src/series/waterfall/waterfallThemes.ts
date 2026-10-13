@@ -1,14 +1,15 @@
 import { type AgWaterfallSeriesItemOptions, type WithThemeParams } from 'ag-charts-community';
 import {
+    BAR_LABEL_COLLISION_THEME,
     COMMON_SERIES_THEME_DEFAULTS,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
-    LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
+    SERIES_TOOLTIP_THEME,
+    SHADOW_THEME_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     STROKE_STYLE_THEME_DEFAULTS,
     undocumentedThemeOptions,
@@ -82,13 +83,7 @@ function itemTheme(
         fillOpacity: 1,
         ...STROKE_STYLE_THEME_DEFAULTS,
         cornerRadius: 0,
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             enabled: inherited('enabled'),
             fill: inherited('fill'),
@@ -163,7 +158,14 @@ function itemTheme(
 function placementStyle(styleKey: 'insideStyle' | 'outsideStyle'): WithThemeParams<AgChartLabelPlacementStyleOptions> {
     return {
         color: { $isUserOption: ['../color', { $path: '../color' }, inherited(`${styleKey}/color`, 4)] },
-        fill: inherited(`${styleKey}/fill`, 4),
+        // The series placement fill may be a theme-param default, which must not beat an item-level `label.fill`.
+        fill: {
+            $isUserOption: [
+                seriesLabelPath(`${styleKey}/fill`, 4),
+                inherited(`${styleKey}/fill`, 4),
+                { $if: [{ $isUserOption: '../fill' }, undefined, inherited(`${styleKey}/fill`, 4)] },
+            ],
+        },
         fillOpacity: inherited(`${styleKey}/fillOpacity`, 4),
         cornerRadius: inherited(`${styleKey}/cornerRadius`, 4),
         padding: inherited(`${styleKey}/padding`, 4),
@@ -191,19 +193,15 @@ const seriesLabelTheme = {
     ...LABEL_OVERFLOW_DEFAULTS,
     enabled: false,
     fontStyle: undefined,
-    fontWeight: { $ref: 'fontWeight' as const },
-    fontSize: { $ref: 'fontSize' as const },
-    fontFamily: { $ref: 'fontFamily' as const },
+    fontWeight: { $ref: 'seriesLabelFontWeight' as const },
+    fontSize: { $ref: 'seriesLabelFontSize' as const },
+    fontFamily: { $ref: 'seriesLabelFontFamily' as const },
     formatter: undefined,
     spacing: 6,
     padding: 6,
-    collision: {
-        threshold: 4,
-        alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
-        ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
-    },
-    insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
-    outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+    collision: BAR_LABEL_COLLISION_THEME,
+    insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
+    outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
     placement: 'outside-end' as const,
 };
 
@@ -223,7 +221,7 @@ export const WATERFALL_SERIES_THEME: ExtensibleSeriesTheme<'waterfall'> = {
             ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: 2,
         },
-        tooltip: { interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
     },
     legend: {

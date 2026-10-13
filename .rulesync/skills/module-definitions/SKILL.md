@@ -117,6 +117,8 @@ generated tables.
 ## Checklist for a new module
 
 1. Write the definition with `type`, `name`, `version`, `create`, and `options`/`themeTemplate`.
+   Put undocumented keys inside the `options` literal with `...undocumentedDefs({...})`, never by
+   assigning onto it afterwards, which keeps it out of tree-shaking (see the `api-contracts` rule).
 2. Declare `contributes` only if the implied location is wrong or incomplete. It replaces the
    implied location, so when adding locations, list the implied one alongside them.
 3. Export it from the package `main.ts` and add it to the relevant `module-bundles/*.ts`.

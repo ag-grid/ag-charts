@@ -16,7 +16,14 @@ import {
     readDemoIds,
     readPinnedChartsVersion,
 } from './seed-common.mjs';
-import { GENERATED_FRAMEWORK, findStalePorts, findTouchedStalePorts, readChangedFiles } from './stale-ports.mjs';
+import {
+    GENERATED_FRAMEWORK,
+    findStalePorts,
+    findStalePortsAtBase,
+    findTouchedStalePorts,
+    readChangedFiles,
+    splitTouchedByBaseStaleness,
+} from './stale-ports.mjs';
 
 /**
  * Freshness check for the committed seed projects.
@@ -37,7 +44,11 @@ import { GENERATED_FRAMEWORK, findStalePorts, findTouchedStalePorts, readChanged
  * `--touched <base>` fails when a port the change edits (a file under `seeds/<demo>/<framework>/`
  * that differs between `<base>` and `HEAD`, pin-only files aside) is still stale: the port was
  * aligned without restamping its manifest, and the blocking parity run, which skips stale ports,
- * would not compare it. The message names the stamp command.
+ * would not compare it. The message names the stamp command. The exception is a port that was
+ * already stale at `<base>` when the change also moves its React demo's source hash: an API
+ * migration across the demo and every port did not cause that drift, and the release-branch cut
+ * aligns it, so it is only reported as a warning. A stale port edited with its demo left alone is
+ * an alignment, and fails like any other.
  *
  * `--pins` fails when a framework port's `ag-charts-*` pins, or its manifest's `pinnedVersion` /
  * `pinSource`, disagree with what the seeds install (`readPinnedChartsVersion`: the release for a
@@ -167,21 +178,37 @@ function reportStale({ failOnStale }) {
     return failOnStale && stale.length > 0 ? 1 : 0;
 }
 
-function checkTouched({ base }) {
-    const stale = findStalePorts({ onSkip: (message) => console.error(`check-seeds: ${message}`) });
-    const touched = findTouchedStalePorts({ changedFiles: readChangedFiles(base), stale });
-    if (touched.length === 0) {
-        console.error(`check-seeds: no port edited since ${base} is left stale.`);
+/** The reads `checkTouched` makes, replaceable so the unit tests need no git history. */
+const TOUCHED_READS = { findStalePorts, readChangedFiles, findStalePortsAtBase };
+
+export function checkTouched({ base }, reads = TOUCHED_READS) {
+    const stale = reads.findStalePorts({ onSkip: (message) => console.error(`check-seeds: ${message}`) });
+    const touched = findTouchedStalePorts({ changedFiles: reads.readChangedFiles(base), stale });
+    // Only worth reading the base's tree when there is something to classify.
+    const { introduced, inherited } = splitTouchedByBaseStaleness({
+        touched,
+        staleAtBase: touched.length > 0 ? reads.findStalePortsAtBase(base) : [],
+    });
+    for (const { demo, framework, files } of inherited) {
+        const message = `seeds/${demo}/${framework} was already stale at ${base} and is edited here (${files.join(', ')}) along with src/demos/${demo}; the Demo Port Alignment workflow aligns it when the next release branch is cut, so there is nothing to restamp on this PR.`;
+        console.error(
+            process.env.GITHUB_ACTIONS
+                ? `::warning title=Edited stale demo port::${message}`
+                : `check-seeds: warning: ${message}`
+        );
+    }
+    if (introduced.length === 0) {
+        console.error(`check-seeds: no port edited since ${base} is newly left stale.`);
         return 0;
     }
     console.error(`check-seeds: these ports are edited since ${base} but still stale against their React demo.\n`);
-    for (const { demo, framework, files } of touched) {
+    for (const { demo, framework, files } of introduced) {
         console.error(`  seeds/${demo}/${framework}: ${files.join(', ')}`);
     }
     console.error(
         '\nOnce a port reproduces its demo, restamp its manifest so the parity run compares it rather than skipping it as stale:'
     );
-    for (const { demo, framework } of touched) {
+    for (const { demo, framework } of introduced) {
         console.error(`  node ${STAMP_SCRIPT} ${demo} ${framework}`);
     }
     console.error('then commit the manifest with the port.');

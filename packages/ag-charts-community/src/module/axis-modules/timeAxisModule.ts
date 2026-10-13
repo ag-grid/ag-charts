@@ -2,18 +2,17 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedTimeAxisOptions,
+    cartesianAxisThemeOptionsDefs,
+    commonAxisThemeTemplate,
     mergeDefaults,
+    parentLevelAxisThemeTemplate,
+    timeAxisOptionsDefs,
+    titleAxisThemeTemplate,
 } from 'ag-charts-core';
 import type { AgTimeAxisOptions } from 'ag-charts-types';
 
-import { timeAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { TimeAxis } from '../../chart/axis/timeAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import {
-    commonAxisThemeTemplate,
-    parentLevelAxisThemeTemplate,
-    titleAxisThemeTemplate,
-} from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
@@ -26,6 +25,8 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions, TimeAxis> =
     dependencies: [CartesianChartModule],
 
     options: timeAxisOptionsDefs,
+
+    themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(timeAxisOptionsDefs),
     themeTemplate: mergeDefaults(
         {
             maxThicknessRatio: 0.3,

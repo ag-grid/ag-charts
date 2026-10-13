@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { BBox } from '../../scene/bbox';
+import { BBox } from 'ag-charts-core';
+
 import { AxisLabelSource } from './axisLabelSource';
 
 describe('AxisLabelSource', () => {

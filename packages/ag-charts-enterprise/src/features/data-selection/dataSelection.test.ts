@@ -25,13 +25,16 @@ import {
     deproxy,
     dragAction,
     getSeriesAggregationInternals,
+    isTooltipVisible,
     keyDownAction,
     mouseDownAction,
     mouseMoveAction,
     mouseUpAction,
     newFreezableMockInferred,
+    pressKey as pressSeriesAreaKey,
     setupMockCanvas,
     setupMockConsole,
+    tabIntoChart,
     waitForChartStability,
     withPreventDefault,
 } from 'ag-charts-community-test';
@@ -1454,6 +1457,37 @@ describe('DataSelection', () => {
                     expect(getErrorBarGroupOpacity()).toBe(1);
                 });
             }
+        });
+    });
+
+    describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
+        it('keeps the tooltip hidden despite the full redraw from the data selection Escape handler', async () => {
+            chart = await createChartInstance({
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 20 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                selection: { enabled: true },
+            });
+
+            await tabIntoChart(chart);
+            // jsdom cannot detect :focus-visible, so an arrow key switches to the keyboard device.
+            await pressSeriesAreaKey(chart, 'ArrowRight');
+            await pressSeriesAreaKey(chart, 'ArrowLeft');
+            expect(isTooltipVisible(deproxy(chart))).toBe(true);
+
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area')!;
+            const event = new KeyboardEvent('keydown', {
+                key: 'Escape',
+                code: 'Escape',
+                bubbles: true,
+                cancelable: true,
+            });
+            seriesArea.dispatchEvent(event);
+            await waitForChartStability(chart);
+
+            expect(isTooltipVisible(deproxy(chart))).toBe(false);
         });
     });
 
@@ -5430,6 +5464,85 @@ describe('DataSelection', () => {
                         });
                     });
                 });
+            });
+        });
+    });
+
+    describe('box selection order with mixed-depth leaves', () => {
+        type D = { name: string; size?: number; children?: D[] };
+
+        // Leaves sit at depths 2, 3 and 4, so the scene graph's depth ordering differs from datum order.
+        const data: D[] = [
+            {
+                name: 'a/',
+                children: [
+                    { name: 'a1', size: 10 },
+                    {
+                        name: 'a2/',
+                        children: [
+                            { name: 'a2x', size: 6 },
+                            { name: 'a2y', size: 6 },
+                        ],
+                    },
+                ],
+            },
+            { name: 'b', size: 15 },
+            { name: 'c/', children: [{ name: 'c1', size: 12 }] },
+        ];
+
+        // Treemap groups aren't selectable, so only the leaves a1, a2x, a2y, b and c1 are reported; sunburst reports
+        // every sector.
+        describe.each([
+            // `hoverPoint` is over a selectable item: the leaf `a1` for treemap, the sector `a2/` for sunburst.
+            { type: 'treemap', expectedItemIds: [1, 3, 4, 5, 7], hoverPoint: { canvasX: 200, canvasY: 500 } },
+            { type: 'sunburst', expectedItemIds: [0, 1, 2, 3, 4, 5, 6, 7], hoverPoint: { canvasX: 500, canvasY: 450 } },
+        ] as const)('$type', ({ type, expectedItemIds, hoverPoint }) => {
+            let selectionChange: SelectionChangeRecorder<D, unknown>;
+
+            const start: CanvasPoint = { canvasX: 20, canvasY: 20 };
+            const end: CanvasPoint = { canvasX: 780, canvasY: 580 };
+
+            beforeEach(async () => {
+                selectionChange = createSelectionChangeRecorder();
+                chart = await createChartInstance({
+                    data,
+                    series: [{ type, labelKey: 'name', sizeKey: 'size' }],
+                    selection: { enabled: true, enableClick: false, enableDrag: true },
+                    listeners: { selectionChange },
+                });
+                // Hover an item first, so its highlight node exists while the box is picked.
+                await mouseMove(hoverPoint);
+            });
+
+            test('selectionChange reports `added` in datum order', async () => {
+                await mouseDown(start);
+                await mouseMove(end);
+                await mouseUp(end);
+
+                const events = selectionChange.popEvents();
+                expect(events).toHaveLength(1);
+                const added = events[0].added.map((item) => item.itemId);
+                expect(added).toEqual(expectedItemIds);
+                expect(getChartSelectionArray().map((item) => item.itemId)).toEqual(added);
+            });
+
+            // `selectionChange` can't show a duplicate: an item that is already selected is never re-added. So check
+            // the picked nodes directly, with the hovered item's highlight node alive. Treemap groups are picked too
+            // (the selection filters them out later), so every non-root datum is expected here.
+            test('pickNodesInBBox yields each item once, in datum order, while an item is highlighted', () => {
+                const highlighted = deproxy(chart).ctx.highlightManager.getActiveHighlight();
+                expect(highlighted?.datumIndex).toBeDefined();
+
+                const series = deproxy(chart).series[0];
+                const picked = Array.from(
+                    series.pickNodesInBBox({
+                        x: start.canvasX,
+                        y: start.canvasY,
+                        width: end.canvasX - start.canvasX,
+                        height: end.canvasY - start.canvasY,
+                    })
+                ) as { datumIndex: number }[];
+                expect(picked.map((datum) => datum.datumIndex)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
             });
         });
     });

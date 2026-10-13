@@ -34,9 +34,9 @@ export const donutTheme: ExtensibleSeriesTheme<'donut'> = {
         innerLabels: {
             $apply: {
                 ...LABEL_BOXING_DEFAULTS,
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
+                fontSize: { $ref: 'seriesLabelFontSize' },
+                fontFamily: { $ref: 'seriesLabelFontFamily' },
+                fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 2,
             },

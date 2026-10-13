@@ -5,12 +5,19 @@ import type {
     AgCategoryAxisOptions,
     AgNumberAxisOptions,
     AgVolumeProfileChartPreset,
+    AgVolumeProfileSelectionOptions,
+    AgVolumeProfileTotalSegmentOptions,
     DatumDefault,
 } from 'ag-charts-types';
 
-import { createVolumeProfileSeries } from './volumeProfile';
+import {
+    createSelectedBandAxisOptions,
+    createSelectionChartOptions,
+    createTotalSegmentAxisOptions,
+    createVolumeProfileSeries,
+} from './volumeProfile';
 
-type ChartTheme = _Theme.ChartTheme;
+type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
 
 export function volumeProfileChart(
     opts: AgVolumeProfileChartPreset & AgBaseFinancialPresetOptions,
@@ -19,12 +26,14 @@ export function volumeProfileChart(
 ): AgCartesianChartOptions<DatumDefault, never> {
     const {
         data = [],
-        priceKey,
-        upKey,
-        downKey,
-        tickSize,
-        // Resolved from the chart's own options against the preset's `themeTemplate`; pulled out
-        // here only to keep it out of `unusedOpts`.
+        totalSegment,
+        selection,
+        // Read by the preset's `transformSeriesData`, or resolved against its `themeTemplate`; pulled out here
+        // only to keep them out of `unusedOpts`.
+        priceKey: _priceKey,
+        upKey: _upKey,
+        downKey: _downKey,
+        tickSize: _tickSize,
         theme: _theme,
         ...unusedOpts
     } = opts;
@@ -33,20 +42,26 @@ export function volumeProfileChart(
         data,
         animation: { enabled: false },
         legend: { enabled: false },
-        series: createVolumeProfileSeries(getTheme, { data, priceKey, upKey, downKey }, tickSize, 'x'),
+        series: createVolumeProfileSeries(getTheme, 'x', undefined, selection),
+        ...createSelectionChartOptions(selection),
         axes: {
-            ...createPriceAxis(),
+            ...createPriceAxis(totalSegment, selection),
             ...createVolumeAxis(),
         },
         ...unusedOpts,
     } satisfies AgCartesianChartOptions<DatumDefault, never>;
 }
 
-function createPriceAxis() {
+function createPriceAxis(
+    totalSegment: AgVolumeProfileTotalSegmentOptions | undefined,
+    selection: AgVolumeProfileSelectionOptions | undefined
+) {
     return {
         x: {
             type: 'category',
             position: 'left',
+            ...createTotalSegmentAxisOptions(totalSegment, 'left'),
+            ...createSelectedBandAxisOptions(selection),
         } satisfies AgCategoryAxisOptions,
     };
 }

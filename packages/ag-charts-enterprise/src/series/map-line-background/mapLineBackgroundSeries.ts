@@ -1,20 +1,23 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type {
+    BBox,
     DynamicContext,
     FeatureCollection,
     Geometry,
     NormalisedMapLineBackgroundSeriesOwnOptions,
     NormalisedMapLineSeriesStyle,
 } from 'ag-charts-core';
+import { Group, PointerEvents, Selection } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { LonLatBBox } from '../map-util/lonLatBbox';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
+import type { MercatorScale } from '../map-util/mercatorScale';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
 
-const { createDatumId, Group, Selection, PointerEvents } = _ModuleSupport;
+const { createDatumId } = _ModuleSupport;
 
 export interface MapLineBackgroundNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
@@ -36,7 +39,7 @@ export class MapLineBackgroundSeries
     static override readonly className = 'MapLineBackgroundSeries';
     static readonly type = 'map-line-background' as const;
 
-    scale: _ModuleSupport.MercatorScale | undefined;
+    scale: MercatorScale | undefined;
 
     public topologyBounds: LonLatBBox | undefined;
 
@@ -184,13 +187,13 @@ export class MapLineBackgroundSeries
 
     private updateDatumSelection(opts: {
         nodeData: MapLineBackgroundNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<MapLineBackgroundNodeDatum, GeoGeometry<MapLineBackgroundNodeDatum>>;
+        datumSelection: Selection<MapLineBackgroundNodeDatum, GeoGeometry<MapLineBackgroundNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.index));
     }
 
     private updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<MapLineBackgroundNodeDatum, GeoGeometry<MapLineBackgroundNodeDatum>>;
+        datumSelection: Selection<MapLineBackgroundNodeDatum, GeoGeometry<MapLineBackgroundNodeDatum>>;
     }) {
         const { datumSelection } = opts;
 
@@ -222,7 +225,7 @@ export class MapLineBackgroundSeries
         return;
     }
 
-    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): BBox | undefined {
         return undefined;
     }
 

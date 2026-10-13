@@ -7,8 +7,8 @@ export interface DemoAppEntry {
 
 export const DEMO_APPS: DemoAppEntry[] = [
     {
-        id: 'financial',
-        load: () => import('./demos/financial'),
+        id: 'trading-terminal',
+        load: () => import('./demos/trading-terminal'),
     },
     {
         id: 'web-analytics',

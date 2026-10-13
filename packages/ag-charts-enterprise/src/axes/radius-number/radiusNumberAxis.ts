@@ -6,12 +6,11 @@ import type {
     NormalisedRadiusNumberAxisOptions,
     NormalisedTextOrSegments,
 } from 'ag-charts-core';
-import { normalisedExtentWithMetadata, toNumber } from 'ag-charts-core';
+import { LinearScale, normalisedExtentWithMetadata, toNumber } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
-const { LinearScale } = _ModuleSupport;
 interface TickDatum {
     tick: any;
     tickId: string;
@@ -19,11 +18,7 @@ interface TickDatum {
     translation: number;
 }
 
-export class RadiusNumberAxis extends RadiusAxis<
-    _ModuleSupport.LinearScale,
-    AgNumericValue,
-    NormalisedRadiusNumberAxisOptions
-> {
+export class RadiusNumberAxis extends RadiusAxis<LinearScale, AgNumericValue, NormalisedRadiusNumberAxisOptions> {
     static readonly className = 'RadiusNumberAxis';
     static readonly type = 'radius-number' as const;
 

@@ -1,4 +1,4 @@
-import { first } from 'ag-charts-core';
+import { type BandIndexMap, first } from 'ag-charts-core';
 
 import type { BandedDomainConfig } from '../../dataDomain';
 import type {
@@ -9,7 +9,6 @@ import type {
     ScopeId,
 } from '../../dataModelTypes';
 import { REDUCER_BANDS } from '../../dataModelTypes';
-import type { BandIndexMap } from '../utils/bandedStructure';
 import { isScoped } from '../utils/helpers';
 import { BandedReducer, type ReducerContext } from './bandedReducer';
 

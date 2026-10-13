@@ -1,16 +1,19 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
-import { type FontOptions, type Point, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
+import { BBox, type FontOptions, type Point, cachedTextMeasurer, wrapText } from 'ag-charts-core';
+import type { Text } from 'ag-charts-core';
 
 import type { Padding } from '../annotationTypes';
-
-const { BBox } = _ModuleSupport;
 
 export type AnnotationTextPosition = 'top' | 'center' | 'bottom';
 export type AnnotationTextAlignment = 'left' | 'center' | 'right';
 
 export type TextOptions = FontOptions & { textAlign: TextAlign; position: AnnotationTextPosition };
 
-export const ANNOTATION_TEXT_LINE_HEIGHT = 1.38;
+const ANNOTATION_TEXT_LINE_HEIGHT = 1.38;
+
+export function annotationLineHeight(fontSize: number) {
+    return Math.round(fontSize * ANNOTATION_TEXT_LINE_HEIGHT);
+}
 
 export function getAnnotationText(text: string, localeManager: _ModuleSupport.LocaleManager) {
     const isPlaceholder = text.length === 0;
@@ -27,16 +30,11 @@ export function maybeWrapText(options: FontOptions, text: string, maxWidth: numb
 
 function measureAnnotationText(options: FontOptions, text: string) {
     const { lineMetrics, width } = cachedTextMeasurer(options).measureLines(text);
-    const height = lineMetrics.length * calcLineHeight(options.fontSize, ANNOTATION_TEXT_LINE_HEIGHT);
+    const height = lineMetrics.length * annotationLineHeight(options.fontSize);
     return { width, height };
 }
 
-export function getBBox(
-    options: TextOptions & { width?: number },
-    text: string,
-    coords: Point,
-    bbox?: _ModuleSupport.BBox
-) {
+export function getBBox(options: TextOptions & { width?: number }, text: string, coords: Point, bbox?: BBox) {
     let width = bbox?.width ?? 0;
     let height = bbox?.height ?? 0;
 
@@ -49,7 +47,7 @@ export function getBBox(
 }
 
 export function updateTextNode(
-    node: _ModuleSupport.Text,
+    node: Text,
     text: string,
     isPlaceholder: boolean,
     config: TextOptions & { visible?: boolean; color?: string; placeholderColor?: string },
@@ -57,7 +55,7 @@ export function updateTextNode(
     textBaseline?: CanvasTextBaseline
 ) {
     const { visible = true, fontFamily, fontSize = 14, fontStyle, fontWeight, textAlign } = config;
-    const lineHeight = calcLineHeight(fontSize, ANNOTATION_TEXT_LINE_HEIGHT);
+    const lineHeight = annotationLineHeight(fontSize);
     textBaseline ??= config.position == 'center' ? 'middle' : config.position;
 
     const fill = isPlaceholder ? config.placeholderColor : config.color;

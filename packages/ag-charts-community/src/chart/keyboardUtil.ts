@@ -1,8 +1,7 @@
 import type { CanvasPoint } from 'ag-charts-core';
+import { BBox, Transformable } from 'ag-charts-core';
 import type { AgCoordinates } from 'ag-charts-types';
 
-import { BBox } from '../scene/bbox';
-import { Transformable } from '../scene/transformable';
 import type { PickFocusOutputs } from './series/pickTypes';
 import { SeriesNodeDatumSentinel } from './series/pickTypes';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';

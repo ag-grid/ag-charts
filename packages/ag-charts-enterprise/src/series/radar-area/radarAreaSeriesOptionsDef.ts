@@ -1,7 +1,52 @@
-import { type AgRadarAreaSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, commonSeriesOptionsDefs, constant, required, string, undocumented } from 'ag-charts-core';
+import type {
+    AgRadarAreaSeriesOptions,
+    AgRadarAreaSeriesStyle,
+    AgRadarAreaSeriesThemeableOptions,
+} from 'ag-charts-community';
+import {
+    type OptionsDefs,
+    boolean,
+    callbackDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
+    constant,
+    fillOptionsDef,
+    lineDashOptionsDef,
+    markerOptionsDefs,
+    markerStyleOptionsDefs,
+    multiSeriesShadowHighlightOptionsDef,
+    required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
+    shapeHighlightOptionsDef,
+    string,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    undocumentedDefs,
+    undocumentedLabelFitOptionsDefs,
+} from 'ag-charts-core';
 
-const { radarAreaSeriesThemeableOptionsDef } = _ModuleSupport;
+export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesThemeableOptions> = {
+    connectMissingData: boolean,
+    marker: markerOptionsDefs,
+    styler: callbackDefs<AgRadarAreaSeriesStyle>({
+        marker: markerStyleOptionsDefs,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...undocumentedLabelFitOptionsDefs,
+    },
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+};
 
 export const radarAreaSeriesOptionsDef: OptionsDefs<AgRadarAreaSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -12,9 +57,8 @@ export const radarAreaSeriesOptionsDef: OptionsDefs<AgRadarAreaSeriesOptions> = 
     angleName: string,
     radiusName: string,
     legendItemName: string,
+    ...undocumentedDefs({
+        angleKeyAxis: string,
+        radiusKeyAxis: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-radarAreaSeriesOptionsDef.angleKeyAxis = undocumented(string);
-// @ts-expect-error undocumented option
-radarAreaSeriesOptionsDef.radiusKeyAxis = undocumented(string);

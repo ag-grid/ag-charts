@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { ChartUpdateType, type DynamicContext, type Placement, ZIndexMap } from 'ag-charts-core';
+import { ChartUpdateType, type DynamicContext, Group, type Placement, ZIndexMap } from 'ag-charts-core';
 
 import { Image } from '../image/image';
 
@@ -36,7 +36,7 @@ export class Foreground extends _ModuleSupport.Background {
     }
 
     protected override createNode() {
-        return new _ModuleSupport.Group({ name: 'foreground', zIndex: ZIndexMap.FOREGROUND });
+        return new Group({ name: 'foreground', zIndex: ZIndexMap.FOREGROUND });
     }
 
     protected override onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {

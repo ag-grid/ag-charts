@@ -1,5 +1,4 @@
-.ag-charts-theme-default,
-.ag-charts-theme-default-dark {
+.ag-charts-theme-default {
     /******************************************************************************************************************
      * Theme Parameters.
      * Variables defined by the `theme.params`.
@@ -34,7 +33,7 @@
     --ag-charts-chrome-text-color: #181d1f;
     --ag-charts-drag-handle-color: #181d1f;
 
-    --ag-charts-button-background-color: #fff;
+    --ag-charts-button-background-color: #fafafa;
     --ag-charts-button-border-color: #dddddd;
     --ag-charts-button-border-radius: 4px;
     --ag-charts-button-border-width: 1px;
@@ -126,14 +125,13 @@
 
     --ag-charts-button-hover-background-color: var(--ag-charts-focus-color);
     --ag-charts-button-hover-border-color: var(--ag-charts-button-border-color);
+    --ag-charts-button-hover-border-width: var(--ag-charts-button-border-width);
     --ag-charts-button-hover-text-color: var(--ag-charts-button-text-color);
 
     --ag-charts-button-active-background-color: var(--ag-charts-focus-color);
     --ag-charts-button-active-border-color: var(--ag-charts-accent-color);
+    --ag-charts-button-active-border-width: var(--ag-charts-button-border-width);
     --ag-charts-button-active-text-color: var(--ag-charts-accent-color);
-
-    --ag-charts-button-horizontal-padding: 9px;
-    --ag-charts-button-vertical-padding: 6px;
 
     --ag-charts-button-disabled-background-color: color-mix(
         in srgb,
@@ -141,6 +139,7 @@
         var(--ag-charts-foreground-color) 6%
     );
     --ag-charts-button-disabled-border-color: var(--ag-charts-button-border-color);
+    --ag-charts-button-disabled-border-width: var(--ag-charts-button-border-width);
     --ag-charts-button-disabled-text-color: color-mix(
         in srgb,
         var(--ag-charts-chrome-background-color),

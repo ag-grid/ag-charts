@@ -84,10 +84,14 @@ const options: AgChartOptions = {
     navigator: {
         height: 50,
         cornerRadius: 10,
-        mask: {
+        track: {
             fill: 'red',
             strokeWidth: 2,
             fillOpacity: 0.3,
+        },
+        thumb: {
+            fill: 'orange',
+            fillOpacity: 0.2,
         },
         minHandle: {
             fill: 'yellow',

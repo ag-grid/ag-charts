@@ -1,11 +1,10 @@
 import { SeriesAreaModule, VERSION, _ModuleSupport } from 'ag-charts-community';
-import { type PluginModuleDefinition, arrayOfDefs, fillOptionsDef, strokeOptionsDef } from 'ag-charts-core';
+import { type PluginModuleDefinition, arrayOfDefs } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegion } from 'ag-charts-types';
 
 import { BackgroundRegions } from './backgroundRegions';
+import { backgroundRegionOptionsDef } from './backgroundRegionsOptionsDefs';
 import { backgroundRegionsTheme } from './backgroundRegionsTheme';
-
-const { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef } = _ModuleSupport;
 
 export const BackgroundRegionsModule: PluginModuleDefinition<never, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
@@ -17,13 +16,8 @@ export const BackgroundRegionsModule: PluginModuleDefinition<never, _ModuleSuppo
     contributes: [
         {
             path: 'seriesArea.backgroundRegions',
-            options: arrayOfDefs<AgSeriesAreaBackgroundRegion>({
-                ...fillOptionsDef,
-                ...strokeOptionsDef,
-                xRange: seriesAreaBackgroundRegionRangeDef,
-                yRange: seriesAreaBackgroundRegionRangeDef,
-                label: seriesAreaBackgroundRegionLabelDef,
-            }),
+            options: arrayOfDefs<AgSeriesAreaBackgroundRegion>(backgroundRegionOptionsDef),
+            themeOptions: backgroundRegionOptionsDef,
             themeTemplate: backgroundRegionsTheme,
         },
     ],

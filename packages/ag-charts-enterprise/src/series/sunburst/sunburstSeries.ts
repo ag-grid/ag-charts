@@ -4,47 +4,42 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
-    type BoxBounds,
+    BBox,
     type CallbackParamRules,
     type DynamicContext,
+    Group,
     type NormalisedSunburstInnerLabelOptions,
     type NormalisedSunburstSeriesOwnOptions,
     type NormalisedSunburstSeriesStyle,
     type NormalisedTextOrSegments,
     type Point,
+    PointerEvents,
     type RequireOptional,
     STROKE_STYLE_THEME_DEFAULTS,
+    ScalableGroup,
+    Sector,
+    Selection,
+    Text,
+    TransformableText,
     findDiscreteColorBinLabel,
     formatValue,
     isGradientFill,
     mergeDefaults,
     normalizeAngle360,
 } from 'ag-charts-core';
+import type { Path } from 'ag-charts-core';
 import type { AgSunburstSeriesItemStylerParams, FontStyle, FontWeight } from 'ag-charts-types';
 
+import { HierarchyNode, HierarchySeries, toHierarchyHighlightString } from '../hierarchy/hierarchySeries';
 import { formatLabels } from '../util/labelFormatter';
 
-const {
-    fromToMotion,
-    createDatumId,
-    PointerEvents,
-    Sector,
-    Group,
-    ScalableGroup,
-    Selection,
-    Text,
-    TransformableText,
-    BBox,
-    fitLabelToContainer,
-    getLabelStyles,
-    toHierarchyHighlightString,
-} = _ModuleSupport;
+const { fromToMotion, createDatumId, fitLabelToContainer, getLabelStyles } = _ModuleSupport;
 
-class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
+class SunburstNode extends HierarchyNode<SunburstNode> {
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
     contentHeight: number = 0;
-    bbox: _ModuleSupport.BBox | undefined = undefined; // cspell:ignore bbox
+    bbox: BBox | undefined = undefined; // cspell:ignore bbox
     startAngle: number = 0;
     endAngle: number = 0;
 }
@@ -99,9 +94,9 @@ enum TextNodeTag {
 
 type ItemStyle = Required<NormalisedSunburstSeriesStyle> & { opacity: number };
 
-export class SunburstSeries extends _ModuleSupport.HierarchySeries<
+export class SunburstSeries extends HierarchySeries<
     SunburstNode,
-    _ModuleSupport.Sector<SunburstNode>,
+    Sector<SunburstNode>,
     NormalisedSunburstSeriesOwnOptions
 > {
     static override readonly className = 'SunburstSeries';
@@ -110,7 +105,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     NodeClass = SunburstNode;
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
-    private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
+    private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>({ batchShadows: 'by-layer' }));
     private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
     // Above every sector fill so the centre reads as chrome, and below the labels so no sector label
     // is painted over. Inside `scalingGroup`, so it takes the series' entry animation.
@@ -120,23 +115,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     // labels, and named so the scene sampler cannot renumber the unnamed groups around it.
     private readonly innerLabelsGroup = this.scalingGroup.appendChild(new Group({ name: 'innerLabels' }));
 
-    readonly datumSelection = Selection.select<_ModuleSupport.Sector<SunburstNode>>(
-        this.sectorGroup,
-        Sector<SunburstNode>
-    );
-    private readonly labelSelection = Selection.select<_ModuleSupport.Group<SunburstNode>>(
-        this.sectorLabelGroup,
-        Group
-    );
-    private readonly highlightSelection = Selection.select<_ModuleSupport.Sector<SunburstNode>>(
-        this.highlightSectorGroup,
-        Sector
-    );
-    private readonly innerCircleSelection = Selection.select<_ModuleSupport.Sector<{ radius: number }>>(
+    readonly datumSelection = Selection.select<Sector<SunburstNode>>(this.sectorGroup, Sector<SunburstNode>);
+    private readonly labelSelection = Selection.select<Group<SunburstNode>>(this.sectorLabelGroup, Group);
+    private readonly highlightSelection = Selection.select<Sector<SunburstNode>>(this.highlightSectorGroup, Sector);
+    private readonly innerCircleSelection = Selection.select<Sector<{ radius: number }>>(
         this.innerCircleGroup,
         Sector<{ radius: number }>
     );
-    readonly innerLabelsSelection = Selection.select<_ModuleSupport.Text<NormalisedSunburstInnerLabelOptions>>(
+    readonly innerLabelsSelection = Selection.select<Text<NormalisedSunburstInnerLabelOptions>>(
         this.innerLabelsGroup,
         Text
     );
@@ -176,7 +162,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const descendants = Array.from(this.rootNode!);
 
-        const updateLabelGroup = (group: _ModuleSupport.Group) => {
+        const updateLabelGroup = (group: Group) => {
             group.append([
                 new TransformableText({ tag: TextNodeTag.Primary }),
                 new TransformableText({ tag: TextNodeTag.Secondary }),
@@ -487,14 +473,16 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 case LabelPlacement.Parallel: {
                     const opticalCentering = 0.58; // Between 0 and 1 - there's no maths behind this, just what visually looks good
                     const idealRadius = outerRadius - (radiusScale - labelHeight) * opticalCentering;
-                    const maximumRadius = Math.sqrt((outerRadius - padding) ** 2 - (labelWidth / 2) ** 2);
+                    // A label kept by `collision.alwaysShow` can be wider than the sector's outer chord.
+                    const maximumRadius = Math.sqrt(Math.max(0, (outerRadius - padding) ** 2 - (labelWidth / 2) ** 2));
                     labelRadius = Math.min(idealRadius, maximumRadius);
                     break;
                 }
                 case LabelPlacement.Perpendicular:
                     if (depth === 0 && hole === 0) {
                         const minimumRadius = labelHeight / (2 * Math.tan(deltaInnerAngle * 0.5)) + labelWidth * 0.5;
-                        const maximumRadius = Math.sqrt(outerRadius ** 2 - (labelHeight * 0.5) ** 2) - labelWidth * 0.5;
+                        const maximumRadius =
+                            Math.sqrt(Math.max(0, outerRadius ** 2 - (labelHeight * 0.5) ** 2)) - labelWidth * 0.5;
                         labelRadius = (minimumRadius + maximumRadius) * 0.5;
                     } else {
                         labelRadius = (innerRadius + outerRadius) * 0.5;
@@ -540,7 +528,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             node.contentHeight = formatting.height;
         });
 
-        const updateSector = (nodeDatum: SunburstNode, sector: _ModuleSupport.Sector, highlighted: boolean) => {
+        const updateSector = (nodeDatum: SunburstNode, sector: Sector, highlighted: boolean) => {
             const { depth, startAngle, endAngle } = nodeDatum;
             if (depth == null) {
                 sector.visible = false;
@@ -556,7 +544,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             const fillBBox = isGradientFill(fill) && fill.bounds !== 'item' ? seriesFillBBox : undefined;
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = shadow;
+            sector.fillShadow = this.resolveItemShadow(shadow, highlighted, nodeDatum.datumIndex);
             // Outer rings draw after inner ones, so a later inner-ring sector's shadow cannot cut across an
             // earlier branch's outer ring.
             sector.zIndex = depth;
@@ -606,12 +594,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const highlightedNode = this.getActiveHighlightNode();
 
-        const updateText = (
-            node: SunburstNode,
-            text: _ModuleSupport.TransformableText,
-            tag: TextNodeTag,
-            highlighted: boolean
-        ) => {
+        const updateText = (node: SunburstNode, text: TransformableText, tag: TextNodeTag, highlighted: boolean) => {
             const { depth, contentHeight } = node;
             const primary = tag === TextNodeTag.Primary;
             const label = primary ? node.label : node.secondaryLabel;
@@ -701,7 +684,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     private updateInnerLabelNodes(centre: { radius: number }) {
         const { radius } = centre;
-        const textBBoxes: _ModuleSupport.BBox[] = [];
+        const textBBoxes: BBox[] = [];
         const margins: number[] = [];
         // The inner labels fit the square inscribed in the centre circle (diagonal 2·r ⇒ side r·√2).
         const extent = radius * Math.SQRT2;
@@ -874,32 +857,24 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         return _ModuleSupport.pickSectorsInBBoxPredicate(this);
     }
 
-    /** Yields in datum order, as `getSelection()` does; the base scene walk would yield in depth order. */
-    public override *pickNodesInBBox(selectionBox: BoxBounds): Iterable<SunburstNode> {
-        const predicate = this.pickNodesInBBoxPredicate();
-        for (const sector of this.datumSelection.nodes()) {
-            if (sector.visible && sector.pointerEvents !== PointerEvents.None && predicate(selectionBox, sector)) {
-                yield sector.unsafeDatum;
-            }
-        }
-    }
-
     protected override animateEmptyUpdateReady() {
-        fromToMotion<
-            SunburstNode,
-            _ModuleSupport.ScalableGroup<SunburstNode>,
-            Pick<_ModuleSupport.ScalableGroup, 'scalingX' | 'scalingY'>
-        >(this.id, 'nodes', this.ctx.animationManager, [this.scalingGroup] as any, {
-            toFn() {
-                return { scalingX: 1, scalingY: 1 };
-            },
-            fromFn() {
-                return { scalingX: 0, scalingY: 0 };
-            },
-        });
+        fromToMotion<SunburstNode, ScalableGroup<SunburstNode>, Pick<ScalableGroup, 'scalingX' | 'scalingY'>>(
+            this.id,
+            'nodes',
+            this.ctx.animationManager,
+            [this.scalingGroup] as any,
+            {
+                toFn() {
+                    return { scalingX: 1, scalingY: 1 };
+                },
+                fromFn() {
+                    return { scalingX: 0, scalingY: 0 };
+                },
+            }
+        );
     }
 
-    protected override computeFocusBounds(node: _ModuleSupport.Sector): _ModuleSupport.Path | undefined {
+    protected override computeFocusBounds(node: Sector): Path | undefined {
         return node;
     }
 

@@ -6,7 +6,7 @@ import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { PolarChartModule } from '../../polarChartModule';
 import { DonutSeries } from './donutSeries';
-import { donutSeriesOptionsDef } from './donutSeriesOptionsDef';
+import { donutSeriesOptionsDef, donutSeriesThemeableOptionsDef } from './donutSeriesOptionsDef';
 import { donutTheme } from './donutTheme';
 
 export const DonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> = /* #__PURE__ */ communityModule({
@@ -17,6 +17,8 @@ export const DonutSeriesModule: SeriesModuleDefinition<AgDonutSeriesOptions> = /
     dependencies: [PolarChartModule],
 
     options: donutSeriesOptionsDef,
+
+    themeOptions: donutSeriesThemeableOptionsDef,
     themeTemplate: donutTheme,
 
     create: (ctx: DynamicContext<ChartRegistry>) => new DonutSeries(ctx),

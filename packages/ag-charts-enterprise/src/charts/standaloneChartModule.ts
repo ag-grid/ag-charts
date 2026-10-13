@@ -1,13 +1,15 @@
 import { type AgStandaloneChartOptions, SeriesAreaModule, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { ChartModuleDefinition } from 'ag-charts-core';
+import {
+    type ChartModuleDefinition,
+    type ModuleOwnedChartOptions,
+    commonChartOptionsDefs,
+    commonChartThemeTemplate,
+    standaloneChartOptionsDefs,
+} from 'ag-charts-core';
 
 import { StandaloneChart } from './standaloneChart';
 
-const { standaloneChartOptionsDefs, commonChartThemeTemplate } = _ModuleSupport;
-
-export const StandaloneChartModule: ChartModuleDefinition<
-    Omit<AgStandaloneChartOptions, _ModuleSupport.ModuleOwnedChartOptions>
-> = {
+export const StandaloneChartModule: ChartModuleDefinition<Omit<AgStandaloneChartOptions, ModuleOwnedChartOptions>> = {
     type: 'chart',
     name: 'standalone',
     enterprise: true,
@@ -15,6 +17,8 @@ export const StandaloneChartModule: ChartModuleDefinition<
     dependencies: [SeriesAreaModule],
 
     options: standaloneChartOptionsDefs,
+
+    themeOptions: commonChartOptionsDefs,
 
     themeTemplate: commonChartThemeTemplate,
 

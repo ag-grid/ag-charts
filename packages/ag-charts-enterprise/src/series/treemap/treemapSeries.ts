@@ -9,45 +9,46 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    BBox,
     type CallbackParamRules,
+    Group,
     type NormalisedColorType,
     type NormalisedTextOrSegments,
     type NormalisedTreemapSeriesOwnOptions,
     type NormalisedTreemapSeriesStyle,
     type Point,
+    Rect,
     type RequireOptional,
     type ResolvedTextAlign,
     STROKE_STYLE_THEME_DEFAULTS,
+    Selection,
+    Text,
+    Transformable,
     cachedTextMeasurer,
-    calcLineHeight,
     findDiscreteColorBinLabel,
+    fontWithSize,
     formatValue,
     isGradientFill,
     isNumberEqual,
     mergeDefaults,
+    resolveMinimumFontSize,
     resolveTextAlign,
     toPlainText,
-    wrapText,
+    wrapLines,
 } from 'ag-charts-core';
 
 import { HierarchyDataSet } from '../../charts/hierarchyDataSet';
-import { formatLabels } from '../util/labelFormatter';
-
-const {
-    createDatumId,
-    Rect,
-    Group,
-    BBox,
-    Selection,
-    SelectionState,
-    Text,
-    Transformable,
-    getLabelStyles,
+import {
     HierarchyHighlightState,
+    HierarchyNode,
+    HierarchySeries,
     toHierarchyHighlightString,
-} = _ModuleSupport;
+} from '../hierarchy/hierarchySeries';
+import { formatLabels, formatSingleLabel } from '../util/labelFormatter';
 
-class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
+const { createDatumId, SelectionState, getLabelStyles } = _ModuleSupport;
+
+class TreemapNode extends HierarchyNode<TreemapNode> {
     labelValue: string | undefined = undefined;
     secondaryLabelValue: string | undefined = undefined;
     // Leaf-only: preserves the formatter's segment output so image segments survive the squarify step.
@@ -55,8 +56,18 @@ class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
     secondaryLabelText: NormalisedTextOrSegments | undefined = undefined;
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
-    bbox: _ModuleSupport.BBox | undefined = undefined;
+    bbox: BBox | undefined = undefined;
     padding: Padding | undefined = undefined;
+    // Layout probes the same group size repeatedly while squarifying.
+    groupTitle: { width: number; height: number; title: GroupTitle | undefined } | undefined = undefined;
+}
+
+interface GroupTitle {
+    text: NormalisedTextOrSegments;
+    fontSize: number;
+    lineHeight: number;
+    labelHeight: number;
+    bandHeight: number;
 }
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
@@ -107,27 +118,35 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-export class TreemapSeries extends _ModuleSupport.HierarchySeries<
-    TreemapNode,
-    _ModuleSupport.Rect<TreemapNode>,
-    NormalisedTreemapSeriesOwnOptions
-> {
+function alignedX(bbox: BBox, padding: number, textAlign: TextAlign, isRtl: boolean) {
+    const factor = textAlignFactors[resolveTextAlign(textAlign, isRtl)] ?? 0.5;
+    return bbox.x + padding + (bbox.width - 2 * padding) * factor;
+}
+
+// When the pair fits, only a `middle` label can meet an edge-aligned one.
+function clearOfEdge(
+    y: number,
+    height: number,
+    edgeY: number,
+    edgeHeight: number,
+    edgeAlign: VerticalAlign,
+    spacing: number
+) {
+    const gap = (edgeHeight + height) * 0.5 + spacing;
+    return edgeAlign === 'top' ? Math.max(y, edgeY + gap) : Math.min(y, edgeY - gap);
+}
+
+export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode>, NormalisedTreemapSeriesOwnOptions> {
     static override readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
 
     override NodeClass = TreemapNode;
 
-    private readonly rectGroup = this.contentGroup.appendChild(new Group());
+    private readonly rectGroup = this.contentGroup.appendChild(new Group({ batchShadows: 'by-layer' }));
 
-    protected readonly datumSelection = Selection.select<_ModuleSupport.Rect<TreemapNode>>(
-        this.rectGroup,
-        Rect<TreemapNode>
-    );
-    private readonly labelSelection = Selection.select<_ModuleSupport.Group<TreemapNode>>(
-        this.labelGroup,
-        Group<TreemapNode>
-    );
-    private readonly highlightSelection = Selection.select<_ModuleSupport.Rect<TreemapNode>>(this.rectGroup, Rect);
+    protected readonly datumSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect<TreemapNode>);
+    private readonly labelSelection = Selection.select<Group<TreemapNode>>(this.labelGroup, Group<TreemapNode>);
+    private readonly highlightSelection = Selection.select<Rect<TreemapNode>>(this.rectGroup, Rect);
 
     protected override _data?: HierarchyDataSet<any>;
     protected override _chartData?: HierarchyDataSet<any>;
@@ -139,24 +158,50 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return result;
     }
 
-    private groupTitleHeight(node: TreemapNode, bbox: _ModuleSupport.BBox): number | undefined {
-        const heightRatioThreshold = 3;
-        const { label } = this.options.group;
+    private groupTitle(node: TreemapNode, bbox: BBox): GroupTitle | undefined {
+        const { label, padding } = this.options.group;
         const { labelValue } = node;
-        const { fontSize } = label;
+        if (!label.enabled || labelValue == null) return;
 
-        if (
-            label.enabled &&
-            labelValue != null &&
-            fontSize <= bbox.width / heightRatioThreshold &&
-            fontSize <= bbox.height / heightRatioThreshold
-        ) {
-            const { height: fontHeight } = cachedTextMeasurer(label).measureLines(labelValue);
-            return Math.max(fontHeight, fontSize);
-        }
+        const cached = node.groupTitle;
+        if (cached?.width === bbox.width && cached.height === bbox.height) return cached.title;
+
+        const title = this.fitGroupTitle(labelValue, bbox, padding);
+        node.groupTitle = { width: bbox.width, height: bbox.height, title };
+        return title;
     }
 
-    private getNodePadding(node: TreemapNode, bbox: _ModuleSupport.BBox) {
+    private fitGroupTitle(labelValue: string, bbox: BBox, padding: number): GroupTitle | undefined {
+        const heightRatioThreshold = 3;
+        const { label } = this.options.group;
+        const { fontSize, maxWidth = Infinity, maxHeight = Infinity } = label;
+        const floorFontSize = resolveMinimumFontSize(label.minimumFontSize, fontSize);
+        const heightCap = bbox.height / heightRatioThreshold;
+        if (floorFontSize > bbox.width / heightRatioThreshold || floorFontSize > heightCap) return;
+
+        const props = { ...label, wrapping: label.wrapping ?? 'never', truncate: label.truncate ?? true };
+        const width = Math.min(bbox.width - 2 * padding, maxWidth);
+        // One line at the floor size always fits, however small the one-third cap.
+        const floorLineHeight = cachedTextMeasurer(fontWithSize(label, floorFontSize)).lineHeight();
+        const height = Math.min(maxHeight, Math.max(heightCap, floorLineHeight));
+        const fitted = formatSingleLabel(labelValue, props, { padding: 0 }, () => ({ width, height, meta: null }));
+        if (fitted == null) return;
+
+        const [formatting] = fitted;
+        const natural = cachedTextMeasurer(label).measureLines(
+            wrapLines(labelValue, { maxWidth: width, font: label, textWrap: props.wrapping })
+        );
+        const bandHeight = Math.max(formatting.height, Math.min(Math.max(natural.height, fontSize), height));
+        return {
+            text: formatting.text,
+            fontSize: formatting.fontSize,
+            lineHeight: formatting.lineHeight,
+            labelHeight: formatting.height,
+            bandHeight,
+        };
+    }
+
+    private getNodePadding(node: TreemapNode, bbox: BBox) {
         if (node.parent == null) {
             return { top: 0, right: 0, bottom: 0, left: 0 };
         } else if (node.children.length === 0) {
@@ -168,8 +213,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             padding,
             label: { spacing },
         } = this.options.group;
-        const fontHeight = this.groupTitleHeight(node, bbox);
-        const titleHeight = fontHeight == null ? 0 : fontHeight + spacing;
+        const title = this.groupTitle(node, bbox);
+        const titleHeight = title == null ? 0 : title.bandHeight + spacing;
 
         return {
             top: padding + titleHeight,
@@ -194,7 +239,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     // A group whose box can't fit its own padding would render an empty container; leaves never count as collapsed.
-    private collapses(node: TreemapNode, bbox: _ModuleSupport.BBox): boolean {
+    private collapses(node: TreemapNode, bbox: BBox): boolean {
         if (node.children.length === 0) return false;
         if (bbox.width <= 0 || bbox.height <= 0) return true;
         const padding = node.datum == null ? { top: 0, right: 0, bottom: 0, left: 0 } : this.getNodePadding(node, bbox);
@@ -205,7 +250,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
      * Squarified Treemap algorithm
      * https://www.win.tue.nl/~vanwijk/stm.pdf
      */
-    private squarify(node: TreemapNode, bbox: _ModuleSupport.BBox) {
+    private squarify(node: TreemapNode, bbox: BBox) {
         const { datum, children } = node;
 
         if (bbox.width <= 0 || bbox.height <= 0) {
@@ -277,13 +322,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     private layoutChildren(
         children: TreemapNode[],
         indices: number[],
-        innerBox: _ModuleSupport.BBox,
+        innerBox: BBox,
         allLeafNodes: boolean
-    ): { child: TreemapNode; bbox: _ModuleSupport.BBox }[] {
+    ): { child: TreemapNode; bbox: BBox }[] {
         const childAt = (i: number) => children[indices[i]];
         const numChildren = indices.length;
         const targetTileAspectRatio = 1; // The width and height will tend to this ratio
-        const result: { child: TreemapNode; bbox: _ModuleSupport.BBox }[] = [];
+        const result: { child: TreemapNode; bbox: BBox }[] = [];
 
         let stackSum = 0;
         let startIndex = 0;
@@ -363,9 +408,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return result;
     }
 
-    private applyGap(innerBox: _ModuleSupport.BBox, childBox: _ModuleSupport.BBox, allLeafNodes: boolean) {
+    private applyGap(innerBox: BBox, childBox: BBox, allLeafNodes: boolean) {
         const gap = allLeafNodes ? this.options.tile.gap * 0.5 : this.options.group.gap * 0.5;
-        const getBounds = (box: _ModuleSupport.BBox): Record<Side, number> => ({
+        const getBounds = (box: BBox): Record<Side, number> => ({
             left: box.x,
             top: box.y,
             right: box.x + box.width,
@@ -501,7 +546,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
         const descendants = Array.from(this.rootNode!);
 
-        const updateLabelGroup = (group: _ModuleSupport.Group) => {
+        const updateLabelGroup = (group: Group) => {
             group.append([new Text({ tag: TextNodeTag.Primary }), new Text({ tag: TextNodeTag.Secondary })]);
         };
 
@@ -509,12 +554,31 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         this.labelSelection.update(descendants, updateLabelGroup, (node) => node.datumIndex);
     }
 
+    /** The shadows of the tiles and groups, which this series keeps there rather than on its own `shadow`. */
+    protected override getItemShadowOptions() {
+        return [this.options.tile.shadow, this.options.group.shadow];
+    }
+
     protected override getActiveHighlightNode(): TreemapNode | undefined {
         const highlightedNode = super.getActiveHighlightNode();
-        if (highlightedNode != null && highlightedNode.children.length > 0 && !this.options.group.interactive) {
-            return undefined;
-        }
-        return highlightedNode;
+        return this.isNodeHighlightable(highlightedNode) ? highlightedNode : undefined;
+    }
+
+    /** A group that isn't interactive gets no highlight copy, so its in-place copy keeps its shadow. */
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        return this.isNodeHighlightable(highlightedDatum as TreemapNode | undefined)
+            ? super.getRedrawnDatumIndex(highlightedDatum)
+            : undefined;
+    }
+
+    private isNodeHighlightable(node: TreemapNode | undefined) {
+        return node == null || node.children.length === 0 || this.options.group.interactive;
+    }
+
+    /** Whether either tile or group sets one, for the series-wide check; each item resolves its own in `updateNodes`. */
+    protected override getHighlightedItemShadow() {
+        const { tile, group } = this.options;
+        return tile.highlight.highlightedItem?.shadow ?? group.highlight.highlightedItem?.shadow;
     }
 
     updateNodes() {
@@ -586,6 +650,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 secondaryLabelValue = undefined;
             }
 
+            node.groupTitle = undefined;
             node.labelValue = toPlainText(labelValue);
             node.secondaryLabelValue = toPlainText(secondaryLabelValue);
             // Image-bearing segments are preserved for leaf tiles only; group headers stay text-only (alt-text fallback).
@@ -623,21 +688,56 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 }
 
                 const { height: labelHeight, label, secondaryLabel } = formatting;
-                const { textAlign, verticalAlign, padding } = tile;
-                const resolvedTextAlign = resolveTextAlign(textAlign, this.ctx.domManager.isRtl);
+                const { padding } = tile;
+                const isRtl = this.ctx.domManager.isRtl;
+                const innerY = bbox.y + padding;
+                const innerHeight = bbox.height - 2 * padding;
+                const centreY = (blockHeight: number, verticalAlign: VerticalAlign) =>
+                    innerY +
+                    blockHeight * 0.5 +
+                    (innerHeight - blockHeight) * (verticalAlignFactors[verticalAlign] ?? 0.5);
 
-                const textAlignFactor = textAlignFactors[resolvedTextAlign] ?? 0.5;
-                const labelX = bbox.x + padding + (bbox.width - 2 * padding) * textAlignFactor;
-
-                const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
-                const labelYStart =
-                    bbox.y +
-                    padding +
-                    labelHeight * 0.5 +
-                    (bbox.height - 2 * padding - labelHeight) * verticalAlignFactor;
+                let labelY = label == null ? 0 : centreY(label.height, tile.label.verticalAlign);
+                let secondaryLabelY =
+                    secondaryLabel == null ? 0 : centreY(secondaryLabel.height, tile.secondaryLabel.verticalAlign);
+                if (label != null && secondaryLabel != null) {
+                    const labelAlign = tile.label.verticalAlign;
+                    const secondaryAlign = tile.secondaryLabel.verticalAlign;
+                    const { spacing } = tile.label;
+                    // `alwaysShow` can keep a pair too tall for the tile; stacking stops them drawing over each other.
+                    if (labelAlign === secondaryAlign || labelHeight > innerHeight) {
+                        const blockY = centreY(labelHeight, labelAlign);
+                        labelY = blockY - (labelHeight - label.height) * 0.5;
+                        secondaryLabelY = blockY + (labelHeight - secondaryLabel.height) * 0.5;
+                    } else if (labelAlign === 'middle') {
+                        labelY = clearOfEdge(
+                            labelY,
+                            label.height,
+                            secondaryLabelY,
+                            secondaryLabel.height,
+                            secondaryAlign,
+                            spacing
+                        );
+                    } else if (secondaryAlign === 'middle') {
+                        secondaryLabelY = clearOfEdge(
+                            secondaryLabelY,
+                            secondaryLabel.height,
+                            labelY,
+                            label.height,
+                            labelAlign,
+                            spacing
+                        );
+                    }
+                }
 
                 if (label != null) {
-                    const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = tile.label;
+                    const {
+                        fontStyle = 'normal',
+                        fontFamily,
+                        fontWeight = 'normal',
+                        color = 'black',
+                        textAlign,
+                    } = tile.label;
                     node.label = {
                         text: label.text,
                         fontSize: label.fontSize,
@@ -648,8 +748,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                         color,
                         textAlign,
                         verticalAlign: 'middle',
-                        x: labelX,
-                        y: labelYStart - (labelHeight - label.height) * 0.5,
+                        x: alignedX(bbox, padding, textAlign, isRtl),
+                        y: labelY,
                     };
                 }
                 if (secondaryLabel != null) {
@@ -658,52 +758,47 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                         fontFamily,
                         fontWeight = 'normal',
                         color = 'black',
+                        textAlign,
                     } = tile.secondaryLabel;
                     node.secondaryLabel = {
                         text: secondaryLabel.text,
                         fontSize: secondaryLabel.fontSize,
-                        lineHeight: secondaryLabel.fontSize,
+                        lineHeight: secondaryLabel.lineHeight,
                         fontStyle,
                         fontFamily,
                         fontWeight,
                         color,
                         textAlign,
                         verticalAlign: 'middle',
-                        x: labelX,
-                        y: labelYStart + (labelHeight - secondaryLabel.height) * 0.5,
+                        x: alignedX(bbox, padding, textAlign, isRtl),
+                        y: secondaryLabelY,
                     };
                 }
             } else if (labelValue == null) {
                 return;
             } else {
-                const { padding, textAlign } = group;
+                const { padding } = group;
+                const { textAlign, verticalAlign } = group.label;
 
-                const groupTitleHeight = this.groupTitleHeight(node, bbox);
-                if (groupTitleHeight == null) return;
-
-                const innerWidth = bbox.width - 2 * padding;
-                const text = wrapText(labelValue, {
-                    maxWidth: bbox.width - 2 * padding,
-                    font: group.label,
-                    textWrap: 'never',
-                });
-                const resolvedTextAlign = resolveTextAlign(textAlign, this.ctx.domManager.isRtl);
-                const textAlignFactor = textAlignFactors[resolvedTextAlign] ?? 0.5;
+                const title = this.groupTitle(node, bbox);
+                if (title == null) return;
 
                 const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = group.label;
+                const { labelHeight, bandHeight } = title;
+                const alignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
 
                 node.label = {
-                    text,
-                    fontSize: group.label.fontSize,
-                    lineHeight: calcLineHeight(group.label.fontSize),
+                    text: title.text,
+                    fontSize: title.fontSize,
+                    lineHeight: title.lineHeight,
                     fontStyle,
                     fontFamily,
                     fontWeight,
                     color,
                     textAlign,
                     verticalAlign: 'middle',
-                    x: bbox.x + padding + innerWidth * textAlignFactor,
-                    y: bbox.y + padding + groupTitleHeight * 0.5,
+                    x: alignedX(bbox, padding, textAlign, this.ctx.domManager.isRtl),
+                    y: bbox.y + padding + (bandHeight - labelHeight) * alignFactor + labelHeight * 0.5,
                 };
             }
         });
@@ -713,7 +808,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             axis: new BBox(0, 0, width, height),
         };
 
-        const updateRectFn = (node: TreemapNode, rect: _ModuleSupport.Rect, isHighlight: boolean) => {
+        const updateRectFn = (node: TreemapNode, rect: Rect, isHighlight: boolean) => {
             const { bbox } = node;
             if (bbox == null) {
                 rect.visible = false;
@@ -729,7 +824,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
             rect.setStyleProperties(style, fillBBox);
 
-            rect.fillShadow = isLeaf ? tile.shadow : group.shadow;
+            // Tile and group highlights sit under `tile.highlight` and `group.highlight`, not the series' `highlight`.
+            const itemOptions = isLeaf ? tile : group;
+            rect.fillShadow = this.resolveItemShadowWith(
+                itemOptions.highlight.highlightedItem?.shadow,
+                itemOptions.shadow,
+                isHighlight,
+                node.datumIndex
+            );
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, isHighlight ? 1 : 0];
 
@@ -759,12 +861,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             updateRectFn(datum, rect, true);
         });
 
-        const updateLabelFn = (
-            node: TreemapNode,
-            text: _ModuleSupport.Text,
-            tag: TextNodeTag,
-            highlighted: boolean
-        ) => {
+        const updateLabelFn = (node: TreemapNode, text: Text, tag: TextNodeTag, highlighted: boolean) => {
             const isLeaf = node.children.length === 0;
             const label = tag === TextNodeTag.Primary ? node.label : node.secondaryLabel;
             if (label == null) {
@@ -824,7 +921,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         isHighlight: boolean,
         highlightedNode: TreemapNode | undefined,
         nodeDatum: Pick<TreemapNode, 'path' | 'datumIndex' | 'depth'> & Partial<Pick<TreemapNode, 'children'>>
-    ): _ModuleSupport.HierarchyHighlightState {
+    ): HierarchyHighlightState {
         const nodeIndex = nodeDatum.path;
         const highlightedIndex = highlightedNode?.path;
         const isDescendant = this.isDescendantDatumIndex(nodeIndex, highlightedIndex);
@@ -851,8 +948,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     private getTileHighlightStyle(
-        tileHighlightState: _ModuleSupport.HierarchyHighlightState,
-        groupHighlightState: _ModuleSupport.HierarchyHighlightState,
+        tileHighlightState: HierarchyHighlightState,
+        groupHighlightState: HierarchyHighlightState,
         highlightedNode: TreemapNode | undefined
     ): HighlightStyle | undefined {
         const isGroupHighlighted = highlightedNode?.children && highlightedNode.children.length > 0;
@@ -874,7 +971,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return this.getHierarchyHighlightStyles(tileHighlightState, highlight);
     }
 
-    private getGroupHighlightStyle(highlightState: _ModuleSupport.HierarchyHighlightState): HighlightStyle | undefined {
+    private getGroupHighlightStyle(highlightState: HierarchyHighlightState): HighlightStyle | undefined {
         const { highlight } = this.options.group;
         if (!highlight.enabled) {
             return undefined;
@@ -1079,7 +1176,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         );
     }
 
-    protected computeFocusBounds(node: _ModuleSupport.Rect): _ModuleSupport.BBox | undefined {
+    protected computeFocusBounds(node: Rect): BBox | undefined {
         return Transformable.toCanvas(this.contentGroup, node.getBBox());
     }
 

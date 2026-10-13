@@ -3,12 +3,14 @@ import {
     ChartAxisDirection,
     CleanupRegistry,
     type DynamicContext,
+    Group,
     type ModuleInstance,
     type NormalisedSeriesAreaBackgroundRegion,
     type ResolvedContribution,
     jsonDiff,
     readContributedValue,
 } from 'ag-charts-core';
+import type { BBox } from 'ag-charts-core';
 
 import { CartesianBackgroundRegion } from './cartesianBackgroundRegion';
 
@@ -18,8 +20,8 @@ interface Region {
 }
 
 export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesAreaContent {
-    readonly underlay = new _ModuleSupport.Group({ name: 'BackgroundRegions-Region' });
-    readonly overlay = new _ModuleSupport.Group({ name: 'BackgroundRegions-Label' });
+    readonly underlay = new Group({ name: 'BackgroundRegions-Region' });
+    readonly overlay = new Group({ name: 'BackgroundRegions-Label' });
 
     private regions: Region[] = [];
     private lastRegionOptions: NormalisedSeriesAreaBackgroundRegion[] | undefined;
@@ -43,7 +45,7 @@ export class BackgroundRegions implements ModuleInstance, _ModuleSupport.SeriesA
         this.cleanup.flush();
     }
 
-    update(clipRect: _ModuleSupport.BBox | undefined) {
+    update(clipRect: BBox | undefined) {
         // Labels stay unclipped so outside positions remain visible, matching cross line labels.
         this.underlay.setClipRectCanvasSpace(clipRect);
 

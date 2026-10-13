@@ -1,6 +1,7 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
 import type { Bounds4, Logger, Point } from 'ag-charts-core';
+import { Path, Transformable } from 'ag-charts-core';
 
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import type { ChannelTypeDatum } from '../datum/channelDatum';
@@ -19,7 +20,7 @@ export abstract class ChannelScene<Datum extends ChannelTypeDatum> extends Linea
 
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
-    public background = new _ModuleSupport.Path({ zIndex: -1 });
+    public background = new Path({ zIndex: -1 });
     public text?: CollidableText<never>;
     private readonly anchor: _ModuleSupport.FloatingToolbarAnchor = { x: 0, y: 0 };
 
@@ -135,7 +136,7 @@ export abstract class ChannelScene<Datum extends ChannelTypeDatum> extends Linea
     protected readonly updateBackground = WithBackgroundScene.updateBackground.bind(this);
 
     protected updateAnchor(top: Bounds4, bottom: Bounds4) {
-        const point = _ModuleSupport.Transformable.toCanvasPoint(
+        const point = Transformable.toCanvasPoint(
             this.topLine,
             (top.x1 + top.x2) / 2,
             Math.min(top.y1, top.y2, bottom.y1, bottom.y2)

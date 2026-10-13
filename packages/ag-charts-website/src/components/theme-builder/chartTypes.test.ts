@@ -25,11 +25,10 @@ import {
     SERIES_COUNT_OPTIONS,
     THUMBNAIL_SERIES_KEYS,
 } from './previewData';
-import { PREVIEW_MODULES } from './previewModules';
 
 const seriesOf = (options: unknown) => (options as { series: unknown[] }).series;
 
-/** Everything the count control can drive; the preset types build their own. */
+/** Everything the count control can drive; the candlestick builds its own. */
 const COUNTED_TYPES = PREVIEW_CHART_TYPES.filter((type) => type.countLabel != null);
 
 const ALL_ON: ChartFeatures = Object.fromEntries(CHART_FEATURE_IDS.map((id) => [id, true]));
@@ -170,7 +169,7 @@ describe('preview chart types', () => {
     it('turns every feature it offers into an option change', () => {
         // Each id has to reach the options object under some name, or the
         // checkbox is decoration. Compared as JSON because the difference can be
-        // nested (an axis crosshair) or top-level (a preset flag).
+        // nested (an axis crosshair) or top-level (the navigator).
         for (const type of PREVIEW_CHART_TYPES) {
             for (const id of type.features) {
                 const on = JSON.stringify(type.buildOptions(DEFAULT_SERIES_COUNT, { ...ALL_ON, [id]: true }));
@@ -200,16 +199,9 @@ describe('preview chart types', () => {
         }
     });
 
-    it('registers a module for every preset a preview type is built through', () => {
-        // A preset is resolved by name at creation, so without its module the
-        // options never expand into a series - and nothing reports an error.
-        const registered = new Set(
-            PREVIEW_MODULES.filter((module) => module.type === 'preset').map((module) => module.name)
-        );
-        for (const { id, preset } of PREVIEW_CHART_TYPES) {
-            if (preset == null) continue;
-            expect([...registered], `${id}: ${preset}`).toContain(preset);
-        }
+    it('draws the candlestick as a series of its own', () => {
+        const series = seriesOf(CANDLESTICK.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON));
+        expect(series.map((entry) => (entry as { type: string }).type)).toEqual(['candlestick']);
     });
 
     it('draws a series outline for the palette strokes to appear in', () => {
@@ -266,15 +258,6 @@ describe('preview chart types', () => {
             const { data } = type.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON) as { data: unknown[] };
             expect(tooltipTarget.itemId, type.id).toBeLessThan(data.length);
             expect(tooltipTarget.itemId, type.id).toBeGreaterThanOrEqual(0);
-        }
-    });
-
-    it('leaves the preset types without a tooltip target', () => {
-        // A preset assembles its own series, whose ids are generated - so there
-        // is nothing for the panel to name, and the tooltip params fall back to
-        // being edited without a live example.
-        for (const type of PREVIEW_CHART_TYPES.filter(({ preset }) => preset != null)) {
-            expect(type.tooltipTarget, type.id).toBeUndefined();
         }
     });
 

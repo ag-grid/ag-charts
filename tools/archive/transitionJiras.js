@@ -1,5 +1,3 @@
-const fetch = require('node-fetch').default;
-
 const COMMITTED_ISSUES_FILTER = 11906;
 const PENDING_RC_ISSUES_FILTER = 11905;
 
@@ -30,7 +28,7 @@ const retrieveData = async (url) => {
     let nextPageToken = data.nextPageToken;
     while (nextPageToken) {
         const block = await jiraRequest(`${url}&nextPageToken=${nextPageToken}`);
-        result.issues = result.issues.concat(block.issues);
+        result.push(...block.issues);
 
         nextPageToken = block.nextPageToken;
     }

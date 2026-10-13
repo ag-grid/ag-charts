@@ -3,7 +3,7 @@ import { ChartAxisDirection, POLAR_AXIS_TYPE, type SeriesModuleDefinition } from
 
 import { RADAR_AREA_SERIES_THEME } from '../radar/radarThemes';
 import { RadarAreaSeries } from './radarAreaSeries';
-import { radarAreaSeriesOptionsDef } from './radarAreaSeriesOptionsDef';
+import { radarAreaSeriesOptionsDef, radarAreaSeriesThemeableOptionsDef } from './radarAreaSeriesOptionsDef';
 
 export const RadarAreaSeriesModule: SeriesModuleDefinition<AgRadarAreaSeriesOptions> = {
     type: 'series',
@@ -14,6 +14,8 @@ export const RadarAreaSeriesModule: SeriesModuleDefinition<AgRadarAreaSeriesOpti
     dependencies: [PolarChartModule],
 
     options: radarAreaSeriesOptionsDef,
+
+    themeOptions: radarAreaSeriesThemeableOptionsDef,
     defaultAxes: { angle: { type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, radius: { type: POLAR_AXIS_TYPE.RADIUS_NUMBER } },
     axisKeys: { [ChartAxisDirection.Angle]: 'angleKeyAxis', [ChartAxisDirection.Radius]: 'radiusKeyAxis' },
     themeTemplate: RADAR_AREA_SERIES_THEME,

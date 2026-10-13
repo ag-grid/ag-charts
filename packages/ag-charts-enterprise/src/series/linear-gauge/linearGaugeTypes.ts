@@ -5,12 +5,12 @@ import type {
     NormalisedTextOrSegments,
 } from 'ag-charts-core';
 import type {
+    AgChartLabelCollisionOptions,
     AgLinearGaugeLabelPlacement,
     AgLinearGaugeMarkerShape,
     AgNumericValue,
     FontStyle,
     FontWeight,
-    OverflowStrategy,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -80,6 +80,7 @@ export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum {
     fontFamily: string;
     lineHeight: number | undefined;
     wrapping: TextWrap;
-    overflowStrategy: OverflowStrategy;
+    truncate: boolean;
+    collision: AgChartLabelCollisionOptions | undefined;
     formatter: NormalisedLinearGaugeLabelOptions['formatter'];
 }

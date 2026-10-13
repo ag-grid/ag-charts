@@ -53,6 +53,11 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 
+const nodeSizes = (c: AgChartInstance) =>
+    (deproxy(c).series[0] as unknown as { getNodeData(): Array<{ point: { size: number } }> })
+        .getNodeData()
+        .map((d) => d.point.size);
+
 describe('BubbleSeries', () => {
     setupMockConsole();
 
@@ -1418,11 +1423,6 @@ describe('BubbleSeries', () => {
     });
 
     describe('AG-17481 size scaling', () => {
-        const nodeSizes = (c: AgChartInstance) =>
-            (deproxy(c).series[0] as unknown as { getNodeData(): Array<{ point: { size: number } }> })
-                .getNodeData()
-                .map((d) => d.point.size);
-
         const createBubble = async (seriesOverrides: object) => {
             const options = {
                 data: [
@@ -1538,7 +1538,7 @@ describe('BubbleSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
-                  "AG Charts - Unknown option \`series[0].size\`; Did you mean \`sizeDomain\`, \`minSize\`, \`maxSize\` or \`sizeName\`? Ignoring.",
+                  "AG Charts - Unknown option \`series[0].size\`; Did you mean \`sizeDomain\`, \`minSize\`, \`maxSize\`, \`sizeMode\` or \`sizeName\`? Ignoring.",
                 ],
                 [
                   "AG Charts - Unknown option \`series[0].domain\`; Did you mean \`sizeDomain\`? Ignoring.",
@@ -1569,6 +1569,160 @@ describe('BubbleSeries', () => {
                 ],
               ]
             `);
+        });
+    });
+
+    describe('AG-18508 sizeMode', () => {
+        const createBubble = async (
+            seriesOverrides: object,
+            data: Array<{ x: number; y: number; s: number }> = [
+                { x: 1, y: 1, s: 0 },
+                { x: 2, y: 2, s: 50 },
+                { x: 3, y: 3, s: 100 },
+            ],
+            extra: object = {}
+        ) => {
+            const options = {
+                data,
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', ...seriesOverrides }],
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                ...extra,
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        const areaOf = (size: number) => size * size;
+
+        it('T1 renders unset and diameter modes identically', async () => {
+            await createBubble({ minSize: 10, maxSize: 30, sizeDomain: [0, 100] });
+            const unset = nodeSizes(chart);
+            chart.destroy();
+            await createBubble({ minSize: 10, maxSize: 30, sizeDomain: [0, 100], sizeMode: 'diameter' });
+            expect(nodeSizes(chart)).toEqual(unset);
+            expect(unset).toEqual([10, 20, 30]);
+        });
+
+        it('T2 makes area linear in value', async () => {
+            await createBubble(
+                { sizeMode: 'area', minSize: 10, maxSize: 30, sizeDomain: [0, 100] },
+                [0, 25, 50, 75, 100].map((s) => ({ x: s, y: s, s }))
+            );
+            const areas = nodeSizes(chart).map(areaOf);
+            const step = areas[1] - areas[0];
+            for (let i = 1; i < areas.length; i++) {
+                expect(areas[i] - areas[i - 1]).toBeCloseTo(step, 6);
+            }
+            expect(areas[2]).toBeGreaterThan(areaOf(20));
+        });
+
+        it('T3 renders sizeDomain ends at exactly minSize and maxSize', async () => {
+            await createBubble({ sizeMode: 'area', minSize: 10, maxSize: 30, sizeDomain: [0, 100] });
+            const sizes = nodeSizes(chart);
+            expect(sizes[0]).toBe(10);
+            expect(sizes[2]).toBe(30);
+            expect(sizes[1]).toBeCloseTo(Math.sqrt((10 ** 2 + 30 ** 2) / 2), 6);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+
+        it('T4 doubles the area for double the value when minSize is 0', async () => {
+            await createBubble({ sizeMode: 'area', minSize: 0, maxSize: 30, sizeDomain: [0, 100] }, [
+                { x: 1, y: 1, s: 25 },
+                { x: 2, y: 2, s: 50 },
+                { x: 3, y: 3, s: 100 },
+            ]);
+            const [a, b, c] = nodeSizes(chart).map(areaOf);
+            expect(b / a).toBeCloseTo(2, 6);
+            expect(c / b).toBeCloseTo(2, 6);
+        });
+
+        it('T5 reverses the mapping with a reversed sizeDomain', async () => {
+            await createBubble({ sizeMode: 'area', minSize: 10, maxSize: 30, sizeDomain: [100, 0] });
+            const sizes = nodeSizes(chart);
+            expect(sizes[0]).toBe(30);
+            expect(sizes[2]).toBe(10);
+            expect(sizes[1]).toBeCloseTo(Math.sqrt((10 ** 2 + 30 ** 2) / 2), 6);
+        });
+
+        it('T6 clamps out-of-domain values', async () => {
+            await createBubble({ sizeMode: 'area', minSize: 10, maxSize: 30, sizeDomain: [20, 80] }, [
+                { x: 1, y: 1, s: 0 },
+                { x: 2, y: 2, s: 50 },
+                { x: 3, y: 3, s: 200 },
+            ]);
+            const sizes = nodeSizes(chart);
+            expect(sizes[0]).toBe(10);
+            expect(sizes[2]).toBe(30);
+            expect(sizes[1]).toBeGreaterThan(10);
+            expect(sizes[1]).toBeLessThan(30);
+        });
+
+        it('T7 keeps aggregated bubbles within the dilated area-mode size', async () => {
+            const data = Array.from({ length: 400 }, (_, i) => ({
+                x: (i * 7) % 50,
+                y: (i * 13) % 50,
+                s: i % 100,
+            }));
+            const base = { minSize: 5, maxSize: 30, sizeDomain: [0, 100], maxRenderedItems: 100 };
+
+            await createBubble({ ...base, sizeMode: 'area' }, data);
+            expect(getSeriesAggregationInternals(chart).dataAggregation).toBeDefined();
+            const areaSizes = nodeSizes(chart);
+            chart.destroy();
+            await createBubble({ ...base, sizeMode: 'diameter' }, data);
+            const diameterSizes = nodeSizes(chart);
+
+            expect(areaSizes.length).toBeLessThan(data.length);
+            for (const size of areaSizes) {
+                expect(Number.isFinite(size)).toBe(true);
+                expect(size).toBeGreaterThanOrEqual(5);
+            }
+            expect(areaSizes.some((size, i) => size !== diameterSizes[i])).toBe(true);
+        });
+
+        it('T8 applies sizeMode set through the theme', async () => {
+            await createBubble({ minSize: 10, maxSize: 30, sizeDomain: [0, 100] }, undefined, {
+                theme: { overrides: { bubble: { series: { sizeMode: 'area' } } } },
+            });
+            expect(nodeSizes(chart)[1]).toBeCloseTo(Math.sqrt((10 ** 2 + 30 ** 2) / 2), 6);
+        });
+
+        it('T9 warns on an invalid sizeMode and falls back to diameter', async () => {
+            await createBubble({ sizeMode: 'radius', minSize: 10, maxSize: 30, sizeDomain: [0, 100] });
+            expect(nodeSizes(chart)).toEqual([10, 20, 30]);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].sizeMode\` cannot be set to \`"radius"\`; expecting a keyword such as 'diameter' or 'area', ignoring.",
+                ],
+              ]
+            `);
+        });
+
+        it('T10 renders the area midpoint, not NaN, for a zero-width sizeDomain', async () => {
+            await createBubble(
+                { sizeMode: 'area', minSize: 10, maxSize: 30 },
+                [1, 2, 3].map((x) => ({ x, y: x, s: 5 }))
+            );
+            const expected = Math.sqrt((10 ** 2 + 30 ** 2) / 2);
+            for (const size of nodeSizes(chart)) {
+                expect(size).toBeCloseTo(expected, 6);
+            }
+        });
+
+        it('T11 uses the area-mode size for axis padding', async () => {
+            await createBubble({ sizeMode: 'area', minSize: 10, maxSize: 30, sizeDomain: [0, 100] });
+            const series = deproxy(chart).series[0] as unknown as {
+                xCoordinateRange(x: number, pixelSize: number, index: number): [number, number];
+            };
+            const [lo, hi] = series.xCoordinateRange(2, 1, 1);
+            expect(hi - lo).toBeCloseTo(nodeSizes(chart)[1], 6);
+            expect(hi - lo).toBeGreaterThan(20);
         });
     });
 

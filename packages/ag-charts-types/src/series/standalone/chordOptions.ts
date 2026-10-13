@@ -4,11 +4,16 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, PixelSize, Ratio } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type {
+    AgBaseSeriesOptions,
+    AgBaseSeriesThemeableOptions,
+    AgHighlightStyleOptions,
+    AgShadowHighlightOptions,
+} from '../seriesOptions';
 
 export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight'>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
         AgChordSeriesThemeableOptions<TDatum, TContext> {
@@ -70,6 +75,8 @@ export interface AgChordSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     link?: AgChordSeriesLinkOptions<TDatum, TContext>;
     /** Options for the nodes. */
     node?: AgChordSeriesNodeOptions<TDatum, TContext>;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgShadowHighlightOptions<AgHighlightStyleOptions>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum, TContext>>;
 }

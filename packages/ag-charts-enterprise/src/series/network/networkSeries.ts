@@ -6,12 +6,17 @@ import {
     type DefinedZoomState,
     type DynamicContext,
     type Point,
+    Scalable,
+    Selection,
+    Transformable,
+    TranslatableGroup,
     Vec2,
     Vertex,
     clamp,
     definedZoomState,
     strictObjectKeys,
 } from 'ag-charts-core';
+import type { BBox, ExtendedPath2D } from 'ag-charts-core';
 
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout, NetworkLayoutUpdateOptions } from './networkLayout';
@@ -120,7 +125,7 @@ export abstract class AbstractNetworkSeries<
     TVertex,
     TEdge,
     TGraph extends NetworkGraph<TVertex, TEdge>,
-    TNode extends _ModuleSupport.TranslatableGroup<TDatum>,
+    TNode extends TranslatableGroup<TDatum>,
     TDatum extends NetworkDatum<TVertex, TEdge>,
     TLinkDatum extends NetworkLinkDatum<TVertex, TEdge>,
     TLayout extends NetworkLayout<TVertex, TEdge>,
@@ -139,29 +144,28 @@ export abstract class AbstractNetworkSeries<
 
     // Zoom scale + translate are applied to this group; `dataNodeGroup` and `linkGroup` ride along.
     protected readonly viewportGroup = this.contentGroup.appendChild(
-        new (_ModuleSupport.Scalable(_ModuleSupport.TranslatableGroup))({ name: `${this.id}-viewport` })
+        new (Scalable(TranslatableGroup))({ name: `${this.id}-viewport` })
     );
 
     protected readonly dataNodeGroup = this.viewportGroup.appendChild(
-        new _ModuleSupport.TranslatableGroup({ name: `${this.id}-series-dataNodes`, zIndex: 2 })
+        new TranslatableGroup({ name: `${this.id}-series-dataNodes`, zIndex: 2 })
     );
 
     protected readonly linkGroup = this.viewportGroup.appendChild(
-        new _ModuleSupport.TranslatableGroup({ name: `${this.id}-series-links`, zIndex: 1 })
+        new TranslatableGroup({ name: `${this.id}-series-links`, zIndex: 1 })
     );
 
-    protected readonly datumSelection = _ModuleSupport.Selection.selectNoInference<TDatum, TNode>(
-        this.dataNodeGroup,
-        () => this.nodeFactory()
+    protected readonly datumSelection = Selection.selectNoInference<TDatum, TNode>(this.dataNodeGroup, () =>
+        this.nodeFactory()
     );
 
-    protected readonly linkSelection = _ModuleSupport.Selection.selectNoInference<
+    protected readonly linkSelection = Selection.selectNoInference<
         NetworkLinkDatum<TVertex, TEdge>,
         NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>>
     >(this.linkGroup, () => this.linkFactory());
 
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
-    protected seriesRect?: _ModuleSupport.BBox;
+    protected seriesRect?: BBox;
 
     private vertexNodeDatumIndices: Record<string, number> = {};
     private pendingCollapsedIds?: NetworkSeriesVertexID[];
@@ -213,22 +217,15 @@ export abstract class AbstractNetworkSeries<
     abstract createNetworkLayout(): TLayout;
     abstract nodeFactory(): TNode;
 
-    abstract updateDatumSelection(nodeData: TDatum[], datumSelection: _ModuleSupport.Selection<TDatum, TNode>): void;
-    abstract updateDatumNodes(datumSelection: _ModuleSupport.Selection<TDatum, TNode>): void;
+    abstract updateDatumSelection(nodeData: TDatum[], datumSelection: Selection<TDatum, TNode>): void;
+    abstract updateDatumNodes(datumSelection: Selection<TDatum, TNode>): void;
     abstract updateLinkNodes(
-        linkSelection: _ModuleSupport.Selection<
-            NetworkLinkDatum<TVertex, TEdge>,
-            NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>>
-        >
+        linkSelection: Selection<NetworkLinkDatum<TVertex, TEdge>, NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>>>
     ): void;
 
     abstract getRootVertices(): Vertex<TVertex, TEdge>[];
     abstract getLinkInterpolation(from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>): NetworkLinkInterpolation;
-    abstract positionDatumNode(
-        node: TNode,
-        groupBBox: _ModuleSupport.BBox,
-        regularBBox?: _ModuleSupport.BBox
-    ): _ModuleSupport.BBox | undefined;
+    abstract positionDatumNode(node: TNode, groupBBox: BBox, regularBBox?: BBox): BBox | undefined;
     abstract isVertexCollapsed(vertex: Vertex<TVertex, TEdge>): boolean;
 
     abstract expandNetworkToItem(itemId: NetworkSeriesVertexID, source: AgCollapsedChangeEventSource): void;
@@ -239,7 +236,7 @@ export abstract class AbstractNetworkSeries<
         return this.datumSelection.length;
     }
 
-    override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {
+    override update(_opts: { seriesRect?: BBox }) {
         if (!this.hasData) {
             this.contentGroup.visible = false;
             return;
@@ -283,7 +280,7 @@ export abstract class AbstractNetworkSeries<
     }
 
     /** Bbox used for layout-sizing; subclasses can override to exclude decorations. */
-    protected measureDatumNode(node: TNode): _ModuleSupport.BBox | undefined {
+    protected measureDatumNode(node: TNode): BBox | undefined {
         return node.getBBox();
     }
 
@@ -324,10 +321,7 @@ export abstract class AbstractNetworkSeries<
 
     private updateLinkSelection(
         linkData: TLinkDatum[],
-        linkSelection: _ModuleSupport.Selection<
-            NetworkLinkDatum<TVertex, TEdge>,
-            NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>>
-        >
+        linkSelection: Selection<NetworkLinkDatum<TVertex, TEdge>, NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>>>
     ) {
         linkSelection.update(linkData);
     }
@@ -353,10 +347,10 @@ export abstract class AbstractNetworkSeries<
         const node = this.datumSelection.at(nodeDatumIndex);
         if (!node) return;
 
-        const bbox = _ModuleSupport.Transformable.toCanvas(node, this.measureDatumNode(node));
+        const bbox = Transformable.toCanvas(node, this.measureDatumNode(node));
         if (!bbox.isFinite()) return;
 
-        return _ModuleSupport.Transformable.fromCanvasPoint(this.contentGroup, {
+        return Transformable.fromCanvasPoint(this.contentGroup, {
             canvasX: bbox.x + bbox.width / 2,
             canvasY: bbox.y + bbox.height / 2,
         });
@@ -372,11 +366,7 @@ export abstract class AbstractNetworkSeries<
         return this.measureDatumNode(node);
     }
 
-    private layoutDatumNode(
-        vertex: Vertex<TVertex, TEdge>,
-        groupBBox: _ModuleSupport.BBox,
-        regularBBox?: _ModuleSupport.BBox
-    ) {
+    private layoutDatumNode(vertex: Vertex<TVertex, TEdge>, groupBBox: BBox, regularBBox?: BBox) {
         const nodeDatumIndex = this.getNodeDatumIndex(vertex);
         if (typeof nodeDatumIndex !== 'number') return;
 
@@ -386,7 +376,7 @@ export abstract class AbstractNetworkSeries<
         return this.positionDatumNode(node, groupBBox, regularBBox);
     }
 
-    private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {
+    private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: ExtendedPath2D) => void) {
         const nodeDatumIndex = this.getNodeDatumIndex(vertex);
         if (typeof nodeDatumIndex !== 'number') return;
 

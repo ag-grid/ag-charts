@@ -18,7 +18,7 @@ const DEFAULT_SAMPLES = [
     'packages/ag-charts-community/src/chart/series/cartesian/barSeries.ts',
     'packages/ag-charts-community/src/chart/chart.ts',
     'packages/ag-charts-community/src/chart/axis/axis.test.ts',
-    'packages/ag-charts-community/src/scale/colorScale.test.ts',
+    'packages/ag-charts-core/src/chart/scale/colorScale.test.ts',
     'packages/ag-charts-community/src/module/optionsModule.ts',
     'packages/ag-charts-enterprise/src/features/zoom/zoom.ts',
     'packages/ag-charts-types/src/chart/chartOptions.ts',

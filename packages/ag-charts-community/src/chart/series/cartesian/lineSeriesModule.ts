@@ -4,19 +4,19 @@ import {
     CARTESIAN_POSITION,
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    NEAREST_NODE_TOOLTIP_THEME,
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    fillThemeTemplate,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -26,7 +26,7 @@ import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { LineSeries } from './lineSeries';
-import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
+import { lineSeriesOptionsDef, lineSeriesThemeableOptionsDef } from './lineSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'line'> = {
@@ -39,55 +39,29 @@ const themeTemplate: ExtensibleSeriesTheme<'line'> = {
         interpolation: interpolationThemeTemplate(),
         marker: {
             enabled: true,
-            shadow: {
-                enabled: false,
-                color: DEFAULT_SHADOW_COLOUR,
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            },
+            shadow: SHADOW_THEME_DEFAULTS,
             shape: 'circle',
             size: 7,
             fillOpacity: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $palette: 'fill' },
-                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            },
+            fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             stroke: { $palette: 'stroke' },
         },
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             padding: 8,
             collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
-            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
-            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
             placement: 'top',
         },
-        tooltip: {
-            range: {
-                $if: [
-                    { $eq: [{ $path: ['/tooltip/range', 'nearest'] }, 'area'] },
-                    'nearest',
-                    { $path: ['/tooltip/range', 'nearest'] },
-                ],
-            },
-            position: {
-                anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
-            },
-            interaction: { enabled: false },
-        },
+        tooltip: NEAREST_NODE_TOOLTIP_THEME,
         highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
@@ -103,6 +77,8 @@ export const LineSeriesModule: SeriesModuleDefinition<AgLineSeriesOptions> = /* 
     dependencies: [CartesianChartModule],
 
     options: lineSeriesOptionsDef,
+
+    themeOptions: lineSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: {
         y: {

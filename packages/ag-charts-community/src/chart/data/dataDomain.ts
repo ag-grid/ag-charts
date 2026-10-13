@@ -1,7 +1,5 @@
-import { coerceIso8601Date } from 'ag-charts-core';
+import { type BandLike, BandedStructure, type BandedStructureConfig, coerceIso8601Date } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
-
-import { type BandLike, BandedStructure, type BandedStructureConfig } from './data-model/utils/bandedStructure';
 
 export interface IDataDomain<D = any> {
     extend(val: any): void;

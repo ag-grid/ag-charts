@@ -1,9 +1,12 @@
 import type {
+    BBox,
     BoxBounds,
     CandidateStyleResolver,
     ChartAxisDirection,
     DomainWithMetadata,
+    Group,
     LabelObstacle,
+    Node,
     PlacedLabel,
     Point,
     PointLabelDatum,
@@ -21,9 +24,6 @@ import type {
     SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
 
-import type { BBox } from '../../scene/bbox';
-import type { Group } from '../../scene/group';
-import type { Node } from '../../scene/node';
 import type { ProcessedData } from '../data/dataModelTypes';
 import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
@@ -52,7 +52,7 @@ interface ChartAxisLike {
 
 export type DatumIndex = number;
 export type ItemId = string;
-export type ItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
+export type ItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high' | 'close';
 
 export type SeriesNodeEventTypes = 'nodeContextMenuAction' | 'seriesNodeClick' | 'seriesNodeDoubleClick';
 
@@ -182,6 +182,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TOptions extends ISerie
     isHighlightEnabled(): boolean;
     isSelectionEnabled(): boolean;
     isDatumSelectable(datumIndex: DatumIndex): boolean;
+    getSelectionGroup(): string | undefined;
     getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined;
     getSelectionStateString(
         datumIndex: DatumIndex | undefined,

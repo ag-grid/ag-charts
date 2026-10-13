@@ -3,7 +3,18 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
-import { type CanvasPoint, type OffsetPoint, fromPairs, getDocument, mapValues } from 'ag-charts-core';
+import {
+    BBox,
+    type CanvasPoint,
+    Group,
+    type OffsetPoint,
+    alignCentre,
+    fromPairs,
+    getDocument,
+    mapValues,
+    snapDeviceCentre,
+} from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -49,10 +60,6 @@ import type {
 
 import { AgCharts } from '../../api/agCharts';
 import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
-import { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
-import type { Node } from '../../scene/node';
-import { alignCentre, snapDeviceCentre } from '../../scene/util/pixel';
 import { extractImageData, type setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
@@ -559,6 +566,18 @@ export async function waitForChartStability<
         await delay(animationAdvanceMs);
         await chart.waitForUpdate(timeoutMs, true);
     }
+}
+
+/** Waits for the chart to settle until `predicate` holds, e.g. for an asynchronous data source load. */
+export async function waitForChartStabilityUntil<
+    O extends AgChartOptions | AgGaugeOptions | AgFinancialChartOptions | AgSparklineOptions,
+>(chartOrProxy: ChartOrProxy<O>, predicate: () => boolean, description: string): Promise<void> {
+    for (let attempt = 0; attempt < 200; attempt++) {
+        await waitForChartStability(chartOrProxy);
+        if (predicate()) return;
+        await delay(5);
+    }
+    throw new Error(`Timed out waiting for ${description}`);
 }
 
 /**

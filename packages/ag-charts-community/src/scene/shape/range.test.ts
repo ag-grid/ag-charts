@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { Range, Translatable } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
-import { Translatable } from '../transformable';
-import { Range } from './range';
 
 const CANVAS_WIDTH = 1150;
 

@@ -1,4 +1,4 @@
-import type { DynamicContext, ResolvedTextAlign } from 'ag-charts-core';
+import type { BBox, DynamicContext, ResolvedTextAlign } from 'ag-charts-core';
 import {
     cachedTextMeasurer,
     fontWithSize,
@@ -11,7 +11,6 @@ import {
 
 import type { LayoutCompleteEvent } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
-import type { BBox } from '../scene/bbox';
 import { ChartCaption, captionFont } from './chartCaption';
 import type { LayoutContext } from './layout/layoutManager';
 

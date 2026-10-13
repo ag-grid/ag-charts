@@ -1,7 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, SceneChangeDetection, Vec2, clamp } from 'ag-charts-core';
-
-const { BBox, Path } = _ModuleSupport;
+import { BBox, Path, type Point, SceneChangeDetection, Vec2, clamp } from 'ag-charts-core';
+import type { ExtendedPath2D } from 'ag-charts-core';
 
 /**
  * The flat edge of the node a link terminates against, plus the rounded corners that cut into it.
@@ -39,7 +37,7 @@ export class SankeyLink<D = unknown> extends Path<D> {
     startEdge: SankeyLinkNodeEdge | undefined = undefined;
     endEdge: SankeyLinkNodeEdge | undefined = undefined;
 
-    protected override computeBBox(): _ModuleSupport.BBox | undefined {
+    protected override computeBBox(): BBox | undefined {
         const x = Math.min(this.x1, this.x2);
         const width = Math.max(this.x1, this.x2) - x;
         const y = Math.min(this.y1, this.y2);
@@ -186,7 +184,7 @@ function edgeX(edge: SankeyLinkNodeEdge | undefined, y: number, inset: number, f
  * node's pointer events.
  */
 function traceEdge(
-    path: _ModuleSupport.ExtendedPath2D,
+    path: ExtendedPath2D,
     edge: SankeyLinkNodeEdge | undefined,
     fromY: number,
     toY: number,

@@ -1,14 +1,14 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
     array,
     boolean,
     defined,
     number,
+    numberAxisOptionsDefs,
     numericValue,
     positiveNumber,
     string,
-    undocumented,
+    undocumentedDefs,
     union,
     without,
 } from 'ag-charts-core';
@@ -71,7 +71,7 @@ const regionOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOpti
 };
 
 const axisOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['xAxis']>> = {
-    ...without(_ModuleSupport.numberAxisOptionsDefs, ['crossAt', 'crossLines', 'keys', 'reverse', 'position', 'type']),
+    ...without(numberAxisOptionsDefs, ['crossAt', 'crossLines', 'keys', 'reverse', 'position', 'type']),
 };
 
 export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
@@ -142,7 +142,7 @@ export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     title: defined,
     theme: defined,
     width: defined,
+    ...undocumentedDefs({
+        overrideDevicePixelRatio: positiveNumber,
+    }),
 };
-
-// @ts-expect-error undocumented option
-quadrantOptionsDefs.overrideDevicePixelRatio = undocumented(positiveNumber);

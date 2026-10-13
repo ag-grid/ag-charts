@@ -1,7 +1,6 @@
-import { objectsEqual } from 'ag-charts-core';
+import { type Node, objectsEqual } from 'ag-charts-core';
 import type { AgActiveItemState } from 'ag-charts-types';
 
-import type { Node } from '../../scene/node';
 import type { ActiveManager } from '../interaction/activeManager';
 import type { SeriesNodeDatum } from './seriesTypes';
 

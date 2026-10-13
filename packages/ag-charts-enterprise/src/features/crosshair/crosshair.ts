@@ -5,27 +5,31 @@ import {
     type FormatterParams,
     type TextValue,
     _ModuleSupport,
-    _Widget,
 } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BBox,
     ChartAxisDirection,
     ChartUpdateType,
     type CurrentPoint,
+    Group,
+    Line,
     type NormalisedCrosshairOptions,
+    Selection,
+    TranslatableGroup,
     ZIndexMap,
     coerceTextValue,
     createId,
     forceLtrNumbersIn,
     toPlainText,
 } from 'ag-charts-core';
+import type { ClickWidgetEvent, DragWidgetEvent, MouseWidgetEvent } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel } from './crosshairLabel';
 
-const { Group, TranslatableGroup, Line, BBox, FormatManager, InteractionState } = _ModuleSupport;
-type HoverLikeEvent =
-    _Widget.DragWidgetEvent | _Widget.MouseWidgetEvent<'mousemove'> | Extract<_Widget.ClickWidgetEvent, CurrentPoint>;
+const { FormatManager, InteractionState } = _ModuleSupport;
+type HoverLikeEvent = DragWidgetEvent | MouseWidgetEvent<'mousemove'> | Extract<ClickWidgetEvent, CurrentPoint>;
 
 interface FormatterCache {
     type: string;
@@ -49,8 +53,8 @@ export class Crosshair
     private readonly labels: { [key: string]: CrosshairLabel };
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
-    private seriesRect: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
-    private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
+    private seriesRect: BBox = new BBox(0, 0, 0, 0);
+    private bounds: BBox = new BBox(0, 0, 0, 0);
     private axisLayout?: _ModuleSupport.AxisLayout;
 
     private cachedFormatter: FormatterCache | undefined;
@@ -65,7 +69,7 @@ export class Crosshair
             zIndex: ZIndexMap.SERIES_CROSSHAIR,
         })
     );
-    protected lineGroupSelection = _ModuleSupport.Selection.select(this.lineGroup, Line<string>, false);
+    protected lineGroupSelection = Selection.select(this.lineGroup, Line<string>, false);
 
     private activeHighlight: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     private activeHighlightInViewport: boolean = false;
@@ -260,7 +264,7 @@ export class Crosshair
         return toPlainText(this.axisCtx.formatScaleValue(value, 'crosshair', this));
     }
 
-    private onClick(event: _Widget.ClickWidgetEvent) {
+    private onClick(event: ClickWidgetEvent) {
         if (event.device === 'touch') {
             this.onMouseHoverLike(event);
         }
@@ -409,6 +413,9 @@ export class Crosshair
 
         const isVertical = this.isVertical();
         const position = isVertical ? currentX : currentY;
+
+        // A drag keeps reporting the pointer once it has left the series area; hide rather than follow it.
+        if (!this.isInRange(position)) return {};
 
         let value = datum?.[isVertical ? xKey : yKey] ?? '';
         if (axisCtx.continuous) {

@@ -4,9 +4,13 @@ import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import { deproxy, waitForChartStability } from 'ag-charts-community-test';
 
-import { DEFAULT_DISABLED_SHADOW, collectShapes, prepareEnterpriseTestOptions } from './utils';
-
-export const FLOW_PROPORTION_SHADOW = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
+import {
+    DEFAULT_DISABLED_SHADOW,
+    SMALL_SHADOW,
+    collectShapes,
+    prepareEnterpriseTestOptions,
+    shadowedShapes,
+} from './utils';
 
 const DATA = [
     { from: 'A', to: 'C', size: 8 },
@@ -15,7 +19,7 @@ const DATA = [
     { from: 'B', to: 'D', size: 7 },
 ];
 
-type FlowProportionShadow = typeof FLOW_PROPORTION_SHADOW;
+type FlowProportionShadow = typeof SMALL_SHADOW;
 
 export function flowProportionShadowOptions(
     type: 'sankey' | 'chord',
@@ -48,7 +52,7 @@ interface FlowProportionShadowSuiteConfig {
 /** Registers the `shadow` suite shared by the sankey and chord series, which have identical node/link shadow wiring. */
 export function describeFlowProportionShadow({ type, setChart, compare }: FlowProportionShadowSuiteConfig) {
     describe('shadow', () => {
-        const shadow = FLOW_PROPORTION_SHADOW;
+        const shadow = SMALL_SHADOW;
         const createChart = async (options: AgChartOptions) => {
             prepareEnterpriseTestOptions(options);
             const chart = deproxy(AgCharts.create(options));
@@ -56,7 +60,6 @@ export function describeFlowProportionShadow({ type, setChart, compare }: FlowPr
             await waitForChartStability(chart);
             return chart.series[0] as any;
         };
-        const shadowedShapes = (group: any) => collectShapes(group).filter((shape) => shape.fillShadow?.enabled);
 
         it('defaults to disabled link and node shadows', async () => {
             const series = await createChart(flowProportionShadowOptions(type));

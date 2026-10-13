@@ -8,6 +8,8 @@ import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
+    AgChartLabelAutoFontSizeOptions,
+    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../../chart/selectionOptions';
@@ -22,7 +24,7 @@ import type {
     VerticalAlign,
 } from '../../chart/types';
 import type { AgColorScale, AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgItemHighlightStyleOptions } from '../seriesOptions';
 
 export type AgTreemapHighlightState = HierarchyHighlightState;
 
@@ -39,19 +41,35 @@ export interface AgTreemapSeriesTooltipRendererParams<TDatum, TContext = Context
 
 export interface AgTreemapSeriesGroupStyle extends FillOptions, StrokeOptions {}
 
-export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
-    TDatum,
-    AgTreemapSeriesLabelFormatterParams<TDatum>,
-    TContext
-> {
+export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = ContextDefault>
+    extends
+        AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>,
+        AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions {
     /** The distance between the tiles and the title. */
     spacing?: PixelSize;
+    /**
+     * Horizontal position of the label within the group header.
+     *
+     * Default: `'left'`
+     */
+    textAlign?: TextAlign;
+    /**
+     * Vertical position of the label within the group header, which grows to fit a wrapped label up to a third of the group's height.
+     *
+     * Default: `'middle'`
+     */
+    verticalAlign?: VerticalAlign;
 }
 
 export interface AgTreemapSeriesGroupLayout<TDatum, TContext = ContextDefault> {
     /** Options for the label in a group. */
     label?: AgTreemapSeriesGroupLabelOptions<TDatum, TContext>;
-    /** Horizontal position of the label. */
+    /**
+     * Horizontal position of the label.
+     *
+     * @deprecated v14.2.0 Use `label.textAlign` instead.
+     */
     textAlign?: TextAlign;
     /** The distance between the edges of the outer-most title to the edges of the group. */
     padding?: PixelSize;
@@ -75,18 +93,48 @@ export interface AgTreemapSeriesGroupOptions<TDatum, TContext = ContextDefault>
 
 export interface AgTreemapSeriesTileStyle extends FillOptions, StrokeOptions {}
 
+export interface AgTreemapSeriesTileLabelAlignmentOptions {
+    /**
+     * Horizontal position of the label within the tile.
+     *
+     * Default: `'center'`
+     */
+    textAlign?: TextAlign;
+    /**
+     * Vertical position of the label within the tile. Labels sharing a vertical position, or too tall to sit
+     * apart, stack with the primary label above the secondary one.
+     *
+     * Default: `'middle'`
+     */
+    verticalAlign?: VerticalAlign;
+}
+
+export interface AgTreemapSeriesTileLabelOptions<TDatum, TContext = ContextDefault>
+    extends
+        AgChartAutoSizedLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>,
+        AgTreemapSeriesTileLabelAlignmentOptions {}
+
+export interface AgTreemapSeriesTileSecondaryLabelOptions<TDatum, TContext = ContextDefault>
+    extends
+        AgChartAutoSizedSecondaryLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>,
+        AgTreemapSeriesTileLabelAlignmentOptions {}
+
 export interface AgTreemapSeriesTileLayout<TDatum, TContext = ContextDefault> {
     /** Options for the label in a tile. */
-    label?: AgChartAutoSizedLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext>;
-    /** Options for a secondary, smaller label in a tile - displayed under the primary label. */
-    secondaryLabel?: AgChartAutoSizedSecondaryLabelOptions<
-        TDatum,
-        AgTreemapSeriesLabelFormatterParams<TDatum>,
-        TContext
-    >;
-    /** Horizontal position of the label. */
+    label?: AgTreemapSeriesTileLabelOptions<TDatum, TContext>;
+    /** Options for a secondary, smaller label in a tile. */
+    secondaryLabel?: AgTreemapSeriesTileSecondaryLabelOptions<TDatum, TContext>;
+    /**
+     * Horizontal position of the label.
+     *
+     * @deprecated v14.2.0 Use `label.textAlign` and `secondaryLabel.textAlign` instead.
+     */
     textAlign?: TextAlign;
-    /** Vertical position of the label. */
+    /**
+     * Vertical position of the label.
+     *
+     * @deprecated v14.2.0 Use `label.verticalAlign` and `secondaryLabel.verticalAlign` instead.
+     */
     verticalAlign?: VerticalAlign;
     /** Distance between the tile edges and the text. */
     padding?: PixelSize;
@@ -109,7 +157,7 @@ export interface AgTreemapSeriesTileHighlightOptions {
     /** Style for tiles within the hovered branch. */
     highlightedBranch?: AgTreemapSeriesTileHighlightStyle;
     /** Style for the directly hovered tile. */
-    highlightedItem?: AgTreemapSeriesTileHighlightStyle;
+    highlightedItem?: AgTreemapSeriesTileHighlightStyle & AgItemHighlightStyleOptions;
     /** Style for other tiles within the hovered branch. */
     unhighlightedItem?: AgTreemapSeriesTileHighlightStyle;
     /** Style for tiles outside of the hovered branch. */
@@ -129,7 +177,7 @@ export interface AgTreemapSeriesGroupHighlightOptions {
      */
     enabled?: boolean;
     /** Style for the hovered group. */
-    highlightedItem?: AgTreemapSeriesGroupHighlightStyle;
+    highlightedItem?: AgTreemapSeriesGroupHighlightStyle & AgItemHighlightStyleOptions;
     /** Style for groups that are not hovered when another group is active. */
     unhighlightedItem?: AgTreemapSeriesGroupHighlightStyle;
 }

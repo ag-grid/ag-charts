@@ -28,7 +28,7 @@ import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
     AgHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesShadowHighlightOptions,
 } from '../seriesOptions';
 
 export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
@@ -140,7 +140,7 @@ export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     /** A styler function for adjusting the styling of the pie sectors. */
     itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum, TContext>, AgPieSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesShadowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
 }
 
 export interface AgPieSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

@@ -1,16 +1,38 @@
-import { type AgRadialBarSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgRadialBarSeriesOptions, AgRadialBarSeriesThemeableOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    barHighlightOptionsDef,
     boolean,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    fillOptionsDef,
+    lineDashOptionsDef,
+    multiSeriesHighlightOptionsDef,
     number,
+    positiveNumber,
     required,
+    seriesLabelOptionsDefs,
     string,
-    undocumented,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    undocumentedDefs,
 } from 'ag-charts-core';
 
-const { radialBarSeriesThemeableOptionsDef } = _ModuleSupport;
+import { radialSeriesStylerDef } from '../radial-column/radialColumnSeriesOptionsDef';
+
+export const radialBarSeriesThemeableOptionsDef: OptionsDefs<AgRadialBarSeriesThemeableOptions> = {
+    cornerRadius: positiveNumber,
+    styler: radialSeriesStylerDef,
+    itemStyler: radialSeriesStylerDef,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+};
 
 export const radialBarSeriesOptionsDef: OptionsDefs<AgRadialBarSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -25,9 +47,8 @@ export const radialBarSeriesOptionsDef: OptionsDefs<AgRadialBarSeriesOptions> = 
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
+    ...undocumentedDefs({
+        angleKeyAxis: string,
+        radiusKeyAxis: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-radialBarSeriesOptionsDef.angleKeyAxis = undocumented(string);
-// @ts-expect-error undocumented option
-radialBarSeriesOptionsDef.radiusKeyAxis = undocumented(string);

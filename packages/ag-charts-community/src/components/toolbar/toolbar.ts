@@ -1,16 +1,17 @@
-import type { BoxBounds, DynamicContext } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    ClickWidgetEvent,
+    DynamicContext,
+    ExpandableWidget,
+    ExpansionControllerWidget,
+    RovingDirection,
+} from 'ag-charts-core';
+import { BBox, CollapseMode, Listeners, ToolbarWidget } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
-import { Listeners } from '../../util/listeners';
-import { CollapseMode } from '../../widget/collapseMode';
-import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
-import type { RovingDirection } from '../../widget/rovingDirection';
-import { ToolbarWidget } from '../../widget/toolbarWidget';
-import type { ClickWidgetEvent } from '../../widget/widgetEvents';
 import { ToolbarButtonWidget, type ToolbarButtonWidgetOptions } from './toolbarButtonWidget';
 
 const BUTTON_ACTIVE_CLASS = 'ag-charts-toolbar__button--active';
@@ -45,7 +46,9 @@ export abstract class BaseToolbar<
     protected hasPrefix = false;
 
     private readonly buttonWidgets: Array<ButtonWidget> = [];
+    private readonly buttonOptions: Array<ToolbarButtonWidgetOptions> = [];
     private expanded?: ExpandableWidget;
+    private buttonSize?: number;
 
     protected readonly eventsHub: EventsHub;
     protected readonly localeManager: LocaleManager;
@@ -85,19 +88,32 @@ export abstract class BaseToolbar<
             button.destroy();
         }
         this.buttonWidgets.splice(0);
+        this.buttonOptions.splice(0);
     }
 
     protected getInteractionOptions(): ButtonInteractionOptions {
         const { isRtl } = this.domManager;
-        return { isRtl };
+        return { isRtl, buttonSize: this.buttonSize };
+    }
+
+    public setButtonSize(buttonSize: number | undefined) {
+        if (buttonSize === this.buttonSize) return;
+        this.buttonSize = buttonSize;
+        const interactionOptions = this.getInteractionOptions();
+        for (const [index, buttonWidget] of this.buttonWidgets.entries()) {
+            const button = this.buttonOptions.at(index);
+            if (button != null) buttonWidget.update(button, interactionOptions);
+        }
     }
 
     public updateButtons(buttons: Array<ButtonOptions>) {
         const { buttonWidgets } = this;
 
+        const interactionOptions = this.getInteractionOptions();
         for (const [index, button] of buttons.entries()) {
             const buttonWidget = this.buttonWidgets.at(index) ?? this.createButton(index, button);
-            buttonWidget.update(button, this.getInteractionOptions());
+            buttonWidget.update(button, interactionOptions);
+            this.buttonOptions[index] = button;
         }
 
         for (let index = buttons.length; index < buttonWidgets.length; index++) {
@@ -106,11 +122,15 @@ export abstract class BaseToolbar<
         }
 
         this.buttonWidgets.splice(buttons.length);
+        this.buttonOptions.splice(buttons.length);
         this.refreshButtonClasses();
     }
 
     public updateButtonByIndex(index: number, button: ButtonOptions) {
-        this.buttonWidgets.at(index)?.update(button, this.getInteractionOptions());
+        const buttonWidget = this.buttonWidgets.at(index);
+        if (buttonWidget == null) return;
+        buttonWidget.update(button, this.getInteractionOptions());
+        this.buttonOptions[index] = button;
     }
 
     public clearActiveButton() {

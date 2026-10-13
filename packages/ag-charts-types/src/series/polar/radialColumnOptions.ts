@@ -1,8 +1,9 @@
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { ContextDefault, DatumDefault, Ratio } from '../../chart/types';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgMultiSeriesShadowHighlightOptions } from '../seriesOptions';
 import type {
     AgBaseRadialSeriesThemeableOptions,
+    AgRadialHighlightStyleOptions,
     AgRadialSeriesOptionsKeys,
     AgRadialSeriesOptionsNames,
 } from './radialOptions';
@@ -12,7 +13,7 @@ export interface AgBaseRadialColumnSeriesOptions<TDatum = DatumDefault, TContext
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
-        AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {
+        Omit<AgBaseRadialSeriesThemeableOptions<TDatum, TContext>, 'highlight'> {
     /** Base configuration for Radial Column series. */
     type: 'radial-column' | 'nightingale';
 
@@ -36,6 +37,8 @@ export interface AgRadialColumnSeriesThemeableOptions<
     maxColumnWidthRatio?: Ratio;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
+    /** Configuration for highlighting when a series or legend item is hovered over. */
+    highlight?: AgMultiSeriesShadowHighlightOptions<AgRadialHighlightStyleOptions, AgRadialHighlightStyleOptions>;
 }
 
 export interface AgRadialColumnSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>

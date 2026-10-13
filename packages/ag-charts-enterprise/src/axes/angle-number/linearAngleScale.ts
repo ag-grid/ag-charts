@@ -1,8 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type ScaleTickParams, isDenseInterval, isNumberEqual, range, toNumber } from 'ag-charts-core';
+import { LinearScale, type ScaleTickParams, isDenseInterval, isNumberEqual, range, toNumber } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
-
-const { LinearScale } = _ModuleSupport;
 
 export class LinearAngleScale extends LinearScale {
     static getNiceStepAndTickCount(ticks: ScaleTickParams<number>, domain: AgNumericValue[]) {

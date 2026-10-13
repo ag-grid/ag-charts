@@ -1,12 +1,6 @@
 import { type Mock, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-    type AgCartesianChartOptions,
-    type AgChartInstance,
-    type AgChartOptions,
-    AgCharts,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -35,6 +29,7 @@ import {
     tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
 import {
@@ -339,7 +334,9 @@ describe('OhlcSeries', () => {
     });
 
     describe('shadow', () => {
-        const buildOptions = (shadow?: typeof SHADOW): AgChartOptions => {
+        const SPREAD_SHADOW = { ...SHADOW, spread: 6 };
+
+        const buildOptions = (shadow?: typeof SHADOW & { spread?: number }): AgChartOptions => {
             const options = { ...OHLC_OPTIONS, series: [{ ...OHLC_OPTIONS.series![0], shadow }] } as AgChartOptions;
             prepareEnterpriseTestOptions(options as any);
             return options;
@@ -374,6 +371,22 @@ describe('OhlcSeries', () => {
 
         it('should render an ohlc chart with a shadow', async () => {
             await compareSnapshot(AgCharts.create(buildOptions(SHADOW)));
+        });
+
+        it('carries the shadow spread to the stroke shadow of every item', async () => {
+            const chart: any = await createEnterpriseChart(buildOptions(SPREAD_SHADOW));
+
+            expect(itemNodes(chart).length).toBeGreaterThan(0);
+
+            for (const shape of itemNodes(chart)) {
+                expect(shape.shadowMode).toBe('stroke');
+                expect(shape.fillShadow).toMatchObject(SPREAD_SHADOW);
+            }
+            chart.destroy();
+        });
+
+        it('should render an ohlc chart with a shadow spread', async () => {
+            await compareSnapshot(AgCharts.create(buildOptions(SPREAD_SHADOW)));
         });
     });
 
@@ -674,11 +687,7 @@ describe('OhlcSeries', () => {
             expect(nodeData).toBeDefined();
             const node = nodeData![nodeIndex];
             expect(node).toBeDefined();
-            return _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.centerX,
-                node.y + node.height / 2
-            );
+            return Transformable.toCanvasPoint(series.contentGroup, node.centerX, node.y + node.height / 2);
         }
 
         async function clickCandle(nodeIndex: number) {

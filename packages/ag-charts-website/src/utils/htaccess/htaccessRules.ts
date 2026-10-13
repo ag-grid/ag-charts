@@ -2,6 +2,7 @@ import type { AstroUserConfig } from 'astro';
 
 import { SITE_BASE_URL } from '../../constants';
 import { markdownPathAlternation } from '../markdownPages';
+import { NPM_PACKAGES_DIR } from '../npmPackages';
 import { urlWithBaseUrl } from '../urlWithBaseUrl';
 import type { CspEnv } from './cspRules';
 import { getCspHtaccessBlock, getScopedCspHtaccessBlock } from './cspRules';
@@ -36,6 +37,8 @@ AddCharset utf-8 .md
 # <If> override re-allows it for example-runner documents. The trial-form origin is
 # env-split, so the policy is generated per environment.
 ${getCspContent(env)}
+
+${getNpmPackagesRules()}
 
 ${getRedirectRules(env)}
 
@@ -231,6 +234,41 @@ export function getMarkdownNegotiationRules() {
 # its default.
 <If "%{REQUEST_URI} =~ m#${varyScope}# || %{REQUEST_URI} =~ m#${varyRootScope}#">
     Header append Vary Accept
+</If>`;
+}
+
+/**
+ * Serves the package tarballs under `npm-packages/` (see `plugins/agNpmPackages.ts`) to
+ * StackBlitz's in-browser npm, which fetches them cross-origin and sends a CORS preflight first.
+ * Every archive ships its own `.htaccess`, so each release candidate gets this rule too.
+ */
+export function getNpmPackagesRules() {
+    const basePath = (SITE_BASE_URL ?? '').replace(/\/$/, '');
+    const inNpmPackages = `%{REQUEST_URI} =~ m#^${escapeRegExp(basePath)}/${NPM_PACKAGES_DIR}/#`;
+
+    return `# Package tarballs (${NPM_PACKAGES_DIR}/): fetched cross-origin by StackBlitz's in-browser npm.
+# Servers commonly map .tgz to "Content-Encoding: x-gzip", which makes the browser unpack the
+# tarball in transit and breaks its integrity check, so drop that and serve it as the gzip it is.
+<IfModule mod_mime.c>
+    RemoveEncoding .tgz
+    AddType application/gzip .tgz
+</IfModule>
+
+<If "${inNpmPackages}">
+    # Plain "set", not "always set": the server config already sends these on success, and Apache
+    # keeps the always and on-success tables apart, so "always" would emit a second copy, which
+    # browsers reject for Access-Control-Allow-Origin. "set" replaces the server's value instead.
+    # The tarball names are fixed and overwritten by each deploy, so shared caches and browsers
+    # must revalidate rather than keep serving the previous build.
+    Header set Cache-Control "no-cache"
+    Header set Access-Control-Allow-Origin "*"
+</If>
+
+# CORS preflight: the answer is the same for every tarball, and may be cached by the browser.
+<If "${inNpmPackages} && %{REQUEST_METHOD} == 'OPTIONS'">
+    Header set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+    Header set Access-Control-Allow-Headers "*"
+    Header set Access-Control-Max-Age "3600"
 </If>`;
 }
 

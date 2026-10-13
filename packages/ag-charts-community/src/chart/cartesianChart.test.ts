@@ -2,6 +2,7 @@ import { fail } from 'assert';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { ChartUpdateType } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
@@ -13,6 +14,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     deproxy,
+    expectWarningsCalls,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -262,6 +264,106 @@ describe('CartesianChart', () => {
                 failureThreshold: 2,
                 failureThresholdType: 'pixel',
             });
+        });
+    });
+
+    describe('axes without a position', () => {
+        const createChart = async (axes: Record<string, object>) => {
+            const options = {
+                data: getData(),
+                series: [{ type: 'line', xKey: 'year', yKey: 'adults' }],
+                axes,
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            await waitForChartStability(chart);
+            return chart;
+        };
+        const axisPositions = () => chart.axes.map((axis) => axis.position);
+
+        it('should render an unreferenced axis', async () => {
+            await createChart({ x: { type: 'category' }, y: { type: 'number' }, y2: { type: 'number' } });
+
+            expect(axisPositions()).toEqual(['bottom', 'left', 'right']);
+            expectWarningsCalls().toEqual([[expect.stringContaining('`axes.y2` is not used by any series.')]]);
+        });
+
+        it('should render an untyped axis whose position is invalid', async () => {
+            await createChart({ x: { position: 'middle' }, y: { type: 'number' } });
+
+            expect(axisPositions()).toEqual(['bottom', 'left']);
+            expectWarningsCalls().toEqual([[expect.stringContaining('cannot be set to `"middle"`')]]);
+        });
+
+        it('should render after an update removes an unreferenced axis position', async () => {
+            await createChart({
+                x: { type: 'category' },
+                y: { type: 'number' },
+                y2: { type: 'number', position: 'top' },
+            });
+
+            await chart.publicApi?.update({
+                data: getData(),
+                series: [{ type: 'line', xKey: 'year', yKey: 'adults' }],
+                axes: { x: { type: 'category' }, y: { type: 'number' }, y2: { type: 'number' } },
+            });
+            await waitForChartStability(chart);
+
+            expect(axisPositions()).toEqual(['bottom', 'left', 'right']);
+            expectWarningsCalls().toEqual([[expect.stringContaining('`axes.y2` is not used by any series.')]]);
+        });
+    });
+
+    describe('unused axes', () => {
+        const createChart = async (axes: Record<string, object>) => {
+            const options = {
+                data: getData(),
+                series: [
+                    { type: 'line', xKey: 'year', yKey: 'adults', yKeyAxis: 'axisA' },
+                    { type: 'line', xKey: 'year', yKey: 'children', yKeyAxis: 'axisB' },
+                ],
+                axes,
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            await waitForChartStability(chart);
+        };
+
+        it('should warn once about an axes key that no series uses', async () => {
+            await createChart({ orphanKey: { type: 'number' } });
+            chart.update(ChartUpdateType.FULL);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([[expect.stringContaining('`axes.orphanKey` is not used by any series.')]]);
+        });
+
+        it('should not warn when every axes key is used', async () => {
+            await createChart({ axisA: { type: 'number' }, axisB: { type: 'number' } });
+
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it('should render a series whose referenced axes swap positions', async () => {
+            const options = {
+                data: getData(),
+                series: [{ type: 'line', xKey: 'year', yKey: 'adults', xKeyAxis: 'years' }],
+                axes: {
+                    years: { type: 'number', position: 'left' },
+                    y: { type: 'category', position: 'bottom' },
+                },
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            await waitForChartStability(chart);
+
+            expect(chart.axes.map((axis) => [axis.type, axis.position, axis.boundSeries.length])).toEqual([
+                ['category', 'bottom', 1],
+                ['number', 'left', 1],
+            ]);
+            expectWarningsCalls().toEqual([]);
         });
     });
 

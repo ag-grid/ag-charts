@@ -7,6 +7,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    BandScale,
     type BarPlacedLabelDatum,
     type BoxBounds,
     type CallbackParamRules,
@@ -24,7 +25,9 @@ import {
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
+    PointerEvents,
     type PositionedCandidateResolver,
+    Rect,
     type RequireOptional,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
@@ -50,8 +53,10 @@ import {
     resolveLabelFitDescriptors,
     subtractValues,
     toArray,
+    upsertNodeDatum,
     zeroLike,
 } from 'ag-charts-core';
+import type { BBox, Path, Selection, Text } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 /** Post-theme/styler-resolution waterfall style: colour refs are already resolved to concrete colours. */
@@ -88,14 +93,11 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     computeBarFocusBounds,
-    BandScale,
-    Rect,
     motion,
     getItemId,
     getItemStylesPerItemId,
     DataSet,
     processedDataIsAnimatable,
-    upsertNodeDatum,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Point & {
@@ -134,7 +136,7 @@ export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDa
     readonly height: number;
     readonly label: WaterfallNodeLabelDatum;
     readonly crisp: boolean;
-    readonly clipBBox?: _ModuleSupport.BBox;
+    readonly clipBBox?: BBox;
     readonly opacity?: number;
     style?: Required<AgWaterfallSeriesStyle>;
 }
@@ -188,7 +190,7 @@ interface WaterfallNodeDatumParams {
  * Defines all type parameters in one place for the series.
  */
 interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
-    readonly node: _ModuleSupport.Rect<WaterfallNodeDatum>;
+    readonly node: Rect<WaterfallNodeDatum>;
     readonly options: NormalisedWaterfallSeriesOwnOptions;
     readonly datum: WaterfallNodeDatum;
     readonly label: WaterfallNodeDatum;
@@ -998,7 +1000,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     protected override updateDatumSelection(opts: {
         nodeData: WaterfallNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect<WaterfallNodeDatum>>;
+        datumSelection: Selection<WaterfallNodeDatum, Rect<WaterfallNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -1097,7 +1099,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect<WaterfallNodeDatum>>;
+        datumSelection: Selection<WaterfallNodeDatum, Rect<WaterfallNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { positive, negative, total } = this.options.item;
@@ -1138,7 +1140,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect<WaterfallNodeDatum>>;
+        datumSelection: Selection<WaterfallNodeDatum, Rect<WaterfallNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -1161,7 +1163,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             rect.setStyleProperties(style as Required<NormalisedWaterfallSeriesStyle>, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
-            rect.fillShadow = this.getItemConfig(datum.itemType).shadow;
+            rect.fillShadow = this.resolveItemShadow(
+                this.getItemConfig(datum.itemType).shadow,
+                isHighlight,
+                datum.datumIndex
+            );
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;
@@ -1306,7 +1312,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     protected override updateLabelSelection(opts: {
         labelData: WaterfallNodeDatum[];
-        labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text<WaterfallNodeDatum>>;
+        labelSelection: Selection<WaterfallNodeDatum, Text<WaterfallNodeDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
 
@@ -1352,7 +1358,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         labelSelection,
         isHighlight,
     }: {
-        labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text<WaterfallNodeDatum>>;
+        labelSelection: Selection<WaterfallNodeDatum, Text<WaterfallNodeDatum>>;
         isHighlight: boolean;
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -1486,6 +1492,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 lineDashOffset,
             },
         };
+    }
+
+    /** The shadows of the positive, negative and total items, which this series keeps there rather than on its own `shadow`. */
+    protected override getItemShadowOptions() {
+        return (['positive', 'negative', 'total'] as const).map((itemType) => this.getItemConfig(itemType).shadow);
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType) {
@@ -1655,17 +1666,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         this.resetConnectorLinesPath(data);
     }
 
-    protected override updatePaths(opts: { contextData: WaterfallContext; paths: _ModuleSupport.Path[] }) {
+    protected override updatePaths(opts: { contextData: WaterfallContext; paths: Path[] }) {
         this.resetConnectorLinesPath({ contextData: opts.contextData, paths: opts.paths });
     }
 
-    resetConnectorLinesPath({
-        contextData,
-        paths,
-    }: {
-        contextData: WaterfallContext;
-        paths: Array<_ModuleSupport.Path>;
-    }) {
+    resetConnectorLinesPath({ contextData, paths }: { contextData: WaterfallContext; paths: Array<Path> }) {
         if (paths.length === 0) {
             return;
         }
@@ -1691,7 +1696,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         lineNode.checkPathDirty();
     }
 
-    protected updateLineNode(lineNode: _ModuleSupport.Path) {
+    protected updateLineNode(lineNode: Path) {
         const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.options.line;
         lineNode.setProperties({
             fill: undefined,
@@ -1701,7 +1706,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             lineDash,
             lineDashOffset,
             lineJoin: 'round',
-            pointerEvents: _ModuleSupport.PointerEvents.None,
+            pointerEvents: PointerEvents.None,
         });
     }
 
@@ -1710,7 +1715,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         return positive.label.enabled || negative.label.enabled || total.label.enabled;
     }
 
-    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
     }
 

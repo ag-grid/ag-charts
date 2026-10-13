@@ -1,7 +1,10 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { SceneChangeDetection, SceneObjectChangeDetection, normalizeAngle360, objectsEqual } from 'ag-charts-core';
-
-const { Path } = _ModuleSupport;
+import {
+    Path,
+    SceneChangeDetection,
+    SceneObjectChangeDetection,
+    normalizeAngle360,
+    objectsEqual,
+} from 'ag-charts-core';
 
 export function bezierControlPoints({
     radius,

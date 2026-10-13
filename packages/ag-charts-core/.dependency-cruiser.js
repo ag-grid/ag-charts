@@ -183,6 +183,41 @@ module.exports = {
             from: { path: 'src/.*' },
             to: { path: 'src/[^/]*\\.ts', pathNot: ['ag-charts-types/'] },
         },
+        {
+            name: 'ag-isolated-scales',
+            comment: 'Scales should be isolated from chart implementation modules.',
+            severity: 'error',
+            from: { path: '^src/chart/scale/' },
+            to: {
+                pathNot: ['^src/(chart/scale|data|format|logging|time|types)/', 'ag-charts-types', 'node_modules'],
+            },
+        },
+        {
+            name: 'ag-isolated-widget',
+            comment: 'Widget modules should be isolated.',
+            severity: 'error',
+            from: { path: '^src/widget/' },
+            to: {
+                pathNot: [
+                    '^src/(widget|data|dom|format|geometry|identity|state|types)/',
+                    'ag-charts-types',
+                    'node_modules',
+                ],
+            },
+        },
+        {
+            name: 'ag-isolated-scene',
+            comment: 'Scene modules should be isolated from chart implementation modules.',
+            severity: 'error',
+            from: { path: '^src/scene/' },
+            to: {
+                pathNot: [
+                    '^src/(scene|chart/scale|data|dom|format|geometry|identity|logging|options|rendering|state|structures|text|types)/',
+                    'ag-charts-types',
+                    'node_modules',
+                ],
+            },
+        },
     ],
     options: {
         /* conditions specifying which files not to follow further when encountered:

@@ -1,20 +1,17 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartOptions, AgDropShadowOptions, AgMarkerShapeFn, _ModuleSupport } from 'ag-charts-community';
-import { type Chart, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import type { AgChartOptions, AgDropShadowOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type Chart,
+    MARKER_SHADOW,
+    customMarkerShape,
+    setupMockCanvas,
+    setupMockConsole,
+} from 'ag-charts-community-test';
 
 import { createEnterpriseChart } from '../test/utils';
 import { ukData } from './map-test/ukData';
 import ukTopology from './map-test/ukTopology.json';
-
-const SHADOW: AgDropShadowOptions = { enabled: true, color: '#000000', xOffset: 4, yOffset: 4, blur: 6 };
-
-const customShape: AgMarkerShapeFn = ({ path, x, y, size }) => {
-    path.moveTo(x - size / 2, y - size / 2);
-    path.lineTo(x + size / 2, y - size / 2);
-    path.lineTo(x, y + size / 2);
-    path.closePath();
-};
 
 const RADAR_DATA = [
     { subject: 'a', value: 3, low: 1 },
@@ -128,17 +125,17 @@ describe('marker shadow', () => {
 
     describe.each(CASES)('$name', (testCase) => {
         it('applies the shadow to markers with a built-in shape', async () => {
-            await create(testCase.options('diamond', SHADOW));
+            await create(testCase.options('diamond', MARKER_SHADOW));
 
             const markers = visibleMarkers(testCase);
             expect(markers).toHaveLength(testCase.count);
             for (const marker of markers) {
-                expect(marker.fillShadow).toMatchObject(SHADOW);
+                expect(marker.fillShadow).toMatchObject(MARKER_SHADOW);
             }
         });
 
         it('does not apply the shadow to markers with a custom function shape', async () => {
-            await create(testCase.options(customShape, SHADOW));
+            await create(testCase.options(customMarkerShape, MARKER_SHADOW));
 
             const markers = visibleMarkers(testCase);
             expect(markers).toHaveLength(testCase.count);
@@ -229,7 +226,7 @@ describe('marker shadow', () => {
     describe.each(CASES.filter((c) => c.name !== 'map-marker'))('$name tooltip renderer', (testCase) => {
         it('does not receive the marker shadow in its params', async () => {
             const received: any[] = [];
-            const options = testCase.options('square', SHADOW) as any;
+            const options = testCase.options('square', MARKER_SHADOW) as any;
             options.series[0].tooltip = {
                 renderer: (params: unknown) => {
                     received.push(params);

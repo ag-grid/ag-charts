@@ -16,7 +16,7 @@ import {
     string,
     strokeOptionsDef,
     typeUnion,
-    undocumented,
+    undocumentedDefs,
     without,
 } from 'ag-charts-core';
 import type {
@@ -106,12 +106,11 @@ const commonSparklineOptionsDef: OptionsDefs<
     },
     xKey: string,
     yKey: string,
+    ...undocumentedDefs({
+        overrideDevicePixelRatio: number,
+        foreground: defined,
+    }),
 };
-
-// @ts-expect-error undocumented option
-commonSparklineOptionsDef.overrideDevicePixelRatio = undocumented(number);
-// @ts-expect-error undocumented option
-commonSparklineOptionsDef.foreground = undocumented(defined);
 
 export const SparklinePresetModule: PresetModuleDefinition<AgSparklineOptions> = /* #__PURE__ */ communityModule({
     type: 'preset',

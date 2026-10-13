@@ -1,15 +1,17 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BBox,
     ChartAxisDirection,
     type DynamicContext,
+    Group,
     ZIndexMap,
-    calcLineHeight,
+    cachedTextMeasurer,
 } from 'ag-charts-core';
 
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
-const { CategoryAxis, Group, BBox, stackCartesianSeries } = _ModuleSupport;
+const { CategoryAxis, stackCartesianSeries } = _ModuleSupport;
 
 export class MiniChart extends AbstractModuleInstance {
     get enabled(): boolean {
@@ -38,7 +40,7 @@ export class MiniChart extends AbstractModuleInstance {
     private miniChartAnimationPhase: 'initial' | 'ready' = 'initial';
 
     // Should be available after the first layout.
-    protected seriesRect?: _ModuleSupport.BBox = undefined;
+    protected seriesRect?: BBox = undefined;
 
     private _axes = new _ModuleSupport.ChartAxes();
     private _series: _ModuleSupport.UnknownSeries[] = [];
@@ -265,7 +267,7 @@ export class MiniChart extends AbstractModuleInstance {
             } else {
                 size =
                     (line.enabled ? line.strokeWidth : 0) +
-                    (label.enabled ? calcLineHeight(label.fontSize) + label.spacing : 0);
+                    (label.enabled ? cachedTextMeasurer(label).lineHeight() + label.spacing : 0);
             }
 
             padding[position] = Math.ceil(size);

@@ -1,5 +1,6 @@
 import {
     type CubicSpan,
+    type ExtendedPath2D,
     type LinearSpan,
     type Point,
     type Span,
@@ -9,8 +10,6 @@ import {
     spanRange,
     splitBezier2D,
 } from 'ag-charts-core';
-
-import type { ExtendedPath2D } from '../../../scene/extendedPath2D';
 
 type SpanSupertype = {
     leftCp1x: number;

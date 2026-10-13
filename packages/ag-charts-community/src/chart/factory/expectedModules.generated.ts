@@ -173,6 +173,13 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
     },
     {
         type: 'series',
+        name: 'hlc',
+        moduleId: 'HlcSeriesModule',
+        chartType: 'cartesian',
+        enterprise: true,
+    },
+    {
+        type: 'series',
         name: 'line',
         moduleId: 'LineSeriesModule',
         chartType: 'cartesian',
@@ -396,6 +403,7 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
             {
                 path: 'seriesArea.backgroundRegions',
                 options: array,
+                themeOptions: object,
             },
         ],
     },
@@ -579,6 +587,34 @@ export const expectedModuleTable: readonly ModulePlaceholder[] = [
         type: 'plugin',
         name: 'zoom-base',
         moduleId: 'QuadrantChartModule',
+    },
+    {
+        type: 'axis:plugin',
+        name: 'axisInsetValue',
+        moduleId: 'AxisInsetValueModule',
+        chartTypes: ['cartesian'],
+        enterprise: true,
+        axisTypes: ['category'],
+        contributes: [
+            {
+                path: 'axes[].axisInsetValue',
+                axisTypes: ['category'],
+            },
+        ],
+    },
+    {
+        type: 'axis:plugin',
+        name: 'axisSelectedBand',
+        moduleId: 'AxisSelectedBandModule',
+        chartTypes: ['cartesian'],
+        enterprise: true,
+        axisTypes: ['category'],
+        contributes: [
+            {
+                path: 'axes[].axisSelectedBand',
+                axisTypes: ['category'],
+            },
+        ],
     },
     {
         type: 'axis:plugin',

@@ -1,7 +1,44 @@
-import { type AgRadarLineSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, commonSeriesOptionsDefs, constant, required, string, undocumented } from 'ag-charts-core';
+import type { AgRadarLineSeriesOptions, AgRadarSeriesStyle, AgRadarSeriesThemeableOptions } from 'ag-charts-community';
+import {
+    type OptionsDefs,
+    boolean,
+    callbackDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
+    constant,
+    lineDashOptionsDef,
+    lineHighlightOptionsDef,
+    markerOptionsDefs,
+    markerStyleOptionsDefs,
+    multiSeriesShadowHighlightOptionsDef,
+    required,
+    seriesLabelOptionsDefs,
+    shapeHighlightOptionsDef,
+    string,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    undocumentedDefs,
+    undocumentedLabelFitOptionsDefs,
+} from 'ag-charts-core';
 
-const { radarLineSeriesThemeableOptionsDef } = _ModuleSupport;
+export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemeableOptions> = {
+    connectMissingData: boolean,
+    marker: markerOptionsDefs,
+    styler: callbackDefs<AgRadarSeriesStyle>({
+        marker: markerStyleOptionsDefs,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...undocumentedLabelFitOptionsDefs,
+    },
+    tooltip: tooltipOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef),
+};
 
 export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -12,9 +49,8 @@ export const radarLineSeriesOptionsDef: OptionsDefs<AgRadarLineSeriesOptions> = 
     angleName: string,
     radiusName: string,
     legendItemName: string,
+    ...undocumentedDefs({
+        angleKeyAxis: string,
+        radiusKeyAxis: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-radarLineSeriesOptionsDef.angleKeyAxis = undocumented(string);
-// @ts-expect-error undocumented option
-radarLineSeriesOptionsDef.radiusKeyAxis = undocumented(string);

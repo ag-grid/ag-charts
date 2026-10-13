@@ -15,11 +15,13 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { type ModuleDefinition, ModuleRegistry } from 'ag-charts-core';
+import { type ModuleDefinition, ModuleRegistry, ModuleScope } from 'ag-charts-core';
 
 import { NumberAxisModule as EnterpriseNumberAxisModule } from './axes/cartesian/cartesianAxisModules';
 import { AgCharts, RangeBarSeriesModule } from './main';
 import { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
+import { PriceVolumePresetModule } from './preset/price-volume/priceVolumePresetModule';
+import { VolumeProfilePresetModule } from './preset/volume-profile/volumeProfilePresetModule';
 import { prepareEnterpriseTestOptions } from './test/utils';
 
 describe('instance modules', () => {
@@ -176,5 +178,19 @@ describe('enterprise cartesian axis modules', () => {
                 community.name
             ).toContain('axis-interaction');
         }
+    });
+});
+
+describe('preset module dependencies', () => {
+    it.each([
+        ['volume-profile', VolumeProfilePresetModule],
+        ['price-volume', PriceVolumePresetModule],
+    ])('registers the modules behind the total segment and selection with the %s preset', (_name, preset) => {
+        const scope = new ModuleScope();
+        scope.register(preset);
+
+        expect(scope.hasModule('axisInsetValue')).toBe(true);
+        expect(scope.hasModule('axisSelectedBand')).toBe(true);
+        expect(scope.hasModule('selection')).toBe(true);
     });
 });

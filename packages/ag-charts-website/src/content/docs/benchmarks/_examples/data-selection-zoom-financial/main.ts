@@ -6,6 +6,7 @@ import {
     AgCharts,
     AnimationModule,
     CandlestickSeriesModule,
+    HlcSeriesModule,
     ModuleRegistry,
     NavigatorModule,
     NumberAxisModule,
@@ -17,12 +18,13 @@ import {
 } from 'ag-charts-enterprise';
 
 import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
-import { ChartRef, clickAt, dragSelect, performZoom } from './benchmarkUtils';
+import { ChartRef, clickAt, dragSelect, isReleaseBelow, performZoom } from './benchmarkUtils';
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
     AnimationModule,
     CandlestickSeriesModule,
+    HlcSeriesModule,
     NavigatorModule,
     NumberAxisModule,
     OhlcSeriesModule,
@@ -40,10 +42,19 @@ const timeAxes: Record<string, AgCartesianAxisOptions> = {
     x: { type: 'ordinal-time', parentLevel: { enabled: true } },
 };
 
-const SERIES_TYPES = ['candlestick', 'ohlc'] as const;
+const SERIES_TYPES = ['candlestick', 'ohlc', 'hlc'] as const;
 type SeriesType = (typeof SERIES_TYPES)[number];
 
+const HLC_MIN_VERSION = '14.3.0';
+
 function buildSeries(type: SeriesType): AgCartesianChartOptions['series'] {
+    const selection = {
+        enabled: true,
+        selectedItem: { fill: '#ff3b30', stroke: '#990000', strokeWidth: 2 },
+    };
+    if (type === 'hlc') {
+        return [{ type, xKey: 'timestamp', lowKey: 'low', highKey: 'high', closeKey: 'close', selection }];
+    }
     return [
         {
             type,
@@ -52,10 +63,7 @@ function buildSeries(type: SeriesType): AgCartesianChartOptions['series'] {
             highKey: 'high',
             openKey: 'open',
             closeKey: 'close',
-            selection: {
-                enabled: true,
-                selectedItem: { fill: '#ff3b30', stroke: '#990000', strokeWidth: 2 },
-            },
+            selection,
         },
     ];
 }
@@ -127,13 +135,20 @@ window.selectHalf = () => void selectFiftyPercent();
 window.selectClear = () => void clearSelection();
 
 /** inScope */
+function isSeriesSupported(seriesType: SeriesType): boolean {
+    return seriesType !== 'hlc' || !isReleaseBelow(VERSION, HLC_MIN_VERSION);
+}
+
+/** inScope */
 function getBenchmarkConfig(): BenchmarkConfig {
     const testCases = SERIES_TYPES.map((seriesType) => ({
         id: seriesType,
         label: seriesType,
-        setup: () => applySeriesAndUpdate(seriesType),
+        // The runner calls setup() before filtering unavailable variants, so don't switch to an unsupported series.
+        setup: isSeriesSupported(seriesType) ? () => applySeriesAndUpdate(seriesType) : undefined,
         variants: [
             {
+                available: isSeriesSupported(seriesType),
                 params: { Selection: 'none' },
                 run: async () => {
                     await resetZoom();
@@ -142,6 +157,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 },
             },
             {
+                available: isSeriesSupported(seriesType),
                 params: { Selection: '50%' },
                 run: async () => {
                     await resetZoom();
@@ -153,6 +169,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
     }));
 
     return {
+        warnings: isSeriesSupported('hlc') ? undefined : [`Skipped (the hlc series requires >= ${HLC_MIN_VERSION})`],
         testCases,
         config: {
             updatesPerTest: 5,

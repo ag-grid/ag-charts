@@ -1,4 +1,12 @@
-import { AgDocument, type CallbackCache, type Logger, type ModuleScope, type ReactiveState } from 'ag-charts-core';
+import {
+    AgDocument,
+    type CallbackCache,
+    type Group,
+    type Logger,
+    type ModuleScope,
+    type ReactiveState,
+    type Scene,
+} from 'ag-charts-core';
 
 import type { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import type { HistoryManager } from '../api/state/historyManager';
@@ -33,8 +41,6 @@ import type { EventsHub } from '../core/eventsHub';
 import type { DOMManager } from '../dom/domManager';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
-import type { Group } from '../scene/group';
-import type { Scene } from '../scene/scene';
 
 /**
  * Minimal contract for a shared toolbar instance registered by enterprise plugins.

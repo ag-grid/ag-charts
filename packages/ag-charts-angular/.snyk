@@ -1,6 +1,136 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-IMAGESIZE-17295816:
+    - ng-packagr@20.3.2 > less@4.2.0 > image-size@0.5.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:20:21.352Z
+  SNYK-JS-IMAGESIZE-17295814:
+    - ng-packagr@20.3.2 > less@4.2.0 > image-size@0.5.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:20:10.709Z
+  SNYK-JS-ENGINEIO-20335255:
+    - karma@6.4.4 > socket.io@4.8.3 > engine.io@6.6.7:
+        reason: >-
+            Test dependency - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:19:56.884Z
+  SNYK-JS-ANGULARROUTER-20361514:
+    - '@angular/router@20.3.30':
+        reason: >-
+            Downstream dependency of angular - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:19:29.252Z
+  SNYK-JS-ZOD-20510278:
+    - '@angular/cli@20.3.27 > zod@4.1.13':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.591Z
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > zod@4.3.5':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.588Z
+  SNYK-JS-POSTCSSSELECTORPARSER-20510276:
+    - '@angular-devkit/build-angular@20.3.37 > css-loader@7.1.2 > postcss-modules-scope@3.2.1 > postcss-selector-parser@7.1.5':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:16:36.806Z
+    - '@angular-devkit/build-angular@20.3.37 > css-loader@7.1.2 > postcss-modules-local-by-default@4.2.0 > postcss-selector-parser@7.1.5':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:16:36.802Z
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-20579853:
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:09.795Z
+  SNYK-JS-BRACEEXPANSION-20244952:
+    - karma@6.4.4 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.674Z
+    - karma-coverage@2.2.1 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.673Z
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.9':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.669Z
+  SNYK-JS-BRACEEXPANSION-20244948:
+    - karma@6.4.4 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.050Z
+    - karma-coverage@2.2.1 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.049Z
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.9':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.041Z
+  SNYK-JS-SHELLQUOTE-20250993:
+    - '@angular-devkit/build-angular@20.3.37 > webpack-dev-server@5.2.6 > launch-editor@2.14.1 > shell-quote@1.10.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:01:30.138Z
+  SNYK-JS-PISCINA-20417213:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > piscina@5.2.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:00:43.111Z
+    - '@angular-devkit/build-angular@20.3.37 > piscina@5.2.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:00:43.102Z
+    - ng-packagr@20.3.2 > piscina@5.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:00:43.098Z
+  SNYK-JS-VITESTMOCKER-19497933:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.323Z
+  SNYK-JS-VITEST-17120326:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.322Z
+  SNYK-JS-ROLLUP-15340920:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.295Z
+  SNYK-JS-AGCHARTSTEST-17950302:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package (0.0.0-use.local) - matched against advisories for old published versions
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.229Z
   SNYK-JS-URIJS-19963963:
     - '@angular-devkit/build-angular@20.3.37 > @angular-devkit/architect@0.2003.37 > @angular-devkit/core@20.3.37 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1':
         reason: >-
@@ -30,6 +160,16 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-24T14:42:23.823Z
   SNYK-JS-BRACES-19963945:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > sass@1.90.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > braces@3.0.3':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:19:40.341Z
+    - ng-packagr@20.3.2 > sass@1.100.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > braces@3.0.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:19:40.337Z
     - '@angular-devkit/build-angular@20.3.37 > fast-glob@3.3.3 > micromatch@4.0.8 > braces@3.0.3':
         reason: >-
             Used in build & dev - not included in final production build
@@ -101,6 +241,11 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-18T15:51:21.721Z
   SNYK-JS-POSTCSS-18313038:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.264Z
     - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > beasties@0.3.5 > postcss@8.5.15':
         reason: >-
             Used in build & dev - not included in final production build
@@ -152,6 +297,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T10:17:20.171Z
   SNYK-JS-POSTCSS-18313036:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.257Z
     - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > postcss@8.5.10':
         reason: >-
             Used in build & dev - not included in final production build
@@ -188,6 +338,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T10:16:26.723Z
   SNYK-JS-ESBUILD-17750822:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.230Z
     - ng-packagr@20.3.2 > esbuild@0.25.0:
         reason: Downstream dependency of angular - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
@@ -286,6 +441,11 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
   SNYK-JS-LODASH-15869625:
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.239Z
     - karma@6.4.4 > lodash@4.17.21:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
@@ -306,6 +466,16 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-03-27T16:19:25.988Z
   SNYK-JS-PICOMATCH-15765511:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > sass@1.90.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:20:34.777Z
+    - ng-packagr@20.3.2 > sass@1.100.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:20:34.774Z
     - '@angular-devkit/build-angular@20.3.37 > fast-glob@3.3.3 > micromatch@4.0.8 > picomatch@2.3.1':
         reason: >-
             Used in build & dev - not included in final production build
@@ -603,6 +773,36 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-TAR-17909068:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.653Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.645Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.638Z
+    - ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.633Z
+    - karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.630Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.313Z
     - '@angular/cli@20.3.27 > pacote@21.0.4 > tar@7.5.16':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
@@ -612,6 +812,36 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-TAR-17909152:
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.402Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.398Z
+    - '@angular-devkit/build-angular@20.3.37 > @angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.390Z
+    - ng-packagr@20.3.2 > @rollup/wasm-node@4.61.1 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.380Z
+    - karma@6.4.4 > chokidar@3.5.3 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.377Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.321Z
     - '@angular/cli@20.3.27 > pacote@21.0.4 > tar@7.5.16':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'

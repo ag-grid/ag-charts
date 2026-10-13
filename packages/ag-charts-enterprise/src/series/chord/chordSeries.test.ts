@@ -8,7 +8,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     GALLERY_EXAMPLES,
@@ -25,9 +25,10 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 
-import { describeFlowProportionShadow } from '../../test/flowProportionShadowTests';
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { describeFlowProportionShadow, flowProportionShadowOptions } from '../../test/flowProportionShadowTests';
+import { SMALL_SHADOW, prepareEnterpriseTestOptions } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
 describe('ChordSeries', () => {
@@ -143,6 +144,28 @@ describe('ChordSeries', () => {
             chart = created;
         },
         compare,
+    });
+
+    describe('shadow highlight', () => {
+        // The hovered node is redrawn on the highlight layer; only that copy casts the node's shadow.
+        it('should render a highlighted node with shadows enabled', async () => {
+            const options = flowProportionShadowOptions('chord', {
+                link: SMALL_SHADOW,
+                node: SMALL_SHADOW,
+            });
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const node = chart.series[0].contextNodeData.nodeData.find(
+                (n: any) => n.type === FlowProportionDatumType.Node
+            );
+
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+            highlightManager.updateHighlight(chart.id, node);
+            await compare();
+        });
     });
 
     describe('Series Highlighting', () => {
@@ -306,7 +329,7 @@ describe('ChordSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]

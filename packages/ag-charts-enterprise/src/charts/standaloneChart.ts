@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AxisID, CanvasPoint } from 'ag-charts-core';
-import { ChartAxisDirection, createId } from 'ag-charts-core';
+import { ChartAxisDirection, PanToBBoxScalingModeEnum, createId } from 'ag-charts-core';
 import type { AgCoordinates } from 'ag-charts-types';
 
 import { HierarchyDataSet } from './hierarchyDataSet';
@@ -20,7 +20,7 @@ export class StandaloneChart extends Chart {
 
         if (this.ctx.zoomManager) {
             this.ctx.zoomManager.panToBBoxScalingMode =
-                _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
+                PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
         }
     }
 

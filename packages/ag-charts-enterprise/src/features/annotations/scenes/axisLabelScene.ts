@@ -1,10 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { Group, Rect, Text, calculateLabelTranslation } from 'ag-charts-core';
 import type { Padding, PaddingOptions } from 'ag-charts-types';
 
 import type { AxisLabelDatum } from '../annotationDatum';
 import type { AnnotationAxisContext } from '../annotationTypes';
-
-const { calculateLabelTranslation } = _ModuleSupport;
 
 // Defaults preserve the spacing the container had before `padding` was configurable.
 function normaliseAxisLabelPadding(padding: Padding | undefined): Required<PaddingOptions> {
@@ -23,11 +21,11 @@ type UpdateOpts = {
     context: AnnotationAxisContext;
 };
 
-export class AxisLabelScene extends _ModuleSupport.Group {
+export class AxisLabelScene extends Group {
     static override readonly className = 'AxisLabel';
 
-    private readonly label = new _ModuleSupport.Text({ zIndex: 1 });
-    private readonly rect = new _ModuleSupport.Rect();
+    private readonly label = new Text({ zIndex: 1 });
+    private readonly rect = new Rect();
 
     constructor() {
         super({ name: 'AnnotationAxisLabelGroup' });

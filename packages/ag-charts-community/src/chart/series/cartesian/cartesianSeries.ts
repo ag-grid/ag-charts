@@ -1,16 +1,32 @@
 import type {
     ChartAnimationPhase,
+    Node,
+    NodeWithOpacity,
     NormalisedCartesianSeriesOptionsCommon,
     NormalisedSeriesOptions,
     Scaling,
 } from 'ag-charts-core';
 import {
+    BBox,
+    BandScale,
     ChartAxisDirection,
+    ContinuousScale,
     Debug,
     DebugMetrics,
+    Group,
+    LogScale,
+    Path,
     type Point,
+    QuadtreeNearest,
+    RotatableText,
     type Scale,
+    SegmentedGroup,
+    SegmentedPath,
+    Selection,
     StateMachine,
+    Text,
+    TranslatableGroup,
+    UnitTimeScale,
     extractDomain,
     findMaxIndex,
     findMinIndex,
@@ -25,19 +41,6 @@ import type { AgDrawingMode, AgNumericValue } from 'ag-charts-types';
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
-import { BandScale } from '../../../scale/bandScale';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import { LogScale } from '../../../scale/logScale';
-import { UnitTimeScale } from '../../../scale/unitTimeScale';
-import { BBox } from '../../../scene/bbox';
-import { Group, TranslatableGroup } from '../../../scene/group';
-import type { Node, NodeWithOpacity } from '../../../scene/node';
-import { SegmentedGroup } from '../../../scene/segmentedGroup';
-import { Selection } from '../../../scene/selection';
-import { Path } from '../../../scene/shape/path';
-import { SegmentedPath } from '../../../scene/shape/segmentedPath';
-import { RotatableText, Text } from '../../../scene/shape/text';
-import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { NumberAxis } from '../../axis/numberAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import type { ChartAxis } from '../../chartAxis';
@@ -140,7 +143,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     private readonly paths: SegmentedPath[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
-        new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
+        new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1, batchShadows: true })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup<LabelOf<TTypes>>({ name: `${this.id}-series-labels` })

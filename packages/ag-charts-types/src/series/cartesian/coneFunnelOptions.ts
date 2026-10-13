@@ -5,7 +5,11 @@ import type {
     AgConeFunnelSeriesLabelPlacementAlias,
 } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelCollisionFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelAutoFontSizeOptions,
+    AgChartLabelCollisionFitOptions,
+    AgChartLabelOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type {
@@ -17,7 +21,10 @@ import type {
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelCollisionFitOptions {
+    extends
+        AgChartLabelOptions<TDatum, TParams, TContext>,
+        AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions {
     /** Spacing between label and the associated divider. */
     spacing?: PixelSize;
     /**

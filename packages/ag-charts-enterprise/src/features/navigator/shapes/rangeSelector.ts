@@ -1,8 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { ZIndexMap } from 'ag-charts-core';
+import { BBox, Group, TranslatableGroup, ZIndexMap } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 
-export class RangeSelector extends _ModuleSupport.Group {
-    private readonly background: _ModuleSupport.TranslatableGroup;
+export class RangeSelector extends Group {
+    private readonly background: TranslatableGroup;
 
     private x = 0;
     private y = 0;
@@ -11,11 +11,9 @@ export class RangeSelector extends _ModuleSupport.Group {
     private lOffset = 0;
     private rOffset = 0;
 
-    constructor(children: _ModuleSupport.Node[]) {
+    constructor(children: Node[]) {
         super({ name: 'rangeSelectorGroup', zIndex: ZIndexMap.NAVIGATOR });
-        this.background = this.appendChild(
-            new _ModuleSupport.TranslatableGroup({ name: 'navigator-background', zIndex: 1 })
-        );
+        this.background = this.appendChild(new TranslatableGroup({ name: 'navigator-background', zIndex: 1 }));
         this.append(children);
     }
 
@@ -32,7 +30,7 @@ export class RangeSelector extends _ModuleSupport.Group {
         this.markDirty('RangeSelector');
     }
 
-    updateBackground(oldGroup?: _ModuleSupport.Group, newGroup?: _ModuleSupport.Group) {
+    updateBackground(oldGroup?: Group, newGroup?: Group) {
         if (oldGroup != null) {
             oldGroup.remove();
         }
@@ -45,6 +43,6 @@ export class RangeSelector extends _ModuleSupport.Group {
 
     protected override computeBBox() {
         const { x, y, width, height, lOffset, rOffset } = this;
-        return new _ModuleSupport.BBox(x - lOffset, y, width + (lOffset + rOffset), height);
+        return new BBox(x - lOffset, y, width + (lOffset + rOffset), height);
     }
 }

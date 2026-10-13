@@ -1,13 +1,14 @@
 import { type AgCandlestickSeriesItemOptions, type WithThemeParams } from 'ag-charts-community';
 import {
     CARTESIAN_AXIS_TYPE,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    NEAREST_TOOLTIP_THEME,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
@@ -50,17 +51,8 @@ export const CANDLESTICK_SERIES_THEME: ExtensibleSeriesTheme<'candlestick'> = {
             up: itemTheme('up'),
             down: itemTheme('down'),
         },
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
-        tooltip: {
-            range: { $path: ['/tooltip/range', 'nearest'] },
-            interaction: { enabled: false },
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
+        tooltip: NEAREST_TOOLTIP_THEME,
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },

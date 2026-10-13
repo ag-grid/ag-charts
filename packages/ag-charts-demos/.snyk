@@ -1,6 +1,219 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-ZOD-20510278:
+    - '@angular/cli@20.3.27 > zod@4.1.13':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.610Z
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0 > zod@4.3.5':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.604Z
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-20579853:
+    - '@angular/cli@20.3.27 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:09.807Z
+  SNYK-JS-PISCINA-20417213:
+    - '@angular/build@20.3.37 > piscina@5.2.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:00:43.117Z
+  SNYK-JS-PICOMATCH-15765511:
+    - '@angular/build@20.3.37 > sass@1.90.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > picomatch@2.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:20:34.791Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.383Z
+  SNYK-JS-BRACES-19963945:
+    - '@angular/build@20.3.37 > sass@1.90.0 > @parcel/watcher@2.4.1 > micromatch@4.0.8 > braces@3.0.3':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:19:40.348Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.375Z
+  SNYK-JS-BRACEEXPANSION-20244952:
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.9':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.671Z
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.409Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.399Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.374Z
+  SNYK-JS-BRACEEXPANSION-20244948:
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.9':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.047Z
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.408Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.397Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.373Z
+  SNYK-JS-VITESTMOCKER-19497933:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.417Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.406Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.394Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.371Z
+  SNYK-JS-VITEST-17120326:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.416Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.406Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.393Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.370Z
+  SNYK-JS-ROLLUP-15340920:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.413Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.404Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.388Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.366Z
+  SNYK-JS-LODASH-15869625:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.410Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.400Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.378Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.362Z
+  SNYK-JS-ESBUILD-17750822:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.409Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.400Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.376Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.359Z
+  SNYK-JS-AGCHARTSTEST-17950302:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package (0.0.0-use.local) - matched against advisories for old published versions
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.407Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package (0.0.0-use.local) - matched against advisories for old published versions
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.396Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package (0.0.0-use.local) - matched against advisories for old published versions
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.372Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package (0.0.0-use.local) - matched against advisories for old published versions
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.359Z
   SNYK-JS-AJV-15274295:
     - '@angular/build@20.3.37 > @angular-devkit/architect@0.2003.37 > @angular-devkit/core@20.3.37 > ajv-formats@3.0.1 > ajv@8.12.0':
         reason: >-
@@ -66,6 +279,21 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-MINIMATCH-15309438:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.410Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.401Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.380Z
     - '@angular/cli@20.3.27 > pacote@21.0.4 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1':
         reason: >-
             Used in build & dev - not included in final production build
@@ -78,6 +306,21 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-MINIMATCH-15353389:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.411Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.402Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.381Z
     - '@angular/cli@20.3.27 > pacote@21.0.4 > sigstore@4.1.1 > @sigstore/tuf@4.0.2 > tuf-js@4.1.0 > @tufjs/models@4.1.0 > minimatch@10.1.1':
         reason: >-
             Used in build & dev - not included in final production build
@@ -102,12 +345,52 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-POSTCSS-18313036:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.412Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.402Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.385Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.363Z
     - '@angular/build@20.3.37 > vite@7.3.6 > postcss@8.5.10':
         reason: >-
             Used in build & dev - not included in final production build
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-POSTCSS-18313038:
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.412Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.403Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.387Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.364Z
     - '@angular/build@20.3.37 > beasties@0.3.5 > postcss@8.5.15':
         reason: >-
             Used in build & dev - not included in final production build
@@ -142,6 +425,51 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-TAR-17909068:
+    - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.700Z
+    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.681Z
+    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.668Z
+    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.662Z
+    - vite@8.3.0 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.588Z
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.414Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.404Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.390Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.367Z
     - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build
@@ -153,6 +481,51 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: 2026-09-28T09:37:46.963Z
   SNYK-JS-TAR-17909152:
+    - '@playwright/test@1.60.0 > playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.419Z
+    - '@angular/build@20.3.37 > lmdb@3.4.2 > msgpackr@1.11.13 > msgpackr-extract@3.0.3 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.412Z
+    - '@angular/build@20.3.37 > rollup@4.59.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.406Z
+    - '@angular/build@20.3.37 > vite@7.3.6 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.404Z
+    - vite@8.3.0 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.334Z
+    - ag-charts-vue3@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.415Z
+    - ag-charts-react@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.405Z
+    - ag-charts-enterprise@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.392Z
+    - ag-charts-community@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.369Z
     - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
         reason: >-
             Used in build & dev - not included in final production build

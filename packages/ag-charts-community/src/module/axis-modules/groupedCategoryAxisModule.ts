@@ -2,14 +2,16 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedGroupedCategoryAxisOptions,
+    cartesianAxisThemeOptionsDefs,
+    commonAxisThemeTemplate,
+    groupedCategoryAxisOptionsDefs,
     mergeDefaults,
+    titleAxisThemeTemplate,
 } from 'ag-charts-core';
 import type { AgGroupedCategoryAxisOptions } from 'ag-charts-types';
 
-import { groupedCategoryAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { GroupedCategoryAxis } from '../../chart/axis/groupedCategoryAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
@@ -23,6 +25,8 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAx
         dependencies: [CartesianChartModule],
 
         options: groupedCategoryAxisOptionsDefs,
+
+        themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(groupedCategoryAxisOptionsDefs),
         themeTemplate: mergeDefaults(
             {
                 tick: { enabled: true, stroke: { $ref: 'groupedCategoryLineColor' } },

@@ -1,19 +1,25 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BBox,
     ChartUpdateType,
     type DynamicContext,
     type GradientColorStop,
+    Group,
     type NormalisedGradientLegendOptions,
+    Rect,
+    Selection,
+    TranslatableGroup,
     ZIndexMap,
     createId,
     expandLegendPosition,
 } from 'ag-charts-core';
+import type { Scene } from 'ag-charts-core';
 import type { CssColor } from 'ag-charts-types';
 
 import { AxisTicks } from './axisTicks';
 
-const { LayoutElement, Group, Rect, Marker, TranslatableGroup, Selection, BBox } = _ModuleSupport;
+const { LayoutElement, Marker } = _ModuleSupport;
 
 const ITEM_SPACING = 16;
 
@@ -69,7 +75,7 @@ export class GradientLegend extends AbstractModuleInstance {
         );
     }
 
-    attachLegend(scene: _ModuleSupport.Scene) {
+    attachLegend(scene: Scene) {
         scene.appendChild(this.legendGroup);
     }
 
@@ -93,7 +99,7 @@ export class GradientLegend extends AbstractModuleInstance {
 
         const vertical = this.isVertical();
         const { strokeWidth, padding } = this.getContainerStyles();
-        const itemBBoxes: _ModuleSupport.BBox[] = [];
+        const itemBBoxes: BBox[] = [];
 
         let offset = 0;
         for (let i = 0; i < this.enabledData.length; i++) {
@@ -130,7 +136,7 @@ export class GradientLegend extends AbstractModuleInstance {
 
     private updateGradientRect(
         gradientRect: InstanceType<typeof Rect>,
-        shrinkRect: _ModuleSupport.BBox,
+        shrinkRect: BBox,
         colorStops: GradientColorStop[]
     ) {
         const { thickness, preferredLength } = this.opts.gradient;
@@ -163,11 +169,7 @@ export class GradientLegend extends AbstractModuleInstance {
         return gradientRectBBox;
     }
 
-    private updateAxis(
-        axisTicks: AxisTicks,
-        data: _ModuleSupport.GradientLegendDatum,
-        gradientRectBBox: _ModuleSupport.BBox
-    ) {
+    private updateAxis(axisTicks: AxisTicks, data: _ModuleSupport.GradientLegendDatum, gradientRectBBox: BBox) {
         const opts = this.opts;
         const scale = opts.scale;
         const scalePadding = scale.padding;
@@ -195,7 +197,7 @@ export class GradientLegend extends AbstractModuleInstance {
         return axisTicks.calculateLayout();
     }
 
-    private updateContainer(bbox: _ModuleSupport.BBox) {
+    private updateContainer(bbox: BBox) {
         const containerStyles = this.getContainerStyles();
 
         this.containerNode.setStyleProperties(containerStyles);
@@ -251,7 +253,7 @@ export class GradientLegend extends AbstractModuleInstance {
         }
     }
 
-    private getMeasurements(shrinkRect: _ModuleSupport.BBox, legendBBox: _ModuleSupport.BBox) {
+    private getMeasurements(shrinkRect: BBox, legendBBox: BBox) {
         const unreachable = (_a: never): never => {
             return undefined as never;
         };

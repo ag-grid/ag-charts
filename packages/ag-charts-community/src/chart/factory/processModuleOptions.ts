@@ -347,7 +347,7 @@ export function removeUnregisteredModuleOptions<T extends Partial<AgChartOptions
  * `seriesArea.backgroundRegions`, while `CrossLinesModule` covers `axes[].crossLines` on a cartesian
  * chart but not on a polar one, where `PolarCrossLinesModule` is still missing.
  */
-function uncoveredContributions(
+export function uncoveredContributions(
     placeholders: Iterable<ModulePlaceholder>,
     moduleRegistry: ModuleScope,
     chartType: string | undefined

@@ -33,7 +33,9 @@ export class ChartToolbar extends AbstractModuleInstance {
             ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
             ctx.eventsHub.on('series-area:click', () => this.hidePopover()),
             ctx.chartState.observe((get) => {
-                this.toolbar.setHidden(!get('options', 'chartToolbar')?.enabled);
+                const chartToolbar = get('options', 'chartToolbar');
+                this.toolbar.setHidden(!chartToolbar?.enabled);
+                this.toolbar.setButtonSize(chartToolbar?.buttonSize);
             }),
             () => this.toolbar.destroy()
         );

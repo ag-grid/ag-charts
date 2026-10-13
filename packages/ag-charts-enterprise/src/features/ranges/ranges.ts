@@ -7,10 +7,12 @@ import {
 } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    type BBox,
     type BoxBounds,
     ChartAxisDirection,
     Color,
     type DynamicContext,
+    type NormalisedRangesOptions,
     clamp,
     intervalAgo,
     isTimeInterval,
@@ -43,6 +45,7 @@ const EMPTY_STATE_STYLES: Required<AgRangesStateStyles> = {
     fill: 'black',
     fillOpacity: 1,
     stroke: 'black',
+    strokeWidth: 1,
     textColor: 'black',
 };
 
@@ -75,19 +78,20 @@ export class Ranges extends AbstractModuleInstance {
     private isDropdown?: boolean;
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
     private dropdownMinWidth?: number;
+    private lastButtonSize?: number;
 
     // OPTIMIZATION: `getBounds()` has no inline height, so it forces a sync reflow every layout.
     // The height depends on the resolved options, the shown toolbar, text metrics, and the theme
     // CSS variables the button styles read — the first two form the key below, the rest are
     // covered by the resets registered in the constructor.
     private cachedToolbarHeight?: number;
-    private cachedToolbarHeightOpts?: _ModuleSupport.NormalisedRangesOptions;
+    private cachedToolbarHeightOpts?: NormalisedRangesOptions;
     private cachedToolbarHeightIsDropdown?: boolean;
     private cachedToolbarHeightLabel?: string;
 
     // Ranges is only created when the `ranges` subtree is configured, so assert
     // presence here and rely on rangesTheme for field-level defaults.
-    private get opts(): _ModuleSupport.NormalisedRangesOptions {
+    private get opts(): NormalisedRangesOptions {
         return this.ctx.chartState.getValue('options', 'ranges')!;
     }
 
@@ -157,6 +161,14 @@ export class Ranges extends AbstractModuleInstance {
         const { buttonsToolbar, dropdownToolbar } = this;
         if (!buttonsToolbar || !dropdownToolbar) return;
 
+        const { buttonSize } = opts;
+        if (buttonSize !== this.lastButtonSize) {
+            this.lastButtonSize = buttonSize;
+            this.dropdownMinWidth = undefined;
+        }
+        buttonsToolbar.setButtonSize(buttonSize);
+        dropdownToolbar.setButtonSize(buttonSize);
+
         buttonsToolbar.updateButtons(opts.buttons);
         dropdownToolbar.updateButtons([this.getDropdownButtonOptions(this.dropdownLabel)]);
 
@@ -186,10 +198,7 @@ export class Ranges extends AbstractModuleInstance {
         this.cachedToolbarHeight = undefined;
     }
 
-    private getToolbarHeight(
-        opts: _ModuleSupport.NormalisedRangesOptions,
-        toolbar: _ModuleSupport.BaseToolbar
-    ): number {
+    private getToolbarHeight(opts: NormalisedRangesOptions, toolbar: _ModuleSupport.BaseToolbar): number {
         if (
             this.cachedToolbarHeight !== undefined &&
             this.cachedToolbarHeightOpts === opts &&
@@ -260,8 +269,8 @@ export class Ranges extends AbstractModuleInstance {
 
     private updateToolbarBounds(
         toolbar: _ModuleSupport.BaseToolbar,
-        seriesRect: _ModuleSupport.BBox,
-        layoutBox: Readonly<_ModuleSupport.BBox>,
+        seriesRect: BBox,
+        layoutBox: Readonly<BBox>,
         cachedBounds?: BoxBounds
     ) {
         const position = this.opts.position;
@@ -386,6 +395,7 @@ export class Ranges extends AbstractModuleInstance {
             fillOpacity: stateStyles.fillOpacity,
             // Colour refs are resolved during theme-merge, so this is a concrete CSS colour by render.
             stroke: stateStyles.stroke as CssColor,
+            strokeWidth: stateStyles.strokeWidth,
             textColor: stateStyles.textColor,
         };
     }

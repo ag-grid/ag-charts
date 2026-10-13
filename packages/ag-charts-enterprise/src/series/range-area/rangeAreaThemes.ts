@@ -2,7 +2,6 @@ import { type AgChartThemeOverrides, type WithThemeParams } from 'ag-charts-comm
 import {
     CARTESIAN_AXIS_TYPE,
     COMMON_SERIES_THEME_DEFAULTS,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
@@ -12,10 +11,13 @@ import {
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    NEAREST_TOOLTIP_THEME,
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
+    fillThemeTemplate,
     interpolationThemeTemplate,
 } from 'ag-charts-core';
 
@@ -77,15 +79,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
                     ],
                 },
 
-                {
-                    $applySwitch: [
-                        { $path: 'type' },
-                        { $palette: 'fill' },
-                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                        ['image', FILL_IMAGE_DEFAULTS],
-                        ['pattern', FILL_PATTERN_DEFAULTS],
-                    ],
-                },
+                fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             ],
         },
         fillOpacity: {
@@ -103,6 +97,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
             xOffset: { $path: '/series/$index/marker/shadow/xOffset' },
             yOffset: { $path: '/series/$index/marker/shadow/yOffset' },
             blur: { $path: '/series/$index/marker/shadow/blur' },
+            spread: { $path: '/series/$index/marker/shadow/spread' },
         },
         shape: {
             $path: '/series/$index/marker/shape',
@@ -139,22 +134,8 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         ...STROKE_STYLE_THEME_DEFAULTS,
         marker: {
             enabled: false,
-            shadow: {
-                enabled: false,
-                color: DEFAULT_SHADOW_COLOUR,
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            },
-            fill: {
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $palette: 'fill' },
-                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            },
+            shadow: SHADOW_THEME_DEFAULTS,
+            fill: fillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS),
             shape: 'circle',
             stroke: { $palette: 'stroke' },
             size: 6,
@@ -172,14 +153,14 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
             placement: 'outside',
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             spacing: 10,
             padding: 10,
             collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
-            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
-            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside', 'textColor'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
         },
         connectMissingData: false,
         interpolation: interpolationThemeTemplate(),
@@ -190,10 +171,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             yOffset: 0,
             blur: 5,
         },
-        tooltip: {
-            range: { $path: ['/tooltip/range', 'nearest'] },
-            interaction: { enabled: false },
-        },
+        tooltip: NEAREST_TOOLTIP_THEME,
         highlight: { ...MARKER_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,

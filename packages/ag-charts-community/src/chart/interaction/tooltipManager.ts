@@ -1,10 +1,8 @@
-import { type BoxBounds, CleanupRegistry, objectsEqual } from 'ag-charts-core';
+import { type BoxBounds, CleanupRegistry, StateTracker, debouncedCallback, objectsEqual } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { debouncedCallback } from '../../util/render';
-import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 import { getDatumRefPoint } from '../series/util';
 import type {
@@ -114,6 +112,17 @@ export class TooltipManager {
         // Remove immediately
         this.stateTracker.delete(callerId);
         this.applyStates();
+    }
+
+    /** Whether the caller's tooltip is shown, or will be once its show delay elapses. */
+    public isTooltipActive(callerId: string): boolean {
+        const state = this.stateTracker.get(callerId);
+        return (
+            state?.meta != null &&
+            state.content != null &&
+            !this.pendingRemovals.has(callerId) &&
+            !this.suppressState.stateValue()
+        );
     }
 
     public suppressTooltip(callerId: string) {

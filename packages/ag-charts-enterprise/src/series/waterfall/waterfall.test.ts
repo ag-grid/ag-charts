@@ -35,7 +35,13 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    DEFAULT_DISABLED_SHADOW,
+    SMALL_SHADOW,
+    createEnterpriseChart,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
 import type { WaterfallNodeDatum, WaterfallSeries } from './waterfallSeries';
 
 describe('WaterfallSeries', () => {
@@ -338,7 +344,6 @@ describe('WaterfallSeries', () => {
     });
 
     it(`should render a waterfall chart with item shadows`, async () => {
-        const shadow = { enabled: true, color: 'rgba(0, 0, 0, 0.6)', xOffset: 4, yOffset: 4, blur: 6 };
         const baseSeries = WATERFALL_COLUMN_OPTIONS.series![0] as AgWaterfallSeriesOptions;
         const options = {
             ...WATERFALL_COLUMN_OPTIONS,
@@ -346,9 +351,9 @@ describe('WaterfallSeries', () => {
                 {
                     ...baseSeries,
                     item: {
-                        positive: { ...baseSeries.item?.positive, shadow },
-                        negative: { ...baseSeries.item?.negative, shadow },
-                        total: { ...baseSeries.item?.total, shadow },
+                        positive: { ...baseSeries.item?.positive, shadow: SMALL_SHADOW },
+                        negative: { ...baseSeries.item?.negative, shadow: SMALL_SHADOW },
+                        total: { ...baseSeries.item?.total, shadow: SMALL_SHADOW },
                     },
                 },
             ],
@@ -384,13 +389,7 @@ describe('WaterfallSeries', () => {
         const nodes = series.datumSelection.nodes();
         expect(nodes.length).toBeGreaterThan(0);
         for (const node of nodes) {
-            expect(node.fillShadow).toEqual({
-                enabled: true,
-                color: expect.any(String),
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            });
+            expect(node.fillShadow).toEqual({ ...DEFAULT_DISABLED_SHADOW, enabled: true, color: expect.any(String) });
         }
     });
 

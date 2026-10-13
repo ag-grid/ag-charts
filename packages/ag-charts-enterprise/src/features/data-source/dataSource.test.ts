@@ -17,6 +17,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
+    waitForChartStabilityUntil,
 } from 'ag-charts-community-test';
 import { isDate } from 'ag-charts-core';
 
@@ -152,17 +153,6 @@ describe('DataSource', () => {
         await compareImageSnapshot(chart, ctx, {});
     };
 
-    // `scrollAction` waits only a fixed delay, but the zoom it triggers re-requests data on a later
-    // frame, so poll for the observable effect instead of asserting straight away.
-    const settleUntil = async (predicate: () => boolean, description: string) => {
-        for (let attempt = 0; attempt < 200; attempt++) {
-            await waitForChartStability(chart);
-            if (predicate()) return;
-            await delay(5);
-        }
-        throw new Error(`Timed out waiting for ${description}`);
-    };
-
     it('should load data asynchronously', async () => {
         const response = delay(1).then(() => [
             { time: new Date('2024-01-01 00:00:00'), price: 0 },
@@ -282,7 +272,11 @@ describe('DataSource', () => {
             // fetch before snapshotting.
             const callsBeforeZoom = callCount;
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(() => callCount > callsBeforeZoom, 'the zoom-triggered data request');
+            await waitForChartStabilityUntil(
+                chart,
+                () => callCount > callsBeforeZoom,
+                'the zoom-triggered data request'
+            );
             await delay(1);
             await waitForChartStability(chart);
             await compare();
@@ -340,7 +334,11 @@ describe('DataSource', () => {
 
             const previousWindowStart = windowStart;
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(() => windowStart !== previousWindowStart, 'the zoomed data window');
+            await waitForChartStabilityUntil(
+                chart,
+                () => windowStart !== previousWindowStart,
+                'the zoomed data window'
+            );
 
             expect(windowStart).toEqual('four');
             expect(windowEnd).toEqual('seven');
@@ -378,7 +376,11 @@ describe('DataSource', () => {
 
             const previousWindowStart = windowStart;
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(() => windowStart !== previousWindowStart, 'the zoomed data window');
+            await waitForChartStabilityUntil(
+                chart,
+                () => windowStart !== previousWindowStart,
+                'the zoomed data window'
+            );
 
             expect(windowStart).toEqual(['bravo', 'four']);
             expect(windowEnd).toEqual(['delta', 'seven']);
@@ -418,7 +420,11 @@ describe('DataSource', () => {
 
             const previousWindowStart = windowStart;
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(() => windowStart !== previousWindowStart, 'the zoomed data window');
+            await waitForChartStabilityUntil(
+                chart,
+                () => windowStart !== previousWindowStart,
+                'the zoomed data window'
+            );
 
             expect(windowStart).toEqual(new Date('2024-01-22 00:00:00'));
             expect(windowEnd).toEqual(new Date('2024-02-12 00:00:00'));
@@ -458,7 +464,11 @@ describe('DataSource', () => {
 
             const previousWindowStart = windowStart;
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(() => windowStart !== previousWindowStart, 'the zoomed data window');
+            await waitForChartStabilityUntil(
+                chart,
+                () => windowStart !== previousWindowStart,
+                'the zoomed data window'
+            );
 
             expect(windowStart).toEqual(new Date('2024-01-22 00:00:00'));
             expect(windowEnd).toEqual(new Date('2024-02-12 00:00:00'));
@@ -502,7 +512,11 @@ describe('DataSource', () => {
             sources.length = 0;
 
             await chart.updateDelta({});
-            await settleUntil(() => sources.includes('chart-update'), 'the programmatic-refresh data request');
+            await waitForChartStabilityUntil(
+                chart,
+                () => sources.includes('chart-update'),
+                'the programmatic-refresh data request'
+            );
             await waitForChartStability(chart);
 
             expect(sources).toContain('chart-update');
@@ -514,7 +528,11 @@ describe('DataSource', () => {
             sources.length = 0;
 
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(() => sources.includes('user-interaction'), 'a user-interaction data request');
+            await waitForChartStabilityUntil(
+                chart,
+                () => sources.includes('user-interaction'),
+                'a user-interaction data request'
+            );
             await waitForChartStability(chart);
 
             expect(sources).toContain('user-interaction');
@@ -527,18 +545,30 @@ describe('DataSource', () => {
             // restore is a genuine change that re-triggers a fetch.
             sources.length = 0;
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(() => sources.includes('user-interaction'), 'the first user zoom request');
+            await waitForChartStabilityUntil(
+                chart,
+                () => sources.includes('user-interaction'),
+                'the first user zoom request'
+            );
             await waitForChartStability(chart);
             const zoomedState = chart.getState();
 
             sources.length = 0;
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(() => sources.includes('user-interaction'), 'the second user zoom request');
+            await waitForChartStabilityUntil(
+                chart,
+                () => sources.includes('user-interaction'),
+                'the second user zoom request'
+            );
             await waitForChartStability(chart);
             sources.length = 0;
 
             await chart.setState(zoomedState);
-            await settleUntil(() => sources.includes('state-change'), 'the state-change data request');
+            await waitForChartStabilityUntil(
+                chart,
+                () => sources.includes('state-change'),
+                'the state-change data request'
+            );
             await waitForChartStability(chart);
 
             expect(sources).toContain('state-change');
@@ -606,7 +636,11 @@ describe('DataSource', () => {
                 // A user zoom that triggers the invalid response.
                 const callsBeforeError = callCount;
                 await scrollAction(cx, cy, -1)(chart);
-                await settleUntil(() => callCount > callsBeforeError, 'the invalid-response request from the zoom');
+                await waitForChartStabilityUntil(
+                    chart,
+                    () => callCount > callsBeforeError,
+                    'the invalid-response request from the zoom'
+                );
                 await delay(1);
                 await waitForChartStability(chart);
 
@@ -630,7 +664,11 @@ describe('DataSource', () => {
                 // failed request did not wedge zoom/pan (the re-zoom re-issues the request).
                 const callsBeforeRecovery = callCount;
                 await scrollAction(cx, cy, -1)(chart);
-                await settleUntil(() => callCount > callsBeforeRecovery, 'the recovery request from the second zoom');
+                await waitForChartStabilityUntil(
+                    chart,
+                    () => callCount > callsBeforeRecovery,
+                    'the recovery request from the second zoom'
+                );
                 await delay(1);
                 await waitForChartStability(chart);
 
@@ -694,7 +732,7 @@ describe('DataSource', () => {
 
             const callsBeforeZoom = callCount;
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(() => callCount > callsBeforeZoom, 'the first zoom request');
+            await waitForChartStabilityUntil(chart, () => callCount > callsBeforeZoom, 'the first zoom request');
             await delay(1);
             await waitForChartStability(chart);
             const zoomBefore = chart.getState().zoom!.ratioX!;
@@ -703,7 +741,8 @@ describe('DataSource', () => {
             scenario = 'malformed';
             const callsBeforeMalformed = callCount;
             await scrollAction(cx, cy, -1)(chart);
-            await settleUntil(
+            await waitForChartStabilityUntil(
+                chart,
                 () => callCount > callsBeforeMalformed,
                 'the malformed-response request from the second zoom'
             );
@@ -737,7 +776,7 @@ describe('DataSource', () => {
             };
             prepareEnterpriseTestOptions(pieOptions);
             chart = AgCharts.create(pieOptions);
-            await settleUntil(() => chart.chart.data.data.length === 2, 'the initial load');
+            await waitForChartStabilityUntil(chart, () => chart.chart.data.data.length === 2, 'the initial load');
 
             await chart.applyTransaction({ add: [{ category: 'C', value: 30 }] });
             await waitForChartStability(chart);

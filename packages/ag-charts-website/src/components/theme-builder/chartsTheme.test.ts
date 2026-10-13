@@ -14,7 +14,10 @@ import {
 
 // The registry's type makes every entry optional and admits sentinel keys
 // ('undefined', 'null') that the literal itself never populates.
-const STOCK_THEMES = Object.entries(_Theme.themes) as [AgChartThemeName, () => _Theme.ChartTheme][];
+const STOCK_THEMES = Object.entries(_Theme.themes) as [
+    AgChartThemeName,
+    () => InstanceType<typeof _Theme.ChartTheme>,
+][];
 
 /**
  * The shadow theme only works while the two representations agree. These tests

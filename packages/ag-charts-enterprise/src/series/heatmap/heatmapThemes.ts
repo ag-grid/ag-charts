@@ -1,9 +1,11 @@
 import {
-    DEFAULT_SHADOW_COLOUR,
+    AUTO_SIZED_LABEL_TRUNCATE,
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
+    SHADOW_THEME_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -26,27 +28,21 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         strokeOpacity: 1,
         cornerRadius: 0,
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             color: { $ref: 'textColor' },
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             wrapping: 'on-space',
-            overflowStrategy: 'ellipsis',
+            truncate: AUTO_SIZED_LABEL_TRUNCATE,
             textAlign: { $path: ['../textAlign', 'center'] },
             verticalAlign: { $path: ['../verticalAlign', 'middle'] },
         },
         itemPadding: 3,
-        tooltip: { interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         colorScale: {
             fills: {
                 $map: [

@@ -1,5 +1,6 @@
-import type { _ModuleSupport, _Widget } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 import { AbstractModuleInstance, ChartAxisDirection, type DynamicContext } from 'ag-charts-core';
+import type { WheelWidgetEvent } from 'ag-charts-core';
 
 import { ZoomWheelSequencer, type ZoomWheelSequencerCbResult } from './zoomWheelSequencer';
 
@@ -48,7 +49,7 @@ export class ZoomInteraction extends AbstractModuleInstance {
         this.processEvent('axis-dblclick', event);
     }
 
-    private onSeriesAreaWheel(event: _Widget.WheelWidgetEvent) {
+    private onSeriesAreaWheel(event: WheelWidgetEvent) {
         this.wheelSequencer.onWheel(event, () => this.handleWheelSequencer('wheel', { event }));
     }
 
@@ -67,7 +68,7 @@ export class ZoomInteraction extends AbstractModuleInstance {
 
     private handleWheelSequencer(
         subEvent: 'wheel' | 'axis-wheel' | 'scrollbar-wheel',
-        payload: { event: _Widget.WheelWidgetEvent; direction?: ChartAxisDirection }
+        payload: { event: WheelWidgetEvent; direction?: ChartAxisDirection }
     ) {
         let stopped = false;
         let wheelStatus: ZoomWheelSequencerCbResult = 'abort';

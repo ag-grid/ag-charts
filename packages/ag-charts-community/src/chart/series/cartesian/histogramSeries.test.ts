@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { mapValues } from 'ag-charts-core';
+import { Transformable, mapValues } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgChartOptions,
@@ -9,7 +9,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { Transformable } from '../../../scene/transformable';
 import {
     BIG,
     STRIPPED_NUMBER_AXES,

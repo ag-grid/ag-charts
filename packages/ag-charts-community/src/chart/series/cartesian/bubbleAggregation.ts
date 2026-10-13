@@ -2,11 +2,13 @@ import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
 import {
     aggregationDomain,
     aggregationXRatioForXValue,
+    areaSizeAtRatio,
     clamp,
     epochColumnForTimeScale,
     narrowAggregationX,
     narrowBigIntColumn,
 } from 'ag-charts-core';
+import type { AgMarkerSizeMode } from 'ag-charts-types';
 
 const SIZE_QUANTIZATION = 3;
 const FILTER_DATUM_THRESHOLD = 5;
@@ -388,6 +390,8 @@ export interface BubbleAggregationOptions {
     yVisibleRange: [number, number];
     minSize: number;
     maxSize: number;
+    /** When `'area'`, marker area (not diameter) is linear in the size ratio. */
+    sizeMode?: AgMarkerSizeMode;
 }
 
 export interface GroupedAggregation {
@@ -413,6 +417,7 @@ function computeBubbleAggregationCountIndices(
         yVisibleRange: [yvr0, yvr1],
         minSize,
         maxSize,
+        sizeMode,
     } = options;
     const { xValues, yValues, xd0, xd1, yd0, yd1, xNeedsValueOf, yNeedsValueOf } = dataAggregation;
     const baseScalingFactor = 1 / Math.min(xRange / (xvr1 - xvr0), yRange / (yvr1 - yvr0));
@@ -427,7 +432,11 @@ function computeBubbleAggregationCountIndices(
     };
 
     for (const { sizeRatio, node } of dataAggregation.filters) {
-        const radius = 0.5 * (minSize + sizeRatio * (maxSize - minSize));
+        const diameter =
+            sizeMode === 'area'
+                ? areaSizeAtRatio(sizeRatio, minSize, maxSize)
+                : minSize + sizeRatio * (maxSize - minSize);
+        const radius = 0.5 * diameter;
         const baseMinScale = radius * baseScalingFactor;
         const minScale = dilation * baseMinScale;
         const x0 = xvr0 - radius / xRange;

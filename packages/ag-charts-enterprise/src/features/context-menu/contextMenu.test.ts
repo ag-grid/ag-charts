@@ -15,7 +15,7 @@ import {
     setupMockPointerEvent,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { ChartAxisDirection } from 'ag-charts-core';
+import { ChartAxisDirection, Transformable } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
 import { pointOnPolarCrossLine, polarCanvasPoint, polarCrossLineAt } from '../../test/polarCrossLines';
@@ -106,7 +106,7 @@ describe('Context Menu', () => {
         const series = deproxy(chart).series[0] as any;
         const node = series.getNodeData()[datumIndex];
         expect(node).toBeDefined();
-        return _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
+        return Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
     }
 
     function seriesAreaCentre() {
@@ -133,7 +133,33 @@ describe('Context Menu', () => {
         const [crossLine] = _ModuleSupport.getCrossLinesPlugin(axis)?.getInstances() ?? [];
         expect(crossLine).toBeInstanceOf(_ModuleSupport.CartesianCrossLine);
         const { labelGroup } = crossLine as _ModuleSupport.CartesianCrossLine;
-        const { x, y, width, height } = _ModuleSupport.Transformable.toCanvas(labelGroup);
+        const { x, y, width, height } = Transformable.toCanvas(labelGroup);
+        return { x: x + width / 2, y: y + height / 2 };
+    }
+
+    const TITLE_OPTIONS: AgChartOptions = {
+        ...EXAMPLE_OPTIONS,
+        title: { enabled: true, text: 'Captioned Chart' },
+    };
+
+    function histogramBinCentre(datumIndex: number) {
+        const series = deproxy(chart).series[0] as any;
+        const node = series.getNodeData()[datumIndex];
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(
+            series.contentGroup,
+            node.x + node.width / 2,
+            node.y + node.height / 2
+        );
+        return { x: canvasX, y: canvasY };
+    }
+
+    function legendItemPoint() {
+        const legendBBox = computeLegendBBox(deproxy(chart));
+        return { x: legendBBox.x + 2, y: legendBBox.y + 2 };
+    }
+
+    function titleCentre() {
+        const { x, y, width, height } = Transformable.toCanvas(deproxy(chart).title.node);
         return { x: x + width / 2, y: y + height / 2 };
     }
 
@@ -252,11 +278,7 @@ describe('Context Menu', () => {
         const nodeCanvasPoint = (datumIndex: number) => {
             const series = deproxy(chart).series[0] as any;
             const node = series.getNodeData()[datumIndex];
-            return _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.x + node.width / 2,
-                node.y + node.height / 2
-            );
+            return Transformable.toCanvasPoint(series.contentGroup, node.x + node.width / 2, node.y + node.height / 2);
         };
 
         it('passes the bin source rows to getItems as datums', async () => {
@@ -672,32 +694,6 @@ describe('Context Menu', () => {
             expect(action.mock.calls[0][0].event).toBe(params.event);
         }
 
-        function histogramBinCentre(datumIndex: number) {
-            const series = deproxy(chart).series[0] as any;
-            const node = series.getNodeData()[datumIndex];
-            const { canvasX, canvasY } = _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.x + node.width / 2,
-                node.y + node.height / 2
-            );
-            return { x: canvasX, y: canvasY };
-        }
-
-        function legendItemPoint() {
-            const legendBBox = computeLegendBBox(deproxy(chart));
-            return { x: legendBBox.x + 2, y: legendBBox.y + 2 };
-        }
-
-        const TITLE_OPTIONS: AgChartOptions = {
-            ...EXAMPLE_OPTIONS,
-            title: { enabled: true, text: 'Captioned Chart' },
-        };
-
-        function titleCentre() {
-            const { x, y, width, height } = _ModuleSupport.Transformable.toCanvas(deproxy(chart).title.node);
-            return { x: x + width / 2, y: y + height / 2 };
-        }
-
         test('always', async () => {
             // Reuses the cross-line fixture's "clear of the label, outside the series area" point, which is
             // the one place in this suite where `always` is the primary region.
@@ -792,7 +788,7 @@ describe('Context Menu', () => {
             // A caption maps a pointer event back into canvas space as `offset + bboxOrigin`, so the offsets
             // synthesised for it must be relative to the caption rather than to the canvas. The click was
             // aimed at the caption's centre.
-            const bbox = _ModuleSupport.Transformable.toCanvas(deproxy(chart).title.node);
+            const bbox = Transformable.toCanvas(deproxy(chart).title.node);
             expect((params.event as MouseEvent).offsetX).toBeCloseTo(bbox.width / 2, 5);
             expect((params.event as MouseEvent).offsetY).toBeCloseTo(bbox.height / 2, 5);
             expect(params.allShowOnParams).toHaveLength(1);
@@ -957,6 +953,123 @@ describe('Context Menu', () => {
 
             expect(getItems).toHaveBeenCalledWith(expect.objectContaining({ showOn: 'series-area' }));
             expect(getItems).not.toHaveBeenCalledWith(expect.objectContaining({ showOn: 'cross-line' }));
+        });
+    });
+
+    describe('allowBrowserMenuWithModifierKey', () => {
+        function menuItemCount() {
+            return document.body.getElementsByClassName(`${DEFAULT_CONTEXT_MENU_CLASS}__item`).length;
+        }
+
+        type Point = () => { x: number; y: number };
+
+        const AREAS: Array<[string, AgChartOptions, Point]> = [
+            ['series area', coordinatesOptions(), () => seriesAreaCentre()],
+            ['series node', HISTOGRAM_OPTIONS, () => histogramBinCentre(0)],
+            ['legend item', EXAMPLE_OPTIONS, legendItemPoint],
+            [
+                'axis',
+                coordinatesOptions(),
+                () => ({ x: seriesAreaCentre().x, y: axisBandCentre(ChartAxisDirection.X).y }),
+            ],
+            ['cross line', CROSS_LINE_OPTIONS, () => crossLineLabelCentre(ChartAxisDirection.X)],
+            ['caption', TITLE_OPTIONS, titleCentre],
+        ];
+
+        async function prepare(contextMenu: AgChartOptions['contextMenu'], baseOptions: AgChartOptions) {
+            const action = vi.fn();
+            const getItems = vi.fn((params: any) => [
+                ...params.defaultItems,
+                { type: 'action', label: 'Probe Item', action },
+            ]);
+            await prepareChart({ enabled: true, getItems, ...contextMenu }, baseOptions);
+            return { getItems, action };
+        }
+
+        // `cancelable` is required, otherwise `defaultPrevented` stays false whatever the chart does.
+        async function rightClick(
+            point: Point,
+            modifiers: { ctrlKey?: boolean; metaKey?: boolean; shiftKey?: boolean }
+        ) {
+            const events: MouseEvent[] = [];
+            const listener = (event: MouseEvent) => events.push(event);
+            globalThis.addEventListener('contextmenu', listener, { capture: true });
+            try {
+                const { x, y } = point();
+                await contextMenuAction(x, y, { cancelable: true, ...modifiers })(chart);
+                await waitForChartStability(chart);
+            } finally {
+                globalThis.removeEventListener('contextmenu', listener, { capture: true });
+            }
+            expect(events).toHaveLength(1);
+            return events[0];
+        }
+
+        describe.each(AREAS)('on the %s', (_name, baseOptions, point) => {
+            it.each(['ctrlKey', 'metaKey'] as const)('lets the browser menu through with %s', async (modifier) => {
+                const { getItems, action } = await prepare({ allowBrowserMenuWithModifierKey: true }, baseOptions);
+
+                const event = await rightClick(point, { [modifier]: true });
+
+                expect(event.defaultPrevented).toBe(false);
+                expect(getItems).not.toHaveBeenCalled();
+                expect(action).not.toHaveBeenCalled();
+                expect(menuItemCount()).toBe(0);
+            });
+
+            it('still opens the chart menu without a modifier key', async () => {
+                const { getItems } = await prepare({ allowBrowserMenuWithModifierKey: true }, baseOptions);
+
+                const event = await rightClick(point, {});
+
+                expect(event.defaultPrevented).toBe(true);
+                expect(getItems).toHaveBeenCalledTimes(1);
+                expect(menuItemCount()).toBeGreaterThan(0);
+            });
+        });
+
+        it('still opens the chart menu with only Shift held', async () => {
+            const { getItems } = await prepare({ allowBrowserMenuWithModifierKey: true }, coordinatesOptions());
+
+            const event = await rightClick(seriesAreaCentre, { shiftKey: true });
+
+            expect(event.defaultPrevented).toBe(true);
+            expect(getItems).toHaveBeenCalledTimes(1);
+            expect(menuItemCount()).toBeGreaterThan(0);
+        });
+
+        it.each([
+            ['false', { allowBrowserMenuWithModifierKey: false }],
+            ['unset', {}],
+        ])('opens the chart menu on Ctrl/Cmd + right-click when the option is %s', async (_name, contextMenu) => {
+            const { getItems } = await prepare(contextMenu, coordinatesOptions());
+
+            const ctrlEvent = await rightClick(seriesAreaCentre, { ctrlKey: true });
+            const metaEvent = await rightClick(seriesAreaCentre, { metaKey: true });
+
+            expect(ctrlEvent.defaultPrevented).toBe(true);
+            expect(metaEvent.defaultPrevented).toBe(true);
+            expect(getItems).toHaveBeenCalledTimes(2);
+            expect(menuItemCount()).toBeGreaterThan(0);
+        });
+
+        it('closes an already-open chart menu when letting the browser menu through', async () => {
+            const { getItems } = await prepare({ allowBrowserMenuWithModifierKey: true }, coordinatesOptions());
+
+            await rightClick(seriesAreaCentre, {});
+            expect(menuItemCount()).toBeGreaterThan(0);
+
+            const event = await rightClick(seriesAreaCentre, { ctrlKey: true });
+
+            expect(event.defaultPrevented).toBe(false);
+            expect(getItems).toHaveBeenCalledTimes(1);
+            expect(menuItemCount()).toBe(0);
+        });
+
+        it('accepts the option without a validation warning', async () => {
+            await prepare({ allowBrowserMenuWithModifierKey: true }, EXAMPLE_OPTIONS);
+
+            expectWarningsCalls().toHaveLength(0);
         });
     });
 });

@@ -1,8 +1,11 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Normalised, PickNodeDatumResult, RequireOptional } from 'ag-charts-core';
+import type { Node, Normalised, PickNodeDatumResult, RequireOptional } from 'ag-charts-core';
 import {
+    BBox,
+    Group,
     type NearestResult,
+    Path,
     mergeDefaults,
     nearestSquared,
     nearestSquaredInContainer,
@@ -16,8 +19,6 @@ import type {
     HighlightState,
     SelectionState,
 } from 'ag-charts-types';
-
-const { BBox } = _ModuleSupport;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum &
     _ModuleSupport.ErrorBoundSeriesNodeDatum & { yKey: string };
@@ -62,10 +63,10 @@ class HierarchicalBBox {
     // ErrorBarNode can include up to 6 bboxes in total (2 whiskers, 4 caps). This is expensive hit
     // testing, therefore we'll use a hierarchical bbox structure: `union` is the bbox that includes
     // all the components.
-    public union: _ModuleSupport.BBox;
-    public components: _ModuleSupport.BBox[];
+    public union: BBox;
+    public components: BBox[];
 
-    constructor(components: _ModuleSupport.BBox[]) {
+    constructor(components: BBox[]) {
         this.components = components;
         this.union = BBox.merge(components);
     }
@@ -85,9 +86,9 @@ class HierarchicalBBox {
     }
 }
 
-export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
-    private readonly whiskerPath: _ModuleSupport.Path;
-    private readonly capsPath: _ModuleSupport.Path;
+export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
+    private readonly whiskerPath: Path;
+    private readonly capsPath: Path;
     private capLength: number = Number.NaN;
 
     // The ErrorBarNode does not need to handle the 'nearest' interaction range type, we can let the
@@ -105,8 +106,8 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
 
     constructor() {
         super();
-        this.whiskerPath = new _ModuleSupport.Path();
-        this.capsPath = new _ModuleSupport.Path();
+        this.whiskerPath = new Path();
+        this.capsPath = new Path();
         this.bboxes = new HierarchicalBBox([]);
         this.append([this.whiskerPath, this.capsPath]);
     }
@@ -173,7 +174,7 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
         return { whiskerStyle, capsStyle } as NormalisedErrorBarStyles;
     }
 
-    private applyStyling(target: _ModuleSupport.Path, source?: NormalisedErrorBarStylingOptions) {
+    private applyStyling(target: Path, source?: NormalisedErrorBarStylingOptions) {
         // Style can be any object, including user data (e.g. formatter
         // result). So filter out anything that isn't styling options:
         partialAssign(
@@ -271,11 +272,11 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
         return this.bboxes.containsPoint(x, y);
     }
 
-    override pickNode(x: number, y: number): _ModuleSupport.Node | undefined {
+    override pickNode(x: number, y: number): Node | undefined {
         return this.containsPoint(x, y) ? this : undefined;
     }
 
-    nearestSquared(x: number, y: number, maxDistance: number): NearestResult<_ModuleSupport.Node> {
+    nearestSquared(x: number, y: number, maxDistance: number): NearestResult<Node> {
         const { bboxes } = this;
         if (bboxes.union.distanceSquared(x, y) > maxDistance) {
             return { nearest: undefined, distanceSquared: Infinity };
@@ -286,7 +287,7 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
     }
 }
 
-export class ErrorBarGroup extends _ModuleSupport.Group {
+export class ErrorBarGroup extends Group {
     nearestSquared(x: number, y: number): PickNodeDatumResult {
         const { nearest, distanceSquared } = nearestSquaredInContainer(x, y, {
             children: this.children() as Iterable<ErrorBarNode>,

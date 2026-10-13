@@ -1,5 +1,5 @@
 import type { AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
-import type { FillStrokeMorph, Normalised } from 'ag-charts-core';
+import type { BBox, FillStrokeMorph, Normalised } from 'ag-charts-core';
 import { type Bounds4, type BoxBounds, type Point, Vec2, Vec4, entries } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
@@ -114,7 +114,7 @@ export abstract class StartEndScene<Datum extends StartEndDatum> extends LinearS
         if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y)) return 'handle';
     }
 
-    protected updateHandles(datum: Datum, coords: Bounds4, bbox?: _ModuleSupport.BBox) {
+    protected updateHandles(datum: Datum, coords: Bounds4, bbox?: BBox) {
         // Colour refs in the handle styles are resolved at runtime before reaching the scene node.
         this.start.update({
             ...(this.getHandleStyles(datum, 'start') as NormalisedAnnotationHandleStyles),
@@ -137,12 +137,7 @@ export abstract class StartEndScene<Datum extends StartEndDatum> extends LinearS
         };
     }
 
-    protected getHandleCoords(
-        _datum: Datum,
-        coords: Bounds4,
-        handle: StartEndHandle,
-        _bbox?: _ModuleSupport.BBox
-    ): Point {
+    protected getHandleCoords(_datum: Datum, coords: Bounds4, handle: StartEndHandle, _bbox?: BBox): Point {
         return handle === 'start' ? Vec4.start(coords) : Vec4.end(coords);
     }
 

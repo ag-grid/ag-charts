@@ -89,7 +89,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                 },
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000, meta: undefined })
@@ -106,7 +106,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                 },
                 { padding: 5 },
                 () => ({ width: 40, height: 40, meta: undefined })
@@ -123,7 +123,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 30,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                 },
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000, meta: undefined })
@@ -140,7 +140,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 10.5,
                     wrapping: 'never',
-                    overflowStrategy: 'ellipsis',
+                    truncate: true,
                 },
                 { padding: 5 },
                 () => ({ width: 20, height: 40, meta: undefined })
@@ -149,6 +149,44 @@ describe('label formatter', () => {
             // a whole-size-only search would settle at 10 instead, below the size asked for.
             expect(format.fontSize).toBe(10.5);
             expect(format.text).toContain('…');
+        });
+
+        it('shrinks manually broken lines that do not wrap until they all fit', () => {
+            const [format] = formatSingleLabel(
+                'Fresh\nfruit',
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 16,
+                    minimumFontSize: 6,
+                    wrapping: 'never',
+                    truncate: true,
+                },
+                { padding: 0 },
+                () => ({ width: 1000, height: 20, meta: undefined })
+            )!;
+            expect(format.text).toBe('Fresh\nfruit');
+            expect(format.height).toBeLessThanOrEqual(20);
+        });
+    });
+
+    describe('formatSingleLabel with an explicit lineHeight', () => {
+        it('sizes the label by the lineHeight it is drawn with', () => {
+            const [format] = formatSingleLabel(
+                'Hello world',
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 12,
+                    lineHeight: 30,
+                    wrapping: 'on-space',
+                    overflowStrategy: 'ellipsis',
+                },
+                { padding: 0 },
+                () => ({ width: 50, height: 1000, meta: undefined })
+            )!;
+            expect(String(format.text).split('\n')).toHaveLength(2);
+            expect(format.height).toBe(60);
         });
     });
 
@@ -162,7 +200,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                     spacing: 10,
                 },
                 'World',
@@ -172,7 +210,7 @@ describe('label formatter', () => {
                     fontSize: 10,
                     minimumFontSize: 5,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                 },
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000, meta: undefined })
@@ -193,7 +231,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                     spacing,
                 },
                 'World',
@@ -203,7 +241,7 @@ describe('label formatter', () => {
                     fontSize: 10,
                     minimumFontSize: 5,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                 },
                 { padding },
                 () => ({ width: 50, height, meta: undefined })
@@ -223,7 +261,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 30,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                     spacing: 10,
                 },
                 'World',
@@ -233,7 +271,7 @@ describe('label formatter', () => {
                     fontSize: 10,
                     minimumFontSize: 20,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                 },
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000, meta: undefined })
@@ -252,7 +290,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                     spacing: 10,
                 },
                 'World',
@@ -262,7 +300,7 @@ describe('label formatter', () => {
                     fontSize: 10,
                     minimumFontSize: 5,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                 },
                 { padding: 10 },
                 () => ({ width: Infinity, height: Infinity, meta: undefined })
@@ -285,7 +323,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                     spacing,
                 },
                 'World',
@@ -295,7 +333,7 @@ describe('label formatter', () => {
                     fontSize: 10,
                     minimumFontSize: 5,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                 },
                 { padding },
                 () => ({ width: boxWidth, height: boxHeight, meta: undefined })
@@ -318,7 +356,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                     spacing: 10,
                 },
                 [{ text: 'World' }],
@@ -328,7 +366,7 @@ describe('label formatter', () => {
                     fontSize: 10,
                     minimumFontSize: 5,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                 },
                 { padding: 10 },
                 () => ({ width: 1000, height: 1000, meta: undefined })
@@ -347,7 +385,7 @@ describe('label formatter', () => {
                     fontSize: 20,
                     minimumFontSize: 10,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                     spacing: 10,
                 },
                 'World',
@@ -357,7 +395,7 @@ describe('label formatter', () => {
                     fontSize: 200,
                     minimumFontSize: 200,
                     wrapping: 'never',
-                    overflowStrategy: 'hide',
+                    truncate: false,
                 },
                 { padding: 10 },
                 () => ({ width: 200, height: 60, meta: undefined })
@@ -365,6 +403,56 @@ describe('label formatter', () => {
 
             expect(output!.label).not.toBe(undefined);
             expect(output!.secondaryLabel).toBe(undefined);
+        });
+        it.each([
+            ['plain text', 'Supercalifragilistic'],
+            ['segments', [{ text: 'Supercalifragilistic' }]],
+        ] as const)('keeps a %s label that does not fit when collision.alwaysShow is set', (_, value) => {
+            const label = {
+                enabled: true,
+                fontFamily: 'Verdana',
+                fontSize: 20,
+                minimumFontSize: 10,
+                wrapping: 'never',
+                truncate: false,
+                spacing: 10,
+            } as const;
+            const format = (alwaysShow: boolean) =>
+                formatLabels(
+                    value as any,
+                    { ...label, collision: { alwaysShow } },
+                    undefined,
+                    label,
+                    { padding: 10 },
+                    () => ({ width: 40, height: 30, meta: undefined })
+                );
+
+            expect(format(false)).toBe(undefined);
+            expect(format(true)!.label!.width).toBeGreaterThan(20);
+        });
+
+        it('keeps an alwaysShow secondary label beneath a segments primary that fills the height', () => {
+            const label = {
+                enabled: true,
+                fontFamily: 'Verdana',
+                fontSize: 20,
+                minimumFontSize: 10,
+                wrapping: 'never',
+                truncate: false,
+                spacing: 10,
+                collision: { alwaysShow: true },
+            } as const;
+            const output = formatLabels(
+                [{ text: 'Tall', fontSize: 60 }],
+                label,
+                'World',
+                label,
+                { padding: 10 },
+                () => ({ width: 200, height: 60, meta: undefined })
+            );
+
+            expect(output!.label).not.toBe(undefined);
+            expect(output!.secondaryLabel).not.toBe(undefined);
         });
     });
 });

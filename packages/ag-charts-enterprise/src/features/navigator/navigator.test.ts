@@ -537,6 +537,279 @@ describe('Navigator', () => {
         });
     });
 
+    describe('theme validation', () => {
+        const createWithTheme = async (navigatorTheme: unknown) => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                theme: { overrides: { common: { navigator: navigatorTheme } } } as AgCartesianChartOptions['theme'],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        };
+
+        it('validates navigator theme overrides against the module theme schema', async () => {
+            await createWithTheme({ height: 'tall' });
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`theme.overrides.common.navigator.height` cannot be set to `"tall"`')],
+            ]);
+        });
+
+        it('accepts theme operators nested inside navigator theme overrides', async () => {
+            await createWithTheme({ track: { fill: { $ref: 'foregroundColor' } }, height: { $if: [true, 20, 30] } });
+
+            expectWarningsCalls().toEqual([]);
+        });
+    });
+
+    describe('theme params', () => {
+        const BASE_PARAMS = {
+            foregroundColor: 'red',
+            borderColor: 'blue',
+            chartBackgroundColor: 'green',
+            borderRadius: 7,
+        };
+
+        const PARAM_CASES: Record<string, { params: object; navigator?: object; baseTheme?: string }> = {
+            'defaults from the base params': { params: BASE_PARAMS },
+            'dark theme defaults': { params: {}, baseTheme: 'ag-default-dark' },
+            'defaults with a border width': { params: { borderWidth: 3 } },
+            'every param': {
+                params: {
+                    navigatorTrackBackgroundColor: 'red',
+                    navigatorTrackBorder: { color: 'blue', width: 3 },
+                    navigatorTrackBorderRadius: 2,
+                    navigatorThumbBackgroundColor: 'yellow',
+                    navigatorHandleBackgroundColor: 'green',
+                    navigatorHandleBorder: { color: 'purple', width: 2 },
+                    navigatorHandleBorderRadius: 5,
+                },
+            },
+            'true borders': {
+                params: { borderColor: 'blue', navigatorTrackBorder: true, navigatorHandleBorder: true },
+            },
+            'false borders': {
+                params: { borderColor: 'blue', navigatorTrackBorder: false, navigatorHandleBorder: false },
+            },
+            'navigator options over the params': {
+                params: {
+                    navigatorTrackBackgroundColor: 'red',
+                    navigatorThumbBackgroundColor: 'red',
+                    navigatorHandleBorderRadius: 5,
+                },
+                navigator: { track: { fill: 'blue' }, thumb: { fill: 'blue' }, minHandle: { cornerRadius: 1 } },
+            },
+        };
+
+        const render = async (params: object, navigator: object = {}, baseTheme = 'ag-default') => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                navigator: { enabled: true, miniChart: {}, ...navigator },
+                initialState: { zoom: { ratioX: { start: 0.2, end: 0.7 } } },
+                theme: { baseTheme, params } as AgCartesianChartOptions['theme'],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        };
+
+        it.each(Object.entries(PARAM_CASES))(
+            'for %s it should render to canvas as expected',
+            async (_name, { params, navigator, baseTheme }) => {
+                await render(params, navigator, baseTheme);
+
+                expectWarningsCalls().toEqual([]);
+            }
+        );
+
+        it('for the deprecated mask over the track params it should render to canvas as expected', async () => {
+            await render({ navigatorTrackBackgroundColor: 'red' }, { mask: { fill: 'blue' } });
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`navigator.mask` is deprecated. Use `navigator.track`')],
+            ]);
+        });
+    });
+
+    describe('track and thumb options', () => {
+        const create = async (navigator: object) => {
+            const options: AgCartesianChartOptions = {
+                ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                navigator: { enabled: true, ...navigator },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return deproxy(chart).modulesManager.getModule<any>('navigator').track;
+        };
+
+        it('styles the track from `track`', async () => {
+            const track = await create({ track: { fill: 'red', fillOpacity: 0.5, strokeWidth: 3 } });
+            expect([track.fill, track.fillOpacity, track.strokeWidth]).toEqual(['red', 0.5, 3]);
+        });
+
+        it('still styles the track from deprecated `mask`, with a deprecation warning', async () => {
+            const track = await create({ mask: { fill: 'blue', strokeWidth: 2 } });
+            expect([track.fill, track.strokeWidth]).toEqual(['blue', 2]);
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`navigator.mask` is deprecated. Use `navigator.track`')],
+            ]);
+        });
+
+        it('prefers `track` over `mask`', async () => {
+            const track = await create({ mask: { fill: 'blue', strokeWidth: 2 }, track: { fill: 'red' } });
+            expect([track.fill, track.strokeWidth]).toEqual(['red', 2]);
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('`navigator.mask` is deprecated. Use `navigator.track`')],
+            ]);
+        });
+
+        it('styles the selected range from `thumb`', async () => {
+            const track = await create({ thumb: { fill: 'green', fillOpacity: 0.4 } });
+            expect([track.thumbFill, track.thumbFillOpacity]).toEqual(['green', 0.4]);
+        });
+
+        it('includes the thumb fill in the SVG export', async () => {
+            const track = await create({ thumb: { fill: 'green', fillOpacity: 0.3 } });
+            const paths = track.toSVG().elements;
+            expect(paths).toHaveLength(2);
+            expect([paths[1].getAttribute('fill'), paths[1].getAttribute('fill-opacity')]).toEqual(['green', '0.3']);
+        });
+
+        describe('rendering', () => {
+            const THUMB_CASES: Record<string, object> = {
+                'thumb fill': { thumb: { fill: 'green' } },
+                'thumb fill and fill opacity': { thumb: { fill: 'green', fillOpacity: 0.3 } },
+                'thumb with zero fill opacity': { thumb: { fill: 'green', fillOpacity: 0 } },
+                'track and thumb': {
+                    track: { fill: 'red', fillOpacity: 0.2, stroke: 'darkred', strokeWidth: 2 },
+                    thumb: { fill: 'green', fillOpacity: 0.3 },
+                },
+            };
+
+            it.each(Object.entries(THUMB_CASES))(
+                'for %s it should render to canvas as expected',
+                async (_name, navigator) => {
+                    const options: AgCartesianChartOptions = {
+                        ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
+                        navigator: { enabled: true, miniChart: {}, ...navigator },
+                        initialState: { zoom: { ratioX: { start: 0.2, end: 0.7 } } },
+                    };
+                    prepareEnterpriseTestOptions(options);
+
+                    chart = AgCharts.create(options);
+                    await compare();
+
+                    expectWarningsCalls().toEqual([]);
+                }
+            );
+        });
+    });
+
+    describe('mini chart shadow inheritance', () => {
+        const SHADOW = { enabled: true, color: '#000000', xOffset: 3, yOffset: 3, blur: 5 };
+        const ohlcData = Array.from({ length: 8 }, (_, i) => ({
+            date: new Date(2024, 0, i + 1),
+            open: 10 + i,
+            high: 15 + i,
+            low: 8 + i,
+            close: 12 + i,
+        }));
+        const candleKeys = { xKey: 'date', openKey: 'open', highKey: 'high', lowKey: 'low', closeKey: 'close' };
+        const barData = Array.from({ length: 8 }, (_, i) => ({ x: `c${i}`, y: i + 1 }));
+
+        const shadowedNodes = (root: any): string[] => {
+            const found: string[] = [];
+            const walk = (node: any) => {
+                if (node.fillShadow?.enabled) found.push(node.constructor.name);
+                if (typeof node.children === 'function') for (const child of node.children()) walk(child);
+            };
+            walk(root);
+            return found;
+        };
+
+        const create = async (options: AgCartesianChartOptions) => {
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return deproxy(chart).modulesManager.getModule<any>('navigator').miniChart;
+        };
+
+        const seriesCases: [string, object][] = [
+            ['candlestick', { type: 'candlestick', ...candleKeys, data: ohlcData, shadow: SHADOW }],
+            ['ohlc', { type: 'ohlc', ...candleKeys, data: ohlcData, shadow: SHADOW }],
+            ['bar', { type: 'bar', xKey: 'x', yKey: 'y', data: barData, shadow: SHADOW }],
+            [
+                'area',
+                {
+                    type: 'area',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: barData,
+                    shadow: SHADOW,
+                    marker: { enabled: true, shadow: SHADOW },
+                },
+            ],
+            ['line', { type: 'line', xKey: 'x', yKey: 'y', data: barData, marker: { enabled: true, shadow: SHADOW } }],
+            [
+                'range-area',
+                {
+                    type: 'range-area',
+                    xKey: 'x',
+                    yHighKey: 'yHigh',
+                    yLowKey: 'yLow',
+                    data: barData.map((d) => ({ ...d, yHigh: d.y + 2, yLow: d.y - 2 })),
+                    shadow: SHADOW,
+                    marker: { enabled: true, shadow: SHADOW },
+                },
+            ],
+            ['scatter', { type: 'scatter', xKey: 'y', yKey: 'y', data: barData, shadow: SHADOW }],
+            [
+                'waterfall',
+                {
+                    type: 'waterfall',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: barData.map((d, i) => ({ ...d, y: i % 2 === 0 ? d.y : -d.y })),
+                    item: { positive: { shadow: SHADOW }, negative: { shadow: SHADOW }, total: { shadow: SHADOW } },
+                },
+            ],
+        ];
+
+        it.each(seriesCases)('does not draw the %s series shadow in the mini chart', async (_type, series) => {
+            const miniChart = await create({
+                series: [series],
+                navigator: { enabled: true, miniChart: { enabled: true } },
+            } as AgCartesianChartOptions);
+
+            expect(miniChart.series.length).toBe(1);
+            expect(shadowedNodes(miniChart.root).join()).toBe('');
+            expectWarningsCalls().toEqual([]);
+        });
+
+        it.each(seriesCases)('still draws the %s shadow in the main chart', async (_type, series) => {
+            await create({
+                series: [series],
+                navigator: { enabled: true, miniChart: { enabled: true } },
+            } as AgCartesianChartOptions);
+
+            const mainSeries = deproxy(chart).series[0] as any;
+            expect(shadowedNodes(mainSeries.contentGroup).length).toBeGreaterThan(0);
+        });
+
+        it('honours an explicit navigator.miniChart.series shadow', async () => {
+            const miniChart = await create({
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', data: barData, shadow: SHADOW }],
+                navigator: { enabled: true, miniChart: { enabled: true, series: [{ type: 'bar', shadow: SHADOW }] } },
+            } as AgCartesianChartOptions);
+
+            expect(shadowedNodes(miniChart.root).length).toBeGreaterThan(0);
+            expectWarningsCalls().toEqual([]);
+        });
+    });
+
     describe('AG-17456 mini-chart axis nice', () => {
         const getMiniChartAxes = (c: any) => {
             const miniChart = deproxy(c).modulesManager.getModule<any>('navigator').miniChart;

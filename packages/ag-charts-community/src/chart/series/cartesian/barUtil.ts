@@ -1,14 +1,9 @@
-import type { Scale } from 'ag-charts-core';
-import { ChartAxisDirection, isNegative } from 'ag-charts-core';
+import type { Rect, Scale } from 'ag-charts-core';
+import { BBox, BandScale, ChartAxisDirection, ContinuousScale, Transformable, isNegative } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { ApplyFn, FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
-import { BandScale } from '../../../scale/bandScale';
-import { ContinuousScale } from '../../../scale/continuousScale';
-import { BBox } from '../../../scene/bbox';
-import type { Rect } from '../../../scene/shape/rect';
-import { Transformable } from '../../../scene/transformable';
 import type { ChartAxis } from '../../chartAxis';
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../seriesTypes';
 

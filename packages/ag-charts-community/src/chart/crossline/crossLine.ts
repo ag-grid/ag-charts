@@ -1,8 +1,10 @@
 import type {
+    BBox,
     BoxBounds,
     CanvasPoint,
     ChartAxisDirection,
     Forbid,
+    Group,
     NormalisedAxisCrossLineLabelOptions,
     NormalisedAxisCrossLineOptions,
     PointLabelDatum,
@@ -23,8 +25,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { PolarAxisLayout } from '../../module/axisContext';
-import type { BBox } from '../../scene/bbox';
-import type { Group } from '../../scene/group';
 import { isValidScaleValue } from '../scaleValue';
 
 type Caller = { context?: unknown };

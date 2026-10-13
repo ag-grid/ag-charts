@@ -1,7 +1,10 @@
-import { type AgMapLineBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, constant, geoJson, required } from 'ag-charts-core';
+import type { AgMapLineBackgroundOptions, AgMapLineBackgroundThemeableOptions } from 'ag-charts-community';
+import { type OptionsDefs, constant, geoJson, lineDashOptionsDef, required, strokeOptionsDef } from 'ag-charts-core';
 
-const { mapLineBackgroundSeriesThemeableOptionsDef } = _ModuleSupport;
+export const mapLineBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapLineBackgroundThemeableOptions> = {
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
 
 export const mapLineBackgroundSeriesOptionsDef: OptionsDefs<AgMapLineBackgroundOptions> = {
     ...mapLineBackgroundSeriesThemeableOptionsDef,

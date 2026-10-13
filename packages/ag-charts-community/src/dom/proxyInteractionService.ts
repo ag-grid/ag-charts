@@ -1,24 +1,24 @@
 import {
+    AxisWidget,
     type BaseStyleTypeMap,
+    BoundedTextWidget,
+    ButtonWidget,
     CleanupRegistry,
     type DynamicContext,
     type ElementID,
+    GroupWidget,
+    ListWidget,
+    NativeWidget,
+    SliderWidget,
+    SwitchWidget,
+    ToolbarWidget,
     createElement,
     setElementStyle,
 } from 'ag-charts-core';
+import type { Widget } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
-import { AxisWidget } from '../widget/axisWidget';
-import { BoundedTextWidget } from '../widget/boundedTextWidget';
-import { ButtonWidget } from '../widget/buttonWidget';
-import { GroupWidget } from '../widget/groupWidget';
-import { ListWidget } from '../widget/listWidget';
-import { NativeWidget } from '../widget/nativeWidget';
-import { SliderWidget } from '../widget/sliderWidget';
-import { SwitchWidget } from '../widget/switchWidget';
-import { ToolbarWidget } from '../widget/toolbarWidget';
-import type { Widget } from '../widget/widget';
 
 type ParentProperties<T = NativeWidget<HTMLDivElement>> =
     { readonly parent: T } | { readonly domManagerId: string; readonly where: 'beforebegin' | 'afterend' };

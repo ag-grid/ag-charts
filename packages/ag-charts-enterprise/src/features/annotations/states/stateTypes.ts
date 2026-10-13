@@ -1,5 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-import type { Point } from 'ag-charts-core';
+import type { BBox, Point } from 'ag-charts-core';
 
 import type {
     AnnotationContext,
@@ -23,7 +22,7 @@ type InteractionEvents = {
     click: {
         point: DataPoint;
         shiftKey: boolean;
-        bbox?: _ModuleSupport.BBox;
+        bbox?: BBox;
         textInputValue?: string;
     };
     dblclick: {
@@ -34,14 +33,14 @@ type InteractionEvents = {
         offset: Point;
         point: DataPoint;
         shiftKey: boolean;
-        bbox?: _ModuleSupport.BBox;
+        bbox?: BBox;
         textInputValue?: string;
     };
     dragStart: {
         context: AnnotationContext;
         offset: Point;
         point: DataPoint;
-        bbox: _ModuleSupport.BBox | undefined;
+        bbox: BBox | undefined;
         textInputValue: string | undefined;
     };
     dragEnd: undefined;
@@ -60,14 +59,14 @@ type InteractionEvents = {
         shiftKey: boolean;
     };
     textInput: {
-        bbox: _ModuleSupport.BBox | undefined;
+        bbox: BBox | undefined;
         context: AnnotationContext;
         key: string;
         shiftKey: boolean;
         textInputValue: string | undefined;
     };
     resize: {
-        bbox: _ModuleSupport.BBox;
+        bbox: BBox;
         textInputValue?: string;
     };
 };
@@ -90,7 +89,7 @@ type ActionEvents = {
     lineStyle: AnnotationLineStyle;
     lineText: LinearSettingsDialogTextChangeProps;
     toolbarPressSettings: Event;
-    updateTextInputBBox: _ModuleSupport.BBox | undefined;
+    updateTextInputBBox: BBox | undefined;
 };
 
 type DataEvents = {

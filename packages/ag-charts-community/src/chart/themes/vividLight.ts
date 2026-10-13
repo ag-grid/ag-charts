@@ -1,8 +1,4 @@
-import {
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    getSequentialColors,
-} from 'ag-charts-core';
+import { getSequentialColors } from 'ag-charts-core';
 
 import { ChartTheme } from './chartTheme';
 
@@ -61,14 +57,5 @@ export class VividLight extends ChartTheme {
             altDown: { fill: VIVID_FILLS.ORANGE, stroke: VIVID_STROKES.ORANGE },
             altNeutral: { fill: VIVID_FILLS.GRAY, stroke: VIVID_STROKES.GRAY },
         };
-    }
-
-    override getTemplateParameters() {
-        const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, VIVID_FILLS.BLUE);
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, VIVID_FILLS.BLUE);
-
-        return params;
     }
 }

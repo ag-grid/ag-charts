@@ -1,4 +1,3 @@
-import { DEFAULT_SPARKLINE_CROSSHAIR_STROKE } from 'ag-charts-core';
 import type {
     AgAxisGridLineOptions,
     AgChartTooltipOptions,
@@ -22,7 +21,7 @@ const commonAxisProperties = {
     },
     crosshair: {
         enabled: false,
-        stroke: DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
+        stroke: '#aaa',
         lineDash: [0],
         label: {
             enabled: false,

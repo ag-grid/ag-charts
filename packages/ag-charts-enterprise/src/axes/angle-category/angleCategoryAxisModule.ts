@@ -3,10 +3,14 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedAngleCategoryAxisOptions,
+    commonAxisThemeTemplate,
+    commonCrossLineLabelOptionsDefs,
     mergeDefaults,
+    polarAxisThemeOptionsDefs,
 } from 'ag-charts-core';
 
 import { AngleCategoryAxis } from './angleCategoryAxis';
+import { angleCategoryAxisOptionsDefs } from './angleCategoryAxisOptionsDefs';
 
 export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOptions, AngleCategoryAxis> = {
     type: 'axis',
@@ -16,7 +20,12 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
     version: VERSION,
     dependencies: [PolarChartModule],
 
-    options: _ModuleSupport.angleCategoryAxisOptionsDefs,
+    options: angleCategoryAxisOptionsDefs,
+
+    themeOptions: /* #__PURE__ */ polarAxisThemeOptionsDefs(
+        angleCategoryAxisOptionsDefs,
+        commonCrossLineLabelOptionsDefs
+    ),
     themeTemplate: mergeDefaults(
         {
             startAngle: 0,
@@ -26,7 +35,7 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
             gridLine: { enabled: false },
             shape: { $findFirstSiblingNotOperation: ['polygon'] },
         },
-        _ModuleSupport.commonAxisThemeTemplate
+        commonAxisThemeTemplate
     ),
 
     create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>

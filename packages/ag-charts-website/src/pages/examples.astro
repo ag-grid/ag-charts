@@ -5,10 +5,10 @@ import { DEMO_PAGE_CONTENT } from '@components/demo-examples/demoPageContent';
 import { DISABLE_MARKDOWN_DOCS } from '@constants';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
-const content = DEMO_PAGE_CONTENT.financial;
+const content = DEMO_PAGE_CONTENT['trading-terminal'];
 const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/examples.md');
 ---
 
 <Layout title={content.metaTitle} description={content.metaDescription} showSearchBar={true} markdownUrl={markdownUrl}>
-    <DemoPage currentId="financial" />
+    <DemoPage currentId="trading-terminal" />
 </Layout>

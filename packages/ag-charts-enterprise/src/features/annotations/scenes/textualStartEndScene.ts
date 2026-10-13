@@ -1,5 +1,6 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type Point, Vec4 } from 'ag-charts-core';
+import { type Bounds4, type Point, Text, Vec4 } from 'ag-charts-core';
+import type { BBox } from 'ag-charts-core';
 
 import type { TextInputLayout } from '../../text-input/textInput';
 import type { AnnotationContext, Padding } from '../annotationTypes';
@@ -22,16 +23,16 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndDatum> e
     protected abstract readonly textPosition: AnnotationTextPosition;
     protected abstract readonly textAlignment: AnnotationTextAlignment;
 
-    protected readonly label = new _ModuleSupport.Text({ zIndex: 1 });
+    protected readonly label = new Text({ zIndex: 1 });
 
     protected override anchor: _ModuleSupport.FloatingToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above-left',
     };
-    protected textInputBBox?: _ModuleSupport.BBox;
+    protected textInputBBox?: BBox;
 
-    public setTextInputBBox(bbox?: _ModuleSupport.BBox) {
+    public setTextInputBBox(bbox?: BBox) {
         this.textInputBBox = bbox;
         this.markDirty('TextualStartEndScene');
     }
@@ -90,7 +91,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndDatum> e
         return getBBox(this.getTextOptions(datum), text, Vec4.end(coords), this.textInputBBox);
     }
 
-    protected updateLabel(datum: Datum, bbox: _ModuleSupport.BBox, coords: Bounds4, context: AnnotationContext) {
+    protected updateLabel(datum: Datum, bbox: BBox, coords: Bounds4, context: AnnotationContext) {
         const { text, isPlaceholder } = getAnnotationText(datum.text, context.localeManager);
         const labelCoords = this.getLabelCoords(datum, bbox, coords);
 
@@ -107,11 +108,11 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndDatum> e
         updateTextNode(this.label, text, isPlaceholder, config, labelCoords);
     }
 
-    protected updateShape(_datum: Datum, _textBBox: _ModuleSupport.BBox, _coords: Bounds4) {
+    protected updateShape(_datum: Datum, _textBBox: BBox, _coords: Bounds4) {
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected getLabelCoords(_datum: Datum, _bbox: _ModuleSupport.BBox, coords: Bounds4): Point {
+    protected getLabelCoords(_datum: Datum, _bbox: BBox, coords: Bounds4): Point {
         return Vec4.end(coords);
     }
 

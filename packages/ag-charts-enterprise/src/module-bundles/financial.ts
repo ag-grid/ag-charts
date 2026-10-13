@@ -5,6 +5,8 @@ import { NumberAxisModule, TimeAxisModule } from '../axes/cartesian/cartesianAxi
 import { OrdinalTimeAxisModule } from '../axes/ordinal/ordinalTimeAxisModule';
 import { AnimationModule } from '../features/animation/animationModule';
 import { AnnotationsModule } from '../features/annotations/annotationsModule';
+import { AxisInsetValueModule } from '../features/axis-inset-value/axisInsetValueModule';
+import { AxisSelectedBandModule } from '../features/axis-selected-band/axisSelectedBandModule';
 import { BackgroundRegionsModule } from '../features/background-regions/backgroundRegionsModule';
 import { BandHighlightModule } from '../features/band-highlight/bandHighlightModule';
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
@@ -21,6 +23,7 @@ import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
 import { PriceVolumePresetModule } from '../preset/price-volume/priceVolumePresetModule';
 import { VolumeProfilePresetModule } from '../preset/volume-profile/volumeProfilePresetModule';
 import { CandlestickSeriesModule } from '../series/candlestick/candlestickModule';
+import { HlcSeriesModule } from '../series/hlc/hlcModule';
 import { OhlcSeriesModule } from '../series/ohlc/ohlcModule';
 import { RangeAreaSeriesModule } from '../series/range-area/rangeAreaModule';
 import { RangeBarSeriesModule } from '../series/range-bar/rangeBarModule';
@@ -31,12 +34,15 @@ export const FinancialChartModule: ModuleDefinition[] = [
     BarSeriesModule,
     LineSeriesModule,
     CandlestickSeriesModule,
+    HlcSeriesModule,
     OhlcSeriesModule,
     RangeBarSeriesModule,
     RangeAreaSeriesModule,
 
     AnimationModule,
     AnnotationsModule,
+    AxisInsetValueModule,
+    AxisSelectedBandModule,
     BandHighlightModule,
     ChartToolbarModule,
     ContextMenuModule,

@@ -8,12 +8,12 @@ import type {
     SeriesType,
 } from 'ag-charts-types';
 
-import type { DynamicContext } from '../module/dynamicContext';
-import type { OptionsDefs, ValidateParams, ValidationResult } from '../state/validation';
-import type { AxisID } from '../types/idBranding';
-import type { Normalised } from '../types/normalised-options/normalise';
+import type { AxisID } from '../identity/idBranding';
+import type { Normalised } from '../options/normalised/normalise';
+import type { OptionsDefs, ValidateParams, ValidationResult } from '../options/validation';
 import type { ScaleType } from '../types/scales';
 import type { Point } from '../types/scene';
+import type { DynamicContext } from './dynamicContext';
 import type { OptionsContribution } from './optionsContribution';
 
 export enum ModuleType {
@@ -106,6 +106,7 @@ export interface ModuleDefinition<
     readonly contributes?: readonly OptionsContribution[];
 
     options?: OptionsDefs<TOptions>; // options definitions validation
+    themeOptions?: OptionsDefs<any>; // theme overrides validation where it differs from `options`
     themeTemplate?: ExtensibleSeriesTheme<any>; // module's default theme template
     style?: string; // css string to inject into a style element
 
@@ -123,6 +124,8 @@ export interface ModuleDefinition<
 
 export interface ChartModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Chart, TOptions> {
     options: OptionsDefs<TOptions>;
+    /** The chart-level theme overrides for series of this chart type. */
+    themeOptions: OptionsDefs<any>;
 }
 
 export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
@@ -149,9 +152,9 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     // Maps a fast-path delta's preset-owned root keys (see {@link fastUpdateKeys}) onto the
     // internal options shape `create` would produce, so the generic merge can apply it directly.
     processFastUpdate?(this: void, delta: Record<string, unknown>): Record<string, unknown>;
-    // False when `create` derives its series from `data`, so every data change, transactions included,
-    // must re-run it rather than take the fast path or apply to the chart's data in place.
-    dataTransactions?: boolean;
+    // Maps the chart's data to the rows its series read. The options are as of the last slow options setup,
+    // so it mustn't read keys the fast path applies.
+    transformSeriesData?(this: void, data: unknown[], options: Omit<TOptions, 'data'>): unknown[];
 }
 
 export interface AxisModuleDefinition<
@@ -161,6 +164,8 @@ export interface AxisModuleDefinition<
     readonly chartType: string;
 
     options: OptionsDefs<TOptions>;
+    /** The theme overrides keyed by this axis type under `axes`. */
+    themeOptions: OptionsDefs<any>;
 
     create(this: void, ctx: DynamicContext<any>, id: AxisID, options: AxisCreateOptions<TOptions>): TInstance;
 }
@@ -197,6 +202,8 @@ export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<
     matchingKeys?: string[];
 
     options: OptionsDefs<TOptions>;
+    /** The theme overrides under the series type's `series` key, or at its root for a preset-shaped entry. */
+    themeOptions: OptionsDefs<any>;
 }
 
 export interface PluginModuleDefinition<TOptions, TRegistry = unknown> extends ModuleDefinition<

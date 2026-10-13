@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { mapValues } from 'ag-charts-core';
+import { BBox, mapValues } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
     AgCartesianAxisPosition,
@@ -9,7 +9,6 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
-import { BBox } from '../../scene/bbox';
 import type { ChartAxis } from '../chartAxis';
 import {
     type ChartOrProxy,

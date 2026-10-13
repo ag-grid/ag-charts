@@ -1,9 +1,7 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { ContinuousScale } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext, DataPoint } from '../annotationTypes';
 import { getGroupingValue } from './scale';
-
-const { ContinuousScale } = _ModuleSupport;
 
 const DEFAULT_VALIDATE_OPTIONS: { overflowContinuous: boolean } = { overflowContinuous: false };
 

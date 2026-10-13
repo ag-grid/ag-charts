@@ -1,9 +1,8 @@
-import { objectsEqual, validate } from 'ag-charts-core';
 import type { DynamicContext, MementoOriginator } from 'ag-charts-core';
+import { commonChartOptions, objectsEqual, validate } from 'ag-charts-core';
 import type { AgActiveChangeEventSource, AgActiveItemState, AgActiveState } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import { commonChartOptions } from '../chartOptionsDefs';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 import { InteractionState } from './interactionManager';
 

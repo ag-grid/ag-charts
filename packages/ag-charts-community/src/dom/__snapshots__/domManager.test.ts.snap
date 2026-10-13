@@ -3,7 +3,7 @@
 exports[`DOMManager > for disconnected container cases > should initialize the expected DOM 1`] = `
 <div>
   <div
-    class="ag-charts-wrapper ag-charts-styles"
+    class="ag-charts-wrapper ag-charts-theme-default ag-charts-styles"
     data-ag-charts=""
     role="presentation"
     style="cursor: default; min-width: 300px; min-height: 300px;"
@@ -94,7 +94,7 @@ exports[`DOMManager > for disconnected container cases > should initialize the e
 exports[`DOMManager > for normal container cases > should initialize the expected DOM 1`] = `
 <div>
   <div
-    class="ag-charts-wrapper ag-charts-styles"
+    class="ag-charts-wrapper ag-charts-theme-default ag-charts-styles"
     data-ag-charts=""
     role="presentation"
     style="cursor: default; min-width: 300px; min-height: 300px;"
@@ -190,7 +190,7 @@ exports[`DOMManager > for normal container cases > should initialize the expecte
 exports[`DOMManager > for shadow-DOM container cases > should initialize the expected DOM 1`] = `
 <div>
   <div
-    class="ag-charts-wrapper ag-charts-styles"
+    class="ag-charts-wrapper ag-charts-theme-default ag-charts-styles"
     data-ag-charts=""
     role="presentation"
     style="cursor: default; min-width: 300px; min-height: 300px;"

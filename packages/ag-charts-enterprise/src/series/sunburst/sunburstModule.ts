@@ -1,22 +1,23 @@
 import { type AgSunburstSeriesOptions, VERSION } from 'ag-charts-community';
 import {
+    AUTO_SIZED_LABEL_TRUNCATE,
     BASE_FONT_SIZE,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
+    SHADOW_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    cycledFillThemeTemplate,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SunburstSeries } from './sunburstSeries';
-import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
+import { sunburstSeriesOptionsDef, sunburstSeriesThemeableOptionsDef } from './sunburstSeriesOptionsDef';
 
 const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
     series: {
@@ -25,15 +26,7 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             $applyCycle: [
                 { $size: { $path: ['./data', { $path: '/data' }] } },
                 { $palette: 'fills' },
-                {
-                    $applySwitch: [
-                        { $path: ['/type', undefined, { $value: '$1' }] },
-                        { $value: '$1' },
-                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
-                        ['pattern', FILL_PATTERN_DEFAULTS],
-                        ['image', FILL_IMAGE_DEFAULTS],
-                    ],
-                },
+                cycledFillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS),
             ],
         },
         strokes: {
@@ -43,47 +36,41 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
             fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
             mode: 'continuous',
         },
-        tooltip: { interaction: { enabled: false } },
+        tooltip: SERIES_TOOLTIP_THEME,
         fillOpacity: 1,
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         strokeOpacity: 1,
         cornerRadius: 0,
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: true,
-            fontFamily: { $ref: 'fontFamily' },
-            fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
-            minimumFontSize: { $rem: 9 / BASE_FONT_SIZE },
-            fontWeight: { $ref: 'fontWeight' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontSize: { $rem: [FONT_SIZE_RATIO.LARGE, 'seriesLabelFontSize'] },
+            minimumFontSize: { $rem: [9 / BASE_FONT_SIZE, 'seriesLabelFontSize'] },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
-            overflowStrategy: 'ellipsis',
+            truncate: AUTO_SIZED_LABEL_TRUNCATE,
             wrapping: 'never',
             spacing: 2,
         },
         secondaryLabel: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: true,
-            fontFamily: { $ref: 'fontFamily' },
-            fontSize: { $rem: FONT_SIZE_RATIO.SMALLEST },
-            minimumFontSize: { $rem: 7 / BASE_FONT_SIZE },
-            fontWeight: { $ref: 'fontWeight' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontSize: { $rem: [FONT_SIZE_RATIO.SMALLEST, 'seriesLabelFontSize'] },
+            minimumFontSize: { $rem: [7 / BASE_FONT_SIZE, 'seriesLabelFontSize'] },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'chartBackgroundColor' },
-            overflowStrategy: 'ellipsis',
+            truncate: AUTO_SIZED_LABEL_TRUNCATE,
             wrapping: 'never',
         },
         innerLabels: {
             $apply: {
                 ...LABEL_BOXING_DEFAULTS,
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
+                fontSize: { $ref: 'seriesLabelFontSize' },
+                fontFamily: { $ref: 'seriesLabelFontFamily' },
+                fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 2,
             },
@@ -129,6 +116,8 @@ export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOption
     dependencies: [StandaloneChartModule],
 
     options: sunburstSeriesOptionsDef,
+
+    themeOptions: sunburstSeriesThemeableOptionsDef,
     themeTemplate,
 
     create: (ctx) => new SunburstSeries(ctx),

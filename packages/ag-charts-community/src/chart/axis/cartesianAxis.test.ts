@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { axisLabelsOverlap, getDocument, rotatePoint } from 'ag-charts-core';
+import { Transformable, axisLabelsOverlap, getDocument, rotatePoint } from 'ag-charts-core';
 import type {
     AgBaseChartThemeOptions,
     AgCartesianAxisCrossAt,
@@ -11,7 +11,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import { Transformable } from '../../scene/transformable';
 import { BIG, expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

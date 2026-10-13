@@ -24,7 +24,7 @@ interface DemoCase {
 
 const DEMOS: DemoCase[] = [
     {
-        id: 'financial',
+        id: 'trading-terminal',
         // The ticker grids virtualise, so their sparkline cell count tracks the viewport and only gets a floor.
         population: { structural: 6, minInGrid: 20 },
         settle: async (page) => {

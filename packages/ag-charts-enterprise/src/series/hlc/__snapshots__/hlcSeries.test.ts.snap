@@ -1,0 +1,186 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HlcSeries > styling > calls marker.itemStyler once per marker with its item type 1`] = `
+[
+  [
+    {
+      "candidateState": undefined,
+      "closeKey": "close",
+      "datum": {
+        "close": 108,
+        "date": 2024-01-01T00:00:00.000Z,
+        "high": 110,
+        "low": 102,
+      },
+      "fill": "#aa4520",
+      "fillOpacity": 1,
+      "highKey": "high",
+      "highlightState": "none",
+      "itemType": "high",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "lowKey": "low",
+      "opacity": undefined,
+      "selectionState": undefined,
+      "seriesId": "HlcSeries-1",
+      "shape": "circle",
+      "size": 6,
+      "stroke": "#aa4520",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+      "xKey": "date",
+    },
+  ],
+  [
+    {
+      "candidateState": undefined,
+      "closeKey": "close",
+      "datum": {
+        "close": 108,
+        "date": 2024-01-01T00:00:00.000Z,
+        "high": 110,
+        "low": 102,
+      },
+      "fill": "#aa4520",
+      "fillOpacity": 1,
+      "highKey": "high",
+      "highlightState": "none",
+      "itemType": "low",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "lowKey": "low",
+      "opacity": undefined,
+      "selectionState": undefined,
+      "seriesId": "HlcSeries-1",
+      "shape": "circle",
+      "size": 6,
+      "stroke": "#aa4520",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+      "xKey": "date",
+    },
+  ],
+  [
+    {
+      "candidateState": undefined,
+      "closeKey": "close",
+      "datum": {
+        "close": 108,
+        "date": 2024-01-01T00:00:00.000Z,
+        "high": 110,
+        "low": 102,
+      },
+      "fill": "#aa4520",
+      "fillOpacity": 1,
+      "highKey": "high",
+      "highlightState": "none",
+      "itemType": "close",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "lowKey": "low",
+      "opacity": undefined,
+      "selectionState": undefined,
+      "seriesId": "HlcSeries-1",
+      "shape": "circle",
+      "size": 6,
+      "stroke": "#aa4520",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+      "xKey": "date",
+    },
+  ],
+]
+`;
+
+exports[`HlcSeries > styling > styles the bands and strokes from the series styler 1`] = `
+[
+  {
+    "candidateState": undefined,
+    "closeKey": "close",
+    "highKey": "high",
+    "highlightState": "none",
+    "item": {
+      "close": {
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "marker": {
+          "fill": "#aa4520",
+          "fillOpacity": 1,
+          "lineDash": [
+            0,
+          ],
+          "lineDashOffset": 0,
+          "shape": "circle",
+          "size": 6,
+          "stroke": "#aa4520",
+          "strokeOpacity": 1,
+          "strokeWidth": 2,
+        },
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 2,
+      },
+      "high": {
+        "fill": "#f3622d",
+        "fillOpacity": 0.3,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "marker": {
+          "fill": "#aa4520",
+          "fillOpacity": 1,
+          "lineDash": [
+            0,
+          ],
+          "lineDashOffset": 0,
+          "shape": "circle",
+          "size": 6,
+          "stroke": "#aa4520",
+          "strokeOpacity": 1,
+          "strokeWidth": 2,
+        },
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 2,
+      },
+      "low": {
+        "fill": "#f3622d",
+        "fillOpacity": 0.3,
+        "lineDash": [
+          0,
+        ],
+        "lineDashOffset": 0,
+        "marker": {
+          "fill": "#aa4520",
+          "fillOpacity": 1,
+          "lineDash": [
+            0,
+          ],
+          "lineDashOffset": 0,
+          "shape": "circle",
+          "size": 6,
+          "stroke": "#aa4520",
+          "strokeOpacity": 1,
+          "strokeWidth": 2,
+        },
+        "stroke": "#aa4520",
+        "strokeOpacity": 1,
+        "strokeWidth": 2,
+      },
+    },
+    "lowKey": "low",
+    "selectionState": undefined,
+    "seriesId": "HlcSeries-1",
+    "xKey": "date",
+  },
+]
+`;

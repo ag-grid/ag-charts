@@ -329,6 +329,34 @@ describe('Enterprise highlight defaults', () => {
             datumIndex: 2,
         },
         {
+            name: 'hlc',
+            options: {
+                data: financialData,
+                axes: {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [
+                    {
+                        type: 'hlc',
+                        xKey: 'date',
+                        highKey: 'highA',
+                        lowKey: 'lowA',
+                        closeKey: 'closeA',
+                        marker: { enabled: true },
+                    },
+                    {
+                        type: 'line',
+                        xKey: 'date',
+                        yKey: 'openB',
+                    },
+                ],
+            } as AgCartesianChartOptions,
+            seriesIndex: 0,
+            datumIndex: 1,
+            getDatum: (chartInstance) => (chartInstance.series[0] as any).getNodeData?.()?.[3],
+        },
+        {
             name: 'nightingale',
             options: {
                 data: polarCategoryData,

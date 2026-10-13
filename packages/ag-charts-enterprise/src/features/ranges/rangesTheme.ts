@@ -3,47 +3,43 @@ import type {
     AgRangesButtonValueFunctionParams,
     AgRangesOptions,
     AgRangesStateStyles,
+    Operation,
     WithThemeParams,
 } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, undocumentedThemeOptions } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth, undocumentedThemeOptions } from 'ag-charts-core';
 
 const DAY = 1000 * 60 * 60 * 24;
 const MONTH = DAY * 30;
 const YEAR = DAY * 365;
 
+// Resolved colour and width of `buttonBorder`, which may be a boolean or a `{ color, width }` object.
+const buttonBorderColor = themeBorderColor('buttonBorder');
+const buttonBorderWidth = themeBorderWidth('buttonBorder', { on: 1 });
+
+type ButtonStateBorderParam = 'buttonHoverBorder' | 'buttonActiveBorder' | 'buttonDisabledBorder';
+
+// A state border set to `true` inherits `buttonBorder`, `false` hides the colour but keeps the base width, and an
+// object applies its own colour and width, falling back to `buttonBorder` for either one left unset.
+const stateBorderColor = (param: ButtonStateBorderParam): Operation =>
+    themeBorderColor(param, { on: buttonBorderColor, off: 'transparent', unset: buttonBorderColor });
+const stateBorderWidth = (param: ButtonStateBorderParam): Operation => ({
+    $isUserOption: [
+        '../strokeWidth',
+        { $path: '../strokeWidth' },
+        themeBorderWidth(param, { on: buttonBorderWidth, off: buttonBorderWidth, unset: buttonBorderWidth }),
+    ],
+});
+
 const stylesTheme: WithThemeParams<AgRangesOptions> = {
     cornerRadius: { $ref: 'buttonBorderRadius' },
-    fill: { $ref: 'chromeBackgroundColor' },
+    fill: { $ref: 'buttonBackgroundColor' },
     fillOpacity: 1,
     fontSize: { $rem: [FONT_SIZE_RATIO.SMALL, 'chromeFontSize'] },
     fontFamily: { $ref: 'chromeFontFamily' },
     fontWeight: { $ref: 'chromeFontWeight' },
-    // `$shallow` keeps a user-set padding (number or partial object) as authored; `$applyPadding` resolves the
-    // param references in the default.
-    padding: {
-        $shallow: {
-            $applyPadding: {
-                top: { $ref: 'buttonVerticalPadding' },
-                right: { $ref: 'buttonHorizontalPadding' },
-                bottom: { $ref: 'buttonVerticalPadding' },
-                left: { $ref: 'buttonHorizontalPadding' },
-            },
-        },
-    } as any,
-    stroke: {
-        $if: [
-            { $isType: [{ $ref: 'buttonBorder' }, 'boolean'] },
-            { $ref: 'borderColor' },
-            { $ref: 'buttonBorder.color' },
-        ],
-    },
-    strokeWidth: {
-        $if: [
-            { $isType: [{ $ref: 'buttonBorder' }, 'boolean'] },
-            { $if: [{ $ref: 'buttonBorder' }, 1, 0] },
-            { $ref: 'buttonBorder.width' },
-        ],
-    },
+    padding: { $shallow: { top: 6, right: 9, bottom: 6, left: 9 } } as any,
+    stroke: buttonBorderColor,
+    strokeWidth: buttonBorderWidth,
     textColor: { $ref: 'buttonTextColor' },
 };
 
@@ -51,6 +47,7 @@ const stateTheme: WithThemeParams<AgRangesStateStyles> = {
     fill: { $path: '../fill' },
     fillOpacity: { $path: '../fillOpacity' },
     stroke: { $path: '../stroke' },
+    strokeWidth: { $path: '../strokeWidth' },
     textColor: { $path: '../textColor' },
 };
 
@@ -68,11 +65,14 @@ const componentTheme: WithThemeParams<AgRangesButtonStyles> = {
     textColor: { $path: '../textColor' },
 };
 
-const componentStateTheme = (state: 'active' | 'disabled' | 'hover') => ({
+const componentStateTheme = (state: 'active' | 'disabled' | 'hover'): WithThemeParams<AgRangesStateStyles> => ({
     fill: { $path: `../../${state}/fill` },
     fillOpacity: { $path: `../../${state}/fillOpacity` },
     stroke: { $path: `../../${state}/stroke` },
-    strokeWidth: { $path: `../../${state}/strokeWidth` },
+    // A user-set button or dropdown `strokeWidth` applies in every state, as `ranges.strokeWidth` does.
+    strokeWidth: {
+        $isUserOption: ['../strokeWidth', { $path: '../strokeWidth' }, { $path: `../../${state}/strokeWidth` }],
+    },
     textColor: { $path: `../../${state}/textColor` },
 });
 
@@ -86,49 +86,22 @@ export const rangesTheme: WithThemeParams<AgRangesOptions> = {
     active: {
         ...stateTheme,
         fill: { $ref: 'buttonActiveBackgroundColor' },
-        stroke: {
-            $if: [
-                { $isType: [{ $ref: 'buttonActiveBorder' }, 'boolean'] },
-                { $if: [{ $ref: 'buttonActiveBorder' }, { $ref: 'borderColor' }, 'transparent'] },
-                { $ref: 'buttonActiveBorder.color' },
-            ],
-        },
+        stroke: stateBorderColor('buttonActiveBorder'),
+        strokeWidth: stateBorderWidth('buttonActiveBorder'),
         textColor: { $ref: 'buttonActiveTextColor' },
     },
     disabled: {
         ...stateTheme,
         fill: { $ref: 'buttonDisabledBackgroundColor' },
-        stroke: {
-            $isUserOption: [
-                '../stroke',
-                { $path: '../stroke' },
-                {
-                    $if: [
-                        { $isType: [{ $ref: 'buttonDisabledBorder' }, 'boolean'] },
-                        { $if: [{ $ref: 'buttonDisabledBorder' }, { $ref: 'borderColor' }, 'transparent'] },
-                        { $ref: 'buttonDisabledBorder.color' },
-                    ],
-                },
-            ],
-        },
+        stroke: { $isUserOption: ['../stroke', { $path: '../stroke' }, stateBorderColor('buttonDisabledBorder')] },
+        strokeWidth: stateBorderWidth('buttonDisabledBorder'),
         textColor: { $ref: 'buttonDisabledTextColor' },
     },
     hover: {
         ...stateTheme,
         fill: { $ref: 'buttonHoverBackgroundColor' },
-        stroke: {
-            $isUserOption: [
-                '../stroke',
-                { $path: '../stroke' },
-                {
-                    $if: [
-                        { $isType: [{ $ref: 'buttonHoverBorder' }, 'boolean'] },
-                        { $if: [{ $ref: 'buttonHoverBorder' }, { $ref: 'borderColor' }, 'transparent'] },
-                        { $ref: 'buttonHoverBorder.color' },
-                    ],
-                },
-            ],
-        },
+        stroke: { $isUserOption: ['../stroke', { $path: '../stroke' }, stateBorderColor('buttonHoverBorder')] },
+        strokeWidth: stateBorderWidth('buttonHoverBorder'),
         textColor: { $isUserOption: ['../textColor', { $path: '../textColor' }, { $ref: 'buttonHoverTextColor' }] },
     },
     button: {

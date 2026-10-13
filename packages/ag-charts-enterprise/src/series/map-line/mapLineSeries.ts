@@ -1,21 +1,30 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type {
+    BBox,
     CallbackParamRules,
     DynamicContext,
     Feature,
     FeatureCollection,
     Geometry,
+    Node,
     PlacedLabel,
 } from 'ag-charts-core';
 import {
+    ColorScale,
     type ITextMeasurer,
     type LabelFit,
+    LinearScale,
     type NormalisedChartLabelStyleOptions,
     type NormalisedMapLineSeriesOwnOptions,
     type NormalisedMapLineSeriesStyle,
     type Point,
     type PointLabelDatum,
+    PointerEvents,
+    Selection,
+    Text,
+    Transformable,
     cachedTextMeasurer,
+    configureColorScale,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
@@ -35,6 +44,7 @@ import { lineStringCenter } from '../map-util/lineStringUtil';
 import { LonLatBBox } from '../map-util/lonLatBbox';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
+import type { MercatorScale } from '../map-util/mercatorScale';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
 
@@ -45,15 +55,9 @@ const {
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
-    configureColorScale,
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
-    ColorScale,
-    LinearScale,
-    Selection,
-    Text,
-    Transformable,
 } = _ModuleSupport;
 
 export interface MapLineNodeLabelDatum extends PointLabelDatum {
@@ -95,7 +99,7 @@ export class MapLineSeries
     static override readonly className = 'MapLineSeries';
     static readonly type = 'map-line' as const;
 
-    scale: _ModuleSupport.MercatorScale | undefined;
+    scale: MercatorScale | undefined;
 
     public topologyBounds: LonLatBBox | undefined;
 
@@ -119,14 +123,11 @@ export class MapLineSeries
     public datumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.contentGroup, () =>
         this.nodeFactory()
     );
-    private labelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>(
-        this.labelGroup,
-        Text
-    );
+    private labelSelection = Selection.select<Text<PlacedLabel<MapLineNodeLabelDatum>>>(this.labelGroup, Text);
     private highlightDatumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.highlightNodeGroup, () =>
         this.nodeFactory()
     );
-    private highlightLabelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>(
+    private highlightLabelSelection = Selection.select<Text<PlacedLabel<MapLineNodeLabelDatum>>>(
         this.highlightLabelGroup,
         Text
     );
@@ -505,7 +506,7 @@ export class MapLineSeries
 
     private updateDatumSelection(opts: {
         nodeData: MapLineNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry<MapLineNodeDatum>>;
+        datumSelection: Selection<MapLineNodeDatum, GeoGeometry<MapLineNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
@@ -600,7 +601,7 @@ export class MapLineSeries
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry<MapLineNodeDatum>>;
+        datumSelection: Selection<MapLineNodeDatum, GeoGeometry<MapLineNodeDatum>>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
@@ -612,7 +613,7 @@ export class MapLineSeries
         datumSelection,
         drawingMode,
     }: {
-        datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry<MapLineNodeDatum>>;
+        datumSelection: Selection<MapLineNodeDatum, GeoGeometry<MapLineNodeDatum>>;
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
@@ -636,7 +637,7 @@ export class MapLineSeries
     public override updatePlacedLabelData(labelData: PlacedLabel<MapLineNodeLabelDatum>[]) {
         this.placedLabelData = labelData;
         this.labelSelection = this.labelSelection.update(labelData, (text) => {
-            text.pointerEvents = _ModuleSupport.PointerEvents.None;
+            text.pointerEvents = PointerEvents.None;
         });
         this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
         this.updateHighlightLabelSelection();
@@ -646,10 +647,7 @@ export class MapLineSeries
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<
-            PlacedLabel<MapLineNodeLabelDatum>,
-            _ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>
-        >;
+        labelSelection: Selection<PlacedLabel<MapLineNodeLabelDatum>, Text<PlacedLabel<MapLineNodeLabelDatum>>>;
         isHighlight: boolean;
     }) {
         const { options } = this;
@@ -717,7 +715,7 @@ export class MapLineSeries
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
-        let minNode: _ModuleSupport.Node<unknown> | undefined;
+        let minNode: Node<unknown> | undefined;
 
         this.datumSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);
@@ -968,7 +966,7 @@ export class MapLineSeries
         );
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): BBox | undefined {
         const geometry = findFocusedGeoGeometry(this, opts);
         return geometry ? Transformable.toCanvas(this.contentGroup, geometry.getBBox()) : undefined;
     }

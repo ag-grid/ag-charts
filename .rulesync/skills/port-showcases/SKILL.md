@@ -1,7 +1,7 @@
 ---
 targets: ['*']
 name: port-showcases
-description: 'Bring the Angular, Vue and TypeScript ports of the showcase demos (financial, web-analytics, procurement) back into step with their React golden masters: find the stale ports, port the React change following each PORTING guide, restamp the manifests and prove parity. Use when asked to align, sync or update the demo ports or seeds, when `check-seeds.mjs --stale` lists a port, or on /port-showcases [demo] [framework] [--ci].'
+description: 'Bring the Angular, Vue and TypeScript ports of the showcase demos (trading-terminal, web-analytics, procurement) back into step with their React golden masters: find the stale ports, port the React change following each PORTING guide, restamp the manifests and prove parity. Use when asked to align, sync or update the demo ports or seeds, when `check-seeds.mjs --stale` lists a port, or on /port-showcases [demo] [framework] [--ci].'
 ---
 
 # Port Showcases
@@ -19,7 +19,7 @@ skill is the order of work.
 
 `/port-showcases [demo] [framework] [--ci]`
 
--   `demo` (`financial`, `web-analytics`, `procurement`) and `framework` (`angular`, `vue`,
+-   `demo` (`trading-terminal`, `web-analytics`, `procurement`) and `framework` (`angular`, `vue`,
     `typescript`) filter the stale list; either may be given alone. Default: every stale port.
 -   `--ci`: headless run from `.github/workflows/demo-port-align.yml`. Commit, write the summary
     (step 5), and never push or open a PR; the workflow does both.
@@ -99,7 +99,7 @@ server you started before finishing.
 
 -   **One commit per port**: the port's files, its manifest and any guide change together, per
     `/ag-eng:git-conventions`. Use the ticket key when the work has one; a `--ci` run has none, so
-    its subjects are plain, for example `Align the financial Angular port with React at 1a2b3c4d`.
+    its subjects are plain, for example `Align the trading-terminal Angular port with React at 1a2b3c4d`.
 -   **Interactive**: stop at the commits; open a PR into the detected base (the release branch on
     one) only when asked, with `/ag-eng:pr-create`.
 -   **`--ci`**: also write `reports/port-showcases/summary.md` (gitignored), which the workflow puts

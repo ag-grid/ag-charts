@@ -15,12 +15,12 @@ The barrel prevents tree-shaking — when any enterprise module destructures fro
 
 ## Before adding to module-support.ts
 
-Check whether the export can live in `ag-charts-core` instead. Only add to `module-support.ts` as a last resort when the function genuinely depends on community-internal classes (e.g., `ColorScale`, scene graph nodes).
+Check whether the export can live in `ag-charts-core` instead. Only add to `module-support.ts` as a last resort when the function genuinely depends on community-internal classes (e.g., scene graph nodes).
 
 ## Approved alternatives
 
 1. **Pure utility functions** with no community-package dependencies → place in `ag-charts-core` and import directly with `import { fn } from 'ag-charts-core'`
-2. **Functions/classes that depend on community internals** (e.g., `ColorScale`, `Selection`) → must stay in community; add to `module-support.ts` only if needed by enterprise
+2. **Functions/classes that depend on community internals** (e.g., `Selection`) → must stay in community; add to `module-support.ts` only if needed by enterprise
 3. **Type-only exports owned by `ag-charts-core` or `ag-charts-types`** → `import type` from that package directly; type-only imports are erased at compile time and do not affect bundling. Community-owned types that enterprise needs go through `_ModuleSupport` (see `entry-point-hygiene.md`)
 
 ## Examples
@@ -31,8 +31,8 @@ import { computeColorBins } from 'ag-charts-core';
 // GOOD: type-only import from core
 import type { GradientColorStop } from 'ag-charts-core';
 
-// GOOD: community-dependent function, accessed via _ModuleSupport
-const { configureColorScale } = _ModuleSupport;
+// GOOD: community-dependent class, accessed via _ModuleSupport
+const { Selection } = _ModuleSupport;
 
 // AVOID: adding pure functions to module-support.ts
 export { myPureHelper } from './utils/myHelper'; // should be in ag-charts-core

@@ -1,9 +1,11 @@
 import {
     type AgAnnotationAxisLabel,
+    type AgAnnotationHandleStyles,
     type AgAnnotationOptionsToolbar,
     type AgAnnotationsThemeableOptions,
     type AgAnnotationsToolbar,
     type AgChannelAnnotationTextStyles,
+    type AgFibonacciAnnotationStyles,
     type AgLineAnnotationTextStyles,
     type AgMeasurerAnnotationStatistics,
     type AgMeasurerAnnotationStyles,
@@ -11,8 +13,21 @@ import {
     type TextOptions,
     type WithThemeParams,
 } from 'ag-charts-community';
-import * as ThemeSymbols from 'ag-charts-core';
 import { FONT_SIZE_RATIO } from 'ag-charts-core';
+
+export const DEFAULT_FIBONACCI_STROKES = [
+    '#797b86',
+    '#e24c4a',
+    '#f49d2d',
+    '#65ab58',
+    '#409682',
+    '#4db9d2',
+    '#5090dc',
+    '#3068f9',
+    '#e24c4a',
+    '#913aac',
+    '#d93e64',
+];
 
 const stroke: WithThemeParams<StrokeOptions> = {
     stroke: { $ref: 'foregroundColor' },
@@ -20,8 +35,8 @@ const stroke: WithThemeParams<StrokeOptions> = {
     strokeWidth: 2,
 };
 
-const handle = {
-    fill: ThemeSymbols.DEFAULT_ANNOTATION_HANDLE_FILL,
+const handle: WithThemeParams<AgAnnotationHandleStyles> = {
+    fill: { $ref: 'annotationHandleColor' },
     strokeOpacity: 1,
     strokeWidth: 2,
 };
@@ -58,29 +73,43 @@ const channelText: WithThemeParams<AgChannelAnnotationTextStyles> = {
     color: { $ref: 'textColor' },
 };
 
-const measurerStatistics: WithThemeParams<AgMeasurerAnnotationStatistics> = {
+export const MEASURER_STATISTICS_THEME: WithThemeParams<AgMeasurerAnnotationStatistics> = {
     ...font,
     fontSize: { $ref: 'fontSize' },
-    color: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_COLOR,
-    fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_FILL,
-    stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_STROKE,
+    color: { $ref: 'annotationTextboxTextColor' },
+    fill: { $ref: 'annotationTextboxBackgroundColor' },
+    stroke: { $ref: 'annotationTextboxBorderColor' },
     strokeWidth: 1,
     divider: {
-        stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
+        stroke: { $ref: 'annotationDividerColor' },
         strokeWidth: 1,
         strokeOpacity: 0.5,
     },
 };
 
+export const QUICK_MEASURER_DIVIDER_THEME = { stroke: '#fff', strokeWidth: 1, strokeOpacity: 0.5 };
+
+const background = { fill: { $ref: 'foregroundColor' }, fillOpacity: 0.075 } as const;
+
+const fibonacci: WithThemeParams<AgFibonacciAnnotationStyles> = {
+    ...stroke,
+    strokes: { $shallowSimple: DEFAULT_FIBONACCI_STROKES },
+    rangeStroke: { $ref: 'foregroundColor' },
+    handle: { ...handle },
+    text: { ...lineText, position: 'center' },
+    label: {
+        ...font,
+        color: undefined,
+        fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
+    },
+};
+
 const measurer: WithThemeParams<AgMeasurerAnnotationStyles> = {
     ...stroke,
-    background: {
-        fill: { $ref: 'foregroundColor' },
-        fillOpacity: 0.075,
-    },
+    background: { ...background },
     handle: { ...handle },
     text: { ...lineText },
-    statistics: { ...measurerStatistics },
+    statistics: { ...MEASURER_STATISTICS_THEME },
 };
 
 const toolbar: WithThemeParams<AgAnnotationsToolbar> = {
@@ -192,10 +221,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     // Channels
     'disjoint-channel': {
         ...stroke,
-        background: {
-            fill: { $ref: 'foregroundColor' },
-            fillOpacity: 0.075,
-        },
+        background: { ...background },
         handle: { ...handle },
         text: { ...channelText },
     },
@@ -205,40 +231,15 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
             lineDash: [6, 5],
             strokeWidth: 1,
         },
-        background: {
-            fill: { $ref: 'foregroundColor' },
-            fillOpacity: 0.075,
-        },
+        background: { ...background },
         handle: { ...handle },
         text: { ...channelText },
     },
 
     // Fibonnaccis
-    'fibonacci-retracement': {
-        ...stroke,
-        strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
-        rangeStroke: { $ref: 'foregroundColor' },
-        handle: { ...handle },
-        text: { ...lineText, position: 'center' },
-        label: {
-            ...font,
-            color: undefined,
-            fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
-        },
-    },
+    'fibonacci-retracement': { ...fibonacci },
 
-    'fibonacci-retracement-trend-based': {
-        ...stroke,
-        strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
-        rangeStroke: { $ref: 'foregroundColor' },
-        handle: { ...handle },
-        text: { ...lineText, position: 'center' },
-        label: {
-            ...font,
-            color: undefined,
-            fontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
-        },
-    },
+    'fibonacci-retracement-trend-based': { ...fibonacci },
 
     // Texts
     callout: {
@@ -257,15 +258,15 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
     note: {
         ...text,
-        color: ThemeSymbols.DEFAULT_TEXTBOX_COLOR,
-        fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
+        color: { $ref: 'annotationTextboxTextColor' },
+        fill: { $ref: 'annotationColor' },
         stroke: { $ref: 'chartBackgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },
         background: {
-            fill: ThemeSymbols.DEFAULT_TEXTBOX_FILL,
-            stroke: ThemeSymbols.DEFAULT_TEXTBOX_STROKE,
+            fill: { $ref: 'annotationTextboxBackgroundColor' },
+            stroke: { $ref: 'annotationTextboxBorderColor' },
             strokeWidth: 1,
         },
     },
@@ -303,40 +304,32 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     'quick-date-price-range': {
         up: {
             ...stroke,
-            fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+            fill: { $ref: 'annotationColor' },
             fillOpacity: 0.2,
             handle: { ...handle },
             statistics: {
-                ...measurerStatistics,
+                ...MEASURER_STATISTICS_THEME,
                 color: '#fff',
-                fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+                fill: { $ref: 'annotationColor' },
                 strokeWidth: 0,
-                divider: {
-                    stroke: '#fff',
-                    strokeWidth: 1,
-                    strokeOpacity: 0.5,
-                },
+                divider: { ...QUICK_MEASURER_DIVIDER_THEME },
             },
         },
         down: {
             ...stroke,
-            stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
-            fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
+            stroke: '#e35c5c',
+            fill: '#e35c5c',
             fillOpacity: 0.2,
             handle: {
                 ...handle,
-                stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
+                stroke: '#e35c5c',
             },
             statistics: {
-                ...measurerStatistics,
+                ...MEASURER_STATISTICS_THEME,
                 color: '#fff',
-                fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
+                fill: '#e35c5c',
                 strokeWidth: 0,
-                divider: {
-                    stroke: '#fff',
-                    strokeWidth: 1,
-                    strokeOpacity: 0.5,
-                },
+                divider: { ...QUICK_MEASURER_DIVIDER_THEME },
             },
         },
     },

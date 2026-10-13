@@ -10,10 +10,11 @@ import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
     ChartAxisDirection,
-    DEFAULT_SHADOW_COLOUR,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    NEAREST_TOOLTIP_THEME,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
@@ -21,7 +22,7 @@ import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { OhlcSeries } from './ohlcSeries';
-import { ohlcSeriesOptionsDef } from './ohlcSeriesOptionsDef';
+import { ohlcSeriesOptionsDef, ohlcSeriesThemeableOptionsDef } from './ohlcSeriesOptionsDef';
 
 const { predictCartesianFinancialAxis } = _ModuleSupport;
 
@@ -47,17 +48,8 @@ const themeTemplate: ExtensibleSeriesTheme<'ohlc'> = {
             up: itemTheme('up'),
             down: itemTheme('down'),
         },
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
-        tooltip: {
-            range: { $path: ['/tooltip/range', 'nearest'] },
-            interaction: { enabled: false },
-        },
+        shadow: SHADOW_THEME_DEFAULTS,
+        tooltip: NEAREST_TOOLTIP_THEME,
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
         selection: SERIES_SELECTION_THEME,
     },
@@ -85,6 +77,8 @@ export const OhlcSeriesModule: SeriesModuleDefinition<AgOhlcSeriesOptions> = {
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: ohlcSeriesOptionsDef,
+
+    themeOptions: ohlcSeriesThemeableOptionsDef,
     matchingKeys: ['xKey', 'lowKey', 'highKey', 'openKey', 'closeKey', 'normalizedTo'],
     predictAxis: predictCartesianFinancialAxis,
     defaultAxes: {

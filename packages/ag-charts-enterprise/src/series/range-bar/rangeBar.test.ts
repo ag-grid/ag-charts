@@ -8,7 +8,6 @@ import {
     type AgRangeBarSeriesLabelPlacement,
     type AgRangeBarSeriesStyle,
     type AgRangeBarSeriesStylerParams,
-    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     BIG,
@@ -52,10 +51,11 @@ import {
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { roundTo } from 'ag-charts-core';
+import { Transformable, roundTo } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
 import {
+    DEFAULT_DISABLED_SHADOW,
     createEnterpriseChart,
     mockCssVarColorSupport,
     prepareEnterpriseTestOptions,
@@ -329,13 +329,7 @@ describe('RangeBarSeries', () => {
         const nodes = series.datumSelection.nodes();
         expect(nodes.length).toBeGreaterThan(0);
         for (const node of nodes) {
-            expect(node.fillShadow).toEqual({
-                enabled: true,
-                color: expect.any(String),
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            });
+            expect(node.fillShadow).toEqual({ ...DEFAULT_DISABLED_SHADOW, enabled: true, color: expect.any(String) });
         }
     });
 
@@ -2264,11 +2258,7 @@ describe('RangeBarSeries', () => {
             expect(nodeData).toBeDefined();
             const node = nodeData![nodeIndex];
             expect(node).toBeDefined();
-            return _ModuleSupport.Transformable.toCanvasPoint(
-                series.contentGroup,
-                node.x + node.width / 2,
-                node.y + node.height / 2
-            );
+            return Transformable.toCanvasPoint(series.contentGroup, node.x + node.width / 2, node.y + node.height / 2);
         }
 
         async function clickBar(seriesIndex: number, nodeIndex: number) {

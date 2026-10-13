@@ -23,7 +23,7 @@ import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
     AgHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesShadowHighlightOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -127,7 +127,7 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TConte
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesShadowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
     /**
      * If `true`, the aggregated `yKey` values will be represented using the area of the bar, instead of just the height.
      */

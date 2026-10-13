@@ -3,7 +3,11 @@ import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 import { stubAggregationDataModel } from '../../test/aggregationStubs';
 import { BIG } from '../../test/bigintExamples';
 import type { BubbleAggregationNode } from './bubbleAggregation';
-import { aggregateBubbleDataFromDataModel, computeBubbleAggregation } from './bubbleAggregation';
+import {
+    aggregateBubbleDataFromDataModel,
+    computeBubbleAggregation,
+    computeBubbleAggregationCount,
+} from './bubbleAggregation';
 
 const SIZE_QUANTIZATION = 3;
 
@@ -632,5 +636,35 @@ describe('aggregateBubbleDataFromDataModel - bigint and ISO 8601 time values (re
 
         // A naive absolute narrow collapses the X domain to zero width (xd0 === xd1), degenerating every xRatio.
         expect(result!.xd1).toBeGreaterThan(result!.xd0);
+    });
+});
+
+describe('computeBubbleAggregationCount sizeMode', () => {
+    it('uses a larger cull radius in area mode, so it keeps no more items than diameter mode', () => {
+        const xValues = Array.from({ length: 400 }, (_, i) => (i * 7) % 50);
+        const yValues = Array.from({ length: 400 }, (_, i) => (i * 13) % 50);
+        const sizeValues = Array.from({ length: 400 }, (_, i) => i % 100);
+        const aggregation = computeBubbleAggregation([0, 49], [0, 49], xValues, yValues, sizeValues, [0, 99], {
+            xNeedsValueOf: false,
+            yNeedsValueOf: false,
+        })!;
+        const options = {
+            xRange: 200,
+            yRange: 200,
+            xVisibleRange: [0, 1] as [number, number],
+            yVisibleRange: [0, 1] as [number, number],
+            minSize: 5,
+            maxSize: 60,
+        };
+
+        const dilations = [2, 4, 8, 16, 32];
+        const counts = (sizeMode?: 'area') =>
+            dilations.map((d) => computeBubbleAggregationCount(d, aggregation, { ...options, sizeMode }));
+        const diameterCounts = counts();
+        const areaCounts = counts('area');
+        for (const [i, count] of areaCounts.entries()) {
+            expect(count).toBeLessThanOrEqual(diameterCounts[i]);
+        }
+        expect(areaCounts).not.toEqual(diameterCounts);
     });
 });

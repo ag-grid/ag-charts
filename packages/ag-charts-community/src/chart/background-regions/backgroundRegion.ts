@@ -1,7 +1,6 @@
-import type { NormalisedSeriesAreaBackgroundRegion } from 'ag-charts-core';
+import type { Group, NormalisedSeriesAreaBackgroundRegion } from 'ag-charts-core';
 
 import type { AxisContext } from '../../module/axisContext';
-import type { Group } from '../../scene/group';
 
 export interface BackgroundRegion {
     labelGroup: Group;

@@ -39,11 +39,16 @@ export abstract class TopologySeries<
     }
 
     protected getHighlightedDatum(): TDatum | undefined {
+        return this.resolveHighlightedDatum(this.ctx.highlightManager?.getActiveHighlight() as any);
+    }
+
+    /** The datum this series draws on its highlight layer for `activeHighlight`, a series sharing the legend item draws none. */
+    private resolveHighlightedDatum(activeHighlight: TDatum | undefined): TDatum | undefined {
         // Mirror `isSeriesHighlighted`: with highlight disabled there is no highlighted datum, so the
         // highlight overlay stays empty and the hovered datum is not raised above overlapping series.
         if (!this.isHighlightEnabled()) return undefined;
 
-        let highlightedDatum: TDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
+        let highlightedDatum = activeHighlight;
         const { legendItemName } = this.options;
         const matchingLegendItemName =
             legendItemName != null &&
@@ -58,6 +63,11 @@ export abstract class TopologySeries<
         }
 
         return highlightedDatum;
+    }
+
+    protected override getRedrawnDatumIndex(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined) {
+        const redrawn = this.resolveHighlightedDatum(highlightedDatum as TDatum | undefined);
+        return super.getRedrawnDatumIndex(redrawn);
     }
 
     public override isSeriesHighlighted(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined): boolean {

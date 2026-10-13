@@ -42,6 +42,8 @@ export interface SimulatedRequest {
     uri: string;
     /** The Accept request header, if any. */
     accept?: string;
+    /** The request method. Defaults to GET. */
+    method?: string;
 }
 
 export interface SimulatedSite {
@@ -307,6 +309,10 @@ function parseHtaccess(htaccess: string): ParsedHtaccess {
                 for (const ext of args.slice(1)) {
                     parsed.charsets.set(ext.replace(/^\./, ''), args[0]);
                 }
+                break;
+            case 'RemoveEncoding':
+                // Clears an encoding the server config maps to these extensions. This model maps
+                // none, so there is nothing to remove.
                 break;
             case 'Header':
                 (currentIf ? currentIf.headers : parsed.headers).push(parseHeader(args, line));
@@ -764,6 +770,7 @@ export function simulateRequest(site: SimulatedSite, request: SimulatedRequest):
         REQUEST_STATUS: String(status),
         HTTP_HOST: fullRequest.host,
         HTTP_ACCEPT: request.accept ?? '',
+        REQUEST_METHOD: request.method ?? 'GET',
     };
 
     const onSuccess = new Map<string, string>();

@@ -9,7 +9,7 @@ import {
     strictUnion,
     string,
     toolbarButtonOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 import type { AgZoomButton, AgZoomOnDataChangeStrategy, AgZoomOptions } from 'ag-charts-types';
@@ -65,7 +65,15 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions, _ModuleSupport.Ch
                 'zoom button options array'
             ),
             visible: union('always', 'zoomed', 'hover'),
+            buttonSize: positiveNumber,
+            ...undocumentedDefs({
+                anchorPointX: zoomAnchorPoint,
+                anchorPointY: zoomAnchorPoint,
+            }),
         },
+        ...undocumentedDefs({
+            enableIndependentAxes: boolean,
+        }),
     },
     themeTemplate: {
         enabled: false,
@@ -119,10 +127,3 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions, _ModuleSupport.Ch
         ctx.service('zoomManager', (c) => new _ModuleSupport.ZoomManager(c));
     },
 };
-
-// @ts-expect-error undocumented option
-ZoomModule.options.enableIndependentAxes = undocumented(boolean);
-// @ts-expect-error undocumented option
-ZoomModule.options.buttons.anchorPointX = undocumented(zoomAnchorPoint);
-// @ts-expect-error undocumented option
-ZoomModule.options.buttons.anchorPointY = undocumented(zoomAnchorPoint);

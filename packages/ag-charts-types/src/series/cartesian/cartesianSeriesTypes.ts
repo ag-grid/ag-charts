@@ -8,6 +8,7 @@ import type { AgConeFunnelSeriesOptions } from './coneFunnelOptions';
 import type { AgFunnelSeriesOptions } from './funnelOptions';
 import type { AgHeatmapSeriesOptions } from './heatmapOptions';
 import type { AgHistogramSeriesOptions } from './histogramOptions';
+import type { AgHlcSeriesOptions } from './hlcOptions';
 import type { AgLineSeriesOptions } from './lineOptions';
 import type { AgOhlcSeriesOptions } from './ohlcOptions';
 import type { AgRangeAreaSeriesOptions } from './rangeAreaOptions';
@@ -25,6 +26,7 @@ export type AgCartesianSeriesOptions<TDatum = DatumDefault, TContext = ContextDe
     | AgFunnelSeriesOptions<TDatum, TContext>
     | AgHeatmapSeriesOptions<TDatum, TContext>
     | AgHistogramSeriesOptions<TDatum, TContext>
+    | AgHlcSeriesOptions<TDatum, TContext>
     | AgLineSeriesOptions<TDatum, TContext>
     | AgOhlcSeriesOptions<TDatum, TContext>
     | AgRangeAreaSeriesOptions<TDatum, TContext>

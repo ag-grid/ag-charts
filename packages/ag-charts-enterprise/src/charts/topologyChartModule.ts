@@ -1,13 +1,15 @@
 import { type AgTopologyChartOptions, SeriesAreaModule, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { ChartModuleDefinition } from 'ag-charts-core';
+import {
+    type ChartModuleDefinition,
+    type ModuleOwnedChartOptions,
+    commonChartOptionsDefs,
+    commonChartThemeTemplate,
+    topologyChartOptionsDefs,
+} from 'ag-charts-core';
 
 import { TopologyChart } from './topologyChart';
 
-const { topologyChartOptionsDefs, commonChartThemeTemplate } = _ModuleSupport;
-
-export const TopologyChartModule: ChartModuleDefinition<
-    Omit<AgTopologyChartOptions, _ModuleSupport.ModuleOwnedChartOptions>
-> = {
+export const TopologyChartModule: ChartModuleDefinition<Omit<AgTopologyChartOptions, ModuleOwnedChartOptions>> = {
     type: 'chart',
     name: 'topology',
     enterprise: true,
@@ -15,6 +17,8 @@ export const TopologyChartModule: ChartModuleDefinition<
     dependencies: [SeriesAreaModule],
 
     options: topologyChartOptionsDefs,
+
+    themeOptions: commonChartOptionsDefs,
 
     themeTemplate: commonChartThemeTemplate,
 

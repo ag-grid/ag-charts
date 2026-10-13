@@ -66,6 +66,7 @@ export * from './series/cartesian/coneFunnelOptions';
 export * from './series/cartesian/funnelOptions';
 export * from './series/cartesian/heatmapOptions';
 export * from './series/cartesian/histogramOptions';
+export * from './series/cartesian/hlcOptions';
 export * from './series/cartesian/lineOptions';
 export * from './series/cartesian/ohlcBaseOptions';
 export * from './series/cartesian/ohlcOptions';

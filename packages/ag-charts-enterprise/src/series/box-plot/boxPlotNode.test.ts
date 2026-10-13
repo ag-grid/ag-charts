@@ -1,8 +1,17 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { setupMockCanvas } from 'ag-charts-community-test';
+import { Color } from 'ag-charts-core';
 
-import { RED_SHADOW, blackColumns, leftEdgeIsWhite, pixelAt, renderNode } from '../../test/utils';
+import {
+    RED_SHADOW,
+    allWhite,
+    blackColumns,
+    leftEdgeIsWhite,
+    pixelAt,
+    renderNode,
+    renderShadowBatch,
+} from '../../test/utils';
 import { BoxPlotNode } from './boxPlotNode';
 
 const boxPlot = (mixin: Partial<BoxPlotNode>) => {
@@ -29,6 +38,19 @@ const boxPlot = (mixin: Partial<BoxPlotNode>) => {
 describe('BoxPlotNode', () => {
     describe('silhouette shadow', () => {
         const canvasCtx = setupMockCanvas({ width: 400, height: 220 });
+
+        const verticalWhiskers = (spread?: number) =>
+            boxPlot({
+                horizontal: false,
+                min: 20,
+                q1: 70,
+                median: 100,
+                q3: 130,
+                max: 190,
+                wickStroke: 'rgb(0, 0, 0)',
+                wickStrokeWidth: 2,
+                fillShadow: { ...RED_SHADOW, spread },
+            });
 
         it('should not leave a copy of separately styled whiskers at the left edge of a horizontal box plot', () => {
             const node = boxPlot({ wickStrokeWidth: 2 });
@@ -82,6 +104,79 @@ describe('BoxPlotNode', () => {
             expect(pixelAt(canvasCtx, 210, 45)).toEqual([255, 0, 0, 255]);
         });
 
+        it('should parse the colour of a whisker once, not on every render', () => {
+            const wickStroke = 'rgba(1, 2, 3, 0.5)';
+            const node = verticalWhiskers(4);
+            node.wickStroke = wickStroke;
+            const fromString = vi.spyOn(Color, 'fromString');
+            try {
+                for (let i = 0; i < 3; i++) renderNode(canvasCtx, node);
+
+                expect(fromString.mock.calls.filter(([colour]) => colour === wickStroke)).toHaveLength(1);
+            } finally {
+                fromString.mockRestore();
+            }
+        });
+
+        it('should grow the shadow of a separately styled whisker by the spread', () => {
+            renderNode(canvasCtx, verticalWhiskers());
+            // The lower whisker is 2px wide at x = 110, so without a spread its shadow hides behind it.
+            expect(pixelAt(canvasCtx, 117, 45)).toEqual([255, 255, 255, 255]);
+
+            renderNode(canvasCtx, verticalWhiskers(10));
+            // With a spread of 10 the whisker's shadow is 22px wide: 99 to 121.
+            expect(pixelAt(canvasCtx, 117, 45)).toEqual([255, 0, 0, 255]);
+            expect(pixelAt(canvasCtx, 125, 45)).toEqual([255, 255, 255, 255]);
+        });
+
+        it('should spread the shadow past the ends of a whisker by the spread', () => {
+            renderNode(canvasCtx, verticalWhiskers());
+            // The whiskers end at 20 and 190, and without a spread their shadows hide behind them.
+            expect(pixelAt(canvasCtx, 110, 15)).toEqual([255, 255, 255, 255]);
+            expect(pixelAt(canvasCtx, 110, 195)).toEqual([255, 255, 255, 255]);
+
+            renderNode(canvasCtx, verticalWhiskers(10));
+            // The whiskers have butt caps, but their shadows still reach `spread` past each end, and no further.
+            for (const y of [10, 14, 18, 191, 195, 199]) {
+                expect(pixelAt(canvasCtx, 110, y)).toEqual([255, 0, 0, 255]);
+            }
+            for (const y of [5, 205]) {
+                expect(pixelAt(canvasCtx, 110, y)).toEqual([255, 255, 255, 255]);
+            }
+        });
+
+        it.each([
+            ['a whisker stroke opacity of 0', { wickStrokeOpacity: 0 }],
+            ['a whisker stroke width of 0', { wickStrokeWidth: 0 }],
+        ])('should cast no shadow from a whisker with %s, with or without a spread', (_, hidden) => {
+            for (const spread of [undefined, 10]) {
+                const node = verticalWhiskers(spread);
+                Object.assign(node, hidden);
+                renderNode(canvasCtx, node);
+
+                // Where the visible whisker's shadow lands, and past its end: a hidden whisker casts none.
+                for (const [x, y] of [
+                    [110, 45],
+                    [117, 45],
+                    [110, 15],
+                    [110, 195],
+                ]) {
+                    expect(pixelAt(canvasCtx, x, y)).toEqual([255, 255, 255, 255]);
+                }
+            }
+        });
+
+        it('should cast no shadow from a box plot that is fully transparent, with or without a spread', () => {
+            for (const spread of [undefined, 10]) {
+                const node = verticalWhiskers(spread);
+                // As the series styles an item at `opacity: 0`.
+                Object.assign(node, { fillOpacity: 0, strokeOpacity: 0, wickStrokeOpacity: 0, opacity: 0 });
+                renderNode(canvasCtx, node);
+
+                expect(allWhite(canvasCtx)).toBe(true);
+            }
+        });
+
         it('should not leave a sliver on the left edge for a crisp horizontal box plot with a hard shadow', () => {
             const node = boxPlot({
                 crisp: true,
@@ -97,7 +192,115 @@ describe('BoxPlotNode', () => {
         });
     });
 
-    describe.each([1, 2, 3])('silhouette shadow at a device pixel ratio of %i', (pixelRatio) => {
+    describe('batched shadow', () => {
+        const canvasCtx = setupMockCanvas({ width: 400, height: 220 });
+
+        const whiskers = (center: number, mixin: Partial<BoxPlotNode>) =>
+            boxPlot({
+                horizontal: false,
+                center,
+                thickness: 40,
+                min: 20,
+                q1: 70,
+                median: 100,
+                q3: 130,
+                max: 190,
+                wickStroke: 'rgb(0, 0, 0)',
+                wickStrokeWidth: 2,
+                ...mixin,
+            });
+
+        it('should cast the shadow of a translucent whisker once', () => {
+            const style = { wickStrokeOpacity: 0.5, fillShadow: { ...RED_SHADOW, xOffset: 20 } };
+            renderNode(canvasCtx, whiskers(100, style));
+            const unbatched = pixelAt(canvasCtx, 120, 40);
+
+            renderShadowBatch(canvasCtx, [whiskers(100, style), whiskers(250, style)]);
+
+            // Drawn twice into the mask, the whisker would cast a shadow of 0.75 rather than 0.5.
+            expect(unbatched).not.toEqual([255, 255, 255, 255]);
+            expect(pixelAt(canvasCtx, 120, 40)).toEqual(unbatched);
+            expect(pixelAt(canvasCtx, 270, 40)).toEqual(unbatched);
+        });
+
+        it('should cast the shadow of a translucent box and whisker once where they meet, with a spread', () => {
+            const style = {
+                fill: 'rgba(0, 0, 255, 0.5)',
+                stroke: 'rgba(0, 0, 0, 0.5)',
+                wickStroke: 'rgba(0, 0, 0, 0.5)',
+                wickStrokeWidth: 2,
+                shadowMode: 'silhouette' as const,
+                fillShadow: { ...RED_SHADOW, spread: 6 },
+            };
+            const region = () => Array.from(canvasCtx.getRenderContext2D().getImageData(100, 0, 280, 115).data);
+            renderNode(canvasCtx, boxPlot({ ...style, center: 70 }));
+            const alone = region();
+
+            renderShadowBatch(canvasCtx, [boxPlot({ ...style, center: 70 }), boxPlot({ ...style, center: 160 })]);
+
+            expect(alone.some((value) => value !== 255)).toBe(true);
+            const batched = region();
+            let worst = 0;
+            for (const [i, value] of batched.entries()) worst = Math.max(worst, Math.abs(value - alone[i]));
+            expect(worst).toBeLessThanOrEqual(3);
+        });
+
+        it('should cast a uniform shadow from a translucent whisker with a spread', () => {
+            // The body casts nothing, so that the strength of the shadow is that of the whisker alone.
+            const style = {
+                fill: 'none',
+                stroke: 'transparent',
+                wickStrokeOpacity: 0.5,
+                fillShadow: { ...RED_SHADOW, xOffset: 20, spread: 6 },
+            };
+            renderNode(canvasCtx, whiskers(100, style));
+            const centre = pixelAt(canvasCtx, 120, 40);
+            const beside = pixelAt(canvasCtx, 124, 40);
+
+            renderShadowBatch(canvasCtx, [whiskers(100, style), whiskers(250, style)]);
+
+            // The whisker is drawn into the mask once, so the middle of its shadow is no darker than the sides.
+            expect(centre).not.toEqual([255, 255, 255, 255]);
+            expect(beside).toEqual(centre);
+            // The mask and the shadow of a single item round differently, by one at most.
+            for (const x of [120, 124, 270, 274]) {
+                for (const [i, channel] of pixelAt(canvasCtx, x, 40).entries()) {
+                    expect(Math.abs(channel - centre[i])).toBeLessThanOrEqual(1);
+                }
+            }
+        });
+
+        it.each([undefined, 10])(
+            'should cast no shadow from a whisker with a transparent colour, with a spread of %s',
+            (spread) => {
+                const style = {
+                    fill: 'none',
+                    stroke: 'transparent',
+                    wickStroke: 'rgba(0, 0, 0, 0)',
+                    fillShadow: { ...RED_SHADOW, xOffset: 20, spread },
+                };
+                renderShadowBatch(canvasCtx, [whiskers(100, style), whiskers(250, style)]);
+
+                for (const x of [120, 270]) {
+                    expect(pixelAt(canvasCtx, x, 40)).toEqual([255, 255, 255, 255]);
+                }
+            }
+        );
+
+        it('should spread the shadow of a whisker with its own colour when the body stroke is transparent', () => {
+            const style = { fill: 'none', stroke: 'transparent', fillShadow: { ...RED_SHADOW, spread: 10 } };
+            renderShadowBatch(canvasCtx, [whiskers(100, style), whiskers(250, style)]);
+
+            for (const x of [100, 250]) {
+                for (const y of [10, 14, 18]) {
+                    expect(pixelAt(canvasCtx, x, y)).toEqual([255, 0, 0, 255]);
+                }
+                expect(pixelAt(canvasCtx, x, 5)).toEqual([255, 255, 255, 255]);
+            }
+        });
+    });
+
+    describe.each([0.5, 1, 2, 3])('silhouette shadow at a device pixel ratio of %s', (pixelRatio) => {
         const canvasCtx = setupMockCanvas({ width: 400 * pixelRatio, height: 220 * pixelRatio });
 
         it('should not leave a sliver on the left edge for a crisp box plot with theme default strokes', () => {
@@ -112,6 +315,19 @@ describe('BoxPlotNode', () => {
             renderNode(canvasCtx, node, pixelRatio);
 
             expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
+        });
+
+        it('should not leave a copy of spread whiskers on the left edge', () => {
+            const node = boxPlot({
+                wickStrokeWidth: 2,
+                wickStroke: 'rgb(0, 0, 0)',
+                fillShadow: { ...RED_SHADOW, spread: 40 },
+            });
+            renderNode(canvasCtx, node, pixelRatio);
+
+            expect(node['wickPath'].isEmpty()).toBe(false);
+            // The shadow reaches 40px past the whisker end at 150, so everything left of 110 is untouched.
+            expect(leftEdgeIsWhite(canvasCtx, 100 * pixelRatio)).toBe(true);
         });
 
         it('should not leave a sliver on the left edge for a crisp vertical box plot without a stroke', () => {
@@ -132,5 +348,22 @@ describe('BoxPlotNode', () => {
 
             expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
         });
+
+        // The alignment snaps a whisker end outward at some ratios and inward at others, so try a few ends.
+        it.each([360.5, 361, 363])(
+            'should not leave a sliver on the left edge for a crisp box plot with a 1px round-joined stroke and max %s',
+            (max) => {
+                const node = boxPlot({
+                    max,
+                    strokeWidth: 1,
+                    lineJoin: 'round',
+                    wickStrokeWidth: 1,
+                    crisp: true,
+                });
+                renderNode(canvasCtx, node, pixelRatio);
+
+                expect(leftEdgeIsWhite(canvasCtx, 4)).toBe(true);
+            }
+        );
     });
 });

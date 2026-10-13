@@ -11,13 +11,19 @@ import type {
     NormalisedSeriesMarkerStyle,
     Point,
     RequireOptional,
+    SegmentedPath,
+    Selection,
     Writeable,
 } from 'ag-charts-core';
 import {
     AGGREGATION_INDEX_Y_MAX,
+    BBox,
     ChartAxisDirection,
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
+    Group,
+    Path,
+    PointerEvents,
     SeriesContentZIndexMap,
     SeriesZIndexMap,
     extent,
@@ -43,12 +49,6 @@ import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
-import { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
-import { PointerEvents } from '../../../scene/node';
-import type { Selection } from '../../../scene/selection';
-import { Path } from '../../../scene/shape/path';
-import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
@@ -262,6 +262,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
         zIndex: SeriesZIndexMap.BACKGROUND,
+        batchShadows: true,
     });
 
     override get pickModeAxis() {
@@ -1558,6 +1559,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 hideWithSize0,
                 pickInflation,
                 shadow,
+                isHighlight,
+                datumIndex: datum.datumIndex,
             });
             const nextDrawingMode = constantDrawingMode ?? this.resolveMarkerDrawingModeForState(drawingMode, style);
             if (node.__drawingMode !== nextDrawingMode) {
@@ -1745,6 +1748,11 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 lineDash,
             },
         };
+    }
+
+    /** The shadows of the markers, which this series keeps there rather than on its own `shadow`. */
+    protected override getItemShadowOptions() {
+        return [this.options.marker.shadow];
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {

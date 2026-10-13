@@ -1,12 +1,17 @@
-import { CleanupRegistry, type DynamicContext, ZIndexMap, resolvePadding } from 'ag-charts-core';
+import {
+    CleanupRegistry,
+    type DynamicContext,
+    Group,
+    type NormalisedSeriesAreaOptions,
+    Rect,
+    TransformableGroup,
+    ZIndexMap,
+    resolvePadding,
+} from 'ag-charts-core';
+import type { BBox, Node } from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { BBox } from '../../scene/bbox';
-import { Group, TransformableGroup } from '../../scene/group';
-import type { Node } from '../../scene/node';
-import { Rect } from '../../scene/shape/rect';
-import type { NormalisedSeriesAreaOptions } from '../chartState';
 
 /** Scene content a module renders inside the series area, positioned in series-rect space. */
 export interface SeriesAreaContent {

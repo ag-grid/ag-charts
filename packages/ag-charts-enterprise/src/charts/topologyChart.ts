@@ -1,12 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AxisID, CanvasPoint, FeatureCollection, Position } from 'ag-charts-core';
-import { ChartAxisDirection, createId } from 'ag-charts-core';
+import { ChartAxisDirection, PanToBBoxScalingModeEnum, createId } from 'ag-charts-core';
 import type { AgCoordinates, AgTopologyChartOptions } from 'ag-charts-types';
 
 import type { LonLatBBox } from '../series/map-util/lonLatBbox';
+import { MercatorScale } from '../series/map-util/mercatorScale';
 import type { ITopology } from '../series/map-util/topologyTypes';
 
-const { Chart, MercatorScale } = _ModuleSupport;
+const { Chart } = _ModuleSupport;
 function isTopologySeries(series: _ModuleSupport.Series<any, any, any>): series is ITopology {
     return (
         series.type === 'map-shape' ||
@@ -31,7 +32,7 @@ export class TopologyChart extends Chart {
         if (this.ctx.zoomManager) {
             this.ctx.zoomManager.setAxes([this.xAxis, this.yAxis]);
             this.ctx.zoomManager.panToBBoxScalingMode =
-                _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
+                PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
         }
     }
 
@@ -76,7 +77,7 @@ export class TopologyChart extends Chart {
             return combined.merge(bbox);
         }, undefined);
 
-        let scale: _ModuleSupport.MercatorScale | undefined;
+        let scale: MercatorScale | undefined;
         if (combinedBbox != null) {
             const { lon0, lat0, lon1, lat1 } = combinedBbox;
             const domain: Position[] = [

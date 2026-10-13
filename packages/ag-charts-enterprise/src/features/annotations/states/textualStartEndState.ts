@@ -1,5 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Debug, StateMachine } from 'ag-charts-core';
+import { type BBox, Debug, StateMachine } from 'ag-charts-core';
 
 import type { AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
@@ -83,7 +82,7 @@ export abstract class TextualStartEndStateMachine<
             ctx.deselect();
         };
 
-        const actionUpdateTextInputBBox = (bbox?: _ModuleSupport.BBox) => {
+        const actionUpdateTextInputBBox = (bbox?: BBox) => {
             this.node?.setTextInputBBox(bbox);
             ctx.update();
         };
@@ -137,7 +136,7 @@ export abstract class TextualStartEndStateMachine<
             ctx.delete();
         };
 
-        const actionSave = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: _ModuleSupport.BBox }) => {
+        const actionSave = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: BBox }) => {
             const { datum } = this;
             if (bbox != null && textInputValue != null && textInputValue.length > 0) {
                 if (!isTextType(datum)) {

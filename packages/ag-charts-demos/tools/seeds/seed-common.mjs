@@ -158,7 +158,7 @@ function findCarriedRelease(committed) {
     return agree ? release : null;
 }
 
-/** Which seeds carry which pin, e.g. `latest with pinSource dist-tag in financial/react; 14.2.0 …`. */
+/** Which seeds carry which pin, e.g. `latest with pinSource dist-tag in trading-terminal/react; 14.2.0 …`. */
 function describeCommittedPins(committed) {
     const groups = new Map();
     for (const { seed, versions, pinSource } of committed) {

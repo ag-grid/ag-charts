@@ -1,12 +1,15 @@
 import type {
     AxisID,
     AxisPluginModuleInstance,
+    AxisPrimaryTickCount,
     Callback,
     CallbackParam,
     CanvasPoint,
     ChartAnimationPhase,
     DomainWithMetadata,
     DynamicContext,
+    MouseWidgetEvent,
+    Node,
     Normalised,
     NormalisedAxisTickOptions,
     NormalisedBaseAxisLabelOptions,
@@ -14,11 +17,23 @@ import type {
     NormalisedTextOrSegments,
     Point,
     Scale,
+    TextBoxingProperties,
+    TextSizeProperties,
 } from 'ag-charts-core';
 import {
+    BBox,
+    BandScale,
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
+    ContinuousScale,
+    DiscreteTimeScale,
+    Group,
+    Selection,
+    Transformable,
+    TransformableGroup,
+    TransformableText,
+    TranslatableGroup,
     WeakCache,
     ZIndexMap,
     arraysEqual,
@@ -30,6 +45,7 @@ import {
     findRangeExtent,
     isArray,
     mergeDefaults,
+    toPlainText,
 } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
@@ -61,17 +77,6 @@ import type {
 } from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import { BandScale } from '../../scale/bandScale';
-import { ContinuousScale } from '../../scale/continuousScale';
-import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import { BBox } from '../../scene/bbox';
-import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
-import type { Node } from '../../scene/node';
-import { Selection } from '../../scene/selection';
-import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
-import { Transformable } from '../../scene/transformable';
-import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import type { CrossLine } from '../crossline/crossLine';
@@ -892,7 +897,7 @@ export abstract class Axis<
     private getScrollbarLayoutCacheKey(chartLayout?: ChartLayout): string {
         const scrollbar = chartLayout?.scrollbars?.[this.id];
         if (!scrollbar?.enabled) return 'none';
-        return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}`;
+        return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}:${chartLayout?.sizeLimit}`;
     }
 
     abstract calculateTickLayout(
@@ -1292,6 +1297,16 @@ export abstract class Axis<
             get userAxisId() {
                 // Assigned by `Chart.applyAxes` after construction, so read it lazily.
                 return axis.userKey;
+            },
+            get ariaLabel() {
+                return axis.options.ariaLabel;
+            },
+            get titleText() {
+                const { caption } = axis;
+                // `caption.text` keeps its last value when the title is disabled, so gate on `enabled`.
+                if (!caption.enabled) return undefined;
+                const text = toPlainText(caption.text);
+                return text.trim() === '' ? undefined : text;
             },
             axisType: this.type,
             scale: this.scale,

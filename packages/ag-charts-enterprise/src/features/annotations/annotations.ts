@@ -1,23 +1,22 @@
-import {
-    type AgAnnotation,
-    type AgAnnotationLineStyleType,
-    type Direction,
-    _ModuleSupport,
-    _Widget,
-} from 'ag-charts-community';
+import { type AgAnnotation, type AgAnnotationLineStyleType, type Direction, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BBox,
     ChartAxisDirection,
     ChartUpdateType,
     type CurrentPoint,
     type DynamicContext,
+    Group,
+    type NormalisedAnnotationsOptions,
     type Point,
+    Selection,
     Vec2,
     addValues,
     deepClone,
     generateUUID,
     isValidDate,
 } from 'ag-charts-core';
+import type { ClickWidgetEvent, DblClickWidgetEvent, DragWidgetEvent, KeyboardWidgetEvent } from 'ag-charts-core';
 import type { AgAnnotationAxesButtons, AgNumericValue } from 'ag-charts-types';
 
 import { TextInput, type TextInputLayout } from '../text-input/textInput';
@@ -55,12 +54,12 @@ import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
 
-const { InteractionState, keyProperty, valueProperty, Selection, BBox, DataSet } = _ModuleSupport;
+const { InteractionState, keyProperty, valueProperty, DataSet } = _ModuleSupport;
 
 interface AnnotationAxis {
     layout: _ModuleSupport.AxisLayout;
     context: _ModuleSupport.AxisContext;
-    bounds: _ModuleSupport.BBox;
+    bounds: BBox;
     button?: AxisButton;
 }
 
@@ -88,7 +87,7 @@ export class Annotations extends AbstractModuleInstance {
 
     // Annotations is only created when the `annotations` subtree is configured, so assert
     // the subtree's presence here and rely on annotationsTheme for field-level defaults.
-    private get opts(): _ModuleSupport.NormalisedAnnotationsOptions {
+    private get opts(): NormalisedAnnotationsOptions {
         return this.ctx.chartState.getValue('options', 'annotations')!;
     }
 
@@ -100,8 +99,8 @@ export class Annotations extends AbstractModuleInstance {
     private processedData?: _ModuleSupport.ProcessedData<any>;
 
     // Elements
-    private seriesRect?: _ModuleSupport.BBox;
-    private readonly container = new _ModuleSupport.Group({ name: 'static-annotations' });
+    private seriesRect?: BBox;
+    private readonly container = new Group({ name: 'static-annotations' });
     private readonly annotations = new Selection<AnnotationDatum, AnnotationSceneNode<AnnotationDatum>>(
         this.container,
         this.createAnnotationScene.bind(this)
@@ -379,7 +378,7 @@ export class Annotations extends AbstractModuleInstance {
                 this.state.transition('updateTextInputBBox', bbox);
             },
 
-            updateTextInputBBox: (bbox?: _ModuleSupport.BBox) => {
+            updateTextInputBBox: (bbox?: BBox) => {
                 this.state.transition('updateTextInputBBox', bbox);
             },
 
@@ -794,11 +793,7 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('render');
     }
 
-    private getAxis(
-        axisLayout: _ModuleSupport.AxisLayout,
-        seriesRect: _ModuleSupport.BBox,
-        button?: AxisButton
-    ): AnnotationAxis {
+    private getAxis(axisLayout: _ModuleSupport.AxisLayout, seriesRect: BBox, button?: AxisButton): AnnotationAxis {
         const axisCtx = this.ctx.axisManager.getAxisContext(axisLayout.direction)[0];
 
         const { position: axisPosition = 'bottom', direction } = axisCtx;
@@ -963,7 +958,7 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('hover', { offset, point, shiftKey, context });
     }
 
-    private onClick(event: _Widget.ClickWidgetEvent) {
+    private onClick(event: ClickWidgetEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -977,7 +972,7 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('click', { point, shiftKey, textInputValue, bbox });
     }
 
-    private onDoubleClick(event: _Widget.DblClickWidgetEvent) {
+    private onDoubleClick(event: DblClickWidgetEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -1029,13 +1024,13 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('resize', { textInputValue, bbox });
     }
 
-    private hoverTouchPreHandler(event: _Widget.ClickWidgetEvent | _Widget.DragWidgetEvent) {
+    private hoverTouchPreHandler(event: ClickWidgetEvent | DragWidgetEvent) {
         if (event.device === 'touch') {
             this.onHover(event);
         }
     }
 
-    private onDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
+    private onDragStart(event: DragWidgetEvent<'drag-start'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
 
         const context = this.getAnnotationContext();
@@ -1050,7 +1045,7 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('dragStart', { context, offset, point, textInputValue, bbox });
     }
 
-    private onDrag(event: _Widget.DragWidgetEvent<'drag-move'>) {
+    private onDrag(event: DragWidgetEvent<'drag-move'>) {
         if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
 
         const context = this.getAnnotationContext();
@@ -1069,7 +1064,7 @@ export class Annotations extends AbstractModuleInstance {
         this.state.transition('dragEnd');
     }
 
-    private onCancel(widgetEvent?: _Widget.ClickWidgetEvent) {
+    private onCancel(widgetEvent?: ClickWidgetEvent) {
         const { sourceEvent } = widgetEvent ?? {};
         if (sourceEvent?.currentTarget !== sourceEvent?.target) return;
         this.cancel();
@@ -1097,7 +1092,7 @@ export class Annotations extends AbstractModuleInstance {
         state.transition('textInput', { key, shiftKey, textInputValue, bbox, context });
     }
 
-    private onKeyDown(event: _Widget.KeyboardWidgetEvent<'keydown'>) {
+    private onKeyDown(event: KeyboardWidgetEvent<'keydown'>) {
         const { state } = this;
         const context = this.getAnnotationContext();
         if (!context) {
@@ -1161,7 +1156,7 @@ export class Annotations extends AbstractModuleInstance {
         }
     }
 
-    private onKeyUp(event: _Widget.KeyboardWidgetEvent<'keyup'>) {
+    private onKeyUp(event: KeyboardWidgetEvent<'keyup'>) {
         const { shiftKey } = event.sourceEvent;
         const context = this.getAnnotationContext();
         if (!context) {

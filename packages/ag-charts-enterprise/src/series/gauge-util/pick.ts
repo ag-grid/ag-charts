@@ -1,11 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgActiveItemState } from 'ag-charts-community';
-import { type Point, clamp, iterate } from 'ag-charts-core';
+import { type Node, type Path, type Point, clamp, iterate } from 'ag-charts-core';
 
-type SceneNode = _ModuleSupport.Node;
+type SceneNode = Node;
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 type SeriesNodePickMatch = _ModuleSupport.SeriesNodePickMatch;
-type SelectionNode = { node: _ModuleSupport.Path; datum: SeriesNodeDatum | undefined };
+type SelectionNode = { node: Path; datum: SeriesNodeDatum | undefined };
 type SelectionLike = Iterable<SelectionNode> & { nodes(): Iterable<SceneNode> };
 type PickFocusInputs = _ModuleSupport.PickFocusInputs;
 type PickFocusOutputs = _ModuleSupport.PickFocusOutputs;

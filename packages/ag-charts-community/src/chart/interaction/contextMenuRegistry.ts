@@ -1,9 +1,8 @@
-import type { CanvasPoint, DynamicContext, Writeable } from 'ag-charts-core';
+import type { CanvasPoint, DynamicContext, MouseWidgetEvent, Writeable } from 'ag-charts-core';
 import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn } from 'ag-charts-types';
 
 import type { ContextMenuEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ContextMenuCallback, ContextMenuRegionContexts, ContextShowOnMap } from './contextMenuTypes';
 import { ContextMenuBuiltins } from './contextMenuTypes';
 

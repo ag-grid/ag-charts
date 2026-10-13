@@ -1,3 +1,4 @@
+import type { AgDropShadowOptions } from '../chart/dropShadowOptions';
 import type { AgSeriesListeners } from '../chart/eventOptions';
 import type { AgSelectionOptions, AgSelectionStyleOptions } from '../chart/selectionOptions';
 import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
@@ -16,6 +17,39 @@ export interface AgMultiSeriesHighlightOptions<
      * Default: `true`
      */
     bringToFront?: boolean;
+}
+
+/** Highlight style options that only the highlighted item can set; the highlighted series cannot. */
+export interface AgItemHighlightStyleOptions {
+    /**
+     * Configuration for the shadow used behind the highlighted item. While the item is highlighted, it is merged with
+     * the item's normal `shadow` field by field, so any field left unset comes from that shadow. For example,
+     * `{ color }` without `enabled: true` stays off if the normal `shadow` is off. The normal `shadow` is the series'
+     * `shadow`, or for some series another one, such as `marker.shadow`, `node.shadow` or `link.shadow`.
+     *
+     * Area, radar area and range area fills are not redrawn when highlighted, so only the shadow on their markers
+     * changes. Cone funnel series do not have this option.
+     *
+     * Default: no highlight shadow, so the highlighted item keeps its normal `shadow`.
+     */
+    shadow?: AgDropShadowOptions;
+}
+
+/** Highlight options for a series whose items can cast a `shadow`. */
+export interface AgShadowHighlightOptions<
+    ItemHighlightStyleOptions = AgHighlightStyleOptions,
+> extends AgHighlightOptions<ItemHighlightStyleOptions> {
+    /** Options for the highlighted item. */
+    highlightedItem?: ItemHighlightStyleOptions & AgItemHighlightStyleOptions;
+}
+
+/** Highlight options for a series whose items can cast a `shadow`, with separate options for the highlighted series. */
+export interface AgMultiSeriesShadowHighlightOptions<
+    ItemHighlightStyleOptions,
+    SeriesHighlightStyleOptions = ItemHighlightStyleOptions,
+> extends AgMultiSeriesHighlightOptions<ItemHighlightStyleOptions, SeriesHighlightStyleOptions> {
+    /** Options for the highlighted item. */
+    highlightedItem?: ItemHighlightStyleOptions & AgItemHighlightStyleOptions;
 }
 
 export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyleOptions> {

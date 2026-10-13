@@ -6,6 +6,7 @@ import type {
     NormalisedTimeAxisOptions,
 } from 'ag-charts-core';
 import {
+    TimeScale,
     dateTruncationForDomain,
     intervalEpoch,
     intervalFloor,
@@ -28,7 +29,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import { TimeScale } from '../../scale/timeScale';
 import type { FormatDatumParams } from '../chartAxis';
 import type { ISeries, ISeriesOptions, SeriesNodeDatum } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';

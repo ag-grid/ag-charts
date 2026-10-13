@@ -25,7 +25,9 @@ export { RadiusNumberAxisModule } from './axes/radius-number/radiusNumberAxisMod
 export { PolarCrossLinesModule } from './axes/polar-crosslines/polarCrossLinesModule';
 export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
+export { AxisInsetValueModule } from './features/axis-inset-value/axisInsetValueModule';
 export { AxisInteractionModule } from './features/axis-interaction/axisInteractionModule';
+export { AxisSelectedBandModule } from './features/axis-selected-band/axisSelectedBandModule';
 export { BackgroundRegionsModule } from './features/background-regions/backgroundRegionsModule';
 export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
 export { ChartToolbarModule } from './features/chart-toolbar/chartToolbarModule';
@@ -55,6 +57,7 @@ export { MapMarkerSeriesModule } from './series/map-marker/mapMarkerModule';
 export { MapShapeSeriesModule } from './series/map-shape/mapShapeModule';
 export { MapShapeBackgroundSeriesModule } from './series/map-shape-background/mapShapeBackgroundModule';
 export { NightingaleSeriesModule } from './series/nightingale/nightingaleModule';
+export { HlcSeriesModule } from './series/hlc/hlcModule';
 export { OhlcSeriesModule } from './series/ohlc/ohlcModule';
 export { PyramidSeriesModule } from './series/pyramid/pyramidModule';
 export { RadarAreaSeriesModule } from './series/radar-area/radarAreaModule';

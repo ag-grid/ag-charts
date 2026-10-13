@@ -1,4 +1,11 @@
-import { type BaseAttributeTypeMap, getIconClassNames, hasNoModifiers, setAttribute } from 'ag-charts-core';
+import {
+    type BaseAttributeTypeMap,
+    ButtonWidget,
+    getIconClassNames,
+    hasNoModifiers,
+    setAttribute,
+} from 'ag-charts-core';
+import type { KeyboardClickBindingPredicate, KeyboardWidgetEvent } from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
@@ -11,9 +18,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
-import type { KeyboardClickBindingPredicate } from '../../widget/abstractButtonWidget';
-import { ButtonWidget } from '../../widget/buttonWidget';
-import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 
 type ButtonValue =
     | 'menu'
@@ -31,6 +35,12 @@ export interface ToolbarButtonWidgetOptions {
     ariaLabel?: string;
     tooltip?: string;
     value: ButtonValue;
+    buttonSize?: number;
+}
+
+export interface ToolbarButtonInteractionOptions {
+    isRtl: boolean;
+    buttonSize?: number;
 }
 
 type ButtonValueHasPopupRule = { readonly [K in Extract<ButtonValue, string>]: BaseAttributeTypeMap['aria-haspopup'] };
@@ -99,6 +109,7 @@ export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
     private lastInnerHTML?: string;
     private lastTooltip?: string;
+    private lastButtonSize?: number;
     private arrowKeyPredicate: KeyboardClickBindingPredicate = falsePredicate;
 
     constructor(
@@ -111,7 +122,7 @@ export class ToolbarButtonWidget extends ButtonWidget {
         }
     }
 
-    public update(options: ToolbarButtonWidgetOptions, interactionOptions: { isRtl: boolean }) {
+    public update(options: ToolbarButtonWidgetOptions, interactionOptions: ToolbarButtonInteractionOptions) {
         const { localeManager } = this;
 
         if (options.tooltip != null) {
@@ -152,6 +163,25 @@ export class ToolbarButtonWidget extends ButtonWidget {
         if (innerHTML !== this.lastInnerHTML) {
             this.elem.innerHTML = innerHTML;
             this.lastInnerHTML = innerHTML;
+        }
+
+        this.updateButtonSize(options.buttonSize ?? interactionOptions.buttonSize, options);
+    }
+
+    private updateButtonSize(buttonSize: number | undefined, options: ToolbarButtonWidgetOptions) {
+        const sized = buttonSize != null;
+        this.toggleClass('ag-charts-toolbar__button--sized', sized);
+        this.toggleClass(
+            'ag-charts-toolbar__button--icon-only',
+            sized && options.icon != null && options.label == null
+        );
+
+        if (buttonSize === this.lastButtonSize) return;
+        this.lastButtonSize = buttonSize;
+        if (sized) {
+            this.elem.style.setProperty('--toolbar-button-size', `${buttonSize}px`);
+        } else {
+            this.elem.style.removeProperty('--toolbar-button-size');
         }
     }
 

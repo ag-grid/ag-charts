@@ -3,7 +3,7 @@ import { type PluginModuleDefinition } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { Ranges } from './ranges';
-import { rangesOptionsDefs } from './rangesOptionsDefs';
+import { rangesOptionsDefs, rangesThemeOptionsDefs } from './rangesOptionsDefs';
 import { rangesTheme } from './rangesTheme';
 
 export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
@@ -14,6 +14,7 @@ export const RangesModule: PluginModuleDefinition<AgRangesOptions> = {
     enterprise: true,
     version: VERSION,
     options: rangesOptionsDefs,
+    themeOptions: rangesThemeOptionsDefs,
     themeTemplate: rangesTheme,
     create: (ctx) => new Ranges(ctx),
 };

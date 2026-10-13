@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { BBox, Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
-import { BBox } from '../bbox';
-import { Rect } from './rect';
 
 describe('Rect', () => {
     setupMockConsole();

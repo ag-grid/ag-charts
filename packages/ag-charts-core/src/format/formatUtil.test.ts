@@ -1,0 +1,38 @@
+import { expect, test } from 'vitest';
+
+import { formatNumber, formatPercent, formatValue } from './formatUtil';
+
+describe('Format utils', () => {
+    test('formatNumber', () => {
+        expect(formatNumber(0.000347985, 2)).toBe('0');
+        expect(formatNumber(234.000347985, 2)).toBe('234');
+        expect(formatNumber(234.2343, 2)).toBe('234.23');
+        expect(formatNumber(234.2343, 3)).toBe('234.234');
+        expect(formatNumber(-0.0830894028175203, 2)).toBe('-0.08');
+        expect(formatNumber(-0.0830894028175203, 4)).toBe('-0.0831');
+        expect(formatNumber(0, 2)).toBe('0');
+    });
+
+    test('formatValue', () => {
+        expect(formatValue(123.456)).toBe('123.46');
+        expect(formatValue(0.0000345)).toBe('0');
+        expect(formatValue('test')).toBe('test');
+        expect(formatValue(undefined)).toBe('');
+        expect(formatValue(null)).toBe('');
+        expect(formatValue(true)).toBe('true');
+    });
+
+    test('formatValue renders bigint at full precision (AG-16608)', () => {
+        expect(formatValue(9007199254740993n)).toBe('9,007,199,254,740,993');
+        expect(formatValue(-9007199254740993n)).toBe('-9,007,199,254,740,993');
+        expect(formatValue(0n)).toBe('0');
+    });
+
+    test('formatPercent', () => {
+        expect(formatPercent(0.25)).toBe('25%');
+        expect(formatPercent(1)).toBe('100%');
+        expect(formatPercent(0)).toBe('0%');
+        expect(formatPercent(0.345)).toBe('35%');
+        expect(formatPercent(-0.5)).toBe('-50%');
+    });
+});

@@ -2,29 +2,39 @@ import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community
 import {
     type CallbackParamRules,
     type ChartAnimationPhase,
+    ColorScale,
     type DynamicContext,
     type Feature,
     type FeatureCollection,
     type Geometry,
+    Group,
     type ITextMeasurer,
     type LabelFit,
+    LinearScale,
     type NormalisedChartLabelStyleOptions,
     type NormalisedMapMarkerSeriesOwnOptions,
     type NormalisedMapMarkerSeriesStyle,
     type PlacedLabel,
     type Point,
     type PointLabelDatum,
+    PointerEvents,
+    Selection,
     type SizedPoint,
     StateMachine,
+    Text,
+    applySizeMode,
     cachedTextMeasurer,
+    configureColorScale,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
+    isSupportedMarkerShape,
     mergeDefaults,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
     toArray,
 } from 'ag-charts-core';
+import type { BBox } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgMapMarkerSeriesItemStylerParams,
@@ -36,6 +46,7 @@ import { LonLatBBox } from '../map-util/lonLatBbox';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { markerPositions } from '../map-util/markerUtil';
+import type { MercatorScale } from '../map-util/mercatorScale';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
 import type { ITopology } from '../map-util/topologyTypes';
@@ -46,16 +57,10 @@ const {
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
-    configureColorScale,
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
     computeMarkerFocusBounds,
-    ColorScale,
-    LinearScale,
-    Group,
-    Selection,
-    Text,
     Marker,
     getLabelStyles,
     expandLabelBoxExtent,
@@ -116,7 +121,7 @@ export class MapMarkerSeries
     static override readonly className = 'MapMarkerSeries';
     static readonly type = 'map-marker' as const;
 
-    scale: _ModuleSupport.MercatorScale | undefined;
+    scale: MercatorScale | undefined;
 
     public topologyBounds: LonLatBBox | undefined;
 
@@ -139,14 +144,12 @@ export class MapMarkerSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    private readonly markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
-
-    private labelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(
-        this.labelGroup,
-        Text,
-        false
+    private readonly markerGroup = this.contentGroup.appendChild(
+        new Group({ name: 'markerGroup', batchShadows: 'by-layer' })
     );
-    private highlightLabelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(
+
+    private labelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(this.labelGroup, Text, false);
+    private highlightLabelSelection = Selection.select<Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(
         this.highlightLabelGroup,
         Text,
         false
@@ -452,7 +455,13 @@ export class MapMarkerSeries
     }
 
     private calculateMarkerSize(sizeValue: number | undefined): number {
-        return sizeValue == null ? this.options.size : this.sizeScale.convertClamped(sizeValue);
+        return sizeValue == null ? this.options.size : this.scaleMarkerSize(sizeValue);
+    }
+
+    private scaleMarkerSize(sizeValue: number): number {
+        const { sizeScale, options } = this;
+        const [min, max] = sizeScale.range;
+        return applySizeMode(sizeScale.convertClamped(sizeValue), min, max, options.sizeMode);
     }
 
     private buildNodeDatum(
@@ -661,14 +670,14 @@ export class MapMarkerSeries
         }
     }
 
-    private previousScale: _ModuleSupport.MercatorScale | undefined;
+    private previousScale: MercatorScale | undefined;
     private checkScaleChange() {
         if (this.previousScale === this.scale) return false;
         this.previousScale = this.scale;
         return true;
     }
 
-    override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
+    override update({ seriesRect }: { seriesRect?: BBox }) {
         const resize = this.checkResize(seriesRect);
         const scaleChange = this.checkScaleChange();
 
@@ -710,7 +719,7 @@ export class MapMarkerSeries
     public override updatePlacedLabelData(labelData: PlacedLabel<MapMarkerNodeLabelDatum>[]) {
         this.placedLabelData = labelData;
         this.labelSelection = this.labelSelection.update(labelData, (text) => {
-            text.pointerEvents = _ModuleSupport.PointerEvents.None;
+            text.pointerEvents = PointerEvents.None;
         });
         this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
         this.updateHighlightLabelSelection();
@@ -720,10 +729,7 @@ export class MapMarkerSeries
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<
-            PlacedLabel<MapMarkerNodeLabelDatum>,
-            _ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>
-        >;
+        labelSelection: Selection<PlacedLabel<MapMarkerNodeLabelDatum>, Text<PlacedLabel<MapMarkerNodeLabelDatum>>>;
         isHighlight: boolean;
     }) {
         const { options } = this;
@@ -798,7 +804,7 @@ export class MapMarkerSeries
 
     private updateMarkerSelection(opts: {
         markerData: MapMarkerNodeDatum[];
-        markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker<MapMarkerNodeDatum>>;
+        markerSelection: Selection<MapMarkerNodeDatum, _ModuleSupport.Marker<MapMarkerNodeDatum>>;
     }) {
         const { markerData, markerSelection } = opts;
 
@@ -811,7 +817,7 @@ export class MapMarkerSeries
         { datumIndex, datum, colorValue, sizeValue }: Partial<MapMarkerNodeDatum>,
         isHighlight: boolean
     ): Required<NormalisedMapMarkerSeriesStyle> {
-        const { options, colorScale, sizeScale } = this;
+        const { options, colorScale } = this;
         const { colorKey, colorScale: colorScaleProps, itemStyler } = options;
         const { missingDataFill } = colorScaleProps;
 
@@ -845,7 +851,7 @@ export class MapMarkerSeries
         }
 
         if (sizeValue != null) {
-            baseStyle.size = sizeScale.convertClamped(sizeValue);
+            baseStyle.size = this.scaleMarkerSize(sizeValue);
         }
 
         let style = baseStyle;
@@ -922,7 +928,7 @@ export class MapMarkerSeries
     }
 
     private updateMarkerNodes(opts: {
-        markerSelection: _ModuleSupport.Selection<MapMarkerNodeDatum, _ModuleSupport.Marker<MapMarkerNodeDatum>>;
+        markerSelection: Selection<MapMarkerNodeDatum, _ModuleSupport.Marker<MapMarkerNodeDatum>>;
         isHighlight: boolean;
         highlightedDatum: MapMarkerNodeDatum | undefined;
         drawingMode: AgDrawingMode;
@@ -939,10 +945,8 @@ export class MapMarkerSeries
             marker.size = style.size;
 
             marker.setStyleProperties(style, fillBBox);
-            marker.fillShadow =
-                this.options.shadow?.enabled && _ModuleSupport.isSupportedMarkerShape(style.shape)
-                    ? this.options.shadow
-                    : undefined;
+            const shadow = this.resolveItemShadow(this.options.shadow, isHighlight, markerDatum.datumIndex);
+            marker.fillShadow = shadow?.enabled && isSupportedMarkerShape(style.shape) ? shadow : undefined;
 
             marker.x = point.x;
             marker.y = point.y;
@@ -1250,7 +1254,7 @@ export class MapMarkerSeries
         return { size: format.size, shape: format.shape };
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
 

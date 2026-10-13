@@ -8,6 +8,7 @@ import type {
     AgCandlestickSeriesOptions,
     AgCartesianChartOptions,
     AgChartSyncOptions,
+    AgHlcSeriesOptions,
     AgLineSeriesOptions,
     AgNavigatorOptions,
     AgNumberAxisOptions,
@@ -15,17 +16,22 @@ import type {
     AgOrdinalTimeAxisOptions,
     AgPriceVolumeChartType,
     AgPriceVolumePreset,
-    AgRangeAreaSeriesOptions,
     AgRangeBarSeriesOptions,
     AgRangesOptions,
     AgThemeOverrides,
+    AgVolumeProfileOptions,
     AgZoomOptions,
     DatumDefault,
 } from 'ag-charts-types';
 
-import { createVolumeProfileAxis, createVolumeProfileSeries } from '../volume-profile/volumeProfile';
+import {
+    createSelectionChartOptions,
+    createVolumeProfileAxis,
+    createVolumeProfileSeries,
+    groupVolumeProfile,
+} from '../volume-profile/volumeProfile';
 
-type ChartTheme = _Theme.ChartTheme;
+type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
 
@@ -98,13 +104,18 @@ export function priceVolume(
     const shownVolumeKey = volume ? volumeKey : undefined;
     const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
 
+    const chartSelection = createSelectionChartOptions(volumeProfile?.selection);
+    // A chart-level `selection` object makes every series selectable, so the price and volume series opt out; only
+    // the Volume Profile series opt in.
+    const seriesSelection = chartSelection === undefined ? undefined : { enabled: false };
+
     return {
         animation: { enabled: false },
         legend: { enabled: false },
         series: [
-            ...createVolumeSeries(getTheme, keys, shownVolumeKey),
-            ...createVolumeProfileSeries(getTheme, volumeProfile, tickSize, 'xVolumeProfilePrice'),
-            ...createPriceSeries(chartType, keys, logger),
+            ...createVolumeSeries(getTheme, keys, shownVolumeKey, seriesSelection),
+            ...createPriceVolumeProfileSeries(getTheme, volumeProfile, tickSize),
+            ...createPriceSeries(chartType, keys, logger, seriesSelection),
         ],
         axes: {
             ...createPriceAxis(),
@@ -121,15 +132,15 @@ export function priceVolume(
         ...createStatusBarOptions(statusBar, keys, shownVolumeKey),
         ...createSyncOptions(sync),
         ...createZoomOptions(zoom),
+        ...chartSelection,
         ...unusedOpts,
     } satisfies AgCartesianChartOptions<DatumDefault, never>;
 }
 
-const RANGE_AREA_TYPE = 'range-area';
-
 interface PriceSeriesCommon {
     pickOutsideVisibleMinorAxis: boolean;
     tooltip: { enabled: boolean };
+    selection?: { enabled: boolean };
 }
 
 interface PriceSeriesKeys {
@@ -145,7 +156,12 @@ interface PriceSeriesSingleKeys {
     yKey: string;
 }
 
-function createPriceSeries(chartType: AgPriceVolumeChartType, keys: PriceSeriesKeys, logger: Logger) {
+function createPriceSeries(
+    chartType: AgPriceVolumeChartType,
+    keys: PriceSeriesKeys,
+    logger: Logger,
+    selection: { enabled: boolean } | undefined
+) {
     const singleKeys: PriceSeriesSingleKeys = {
         xKey: keys.xKey,
         yKey: keys.closeKey,
@@ -153,6 +169,7 @@ function createPriceSeries(chartType: AgPriceVolumeChartType, keys: PriceSeriesK
     const common: PriceSeriesCommon = {
         tooltip: { enabled: false },
         pickOutsideVisibleMinorAxis: true,
+        ...(selection === undefined ? undefined : { selection }),
     };
 
     switch (chartType) {
@@ -162,7 +179,7 @@ function createPriceSeries(chartType: AgPriceVolumeChartType, keys: PriceSeriesK
         case 'step-line':
             return createPriceSeriesLine(common, singleKeys);
         case 'hlc':
-            return createPriceSeriesHLC(common, singleKeys, keys);
+            return createPriceSeriesHLC(common, keys);
         case 'high-low':
             return createPriceSeriesHighLow(common, keys);
         case 'candlestick':
@@ -198,35 +215,18 @@ function createPriceSeriesLine(common: PriceSeriesCommon, singleKeys: PriceSerie
     ];
 }
 
-function createPriceSeriesHLC(
-    common: PriceSeriesCommon,
-    singleKeys: PriceSeriesSingleKeys,
-    { xKey, highKey, closeKey, lowKey }: PriceSeriesKeys
-) {
+function createPriceSeriesHLC(common: PriceSeriesCommon, { xKey, highKey, lowKey, closeKey }: PriceSeriesKeys) {
     return [
         {
-            type: RANGE_AREA_TYPE,
+            type: 'hlc',
             // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             xKey,
-            yHighKey: highKey,
-            yLowKey: closeKey,
-        } satisfies AgRangeAreaSeriesOptions,
-        {
-            type: RANGE_AREA_TYPE,
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
-            ...common,
-            xKey,
-            yHighKey: closeKey,
-            yLowKey: lowKey,
-        } satisfies AgRangeAreaSeriesOptions,
-        {
-            type: 'line',
-            ...common,
-            ...singleKeys,
-        } satisfies AgLineSeriesOptions,
+            highKey,
+            lowKey,
+            closeKey,
+        } satisfies AgHlcSeriesOptions,
     ];
 }
 
@@ -260,7 +260,8 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
 function createVolumeSeries(
     getTheme: () => ChartTheme,
     { xKey, openKey, closeKey }: PriceSeriesKeys,
-    volumeKey: string | undefined
+    volumeKey: string | undefined,
+    selection: { enabled: boolean } | undefined
 ) {
     if (volumeKey == null) return [];
 
@@ -271,6 +272,7 @@ function createVolumeSeries(
             yKey: volumeKey,
             yKeyAxis: 'yVolume',
             tooltip: { enabled: false },
+            ...(selection === undefined ? undefined : { selection }),
             grouped: false,
             // @ts-expect-error undocumented options: simpleItemStyler, focusPriority
             simpleItemStyler(datum: DatumDefault) {
@@ -281,6 +283,17 @@ function createVolumeSeries(
             highlight: { unhighlightedSeries: { opacity: 1 } },
         } satisfies AgBarSeriesOptions,
     ];
+}
+
+function createPriceVolumeProfileSeries(
+    getTheme: () => ChartTheme,
+    volumeProfile: AgVolumeProfileOptions | undefined,
+    tickSize: number | undefined
+) {
+    if (volumeProfile == null) return [];
+
+    const levels = groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize);
+    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, volumeProfile.selection);
 }
 
 function createPriceAxis() {

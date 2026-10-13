@@ -1,5 +1,10 @@
-import { type AgMiniChartSeriesOptions, type AgNavigatorOptions, type WithThemeParams } from 'ag-charts-community';
-import { FONT_SIZE_RATIO } from 'ag-charts-core';
+import {
+    type AgMiniChartSeriesOptions,
+    type AgNavigatorHandleOptions,
+    type AgNavigatorOptions,
+    type WithThemeParams,
+} from 'ag-charts-community';
+import { FONT_SIZE_RATIO, themeBorderColor, themeBorderWidth } from 'ag-charts-core';
 
 import {
     barIgnoredMiniChartProperties,
@@ -8,6 +13,7 @@ import {
     commonIgnoredMiniChartProperties,
     heatmapIgnoredMiniChartProperties,
     histogramIgnoredMiniChartProperties,
+    hlcIgnoredMiniChartProperties,
     lineIgnoredMiniChartProperties,
     rangeAreaIgnoredMiniChartProperties,
     rangeBarIgnoredMiniChartProperties,
@@ -22,6 +28,7 @@ const validMiniChartSeriesTypes: AgMiniChartSeriesOptions['type'][] = [
     'candlestick',
     'heatmap',
     'histogram',
+    'hlc',
     'line',
     'ohlc',
     'range-area',
@@ -50,6 +57,20 @@ const priceVolumePresetIgnoredMiniChartProperties = [
     'strokeWidth',
 ];
 
+// Not in the shared ignore lists: those drive the options defs, so `series[]` would reject `shadow`.
+function omitInheritedShadow(ignoredProperties: readonly string[]) {
+    return [...ignoredProperties, 'shadow'];
+}
+
+const miniChartMarkerTheme = {
+    // `$omit` only drops top-level keys and the first grafted value for a key wins, so the nested marker shadow is
+    // switched off here rather than alongside the omit.
+    shadow: { enabled: false },
+    enabled: {
+        $isUserOption: ['/series/$index/marker/enabled', { $path: ['/series/$index/marker/enabled', false] }, false],
+    },
+};
+
 function miniChartSeriesTheme(seriesPath: object, typePath: object) {
     return {
         $merge: [
@@ -57,17 +78,37 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                 $switch: [
                     typePath,
                     {},
+                    [['area', 'line'], { marker: miniChartMarkerTheme }],
+                    // Waterfall keeps its shadows under `item.*`, which `$omit` does not reach.
                     [
-                        ['area', 'line', 'range-area'],
+                        'waterfall',
                         {
-                            marker: {
-                                enabled: {
-                                    $isUserOption: [
-                                        '/series/$index/marker/enabled',
-                                        { $path: ['/series/$index/marker/enabled', false] },
-                                        false,
-                                    ],
-                                },
+                            item: {
+                                positive: { shadow: { enabled: false } },
+                                negative: { shadow: { enabled: false } },
+                                total: { shadow: { enabled: false } },
+                            },
+                        },
+                    ],
+                    [
+                        'range-area',
+                        {
+                            marker: miniChartMarkerTheme,
+                            // The item markers take their shadow from the main series via `$path`, not by copying it.
+                            item: {
+                                low: { marker: { shadow: { enabled: false } } },
+                                high: { marker: { shadow: { enabled: false } } },
+                            },
+                        },
+                    ],
+                    [
+                        'hlc',
+                        {
+                            marker: miniChartMarkerTheme,
+                            item: {
+                                high: { marker: { shadow: { enabled: false } } },
+                                low: { marker: { shadow: { enabled: false } } },
+                                close: { marker: { shadow: { enabled: false } } },
                             },
                         },
                     ],
@@ -78,19 +119,21 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
                     {
                         $switch: [
                             typePath,
-                            commonIgnoredMiniChartProperties,
-                            ['bar', barIgnoredMiniChartProperties],
-                            ['box-plot', boxPlotIngnoredMiniChartProperties],
-                            ['bubble', bubbleIgnoredMiniChartProperties],
-                            ['heatmap', heatmapIgnoredMiniChartProperties],
-                            ['histogram', histogramIgnoredMiniChartProperties],
+                            omitInheritedShadow(commonIgnoredMiniChartProperties),
+                            ['bar', omitInheritedShadow(barIgnoredMiniChartProperties)],
+                            ['box-plot', omitInheritedShadow(boxPlotIngnoredMiniChartProperties)],
+                            ['bubble', omitInheritedShadow(bubbleIgnoredMiniChartProperties)],
+                            ['heatmap', omitInheritedShadow(heatmapIgnoredMiniChartProperties)],
+                            ['histogram', omitInheritedShadow(histogramIgnoredMiniChartProperties)],
+                            ['hlc', omitInheritedShadow(hlcIgnoredMiniChartProperties)],
+                            // `priceVolumePresetIgnoredMiniChartProperties` already includes `shadow`.
                             [
                                 'line',
                                 [...lineIgnoredMiniChartProperties, ...priceVolumePresetIgnoredMiniChartProperties],
                             ],
-                            ['range-area', rangeAreaIgnoredMiniChartProperties],
-                            ['range-bar', rangeBarIgnoredMiniChartProperties],
-                            ['scatter', scatterIgnoredMiniChartProperties],
+                            ['range-area', omitInheritedShadow(rangeAreaIgnoredMiniChartProperties)],
+                            ['range-bar', omitInheritedShadow(rangeBarIgnoredMiniChartProperties)],
+                            ['scatter', omitInheritedShadow(scatterIgnoredMiniChartProperties)],
                             ['waterfall', waterfallIgnoredMiniChartProperties],
                         ],
                     },
@@ -101,33 +144,41 @@ function miniChartSeriesTheme(seriesPath: object, typePath: object) {
     };
 }
 
+const NAVIGATOR_HANDLE_THEME: WithThemeParams<AgNavigatorHandleOptions> = {
+    fill: { $ref: 'navigatorHandleBackgroundColor' },
+    stroke: themeBorderColor('navigatorHandleBorder'),
+    strokeWidth: themeBorderWidth('navigatorHandleBorder', { on: 1 }),
+    width: 12,
+    height: 24,
+    cornerRadius: { $ref: 'navigatorHandleBorderRadius' },
+};
+
 export const NAVIGATOR_THEME: WithThemeParams<AgNavigatorOptions> = {
     enabled: false,
     height: { $if: [{ $path: './miniChart/enabled' }, 40, 18] },
     spacing: 10,
-    cornerRadius: 4,
+    cornerRadius: { $ref: 'navigatorTrackBorderRadius' },
+    // Deprecated `mask` seeds `track`, so either name works and an explicit `track` wins. The track params live here
+    // rather than on `track` so that a user `mask` still overrides them.
     mask: {
-        fill: { $ref: 'foregroundColor' },
+        fill: { $ref: 'navigatorTrackBackgroundColor' },
         fillOpacity: 0.1,
-        stroke: { $ref: 'borderColor' },
-        strokeWidth: 1,
+        stroke: themeBorderColor('navigatorTrackBorder'),
+        strokeWidth: themeBorderWidth('navigatorTrackBorder', { on: 1 }),
     },
-    minHandle: {
-        fill: { $ref: 'chartBackgroundColor' },
-        stroke: { $ref: 'borderColor' },
-        strokeWidth: 1,
-        width: 12,
-        height: 24,
-        cornerRadius: 4,
+    track: {
+        fill: { $path: '../mask/fill' },
+        fillOpacity: { $path: '../mask/fillOpacity' },
+        stroke: { $path: '../mask/stroke' },
+        strokeWidth: { $path: '../mask/strokeWidth' },
     },
-    maxHandle: {
-        fill: { $ref: 'chartBackgroundColor' },
-        stroke: { $ref: 'borderColor' },
-        strokeWidth: 1,
-        width: 12,
-        height: 24,
-        cornerRadius: 4,
+    // Transparent by default so the selected range looks as it did before `thumb` existed.
+    thumb: {
+        fill: { $ref: 'navigatorThumbBackgroundColor' },
+        fillOpacity: 1,
     },
+    minHandle: NAVIGATOR_HANDLE_THEME,
+    maxHandle: NAVIGATOR_HANDLE_THEME,
     miniChart: {
         enabled: false,
         label: {

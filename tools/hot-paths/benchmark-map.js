@@ -103,6 +103,9 @@ const RULES = [
     { re: series('bubble'), types: ['bubble'] },
     { re: series('histogram'), types: ['histogram'] },
     { re: series('ohlc'), types: ['ohlc'] },
+    { re: series('hlc'), types: ['hlc'] },
+    // hlc imports its aggregation from the ohlc folder.
+    { re: /(^|\/)ohlcAggregation\.ts$/, types: ['hlc'] },
     { re: series('candlestick'), types: ['candlestick'] },
     { re: series('range-bar'), types: ['range-bar'] },
     { re: series('range-area'), types: ['range-area'] },

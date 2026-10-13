@@ -1,4 +1,4 @@
-import type { Size, SizeMonitor } from '../util/sizeMonitor';
+import type { ElementSize, SizeMonitor } from 'ag-charts-core';
 
 type StyleProperty =
     '--left' | '--top' | 'height' | 'left' | 'pointer-events' | 'position-anchor' | 'top' | 'translate' | 'width';
@@ -267,7 +267,7 @@ export class DOMElementProxy {
     }
 
     /** Observe the element for resize events via the shared SizeMonitor. Returns an unsubscribe function. */
-    addResizeListener(cb: (size: Size) => void): () => void {
+    addResizeListener(cb: (size: ElementSize) => void): () => void {
         const { sizeMonitor, element, skipInitialRead } = this;
         if (sizeMonitor == null) {
             throw new Error('AG Charts - addResizeListener requires a SizeMonitor');

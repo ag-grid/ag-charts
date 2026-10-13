@@ -1,12 +1,5 @@
 import { type AgContextMenuOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import {
-    IS_DARK_THEME,
-    type PluginModuleDefinition,
-    boolean,
-    callbackOf,
-    contextMenuItemsArray,
-    undocumented,
-} from 'ag-charts-core';
+import { type PluginModuleDefinition, boolean, callbackOf, contextMenuItemsArray } from 'ag-charts-core';
 
 import { AxisInteractionModule } from '../axis-interaction/axisInteractionModule';
 import { ContextMenu, type ContextMenuCtx } from './contextMenu';
@@ -20,12 +13,13 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, _Mo
 
     options: {
         enabled: boolean,
+        allowBrowserMenuWithModifierKey: boolean,
         items: contextMenuItemsArray,
         getItems: callbackOf(contextMenuItemsArray, 'a menu items array'),
     },
     themeTemplate: {
         enabled: true,
-        darkTheme: IS_DARK_THEME,
+        allowBrowserMenuWithModifierKey: false,
     },
 
     // `register()` runs first and guarantees `contextMenuRegistry` is present, so we
@@ -36,6 +30,3 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, _Mo
         ctx.service('contextMenuRegistry', (c) => new _ModuleSupport.ContextMenuRegistry(c));
     },
 };
-
-// @ts-expect-error undocumented option
-ContextMenuModule.options.darkTheme = undocumented(boolean);

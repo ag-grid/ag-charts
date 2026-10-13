@@ -1,5 +1,5 @@
+import { isDate, isObject } from '../data/typeGuards';
 import type { Logger } from '../logging/logger';
-import { isDate, isObject } from '../utils/types/typeGuards';
 
 export interface MementoOriginator<Memento = any> {
     mementoOriginatorKey: string;

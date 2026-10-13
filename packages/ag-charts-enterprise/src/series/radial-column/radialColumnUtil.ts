@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { Path, RadialColumnShape } from 'ag-charts-core';
 
 const { motion } = _ModuleSupport;
 
@@ -23,11 +24,7 @@ export function createAngleMotionCalculator() {
         endAngle: new Map(),
     };
     const angleKeys: AngleKey[] = ['startAngle', 'endAngle'];
-    const calculate = (
-        node: _ModuleSupport.Path & AngleObject,
-        datum: AngleObject,
-        status: _ModuleSupport.NodeUpdateState
-    ) => {
+    const calculate = (node: Path & AngleObject, datum: AngleObject, status: _ModuleSupport.NodeUpdateState) => {
         for (const key of angleKeys) {
             const map = angles[key];
             let from = (status === 'removed' || status === 'updated' ? node : datum)[key];
@@ -55,7 +52,7 @@ export function createAngleMotionCalculator() {
 }
 
 export function fixRadialColumnAnimationStatus(
-    node: _ModuleSupport.Path,
+    node: Path,
     datum: { startAngle: number; endAngle: number },
     status: _ModuleSupport.NodeUpdateState
 ) {
@@ -83,7 +80,7 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
     const angles = createAngleMotionCalculator();
 
     const fromFn = (
-        node: _ModuleSupport.RadialColumnShape,
+        node: RadialColumnShape,
         datum: AnimatableRadialColumnDatum,
         status: _ModuleSupport.NodeUpdateState
     ) => {
@@ -125,7 +122,7 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
     };
 
     const toFn = (
-        node: _ModuleSupport.RadialColumnShape,
+        node: RadialColumnShape,
         datum: AnimatableRadialColumnDatum,
         status: _ModuleSupport.NodeUpdateState
     ) => {
@@ -157,7 +154,7 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
 }
 
 export function resetRadialColumnSelectionFn(
-    _node: _ModuleSupport.RadialColumnShape,
+    _node: RadialColumnShape,
     {
         innerRadius,
         outerRadius,

@@ -3,7 +3,7 @@ import { ChartAxisDirection, DIRECTION_SWAP_AXES, type SeriesModuleDefinition } 
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { BoxPlotSeries } from './boxPlotSeries';
-import { boxPlotSeriesOptionsDef } from './boxPlotSeriesOptionsDef';
+import { boxPlotSeriesOptionsDef, boxPlotSeriesThemeableOptionsDef } from './boxPlotSeriesOptionsDef';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
 const { predictCartesianNonPrimitiveAxis } = _ModuleSupport;
@@ -18,6 +18,8 @@ export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions>
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: boxPlotSeriesOptionsDef,
+
+    themeOptions: boxPlotSeriesThemeableOptionsDef,
     matchingKeys: ['xKey', 'lowKey', 'q1Key', 'medianKey', 'q3Key', 'highKey', 'outlierKey', 'normalizedTo'],
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,

@@ -1,6 +1,6 @@
 import type { AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AreExact } from 'ag-charts-core';
+import { type AreExact, BBox, type DragWidgetEvent, type Group, Transformable } from 'ag-charts-core';
 
 import type { DataSelectionChangeMap } from './dataSelectionChangeMap';
 import type { DataSetSelection } from './dataSetSelection';
@@ -10,15 +10,14 @@ type SelectionChangesDeltaOnly = { countDelta: number; items?: never };
 
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = _ModuleSupport.DataSet<unknown>;
-type Group = _ModuleSupport.Group<unknown>;
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
-type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
 type Service = {
     clearSelection(): void;
     enableSelection(seriesId: string, dataSet: DataSet): DataSetSelection;
     iterateDataSetSelections(): Iterable<DataSetSelectionsIterator>;
+    iterateLinkedItems(series: Series, datumIndex: number): Iterable<{ series: Series; datumIndex: number }>;
 };
 
 export type DataSetSelectionsIterator = {
@@ -36,11 +35,11 @@ export function toStartAndLength(start: number, end: number): [number, number] {
     return [start, end - start];
 }
 
-export function toCanvasBBox(seriesRoot: Group, event1: DragWidgetEvent, event2: DragWidgetEvent): _ModuleSupport.BBox {
+export function toCanvasBBox(seriesRoot: Group, event1: DragWidgetEvent, event2: DragWidgetEvent): BBox {
     const [x, width] = toStartAndLength(event1.currentX, event2.currentX);
     const [y, height] = toStartAndLength(event1.currentY, event2.currentY);
-    const seriesBounds = new _ModuleSupport.BBox(x, y, width, height);
-    return _ModuleSupport.Transformable.toCanvas(seriesRoot, seriesBounds);
+    const seriesBounds = new BBox(x, y, width, height);
+    return Transformable.toCanvas(seriesRoot, seriesBounds);
 }
 
 export function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boolean; metaKey: boolean } }): boolean {
@@ -90,6 +89,7 @@ export function toggleSelection(changes: SelectionChanges, series: Series, srv: 
         }
     }
     changes.countDelta += selections.toggle(datumIndex);
+    syncLinkedItems(changes, series, srv, datumIndex, !wasSelected);
 }
 
 export function setSelected(changes: SelectionChanges, series: Series, srv: Service, datumIndex: number): void {
@@ -102,6 +102,36 @@ export function setSelected(changes: SelectionChanges, series: Series, srv: Serv
         changes.items.markAdded(series.id, data, datumIndex);
     }
     changes.countDelta += selections.select(datumIndex);
+    syncLinkedItems(changes, series, srv, datumIndex, true);
+}
+
+/** Brings the items linked to `series`' `datumIndex` (see `Series.getSelectionGroup`) to its new selected state. */
+function syncLinkedItems(
+    changes: SelectionChanges,
+    series: Series,
+    srv: Service,
+    datumIndex: number,
+    selected: boolean
+): void {
+    // Runs for every datum a drag picks, so skip the generator for the series that have no group.
+    if (series.getSelectionGroup() === undefined) return;
+
+    for (const linked of srv.iterateLinkedItems(series, datumIndex)) {
+        const data = linked.series.data;
+        if (!data || !linked.series.isDatumSelectable(linked.datumIndex)) continue;
+
+        const selections = srv.enableSelection(linked.series.id, data);
+        if (selections.isSelected(linked.datumIndex) === selected) continue;
+
+        if (changes.items !== undefined) {
+            if (selected) {
+                changes.items.markAdded(linked.series.id, data, linked.datumIndex);
+            } else {
+                changes.items.markRemoved(linked.series.id, data, linked.datumIndex);
+            }
+        }
+        changes.countDelta += selected ? selections.select(linked.datumIndex) : selections.deselect(linked.datumIndex);
+    }
 }
 
 export function setSelectedRange(

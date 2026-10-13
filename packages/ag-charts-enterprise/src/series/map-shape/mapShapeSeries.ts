@@ -8,15 +8,23 @@ import type {
     Geometry,
     ITextMeasurer,
     LabelFit,
+    Node,
     NormalisedMapShapeSeriesLabelOptions,
     NormalisedMapShapeSeriesOwnOptions,
     NormalisedMapShapeSeriesStyle,
     NormalisedTextOrSegments,
+    Path,
     Point,
     Position,
 } from 'ag-charts-core';
 import {
+    ColorScale,
+    Group,
+    PointerEvents,
+    Selection,
+    Text,
     cachedTextMeasurer,
+    configureColorScale,
     findDiscreteColorBinLabel,
     fitLabelTextToRegionAutoSize,
     formatValue,
@@ -43,6 +51,7 @@ import { LonLatBBox } from '../map-util/lonLatBbox';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
+import { MercatorScale } from '../map-util/mercatorScale';
 import { polygonFitRegion, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { polygonCentroid } from '../map-util/polygonUtil';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
@@ -54,15 +63,9 @@ const {
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
-    configureColorScale,
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
-    ColorScale,
-    Group,
-    Selection,
-    Text,
-    PointerEvents,
     expandLabelBoxExtent,
     labelHasBox,
     getLabelStyles,
@@ -99,7 +102,7 @@ interface ShapeDataValues {
     readonly labelValue: string | undefined;
 }
 
-const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
+const fixedScale = MercatorScale.fixedScale();
 
 /** The label's anchors in fixed-scale space, cached per geometry so panning and zooming do not repeat the search. */
 interface LabelLayout {
@@ -154,7 +157,7 @@ export class MapShapeSeries
     static override readonly className = 'MapShapeSeries';
     static readonly type = 'map-shape' as const;
 
-    scale: _ModuleSupport.MercatorScale | undefined;
+    scale: MercatorScale | undefined;
 
     public topologyBounds: LonLatBBox | undefined;
 
@@ -174,18 +177,17 @@ export class MapShapeSeries
 
     private readonly colorScale = new ColorScale();
 
-    private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
+    private readonly itemGroup = this.contentGroup.appendChild(
+        new Group({ name: 'itemGroup', batchShadows: 'by-layer' })
+    );
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
     public datumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.itemGroup, () => this.nodeFactory());
-    private labelSelection = Selection.select<_ModuleSupport.Text<MapShapeNodeLabelDatum>>(this.itemLabelGroup, Text);
+    private labelSelection = Selection.select<Text<MapShapeNodeLabelDatum>>(this.itemLabelGroup, Text);
     private highlightDatumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.highlightNodeGroup, () =>
         this.nodeFactory()
     );
-    private highlightLabelSelection = Selection.select<_ModuleSupport.Text<MapShapeNodeLabelDatum>>(
-        this.highlightLabelGroup,
-        Text
-    );
+    private highlightLabelSelection = Selection.select<Text<MapShapeNodeLabelDatum>>(this.highlightLabelGroup, Text);
 
     public contextNodeData?: MapShapeNodeDataContext;
 
@@ -568,7 +570,7 @@ export class MapShapeSeries
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumStyles({ datumSelection, isHighlight: false });
-        this.updateDatumNodes({ datumSelection, drawingMode: 'overlay' });
+        this.updateDatumNodes({ datumSelection, drawingMode: 'overlay', isHighlight: false });
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
         const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum);
@@ -584,7 +586,7 @@ export class MapShapeSeries
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
-        this.updateDatumNodes({ datumSelection: highlightDatumSelection, drawingMode });
+        this.updateDatumNodes({ datumSelection: highlightDatumSelection, drawingMode, isHighlight: true });
     }
 
     private getHighlightLabelData(
@@ -601,7 +603,7 @@ export class MapShapeSeries
 
     private updateDatumSelection(opts: {
         nodeData: MapShapeNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
+        datumSelection: Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
@@ -699,7 +701,7 @@ export class MapShapeSeries
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
+        datumSelection: Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
@@ -710,9 +712,11 @@ export class MapShapeSeries
     private updateDatumNodes({
         datumSelection,
         drawingMode,
+        isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
+        datumSelection: Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
         drawingMode: AgDrawingMode;
+        isHighlight: boolean;
     }) {
         const fillBBox = getTopologyShapeFillBBox(this.scale);
         const { shadow } = this.options;
@@ -731,7 +735,7 @@ export class MapShapeSeries
             // Style is resolved by getItemStyle; colour refs are gone by render.
             geoGeometry.setStyleProperties(nodeDatum.style as NormalisedMapShapeSeriesStyle, fillBBox);
 
-            geoGeometry.fillShadow = shadow;
+            geoGeometry.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
             geoGeometry.drawingMode = drawingMode;
 
             const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
@@ -742,7 +746,7 @@ export class MapShapeSeries
 
     private updateLabelSelection(opts: {
         labelData: MapShapeNodeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text<MapShapeNodeLabelDatum>>;
+        labelSelection: Selection<MapShapeNodeLabelDatum, Text<MapShapeNodeLabelDatum>>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
@@ -752,7 +756,7 @@ export class MapShapeSeries
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text<MapShapeNodeLabelDatum>>;
+        labelSelection: Selection<MapShapeNodeLabelDatum, Text<MapShapeNodeLabelDatum>>;
         isHighlight: boolean;
     }) {
         const { options } = this;
@@ -797,7 +801,7 @@ export class MapShapeSeries
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
-        let minNode: _ModuleSupport.Node<unknown> | undefined;
+        let minNode: Node<unknown> | undefined;
 
         this.datumSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);
@@ -997,7 +1001,7 @@ export class MapShapeSeries
         );
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.Path | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): Path | undefined {
         return findFocusedGeoGeometry(this, opts);
     }
 

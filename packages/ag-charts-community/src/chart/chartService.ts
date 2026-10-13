@@ -1,7 +1,7 @@
 import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
+import { Group } from 'ag-charts-core';
 import type { AgBaseChartListeners, AgChartInstance, AgCoordinates } from 'ag-charts-types';
 
-import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
 import type { ChartType } from './chartType';
 import type { DatumIndex, ISeries, ISeriesOptions, SeriesNodeDatum } from './series/seriesTypes';

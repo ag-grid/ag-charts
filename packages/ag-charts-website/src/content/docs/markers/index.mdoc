@@ -34,33 +34,6 @@ Notice how the shape and colour of the legend markers automatically match the sh
 
 The legend item marker can be modified within the [Legend Options](./legend/#markers).
 
-### Marker Shadow
-
-Add a drop shadow behind the markers with the `shadow` option. It is disabled by default, and takes `enabled`, `color`, `xOffset`, `yOffset` and `blur` (see the API reference).
-
-```js format="snippet"
-{
-    marker: {
-        shadow: {
-            enabled: true,
-            xOffset: 0,
-            yOffset: 4,
-            blur: 8,
-        },
-    },
-}
-```
-
-For `scatter`, `bubble` and `map-marker` series, `shadow` is set on the series itself, alongside `shape`, `size` and the other marker options.
-
-{% note %}
-Shadows are only applied to the built-in marker shapes. Markers drawn with a [custom shape function](#custom-marker-shapes) do not get a shadow. Only the fill casts a shadow, so hollow markers (no fill) have none.
-{% /note %}
-
-In the example below, the Petrol and Diesel series have shadows on their markers, while the Electric series does not.
-
-{% chartExampleRunner title="Marker Shadow" name="marker-shadow" type="generated" /%}
-
 ## Custom Marker Shapes
 
 You can easily define custom marker shapes by providing a callback function to create the desired shape. This function takes `x` and `y` parameters, representing the marker's position on the canvas, the `size` of the marker and the `path` instance. The path includes various drawing methods that allow you to apply specific drawing commands to construct the marker.

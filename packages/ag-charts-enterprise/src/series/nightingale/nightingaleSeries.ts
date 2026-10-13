@@ -1,14 +1,18 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type DynamicContext, type NormalisedNightingaleSeriesOwnOptions, PolarZIndexMap } from 'ag-charts-core';
+import {
+    type DynamicContext,
+    type NormalisedNightingaleSeriesOwnOptions,
+    PolarZIndexMap,
+    Sector,
+    SectorBox,
+} from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
-const { Sector, SectorBox } = _ModuleSupport;
-
 export class NightingaleSeries extends RadialColumnSeriesBase<
-    _ModuleSupport.Sector<RadialColumnNodeDatum>,
+    Sector<RadialColumnNodeDatum>,
     NormalisedNightingaleSeriesOwnOptions
 > {
     static override readonly className = 'NightingaleSeries';
@@ -34,11 +38,11 @@ export class NightingaleSeries extends RadialColumnSeriesBase<
         return `nightingale-stack-${groupIndex}-yValues`;
     }
 
-    protected override nodeFactory(): _ModuleSupport.Sector<RadialColumnNodeDatum> {
+    protected override nodeFactory(): Sector<RadialColumnNodeDatum> {
         return new Sector<RadialColumnNodeDatum>();
     }
 
-    protected updateItemPath(node: _ModuleSupport.Sector, datum: RadialColumnNodeDatum, highlight: boolean) {
+    protected updateItemPath(node: Sector, datum: RadialColumnNodeDatum, highlight: boolean) {
         const { negative } = datum;
         const { cornerRadius } = this.options;
         node.centerX = 0;

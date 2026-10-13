@@ -10,6 +10,7 @@ import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeri
 import type { Padding } from '../series/cartesian/commonOptions';
 import type { AgHeatmapSeriesOptions, AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesOptions, AgHistogramSeriesThemeableOptions } from '../series/cartesian/histogramOptions';
+import type { AgHlcSeriesOptions, AgHlcSeriesThemeableOptions } from '../series/cartesian/hlcOptions';
 import type { AgLineSeriesOptions, AgLineSeriesThemeableOptions } from '../series/cartesian/lineOptions';
 import type { AgOhlcSeriesOptions, AgOhlcSeriesThemeableOptions } from '../series/cartesian/ohlcOptions';
 import type { AgRangeAreaSeriesOptions, AgRangeAreaSeriesThemeableOptions } from '../series/cartesian/rangeAreaOptions';
@@ -101,6 +102,7 @@ export type HeatmapIgnoredProperties =
     CommonIgnoredProperties | 'title' | 'label' | 'colorName' | 'textAlign' | 'verticalAlign' | 'itemPadding';
 export type HistogramIgnoredProperties = CommonIgnoredProperties | 'label';
 export type LineIgnoredProperties = CommonIgnoredProperties | 'errorBar' | 'title' | 'label';
+export type HlcIgnoredProperties = CommonIgnoredProperties | 'highName' | 'lowName' | 'closeName';
 export type RangeAreaIgnoredProperties = CommonIgnoredProperties | 'label' | 'yLowName' | 'yHighName';
 export type RangeBarIgnoredProperties = CommonIgnoredProperties | 'label' | 'direction' | 'yLowName' | 'yHighName';
 export type ScatterIgnoredProperties =
@@ -155,6 +157,10 @@ export interface AgCandlestickMiniChartSeriesOptions<TDatum = DatumDefault, TCon
     Omit<AgCandlestickSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>
 > {}
 
+export interface AgHlcMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
+    Omit<AgHlcSeriesOptions<TDatum, TContext>, HlcIgnoredProperties>
+> {}
+
 export interface AgOhlcMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Partial<
     Omit<AgOhlcSeriesOptions<TDatum, TContext>, CommonIgnoredProperties>
 > {}
@@ -172,7 +178,8 @@ export type AgMiniChartSeriesOptions<TDatum = DatumDefault, TContext = ContextDe
     | AgRangeBarMiniChartSeriesOptions<TDatum, TContext>
     | AgRangeAreaMiniChartSeriesOptions<TDatum, TContext>
     | AgCandlestickMiniChartSeriesOptions<TDatum, TContext>
-    | AgOhlcMiniChartSeriesOptions<TDatum, TContext>;
+    | AgOhlcMiniChartSeriesOptions<TDatum, TContext>
+    | AgHlcMiniChartSeriesOptions<TDatum, TContext>;
 
 export type AgMiniChartSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | SharedProperties<AgLineMiniChartSeriesOptions<TDatum, TContext>, AgLineSeriesThemeableOptions<TDatum, TContext>>
@@ -214,7 +221,8 @@ export type AgMiniChartSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
           AgCandlestickMiniChartSeriesOptions<TDatum, TContext>,
           AgCandlestickSeriesThemeableOptions<TDatum, TContext>
       >
-    | SharedProperties<AgOhlcMiniChartSeriesOptions<TDatum, TContext>, AgOhlcSeriesThemeableOptions<TDatum, TContext>>;
+    | SharedProperties<AgOhlcMiniChartSeriesOptions<TDatum, TContext>, AgOhlcSeriesThemeableOptions<TDatum, TContext>>
+    | SharedProperties<AgHlcMiniChartSeriesOptions<TDatum, TContext>, AgHlcSeriesThemeableOptions<TDatum, TContext>>;
 
 type IgnoredMiniChartSeries = 'funnel' | 'cone-funnel';
 
@@ -252,6 +260,25 @@ export interface AgNavigatorMiniChartThemeableOptions<TDatum = DatumDefault, TCo
     padding?: Padding;
 }
 
+export interface AgNavigatorTrackOptions {
+    /** The fill colour used by the track. */
+    fill?: CssColor;
+    /** The opacity of the track's fill in the `[0, 1]` interval. */
+    fillOpacity?: Opacity;
+    /** The stroke colour used by the track. */
+    stroke?: CssColor;
+    /** The stroke width used by the track. */
+    strokeWidth?: PixelSize;
+}
+
+export interface AgNavigatorThumbOptions {
+    /** The fill colour used by the thumb. */
+    fill?: CssColor;
+    /** The opacity of the thumb's fill in the `[0, 1]` interval. */
+    fillOpacity?: Opacity;
+}
+
+/** @deprecated v14.3.0 Use {@link AgNavigatorTrackOptions} instead. */
 export interface AgNavigatorMaskOptions {
     /** The fill colour used by the mask. */
     fill?: CssColor;
@@ -289,8 +316,15 @@ export interface AgNavigatorOptions<TDatum = DatumDefault, TContext = ContextDef
     cornerRadius?: number;
     /** The distance between the Navigator and the bottom axis of the chart. */
     spacing?: PixelSize;
-    /** Configuration for the Navigator's visible range mask. */
+    /**
+     * Configuration for the Navigator's visible range mask.
+     * @deprecated v14.3.0 Use `track` instead.
+     */
     mask?: AgNavigatorMaskOptions;
+    /** Configuration for the Navigator's track, the area outside the selected range. */
+    track?: AgNavigatorTrackOptions;
+    /** Configuration for the Navigator's thumb, the selected range between the handles. */
+    thumb?: AgNavigatorThumbOptions;
     /** Configuration for the Navigator's left handle. */
     minHandle?: AgNavigatorHandleOptions;
     /** Configuration for the Navigator's right handle. */

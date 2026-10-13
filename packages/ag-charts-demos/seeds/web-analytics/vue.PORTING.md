@@ -70,7 +70,7 @@ person or an agent performs it.
 | React seed `src/main.tsx`                  | `main.ts`                                 | ported (mount)         |
 
 `components/grid.ts` has no React import (it registers the AG Grid enterprise bundle and exports
-the theme and the base column definition), so unlike the financial port it is copied byte for byte.
+the theme and the base column definition), so unlike the trading-terminal port it is copied byte for byte.
 
 Named exports that sit beside a React component (`FormAnchor`, `SparkPoint`, `KpiDef`, `buildKpis`,
 `kpiTabId`) are exported from a plain `<script lang="ts">` block of the same `.vue` file and imported

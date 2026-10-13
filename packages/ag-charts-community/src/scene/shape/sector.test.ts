@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { Sector, SectorBox } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
-import { SectorBox } from '../sectorBox';
-import { Sector } from './sector';
 
 describe('Sector', () => {
     setupMockConsole();

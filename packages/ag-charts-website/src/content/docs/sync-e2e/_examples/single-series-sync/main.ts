@@ -1,22 +1,25 @@
-import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
+import { AgCartesianAxisOptions, AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getBenchmark1Data, getBenchmark2Data } from './data';
 import { formatBytes, formatMillis, labelFormatter } from './utils';
 
+const xAxis: AgCartesianAxisOptions = {};
+const ySecondaryAxis: AgCartesianAxisOptions = {
+    type: 'number',
+    position: 'right',
+    label: { formatter: labelFormatter(formatBytes) },
+};
+
 const commonOptions: AgCartesianChartOptions = {
     sync: { axes: 'xy' },
     axes: {
-        x: {},
+        x: xAxis,
         y: {
             type: 'number',
             position: 'left',
             label: { formatter: labelFormatter(formatMillis) },
         },
-        ySecondary: {
-            type: 'number',
-            position: 'right',
-            label: { formatter: labelFormatter(formatBytes) },
-        },
+        ySecondary: ySecondaryAxis,
     },
     series: [
         {
@@ -74,6 +77,7 @@ const chartOptions3 = {
     ...commonOptions,
     container: document.getElementById('myChart3'),
     sync: { axes: 'x' },
+    axes: { x: xAxis, ySecondary: ySecondaryAxis },
     title: {
         text: 'Benchmark 2',
     },

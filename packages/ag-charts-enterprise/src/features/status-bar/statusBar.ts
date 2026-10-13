@@ -3,15 +3,17 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     type DynamicContext,
+    Group,
+    type NormalisedStatusBarOptions,
+    Rect,
+    Text,
+    TranslatableGroup,
     ZIndexMap,
     cachedTextMeasurer,
-    calcLineHeight,
     isNumericValue,
 } from 'ag-charts-core';
 
-type NormalisedStatusBarOptions = _ModuleSupport.NormalisedStatusBarOptions;
-
-const { LayoutElement, Group, Rect, Text } = _ModuleSupport;
+const { LayoutElement } = _ModuleSupport;
 enum LabelConfiguration {
     Open = 2, // 1 << 1
     Close = 4, // 1 << 2
@@ -70,7 +72,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         name: 'StatusBar',
         zIndex: ZIndexMap.STATUS_BAR,
     });
-    private readonly labelGroup = this.layer.appendChild(new _ModuleSupport.TranslatableGroup());
+    private readonly labelGroup = this.layer.appendChild(new TranslatableGroup());
     private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [
         {
@@ -239,7 +241,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             if (s.type === 'bar') {
                 volumeDomain = [yDomain[0] as number, yDomain.at(-1) as number];
             } else {
-                // Price series (candlestick, ohlc, range-area, range-bar, line)
+                // Price series (candlestick, ohlc, hlc, range-bar, line)
                 priceDomain = [yDomain[0] as number, yDomain.at(-1) as number];
             }
         }
@@ -278,8 +280,11 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
 
         this.labelGroup.translationY = layoutBox.y + spacingAbove;
 
-        const maxFontSize = Math.max(opts.title.fontSize, opts.positive.fontSize, opts.negative.fontSize);
-        const lineHeight = calcLineHeight(maxFontSize);
+        const fontMetrics = [opts.title, opts.positive, opts.negative].map((font) =>
+            cachedTextMeasurer(font).measureText('')
+        );
+        const ascent = Math.max(...fontMetrics.map((metrics) => metrics.ascent));
+        const lineHeight = ascent + Math.max(...fontMetrics.map((metrics) => metrics.descent));
 
         const labelConfigurations = chartConfigurations[this.getChartType()] ?? 0;
 
@@ -288,7 +293,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         let textVAlign: CanvasTextBaseline = 'alphabetic';
         if (opts.layoutStyle === 'block') {
             layoutBox.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
-            offsetTop = maxFontSize + (lineHeight - maxFontSize) / 2;
+            offsetTop = ascent;
         } else {
             const { title } = this.ctx.chartService;
             textVAlign = 'top';

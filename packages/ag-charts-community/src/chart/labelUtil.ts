@@ -25,6 +25,8 @@ import type {
     PositionedLabelCandidate,
     RectObstacleSource,
     RegionAlign,
+    SectorBoundaries,
+    Text,
 } from 'ag-charts-core';
 import {
     type NormalisedChartLabelPlacementStyleOptions,
@@ -40,6 +42,9 @@ import {
     insideBarContainer,
     insideBarRegion,
     insideBarValueInsets,
+    isBoxInSector,
+    isPointInSector,
+    isRotatable,
     measureLabelText,
     mergeDefaults,
     orientationAngles,
@@ -66,9 +71,6 @@ import type {
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
-import type { Text } from '../scene/shape/text';
-import { isRotatable } from '../scene/transformable';
-import { type SectorBoundaries, isBoxInSector, isPointInSector } from '../scene/util/sector';
 import {
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,

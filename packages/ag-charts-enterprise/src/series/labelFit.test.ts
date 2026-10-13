@@ -5,6 +5,7 @@ import { AgCharts } from 'ag-charts-community';
 import {
     compareImageSnapshot,
     deproxy,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -28,6 +29,12 @@ describe('series label fit', () => {
     afterEach(() => {
         chart?.destroy();
     });
+
+    const render = async (options: object) => {
+        prepareEnterpriseTestOptions(options as AgChartOptions);
+        chart = deproxy(AgCharts.create(options as AgChartOptions));
+        await waitForChartStability(chart);
+    };
 
     const renderAndSnapshot = async (options: object) => {
         prepareEnterpriseTestOptions(options as AgChartOptions);
@@ -193,11 +200,6 @@ describe('series label fit', () => {
             ...extra,
         });
 
-        const render = async (options: object) => {
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
-            await waitForChartStability(chart);
-        };
         type LabelNode = { visible: boolean; fontSize: number; text: string };
         const drawnLabels = (): LabelNode[] =>
             (chart.series[0].labelSelection.nodes() as LabelNode[]).filter((node) => node.visible && node.text !== '');
@@ -268,6 +270,96 @@ describe('series label fit', () => {
             expect(rendered.some((node) => node.text.includes(ELLIPSIS))).toBe(true);
         });
 
+        describe('range-area', () => {
+            const rangeAreaChart = (label: object, theme?: object) => ({
+                data: bars,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                theme,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'cat',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: shrinkableLabel({ maxWidth: 60, collision: { alwaysShow: true }, ...label }),
+                    },
+                ],
+            });
+
+            const expectAllTruncatedAt = (fontSize: number) => {
+                const rendered = drawnLabels();
+                expect(rendered.length).toBe(bars.length * 2);
+                expect(rendered.map((node) => node.fontSize)).toEqual(rendered.map(() => fontSize));
+                expect(rendered.every((node) => node.text.includes(ELLIPSIS))).toBe(true);
+            };
+            const expectAllShrunkWhole = () => {
+                const rendered = drawnLabels();
+                expect(rendered.length).toBe(bars.length * 2);
+                for (const node of rendered) {
+                    expect(node.fontSize).toBeLessThan(FONT_SIZE);
+                    expect(node.text).not.toContain(ELLIPSIS);
+                }
+            };
+
+            it('keeps labels at their configured size when minimumFontSize is unset', async () => {
+                await render(rangeAreaChart({}));
+                expectAllTruncatedAt(FONT_SIZE);
+            });
+
+            it('shrinks labels to fit rather than truncating them', async () => {
+                await render(rangeAreaChart({ minimumFontSize: 4 }));
+                expectAllShrunkWhole();
+            });
+
+            it('stops shrinking at minimumFontSize and truncates from there', async () => {
+                await render(rangeAreaChart({ minimumFontSize: 16 }));
+                expectAllTruncatedAt(16);
+            });
+
+            it('stops shrinking at minimumFontSize and hides from there when alwaysShow is false', async () => {
+                await render(
+                    rangeAreaChart({ minimumFontSize: 16, truncate: false, collision: { alwaysShow: false } })
+                );
+                expect(drawnLabels()).toEqual([]);
+            });
+
+            it('takes minimumFontSize from the theme', async () => {
+                const theme = { overrides: { 'range-area': { series: { label: { minimumFontSize: 4 } } } } };
+                await render(rangeAreaChart({}, theme));
+                expectAllShrunkWhole();
+            });
+
+            it('shrinks only the labels crowding a neighbour, with a themed minimumFontSize alone', async () => {
+                const crowdedChart = (theme?: object) => ({
+                    data: Array.from({ length: 8 }, (_, i) => ({ cat: `Cat ${i}`, low: 20, high: 80 })),
+                    legend: { enabled: false },
+                    axes: { ...cartesianAxes, y: { type: 'number', position: 'left', min: 0, max: 100 } },
+                    theme,
+                    series: [
+                        {
+                            type: 'range-area',
+                            xKey: 'cat',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            label: { enabled: true, fontSize: FONT_SIZE, formatter: () => 'Alpha Bravo' },
+                        },
+                    ],
+                });
+                await render(crowdedChart());
+                expect(drawnLabels().map((node) => node.fontSize)).toEqual(Array(16).fill(FONT_SIZE));
+
+                chart.destroy();
+                await render(
+                    crowdedChart({ overrides: { 'range-area': { series: { label: { minimumFontSize: 6 } } } } })
+                );
+                const sizes = drawnLabels().map((node) => node.fontSize);
+                expect(sizes).toHaveLength(16);
+                expect(sizes).toContain(FONT_SIZE);
+                expect(sizes.some((size) => size < FONT_SIZE)).toBe(true);
+            });
+        });
+
         // The scene-graph cases above pin the exact sizes; these pin how they look side by side.
         describe('visual', () => {
             it('renders waterfall labels across the shrink spectrum', async () => {
@@ -309,6 +401,47 @@ describe('series label fit', () => {
                 });
             });
 
+            it('renders range-area labels across the shrink spectrum', async () => {
+                // One band per configuration; the last datum is inverted so its labels face the opposite sides.
+                const spectrum = [
+                    { cat: 'A', label: 'Bid' },
+                    { cat: 'B', label: 'Lowest bid' },
+                    { cat: 'C', label: 'Ceiling price' },
+                    { cat: 'D', label: 'Lowest recorded closing value' },
+                    { cat: 'E', label: 'Closing quote', inverted: true },
+                ];
+                const series = [
+                    { offset: 0, label: { placement: 'outside' } },
+                    { offset: 35, label: { placement: 'inside', minimumFontSize: 6 } },
+                    { offset: 70, label: { placement: 'outside', minimumFontSize: 12, wrapping: 'on-space' } },
+                ].map(({ offset, label }, index) => ({
+                    type: 'range-area',
+                    xKey: 'cat',
+                    yLowKey: `low${index}`,
+                    yHighKey: `high${index}`,
+                    label: shrinkableLabel({
+                        maxWidth: 60,
+                        maxHeight: 28,
+                        collision: { alwaysShow: true },
+                        formatter: (p: any) => p.datum.label,
+                        ...label,
+                    }),
+                    data: spectrum.map((d) => ({
+                        ...d,
+                        [`low${index}`]: offset + (d.inverted ? 22 : 8),
+                        [`high${index}`]: offset + (d.inverted ? 8 : 22),
+                    })),
+                }));
+                await renderAndSnapshot({
+                    legend: { enabled: false },
+                    axes: {
+                        ...cartesianAxes,
+                        y: { type: 'number', position: 'left', min: -10, max: 115, label: { enabled: false } },
+                    },
+                    series,
+                });
+            });
+
             it('renders range-bar labels across the shrink spectrum', async () => {
                 // Both labels of a bar fit the same rect, so the spread comes from the data; wrapping stays
                 // off to isolate shrinking on a single line.
@@ -337,6 +470,111 @@ describe('series label fit', () => {
                             }),
                         },
                     ],
+                });
+            });
+        });
+
+        // Cone-funnel's default `start-center` is not bounded by the cone, so its labels move into the stage.
+        describe.each([
+            ['funnel', 'inside-center', [100, 30, 10, 4, 2]],
+            ['cone-funnel', 'middle-center', [100, 30, 10, 4, 2]],
+            ['pyramid', 'inside-center', [100, 60, 30, 15, 8]],
+        ])('%s', (type, placement, values) => {
+            const stages = values.map((value, i) => ({ stage: `Stage ${i}`, value }));
+            const stageChart = (label: object, theme?: object) => ({
+                data: stages,
+                legend: { enabled: false },
+                theme,
+                series: [
+                    {
+                        type,
+                        stageKey: 'stage',
+                        valueKey: 'value',
+                        label: shrinkableLabel({ placement, collision: { alwaysShow: true }, ...label }),
+                    },
+                ],
+            });
+
+            it('keeps labels at their configured size when minimumFontSize is unset', async () => {
+                await render(stageChart({}));
+                const rendered = drawnLabels();
+                expect(rendered.length).toBe(stages.length);
+                expect(rendered.map((node) => node.fontSize)).toEqual(rendered.map(() => FONT_SIZE));
+                expect(rendered.some((node) => node.text.includes(ELLIPSIS))).toBe(true);
+            });
+
+            it('shrinks a label into its stage rather than truncating it', async () => {
+                await render(stageChart({ minimumFontSize: 4 }));
+                const shrunk = drawnLabels().filter((node) => node.fontSize < FONT_SIZE);
+                expect(shrunk.length).toBeGreaterThan(0);
+                expect(shrunk.some((node) => !node.text.includes(ELLIPSIS))).toBe(true);
+            });
+
+            it('stops shrinking at minimumFontSize and truncates from there', async () => {
+                await render(stageChart({ minimumFontSize: 16 }));
+                const rendered = drawnLabels();
+                expect(rendered.length).toBe(stages.length);
+                expect(rendered.every((node) => node.fontSize >= 16)).toBe(true);
+                expect(rendered.some((node) => node.fontSize === 16 && node.text.includes(ELLIPSIS))).toBe(true);
+            });
+
+            it('shrinks before hiding when collision.alwaysShow is left to the theme', async () => {
+                await render(stageChart({ minimumFontSize: 4, collision: {} }));
+                expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE && !node.text.includes(ELLIPSIS))).toBe(
+                    true
+                );
+
+                await render(stageChart({ minimumFontSize: 16, collision: {} }));
+                const rendered = drawnLabels();
+                expect(rendered.length).toBeLessThan(stages.length);
+                expect(rendered.every((node) => node.fontSize >= 16)).toBe(true);
+            });
+
+            it('takes minimumFontSize from the theme', async () => {
+                await render(stageChart({}, { overrides: { [type]: { series: { label: { minimumFontSize: 4 } } } } }));
+                expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE)).toBe(true);
+            });
+        });
+
+        // One chart per series, as they cannot share a chart; each stage label exercises a different fit outcome.
+        describe('visual: funnel family', () => {
+            const spectrum = [
+                { stage: 'Visits', value: 100, label: 'Site visits' },
+                { stage: 'Sign-ups', value: 45, label: 'Newsletter sign-ups' },
+                { stage: 'Trials', value: 20, label: 'Free trial activations' },
+                { stage: 'Paid', value: 9, label: 'Paid subscriptions' },
+                { stage: 'Renewed', value: 4, label: 'Annual renewals completed' },
+            ];
+            const stageSeries = (type: string, label: object) => ({
+                data: spectrum,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        stageKey: 'stage',
+                        valueKey: 'value',
+                        label: shrinkableLabel({
+                            collision: { alwaysShow: true },
+                            formatter: (p: any) => p.datum.label,
+                            ...label,
+                        }),
+                    },
+                ],
+            });
+
+            it('renders funnel labels across the shrink spectrum', async () => {
+                await renderAndSnapshot(stageSeries('funnel', { minimumFontSize: 8, wrapping: 'on-space' }));
+            });
+
+            it('renders cone-funnel labels across the shrink spectrum', async () => {
+                await renderAndSnapshot(stageSeries('cone-funnel', { placement: 'middle-center', minimumFontSize: 6 }));
+            });
+
+            it('renders pyramid labels across the shrink spectrum', async () => {
+                // Even stage heights with the longest labels nearest the apex, so the narrowing triangle bounds them.
+                await renderAndSnapshot({
+                    ...stageSeries('pyramid', { minimumFontSize: 8, wrapping: 'on-space' }),
+                    data: spectrum.map((d, i) => ({ ...d, value: 20, label: spectrum.at(-1 - i)!.label })),
                 });
             });
         });
@@ -409,6 +647,155 @@ describe('series label fit', () => {
         });
         expect(someTruncated(nestedLabelTexts(1))).toBe(true);
     });
+
+    describe('sankey (fits between the nodes)', () => {
+        const FONT_SIZE = 14;
+        const flows = [
+            { from: 'Organic search', to: 'Product page visits from every channel', size: 10 },
+            { from: 'Paid advertising', to: 'Product page visits from every channel', size: 6 },
+            { from: 'Paid advertising', to: 'Pricing', size: 4 },
+            { from: 'Product page visits from every channel', to: 'Free trial sign-up', size: 9 },
+            { from: 'Product page visits from every channel', to: 'Bounced', size: 7 },
+            { from: 'Pricing', to: 'Free trial sign-up', size: 4 },
+        ];
+        const sankeyChart = (label: object, theme?: object) => ({
+            data: flows,
+            theme,
+            series: [
+                {
+                    type: 'sankey',
+                    fromKey: 'from',
+                    toKey: 'to',
+                    sizeKey: 'size',
+                    label: { fontSize: FONT_SIZE, ...label },
+                },
+            ],
+        });
+        const renderNarrow = async (options: object) => {
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+            chart = deproxy(AgCharts.create({ ...options, width: 500 } as AgChartOptions));
+            await waitForChartStability(chart);
+        };
+        type LabelNode = { visible: boolean; fontSize: number; text: string; getBBox(): { width: number } };
+        const drawnLabels = (): LabelNode[] =>
+            (chart.series[0].labelSelection.nodes() as LabelNode[]).filter((node) => node.visible && node.text !== '');
+        const isWrapped = (node: LabelNode) => node.text.includes('\n');
+        const isTruncated = (node: LabelNode) => node.text.includes(ELLIPSIS);
+
+        it('truncates labels on one line at their configured size when no fit option is set', async () => {
+            await renderNarrow(sankeyChart({}));
+            const rendered = drawnLabels();
+            expect(rendered.length).toBe(6);
+            expect(rendered.every((node) => node.fontSize === FONT_SIZE && !isWrapped(node))).toBe(true);
+            expect(rendered.some(isTruncated)).toBe(true);
+        });
+
+        it('wraps a label rather than truncating it', async () => {
+            await renderNarrow(sankeyChart({ wrapping: 'on-space' }));
+            expect(drawnLabels().some((node) => isWrapped(node) && !isTruncated(node))).toBe(true);
+        });
+
+        it('keeps every label within maxWidth', async () => {
+            await renderNarrow(sankeyChart({ maxWidth: 60 }));
+            const rendered = drawnLabels();
+            expect(rendered.length).toBe(6);
+            expect(rendered.every((node) => node.getBBox().width <= 60.5)).toBe(true);
+            expect(rendered.some(isWrapped)).toBe(true);
+        });
+
+        it('truncates the lines that do not fit within maxHeight', async () => {
+            await renderNarrow(sankeyChart({ maxWidth: 60, maxHeight: FONT_SIZE * 1.5 }));
+            const rendered = drawnLabels();
+            expect(rendered.some(isWrapped)).toBe(false);
+            expect(rendered.some(isTruncated)).toBe(true);
+        });
+
+        it('hides a label that does not fit when truncate is false', async () => {
+            await renderNarrow(sankeyChart({ wrapping: 'never', truncate: false }));
+            const rendered = drawnLabels();
+            expect(rendered.length).toBeGreaterThan(0);
+            expect(rendered.length).toBeLessThan(6);
+            expect(rendered.some(isTruncated)).toBe(false);
+        });
+
+        it('shrinks a label rather than truncating it', async () => {
+            await renderNarrow(sankeyChart({ wrapping: 'never', minimumFontSize: 6 }));
+            expect(drawnLabels().some((node) => node.fontSize < FONT_SIZE && !isTruncated(node))).toBe(true);
+        });
+
+        it('stops shrinking at minimumFontSize and truncates from there', async () => {
+            await renderNarrow(sankeyChart({ wrapping: 'never', minimumFontSize: 12 }));
+            const rendered = drawnLabels();
+            expect(rendered.every((node) => node.fontSize >= 12)).toBe(true);
+            expect(rendered.some((node) => node.fontSize === 12 && isTruncated(node))).toBe(true);
+        });
+
+        it('resolves the other fit options once one is set', async () => {
+            await renderNarrow(sankeyChart({}));
+            const { wrapping, truncate } = chart.series[0].options.label;
+            expect([wrapping, truncate]).toEqual([undefined, undefined]);
+
+            chart.destroy();
+            await renderNarrow(sankeyChart({ minimumFontSize: 6 }));
+            expect(chart.series[0].options.label).toMatchObject({ wrapping: 'on-space', truncate: true });
+        });
+
+        it('takes the fit options from the theme', async () => {
+            await renderNarrow(
+                sankeyChart({}, { overrides: { sankey: { series: { label: { wrapping: 'on-space' } } } } })
+            );
+            expect(drawnLabels().some(isWrapped)).toBe(true);
+        });
+
+        it('renders labels that fit, wrap, shrink and truncate clear of the nodes', async () => {
+            const options = {
+                ...sankeyChart({ wrapping: 'on-space', minimumFontSize: 9, maxHeight: 30 }),
+                data: [
+                    { from: 'Search', to: 'Product page visits from every channel', size: 12 },
+                    { from: 'Search', to: 'Pricing', size: 4 },
+                    { from: 'Adverts', to: 'Product page visits from every channel', size: 5 },
+                    { from: 'Adverts', to: 'Competitor comparison and independent reviews', size: 2 },
+                    { from: 'Adverts', to: 'Documentation', size: 3 },
+                    {
+                        from: 'Product page visits from every channel',
+                        to: 'Trial started from a landing page, a webinar, a partner referral link or a booked sales demo',
+                        size: 10,
+                    },
+                    { from: 'Product page visits from every channel', to: 'Bounced', size: 7 },
+                    {
+                        from: 'Pricing',
+                        to: 'Trial started from a landing page, a webinar, a partner referral link or a booked sales demo',
+                        size: 4,
+                    },
+                    {
+                        from: 'Competitor comparison and independent reviews',
+                        to: 'Industry analyst coverage, awards and press',
+                        size: 2,
+                    },
+                    {
+                        from: 'Documentation',
+                        to: 'Trial started from a landing page, a webinar, a partner referral link or a booked sales demo',
+                        size: 3,
+                    },
+                    {
+                        from: 'Trial started from a landing page, a webinar, a partner referral link or a booked sales demo',
+                        to: 'Paid subscription',
+                        size: 9,
+                    },
+                    {
+                        from: 'Trial started from a landing page, a webinar, a partner referral link or a booked sales demo',
+                        to: 'Churned during the trial',
+                        size: 8,
+                    },
+                    { from: 'Industry analyst coverage, awards and press', to: 'Paid subscription', size: 2 },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compareImageSnapshot(chart, ctx);
+        });
+    });
+
     describe('map-shape (fits inside the shape polygon)', () => {
         const ukSeries = (label: object, labelText = 'A long label that has to wrap inside its shape') => ({
             topology: ukTopology,
@@ -625,6 +1012,230 @@ describe('series label fit', () => {
                     },
                 },
             ],
+        });
+    });
+    describe('tile labels (heatmap, treemap, sunburst)', () => {
+        const tileNames = [
+            'Supercalifragilistic',
+            'Antidisestablishment',
+            'Floccinaucinihilipilification',
+            'Pneumonoultramicroscopic',
+            'Hippopotomonstrosesquipedalian',
+            'Incomprehensibilities',
+        ];
+        const treemapData = [
+            { name: 'A broad tile label', value: 200 },
+            ...tileNames.map((name) => ({ name, value: 3 })),
+        ];
+        const treemapChart = (label: object, secondaryLabel?: object) => ({
+            data: treemapData.map((d) => ({ ...d, detail: 'Secondary detail text' })),
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    sizeKey: 'value',
+                    secondaryLabelKey: secondaryLabel ? 'detail' : undefined,
+                    tile: { label: { fontSize: 14, minimumFontSize: 10, ...label }, secondaryLabel },
+                },
+            ],
+        });
+        const sunburstChart = (label: object) => ({
+            data: tileNames.map((name) => ({ name: 'Group', children: tileNames.map(() => ({ name, value: 1 })) })),
+            series: [
+                {
+                    type: 'sunburst',
+                    labelKey: 'name',
+                    sizeKey: 'value',
+                    label: { fontSize: 14, minimumFontSize: 10, ...label },
+                },
+            ],
+        });
+        const heatmapChart = (label: object) => ({
+            data: tileNames.flatMap((name, x) => tileNames.map((_, y) => ({ x, y, color: x + y, name }))),
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'category', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'x',
+                    yKey: 'y',
+                    colorKey: 'color',
+                    label: { enabled: true, fontSize: 14, formatter: (p: any) => p.datum.name, ...label },
+                },
+            ],
+        });
+
+        const hierarchyLabelTexts = (): string[] => {
+            const texts: string[] = [];
+            chart.series[0].rootNode?.walk((node: any) => {
+                if (node.children.length === 0 && node.label != null) texts.push(String(node.label.text));
+            });
+            return texts;
+        };
+        const heatmapLabelTexts = (): string[] =>
+            (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: unknown }) => String(d.text));
+        const longNameShown = (texts: string[]) => tileNames.filter((name) => texts.includes(name)).length;
+
+        it.each([
+            ['treemap', treemapChart, hierarchyLabelTexts],
+            ['sunburst', sunburstChart, hierarchyLabelTexts],
+            ['heatmap', heatmapChart, heatmapLabelTexts],
+        ] as const)(
+            '%s truncates by default, hides with truncate off and keeps with alwaysShow',
+            async (_, build, texts) => {
+                await render(build({}));
+                expect(someTruncated(texts())).toBe(true);
+                const truncatedCount = texts().length;
+
+                await render(build({ truncate: false }));
+                expect(someTruncated(texts())).toBe(false);
+                expect(texts().length).toBeLessThan(truncatedCount);
+
+                await render(build({ truncate: false, collision: { alwaysShow: true } }));
+                expect(someTruncated(texts())).toBe(false);
+                expect(texts().length).toBe(truncatedCount);
+                expect(longNameShown(texts())).toBeGreaterThan(0);
+            }
+        );
+
+        it('keeps overflowing sunburst labels at a finite position', async () => {
+            await render({
+                data: [{ name: 'Root', children: tileNames.map((name) => ({ name: name.repeat(8), value: 1 })) }],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'value',
+                        label: { wrapping: 'never', truncate: false, collision: { alwaysShow: true } },
+                    },
+                ],
+            });
+            const labels: any[] = [];
+            chart.series[0].rootNode?.walk((node: any) => {
+                if (node.label != null) labels.push(node.label);
+            });
+            expect(labels.length).toBeGreaterThan(0);
+            for (const label of labels) {
+                expect(Number.isFinite(label.radius)).toBe(true);
+            }
+        });
+
+        it('keeps a secondary label that alwaysShow marks when the stack does not fit', async () => {
+            const options = treemapChart({}, { fontSize: 14, minimumFontSize: 14, truncate: false });
+            await render(options);
+            const secondaryCount = () => {
+                let count = 0;
+                chart.series[0].rootNode?.walk((node: any) => {
+                    if (node.children.length === 0 && node.secondaryLabel != null) count += 1;
+                });
+                return count;
+            };
+            const hidden = treemapData.length - secondaryCount();
+            expect(hidden).toBeGreaterThan(0);
+
+            await render(
+                treemapChart(
+                    {},
+                    { fontSize: 14, minimumFontSize: 14, truncate: false, collision: { alwaysShow: true } }
+                )
+            );
+            expect(secondaryCount()).toBe(treemapData.length);
+        });
+
+        it('warns on the deprecated overflowStrategy and maps `hide` onto truncate off', async () => {
+            await render(treemapChart({ overflowStrategy: 'hide' }));
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].tile.label.overflowStrategy\` is deprecated. Use \`truncate\` instead.",
+                ],
+              ]
+            `);
+            expect(chart.series[0].options.tile.label.truncate).toBe(false);
+            expect(someTruncated(hierarchyLabelTexts())).toBe(false);
+        });
+
+        it('renders whole, truncated, overflowing and hidden treemap labels', async () => {
+            // Mid-sized tiles truncate, `alwaysShow` keeps the slivers' labels overflowing, secondaries hide.
+            const data = [
+                { name: 'A broad tile label', value: 200 },
+                ...tileNames.map((name, i) => ({ name, value: i < 3 ? 8 : 0.1 })),
+            ];
+            await renderAndSnapshot({
+                data: data.map((d) => ({ ...d, detail: 'Secondary detail text' })),
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'value',
+                        secondaryLabelKey: 'detail',
+                        tile: {
+                            label: { fontSize: 14, minimumFontSize: 10, collision: { alwaysShow: true } },
+                            secondaryLabel: { truncate: false },
+                        },
+                    },
+                ],
+            });
+            const texts = hierarchyLabelTexts();
+            expect(someTruncated(texts)).toBe(true);
+            expect(texts.length).toBe(data.length);
+        });
+    });
+
+    describe('gauge labels', () => {
+        const longText = 'Supercalifragilistic'.repeat(6);
+        const gaugeLabelTexts = (): string[] =>
+            chart.series[0].labelSelection
+                .nodes()
+                .filter((node: any) => node.visible)
+                .map((node: any) => String(node.text));
+        const renderGauge = async (options: object) => {
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+            chart = deproxy(AgCharts.createGauge(options as any));
+            await waitForChartStability(chart);
+        };
+        const radialGauge = (label: object, secondaryLabel?: object) => ({
+            type: 'radial-gauge',
+            value: 50,
+            scale: { min: 0, max: 100 },
+            label: { text: longText, wrapping: 'never', fontSize: 14, minimumFontSize: 14, ...label },
+            secondaryLabel,
+        });
+        const linearGauge = (label: object) => ({
+            type: 'linear-gauge',
+            value: 50,
+            scale: { min: 0, max: 100 },
+            label: { enabled: true, text: longText, wrapping: 'never', ...label },
+        });
+
+        it.each([
+            ['radial-gauge', radialGauge],
+            ['linear-gauge', linearGauge],
+        ] as const)('%s truncates by default, hides with truncate off and keeps with alwaysShow', async (_, build) => {
+            await renderGauge(build({}));
+            expect(someTruncated(gaugeLabelTexts())).toBe(true);
+
+            await renderGauge(build({ truncate: false }));
+            expect(gaugeLabelTexts()).toEqual([]);
+
+            await renderGauge(build({ truncate: false, collision: { alwaysShow: true } }));
+            expect(gaugeLabelTexts()).toEqual([longText]);
+        });
+
+        it('keeps radial-gauge labels that alwaysShow marks when the stack does not fit', async () => {
+            const secondaryLabel = { text: longText, truncate: false };
+            await renderGauge(radialGauge({ text: 'Score' }, secondaryLabel));
+            expect(gaugeLabelTexts()).toEqual([]);
+
+            await renderGauge(
+                radialGauge(
+                    { text: 'Score', collision: { alwaysShow: true } },
+                    { ...secondaryLabel, collision: { alwaysShow: true } }
+                )
+            );
+            expect(gaugeLabelTexts()).toEqual(['Score', longText]);
         });
     });
 });

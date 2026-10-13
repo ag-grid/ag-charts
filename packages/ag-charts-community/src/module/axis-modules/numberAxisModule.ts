@@ -1,16 +1,18 @@
 import {
     type AxisModuleDefinition,
     type DynamicContext,
+    LinearScale,
     type NormalisedNumberAxisOptions,
+    cartesianAxisThemeOptionsDefs,
+    commonAxisThemeTemplate,
     mergeDefaults,
+    numberAxisOptionsDefs,
+    titleAxisThemeTemplate,
 } from 'ag-charts-core';
 import type { AgNumberAxisOptions } from 'ag-charts-types';
 
-import { numberAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { NumberAxis } from '../../chart/axis/numberAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
-import { LinearScale } from '../../scale/linearScale';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
@@ -23,6 +25,8 @@ export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions, NumberA
     dependencies: [CartesianChartModule],
 
     options: numberAxisOptionsDefs,
+
+    themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(numberAxisOptionsDefs),
     themeTemplate: mergeDefaults(
         {
             maxThicknessRatio: 0.3,

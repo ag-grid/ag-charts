@@ -22,9 +22,9 @@ function writeCommittedSeed(seed, version, pinSource) {
     );
 }
 
-/** The pins the generated financial seed carries, off its package.json, manifest and README. */
+/** The pins the generated trading-terminal seed carries, off its package.json, manifest and README. */
 function readGeneratedPins() {
-    const dir = join(outRoot, 'financial', 'react');
+    const dir = join(outRoot, 'trading-terminal', 'react');
     const { dependencies } = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8'));
     const manifest = JSON.parse(readFileSync(join(dir, '.seed-manifest.json'), 'utf8'));
     return {
@@ -38,8 +38,8 @@ function readGeneratedPins() {
 beforeEach(() => {
     seedsDir = mkdtempSync(join(tmpdir(), 'generate-seed-committed-'));
     outRoot = mkdtempSync(join(tmpdir(), 'generate-seed-out-'));
-    writeCommittedSeed('financial/react', '14.2.0', 'release');
-    writeCommittedSeed('financial/vue', '14.2.0', 'release');
+    writeCommittedSeed('trading-terminal/react', '14.2.0', 'release');
+    writeCommittedSeed('trading-terminal/vue', '14.2.0', 'release');
 });
 afterEach(() => {
     rmSync(seedsDir, { recursive: true, force: true });
@@ -49,7 +49,7 @@ afterEach(() => {
 describe('generateReactSeeds', () => {
     it('keeps a release every committed seed carries in from a merge-back', async () => {
         const log = [];
-        await generateReactSeeds(['--out', outRoot, 'financial'], {
+        await generateReactSeeds(['--out', outRoot, 'trading-terminal'], {
             seedsDir,
             workspaceVersion: BETA,
             log: (line) => log.push(line),
@@ -66,7 +66,7 @@ describe('generateReactSeeds', () => {
     });
 
     it('pins the npm latest dist-tag instead with --reset-pin', async () => {
-        await generateReactSeeds(['--out', outRoot, '--reset-pin', 'financial'], {
+        await generateReactSeeds(['--out', outRoot, '--reset-pin', 'trading-terminal'], {
             seedsDir,
             workspaceVersion: BETA,
             log: () => {},
@@ -75,6 +75,10 @@ describe('generateReactSeeds', () => {
         const pins = readGeneratedPins();
         expect(pins.dependencies.every(([, version]) => version === 'latest')).toBe(true);
         expect(pins).toMatchObject({ pinnedVersion: 'latest', pinSource: 'dist-tag' });
-        expect(pins.readme).toMatch(/use the npm `latest` tag/);
+        expect(pins.readme).toMatch(/dependencies here use the npm `latest` tag/);
+        expect(pins.readme).toMatch(/`staging` and the release branches \(`bX\.Y\.Z`\) install the AG Charts build/);
+        expect(pins.readme).toMatch(
+            /`release-X\.Y\.Z` tags and the default branch\s+`latest` install a published release from npm/
+        );
     });
 });

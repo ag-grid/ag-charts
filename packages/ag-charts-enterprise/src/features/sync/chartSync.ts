@@ -4,10 +4,14 @@ import {
     AsyncAwaitQueue,
     ChartAxisDirection,
     ChartUpdateType,
+    ContinuousScale,
     Debug,
     type DefinedZoomState,
     type DynamicContext,
+    type NormalisedChartSyncOptions,
     type Scale,
+    TimeScale,
+    UnitTimeScale,
     arraysEqual,
     definedZoomState,
     findMinMax,
@@ -20,7 +24,7 @@ import {
 
 import { readDatum } from '../../utils/datum';
 
-const { CartesianAxis, ContinuousScale, TimeScale, UnitTimeScale, TooltipManager } = _ModuleSupport;
+const { CartesianAxis, TooltipManager } = _ModuleSupport;
 
 const debug = Debug.create('sync');
 
@@ -65,7 +69,7 @@ export class ChartSync extends AbstractModuleInstance {
 
     // ChartSync is only created when the `sync` subtree is configured, so we
     // assert the subtree's presence here and rely on theme defaults for fields.
-    private get opts(): _ModuleSupport.NormalisedChartSyncOptions {
+    private get opts(): NormalisedChartSyncOptions {
         return this.moduleContext.chartState.getValue('options', 'sync')!;
     }
 

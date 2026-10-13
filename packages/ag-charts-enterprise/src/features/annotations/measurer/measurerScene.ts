@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, Vec2, Vec4, isDate, isNumericValue, toNumber } from 'ag-charts-core';
+import { type Bounds4, Path, Vec2, Vec4, isDate, isNumericValue, toNumber } from 'ag-charts-core';
+import type { BBox } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -45,7 +45,7 @@ export class MeasurerScene extends StartEndScene<MeasurerDatum> {
     private readonly horizontalEndCap = new ArrowCapScene();
     private readonly verticalEndCap = new ArrowCapScene();
 
-    public readonly background = new _ModuleSupport.Path({ zIndex: -1 });
+    public readonly background = new Path({ zIndex: -1 });
     private readonly statistics: MeasurerStatisticsScene;
 
     protected verticalDirection?: 'up' | 'down';
@@ -288,12 +288,7 @@ export class MeasurerScene extends StartEndScene<MeasurerDatum> {
         this.statistics.update(datum, statistics, point, coords, context, this.verticalDirection);
     }
 
-    override updateAnchor(
-        _datum: MeasurerDatum,
-        coords: Bounds4,
-        _context: AnnotationContext,
-        _bbox?: _ModuleSupport.BBox
-    ) {
+    override updateAnchor(_datum: MeasurerDatum, coords: Bounds4, _context: AnnotationContext, _bbox?: BBox) {
         applySceneNodeTopCenterAnchor(this.horizontalLine, this.anchor, coords);
     }
 

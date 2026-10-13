@@ -1,20 +1,32 @@
-import type { CanvasPoint, DeepPartial, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
+import type {
+    AxisID,
+    AxisPluginModuleInstance,
+    CanvasPoint,
+    ChartAnimationPhase,
+    DeepPartial,
+    DynamicContext,
+    ModuleInstance,
+    NormalisedTextOrSegments,
+    Scene,
+} from 'ag-charts-core';
 import {
     AgDocument,
     AsyncAwaitQueue,
-    type AxisID,
-    type AxisPluginModuleInstance,
-    type ChartAnimationPhase,
+    BBox,
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
     Color,
     Debug,
-    type ModuleInstance,
+    DebugSelectors,
+    Group,
     ModuleType,
+    Mutex,
+    TranslatableGroup,
     ZIndexMap,
     callWithContext,
     createId,
+    debouncedCallback,
     enterpriseRegistry,
     entries,
     getPath,
@@ -48,12 +60,6 @@ import type { UpdateOpts } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import type { SeriesGrouping } from '../module/seriesGrouping';
-import { BBox } from '../scene/bbox';
-import { Group, TranslatableGroup } from '../scene/group';
-import type { Scene } from '../scene/scene';
-import { DebugSelectors } from '../scene/sceneDebug';
-import { Mutex } from '../util/mutex';
-import { debouncedCallback } from '../util/render';
 import { Background } from './background/background';
 import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
@@ -71,7 +77,6 @@ import { SyncManager, type SyncStatus } from './interaction/syncManager';
 import { type LayoutContext, LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
 import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
-import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
@@ -407,9 +412,14 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     isDataTransactionSupported() {
+        // A transaction mutates the chart's data in place, which rows derived from it wouldn't follow.
+        return this.getPresetDef()?.transformSeriesData == null;
+    }
+
+    private getPresetDef() {
         const { moduleRegistry, optionMetadata } = this.chartOptions;
-        if (optionMetadata.presetType == null) return true;
-        return moduleRegistry.getPresetModule(optionMetadata.presetType)?.dataTransactions !== false;
+        if (optionMetadata.presetType == null) return;
+        return moduleRegistry.getPresetModule(optionMetadata.presetType);
     }
 
     protected createDataSet(data: unknown[]): DataSet {
@@ -1149,32 +1159,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         });
     }
 
-    private updateThemeClassName() {
-        const themeClassNamePrefix = 'ag-charts-theme-';
-        const validThemeClassNames = [`${themeClassNamePrefix}default`, `${themeClassNamePrefix}default-dark`];
-
-        let themeClassName = validThemeClassNames[0];
-        let isDark = false;
-
-        let { theme } = this.chartOptions.processedOptions;
-        while (typeof theme !== 'string' && theme != null) {
-            theme = theme.baseTheme;
-        }
-
-        if (typeof theme === 'string') {
-            themeClassName = theme.replace('ag-', themeClassNamePrefix);
-            isDark = theme.includes('-dark');
-        }
-
-        if (!validThemeClassNames.includes(themeClassName)) {
-            themeClassName = isDark ? validThemeClassNames[1] : validThemeClassNames[0];
-        }
-
-        this.ctx.domManager.setThemeClass(themeClassName);
-    }
-
     private updateDOM() {
-        this.updateThemeClassName();
+        this.ctx.domManager.setDarkTheme(this.chartOptions.activeTheme.isDark);
 
         const { enabled, tabIndex } = this.ctx.chartState.getValue('options', 'keyboard');
         this.ctx.domManager.setTabGuardIndex(enabled ? (tabIndex ?? 0) : -1);
@@ -1426,7 +1412,21 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     updateData() {
-        this.ctx.eventsHub.emit('data:update', this.data);
+        this.ctx.eventsHub.emit('data:update', this.getSeriesData());
+    }
+
+    private seriesData: { source: DataSet; options: object; data: DataSet } | undefined = undefined;
+    private getSeriesData() {
+        const { data } = this;
+        const { presetOptions } = this.chartOptions;
+        const transform = this.getPresetDef()?.transformSeriesData;
+        if (transform == null || presetOptions == null) return data;
+
+        if (this.seriesData?.source !== data || this.seriesData.options !== presetOptions) {
+            const seriesData = DataSet.wrap(transform(data.data, presetOptions), this.ctx.logger);
+            this.seriesData = { source: data, options: presetOptions, data: seriesData };
+        }
+        return this.seriesData.data;
     }
 
     private _cachedData: CachedData | undefined = undefined;
@@ -1745,7 +1745,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.refreshSeriesUserVisibility(this.chartOptions, newChartOptions.seriesWithUserVisibility);
         }
 
-        const minimumUpdateType = ChartUpdateType.PERFORM_LAYOUT;
+        // The series options needn't change with the preset options their data is transformed by.
+        const seriesDataChanged = newChartOptions.presetOptions !== this.chartOptions.presetOptions;
+        const minimumUpdateType = seriesDataChanged ? ChartUpdateType.UPDATE_DATA : ChartUpdateType.PERFORM_LAYOUT;
         const deltaOptions = this.firstApply
             ? newChartOptions.processedOptions
             : newChartOptions.diffOptions(this.chartOptions);
@@ -2219,8 +2221,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
             newAxes.push(axis);
         }
-
-        guessInvalidPositions(newAxes);
 
         return newAxes;
     }

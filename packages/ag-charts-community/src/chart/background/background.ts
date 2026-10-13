@@ -1,10 +1,7 @@
-import { AbstractModuleInstance, type DynamicContext, ZIndexMap } from 'ag-charts-core';
+import { AbstractModuleInstance, type DynamicContext, Group, Rect, Text, ZIndexMap } from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { Group } from '../../scene/group';
-import { Rect } from '../../scene/shape/rect';
-import { Text } from '../../scene/shape/text';
 
 export class Background extends AbstractModuleInstance {
     protected readonly node;

@@ -1,12 +1,13 @@
 import { type AgChordSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
+    SHADOW_THEME_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
@@ -15,7 +16,7 @@ import {
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { ChordSeries } from './chordSeries';
-import { chordSeriesOptionsDef } from './chordSeriesOptionsDef';
+import { chordSeriesOptionsDef, chordSeriesThemeableOptionsDef } from './chordSeriesOptionsDef';
 
 export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     type: 'series',
@@ -27,19 +28,21 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     dependencies: [StandaloneChartModule],
 
     options: chordSeriesOptionsDef,
+
+    themeOptions: chordSeriesThemeableOptionsDef,
     themeTemplate: {
         series: {
             ...COMMON_SERIES_THEME_DEFAULTS,
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
             highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
-            tooltip: { interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
-                fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $ref: 'fontSize' },
-                fontWeight: { $ref: 'fontWeight' },
+                fontFamily: { $ref: 'seriesLabelFontFamily' },
+                fontSize: { $ref: 'seriesLabelFontSize' },
+                fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 5,
                 maxWidth: 100,
@@ -51,26 +54,14 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
                 fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
-                shadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
+                shadow: SHADOW_THEME_DEFAULTS,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
                 tension: 0.4,
-                shadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
+                shadow: SHADOW_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

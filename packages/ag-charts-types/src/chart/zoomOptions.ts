@@ -1,6 +1,6 @@
 import type { Toggleable } from '../series/cartesian/commonOptions';
 import type { ToolbarButton } from './buttonOptions';
-import type { Ratio } from './types';
+import type { PixelSize, Ratio } from './types';
 
 export type AgZoomAnchorPoint = 'pointer' | 'start' | 'middle' | 'end';
 export type AgZoomAxes = 'x' | 'y' | 'xy';
@@ -19,6 +19,8 @@ export interface AgZoomButtons extends Toggleable {
      * Default: `'hover'`
      */
     visible?: AgZoomButtonsVisible;
+    /** The width and height in pixels of each button in this toolbar. Icon buttons are square; text buttons use this height and are at least this wide. If not set, buttons keep their default size. */
+    buttonSize?: PixelSize;
 }
 
 export type AgZoomButtonsVisible = 'always' | 'zoomed' | 'hover';

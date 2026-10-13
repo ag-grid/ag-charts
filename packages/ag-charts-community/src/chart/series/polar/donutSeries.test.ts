@@ -1,6 +1,8 @@
 import { loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
+import { Transformable, boxOverlapsSector } from 'ag-charts-core';
+import type { BBox, Line, Sector, Text } from 'ag-charts-core';
 import { classCast } from 'ag-charts-test';
 import type {
     AgChartOptions,
@@ -12,12 +14,6 @@ import type {
 
 import { AgCharts } from '../../../api/agCharts';
 import { OptionsGraph } from '../../../module/optionsGraph';
-import type { BBox } from '../../../scene/bbox';
-import type { Line } from '../../../scene/shape/line';
-import type { Sector } from '../../../scene/shape/sector';
-import type { Text } from '../../../scene/shape/text';
-import { Transformable } from '../../../scene/transformable';
-import { boxOverlapsSector } from '../../../scene/util/sector';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';

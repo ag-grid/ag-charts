@@ -1,5 +1,5 @@
 import { type AgChartToolbarThemeableOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import { type PluginModuleDefinition, boolean } from 'ag-charts-core';
+import { type PluginModuleDefinition, boolean, positiveNumber } from 'ag-charts-core';
 
 import { BackgroundRegionsModule } from '../background-regions/backgroundRegionsModule';
 import { SharedToolbar } from '../shared-toolbar/sharedToolbar';
@@ -16,6 +16,7 @@ export const ChartToolbarModule: PluginModuleDefinition<AgChartToolbarThemeableO
 
         options: {
             enabled: boolean,
+            buttonSize: positiveNumber,
         },
         themeTemplate: { enabled: false },
 

@@ -60,13 +60,14 @@ export type NormalisedOrganizationNodeTextStyle = Normalised<
     | 'strokeOpacity'
     | 'strokeWidth'
     | 'textAlign'
-    | 'overflowStrategy'
+    | 'truncate'
     | 'wrapping',
     {
         color: CssColor;
         fill: CssColor | undefined;
         stroke: CssColor | undefined;
         padding: NormalisedPaddingOptions;
+        collision: { threshold: number; alwaysShow: boolean };
     }
 >;
 

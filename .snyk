@@ -1,6 +1,646 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-ZOD-20510278:
+    - rulesync@7.0.0 > zod@4.3.6:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.582Z
+    - rulesync@7.0.0 > fastmcp@3.31.0 > zod@4.3.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.571Z
+    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > zod@4.3.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.560Z
+    - '@upstash/context7-mcp@1.0.14 > zod@3.25.56':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.555Z
+    - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0 > zod@4.3.5':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.549Z
+    - '@modelcontextprotocol/server-sequential-thinking@2025.12.18 > @modelcontextprotocol/sdk@1.26.0 > zod@4.3.5':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.540Z
+    - '@modelcontextprotocol/server-puppeteer@2025.5.12 > puppeteer@23.11.1 > chromium-bidi@0.11.0 > zod@3.23.8':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.533Z
+    - '@modelcontextprotocol/server-puppeteer@2025.5.12 > @modelcontextprotocol/sdk@1.26.0 > zod@4.3.5':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.524Z
+    - '@kazuph/mcp-fetch@1.6.3 > zod@3.25.76':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.517Z
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0 > zod@4.3.5':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:44.506Z
+  SNYK-JS-SHARP-20552492:
+    - '@kazuph/mcp-fetch@1.6.3 > sharp@0.33.5':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:16:56.011Z
+  SNYK-JS-POSTCSSSELECTORPARSER-20510276:
+    - cssnano@7.1.9 > cssnano-preset-default@7.0.17 > postcss-merge-longhand@7.0.7 > stylehacks@7.0.11 > postcss-selector-parser@7.1.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:16:36.798Z
+    - cssnano@7.1.9 > cssnano-preset-default@7.0.17 > postcss-unique-selectors@7.0.7 > postcss-selector-parser@7.1.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:16:36.795Z
+    - cssnano@7.1.9 > cssnano-preset-default@7.0.17 > postcss-minify-selectors@7.1.2 > postcss-selector-parser@7.1.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:16:36.784Z
+    - cssnano@7.1.9 > cssnano-preset-default@7.0.17 > postcss-merge-rules@7.0.11 > postcss-selector-parser@7.1.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:16:36.767Z
+    - cssnano@7.1.9 > cssnano-preset-default@7.0.17 > postcss-discard-comments@7.0.8 > postcss-selector-parser@7.1.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:16:36.761Z
+    - cssnano@7.1.9 > cssnano-preset-default@7.0.17 > postcss-calc@10.1.1 > postcss-selector-parser@7.1.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:16:36.742Z
+    - cssnano-preset-lite@4.0.5 > postcss-discard-comments@7.0.8 > postcss-selector-parser@7.1.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:16:36.737Z
+  SNYK-JS-NX-20537053:
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:59.702Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:59.698Z
+    - '@nx/workspace@20.3.1 > nx@20.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:59.687Z
+    - nx@20.3.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:59.679Z
+  SNYK-JS-NX-20417219:
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:46.331Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:46.316Z
+    - '@nx/workspace@20.3.1 > nx@20.3.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:46.304Z
+    - nx@20.3.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:46.296Z
+  SNYK-JS-MODELCONTEXTPROTOCOLSDK-20579853:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > @modelcontextprotocol/sdk@1.26.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:09.787Z
+    - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:09.777Z
+    - '@upstash/context7-mcp@1.0.14 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:09.771Z
+    - '@modelcontextprotocol/server-sequential-thinking@2025.12.18 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:09.757Z
+    - '@modelcontextprotocol/server-puppeteer@2025.5.12 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:09.752Z
+    - '@kazuph/mcp-fetch@1.6.3 > @modelcontextprotocol/sdk@1.26.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:15:09.749Z
+  SNYK-JS-BRACEEXPANSION-20244952:
+    - typescript-eslint@8.59.3 > @typescript-eslint/eslint-plugin@8.59.3 > @typescript-eslint/type-utils@8.59.3 > @typescript-eslint/typescript-estree@8.59.3 > minimatch@10.2.5 > brace-expansion@5.0.9:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.661Z
+    - '@lavamoat/allow-scripts@5.1.0 > @npmcli/run-script@10.0.4 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.9':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.659Z
+    - madge@8.0.0 > dependency-tree@11.0.1 > filing-cabinet@5.0.2 > module-lookup-amd@9.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.654Z
+    - madge@8.0.0 > dependency-tree@11.0.1 > precinct@12.1.2 > detective-typescript@13.0.0 > @typescript-eslint/typescript-estree@7.18.0 > minimatch@9.0.4 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.653Z
+    - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.648Z
+    - '@vitest/coverage-v8@2.1.9 > test-exclude@7.0.1 > glob@10.4.5 > minimatch@9.0.4 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.645Z
+    - '@nx/workspace@20.3.1 > nx@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.640Z
+    - '@nx/workspace@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.637Z
+    - '@nx/workspace@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.634Z
+    - '@nx/workspace@20.3.1 > nx@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.627Z
+    - '@nx/workspace@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.622Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.607Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.602Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.599Z
+    - '@nx/js@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.593Z
+    - '@nx/js@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.590Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.587Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.585Z
+    - '@nx/js@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.579Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.575Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.570Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.566Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.557Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.555Z
+    - '@nx/esbuild@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.548Z
+    - '@nx/esbuild@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.540Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.535Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.532Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.527Z
+    - '@nx/esbuild@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.524Z
+    - jscodeshift@0.16.1 > temp@0.9.4 > rimraf@2.6.3 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.508Z
+    - jscodeshift@0.16.1 > node-dir@0.1.17 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.505Z
+    - eslint@9.37.0 > @eslint/config-array@0.21.0 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.503Z
+    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.493Z
+    - nx@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.490Z
+    - nx@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.488Z
+    - '@nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.447Z
+    - '@nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.438Z
+    - '@nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.433Z
+    - npm-run-all@4.1.5 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.420Z
+    - '@trivago/prettier-plugin-sort-imports@6.0.2 > minimatch@9.0.4 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.409Z
+    - eslint-plugin-sonarjs@3.0.5 > minimatch@9.0.5 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.401Z
+    - '@swc/cli@0.3.14 > minimatch@9.0.5 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:43.390Z
+  SNYK-JS-BRACEEXPANSION-20244948:
+    - typescript-eslint@8.59.3 > @typescript-eslint/eslint-plugin@8.59.3 > @typescript-eslint/type-utils@8.59.3 > @typescript-eslint/typescript-estree@8.59.3 > minimatch@10.2.5 > brace-expansion@5.0.9:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.035Z
+    - '@lavamoat/allow-scripts@5.1.0 > @npmcli/run-script@10.0.4 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.9':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.023Z
+    - madge@8.0.0 > dependency-tree@11.0.1 > filing-cabinet@5.0.2 > module-lookup-amd@9.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.018Z
+    - madge@8.0.0 > dependency-tree@11.0.1 > precinct@12.1.2 > detective-typescript@13.0.0 > @typescript-eslint/typescript-estree@7.18.0 > minimatch@9.0.4 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.016Z
+    - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.010Z
+    - '@vitest/coverage-v8@2.1.9 > test-exclude@7.0.1 > glob@10.4.5 > minimatch@9.0.4 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.006Z
+    - '@nx/workspace@20.3.1 > nx@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.003Z
+    - '@nx/workspace@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:13.000Z
+    - '@nx/workspace@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.998Z
+    - '@nx/workspace@20.3.1 > nx@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.993Z
+    - '@nx/workspace@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.988Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.985Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.982Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.980Z
+    - '@nx/js@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.975Z
+    - '@nx/js@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.971Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.963Z
+    - '@nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.959Z
+    - '@nx/js@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.954Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.950Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.947Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.942Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.938Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.935Z
+    - '@nx/esbuild@20.3.1 > @nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.930Z
+    - '@nx/esbuild@20.3.1 > @nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.922Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > nx@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.920Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/workspace@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.916Z
+    - '@nx/esbuild@20.3.1 > @nx/js@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.914Z
+    - '@nx/esbuild@20.3.1 > @nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.906Z
+    - jscodeshift@0.16.1 > temp@0.9.4 > rimraf@2.6.3 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.880Z
+    - jscodeshift@0.16.1 > node-dir@0.1.17 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.875Z
+    - eslint@9.37.0 > @eslint/config-array@0.21.0 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.872Z
+    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.847Z
+    - nx@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.840Z
+    - nx@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.836Z
+    - '@nx/devkit@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.763Z
+    - '@nx/devkit@20.3.1 > ejs@3.1.10 > jake@10.9.4 > filelist@1.0.4 > minimatch@5.1.6 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.758Z
+    - '@nx/devkit@20.3.1 > minimatch@9.0.3 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.739Z
+    - npm-run-all@4.1.5 > minimatch@3.1.2 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.733Z
+    - '@trivago/prettier-plugin-sort-imports@6.0.2 > minimatch@9.0.4 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.727Z
+    - eslint-plugin-sonarjs@3.0.5 > minimatch@9.0.5 > brace-expansion@2.1.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.718Z
+    - '@swc/cli@0.3.14 > minimatch@9.0.5 > brace-expansion@2.1.4':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:14:12.703Z
+  SNYK-JS-BASICFTP-20419408:
+    - '@modelcontextprotocol/server-puppeteer@2025.5.12 > puppeteer@23.11.1 > @puppeteer/browsers@2.6.1 > proxy-agent@6.5.0 > pac-proxy-agent@7.2.0 > get-uri@6.0.5 > basic-ftp@5.0.5':
+        reason: >-
+            MCP/dev tooling - not a directly exposed production dependency
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:13:33.663Z
+  SNYK-JS-AXIOS-20245060:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:02:41.281Z
+  SNYK-JS-AXIOS-20245046:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:02:24.640Z
+  SNYK-JS-AXIOS-20245044:
+    - rulesync@7.0.0 > fastmcp@3.31.0 > mcp-proxy@6.4.0 > pipenet@1.4.0 > axios@1.13.5:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:02:04.498Z
+  SNYK-JS-SHELLQUOTE-20250993:
+    - concurrently@10.0.5 > shell-quote@1.9.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:01:30.134Z
+  SNYK-JS-PISCINA-20417213:
+    - '@swc/cli@0.3.14 > piscina@4.8.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:00:43.086Z
+  SNYK-JS-GRAYMATTER-20532010:
+    - rulesync@7.0.0 > gray-matter@4.0.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:00:09.833Z
   SNYK-JS-URIJS-19963963:
     - rulesync@7.0.0 > @modelcontextprotocol/sdk@1.26.0 > ajv-formats@3.0.1 > ajv@8.12.0 > uri-js@4.4.1:
         reason: >-
@@ -318,7 +958,7 @@ ignore:
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-15T10:44:04.535Z
-    - '@size-limit/esbuild@11.1.6 > esbuild@0.24.2':
+    - '@size-limit/esbuild@11.2.0 > esbuild@0.25.0':
         reason: Used in build & dev - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-15T10:44:00.407Z
@@ -1776,11 +2416,61 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-TAR-17909068:
+    - vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.602Z
+    - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.596Z
+    - vite@8.3.0 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.581Z
+    - tsx@4.23.15 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.572Z
+    - playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.550Z
     - '@lavamoat/allow-scripts@5.1.0 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-TAR-17909152:
+    - vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.342Z
+    - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.338Z
+    - vite@8.3.0 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.327Z
+    - tsx@4.23.15 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.318Z
+    - playwright@1.60.0 > fsevents@2.3.2 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.307Z
     - '@lavamoat/allow-scripts@5.1.0 > @npmcli/run-script@10.0.4 > node-gyp@12.3.0 > tar@7.5.16':
         reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
         expires: '2027-03-02T00:00:00.000Z'

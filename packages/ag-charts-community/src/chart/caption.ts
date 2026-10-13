@@ -1,6 +1,16 @@
-import type { AxisID, DynamicContext, NormalisedAxisTitleOptions, NormalisedTextOrSegments } from 'ag-charts-core';
+import type {
+    AxisID,
+    BoundedTextWidget,
+    DynamicContext,
+    MouseWidgetEvent,
+    NormalisedAxisTitleOptions,
+    NormalisedTextOrSegments,
+} from 'ag-charts-core';
 import {
     FONT_SIZE,
+    PointerEvents,
+    RotatableText,
+    Transformable,
     createId,
     isArray,
     isSegmentTruncated,
@@ -13,11 +23,6 @@ import {
 import type { FontStyle, FontWeight, TextWrap } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
-import { PointerEvents } from '../scene/node';
-import { RotatableText } from '../scene/shape/text';
-import { Transformable } from '../scene/transformable';
-import type { BoundedTextWidget } from '../widget/boundedTextWidget';
-import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
 import type { TooltipContent } from './tooltip/tooltipContent';
 

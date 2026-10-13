@@ -1,5 +1,6 @@
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedUnitTimeAxisOptions } from 'ag-charts-core';
 import {
+    UnitTimeScale,
     dateTruncationForDomain,
     intervalEpoch,
     intervalFloor,
@@ -13,7 +14,6 @@ import {
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import { UnitTimeScale } from '../../scale/unitTimeScale';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import { DiscreteTimeAxis } from './discreteTimeAxis';

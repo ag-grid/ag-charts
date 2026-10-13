@@ -1,5 +1,5 @@
-import { type AgMarkerShapeFnParams, _ModuleSupport } from 'ag-charts-community';
-import type { Point } from 'ag-charts-core';
+import type { AgMarkerShapeFnParams } from 'ag-charts-community';
+import { type Point, drawMarkerUnitPolygon } from 'ag-charts-core';
 
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -19,7 +19,7 @@ export const arrowUpPoints: Array<[number, number]> = [
 ];
 
 function arrowUp(params: AgMarkerShapeFnParams) {
-    _ModuleSupport.drawMarkerUnitPolygon(params, arrowUpPoints);
+    drawMarkerUnitPolygon(params, arrowUpPoints);
 }
 
 arrowUp.anchor = { x: 0.5, y: 0 };

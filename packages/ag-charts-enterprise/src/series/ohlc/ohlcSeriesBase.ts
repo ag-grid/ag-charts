@@ -14,6 +14,8 @@ import {
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
+    type BBox,
+    BandScale,
     type CallbackParamRules,
     ChartAxisDirection,
     DebugMetrics,
@@ -24,6 +26,8 @@ import {
     type NormalisedOhlcSeriesBaseOwnOptions,
     type Point,
     type Scale,
+    type Selection,
+    type Text,
     mergeDefaults,
     toNumber,
 } from 'ag-charts-core';
@@ -54,7 +58,6 @@ const {
     animationValidation,
     computeBarFocusBounds,
     visibleRangeIndices,
-    BandScale,
     processedDataIsAnimatable,
     getItemStylesPerItemId,
 } = _ModuleSupport;
@@ -188,7 +191,8 @@ function resetOhlcSelectionsDirect<D extends OhlcNodeDatum>(
                     datum.height,
                     datum.yOpen,
                     datum.yClose,
-                    datum.crisp
+                    datum.crisp,
+                    node.fillShadow
                 );
             }
             selection.cleanup();
@@ -791,7 +795,7 @@ export abstract class OhlcSeriesBase<
 
     protected override updateDatumSelection(opts: {
         nodeData: OhlcNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, TTypes['node']>;
+        datumSelection: Selection<OhlcNodeDatum, TTypes['node']>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
@@ -803,7 +807,7 @@ export abstract class OhlcSeriesBase<
     }
 
     protected updateLabelNodes(_opts: {
-        labelSelection: _ModuleSupport.Selection<OhlcNodeDatum, _ModuleSupport.Text<OhlcNodeDatum>>;
+        labelSelection: Selection<OhlcNodeDatum, Text<OhlcNodeDatum>>;
         seriesIdx: number;
     }) {
         // Labels unsupported
@@ -811,7 +815,7 @@ export abstract class OhlcSeriesBase<
 
     protected override updateLabelSelection(opts: {
         labelData: OhlcNodeDatum[];
-        labelSelection: _ModuleSupport.Selection<OhlcNodeDatum, _ModuleSupport.Text<OhlcNodeDatum>>;
+        labelSelection: Selection<OhlcNodeDatum, Text<OhlcNodeDatum>>;
         seriesIdx: number;
     }) {
         const { labelData, labelSelection } = opts;
@@ -1006,7 +1010,7 @@ export abstract class OhlcSeriesBase<
         );
     }
 
-    override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): BBox | undefined {
         const { datumIndex } = opts;
         const ctx = this.nodeDatumContext;
         if (!ctx) return undefined;

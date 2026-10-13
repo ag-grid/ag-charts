@@ -16,7 +16,7 @@ import type {
     TextOptions,
     TextOrSegments,
 } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgItemHighlightStyleOptions } from '../seriesOptions';
 
 export type AgSunburstHighlightState = HierarchyHighlightState;
 
@@ -45,7 +45,7 @@ export interface AgSunburstSeriesHighlightOptions {
     /** Style for nodes within the hovered branch. */
     highlightedBranch?: AgSunburstSeriesHighlightStyle;
     /** Style for the directly hovered node. */
-    highlightedItem?: AgSunburstSeriesHighlightStyle;
+    highlightedItem?: AgSunburstSeriesHighlightStyle & AgItemHighlightStyleOptions;
     /** Style for other nodes within the hovered branch. */
     unhighlightedItem?: AgSunburstSeriesHighlightStyle;
     /** Style for nodes outside of the hovered branch. */

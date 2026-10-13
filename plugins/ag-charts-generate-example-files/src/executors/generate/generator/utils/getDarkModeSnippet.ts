@@ -29,6 +29,7 @@ const PALETTE_SENSITIVE_TYPES = new Set([
     'bubble',
     'candlestick',
     'ohlc',
+    'hlc',
     'treemap',
     'cone-funnel',
     'radial-gauge',

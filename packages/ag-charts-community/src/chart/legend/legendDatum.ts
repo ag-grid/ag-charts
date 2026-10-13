@@ -1,8 +1,10 @@
 import {
+    type ColorScale,
     type ColorScaleState,
     type GradientColorStop,
     type NormalisedTextOrSegments,
     type PluginModuleInstance,
+    type Scene,
     deriveNormalizedStops,
     formatColorBinLabel,
     toNumber,
@@ -14,8 +16,6 @@ import type {
     NumberFormatterParams,
 } from 'ag-charts-types';
 
-import type { ColorScale } from '../../scale/colorScale';
-import type { Scene } from '../../scene/scene';
 import type { FormatManager, GlobalContextFormatter } from '../formatter/formatManager';
 import type { LegendSymbolOptions } from './legendSymbol';
 

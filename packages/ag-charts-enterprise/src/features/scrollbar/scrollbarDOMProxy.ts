@@ -1,18 +1,21 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type DynamicContext, clamp } from 'ag-charts-core';
-import type { BoxBounds } from 'ag-charts-core';
-
-const { SliderWidget } = _ModuleSupport;
+import { _ModuleSupport } from 'ag-charts-community';
+import { type DynamicContext, SliderWidget, clamp } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    ClickWidgetEvent,
+    DragWidgetEvent,
+    GroupWidget,
+    KeyboardWidgetEvent,
+    MouseWidgetEvent,
+    NativeWidget,
+} from 'ag-charts-core';
 
 const STEP_REPEAT_DELAY_MS = 400;
 const STEP_REPEAT_INTERVAL_MS = 50;
 
 const DRAG_CURSOR_ID = 'scrollbar-drag-cursor';
 
-type PointerLikeEvent =
-    | _Widget.ClickWidgetEvent
-    | _ModuleSupport.MouseWidgetEvent<'mouseenter' | 'mousemove'>
-    | _ModuleSupport.DragWidgetEvent;
+type PointerLikeEvent = ClickWidgetEvent | MouseWidgetEvent<'mouseenter' | 'mousemove'> | DragWidgetEvent;
 
 type ScrollbarRange = {
     min: number;
@@ -149,9 +152,9 @@ class ScrollbarState {
 }
 
 export class ScrollbarDOMProxy {
-    private readonly container: _ModuleSupport.GroupWidget;
-    private readonly slider: _ModuleSupport.SliderWidget;
-    private readonly thumbFocus: _ModuleSupport.NativeWidget<HTMLDivElement>;
+    private readonly container: GroupWidget;
+    private readonly slider: SliderWidget;
+    private readonly thumbFocus: NativeWidget<HTMLDivElement>;
 
     private dragStartRatio = 0;
     private interactionMode: InteractionMode = 'none';
@@ -271,7 +274,7 @@ export class ScrollbarDOMProxy {
         this.update(min, max, { skipSliderUpdate: true });
     }
 
-    private onSliderKeyDown(event: _ModuleSupport.KeyboardWidgetEvent<'keydown'>) {
+    private onSliderKeyDown(event: KeyboardWidgetEvent<'keydown'>) {
         const { code } = event.sourceEvent;
         const isVertical = this.orientation === 'vertical';
         const decrement = (isVertical && code === 'ArrowUp') || (!isVertical && code === 'ArrowLeft');
@@ -291,7 +294,7 @@ export class ScrollbarDOMProxy {
         this.onSliderChange();
     }
 
-    private onDragMove(event: _ModuleSupport.DragWidgetEvent<'drag-move'>) {
+    private onDragMove(event: DragWidgetEvent<'drag-move'>) {
         if (this.interactionMode === 'drag') {
             const { isHorizontal, size, start } = this.getInteractionBounds() ?? {};
             if (start == null || size == null) return;
@@ -326,7 +329,7 @@ export class ScrollbarDOMProxy {
         this.onHoverChange(false);
     }
 
-    private onDragStart(event: _ModuleSupport.DragWidgetEvent<'drag-start'>) {
+    private onDragStart(event: DragWidgetEvent<'drag-start'>) {
         event.sourceEvent.preventDefault();
         this.interactionBounds = undefined;
 
@@ -431,7 +434,7 @@ export class ScrollbarDOMProxy {
         return this.state.isWithinThumb(ratio);
     }
 
-    private handleHoverEvent(event: _ModuleSupport.MouseWidgetEvent<'mouseenter' | 'mousemove'>) {
+    private handleHoverEvent(event: MouseWidgetEvent<'mouseenter' | 'mousemove'>) {
         if (this.interactionMode === 'drag') return;
 
         const pointer = this.getPointerInfo(event);

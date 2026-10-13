@@ -1,9 +1,7 @@
-import { type DynamicContext, type Point, objectsEqual } from 'ag-charts-core';
+import { type DynamicContext, type Point, StateTracker, debouncedCallback, objectsEqual } from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { debouncedCallback } from '../../util/render';
-import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum } from '../series/seriesTypes';
 
 /**

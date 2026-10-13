@@ -1,7 +1,9 @@
 import type {
     AxisID,
+    AxisPrimaryTickCount,
     ChartAnimationPhase,
     DynamicContext,
+    Node,
     NormalisedBaseAxisLabelOptions,
     NormalisedBaseCartesianAxisOptions,
     ResolvedTextAlign,
@@ -9,10 +11,20 @@ import type {
     ZoomMinMax,
 } from 'ag-charts-core';
 import {
+    BBox,
     ChartAxisDirection,
+    ContinuousScale,
+    DiscreteTimeScale,
+    Line,
+    PointerEvents,
+    Rect,
+    Selection,
     StateMachine,
+    Transformable,
+    TransformableText,
+    TranslatableGroup,
     arraysEqual,
-    calcLineHeight,
+    cachedTextMeasurer,
     countLines,
     diffArrays,
     findMinMax,
@@ -33,17 +45,6 @@ import type { AxisContext } from '../../module/axisContext';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
-import { ContinuousScale } from '../../scale/continuousScale';
-import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import { BBox } from '../../scene/bbox';
-import { TranslatableGroup } from '../../scene/group';
-import { type Node, PointerEvents } from '../../scene/node';
-import { Selection } from '../../scene/selection';
-import { Line } from '../../scene/shape/line';
-import { Rect } from '../../scene/shape/rect';
-import { TransformableText } from '../../scene/shape/text';
-import { Transformable } from '../../scene/transformable';
-import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { Caption } from '../caption';
 import type { ChartLayout } from '../chartAxis';
 import type { AnimationManager } from '../interaction/animationManager';
@@ -784,10 +785,11 @@ export abstract class CartesianAxis<
             return { ...scrollbar, offset };
         }
 
-        const offset =
-            direction === 1
-                ? labelThickness + scrollbar.spacing
-                : -labelThickness - scrollbar.spacing - scrollbar.thickness;
+        // Keep the track within the axis width granted by the chart, but never inside the series area.
+        const maxThickness = (this.chartLayout?.sizeLimit ?? Infinity) + this.options.label.spacing;
+        const naturalExtent = labelThickness + scrollbar.spacing + scrollbar.thickness;
+        const extent = Math.min(naturalExtent, Math.max(maxThickness, scrollbar.thickness));
+        const offset = direction === 1 ? extent - scrollbar.thickness : -extent;
 
         return { ...scrollbar, offset };
     }
@@ -803,7 +805,8 @@ export abstract class CartesianAxis<
         if (scrollbarLayout) {
             const { offset, thickness, placement } = scrollbarLayout;
             if (placement === 'outer') {
-                spacing += scrollbarLayout.spacing + thickness;
+                // Distance from the series edge to the far side of the track, whichever side it is on.
+                spacing = Math.max(offset + thickness, -offset);
             }
             if (this.horizontal) {
                 boxes.push(new BBox(0, offset, 0, thickness));
@@ -885,7 +888,7 @@ export abstract class CartesianAxis<
             boxes.push(
                 new BBox(
                     0,
-                    calcLineHeight(label.fontSize) + inexactMeasurementPadding,
+                    cachedTextMeasurer(label).lineHeight() + inexactMeasurementPadding,
                     1,
                     this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding
                 )
@@ -903,7 +906,7 @@ export abstract class CartesianAxis<
                             primaryLabel.spacing +
                             seriesAreaPadding,
                         1,
-                        maxLines * calcLineHeight(primaryLabel.fontSize) + inexactMeasurementPadding
+                        maxLines * cachedTextMeasurer(primaryLabel).lineHeight() + inexactMeasurementPadding
                     )
                 );
             }

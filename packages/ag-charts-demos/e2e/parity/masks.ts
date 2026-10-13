@@ -6,7 +6,7 @@
 // cannot reproduce, with a comment saying what differs and why it is acceptable, so the entry is
 // reviewed with the PR that needs it.
 export const MASKS: Record<string, readonly string[]> = {
-    financial: [],
+    'trading-terminal': [],
     'web-analytics': [],
     procurement: [],
 };

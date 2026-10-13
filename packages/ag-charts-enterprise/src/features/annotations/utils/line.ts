@@ -1,5 +1,5 @@
-import type { AgAnnotationLineStyleType, PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type Point, Vec2 } from 'ag-charts-core';
+import type { AgAnnotationLineStyleType, PixelSize } from 'ag-charts-community';
+import { type BBox, type Bounds4, type Point, type ShapeLineCap, Vec2 } from 'ag-charts-core';
 
 export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {
     return lineDash ? 'dashed' : (lineStyle ?? 'solid');
@@ -26,14 +26,14 @@ export function getLineDash({ lineDash, lineStyle, strokeWidth }: LineStyleSourc
     return lineDash ?? getComputedLineDash(strokeWidth ?? 1, getLineStyle(lineDash, lineStyle));
 }
 
-export function getLineCap({ lineDash, lineStyle }: LineStyleSource): _ModuleSupport.ShapeLineCap | undefined {
+export function getLineCap({ lineDash, lineStyle }: LineStyleSource): ShapeLineCap | undefined {
     return getLineStyle(lineDash, lineStyle) === 'dotted' ? 'round' : undefined;
 }
 
 /**
  * Find the pair of points where a line intersects a bounding box.
  */
-export function boundsIntersections(coords: Bounds4, bounds: _ModuleSupport.BBox): [Point, Point] {
+export function boundsIntersections(coords: Bounds4, bounds: BBox): [Point, Point] {
     const [p1, p2] = Vec2.from(coords);
 
     const reflection = bounds.height;

@@ -1,14 +1,13 @@
 // Documented APIs.
 export { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
 export * from 'ag-charts-types';
-export { time } from './util/time-interop';
+export { time } from 'ag-charts-core';
 export { AgCharts } from './api/agCharts';
 export { VERSION } from './version';
 export { ModuleRegistry } from 'ag-charts-core';
 
 // Undocumented APIs used by Enterprise Modules.
 export * as _ModuleSupport from './module-support';
-export * as _Widget from './widget/exports';
 
 // Module exports
 export { SparklinePresetModule } from './api/preset/presetModules';
@@ -45,6 +44,4 @@ export { AllPolarModule } from './module-bundles/polar';
 
 // Undocumented APIs used by Integrated Charts.
 export { AgChartsCommunityModule } from './module-bundles/integrated';
-export * as _Scene from './integrated-charts-scene';
-export * as _Theme from './integrated-charts-theme';
-export * as _Util from './integrated-charts-util';
+export { _Scene, _Theme, _Util } from './integrated-charts';

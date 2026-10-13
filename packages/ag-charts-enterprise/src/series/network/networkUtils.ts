@@ -1,5 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, clamp } from 'ag-charts-core';
+import { type ExtendedPath2D, type Point, clamp } from 'ag-charts-core';
 
 const DOWN = Math.PI * 0;
 const LEFT = Math.PI * 0.5;
@@ -11,13 +10,7 @@ const LEFT_CCW = RIGHT;
 const UP_CCW = DOWN;
 const RIGHT_CCW = LEFT;
 
-export function pathWithElbows(
-    path: _ModuleSupport.ExtendedPath2D,
-    start: Point,
-    elbows: Point[],
-    end: Point,
-    cornerRadii: number[]
-) {
+export function pathWithElbows(path: ExtendedPath2D, start: Point, elbows: Point[], end: Point, cornerRadii: number[]) {
     path.moveTo(start.x, start.y);
 
     for (let index = 0; index < elbows.length; index++) {

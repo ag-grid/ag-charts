@@ -1,8 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import type { DistantObject } from 'ag-charts-core';
-import { SceneChangeDetection, lineDistanceSquared } from 'ag-charts-core';
-
-const { BBox, Path } = _ModuleSupport;
+import { BBox, Path, SceneChangeDetection, lineDistanceSquared } from 'ag-charts-core';
 
 const delta = 1e-6;
 function pointsEq([ax, ay]: readonly [number, number], [bx, by]: readonly [number, number]) {
@@ -93,7 +90,7 @@ export class FunnelConnector<D = unknown> extends Path<D> implements DistantObje
         );
     }
 
-    protected override computeBBox(): _ModuleSupport.BBox | undefined {
+    protected override computeBBox(): BBox | undefined {
         const { x0, y0, x1, y1, x2, y2, x3, y3, capsAlongX } = this;
         let x = Math.min(x0, x1, x2, x3);
         let width = Math.max(x0, x1, x2, x3) - x;

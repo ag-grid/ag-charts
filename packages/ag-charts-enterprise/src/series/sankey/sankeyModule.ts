@@ -1,13 +1,15 @@
 import { type AgSankeySeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    LABEL_OVERFLOW_DEFAULTS,
     SAFE_FILLS_OPERATION,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
@@ -15,7 +17,7 @@ import {
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SankeySeries } from './sankeySeries';
-import { sankeySeriesOptionsDef } from './sankeySeriesOptionsDef';
+import { sankeySeriesOptionsDef, sankeySeriesThemeableOptionsDef } from './sankeySeriesOptionsDef';
 
 export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> = {
     type: 'series',
@@ -27,6 +29,8 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
     dependencies: [StandaloneChartModule],
 
     options: sankeySeriesOptionsDef,
+
+    themeOptions: sankeySeriesThemeableOptionsDef,
     themeTemplate: {
         seriesArea: {
             padding: {
@@ -44,13 +48,14 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                     opacity: 0.5,
                 },
             },
-            tooltip: { interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
+                ...LABEL_OVERFLOW_DEFAULTS,
                 enabled: true,
-                fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $ref: 'fontSize' },
-                fontWeight: { $ref: 'fontWeight' },
+                fontFamily: { $ref: 'seriesLabelFontFamily' },
+                fontSize: { $ref: 'seriesLabelFontSize' },
+                fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 10,
             },
@@ -65,25 +70,13 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 fillOpacity: 1,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
-                shadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
+                shadow: SHADOW_THEME_DEFAULTS,
             },
             link: {
                 fillOpacity: 0.5,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 ...STROKE_STYLE_THEME_DEFAULTS,
-                shadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
+                shadow: SHADOW_THEME_DEFAULTS,
             },
             ...undocumentedThemeOptions({
                 selection: SERIES_SELECTION_THEME,

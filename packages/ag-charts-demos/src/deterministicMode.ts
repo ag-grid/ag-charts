@@ -1,6 +1,6 @@
 // The e2e switch, read by the app shell: `?deterministic=1` in the page URL, or
 // `VITE_DEMO_DETERMINISTIC=1` at build time. It is the same switch, with the same semantics, as the
-// financial demo's `src/demos/financial/deterministic.ts`, which the parity harness sets on every
+// trading-terminal demo's `src/demos/trading-terminal/deterministic.ts`, which the parity harness sets on every
 // load (e2e/parity/targets.ts). That file is copied into the ports, so the shell keeps its own
 // reading of the switch rather than importing it. Normal loads never set it.
 

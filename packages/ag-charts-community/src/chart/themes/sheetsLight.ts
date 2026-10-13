@@ -1,8 +1,4 @@
-import {
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    getSequentialColors,
-} from 'ag-charts-core';
+import { getSequentialColors } from 'ag-charts-core';
 
 import { ChartTheme } from './chartTheme';
 
@@ -61,14 +57,5 @@ export class SheetsLight extends ChartTheme {
             altDown: { fill: SHEETS_LIGHT_FILLS.ORANGE, stroke: SHEETS_LIGHT_STROKES.ORANGE },
             altNeutral: { fill: SHEETS_LIGHT_FILLS.GRAY, stroke: SHEETS_LIGHT_STROKES.GRAY },
         };
-    }
-
-    override getTemplateParameters() {
-        const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, SHEETS_LIGHT_FILLS.BLUE);
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, SHEETS_LIGHT_FILLS.BLUE);
-
-        return params;
     }
 }

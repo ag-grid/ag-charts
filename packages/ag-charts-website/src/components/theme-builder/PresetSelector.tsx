@@ -32,10 +32,7 @@ export const PresetSelector = ({ selectedId }: Props) => {
                 {PRESETS.map((preset) => (
                     <PresetButton
                         key={preset.id}
-                        onClick={(e) => {
-                            selectPreset(preset);
-                            e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                        }}
+                        onClick={() => selectPreset(preset)}
                         aria-label={preset.label}
                         aria-pressed={preset.id === selectedId}
                     >

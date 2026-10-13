@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 
-import { ColorScale } from '../../scale/colorScale';
+import { ColorScale } from 'ag-charts-core';
+
 import { FormatManager } from '../formatter/formatManager';
 import {
     type ColorScaleLegendFormatterContext,

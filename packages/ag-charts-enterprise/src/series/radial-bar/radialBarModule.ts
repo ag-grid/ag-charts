@@ -2,7 +2,7 @@ import { type AgRadialBarSeriesOptions, PolarChartModule, VERSION } from 'ag-cha
 import { ChartAxisDirection, POLAR_AXIS_TYPE, type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { RadialBarSeries } from './radialBarSeries';
-import { radialBarSeriesOptionsDef } from './radialBarSeriesOptionsDef';
+import { radialBarSeriesOptionsDef, radialBarSeriesThemeableOptionsDef } from './radialBarSeriesOptionsDef';
 import { RADIAL_BAR_SERIES_THEME } from './radialBarThemes';
 
 export const RadialBarSeriesModule: SeriesModuleDefinition<AgRadialBarSeriesOptions> = {
@@ -16,6 +16,8 @@ export const RadialBarSeriesModule: SeriesModuleDefinition<AgRadialBarSeriesOpti
     dependencies: [PolarChartModule],
 
     options: radialBarSeriesOptionsDef,
+
+    themeOptions: radialBarSeriesThemeableOptionsDef,
     defaultAxes: { angle: { type: POLAR_AXIS_TYPE.ANGLE_NUMBER }, radius: { type: POLAR_AXIS_TYPE.RADIUS_CATEGORY } },
     axisKeys: { [ChartAxisDirection.Angle]: 'angleKeyAxis', [ChartAxisDirection.Radius]: 'radiusKeyAxis' },
     themeTemplate: RADIAL_BAR_SERIES_THEME,

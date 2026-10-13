@@ -171,6 +171,7 @@ export class AnnotationOptionsToolbar {
 
     public applyOptions(options: AgAnnotationOptionsToolbar & { enabled: boolean }) {
         this.enabled = options.enabled;
+        this.toolbar.setButtonSize(options.buttonSize);
         this.buttons = (options.buttons ?? []).map((button) => ({
             ...button,
             type: button.type ?? 'button',

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     compareImageSnapshot,
     deproxy,
@@ -8,11 +8,12 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import type { BBox } from 'ag-charts-core';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../test/utils';
 
-function calculateAxisBBox(axis: { getBBox(): _ModuleSupport.BBox }): {
+function calculateAxisBBox(axis: { getBBox(): BBox }): {
     x: number;
     y: number;
     width: number;

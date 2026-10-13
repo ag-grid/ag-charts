@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { isPlainObject } from '../data/typeGuards';
 import { Logger } from '../logging/logger';
 import * as ambientLog from '../logging/logger';
-import { isPlainObject } from '../utils/types/typeGuards';
 import { MementoCaretaker, type MementoOriginator } from './memento';
 
 describe('Memento Caretaker', () => {

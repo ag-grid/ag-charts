@@ -27,6 +27,7 @@ import {
     groupBy,
     hasRequiredInPath,
     isArray,
+    isEnumValue,
     isFunction,
     isKeyOf,
     isNumericValue,
@@ -48,6 +49,7 @@ import {
     unique,
     validate,
     visitOptionsPath,
+    without,
 } from 'ag-charts-core';
 import {
     type AgChartModule,
@@ -202,6 +204,13 @@ const POSITION_DIRECTIONS = {
     left: ChartAxisDirection.Y,
     right: ChartAxisDirection.Y,
 };
+type AxisPosition = keyof typeof POSITION_DIRECTIONS;
+const OPPOSITE_POSITIONS: Record<AxisPosition, AxisPosition> = {
+    top: 'bottom',
+    bottom: 'top',
+    left: 'right',
+    right: 'left',
+};
 
 const SIZE_BOUND_KEYS: Record<string, [min: string, max: string]> = {
     bubble: ['minSize', 'maxSize'],
@@ -275,6 +284,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     optionsProcessingTime?: number;
     optionsGraph?: OptionsGraphAccessor;
     remappedAxisKeys?: Map<string, AxisID>;
+    /** The validated options, less `data`, of a preset declaring `transformSeriesData`. */
+    presetOptions?: object;
     seriesWithUserVisibility?: {
         identifiers: Set<string>;
         indices: Set<number>;
@@ -367,7 +378,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             googleFonts,
             fonts,
             optionsGraph,
-            remappedAxisKeys;
+            remappedAxisKeys,
+            presetOptions;
 
         const stopCapture = this.logger.onIssue((issue) => this.issues.push(issue));
         let rejected = false;
@@ -393,15 +405,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 deltaOptions !== undefined &&
                 ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
                 baseChartOptions != null &&
-                !dataChangedLength &&
-                !(presetDef?.dataTransactions === false && deltaOptions?.data !== undefined)
+                !dataChangedLength
             ) {
                 ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
                 themeParameters = baseChartOptions.themeParameters;
                 annotationThemes = baseChartOptions.annotationThemes;
                 // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
                 fonts = baseChartOptions.fonts;
-                // The fast path doesn't re-validate, so carry forward the issues from the previous options.
+                // The fast path doesn't re-validate, so carry forward the preset options and issues from the
+                // previous options.
+                presetOptions = baseChartOptions.presetOptions;
                 this.issues.push(...baseChartOptions.issues);
                 this.revalidated = false;
             } else {
@@ -415,6 +428,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     fonts,
                     optionsGraph,
                     remappedAxisKeys,
+                    presetOptions,
                 } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
             }
         } catch (error) {
@@ -442,6 +456,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.fonts = fonts;
         this.optionsGraph = optionsGraph;
         this.remappedAxisKeys = remappedAxisKeys;
+        this.presetOptions = presetOptions;
 
         // Capture options processing time for debug stats
         if (apiStartTime !== undefined && typeof apiStartTime === 'number' && !Number.isNaN(apiStartTime)) {
@@ -607,11 +622,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.soloSeriesIntegrity(options);
 
-        // TODO: Remove as this is only required to pass the series validation, it is handled by the OptionsGraph.
-        if (presetType != null) {
-            activeTheme.templateTheme(options, false);
-        }
-
         const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
 
         const chartType = detectChartType(options, this.moduleRegistry);
@@ -691,6 +701,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Second pass: axis keys are remapped and missing `type` properties inferred, so axes validate.
         this.validateAxesOptions(processedOptions, secondPassParams);
+        this.assignMissingAxisPositions(processedOptions);
 
         this.validateContributedOptions(processedOptions, secondPassParams);
         this.processMiniChartSeriesOptions(processedOptions, activeTheme);
@@ -700,6 +711,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const { fonts } = fontAccumulator;
+        const clearedPresetOptions =
+            presetDef?.transformSeriesData == null || presetOptions == null
+                ? undefined
+                : without(presetOptions, ['data']);
 
         ChartOptions.debug(() => ['ChartOptions.slowSetup() - processed options', deepClone(processedOptions)]);
 
@@ -734,6 +749,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             fonts,
             optionsGraph,
             remappedAxisKeys,
+            presetOptions: clearedPresetOptions,
         };
     }
 
@@ -802,6 +818,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             fonts: cached.fonts ? new Set(cached.fonts) : undefined,
             optionsGraph,
             remappedAxisKeys: cached.remappedAxisKeys,
+            // Only sparklines are cached, and they don't transform their series data.
+            presetOptions: undefined,
         };
     }
 
@@ -1112,6 +1130,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return;
         }
 
+        if (chartType === 'cartesian') {
+            this.transposeSwappedSeriesAxes(options, directions);
+            this.removeMismatchedAxisPositions(options, directions);
+        }
+
         // The primary axis for each direction is remapped to the standard naming, e.g. a user's `myXAxis`
         // becomes `x`.
         const axisKeys = 'axes' in options ? new Set(Object.keys(options.axes ?? {})) : new Set<string>();
@@ -1161,6 +1184,70 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return isFlipped && seriesModule.axisKeysFlipped
             ? seriesModule.axisKeysFlipped[direction]
             : seriesModule.axisKeys?.[direction];
+    }
+
+    /** Swaps a series' axis keys when both axes are positioned for the other direction, as with swapped `x` and `y`. */
+    private transposeSwappedSeriesAxes(options: T, directions: ChartAxisDirection[]) {
+        if (!('axes' in options) || options.axes == null) return;
+
+        const axes: Record<string, unknown> = options.axes;
+        for (const seriesOptions of options.series ?? []) {
+            const seriesAxisKeys: unknown = seriesOptions;
+            if (!isPlainObject(seriesAxisKeys)) continue;
+
+            const references = directions.map((direction) => {
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
+                const seriesAxisKey = directionAxisKey == null ? undefined : seriesAxisKeys[directionAxisKey];
+                const axisKey = typeof seriesAxisKey === 'string' ? seriesAxisKey : (direction as string);
+                const axis = axes[axisKey];
+                const position =
+                    isPlainObject(axis) && isKeyOf(axis.position, POSITION_DIRECTIONS) ? axis.position : undefined;
+                const isSwapped = position != null && POSITION_DIRECTIONS[position] !== direction;
+                return { direction, directionAxisKey, axisKey, isSwapped };
+            });
+
+            const [first, second] = references;
+            if (first?.directionAxisKey == null || second?.directionAxisKey == null) continue;
+            if (!first.isSwapped || !second.isSwapped) continue;
+
+            const usesDefaultAxisKeys = references.every(({ direction, axisKey }) => axisKey === (direction as string));
+            if (usesDefaultAxisKeys) continue;
+
+            seriesAxisKeys[first.directionAxisKey] = second.axisKey;
+            seriesAxisKeys[second.directionAxisKey] = first.axisKey;
+        }
+    }
+
+    private removeMismatchedAxisPositions(options: T, directions: ChartAxisDirection[]) {
+        if (!('axes' in options) || options.axes == null) return;
+
+        const axes: Record<string, unknown> = options.axes;
+        for (const [axisKey, axis] of entries(axes)) {
+            if (!isPlainObject(axis) || !isKeyOf(axis.position, POSITION_DIRECTIONS)) continue;
+
+            const seriesDirection = this.getSeriesReferenceDirection(options, directions, axisKey);
+            if (seriesDirection == null || seriesDirection === POSITION_DIRECTIONS[axis.position]) continue;
+
+            this.logger.warn(
+                `\`axes.${axisKey}.position\` cannot be \`"${axis.position}"\` because series use this axis as a ${seriesDirection} axis, ignoring.`
+            );
+            delete axis.position;
+        }
+    }
+
+    /** The direction series reference an axis key for, ignoring references that only name the default direction. */
+    private getSeriesReferenceDirection(options: T, directions: ChartAxisDirection[], axisKey: string) {
+        for (const seriesOptions of options.series ?? []) {
+            for (const direction of directions) {
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
+                if (directionAxisKey == null || !isKeyOf(directionAxisKey, seriesOptions)) continue;
+
+                if ((seriesOptions[directionAxisKey] as string) !== axisKey || axisKey === (direction as string)) {
+                    continue;
+                }
+                return direction;
+            }
+        }
     }
 
     /**
@@ -1530,37 +1617,76 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * If the first secondary axis in either direction does not have a specified position, it will be placed in the
-     * alternate position to the primary axis (i.e. right or top).
+     * If the first secondary axis in either direction does not have a specified position, it will be placed opposite
+     * the primary axis.
      */
     private alternateSecondaryAxisPositions(options: T, newAxes: Record<string, unknown>) {
-        let xAxisCount = 0;
-        let yAxisCount = 0;
+        const primaryPositions = new Map<ChartAxisDirection, AxisPosition>();
+        const secondaryDirections = new Set<ChartAxisDirection>();
 
         for (const [axisKey, axis] of entries(newAxes)) {
-            if (!isPlainObject(axis) || !('position' in axis)) continue;
+            if (!isPlainObject(axis) || !isKeyOf(axis.position, POSITION_DIRECTIONS)) continue;
+
+            const direction = POSITION_DIRECTIONS[axis.position];
+            const primaryPosition = primaryPositions.get(direction);
+            if (primaryPosition == null) {
+                primaryPositions.set(direction, axis.position);
+                continue;
+            }
+            if (secondaryDirections.has(direction)) continue;
+            secondaryDirections.add(direction);
 
             const unmappedAxisKey = this.unmappedAxisKeys.get(axisKey);
             const unmappedAxis =
                 'axes' in options && options.axes && unmappedAxisKey != null && unmappedAxisKey in options.axes
                     ? options.axes[unmappedAxisKey]
                     : undefined;
-            const unmappedAxisPosition = unmappedAxis && 'position' in unmappedAxis ? unmappedAxis.position : undefined;
-
-            if (axis.position === 'top' || axis.position === 'bottom') {
-                xAxisCount += 1;
-                if (xAxisCount === 2 && unmappedAxisPosition == null) {
-                    axis.position = 'top';
-                }
-            } else if (axis.position === 'left' || axis.position === 'right') {
-                yAxisCount += 1;
-                if (yAxisCount === 2 && unmappedAxisPosition == null) {
-                    axis.position = 'right';
-                }
+            if (unmappedAxis == null || !('position' in unmappedAxis) || unmappedAxis.position == null) {
+                axis.position = OPPOSITE_POSITIONS[primaryPosition];
             }
-
-            if (xAxisCount > 1 && yAxisCount > 1) break;
         }
+    }
+
+    /** Last-resort positions for axes the options and theme left unplaced, alternating edges like secondary axes. */
+    private assignMissingAxisPositions(options: T) {
+        if (this.chartDef?.name !== 'cartesian' || !('axes' in options) || options.axes == null) return;
+
+        const axes: Record<string, unknown> = options.axes;
+        const directionPositions = new Map<ChartAxisDirection, AxisPosition[]>();
+        const axesWithoutPosition: Array<[PlainObject, ChartAxisDirection]> = [];
+        for (const [key, axis] of entries(axes)) {
+            if (!isPlainObject(axis)) continue;
+
+            if (isKeyOf(axis.position, POSITION_DIRECTIONS)) {
+                const direction = POSITION_DIRECTIONS[axis.position];
+                directionPositions.set(direction, [...(directionPositions.get(direction) ?? []), axis.position]);
+            } else {
+                axesWithoutPosition.push([axis, this.getAxisKeyDirection(options, key)]);
+            }
+        }
+
+        for (const [axis, direction] of axesWithoutPosition) {
+            const positions = directionPositions.get(direction) ?? [];
+            const primaryPosition = direction === ChartAxisDirection.X ? 'bottom' : 'left';
+            const position = positions.length === 1 ? OPPOSITE_POSITIONS[positions[0]] : primaryPosition;
+            axis.position = position;
+            directionPositions.set(direction, [...positions, position]);
+        }
+    }
+
+    /** Unreferenced secondary axes default to vertical. */
+    private getAxisKeyDirection(options: T, axisKey: string): ChartAxisDirection {
+        if (isEnumValue(ChartAxisDirection, axisKey)) return axisKey;
+
+        for (const seriesOptions of options.series ?? []) {
+            for (const direction of [ChartAxisDirection.X, ChartAxisDirection.Y]) {
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
+                if (directionAxisKey == null || !isKeyOf(directionAxisKey, seriesOptions)) continue;
+                if (seriesOptions[directionAxisKey] === axisKey) return direction;
+            }
+        }
+
+        return ChartAxisDirection.Y;
     }
 
     private processMiniChartSeriesOptions(options: T, activeTheme: ChartTheme) {

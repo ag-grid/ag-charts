@@ -4,17 +4,16 @@ import {
     type PaddingOptions,
     type StrokeOptions,
     type TextAlign,
-    _ModuleSupport,
 } from 'ag-charts-community';
-import type { FontOptions, NormalisedColorType } from 'ag-charts-core';
+import type { FontOptions, NormalisedColorType, Shape, Text } from 'ag-charts-core';
 
-export function applyFillStyles(node: _ModuleSupport.Shape, styles: FillOptions) {
+export function applyFillStyles(node: Shape, styles: FillOptions) {
     node.fill = styles.fill as NormalisedColorType; // refs resolved at runtime before reaching the node
     node.fillOpacity = styles.fillOpacity ?? 1;
 }
 
 export function applyStrokeStyles(
-    node: _ModuleSupport.Shape,
+    node: Shape,
     styles: StrokeOptions & { lineDash?: number[]; lineDashOffset?: number }
 ) {
     node.lineDash = styles.lineDash;
@@ -24,10 +23,7 @@ export function applyStrokeStyles(
     node.strokeWidth = styles.strokeWidth ?? 0;
 }
 
-export function applyTextStyles(
-    node: _ModuleSupport.Text,
-    styles: FontOptions & { color: CssColor; textAlign: TextAlign }
-) {
+export function applyTextStyles(node: Text, styles: FontOptions & { color: CssColor; textAlign: TextAlign }) {
     node.fill = styles.color;
     node.fontFamily = styles.fontFamily;
     node.fontSize = styles.fontSize;
@@ -38,7 +34,7 @@ export function applyTextStyles(
 }
 
 export function applyTextBoxingStyles(
-    node: _ModuleSupport.Text,
+    node: Text,
     styles: {
         fill?: CssColor;
         fillOpacity?: number;

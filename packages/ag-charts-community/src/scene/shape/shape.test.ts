@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger } from 'ag-charts-core';
+import { BarShape, Line, Logger, Path, Rect, Scalable } from 'ag-charts-core';
+import type { ShapeShadowMode } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type { AgPatternName } from 'ag-charts-types';
 
@@ -8,12 +9,6 @@ import { Marker } from '../../chart/marker/marker';
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';
-import { Scalable } from '../transformable';
-import { BarShape } from './barShape';
-import { Line } from './line';
-import { Path } from './path';
-import { Rect } from './rect';
-import type { ShapeShadowMode } from './shape';
 
 describe('Shape', () => {
     setupMockConsole();
@@ -918,6 +913,30 @@ describe('Shape', () => {
             expect(pixel(70, 20)).toEqual([0, 0, 0, 255]);
             // Nothing is drawn away from the shape, including the far right where the shifted source would land.
             expect(pixel(300, 90)).toEqual([255, 255, 255, 255]);
+        });
+
+        describe.each([undefined, 10])('square caps with a spread of %s', (spread) => {
+            it('should not leave a copy of a diagonal stroke on the left edge', () => {
+                clearCanvas();
+                const path = new Path();
+                Object.assign(path, {
+                    fill: undefined,
+                    stroke: 'black',
+                    strokeWidth: 40,
+                    lineCap: 'square',
+                    lineJoin: 'round',
+                    shadowMode: 'silhouette',
+                    // No offset or blur, so a silhouette shadow is exactly the shape's own pixels.
+                    fillShadow: { enabled: true, color: 'rgba(255, 0, 0, 1)', xOffset: 0, yOffset: 0, blur: 0, spread },
+                });
+                // A square cap on a 45° stroke points its corner straight along x, √2 half-strokes past the end.
+                path.path.moveTo(100, 40);
+                path.path.lineTo(160, 100);
+                renderNode(path);
+
+                const { data } = canvasCtx.getRenderContext2D().getImageData(0, 0, 40, canvasCtx.nodeCanvas.height);
+                expect(data.every((value) => value === 255)).toBe(true);
+            });
         });
 
         it('should not paint a silhouette node past the right edge back on to the canvas', () => {

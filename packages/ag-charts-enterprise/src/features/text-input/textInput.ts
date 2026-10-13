@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    BBox,
     CleanupRegistry,
     type DynamicContext,
     type NormalisedTextOptions,
@@ -53,7 +54,7 @@ export class TextInput {
         placeholderText?: string;
         styles?: NormalisedTextOptions & { placeholderColor?: string };
         layout?: TextInputLayout;
-        onChange?: (text: string, bbox: _ModuleSupport.BBox) => void;
+        onChange?: (text: string, bbox: BBox) => void;
         onClose?: (text: string) => void;
     }) {
         this.element.innerHTML = textInputTemplate;
@@ -172,7 +173,7 @@ export class TextInput {
         const { left, top, width, height } = this.element.getBoundingClientRect();
         // Ceil the width to 2dp to fix floating point issues with dropping last character onto next line after
         // converting text to canvas.
-        return new _ModuleSupport.BBox(left, top, ceilTo(width, 2), height);
+        return new BBox(left, top, ceilTo(width, 2), height);
     }
 
     public destroy() {

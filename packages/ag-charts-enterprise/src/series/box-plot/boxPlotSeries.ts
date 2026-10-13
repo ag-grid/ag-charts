@@ -7,6 +7,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type {
+    BBox,
     CallbackParamRules,
     DeepRequired,
     DynamicContext,
@@ -15,8 +16,17 @@ import type {
     Normalised,
     NormalisedBoxPlotSeriesOwnOptions,
     RequireOptional,
+    Selection,
+    Text,
 } from 'ag-charts-core';
-import { ChartAxisDirection, deepClone, isNumericValue, mergeDefaults, toNumber } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    deepClone,
+    isNumericValue,
+    mergeDefaults,
+    toNumber,
+    upsertNodeDatum,
+} from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
@@ -40,7 +50,6 @@ const {
     toHighlightString,
     toSelectionString,
     processedDataIsAnimatable,
-    upsertNodeDatum,
 } = _ModuleSupport;
 
 /** Whisker style after theme-merge: colour refs are resolved before reaching this point. */
@@ -656,7 +665,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     protected override updateDatumSelection(opts: {
         nodeData: BoxPlotNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
+        datumSelection: Selection<BoxPlotNodeDatum, BoxPlotNode>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
@@ -888,7 +897,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
+        datumSelection: Selection<BoxPlotNodeDatum, BoxPlotNode>;
         isHighlight: boolean;
     }) {
         const { itemStyler } = this.options;
@@ -943,7 +952,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
+        datumSelection: Selection<BoxPlotNodeDatum, BoxPlotNode>;
         isHighlight: boolean;
     }) {
         const { contextNodeData, options } = this;
@@ -985,7 +994,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             boxPlotNode.cornerRadius = style.cornerRadius;
 
             boxPlotNode.crisp = true;
-            boxPlotNode.fillShadow = shadow;
+            boxPlotNode.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
 
             boxPlotNode.horizontal = !isVertical;
             boxPlotNode.center = nodeDatum.scaledValues.xValue;
@@ -1009,7 +1018,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     protected override updateLabelSelection(opts: {
         labelData: BoxPlotNodeDatum[];
-        labelSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, _ModuleSupport.Text<BoxPlotNodeDatum>>;
+        labelSelection: Selection<BoxPlotNodeDatum, Text<BoxPlotNodeDatum>>;
         seriesIdx: number;
     }) {
         const { labelData, labelSelection } = opts;
@@ -1020,7 +1029,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         return new BoxPlotNode();
     }
 
-    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]?.focusRect);
     }
 

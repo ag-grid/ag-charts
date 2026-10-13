@@ -298,6 +298,54 @@ describe('Format Manager (Enterprise)', () => {
             });
         });
 
+        describe('hlc series', () => {
+            const seriesIdPattern = 'HlcSeries-1';
+
+            it.each(NULL_KEY_CASES)('$name', async ({ nullValue, allowNullKeys, expectWarning }) => {
+                const options: AgCartesianChartOptions = {
+                    data: [
+                        { year: '2020', low: 3.07, close: 4.78, high: 7.27 },
+                        { year: nullValue, low: 4.87, close: 6.66, high: 7.09 },
+                        { year: '2022', low: 4.4, close: 4.41, high: 5.2 },
+                    ],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [
+                        {
+                            type: 'hlc',
+                            xKey: 'year',
+                            highKey: 'high',
+                            lowKey: 'low',
+                            closeKey: 'close',
+                            allowNullKeys,
+                        } as any,
+                    ],
+                };
+
+                chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+                await waitForChartStability(chart);
+
+                if (expectWarning) {
+                    const valueType = nullValue === null ? 'object' : 'undefined';
+                    expectWarningsCalls().toEqual(
+                        expect.arrayContaining([
+                            expect.arrayContaining([
+                                expect.stringMatching(
+                                    new RegExp(
+                                        `invalid value of type \\[${valueType}\\] for \\[${seriesIdPattern} / xValue\\] ignored:`
+                                    )
+                                ),
+                            ]),
+                        ])
+                    );
+                } else {
+                    expectWarningsCalls().toEqual([]);
+                }
+            });
+        });
+
         // Enterprise polar/radial series configurations
         describe('radial-bar series', () => {
             const seriesIdPrefix = 'RadialBarSeries';

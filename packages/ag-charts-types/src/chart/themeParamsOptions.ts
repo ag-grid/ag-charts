@@ -1,4 +1,4 @@
-import type { CssColor, CssShadow, FontFamilyFull, FontSize, FontWeight, PixelSize } from './types';
+import type { CssColor, CssShadow, FontFamilyFull, FontSize, FontWeight, PixelSize, TextAlign } from './types';
 
 type ColorKeys<T> = {
     [K in keyof T]: T[K] extends AgCssColorOrRef ? K : never;
@@ -73,8 +73,8 @@ export interface AgBaseChartThemeParams {
     /** Background colour of buttons when hovered. A colour string, or a theme-colour reference object. */
     buttonHoverBackgroundColor?: AgCssColorOrRef;
     /**
-     * Border colour of buttons when hovered. `true` for the default border colour, `false` for no visible border, or an
-     * object to customise it. The border width always follows `buttonBorder`.
+     * Border of buttons when hovered. `true` to use `buttonBorder`, `false` for no visible border, or an object
+     * to customise it. Any colour or width left unset in the object follows `buttonBorder`.
      */
     buttonHoverBorder?: boolean | AgBorderThemeParam;
     /** Text colour of buttons when hovered. A colour string, or a theme-colour reference object. */
@@ -85,8 +85,8 @@ export interface AgBaseChartThemeParams {
      */
     buttonActiveBackgroundColor?: AgCssColorOrRef;
     /**
-     * Border colour of buttons in the active (toggled or selected) state. `true` for the default border colour, `false`
-     * for no visible border, or an object to customise it. The border width always follows `buttonBorder`.
+     * Border of buttons in the active (toggled or selected) state. `true` to use `buttonBorder`, `false` for no visible
+     * border, or an object to customise it. Any colour or width left unset in the object follows `buttonBorder`.
      */
     buttonActiveBorder?: boolean | AgBorderThemeParam;
     /** Text colour of buttons in the active (toggled or selected) state. A colour string, or a theme-colour reference object. */
@@ -94,18 +94,12 @@ export interface AgBaseChartThemeParams {
     /** Background colour of disabled buttons. A colour string, or a theme-colour reference object. */
     buttonDisabledBackgroundColor?: AgCssColorOrRef;
     /**
-     * Border colour of disabled buttons. `true` for the default border colour, `false` for no visible border, or an
-     * object to customise it. The border width always follows `buttonBorder`.
+     * Border of disabled buttons. `true` to use `buttonBorder`, `false` for no visible border, or an object
+     * to customise it. Any colour or width left unset in the object follows `buttonBorder`.
      */
     buttonDisabledBorder?: boolean | AgBorderThemeParam;
     /** Text colour of disabled buttons. A colour string, or a theme-colour reference object. */
     buttonDisabledTextColor?: AgCssColorOrRef;
-    /** Horizontal padding inside buttons, including range buttons. Toolbar buttons do not use it. */
-    buttonHorizontalPadding?: PixelSize;
-    /**
-     * Vertical padding inside buttons, including range buttons. Toolbar buttons apply it on all four sides.
-     */
-    buttonVerticalPadding?: PixelSize;
     /**
      * Shadow for elements that float above the chart and are intended to appear elevated but still attached, e.g. the
      * dropdown menus of the toolbars and the colour picker. Defaults to `popupShadow`. The value must be a valid CSS
@@ -498,12 +492,117 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * Default: `scrollbarThumbBorder + foregroundColor`
      */
     scrollbarThumbHoverBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Background colour of the navigator track, the dimmed area outside the selected range. A colour string, or a theme-colour reference object.
+     *
+     * Default: `foregroundColor`
+     */
+    navigatorTrackBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the navigator track. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `borderColor`
+     */
+    navigatorTrackBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the navigator track. Also rounds the selected range and the mini chart.
+     *
+     * Default: `borderRadius`
+     */
+    navigatorTrackBorderRadius?: PixelSize;
+    /**
+     * Background colour of the navigator thumb, the selected range between the handles. A colour string, or a theme-colour reference object.
+     *
+     * Default: `transparent`
+     */
+    navigatorThumbBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Background colour of the navigator handles. A colour string, or a theme-colour reference object.
+     *
+     * Default: `chartBackgroundColor`
+     */
+    navigatorHandleBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Border around the navigator handles. Its colour also colours the handle grip. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `borderColor`
+     */
+    navigatorHandleBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of the navigator handles.
+     *
+     * Default: `borderRadius`
+     */
+    navigatorHandleBorderRadius?: PixelSize;
+    /**
+     * Border around series labels. A border otherwise shows only where a series enables `label.border`. `true` for the default border, `false` to disable, or an object to customise it.
+     *
+     * Default: `false`
+     */
+    seriesLabelBorder?: boolean | AgBorderThemeParam;
+    /**
+     * Corner radius of series label backgrounds and borders.
+     *
+     * Default: `borderRadius`
+     */
+    seriesLabelBorderRadius?: PixelSize;
+    /**
+     * Font family used for series labels. A single family name, or an array of names used as fallbacks.
+     *
+     * Default: `fontFamily`
+     */
+    seriesLabelFontFamily?: FontFamilyFull;
+    /**
+     * Font size used for series labels. Secondary series labels scale relative to it.
+     *
+     * Default: `fontSize`
+     */
+    seriesLabelFontSize?: FontSize;
+    /**
+     * Font weight used for series labels. Treemap secondary labels and map-shape labels keep their own default weights (normal and bold) unless this differs from `fontWeight`. To change them when the two are equal, set `fontWeight` on the series label directly.
+     *
+     * Default: `fontWeight`
+     */
+    seriesLabelFontWeight?: FontWeight;
+    /**
+     * Background colour of series labels placed inside series shapes, such as bar labels with an `inside-*` placement and pie sector labels. A fully transparent colour, such as `'transparent'`, draws no background box; any other colour boxes the label, which adds padding and can hide labels that no longer fit. A colour string, or a theme-colour reference object.
+     *
+     * Default: `'transparent'`
+     */
+    seriesLabelInsideBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Colour for text of series labels placed inside series shapes, such as bar labels with an `inside-*` placement and pie sector labels. Range-area inside labels use `textColor` instead. A colour string, or a theme-colour reference object.
+     *
+     * Default: `chartBackgroundColor`
+     */
+    seriesLabelInsideTextColor?: AgCssColorOrRef;
+    /**
+     * Background colour of series labels placed outside series shapes, such as bar labels with an `outside-*` placement and pie callout labels. A fully transparent colour, such as `'transparent'`, draws no background box; any other colour boxes the label, which adds padding and can hide labels that no longer fit. A colour string, or a theme-colour reference object.
+     *
+     * Default: `'transparent'`
+     */
+    seriesLabelOutsideBackgroundColor?: AgCssColorOrRef;
+    /**
+     * Colour for text of series labels placed outside series shapes, such as bar labels with an `outside-*` placement and pie callout labels. A colour string, or a theme-colour reference object.
+     *
+     * Default: `textColor`
+     */
+    seriesLabelOutsideTextColor?: AgCssColorOrRef;
 }
 
 export interface AgChartPrivateThemeParams {
     // TODO: move `separateLinesColor` to this interface.
 
     focusColor?: CssColor;
+    annotationColor?: CssColor;
+    annotationTextColor?: CssColor;
+    annotationHandleColor?: CssColor;
+    annotationTextboxTextColor?: CssColor;
+    annotationTextboxBackgroundColor?: CssColor;
+    annotationTextboxBorderColor?: CssColor;
+    annotationDividerColor?: CssColor;
+    captionLayoutStyle?: 'block' | 'overlay';
+    captionAlignment?: TextAlign;
 }
 
 export interface AgChartAllThemeParams extends AgChartThemeParams, AgChartPrivateThemeParams {}

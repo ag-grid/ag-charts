@@ -1,10 +1,10 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 
+import { Transformable } from 'ag-charts-core';
 import type { AgCaptionListeners, AgCartesianChartOptions, AgChartOptions, TextAlign } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { ChartCaption } from './chartCaption';
 import {
@@ -68,6 +68,26 @@ describe('Caption', () => {
                 });
                 await compare();
             });
+        });
+
+        describe('segmented text align', () => {
+            test.each(['left', 'center', 'right'] as const)(
+                'aligns explicit and wrapped segment lines to textAlign=%s',
+                async (textAlign) => {
+                    chart = await createChart({
+                        title: {
+                            textAlign,
+                            maxWidth: 260,
+                            maxHeight: 200,
+                            text: [
+                                { text: 'Quarterly revenue by region and sales channel', fontSize: 20 },
+                                { text: '\nfiscal year 2023', fontSize: 11 },
+                            ],
+                        },
+                    });
+                    await compare();
+                }
+            );
         });
 
         describe('truncate', () => {

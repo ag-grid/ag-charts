@@ -19,12 +19,12 @@ Use the `globalsProxy` pattern for all browser APIs:
 
 | API               | Getter Function        | Location                                       |
 | ----------------- | ---------------------- | ---------------------------------------------- |
-| `window`          | `getWindow()`          | `ag-charts-core/src/utils/dom/globalsProxy.ts` |
-| `document`        | `getDocument()`        | `ag-charts-core/src/utils/dom/globalsProxy.ts` |
-| `OffscreenCanvas` | `getOffscreenCanvas()` | `ag-charts-core/src/utils/dom/globalsProxy.ts` |
-| `Path2D`          | `getPath2D()`          | `ag-charts-core/src/utils/dom/globalsProxy.ts` |
-| `DOMMatrix`       | `getDOMMatrix()`       | `ag-charts-core/src/utils/dom/globalsProxy.ts` |
-| `Image`           | `getImage()`           | `ag-charts-core/src/utils/dom/globalsProxy.ts` |
+| `window`          | `getWindow()`          | `ag-charts-core/src/dom/globalsProxy.ts` |
+| `document`        | `getDocument()`        | `ag-charts-core/src/dom/globalsProxy.ts` |
+| `OffscreenCanvas` | `getOffscreenCanvas()` | `ag-charts-core/src/dom/globalsProxy.ts` |
+| `Path2D`          | `getPath2D()`          | `ag-charts-core/src/dom/globalsProxy.ts` |
+| `DOMMatrix`       | `getDOMMatrix()`       | `ag-charts-core/src/dom/globalsProxy.ts` |
+| `Image`           | `getImage()`           | `ag-charts-core/src/dom/globalsProxy.ts` |
 
 ### Wrong - Direct Global Access
 

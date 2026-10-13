@@ -1,14 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    BBox,
     type CallbackParamRules,
     type DynamicContext,
     type NormalisedChordSeriesLinkStyle,
     type NormalisedChordSeriesNodeStyle,
     type NormalisedChordSeriesOwnOptions,
     type RequireOptional,
+    Sector,
     angleBetween,
     cachedTextMeasurer,
-    calcLineHeight,
     evaluateBezier,
     fitLabelText,
     isBetweenAngles,
@@ -18,6 +19,7 @@ import {
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
+import type { Path, Selection, TransformableText } from 'ag-charts-core';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeItemStylerParams } from 'ag-charts-types';
 
 import { type FlowLinkDatumIndex, type FlowNodeDatumIndex, toFlowNodeOffset } from '../flow-proportion/flowDatumIndex';
@@ -29,7 +31,7 @@ import {
 } from '../flow-proportion/flowProportionSeries';
 import { ChordLink, type ChordLinkNodeEdge, bezierControlPoints } from './chordLink';
 
-const { SeriesNodePickMode, createDatumId, Sector, getShapeStyle, getLabelStyles, BBox } = _ModuleSupport;
+const { SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles } = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;
@@ -75,7 +77,7 @@ export class ChordSeries extends FlowProportionSeries<
     ChordLinkDatum,
     ChordNodeLabelDatum,
     NormalisedChordSeriesOwnOptions,
-    _ModuleSupport.Sector<ChordNodeDatum>,
+    Sector<ChordNodeDatum>,
     ChordLink<ChordLinkDatum>
 > {
     static override readonly className = 'ChordSeries';
@@ -94,6 +96,11 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected linkFactory() {
         return new ChordLink<ChordLinkDatum>();
+    }
+
+    /** The shadows of the nodes and links, which this series keeps there rather than on its own `shadow`. */
+    protected override getItemShadowOptions() {
+        return [this.options.node.shadow, this.options.link.shadow];
     }
 
     protected nodeFactory() {
@@ -143,7 +150,7 @@ export class ChordSeries extends FlowProportionSeries<
             toKey,
             sizeKey,
             labelKey,
-            label: { spacing: labelSpacing, maxWidth: labelMaxWidth, fontSize },
+            label: { spacing: labelSpacing, maxWidth: labelMaxWidth },
             node: { width: nodeWidth, spacing: nodeSpacing },
         } = options;
         const centerX = seriesRectWidth / 2;
@@ -347,8 +354,9 @@ export class ChordSeries extends FlowProportionSeries<
 
         let minAngle = Infinity;
         let maxAngle = -Infinity;
+        const labelMeasurer = cachedTextMeasurer(options.label);
         labelData = labelData.filter((label) => {
-            const labelHeight = calcLineHeight(fontSize);
+            const labelHeight = labelMeasurer.measureLines(label.text).height;
             const da = Math.atan2(labelHeight / 2, label.radius);
 
             const a0 = label.angle - da;
@@ -372,20 +380,14 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected updateLabelSelection(opts: {
         labelData: ChordNodeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<
-            ChordNodeLabelDatum,
-            _ModuleSupport.TransformableText<ChordNodeLabelDatum>
-        >;
+        labelSelection: Selection<ChordNodeLabelDatum, TransformableText<ChordNodeLabelDatum>>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<
-            ChordNodeLabelDatum,
-            _ModuleSupport.TransformableText<ChordNodeLabelDatum>
-        >;
+        labelSelection: Selection<ChordNodeLabelDatum, TransformableText<ChordNodeLabelDatum>>;
     }) {
         const params: AgChordSeriesLabelFormatterParams = {
             toKey: this.options.toKey,
@@ -439,7 +441,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected updateNodeSelection(opts: {
         nodeData: ChordNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<ChordNodeDatum, _ModuleSupport.Sector<ChordNodeDatum>>;
+        datumSelection: Selection<ChordNodeDatum, Sector<ChordNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.type, datum.id));
     }
@@ -516,10 +518,11 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected updateNodeNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<ChordNodeDatum, _ModuleSupport.Sector<ChordNodeDatum>>;
+        datumSelection: Selection<ChordNodeDatum, Sector<ChordNodeDatum>>;
         isHighlight: boolean;
+        focusedDatum?: ChordNodeDatum | ChordLinkDatum;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
         const { shadow } = this.options.node;
@@ -529,7 +532,8 @@ export class ChordSeries extends FlowProportionSeries<
             const style = this.getNodeStyle(datum, datumIndex, isHighlight);
 
             sector.setStyleProperties(style, fillBBox);
-            sector.fillShadow = shadow;
+            sector.fillShadow =
+                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datumIndex);
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -544,7 +548,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected updateLinkSelection(opts: {
         nodeData: ChordLinkDatum[];
-        datumSelection: _ModuleSupport.Selection<ChordLinkDatum, ChordLink<ChordLinkDatum>>;
+        datumSelection: Selection<ChordLinkDatum, ChordLink<ChordLinkDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
             createDatumId(datum.type, datum.datumIndex, datum.fromNode.id, datum.toNode.id)
@@ -641,10 +645,11 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected updateLinkNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<ChordLinkDatum, ChordLink<ChordLinkDatum>>;
+        datumSelection: Selection<ChordLinkDatum, ChordLink<ChordLinkDatum>>;
         isHighlight: boolean;
+        focusedDatum?: ChordNodeDatum | ChordLinkDatum;
     }) {
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, focusedDatum } = opts;
 
         const fillBBox = this.getShapeFillBBox();
         const { shadow } = this.options.link;
@@ -675,7 +680,8 @@ export class ChordSeries extends FlowProportionSeries<
 
             link.tension = style.tension;
             link.setStyleProperties(style, fillBBox);
-            link.fillShadow = shadow;
+            link.fillShadow =
+                datum === focusedDatum ? undefined : this.resolveItemShadow(shadow, isHighlight, datum.datumIndex);
         });
     }
 
@@ -689,9 +695,7 @@ export class ChordSeries extends FlowProportionSeries<
         return { series: bbox, axis: bbox };
     }
 
-    protected computeFocusBounds(
-        node: _ModuleSupport.Sector | ChordLink
-    ): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
+    protected computeFocusBounds(node: Sector | ChordLink): BBox | Path | undefined {
         return node;
     }
 

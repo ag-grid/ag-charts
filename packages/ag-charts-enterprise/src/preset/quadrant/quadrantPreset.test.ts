@@ -16,7 +16,7 @@ import {
     setupMockPointerEvent,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Logger } from 'ag-charts-core';
+import { Logger, Transformable } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
     AgChartOptions,
@@ -763,7 +763,7 @@ describe('Quadrant Preset context menu region', () => {
         const series = deproxy(chart).series[0] as any;
         const node = series.getNodeData().find((n: any) => n.datum.label === label);
         expect(node).toBeDefined();
-        return _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
+        return Transformable.toCanvasPoint(series.contentGroup, node.point.x, node.point.y);
     };
 
     /**

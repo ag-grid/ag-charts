@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type BoxBounds, Color, type Point } from 'ag-charts-core';
+import { type Bounds4, type BoxBounds, Color, Path, type Point, drawCorner } from 'ag-charts-core';
+import type { BBox, Corner, ExtendedPath2D } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType, type Padding } from '../annotationTypes';
 import type { TextualStartEndDatum } from '../datum/textualDatum';
@@ -8,8 +8,6 @@ import { TextualStartEndScene } from '../scenes/textualStartEndScene';
 import { uniformPadding } from '../text/util';
 import { isWriteable } from '../utils/datum';
 import type { CalloutDatum } from './calloutDatum';
-
-const { drawCorner, Path } = _ModuleSupport;
 
 const DEFAULT_CALLOUT_PADDING = {
     top: 6,
@@ -108,12 +106,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutDatum> {
             : { fill: undefined, strokeWidth: 0 };
     }
 
-    protected override updateAnchor(
-        datum: CalloutDatum,
-        coords: Bounds4,
-        context: AnnotationContext,
-        bbox: _ModuleSupport.BBox
-    ) {
+    protected override updateAnchor(datum: CalloutDatum, coords: Bounds4, context: AnnotationContext, bbox: BBox) {
         const { bodyBounds } = this.getDimensions(datum, bbox, coords) ?? {};
         const bounds = bodyBounds ?? bbox;
         this.anchor = {
@@ -153,7 +146,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutDatum> {
         const placement = this.calculateCalloutPlacement({ x: tailX, y: tailY }, bodyBounds);
         const cornerRadius = 8;
 
-        const pathParams: { coordinates: _ModuleSupport.Corner; type: PathType }[] = [
+        const pathParams: { coordinates: Corner; type: PathType }[] = [
             {
                 coordinates: {
                     x0: x,
@@ -255,12 +248,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutDatum> {
         path.closePath();
     }
 
-    drawPath(
-        path: _ModuleSupport.ExtendedPath2D,
-        { x0, y0, x1, y1, cx, cy }: _ModuleSupport.Corner,
-        cornerRadius: number,
-        type: PathType
-    ) {
+    drawPath(path: ExtendedPath2D, { x0, y0, x1, y1, cx, cy }: Corner, cornerRadius: number, type: PathType) {
         const sideTailRadius = 6;
 
         switch (type) {

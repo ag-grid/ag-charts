@@ -1,0 +1,121 @@
+import type { DistantObject } from '../../data/nearest';
+import { createSvgElement } from '../../dom/domElements';
+import { lineDistanceSquared } from '../../geometry/distance';
+import { SceneChangeDetection } from '../../rendering/changeDetectable';
+import { snapDeviceCentre } from '../../rendering/pixel';
+import type { SerializedLineProps, SerializedNodeState } from '../../types/scene';
+import { BBox } from '../bbox';
+import type { NodeOptions, RenderContext } from '../node';
+import { Shape } from './shape';
+
+export class Line<D = unknown> extends Shape<D> implements DistantObject {
+    static override readonly className = 'Line';
+
+    constructor(opts: NodeOptions = {}) {
+        super(opts);
+        this.fill = undefined;
+        this.strokeWidth = 1;
+    }
+
+    @SceneChangeDetection()
+    x1: number = 0;
+
+    @SceneChangeDetection()
+    y1: number = 0;
+
+    @SceneChangeDetection()
+    x2: number = 0;
+
+    @SceneChangeDetection()
+    y2: number = 0;
+
+    set x(value: number) {
+        this.x1 = value;
+        this.x2 = value;
+    }
+
+    set y(value: number) {
+        this.y1 = value;
+        this.y2 = value;
+    }
+
+    override serialize(): SerializedNodeState {
+        return { type: 'line', props: this.serializeProps() };
+    }
+
+    protected override serializeProps(): SerializedLineProps {
+        return { ...super.serializeProps(), x1: this.x1, y1: this.y1, x2: this.x2, y2: this.y2 };
+    }
+
+    get midPoint(): { x: number; y: number } {
+        return { x: (this.x1 + this.x2) / 2, y: (this.y1 + this.y2) / 2 };
+    }
+
+    protected override computeBBox(): BBox {
+        return new BBox(
+            Math.min(this.x1, this.x2),
+            Math.min(this.y1, this.y2),
+            Math.abs(this.x2 - this.x1),
+            Math.abs(this.y2 - this.y1)
+        );
+    }
+
+    isPointInPath(x: number, y: number): boolean {
+        if (this.x1 === this.x2 || this.y1 === this.y2) {
+            return this.getBBox()
+                .clone()
+                .grow(this.strokeWidth / 2)
+                .containsPoint(x, y);
+        }
+        return false;
+    }
+
+    override distanceSquared(px: number, py: number): number {
+        const { x1, y1, x2, y2 } = this;
+        return lineDistanceSquared(px, py, x1, y1, x2, y2, Infinity);
+    }
+
+    override render(renderCtx: RenderContext) {
+        const { ctx, devicePixelRatio } = renderCtx;
+
+        let { x1, y1, x2, y2 } = this;
+
+        // Align to the pixel grid if the line is strictly vertical
+        // or horizontal (but not both, i.e. a dot).
+        if (x1 === x2) {
+            const strokeDev = Math.trunc(this.strokeWidth * devicePixelRatio);
+            const x = snapDeviceCentre(x1 * devicePixelRatio, strokeDev) / devicePixelRatio;
+            x1 = x;
+            x2 = x;
+        } else if (y1 === y2) {
+            const strokeDev = Math.trunc(this.strokeWidth * devicePixelRatio);
+            const y = snapDeviceCentre(y1 * devicePixelRatio, strokeDev) / devicePixelRatio;
+            y1 = y;
+            y2 = y;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+
+        this.fillStroke(ctx, renderCtx.logger);
+
+        super.render(renderCtx);
+    }
+
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
+        if (!this.visible) return;
+
+        const element = createSvgElement('line');
+
+        element.setAttribute('x1', String(this.x1));
+        element.setAttribute('y1', String(this.y1));
+        element.setAttribute('x2', String(this.x2));
+        element.setAttribute('y2', String(this.y2));
+        this.applySvgStrokeAttributes(element);
+
+        return {
+            elements: [element],
+        };
+    }
+}

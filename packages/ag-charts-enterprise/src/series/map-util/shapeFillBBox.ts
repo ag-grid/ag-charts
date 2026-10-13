@@ -1,10 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { BBox } from 'ag-charts-core';
 
-const { BBox } = _ModuleSupport;
+import type { MercatorScale } from './mercatorScale';
 
-export function getTopologyShapeFillBBox(
-    scale: _ModuleSupport.MercatorScale | undefined
-): _ModuleSupport.ShapeFillBBox | undefined {
+export function getTopologyShapeFillBBox(scale: MercatorScale | undefined): _ModuleSupport.ShapeFillBBox | undefined {
     if (!scale) return;
     const { range } = scale;
 

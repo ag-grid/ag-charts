@@ -1,20 +1,24 @@
 import { type AgTreemapSeriesOptions, VERSION } from 'ag-charts-community';
 import {
-    DEFAULT_SHADOW_COLOUR,
+    AUTO_SIZED_LABEL_TRUNCATE,
     FILL_GRADIENT_LINEAR_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
+    LABEL_OVERFLOW_ALWAYS_SHOW,
+    LABEL_OVERFLOW_DEFAULTS,
     SERIES_INTERACTION_THEME_DEFAULTS,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
+    SHADOW_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    cycledFillThemeTemplate,
+    seriesLabelFontWeightOr,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { TreemapSeries } from './treemapSeries';
-import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
+import { treemapSeriesOptionsDef, treemapSeriesThemeableOptionsDef } from './treemapSeriesOptionsDef';
 
 export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
     type: 'series',
@@ -26,6 +30,8 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
     dependencies: [StandaloneChartModule],
 
     options: treemapSeriesOptionsDef,
+
+    themeOptions: treemapSeriesThemeableOptionsDef,
     themeTemplate: {
         series: {
             ...SERIES_INTERACTION_THEME_DEFAULTS,
@@ -33,15 +39,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 $applyCycle: [
                     { $size: { $path: ['./data', { $path: '/data' }] } },
                     { $palette: 'fills' },
-                    {
-                        $applySwitch: [
-                            { $path: ['/type', undefined, { $value: '$1' }] },
-                            { $value: '$1' },
-                            ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                            ['pattern', FILL_PATTERN_DEFAULTS],
-                            ['image', FILL_IMAGE_DEFAULTS],
-                        ],
-                    },
+                    cycledFillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
                 ],
             },
             strokes: {
@@ -51,17 +49,21 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },
                 mode: 'continuous',
             },
-            tooltip: { interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             group: {
                 label: {
                     ...LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'textColor' },
                     fontStyle: undefined,
-                    fontWeight: { $ref: 'fontWeight' },
-                    fontSize: { $ref: 'fontSize' },
-                    fontFamily: { $ref: 'fontFamily' },
+                    fontWeight: { $ref: 'seriesLabelFontWeight' },
+                    fontSize: { $ref: 'seriesLabelFontSize' },
+                    fontFamily: { $ref: 'seriesLabelFontFamily' },
+                    ...LABEL_OVERFLOW_DEFAULTS,
+                    collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
                     spacing: 4,
+                    textAlign: { $path: ['../textAlign', 'left'] },
+                    verticalAlign: 'middle',
                 },
                 fill: undefined, // Override default fill
                 fills: { $palette: 'hierarchyColors' },
@@ -70,16 +72,9 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: 1,
                 strokeOpacity: 1,
                 cornerRadius: 0,
-                shadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
+                shadow: SHADOW_THEME_DEFAULTS,
                 padding: 4,
                 gap: 2,
-                textAlign: 'left',
                 interactive: true,
                 highlight: {
                     enabled: { $circular: { $path: '/highlight/enabled' } },
@@ -96,25 +91,29 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     enabled: true,
                     color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,
-                    fontWeight: { $ref: 'fontWeight' },
-                    fontSize: { $rem: 1.5 },
-                    minimumFontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
-                    fontFamily: { $ref: 'fontFamily' },
+                    fontWeight: { $ref: 'seriesLabelFontWeight' },
+                    fontSize: { $rem: [1.5, 'seriesLabelFontSize'] },
+                    minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
+                    fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'on-space',
-                    overflowStrategy: 'ellipsis',
+                    truncate: AUTO_SIZED_LABEL_TRUNCATE,
                     spacing: 2,
+                    textAlign: { $path: ['../textAlign', 'center'] },
+                    verticalAlign: { $path: ['../verticalAlign', 'middle'] },
                 },
                 secondaryLabel: {
                     ...LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,
-                    fontWeight: undefined,
-                    fontSize: { $ref: 'fontSize' },
-                    minimumFontSize: { $rem: FONT_SIZE_RATIO.SMALLER },
-                    fontFamily: { $ref: 'fontFamily' },
+                    fontWeight: seriesLabelFontWeightOr(undefined),
+                    fontSize: { $ref: 'seriesLabelFontSize' },
+                    minimumFontSize: { $rem: [FONT_SIZE_RATIO.SMALLER, 'seriesLabelFontSize'] },
+                    fontFamily: { $ref: 'seriesLabelFontFamily' },
                     wrapping: 'never',
-                    overflowStrategy: 'ellipsis',
+                    truncate: AUTO_SIZED_LABEL_TRUNCATE,
+                    textAlign: { $path: ['../textAlign', 'center'] },
+                    verticalAlign: { $path: ['../verticalAlign', 'middle'] },
                 },
                 fill: undefined, // Override default fill
                 fillOpacity: 1,
@@ -122,15 +121,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
                 strokeOpacity: 1,
                 cornerRadius: 0,
-                shadow: {
-                    enabled: false,
-                    color: DEFAULT_SHADOW_COLOUR,
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 5,
-                },
-                textAlign: 'center',
-                verticalAlign: 'middle',
+                shadow: SHADOW_THEME_DEFAULTS,
                 padding: 3,
                 gap: 1,
                 highlight: {

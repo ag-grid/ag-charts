@@ -1,9 +1,8 @@
-import type { DynamicContext, MementoOriginator, OptionsDefs } from 'ag-charts-core';
+import type { DynamicContext, MementoOriginator, Node, OptionsDefs } from 'ag-charts-core';
 import { deepClone, isArray, isObject, isPlainObject, mergeDefaults, validate } from 'ag-charts-core';
 import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { Node } from '../../scene/node';
 
 type AnnotationsMemento = AgAnnotation[];
 

@@ -34,7 +34,7 @@ import {
     twoFingerStart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { ChartAxisDirection, type DeepReadonly } from 'ag-charts-core';
+import { ChartAxisDirection, type DeepReadonly, Transformable } from 'ag-charts-core';
 import { WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
 import type { AgNumericValue } from 'ag-charts-types';
 
@@ -1753,7 +1753,7 @@ describe('Zoom', () => {
                 expect(crossLine.labelGroup.visible).toBe(true);
 
                 const [rangeNode] = crossLine.rangeGroup.children();
-                const box = _ModuleSupport.Transformable.toCanvas(rangeNode);
+                const box = Transformable.toCanvas(rangeNode);
                 expect(box.width).toBeGreaterThan(0);
                 expect(box.x).toBeGreaterThanOrEqual(seriesRect.x);
                 expect(box.x + box.width).toBeLessThanOrEqual(seriesRect.x + seriesRect.width);

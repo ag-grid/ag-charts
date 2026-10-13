@@ -1,6 +1,6 @@
 import { type Point, clamp } from 'ag-charts-core';
+import type { ExpandableWidget, ExpansionControllerWidget } from 'ag-charts-core';
 
-import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 import { Popover, type PopoverOptions } from './popover';
 
 export interface AnchoredPopoverOptions extends PopoverOptions {

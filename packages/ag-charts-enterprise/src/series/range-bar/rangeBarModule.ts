@@ -3,7 +3,7 @@ import { ChartAxisDirection, DIRECTION_SWAP_AXES, type SeriesModuleDefinition } 
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { RangeBarSeries } from './rangeBarSeries';
-import { rangeBarSeriesOptionsDef } from './rangeBarSeriesOptionsDef';
+import { rangeBarSeriesOptionsDef, rangeBarSeriesThemeableOptionsDef } from './rangeBarSeriesOptionsDef';
 import { RANGE_BAR_SERIES_THEME } from './rangeBarThemes';
 
 const { predictCartesianNonPrimitiveAxis } = _ModuleSupport;
@@ -18,6 +18,8 @@ export const RangeBarSeriesModule: SeriesModuleDefinition<AgRangeBarSeriesOption
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: rangeBarSeriesOptionsDef,
+
+    themeOptions: rangeBarSeriesThemeableOptionsDef,
     matchingKeys: ['xKey', 'yLowKey', 'yHighKey', 'normalizedTo'],
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: DIRECTION_SWAP_AXES,

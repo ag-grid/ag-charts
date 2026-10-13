@@ -10,11 +10,13 @@ import {
     type PropertyDefinitionOpts,
     type Scale,
     type ScaleType,
+    Selection,
     type SeriesPluginModuleInstance,
     findMinMax,
     isDefined,
     mergeDefaults,
 } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
@@ -23,7 +25,7 @@ import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
 const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty } = _ModuleSupport;
 
 interface ErrorBoundSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
-    readonly node: _ModuleSupport.Node<ErrorBarNodeDatum>;
+    readonly node: Node<ErrorBarNodeDatum>;
     readonly options: object;
     readonly datum: ErrorBarNodeDatum;
     readonly label: ErrorBarNodeDatum;
@@ -41,7 +43,7 @@ type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
 export class ErrorBars extends AbstractModuleInstance implements SeriesPluginModuleInstance {
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: ErrorBarGroup;
-    private readonly sceneSelection: _ModuleSupport.Selection<ErrorBarNodeDatum, ErrorBarNode>;
+    private readonly sceneSelection: Selection<ErrorBarNodeDatum, ErrorBarNode>;
 
     private options!: NormalisedErrorBarOptions;
 
@@ -60,7 +62,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         });
 
         annotationGroup.appendChild(this.groupNode);
-        this.sceneSelection = _ModuleSupport.Selection.select(this.groupNode, () => this.errorBarFactory());
+        this.sceneSelection = Selection.select(this.groupNode, () => this.errorBarFactory());
         annotationSelections.add(this.sceneSelection);
 
         this.cleanup.register(

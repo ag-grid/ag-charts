@@ -3,7 +3,7 @@
     pointer-events: none;
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay {
+.ag-charts-wrapper--dark .ag-charts-overlay {
     color: #ffffff;
 }
 
@@ -16,7 +16,7 @@
     pointer-events: none;
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-overlay__loading-background {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-overlay__loading-background {
     background: #192232; /* DEFAULT_DARK_BACKGROUND_FILL */
 }
 
@@ -53,7 +53,7 @@
     box-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.25);
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__panel {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__panel {
     color: #ffffff;
     background: #192232; /* DEFAULT_DARK_BACKGROUND_FILL */
     border-color: #a94750;
@@ -69,7 +69,7 @@
     color: #cc222b;
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__header {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__header {
     color: #ff5c66;
 }
 
@@ -99,13 +99,13 @@
     background: rgba(0, 0, 0, 0.06);
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__button {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__button {
     border-color: rgba(255, 255, 255, 0.25);
     background: #192232;
     color: #ffffff;
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__button:hover {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__button:hover {
     background: rgba(255, 255, 255, 0.12);
 }
 
@@ -123,7 +123,7 @@
     line-height: 1;
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__dismiss {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__dismiss {
     background: transparent;
     color: #ffffff;
 }
@@ -155,7 +155,7 @@
     border-top: 1px solid rgba(0, 0, 0, 0.15);
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__divider {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__divider {
     border-top-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -179,15 +179,15 @@
     border-inline-start-color: #6b6b6b;
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__entry--error {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__entry--error {
     border-inline-start-color: #ff5c66;
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__entry--warning {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__entry--warning {
     border-inline-start-color: #f0a94b;
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__entry--deprecation {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__entry--deprecation {
     border-inline-start-color: #9aa0a6;
 }
 
@@ -202,8 +202,8 @@
     background: rgba(0, 0, 0, 0.06);
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__term,
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__code {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__term,
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__code {
     background: rgba(255, 255, 255, 0.12);
 }
 
@@ -223,6 +223,6 @@
     overflow: auto;
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__code {
+.ag-charts-wrapper--dark .ag-charts-overlay .ag-charts-validation-overlay__code {
     border-color: rgba(255, 255, 255, 0.2);
 }

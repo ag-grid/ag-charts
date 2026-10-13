@@ -1,6 +1,5 @@
 /* eslint-disable no-restricted-properties */
-import { _ModuleSupport } from 'ag-charts-community';
-import { Debug, ParallelStateMachine, type Point, StateMachine } from 'ag-charts-core';
+import { type BBox, Debug, ParallelStateMachine, type Point, StateMachine } from 'ag-charts-core';
 
 import { type AnnotationLineStyle, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
 import { annotationConfigs } from './annotationsConfig';
@@ -248,14 +247,14 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             ctx.update();
         };
 
-        const actionUpdateTextInputBBox = (bbox?: _ModuleSupport.BBox) => {
+        const actionUpdateTextInputBBox = (bbox?: BBox) => {
             const { node } = this;
             if (!node || !('setTextInputBBox' in node)) return;
             node.setTextInputBBox(bbox);
             ctx.update();
         };
 
-        const actionSaveText = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: _ModuleSupport.BBox }) => {
+        const actionSaveText = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: BBox }) => {
             const { datum } = this;
             if (bbox != null && textInputValue != null && textInputValue.length > 0) {
                 if (!isTextType(datum)) {

@@ -1,12 +1,16 @@
-import type { NormalisedTextOrSegments, Size } from 'ag-charts-core';
+import type {
+    Group,
+    Line,
+    NormalisedTextOrSegments,
+    Rect,
+    RotatableText,
+    Size,
+    TranslatableGroup,
+} from 'ag-charts-core';
 import { findMinMax } from 'ag-charts-core';
 
 import type { FromToFns } from '../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
-import type { Group, TranslatableGroup } from '../../scene/group';
-import type { Line } from '../../scene/shape/line';
-import type { Rect } from '../../scene/shape/rect';
-import type { RotatableText } from '../../scene/shape/text';
 
 export enum NiceMode {
     TickAndDomain,

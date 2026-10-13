@@ -1,4 +1,4 @@
-import { type AgAnnotation, _ModuleSupport } from 'ag-charts-community';
+import type { AgAnnotation } from 'ag-charts-community';
 import {
     type OptionsDefs,
     boolean,
@@ -13,26 +13,26 @@ import {
     typeUnion,
 } from 'ag-charts-core';
 
+import {
+    annotationAxisLabelOptionsDef,
+    annotationCalloutStylesDefs,
+    annotationChannelTextDefs,
+    annotationCommentStylesDefs,
+    annotationCrossLineStyleDefs,
+    annotationDisjointChannelStyleDefs,
+    annotationFibonacciStylesDefs,
+    annotationLineStyleDefs,
+    annotationLineTextDefs,
+    annotationMeasurerStylesDefs,
+    annotationNoteStylesDefs,
+    annotationParallelChannelStyleDefs,
+    annotationQuickMeasurerStylesDefs,
+    annotationShapeStylesDefs,
+    annotationTextStylesDef,
+} from './annotationOptionsDefs';
+
 /** Defs for restored annotation state: the option types plus the datum fields `getState()` also emits. */
 export function createAnnotationStateDefs(): OptionsDefs<AgAnnotation> {
-    const {
-        annotationAxisLabelOptionsDef,
-        annotationCalloutStylesDefs,
-        annotationChannelTextDefs,
-        annotationCommentStylesDefs,
-        annotationCrossLineStyleDefs,
-        annotationDisjointChannelStyleDefs,
-        annotationFibonacciStylesDefs,
-        annotationLineStyleDefs,
-        annotationLineTextDefs,
-        annotationMeasurerStylesDefs,
-        annotationNoteStylesDefs,
-        annotationParallelChannelStyleDefs,
-        annotationQuickMeasurerStylesDefs,
-        annotationShapeStylesDefs,
-        annotationTextStylesDef,
-    } = _ModuleSupport;
-
     const scalar = or(numericValue, string, date);
     const value = or(
         scalar,

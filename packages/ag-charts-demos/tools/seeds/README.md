@@ -29,6 +29,8 @@ Nothing lists the seeds. Everything that needs to know which seeds there are wal
   in `packages/ag-charts-website/src/components/demo-examples/seedLinks.ts`);
 - the parity harness, with `PARITY_DISCOVER=1`, serves and compares every port with a manifest
   that is not stale, and lists the stale ones it skips (`e2e/parity/README.md`, "Discovered ports");
+- the functional specs step (`port-spec-plan.mjs` and `run-port-specs.mjs` below) runs the demo's
+  `e2e/*.spec.ts` against every such port that is not stale;
 - `check-seeds.mjs --stale` reports every port with a manifest whose `sourceHash` is behind, and
   `check-seeds.mjs --pins` fails when one pins a different `ag-charts-*` version from the seeds';
 - the post-deploy check `tools/ci/check-demo-seed-links.mjs` reads the seed links the deployed
@@ -44,7 +46,7 @@ A port's manifest carries:
 
 ```json
 {
-    "demo": "financial",
+    "demo": "trading-terminal",
     "framework": "angular",
     "sourceHash": "sha256-…", // of src/demos/<demo>/** and its sibling-demo imports when last synced; stamped
     "sourceCommit": "…", // the commit that last touched any of those files; also stamped
@@ -75,8 +77,78 @@ pin follows the workspace version, whatever the branch (`readPinnedChartsVersion
 | A pre-release, while every seed carries one released `X.Y.Z` in from a merge-back | that `X.Y.Z`, until the next version bump | `release`   |
 
 The `latest` dist-tag makes `npm install` fetch the newest published release, so a seed may lag a
-feature its demo already uses until that release ships. Production links the mirror's seeds at
-the `release-X.Y.Z` tag, where they pin `X.Y.Z` exactly; staging and local builds link `latest`.
+feature its demo already uses until that release ships. That is what the committed seeds pin, and
+what `check-seeds.mjs` checks, so a publication never turns a pull request red. The copy the mirror
+publishes is not always the committed one: see "Installing a build instead of `latest`" and "Mirror
+refs and sync order" below for what the `staging`, `bX.Y.Z` and `release-X.Y.Z` refs install.
+
+### Installing a build instead of `latest`
+
+A `dist-tag` seed installs the last release, which lags the build a staging site or a release branch
+was made from. The mirror export can point such a seed at that build instead: `export-seed-mirror.mjs
+--charts-build <prefix>`, where `<prefix>` is the `npm-packages` URL of the docs site that serves the
+build's tarballs (`https://charts-staging.ag-grid.com/npm-packages`; a trailing slash is fine). In
+the exported `package.json` of every seed whose manifest has `pinSource` `dist-tag`:
+
+- each `ag-charts-*` dependency becomes `<prefix>/<package>.tgz`;
+- an `overrides` block gives the same URL for `ag-charts-types`, `ag-charts-core`, `ag-charts-locale`,
+  `ag-charts-community`, `ag-charts-enterprise` and the seed's wrapper (`ag-charts-react`,
+  `ag-charts-angular` or `ag-charts-vue3`; a TypeScript seed has none). Without them,
+  `ag-grid-community`'s `ag-charts-types` dependency and `ag-grid-enterprise`'s optional AG Charts
+  dependencies would install a second, published copy beside the tarball, or fail to resolve.
+
+A `release` seed is never rewritten, flag or not, so a release tag and a merge-back pin keep
+installing `X.Y.Z` from npm. Without the flag the export is unchanged. Only the exported copy is
+rewritten: the committed seeds, and so `check-seeds.mjs`, never see the tarball URLs. An `ag-charts-*`
+dependency that is not one of the eight packages a docs site serves fails the export.
+
+### Mirror refs and sync order
+
+The "Mirror Demo Seeds" workflow (`.github/workflows/demo-seeds-mirror.yml`) publishes the export to
+`ag-grid/ag-charts-demos`. Each ref there installs the AG Charts packages differently, and the demo
+pages link the ref that suits the site (`getSeedGitRef` in `seedLinks.ts`):
+
+| Mirror ref      | Synced from                                                      | Seeds pinned to the `latest` dist-tag install                                                          | Linked by                                        |
+| --------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| `staging`       | ag-charts `latest`, after a successful "Deploy to Staging" in CI | the tarballs staging serves, `https://charts-staging.ag-grid.com/npm-packages/<package>.tgz`           | staging, local and preview builds                |
+| `bX.Y.Z`        | a push to the release branch `bX.Y.Z`                            | the tarballs of that release's archive, `<production>/charts/archive/X.Y.Z/npm-packages/<package>.tgz` | the archive deployed at `/charts/archive/X.Y.Z/` |
+| `release-X.Y.Z` | the tag `release-X.Y.Z`, whose seeds pin `X.Y.Z` (`release`)     | not applicable: `X.Y.Z` from npm, as tagged                                                            | production, for version `X.Y.Z`                  |
+| `latest`        | the newest `release-X.Y.Z` tag only                              | not applicable: the released seeds, `X.Y.Z` from npm                                                   | nothing                                          |
+
+The rules that follow from that:
+
+- **The mirror's `latest` is released seeds only.** A push to ag-charts `latest` does not sync it. It
+  moves when a `release-X.Y.Z` tag is pushed, to that tag's seeds, and only if no newer release is
+  already tagged in the mirror (a hotfix on an older line leaves it). The check is repeated on every
+  push attempt, so two tag runs in flight cannot leave it on the older release. The tag run also
+  waits (up to 20 minutes) for npm to serve the release's packages before it moves the branch, and
+  fails with the branch untouched if they do not appear; re-run it once the release is published. So
+  it always works from published packages, whatever the state of the staging site or the release
+  branches.
+- **Staging is synced after its deploy.** CI's "Sync Demo Seeds (staging)" job calls the workflow once
+  the "Deploy to Staging" step has succeeded, because the seeds it publishes name tarballs that only
+  exist once that deploy has put them on the site. The sync is for the deployed commit, so a seed
+  opened from staging installs the build staging was made from. The post-deploy verification
+  (`.github/workflows/post-deploy-verification.yml`) starts when CI succeeds, so it runs after the
+  sync and checks the staging links and tarballs (`tools/ci/check-demo-seed-links.mjs`). A failed
+  sync fails the `latest` CI run, which skips the whole post-deploy verification, not only the seed
+  check. To re-sync `staging`, re-run the failed "Sync Demo Seeds (staging)" job; the workflow's
+  manual dispatch syncs only release branches and release tags. A re-run for a commit older than the
+  one the mirror's `staging` last synced (named in its head commit's message) leaves the branch as it
+  is, so it cannot undo a newer deployment's sync; if GitHub cannot compare the two commits the job
+  fails instead, and is re-run.
+- **A release branch can be ahead of its archive.** `bX.Y.Z` syncs on every push to the branch, and
+  its tarball URLs resolve only once the archive for that release is deployed, so between a push and
+  the next archive deploy the branch's seeds may install what the archive does not hold yet. This is
+  known and accepted; the demo pages link `bX.Y.Z` only from the archive itself.
+- **A release tag is exported as tagged.** The tagged commit's seeds pin `X.Y.Z` (`pinSource`
+  `release`), so they are not rewritten. The export names the ref it was made for, so the tag lands
+  on a commit on top of the mirror's `bX.Y.Z` (the branch holds the rewritten seeds, and its own push
+  can run after the tag's). The tag run never moves `bX.Y.Z`, and a mirror tag that already holds
+  different content fails the run.
+- **A release pin carried in by a merge-back is not rewritten.** Where ag-charts `latest` carries an
+  `X.Y.Z` pin from a merge-back (see below), its seeds are `release` seeds, so `staging` installs
+  that release from npm instead of the build until the next beta bump restores `latest`.
 
 ### A release carried in by a merge-back
 
@@ -183,7 +255,7 @@ imports included, so a shared module's change lists every demo that uses it), as
 {
     "stale": [
         {
-            "demo": "financial",
+            "demo": "trading-terminal",
             "framework": "angular",
             "sourceHash": "sha256-…",
             "manifestHash": "sha256-…",
@@ -208,14 +280,27 @@ Fails when a port the change edits is still stale: a file under `seeds/<demo>/<f
 between `<base>` and `HEAD`, and the port's manifest is behind its golden master. A port is aligned
 by editing it and restamping its manifest; edited and still stale means the restamp was forgotten,
 and the blocking parity run, which skips stale ports, would not compare it. The message names each
-port, the files that touched it and the stamp command. Changes to a port's `package.json` and
-`.seed-manifest.json` alone do not count: `pin-ports.mjs` rewrites those in every port on each
-version bump and at the release-branch cut, stale or not.
+port, the files that touched it and the stamp command. Changes to a port's `package.json`,
+`.seed-manifest.json` and root `README.md` alone do not count. `pin-ports.mjs` rewrites the first
+two in every port on each version bump and at the release-branch cut, stale or not; the README
+carries no demo behaviour and is not part of the demo source hash, so editing it aligns nothing. A
+README edited together with any other port file still counts, as does one below the port root.
+
+A stale port is excused only when it was already stale at `<base>` **and** the change moves its React
+demo's source hash. That is an API migration swept across the demo and every port (a rename that
+the ports have to follow, say): the change did not cause the drift and cannot clear it, so it is
+reported as a warning ("nothing to restamp on this PR") and left for the release-branch cut to
+align. A port that was stale at `<base>` but whose demo the change leaves alone is an alignment,
+which only ever edits ports that were already stale, and it still fails if it was not restamped.
+Staleness and the demo's hash at `<base>` are read from `<base>`'s own demo sources and port
+manifests (`findStalePortsAtBase`), not from the working tree, and hashed with `HEAD`'s hashing
+code. Under GitHub Actions the warning is emitted as a `::warning` annotation.
 
 It compares the trees at `<base>` and `HEAD`, so it needs no merge base and works in a shallow
-clone once `<base>` is fetched; uncommitted changes are not seen. CI runs it in the lint job with the
-same base as the affected checks (`findTouchedStalePorts` in `stale-ports.mjs` takes the changed files
-as input, for the unit tests):
+clone once `<base>` is fetched (`<base>`'s demos and manifests are extracted with `git archive`);
+uncommitted changes are not seen. CI runs it in the lint job with the same base as the affected
+checks (`findTouchedStalePorts` in `stale-ports.mjs` takes the changed files as input, for the
+unit tests):
 
 ```sh
 node packages/ag-charts-demos/tools/seeds/check-seeds.mjs --touched origin/latest
@@ -230,10 +315,41 @@ port reproduces the demo change, and commit the manifest with the port; `--stale
 reporting it.
 
 ```sh
-node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs financial angular
+node packages/ag-charts-demos/tools/seeds/stamp-port-manifest.mjs trading-terminal angular
 ```
 
-### `export-seed-mirror.mjs --out <dir> --ref <ref>`
+### `port-spec-plan.mjs` and `run-port-specs.mjs`
+
+The CI step "playwright functional specs on framework ports" runs the demos' functional specs
+(`e2e/*.spec.ts`, the `test:e2e` suite) against each port, in the same job as the parity run and
+from the same built seed `dist/`, so nothing is built twice. The two scripts split the work along the
+line the parity step already draws: git is set up on the runner, Playwright is in the container.
+
+`port-spec-plan.mjs [--stale-report <file>] [--out <file>]` runs on the runner. It lists every port
+with a manifest, drops the stale ones (read from the `check-seeds.mjs --stale` report the parity step
+wrote, or worked out with `findStalePorts` when none is given) and writes the plan, `{ run, skipped }`,
+as JSON. Each entry to run carries the port's `dist` and the `--grep` that selects only its demo's
+specs, since a port is a single-demo app and cannot answer the others'. Stale ports are named in a
+`::warning` annotation and in the job output, as in the parity step; when nothing is left to run it
+says so and the step passes.
+
+`run-port-specs.mjs --plan <file> [--port-base <port>] [-- <playwright args>]` runs in the
+container, from the demos package. For each port in turn it serves the `dist` with
+`e2e/parity/serve-dist.mjs`, runs `playwright test -g <demo>` with `DEMOS_BASE_URL` pointing at it,
+and stops the server. Each port gets its own JUnit report (`reports/ag-charts-demos-e2e-port-<demo>-<framework>.xml`)
+and results folder (`test-results/ports/<demo>-<framework>`). A failing port is named in an `::error`
+annotation and in the closing summary, and the exit status is non-zero if any port failed or could not
+run (no built `dist`). To try it by hand, build the ports, then:
+
+```sh
+node packages/ag-charts-demos/tools/seeds/port-spec-plan.mjs --out /tmp/plan.json
+(cd packages/ag-charts-demos && node tools/seeds/run-port-specs.mjs --plan /tmp/plan.json)
+```
+
+A port that is edited and restamped by the alignment PR at a release cut is current again, so this
+step runs its specs there.
+
+### `export-seed-mirror.mjs --out <dir> --ref <ref> [--charts-build <prefix>]`
 
 Builds the tree the "Mirror Demo Seeds" workflow publishes to `ag-grid/ag-charts-demos` (see "Seed
 projects" in the package README) into an empty folder, from the seeds in this checkout. Every
@@ -245,6 +361,14 @@ branch or tag being published; a link to a path that does not exist fails the ex
 
 ```sh
 node packages/ag-charts-demos/tools/seeds/export-seed-mirror.mjs --out /tmp/mirror --ref latest
+```
+
+`--charts-build <prefix>` additionally points the seeds pinned to the `latest` dist-tag at build
+tarballs served under `<prefix>` (see "Installing a build instead of `latest`" under "Pins"):
+
+```sh
+node packages/ag-charts-demos/tools/seeds/export-seed-mirror.mjs --out /tmp/mirror --ref staging \
+    --charts-build https://charts-staging.ag-grid.com/npm-packages
 ```
 
 ## How a port gets aligned
@@ -262,8 +386,8 @@ node packages/ag-charts-demos/tools/seeds/export-seed-mirror.mjs --out /tmp/mirr
    release branch as input.
 3. The PR is gated by CI like any other. Once restamped a port is current again, so the parity run
    compares it: every port screenshot must match React within tolerance. The lint job's
-   `check-seeds.mjs --touched` fails a PR that edits a port without restamping it.
+   `check-seeds.mjs --touched` fails a PR that aligns a port without restamping it.
 
 To align ports yourself on any branch, run `/port-showcases [demo] [framework]` in Claude Code. The
-functional specs should pass with `DEMOS_BASE_URL` pointing at an aligned port too
-(`e2e/parity/README.md`).
+functional specs must pass with `DEMOS_BASE_URL` pointing at an aligned port too: CI runs them against
+every current port (`port-spec-plan.mjs`, above; `e2e/parity/README.md`).

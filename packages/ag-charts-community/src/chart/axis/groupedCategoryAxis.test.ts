@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, test } from 'vitest';
 
-import { mapValues } from 'ag-charts-core';
+import { BBox, mapValues } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
     AgCartesianAxisPosition,
@@ -10,7 +10,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import { BBox } from '../../scene/bbox';
 import {
     DATA_GROUPED_MULTIPLE_NULLS,
     DATA_GROUPED_NULL_FIRST_LEVEL,

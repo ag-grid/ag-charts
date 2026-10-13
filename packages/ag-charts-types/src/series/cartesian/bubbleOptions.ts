@@ -16,13 +16,13 @@ import type {
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
+import type { AgMarkerSizeMode, ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
     AgHighlightStyleOptions,
-    AgMultiSeriesHighlightOptions,
+    AgMultiSeriesShadowHighlightOptions,
 } from '../seriesOptions';
 import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
 
@@ -107,6 +107,17 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
      * Default: `30`
      */
     maxSize?: PixelSize;
+    /**
+     * Determines how `sizeKey` values map onto marker sizes.
+     *
+     * - `'diameter'`: the marker diameter grows linearly with the value.
+     * - `'area'`: the marker area grows linearly with the value, so equal steps in value give equal steps in area.
+     *
+     * In `'area'` mode the area is only strictly proportional to the value when `minSize` is `0` and `sizeDomain` starts at `0`.
+     *
+     * Default: `'diameter'`
+     */
+    sizeMode?: AgMarkerSizeMode;
     /** Determines the largest number of items that can be rendered at once. If there are more items, they will be aggregated to resemble similar visual appearance.
      *
      * Default: `2000`
@@ -125,7 +136,7 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     /** Function used to return formatting for individual markers, based on the supplied information.*/
     itemStyler?: Styler<AgBubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
-    highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    highlight?: AgMultiSeriesShadowHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
     /** Configuration for colour scale with fills, domain, and mode. */
     colorScale?: AgColorScale;
 }

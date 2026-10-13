@@ -95,7 +95,7 @@ export async function growToContent(page: Page, selectors: readonly string[]) {
 }
 
 export const DEMO_STATES: Record<string, DemoStates> = {
-    financial: {
+    'trading-terminal': {
         ready: async (page) => {
             await expect(page.locator('.fin-container')).toBeVisible({ timeout: FIRST_LOAD_TIMEOUT });
             // Deterministic mode starts paused; the seed history is what renders.

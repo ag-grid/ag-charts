@@ -365,7 +365,12 @@ describe('CandlestickSeries', () => {
 
     describe('shadow', () => {
         const STYLED_WICKS = { wick: { stroke: 'navy', strokeWidth: 3 } };
-        const buildOptions = (shadow?: typeof SHADOW, item?: Record<string, unknown>): AgChartOptions => {
+        const SPREAD_SHADOW = { ...SHADOW, spread: 6 };
+
+        const buildOptions = (
+            shadow?: typeof SHADOW & { spread?: number },
+            item?: Record<string, unknown>
+        ): AgChartOptions => {
             const options = {
                 ...CANDLESTICK_OPTIONS,
                 series: [{ ...CANDLESTICK_OPTIONS.series![0], shadow, item }],
@@ -423,6 +428,28 @@ describe('CandlestickSeries', () => {
                 expect(node.fillShadow).toMatchObject(SHADOW);
             }
             styled.destroy();
+        });
+
+        it('carries the shadow spread to the silhouette shadow of every item', async () => {
+            const chart: any = await createEnterpriseChart(buildOptions(SPREAD_SHADOW));
+
+            expect(itemNodes(chart).length).toBeGreaterThan(0);
+
+            for (const shape of itemNodes(chart)) {
+                expect(shape.shadowMode).toBe('silhouette');
+                expect(shape.fillShadow).toMatchObject(SPREAD_SHADOW);
+            }
+            chart.destroy();
+        });
+
+        it('should render a candlestick chart with a shadow spread and shared wick styling', async () => {
+            await compareSnapshot(AgCharts.create(buildOptions(SPREAD_SHADOW)));
+        });
+
+        it('should render a candlestick chart with a shadow spread and separately styled wicks', async () => {
+            await compareSnapshot(
+                AgCharts.create(buildOptions(SPREAD_SHADOW, { up: STYLED_WICKS, down: STYLED_WICKS }))
+            );
         });
 
         it('should render a candlestick chart with a shadow and shared wick styling', async () => {

@@ -1,29 +1,38 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type BoxBounds, type DynamicContext, clamp } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    type BBox,
+    type BoxBounds,
+    type DynamicContext,
+    type Group,
+    type NormalisedNavigatorOptions,
+    type Path,
+    clamp,
+} from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
 import { RangeHandle } from './shapes/rangeHandle';
-import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
+import { RangeTrack } from './shapes/rangeTrack';
 
 interface BBoxProvider {
     id: string;
     visible?: boolean;
     toCanvasBBox(): BoxBounds;
-    getBBox(): _ModuleSupport.BBox;
+    getBBox(): BBox;
 }
 
 export class Navigator extends AbstractModuleInstance {
     public miniChart?: MiniChart;
 
-    public mask = new RangeMask();
+    public track = new RangeTrack();
     public minHandle = new RangeHandle();
     public maxHandle = new RangeHandle();
 
     // Navigator is only created when the `navigator` subtree is configured, so we
     // assert the subtree's presence here and rely on theme defaults for fields.
-    private get opts(): _ModuleSupport.NormalisedNavigatorOptions {
+    private get opts(): NormalisedNavigatorOptions {
         return this.ctx.chartState.getValue('options', 'navigator')!;
     }
 
@@ -31,17 +40,17 @@ export class Navigator extends AbstractModuleInstance {
         return this.opts.enabled;
     }
 
-    private readonly maskVisibleRange: BBoxProvider = {
-        id: 'navigator-mask-visible-range',
-        getBBox: (): _ModuleSupport.BBox => this.mask.computeVisibleRangeBBox(),
-        toCanvasBBox: (): _ModuleSupport.BBox => this.mask.computeVisibleRangeBBox(),
+    private readonly thumbBBox: BBoxProvider = {
+        id: 'navigator-thumb',
+        getBBox: (): BBox => this.track.computeVisibleRangeBBox(),
+        toCanvasBBox: (): BBox => this.track.computeVisibleRangeBBox(),
     };
 
     protected x = 0;
     protected y = 0;
     protected width = 0;
 
-    private readonly rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
+    private readonly rangeSelector = new RangeSelector([this.track, this.minHandle, this.maxHandle]);
 
     private panStart?: number;
     private readonly domProxy: NavigatorDOMProxy;
@@ -65,12 +74,18 @@ export class Navigator extends AbstractModuleInstance {
                 this.updateGroupVisibility();
             }),
             ctx.chartState.observe((get) => {
-                this.mask.cornerRadius = get('options', 'navigator.cornerRadius') ?? 0;
+                this.track.cornerRadius = get('options', 'navigator.cornerRadius') ?? 0;
             }),
             ctx.chartState.observe((get) => {
-                const mask = get('options', 'navigator.mask');
-                if (mask == null) return;
-                this.applyShapeOptions(this.mask, mask);
+                const track = get('options', 'navigator.track');
+                if (track == null) return;
+                this.applyShapeOptions(this.track, track);
+            }),
+            ctx.chartState.observe((get) => {
+                const thumb = get('options', 'navigator.thumb');
+                if (thumb == null) return;
+                if (thumb.fill != null) this.track.thumbFill = thumb.fill;
+                if (thumb.fillOpacity != null) this.track.thumbFillOpacity = thumb.fillOpacity;
             }),
             ctx.chartState.observe((get) => {
                 const minHandle = get('options', 'navigator.minHandle');
@@ -88,7 +103,7 @@ export class Navigator extends AbstractModuleInstance {
     }
 
     private applyShapeOptions(
-        target: _ModuleSupport.Path,
+        target: Path,
         options: { fill?: string; fillOpacity?: number; stroke?: string; strokeWidth?: number }
     ) {
         if (options.fill != null) target.fill = options.fill;
@@ -105,7 +120,7 @@ export class Navigator extends AbstractModuleInstance {
         if (options.grip != null) target.grip = options.grip;
     }
 
-    public updateBackground(oldGroup?: _ModuleSupport.Group, newGroup?: _ModuleSupport.Group) {
+    public updateBackground(oldGroup?: Group, newGroup?: Group) {
         this.rangeSelector?.updateBackground(oldGroup, newGroup);
     }
 
@@ -137,8 +152,8 @@ export class Navigator extends AbstractModuleInstance {
             layoutBox.shrink(top + bottom, 'bottom');
             this.y -= bottom;
 
-            this.miniChart.seriesRoot.inset = this.mask.strokeWidth / 2;
-            this.miniChart.seriesRoot.cornerRadius = this.mask.cornerRadius;
+            this.miniChart.seriesRoot.inset = this.track.strokeWidth / 2;
+            this.miniChart.seriesRoot.cornerRadius = this.track.cornerRadius;
         }
     }
 
@@ -216,12 +231,12 @@ export class Navigator extends AbstractModuleInstance {
     }
 
     private layoutNodes(x: number, y: number, width: number, height: number, min: number, max: number) {
-        const { rangeSelector, mask, minHandle, maxHandle } = this;
+        const { rangeSelector, track, minHandle, maxHandle } = this;
 
-        mask.layout(x, y, width, height, min, max);
+        track.layout(x, y, width, height, min, max);
         rangeSelector.layout(x, y, width, height, minHandle.width / 2, maxHandle.width / 2);
 
-        RangeHandle.align(minHandle, maxHandle, x, y, width, height, min, max, mask.strokeWidth / 2);
+        RangeHandle.align(minHandle, maxHandle, x, y, width, height, min, max, track.strokeWidth / 2);
 
         if (min + (max - min) / 2 < 0.5) {
             minHandle.zIndex = 3;
@@ -231,7 +246,7 @@ export class Navigator extends AbstractModuleInstance {
             maxHandle.zIndex = 3;
         }
 
-        for (const [index, node] of [minHandle, this.maskVisibleRange, maxHandle].entries()) {
+        for (const [index, node] of [minHandle, this.thumbBBox, maxHandle].entries()) {
             const bbox = node.getBBox();
             const tbox = { x: bbox.x - x, y: bbox.y - y, height: bbox.height, width: bbox.width };
             this.domProxy.updateSliderBounds(index, tbox);

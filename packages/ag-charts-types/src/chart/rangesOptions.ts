@@ -37,6 +37,8 @@ export interface AgRangesOptions<TContext = ContextDefault> extends Toggleable, 
     spacing?: PixelSize;
     button?: AgRangesButtonStyles;
     dropdown?: AgRangesDropdown;
+    /** The width and height in pixels of each button in this toolbar. Icon buttons are square; text buttons use this height and are at least this wide. If not set, buttons keep their default size. */
+    buttonSize?: PixelSize;
     /** The buttons to display. */
     buttons?: AgRangesButton<TContext>[];
 }
@@ -51,7 +53,7 @@ export interface AgRangesStyles extends FillCssOptions, FontOptions, Omit<Stroke
     hover?: AgRangesStateStyles;
 }
 
-export interface AgRangesStateStyles extends FillCssOptions, Pick<StrokeOptions, 'stroke'> {
+export interface AgRangesStateStyles extends FillCssOptions, Pick<StrokeOptions, 'stroke' | 'strokeWidth'> {
     textColor?: CssColor;
 }
 

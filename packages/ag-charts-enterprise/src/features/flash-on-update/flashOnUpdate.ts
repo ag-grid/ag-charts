@@ -1,17 +1,20 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    BandScale,
     type BoxBounds,
     ChartAxisDirection,
     type DynamicContext,
+    Group,
+    type NormalisedFlashOnUpdateOptions,
+    Rect,
+    Selection,
+    TranslatableGroup,
     ZIndexMap,
     createId,
     easeOut,
 } from 'ag-charts-core';
-
-type NormalisedFlashOnUpdateOptions = _ModuleSupport.NormalisedFlashOnUpdateOptions;
-
-const { Group, Rect, Selection, TranslatableGroup } = _ModuleSupport;
+import type { BBox } from 'ag-charts-core';
 
 type AxisContext = ReturnType<_ModuleSupport.ChartRegistry['axisManager']['getAxisContext']>[number];
 export type BandFlashDatum = {
@@ -57,7 +60,7 @@ function classifyDiffCategories(
 function findPrimaryCategoryAxisContext(ctx: DynamicContext<_ModuleSupport.ChartRegistry>): AxisContext | undefined {
     for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y]) {
         for (const axisCtx of ctx.axisManager.getAxisContext(dir)) {
-            if (_ModuleSupport.BandScale.is(axisCtx.scale)) {
+            if (BandScale.is(axisCtx.scale)) {
                 return axisCtx;
             }
         }
@@ -123,10 +126,10 @@ export class FlashOnUpdate extends AbstractModuleInstance {
     }
 
     private readonly flashGroup = new Group({ name: 'flash-on-update', zIndex: ZIndexMap.AXIS_BAND_HIGHLIGHT });
-    private readonly chartFlashRect: _ModuleSupport.Rect<BandFlashDatum>;
-    private readonly bandGroup: _ModuleSupport.TranslatableGroup;
-    private readonly bandSelection: _ModuleSupport.Selection<BandFlashDatum, _ModuleSupport.Rect<BandFlashDatum>>;
-    private seriesRect?: _ModuleSupport.BBox;
+    private readonly chartFlashRect: Rect<BandFlashDatum>;
+    private readonly bandGroup: TranslatableGroup;
+    private readonly bandSelection: Selection<BandFlashDatum, Rect<BandFlashDatum>>;
+    private seriesRect?: BBox;
     private axisCtx?: AxisContext;
     private previousBoundsCache?: Map<string, BoxBounds>;
     private readonly pendingDiffs: _ModuleSupport.DataModelDiff[] = [];
@@ -138,7 +141,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
         this.chartFlashRect.fillOpacity = 0;
 
         this.bandGroup = this.flashGroup.appendChild(new TranslatableGroup({ name: 'bands-flash-on-update' }));
-        this.bandSelection = Selection.select<_ModuleSupport.Rect<BandFlashDatum>>(
+        this.bandSelection = Selection.select<Rect<BandFlashDatum>>(
             this.bandGroup,
             () => new Rect({ name: 'flash-on-update-band' })
         );
@@ -321,7 +324,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
         }
 
         const { direction } = this.axisCtx;
-        const scale = this.axisCtx.scale as _ModuleSupport.BandScale<string>;
+        const scale = this.axisCtx.scale as BandScale<string>;
         const isHorizontal = direction === ChartAxisDirection.X;
         const axisSpan = isHorizontal ? this.seriesRect.width : this.seriesRect.height;
         const data = this.measureBandsBatch(scale, categoryPhases, isHorizontal);
@@ -334,7 +337,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
     }
 
     private measureBandsBatch(
-        scale: _ModuleSupport.BandScale<string>,
+        scale: BandScale<string>,
         categoryPhases: Map<string, FlashAnimationPhase>,
         isHorizontal: boolean
     ): BandFlashDatum[] {
@@ -392,9 +395,9 @@ export class FlashOnUpdate extends AbstractModuleInstance {
             return;
         }
 
-        const removeRects: _ModuleSupport.Rect<BandFlashDatum>[] = [];
-        const updateRects: _ModuleSupport.Rect<BandFlashDatum>[] = [];
-        const addRects: _ModuleSupport.Rect<BandFlashDatum>[] = [];
+        const removeRects: Rect<BandFlashDatum>[] = [];
+        const updateRects: Rect<BandFlashDatum>[] = [];
+        const addRects: Rect<BandFlashDatum>[] = [];
 
         for (const rect of allRects) {
             // eslint-disable-next-line sonarjs/deprecation
@@ -413,7 +416,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
     }
 
-    private animate(rects: _ModuleSupport.Rect<BandFlashDatum>[], phase: _ModuleSupport.AnimationPhase): void {
+    private animate(rects: Rect<BandFlashDatum>[], phase: _ModuleSupport.AnimationPhase): void {
         if (rects.length === 0) return;
 
         const { animationManager } = this.ctx;

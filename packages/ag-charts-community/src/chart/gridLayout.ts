@@ -1,6 +1,5 @@
+import type { BBox } from 'ag-charts-core';
 import type { AgChartLegendOrientation } from 'ag-charts-types';
-
-import type { BBox } from '../scene/bbox';
 
 export type Page = { columns: Column[]; pageWidth: number; pageHeight: number; startIndex: number; endIndex: number };
 

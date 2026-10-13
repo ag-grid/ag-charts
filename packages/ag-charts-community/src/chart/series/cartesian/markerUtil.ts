@@ -1,21 +1,19 @@
 import type {
+    Node,
     NormalisedSeriesMarkerOptions,
     NormalisedSeriesMarkerStyle,
     Point,
     Scale,
+    Selection,
     SizedPoint,
     Writeable,
 } from 'ag-charts-core';
-import { ChartAxisDirection, clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
+import { BBox, ChartAxisDirection, Transformable, clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
 import type { AgDrawingMode, AgMarkerShape } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { ExtraOpts, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
-import { BBox } from '../../../scene/bbox';
-import type { Node } from '../../../scene/node';
-import type { Selection } from '../../../scene/selection';
-import { Transformable } from '../../../scene/transformable';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { MarkerStrokePickStyle } from '../../marker/marker';
 import { Marker, markerStrokePickInflation } from '../../marker/marker';

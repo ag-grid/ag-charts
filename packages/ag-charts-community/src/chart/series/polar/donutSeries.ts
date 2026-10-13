@@ -1,5 +1,6 @@
 import type {
     DynamicContext,
+    GradientParams,
     LabelFit,
     NormalisedCollisionFreeSeriesLabelOptions,
     NormalisedColorType,
@@ -8,21 +9,34 @@ import type {
     NormalisedDonutSeriesStyle,
     NormalisedPieSeriesStyle,
     NormalisedTextOrSegments,
+    SectorBoundaries,
 } from 'ag-charts-core';
 import {
+    BBox,
     ChartAxisDirection,
     ChartUpdateType,
     DebugMetrics,
     type FontOptions,
+    Group,
     type Has,
     type InternalAgColorType,
+    Line,
+    LinearScale,
     type Point,
+    PointerEvents,
     PolarZIndexMap,
     type RequireOptional,
+    Sector,
+    Selection,
     SpatialIndex,
+    Text,
+    TranslatableGroup,
     type WrapOptions,
+    boxCrossesSegment,
+    boxOverlapsSector,
     cachedTextMeasurer,
     canRenderTextOffscreen,
+    clockwiseAngles,
     extractDomain,
     findLargestFontSizeDescending,
     fitLabelTextAutoSize,
@@ -32,8 +46,10 @@ import {
     gridCellSize,
     hasRealChars,
     insetFitRegion,
+    isBoxInSector,
     isErased,
     isGradientFill,
+    isPointInSector,
     isStringFillArray,
     jsonDiff,
     keptCharacters,
@@ -46,6 +62,8 @@ import {
     regionTextCapacity,
     resolveLabelFit,
     resolveMinimumFontSize,
+    sectorBox,
+    sectorEdges,
     toNumber,
     toPlainText,
     toRadians,
@@ -68,25 +86,6 @@ import type {
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import { LinearScale } from '../../../scale/linearScale';
-import { BBox } from '../../../scene/bbox';
-import type { GradientParams } from '../../../scene/gradient/gradient';
-import { Group, TranslatableGroup } from '../../../scene/group';
-import { boxCrossesSegment } from '../../../scene/intersection';
-import { PointerEvents } from '../../../scene/node';
-import { Selection } from '../../../scene/selection';
-import { Line } from '../../../scene/shape/line';
-import { Sector } from '../../../scene/shape/sector';
-import { Text } from '../../../scene/shape/text';
-import {
-    type SectorBoundaries,
-    boxOverlapsSector,
-    clockwiseAngles,
-    isBoxInSector,
-    isPointInSector,
-    sectorBox,
-    sectorEdges,
-} from '../../../scene/util/sector';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
 import {
@@ -1420,7 +1419,7 @@ export class DonutSeries extends PolarSeries<
 
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
-            sector.fillShadow = this.options.shadow;
+            sector.fillShadow = this.resolveItemShadow(this.options.shadow, isDatumHighlighted, datum.datumIndex);
             this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
         };

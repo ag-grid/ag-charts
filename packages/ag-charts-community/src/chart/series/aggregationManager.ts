@@ -1,6 +1,4 @@
-import { EventEmitter } from 'ag-charts-core';
-
-import { DeferredExecutor } from '../../util/deferredExecutor';
+import { DeferredExecutor, EventEmitter } from 'ag-charts-core';
 
 export interface AggregationManagerEvents {
     filtersChanged: void;

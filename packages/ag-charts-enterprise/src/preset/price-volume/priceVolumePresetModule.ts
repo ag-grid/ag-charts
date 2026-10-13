@@ -13,16 +13,19 @@ import {
     ratio,
     required,
     string,
-    undocumented,
+    undocumentedDefs,
     union,
 } from 'ag-charts-core';
 import type { AgBaseFinancialPresetOptions, AgPriceVolumePreset } from 'ag-charts-types';
 
+import { AxisInsetValueModule } from '../../features/axis-inset-value/axisInsetValueModule';
+import { AxisSelectedBandModule } from '../../features/axis-selected-band/axisSelectedBandModule';
 import { ChartToolbarModule } from '../../features/chart-toolbar/chartToolbarModule';
+import { SelectionModule } from '../../features/data-selection/dataSelectionModule';
 import { StatusBarModule } from '../../features/status-bar/statusBarModule';
 import { CandlestickSeriesModule } from '../../series/candlestick/candlestickModule';
-import { RangeAreaSeriesModule } from '../../series/range-area/rangeAreaModule';
 import { RangeBarSeriesModule } from '../../series/range-bar/rangeBarModule';
+import { volumeProfileSelectionOptionsDef, volumeProfileTotalSegmentOptionsDef } from '../volume-profile/volumeProfile';
 import { priceVolume } from './priceVolumePreset';
 import { annotationsTheme } from './priceVolumePresetTheme';
 
@@ -44,6 +47,8 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
         downKey: required(string),
         placement: union('left', 'right'),
         widthRatio: ratio,
+        totalSegment: volumeProfileTotalSegmentOptionsDef,
+        selection: volumeProfileSelectionOptionsDef,
     },
     tickSize: positiveNumberNonZero,
     rangeButtons: boolean,
@@ -66,28 +71,20 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     dataSource: defined,
     formatter: defined,
     enableRtl: boolean,
+    ...undocumentedDefs({
+        overrideDevicePixelRatio: positiveNumber,
+        foreground: defined,
+    }),
 };
 
-// @ts-expect-error undocumented option
-priceVolumeOptionsDef.overrideDevicePixelRatio = undocumented(positiveNumber);
-// @ts-expect-error undocumented option
-priceVolumeOptionsDef.foreground = undocumented(defined);
-
-const VOLUME_PROFILE_ENABLED = { $and: [{ $preset: 'volumeProfile' }, { $preset: ['volumeProfile/enabled', true] }] };
-const HLC_UP_BAND_INDEX = {
-    $if: [
-        { $preset: ['volume', true] },
-        { $if: [VOLUME_PROFILE_ENABLED, 3, 1] },
-        { $if: [VOLUME_PROFILE_ENABLED, 2, 0] },
-    ],
-};
+const NO_UNHIGHLIGHT_THEME = { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } };
 
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
     type: 'preset',
     name: 'price-volume',
     apiName: 'AgCharts.createFinancialChart',
     enterprise: true,
-    dependencies: [ChartToolbarModule, StatusBarModule],
+    dependencies: [ChartToolbarModule, StatusBarModule, AxisInsetValueModule, AxisSelectedBandModule, SelectionModule],
     version: VERSION,
 
     options: priceVolumeOptionsDef,
@@ -174,18 +171,12 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
         bar: {
             series: {
                 fillOpacity: 0.5,
-                highlight: {
-                    unhighlightedItem: { opacity: 1 },
-                    unhighlightedSeries: { opacity: 1 },
-                },
+                highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
         candlestick: {
             series: {
-                highlight: {
-                    unhighlightedItem: { opacity: 1 },
-                    unhighlightedSeries: { opacity: 1 },
-                },
+                highlight: NO_UNHIGHLIGHT_THEME,
                 item: {
                     up: {
                         fill: {
@@ -209,16 +200,8 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                     $switch: [
                         { $preset: 'chartType' },
                         (LineSeriesModule as any).themeTemplate.series.stroke,
-                        ['hlc', { $palette: 'altNeutral.stroke' }],
                         ['line', { $palette: 'neutral.stroke' }],
                         ['step-line', { $palette: 'neutral.stroke' }],
-                    ],
-                },
-                strokeWidth: {
-                    $switch: [
-                        { $preset: 'chartType' },
-                        (LineSeriesModule as any).themeTemplate.series.strokeWidth,
-                        ['hlc', 2],
                     ],
                 },
                 interpolation: interpolationThemeTemplate({
@@ -226,63 +209,19 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                 }),
             },
         },
-        ohlc: {
+        hlc: {
             series: {
-                highlight: {
-                    unhighlightedItem: { opacity: 1 },
-                    unhighlightedSeries: { opacity: 1 },
-                },
+                highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
-        'range-area': {
+        ohlc: {
             series: {
-                fillOpacity: 0.3,
-                strokeWidth: 2,
-                highlight: {
-                    bringToFront: false,
-                    unhighlightedItem: { opacity: 1 },
-                    unhighlightedSeries: { opacity: 1 },
-                },
-                fill: {
-                    $switch: [
-                        { $preset: 'chartType' },
-                        (RangeAreaSeriesModule as any).themeTemplate.series.fill,
-                        [
-                            'hlc',
-                            {
-                                $if: [
-                                    { $eq: [{ $value: '$index' }, HLC_UP_BAND_INDEX] },
-                                    { $palette: 'up.fill' },
-                                    { $palette: 'down.fill' },
-                                ],
-                            },
-                        ],
-                    ],
-                },
-                stroke: {
-                    $switch: [
-                        { $preset: 'chartType' },
-                        (RangeAreaSeriesModule as any).themeTemplate.series.stroke,
-                        [
-                            'hlc',
-                            {
-                                $if: [
-                                    { $eq: [{ $value: '$index' }, HLC_UP_BAND_INDEX] },
-                                    { $palette: 'up.stroke' },
-                                    { $palette: 'down.stroke' },
-                                ],
-                            },
-                        ],
-                    ],
-                },
+                highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
         'range-bar': {
             series: {
-                highlight: {
-                    unhighlightedItem: { opacity: 1 },
-                    unhighlightedSeries: { opacity: 1 },
-                },
+                highlight: NO_UNHIGHLIGHT_THEME,
                 fill: {
                     $switch: [
                         { $preset: 'chartType' },

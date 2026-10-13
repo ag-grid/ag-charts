@@ -1,8 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { DistantObject, NormalisedDropShadowOptions } from 'ag-charts-core';
-import { DeclaredSceneChangeDetection } from 'ag-charts-core';
-
-const { Path, BBox } = _ModuleSupport;
+import type { CanvasContext, DistantObject, NormalisedDropShadowOptions } from 'ag-charts-core';
+import { BBox, DeclaredSceneChangeDetection, Path } from 'ag-charts-core';
 
 export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject {
     @DeclaredSceneChangeDetection()
@@ -53,7 +50,7 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
         yOpen: number,
         yClose: number,
         crisp: boolean,
-        fillShadow: NormalisedDropShadowOptions | undefined = this.__fillShadow
+        fillShadow: NormalisedDropShadowOptions | undefined
     ): void {
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__centerX = centerX;
@@ -72,7 +69,7 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
         this.markDirty();
     }
 
-    protected override computeBBox(): _ModuleSupport.BBox | undefined {
+    protected override computeBBox(): BBox | undefined {
         const { __centerX: centerX, __y: y, __width: width, __height: height } = this;
         return new BBox(centerX - width / 2, y, width, height);
     }
@@ -87,6 +84,10 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
 
     get midPoint(): { x: number; y: number } {
         return { x: this.__centerX, y: this.__y + this.__height / 2 };
+    }
+
+    protected override isCrisp(): boolean {
+        return this.__crisp;
     }
 
     protected alignedCoordinates() {
@@ -122,10 +123,10 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
         return { centerX, x0, x1, y0, y1, yOpen, yClose };
     }
 
-    protected override executeStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
+    protected override executeStroke(ctx: CanvasContext, path?: Path2D): void {
         const { __width: width, strokeWidth } = this;
         if (width < strokeWidth) {
-            ctx.lineWidth = width;
+            ctx.lineWidth = width + this.shadowStrokeGrowth;
         }
         super.executeStroke(ctx, path);
     }

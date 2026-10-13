@@ -10,6 +10,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     type CallbackParamRules,
     ChartAxisDirection,
+    ColorScale,
     type DomainWithMetadata,
     type DynamicContext,
     type InternalAgColorType,
@@ -18,16 +19,21 @@ import {
     type NormalisedHeatmapSeriesStyle,
     type NormalisedTextOrSegments,
     type Point,
+    PointerEvents,
+    Rect,
     type ResolvedTextAlign,
     STROKE_STYLE_THEME_DEFAULTS,
     type SizedPoint,
+    configureColorScale,
     extent,
     findDiscreteColorBinLabel,
     formatValue,
     joinFormatted,
     mergeDefaults,
     resolveTextAlign,
+    upsertNodeDatum,
 } from 'ag-charts-core';
+import type { BBox, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
 
@@ -37,20 +43,15 @@ const {
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
-    configureColorScale,
     getMissCount,
     valueProperty,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     createDatumId,
-    ColorScale,
-    Rect,
-    PointerEvents,
     addHitTestersToQuadtree,
     findQuadtreeMatch,
     getLabelStyles,
     updateLabelNode,
-    upsertNodeDatum,
 } = _ModuleSupport;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -139,7 +140,7 @@ const VERTICAL_ALIGNS: VerticalAlign[] = ['top', 'middle', 'bottom'];
  * Defines all type parameters in one place for the series.
  */
 interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
-    readonly node: _ModuleSupport.Rect<HeatmapNodeDatum>;
+    readonly node: Rect<HeatmapNodeDatum>;
     readonly options: NormalisedHeatmapSeriesOwnOptions;
     readonly datum: HeatmapNodeDatum;
     readonly label: HeatmapLabelDatum;
@@ -620,7 +621,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return new Rect<HeatmapNodeDatum>();
     }
 
-    override update(params: { seriesRect?: _ModuleSupport.BBox }) {
+    override update(params: { seriesRect?: BBox }) {
         // Animations are unsupported by heat-map, so prevent all animations.
         this.ctx.animationManager.skipCurrentBatch();
 
@@ -629,7 +630,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     protected override updateDatumSelection(opts: {
         nodeData: HeatmapNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect<HeatmapNodeDatum>>;
+        datumSelection: Selection<HeatmapNodeDatum, Rect<HeatmapNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -718,7 +719,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect<HeatmapNodeDatum>>;
+        datumSelection: Selection<HeatmapNodeDatum, Rect<HeatmapNodeDatum>>;
         isHighlight: boolean;
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
@@ -731,8 +732,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     protected override updateDatumNodes({
         datumSelection,
+        isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<HeatmapNodeDatum, _ModuleSupport.Rect<HeatmapNodeDatum>>;
+        datumSelection: Selection<HeatmapNodeDatum, Rect<HeatmapNodeDatum>>;
         isHighlight: boolean;
     }) {
         const xAxis = this.axes[ChartAxisDirection.X];
@@ -746,7 +748,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
-            rect.fillShadow = shadow;
+            rect.fillShadow = this.resolveItemShadow(shadow, isHighlight, nodeDatum.datumIndex);
 
             rect.crisp = crisp;
             rect.cornerRadius = cornerRadius;
@@ -759,7 +761,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     protected override updateLabelSelection(opts: {
         labelData: HeatmapLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text<HeatmapLabelDatum>>;
+        labelSelection: Selection<HeatmapLabelDatum, Text<HeatmapLabelDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
         const { enabled } = this.options.label;
@@ -769,7 +771,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text<HeatmapLabelDatum>>;
+        labelSelection: Selection<HeatmapLabelDatum, Text<HeatmapLabelDatum>>;
         isHighlight?: boolean;
     }) {
         const { isHighlight = false } = opts;
@@ -974,7 +976,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return { inner: 0, outer: 0 };
     }
 
-    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): BBox | undefined {
         const datum = this.contextNodeData?.nodeData[datumIndex];
         if (datum === undefined) return undefined;
         const { width, height, midPoint } = datum;
@@ -982,7 +984,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return computeBarFocusBounds(this, focusRect);
     }
 
-    protected override initQuadTree(quadtree: _ModuleSupport.QuadtreeNearest<HeatmapNodeDatum>) {
+    protected override initQuadTree(quadtree: QuadtreeNearest<HeatmapNodeDatum>) {
         addHitTestersToQuadtree(quadtree, this.datumNodesIter(), this.ctx.logger);
     }
 

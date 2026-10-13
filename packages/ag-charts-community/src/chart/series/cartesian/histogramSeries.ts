@@ -1,22 +1,29 @@
 import type {
+    BBox,
     BoxBounds,
     CallbackParamRules,
+    DomainWithMetadata,
     DynamicContext,
     LabelFit,
+    Mutable,
     NormalisedHistogramSeriesOptions,
     NormalisedHistogramSeriesOwnOptions,
     NormalisedHistogramSeriesStyle,
     NormalisedTextOrSegments,
     PlacedLabel,
+    Point,
     PointLabelDatum,
     PositionedCandidateResolver,
+    QuadtreeNearest,
+    RequireOptional,
+    Selection,
+    Text,
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
-    type DomainWithMetadata,
-    type Mutable,
-    type Point,
-    type RequireOptional,
+    Group,
+    PointerEvents,
+    Rect,
     addValues,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
@@ -45,6 +52,7 @@ import {
     tickStep,
     toArray,
     toNumber,
+    upsertNodeDatum,
 } from 'ag-charts-core';
 import type {
     AgHistogramSeriesBinParams,
@@ -56,13 +64,6 @@ import type {
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import type { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
-import { PointerEvents } from '../../../scene/node';
-import type { Selection } from '../../../scene/selection';
-import { Rect } from '../../../scene/shape/rect';
-import type { Text } from '../../../scene/shape/text';
-import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { ChartAxis } from '../../chartAxis';
 import { addAccumulated, area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
@@ -128,7 +129,6 @@ import type {
     CartesianSeriesNodeDatum,
     CartesianSeriesTypes,
 } from './cartesianSeriesTypes';
-import { upsertNodeDatum } from './cartesianSeriesUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
@@ -1031,7 +1031,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
             rect.crisp = datum.crisp;
-            rect.fillShadow = shadow;
+            rect.fillShadow = this.resolveItemShadow(shadow, opts.isHighlight, datum.datumIndex);
         });
     }
 

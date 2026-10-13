@@ -24,6 +24,7 @@ import {
     string,
     union,
     validate,
+    withThemeOperators,
 } from 'ag-charts-core';
 import type {
     AgBorderThemeParam,
@@ -34,6 +35,7 @@ import type {
     AgChartThemeParams,
 } from 'ag-charts-types';
 
+import { themeOverridesOptionsDefs } from '../factory/themeOverridesOptionsDefs';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
 import { FinancialDark } from '../themes/financialDark';
@@ -44,7 +46,6 @@ import { PolychromaDark } from '../themes/polychromaDark';
 import { PolychromaLight } from '../themes/polychromaLight';
 import { SheetsDark } from '../themes/sheetsDark';
 import { SheetsLight } from '../themes/sheetsLight';
-import { themeOverridesOptionsWithOperatorsDef } from '../themes/themeOptionsDef';
 import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
@@ -200,7 +201,9 @@ function createChartTheme(
         throw new Error(`Cannot find theme \`${value}\`.`);
     }
 
-    const { cleared, invalid } = validate(reduceThemeOptions(value), themeOptionsDef, 'theme', { logger });
+    const { cleared, invalid } = validate(reduceThemeOptions(value), themeOptionsDefFor(moduleRegistry), 'theme', {
+        logger,
+    });
 
     for (const error of invalid) {
         logger.warnOnce(String(error));
@@ -242,9 +245,9 @@ const themeParamBorder = optionsDefs<AgBorderThemeParam>({
     width: positiveNumber,
 });
 
-export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
+const themeOptionsBaseDef: OptionsDefs<AgChartTheme> = {
     baseTheme: or(string, object),
-    overrides: themeOverridesOptionsWithOperatorsDef,
+    overrides: object, // replaced per registry by `themeOptionsDefFor`
     params: {
         accentColor: colorOrRef,
         axisLineColor: colorOrRef,
@@ -299,8 +302,6 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         buttonDisabledBackgroundColor: colorOrRef,
         buttonDisabledBorder: or(boolean, themeParamBorder),
         buttonDisabledTextColor: colorOrRef,
-        buttonHorizontalPadding: positiveNumber,
-        buttonVerticalPadding: positiveNumber,
 
         inputBackgroundColor: colorOrRef,
         inputBorder: or(boolean, themeParamBorder),
@@ -352,6 +353,13 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         scrollbarThumbBorderRadius: number,
         scrollbarThumbHoverBackgroundColor: colorOrRef,
         scrollbarThumbHoverBorder: or(boolean, themeParamBorder),
+        navigatorTrackBackgroundColor: colorOrRef,
+        navigatorTrackBorder: or(boolean, themeParamBorder),
+        navigatorTrackBorderRadius: number,
+        navigatorThumbBackgroundColor: colorOrRef,
+        navigatorHandleBackgroundColor: colorOrRef,
+        navigatorHandleBorder: or(boolean, themeParamBorder),
+        navigatorHandleBorderRadius: number,
 
         titleFontSize: number,
         titleFontWeight: fontWeight,
@@ -365,6 +373,16 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         footnoteFontWeight: fontWeight,
         footnoteFontFamily: fontFamilyFull,
         footnoteColor: colorOrRef,
+
+        seriesLabelBorder: or(boolean, themeParamBorder),
+        seriesLabelBorderRadius: number,
+        seriesLabelFontFamily: fontFamilyFull,
+        seriesLabelFontSize: number,
+        seriesLabelFontWeight: fontWeight,
+        seriesLabelInsideBackgroundColor: colorOrRef,
+        seriesLabelInsideTextColor: colorOrRef,
+        seriesLabelOutsideBackgroundColor: colorOrRef,
+        seriesLabelOutsideTextColor: colorOrRef,
     },
     palette: {
         fills: arrayOf(simpleColorUnion),
@@ -401,4 +419,21 @@ function validateStructure(value: unknown, logger: Logger) {
         logger.warnOnce(String(error));
     }
     return invalid.length === 0;
+}
+
+const themeOptionsDefsCaches = createScopedCache(
+    () => ({ defs: undefined as OptionsDefs<AgChartTheme> | undefined }),
+    (cache) => {
+        cache.defs = undefined;
+    }
+);
+
+/** The theme schema for `moduleRegistry`, with `overrides` composed from its modules. */
+export function themeOptionsDefFor(moduleRegistry: ModuleScope): OptionsDefs<AgChartTheme> {
+    const cache = themeOptionsDefsCaches.for(moduleRegistry);
+    cache.defs ??= {
+        ...themeOptionsBaseDef,
+        overrides: withThemeOperators(themeOverridesOptionsDefs(moduleRegistry)),
+    };
+    return cache.defs;
 }

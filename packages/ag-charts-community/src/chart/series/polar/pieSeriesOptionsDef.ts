@@ -16,7 +16,7 @@ import {
     labelBoxOptionsDef,
     labelFitOptionsDefs,
     lineDashOptionsDef,
-    multiSeriesHighlightOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
     positiveNumber,
     ratio,
@@ -28,7 +28,7 @@ import {
     strokeOptionsDef,
     textOrSegments,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
     without,
 } from 'ag-charts-core';
 import type {
@@ -41,12 +41,13 @@ import type {
     AgSelectionStyleOptions,
 } from 'ag-charts-types';
 
-const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
+const highlight = multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
 const selection: OptionsDefs<AgSelectionOptions<AgSelectionStyleOptions>> = {
     ...selectionOptionsDef(shapeHighlightOptionsDef),
+    ...undocumentedDefs({
+        selectedOffset: number,
+    }),
 };
-// @ts-expect-error undocumented option
-selection.selectedOffset = undocumented(number);
 
 export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
@@ -70,6 +71,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         showInLegend: boolean,
         spacing: positiveNumber,
         ...fontOptionsDef,
+        ...undocumentedDefs({ _enabledFromTheme: boolean }),
     },
     calloutLabel: {
         enabled: boolean,
@@ -87,6 +89,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         }),
         ...labelBoxOptionsDef,
         ...fontOptionsDef,
+        ...undocumentedDefs({ _enabledFromTheme: boolean }),
     },
     sectorLabel: {
         enabled: boolean,
@@ -103,6 +106,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         }),
         ...labelBoxOptionsDef,
         ...fontOptionsDef,
+        ...undocumentedDefs({ _enabledFromTheme: boolean }),
     },
     calloutLine: {
         colors: arrayOf(colorOrRef),
@@ -140,21 +144,11 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     sectorLabelName: string,
     highlight,
     selection,
+    ...undocumentedDefs({
+        angleFilterKey: string,
+        defaultColorRange: arrayOf(arrayOf(color)),
+        defaultPatternFills: arrayOf(color),
+        angleKeyAxis: string,
+        radiusKeyAxis: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-pieSeriesOptionsDef.angleFilterKey = undocumented(string);
-// @ts-expect-error undocumented option
-pieSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
-// @ts-expect-error undocumented option
-pieSeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));
-// @ts-expect-error undocumented option
-pieSeriesOptionsDef.title._enabledFromTheme = undocumented(boolean);
-// @ts-expect-error undocumented option
-pieSeriesOptionsDef.calloutLabel._enabledFromTheme = undocumented(boolean);
-// @ts-expect-error undocumented option
-pieSeriesOptionsDef.sectorLabel._enabledFromTheme = undocumented(boolean);
-// @ts-expect-error undocumented option
-pieSeriesOptionsDef.angleKeyAxis = undocumented(string);
-// @ts-expect-error undocumented option
-pieSeriesOptionsDef.radiusKeyAxis = undocumented(string);

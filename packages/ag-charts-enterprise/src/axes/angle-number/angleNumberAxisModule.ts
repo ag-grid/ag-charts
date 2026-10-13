@@ -3,10 +3,14 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedAngleNumberAxisOptions,
+    commonAxisThemeTemplate,
+    commonCrossLineLabelOptionsDefs,
     mergeDefaults,
+    polarAxisThemeOptionsDefs,
 } from 'ag-charts-core';
 
 import { AngleNumberAxis } from './angleNumberAxis';
+import { angleNumberAxisOptionsDefs } from './angleNumberAxisOptionsDefs';
 
 export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOptions, AngleNumberAxis> = {
     type: 'axis',
@@ -16,7 +20,12 @@ export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOption
     version: VERSION,
     dependencies: [PolarChartModule],
 
-    options: _ModuleSupport.angleNumberAxisOptionsDefs,
+    options: angleNumberAxisOptionsDefs,
+
+    themeOptions: /* #__PURE__ */ polarAxisThemeOptionsDefs(
+        angleNumberAxisOptionsDefs,
+        commonCrossLineLabelOptionsDefs
+    ),
     themeTemplate: mergeDefaults(
         {
             startAngle: 0,
@@ -24,7 +33,7 @@ export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOption
             label: { spacing: 5 },
             gridLine: { enabled: false },
         },
-        _ModuleSupport.commonAxisThemeTemplate
+        commonAxisThemeTemplate
     ),
 
     create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>

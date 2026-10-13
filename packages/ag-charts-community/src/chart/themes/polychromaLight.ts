@@ -1,8 +1,4 @@
-import {
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    getSequentialColors,
-} from 'ag-charts-core';
+import { getSequentialColors } from 'ag-charts-core';
 
 import { ChartTheme } from './chartTheme';
 
@@ -63,14 +59,5 @@ export class PolychromaLight extends ChartTheme {
             altDown: { fill: POLYCHROMA_LIGHT_FILLS.RED, stroke: POLYCHROMA_LIGHT_STROKES.RED },
             altNeutral: { fill: POLYCHROMA_LIGHT_FILLS.GRAY, stroke: POLYCHROMA_LIGHT_STROKES.GRAY },
         };
-    }
-
-    override getTemplateParameters() {
-        const params = super.getTemplateParameters();
-
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, POLYCHROMA_LIGHT_FILLS.BLUE);
-        params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_LIGHT_FILLS.BLUE);
-
-        return params;
     }
 }

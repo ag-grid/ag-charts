@@ -1,16 +1,18 @@
 import {
     type AxisModuleDefinition,
+    CategoryScale,
     type DynamicContext,
     type NormalisedCategoryAxisOptions,
+    cartesianAxisThemeOptionsDefs,
+    categoryAxisOptionsDefs,
+    commonAxisThemeTemplate,
     mergeDefaults,
+    titleAxisThemeTemplate,
 } from 'ag-charts-core';
 import type { AgCategoryAxisOptions } from 'ag-charts-types';
 
-import { categoryAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { CategoryAxis } from '../../chart/axis/categoryAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
-import { CategoryScale } from '../../scale/categoryScale';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
@@ -24,6 +26,8 @@ export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions, Cat
         dependencies: [CartesianChartModule],
 
         options: categoryAxisOptionsDefs,
+
+        themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(categoryAxisOptionsDefs),
         themeTemplate: mergeDefaults(
             {
                 groupPaddingInner: 0.1,

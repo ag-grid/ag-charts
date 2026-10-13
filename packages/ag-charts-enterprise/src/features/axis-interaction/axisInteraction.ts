@@ -1,15 +1,28 @@
 import type { AgAxisClickEvent } from 'ag-charts-community';
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CanvasPoint, CurrentPoint, DynamicContext } from 'ag-charts-core';
-import { AbstractModuleInstance, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
+import { _ModuleSupport } from 'ag-charts-community';
+import type {
+    AxisID,
+    AxisWidget,
+    CanvasPoint,
+    ClickWidgetEvent,
+    CurrentPoint,
+    DblClickWidgetEvent,
+    DragWidgetEvent,
+    DynamicContext,
+    MouseWidgetEvent,
+} from 'ag-charts-core';
+import { AbstractModuleInstance, BBox, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
+
+import { resolveAxisAriaLabels } from './axisAriaLabels';
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
 type ProxyAxis = {
     axisId: AxisID;
     direction: ChartAxisDirection;
-    div: _Widget.AxisWidget;
-    bounds?: _ModuleSupport.BBox;
+    div: AxisWidget;
+    bounds?: BBox;
+    ariaLabel?: string;
 };
 
 function hasAxisListener(
@@ -53,7 +66,7 @@ export class AxisInteraction extends AbstractModuleInstance {
     private hoveredAxisId: string | undefined;
     private draggingAxisId: string | undefined;
 
-    private seriesRect: _ModuleSupport.BBox | undefined;
+    private seriesRect: BBox | undefined;
 
     constructor(readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -151,20 +164,37 @@ export class AxisInteraction extends AbstractModuleInstance {
             this.axes.push(proxyAxis);
         }
 
+        const ariaLabels = this.resolveAriaLabels(axesCtx);
+
         for (const axis of this.axes) {
             const axisCtx = axesCtx.find((ac) => ac.axisId === axis.axisId)!;
+            const ariaLabel = ariaLabels.get(axis.axisId);
+            if (ariaLabel != null && ariaLabel !== axis.ariaLabel) {
+                axis.div.setAriaLabel(ariaLabel);
+                axis.ariaLabel = ariaLabel;
+            }
             const bbox = axisCtx.getCanvasBounds();
             axis.div.setHidden(boxEmpty(bbox));
             if (bbox == undefined) {
                 axis.bounds = undefined;
             } else {
                 this.ctx.widgets.axisWidgets.setRegionBounds(axis.axisId, bbox);
-                axis.bounds = new _ModuleSupport.BBox(bbox.x, bbox.y, bbox.width, bbox.height);
+                axis.bounds = new BBox(bbox.x, bbox.y, bbox.width, bbox.height);
             }
             // Signal interactivity only on axes that actually have a click listener.
             const needsCursor: boolean = !hasDraggableAxes(this.ctx) && hasAxisClickListener(chartService, axisCtx);
             axis.div.setCursor(needsCursor ? 'pointer' : undefined);
         }
+    }
+
+    private resolveAriaLabels(axesCtx: _ModuleSupport.AxisContext[]) {
+        const { labels, duplicateExplicitLabels } = resolveAxisAriaLabels(axesCtx);
+        for (const label of duplicateExplicitLabels) {
+            this.ctx.logger.warnOnce(
+                `axes with the same [ariaLabel] "${label}" share an accessible name; give each axis a unique [ariaLabel].`
+            );
+        }
+        return labels;
     }
 
     private onSeriesAreaHover(event: _ModuleSupport.SeriesAreaHoverEvent) {
@@ -231,7 +261,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         event.axis = this.pickAxisValue(axis.axisId, event);
     }
 
-    private onSeriesAreaDoubleClick(event: _Widget.DblClickWidgetEvent) {
+    private onSeriesAreaDoubleClick(event: DblClickWidgetEvent) {
         if (!this.isEnabled() || !this.isEnabledDoubleClick()) return;
 
         // Only continue if we know we have axes that overlap the series area.
@@ -248,7 +278,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         });
     }
 
-    private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
+    private onSeriesAreaDragStart(event: DragWidgetEvent<'drag-start'>) {
         if (!this.isEnabled() || !this.isEnabledDragging()) return;
 
         // Since the axis has already been hovered, we do not need to pick it.
@@ -272,7 +302,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         }
     }
 
-    private onSeriesAreaDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
+    private onSeriesAreaDragMove(event: DragWidgetEvent<'drag-move'>) {
         if (!this.isEnabled() || !this.isEnabledDragging() || this.draggingAxisId == null) return;
 
         // Check if the active axis is overlapping the series area, since it may have been set by dragging on the
@@ -290,7 +320,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         });
     }
 
-    private onSeriesAreaDragEnd(event: _Widget.DragWidgetEvent<'drag-end'>) {
+    private onSeriesAreaDragEnd(event: DragWidgetEvent<'drag-end'>) {
         if (this.draggingAxisId == null) return;
 
         // Check if the active axis is overlapping the series area, since it may have been set by dragging on the
@@ -312,7 +342,7 @@ export class AxisInteraction extends AbstractModuleInstance {
         return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(point);
     }
 
-    private toCanvasPoint(div: _Widget.AxisWidget, point: Readonly<CurrentPoint>): CanvasPoint {
+    private toCanvasPoint(div: AxisWidget, point: Readonly<CurrentPoint>): CanvasPoint {
         return { canvasX: point.currentX + div.cssLeft(), canvasY: point.currentY + div.cssTop() };
     }
 
@@ -320,7 +350,7 @@ export class AxisInteraction extends AbstractModuleInstance {
      * Fires the `axes[].listeners` callbacks and their chart-level `axisClick` / `axisDoubleClick`
      * counterparts. The picked value is resolved exactly as it is for the axis context menu.
      */
-    private dispatchAxisClick(axisId: AxisID, widgetEvent: _Widget.ClickWidgetEvent | _Widget.DblClickWidgetEvent) {
+    private dispatchAxisClick(axisId: AxisID, widgetEvent: ClickWidgetEvent | DblClickWidgetEvent) {
         // Keyboard-synthetic clicks carry no pointer coordinates, so there is nothing to pick.
         if (widgetEvent.device === 'keyboard') return;
 
@@ -375,7 +405,7 @@ export class AxisInteraction extends AbstractModuleInstance {
 
     private dispatchAxisContextMenu(
         axisId: AxisID,
-        widgetEvent: _Widget.MouseWidgetEvent<'contextmenu'>,
+        widgetEvent: MouseWidgetEvent<'contextmenu'>,
         canvasX: number,
         canvasY: number
     ) {

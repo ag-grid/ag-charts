@@ -54,6 +54,14 @@ describe('toChartTheme', () => {
         });
     });
 
+    it('converts the navigator radii from their length editor values to numbers', () => {
+        const params = { navigatorTrackBorderRadius: '4px', navigatorHandleBorderRadius: '2px' };
+        expect(toChartTheme({ ...selection, params }).params).toEqual({
+            navigatorTrackBorderRadius: 4,
+            navigatorHandleBorderRadius: 2,
+        });
+    });
+
     it('keeps every bookkeeping key out of the snippet the user copies', () => {
         // The end of the same thread: whatever survives the projection is what
         // someone pastes into their app.

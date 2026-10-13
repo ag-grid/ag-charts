@@ -1,20 +1,19 @@
 import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
+    BAR_LABEL_COLLISION_THEME,
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
     COMMON_SERIES_THEME_DEFAULTS,
     ChartAxisDirection,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
-    LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
     LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    SERIES_TOOLTIP_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
-    undocumentedThemeOptions,
+    fillThemeTemplate,
 } from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -23,21 +22,13 @@ import { communityModule } from '../../../module/moduleIdentity';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { HistogramSeries } from './histogramSeries';
-import { histogramSeriesOptionsDef } from './histogramSeriesOptionsDef';
+import { histogramSeriesOptionsDef, histogramSeriesThemeableOptionsDef } from './histogramSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
 const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
     series: {
         ...COMMON_SERIES_THEME_DEFAULTS,
-        fill: {
-            $applySwitch: [
-                { $path: 'type' },
-                { $palette: 'fill' },
-                ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                ['image', FILL_IMAGE_DEFAULTS],
-                ['pattern', FILL_PATTERN_DEFAULTS],
-            ],
-        },
+        fill: fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS),
         stroke: { $palette: 'stroke' },
         strokeWidth: 1,
         fillOpacity: 1,
@@ -49,28 +40,18 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
-            fontSize: { $ref: 'fontSize' },
-            fontFamily: { $ref: 'fontFamily' },
-            fontWeight: { $ref: 'fontWeight' },
+            fontSize: { $ref: 'seriesLabelFontSize' },
+            fontFamily: { $ref: 'seriesLabelFontFamily' },
+            fontWeight: { $ref: 'seriesLabelFontWeight' },
             spacing: 8,
             padding: 8,
-            collision: {
-                threshold: 4,
-                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
-                ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
-            },
-            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
-            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            collision: BAR_LABEL_COLLISION_THEME,
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside'),
             placement: 'inside-center',
         },
-        shadow: {
-            enabled: false,
-            color: DEFAULT_SHADOW_COLOUR,
-            xOffset: 3,
-            yOffset: 3,
-            blur: 5,
-        },
-        tooltip: { interaction: { enabled: false } },
+        shadow: SHADOW_THEME_DEFAULTS,
+        tooltip: SERIES_TOOLTIP_THEME,
         highlight: { ...MULTI_SERIES_HIGHLIGHT_STYLE, bringToFront: true },
     },
 };
@@ -84,6 +65,8 @@ export const HistogramSeriesModule: SeriesModuleDefinition<AgHistogramSeriesOpti
     dependencies: [CartesianChartModule],
 
     options: histogramSeriesOptionsDef,
+
+    themeOptions: histogramSeriesThemeableOptionsDef,
     predictAxis: predictCartesianNonPrimitiveAxis,
     defaultAxes: {
         x: {

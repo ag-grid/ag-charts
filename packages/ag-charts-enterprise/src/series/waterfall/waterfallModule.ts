@@ -3,7 +3,7 @@ import { ChartAxisDirection, DIRECTION_SWAP_AXES, type SeriesModuleDefinition } 
 
 import { BackgroundRegionsModule } from '../../features/background-regions/backgroundRegionsModule';
 import { WaterfallSeries } from './waterfallSeries';
-import { waterfallSeriesOptionsDef } from './waterfallSeriesOptionsDef';
+import { waterfallSeriesOptionsDef, waterfallSeriesThemeableOptionsDef } from './waterfallSeriesOptionsDef';
 import { WATERFALL_SERIES_THEME } from './waterfallThemes';
 
 export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOptions> = {
@@ -16,6 +16,8 @@ export const WaterfallSeriesModule: SeriesModuleDefinition<AgWaterfallSeriesOpti
     dependencies: [CartesianChartModule, BackgroundRegionsModule],
 
     options: waterfallSeriesOptionsDef,
+
+    themeOptions: waterfallSeriesThemeableOptionsDef,
     defaultAxes: DIRECTION_SWAP_AXES,
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     axisKeysFlipped: { [ChartAxisDirection.X]: 'yKeyAxis', [ChartAxisDirection.Y]: 'xKeyAxis' },

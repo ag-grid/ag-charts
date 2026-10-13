@@ -1,11 +1,14 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     type Bounds4,
+    Group,
     type Logger,
     type NormalisedSeriesAreaBackgroundRegion,
     type NormalisedSeriesAreaBackgroundRegionRange,
+    Rect,
     type Scale,
     ScaleAlignment,
+    TransformableText,
     Vec4,
     clampArray,
     createId,
@@ -57,11 +60,11 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
     xAxis?: _ModuleSupport.AxisContext;
     yAxis?: _ModuleSupport.AxisContext;
 
-    readonly regionGroup = new _ModuleSupport.Group({ name: this.internalId });
-    readonly labelGroup = new _ModuleSupport.Group({ name: this.internalId });
+    readonly regionGroup = new Group({ name: this.internalId });
+    readonly labelGroup = new Group({ name: this.internalId });
 
-    private readonly regionNode = this.regionGroup.appendChild(new _ModuleSupport.Rect());
-    private readonly labelNode = this.labelGroup.appendChild(new _ModuleSupport.TransformableText());
+    private readonly regionNode = this.regionGroup.appendChild(new Rect());
+    private readonly labelNode = this.labelGroup.appendChild(new TransformableText());
 
     private opts!: NormalisedSeriesAreaBackgroundRegion;
 

@@ -1,7 +1,22 @@
-import { type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, commonSeriesOptionsDefs, constant, geoJson, required } from 'ag-charts-core';
+import type { AgMapShapeBackgroundOptions, AgMapShapeBackgroundThemeableOptions } from 'ag-charts-community';
+import {
+    type OptionsDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
+    constant,
+    fillOptionsDef,
+    geoJson,
+    lineDashOptionsDef,
+    required,
+    strokeOptionsDef,
+} from 'ag-charts-core';
 
-const { mapShapeBackgroundSeriesThemeableOptionsDef } = _ModuleSupport;
+export const mapShapeBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeBackgroundThemeableOptions> = {
+    ...commonSeriesThemeableOptionsDefs,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
 
 export const mapShapeBackgroundSeriesOptionsDef: OptionsDefs<AgMapShapeBackgroundOptions> = {
     ...mapShapeBackgroundSeriesThemeableOptionsDef,

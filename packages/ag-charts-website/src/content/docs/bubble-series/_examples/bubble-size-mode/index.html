@@ -1,0 +1,18 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <div class="button-group" role="group" aria-label="Size Mode">
+            <input
+                type="radio"
+                id="size-mode-diameter"
+                name="size-mode"
+                value="diameter"
+                checked
+                onchange="setSizeMode(event)"
+            />
+            <label for="size-mode-diameter">Diameter</label>
+            <input type="radio" id="size-mode-area" name="size-mode" value="area" onchange="setSizeMode(event)" />
+            <label for="size-mode-area">Area</label>
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>

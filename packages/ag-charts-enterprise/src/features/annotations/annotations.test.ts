@@ -44,6 +44,40 @@ describe('Annotations', () => {
     const compare = () => compareAnnotationsSnapshot(chart, ctx);
     const applyAnnotations = (annotations: object[]) => restoreAnnotations(chart, ctx, annotations);
 
+    describe('theme defaults', () => {
+        async function resolveAnnotationThemes(theme: AgCartesianChartOptions['theme']) {
+            chart = await createAnnotationsChart({ ...ANNOTATIONS_EXAMPLE_OPTIONS, theme });
+            return deproxy(chart).chartOptions.annotationThemes;
+        }
+
+        it.each([
+            ['ag-default', '#000', '#fafafa', '#ffffff'],
+            ['ag-default-dark', '#fff', '#28313e', '#192232'],
+            ['ag-financial-dark', '#fff', '#28313e', '#192232'],
+        ] as const)('resolves light/dark annotation colours for %s', async (theme, noteColor, noteFill, handleFill) => {
+            const { note, line } = await resolveAnnotationThemes(theme);
+            expect(note.color).toBe(noteColor);
+            expect(note.background.fill).toBe(noteFill);
+            expect(line.handle.fill).toBe(handleFill);
+        });
+
+        it.each([
+            ['ag-default', '#5090dc'],
+            ['ag-material', '#2196F3'],
+        ] as const)('resolves `annotationColor` from the %s fills', async (theme, annotationColor) => {
+            const { 'quick-date-price-range': quickDatePriceRange } = await resolveAnnotationThemes(theme);
+            expect(quickDatePriceRange.up.fill).toBe(annotationColor);
+        });
+
+        it('replaces the default fibonacci strokes with a theme override', async () => {
+            const strokes = ['red', 'green'];
+            const themes = await resolveAnnotationThemes({
+                overrides: { common: { annotations: { 'fibonacci-retracement': { strokes } } } },
+            });
+            expect(themes['fibonacci-retracement'].strokes).toEqual(strokes);
+        });
+    });
+
     describe('initial', () => {
         it('should render a line annotation', async () => {
             await prepareChart({
@@ -881,6 +915,82 @@ describe('Annotations', () => {
 
             expect(annotationsModule().xAxis?.button != null).toBe(false);
             expect(annotationsModule().yAxis?.button != null).toBe(true);
+        });
+
+        describe('buttonSize', () => {
+            const sizeOf = (element: Element) =>
+                (element as HTMLElement).style.getPropertyValue('--toolbar-button-size');
+            const sharedButtons = () =>
+                Array.from(document.querySelectorAll('.ag-charts-shared-toolbar .ag-charts-toolbar__button'));
+            const sizedOptions = (chartToolbarEnabled: boolean): AgCartesianChartOptions => ({
+                ...withAnnotations({ enabled: true, toolbar: { enabled: true, buttonSize: 44 } }),
+                theme: { overrides: { common: { chartToolbar: { enabled: chartToolbarEnabled, buttonSize: 40 } } } },
+            });
+
+            it('sizes each shared toolbar section from its own option', async () => {
+                await prepareChart(undefined, sizedOptions(true));
+
+                const [chartToolbarButton, ...annotationButtons] = sharedButtons();
+                expect(sizeOf(chartToolbarButton)).toBe('40px');
+                expect(annotationButtons.length).toBeGreaterThan(0);
+                for (const button of annotationButtons) {
+                    expect(sizeOf(button)).toBe('44px');
+                    expect(button.classList).toContain('ag-charts-toolbar__button--sized');
+                }
+            });
+
+            it('keeps each section sized when the chart toolbar section is added in front', async () => {
+                await prepareChart(undefined, sizedOptions(false));
+                expect(
+                    sharedButtons()
+                        .map(sizeOf)
+                        .every((size) => size === '44px')
+                ).toBe(true);
+
+                await chart.update(prepareEnterpriseTestOptions(sizedOptions(true)));
+                await waitForChartStability(chart);
+
+                const [chartToolbarButton, ...annotationButtons] = sharedButtons();
+                expect(sizeOf(chartToolbarButton)).toBe('40px');
+                expect(annotationButtons.length).toBeGreaterThan(0);
+                expect(annotationButtons.map(sizeOf).every((size) => size === '44px')).toBe(true);
+            });
+
+            it('leaves the buttons unsized when not set', async () => {
+                await prepareChart(undefined, withAnnotations({ enabled: true, toolbar: { enabled: true } }));
+
+                const buttons = sharedButtons();
+                expect(buttons.length).toBeGreaterThan(0);
+                for (const button of buttons) {
+                    expect(sizeOf(button)).toBe('');
+                    expect(button.classList).not.toContain('ag-charts-toolbar__button--sized');
+                }
+            });
+
+            it('sizes the options toolbar buttons', async () => {
+                await prepareChart(
+                    {
+                        annotations: [
+                            {
+                                type: 'line',
+                                start: { x: { __type: 'date', value: '2024-03-01' }, y: 20 },
+                                end: { x: { __type: 'date', value: '2024-09-01' }, y: 80 },
+                            },
+                        ],
+                    },
+                    withAnnotations({ enabled: true, optionsToolbar: { buttonSize: 44 } })
+                );
+                const { optionsToolbar, annotationData } = annotationsModule();
+                optionsToolbar.updateButtons(annotationData.at(0));
+
+                const buttons = Array.from<Element>(
+                    optionsToolbar.toolbar.getElement().querySelectorAll('.ag-charts-toolbar__button')
+                );
+                expect(buttons.length).toBeGreaterThan(0);
+                for (const button of buttons) {
+                    expect(sizeOf(button)).toBe('44px');
+                }
+            });
         });
 
         describe('axis button position', () => {

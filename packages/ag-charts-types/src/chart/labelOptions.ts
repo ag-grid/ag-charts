@@ -151,9 +151,24 @@ export interface AgChartAutoSizedBaseLabelOptions<
     wrapping?: TextWrap;
 
     /**
+     * Whether to truncate the label with an ellipsis when it does not fit within its bounds. When `false`, a
+     * label that does not fit is hidden.
+     *
+     * Default: `true`
+     */
+    truncate?: boolean;
+
+    /**
+     * Configuration controlling whether a label that still does not fit its bounds is kept or hidden.
+     */
+    collision?: AgChartLabelCollisionOptions;
+
+    /**
      * Adjusts the behaviour of labels when they overflow
      * - `'ellipsis'` will truncate the text to fit, appending an ellipsis (...)
      * - `'hide'` only displays the label if it completely fits within its bounds, and removes it if it would overflow
+     *
+     * @deprecated v14.2.0 Use `truncate` instead.
      */
     overflowStrategy?: OverflowStrategy;
 }

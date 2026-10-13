@@ -1,16 +1,40 @@
-import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import type { AgNightingaleSeriesOptions, AgNightingaleSeriesThemeableOptions } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    barHighlightOptionsDef,
     boolean,
     commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    fillOptionsDef,
+    lineDashOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
+    positiveNumber,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     string,
-    undocumented,
+    strokeOptionsDef,
+    tooltipOptionsDefs,
+    undocumentedDefs,
 } from 'ag-charts-core';
 
-const { nightingaleSeriesThemeableOptionsDef } = _ModuleSupport;
+import { radialSeriesStylerDef } from '../radial-column/radialColumnSeriesOptionsDef';
+
+export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeriesThemeableOptions> = {
+    cornerRadius: positiveNumber,
+    styler: radialSeriesStylerDef,
+    itemStyler: radialSeriesStylerDef,
+    label: seriesLabelOptionsDefs,
+    tooltip: tooltipOptionsDefs,
+    shadow: shadowOptionsDefs,
+    ...commonSeriesThemeableOptionsDefs,
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    highlight: multiSeriesShadowHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+};
 
 export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -25,9 +49,8 @@ export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
+    ...undocumentedDefs({
+        angleKeyAxis: string,
+        radiusKeyAxis: string,
+    }),
 };
-
-// @ts-expect-error undocumented option
-nightingaleSeriesOptionsDef.angleKeyAxis = undocumented(string);
-// @ts-expect-error undocumented option
-nightingaleSeriesOptionsDef.radiusKeyAxis = undocumented(string);

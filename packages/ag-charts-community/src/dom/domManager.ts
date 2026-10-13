@@ -1,8 +1,16 @@
 import {
     AgDocument,
+    BBox,
+    BaseManager,
+    type ElementSize,
+    GuardedElement,
+    type PerWindowEntry,
+    SizeMonitor,
+    StateTracker,
     type StrictHTMLElement,
     createElement,
     createId,
+    createPerWindowRegistry,
     createStyleElement,
     entries,
     isDirectionRtl,
@@ -17,13 +25,7 @@ import {
 import type { AgChartAllThemeParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../core/eventsHub';
-import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
-import { BaseManager } from '../util/baseManager';
-import { GuardedElement } from '../util/guardedElement';
-import { type PerWindowEntry, createPerWindowRegistry } from '../util/perWindowRegistry';
-import { type Size, SizeMonitor } from '../util/sizeMonitor';
-import { StateTracker } from '../util/stateTracker';
 import { DOMElementProxy, type DeferredMode } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';
 
@@ -39,9 +41,7 @@ const DOM_ELEMENT_CLASSES = [
     'tooltip-container',
     'style-sensors',
 ] as const;
-// Theme params without a `Size`/`Radius`/`Width` suffix that are still emitted as pixel lengths.
-const BUTTON_PADDING_KEYS = ['buttonHorizontalPadding', 'buttonVerticalPadding'];
-// State borders keep the base border width, so `false` must hide the colour rather than the width.
+// State borders inherit unset parts from `buttonBorder`, and `false` hides the colour rather than the width.
 const BUTTON_STATE_BORDER_KEYS = new Set(['buttonHoverBorder', 'buttonActiveBorder', 'buttonDisabledBorder']);
 
 const MINIMAL_DOM_ELEMENT_ROLES = new Set(['styles', 'canvas-container', 'canvas', 'tooltip-container']);
@@ -173,7 +173,7 @@ export class DOMManager extends BaseManager {
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
     private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
-    containerSize?: Size = undefined;
+    containerSize?: ElementSize = undefined;
     private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
@@ -274,7 +274,7 @@ export class DOMManager extends BaseManager {
         const element = createElement('div');
         element.role = 'presentation';
         element.dataset.agCharts = '';
-        element.classList.add('ag-charts-wrapper');
+        element.classList.add('ag-charts-wrapper', 'ag-charts-theme-default');
         const seriesArea = createElement('div');
         element.appendChild(seriesArea);
         seriesArea.role = 'presentation';
@@ -545,16 +545,8 @@ export class DOMManager extends BaseManager {
         this.eventsHub.emit('dom:container-change', null);
     }
 
-    setThemeClass(themeClassName: string) {
-        const themeClassNamePrefix = 'ag-charts-theme-';
-
-        for (const className of Array.from(this.element.classList)) {
-            if (className.startsWith(themeClassNamePrefix) && className !== themeClassName) {
-                this.element.classList.remove(className);
-            }
-        }
-
-        this.element.classList.add(themeClassName);
+    setDarkTheme(isDark: boolean) {
+        this.element.classList.toggle('ag-charts-wrapper--dark', isDark);
     }
 
     setThemeParameters(params: AgChartAllThemeParams) {
@@ -570,8 +562,11 @@ export class DOMManager extends BaseManager {
 
         // Flatten theme params into a single object ready for the css variables
         for (const [key, value] of entries(params as Record<string, any>)) {
-            if (value === false && BUTTON_STATE_BORDER_KEYS.has(key)) {
-                variables[`${key}Color`] = 'transparent';
+            if (BUTTON_STATE_BORDER_KEYS.has(key)) {
+                const { color, width } = isObject(value) ? (value as { color?: string; width?: number }) : {};
+                variables[`${key}Color`] =
+                    value === false ? 'transparent' : (color ?? 'var(--ag-charts-button-border-color)');
+                variables[`${key}Width`] = width ?? 'var(--ag-charts-button-border-width)';
                 continue;
             }
             if (!isObject(value)) {
@@ -583,7 +578,7 @@ export class DOMManager extends BaseManager {
             }
         }
 
-        this.setCSSVariables('--ag-charts', undefined, undefined, variables, BUTTON_PADDING_KEYS);
+        this.setCSSVariables('--ag-charts', undefined, undefined, variables);
         this.eventsHub.emit('theme:params-change', null);
     }
 

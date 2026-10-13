@@ -136,7 +136,7 @@ When `colorScale.fills` is used, the `fills` and `strokes` arrays are ignored.
 
 Both the labels for leaf and non-leaf nodes can be customised.
 
-For leaf nodes only, they can contain secondary labels, and their labels can also be shrunk to fit in the available space.
+Leaf nodes can also contain secondary labels. Labels on both can be shrunk, wrapped and truncated to fit in the available space.
 
 {% chartExampleRunner title="Custom Labels" name="labels" type="generated" /%}
 
@@ -175,7 +175,7 @@ Labels can be customised through the `group` and `tile` properties for non-leaf 
 In this configuration:
 
 - `fontSize` sets the size of the font
-- `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space (tiles only)
+- `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space
 - `spacing` controls the amount of space below a label
 - `padding` adds space between the edge of a group or tile and its contents
 - `formatter` allows customising the value of a label using a function
@@ -270,33 +270,6 @@ In this configuration:
 - `group.highlight` only affects the group rectangles.
 - `tile.highlight` controls the tiles themselves. When a group is hovered, only the `fillOpacity` and `strokeOpacity` styles are inherited by its tiles.
 - Providing `fill`/`stroke` overrides allows highlight colours to take precedence over colour scales.
-
-## Shadows
-
-{% chartExampleRunner title="Tile Shadow" name="tile-shadow" type="generated" /%}
-
-A drop shadow can be added behind the tiles using the `shadow` property on `tile`, or behind the groups using the
-`shadow` property on `group`. Shadows are disabled by default.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'treemap',
-            labelKey: 'title',
-            tile: {
-                shadow: {
-                    enabled: true,
-                    color: 'rgba(0, 0, 0, 0.4)',
-                    xOffset: 3,
-                    yOffset: 3,
-                    blur: 6,
-                },
-            },
-        },
-    ],
-}
-```
 
 ## Treemap Chart Examples
 

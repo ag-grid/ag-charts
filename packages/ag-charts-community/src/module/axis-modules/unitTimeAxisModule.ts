@@ -2,18 +2,17 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedUnitTimeAxisOptions,
+    cartesianAxisThemeOptionsDefs,
+    commonAxisThemeTemplate,
     mergeDefaults,
+    parentLevelAxisThemeTemplate,
+    titleAxisThemeTemplate,
+    unitTimeAxisOptionsDefs,
 } from 'ag-charts-core';
 import type { AgUnitTimeAxisOptions } from 'ag-charts-types';
 
-import { unitTimeAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { UnitTimeAxis } from '../../chart/axis/unitTimeAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import {
-    commonAxisThemeTemplate,
-    parentLevelAxisThemeTemplate,
-    titleAxisThemeTemplate,
-} from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
@@ -27,6 +26,8 @@ export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions, Uni
         dependencies: [CartesianChartModule],
 
         options: unitTimeAxisOptionsDefs,
+
+        themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(unitTimeAxisOptionsDefs),
         themeTemplate: mergeDefaults(
             {
                 groupPaddingInner: 0.1,

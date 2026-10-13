@@ -1,9 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { ZIndexMap, isObject } from 'ag-charts-core';
+import { Group, Transformable, ZIndexMap, isObject } from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 
 import { Handle } from './handle';
 
-export abstract class AnnotationScene<D = unknown> extends _ModuleSupport.Group<D> {
+export abstract class AnnotationScene<D = unknown> extends Group<D> {
     static isCheck(value: unknown, type: string) {
         return isObject(value) && Object.hasOwn(value, 'type') && value.type === type;
     }
@@ -29,17 +30,10 @@ export abstract class AnnotationScene<D = unknown> extends _ModuleSupport.Group<
     }
 
     protected computeBBoxWithoutHandles() {
-        return _ModuleSupport.Transformable.toCanvas(
-            this,
-            _ModuleSupport.Group.computeChildrenBBox(this.excludeChildren({ instance: Handle }))
-        );
+        return Transformable.toCanvas(this, Group.computeChildrenBBox(this.excludeChildren({ instance: Handle })));
     }
 
-    protected updateNode<TNode extends _ModuleSupport.Node>(
-        constructor: new () => TNode,
-        node?: TNode,
-        isConfigured?: boolean
-    ) {
+    protected updateNode<TNode extends Node>(constructor: new () => TNode, node?: TNode, isConfigured?: boolean) {
         if (!isConfigured && node) {
             node.remove();
             return;

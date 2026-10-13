@@ -1,5 +1,31 @@
-import type { CallbackParamRules, CanvasPoint, CurrentPoint, DynamicContext, Point, Writeable } from 'ag-charts-core';
-import { ChartUpdateType, Vec4, clamp, createId } from 'ag-charts-core';
+import type {
+    CallbackParamRules,
+    CanvasPoint,
+    ClickWidgetEvent,
+    CurrentPoint,
+    DblClickWidgetEvent,
+    DragWidgetEvent,
+    DynamicContext,
+    KeyboardSyntheticWidgetEvent,
+    KeyboardWidgetEvent,
+    MouseWidgetEvent,
+    Point,
+    Node as SceneNode,
+    TranslatableGroup,
+    WheelWidgetEvent,
+    Widget,
+    Writeable,
+} from 'ag-charts-core';
+import {
+    BBox,
+    BaseManager,
+    ChartUpdateType,
+    Transformable,
+    Vec4,
+    clamp,
+    createId,
+    debouncedAnimationFrame,
+} from 'ag-charts-core';
 import type {
     AgActiveItemState,
     AgChartClickEvent,
@@ -25,22 +51,6 @@ import type {
     ZoomChangeCompleteEvent,
 } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import { BBox } from '../../scene/bbox';
-import type { TranslatableGroup } from '../../scene/group';
-import type { Node as SceneNode } from '../../scene/node';
-import { Transformable } from '../../scene/transformable';
-import { BaseManager } from '../../util/baseManager';
-import { debouncedAnimationFrame } from '../../util/render';
-import type { Widget } from '../../widget/widget';
-import type {
-    ClickWidgetEvent,
-    DblClickWidgetEvent,
-    DragWidgetEvent,
-    KeyboardSyntheticWidgetEvent,
-    KeyboardWidgetEvent,
-    MouseWidgetEvent,
-    WheelWidgetEvent,
-} from '../../widget/widgetEvents';
 import type { ChartType } from '../chartType';
 import { type PendingCrossLineCallbacks, fireAllPendingCrossLineCallbacks } from '../crossline/crossLine';
 import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';
@@ -256,6 +266,8 @@ export class SeriesAreaManager extends BaseManager {
         datumIndex: 0,
         datum: undefined as PickFocusOutputs['datum'] | undefined,
         pendingViewportFocus: undefined as PickViewportFocusInputs['where'] | undefined,
+        /** The focused datum whose tooltip the user dismissed with Escape; cleared when focus moves. */
+        dismissedTooltip: undefined as { series: UnknownSeries; datumIndex: number; otherIndex: number } | undefined,
     };
 
     private cachedTooltipContent:
@@ -779,6 +791,7 @@ export class SeriesAreaManager extends BaseManager {
     private onBlur(event: FocusEvent) {
         if (!this.isState(InteractionState.Focusable)) return;
         this.setHoverDevice('pointer');
+        this.focus.dismissedTooltip = undefined;
         if (!this.isState(InteractionState.Frozen) && !this.maybeEnterInteractiveTooltip(event)) {
             this.clearAll(true); // true = delayed
         }
@@ -824,11 +837,49 @@ export class SeriesAreaManager extends BaseManager {
                 return this.onExpandCollapse('series:keynav-expand', widgetEvent);
             case 'collapse':
                 return this.onExpandCollapse('series:keynav-collapse', widgetEvent);
+            case 'dismiss':
+                return this.onDismiss(widgetEvent);
             case 'delete':
                 return;
             default:
                 action?.name satisfies undefined; // check for switch-exhaustion
         }
+    }
+
+    private onDismiss(widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
+        const { focus } = this;
+        const { series, datumIndex, seriesIndex } = focus;
+        if (
+            series == null ||
+            this.getFocusedNodeDatum() == null ||
+            !this.isState(InteractionState.Focusable) ||
+            this.isState(InteractionState.Frozen) ||
+            this.getHoverDevice() !== 'keyboard' ||
+            !this.getFocusIndicator()?.isFocusVisible() ||
+            !this.isTooltipEnabled(series) ||
+            !this.chart.ctx.tooltipManager.isTooltipActive(this.id)
+        ) {
+            return;
+        }
+
+        // Hide only the tooltip: focus, the focus indicator and the highlight stay on the datum.
+        focus.dismissedTooltip = { series, datumIndex, otherIndex: seriesIndex };
+        this.clearTooltip();
+        widgetEvent.sourceEvent.preventDefault();
+    }
+
+    private isFocusedTooltipDismissed(): boolean {
+        const { dismissedTooltip, series, datumIndex, seriesIndex } = this.focus;
+        if (dismissedTooltip == null) return false;
+        if (
+            dismissedTooltip.series === series &&
+            dismissedTooltip.datumIndex === datumIndex &&
+            dismissedTooltip.otherIndex === seriesIndex
+        ) {
+            return true;
+        }
+        this.focus.dismissedTooltip = undefined;
+        return false;
     }
 
     private onPage(delta: SeriesKeyNavPanXEvent['delta'], widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
@@ -1221,11 +1272,12 @@ export class SeriesAreaManager extends BaseManager {
 
             if (!this.isState(InteractionState.Frozen)) {
                 const meta = TooltipManager.makeTooltipMeta(keyboardEvent, focus.series, datum, pick.movedBounds);
+                const tooltipDismissed = this.isFocusedTooltipDismissed();
                 this.pickManager.maybeActivate(
                     datum,
                     ({ series }): void => {
                         this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-                        if (this.isTooltipEnabled(series)) {
+                        if (!tooltipDismissed && this.isTooltipEnabled(series)) {
                             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
                         }
                     },

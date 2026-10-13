@@ -3,10 +3,15 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedRadiusCategoryAxisOptions,
+    commonAxisThemeTemplate,
     mergeDefaults,
+    polarAxisThemeOptionsDefs,
+    radiusCrossLineLabelOptionsDefs,
+    titleAxisThemeTemplate,
 } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from './radiusCategoryAxis';
+import { radiusCategoryAxisOptionsDefs } from './radiusCategoryAxisOptionsDefs';
 
 export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxisOptions, RadiusCategoryAxis> = {
     type: 'axis',
@@ -16,7 +21,12 @@ export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxis
     version: VERSION,
     dependencies: [PolarChartModule],
 
-    options: _ModuleSupport.radiusCategoryAxisOptionsDefs,
+    options: radiusCategoryAxisOptionsDefs,
+
+    themeOptions: /* #__PURE__ */ polarAxisThemeOptionsDefs(
+        radiusCategoryAxisOptionsDefs,
+        radiusCrossLineLabelOptionsDefs
+    ),
     themeTemplate: mergeDefaults(
         {
             positionAngle: 0,
@@ -28,8 +38,8 @@ export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxis
             label: { minSpacing: 5 },
             title: { spacing: 10 },
         },
-        _ModuleSupport.titleAxisThemeTemplate,
-        _ModuleSupport.commonAxisThemeTemplate
+        titleAxisThemeTemplate,
+        commonAxisThemeTemplate
     ),
 
     create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>

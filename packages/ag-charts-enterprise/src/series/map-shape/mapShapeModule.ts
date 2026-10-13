@@ -1,23 +1,23 @@
 import { type AgMapShapeSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     COMMON_SERIES_THEME_DEFAULTS,
-    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
-    FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
-    SAFE_RANGE2_OPERATION,
     SERIES_SELECTION_THEME,
+    SERIES_TOOLTIP_THEME,
+    SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    fillThemeTemplate,
+    seriesLabelFontWeightOr,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
-import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
+import { MAP_COLOR_SCALE_THEME, MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
 import { MapShapeSeries } from './mapShapeSeries';
-import { mapShapeSeriesOptionsDef } from './mapShapeSeriesOptionsDef';
+import { mapShapeSeriesOptionsDef, mapShapeSeriesThemeableOptionsDef } from './mapShapeSeriesOptionsDef';
 
 export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOptions> = {
     type: 'series',
@@ -28,43 +28,17 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
     dependencies: [TopologyChartModule],
 
     options: mapShapeSeriesOptionsDef,
+
+    themeOptions: mapShapeSeriesThemeableOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
             ...COMMON_SERIES_THEME_DEFAULTS,
             ...undocumentedThemeOptions({ topologyIdKey: 'name' }),
-            fill: applyMapPalette({
-                $applySwitch: [
-                    { $path: 'type' },
-                    { $mapPalette: 'fill' },
-                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
-                    ['pattern', FILL_PATTERN_DEFAULTS],
-                ],
-            }),
+            fill: applyMapPalette(fillThemeTemplate(FILL_GRADIENT_LINEAR_DEFAULTS)),
             stroke: { $ref: 'chartBackgroundColor' },
-            shadow: {
-                enabled: false,
-                color: DEFAULT_SHADOW_COLOUR,
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            },
-            colorScale: {
-                fills: {
-                    $map: [
-                        { color: { $value: '$1' } },
-                        {
-                            $if: [
-                                { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
-                                { $mapPalette: 'divergingColors' },
-                                applyMapPalette(SAFE_RANGE2_OPERATION),
-                            ],
-                        },
-                    ],
-                },
-                mode: 'continuous',
-            },
+            shadow: SHADOW_THEME_DEFAULTS,
+            colorScale: MAP_COLOR_SCALE_THEME,
             fillOpacity: 1,
             strokeWidth: 1,
             ...STROKE_STYLE_THEME_DEFAULTS,
@@ -83,11 +57,11 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 },
                 enabled: true,
                 color: { $ref: 'chartBackgroundColor' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $ref: 'fontSize' },
-                fontWeight: 'bold',
+                fontFamily: { $ref: 'seriesLabelFontFamily' },
+                fontSize: { $ref: 'seriesLabelFontSize' },
+                fontWeight: seriesLabelFontWeightOr('bold'),
             },
-            tooltip: { interaction: { enabled: false } },
+            tooltip: SERIES_TOOLTIP_THEME,
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,
         },

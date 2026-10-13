@@ -1,10 +1,7 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import type { Logger } from 'ag-charts-core';
-import { DeclaredSceneChangeDetection, SceneArrayChangeDetection } from 'ag-charts-core';
+import type { CanvasContext, Logger } from 'ag-charts-core';
+import { BBox, DeclaredSceneChangeDetection, ExtendedPath2D, SceneArrayChangeDetection } from 'ag-charts-core';
 
 import { OhlcBaseNode } from '../ohlc/ohlcNode';
-
-const { ExtendedPath2D, BBox } = _ModuleSupport;
 
 export class CandlestickNode<D> extends OhlcBaseNode<D> {
     private readonly wickPath = new ExtendedPath2D();
@@ -70,7 +67,7 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         this.markDirty();
     }
 
-    protected override computeDefaultGradientFillBBox(): _ModuleSupport.BBox | undefined {
+    protected override computeDefaultGradientFillBBox(): BBox | undefined {
         const { __width: width, __centerX: centerX, __yOpen: yOpen, __yClose: yClose } = this;
 
         const boxTop = Math.min(yOpen, yClose);
@@ -148,19 +145,67 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
     override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger) {
         super.drawPath(ctx, logger);
 
-        this.strokeWicks(ctx);
+        // A shadow batch's mask draws the wicks as extras, so they would be drawn twice.
+        if (!this.isDrawingShadowMask()) {
+            this.strokeWicks(ctx);
+        }
     }
 
     protected override getSilhouetteStrokeWidth(): number {
-        // A crisp body can snap up to a device pixel past its bounds, so pad it even without a stroke.
-        return Math.max(this.__strokeWidth, this.__wickStrokeWidth ?? 0, this.__crisp ? 2 : 0);
+        return Math.max(this.__strokeWidth, this.__wickStrokeWidth ?? 0);
     }
 
-    protected override renderSilhouetteExtras(ctx: _ModuleSupport.CanvasContext) {
+    protected override renderSilhouetteExtras(ctx: CanvasContext) {
         this.strokeWicks(ctx);
     }
 
-    private strokeWicks(ctx: _ModuleSupport.CanvasContext) {
+    protected override dilateFill(ctx: CanvasContext, _path: Path2D) {
+        // Wicks that share the body's path are open, so the fill paints nothing for them and they must not be dilated.
+        const { x0, x1, yOpen, yClose } = this.alignedCoordinates();
+        if (Math.abs(x1 - x0) <= 3) return;
+
+        const boxStrokeAdjustment = this.strokeWidth / 2;
+        const boxTop = Math.min(yOpen, yClose) + boxStrokeAdjustment;
+        const rectHeight = Math.abs(yClose - yOpen) - 2 * boxStrokeAdjustment;
+        if (rectHeight <= 0) return;
+
+        ctx.beginPath();
+        ctx.rect(x0 + boxStrokeAdjustment, boxTop, x1 - x0 - 2 * boxStrokeAdjustment, rectHeight);
+        ctx.stroke();
+    }
+
+    protected override dilateSilhouetteExtras(ctx: CanvasContext, growth: number) {
+        const { wickPath, strokeWidth, __wickStrokeWidth: wickStrokeWidth = strokeWidth } = this;
+        if (this.getSilhouetteExtrasOpacity() <= 0) return;
+
+        ctx.lineWidth = wickStrokeWidth + growth;
+        ctx.stroke(wickPath.getPath2D());
+    }
+
+    private wickColour?: unknown;
+    private wickColourAlpha = 1;
+
+    // Keeps the alpha of the last wick colour, so that an unchanged colour isn't parsed again on every render.
+    private getWickColourAlpha(colour: unknown): number {
+        if (colour !== this.wickColour) {
+            this.wickColour = colour;
+            this.wickColourAlpha = this.getColourAlpha(colour);
+        }
+        return this.wickColourAlpha;
+    }
+
+    protected override getSilhouetteExtrasOpacity(): number {
+        const { wickPath, stroke, strokeWidth, strokeOpacity, __wickStroke: wickStroke = stroke } = this;
+        const {
+            __wickStrokeWidth: wickStrokeWidth = strokeWidth,
+            __wickStrokeOpacity: wickStrokeOpacity = strokeOpacity,
+        } = this;
+        // A wick casts a shadow only where `strokeWicks` paints it.
+        if (wickPath.isEmpty() || wickStrokeWidth === 0 || wickStroke === 'none') return 0;
+        return Math.max(0, wickStrokeOpacity) * this.getWickColourAlpha(wickStroke);
+    }
+
+    private strokeWicks(ctx: CanvasContext) {
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;
 

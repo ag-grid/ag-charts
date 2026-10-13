@@ -475,6 +475,109 @@ describe('ChartTheme', () => {
         });
     });
 
+    describe('$lightDark in overrides', () => {
+        test.each([
+            ['ag-default', '#111111'],
+            ['ag-default-dark', '#222222'],
+            ['ag-financial-dark', '#222222'],
+        ] as const)('resolves `overrides.common.background.fill` for `baseTheme: %s`', async (baseTheme, expected) => {
+            chart = deproxy(
+                AgCharts.create({
+                    data,
+                    series: [{ type: 'bar', xKey: 'label', yKey: 'v1' }],
+                    theme: {
+                        baseTheme,
+                        // @ts-expect-error theme operations are resolved at runtime but not typed in overrides
+                        overrides: { common: { background: { fill: { $lightDark: ['#111111', '#222222'] } } } },
+                    },
+                })
+            );
+            await waitForChartStability(chart);
+
+            expect(chart.ctx.chartState.getValue('options', 'background').fill).toBe(expected);
+        });
+    });
+
+    describe('dark and financial theme defaults', () => {
+        test.each([
+            ['ag-default', false, 'block', 'center'],
+            ['ag-default-dark', true, 'block', 'center'],
+            ['ag-financial', false, 'overlay', 'left'],
+            ['ag-financial-dark', true, 'overlay', 'left'],
+        ] as const)(
+            'resolves the dark styling scope and caption defaults for %s',
+            async (theme, isDark, layoutStyle, textAlign) => {
+                const container = document.body.appendChild(document.createElement('div'));
+                chart = deproxy(
+                    AgCharts.create({
+                        container,
+                        data,
+                        title: { text: 'Title' },
+                        series: [{ type: 'bar', xKey: 'label', yKey: 'v1' }],
+                        theme,
+                    })
+                );
+                await waitForChartStability(chart);
+
+                const darkScoped = container.querySelectorAll('.ag-charts-wrapper--dark .ag-charts-canvas-overlay');
+                expect(darkScoped.length > 0).toBe(isDark);
+                expect(chart.chartOptions.processedOptions.title).toMatchObject({ layoutStyle, textAlign });
+            }
+        );
+    });
+
+    describe('border theme params', () => {
+        const BASE_PARAMS = { borderColor: '#112233', borderWidth: 2 };
+
+        const create = async (params: object, options: Partial<AgCartesianChartOptions> = {}) => {
+            chart = deproxy(
+                AgCharts.create({
+                    data,
+                    series: [{ type: 'bar', xKey: 'label', yKey: 'v1', label: { enabled: true } }],
+                    theme: { params: { ...BASE_PARAMS, ...params } },
+                    ...options,
+                } as AgCartesianChartOptions)
+            );
+            await waitForChartStability(chart);
+            return chart.chartOptions.processedOptions as any;
+        };
+
+        test.each([
+            ['true', true, { enabled: true, stroke: '#112233', strokeWidth: 2 }],
+            ['an object width', { width: 3 }, { enabled: true, stroke: '#112233', strokeWidth: 3 }],
+            ['an object colour', { color: '#445566' }, { enabled: true, stroke: '#445566', strokeWidth: 2 }],
+        ])('legendBorder as %s resolves the legend border', async (_name, legendBorder, expected) => {
+            const { legend } = await create({ legendBorder });
+
+            expect(legend.border).toMatchObject(expected);
+        });
+
+        test('legendBorder false disables the border but keeps the legend stroke and a width of 1', async () => {
+            const { legend } = await create({ legendBorder: false });
+
+            expect(legend.border.enabled).toBe(false);
+            expect(legend.border.stroke).not.toBe('#112233');
+            expect(legend.border.strokeWidth).toBe(1);
+        });
+
+        test.each([
+            ['true', true, { enabled: true, stroke: '#112233', strokeWidth: 2 }],
+            ['an object width', { width: 3 }, { enabled: true, stroke: '#112233', strokeWidth: 3 }],
+            ['an object colour', { color: '#445566' }, { enabled: true, stroke: '#445566', strokeWidth: 2 }],
+        ])('seriesLabelBorder as %s resolves the series label border', async (_name, seriesLabelBorder, expected) => {
+            const { series } = await create({ seriesLabelBorder });
+
+            expect(series[0].label.border).toMatchObject(expected);
+        });
+
+        test('seriesLabelBorder false leaves the label border off, with a width of 1', async () => {
+            const { series } = await create({ seriesLabelBorder: false });
+
+            expect(series[0].label.border.enabled).toBe(false);
+            expect(series[0].label.border.strokeWidth).toBe(1);
+        });
+    });
+
     describe('legend padding overrides (CRT-1145, CRT-1146)', () => {
         const baseOptions = (legend: AgCartesianChartOptions['legend']): AgCartesianChartOptions => ({
             data,

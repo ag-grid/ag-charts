@@ -1,0 +1,65 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.25.1
+
+ignore:
+    SNYK-JS-VITESTMOCKER-19497933:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.337Z
+    SNYK-JS-VITEST-17120326:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.333Z
+    SNYK-JS-TAR-17909152:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.332Z
+    SNYK-JS-TAR-17909068:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.331Z
+    SNYK-JS-ROLLUP-15340920:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.329Z
+    SNYK-JS-POSTCSS-18313038:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.329Z
+    SNYK-JS-POSTCSS-18313036:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.328Z
+    SNYK-JS-LODASH-15869625:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.326Z
+    SNYK-JS-ESBUILD-17750822:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package - its dependencies are scanned and triaged in its own project
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.324Z
+    SNYK-JS-AGCHARTSTEST-17950302:
+        - ag-charts-community@* > *:
+              reason: >-
+                  Local workspace package (0.0.0-use.local) - matched against advisories for old published versions
+              expires: '2027-03-02T00:00:00.000Z'
+              created: 2026-10-12T10:58:41.324Z
+patch: {}

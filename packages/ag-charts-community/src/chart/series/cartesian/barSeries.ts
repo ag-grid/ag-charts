@@ -15,6 +15,8 @@ import type {
     PositionedCandidateResolver,
     RequireOptional,
     Scale,
+    Segment,
+    Text,
 } from 'ag-charts-core';
 import {
     AGGREGATION_INDEX_UNSET,
@@ -23,8 +25,14 @@ import {
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
+    BBox,
+    BandScale,
+    BarShape,
     ChartAxisDirection,
     DebugMetrics,
+    Group,
+    PointerEvents,
+    Selection,
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
     areScalingEqual,
@@ -60,14 +68,6 @@ import type {
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
-import { BandScale } from '../../../scale/bandScale';
-import { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
-import { PointerEvents } from '../../../scene/node';
-import { Selection } from '../../../scene/selection';
-import { BarShape } from '../../../scene/shape/barShape';
-import type { Segment } from '../../../scene/shape/segmentedPath';
-import type { Text } from '../../../scene/shape/text';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
 import type { ChartAxis } from '../../chartAxis';
@@ -1769,9 +1769,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (simpleItemStyler && processedData != null && datumIndex != null) {
             const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
             const overrides = simpleItemStyler(datum);
+            // It sees only the datum, so it cannot react to selection; the selected and unselected styles outrank it.
             return mergeDefaults(
-                overrides,
                 selectionStyle,
+                overrides,
                 highlightStyle,
                 this.getStyle(false, highlightState, selectionState, candidateState)
             ) as Required<NormalisedBarSeriesStyle>;
@@ -1878,7 +1879,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 datum.bottomLeftCornerRadius ? cornerRadius : 0,
                 visible,
                 datum.crisp,
-                shadow,
+                series.resolveItemShadow(shadow, isHighlight, datum.datumIndex),
                 direction,
                 datum.featherRatio,
                 crispCentreDirection
@@ -2234,6 +2235,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             ? { x: alongStart, y: crossStart, width: alongLength, height: crossWidth }
             : { x: crossStart, y: alongStart, width: crossWidth, height: alongLength };
         return computeBarFocusBounds(this, datumBox);
+    }
+
+    public override getSelectionGroup(): string | undefined {
+        return this.options.selectionGroup;
     }
 
     protected override hasItemStylers(): boolean {

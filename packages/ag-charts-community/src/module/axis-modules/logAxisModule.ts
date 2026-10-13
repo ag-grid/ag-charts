@@ -2,14 +2,16 @@ import {
     type AxisModuleDefinition,
     type DynamicContext,
     type NormalisedNumberAxisOptions,
+    cartesianAxisThemeOptionsDefs,
+    commonAxisThemeTemplate,
+    logAxisOptionsDefs,
     mergeDefaults,
+    titleAxisThemeTemplate,
 } from 'ag-charts-core';
 import type { AgLogAxisOptions } from 'ag-charts-types';
 
-import { logAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { LogAxis } from '../../chart/axis/logAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 import { communityModule } from '../moduleIdentity';
@@ -22,6 +24,8 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions, LogAxis> = /*
     dependencies: [CartesianChartModule],
 
     options: logAxisOptionsDefs,
+
+    themeOptions: /* #__PURE__ */ cartesianAxisThemeOptionsDefs(logAxisOptionsDefs),
     themeTemplate: mergeDefaults(
         {
             base: 10,

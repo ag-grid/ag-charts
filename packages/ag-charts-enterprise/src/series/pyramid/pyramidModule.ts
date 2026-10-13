@@ -3,7 +3,7 @@ import type { SeriesModuleDefinition } from 'ag-charts-core';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { PyramidSeries } from './pyramidSeries';
-import { pyramidSeriesOptionsDef } from './pyramidSeriesOptionsDef';
+import { pyramidSeriesOptionsDef, pyramidSeriesThemeableOptionsDef } from './pyramidSeriesOptionsDef';
 import { PYRAMID_SERIES_THEME } from './pyramidThemes';
 
 export const PyramidSeriesModule: SeriesModuleDefinition<AgPyramidSeriesOptions> = {
@@ -16,6 +16,8 @@ export const PyramidSeriesModule: SeriesModuleDefinition<AgPyramidSeriesOptions>
     dependencies: [StandaloneChartModule],
 
     options: pyramidSeriesOptionsDef,
+
+    themeOptions: pyramidSeriesThemeableOptionsDef,
     themeTemplate: PYRAMID_SERIES_THEME,
 
     create: (ctx) => new PyramidSeries(ctx),

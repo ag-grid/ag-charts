@@ -1,6 +1,38 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-TAR-17909152:
+    - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:18:24.347Z
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.356Z
+    - ag-charts-core@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.345Z
+  SNYK-JS-TAR-17909068:
+    - vitest@2.1.9 > vite@6.4.3 > fsevents@2.3.3 > node-gyp@13.0.2 > tar@7.5.16:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T11:17:57.608Z
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.354Z
+    - ag-charts-core@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.343Z
   # Dev-only, and there is no in-range fix. @vitest/mocker ships as part of
   # vitest, which this repo pins to the exact version 2.1.9 in five manifests
   # (root, ag-charts-community, ag-charts-core, ag-charts-enterprise,
@@ -52,6 +84,16 @@ ignore:
         expires: '2027-03-02T00:00:00.000Z'
         created: '2026-09-02T00:00:00.000Z'
   SNYK-JS-POSTCSS-18313038:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.351Z
+    - ag-charts-core@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.341Z
     - vitest@2.1.9 > vite@6.4.3 > postcss@8.5.3:
         reason: >-
             Used in build & dev - not included in final production build
@@ -63,6 +105,16 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T10:17:20.151Z
   SNYK-JS-POSTCSS-18313036:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.350Z
+    - ag-charts-core@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.339Z
     - vitest@2.1.9 > vite@6.4.3 > postcss@8.5.3:
         reason: >-
             Used in build & dev - not included in final production build
@@ -74,6 +126,16 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-07-27T10:16:26.706Z
   SNYK-JS-ESBUILD-17750822:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.348Z
+    - ag-charts-core@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.339Z
     - vitest@2.1.9 > vite@6.4.3 > esbuild@0.25.0:
         reason: >-
             Used in build & dev - not included in final production build
@@ -93,6 +155,16 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-06-24T13:44:44.114Z
   SNYK-JS-VITEST-17120326:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.357Z
+    - ag-charts-core@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.346Z
     - vitest@2.1.9:
         reason: Test dependency - not included in final production build
         expires: 2027-03-02T00:00:00.000Z
@@ -113,6 +185,16 @@ ignore:
         expires: 2027-03-02T00:00:00.000Z
         created: 2026-05-28T00:00:00.000Z
   SNYK-JS-ROLLUP-15340920:
+    - ag-charts-test@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.353Z
+    - ag-charts-core@* > *:
+        reason: >-
+            Local workspace package - its dependencies are scanned and triaged in its own project
+        expires: '2027-03-02T00:00:00.000Z'
+        created: 2026-10-12T10:58:41.342Z
     - vitest@2.1.9 > vite@6.4.3 > rollup@4.42.0:
         reason: >-
             Used in build & dev - not included in final production build

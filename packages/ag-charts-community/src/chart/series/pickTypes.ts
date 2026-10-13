@@ -1,8 +1,5 @@
-import type { BoxBounds } from 'ag-charts-core';
+import type { BBox, BoxBounds, Node, Path } from 'ag-charts-core';
 
-import type { BBox } from '../../scene/bbox';
-import type { Node } from '../../scene/node';
-import type { Path } from '../../scene/shape/path';
 import type { SeriesNodeDatum } from './seriesTypes';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */

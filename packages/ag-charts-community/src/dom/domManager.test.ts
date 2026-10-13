@@ -733,6 +733,49 @@ describe('DOMManager', () => {
 
             expect(handler).toHaveBeenCalledTimes(2);
         });
+
+        describe('button state borders', () => {
+            const cssVar = (dm: DOMManager, name: string) =>
+                (dm as any).element.style.getPropertyValue(`--ag-charts-button-${name}`);
+
+            it('a state border set to true inherits the buttonBorder colour and width', () => {
+                const { dm } = setup();
+
+                dm.setThemeParameters({ buttonBorder: { color: 'black', width: 2 }, buttonHoverBorder: true });
+
+                expect(cssVar(dm, 'hover-border-color')).toBe('var(--ag-charts-button-border-color)');
+                expect(cssVar(dm, 'hover-border-width')).toBe('var(--ag-charts-button-border-width)');
+            });
+
+            it('a state border object applies its colour and width', () => {
+                const { dm } = setup();
+
+                dm.setThemeParameters({ buttonActiveBorder: { color: 'green', width: 6 } });
+
+                expect(cssVar(dm, 'active-border-color')).toBe('green');
+                expect(cssVar(dm, 'active-border-width')).toBe('6px');
+            });
+
+            it('a state border object fills an unset colour or width from buttonBorder', () => {
+                const { dm } = setup();
+
+                dm.setThemeParameters({ buttonHoverBorder: { width: 4 }, buttonDisabledBorder: { color: 'red' } });
+
+                expect(cssVar(dm, 'hover-border-color')).toBe('var(--ag-charts-button-border-color)');
+                expect(cssVar(dm, 'hover-border-width')).toBe('4px');
+                expect(cssVar(dm, 'disabled-border-color')).toBe('red');
+                expect(cssVar(dm, 'disabled-border-width')).toBe('var(--ag-charts-button-border-width)');
+            });
+
+            it('a state border set to false hides the colour and keeps the base width', () => {
+                const { dm } = setup();
+
+                dm.setThemeParameters({ buttonDisabledBorder: false });
+
+                expect(cssVar(dm, 'disabled-border-color')).toBe('transparent');
+                expect(cssVar(dm, 'disabled-border-width')).toBe('var(--ag-charts-button-border-width)');
+            });
+        });
     });
 
     // The canvas is centred inside canvas-center, so a canvas whose size disagrees with that box

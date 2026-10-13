@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type {
+    BBox,
     CheckboxOptions as CoreCheckboxOptions,
     SelectOptions as CoreSelectOptions,
     TextAreaOptions as CoreTextAreaOptions,
@@ -8,6 +9,7 @@ import type {
 import {
     Color,
     type ElementID,
+    NativeWidget,
     type Point,
     Vec2,
     createButton,
@@ -27,7 +29,7 @@ import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../color-picker/colorPicker';
 
-const { DraggablePopover, NativeWidget } = _ModuleSupport;
+const { DraggablePopover } = _ModuleSupport;
 
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
 
@@ -76,7 +78,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private readonly colorPicker = new ColorPicker(this.ctx, { detached: true });
     private colorPickerAnchorElement?: HTMLElement;
-    private seriesRect?: _ModuleSupport.BBox;
+    private seriesRect?: BBox;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id: string) {
         super(ctx, id);

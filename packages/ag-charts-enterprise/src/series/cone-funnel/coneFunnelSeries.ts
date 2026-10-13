@@ -8,7 +8,9 @@ import type {
     NormalisedConeFunnelSeriesOwnOptions,
     NormalisedDropShadowOptions,
     RequireOptional,
+    Selection,
 } from 'ag-charts-core';
+import { Line } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
@@ -23,13 +25,13 @@ import {
 } from '../funnel/funnelLabelPlacement';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
-const { Line, resetMotion } = _ModuleSupport;
+const { resetMotion } = _ModuleSupport;
 
 /**
  * Consolidated type interface for ConeFunnelSeries.
  */
 interface ConeFunnelSeriesTypes extends BaseFunnelSeriesTypes {
-    readonly node: _ModuleSupport.Line<FunnelNodeDatum>;
+    readonly node: Line<FunnelNodeDatum>;
     readonly options: NormalisedConeFunnelSeriesOwnOptions;
 }
 
@@ -46,7 +48,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         });
     }
 
-    override animateWaitingUpdateReady(data: FunnelAnimationData<_ModuleSupport.Line<FunnelNodeDatum>>) {
+    override animateWaitingUpdateReady(data: FunnelAnimationData<Line<FunnelNodeDatum>>) {
         super.animateWaitingUpdateReady(data);
         // The datum selection has garbage collection disabled, so exit nodes are only destroyed when a
         // motion completes. Cone-funnel Lines snap rather than animate, so reset them to clean up exits.
@@ -89,7 +91,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         return this.itemStyle(index);
     }
 
-    protected override nodeFactory(): _ModuleSupport.Line<FunnelNodeDatum> {
+    protected override nodeFactory(): Line<FunnelNodeDatum> {
         return new Line<FunnelNodeDatum>();
     }
 
@@ -115,7 +117,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.Line<FunnelNodeDatum>>;
+        datumSelection: Selection<FunnelNodeDatum, Line<FunnelNodeDatum>>;
         isHighlight: boolean;
     }) {
         const highlightStyle = this.getHighlightStyle(opts.isHighlight);

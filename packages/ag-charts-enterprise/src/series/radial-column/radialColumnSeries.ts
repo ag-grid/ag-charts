@@ -1,14 +1,20 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { ChartAxisDirection, type DynamicContext, type NormalisedRadialColumnSeriesOwnOptions } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    type DynamicContext,
+    type NormalisedRadialColumnSeriesOwnOptions,
+    RadialColumnShape,
+    getRadialColumnWidth,
+} from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 
-const { PolarAxis, RadialColumnShape, getRadialColumnWidth } = _ModuleSupport;
+const { PolarAxis } = _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<
-    _ModuleSupport.RadialColumnShape,
+    RadialColumnShape,
     NormalisedRadialColumnSeriesOwnOptions
 > {
     static override readonly className = 'RadialColumnSeries';
@@ -27,7 +33,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<
         return `radarColumn-stack-${groupIndex}-yValues`;
     }
 
-    protected override nodeFactory(): _ModuleSupport.RadialColumnShape {
+    protected override nodeFactory(): RadialColumnShape {
         return new RadialColumnShape();
     }
 
@@ -41,11 +47,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<
         return radiusAxis instanceof PolarAxis ? radiusAxis.shape === 'circle' : false;
     }
 
-    protected override updateItemPath(
-        node: _ModuleSupport.RadialColumnShape,
-        datum: RadialColumnNodeDatum,
-        highlight: boolean
-    ) {
+    protected override updateItemPath(node: RadialColumnShape, datum: RadialColumnNodeDatum, highlight: boolean) {
         node.isBeveled = this.isRadiusAxisCircle();
 
         if (highlight) {

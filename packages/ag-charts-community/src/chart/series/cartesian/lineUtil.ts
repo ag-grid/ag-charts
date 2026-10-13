@@ -3,7 +3,9 @@ import type {
     NormalisedInterpolationOptions,
     NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
+    Path,
     Point,
+    Segment,
     Span,
 } from 'ag-charts-core';
 import {
@@ -18,8 +20,6 @@ import {
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
-import type { Path } from '../../../scene/shape/path';
-import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
 import type { SeriesNodeStyleContext } from '../series';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';

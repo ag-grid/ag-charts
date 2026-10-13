@@ -11,7 +11,7 @@ import {
     constant,
     enterprise,
     markerOptionsDefs,
-    multiSeriesHighlightOptionsDef,
+    multiSeriesShadowHighlightOptionsDef,
     number,
     numericValue,
     placedSeriesLabelOptionsDefs,
@@ -20,7 +20,8 @@ import {
     shapeHighlightOptionsDef,
     string,
     tooltipOptionsDefs,
-    undocumented,
+    undocumentedDefs,
+    union,
     without,
 } from 'ag-charts-core';
 import type {
@@ -34,6 +35,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     sizeDomain: and(arrayOf(numericValue), arrayLength(2, 2)),
     minSize: positiveNumber,
     maxSize: positiveNumber,
+    sizeMode: union('diameter', 'area'),
     showInMiniChart: boolean,
     label: placedSeriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
@@ -45,7 +47,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     maxRenderedItems: number,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled', 'size']),
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     colorScale: enterprise(colorScaleOptionsDef),
 };
 
@@ -66,10 +68,10 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     legendItemName: string,
     xKeyAxis: string,
     yKeyAxis: string,
-    highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    highlight: multiSeriesShadowHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    ...undocumentedDefs({
+        // WARNING! `selectedKey` backs cross-filtering, an undocumented and unsupported feature — it is unrelated
+        // to the public data selection API.
+        selectedKey: string,
+    }),
 };
-
-// WARNING! `selectedKey` backs cross-filtering, an undocumented and unsupported feature — it is unrelated
-// to the public data selection API.
-// @ts-expect-error undocumented option
-bubbleSeriesOptionsDef.selectedKey = undocumented(string);

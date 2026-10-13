@@ -52,14 +52,22 @@ type ThemeParam =
     | 'buttonDisabledBorder.width'
     | 'inputBorder.color'
     | 'inputBorder.width'
+    | 'legendBorder.color'
+    | 'legendBorder.width'
     | 'menuBorder.color'
     | 'menuBorder.width'
+    | 'navigatorHandleBorder.color'
+    | 'navigatorHandleBorder.width'
+    | 'navigatorTrackBorder.color'
+    | 'navigatorTrackBorder.width'
     | 'scrollbarThumbBorder.color'
     | 'scrollbarThumbBorder.width'
     | 'scrollbarThumbHoverBorder.color'
     | 'scrollbarThumbHoverBorder.width'
     | 'scrollbarTrackBorder.color'
     | 'scrollbarTrackBorder.width'
+    | 'seriesLabelBorder.color'
+    | 'seriesLabelBorder.width'
     | 'tooltipBorder.color'
     | 'tooltipBorder.width';
 
@@ -97,7 +105,8 @@ type ChartOperation =
     | { $hasSeriesType: Leaf<string> }
     | { $isChartType: Leaf<string> }
     | { $isPackageType: Leaf<'community' | 'enterprise'> } // True when the registered package matches
-    | { $isSeriesType: Leaf<string> };
+    | { $isSeriesType: Leaf<string> }
+    | { $lightDark: [AnyLeaf | object, AnyLeaf | object] }; // Value for light themes | Value for dark themes
 
 type ColorOperation =
     | { $foregroundBackgroundMix: Leaf<number> } // Ratio of foreground (0 to 1)
@@ -106,6 +115,7 @@ type ColorOperation =
     | { $isGradient: AnyLeaf } // Target vertex
     | { $isImage: AnyLeaf } // Target vertex
     | { $isPattern: AnyLeaf } // Target vertex
+    | { $isTransparent: AnyLeaf } // Target vertex, true for a colour with zero alpha
     | { $mix: [Leaf<string>, Leaf<string>, Leaf<number>] } // Colour A | Colour B | Ratio of Colour B (0 to 1)
     | { $opacity: [Leaf<string>, Leaf<number>] }; // Colour A | Opacity of Colour A (0 to 1)
 

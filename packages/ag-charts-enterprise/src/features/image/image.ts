@@ -1,5 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type Placement, calculatePlacement, createElement } from 'ag-charts-core';
+import { Image as ImageNode, type Placement, calculatePlacement, createElement } from 'ag-charts-core';
 import type { AgChartBackground } from 'ag-charts-types';
 
 type ImageOptions = NonNullable<AgChartBackground['image']>;
@@ -9,12 +8,12 @@ export class Image {
 
     private readonly imageElement: HTMLImageElement;
     private loadedSynchronously: boolean = true;
-    readonly node: _ModuleSupport.Image;
+    readonly node: ImageNode;
 
     constructor() {
         this.imageElement = createElement('img');
         this.imageElement.onload = this.onImageLoad;
-        this.node = new _ModuleSupport.Image(this.imageElement);
+        this.node = new ImageNode(this.imageElement);
     }
 
     applyOptions(options: ImageOptions) {

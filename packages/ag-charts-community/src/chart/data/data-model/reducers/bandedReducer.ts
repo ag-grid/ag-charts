@@ -1,5 +1,6 @@
+import { type BandLike, BandedStructure } from 'ag-charts-core';
+
 import type { BandedDomainConfig } from '../../dataDomain';
-import { type BandLike, BandedStructure } from '../utils/bandedStructure';
 
 export interface ReducerBand extends BandLike {
     cachedResult: unknown;

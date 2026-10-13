@@ -1,23 +1,23 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import type { Point } from 'ag-charts-core';
+import { Group, Rect } from 'ag-charts-core';
 
 import { AnnotationShape } from './annotationShape';
 
 type InvariantHandleStyles = { x: number; y: number } & {
     [K in keyof AnnotationShape]?: AnnotationShape[K];
 };
-type UnivariantHandleStyles = { x: number; y: number } & { [K in keyof _ModuleSupport.Rect]?: _ModuleSupport.Rect[K] };
+type UnivariantHandleStyles = { x: number; y: number } & { [K in keyof Rect]?: Rect[K] };
 type DivariantHandleStyles = { x: number; y: number } & {
     [K in keyof AnnotationShape]?: AnnotationShape[K];
 };
 
-export abstract class Handle extends _ModuleSupport.Group {
+export abstract class Handle extends Group {
     public static readonly HANDLE_SIZE: number;
     public static readonly GLOW_SIZE: number;
     public static readonly INACTIVE_STROKE_WIDTH = 2;
 
-    abstract handle: _ModuleSupport.Rect | AnnotationShape;
-    protected abstract glow: _ModuleSupport.Rect | AnnotationShape;
+    abstract handle: Rect | AnnotationShape;
+    protected abstract glow: Rect | AnnotationShape;
     protected active = false;
     protected locked = false;
 
@@ -25,7 +25,7 @@ export abstract class Handle extends _ModuleSupport.Group {
     override zIndex = 1;
 
     public abstract update(styles: {
-        [K in keyof (_ModuleSupport.Rect | AnnotationShape)]?: (_ModuleSupport.Rect | AnnotationShape)[K];
+        [K in keyof (Rect | AnnotationShape)]?: (Rect | AnnotationShape)[K];
     }): void;
 
     public drag(target: Point): { point: Point; offset: Point } {
@@ -104,8 +104,8 @@ export class UnivariantHandle extends Handle {
     static override readonly GLOW_SIZE = 16;
     static readonly CORNER_RADIUS = 4;
 
-    override handle = new _ModuleSupport.Rect();
-    override glow = new _ModuleSupport.Rect();
+    override handle = new Rect();
+    override glow = new Rect();
 
     public gradient: 'horizontal' | 'vertical' = 'horizontal';
 

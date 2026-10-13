@@ -7,7 +7,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts, _ModuleSupport } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     BIG,
     type Chart,
@@ -28,12 +28,16 @@ import {
     expectWarningsCalls,
     hierarchyChartAssertions,
     hoverAction,
+    isTooltipVisible,
+    pressKey,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
+    tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { deepClone } from 'ag-charts-core';
+import { Text, Transformable, deepClone } from 'ag-charts-core';
+import type { BBox, Rect } from 'ag-charts-core';
 
 import { DEFAULT_DISABLED_SHADOW, HIERARCHY_SHADOW_DATA, prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
@@ -251,7 +255,7 @@ describe('TreemapSeries', () => {
 
             const series = chart.series[0] as TreemapSeries;
             const tileNode = nodeAtPath(series, [0, 0]);
-            const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+            const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                 (series as any).contentGroup,
                 tileNode.bbox.x + tileNode.bbox.width / 2,
                 tileNode.bbox.y + tileNode.bbox.height / 2
@@ -262,6 +266,69 @@ describe('TreemapSeries', () => {
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(tooltip).toBeInstanceOf(HTMLElement);
             expect(tooltip?.textContent).toEqual('Tile A1');
+        });
+    });
+
+    describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
+        const DATA = [
+            {
+                name: 'Group A',
+                children: [
+                    { name: 'Tile A1', size: 6 },
+                    { name: 'Tile A2', size: 4 },
+                ],
+            },
+            {
+                name: 'Group B',
+                children: [{ name: 'Tile B1', size: 5 }],
+            },
+        ];
+
+        const pressEscape = async () => {
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area')!;
+            seriesArea.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true })
+            );
+            await waitForChartStability(chart);
+        };
+
+        const tooltipText = () => document.querySelector('.ag-charts-tooltip')?.textContent;
+
+        it('hides the tooltip for a focused node and restores it on sibling and level moves', async () => {
+            const options: AgChartOptions = {
+                data: DATA,
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size' }],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            await tabIntoChart(chart);
+            // jsdom cannot detect :focus-visible, so an arrow key switches to the keyboard device.
+            await pressKey(chart, 'ArrowRight');
+            await pressKey(chart, 'ArrowLeft');
+            expect(isTooltipVisible(chart)).toBe(true);
+            const first = tooltipText();
+
+            await pressEscape();
+            expect(isTooltipVisible(chart)).toBe(false);
+
+            await pressKey(chart, 'ArrowRight');
+            expect(isTooltipVisible(chart)).toBe(true);
+            expect(tooltipText()).not.toEqual(first);
+
+            await pressEscape();
+            expect(isTooltipVisible(chart)).toBe(false);
+
+            await pressKey(chart, 'ArrowDown');
+            expect(isTooltipVisible(chart)).toBe(true);
+
+            await pressEscape();
+            expect(isTooltipVisible(chart)).toBe(false);
+
+            await pressKey(chart, 'ArrowUp');
+            expect(isTooltipVisible(chart)).toBe(true);
         });
     });
 
@@ -634,6 +701,316 @@ describe('TreemapSeries', () => {
         });
     });
 
+    describe('label alignment', () => {
+        const alignmentData = [
+            {
+                name: 'Fruit',
+                children: [
+                    { name: 'Apples', detail: '42 tonnes', value: 42 },
+                    { name: 'Pears', detail: '30 tonnes', value: 30 },
+                    { name: 'Plums', detail: '18 tonnes', value: 18 },
+                ],
+            },
+            {
+                name: 'Vegetables',
+                children: [
+                    { name: 'Carrots', detail: '36 tonnes', value: 36 },
+                    { name: 'Leeks', detail: '24 tonnes', value: 24 },
+                ],
+            },
+        ];
+        const alignmentOptions = (series: object, data: object[] = alignmentData): AgChartOptions => {
+            const options = {
+                data,
+                series: [
+                    { type: 'treemap', labelKey: 'name', secondaryLabelKey: 'detail', sizeKey: 'value', ...series },
+                ],
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+        const leaves = () => {
+            const out: any[] = [];
+            chart.series[0].rootNode?.walk((node: any) => {
+                if (node.children.length === 0) out.push(node);
+            });
+            return out;
+        };
+        const textBBoxes = () =>
+            [...chart.series[0].labelSelection.selectByClass(Text)]
+                .filter((text: any) => text.visible && text.text)
+                .map((text: any) => text.getBBox());
+
+        it('aligns each tile label and the group label on its own', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    alignmentOptions({
+                        group: { label: { textAlign: 'right' } },
+                        tile: {
+                            label: { textAlign: 'left', verticalAlign: 'top' },
+                            secondaryLabel: { textAlign: 'right', verticalAlign: 'bottom' },
+                        },
+                    })
+                )
+            );
+            await compare();
+            for (const node of leaves()) {
+                expect(node.label.y).toBeLessThan(node.secondaryLabel.y);
+                expect(node.label.x).toBeLessThan(node.secondaryLabel.x);
+            }
+        });
+
+        it('keeps a middle label clear of a label aligned to an edge', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    alignmentOptions(
+                        {
+                            tile: {
+                                padding: 250,
+                                label: { fontSize: 14, minimumFontSize: 14, verticalAlign: 'middle' },
+                                secondaryLabel: { fontSize: 24, minimumFontSize: 24, verticalAlign: 'top' },
+                            },
+                        },
+                        [{ name: 'Primary', detail: 'Secondary', value: 1 }]
+                    )
+                )
+            );
+            await waitForChartStability(chart);
+            const [primary, secondary] = textBBoxes();
+            expect(secondary.y + secondary.height).toBeLessThanOrEqual(primary.y + 0.5);
+        });
+
+        it('stacks labels aligned to different edges when alwaysShow keeps a pair that does not fit', async () => {
+            const fixed = { fontSize: 14, minimumFontSize: 14, truncate: false };
+            chart = deproxy(
+                AgCharts.create(
+                    alignmentOptions(
+                        {
+                            tile: {
+                                padding: 285,
+                                label: { ...fixed, verticalAlign: 'top', collision: { alwaysShow: true } },
+                                secondaryLabel: { ...fixed, verticalAlign: 'bottom', collision: { alwaysShow: true } },
+                            },
+                        },
+                        [{ name: 'Primary', detail: 'Secondary', value: 1 }]
+                    )
+                )
+            );
+            await waitForChartStability(chart);
+            const [primary, secondary] = textBBoxes();
+            expect(primary.y + primary.height).toBeLessThanOrEqual(secondary.y + 0.5);
+        });
+
+        it('forwards the deprecated tile and group alignment into the labels', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    alignmentOptions({
+                        group: { textAlign: 'right' },
+                        tile: { textAlign: 'left', verticalAlign: 'bottom' },
+                    })
+                )
+            );
+            await waitForChartStability(chart);
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].group.textAlign\` is deprecated. Use \`label.textAlign\` instead.",
+                ],
+                [
+                  "AG Charts - Option \`series[0].tile.textAlign\` is deprecated. Use \`label.textAlign\` and \`secondaryLabel.textAlign\` instead.",
+                ],
+                [
+                  "AG Charts - Option \`series[0].tile.verticalAlign\` is deprecated. Use \`label.verticalAlign\` and \`secondaryLabel.verticalAlign\` instead.",
+                ],
+              ]
+            `);
+            const { group, tile } = chart.series[0].options;
+            expect(group.label.textAlign).toBe('right');
+            expect([tile.label.textAlign, tile.label.verticalAlign]).toEqual(['left', 'bottom']);
+            expect([tile.secondaryLabel.textAlign, tile.secondaryLabel.verticalAlign]).toEqual(['left', 'bottom']);
+        });
+    });
+
+    describe('group label fit', () => {
+        const groupData = (fruit = 'Fresh fruit from the orchards') => [
+            {
+                name: fruit,
+                children: [
+                    { name: 'Apples', value: 42 },
+                    { name: 'Pears', value: 30 },
+                ],
+            },
+            {
+                name: 'Vegetables',
+                children: [
+                    { name: 'Carrots', value: 36 },
+                    { name: 'Leeks', value: 24 },
+                ],
+            },
+        ];
+        const groupOptions = (label: object, data = groupData()): AgChartOptions => {
+            const options = {
+                data,
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'value', group: { label } }],
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+        const render = async (label: object, data?: object[]) => {
+            chart = deproxy(AgCharts.create(groupOptions(label, data as any)));
+            await waitForChartStability(chart);
+        };
+        const groups = () => {
+            const out: any[] = [];
+            chart.series[0].rootNode?.walk((node: any) => {
+                if (node.children.length > 0 && node.datum != null) out.push(node);
+            });
+            return out;
+        };
+
+        it('fits, shrinks and aligns group labels within their headers', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    groupOptions(
+                        { fontSize: 16, minimumFontSize: 8, maxWidth: 150, maxHeight: 30, verticalAlign: 'bottom' },
+                        [
+                            ...groupData('Fresh fruit from the orchards of the valley'),
+                            { name: 'Nuts\nand seeds', children: [{ name: 'Almonds', value: 20 }] },
+                        ]
+                    )
+                )
+            );
+            await compare();
+        });
+
+        it('renders a manual line break in the group label as separate lines', async () => {
+            await render({}, groupData('Fresh\nfruit'));
+            const [fruit, vegetables] = groups();
+            expect(fruit.label.text).toBe('Fresh\nfruit');
+            expect(fruit.padding.top).toBeGreaterThan(vegetables.padding.top);
+        });
+
+        it('wraps a group label to maxWidth', async () => {
+            await render({ maxWidth: 100 });
+            const [fruit, vegetables] = groups();
+            expect(fruit.label.text).toContain('\n');
+            expect(fruit.label.text).not.toContain('…');
+            expect(fruit.padding.top).toBeGreaterThan(vegetables.padding.top);
+        });
+
+        it('shrinks a group label before truncating it', async () => {
+            await render({ maxWidth: 100, wrapping: 'never', minimumFontSize: 6 });
+            const [fruit, vegetables] = groups();
+            expect(fruit.label.fontSize).toBeLessThan(vegetables.label.fontSize);
+            expect(fruit.label.text).not.toContain('…');
+        });
+
+        it('truncates a group label wider than maxWidth', async () => {
+            await render({ maxWidth: 60, wrapping: 'never' });
+            expect(groups()[0].label.text).toMatch(/…$/);
+        });
+
+        it('hides a group label taller than maxHeight unless alwaysShow keeps it', async () => {
+            await render({ maxHeight: 5 });
+            const [hidden] = groups();
+            expect(hidden.label).toBeUndefined();
+            expect(hidden.padding.top).toBe(chart.series[0].options.group.padding);
+
+            chart.destroy();
+            await render({ maxHeight: 5, collision: { alwaysShow: true } });
+            expect(groups()[0].label).toBeDefined();
+        });
+
+        it('keeps the group header within maxHeight when the label shrinks', async () => {
+            await render({ fontSize: 16, minimumFontSize: 6, maxHeight: 10, wrapping: 'never' });
+            const { padding, label } = chart.series[0].options.group;
+            expect(groups()[1].padding.top).toBeLessThanOrEqual(padding + 10 + label.spacing);
+        });
+
+        it('hides a multi-line group label taller than maxHeight when it cannot wrap', async () => {
+            await render({ wrapping: 'never', maxHeight: 20 }, groupData('Fresh\nfruit\nand nuts'));
+            expect(groups()[0].label).toBeUndefined();
+        });
+
+        it('draws a wrapped group label at the height it was fitted to', async () => {
+            await render({ maxWidth: 100 });
+            const [fruit] = groups();
+            const text = [...chart.series[0].labelSelection.selectByClass(Text)].find(
+                (node: any) => node.visible && node.text === fruit.label.text
+            );
+            const lineCount = fruit.label.text.split('\n').length;
+            expect(lineCount).toBeGreaterThan(1);
+            expect(text.lineHeight * lineCount).toBeCloseTo(fruit.groupTitle.title.labelHeight, 1);
+        });
+
+        it('shrinks a manually broken group label to fit maxHeight', async () => {
+            await render(
+                { fontSize: 16, minimumFontSize: 6, maxHeight: 20, wrapping: 'never' },
+                groupData('Fresh\nfruit')
+            );
+            const { label } = groups()[0];
+            expect(label.text).toBe('Fresh\nfruit');
+            expect(label.fontSize).toBeLessThan(16);
+        });
+
+        it('aligns a truncated group label vertically within its capped header', async () => {
+            const labelY = async (verticalAlign: string) => {
+                await render({ maxHeight: 20, verticalAlign }, groupData('Fresh\nfruit'));
+                const { label, bbox, padding } = groups()[0];
+                chart.destroy();
+                return { y: label.y - bbox.y, headerBottom: padding.top };
+            };
+            const top = await labelY('top');
+            const middle = await labelY('middle');
+            const bottom = await labelY('bottom');
+            expect(top.y).toBeLessThan(middle.y);
+            expect(middle.y).toBeLessThan(bottom.y);
+            expect(bottom.headerBottom).toBe(top.headerBottom);
+            chart = undefined;
+        });
+
+        it('resolves the other group label fit options once one is set', async () => {
+            await render({});
+            const defaults = chart.series[0].options.group.label;
+            expect([defaults.wrapping, defaults.truncate, defaults.collision.alwaysShow]).toEqual([
+                undefined,
+                undefined,
+                true,
+            ]);
+
+            chart.destroy();
+            await render({ minimumFontSize: 6 });
+            expect(chart.series[0].options.group.label).toMatchObject({
+                wrapping: 'on-space',
+                truncate: true,
+                collision: { alwaysShow: false },
+            });
+        });
+    });
+
+    it('draws the secondary label with the line height it was fitted to', async () => {
+        const options = {
+            data: [{ name: 'Fruit', detail: 'Forty-two tonnes of apples', value: 1 }],
+            series: [
+                {
+                    type: 'treemap',
+                    labelKey: 'name',
+                    secondaryLabelKey: 'detail',
+                    sizeKey: 'value',
+                    tile: { secondaryLabel: { lineHeight: 30 } },
+                },
+            ],
+        } as AgChartOptions;
+        prepareEnterpriseTestOptions(options);
+        chart = deproxy(AgCharts.create(options));
+        await waitForChartStability(chart);
+        let secondaryLineHeight: number | undefined;
+        chart.series[0].rootNode.walk((node: any) => {
+            if (node.secondaryLabel != null) secondaryLineHeight = node.secondaryLabel.lineHeight;
+        });
+        expect(secondaryLineHeight).toBe(30);
+    });
+
     describe('Label itemStyler', () => {
         it('should style labels via itemStyler', async () => {
             const options: AgChartOptions = {
@@ -740,7 +1117,7 @@ describe('TreemapSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]
@@ -1469,7 +1846,7 @@ describe('TreemapSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
             const series = chart.series[0] as TreemapSeries;
-            const rects: { isLeaf: boolean; rect: _ModuleSupport.Rect }[] = [];
+            const rects: { isLeaf: boolean; rect: Rect }[] = [];
             series['datumSelection'].each((rect, node) => {
                 // The synthetic root node has a rect that is never shown.
                 if (rect.visible) rects.push({ isLeaf: node.children.length === 0, rect });
@@ -1678,8 +2055,8 @@ describe('TreemapSeries', () => {
         };
         const renderedTileCount = (series: TreemapSeries): number =>
             Array.from((series as any).datumSelection.nodes()).filter((rect: any) => rect.visible).length;
-        const leafBbox = (series: TreemapSeries, name: string): _ModuleSupport.BBox | undefined => {
-            let bbox: _ModuleSupport.BBox | undefined;
+        const leafBbox = (series: TreemapSeries, name: string): BBox | undefined => {
+            let bbox: BBox | undefined;
             (series as any).rootNode?.walk((node: any) => {
                 if (node.children.length === 0 && node.datum?.name === name) {
                     bbox = node.bbox;

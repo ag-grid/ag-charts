@@ -1,7 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
-import { ChartAxisDirection, ChartUpdateType, ambientLogger } from 'ag-charts-core';
+import {
+    BBox,
+    ChartAxisDirection,
+    ChartUpdateType,
+    Rect,
+    Sector,
+    Selection,
+    Transformable,
+    ambientLogger,
+} from 'ag-charts-core';
+import type { Node } from 'ag-charts-core';
 import { Caster, classCast } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
@@ -12,12 +22,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { BBox } from '../scene/bbox';
-import type { Node } from '../scene/node';
-import { Selection } from '../scene/selection';
-import { Rect } from '../scene/shape/rect';
-import { Sector } from '../scene/shape/sector';
-import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { DataSet } from './data/dataSet';

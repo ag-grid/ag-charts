@@ -25,8 +25,9 @@ const isCI = process.env.CI != null && process.env.CI !== '';
  */
 export default defineConfig({
     testDir: './e2e',
-    /* Exclude staging-only tests from regular CI runs — run via post-deploy-verification.yml instead */
-    testIgnore: ['**/page-verification.spec.ts'],
+    /* Exclude staging-only tests from regular CI runs — run via post-deploy-verification.yml instead.
+     * The axe scan (a11y-axe.spec.ts) runs from playwright.a11y.config.ts, as ci.yml's e2e_a11y job. */
+    testIgnore: ['**/page-verification.spec.ts', '**/a11y-axe.spec.ts'],
     /* Run tests in files in parallel */
     fullyParallel: true,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
