@@ -207,6 +207,13 @@ const colorRef = and(colorRefDef, colorRefMixOnto);
 // processing the private operators.
 export const colorOrRef = or(color, themeOperator, colorRef);
 
+// A nested object schema strips unknown keys but still passes, so an operator would reduce to `{}` rather than fail.
+const hasKey = (key: string) => (value: unknown) => !isObject(value) || key in value;
+const colorRefWithRef = and(hasKey('ref'), colorRef);
+
+// For `theme.params`, where only the public `ref` form is supported.
+export const colorOrRefNoOperator = or(color, colorRefWithRef);
+
 const colorStop = optionsDefs<AgGradientColorStop>({ color: colorOrRef, stop: ratio }, '');
 export const colorStopsOrderValidator = attachDescription((value) => {
     let lastStop = -Infinity;
@@ -488,6 +495,9 @@ export const lineSegmentation = optionsDefs<AgSeriesSegmentation<AgSeriesLineSeg
 
 export const googleFont = optionsDefs<GoogleFontFamily>({ googleFont: string }, 'google font');
 export const fontFamilyFull = or(string, themeOperator, googleFont, arrayOf(or(string, googleFont)));
+
+const googleFontWithKey = and(hasKey('googleFont'), googleFont);
+export const fontFamilyNoOperator = or(string, googleFontWithKey, arrayOf(or(string, googleFontWithKey)));
 export const fontWeight = or(positiveNumber, union('normal', 'bold', 'bolder', 'lighter'));
 
 export const fontOptionsDef: OptionsDefs<TextOptions> = {

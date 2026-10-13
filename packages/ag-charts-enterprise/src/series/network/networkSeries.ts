@@ -3,8 +3,10 @@ import {
     type ChartAnimationPhase,
     ChartAxisDirection,
     ChartUpdateType,
+    type DeepPartial,
     type DefinedZoomState,
     type DynamicContext,
+    type NormalisedSeriesOptions,
     type Point,
     Scalable,
     Selection,
@@ -184,6 +186,10 @@ export abstract class AbstractNetworkSeries<
     };
     private hasCentredContent = false;
 
+    // Set by an options, data, collapsed-state or series-area change; the next update then fits and centres the chart.
+    private refitPending = false;
+    private zoomRestored = false;
+
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx: ctx,
@@ -208,9 +214,21 @@ export abstract class AbstractNetworkSeries<
             ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClick(event)),
             ctx.eventsHub.on('series:keynav-expand', (event) => this.onSeriesAreaKeynavExpand(event)),
             ctx.eventsHub.on('series:keynav-collapse', (event) => this.onSeriesAreaKeynavCollapse(event)),
+            ctx.eventsHub.on('zoom:load-memento', () => (this.zoomRestored = true)),
             ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequest(event)),
             ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event))
         );
+    }
+
+    protected override syncOptionDerivedState(optionsDiff: DeepPartial<NormalisedSeriesOptions<TOptions>> | undefined) {
+        if (optionsDiff != null) {
+            this.refitPending = true;
+        }
+    }
+
+    protected override onDataChange() {
+        super.onDataChange();
+        this.refitPending = true;
     }
 
     abstract createNetworkGraph(): TGraph;
@@ -534,6 +552,14 @@ export abstract class AbstractNetworkSeries<
         const scale = this.getHeldScale();
         if (!scale) return;
 
+        // Spent here rather than on return, so an update that needs no corrective zoom still consumes them.
+        const refit = this.refitPending && !this.pendingView && !this.zoomRestored;
+        this.refitPending = false;
+        this.zoomRestored = false;
+        if (refit) {
+            return this.getFittedZoom(padded);
+        }
+
         // Sized here rather than left to `constrainZoomWindow`, which would re-derive the window from
         // its midpoint and so discard the pan.
         const sizes = this.getWindowSizesForScale(scale.fit, scale.constrained);
@@ -704,13 +730,18 @@ export abstract class AbstractNetworkSeries<
 
     private onCollapsedRestore({ collapsed }: _ModuleSupport.CollapsedRestoreEvent) {
         if (!collapsed) return;
+        this.refitPending = true;
         if (this.graph.getVertexCount() === 0) {
             this.pendingCollapsedIds = collapsed;
         }
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        this.seriesRect = event.series.rect;
+        const { rect } = event.series;
+        if (this.seriesRect && !this.seriesRect.equals(rect)) {
+            this.refitPending = true;
+        }
+        this.seriesRect = rect.clone();
     }
 
     private onUpdateComplete() {

@@ -585,9 +585,7 @@ function createLabelData(
         const { tickLabel, textMetrics, translation } = tickData[i];
         if (tickLabel == null || tickLabel === '') continue;
 
-        // `labelOffset` runs outward from the axis line, the opposite sign to the datum's `y` that
-        // the flush moves, so the displacement is subtracted.
-        const crossOffset = labelOffset - (bandOffsets?.[i] ?? 0);
+        const crossOffset = labelOffset + (bandOffsets?.[i] ?? 0);
         const { x, y } = rotatePoint(crossOffset, translation, labelRotation);
         const width = textMetrics.width + xPadding;
         const height = textMetrics.height + yPadding;

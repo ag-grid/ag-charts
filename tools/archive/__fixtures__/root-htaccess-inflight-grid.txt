@@ -1,0 +1,9 @@
+# ~25x/day with no header at all) without risking a stale copy for long after a real change.
+Header set Cache-Control "public, max-age=86400" "expr=%{REQUEST_URI} =~ m#^/(robots\.txt|favicon\.ico)$#"
+
+
+# BEGIN in-flight release archives - patched in place, do not edit by hand
+Header set Cache-Control "no-cache" "expr=%{REQUEST_URI} =~ m#^/archive/36\.3\.0/#"
+# END in-flight release archives
+
+

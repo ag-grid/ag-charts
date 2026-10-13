@@ -18,6 +18,7 @@ env:
     GIT_CONFIG_KEY_1: maintenance.auto
     GIT_CONFIG_VALUE_1: 'false'
     NX_NO_CLOUD: 'true'
+    IBM_TELEMETRY_DISABLED: 'true'
 
 # Least-privilege default; the analyze job overrides this with its own block.
 permissions:

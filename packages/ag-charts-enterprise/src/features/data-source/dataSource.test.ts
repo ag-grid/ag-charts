@@ -11,6 +11,7 @@ import {
     clickAction,
     compareImageSnapshot,
     delay,
+    dragAction,
     expectWarningsCalls,
     extractImageData,
     scrollAction,
@@ -280,6 +281,112 @@ describe('DataSource', () => {
             await delay(1);
             await waitForChartStability(chart);
             await compare();
+        });
+    });
+
+    describe('window continuity across granularity changes', () => {
+        const day = 1000 * 60 * 60 * 24;
+        const week = day * 7;
+        const dataStart = new Date('2024-01-01 00:00:00').getTime();
+        const dataEnd = dataStart + 364 * day;
+        const dataset = Array.from({ length: 365 }, (_, i) => ({
+            time: new Date(dataStart + i * day),
+            price: 100 + (i % 50),
+        }));
+
+        // Every fourth week is always present; the visible window is filled in more finely the narrower it is.
+        function granularityFor(span: number) {
+            if (span < week * 13) return day;
+            if (span < week * 52) return week;
+            return week * 4;
+        }
+
+        function serve(windowStart: number, windowEnd: number) {
+            const step = granularityFor(windowEnd - windowStart);
+            return dataset.filter(({ time }) => {
+                const offset = time.getTime() - dataStart;
+                const isCoarse = offset % (week * 4) === 0;
+                const isFine = offset % step === 0 && time.getTime() >= windowStart && time.getTime() <= windowEnd;
+                return isCoarse || isFine;
+            });
+        }
+
+        type Request = { source?: AgDataSourceRequestSource; start: number; end: number };
+
+        const AXES = {
+            time: { type: 'time', min: new Date(dataStart), max: new Date(dataEnd) },
+            'unit-time': { type: 'unit-time', unit: 'day', min: new Date(dataStart), max: new Date(dataEnd) },
+            'ordinal-time': { type: 'ordinal-time' },
+        } as const;
+
+        describe.each(Object.keys(AXES) as Array<keyof typeof AXES>)('%s axis', (axisType) => {
+            let requests: Request[];
+
+            async function prepareZoomableChart() {
+                requests = [];
+                await prepareChart(
+                    {
+                        getData: ({ source, windowStart, windowEnd }) => {
+                            const start = windowStart === undefined ? dataStart : new Date(windowStart).getTime();
+                            const end = windowEnd === undefined ? dataEnd : new Date(windowEnd).getTime();
+                            const data = serve(start, end);
+                            requests.push({ source, start, end });
+                            return Promise.resolve(data);
+                        },
+                    },
+                    {
+                        ...BASE_OPTIONS,
+                        zoom: { ...BASE_OPTIONS.zoom, scrollingStep: 0.1 },
+                        axes: {
+                            y: { type: 'number', position: 'left', crosshair: { enabled: false } },
+                            x: { ...AXES[axisType], position: 'bottom', crosshair: { enabled: false } },
+                        },
+                        series: [{ type: 'line', xKey: 'time', yKey: 'price' }],
+                    }
+                );
+                await waitForChartStability(chart);
+                await delay(10);
+            }
+
+            async function settleAfter(action: () => Promise<void>) {
+                const requestsBefore = requests.length;
+                await action();
+                await waitForChartStabilityUntil(chart, () => requests.length > requestsBefore, 'a data request');
+                await delay(10);
+                await waitForChartStability(chart);
+                return requests.slice(requestsBefore);
+            }
+
+            async function zoomIn(steps: number) {
+                const issued: Request[] = [];
+                for (let i = 0; i < steps; i++) {
+                    issued.push(...(await settleAfter(() => scrollAction(cx, cy, -1)(chart))));
+                }
+                return issued;
+            }
+
+            const itExpected = axisType === 'ordinal-time' ? it.fails : it;
+
+            itExpected('requests data once per zoom step', async () => {
+                await prepareZoomableChart();
+
+                const issued = await zoomIn(1);
+
+                expect(issued.map((request) => request.source)).toEqual(['user-interaction']);
+            });
+
+            itExpected('moves the visible window earlier, without resizing it, when panning left', async () => {
+                await prepareZoomableChart();
+                await zoomIn(3);
+                const [zoomed] = requests.slice(-1);
+
+                const issued = await settleAfter(() => dragAction({ x: cx, y: cy }, { x: cx + cx / 4, y: cy })(chart));
+                const [panned] = issued.slice(-1);
+
+                expect(panned.start).toBeLessThan(zoomed.start);
+                expect(panned.end).toBeLessThan(zoomed.end);
+                expect(Math.abs(panned.end - panned.start - (zoomed.end - zoomed.start))).toBeLessThanOrEqual(week);
+            });
         });
     });
 
