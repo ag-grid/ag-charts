@@ -271,6 +271,56 @@ describe('AG-18833 rotated label fitting', () => {
         expect(rotatedExtent(textMetrics)).toBeLessThanOrEqual(200.5);
     });
 
+    const numberScale = (ticks: number[]) => {
+        const scale = new LinearScale();
+        scale.domain = [ticks[0], ticks.at(-1)!];
+        scale.range = [0, 1000];
+        return scale;
+    };
+
+    it.each([undefined, 30])(
+        'hides a number label taller than maxHeight with wrapping never (rotation %s)',
+        (rotation) => {
+            const domain = [0, 50, 100];
+            const options = {
+                scale: numberScale(domain),
+                label: { ...font, rotation, maxHeight: 5 },
+                isVertical: false,
+                labelRoom: 200,
+                tickFormatter: () => (value: unknown) => String(value),
+            } as any;
+
+            const ticks = formatTicks(options, formatOptions(domain as any));
+
+            expect(ticks).toHaveLength(3);
+            for (const { tickLabel } of ticks) {
+                expect(tickLabel).toBe('');
+            }
+        }
+    );
+
+    it.each([undefined, 30])(
+        'clips explicit line breaks to maxHeight with wrapping never (rotation %s)',
+        (rotation) => {
+            const domain = [0, 100];
+            const options = {
+                scale: numberScale(domain),
+                label: { ...font, rotation, maxHeight: 20 },
+                isVertical: false,
+                labelRoom: 200,
+                tickFormatter: () => () => 'First line\nSecond line\nThird line',
+            } as any;
+
+            const ticks = formatTicks(options, formatOptions(domain as any));
+
+            for (const { tickLabel, textMetrics } of ticks) {
+                expect(textMetrics.height).toBeLessThanOrEqual(20);
+                expect(toPlainText(tickLabel)).toContain('First');
+                expect(toPlainText(tickLabel)).not.toContain('Second');
+            }
+        }
+    );
+
     it('does not erase a rich-text label wider than its band when it fits maxWidth with truncate false', () => {
         const domain = ['a', 'b', 'c', 'd'];
         const segments = [

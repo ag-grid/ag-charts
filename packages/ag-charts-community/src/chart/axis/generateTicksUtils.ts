@@ -388,7 +388,11 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
         const source = tick.fitSource ?? tickLabel;
         const heightLimit = Math.min(maxHeight, textMetrics.height);
         const fit = (maxWidth: number) =>
-            wrapLabelToFit(source, labelWrapOptions(label, maxWidth, heightLimit, labelFitOverflow(label), 'never'), measurer);
+            wrapLabelToFit(
+                source,
+                labelWrapOptions(label, maxWidth, heightLimit, labelFitOverflow(label), 'never'),
+                measurer
+            );
 
         // Narrowing never adds lines, so the height measured here bounds the final label.
         let fitted = fit(label.maxWidth ?? Infinity);
