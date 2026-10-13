@@ -11,6 +11,7 @@ import {
     clickAction,
     compareImageSnapshot,
     delay,
+    deproxy,
     dragAction,
     expectWarningsCalls,
     extractImageData,
@@ -373,6 +374,16 @@ describe('DataSource', () => {
                 const issued = await zoomIn(1);
 
                 expect(issued.map((request) => request.source)).toEqual(['user-interaction']);
+            });
+
+            it('keeps the navigator range proportional to the visible time', async () => {
+                await prepareZoomableChart();
+                await zoomIn(3);
+                const [{ start, end }] = requests.slice(-1);
+
+                const { _min: min, _max: max } = deproxy(chart).modulesManager.getModule<any>('navigator').domProxy;
+
+                expect(max - min).toBeCloseTo((end - start) / (dataEnd - dataStart), 1);
             });
 
             itExpected('moves the visible window earlier, without resizing it, when panning left', async () => {
