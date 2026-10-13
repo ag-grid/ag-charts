@@ -26,7 +26,7 @@ export const PresetPreview = memo(({ preset }: Props) => {
         }),
         [preset]
     );
-    const containerRef = useChart(options);
+    const { containerRef } = useChart(options);
 
     useLayoutEffect(() => {
         // Thumbnails are decoration: keep them out of the tab order and off the
