@@ -25,7 +25,6 @@ export interface OptionsGraphInterface {
     findNeighbourValue(vertex: VertexInterface, edge: string): unknown;
     findNeighbourWithValue(vertex: VertexInterface, value: unknown, edge?: string): VertexInterface | undefined;
     findVertexAtPath(path: Array<string>): VertexInterface | undefined;
-    getCachedValue(path: Array<string>, key: string): unknown;
     getResolvedPath(path: Array<string>): unknown;
     getParamValue(path: string): unknown;
     getPathArray(vertex: VertexInterface): Array<string>;
@@ -56,7 +55,6 @@ export interface OptionsGraphInterface {
     resolveValue$1(path: Array<string>): unknown;
     resolveVertexValue(vertex: VertexInterface, valueVertex: VertexInterface): unknown;
     setResolveFresh(fresh: boolean): void;
-    setCachedValue(path: Array<string>, key: string, value: unknown): void;
     /** Warn through the resolving chart's logger, deferring warnings raised before any resolve. */
     warnOnce(message: string): void;
 }

@@ -13,7 +13,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { OptionsGraph } from '../../../module/optionsGraph';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
@@ -1045,7 +1044,6 @@ describe('DonutSeries', () => {
         let donutSeries: DonutSeries;
 
         beforeEach(async () => {
-            OptionsGraph.clearValueCache();
             const transactionOptions = prepareTestOptions({
                 theme: {
                     palette: {

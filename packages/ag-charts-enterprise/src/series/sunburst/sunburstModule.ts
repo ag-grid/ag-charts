@@ -24,13 +24,12 @@ const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
         ...SERIES_INTERACTION_THEME_DEFAULTS,
         fills: {
             $applyCycle: [
-                null,
                 { $palette: 'fills' },
                 cycledFillThemeTemplate(FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS),
             ],
         },
         strokes: {
-            $applyCycle: [null, { $palette: 'strokes' }],
+            $applyCycle: [{ $palette: 'strokes' }],
         },
         colorScale: {
             fills: { $map: [{ color: { $value: '$1' } }, { $palette: 'divergingColors' }] },

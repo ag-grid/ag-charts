@@ -38,7 +38,6 @@ import {
 } from './optionsGraphUtils';
 
 export type Operation =
-    | CacheOperation
     | ChartOperation
     | ColorOperation
     | FontOperation
@@ -155,36 +154,6 @@ function getOperationTargetVertex(graph: OptionsGraphInterface, vertex: VertexIn
         case TransformOperation.Value:
             return vertex;
     }
-}
-
-// --- CACHE ---
-
-enum CacheOperation {
-    CacheMax = '$cacheMax',
-}
-
-const cacheOperations: Record<CacheOperation, OperationFns> = {
-    $cacheMax: cacheMaxOperation,
-};
-
-function cacheMaxOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [valueVertex] = values;
-
-    const pathArray = graph.getPathArray(vertex);
-    const cached = graph.getCachedValue(pathArray, CacheOperation.CacheMax);
-
-    const value = graph.resolveVertexValue(vertex, valueVertex);
-    if (typeof value !== 'number') return cached;
-
-    if (typeof cached !== 'number') {
-        graph.setCachedValue(pathArray, CacheOperation.CacheMax, value);
-        return value;
-    }
-
-    const maxValue = Math.max(cached, value);
-    graph.setCachedValue(pathArray, CacheOperation.CacheMax, maxValue);
-
-    return maxValue;
 }
 
 // --- CHART ---
@@ -1053,10 +1022,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 }
 
 function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [sizeVertex, defaultValuesVertex, operationVertex] = values;
-
-    const size = graph.resolveVertexValue(vertex, sizeVertex);
-    if (size !== null && typeof size !== 'number') return;
+    const [defaultValuesVertex, operationVertex] = values;
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
@@ -1070,8 +1036,10 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     const themeOverride =
         userOption == null && hasThemeOverride ? graph.dangerouslyGetThemeOverride(pathArray) : undefined;
     const overrideLength = Array.isArray(themeOverride) ? Math.max(1, themeOverride.length) : 1;
-    const valuesPeriod = leastCommonMultiple(Math.max(1, cycledValues.length), overrideLength);
-    const cycleSize = size ?? cyclePeriod(graph, valuesPeriod, operation);
+    const cycleSize = leastCommonMultiple(
+        leastCommonMultiple(Math.max(1, cycledValues.length), overrideLength),
+        indexedPalettesPeriod(graph)
+    );
 
     for (let index = 0; index < cycleSize; index++) {
         const value = cycledValue(cycledValues, index);
@@ -1087,24 +1055,12 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     return RESOLVED_TO_BRANCH;
 }
 
-/**
- * The length after which a cycle repeats exactly: per-item `$palette` lookups in the operation are indexed by
- * item, so the period must also be a multiple of every palette array they read.
- */
-function cyclePeriod(graph: OptionsGraphInterface, period: number, operation: unknown): number {
-    if (isArray(operation)) {
-        for (const item of operation) {
-            period = cyclePeriod(graph, period, item);
-        }
-    } else if (isPlainObject(operation)) {
-        const paletteKey = operation[LocationOperation.Palette] ?? operation[LocationOperation.MapPalette];
-        const paletteArray = isString(paletteKey) ? indexedPaletteArray(graph, paletteKey) : undefined;
-        if (paletteArray?.length) {
-            return leastCommonMultiple(period, paletteArray.length);
-        }
-        for (const key of Object.keys(operation)) {
-            period = cyclePeriod(graph, period, operation[key]);
-        }
+/** Shared by every cycle so a theme override and the default it overrides graft the same indices. */
+function indexedPalettesPeriod(graph: OptionsGraphInterface) {
+    const { fills, fillsFallback, strokes, sequentialColors } = graph.palette;
+    let period = 1;
+    for (const { length } of [fills, fillsFallback, strokes, sequentialColors]) {
+        period = leastCommonMultiple(period, Math.max(1, length));
     }
     return period;
 }
@@ -1419,7 +1375,6 @@ function multiplyOperation(graph: OptionsGraphInterface, vertex: VertexInterface
 // --- EXPORTS ---
 
 export const operations: Record<Operation, OperationFns> = {
-    ...cacheOperations,
     ...chartOperations,
     ...colorOperations,
     ...fontOperations,
