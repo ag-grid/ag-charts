@@ -215,16 +215,6 @@ describe('preview chart types', () => {
         }
     });
 
-    it('shows the zoom buttons without a hover only when asked to', () => {
-        for (const type of PREVIEW_CHART_TYPES.filter((other) => other.features.includes('zoom'))) {
-            const zoomButtons = (shown?: boolean) =>
-                (type.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON, shown) as { zoom: Record<string, unknown> }).zoom
-                    .buttons;
-            expect(zoomButtons(true), type.id).toEqual({ visible: 'always' });
-            expect(zoomButtons(), type.id).toBeUndefined();
-        }
-    });
-
     it('gives the context menu rows beyond its defaults to show the menu styles on', () => {
         for (const type of PREVIEW_CHART_TYPES) {
             const { contextMenu } = type.buildOptions(DEFAULT_SERIES_COUNT, ALL_OFF) as {
@@ -268,34 +258,6 @@ describe('preview chart types', () => {
         // outline round the candle, it is the candle, and a switch for it could
         // only blank the series.
         expect(CANDLESTICK.features).not.toContain('seriesStrokes');
-    });
-
-    it('points every tooltip target at a series the options actually carry', () => {
-        // The target is a `seriesId` handed back to the chart, so it is only as
-        // good as the ids the options set: a series left to AG Charts' generated
-        // id could not be named, and the held-open tooltip would simply not open.
-        for (const type of PREVIEW_CHART_TYPES) {
-            const { tooltipTarget } = type;
-            if (!tooltipTarget) continue;
-            for (const count of typeof type.countLabel === 'string' ? SERIES_COUNT_OPTIONS : [DEFAULT_SERIES_COUNT]) {
-                const options = type.buildOptions(count, ALL_ON);
-                const ids = seriesOf(options).map((series) => (series as { id?: string }).id);
-                expect(ids, `${type.id} @ ${count}`).toContain(tooltipTarget.seriesId);
-            }
-        }
-    });
-
-    it('points every tooltip target at a datum the data actually has', () => {
-        // A numeric `itemId` is a datum index, so one past the end of the data
-        // matches nothing - and the tooltip that is the whole point of holding
-        // the state open never appears.
-        for (const type of PREVIEW_CHART_TYPES) {
-            const { tooltipTarget } = type;
-            if (!tooltipTarget) continue;
-            const { data } = type.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON) as { data: unknown[] };
-            expect(tooltipTarget.itemId, type.id).toBeLessThan(data.length);
-            expect(tooltipTarget.itemId, type.id).toBeGreaterThanOrEqual(0);
-        }
     });
 
     it('opens the two panes on two chart types that exist', () => {

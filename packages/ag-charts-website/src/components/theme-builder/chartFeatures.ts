@@ -39,15 +39,15 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
         hint: 'Outlines each series in its palette stroke, which charts hide by default',
     },
     { id: 'legend', label: 'Legend', hint: 'Series names, and its pager once they overflow' },
-    { id: 'tooltip', label: 'Tooltip', hint: 'Shown on hover, and held open while the tooltip params are edited' },
+    { id: 'tooltip', label: 'Tooltip', hint: 'Shown on hover' },
     { id: 'crosshairs', label: 'Crosshairs', hint: 'Axis labels on hover - hover the chart to see them' },
     {
         id: 'contextMenu',
         label: 'Context Menu',
-        hint: 'Opened by right-click, and held open while the UI params are edited',
+        hint: 'Opened by right-click',
     },
     { id: 'zoom', label: 'Zoom', hint: 'Zoom buttons, and scrolling to zoom' },
-    { id: 'scrollbar', label: 'Scrollbar', hint: 'Shown once zoomed in, and while the scrollbar params are edited' },
+    { id: 'scrollbar', label: 'Scrollbar', hint: 'Shown once zoomed in' },
     { id: 'navigator', label: 'Navigator', hint: 'The mini chart and its handles below the axis' },
     {
         id: 'rangeButtons',

@@ -8,12 +8,6 @@ import { paramToVariableName } from '@ag-website-shared/theming/utils';
 
 import { CHARTS_PARAM_DEFAULTS, PUBLIC_PARAM_NAMES } from './chartsTheme';
 
-/** Named because the preview watches for them, to show what they style. See `editedGroup.ts`. */
-export const TOOLTIPS_GROUP_ID = 'tooltips';
-export const UI_GROUP_ID = 'ui';
-export const CONTROLS_GROUP_ID = 'controls';
-export const SCROLLBAR_GROUP_ID = 'scrollbar';
-
 export interface ChartsParamConfig {
     key: string;
     label: string;
