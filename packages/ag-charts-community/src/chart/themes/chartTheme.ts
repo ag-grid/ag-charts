@@ -163,7 +163,6 @@ export class ChartTheme {
             buttonActiveBackgroundColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
             buttonActiveBorder: { color: { $ref: 'accentColor' } },
             buttonActiveTextColor: { $ref: 'accentColor' },
-            // `buttonBackgroundColor` defaults to `chromeBackgroundColor`, so the default look is unchanged.
             buttonDisabledBackgroundColor: {
                 $mix: [{ $ref: 'buttonBackgroundColor' }, { $ref: 'foregroundColor' }, 0.06],
             },
