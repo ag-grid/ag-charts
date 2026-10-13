@@ -536,6 +536,8 @@ export class IndexSetBucketLookupManager implements BucketLookupFeature {
     getIndexSet(datumIndex: number): Iterable<number> | undefined {
         const indices = this.opts.getIndexSetMap()?.get(datumIndex);
         // A cluster's indices are grouped by quadrant; hand them out in datum order, as selection changes list them.
+        // This copies and sorts the cluster on every call, which is fine for the selection path (once per drag end)
+        // but not for anything that runs per frame.
         return indices === undefined ? undefined : Uint32Array.from(indices).sort();
     }
 

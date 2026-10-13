@@ -700,6 +700,8 @@ interface ReferenceContext {
     xd1: number;
     yd0: number;
     yd1: number;
+    xNeedsValueOf: boolean;
+    yNeedsValueOf: boolean;
 }
 
 type Bounds = { x0: number; y0: number; x1: number; y1: number };
@@ -709,8 +711,8 @@ function referenceRatios(ctx: ReferenceContext, datumIndex: number): [number, nu
     const yValue = ctx.yValues[datumIndex];
     if (xValue == null || yValue == null) return undefined;
     return [
-        aggregationXRatioForXValue(xValue, ctx.xd0, ctx.xd1, false),
-        aggregationXRatioForXValue(yValue, ctx.yd0, ctx.yd1, false),
+        aggregationXRatioForXValue(xValue, ctx.xd0, ctx.xd1, ctx.xNeedsValueOf),
+        aggregationXRatioForXValue(yValue, ctx.yd0, ctx.yd1, ctx.yNeedsValueOf),
     ];
 }
 
@@ -883,9 +885,10 @@ describe('computeBubbleAggregation partitions indices in place', () => {
     }
 
     interface Dataset {
-        xValues: Array<number | null | undefined>;
+        xValues: Array<number | Date | null | undefined>;
         yValues: Array<number | null | undefined>;
         sizeValues: number[];
+        xNeedsValueOf?: boolean;
     }
 
     function dataset(count: number, seed: number, make: (r: () => number, i: number) => number[]): Dataset {
@@ -913,6 +916,12 @@ describe('computeBubbleAggregation partitions indices in place', () => {
     const sizeOutOfDomain = dataset(1500, 6, (r) => [r() * 100, r() * 100, r() * 160 - 30]);
     sizeOutOfDomain.sizeValues[10] = Number.NaN;
     const lattice = dataset(1800, 7, (r) => [Math.floor(r() * 20), Math.floor(r() * 20), r() * 100]);
+    // Date x values go through the `valueOf` path of the ratio calculation.
+    const dated: Dataset = {
+        ...dataset(1500, 8, (r) => [Date.UTC(2024, 0, 1) + r() * 1e10, r() * 100, r() * 100]),
+        xNeedsValueOf: true,
+    };
+    dated.xValues = dated.xValues.map((x, i) => (i % 23 === 0 ? undefined : new Date(x as number)));
 
     // Geometrically nested points peel off one per level while five or more remain, so the tree gets deeper than
     // the build's initial per-depth buffers.
@@ -932,10 +941,11 @@ describe('computeBubbleAggregation partitions indices in place', () => {
         ['all equal', allEqual],
         ['size out of domain', sizeOutOfDomain],
         ['lattice', lattice],
+        ['dates', dated],
     ];
 
-    const domainOf = (values: Array<number | null | undefined>): [number, number] => {
-        const numbers = values.filter((v): v is number => v != null);
+    const domainOf = (values: Array<number | Date | null | undefined>): [number, number] => {
+        const numbers = values.filter((v) => v != null).map((v) => Number(v));
         return [Math.min(...numbers), Math.max(...numbers)];
     };
 
@@ -964,9 +974,10 @@ describe('computeBubbleAggregation partitions indices in place', () => {
                     data.yValues,
                     sizeValues,
                     sizeDomain,
-                    { xNeedsValueOf: false, yNeedsValueOf: false }
+                    { xNeedsValueOf: data.xNeedsValueOf ?? false, yNeedsValueOf: false }
                 )!;
                 expect(aggregation).toBeDefined();
+                expect(aggregation.xNeedsValueOf).toBe(data.xNeedsValueOf ?? false);
 
                 const trees = referenceTrees(aggregation, sizeValues, sizeDomain);
                 expect(aggregation.filters.map((f) => f.sizeRatio)).toEqual(trees.map((t) => t.sizeRatio));
