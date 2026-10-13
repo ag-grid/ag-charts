@@ -3,6 +3,7 @@ import { NarrowScreenNotice } from '@ag-website-shared/components/theme-builder/
 import { ThemeBuilderProvider } from '@ag-website-shared/components/theme-builder/ThemeBuilderProvider';
 
 import { RootContainer } from './RootContainer';
+import { PinSavedParams } from './pinSavedParams';
 import { DEFAULT_DARK_PRESET, DEFAULT_PRESET, toSharedPreset } from './presets';
 import './registerThemeBuilderConfig';
 
@@ -14,6 +15,7 @@ export const ThemeBuilder = ({ isDark }: { isDark: boolean }) => {
 
     return (
         <ThemeBuilderProvider initialPreset={toSharedPreset(initialPreset)}>
+            <PinSavedParams />
             <LoadFontFamilyMenuFonts />
             <RootContainer initialPreset={initialPreset} />
             <NarrowScreenNotice>
