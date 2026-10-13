@@ -399,6 +399,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Theme Parameters",
+                            "path": "theme-parameters"
+                        },
+                        {
+                            "type": "item",
                             "title": "Background Image",
                             "path": "background-image",
                             "isEnterprise": true

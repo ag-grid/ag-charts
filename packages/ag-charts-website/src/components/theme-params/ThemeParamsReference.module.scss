@@ -1,0 +1,143 @@
+@use 'design-system' as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-4;
+    margin-top: $spacing-size-4;
+}
+
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-size-4;
+    align-items: center;
+}
+
+.searchBox {
+    position: relative;
+    display: flex;
+    flex: 1 1 320px;
+    border-radius: var(--radius-md);
+
+    #{$selector-darkmode} & input {
+        background: color-mix(in srgb, var(--color-bg-primary), var(--color-fg-primary) 6%);
+    }
+}
+
+.searchIcon {
+    --icon-size: 20px;
+    --icon-color: var(--color-fg-secondary);
+
+    position: absolute;
+    top: 10px;
+    left: $spacing-size-4;
+}
+
+input[type='search'].searchInput {
+    width: 100%;
+    padding: $spacing-size-2 $spacing-size-2 $spacing-size-2 $spacing-size-10;
+
+    &::placeholder {
+        color: var(--color-fg-quinary);
+    }
+}
+
+.themeSelect {
+    display: flex;
+    gap: $spacing-size-2;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.grid {
+    height: 560px;
+}
+
+.value {
+    display: inline-flex;
+    gap: $spacing-size-1;
+    align-items: center;
+    margin-right: $spacing-size-2;
+}
+
+.swatch {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    border: 1px solid color-mix(in srgb, var(--color-fg-primary) 25%, transparent);
+    border-radius: 3px;
+}
+
+.plainValue {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.muted {
+    color: var(--color-fg-secondary);
+}
+
+.chain {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.arrow {
+    margin: 0 $spacing-size-1;
+    color: var(--color-fg-tertiary);
+}
+
+.paramLink {
+    margin-right: $spacing-size-2;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--color-link);
+    font-size: inherit;
+    cursor: pointer;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.optionMatches,
+.detail {
+    padding: $spacing-size-4;
+    border: 1px solid var(--color-border-primary);
+    border-radius: var(--radius-md);
+
+    h4 {
+        margin-top: 0;
+    }
+}
+
+.detailTitle {
+    margin-top: 0;
+}
+
+.facts {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: $spacing-size-2 $spacing-size-4;
+
+    dt {
+        font-weight: var(--text-semibold);
+    }
+
+    dd {
+        margin: 0;
+    }
+}
+
+.optionList {
+    max-height: 320px;
+    overflow-y: auto;
+    padding-left: $spacing-size-4;
+
+    li {
+        margin-bottom: $spacing-size-1;
+    }
+}

@@ -1,0 +1,22 @@
+---
+title: 'Theme Parameters'
+description: 'Browse every $framework chart theme parameter, what it inherits from, its value in each stock theme, and which chart options it sets.'
+---
+
+Theme parameters set styles across the whole chart in one place. Most parameters inherit from a few root parameters, so changing one can change many others. This reference is generated from the chart's own theme defaults.
+
+## How Parameters Inherit
+
+A parameter's default is either a fixed value or derived from other parameters:
+
+- `textColor` - uses the value of `textColor`.
+- `textColor 62% + chartBackgroundColor 38%` - a blend of two parameters.
+- `fontSize × 1.08` - a multiple of another parameter.
+
+Setting a parameter in a theme replaces its default, and every parameter that inherits from it follows. Values set in theme `overrides` or in chart options take precedence over parameters. See [Themes](./themes/#parameters) for how to set them.
+
+## Parameter Reference
+
+The tree shows each parameter under the parameter it primarily inherits from. Select a parameter to see its full inheritance, the parameters that inherit from it, and the chart options that default to it. Search for an option path such as `label.color` to find the parameters that set it.
+
+{% themeParamsReference /%}
