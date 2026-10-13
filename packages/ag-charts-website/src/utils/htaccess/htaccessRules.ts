@@ -37,23 +37,25 @@ AddCharset utf-8 .md
 # env-split, so the policy is generated per environment.
 ${getCspContent(env)}
 
-${env === 'production' ? `${getHostCanonicalizationRules()}\n\n` : ''}${getMarkdownNegotiationRules()}
+${getRedirectRules(env)}
 
-${getRedirectRules()}
-
+${getMarkdownNegotiationRules()}
+${getArchiveMarkdownIndexingRules()}
 Options -Indexes
 `;
 }
 
-// The parent site's .htaccess apex-to-www swap isn't inherited into this nested .htaccess, so /charts needs its own (production only; staging has a single host).
-function getHostCanonicalizationRules(): string {
-    return `<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # Canonical host is www.ag-grid.com; the bare apex domain must not serve pages directly.
-    RewriteCond %{HTTP_HOST} ^ag-grid\\.com$ [NC]
-    RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI} [R=301,L]
-</IfModule>`;
+// Archived docs stay out of search: their HTML carries a noindex meta tag, which a markdown twin
+// cannot, so an archive build says it in a header instead. Keyed on the content type, so the twin
+// is covered whether it is requested by name or negotiated. Caching is the root .htaccess's: it
+// gives live markdown `no-cache` and archives their long cache, and this file sets no Cache-Control.
+function getArchiveMarkdownIndexingRules(): string {
+    if (!isArchiveBuild()) {
+        return '';
+    }
+    return `# Archived markdown twins are noindex, as the archived HTML is.
+Header set X-Robots-Tag "noindex" "expr=%{CONTENT_TYPE} =~ m#^text/markdown#"
+`;
 }
 
 function getCspContent(env: HtaccessEnv): string {
@@ -76,13 +78,48 @@ const dropArchiveOnlyRedirects = (redirects: Redirect[]) =>
         ? redirects.filter((redirect) => !(redirect as { skipForArchive?: true }).skipForArchive)
         : redirects;
 
-export function getRedirectRules() {
-    // Unlike mod_rewrite, mod_alias does not strip the directory prefix, so patterns must carry
-    // the base; rule definitions stay base-relative and it is spliced in here.
-    const basePath = (SITE_BASE_URL ?? '').replace(/\/$/, '');
-    const toBaseAwarePattern = (fromPattern: string) =>
-        fromPattern.startsWith('^') ? `^${basePath}${fromPattern.slice(1)}` : `${basePath}${fromPattern}`;
-    return `${dropArchiveOnlyRedirects(SITE_301_REDIRECTS)
+const CANONICAL_ORIGIN = 'https://www.ag-grid.com';
+
+// Every other host that reaches this docroot. Each must 301 to www rather than serve pages, which
+// would be duplicate content. Kept in step with the host rules in the grid root .htaccess, which
+// never runs for /charts: a child .htaccess with `RewriteEngine On` replaces its parent's rewrite
+// rules rather than inheriting them. An allowlist, not "anything but www", so that requests on a
+// host we don't own (origin health checks, a proxy's internal name) are served rather than looped.
+const NON_CANONICAL_HOSTS =
+    '^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$';
+
+function escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// The base as it appears in REQUEST_URI, with its archive version dots (14.2.0) made literal.
+const getBasePath = () => (SITE_BASE_URL ?? '').replace(/\/$/, '');
+const getBasePattern = () => escapeRegExp(getBasePath());
+
+// A per-directory RewriteRule pattern is matched against the path below the .htaccess directory -
+// the deployed base - so a base-relative rule pattern applies as-is once its leading slash goes.
+function toPerDirPattern(fromPattern: string): string {
+    if (!fromPattern.startsWith('^/')) {
+        throw new Error(`Redirect pattern must be anchored base-relative (^/…): ${fromPattern}`);
+    }
+    return `^${fromPattern.slice(2)}`;
+}
+
+// Matches the page exactly, with or without its trailing slash. A prefix match (mod_alias
+// `Redirect`) would also catch longer slugs, and append the remainder to the target.
+const toExactPagePattern = (from: string) => `^${escapeRegExp(from.replace(/^\/|\/$/g, ''))}/?$`;
+
+/**
+ * Every redirect is a mod_rewrite rule, so that one engine applies them in a known order, ahead of
+ * the host canonicalisation: a legacy URL on any host lands on its final www URL in one hop, where
+ * a mod_alias redirect would run only after the host redirect had already spent one.
+ *
+ * Production targets are absolute on the canonical origin. Staging has a single host, so its
+ * targets stay relative and it has no host or trailing-slash rules.
+ */
+export function getRedirectRules(env: HtaccessEnv = 'production') {
+    const origin = env === 'production' ? CANONICAL_ORIGIN : '';
+    const redirects = dropArchiveOnlyRedirects(SITE_301_REDIRECTS)
         .map((redirect) => {
             const { from, fromPattern, to, gone } = redirect as any;
             if (!from && !fromPattern) {
@@ -90,37 +127,86 @@ export function getRedirectRules() {
                 console.warn('Missing `from` in redirect', redirect);
                 return;
             }
+            const pattern = from ? toExactPagePattern(from) : toPerDirPattern(fromPattern);
             // 410 Gone: permanently removed, no target.
             if (gone) {
-                return from
-                    ? `Redirect 410 ${urlWithBaseUrl(from)}`
-                    : `RedirectMatch 410 "${toBaseAwarePattern(fromPattern)}"`;
+                return `    RewriteRule "${pattern}" - [G]`;
             }
             if (!to) {
                 // eslint-disable-next-line no-console
                 console.warn('Missing `to` in redirect', redirect);
                 return;
             }
-            if (from) {
-                return `Redirect 301 ${urlWithBaseUrl(from)} ${urlWithBaseUrl(to)}`;
-            }
-            return `RedirectMatch 301 "${toBaseAwarePattern(fromPattern)}" "${urlWithBaseUrl(to)}"`;
+            // [NE] keeps a fragment's `#` verbatim; otherwise it is escaped into a broken path.
+            const flags = to.includes('#') ? 'R=301,NE,L' : 'R=301,L';
+            return `    RewriteRule "${pattern}" "${origin}${urlWithBaseUrl(to)}" [${flags}]`;
         })
         .filter(Boolean)
-        .join('\n')}`;
+        .join('\n');
+
+    return `<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+${redirects}
+${env === 'production' ? getHostCanonicalizationRules() : ''}</IfModule>`;
+}
+
+// An archive deployed by an older generator has a child .htaccess with no rewrite directives, so
+// Apache runs this live file's rewrite rules for it. Its own mod_alias redirects run after them, so
+// a slash added here first would be a second hop, and would break a fragment target. Anchored on
+// `<base>/archive/`, so a live path that merely starts with `archive` keeps its slash. An archive
+// build has its own rewrite block, which replaces this file's, so it emits no exclusion.
+function getArchiveSlashExclusion(): string {
+    if (isArchiveBuild()) {
+        return '';
+    }
+    return `
+    # Not below an archive: one deployed without rewrite rules of its own runs these instead, and
+    # its own redirects must see the URL as requested.
+    RewriteCond %{REQUEST_URI} !^${getBasePattern()}/archive/`;
+}
+
+// Production only: the redirects above have already sent legacy URLs to their final page, so these
+// only add a missing trailing slash and swap the host - together, in one hop. Both use the full
+// REQUEST_URI, so an archived version keeps its own path.
+function getHostCanonicalizationRules(): string {
+    return `
+    # Without this, mod_rewrite skips the base directory's own slash-less URL and leaves it to
+    # mod_dir, whose slash redirect stays on the requesting host - a second hop from any other host.
+    RewriteOptions AllowNoSlash
+
+    # Every slash-less path goes straight to its slashed canonical URL, as on the grid root, rather
+    # than via mod_dir's slash redirect on the requesting host. That holds whether or not the path
+    # is a page: one that is not then 404s at the slashed URL. The exception is a path whose last
+    # segment has a dot, taken for a file unless it is a real directory (an archive version such as
+    # 14.2.0).
+    RewriteCond %{HTTP_HOST} ^www\\.ag-grid\\.com$ [NC,OR]
+    RewriteCond %{HTTP_HOST} ${NON_CANONICAL_HOSTS} [NC]
+    RewriteCond %{REQUEST_URI} /+[^.]+$ [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteCond %{REQUEST_URI} [^/]$${getArchiveSlashExclusion()}
+    RewriteRule ^ ${CANONICAL_ORIGIN}%{REQUEST_URI}/ [R=301,L]
+
+    # Canonical host is www.ag-grid.com; no other host may serve pages directly.
+    RewriteCond %{HTTP_HOST} ${NON_CANONICAL_HOSTS} [NC]
+    RewriteRule ^ ${CANONICAL_ORIGIN}%{REQUEST_URI} [R=301,L]
+`;
 }
 
 export function getMarkdownNegotiationRules() {
     // %1 must be document-root-relative for both the on-disk `-f` test and the rewrite target to
     // resolve, so the base is captured inside it rather than matched outside.
-    const basePath = (SITE_BASE_URL ?? '').replace(/\/$/, '');
-    const baseRelative = basePath.replace(/^\//, '');
-    const capturePrefix = baseRelative ? `${baseRelative}/` : '';
+    const basePath = getBasePath();
+    const basePattern = getBasePattern();
+    const capturePrefix = basePattern === '' ? '' : `${basePattern.slice(1)}/`;
     const pages = markdownPathAlternation();
     const negotiatedPath = `^/(${capturePrefix}(?:${pages}))/?$`;
-    // Must match negotiatedPath's shape exactly, or Vary: Accept lands on non-negotiating URLs
-    // and fragments shared caches.
-    const varyScope = `^${basePath}/(?:${pages})/?$`;
+    // Must match negotiatedPath's shape, or Vary: Accept lands on non-negotiating URLs and
+    // fragments shared caches. The HTML variant is served through mod_dir's DirectoryIndex, which
+    // has already rewritten REQUEST_URI to <page>/index.html by the time headers are set, so that
+    // form must match too - otherwise only the markdown variant carries Vary: Accept.
+    const varyScope = `^${basePattern}/(?:${pages})(?:/|/index\\.html)?$`;
+    const varyRootScope = `^${basePattern}(?:/|/index\\.html)?$`;
 
     // Serve the per-page markdown twin on Accept: text/markdown. An internal rewrite gated by an
     // on-disk check, so a path with no twin is left untouched.
@@ -135,7 +221,7 @@ export function getMarkdownNegotiationRules() {
     # The homepage twin (${basePath}/ -> ${basePath}/index.md). Handled separately because the
     # site root has no path segment to capture in %1; the pattern matches only the base root.
     RewriteCond %{HTTP_ACCEPT} text/markdown
-    RewriteCond %{REQUEST_URI} ^${basePath}/?$
+    RewriteCond %{REQUEST_URI} ^${basePattern}/?$
     RewriteCond %{DOCUMENT_ROOT}${basePath}/index.md -f
     RewriteRule ^ ${basePath}/index.md [L]
 </IfModule>
@@ -143,7 +229,7 @@ export function getMarkdownNegotiationRules() {
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths (incl. the homepage) so the rest of the site keeps
 # its default.
-<If "%{REQUEST_URI} =~ m#${varyScope}# || %{REQUEST_URI} =~ m#^${basePath}/?$#">
+<If "%{REQUEST_URI} =~ m#${varyScope}# || %{REQUEST_URI} =~ m#${varyRootScope}#">
     Header append Vary Accept
 </If>`;
 }

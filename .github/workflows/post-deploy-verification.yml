@@ -28,6 +28,7 @@ env:
     GIT_CONFIG_KEY_1: maintenance.auto
     GIT_CONFIG_VALUE_1: 'false'
     CI: true
+    IBM_TELEMETRY_DISABLED: 'true'
 
 concurrency:
     group: post-deploy-verification-${{ github.ref }}

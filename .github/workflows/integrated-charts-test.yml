@@ -23,6 +23,7 @@ env:
     SLACK_USERNAME: ag-charts CI
     SLACK_FOOTER: ''
     SLACK_CHANNEL: '#charts_teamcity_status'
+    IBM_TELEMETRY_DISABLED: 'true'
 
 permissions:
     contents: read

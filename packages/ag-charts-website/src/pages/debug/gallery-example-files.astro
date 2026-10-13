@@ -11,7 +11,7 @@ const exampleFiles = await getGalleryExampleFiles({
 ---
 
 <Layout title={`Debug: Gallery Example Files`}>
-    <main class="layout-page-max-width container">
+    <div class="layout-page-max-width container">
         <h1>Example files ({exampleFiles.length})</h1>
         <table>
             <thead>
@@ -42,7 +42,7 @@ const exampleFiles = await getGalleryExampleFiles({
                 }
             </tbody>
         </table>
-    </main>
+    </div>
 </Layout>
 
 <style lang="scss">

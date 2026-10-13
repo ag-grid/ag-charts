@@ -22,6 +22,7 @@ env:
     NX_BRANCH: ${{ github.ref }}
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: true
     DEPLOYMENT_APP_ID: 957224
+    IBM_TELEMETRY_DISABLED: 'true'
 
 permissions:
     contents: read

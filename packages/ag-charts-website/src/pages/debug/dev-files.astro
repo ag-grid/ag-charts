@@ -7,7 +7,7 @@ const devFiles = getDevFiles();
 ---
 
 <Layout title={`Debug: Dev Files`}>
-    <main class="layout-page-max-width container">
+    <div class="layout-page-max-width container">
         <h1>Dev files ({devFiles.length})</h1>
         <p><code>props.file</code> gets the file contents, but is not shown here.</p>
         <table>
@@ -39,7 +39,7 @@ const devFiles = getDevFiles();
                 }
             </tbody>
         </table>
-    </main>
+    </div>
 </Layout>
 
 <style lang="scss">

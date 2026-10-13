@@ -39,8 +39,105 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Canonical host is www.ag-grid.com; the bare apex domain must not serve pages directly.
-    RewriteCond %{HTTP_HOST} ^ag-grid\\.com$ [NC]
+    RewriteRule "^javascript/bullet-series/?$" "https://www.ag-grid.com/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^angular/bullet-series/?$" "https://www.ag-grid.com/charts/angular/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^react/bullet-series/?$" "https://www.ag-grid.com/charts/react/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^vue/bullet-series/?$" "https://www.ag-grid.com/charts/vue/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^javascript/fonts/?$" "https://www.ag-grid.com/charts/javascript/text/" [R=301,L]
+    RewriteRule "^angular/fonts/?$" "https://www.ag-grid.com/charts/angular/text/" [R=301,L]
+    RewriteRule "^react/fonts/?$" "https://www.ag-grid.com/charts/react/text/" [R=301,L]
+    RewriteRule "^vue/fonts/?$" "https://www.ag-grid.com/charts/vue/text/" [R=301,L]
+    RewriteRule "^javascript/?$" "https://www.ag-grid.com/charts/javascript/quick-start/" [R=301,L]
+    RewriteRule "^javascript/toolbar/?$" "https://www.ag-grid.com/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^react/toolbar/?$" "https://www.ag-grid.com/charts/react/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^react/line/?$" "https://www.ag-grid.com/charts/react/line-series/" [R=301,L]
+    RewriteRule "^sitemap\\.xml/?$" "https://www.ag-grid.com/charts/sitemap-0.xml" [R=301,L]
+    RewriteRule "^archive/?$" "https://www.ag-grid.com/charts/documentation-archive/" [R=301,L]
+    RewriteRule "^privacy(/.*)?$" - [G]
+    RewriteRule "^javascript-charts/javascript/bullet-series/?$" "https://www.ag-grid.com/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^javascript-charts/javascript/fonts/?$" "https://www.ag-grid.com/charts/javascript/text/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/toolbar/?$" "https://www.ag-grid.com/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/series(/.*)?$" "https://www.ag-grid.com/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/axes(/.*)?$" "https://www.ag-grid.com/charts/javascript/axes-configuration/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/javascript/$1" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/(.+?)/?$" "https://www.ag-grid.com/charts/javascript/$1/" [R=301,L]
+    RewriteRule "^angular-charts/angular/bullet-series/?$" "https://www.ag-grid.com/charts/angular/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^angular-charts/angular/fonts/?$" "https://www.ag-grid.com/charts/angular/text/" [R=301,L]
+    RewriteRule "^angular-charts/angular/series(/.*)?$" "https://www.ag-grid.com/charts/angular/bar-series/" [R=301,L]
+    RewriteRule "^angular-charts/angular/axes(/.*)?$" "https://www.ag-grid.com/charts/angular/axes-configuration/" [R=301,L]
+    RewriteRule "^angular-charts/angular/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/angular/$1" [R=301,L]
+    RewriteRule "^angular-charts/angular/(.+?)/?$" "https://www.ag-grid.com/charts/angular/$1/" [R=301,L]
+    RewriteRule "^react-charts/react/bullet-series/?$" "https://www.ag-grid.com/charts/react/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^react-charts/react/fonts/?$" "https://www.ag-grid.com/charts/react/text/" [R=301,L]
+    RewriteRule "^react-charts/react/toolbar/?$" "https://www.ag-grid.com/charts/react/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^react-charts/react/line/?$" "https://www.ag-grid.com/charts/react/line-series/" [R=301,L]
+    RewriteRule "^react-charts/react/series(/.*)?$" "https://www.ag-grid.com/charts/react/bar-series/" [R=301,L]
+    RewriteRule "^react-charts/react/axes(/.*)?$" "https://www.ag-grid.com/charts/react/axes-configuration/" [R=301,L]
+    RewriteRule "^react-charts/react/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/react/$1" [R=301,L]
+    RewriteRule "^react-charts/react/(.+?)/?$" "https://www.ag-grid.com/charts/react/$1/" [R=301,L]
+    RewriteRule "^vue-charts/vue/bullet-series/?$" "https://www.ag-grid.com/charts/vue/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^vue-charts/vue/fonts/?$" "https://www.ag-grid.com/charts/vue/text/" [R=301,L]
+    RewriteRule "^vue-charts/vue/series(/.*)?$" "https://www.ag-grid.com/charts/vue/bar-series/" [R=301,L]
+    RewriteRule "^vue-charts/vue/axes(/.*)?$" "https://www.ag-grid.com/charts/vue/axes-configuration/" [R=301,L]
+    RewriteRule "^vue-charts/vue/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/vue/$1" [R=301,L]
+    RewriteRule "^vue-charts/vue/(.+?)/?$" "https://www.ag-grid.com/charts/vue/$1/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/bullet-series/?$" "https://www.ag-grid.com/charts/react/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^enterprise-charts/react/fonts/?$" "https://www.ag-grid.com/charts/react/text/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/toolbar/?$" "https://www.ag-grid.com/charts/react/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/line/?$" "https://www.ag-grid.com/charts/react/line-series/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/series(/.*)?$" "https://www.ag-grid.com/charts/react/bar-series/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/axes(/.*)?$" "https://www.ag-grid.com/charts/react/axes-configuration/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/react/$1" [R=301,L]
+    RewriteRule "^enterprise-charts/react/(.+?)/?$" "https://www.ag-grid.com/charts/react/$1/" [R=301,L]
+    RewriteRule "^[a-z]+-charts/gallery(/.*)?$" "https://www.ag-grid.com/charts/gallery/" [R=301,L]
+    RewriteRule "^[a-z]+-charts/options(/.*)?$" "https://www.ag-grid.com/charts/options/" [R=301,L]
+    RewriteRule "^enterprise-charts/(?!index\\.html$).+$" "https://www.ag-grid.com/charts/enterprise-charts/" [R=301,L]
+    RewriteRule "^(?:core|side)/?$" "https://www.ag-grid.com/charts/javascript/quick-start/" [R=301,L]
+    RewriteRule "^core/bullet-series/?$" "https://www.ag-grid.com/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^core/fonts/?$" "https://www.ag-grid.com/charts/javascript/text/" [R=301,L]
+    RewriteRule "^core/toolbar/?$" "https://www.ag-grid.com/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^core/series(/.*)?$" "https://www.ag-grid.com/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^core/axes(/.*)?$" "https://www.ag-grid.com/charts/javascript/axes-configuration/" [R=301,L]
+    RewriteRule "^core/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/javascript/$1" [R=301,L]
+    RewriteRule "^core/(.+?)/?$" "https://www.ag-grid.com/charts/javascript/$1/" [R=301,L]
+    RewriteRule "^side/bullet-series/?$" "https://www.ag-grid.com/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^side/fonts/?$" "https://www.ag-grid.com/charts/javascript/text/" [R=301,L]
+    RewriteRule "^side/toolbar/?$" "https://www.ag-grid.com/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^side/series(/.*)?$" "https://www.ag-grid.com/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^side/axes(/.*)?$" "https://www.ag-grid.com/charts/javascript/axes-configuration/" [R=301,L]
+    RewriteRule "^side/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/javascript/$1" [R=301,L]
+    RewriteRule "^side/(.+?)/?$" "https://www.ag-grid.com/charts/javascript/$1/" [R=301,L]
+    RewriteRule "^server-side-rendering(/.*)?$" "https://www.ag-grid.com/charts/javascript/server-side-rendering/" [R=301,L]
+    RewriteRule "^react/series(/.*)?$" "https://www.ag-grid.com/charts/react/bar-series/" [R=301,L]
+    RewriteRule "^angular/series(/.*)?$" "https://www.ag-grid.com/charts/angular/bar-series/" [R=301,L]
+    RewriteRule "^vue/series(/.*)?$" "https://www.ag-grid.com/charts/vue/bar-series/" [R=301,L]
+    RewriteRule "^javascript/series(/.*)?$" "https://www.ag-grid.com/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^react/axes(/.*)?$" "https://www.ag-grid.com/charts/react/axes-configuration/" [R=301,L]
+    RewriteRule "^angular/axes(/.*)?$" "https://www.ag-grid.com/charts/angular/axes-configuration/" [R=301,L]
+    RewriteRule "^vue/axes(/.*)?$" "https://www.ag-grid.com/charts/vue/axes-configuration/" [R=301,L]
+    RewriteRule "^javascript/axes(/.*)?$" "https://www.ag-grid.com/charts/javascript/axes-configuration/" [R=301,L]
+
+    # Without this, mod_rewrite skips the base directory's own slash-less URL and leaves it to
+    # mod_dir, whose slash redirect stays on the requesting host - a second hop from any other host.
+    RewriteOptions AllowNoSlash
+
+    # Every slash-less path goes straight to its slashed canonical URL, as on the grid root, rather
+    # than via mod_dir's slash redirect on the requesting host. That holds whether or not the path
+    # is a page: one that is not then 404s at the slashed URL. The exception is a path whose last
+    # segment has a dot, taken for a file unless it is a real directory (an archive version such as
+    # 14.2.0).
+    RewriteCond %{HTTP_HOST} ^www\\.ag-grid\\.com$ [NC,OR]
+    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$ [NC]
+    RewriteCond %{REQUEST_URI} /+[^.]+$ [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteCond %{REQUEST_URI} [^/]$
+    # Not below an archive: one deployed without rewrite rules of its own runs these instead, and
+    # its own redirects must see the URL as requested.
+    RewriteCond %{REQUEST_URI} !^/charts/archive/
+    RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI}/ [R=301,L]
+
+    # Canonical host is www.ag-grid.com; no other host may serve pages directly.
+    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$ [NC]
     RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI} [R=301,L]
 </IfModule>
 
@@ -63,72 +160,119 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths (incl. the homepage) so the rest of the site keeps
 # its default.
-<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|(?:react|angular|vue)|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
+<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|(?:react|angular|vue)|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?)(?:/|/index\\.html)?$# || %{REQUEST_URI} =~ m#^/charts(?:/|/index\\.html)?$#">
     Header append Vary Accept
 </If>
-
-Redirect 301 /charts/javascript/bullet-series /charts/javascript/linear-gauge/#bullet-series
-Redirect 301 /charts/angular/bullet-series /charts/angular/linear-gauge/#bullet-series
-Redirect 301 /charts/react/bullet-series /charts/react/linear-gauge/#bullet-series
-Redirect 301 /charts/vue/bullet-series /charts/vue/linear-gauge/#bullet-series
-Redirect 301 /charts/javascript/fonts /charts/javascript/text/
-Redirect 301 /charts/angular/fonts /charts/angular/text/
-Redirect 301 /charts/react/fonts /charts/react/text/
-Redirect 301 /charts/vue/fonts /charts/vue/text/
-RedirectMatch 301 "^/charts/javascript/?$" "/charts/javascript/quick-start/"
-Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-toolbar/
-Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
-Redirect 301 /charts/react/line/ /charts/react/line-series/
-Redirect 301 /charts/sitemap.xml /charts/sitemap-0.xml
-RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
-RedirectMatch 410 "^/charts/privacy(/.*)?$"
-RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
-RedirectMatch 301 "^/charts/angular-charts/angular/(.+)$" "/charts/angular/$1"
-RedirectMatch 301 "^/charts/react-charts/react/(.+)$" "/charts/react/$1"
-RedirectMatch 301 "^/charts/vue-charts/vue/(.+)$" "/charts/vue/$1"
-RedirectMatch 301 "^/charts/enterprise-charts/react/(.+)$" "/charts/react/$1"
-RedirectMatch 301 "^/charts/[a-z]+-charts/gallery(/.*)?$" "/charts/gallery/"
-RedirectMatch 301 "^/charts/[a-z]+-charts/options(/.*)?$" "/charts/options/"
-RedirectMatch 301 "^/charts/enterprise-charts/(?!index\\.html$).+$" "/charts/enterprise-charts/"
-RedirectMatch 301 "^/charts/core/(.*)" "/charts/javascript/$1"
-RedirectMatch 301 "^/charts/side/(.*)" "/charts/javascript/$1"
-RedirectMatch 301 "^/charts/server-side-rendering(/.*)?$" "/charts/javascript/server-side-rendering/"
-RedirectMatch 301 "^/charts/(javascript|angular|react|vue)/series(/.*)?$" "/charts/$1/bar-series/"
-RedirectMatch 301 "^/charts/(javascript|angular|react|vue)/axes(/.*)?$" "/charts/$1/axes-configuration/"
 
 Options -Indexes
 "
 `;
 
 exports[`generated redirect rules snapshot > redirect rules output is unchanged 1`] = `
-"Redirect 301 /charts/javascript/bullet-series /charts/javascript/linear-gauge/#bullet-series
-Redirect 301 /charts/angular/bullet-series /charts/angular/linear-gauge/#bullet-series
-Redirect 301 /charts/react/bullet-series /charts/react/linear-gauge/#bullet-series
-Redirect 301 /charts/vue/bullet-series /charts/vue/linear-gauge/#bullet-series
-Redirect 301 /charts/javascript/fonts /charts/javascript/text/
-Redirect 301 /charts/angular/fonts /charts/angular/text/
-Redirect 301 /charts/react/fonts /charts/react/text/
-Redirect 301 /charts/vue/fonts /charts/vue/text/
-RedirectMatch 301 "^/charts/javascript/?$" "/charts/javascript/quick-start/"
-Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-toolbar/
-Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
-Redirect 301 /charts/react/line/ /charts/react/line-series/
-Redirect 301 /charts/sitemap.xml /charts/sitemap-0.xml
-RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
-RedirectMatch 410 "^/charts/privacy(/.*)?$"
-RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
-RedirectMatch 301 "^/charts/angular-charts/angular/(.+)$" "/charts/angular/$1"
-RedirectMatch 301 "^/charts/react-charts/react/(.+)$" "/charts/react/$1"
-RedirectMatch 301 "^/charts/vue-charts/vue/(.+)$" "/charts/vue/$1"
-RedirectMatch 301 "^/charts/enterprise-charts/react/(.+)$" "/charts/react/$1"
-RedirectMatch 301 "^/charts/[a-z]+-charts/gallery(/.*)?$" "/charts/gallery/"
-RedirectMatch 301 "^/charts/[a-z]+-charts/options(/.*)?$" "/charts/options/"
-RedirectMatch 301 "^/charts/enterprise-charts/(?!index\\.html$).+$" "/charts/enterprise-charts/"
-RedirectMatch 301 "^/charts/core/(.*)" "/charts/javascript/$1"
-RedirectMatch 301 "^/charts/side/(.*)" "/charts/javascript/$1"
-RedirectMatch 301 "^/charts/server-side-rendering(/.*)?$" "/charts/javascript/server-side-rendering/"
-RedirectMatch 301 "^/charts/(javascript|angular|react|vue)/series(/.*)?$" "/charts/$1/bar-series/"
-RedirectMatch 301 "^/charts/(javascript|angular|react|vue)/axes(/.*)?$" "/charts/$1/axes-configuration/""
+"<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteRule "^javascript/bullet-series/?$" "https://www.ag-grid.com/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^angular/bullet-series/?$" "https://www.ag-grid.com/charts/angular/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^react/bullet-series/?$" "https://www.ag-grid.com/charts/react/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^vue/bullet-series/?$" "https://www.ag-grid.com/charts/vue/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^javascript/fonts/?$" "https://www.ag-grid.com/charts/javascript/text/" [R=301,L]
+    RewriteRule "^angular/fonts/?$" "https://www.ag-grid.com/charts/angular/text/" [R=301,L]
+    RewriteRule "^react/fonts/?$" "https://www.ag-grid.com/charts/react/text/" [R=301,L]
+    RewriteRule "^vue/fonts/?$" "https://www.ag-grid.com/charts/vue/text/" [R=301,L]
+    RewriteRule "^javascript/?$" "https://www.ag-grid.com/charts/javascript/quick-start/" [R=301,L]
+    RewriteRule "^javascript/toolbar/?$" "https://www.ag-grid.com/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^react/toolbar/?$" "https://www.ag-grid.com/charts/react/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^react/line/?$" "https://www.ag-grid.com/charts/react/line-series/" [R=301,L]
+    RewriteRule "^sitemap\\.xml/?$" "https://www.ag-grid.com/charts/sitemap-0.xml" [R=301,L]
+    RewriteRule "^archive/?$" "https://www.ag-grid.com/charts/documentation-archive/" [R=301,L]
+    RewriteRule "^privacy(/.*)?$" - [G]
+    RewriteRule "^javascript-charts/javascript/bullet-series/?$" "https://www.ag-grid.com/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^javascript-charts/javascript/fonts/?$" "https://www.ag-grid.com/charts/javascript/text/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/toolbar/?$" "https://www.ag-grid.com/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/series(/.*)?$" "https://www.ag-grid.com/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/axes(/.*)?$" "https://www.ag-grid.com/charts/javascript/axes-configuration/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/javascript/$1" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/(.+?)/?$" "https://www.ag-grid.com/charts/javascript/$1/" [R=301,L]
+    RewriteRule "^angular-charts/angular/bullet-series/?$" "https://www.ag-grid.com/charts/angular/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^angular-charts/angular/fonts/?$" "https://www.ag-grid.com/charts/angular/text/" [R=301,L]
+    RewriteRule "^angular-charts/angular/series(/.*)?$" "https://www.ag-grid.com/charts/angular/bar-series/" [R=301,L]
+    RewriteRule "^angular-charts/angular/axes(/.*)?$" "https://www.ag-grid.com/charts/angular/axes-configuration/" [R=301,L]
+    RewriteRule "^angular-charts/angular/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/angular/$1" [R=301,L]
+    RewriteRule "^angular-charts/angular/(.+?)/?$" "https://www.ag-grid.com/charts/angular/$1/" [R=301,L]
+    RewriteRule "^react-charts/react/bullet-series/?$" "https://www.ag-grid.com/charts/react/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^react-charts/react/fonts/?$" "https://www.ag-grid.com/charts/react/text/" [R=301,L]
+    RewriteRule "^react-charts/react/toolbar/?$" "https://www.ag-grid.com/charts/react/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^react-charts/react/line/?$" "https://www.ag-grid.com/charts/react/line-series/" [R=301,L]
+    RewriteRule "^react-charts/react/series(/.*)?$" "https://www.ag-grid.com/charts/react/bar-series/" [R=301,L]
+    RewriteRule "^react-charts/react/axes(/.*)?$" "https://www.ag-grid.com/charts/react/axes-configuration/" [R=301,L]
+    RewriteRule "^react-charts/react/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/react/$1" [R=301,L]
+    RewriteRule "^react-charts/react/(.+?)/?$" "https://www.ag-grid.com/charts/react/$1/" [R=301,L]
+    RewriteRule "^vue-charts/vue/bullet-series/?$" "https://www.ag-grid.com/charts/vue/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^vue-charts/vue/fonts/?$" "https://www.ag-grid.com/charts/vue/text/" [R=301,L]
+    RewriteRule "^vue-charts/vue/series(/.*)?$" "https://www.ag-grid.com/charts/vue/bar-series/" [R=301,L]
+    RewriteRule "^vue-charts/vue/axes(/.*)?$" "https://www.ag-grid.com/charts/vue/axes-configuration/" [R=301,L]
+    RewriteRule "^vue-charts/vue/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/vue/$1" [R=301,L]
+    RewriteRule "^vue-charts/vue/(.+?)/?$" "https://www.ag-grid.com/charts/vue/$1/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/bullet-series/?$" "https://www.ag-grid.com/charts/react/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^enterprise-charts/react/fonts/?$" "https://www.ag-grid.com/charts/react/text/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/toolbar/?$" "https://www.ag-grid.com/charts/react/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/line/?$" "https://www.ag-grid.com/charts/react/line-series/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/series(/.*)?$" "https://www.ag-grid.com/charts/react/bar-series/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/axes(/.*)?$" "https://www.ag-grid.com/charts/react/axes-configuration/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/react/$1" [R=301,L]
+    RewriteRule "^enterprise-charts/react/(.+?)/?$" "https://www.ag-grid.com/charts/react/$1/" [R=301,L]
+    RewriteRule "^[a-z]+-charts/gallery(/.*)?$" "https://www.ag-grid.com/charts/gallery/" [R=301,L]
+    RewriteRule "^[a-z]+-charts/options(/.*)?$" "https://www.ag-grid.com/charts/options/" [R=301,L]
+    RewriteRule "^enterprise-charts/(?!index\\.html$).+$" "https://www.ag-grid.com/charts/enterprise-charts/" [R=301,L]
+    RewriteRule "^(?:core|side)/?$" "https://www.ag-grid.com/charts/javascript/quick-start/" [R=301,L]
+    RewriteRule "^core/bullet-series/?$" "https://www.ag-grid.com/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^core/fonts/?$" "https://www.ag-grid.com/charts/javascript/text/" [R=301,L]
+    RewriteRule "^core/toolbar/?$" "https://www.ag-grid.com/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^core/series(/.*)?$" "https://www.ag-grid.com/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^core/axes(/.*)?$" "https://www.ag-grid.com/charts/javascript/axes-configuration/" [R=301,L]
+    RewriteRule "^core/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/javascript/$1" [R=301,L]
+    RewriteRule "^core/(.+?)/?$" "https://www.ag-grid.com/charts/javascript/$1/" [R=301,L]
+    RewriteRule "^side/bullet-series/?$" "https://www.ag-grid.com/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^side/fonts/?$" "https://www.ag-grid.com/charts/javascript/text/" [R=301,L]
+    RewriteRule "^side/toolbar/?$" "https://www.ag-grid.com/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^side/series(/.*)?$" "https://www.ag-grid.com/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^side/axes(/.*)?$" "https://www.ag-grid.com/charts/javascript/axes-configuration/" [R=301,L]
+    RewriteRule "^side/(.*\\.[^/]*)$" "https://www.ag-grid.com/charts/javascript/$1" [R=301,L]
+    RewriteRule "^side/(.+?)/?$" "https://www.ag-grid.com/charts/javascript/$1/" [R=301,L]
+    RewriteRule "^server-side-rendering(/.*)?$" "https://www.ag-grid.com/charts/javascript/server-side-rendering/" [R=301,L]
+    RewriteRule "^react/series(/.*)?$" "https://www.ag-grid.com/charts/react/bar-series/" [R=301,L]
+    RewriteRule "^angular/series(/.*)?$" "https://www.ag-grid.com/charts/angular/bar-series/" [R=301,L]
+    RewriteRule "^vue/series(/.*)?$" "https://www.ag-grid.com/charts/vue/bar-series/" [R=301,L]
+    RewriteRule "^javascript/series(/.*)?$" "https://www.ag-grid.com/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^react/axes(/.*)?$" "https://www.ag-grid.com/charts/react/axes-configuration/" [R=301,L]
+    RewriteRule "^angular/axes(/.*)?$" "https://www.ag-grid.com/charts/angular/axes-configuration/" [R=301,L]
+    RewriteRule "^vue/axes(/.*)?$" "https://www.ag-grid.com/charts/vue/axes-configuration/" [R=301,L]
+    RewriteRule "^javascript/axes(/.*)?$" "https://www.ag-grid.com/charts/javascript/axes-configuration/" [R=301,L]
+
+    # Without this, mod_rewrite skips the base directory's own slash-less URL and leaves it to
+    # mod_dir, whose slash redirect stays on the requesting host - a second hop from any other host.
+    RewriteOptions AllowNoSlash
+
+    # Every slash-less path goes straight to its slashed canonical URL, as on the grid root, rather
+    # than via mod_dir's slash redirect on the requesting host. That holds whether or not the path
+    # is a page: one that is not then 404s at the slashed URL. The exception is a path whose last
+    # segment has a dot, taken for a file unless it is a real directory (an archive version such as
+    # 14.2.0).
+    RewriteCond %{HTTP_HOST} ^www\\.ag-grid\\.com$ [NC,OR]
+    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$ [NC]
+    RewriteCond %{REQUEST_URI} /+[^.]+$ [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteCond %{REQUEST_URI} [^/]$
+    # Not below an archive: one deployed without rewrite rules of its own runs these instead, and
+    # its own redirects must see the URL as requested.
+    RewriteCond %{REQUEST_URI} !^/charts/archive/
+    RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI}/ [R=301,L]
+
+    # Canonical host is www.ag-grid.com; no other host may serve pages directly.
+    RewriteCond %{HTTP_HOST} ^(?:ag-grid\\.com|(?:blog|angulargrid|angular-grid|javascript-grid|react-grid)\\.ag-grid\\.com|(?:www\\.)?angulargrid\\.com)$ [NC]
+    RewriteRule ^ https://www.ag-grid.com%{REQUEST_URI} [R=301,L]
+</IfModule>"
 `;
 
 exports[`generated redirect rules snapshot > staging .htaccess is unchanged 1`] = `
@@ -170,6 +314,88 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
+    RewriteRule "^javascript/bullet-series/?$" "/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^angular/bullet-series/?$" "/charts/angular/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^react/bullet-series/?$" "/charts/react/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^vue/bullet-series/?$" "/charts/vue/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^javascript/fonts/?$" "/charts/javascript/text/" [R=301,L]
+    RewriteRule "^angular/fonts/?$" "/charts/angular/text/" [R=301,L]
+    RewriteRule "^react/fonts/?$" "/charts/react/text/" [R=301,L]
+    RewriteRule "^vue/fonts/?$" "/charts/vue/text/" [R=301,L]
+    RewriteRule "^javascript/?$" "/charts/javascript/quick-start/" [R=301,L]
+    RewriteRule "^javascript/toolbar/?$" "/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^react/toolbar/?$" "/charts/react/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^react/line/?$" "/charts/react/line-series/" [R=301,L]
+    RewriteRule "^sitemap\\.xml/?$" "/charts/sitemap-0.xml" [R=301,L]
+    RewriteRule "^archive/?$" "/charts/documentation-archive/" [R=301,L]
+    RewriteRule "^privacy(/.*)?$" - [G]
+    RewriteRule "^javascript-charts/javascript/bullet-series/?$" "/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^javascript-charts/javascript/fonts/?$" "/charts/javascript/text/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/toolbar/?$" "/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/series(/.*)?$" "/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/axes(/.*)?$" "/charts/javascript/axes-configuration/" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/(.*\\.[^/]*)$" "/charts/javascript/$1" [R=301,L]
+    RewriteRule "^javascript-charts/javascript/(.+?)/?$" "/charts/javascript/$1/" [R=301,L]
+    RewriteRule "^angular-charts/angular/bullet-series/?$" "/charts/angular/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^angular-charts/angular/fonts/?$" "/charts/angular/text/" [R=301,L]
+    RewriteRule "^angular-charts/angular/series(/.*)?$" "/charts/angular/bar-series/" [R=301,L]
+    RewriteRule "^angular-charts/angular/axes(/.*)?$" "/charts/angular/axes-configuration/" [R=301,L]
+    RewriteRule "^angular-charts/angular/(.*\\.[^/]*)$" "/charts/angular/$1" [R=301,L]
+    RewriteRule "^angular-charts/angular/(.+?)/?$" "/charts/angular/$1/" [R=301,L]
+    RewriteRule "^react-charts/react/bullet-series/?$" "/charts/react/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^react-charts/react/fonts/?$" "/charts/react/text/" [R=301,L]
+    RewriteRule "^react-charts/react/toolbar/?$" "/charts/react/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^react-charts/react/line/?$" "/charts/react/line-series/" [R=301,L]
+    RewriteRule "^react-charts/react/series(/.*)?$" "/charts/react/bar-series/" [R=301,L]
+    RewriteRule "^react-charts/react/axes(/.*)?$" "/charts/react/axes-configuration/" [R=301,L]
+    RewriteRule "^react-charts/react/(.*\\.[^/]*)$" "/charts/react/$1" [R=301,L]
+    RewriteRule "^react-charts/react/(.+?)/?$" "/charts/react/$1/" [R=301,L]
+    RewriteRule "^vue-charts/vue/bullet-series/?$" "/charts/vue/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^vue-charts/vue/fonts/?$" "/charts/vue/text/" [R=301,L]
+    RewriteRule "^vue-charts/vue/series(/.*)?$" "/charts/vue/bar-series/" [R=301,L]
+    RewriteRule "^vue-charts/vue/axes(/.*)?$" "/charts/vue/axes-configuration/" [R=301,L]
+    RewriteRule "^vue-charts/vue/(.*\\.[^/]*)$" "/charts/vue/$1" [R=301,L]
+    RewriteRule "^vue-charts/vue/(.+?)/?$" "/charts/vue/$1/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/bullet-series/?$" "/charts/react/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^enterprise-charts/react/fonts/?$" "/charts/react/text/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/toolbar/?$" "/charts/react/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/line/?$" "/charts/react/line-series/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/series(/.*)?$" "/charts/react/bar-series/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/axes(/.*)?$" "/charts/react/axes-configuration/" [R=301,L]
+    RewriteRule "^enterprise-charts/react/(.*\\.[^/]*)$" "/charts/react/$1" [R=301,L]
+    RewriteRule "^enterprise-charts/react/(.+?)/?$" "/charts/react/$1/" [R=301,L]
+    RewriteRule "^[a-z]+-charts/gallery(/.*)?$" "/charts/gallery/" [R=301,L]
+    RewriteRule "^[a-z]+-charts/options(/.*)?$" "/charts/options/" [R=301,L]
+    RewriteRule "^enterprise-charts/(?!index\\.html$).+$" "/charts/enterprise-charts/" [R=301,L]
+    RewriteRule "^(?:core|side)/?$" "/charts/javascript/quick-start/" [R=301,L]
+    RewriteRule "^core/bullet-series/?$" "/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^core/fonts/?$" "/charts/javascript/text/" [R=301,L]
+    RewriteRule "^core/toolbar/?$" "/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^core/series(/.*)?$" "/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^core/axes(/.*)?$" "/charts/javascript/axes-configuration/" [R=301,L]
+    RewriteRule "^core/(.*\\.[^/]*)$" "/charts/javascript/$1" [R=301,L]
+    RewriteRule "^core/(.+?)/?$" "/charts/javascript/$1/" [R=301,L]
+    RewriteRule "^side/bullet-series/?$" "/charts/javascript/linear-gauge/#bullet-series" [R=301,NE,L]
+    RewriteRule "^side/fonts/?$" "/charts/javascript/text/" [R=301,L]
+    RewriteRule "^side/toolbar/?$" "/charts/javascript/financial-charts-toolbar/" [R=301,L]
+    RewriteRule "^side/series(/.*)?$" "/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^side/axes(/.*)?$" "/charts/javascript/axes-configuration/" [R=301,L]
+    RewriteRule "^side/(.*\\.[^/]*)$" "/charts/javascript/$1" [R=301,L]
+    RewriteRule "^side/(.+?)/?$" "/charts/javascript/$1/" [R=301,L]
+    RewriteRule "^server-side-rendering(/.*)?$" "/charts/javascript/server-side-rendering/" [R=301,L]
+    RewriteRule "^react/series(/.*)?$" "/charts/react/bar-series/" [R=301,L]
+    RewriteRule "^angular/series(/.*)?$" "/charts/angular/bar-series/" [R=301,L]
+    RewriteRule "^vue/series(/.*)?$" "/charts/vue/bar-series/" [R=301,L]
+    RewriteRule "^javascript/series(/.*)?$" "/charts/javascript/bar-series/" [R=301,L]
+    RewriteRule "^react/axes(/.*)?$" "/charts/react/axes-configuration/" [R=301,L]
+    RewriteRule "^angular/axes(/.*)?$" "/charts/angular/axes-configuration/" [R=301,L]
+    RewriteRule "^vue/axes(/.*)?$" "/charts/vue/axes-configuration/" [R=301,L]
+    RewriteRule "^javascript/axes(/.*)?$" "/charts/javascript/axes-configuration/" [R=301,L]
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
     RewriteCond %{HTTP_ACCEPT} text/markdown
     RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/.]+|(?:react|angular|vue)|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?))/?$
     RewriteCond %{DOCUMENT_ROOT}/%1.md -f
@@ -186,38 +412,9 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths (incl. the homepage) so the rest of the site keeps
 # its default.
-<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|(?:react|angular|vue)|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
+<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|(?:react|angular|vue)|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|examples(?:-[^/.]+)?|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts|options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?|themes-api(?:/overrides/[^/.]+)?)(?:/|/index\\.html)?$# || %{REQUEST_URI} =~ m#^/charts(?:/|/index\\.html)?$#">
     Header append Vary Accept
 </If>
-
-Redirect 301 /charts/javascript/bullet-series /charts/javascript/linear-gauge/#bullet-series
-Redirect 301 /charts/angular/bullet-series /charts/angular/linear-gauge/#bullet-series
-Redirect 301 /charts/react/bullet-series /charts/react/linear-gauge/#bullet-series
-Redirect 301 /charts/vue/bullet-series /charts/vue/linear-gauge/#bullet-series
-Redirect 301 /charts/javascript/fonts /charts/javascript/text/
-Redirect 301 /charts/angular/fonts /charts/angular/text/
-Redirect 301 /charts/react/fonts /charts/react/text/
-Redirect 301 /charts/vue/fonts /charts/vue/text/
-RedirectMatch 301 "^/charts/javascript/?$" "/charts/javascript/quick-start/"
-Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-toolbar/
-Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
-Redirect 301 /charts/react/line/ /charts/react/line-series/
-Redirect 301 /charts/sitemap.xml /charts/sitemap-0.xml
-RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
-RedirectMatch 410 "^/charts/privacy(/.*)?$"
-RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
-RedirectMatch 301 "^/charts/angular-charts/angular/(.+)$" "/charts/angular/$1"
-RedirectMatch 301 "^/charts/react-charts/react/(.+)$" "/charts/react/$1"
-RedirectMatch 301 "^/charts/vue-charts/vue/(.+)$" "/charts/vue/$1"
-RedirectMatch 301 "^/charts/enterprise-charts/react/(.+)$" "/charts/react/$1"
-RedirectMatch 301 "^/charts/[a-z]+-charts/gallery(/.*)?$" "/charts/gallery/"
-RedirectMatch 301 "^/charts/[a-z]+-charts/options(/.*)?$" "/charts/options/"
-RedirectMatch 301 "^/charts/enterprise-charts/(?!index\\.html$).+$" "/charts/enterprise-charts/"
-RedirectMatch 301 "^/charts/core/(.*)" "/charts/javascript/$1"
-RedirectMatch 301 "^/charts/side/(.*)" "/charts/javascript/$1"
-RedirectMatch 301 "^/charts/server-side-rendering(/.*)?$" "/charts/javascript/server-side-rendering/"
-RedirectMatch 301 "^/charts/(javascript|angular|react|vue)/series(/.*)?$" "/charts/$1/bar-series/"
-RedirectMatch 301 "^/charts/(javascript|angular|react|vue)/axes(/.*)?$" "/charts/$1/axes-configuration/"
 
 Options -Indexes
 "
