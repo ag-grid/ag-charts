@@ -552,7 +552,11 @@ export abstract class AbstractNetworkSeries<
         const scale = this.getHeldScale();
         if (!scale) return;
 
-        if (this.refitPending && !this.pendingView && !this.zoomRestored) {
+        // Spent here rather than on return, so an update that needs no corrective zoom still consumes them.
+        const refit = this.refitPending && !this.pendingView && !this.zoomRestored;
+        this.refitPending = false;
+        this.zoomRestored = false;
+        if (refit) {
             return this.getFittedZoom(padded);
         }
 
@@ -748,8 +752,6 @@ export abstract class AbstractNetworkSeries<
         if (this.getPendingVertex()) {
             this.pendingView = undefined;
         }
-        this.refitPending = false;
-        this.zoomRestored = false;
         this.hasCentredContent = true;
         this.ctx.zoomManager?.updateZoom(
             { source: 'chart-update', sourceDetail: 'internal-networkSeriesFocusChange' },

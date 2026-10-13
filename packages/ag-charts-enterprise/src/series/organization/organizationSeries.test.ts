@@ -3763,6 +3763,28 @@ describe('OrganizationSeries', () => {
             );
         });
 
+        it('should fit and centre on an options change that follows a zoom-only restore', async () => {
+            await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
+
+            await chart.setState({
+                version: '13.3.0',
+                zoom: { ratioX: { start: 0.1, end: 0.4 }, ratioY: { start: 0.1, end: 0.4 } },
+            });
+            await waitForChartStability(chart);
+            const restored = getView(chart);
+
+            const change = { node: { ...getOrganizationSeries(TEAM_DIRECTORY_ORG_CHART).node, fill: '#fff1e5' } };
+            const target = withSeries(TEAM_DIRECTORY_ORG_CHART, change);
+            prepareEnterpriseTestOptions(target);
+            await chart.update(target);
+            await waitForChartStability(chart);
+
+            await compare();
+            const refitted = getView(chart);
+            expect(refitted.zoom).not.toEqual(restored.zoom);
+            expect(refitted).toEqual(await getFreshView(withSeries(TEAM_DIRECTORY_ORG_CHART, change)));
+        });
+
         it('should keep the zoom a state restores alongside a collapsed change', async () => {
             await createChart({ ...TEAM_DIRECTORY_ORG_CHART });
 
