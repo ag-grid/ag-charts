@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { LinearScale, OrdinalTimeScale } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
+import { NiceMode } from './axisUtil';
 import { estimateScaleTickCount, generateTicks } from './generateTicks';
 import { withTemporaryDomain } from './generateTicksUtils';
 
@@ -85,6 +86,103 @@ describe('withTemporaryDomain on an ordinal-time scale', () => {
         expect(scale.domain).toBe(domain);
         expect(scale.bands).toBe(bands);
         expect((scale as any).numericBands).toBe(numericBands);
+    });
+});
+
+// A full tick-generation pass swaps the nice domain in more than once (raw ticks, then formatting); the
+// original domain's band arrays must be the same objects afterwards, and the ticks must not depend on them.
+describe('generateTicks on an ordinal-time scale', () => {
+    class RecordingScale extends OrdinalTimeScale {
+        readonly swaps: Date[][] = [];
+        override restoreDomain(snapshot: Date[]) {
+            if (snapshot !== this.domain) this.swaps.push(this.domain);
+            super.restoreDomain(snapshot);
+        }
+    }
+
+    function run(scale: OrdinalTimeScale, tickDomain: Date[], niceMode: NiceMode[]) {
+        return generateTicks({
+            label: { enabled: true, fontSize: 12, avoidCollisions: true, autoRotate: false } as any,
+            parallel: true,
+            axisRotation: Math.PI / -2,
+            scale,
+            domain: tickDomain,
+            range: [0, 800],
+            visibleRange: [0, 1],
+            niceMode,
+            reverse: false,
+            primaryTickCount: undefined,
+            defaultTickMinSpacing: 50,
+            labelOffset: 0,
+            sideFlag: -1,
+            interval: undefined,
+            tickFormatter: () => (value: any) => (value instanceof Date ? value.toISOString() : String(value)),
+        } as any);
+    }
+
+    function create(domain: Date[]) {
+        const scale = new RecordingScale();
+        scale.domain = domain;
+        scale.range = [0, 800];
+        return scale;
+    }
+
+    // The scale holds the full domain while ticks are generated over a narrower one, as when the axis lays
+    // ticks out for a domain other than the one its scale last had set.
+    const domain = Array.from({ length: 20_000 }, (_, i) => new Date(2023, 0, 1, 0, i * 3 + 1));
+    const tickDomain = domain.slice(2_000, 18_000);
+    const numericBandsOf = (scale: OrdinalTimeScale) => (scale as any).numericBands as number[];
+
+    it.each([
+        ['nice domain', [NiceMode.TickAndDomain]],
+        ['ticks only', [NiceMode.TicksOnly]],
+        ['no nice mode', []],
+    ])('leaves the band arrays of the original domain untouched (%s)', (_name, niceMode) => {
+        const scale = create(domain);
+        const { bands } = scale;
+        const numericBands = numericBandsOf(scale);
+
+        run(scale, tickDomain, niceMode);
+
+        expect(scale.domain).toBe(domain);
+        expect(scale.bands).toBe(bands);
+        expect(numericBandsOf(scale)).toBe(numericBands);
+    });
+
+    it('narrows the scale to a different domain during the pass', () => {
+        // Guards the test above: an identity check proves nothing if no swap ever happens.
+        const scale = create(domain);
+        run(scale, tickDomain, [NiceMode.TickAndDomain]);
+
+        expect(scale.swaps.length).toBeGreaterThan(0);
+        expect(scale.swaps.every((temporary) => temporary !== domain)).toBe(true);
+    });
+
+    it('produces the same ticks on a repeat pass over the cached scale as on a fresh one', () => {
+        const scale = create(domain);
+        const first = run(scale, tickDomain, [NiceMode.TickAndDomain]);
+        const second = run(scale, tickDomain, [NiceMode.TickAndDomain]);
+        const fresh = run(create(domain), tickDomain, [NiceMode.TickAndDomain]);
+
+        const labels = (result: ReturnType<typeof run>) => result.tickData.ticks.map((t) => t.tickLabel);
+        expect(labels(first).length).toBeGreaterThan(0);
+        expect(labels(second)).toEqual(labels(first));
+        expect(labels(fresh)).toEqual(labels(first));
+        expect(second.tickData.niceDomain).toEqual(first.tickData.niceDomain);
+    });
+
+    it('rebuilds the band arrays for a new domain set between passes', () => {
+        const scale = create(domain);
+        run(scale, tickDomain, [NiceMode.TickAndDomain]);
+        const numericBands = numericBandsOf(scale);
+
+        const next = domain.slice(0, 15_000);
+        scale.domain = next;
+        run(scale, tickDomain, [NiceMode.TickAndDomain]);
+
+        expect(scale.bands).toHaveLength(15_000);
+        expect(numericBandsOf(scale)).not.toBe(numericBands);
+        expect(numericBandsOf(scale)).toEqual(next.map((d) => d.valueOf()));
     });
 });
 

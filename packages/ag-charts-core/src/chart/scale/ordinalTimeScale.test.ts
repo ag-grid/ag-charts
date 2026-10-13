@@ -792,6 +792,131 @@ describe('OrdinalTimeScale', () => {
         });
     });
 
+    // A scale that was narrowed to a temporary domain and restored must answer exactly as one that never left
+    // its domain: the cached band arrays are an optimisation, so no result may depend on them.
+    describe('results after a temporary domain round trip', () => {
+        const minutes = (count: number, step = 1) =>
+            Array.from({ length: count }, (_, i) => new Date(2024, 0, 1, 0, i * step));
+        const tickParams = (tickCount: number, interval?: AgTimeInterval | AgTimeIntervalUnit) => ({
+            nice: [true, true] as [boolean, boolean],
+            interval,
+            tickCount,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        });
+
+        function pair(domain: Date[], temporary: Date[]) {
+            const control = new OrdinalTimeScale();
+            control.domain = domain;
+            control.range = [0, 1000];
+
+            const subject = new OrdinalTimeScale();
+            subject.domain = domain;
+            subject.range = [0, 1000];
+            // Warm every cache for the original domain, as an axis that has already rendered would have.
+            subject.ticks(tickParams(10));
+            subject.getUniformityCache();
+            subject.getUniformityCache([0.25, 0.75]);
+            subject.convert(domain[0]);
+
+            const snapshot = subject.snapshotDomain();
+            subject.domain = temporary;
+            subject.ticks(tickParams(5));
+            subject.convert(temporary[0]);
+            subject.restoreDomain(snapshot);
+            return { control, subject };
+        }
+
+        it.each([
+            ['ascending', false],
+            ['reversed', true],
+        ])('answers like an untouched scale for an %s domain', (_name, reversed) => {
+            const orient = (dates: Date[]) => (reversed ? dates.slice().reverse() : dates);
+            const domain = orient(minutes(3000));
+            const { control, subject } = pair(domain, orient(minutes(40, 7)));
+
+            expect(subject.domain).toBe(domain);
+            expect(subject.bands).toEqual(control.bands);
+            expect(subject.ticks(tickParams(10))).toEqual(control.ticks(tickParams(10)));
+            expect(subject.ticks(tickParams(7), undefined, [0.2, 0.6])).toEqual(
+                control.ticks(tickParams(7), undefined, [0.2, 0.6])
+            );
+            expect(subject.ticks(tickParams(7, { unit: 'hour', step: 1 }))).toEqual(
+                control.ticks(tickParams(7, { unit: 'hour', step: 1 }))
+            );
+            expect(subject.getUniformityCache()).toEqual(control.getUniformityCache());
+            expect(subject.getUniformityCache([0.25, 0.75])).toEqual(control.getUniformityCache([0.25, 0.75]));
+
+            for (const index of [0, 1, 17, 1500, 2998, 2999]) {
+                expect(subject.convert(domain[index])).toBe(control.convert(domain[index]));
+            }
+            for (const px of [0, 1, 123.4, 500, 999, 1000]) {
+                expect(subject.invert(px)).toEqual(control.invert(px));
+                expect(subject.invert(px, true)).toEqual(control.invert(px, true));
+            }
+        });
+
+        it('never answers from the temporary domain once restored', () => {
+            // The temporary domain lies outside the original, so a leaked cache shows as a wrong extent.
+            const domain = minutes(2000);
+            const temporary = minutes(30, 1).map((d) => new Date(d.valueOf() + 10 * durationDay));
+            const { subject } = pair(domain, temporary);
+
+            expect(subject.bands).toHaveLength(2000);
+            expect(subject.getDomainMinMax()).toEqual([domain[0], domain.at(-1)]);
+            expect(subject.convert(domain[0])).toBe(0);
+            expect(subject.convert(domain.at(-1)!)).toBeGreaterThan(900);
+            expect(subject.invert(0)).toEqual(domain[0]);
+        });
+
+        it('restores through an exception thrown between snapshot and restore', () => {
+            const scale = new OrdinalTimeScale();
+            const domain = minutes(2000);
+            scale.domain = domain;
+            scale.range = [0, 1000];
+            const bands = scale.bands;
+
+            const snapshot = scale.snapshotDomain();
+            try {
+                scale.domain = minutes(10);
+                throw new Error('callback failed');
+            } catch {
+                // withTemporaryDomain restores from `finally`, so mimic that here.
+            } finally {
+                scale.restoreDomain(snapshot);
+            }
+
+            expect(scale.domain).toBe(domain);
+            expect(scale.bands).toBe(bands);
+            expect(scale.convert(domain[1999])).toBeGreaterThan(900);
+        });
+
+        it('stays correct when temporary domains nest', () => {
+            const scale = new OrdinalTimeScale();
+            const domain = minutes(2000);
+            const middle = minutes(500, 2);
+            const inner = minutes(20, 3);
+            scale.domain = domain;
+            scale.range = [0, 1000];
+            const expected = scale.bands.slice();
+            const expectedNumeric = expected.map((d) => d.valueOf());
+
+            const outerSnapshot = scale.snapshotDomain();
+            scale.domain = middle;
+            const innerSnapshot = scale.snapshotDomain();
+            scale.domain = inner;
+            expect(scale.bands).toEqual(inner);
+            scale.restoreDomain(innerSnapshot);
+            expect(scale.domain).toBe(middle);
+            expect(scale.bands).toEqual(middle);
+            scale.restoreDomain(outerSnapshot);
+
+            expect(scale.domain).toBe(domain);
+            expect(scale.bands).toEqual(expected);
+            expect((scale as any).numericBands).toEqual(expectedNumeric);
+        });
+    });
+
     // Tick generation swaps in a temporary domain and restores the original; the band caches built for the
     // original must survive that round trip, but never outlive a genuine domain change.
     describe('band caches across snapshotDomain/restoreDomain', () => {
