@@ -297,7 +297,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 isPrimary,
                 index: i + rawFirstTickIndex,
                 textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
-                segmentsUntruncated: fitOptions != null && isTruncated && isArray(inputText) ? inputText : undefined,
+                fitSource: fitOptions != null && tickLabel !== inputText ? inputText : undefined,
                 textMetrics: isSegmented
                     ? measureTextSegments(tickLabel, label)
                     : measurer.measureLines(toTextString(tickLabel)),
@@ -378,7 +378,7 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
         if (tick.isPrimary || tickLabel == null) continue;
         if (textMetrics.width <= widthBudget(textMetrics.height) && textMetrics.height <= maxHeight) continue;
 
-        const source = tick.segmentsUntruncated ?? tick.textUntruncated ?? tickLabel;
+        const source = tick.fitSource ?? tickLabel;
         const fit = (maxWidth: number) => {
             const wrapOptions = labelWrapOptions(label, maxWidth, maxHeight, labelFitOverflow(label), 'never');
             const fitted = wrapTextOrSegments(source, wrapOptions);
@@ -395,8 +395,9 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
             metrics = measure(fitted);
         }
 
+        const isTruncated = isArray(fitted) ? isSegmentTruncated(fitted.at(-1)) : isTextTruncated(fitted);
         tick.tickLabel = fitted;
-        tick.textUntruncated = toPlainText(source);
+        tick.textUntruncated = isTruncated ? toPlainText(source) : undefined;
         tick.textMetrics = metrics;
     }
 }

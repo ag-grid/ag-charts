@@ -890,17 +890,12 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
         const fitted = getFittedLongLabelExtent(chart, position);
         expect(fitted.far).toBeLessThanOrEqual(track.near + 0.5);
         expectTrackBetweenSeriesAndPaddingEdge(chart, position);
-    });
-
-    it('renders a fitted long label clear of the scrollbar', async () => {
-        const chart = await createLongLabelChart({ position: 'left', axis: { label: { maxWidth: 120 } } });
-
-        await scrollLongLabelIntoView(chart, 'left');
-
-        await compareImageSnapshot(chart, ctx, {
-            ...IMAGE_SNAPSHOT_DEFAULTS,
-            customSnapshotIdentifier: 'ag-18833-scrollbar-long-label-fitted',
-        });
+        if (position === 'left' && limit.maxWidth != null) {
+            await compareImageSnapshot(chart, ctx, {
+                ...IMAGE_SNAPSHOT_DEFAULTS,
+                customSnapshotIdentifier: 'ag-18833-scrollbar-long-label-fitted',
+            });
+        }
     });
 
     it('keeps a grouped-category scrollbar within an explicit axis thickness thinner than its labels', async () => {

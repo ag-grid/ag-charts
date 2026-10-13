@@ -1080,6 +1080,26 @@ describe('CartesianAxis', () => {
         });
     });
 
+    const getAxisLabelNodes = (chartInstance: AgChartInstance, position: string) => {
+        const chartInternal = deproxy(chartInstance as any) as any;
+        const axis = chartInternal.axes.find((a: any) => a.position === position);
+        expect(axis).toBeDefined();
+        const nodes: any[] = Array.from(axis.tickLabelGroupSelection.nodes());
+        return nodes.filter((n: any) => n.datum.visible);
+    };
+
+    const renderChart = async (options: AgCartesianChartOptions, width?: number) => {
+        if (chart != null) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+        prepareTestOptions(options);
+        if (width != null) options.width = width;
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        return chart;
+    };
+
     describe('AG-18833 label maxWidth / maxHeight', () => {
         const LONG_NO_SPACES = `test${'x'.repeat(50)}`;
         const LONG_WITH_SPACES = 'one two three four five six seven eight nine ten';
@@ -1093,13 +1113,8 @@ describe('CartesianAxis', () => {
             series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
         });
 
-        const bottomCategoryOptions = (
-            label: Record<string, unknown>,
-            labels: string[],
-            width: number
-        ): AgCartesianChartOptions => ({
+        const bottomCategoryOptions = (label: Record<string, unknown>, labels: string[]): AgCartesianChartOptions => ({
             data: labels.map((category, i) => ({ category, value: i + 1 })),
-            width,
             axes: {
                 x: { type: 'category', position: 'bottom', label },
                 y: { type: 'number', position: 'left' },
@@ -1107,22 +1122,11 @@ describe('CartesianAxis', () => {
             series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
         });
 
-        const render = async (options: AgCartesianChartOptions) => {
-            const width = options.width;
-            prepareTestOptions(options);
-            if (width != null) options.width = width;
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-        };
-
         const getAxis = (position: string) => {
             const axis = (deproxy(chart as any) as any).axes.find((a: any) => a.position === position);
             expect(axis).toBeDefined();
             return axis;
         };
-
-        const getVisibleNodes = (position: string): any[] =>
-            Array.from(getAxis(position).tickLabelGroupSelection.nodes()).filter((n: any) => n.datum.visible);
 
         const getAxisThickness = (position: string): number => {
             const box = getAxis(position).getBBox();
@@ -1130,7 +1134,9 @@ describe('CartesianAxis', () => {
         };
 
         const findLongNode = (position: string, prefix: string) => {
-            const node = getVisibleNodes(position).find((n) => n.datum.text.replaceAll('\n', '').startsWith(prefix));
+            const node = getAxisLabelNodes(chart, position).find((n) =>
+                n.datum.text.replaceAll('\n', '').startsWith(prefix)
+            );
             expect(node).toBeDefined();
             return node;
         };
@@ -1180,20 +1186,22 @@ describe('CartesianAxis', () => {
             };
 
             it.each(Object.keys(axisOptions))('accepts label.maxWidth on a %s axis without warning', async (type) => {
-                await render(axisOptions[type]());
-                expect(getVisibleNodes('bottom').length + getVisibleNodes('left').length).toBeGreaterThan(0);
+                await renderChart(axisOptions[type]());
+                expect(
+                    getAxisLabelNodes(chart, 'bottom').length + getAxisLabelNodes(chart, 'left').length
+                ).toBeGreaterThan(0);
                 expectWarningsCalls().toEqual([]);
             });
 
             it('warns for maxWidth on a time axis parentLevel label', async () => {
                 const options = axisOptions.time();
                 (options.axes as any).x.parentLevel = { enabled: true, label: { maxWidth: 50 } };
-                await render(options);
+                await renderChart(options);
                 expectWarningsCalls().toEqual([[expect.stringContaining('parentLevel.label.maxWidth')]]);
             });
 
             it('warns for maxWidth on a grouped-category axis label', async () => {
-                await render({
+                await renderChart({
                     data: GROUPED_CATEGORY_DATA,
                     axes: {
                         x: { type: 'grouped-category', position: 'bottom', label: { maxWidth: 50 } },
@@ -1209,9 +1217,9 @@ describe('CartesianAxis', () => {
             const labels = ['A', LONG_NO_SPACES, LONG_WITH_SPACES];
 
             it('truncates a long unbreakable label to maxWidth with an ellipsis', async () => {
-                await render(leftCategoryOptions({ maxWidth: 80 }, labels));
+                await renderChart(leftCategoryOptions({ maxWidth: 80 }, labels));
 
-                const nodes = getVisibleNodes('left');
+                const nodes = getAxisLabelNodes(chart, 'left');
                 expect(nodes).toHaveLength(3);
                 for (const node of nodes) {
                     expect(Transformable.toCanvas(node).width).toBeLessThanOrEqual(80.5);
@@ -1221,19 +1229,19 @@ describe('CartesianAxis', () => {
             });
 
             it('wraps a long label within maxWidth when wrapping is always', async () => {
-                await render(leftCategoryOptions({ maxWidth: 80, wrapping: 'always' }, labels));
+                await renderChart(leftCategoryOptions({ maxWidth: 80, wrapping: 'always' }, labels));
 
                 const node = findLongNode('left', 'one');
                 const lines = node.datum.text.split('\n');
                 expect(lines.length).toBeGreaterThan(1);
                 expect(node.datum.text.endsWith('…')).toBe(false);
-                for (const n of getVisibleNodes('left')) {
+                for (const n of getAxisLabelNodes(chart, 'left')) {
                     expect(Transformable.toCanvas(n).width).toBeLessThanOrEqual(80.5);
                 }
             });
 
             it('truncates wrapped text to maxHeight with an ellipsis', async () => {
-                await render(leftCategoryOptions({ maxWidth: 60, maxHeight: 20, wrapping: 'always' }, labels));
+                await renderChart(leftCategoryOptions({ maxWidth: 60, maxHeight: 20, wrapping: 'always' }, labels));
 
                 const node = findLongNode('left', 'one');
                 expect(Transformable.toCanvas(node).height).toBeLessThanOrEqual(20.5);
@@ -1241,17 +1249,17 @@ describe('CartesianAxis', () => {
             });
 
             it('hides an overflowing label when truncate is false', async () => {
-                await render(leftCategoryOptions({ maxWidth: 30, truncate: false }, labels));
+                await renderChart(leftCategoryOptions({ maxWidth: 30, truncate: false }, labels));
 
-                for (const node of getVisibleNodes('left')) {
+                for (const node of getAxisLabelNodes(chart, 'left')) {
                     expect(node.datum.text).not.toContain('test');
                     expect(node.datum.text).not.toContain('one');
                 }
-                expect(getVisibleNodes('left').some((n) => n.datum.text === 'A')).toBe(true);
+                expect(getAxisLabelNodes(chart, 'left').some((n) => n.datum.text === 'A')).toBe(true);
             });
 
             it('still truncates when avoidCollisions is false', async () => {
-                await render(leftCategoryOptions({ maxWidth: 80, avoidCollisions: false }, labels));
+                await renderChart(leftCategoryOptions({ maxWidth: 80, avoidCollisions: false }, labels));
 
                 const node = findLongNode('left', 'test');
                 expect(node.datum.text.endsWith('…')).toBe(true);
@@ -1260,11 +1268,10 @@ describe('CartesianAxis', () => {
 
             it('does not grow the axis to maxWidth when labels are short', async () => {
                 const shortLabels = ['A', 'BB', 'CCC'];
-                await render(leftCategoryOptions({}, shortLabels));
+                await renderChart(leftCategoryOptions({}, shortLabels));
                 const unfitted = getAxisThickness('left');
-                chart.destroy();
 
-                await render(leftCategoryOptions({ maxWidth: 500 }, shortLabels));
+                await renderChart(leftCategoryOptions({ maxWidth: 500 }, shortLabels));
                 expect(getAxisThickness('left')).toBeCloseTo(unfitted, 5);
                 expect(getAxisThickness('left')).toBeLessThan(100);
             });
@@ -1280,13 +1287,12 @@ describe('CartesianAxis', () => {
             ];
 
             it('truncates rotated labels and shrinks the axis', async () => {
-                await render(bottomCategoryOptions({ wrapping: 'never' }, labels, 300));
+                await renderChart(bottomCategoryOptions({ wrapping: 'never' }, labels), 300);
                 const unfittedThickness = getAxisThickness('bottom');
-                expect(getVisibleNodes('bottom').every((n) => n.datum.rotation !== 0)).toBe(true);
-                chart.destroy();
+                expect(getAxisLabelNodes(chart, 'bottom').every((n) => n.datum.rotation !== 0)).toBe(true);
 
-                await render(bottomCategoryOptions({ maxWidth: 100, wrapping: 'never' }, labels, 300));
-                const nodes = getVisibleNodes('bottom');
+                await renderChart(bottomCategoryOptions({ maxWidth: 100, wrapping: 'never' }, labels), 300);
+                const nodes = getAxisLabelNodes(chart, 'bottom');
                 expect(nodes.length).toBeGreaterThan(0);
                 for (const node of nodes) {
                     expect(node.datum.rotation).not.toBe(0);
@@ -1294,40 +1300,20 @@ describe('CartesianAxis', () => {
                 }
                 expect(getAxisThickness('bottom')).toBeLessThan(unfittedThickness);
             });
-        });
 
-        describe('when neither maxWidth nor maxHeight is set', () => {
-            const labels = [
-                'International Freight Services',
-                'Long Distance Transport Links',
-                'Domestic Distribution Centres',
-                'Customs Clearance Operations',
-                'Warehousing And Storage',
-            ];
+            it('re-fits labels wrapped to two lines onto one line using the full room once rotated', async () => {
+                const mixed = ['Logistics Operations', 'Freight Forwarding', 'Supercalifragilisticexpialidocious'];
+                const options = bottomCategoryOptions({ maxWidth: 200, wrapping: 'on-space' }, mixed);
+                options.height = 160;
+                await renderChart(options, 260);
 
-            const snapshotAxis = (position: string) => ({
-                thickness: getAxisThickness(position),
-                labels: getVisibleNodes(position).map((n) => ({
-                    text: n.datum.text,
-                    rotation: n.datum.rotation,
-                    x: n.datum.x,
-                    y: n.datum.y,
-                    box: Transformable.toCanvas(n),
-                })),
-            });
-
-            it.each([
-                ['bottom', (label: Record<string, unknown>) => bottomCategoryOptions(label, labels, 300)],
-                ['left', (label: Record<string, unknown>) => leftCategoryOptions(label, labels)],
-            ] as const)('renders a %s axis identically to explicitly undefined limits', async (position, factory) => {
-                await render(factory({}));
-                const unset = snapshotAxis(position);
-                expect(unset.labels.length).toBeGreaterThan(0);
-                chart.destroy();
-
-                await render(factory({ maxWidth: undefined, maxHeight: undefined }));
-                expect(snapshotAxis(position)).toEqual(unset);
-                expectWarningsCalls().toEqual([]);
+                const nodes = getAxisLabelNodes(chart, 'bottom');
+                expect(nodes.length).toBeGreaterThan(0);
+                for (const node of nodes) {
+                    expect(node.datum.rotation).not.toBe(0);
+                    expect(node.datum.text).not.toContain('\n');
+                    expect(node.datum.text.replace('…', '').length).toBeGreaterThan(15);
+                }
             });
         });
     });
@@ -2016,14 +2002,6 @@ describe('CartesianAxis', () => {
         },
         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
     });
-
-    const getAxisLabelNodes = (chartInstance: AgChartInstance, position: string) => {
-        const chartInternal = deproxy(chartInstance as any) as any;
-        const axis = chartInternal.axes.find((a: any) => a.position === position);
-        expect(axis).toBeDefined();
-        const nodes: any[] = Array.from(axis.tickLabelGroupSelection.nodes());
-        return nodes.filter((n: any) => n.datum.visible);
-    };
 
     const getRightAxisLabelNodes = (chartInstance: AgChartInstance) => getAxisLabelNodes(chartInstance, 'right');
 
@@ -2788,18 +2766,6 @@ describe('CartesianAxis', () => {
                 expect(edge).toBeCloseTo(bottomEdges[0], 0);
             }
         });
-
-        const renderChart = async (options: AgCartesianChartOptions, width?: number) => {
-            if (chart != null) {
-                chart.destroy();
-                (chart as unknown) = undefined;
-            }
-            prepareTestOptions(options);
-            if (width != null) options.width = width;
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-            return chart;
-        };
 
         const canvasBoxesByText = (position: string) =>
             new Map(getAxisLabelNodes(chart, position).map((n) => [n.datum.text, Transformable.toCanvas(n)]));

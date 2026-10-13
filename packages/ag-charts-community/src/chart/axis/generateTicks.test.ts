@@ -1,10 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
-import { CategoryScale, LinearScale, OrdinalTimeScale, getMinOuterRectSize, isArray } from 'ag-charts-core';
+import {
+    CategoryScale,
+    LinearScale,
+    OrdinalTimeScale,
+    getInnerRectSize,
+    getMinOuterRectSize,
+    isArray,
+    toPlainText,
+} from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { estimateScaleTickCount, generateTicks } from './generateTicks';
-import { formatTicks, getInnerRectSize, refitAutoRotatedLabels, withTemporaryDomain } from './generateTicksUtils';
+import { formatTicks, refitAutoRotatedLabels, withTemporaryDomain } from './generateTicksUtils';
 
 // A minTickCount close to tickCount makes buildTickData's overlap loop iterate linearly instead of
 // converging by binary search, which hangs on deeply zoomed ordinal-time domains.
@@ -203,5 +211,86 @@ describe('AG-18833 rotated label fitting', () => {
         expect(isArray(tickLabel)).toBe(true);
         expect(textMetrics.width).toBeLessThan(truncatedWidth);
         expect((tickLabel as any[])[0]).toMatchObject({ color: 'red', fontWeight: 'bold' });
+    });
+
+    const categoryScale = (domain: string[], width: number) => {
+        const scale = new CategoryScale();
+        scale.domain = domain;
+        scale.range = [0, width];
+        return scale;
+    };
+
+    const font = { enabled: true, fontSize: 12, fontFamily: 'Verdana', avoidCollisions: true };
+    const autoRotation = (335 * Math.PI) / 180;
+    const rotatedExtent = ({ width, height }: { width: number; height: number }) =>
+        width * Math.abs(Math.sin(autoRotation)) + height * Math.abs(Math.cos(autoRotation));
+
+    it('re-fits a label wrapped to two lines using the height of its one-line re-fit', () => {
+        const domain = ['International Freight Services', 'Long Distance Transport Links'];
+        const labelRoom = 45;
+        const options = {
+            scale: categoryScale(domain, 240),
+            label: { ...font, wrapping: 'always', maxWidth: 300 },
+            isVertical: false,
+            labelRoom,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain));
+        expect(ticks.every((t) => toPlainText(t.tickLabel).includes('\n'))).toBe(true);
+        const wrappedHeight = ticks[0].textMetrics.height;
+
+        refitAutoRotatedLabels(options, ticks, autoRotation);
+
+        const sin = Math.abs(Math.sin(autoRotation));
+        const cos = Math.abs(Math.cos(autoRotation));
+        for (const { tickLabel, textMetrics } of ticks) {
+            expect(toPlainText(tickLabel)).not.toContain('\n');
+            expect(rotatedExtent(textMetrics)).toBeLessThanOrEqual(labelRoom + 0.5);
+            // Budgeting with the two-line height would leave this much width at most.
+            expect(textMetrics.width).toBeGreaterThan((labelRoom - wrappedHeight * cos) / sin);
+        }
+    });
+
+    it('clips explicit line breaks to maxHeight when re-fitting an auto-rotated label', () => {
+        const domain = ['a'];
+        const options = {
+            scale: categoryScale(domain, 1000),
+            label: { ...font, maxHeight: 20 },
+            isVertical: false,
+            labelRoom: 200,
+            tickFormatter: () => () => 'First line\nSecond line\nThird line',
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain));
+        refitAutoRotatedLabels(options, ticks, autoRotation);
+
+        const { tickLabel, textMetrics } = ticks[0];
+        expect(textMetrics.height).toBeLessThanOrEqual(20);
+        expect(toPlainText(tickLabel)).toContain('First');
+        expect(rotatedExtent(textMetrics)).toBeLessThanOrEqual(200.5);
+    });
+
+    it('does not erase a rich-text label wider than its band when it fits maxWidth with truncate false', () => {
+        const domain = ['a', 'b', 'c', 'd'];
+        const segments = [
+            { text: 'Styled ', color: 'red' },
+            { text: 'category label', color: 'blue' },
+        ];
+        const options = {
+            scale: categoryScale(domain, 120),
+            label: { ...font, maxWidth: 300, truncate: false },
+            isVertical: false,
+            labelRoom: 100,
+            tickFormatter: () => () => segments,
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain));
+
+        expect(ticks).toHaveLength(4);
+        for (const { tickLabel, textMetrics } of ticks) {
+            expect(toPlainText(tickLabel)).toBe('Styled category label');
+            expect(textMetrics.width).toBeGreaterThan(30);
+        }
     });
 });
