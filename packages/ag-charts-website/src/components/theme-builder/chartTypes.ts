@@ -61,9 +61,7 @@ export type PreviewChartType = {
  * diverging a few slots in.
  */
 export const THUMBNAIL_OPTIONS: AgChartOptions = {
-    // Fewer columns than the data carries: eight grouped bars across six
-    // columns would be hair-thin at card size.
-    data: THUMBNAIL_DATA.slice(0, 3),
+    data: THUMBNAIL_DATA,
     series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'bar', xKey: 'period', yKey: key })),
     // Text, so a preset's typography shows on its card.
     title: { text: 'Quarterly Revenue' },

@@ -161,14 +161,14 @@ export const totalsFor = (count: number) =>
  */
 export const THUMBNAIL_SERIES_KEYS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-/** Varied enough that the columns are not six copies of one another. */
+/**
+ * Three columns, as eight grouped bars across more would be hair-thin at card
+ * size; varied enough that the columns are not copies of one another.
+ */
 export const THUMBNAIL_DATA = [
     { period: 'Q1', a: 38, b: 41, c: 22, d: 31, e: 14, f: 24, g: 9, h: 17 },
     { period: 'Q2', a: 52, b: 27, c: 35, d: 18, e: 26, f: 12, g: 19, h: 8 },
     { period: 'Q3', a: 31, b: 46, c: 19, d: 37, e: 11, f: 28, g: 15, h: 22 },
-    { period: 'Q4', a: 61, b: 24, c: 42, d: 15, e: 33, f: 17, g: 7, h: 13 },
-    { period: 'Q5', a: 43, b: 35, c: 26, d: 44, e: 18, f: 9, g: 23, h: 19 },
-    { period: 'Q6', a: 56, b: 32, c: 48, d: 21, e: 29, f: 20, g: 12, h: 25 },
 ];
 
 /**
