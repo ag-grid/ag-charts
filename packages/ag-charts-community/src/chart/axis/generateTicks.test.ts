@@ -5,6 +5,7 @@ import {
     EllipsisChar,
     LinearScale,
     OrdinalTimeScale,
+    TimeScale,
     UnitTimeScale,
     getInnerRectSize,
     getMinOuterRectSize,
@@ -602,6 +603,41 @@ describe('AG-18833 rotated label fitting', () => {
             const alongAxis =
                 textMetrics.width * Math.abs(Math.cos(rotation)) + textMetrics.height * Math.abs(Math.sin(rotation));
             expect(alongAxis).toBeLessThanOrEqual(scale.step);
+        }
+    });
+
+    it('does not thin a time axis on the width of labels that maxWidth narrows', () => {
+        const domain = [new Date(2025, 0, 1), new Date(2025, 2, 1)];
+        const ticksFor = (maxWidth?: number) => {
+            const scale = new TimeScale();
+            scale.domain = domain;
+            scale.range = [0, 400];
+            return generateTicks({
+                label: { ...font, format: '%A %d %B %Y', maxWidth } as any,
+                parallel: true,
+                axisRotation: Math.PI / -2,
+                scale,
+                domain,
+                range: [0, 400],
+                visibleRange: [0, 1],
+                niceMode: [],
+                reverse: false,
+                primaryTickCount: undefined,
+                defaultTickMinSpacing: 0,
+                labelOffset: 0,
+                sideFlag: 1,
+                interval: undefined,
+                isVertical: false,
+                sizeLimit: 100,
+                labelRoom: 100,
+                tickFormatter: () => (value: Date) => `Wednesday ${value.getDate()} September`,
+            } as any).tickData.ticks;
+        };
+
+        const fitted = ticksFor(40);
+        expect(fitted.length).toBeGreaterThan(ticksFor().length);
+        for (const { textMetrics } of fitted) {
+            expect(textMetrics.width).toBeLessThanOrEqual(40);
         }
     });
 });

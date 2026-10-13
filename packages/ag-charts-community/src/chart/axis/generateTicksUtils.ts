@@ -353,7 +353,7 @@ function labelTextRoom(label: ChartAxisLabel, isVertical: boolean | undefined, r
     return Math.max(0, room - padding);
 }
 
-function labelFitWrapOptions(
+export function labelFitWrapOptions(
     label: ChartAxisLabel,
     isVertical: boolean | undefined,
     room: number,
@@ -645,7 +645,8 @@ export function timeIntervalMaxLabelSize(
     primaryLabel: ChartAxisLabel | undefined,
     domain: Date[],
     timeInterval: AgTimeInterval | AgTimeIntervalUnit,
-    textMeasurer: ITextMeasurer
+    textMeasurer: ITextMeasurer,
+    fitOptions?: WrapOptions
 ) {
     const specifier = labelSpecifier(label.format, timeInterval);
 
@@ -666,6 +667,11 @@ export function timeIntervalMaxLabelSize(
             ? undefined
             : intervalRange(hierarchy, new Date(domain[0]), new Date(domain.at(-1)!), { extend: true });
 
+    // Without primary labels, the labels at hierarchy boundaries are secondary labels, fitted as the rest.
+    const primaryFitOptions = primaryLabel?.enabled === true ? undefined : fitOptions;
+    const fit = (text: string, wrapOptions: WrapOptions | undefined) =>
+        wrapOptions == null ? text : (wrapLabelToFit(text, wrapOptions, textMeasurer) as string);
+
     let maxWidth = 0;
     let maxHeight = 0;
     if (labelFormatter != null) {
@@ -683,7 +689,7 @@ export function timeIntervalMaxLabelSize(
         }
         const labelRange = intervalRange(timeInterval, l0, l1, { limit: 50 });
         for (const date of labelRange) {
-            const text = labelFormatter(date);
+            const text = fit(labelFormatter(date), fitOptions);
             const { width, height } = textMeasurer.measureLines(text);
             maxWidth = Math.max(maxWidth, width + xPadding);
             maxHeight = Math.max(maxHeight, height + yPadding);
@@ -695,7 +701,7 @@ export function timeIntervalMaxLabelSize(
         const xPadding = padding.left + padding.right;
         const yPadding = padding.top + padding.bottom;
         for (const date of hierarchyRange) {
-            const text = primaryLabelFormatter(date);
+            const text = fit(primaryLabelFormatter(date), primaryFitOptions);
             const { width, height } = textMeasurer.measureLines(text);
 
             maxWidth = Math.max(maxWidth, width + xPadding);

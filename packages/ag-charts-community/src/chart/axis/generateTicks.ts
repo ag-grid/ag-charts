@@ -40,6 +40,7 @@ import {
     getTextBaseline,
     getTimeIntervalTicks,
     isLabelFitEnabled,
+    labelFitWrapOptions,
     refitAutoRotatedLabels,
     ticksEqual,
     ticksSpacing,
@@ -559,12 +560,17 @@ function createTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<T
 
     const spacing = ticksSpacing(ticks);
     const { label, labelOffset, primaryLabel, domain } = options;
+    // Secondary labels are fitted on a continuous scale, which has no band to limit them.
+    const fitOptions = isLabelFitEnabled(label)
+        ? labelFitWrapOptions(label, options.isVertical, options.labelRoom ?? options.sizeLimit ?? Infinity, Infinity)
+        : undefined;
     const { width, height } = timeIntervalMaxLabelSize(
         label,
         primaryLabel,
         niceDomain ?? domain,
         timeInterval,
-        cachedTextMeasurer(label)
+        cachedTextMeasurer(label),
+        fitOptions
     );
 
     const labelData: BoxBounds[] = [];
