@@ -376,7 +376,12 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
     autoRotation: number
 ) {
     const { label, isVertical } = options;
-    const labelRoom = labelTextRoom(label, isVertical, options.labelRoom ?? options.sizeLimit ?? Infinity, autoRotation);
+    const labelRoom = labelTextRoom(
+        label,
+        isVertical,
+        options.labelRoom ?? options.sizeLimit ?? Infinity,
+        autoRotation
+    );
     const sin = Math.abs(Math.sin(autoRotation));
     const cos = Math.abs(Math.cos(autoRotation));
     const widthFactor = isVertical ? cos : sin;

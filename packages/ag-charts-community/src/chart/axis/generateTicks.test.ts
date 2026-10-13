@@ -345,34 +345,49 @@ describe('AG-18833 rotated label fitting', () => {
     });
 
     // Text pads its box before rotating it, so padding on the label's own sides turns into the axis thickness.
-    const boxed = { fill: 'white', padding: { left: 10, right: 10, top: 2, bottom: 2 } };
-    const paddedExtent = ({ width, height }: { width: number; height: number }, rotation: number) =>
-        (width + 20) * Math.abs(Math.sin(rotation)) + (height + 4) * Math.abs(Math.cos(rotation));
+    const paddedExtent = (
+        { width, height }: { width: number; height: number },
+        { left, right, top, bottom }: { left: number; right: number; top: number; bottom: number },
+        rotation: number,
+        isVertical: boolean
+    ) => {
+        const sin = Math.abs(Math.sin(rotation));
+        const cos = Math.abs(Math.cos(rotation));
+        const w = width + left + right;
+        const h = height + top + bottom;
+        return isVertical ? w * cos + h * sin : w * sin + h * cos;
+    };
 
-    it('keeps the padded box of a label with a configured rotation within the label room', () => {
-        const domain = ['International Freight Services And Logistics'];
-        const labelRoom = 80;
-        const options = {
-            scale: categoryScale(domain, 300),
-            label: { ...font, ...boxed, rotation: 90, maxWidth: 300 },
-            isVertical: false,
-            labelRoom,
-            tickFormatter: () => (value: unknown) => String(value),
-        } as any;
+    it.each([
+        [false, 90, { left: 10, right: 10, top: 2, bottom: 2 }],
+        [true, 30, { left: 20, right: 20, top: 20, bottom: 20 }],
+    ])(
+        'keeps the padded box of a label with a configured rotation within the label room (vertical %s, %d°)',
+        (isVertical, rotation, padding) => {
+            const domain = ['International Freight Services And Logistics'];
+            const labelRoom = 120;
+            const options = {
+                scale: categoryScale(domain, 300),
+                label: { ...font, fill: 'white', padding, rotation, maxWidth: 300 },
+                isVertical,
+                labelRoom,
+                tickFormatter: () => (value: unknown) => String(value),
+            } as any;
 
-        const [{ tickLabel, textMetrics }] = formatTicks(options, formatOptions(domain));
+            const [{ tickLabel, textMetrics }] = formatTicks(options, formatOptions(domain));
 
-        expect(textMetrics.width).toBeGreaterThan(0);
-        expect(toPlainText(tickLabel)).not.toBe('');
-        expect(paddedExtent(textMetrics, Math.PI / 2)).toBeLessThanOrEqual(labelRoom + 0.5);
-    });
+            expect(toPlainText(tickLabel)).not.toBe('');
+            const extent = paddedExtent(textMetrics, padding, (rotation * Math.PI) / 180, isVertical);
+            expect(extent).toBeLessThanOrEqual(labelRoom + 0.5);
+        }
+    );
 
     it('keeps the padded box of a re-fitted auto-rotated label within the label room', () => {
         const domain = ['International Freight Services And Logistics'];
         const labelRoom = 60;
         const options = {
             scale: categoryScale(domain, 1000),
-            label: { ...font, ...boxed, maxWidth: 300 },
+            label: { ...font, fill: 'white', padding: 8, maxWidth: 300 },
             isVertical: false,
             labelRoom,
             tickFormatter: () => (value: unknown) => String(value),
@@ -383,6 +398,7 @@ describe('AG-18833 rotated label fitting', () => {
 
         const [{ tickLabel, textMetrics }] = ticks;
         expect(toPlainText(tickLabel)).not.toBe('');
-        expect(paddedExtent(textMetrics, autoRotation)).toBeLessThanOrEqual(labelRoom + 0.5);
+        const padding = { left: 8, right: 8, top: 8, bottom: 8 };
+        expect(paddedExtent(textMetrics, padding, autoRotation, false)).toBeLessThanOrEqual(labelRoom + 0.5);
     });
 });
