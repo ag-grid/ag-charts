@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import {
     CategoryScale,
+    EllipsisChar,
     LinearScale,
     OrdinalTimeScale,
     UnitTimeScale,
     getInnerRectSize,
     getMinOuterRectSize,
     isArray,
+    measureTextSegments,
     toPlainText,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -420,6 +422,25 @@ describe('AG-18833 rotated label fitting', () => {
         const [{ tickLabel }] = formatTicks(options, formatOptions(domain));
 
         expect(toPlainText(tickLabel)).toBe('');
+    });
+
+    it('keeps a rich-text label within maxWidth when a full first segment leaves too little room for the ellipsis', () => {
+        const domain = ['a'];
+        const first = { text: 'Styled', color: 'red' };
+        const firstWidth = measureTextSegments([first], font).width;
+        const ellipsisWidth = measureTextSegments([{ text: EllipsisChar }], font).width;
+        const maxWidth = firstWidth + ellipsisWidth / 2;
+        const options = {
+            scale: categoryScale(domain, 1000),
+            label: { ...font, maxWidth },
+            isVertical: false,
+            labelRoom: 200,
+            tickFormatter: () => () => [first, { text: 'label', color: 'blue' }],
+        } as any;
+
+        const [{ textMetrics }] = formatTicks(options, formatOptions(domain));
+
+        expect(textMetrics.width).toBeLessThanOrEqual(maxWidth);
     });
 
     it('hides an auto-rotated label when the width left by its re-fit is narrower than the ellipsis', () => {

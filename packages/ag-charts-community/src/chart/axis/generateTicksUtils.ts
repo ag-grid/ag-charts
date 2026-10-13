@@ -332,7 +332,8 @@ function wrapLabelToFit(text: NormalisedTextOrSegments, wrapOptions: WrapOptions
     // A width narrower than the ellipsis still gets one, so a label that needs it is hidden.
     const { maxWidth } = wrapOptions;
     const ellipsisOverflows = isArray(fitted)
-        ? fitted.some((s) => s.type !== 'image' && s.text.includes(EllipsisChar) && s.textMetrics.width > maxWidth)
+        ? fitted.some((s) => s.type !== 'image' && s.text.includes(EllipsisChar)) &&
+          measureTextSegments(fitted, wrapOptions.font).width > maxWidth
         : fitted.includes(EllipsisChar) && measurer.textWidth(EllipsisChar) > maxWidth;
     return ellipsisOverflows ? '' : fitted;
 }
