@@ -52,24 +52,24 @@ export function getMaxInnerRectSize(
  * @returns The largest inner rectangle size that fits when rotated.
  */
 export function getInnerRectSize(rotationDeg: number, containerWidth: number, containerHeight: number): Size {
-    if (!Number.isFinite(containerWidth)) {
-        return getMaxInnerRectSize(rotationDeg + 90, containerHeight, containerWidth);
-    }
-    if (!Number.isFinite(containerHeight)) return getMaxInnerRectSize(rotationDeg, containerWidth, containerHeight);
+    const W = containerWidth;
+    const H = containerHeight;
+
+    // A box with an infinite width has the same answer as the box turned a quarter-turn.
+    if (!Number.isFinite(W)) return getMaxInnerRectSize(rotationDeg + 90, H, W);
+    if (!Number.isFinite(H)) return getMaxInnerRectSize(rotationDeg, W, H);
 
     const angle = (rotationDeg % 180) * (Math.PI / 180);
     const sin = Math.abs(Math.sin(angle));
     const cos = Math.abs(Math.cos(angle));
-    const short = Math.min(containerWidth, containerHeight);
-    if (sin === 0 || cos === 0 || short > 2 * sin * cos * Math.max(containerWidth, containerHeight)) {
-        return getMaxInnerRectSize(rotationDeg, containerWidth, containerHeight);
+    const short = Math.min(W, H);
+    if (sin === 0 || cos === 0 || short > 2 * sin * cos * Math.max(W, H)) {
+        return getMaxInnerRectSize(rotationDeg, W, H);
     }
 
     // Too narrow for the four-sided solution: take the largest rectangle touching only the two long sides.
     const half = short / 2;
-    return containerWidth <= containerHeight
-        ? { width: half / cos, height: half / sin }
-        : { width: half / sin, height: half / cos };
+    return W <= H ? { width: half / cos, height: half / sin } : { width: half / sin, height: half / cos };
 }
 
 /**
