@@ -13,6 +13,10 @@ import {
 } from '../../time/duration';
 import { OrdinalTimeScale } from './ordinalTimeScale';
 
+const minutes = (count: number, step = 1) => Array.from({ length: count }, (_, i) => new Date(2024, 0, 1, 0, i * step));
+// `numericBands` is a protected derived cache; bracket access keeps it typed without a cast.
+const numericBandsOf = (scale: OrdinalTimeScale) => scale['numericBands'];
+
 describe('OrdinalTimeScale', () => {
     it('should create nice ticks', () => {
         const scale = new OrdinalTimeScale();
@@ -795,8 +799,6 @@ describe('OrdinalTimeScale', () => {
     // A scale that was narrowed to a temporary domain and restored must answer exactly as one that never left
     // its domain: the cached band arrays are an optimisation, so no result may depend on them.
     describe('results after a temporary domain round trip', () => {
-        const minutes = (count: number, step = 1) =>
-            Array.from({ length: count }, (_, i) => new Date(2024, 0, 1, 0, i * step));
         const tickParams = (tickCount: number, interval?: AgTimeInterval | AgTimeIntervalUnit) => ({
             nice: [true, true] as [boolean, boolean],
             interval,
@@ -913,16 +915,13 @@ describe('OrdinalTimeScale', () => {
 
             expect(scale.domain).toBe(domain);
             expect(scale.bands).toEqual(expected);
-            expect((scale as any).numericBands).toEqual(expectedNumeric);
+            expect(numericBandsOf(scale)).toEqual(expectedNumeric);
         });
     });
 
     // Tick generation swaps in a temporary domain and restores the original; the band caches built for the
     // original must survive that round trip, but never outlive a genuine domain change.
     describe('band caches across snapshotDomain/restoreDomain', () => {
-        const minutes = (count: number, step = 1) =>
-            Array.from({ length: count }, (_, i) => new Date(2024, 0, 1, 0, i * step));
-        const numericBandsOf = (scale: OrdinalTimeScale) => (scale as any).numericBands as number[];
         const warm = (scale: OrdinalTimeScale) => ({
             bands: scale.bands,
             numericBands: numericBandsOf(scale),
@@ -979,9 +978,13 @@ describe('OrdinalTimeScale', () => {
             scale.domain = minutes(5);
             scale.restoreDomain(snapshot);
 
+            const control = new OrdinalTimeScale();
+            control.domain = domain;
+            control.range = [0, 500];
+
             expect(scale.bands).toEqual(domain);
             expect(numericBandsOf(scale)).toEqual(domain.map((d) => d.valueOf()));
-            expect(scale.convert(domain[10])).toBeCloseTo(scale.convert(new Date(domain[10])));
+            expect(scale.convert(domain[10])).toBe(control.convert(domain[10]));
         });
 
         it('leaves a scale untouched when the snapshot is restored without a domain change', () => {
@@ -1011,6 +1014,21 @@ describe('OrdinalTimeScale', () => {
             expect(numericBandsOf(scale)).not.toBe(before.numericBands);
             expect(numericBandsOf(scale)).toEqual(next.map((d) => d.valueOf()));
             expect(scale.getUniformityCache()?.interval).toBe(2 * durationMinute);
+        });
+
+        it('rebuilds the caches for a different array with equal contents', () => {
+            const scale = new OrdinalTimeScale();
+            scale.domain = minutes(2000);
+            scale.range = [0, 1000];
+            const before = warm(scale);
+
+            const copy = minutes(2000);
+            scale.domain = copy;
+
+            expect(scale.bands).not.toBe(before.bands);
+            expect(scale.bands).toBe(copy);
+            expect(numericBandsOf(scale)).not.toBe(before.numericBands);
+            expect(numericBandsOf(scale)).toEqual(before.numericBands);
         });
 
         it('does not reinstate the caches when restoring a domain other than the snapshot', () => {

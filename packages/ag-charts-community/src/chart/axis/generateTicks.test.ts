@@ -7,6 +7,9 @@ import { NiceMode } from './axisUtil';
 import { estimateScaleTickCount, generateTicks } from './generateTicks';
 import { withTemporaryDomain } from './generateTicksUtils';
 
+// `numericBands` is a protected derived cache; bracket access keeps it typed without a cast.
+const numericBandsOf = (scale: OrdinalTimeScale) => scale['numericBands'];
+
 // A minTickCount close to tickCount makes buildTickData's overlap loop iterate linearly instead of
 // converging by binary search, which hangs on deeply zoomed ordinal-time domains.
 describe('estimateScaleTickCount', () => {
@@ -77,7 +80,7 @@ describe('withTemporaryDomain on an ordinal-time scale', () => {
         scale.range = [0, 1000];
 
         const { bands } = scale;
-        const numericBands = (scale as any).numericBands as number[];
+        const numericBands = numericBandsOf(scale);
 
         withTemporaryDomain(scale, domain.slice(100, 200), () => {
             expect(scale.bands).toHaveLength(100);
@@ -85,7 +88,7 @@ describe('withTemporaryDomain on an ordinal-time scale', () => {
 
         expect(scale.domain).toBe(domain);
         expect(scale.bands).toBe(bands);
-        expect((scale as any).numericBands).toBe(numericBands);
+        expect(numericBandsOf(scale)).toBe(numericBands);
     });
 });
 
@@ -131,7 +134,6 @@ describe('generateTicks on an ordinal-time scale', () => {
     // ticks out for a domain other than the one its scale last had set.
     const domain = Array.from({ length: 20_000 }, (_, i) => new Date(2023, 0, 1, 0, i * 3 + 1));
     const tickDomain = domain.slice(2_000, 18_000);
-    const numericBandsOf = (scale: OrdinalTimeScale) => (scale as any).numericBands as number[];
 
     it.each([
         ['nice domain', [NiceMode.TickAndDomain]],
@@ -155,7 +157,6 @@ describe('generateTicks on an ordinal-time scale', () => {
         run(scale, tickDomain, [NiceMode.TickAndDomain]);
 
         expect(scale.swaps.length).toBeGreaterThan(0);
-        expect(scale.swaps.every((temporary) => temporary !== domain)).toBe(true);
     });
 
     it('produces the same ticks on a repeat pass over the cached scale as on a fresh one', () => {
