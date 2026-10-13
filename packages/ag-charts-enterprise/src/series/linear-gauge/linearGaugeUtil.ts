@@ -9,6 +9,7 @@ import {
     type NormalisedLinearGaugeDefaultTargetOptions,
     type NormalisedLinearGaugeScaleOptions,
     type NormalisedLinearGaugeTargetOptions,
+    type NormalisedTextOrSegments,
     cachedTextMeasurer,
     getColorStops,
     isArray,
@@ -18,9 +19,10 @@ import {
     toTextString,
 } from 'ag-charts-core';
 import type { Rect, Selection, Text } from 'ag-charts-core';
-import type { AgGaugeFillMode, AgNumericValue } from 'ag-charts-types';
+import type { AgGaugeFillMode, AgLinearGaugeLabelPlacement, AgNumericValue } from 'ag-charts-types';
 
 import { getLabelText } from '../gauge-util/label';
+import { collidesWithAny } from '../gauge-util/labelCollision';
 import { type LabelFormatting, formatSingleLabel } from '../util/labelFormatter';
 import type { LinearGaugeLabelDatum } from './linearGaugeTypes';
 
@@ -293,168 +295,238 @@ const verticalAlignFactors: Record<Align, number> = {
     [Align.After]: -1,
 };
 
+interface LinearGaugeLabelCandidate {
+    layout: LabelFormatting;
+    x: number;
+    y: number;
+    align: Align;
+    box: BBox;
+    overflow: number;
+    blocked: boolean;
+}
+
+type LinearGaugeLabelBBoxes = { seriesRect: BBox; gaugeRect: BBox; barRect: BBox };
+
+interface LinearGaugeLabelBounds {
+    width?: number;
+    height?: number;
+    bounds0: number;
+    bounds1: number;
+    anchor: number;
+    align: Align;
+    direction: -1 | 0 | 1;
+    inner: boolean;
+}
+
+function labelBounds(
+    placement: AgLinearGaugeLabelPlacement,
+    horizontal: boolean,
+    bboxes: LinearGaugeLabelBBoxes
+): LinearGaugeLabelBounds {
+    const { seriesRect, gaugeRect, barRect } = bboxes;
+    const scale0 = horizontal ? gaugeRect.x : gaugeRect.y + gaugeRect.height;
+    const scale1 = horizontal ? gaugeRect.x + gaugeRect.width : gaugeRect.y;
+    const bar0 = horizontal ? barRect.x : barRect.y + barRect.height;
+    const bar1 = horizontal ? barRect.x + barRect.width : barRect.y;
+
+    switch (placement) {
+        case 'outside-start':
+            return {
+                width: horizontal ? gaugeRect.x : seriesRect.width,
+                height: horizontal ? seriesRect.height : seriesRect.height - (gaugeRect.y + gaugeRect.height),
+                bounds0: -Infinity,
+                bounds1: Infinity,
+                anchor: scale0,
+                align: Align.Before,
+                direction: -1,
+                inner: false,
+            };
+        case 'outside-end':
+            return {
+                width: horizontal ? seriesRect.width - (gaugeRect.x + gaugeRect.width) : seriesRect.width,
+                height: horizontal ? seriesRect.height : gaugeRect.y,
+                bounds0: -Infinity,
+                bounds1: Infinity,
+                anchor: scale1,
+                align: Align.After,
+                direction: 1,
+                inner: false,
+            };
+        case 'inside-start':
+            return { bounds0: scale0, bounds1: bar1, anchor: scale0, align: Align.After, direction: 1, inner: true };
+        case 'inside-end':
+            return { bounds0: bar1, bounds1: scale1, anchor: scale1, align: Align.Before, direction: -1, inner: true };
+        case 'inside-center':
+            return {
+                bounds0: scale0,
+                bounds1: scale1,
+                anchor: (scale0 + scale1) / 2,
+                align: Align.Center,
+                direction: 0,
+                inner: true,
+            };
+        case 'bar-inside':
+            return {
+                bounds0: bar0,
+                bounds1: bar1,
+                anchor: (bar0 + bar1) / 2,
+                align: Align.Center,
+                direction: 0,
+                inner: true,
+            };
+        case 'bar-inside-end':
+            return { bounds0: bar0, bounds1: bar1, anchor: bar1, align: Align.Before, direction: -1, inner: true };
+        case 'bar-outside-end':
+            return { bounds0: bar1, bounds1: scale1, anchor: bar1, align: Align.After, direction: 1, inner: true };
+        case 'bar-end':
+            return {
+                bounds0: -Infinity,
+                bounds1: Infinity,
+                anchor: bar1,
+                align: Align.Center,
+                direction: 0,
+                inner: true,
+            };
+    }
+}
+
+function measureLinearGaugeLabel(
+    labelText: NormalisedTextOrSegments,
+    labelDatum: LinearGaugeLabelDatum,
+    padding: number,
+    boundingWidth: number,
+    boundingHeight: number,
+    alwaysShow: boolean
+): LabelFormatting | undefined {
+    const { maxWidth, maxHeight } = labelDatum;
+    if (Number.isFinite(boundingWidth) || Number.isFinite(boundingHeight) || maxWidth != null || maxHeight != null) {
+        const props = alwaysShow ? labelDatum : { ...labelDatum, collision: undefined };
+        const sizeFittingHeight = () => ({ width: boundingWidth, height: boundingHeight, meta: null });
+        return formatSingleLabel(toPlainText(labelText), props, { padding }, sizeFittingHeight)?.[0];
+    }
+
+    const measurer = cachedTextMeasurer(labelDatum);
+    const lineHeight = labelDatum.lineHeight ?? measurer.lineHeight();
+    let width: number;
+    let height: number;
+    if (isArray(labelText)) {
+        ({ width, height } = measureTextSegments(labelText, labelDatum));
+    } else {
+        const { width: textWidth, lineMetrics } = measurer.measureLines(toTextString(labelText));
+        width = textWidth;
+        height = lineMetrics.length * lineHeight;
+    }
+    return { text: labelText, fontSize: labelDatum.fontSize, lineHeight, width, height };
+}
+
 export function formatLinearGaugeLabels(
     series: { id: string },
     ctx: Ctx,
     selection: Selection<LinearGaugeLabelDatum, Text<LinearGaugeLabelDatum>>,
-    opts: { padding: number; horizontal: boolean },
-    bboxes: { seriesRect: BBox; gaugeRect: BBox; barRect: BBox },
+    opts: { padding: number; horizontal: boolean; barEnabled: boolean },
+    bboxes: LinearGaugeLabelBBoxes,
+    obstacles: readonly BBox[],
     datumOverrides?: { label: AgNumericValue | undefined }
 ) {
-    const { seriesRect, gaugeRect, barRect } = bboxes;
-    const { padding, horizontal } = opts;
+    const { gaugeRect, barRect } = bboxes;
+    const { padding, horizontal, barEnabled } = opts;
 
     selection.each((label, labelDatum) => {
         const labelText = getLabelText(series.id, ctx, labelDatum, datumOverrides?.label);
+        if (labelText == null) return;
 
-        let boundingWidth: number | undefined;
-        let boundingHeight: number | undefined;
-        if (labelDatum.placement === 'outside-start') {
+        const { placements, collision } = labelDatum;
+        // The deprecated `avoidCollisions: false` keeps the label at its natural size wherever it lands.
+        const legacyKeep = labelDatum.avoidCollisions === false && collision == null;
+        const avoidObstacles = collision != null && obstacles.length > 0;
+
+        const layoutCandidate = (
+            placement: AgLinearGaugeLabelPlacement,
+            alwaysShow: boolean
+        ): LinearGaugeLabelCandidate | undefined => {
+            const bounds = labelBounds(placement, horizontal, bboxes);
+            const fitToGauge = bounds.inner && !legacyKeep;
+            const boundingWidth = bounds.width ?? (fitToGauge ? gaugeRect.width : Infinity);
+            const boundingHeight = bounds.height ?? (fitToGauge ? gaugeRect.height : Infinity);
+            const layout = measureLinearGaugeLabel(
+                labelText,
+                labelDatum,
+                padding,
+                boundingWidth,
+                boundingHeight,
+                alwaysShow
+            );
+            if (layout == null) return;
+
+            const s = bounds.anchor + bounds.direction * labelDatum.spacing * (horizontal ? 1 : -1);
+            const x = horizontal ? s : gaugeRect.x + gaugeRect.width / 2;
+            const y = horizontal ? gaugeRect.y + gaugeRect.height / 2 : s;
+
+            let s0: number;
+            let box: BBox;
             if (horizontal) {
-                boundingWidth = gaugeRect.x;
-                boundingHeight = seriesRect.height;
+                s0 = x + horizontalAlignFactors[bounds.align] * layout.width;
+                box = new BBox(s0, y - layout.height / 2, layout.width, layout.height);
             } else {
-                boundingWidth = seriesRect.width;
-                boundingHeight = seriesRect.height - (gaugeRect.y + gaugeRect.height);
+                s0 = y + verticalAlignFactors[bounds.align] * layout.height;
+                box = new BBox(x - layout.width / 2, s0, layout.width, layout.height);
             }
-        } else if (labelDatum.placement === 'outside-end') {
-            if (horizontal) {
-                boundingWidth = seriesRect.width - (gaugeRect.x + gaugeRect.width);
-                boundingHeight = seriesRect.height;
-            } else {
-                boundingWidth = seriesRect.width;
-                boundingHeight = gaugeRect.y;
-            }
-        } else if (labelDatum.avoidCollisions) {
-            boundingWidth = gaugeRect.width;
-            boundingHeight = gaugeRect.height;
-        }
+            const s1 = s0 + (horizontal ? layout.width : layout.height);
 
-        let layout: LabelFormatting | undefined;
-        if (labelText == null) {
-            return;
-        } else if (boundingWidth != null && boundingHeight != null) {
-            const width: number = boundingWidth;
-            const height: number = boundingHeight;
-            const sizeFittingHeight = () => ({ width, height, meta: null });
+            const min = Math.min(bounds.bounds0, bounds.bounds1);
+            const max = Math.max(bounds.bounds0, bounds.bounds1);
+            const overflow = Math.max(0, min - s0) + Math.max(0, s1 - max);
+            const blocked = avoidObstacles && collidesWithAny(box, obstacles, collision.threshold);
 
-            const labelMeta = formatSingleLabel(toPlainText(labelText), labelDatum, { padding }, sizeFittingHeight);
-            layout = labelMeta?.[0];
+            return { layout, x, y, align: bounds.align, box, overflow, blocked };
+        };
+
+        let chosen: LinearGaugeLabelCandidate | undefined;
+        if (legacyKeep) {
+            chosen = layoutCandidate(placements[0], false);
         } else {
-            const measurer = cachedTextMeasurer(labelDatum);
-            const lineHeight = labelDatum.lineHeight ?? measurer.lineHeight();
-            let width: number;
-            let height: number;
-            if (isArray(labelText)) {
-                ({ width, height } = measureTextSegments(labelText, labelDatum));
-            } else {
-                const { width: textWidth, lineMetrics } = measurer.measureLines(toTextString(labelText));
-                width = textWidth;
-                height = lineMetrics.length * lineHeight;
+            for (const placement of placements) {
+                const candidate = layoutCandidate(placement, false);
+                if (candidate != null && candidate.overflow === 0 && !candidate.blocked) {
+                    chosen = candidate;
+                    break;
+                }
             }
-            layout = { text: labelText, fontSize: labelDatum.fontSize, lineHeight, width, height };
         }
 
-        if (layout == null) {
+        if (chosen == null && collision?.alwaysShow) {
+            for (const placement of placements) {
+                const candidate = layoutCandidate(placement, true);
+                if (candidate != null && isBetterFallback(candidate, chosen)) {
+                    chosen = candidate;
+                }
+            }
+        }
+
+        if (chosen == null) {
             label.visible = false;
             return;
         }
 
-        const scale0 = horizontal ? gaugeRect.x : gaugeRect.y + gaugeRect.height;
-        const scale1 = horizontal ? gaugeRect.x + gaugeRect.width : gaugeRect.y;
-        const bar0 = horizontal ? barRect.x : barRect.y + barRect.height;
-        const bar1 = horizontal ? barRect.x + barRect.width : barRect.y;
-
-        const offset = labelDatum.spacing * (horizontal ? 1 : -1);
-
-        let bounds0: number;
-        let bounds1: number;
-        let s: number;
-        let align: Align;
-        switch (labelDatum.placement) {
-            case 'outside-start':
-                bounds0 = -Infinity;
-                bounds1 = Infinity;
-                s = scale0 - offset;
-                align = Align.Before;
-                break;
-            case 'outside-end':
-                bounds0 = -Infinity;
-                bounds1 = Infinity;
-                s = scale1 + offset;
-                align = Align.After;
-                break;
-            case 'inside-start':
-                bounds0 = scale0;
-                bounds1 = bar1;
-                s = scale0 + offset;
-                align = Align.After;
-                break;
-            case 'inside-end':
-                bounds0 = bar1;
-                bounds1 = scale1;
-                s = scale1 - offset;
-                align = Align.Before;
-                break;
-            case 'inside-center':
-                bounds0 = scale0;
-                bounds1 = scale1;
-                s = (scale0 + scale1) / 2;
-                align = Align.Center;
-                break;
-            case 'bar-inside':
-                bounds0 = bar0;
-                bounds1 = bar1;
-                s = (bar0 + bar1) / 2;
-                align = Align.Center;
-                break;
-            case 'bar-inside-end':
-                bounds0 = bar0;
-                bounds1 = bar1;
-                s = bar1 - offset;
-                align = Align.Before;
-                break;
-            case 'bar-outside-end':
-                bounds0 = bar1;
-                bounds1 = scale1;
-                s = bar1 + offset;
-                align = Align.After;
-                break;
-            case 'bar-end':
-                bounds0 = -Infinity;
-                bounds1 = Infinity;
-                s = bar1;
-                align = Align.Center;
-                break;
-        }
-
-        const x = horizontal ? s : gaugeRect.x + gaugeRect.width / 2;
-        const y = horizontal ? gaugeRect.y + gaugeRect.height / 2 : s;
-
-        let s0: number;
-        let s1: number;
-        if (horizontal) {
-            s0 = x + horizontalAlignFactors[align] * layout.width;
-            s1 = s0 + layout.width;
-        } else {
-            s0 = y + verticalAlignFactors[align] * layout.height;
-            s1 = s0 + layout.height;
-        }
-
-        const inside = Math.min(s0, s1) >= Math.min(bounds0, bounds1) && Math.max(s0, s1) <= Math.max(bounds0, bounds1);
-        if (labelDatum.avoidCollisions && !inside) {
-            label.visible = false;
-            return;
-        }
+        const { layout, x, y, align, box } = chosen;
+        const centre = box.computeCenter();
+        const inside = barEnabled && barRect.containsPoint(centre.x, centre.y);
 
         label.visible = true;
         label.text = layout.text;
         label.fontSize = layout.fontSize;
         label.lineHeight = layout.lineHeight;
+        label.fill = labelDatum.fill ?? (inside ? labelDatum.insideFill : labelDatum.outsideFill);
 
         label.textAlign = horizontal ? horizontalTextAligns[align] : 'center';
         label.textBaseline = horizontal ? 'middle' : verticalTextBaselines[align];
         label.x = x;
         label.y = y;
     });
+}
+
+function isBetterFallback(candidate: LinearGaugeLabelCandidate, current: LinearGaugeLabelCandidate | undefined) {
+    if (current == null) return true;
+    if (candidate.blocked !== current.blocked) return !candidate.blocked;
+    return candidate.overflow < current.overflow;
 }

@@ -1,4 +1,10 @@
-import type { AgChartTooltipOptions, AgGaugeColorStop, AgSeriesTooltip, FillsOptions } from 'ag-charts-community';
+import type {
+    AgChartTooltipOptions,
+    AgGaugeColorStop,
+    AgRadialGaugeTargetLabelOptions,
+    AgSeriesTooltip,
+    FillsOptions,
+} from 'ag-charts-community';
 import {
     type OptionsDefs,
     and,
@@ -7,8 +13,12 @@ import {
     colorOrRef,
     colorStopsOrderValidator,
     commonChartOptionsDefs,
+    labelAutoFontSizeOptionsDefs,
+    labelCollisionFitOptionsDefs,
     numericValue,
     optionsDefs,
+    positiveNumber,
+    seriesLabelOptionsDefs,
     tooltipOptionsDefs,
     union,
 } from 'ag-charts-core';
@@ -26,4 +36,12 @@ export const fillsOptionsDef: OptionsDefs<FillsOptions> = {
 export const gaugeTooltipOptionsDef: OptionsDefs<AgSeriesTooltip<any> & AgChartTooltipOptions> = {
     ...tooltipOptionsDefs,
     ...(commonChartOptionsDefs.tooltip as OptionsDefs<AgChartTooltipOptions>),
+};
+
+/** Target labels on both gauges share one shape. */
+export const gaugeTargetLabelOptionsDef: OptionsDefs<AgRadialGaugeTargetLabelOptions> = {
+    ...seriesLabelOptionsDefs,
+    ...labelCollisionFitOptionsDefs,
+    ...labelAutoFontSizeOptionsDefs,
+    spacing: positiveNumber,
 };

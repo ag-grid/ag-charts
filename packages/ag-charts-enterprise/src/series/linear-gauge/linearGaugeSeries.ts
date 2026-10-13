@@ -2,8 +2,6 @@ import {
     type AgActiveItemState,
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeTargetPlacement,
-    type FontStyle,
-    type FontWeight,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -40,6 +38,13 @@ import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
+import {
+    type GaugeTargetLabelFit,
+    avoidTargetLabelCollisions,
+    fitGaugeTargetLabelText,
+    hasTargetLabelCollision,
+    visibleLabelBoxes,
+} from '../gauge-util/labelCollision';
 import { LineMarker, lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { getGaugeSegments } from '../gauge-util/segmentation';
@@ -63,13 +68,9 @@ const { fromToMotion, resetMotion, SeriesNodePickMode, createDatumId, generateTi
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
-interface TargetLabel {
+interface TargetLabel extends GaugeTargetLabelFit {
     enabled: boolean;
     color: string;
-    fontStyle: FontStyle;
-    fontWeight: FontWeight;
-    fontSize: number;
-    fontFamily: string;
     spacing: number;
 }
 
@@ -262,15 +263,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 spacing = defaultTarget.spacing,
                 size = defaultTarget.size,
             } = target;
-            const {
-                enabled: labelEnabled = defaultTarget.label.enabled,
-                color: labelColor = defaultTarget.label.color,
-                fontStyle: labelFontStyle = defaultTarget.label.fontStyle,
-                fontWeight: labelFontWeight = defaultTarget.label.fontWeight,
-                fontSize: labelFontSize = defaultTarget.label.fontSize,
-                fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
-                spacing: labelSpacing = defaultTarget.label.spacing,
-            } = target.label ?? {};
+            const label = mergeDefaults(target.label, defaultTarget.label);
 
             return {
                 text,
@@ -281,13 +274,19 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 size,
                 rotation,
                 label: {
-                    enabled: labelEnabled,
-                    color: labelColor,
-                    fontStyle: labelFontStyle,
-                    fontWeight: labelFontWeight,
-                    fontSize: labelFontSize,
-                    fontFamily: labelFontFamily,
-                    spacing: labelSpacing,
+                    enabled: label.enabled,
+                    color: label.color,
+                    fontStyle: label.fontStyle,
+                    fontWeight: label.fontWeight,
+                    fontSize: label.fontSize,
+                    fontFamily: label.fontFamily,
+                    spacing: label.spacing,
+                    maxWidth: label.maxWidth,
+                    maxHeight: label.maxHeight,
+                    wrapping: label.wrapping,
+                    truncate: label.truncate,
+                    minimumFontSize: label.minimumFontSize,
+                    collision: label.collision,
                 },
                 style: getLinearGaugeTargetStyle(target, defaultTarget),
             };
@@ -322,8 +321,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private getTargetLabel(target: Target): LinearGaugeTargetDatumLabel {
         const { size, placement, label } = target;
-        const { spacing, color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;
-        const lineHeight = undefined;
+        const { spacing, color: fill } = label;
 
         const offset = size / 2 + spacing;
 
@@ -359,11 +357,16 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             fill,
             textAlign,
             textBaseline,
-            fontStyle,
-            fontWeight,
-            fontSize,
-            fontFamily,
-            lineHeight,
+            fontStyle: label.fontStyle,
+            fontWeight: label.fontWeight,
+            fontSize: label.fontSize,
+            fontFamily: label.fontFamily,
+            maxWidth: label.maxWidth,
+            maxHeight: label.maxHeight,
+            wrapping: label.wrapping,
+            truncate: label.truncate,
+            minimumFontSize: label.minimumFontSize,
+            collision: label.collision,
         };
     }
 
@@ -372,6 +375,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             placement,
             avoidCollisions,
             spacing,
+            maxWidth,
+            maxHeight,
+            insideStyle,
+            outsideStyle,
             text,
             color: fill,
             fontSize,
@@ -389,9 +396,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             series: this,
             datum: undefined,
             datumIndex: 0,
-            placement,
+            placements: isArray(placement) ? placement : [placement],
             avoidCollisions,
             spacing,
+            maxWidth,
+            maxHeight,
+            insideFill: insideStyle?.color,
+            outsideFill: outsideStyle?.color,
             text,
             value,
             fill,
@@ -508,6 +519,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             axisRotation = 0;
         }
 
+        const primaryPlacement = isArray(label.placement) ? label.placement[0] : label.placement;
         let x0: number;
         let x1: number;
         let y0: number;
@@ -518,9 +530,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             y0 = (seriesRect.height - thickness) / 2;
             y1 = y0 + thickness;
 
-            if (label.placement === 'outside-start') {
+            if (primaryPlacement === 'outside-start') {
                 x0 += this.horizontalLabelInset();
-            } else if (label.placement === 'outside-end') {
+            } else if (primaryPlacement === 'outside-end') {
                 x1 -= this.horizontalLabelInset();
             }
         } else {
@@ -530,9 +542,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             y1 = 0;
             y0 = seriesRect.height;
 
-            if (label.placement === 'outside-start') {
+            if (primaryPlacement === 'outside-start') {
                 y0 -= this.verticalLabelInset();
-            } else if (label.placement === 'outside-end') {
+            } else if (primaryPlacement === 'outside-end') {
                 y1 += this.verticalLabelInset();
             }
         }
@@ -844,7 +856,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         this.updateTargetNodes({ targetSelection, isHighlight: false });
 
         this.targetLabelSelection = this.updateTargetLabelSelection({ targetData, targetLabelSelection });
-        this.updateTargetLabelNodes({ targetLabelSelection });
+
+        this.tickSelection = this.updateTickSelection({ tickData, tickSelection });
+        this.updateTickNodes({ tickSelection });
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumNodes({ datumSelection });
@@ -858,8 +872,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         });
         this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });
 
-        this.tickSelection = this.updateTickSelection({ tickData, tickSelection });
-        this.updateTickNodes({ tickSelection });
+        this.updateTargetLabelNodes();
 
         if (resize) {
             this.animationState.transition('resize');
@@ -1003,28 +1016,30 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return opts.targetLabelSelection.update(opts.targetData);
     }
 
-    private updateTargetLabelNodes(opts: {
-        targetLabelSelection: Selection<LinearGaugeTargetDatum, Text<LinearGaugeTargetDatum>>;
-    }) {
-        const { targetLabelSelection } = opts;
+    private updateTargetLabelNodes() {
+        const { targetLabelSelection } = this;
 
         targetLabelSelection.each((label, target) => {
             const { x, y, text } = target;
-            const { offsetX, offsetY, fill, fontStyle, fontWeight, fontSize, fontFamily, textAlign, textBaseline } =
-                target.label;
+            const { offsetX, offsetY, fill, fontStyle, fontWeight, fontFamily, textAlign, textBaseline } = target.label;
+            const fitted = text == null ? undefined : fitGaugeTargetLabelText(text, target.label);
 
-            label.visible = true;
+            label.visible = text == null || fitted != null;
             label.x = x + offsetX;
             label.y = y + offsetY;
-            label.text = text;
+            label.text = fitted?.text ?? text;
             label.fill = fill;
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
-            label.fontSize = fontSize;
+            label.fontSize = fitted?.fontSize ?? target.label.fontSize;
             label.fontFamily = fontFamily;
             label.textAlign = textAlign;
             label.textBaseline = textBaseline;
         });
+
+        avoidTargetLabelCollisions(targetLabelSelection, () =>
+            visibleLabelBoxes(this.labelSelection, visibleLabelBoxes(this.tickSelection))
+        );
     }
 
     private updateTickSelection(opts: {
@@ -1105,7 +1120,6 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
         labelSelection.each((label, datum) => {
-            label.fill = datum.fill;
             label.fontStyle = datum.fontStyle;
             label.fontWeight = datum.fontWeight;
             label.fontFamily = datum.fontFamily;
@@ -1143,9 +1157,22 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
         const bboxes = { seriesRect, gaugeRect, barRect };
 
-        const { margin: padding } = this.options;
+        const { margin: padding, bar, label } = this.options;
+        const obstacles = label.collision == null ? [] : visibleLabelBoxes(this.tickSelection);
 
-        formatLinearGaugeLabels(this, this.ctx, labelSelection, { padding, horizontal }, bboxes, datum);
+        formatLinearGaugeLabels(
+            this,
+            this.ctx,
+            labelSelection,
+            { padding, horizontal, barEnabled: bar.enabled },
+            bboxes,
+            obstacles,
+            datum
+        );
+
+        if (hasTargetLabelCollision(this.targetLabelSelection)) {
+            this.updateTargetLabelNodes();
+        }
     }
 
     protected resetAllAnimation() {

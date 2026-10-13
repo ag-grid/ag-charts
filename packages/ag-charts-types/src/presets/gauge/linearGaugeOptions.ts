@@ -1,5 +1,12 @@
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgChartAutoSizedLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartAutoSizedLabelOptions,
+    AgChartLabelAutoFontSizeOptions,
+    AgChartLabelCollisionFitOptions,
+    AgChartLabelFitOptions,
+    AgChartLabelOptions,
+    AgSeriesLabelPlacementStyleOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgMarkerShape, ContextDefault, DatumDefault, Degree, Direction, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
@@ -72,6 +79,8 @@ export interface AgLinearGaugeTarget extends AgLinearGaugeSeriesStyle {
     size?: PixelSize;
     /** Rotation of the target, in degrees. */
     rotation?: Degree;
+    /** Label options for the target. */
+    label?: AgLinearGaugeTargetLabelOptions;
 }
 
 export type AgLinearGaugeLabelPlacement =
@@ -85,7 +94,20 @@ export type AgLinearGaugeLabelPlacement =
     | 'bar-outside-end'
     | 'bar-end';
 
-export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<never, unknown, ContextDefault> {
+export interface AgLinearGaugeTargetLabelOptions
+    extends
+        AgChartLabelOptions<never, never, ContextDefault>,
+        AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions {
+    /** Spacing of the label. */
+    spacing?: PixelSize;
+}
+
+export interface AgLinearGaugeLabelOptions
+    extends
+        AgChartAutoSizedLabelOptions<never, unknown, ContextDefault>,
+        Pick<AgChartLabelFitOptions, 'maxWidth' | 'maxHeight'>,
+        AgSeriesLabelPlacementStyleOptions {
     /** Text to always display. */
     text?: string;
     /** Distance between the shape edges and the text. */
@@ -93,11 +115,15 @@ export interface AgLinearGaugeLabelOptions extends AgChartAutoSizedLabelOptions<
     /**
      * Avoid label collisions with the bar and/or scale.
      *
-     * Default: `true`
+     * @deprecated v14.2.0 Use `collision.alwaysShow` instead.
      */
     avoidCollisions?: boolean;
-    /** Placement of the label. */
-    placement?: AgLinearGaugeLabelPlacement;
+    /**
+     * Placement of the label. Either a single placement or an ordered fallback list tried in turn until one fits.
+     *
+     * Default: `'inside-start'`
+     */
+    placement?: AgLinearGaugeLabelPlacement | AgLinearGaugeLabelPlacement[];
 }
 
 export interface AgLinearGaugeThemeableOptions<

@@ -2,8 +2,6 @@ import {
     type AgActiveItemState,
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeTargetPlacement,
-    type FontStyle,
-    type FontWeight,
     type TextAlign,
     type VerticalAlign,
     _ModuleSupport,
@@ -44,6 +42,13 @@ import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
+import {
+    type GaugeTargetLabelFit,
+    avoidTargetLabelCollisions,
+    fitGaugeTargetLabelText,
+    hasTargetLabelCollision,
+    visibleLabelBoxes,
+} from '../gauge-util/labelCollision';
 import { LineMarker, lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { getGaugeSegments } from '../gauge-util/segmentation';
@@ -70,13 +75,9 @@ const { fromToMotion, resetMotion, SeriesNodePickMode, createDatumId } = _Module
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
-interface TargetLabel {
+interface TargetLabel extends GaugeTargetLabelFit {
     enabled: boolean;
     color: string;
-    fontStyle: FontStyle;
-    fontWeight: FontWeight;
-    fontSize: number;
-    fontFamily: string;
     spacing: number;
 }
 
@@ -424,15 +425,7 @@ export class RadialGaugeSeries
                 spacing = defaultTarget.spacing,
                 size = defaultTarget.size,
             } = target;
-            const {
-                enabled: labelEnabled = defaultTarget.label.enabled,
-                color: labelColor = defaultTarget.label.color,
-                fontStyle: labelFontStyle = defaultTarget.label.fontStyle,
-                fontWeight: labelFontWeight = defaultTarget.label.fontWeight,
-                fontSize: labelFontSize = defaultTarget.label.fontSize,
-                fontFamily: labelFontFamily = defaultTarget.label.fontFamily,
-                spacing: labelSpacing = defaultTarget.label.spacing,
-            } = target.label ?? {};
+            const label = mergeDefaults(target.label, defaultTarget.label);
 
             return {
                 text,
@@ -443,13 +436,19 @@ export class RadialGaugeSeries
                 size,
                 rotation,
                 label: {
-                    enabled: labelEnabled,
-                    color: labelColor,
-                    fontStyle: labelFontStyle,
-                    fontWeight: labelFontWeight,
-                    fontSize: labelFontSize,
-                    fontFamily: labelFontFamily,
-                    spacing: labelSpacing,
+                    enabled: label.enabled,
+                    color: label.color,
+                    fontStyle: label.fontStyle,
+                    fontWeight: label.fontWeight,
+                    fontSize: label.fontSize,
+                    fontFamily: label.fontFamily,
+                    spacing: label.spacing,
+                    maxWidth: label.maxWidth,
+                    maxHeight: label.maxHeight,
+                    wrapping: label.wrapping,
+                    truncate: label.truncate,
+                    minimumFontSize: label.minimumFontSize,
+                    collision: label.collision,
                 },
                 style: getRadialGaugeTargetStyle(target),
             };
@@ -478,7 +477,7 @@ export class RadialGaugeSeries
         const { scale } = this;
 
         const { value, size, placement, label } = target;
-        const { spacing, color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;
+        const { spacing, color: fill } = label;
         const angle = scale.convert(value);
 
         const quadrant = Math.trunc(normalizeAngle360(angle) / (Math.PI / 2));
@@ -514,11 +513,16 @@ export class RadialGaugeSeries
             fill,
             textAlign,
             textBaseline,
-            fontStyle,
-            fontWeight,
-            fontSize,
-            fontFamily,
-            lineHeight: undefined,
+            fontStyle: label.fontStyle,
+            fontWeight: label.fontWeight,
+            fontSize: label.fontSize,
+            fontFamily: label.fontFamily,
+            maxWidth: label.maxWidth,
+            maxHeight: label.maxHeight,
+            wrapping: label.wrapping,
+            truncate: label.truncate,
+            minimumFontSize: label.minimumFontSize,
+            collision: label.collision,
         };
     }
 
@@ -676,10 +680,14 @@ export class RadialGaugeSeries
                 lineHeight,
                 truncate,
                 collision,
+                maxWidth,
+                maxHeight,
                 formatter = (params) => this.formatLabel(params.value),
             } = label;
             labelData.push({
                 label: LabelType.Primary,
+                maxWidth,
+                maxHeight,
                 centerX,
                 centerY,
                 text,
@@ -848,7 +856,9 @@ export class RadialGaugeSeries
         this.updateTargetNodes({ targetSelection });
 
         this.targetLabelSelection = this.updateTargetLabelSelection({ targetData, targetLabelSelection });
-        this.updateTargetLabelNodes({ targetLabelSelection });
+
+        this.tickSelection = this.updateTickSelection({ tickData, tickSelection });
+        this.updateTickNodes({ tickSelection });
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumNodes({ datumSelection });
@@ -863,8 +873,7 @@ export class RadialGaugeSeries
         this.updateTargetStyles({ targetSelection: highlightTargetSelection, isHighlight: true });
         this.updateTargetNodes({ targetSelection: highlightTargetSelection });
 
-        this.tickSelection = this.updateTickSelection({ tickData, tickSelection });
-        this.updateTickNodes({ tickSelection });
+        this.updateTargetLabelNodes();
 
         if (resize) {
             this.animationState.transition('resize');
@@ -1061,17 +1070,15 @@ export class RadialGaugeSeries
         return opts.targetLabelSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
-    private updateTargetLabelNodes(opts: {
-        targetLabelSelection: Selection<RadialGaugeTargetDatum, Text<RadialGaugeTargetDatum>>;
-    }) {
-        const { targetLabelSelection } = opts;
+    private updateTargetLabelNodes() {
+        const { targetLabelSelection } = this;
 
         targetLabelSelection.each((label, target) => {
             const { centerX, centerY, radius, angle, text } = target;
-            const { offsetX, offsetY, fill, fontStyle, fontWeight, fontSize, fontFamily, textAlign, textBaseline } =
-                target.label;
+            const { offsetX, offsetY, fill, fontStyle, fontWeight, fontFamily, textAlign, textBaseline } = target.label;
+            const fitted = text == null ? undefined : fitGaugeTargetLabelText(text, target.label);
 
-            if (text == null) {
+            if (fitted == null) {
                 label.visible = false;
                 return;
             }
@@ -1079,15 +1086,19 @@ export class RadialGaugeSeries
             label.visible = true;
             label.x = centerX + radius * Math.cos(angle) + offsetX;
             label.y = centerY + radius * Math.sin(angle) + offsetY;
-            label.text = text;
+            label.text = fitted.text;
             label.fill = fill;
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
-            label.fontSize = fontSize;
+            label.fontSize = fitted.fontSize;
             label.fontFamily = fontFamily;
             label.textAlign = textAlign;
             label.textBaseline = textBaseline;
         });
+
+        avoidTargetLabelCollisions(targetLabelSelection, () =>
+            visibleLabelBoxes(this.labelSelection, visibleLabelBoxes(this.tickSelection))
+        );
     }
 
     private updateLabelSelection(opts: {
@@ -1273,7 +1284,9 @@ export class RadialGaugeSeries
 
     formatLabelText(datum?: { label: AgNumericValue | undefined; secondaryLabel: AgNumericValue | undefined }) {
         const { labelSelection, radius, textAlign, verticalAlign } = this;
-        const { spacing: padding, innerRadiusRatio } = this.options;
+        const { spacing: padding, innerRadiusRatio, label, secondaryLabel } = this.options;
+        const obstacles =
+            label.collision == null && secondaryLabel.collision == null ? [] : visibleLabelBoxes(this.tickSelection);
 
         formatRadialGaugeLabels(
             this,
@@ -1281,8 +1294,13 @@ export class RadialGaugeSeries
             labelSelection,
             { padding, textAlign, verticalAlign },
             radius * innerRadiusRatio,
+            obstacles,
             datum
         );
+
+        if (hasTargetLabelCollision(this.targetLabelSelection)) {
+            this.updateTargetLabelNodes();
+        }
     }
 
     protected resetAllAnimation() {

@@ -1,5 +1,6 @@
 import type {
     AgChartLabelFormatterParams,
+    AgChartLabelPlacementStyleOptions,
     AgGaugeColorStop,
     AgGaugeSegmentation,
     AgGaugeSegmentationInterval,
@@ -10,6 +11,7 @@ import type {
     AgLinearGaugeScaleInterval,
     AgLinearGaugeScaleLabel,
     AgLinearGaugeTarget,
+    AgLinearGaugeTargetLabelOptions,
     AgRadialGaugeBarStyle,
     AgRadialGaugeLabelFormatterParams,
     AgRadialGaugeLabelOptions,
@@ -185,10 +187,17 @@ export type NormalisedLinearGaugeBarOptions = Normalised<
     GaugeFillsOverrides
 >;
 
+type NormalisedLabelPlacementStyle = Normalised<AgChartLabelPlacementStyleOptions, never, { color?: CssColor }>;
+
 export type NormalisedLinearGaugeLabelOptions = Normalised<
     AgLinearGaugeLabelOptions,
-    'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate' | 'spacing' | 'placement' | 'avoidCollisions',
-    { color?: CssColor; formatter?: GaugeLabelFormatter<unknown> }
+    'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate' | 'spacing' | 'placement',
+    {
+        color?: CssColor;
+        formatter?: GaugeLabelFormatter<unknown>;
+        insideStyle?: NormalisedLabelPlacementStyle;
+        outsideStyle?: NormalisedLabelPlacementStyle;
+    }
 >;
 
 /** A user-configured linear target; anything left unset falls back to the themed `defaultTarget`. */
@@ -196,9 +205,8 @@ export type NormalisedLinearGaugeTargetOptions = Normalised<AgLinearGaugeTarget,
     label?: NormalisedLinearGaugeTargetLabelOptions;
 };
 
-/** Undocumented per-target label; the public linear target carries none, so only the default supplies it. */
 export type NormalisedLinearGaugeTargetLabelOptions = Normalised<
-    AgRadialGaugeTargetLabelOptions,
+    AgLinearGaugeTargetLabelOptions,
     never,
     { color?: CssColor }
 >;
@@ -209,7 +217,7 @@ export type NormalisedLinearGaugeDefaultTargetOptions = Normalised<
     FillStrokeMorph & { value?: never }
 > & {
     label: Normalised<
-        AgRadialGaugeTargetLabelOptions,
+        AgLinearGaugeTargetLabelOptions,
         'enabled' | 'fontStyle' | 'fontWeight' | 'fontSize' | 'fontFamily' | 'spacing',
         { color: CssColor }
     >;

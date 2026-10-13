@@ -622,7 +622,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.soloSeriesIntegrity(options);
 
-        const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
+        // A preset already validated (and warned about) the user's input; its generated series need not repeat that.
+        const seriesParams =
+            presetDef == null ? this.validateParams : { ...this.validateParams, silentAdvisories: true };
+        const missingSeriesModules = this.validateSeriesOptions(options, seriesParams);
 
         const chartType = detectChartType(options, this.moduleRegistry);
 

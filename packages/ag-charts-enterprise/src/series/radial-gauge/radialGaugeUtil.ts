@@ -16,10 +16,11 @@ import {
     toNumberOrUndefined,
     toPlainText,
 } from 'ag-charts-core';
-import type { Sector, Selection, Text } from 'ag-charts-core';
+import type { BBox, Sector, Selection, Text } from 'ag-charts-core';
 import type { AgGaugeFillMode, AgNumericValue } from 'ag-charts-types';
 
 import { getLabelText } from '../gauge-util/label';
+import { collidesWithAny } from '../gauge-util/labelCollision';
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
 import type { RadialGaugeNeedle } from './radialGaugeNeedle';
 import { LabelType, type RadialGaugeLabelDatum } from './radialGaugeTypes';
@@ -292,6 +293,7 @@ export function formatRadialGaugeLabels(
     selection: Selection<RadialGaugeLabelDatum, Text<RadialGaugeLabelDatum>>,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
+    obstacles: readonly BBox[],
     datumOverrides?: { label: AgNumericValue | undefined; secondaryLabel: AgNumericValue | undefined }
 ) {
     const { padding, textAlign, verticalAlign } = opts;
@@ -388,5 +390,14 @@ export function formatRadialGaugeLabels(
             datum.label === LabelType.Primary ? layout.height / 2 : height - layout.height / 2;
         label.y = datum.centerY + rectOriginInLabelRect - rectYOffset;
         label.x = datum.centerX;
+
+        const { collision } = datum;
+        if (
+            collision != null &&
+            !collision.alwaysShow &&
+            collidesWithAny(label.getBBox(), obstacles, collision.threshold)
+        ) {
+            label.visible = false;
+        }
     });
 }
