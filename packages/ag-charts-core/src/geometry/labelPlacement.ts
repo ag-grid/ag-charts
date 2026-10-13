@@ -888,11 +888,9 @@ const shrinkReduction = { width: 0, height: 0 };
 let shrinkWidthCap = Infinity;
 let shrinkHeightCap = Infinity;
 const shrinkSlide: Point = { x: 0, y: 0 };
-// Furthest a positioned candidate moves along its slide axis to clear an obstacle: enough to settle a near
-// miss, too little to read as a different placement.
+// Furthest a positioned candidate moves along its slide axis: enough to settle a near miss, not a new placement.
 const MAX_NUDGE = 4;
-// Furthest a centred box may slide along each axis; past it the box gives up the same room on both sides,
-// staying on the placement it was asked for.
+// Furthest a centred box may slide along each axis before it shrinks evenly about its anchor instead.
 let shrinkSlideLimitX = Infinity;
 let shrinkSlideLimitY = Infinity;
 // Which edge of the box the placement pins against its anchor: positive the min edge (left/top), negative
@@ -2414,8 +2412,8 @@ function placeFromPositionedCandidates(
 
 /**
  * One pass over the positioned candidates set up on the `positioned*` scratch; see {@link
- * placeFromPositionedCandidates}. Inside a font-size trial a candidate can only win outright, so nothing is
- * recorded and a candidate whose text cannot be re-fitted at the trial size is skipped.
+ * placeFromPositionedCandidates}. Inside a font-size trial a candidate can only win outright, except at a kept
+ * label's floor, and a candidate whose text cannot be re-fitted at the trial size is skipped.
  */
 function positionedCandidatesPass(): PlacedLabel | undefined {
     const d = positionedDatum;
@@ -2554,11 +2552,9 @@ function nudgeCandidate(axis: 'x' | 'y' | undefined, region: BoxBounds, inflate:
     nudgeBefore = 0;
     nudgeAfter = 0;
     obstacleIndex.query(queryBox, measureNudge);
-    const before = nudgeBefore;
-    const after = nudgeAfter;
-    return -before <= after
-        ? tryNudge(before, region, inflate) || tryNudge(after, region, inflate)
-        : tryNudge(after, region, inflate) || tryNudge(before, region, inflate);
+    return -nudgeBefore <= nudgeAfter
+        ? tryNudge(nudgeBefore, region, inflate) || tryNudge(nudgeAfter, region, inflate)
+        : tryNudge(nudgeAfter, region, inflate) || tryNudge(nudgeBefore, region, inflate);
 }
 
 function tryNudge(shift: number, region: BoxBounds, inflate: number): boolean {
