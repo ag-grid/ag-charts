@@ -286,6 +286,10 @@ Right-clicking a legend item shows actions for the whole series:
 - "Remove Series" drops the series.
 - "Colour" is a submenu of preset colours; selecting one recolours the series' line, markers and labels.
 
+## Browser Context Menu
+
+By default, the Context Menu replaces the browser's context menu on right-click. If you need the browser's menu, for example to open the dev tools, set `contextMenu.allowBrowserMenuWithModifierKey` to `true`. This then allows showing the browser's menu by holding {% kbd "Ctrl" /%} or {% kbd "⌘ Cmd" /%} while right-clicking. A right-click without a modifier key still shows the Context Menu.
+
 ## API Reference
 
 {% tabs %}
