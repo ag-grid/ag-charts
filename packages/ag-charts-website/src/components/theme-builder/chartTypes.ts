@@ -72,6 +72,8 @@ export const THUMBNAIL_OPTIONS: AgChartOptions = {
         y: { type: 'number', position: 'left' },
     },
     legend: { enabled: false },
+    // A preset's padding is sized for a full chart and swamps one at card size.
+    padding: 8,
 };
 
 const TITLE = { text: 'Quarterly Revenue by Country' };

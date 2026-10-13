@@ -67,7 +67,7 @@ const Card = styled('div')`
 // Inset rather than bled, the way a real chart sits in a real page.
 const ChartContainer = styled('div')`
     position: absolute;
-    inset: 10px;
+    inset: 5px;
     pointer-events: none;
 
     transition: transform 0.25s;
