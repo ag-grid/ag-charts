@@ -769,9 +769,6 @@ export abstract class CartesianAxis<
     }
 
     private getLabelRoom(scrollbar: ScrollbarLayout | undefined, scrollbarThickness: number) {
-        const label = this.options.label;
-        const padding = expandLabelPadding(label);
-        const labelPadding = this.horizontal ? padding.top + padding.bottom : padding.left + padding.right;
         const outerScrollbar =
             scrollbar?.enabled && scrollbar.placement !== 'inner' ? scrollbar.spacing + scrollbar.thickness : 0;
         const room =
@@ -780,8 +777,7 @@ export abstract class CartesianAxis<
             this.getTickSpacing() -
             this.seriesAreaPadding -
             scrollbarThickness -
-            outerScrollbar -
-            labelPadding;
+            outerScrollbar;
         return Math.max(0, Math.floor(room));
     }
 

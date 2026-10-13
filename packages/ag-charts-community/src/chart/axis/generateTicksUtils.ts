@@ -39,6 +39,7 @@ import {
     measureTextSegments,
     normalizeAngle360FromDegrees,
     toPlainText,
+    toRadians,
     toTextString,
     toTimeInterval,
     wrapTextOrSegments,
@@ -78,7 +79,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     interval: AxisIntervalOptions<TScale> | undefined;
     minimumTimeGranularity?: AgTimeIntervalUnit;
     sizeLimit?: number;
-    /** Room across the axis for label text, net of ticks, padding and scrollbars; set only when fitting. */
+    /** Room across the axis for labels, net of ticks and scrollbars; set only when fitting. */
     labelRoom?: number;
     isVertical?: boolean;
     inRange?: (value: number) => boolean;
@@ -334,14 +335,26 @@ function labelFitOverflow(label: ChartAxisLabel): WrapOptions['overflow'] {
     return label.truncate === false ? 'hide' : 'ellipsis';
 }
 
+/** Room left for the text once the padding around it, rotated with the label, is taken out. */
+function labelTextRoom(label: ChartAxisLabel, isVertical: boolean | undefined, room: number, rotation: number) {
+    const { left, right, top, bottom } = expandLabelPadding(label);
+    const sin = Math.abs(Math.sin(rotation));
+    const cos = Math.abs(Math.cos(rotation));
+    const padding = isVertical
+        ? (left + right) * cos + (top + bottom) * sin
+        : (left + right) * sin + (top + bottom) * cos;
+    return Math.max(0, room - padding);
+}
+
 function labelFitWrapOptions(
     label: ChartAxisLabel,
     isVertical: boolean | undefined,
     room: number,
     along: number
 ): WrapOptions {
-    let width = isVertical ? room : along;
-    let height = isVertical ? along : room;
+    const textRoom = labelTextRoom(label, isVertical, room, toRadians(label.rotation ?? 0));
+    let width = isVertical ? textRoom : along;
+    let height = isVertical ? along : textRoom;
     if (label.rotation != null && label.rotation !== 0) {
         ({ width, height } = getInnerRectSize(label.rotation, width, height));
     }
@@ -362,7 +375,8 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
     ticks: TickDatum[],
     autoRotation: number
 ) {
-    const { label, isVertical, labelRoom = options.sizeLimit ?? Infinity } = options;
+    const { label, isVertical } = options;
+    const labelRoom = labelTextRoom(label, isVertical, options.labelRoom ?? options.sizeLimit ?? Infinity, autoRotation);
     const sin = Math.abs(Math.sin(autoRotation));
     const cos = Math.abs(Math.cos(autoRotation));
     const widthFactor = isVertical ? cos : sin;
