@@ -226,9 +226,8 @@ describe('AG-18833 rotated label fitting', () => {
         expect(ticks[0].textUntruncated).toBeDefined();
 
         const truncatedWidth = ticks[0].textMetrics.width;
-        refitAutoRotatedLabels(options, ticks, (335 * Math.PI) / 180);
+        const [{ tickLabel, textMetrics }] = refitAutoRotatedLabels(options, ticks, (335 * Math.PI) / 180);
 
-        const { tickLabel, textMetrics } = ticks[0];
         expect(isArray(tickLabel)).toBe(true);
         expect(textMetrics.width).toBeLessThan(truncatedWidth);
         expect((tickLabel as any[])[0]).toMatchObject({ color: 'red', fontWeight: 'bold' });
@@ -261,11 +260,11 @@ describe('AG-18833 rotated label fitting', () => {
         expect(ticks.every((t) => toPlainText(t.tickLabel).includes('\n'))).toBe(true);
         const wrappedHeight = ticks[0].textMetrics.height;
 
-        refitAutoRotatedLabels(options, ticks, autoRotation);
+        const refitted = refitAutoRotatedLabels(options, ticks, autoRotation);
 
         const sin = Math.abs(Math.sin(autoRotation));
         const cos = Math.abs(Math.cos(autoRotation));
-        for (const { tickLabel, textMetrics } of ticks) {
+        for (const { tickLabel, textMetrics } of refitted) {
             expect(toPlainText(tickLabel)).not.toContain('\n');
             expect(rotatedExtent(textMetrics)).toBeLessThanOrEqual(labelRoom + 0.5);
             // Budgeting with the two-line height would leave this much width at most.
@@ -284,9 +283,8 @@ describe('AG-18833 rotated label fitting', () => {
         } as any;
 
         const ticks = formatTicks(options, formatOptions(domain));
-        refitAutoRotatedLabels(options, ticks, autoRotation);
+        const [{ tickLabel, textMetrics }] = refitAutoRotatedLabels(options, ticks, autoRotation);
 
-        const { tickLabel, textMetrics } = ticks[0];
         expect(textMetrics.height).toBeLessThanOrEqual(20);
         expect(toPlainText(tickLabel)).toContain('First');
         expect(rotatedExtent(textMetrics)).toBeLessThanOrEqual(200.5);
@@ -439,9 +437,13 @@ describe('AG-18833 rotated label fitting', () => {
         const cos = Math.abs(Math.cos(autoRotation));
 
         // Room for the label's height plus 2px of rotated width, less than an ellipsis needs.
-        refitAutoRotatedLabels({ ...options, labelRoom: height * cos + 2 * sin }, ticks, autoRotation);
+        const [{ tickLabel }] = refitAutoRotatedLabels(
+            { ...options, labelRoom: height * cos + 2 * sin },
+            ticks,
+            autoRotation
+        );
 
-        expect(ticks[0].tickLabel).toBe('');
+        expect(tickLabel).toBe('');
     });
 
     it('does not erase a rich-text label wider than its band when it fits maxWidth with truncate false', () => {
@@ -517,11 +519,68 @@ describe('AG-18833 rotated label fitting', () => {
         } as any;
 
         const ticks = formatTicks(options, formatOptions(domain));
-        refitAutoRotatedLabels(options, ticks, autoRotation);
+        const [{ tickLabel, textMetrics }] = refitAutoRotatedLabels(options, ticks, autoRotation);
 
-        const [{ tickLabel, textMetrics }] = ticks;
         expect(toPlainText(tickLabel)).not.toBe('');
         const padding = { left: 8, right: 8, top: 8, bottom: 8 };
         expect(paddedExtent(textMetrics, padding, autoRotation, false)).toBeLessThanOrEqual(labelRoom + 0.5);
+    });
+
+    it('never widens or heightens a label when re-fitting with keepWidth', () => {
+        const domain = ['International Freight Services', 'Long Distance Transport Links'];
+        const options = {
+            scale: categoryScale(domain, 240),
+            label: { ...font, wrapping: 'always', maxWidth: 300 },
+            isVertical: false,
+            labelRoom: 45,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any;
+
+        const ticks = formatTicks(options, formatOptions(domain));
+        const refitted = refitAutoRotatedLabels(options, ticks, autoRotation, true);
+
+        refitted.forEach(({ tickLabel, textMetrics }, i) => {
+            expect(toPlainText(tickLabel)).not.toContain('\n');
+            expect(textMetrics.width).toBeLessThanOrEqual(ticks[i].textMetrics.width);
+            expect(textMetrics.height).toBeLessThanOrEqual(ticks[i].textMetrics.height);
+        });
+    });
+
+    it('keeps wrapped labels auto-rotated to a shallow angle clear of their neighbours', () => {
+        const domain = Array.from({ length: 6 }, (_, i) => `Alpha beta gamma delta epsilon zeta ${i}`);
+        const scale = categoryScale(domain, 480);
+        const autoRotateAngle = 355;
+
+        const result = generateTicks({
+            label: { ...font, autoRotate: true, autoRotateAngle, wrapping: 'always', maxWidth: 300 } as any,
+            parallel: true,
+            axisRotation: Math.PI / -2,
+            scale,
+            domain,
+            range: [0, 480],
+            visibleRange: [0, 1],
+            niceMode: [],
+            reverse: false,
+            primaryTickCount: undefined,
+            defaultTickMinSpacing: 0,
+            labelOffset: 0,
+            sideFlag: 1,
+            interval: undefined,
+            isVertical: false,
+            sizeLimit: 42,
+            labelRoom: 42,
+            tickFormatter: () => (value: unknown) => String(value),
+        } as any);
+
+        // The wrapped labels collide unrotated only through the default 10px spacing, so they rotate.
+        expect(result.rotation).toBeCloseTo((autoRotateAngle * Math.PI) / 180);
+        expect(result.tickData.ticks).toHaveLength(domain.length);
+        const rotation = (autoRotateAngle * Math.PI) / 180;
+        for (const { tickLabel, textMetrics } of result.tickData.ticks) {
+            expect(toPlainText(tickLabel)).not.toBe('');
+            const alongAxis =
+                textMetrics.width * Math.abs(Math.cos(rotation)) + textMetrics.height * Math.abs(Math.sin(rotation));
+            expect(alongAxis).toBeLessThanOrEqual(scale.step);
+        }
     });
 });

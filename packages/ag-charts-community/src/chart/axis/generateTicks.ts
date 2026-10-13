@@ -149,7 +149,13 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
     );
 
     if (autoRotation !== 0 && isLabelFitEnabled(label)) {
-        refitAutoRotatedLabels(options, tickData.ticks, autoRotation);
+        const refit = (keepWidth: boolean) => ({
+            ...tickData,
+            ticks: refitAutoRotatedLabels(options, tickData.ticks, autoRotation, keepWidth),
+        });
+        // At shallow angles a label widened onto one line can reach its neighbour, so keep the checked width.
+        const widened = refit(false);
+        tickData = checkLabelOverlap(widened, autoRotation) ? refit(true) : widened;
     }
 
     const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);

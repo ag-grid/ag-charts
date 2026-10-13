@@ -374,13 +374,15 @@ function labelFitWrapOptions(
 
 /**
  * Re-fits auto-rotated labels onto one line so their rotated extent stays within the label room.
- * A re-fitted label is never taller than before, so rotated neighbours that were clear stay clear.
+ * A re-fitted label is never taller than before; with `keepWidth` it is never wider either, so it
+ * stays inside the box that cleared collision checking.
  */
 export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S>>, D>(
     options: GenerateTicksOptions<S, D>,
     ticks: TickDatum[],
-    autoRotation: number
-) {
+    autoRotation: number,
+    keepWidth = false
+): TickDatum[] {
     const { label, isVertical } = options;
     const labelRoom = labelTextRoom(
         label,
@@ -405,13 +407,14 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
     const measure = (text: NormalisedTextOrSegments) =>
         isArray(text) ? measureTextSegments(text, label) : measurer.measureLines(toTextString(text));
 
-    for (const tick of ticks) {
+    return ticks.map((tick) => {
         const { tickLabel, textMetrics } = tick;
-        if (tick.isPrimary || tickLabel == null) continue;
-        if (textMetrics.width <= widthBudget(textMetrics.height) && textMetrics.height <= maxHeight) continue;
+        if (tick.isPrimary || tickLabel == null) return tick;
+        if (textMetrics.width <= widthBudget(textMetrics.height) && textMetrics.height <= maxHeight) return tick;
 
         const source = tick.fitSource ?? tickLabel;
         const heightLimit = Math.min(maxHeight, textMetrics.height);
+        const widthLimit = Math.min(label.maxWidth ?? Infinity, keepWidth ? textMetrics.width : Infinity);
         const fit = (maxWidth: number) =>
             wrapLabelToFit(
                 source,
@@ -420,19 +423,22 @@ export function refitAutoRotatedLabels<S extends Scale<D, number, TickInterval<S
             );
 
         // Narrowing never adds lines, so the height measured here bounds the final label.
-        let fitted = fit(label.maxWidth ?? Infinity);
+        let fitted = fit(widthLimit);
         let metrics = measure(fitted);
-        const maxWidth = widthBudget(metrics.height);
+        const maxWidth = Math.min(widthBudget(metrics.height), widthLimit);
         if (metrics.width > maxWidth) {
             fitted = fit(maxWidth);
             metrics = measure(fitted);
         }
 
         const isTruncated = isArray(fitted) ? isSegmentTruncated(fitted.at(-1)) : isTextTruncated(fitted);
-        tick.tickLabel = fitted;
-        tick.textUntruncated = isTruncated ? toPlainText(source) : undefined;
-        tick.textMetrics = metrics;
-    }
+        return {
+            ...tick,
+            tickLabel: fitted,
+            textUntruncated: isTruncated ? toPlainText(source) : undefined,
+            textMetrics: metrics,
+        };
+    });
 }
 
 export function withTemporaryDomain<S extends Scale<D, number, TickInterval<S>>, D>(
