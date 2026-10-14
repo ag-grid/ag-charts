@@ -148,6 +148,19 @@ Once the drag completes, the `candidateState` becomes the new `selectionState`. 
 
 `chart.clearSelection()` removes every selected item across all series.
 
+### Series Ids in Presets
+
+Presets give their series a fixed `seriesId`, so selection callbacks, `setSelection()` and `getSelection()` can rely on it:
+
+| Preset                              | Series id                                                         |
+| ----------------------------------- | ----------------------------------------------------------------- |
+| Quadrant                            | `'quadrant'`                                                      |
+| Radial and linear gauge             | `'gauge'`                                                         |
+| Sparkline                           | `'sparkline'`                                                     |
+| Financial and Volume Profile charts | `'price'`, `'volume'`, `'volumeProfileUp'`, `'volumeProfileDown'` |
+
+The Quadrant, gauge and sparkline ids can be overridden with the preset's `id` option. The Financial and Volume Profile chart ids are fixed. Only the Volume Profile series are selectable: the `'price'` and `'volume'` series have an id for use in callbacks and events.
+
 ### Selection Change Event
 
 The `selectionChange` event fires whenever the selection is updated, whether by user interaction or an API call.

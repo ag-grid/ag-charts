@@ -24,6 +24,9 @@ setupEnterpriseModules();
 
 const byName = (a: string, b: string) => a.localeCompare(b);
 
+const UP = 'volumeProfileUp';
+const DOWN = 'volumeProfileDown';
+
 describe('priceVolume volume profile selection', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
@@ -69,12 +72,26 @@ describe('priceVolume volume profile selection', () => {
 
     it('selects both segments of a clicked level, and renders its band', async () => {
         await create();
-        const [up, down] = profileSeries();
 
         await clickProfileBar(0, 2);
 
-        expect(selected().sort(byName)).toEqual([`${up.id}:2`, `${down.id}:2`].sort(byName));
+        expect(selected().sort(byName)).toEqual([`${UP}:2`, `${DOWN}:2`].sort(byName));
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
+    });
+
+    it('round-trips `setSelection()` and `getSelection()` by the fixed `seriesId`', async () => {
+        await create();
+
+        chart.setSelection([{ seriesId: UP, itemId: 4 }]);
+        await waitForChartStability(chart);
+
+        expect(selected().sort(byName)).toEqual([`${DOWN}:4`, `${UP}:4`].sort(byName));
+    });
+
+    it('gives the profile segments the fixed ids `volumeProfileUp` and `volumeProfileDown`', async () => {
+        await create();
+
+        expect(profileSeries().map((s) => s.id)).toEqual([UP, DOWN]);
     });
 
     it.each<AgVolumeProfileSelectionOptions>([
@@ -91,7 +108,6 @@ describe('priceVolume volume profile selection', () => {
 
     it('selects only price levels when dragging, with `enableDrag`', async () => {
         await create({ enabled: true, enableDrag: true });
-        const [up, down] = profileSeries();
         const { x, y, width, height } = deproxy(chart).ctx.chartService.seriesRect!;
 
         await dragAction({ x: x + 2, y: y + 2 }, { x: x + width - 2, y: y + height - 2 })(deproxy(chart));
@@ -99,7 +115,7 @@ describe('priceVolume volume profile selection', () => {
 
         const items = Array.from(chart.getSelection());
         expect(items.length).toBeGreaterThan(2);
-        expect(new Set(items.map((item) => item.seriesId))).toEqual(new Set([up.id, down.id]));
+        expect(new Set(items.map((item) => item.seriesId))).toEqual(new Set([UP, DOWN]));
         await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
     });
 

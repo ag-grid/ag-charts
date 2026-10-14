@@ -94,6 +94,22 @@ describe('priceVolumePreset', () => {
         return statusBar?.labels.find((label) => label.title?.text === title)?.value.text;
     };
 
+    it.each(['candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'] as const)(
+        'gives the %s price series the fixed id `price` and the volume bars `volume`',
+        async (chartType) => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({
+                    chartType,
+                    data: getStockData().slice(0, 40),
+                } as AgFinancialChartOptions)
+            );
+            await waitForChartStability(chart);
+
+            const ids = deproxy(chart).ctx.chartService.series.map((series) => series.id);
+            expect(new Set(ids)).toEqual(new Set(['price', 'volume']));
+        }
+    );
+
     it('keeps the preset base theme under a user theme naming no base of its own', async () => {
         const options = prepareFinancialTestOptions({
             chartType: 'candlestick',
