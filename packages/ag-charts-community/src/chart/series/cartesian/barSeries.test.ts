@@ -4826,11 +4826,11 @@ describe('BarSeries redraw with identical data', () => {
             animation: { enabled: false },
             series: [{ type: 'bar', xKey: 'cat', yKey: 'value', ...series }],
             legend: { enabled: false },
-            axes: [
-                { type: 'category', position: horizontal ? 'left' : 'bottom', label: { enabled: false } },
-                { type: 'number', position: horizontal ? 'bottom' : 'left' },
-            ],
-        } as any);
+            axes: {
+                x: { type: 'category', position: horizontal ? 'left' : 'bottom' },
+                y: { type: 'number', position: horizontal ? 'bottom' : 'left' },
+            },
+        });
         options.overrideDevicePixelRatio = dpr;
         options.width = width;
         options.height = 600;
@@ -4840,11 +4840,10 @@ describe('BarSeries redraw with identical data', () => {
         return chart;
     };
 
-    const getNodeData = (c: AgChartInstance) =>
-        (getSeriesAggregationInternals(c).contextNodeData?.nodeData ?? []) as ReadonlyArray<{
-            x: number;
-            crisp: boolean;
-        }>;
+    const getNodeDataXs = (c: AgChartInstance) =>
+        ((getSeriesAggregationInternals(c).contextNodeData?.nodeData ?? []) as ReadonlyArray<{ x: number }>)
+            .map((d) => d.x)
+            .sort((a, b) => a - b);
 
     const getRectXs = (c: AgChartInstance) =>
         [...createSceneGeometrySampler(c)()]
@@ -4861,43 +4860,41 @@ describe('BarSeries redraw with identical data', () => {
     for (const { name, count, options } of NON_CRISP) {
         it(`changes no pixels or node geometry for non-crisp bars (${name})`, async () => {
             const c = await createBarChart(count, options);
-            expect(getNodeData(c)).toHaveLength(count);
-            expect(getNodeData(c).every((d) => !d.crisp)).toBe(true);
 
-            await expectRedrawWithSameDataIsStable(c, ctx, makeData(count));
+            await expectRedrawWithSameDataIsStable(c, ctx, makeData(count), { crisp: false });
         });
     }
 
+    // Crisp redraws at dpr 2 still change pixels, with or without the non-crisp fix; that gap is tracked separately.
     for (const { name, count, options } of [
-        { name: '50 bars, crisp: true', count: 50, options: { crisp: true, dpr: 1 } },
-        { name: '5 wide bars, crisp auto', count: 5, options: { dpr: 1 } },
+        { name: '50 bars, crisp: true, dpr 1', count: 50, options: { crisp: true, dpr: 1 } },
+        { name: '5 wide bars, crisp auto, dpr 1', count: 5, options: { dpr: 1 } },
     ]) {
         it(`changes no pixels for crisp bars (${name})`, async () => {
             const c = await createBarChart(count, options);
-            expect(getNodeData(c).every((d) => d.crisp)).toBe(true);
 
-            await expectRedrawWithSameDataIsStable(c, ctx, makeData(count), { geometry: false });
+            await expectRedrawWithSameDataIsStable(c, ctx, makeData(count), { crisp: true });
         });
     }
 
     it('draws non-crisp bars at their exact x on the first frame', async () => {
         const c = await createBarChart(50, { crisp: false });
-        const expected = getNodeData(c)
-            .map((d) => d.x)
-            .sort((a, b) => a - b);
+        const expected = getNodeDataXs(c);
         expect(expected.some((x) => Math.abs(x * 2 - Math.round(x * 2)) > 1e-3)).toBe(true);
 
-        for (const [i, x] of getRectXs(c).entries()) {
+        const actual = getRectXs(c);
+        expect(actual).toHaveLength(expected.length);
+        for (const [i, x] of actual.entries()) {
             expect(x).toBeCloseTo(expected[i], 6);
         }
     });
 
     it('still snaps crisp bars on the first frame', async () => {
         const c = await createBarChart(50, { crisp: true });
-        const expected = getNodeData(c)
-            .map((d) => d.x)
-            .sort((a, b) => a - b);
+        const expected = getNodeDataXs(c);
 
-        expect(getRectXs(c).some((x, i) => Math.abs(x - expected[i]) > 1e-3)).toBe(true);
+        const actual = getRectXs(c);
+        expect(actual).toHaveLength(expected.length);
+        expect(actual.some((x, i) => Math.abs(x - expected[i]) > 1e-3)).toBe(true);
     });
 });

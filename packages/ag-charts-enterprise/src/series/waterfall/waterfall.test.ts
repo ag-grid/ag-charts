@@ -27,7 +27,6 @@ import {
     expectRedrawWithSameDataIsStable,
     expectSceneTrajectory,
     expectWarningsCalls,
-    getSeriesAggregationInternals,
     hoverAction,
     magnitudePair,
     setupMockCanvas,
@@ -1773,19 +1772,16 @@ describe('WaterfallSeries redraw with identical data', () => {
             v: i % 4 === 3 ? -(5 + (i % 9)) : 10 + ((i * 7) % 13),
         }));
 
-    const createChart = async (count: number, extra: object) => {
+    const createChart = async (count: number, dpr: number, extra: object = {}) => {
         const options: any = prepareEnterpriseTestOptions({
             data: makeData(count),
             animation: { enabled: false },
             series: [{ type: 'waterfall', xKey: 'x', yKey: 'v' }],
             legend: { enabled: false },
-            axes: [
-                { type: 'category', position: 'bottom', label: { enabled: false } },
-                { type: 'number', position: 'left' },
-            ],
+            axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
             ...extra,
-        } as any);
-        options.overrideDevicePixelRatio = 2;
+        });
+        options.overrideDevicePixelRatio = dpr;
         options.width = 1200;
         options.height = 600;
 
@@ -1794,22 +1790,16 @@ describe('WaterfallSeries redraw with identical data', () => {
         return chart;
     };
 
-    const getNodeData = (c: any) =>
-        (getSeriesAggregationInternals(c).contextNodeData?.nodeData ?? []) as ReadonlyArray<{ crisp: boolean }>;
-
     it('changes no pixels or node geometry for non-crisp bars', async () => {
         const count = 400;
-        const c = await createChart(count, {});
-        expect(getNodeData(c).length).toBeGreaterThan(0);
-        expect(getNodeData(c).every((d) => !d.crisp)).toBe(true);
+        const c = await createChart(count, 2);
 
-        await expectRedrawWithSameDataIsStable(c, ctx, makeData(count));
+        await expectRedrawWithSameDataIsStable(c, ctx, makeData(count), { crisp: false });
     });
 
-    it('changes no pixels for crisp bars', async () => {
-        const c = await createChart(20, {});
-        expect(getNodeData(c).every((d) => d.crisp)).toBe(true);
+    it('changes no pixels for crisp bars (20 bars, dpr 2)', async () => {
+        const c = await createChart(20, 2);
 
-        await expectRedrawWithSameDataIsStable(c, ctx, makeData(20), { geometry: false });
+        await expectRedrawWithSameDataIsStable(c, ctx, makeData(20), { crisp: true });
     });
 });

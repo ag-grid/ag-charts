@@ -1824,24 +1824,32 @@ export function expectSceneSamplesMatch(actual: SceneGeometrySample, expected: S
 }
 
 /**
- * Redraws `chart` with `data`, which must equal the data it already shows, and asserts that no pixel and (unless
- * `geometry` is false) no node geometry changed. Call it once the chart has stabilised.
+ * Redraws `chart` with `data`, which must equal the data it already shows, and asserts that no pixel changed. Series 0
+ * must have node data of the given crispness; non-crisp bars must also keep their node geometry, while crisp bars
+ * snap at render so only their pixels are compared. Call it once the chart has stabilised.
  */
 export async function expectRedrawWithSameDataIsStable(
     chart: AgChartInstance,
     canvasCtx: Pick<ReturnType<typeof setupMockCanvas>, 'snapshot'>,
     data: unknown[],
-    { geometry = true }: { geometry?: boolean } = {}
+    { crisp }: { crisp: boolean }
 ): Promise<void> {
+    const nodeData = (getSeriesAggregationInternals(chart).contextNodeData?.nodeData ?? []) as ReadonlyArray<{
+        crisp: boolean;
+    }>;
+    expect(nodeData.length).toBeGreaterThan(0);
+    expect(nodeData.every((d) => d.crisp === crisp)).toBe(true);
+
     const sampleScene = createSceneGeometrySampler(chart);
-    const before = sampleScene();
+    const before = crisp ? undefined : sampleScene();
     const beforeImage = canvasCtx.snapshot();
+    expectNonBlank(beforeImage);
 
     await chart.updateDelta({ data });
     await waitForChartStability(chart);
 
     expect(canvasCtx.snapshot()).toMatchImage(beforeImage);
-    if (geometry) {
+    if (before) {
         expectSceneSamplesMatch(sampleScene(), before, 0);
     }
 }

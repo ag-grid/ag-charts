@@ -2502,18 +2502,15 @@ describe('RangeBarSeries redraw with identical data', () => {
     const makeData = (count: number) =>
         Array.from({ length: count }, (_, i) => ({ x: `C${i}`, lo: 10 + ((i * 7) % 13), hi: 30 + ((i * 11) % 17) }));
 
-    const createChart = async (count: number, extra: object, dpr = 2) => {
+    const createChart = async (count: number, dpr: number, extra: object = {}) => {
         const options: any = prepareEnterpriseTestOptions({
             data: makeData(count),
             animation: { enabled: false },
             series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
             legend: { enabled: false },
-            axes: [
-                { type: 'category', position: 'bottom', label: { enabled: false } },
-                { type: 'number', position: 'left' },
-            ],
+            axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
             ...extra,
-        } as any);
+        });
         options.overrideDevicePixelRatio = dpr;
         options.width = 1200;
         options.height = 600;
@@ -2523,25 +2520,19 @@ describe('RangeBarSeries redraw with identical data', () => {
         return chart;
     };
 
-    const getNodeData = (c: any) =>
-        (getSeriesAggregationInternals(c).contextNodeData?.nodeData ?? []) as ReadonlyArray<{ crisp: boolean }>;
-
     it('changes no pixels or node geometry for non-crisp bars', async () => {
         const count = 40;
-        const c = await createChart(count, {
+        const c = await createChart(count, 2, {
             zoom: { enabled: true },
             initialState: { zoom: { ratioX: { start: 0.1, end: 0.9 } } },
         });
-        expect(getNodeData(c).length).toBeGreaterThan(0);
-        expect(getNodeData(c).every((d) => !d.crisp)).toBe(true);
 
-        await expectRedrawWithSameDataIsStable(c, ctx, makeData(count));
+        await expectRedrawWithSameDataIsStable(c, ctx, makeData(count), { crisp: false });
     });
 
-    it('changes no pixels for crisp bars', async () => {
-        const c = await createChart(20, {}, 1);
-        expect(getNodeData(c).every((d) => d.crisp)).toBe(true);
+    it('changes no pixels for crisp bars (20 bars, dpr 1)', async () => {
+        const c = await createChart(20, 1);
 
-        await expectRedrawWithSameDataIsStable(c, ctx, makeData(20), { geometry: false });
+        await expectRedrawWithSameDataIsStable(c, ctx, makeData(20), { crisp: true });
     });
 });
