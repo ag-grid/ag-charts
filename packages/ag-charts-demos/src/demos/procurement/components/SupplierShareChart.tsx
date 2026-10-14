@@ -28,17 +28,17 @@ interface ShareCell {
 /**
  * Sequential ramp for share of subcategory spend, light to dark.
  *
- * Built on the neutral family the sunburst's subcategory ring uses rather than a categorical slot:
+ * Built on the slate family of `SUBCATEGORY_RAMP` rather than a categorical slot:
  * a categorical colour means supplier identity everywhere in the workspace, and here colour encodes
  * a quantity. The floor is kept clearly darker than `EMPTY_FILL`, so a 2% share never reads as none.
  */
-const SHARE_RAMP = ['#ddd0c3', '#372411'];
+const SHARE_RAMP = ['#c7d5e1', '#162b3c'];
 
 /** Cells where the supplier took no spend — the panel's alternate tone, so they read as gaps in the grid. */
 const EMPTY_FILL = 'var(--pc-panel-2)';
 
 /** Share above which a cell is dark enough to need light label ink. */
-const DARK_CELL_SHARE = 0.5;
+const DARK_CELL_SHARE = 0.4;
 
 /**
  * Supplier share of each subcategory, as a supplier × subcategory matrix.
@@ -81,13 +81,14 @@ function heatmapOptions(
                 colorName: 'Share of subcategory',
                 colorScale: {
                     fills: [
-                        { color: SHARE_RAMP[0], stop: 0 },
-                        { color: SHARE_RAMP[1], stop: 1 },
+                        { color: SHARE_RAMP[0], stop: 0.2 },
+                        { color: SHARE_RAMP[1], stop: 0.7 },
                     ],
                     domain: [0, 1],
                     missingDataFill: EMPTY_FILL,
                 },
                 ...SEGMENT_SEPARATOR,
+                cornerRadius: 3,
                 label: {
                     enabled: true,
                     formatter: ({ datum }) => (datum.share == null ? '' : fmtPct(datum.share)),
@@ -136,7 +137,7 @@ function stackedBarOptions(
         stacked: true,
         normalizedTo: 100,
         fill: supplierColors[supplierId] ?? NEUTRAL,
-        cornerRadius: 2,
+        cornerRadius: 3,
         ...SEGMENT_SEPARATOR,
         tooltip: {
             renderer: ({ datum }) => {

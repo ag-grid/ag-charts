@@ -51,8 +51,7 @@ export function useSupplierSelection<TDatum>({
         [onSelectedSupplierChange, supplierIdOf]
     );
 
-    // The chart only reports a click-away that clears something, and a chart that does not draw the
-    // selected supplier holds nothing to clear. Ctrl/Cmd-click on empty space keeps the selection, as it does in the chart.
+    // A chart holding none of the selected items reports no selectionChange on a click-away, so clear here.
     const onChartClick = useCallback(
         ({ event }: AgChartClickEvent) => {
             if (event instanceof MouseEvent && (event.ctrlKey || event.metaKey)) return;

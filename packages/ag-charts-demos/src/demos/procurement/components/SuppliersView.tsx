@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type {
     MaterialQualityCost,
@@ -71,6 +71,12 @@ export function SuppliersView({
         },
         [onSelectedSupplierChange]
     );
+
+    // A drill shows one supplier's materials, so selecting another supplier leaves it; clearing the selection does not.
+    useEffect(() => {
+        if (selectedSupplierId == null) return;
+        setDrilledSupplierId((drilled) => (drilled === selectedSupplierId ? drilled : undefined));
+    }, [selectedSupplierId]);
 
     const clearSelectedSupplier = useCallback(() => onSelectedSupplierChange(undefined), [onSelectedSupplierChange]);
     // Mounted only while this tab is shown, so a click elsewhere on the page clears only while it is in view.

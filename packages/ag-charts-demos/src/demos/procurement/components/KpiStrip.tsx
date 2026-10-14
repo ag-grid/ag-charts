@@ -153,7 +153,6 @@ export function buildKpis(summary: MySummary, filterLabel?: string): Kpi[] {
                     : `Out of ${fmtInt(inTransit)} in transit · filtered to ${filterLabel}`,
             // The segmented bar already shows how many are late, so the tile carries no threshold state.
             tone: 'neutral',
-            // Worst first, so the bands she is being measured on lead the bar.
             segments: statusSegments(summary.shipmentsByStatus),
         },
     ];

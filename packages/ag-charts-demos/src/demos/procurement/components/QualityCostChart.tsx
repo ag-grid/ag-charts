@@ -182,9 +182,7 @@ export function QualityCostChart({
                 x: {
                     type: 'category',
                     position: 'bottom',
-                    label: {
-                        truncate: true,
-                    },
+                    label: { truncate: true },
                 },
                 y: {
                     type: 'number',

@@ -43,7 +43,18 @@ export function Select({
         <RSelect.Root value={value} onValueChange={onValueChange}>
             <RSelect.Trigger className="pc-btn pc-select-trigger" aria-label={ariaLabel}>
                 <RSelect.Value />
-                <RSelect.Icon>▾</RSelect.Icon>
+                <RSelect.Icon className="pc-select-icon">
+                    <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 10 10"
+                        fill="currentColor"
+                        aria-hidden="true"
+                        focusable="false"
+                    >
+                        <path d="M1 2.5h8L5 7.5z" />
+                    </svg>
+                </RSelect.Icon>
             </RSelect.Trigger>
             <RSelect.Portal>
                 <RSelect.Content className="pc-portal pc-select-content" position="popper" sideOffset={4}>

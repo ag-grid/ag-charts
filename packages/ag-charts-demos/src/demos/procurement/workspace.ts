@@ -257,9 +257,8 @@ export function myOrdersScope({ supplierId, subcategory }: OrdersFilter): Orders
 // --- her scorecard figures ----------------------------------------------------
 
 /**
- * The window the headline on-time rate is measured over — fixed, because the tile lives on the
- * orders tab, which has no period control. Matches `DEFAULT_PERIOD`, so the headline and the
- * supplier cards quote the same rate as the workspace opens.
+ * The window `onTimeRate` is measured over — fixed, because the orders tab has no period control.
+ * Matches `DEFAULT_PERIOD`, so it agrees with the supplier cards as the workspace opens.
  */
 const PERFORMANCE_MONTHS: PeriodMonths = 12;
 
@@ -290,14 +289,11 @@ export interface MySummary {
 }
 
 /**
- * Her KPI figures.
+ * Her headline figures, absolute rather than period-scoped: "how many of my shipments are at risk"
+ * means right now. The orders tab's at-risk tile reads `atRiskShipments` and `shipmentsByStatus`.
  *
- * Every tile here is absolute rather than period-scoped, and each says which window it covers.
- * Three of them are absolute by definition — "how many of my shipments are at risk" means right
- * now. The fourth, on-time delivery, is measured over the same rolling twelve months and on the
- * same delivery-date basis the scorecard uses: reading it off the selected period would put a
- * figure in the headline that no supplier card agrees with, and rest it on the handful of orders
- * that both were placed and landed inside one quarter. The period selector drives the spend views
+ * `onTimeRate` is measured over the same rolling twelve months and delivery-date basis the
+ * scorecard uses, so it agrees with the supplier cards. The period selector drives the spend views
  * instead — the sunburst, the scorecard's commercial columns, and the grid.
  *
  * All of them read over `scope`, the orders tab's filtered book and freight — see `myOrdersScope`;

@@ -4,7 +4,7 @@ import type { AgSelectionItemIds } from 'ag-charts-community';
 import type { AgQuadrantChartOptions } from 'ag-charts-enterprise';
 import { AgQuadrantChart } from 'ag-charts-react';
 
-import { NEUTRAL, STATUS_COLORS, THEME } from '../chartTheme';
+import { NEUTRAL, STATUS_COLORS, SUCCESS_FILL, THEME } from '../chartTheme';
 import { ON_TIME_TARGET } from '../data';
 import { fmtCurrency, fmtCurrencyCompact, fmtIndex, fmtInt, fmtPct, fmtPctWhole } from '../format';
 import type { SupplierScorecard } from '../types';
@@ -93,7 +93,7 @@ export function CostReliabilityScatter({
             regions: {
                 label: { fontSize: 11, fontWeight: 'bold', color: 'var(--pc-muted)' },
                 topLeft: {
-                    fill: STATUS_COLORS['On time'],
+                    fill: SUCCESS_FILL,
                     fillOpacity: 0.12,
                     label: { text: 'Retain & expand', color: 'var(--pc-ok)' },
                 },

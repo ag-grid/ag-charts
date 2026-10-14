@@ -33,6 +33,9 @@
     --color-success: #4ca96c;
     --color-success-bg: #e7f4ea;
     --color-success-text: #2e7a48;
+    /* On-time status marks (schedule, map, at-risk bar, status keys): green so they never read as
+       disabled, muted so at-risk and late stand out. Threshold tones keep the full --color-success. */
+    --color-success-muted: #87b094;
     --color-warning: #dfb240;
     --color-warning-bg: #fbf1d9;
     --color-warning-text: #8a6a0a;
@@ -42,12 +45,12 @@
 
     /* Dataviz — categorical series only. The order is the colour-vision-deficiency mechanism
        and is validated as a sequence, so slots must not be reordered or cycled. */
-    --chart-1: #b96b30; /* clay */
-    --chart-2: #0e8fa6; /* lagoon */
-    --chart-3: #8a4a9e; /* plum */
-    --chart-4: #d1798c; /* rose */
-    --chart-5: #3c63a6; /* indigo */
-    --chart-6: #8a7a15; /* bronze */
+    --chart-1: #ad6543; /* clay */
+    --chart-2: #119d9d; /* teal */
+    --chart-3: #4b55a0; /* indigo */
+    --chart-4: #a87a2a; /* ochre */
+    --chart-5: #3c7ebe; /* steel blue */
+    --chart-6: #6a7220; /* olive */
     --chart-7: #8c8680; /* warm neutral — baseline series only */
 
     /* Mixed rather than picked: the theme defines no accent tint, and a selection must read
@@ -559,11 +562,12 @@
     color: var(--pc-text);
     font-variant-numeric: tabular-nums;
 }
-/* The figure with its chart to the right */
+/* The figure on the left, its chart ranged right at a capped width. */
 .pc-kpi-figure {
     display: flex;
     align-items: center;
-    gap: 220px;
+    justify-content: space-between;
+    gap: 16px;
 }
 .pc-kpi-value {
     flex: none;
@@ -573,6 +577,7 @@
     display: block;
     flex: 1 1 auto;
     min-width: 0;
+    max-width: 420px;
     height: 18px;
 }
 /* What the figure is drawn from, as one segmented bar plus its bands in text. */
@@ -580,6 +585,7 @@
     display: block;
     flex: 1 1 auto;
     min-width: 0;
+    max-width: 420px;
     height: 18px;
 }
 /* Chart under the figure, for tiles too narrow to hold both on one row. */
@@ -590,6 +596,10 @@
 }
 .pc-kpis--stacked .pc-kpi-gauge {
     margin: 2px 0;
+}
+.pc-kpis--stacked .pc-kpi-gauge,
+.pc-kpis--stacked .pc-kpi-segments {
+    max-width: none;
 }
 /* The explanatory line and the bands, on one row: the sentence takes the slack and the counts
    range right against it, wrapping under only when the tile is too narrow to hold both. */
@@ -979,6 +989,9 @@
     min-width: 150px;
     font-weight: 500;
 }
+.pc-select-icon {
+    display: flex;
+}
 .pc-select-content {
     z-index: 60;
     background: var(--pc-panel);
@@ -1000,43 +1013,48 @@
 .pc-select-item[data-highlighted] {
     background: var(--pc-accent-soft);
     color: var(--pc-accent-strong);
-    font-weight: 500;
 }
 
 /* ---- Radix ToggleGroup ---- */
+/* Padded so the selected segment's ring does not double the group's border. */
 .pc-toggle-group {
     display: inline-flex;
+    gap: 2px;
+    padding: 2px;
     border: 1px solid var(--pc-border);
     border-radius: var(--pc-radius-sm);
-    overflow: hidden;
 }
 .pc-toggle-item {
     all: unset;
-    padding: 6px 12px;
+    padding: 4px 12px;
+    border-radius: var(--pc-radius-sm);
     font-size: 13px;
     font-weight: 600;
     color: var(--pc-muted);
     cursor: pointer;
     transition:
         background 0.12s ease,
+        box-shadow 0.12s ease,
         color 0.12s ease;
 }
 .pc-toggle-item--icon {
     display: inline-flex;
     align-items: center;
-    padding: 6px 10px;
+    padding: 4px 10px;
 }
 .pc-toggle-item:hover {
     background: var(--pc-panel-2);
     color: var(--pc-text);
 }
+/* Ring and tint rather than a solid fill, which is reserved for the active sidebar tab. */
 .pc-toggle-item[data-state='on'] {
-    background: var(--pc-accent);
-    color: var(--color-on-accent);
+    background: color-mix(in srgb, var(--pc-accent) 8%, var(--pc-panel));
+    box-shadow: inset 0 0 0 1px var(--pc-accent);
+    color: var(--pc-accent-strong);
 }
 .pc-toggle-item:focus-visible {
     outline: 2px solid var(--pc-accent);
-    outline-offset: -2px;
+    outline-offset: 1px;
 }
 
 /* ---- small-multiple facets ---- */

@@ -47,25 +47,20 @@ export function SpendSunburst({ tree, supplierColors }: SpendSunburstProps) {
             sizeName: 'Spend',
             // A hairline stroke rather than a gap: spacing narrow sectors apart breaks the ring into spikes.
             sectorSpacing: 0,
-            cornerRadius: 0,
+            cornerRadius: 2,
             strokes: ['var(--pc-panel)'],
             strokeWidth: 1,
             strokeOpacity: 1,
             padding: 4,
-            label: { fontSize: 13, minimumFontSize: 9, spacing: 2 },
+            label: { fontSize: 10, minimumFontSize: 9, spacing: 2 },
             secondaryLabel: {
                 fontSize: 11,
                 minimumFontSize: 8,
                 // `size` carries the sliver an empty leaf is drawn with, so the label must read the true spend.
                 formatter: ({ datum }) => (datum.spend > 0 ? fmtCurrencyCompact(datum.spend) : 'no spend'),
             },
-            innerRadiusRatio: 0.25,
-            innerLabels: [
-                {
-                    text: MANAGER.commodity,
-                    fontSize: 12,
-                },
-            ],
+            innerRadiusRatio: 0.3,
+            innerLabels: [{ text: MANAGER.commodity, fontSize: 14 }],
             itemStyler: ({ datum }) => ({ fill: sectorFill(datum, supplierColors) }),
             tooltip: {
                 renderer: ({ datum }) => {
@@ -74,7 +69,7 @@ export function SpendSunburst({ tree, supplierColors }: SpendSunburstProps) {
                     return {
                         title:
                             datum.path.length > 1
-                                ? `${datum.path.slice(0, -1).join(' › ')} › ${datum.name}`
+                                ? `${datum.path.slice(0, -1).join(' > ')} > ${datum.name}`
                                 : datum.name,
                         data:
                             datum.spend > 0

@@ -50,7 +50,7 @@ export function SpendTrendChart({ rows, stacks, grain }: SpendTrendChartProps) {
             yName: name,
             stacked: true,
             fill,
-            cornerRadius: 2,
+            cornerRadius: 3,
             ...SEGMENT_SEPARATOR,
             tooltip: {
                 renderer: ({ datum }) => {

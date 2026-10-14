@@ -279,12 +279,9 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
                 plants,
                 ...markerSeries,
             ],
-            // The status legend is rendered as HTML alongside the board, carrying the same glyphs as the tiles.
             legend: { enabled: false },
             padding: 0,
-            zoom: {
-                enabled: true,
-            },
+            zoom: { enabled: true },
             initialState: initialZoom && { zoom: initialZoom },
             // Ctrl/Cmd-click adds or removes a marker; a click on empty sea clears.
             selection: { enabled: true },
