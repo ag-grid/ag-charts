@@ -13,7 +13,6 @@ export const CHART_FEATURE_IDS = [
     'scrollbar',
     'navigator',
     'rangeButtons',
-    'toolbar',
 ] as const;
 
 export type ChartFeatureId = (typeof CHART_FEATURE_IDS)[number];
@@ -56,7 +55,6 @@ export const CHART_FEATURES: ChartFeatureConfig[] = [
         // A range button sets a zoom, so the chart drops the row without one.
         requires: 'zoom',
     },
-    { id: 'toolbar', label: 'Drawing Tools', hint: 'The annotation toolbar, its buttons and settings panel' },
 ];
 
 /** On by default, because a feature nobody switches on is a param nobody sees. */
@@ -70,7 +68,6 @@ export const DEFAULT_CHART_FEATURES: ChartFeatures = {
     scrollbar: true,
     navigator: true,
     rangeButtons: true,
-    toolbar: true,
 };
 
 const FEATURE_BY_ID: Record<ChartFeatureId, ChartFeatureConfig> = Object.fromEntries(

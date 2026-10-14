@@ -275,11 +275,10 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
          * No series-strokes switch: daily candles render barely a pixel wide,
          * below the three AG Charts needs to draw a body rather than a wick.
          */
-        features: [...CARTESIAN_FEATURES.filter((id) => id !== 'seriesStrokes'), 'rangeButtons', 'toolbar'],
+        features: [...CARTESIAN_FEATURES.filter((id) => id !== 'seriesStrokes'), 'rangeButtons'],
         tooltipTarget: CANDLESTICK_TOOLTIP_TARGET,
         buildOptions: (_count, features, showZoomButtons) => {
             const crosshair = { enabled: isFeatureActive(features, 'crosshairs') };
-            const toolbar = { enabled: isFeatureActive(features, 'toolbar') };
             return {
                 data: CANDLESTICK_DATA,
                 title: { text: 'Acme Corp.' },
@@ -301,7 +300,6 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 },
                 ...navigationOptions(features, showZoomButtons),
                 ranges: { enabled: isFeatureActive(features, 'rangeButtons') },
-                annotations: { ...toolbar, toolbar },
                 ...commonOptions(features),
             };
         },
