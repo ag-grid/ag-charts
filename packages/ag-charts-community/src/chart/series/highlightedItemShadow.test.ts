@@ -7,6 +7,7 @@ import { AgCharts } from '../../api/agCharts';
 import { Marker } from '../marker/marker';
 import { HIGHLIGHT_SHADOW, SERIES_SHADOW, legendHighlight } from '../test/shadowFixtures';
 import {
+    createChart,
     deproxy,
     expectWarningMessages,
     prepareTestOptions,
@@ -149,9 +150,7 @@ describe('highlightedItem.shadow', () => {
             highlight: { drawingMode },
             series: [testCase.series(shadow, { highlight })],
         } as AgChartOptions;
-        prepareTestOptions(options);
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createChart(options));
 
         const [series] = chart.series;
         const inPlaceBefore = shapesOf(series.contentGroup, testCase.kind);
@@ -391,10 +390,10 @@ describe('highlightedItem.shadow', () => {
                 highlight: { drawingMode },
                 series: [testCase.series(SERIES_SHADOW, {})],
             } as AgChartOptions;
+            // `options` is returned and reused for a later update, so it keeps the prepared test theme and size.
             prepareTestOptions(options);
-            const proxy = AgCharts.create(options);
+            const proxy = await createChart(options);
             chart = deproxy(proxy);
-            await waitForChartStability(chart);
 
             const [series] = chart.series;
             chart.ctx.highlightManager.updateHighlight(chart.id, series.getNodeData()[0]);

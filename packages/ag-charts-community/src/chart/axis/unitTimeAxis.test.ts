@@ -443,7 +443,7 @@ describe('Time Axis Examples', () => {
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
         it(`for ${exampleName} it should create chart instance as expected`, async () => {
-            chart = await createChart(example.options);
+            chart = deproxy(await createChart(example.options));
             await example.assertions(chart);
         });
 
@@ -459,7 +459,7 @@ describe('Time Axis Examples', () => {
                 }
             };
 
-            chart = await createChart(example.options);
+            chart = deproxy(await createChart(example.options));
             await axisCompare();
 
             if (example.extraScreenshotActions) {
@@ -471,7 +471,7 @@ describe('Time Axis Examples', () => {
 
     it('should handle a single value', async () => {
         const options = { ...BASIC_TIME_AXIS_EXAMPLE, data: BASIC_TIME_AXIS_EXAMPLE.data!.slice(0, 1) };
-        chart = await createChart(options);
+        chart = deproxy(await createChart(options));
         await compare();
     });
 
@@ -500,7 +500,7 @@ describe('Time Axis Examples', () => {
                 y: { type: 'number', position: 'left' },
             },
         };
-        chart = await createChart(options);
+        chart = deproxy(await createChart(options));
         await compare();
     });
 
@@ -536,7 +536,7 @@ describe('Time Axis Examples', () => {
                 y: { type: 'number', position: 'left' },
             },
         };
-        chart = await createChart(options);
+        chart = deproxy(await createChart(options));
         await compare();
     });
 
@@ -578,7 +578,7 @@ describe('Time Axis Examples', () => {
         it.each(['time', 'unit-time'] as const)(
             'renders only the parent (year) tier when base labels are disabled on a %s axis',
             async (axisType) => {
-                chart = await createChart(monthAndYearOptions(false, axisType));
+                chart = deproxy(await createChart(monthAndYearOptions(false, axisType)));
 
                 const texts = labelTexts(chart);
                 expect(texts.length).toBeGreaterThan(0);
@@ -592,14 +592,14 @@ describe('Time Axis Examples', () => {
             const options = monthAndYearOptions(false, 'unit-time');
             // The label group draws only while a base or parent tick is enabled.
             (options.axes as any).x.parentLevel.tick = { enabled: true };
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             const axis = deproxy(chart).axes.find((a: any) => a.position === 'bottom') as any;
             expect(labelTexts(chart)).toContain('2024');
             expect(axis.labelSource.getLabelObstacles(BBox.zero)).toHaveLength(labelTexts(chart).length);
         });
 
         it('removes base-tier labels at runtime while the parent tier remains (TC2)', async () => {
-            chart = await createChart(monthAndYearOptions(true, 'unit-time'));
+            chart = deproxy(await createChart(monthAndYearOptions(true, 'unit-time')));
 
             const before = labelTexts(chart);
             expect(before.some((t) => /Jan|Feb|Mar|Nov|Dec/.test(t))).toBe(true);
@@ -613,14 +613,16 @@ describe('Time Axis Examples', () => {
         });
 
         it('hides all labels on a number axis when its labels are disabled (regression guard)', async () => {
-            chart = await createChart({
-                data: PARENT_TIER_DATA,
-                series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
-                axes: {
-                    x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left', label: { enabled: false } },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: PARENT_TIER_DATA,
+                    series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left', label: { enabled: false } },
+                    },
+                })
+            );
 
             expect(labelTexts(chart, 'left')).toEqual([]);
         });
@@ -656,7 +658,7 @@ describe('Time Axis Examples', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await compare();
         });
     });

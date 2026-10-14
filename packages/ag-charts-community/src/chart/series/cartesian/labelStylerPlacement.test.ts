@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../../../api/agCharts';
 import {
     compareImageSnapshot,
+    createChart,
     deproxy,
     getVisibleLabelNodes,
     prepareTestOptions,
@@ -39,9 +39,7 @@ describe('label itemStyler participates in placement', () => {
     };
 
     const render = async (options: object) => {
-        prepareTestOptions(options as AgChartOptions);
-        chart = AgCharts.create(options as AgChartOptions);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
     };
 
     const lineChart = (label: object, marker: object = {}) => ({

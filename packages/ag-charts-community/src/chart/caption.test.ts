@@ -151,9 +151,8 @@ describe('Caption', () => {
         };
 
         async function createTitle(title: AgCartesianChartOptions['title']) {
-            const proxy = AgCharts.create(prepareTestOptions({ ...baseOptions, title })) as AgChartProxy;
+            const proxy = (await createChart({ ...baseOptions, title })) as AgChartProxy;
             const chartInstance = deproxy(proxy);
-            await waitForChartStability(chartInstance);
             return { proxy, caption: chartInstance.title };
         }
 
@@ -739,6 +738,7 @@ describe('Caption', () => {
             imageLoader.loadImage = (uri: string) => preloaded[uri] as unknown as HTMLImageElement;
         }
 
+        // Bespoke: the image loader must be stubbed before the first render, so it cannot follow `createChart`'s wait.
         async function createStubbedChart(options: AgChartOptions) {
             chart = deproxy(AgCharts.create(prepareTestOptions({ ...options })) as any);
             stubChartImageLoader(chart);
@@ -1160,6 +1160,7 @@ describe('AG-13301 layout-driven caption shrinking', () => {
 
     const normaliseSpace = (text: string) => text.replace(/\s+/g, ' ').trim();
 
+    // Bespoke: width/height are applied after `prepareTestOptions`, which `createChart` would overwrite with the defaults.
     async function createSizedChart(width: number, height: number, options: AgCartesianChartOptions) {
         const proxy = AgCharts.create(
             Object.assign(prepareTestOptions({ ...baseOptions, ...options }), { width, height })

@@ -2,17 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
+import type { Chart } from '../chart';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
-import {
-    createChart,
-    deproxy,
-    expectWarningMessages,
-    prepareTestOptions,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from '../test/utils';
+import { createChart, deproxy, expectWarningMessages, setupMockCanvas, setupMockConsole } from '../test/utils';
 
 // BigInt numeric-axis ticks must render at full precision end-to-end, so these drive a real chart.
 describe('NumberAxis BigInt labels', () => {
@@ -36,16 +28,11 @@ describe('NumberAxis BigInt labels', () => {
             .filter((text): text is string => text != null && text !== '');
     };
 
-    const createLineChart = async (data: unknown[]): Promise<AgChartInstance> => {
-        const options: AgCartesianChartOptions = {
+    const createLineChart = (data: unknown[]): Promise<AgChartInstance> =>
+        createChart({
             data: data as AgCartesianChartOptions['data'],
             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-        };
-        prepareTestOptions(options);
-        const instance = AgCharts.create(options);
-        await waitForChartStability(instance);
-        return instance;
-    };
+        });
 
     it('renders exact labels for a span larger than Number.MAX_SAFE_INTEGER (AC #16)', async () => {
         const span = 10n ** 21n;
@@ -91,9 +78,7 @@ describe('NumberAxis BigInt labels', () => {
                 },
             },
         };
-        prepareTestOptions(options);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
 
         // The custom formatter returns the bigint verbatim, so labels are plain digit strings (no grouping).
         expect(yAxisLabelText(chart)).toContain('1000000000000000000000');
@@ -142,11 +127,13 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: Chart;
 
     afterEach(() => {
-        chart?.destroy();
-        chart = undefined;
+        if (chart != null) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
     });
 
     // Nine bars spanning 0..11000, as in the reporter's repro.
@@ -162,7 +149,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         { x: 11000, value: 2 },
     ];
 
-    const createBarChart = (xAxis: object, chartData: object[] = data) => {
+    const createBarChart = async (xAxis: object, chartData: object[] = data) => {
         const options: AgCartesianChartOptions = {
             data: chartData as AgCartesianChartOptions['data'],
             series: [{ type: 'bar', xKey: 'x', yKey: 'value' }],
@@ -171,7 +158,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
                 y: { type: 'number', position: 'left' },
             },
         };
-        return createChart(options);
+        return deproxy(await createChart(options));
     };
 
     const xAxis = () => {
@@ -232,7 +219,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
                 y: { type: 'number', position: 'left', interval: { values: [0, -148.1] } },
             },
         };
-        chart = await createChart(options);
+        chart = deproxy(await createChart(options));
 
         const yAxis = (chart.axes as any[]).find((a) => a.direction === 'y');
         expect(yAxis.scale.domain.map(Number)).toEqual([-150, 50]);

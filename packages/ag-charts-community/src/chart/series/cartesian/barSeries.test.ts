@@ -1808,9 +1808,7 @@ describe('BarSeries', () => {
     // so an unfittable label is dropped; the default (`alwaysShow: true`) keeps the fast-path bake.
     describe('alwaysShow single-placement hiding', () => {
         const visibleLabelCounts = async (options: AgChartOptions) => {
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
             return (deproxy(chart).series as any[]).map(
                 (series) => series.labelSelection.nodes().filter((node: any) => node.visible).length
             );
@@ -2219,17 +2217,15 @@ describe('BarSeries', () => {
 
     describe('AG-8290', () => {
         async function testCase(labelOpts: { placement: AgBarSeriesLabelPlacement; spacing?: number }, name: string) {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: '1', y: 140 },
-                        { x: '2', y: 124 },
-                        { x: '3', y: 112 },
-                        { x: '4', y: 118 },
-                    ],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { ...labelOpts } }],
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: '1', y: 140 },
+                    { x: '2', y: 124 },
+                    { x: '3', y: 112 },
+                    { x: '4', y: 118 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { ...labelOpts } }],
+            });
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
         describe('spacing sets the gap between the bar and the label', () => {
@@ -4521,9 +4517,7 @@ describe('BarSeries', () => {
                     },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
             const series = deproxy(chart).series[0] as any;
             const nodes = series.labelSelection.nodes().filter((node: any) => node.visible);
             expect(nodes.length).toBe(paddingData.length);
@@ -4586,9 +4580,7 @@ describe('BarSeries', () => {
                     },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
             const series = deproxy(chart).series[0] as any;
             const node = series.labelSelection.nodes().find((n: any) => n.visible);
             const bar = series.contextNodeData?.nodeData?.[0];

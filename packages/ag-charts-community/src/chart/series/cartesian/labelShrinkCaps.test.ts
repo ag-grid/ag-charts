@@ -1,15 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartInstance } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import { AgCharts } from '../../../api/agCharts';
-import {
-    deproxy,
-    prepareTestOptions,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from '../../test/utils';
+import { createChart, deproxy, setupMockCanvas, setupMockConsole } from '../../test/utils';
 
 // `truncate: false` with `collision.alwaysShow: false` is what the engine reads as
 // `overflowStrategy: 'hide'`; neither is on the line series' typed label surface, hence the casts.
@@ -26,7 +19,7 @@ describe('label shrink pass overflow caps', () => {
     // The first label placed becomes the second's only obstacle, so the second has to shrink to fit
     // beside it; markers are off so nothing else obstructs, and the axes hold a pixel-like domain.
     const renderTwoLabelledPoints = async (second: { x: number; y: number }, label: object) => {
-        const options = {
+        const options: AgCartesianChartOptions = {
             data: [{ x: 400, y: 200 }, second],
             legend: { enabled: false },
             axes: {
@@ -50,9 +43,7 @@ describe('label shrink pass overflow caps', () => {
                 },
             ],
         };
-        prepareTestOptions(options as any);
-        chart = AgCharts.create(options as any);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
     };
 
     // Rendered label text has no public accessor, so the label selection is the only channel for it.

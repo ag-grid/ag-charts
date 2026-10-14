@@ -1,10 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgChartInstance } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import {
     compareImageSnapshot,
+    createChart,
     deproxy,
     prepareTestOptions,
     setupMockCanvas,
@@ -28,14 +29,11 @@ describe('series label fit', () => {
     });
 
     const render = async (options: object) => {
-        prepareTestOptions(options as any);
-        chart = AgCharts.create(options as any);
-        await waitForChartStability(chart);
+        chart = await createChart(options);
     };
 
     const renderAndSnapshot = async (options: object) => {
-        prepareTestOptions(options as any);
-        chart = AgCharts.create(options as any);
+        chart = await createChart(options);
         await compareImageSnapshot(chart, ctx);
     };
 
@@ -697,10 +695,8 @@ describe('series label fit', () => {
                 legend: { enabled: false },
                 axes: insideAxes,
                 series: [insideLineSeries(shape, 60)],
-            };
-            prepareTestOptions(options as any);
-            chart = AgCharts.create(options as any);
-            await waitForChartStability(chart);
+            } as AgCartesianChartOptions;
+            chart = await createChart(options);
             const text = String(labelTexts()[0] ?? '');
             chart.destroy();
             return text;

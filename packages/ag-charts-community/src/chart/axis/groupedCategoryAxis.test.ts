@@ -336,7 +336,7 @@ describe('Grouped Category Axis Examples', () => {
 
         chart = await createChart(options);
 
-        const chartInstance = chart as any;
+        const chartInstance = deproxy(chart) as any;
         const groupedAxis = chartInstance.axes.find((axis: any) => axis.type === 'grouped-category');
         expect(groupedAxis).toBeDefined();
 
@@ -498,16 +498,13 @@ describe('Grouped Category Axis Examples', () => {
         // reporting `0`, rather than an offset from the inherited `CartesianAxis` override that its
         // labels never took.
         const groupedCategoryLabelLayout = async (label: object) => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    ...examples.GROUPED_CATEGORY_AXIS_EXAMPLE,
-                    axes: {
-                        x: { type: 'grouped-category', position: 'bottom', label },
-                        y: { type: 'number', position: 'left' },
-                    },
-                } as AgCartesianChartOptions)
-            );
-            await waitForChartStability(chart);
+            chart = await createChart({
+                ...examples.GROUPED_CATEGORY_AXIS_EXAMPLE,
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom', label },
+                    y: { type: 'number', position: 'left' },
+                },
+            } as AgCartesianChartOptions);
             const axis = (deproxy(chart) as any).axes.find((a: any) => a.type === 'grouped-category');
             const { label: layout } = axis.getLayoutState();
             chart.destroy();

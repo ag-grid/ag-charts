@@ -151,6 +151,7 @@ function calloutLinesMissingTheirBorder(myChart: Chart, borderWidth: number) {
     return offenders;
 }
 
+// Bespoke: width/height are applied after `prepareTestOptions`, which `createChart` would overwrite with the defaults.
 async function createSizedChart(options: AgPolarChartOptions, width: number, height: number) {
     const prepared = prepareTestOptions({ ...options });
     prepared.width = width;

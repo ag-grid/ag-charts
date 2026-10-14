@@ -1190,8 +1190,7 @@ describe('ScatterSeries', () => {
                 series: [{ type: 'scatter', xKey: 'x', yKey: 'y', maxRenderedItems }],
                 legend: { enabled: false },
             };
-            chart = AgCharts.create(prepareTestOptions(options));
-            await waitForChartStability(chart);
+            chart = await createChart(options);
         };
 
         it('should represent every datum exactly once, with each cluster listed in datum order', async () => {
@@ -1260,8 +1259,7 @@ describe('ScatterSeries', () => {
         });
 
         const expectSameMarkersWhenReversed = async (reverse: { x?: boolean; y?: boolean }) => {
-            chart = AgCharts.create(prepareTestOptions(aggregatedOptions()));
-            await waitForChartStability(chart);
+            chart = await createChart(aggregatedOptions());
             const expected = getAggregatedMarkerXValues(chart);
             expect(expected.length).toBeGreaterThan(0);
             expect(expected.length).toBeLessThan(300);
@@ -1303,9 +1301,7 @@ describe('ScatterSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             } as AgCartesianChartOptions;
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
         };
 
         // An empty key is matched against the data exactly like a non-empty one, so both take the

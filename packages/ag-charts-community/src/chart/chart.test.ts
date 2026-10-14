@@ -513,16 +513,11 @@ describe('Chart', () => {
 
     describe('Chart data change', () => {
         const testDataUpdate = async (testOptions: { seriesOptions: any; getNodes: (chart: Chart) => Node[] }) => {
-            const chartOptions = prepareTestOptions<{
-                data: { year: string; gdp: number; gnp: number }[];
-                series: any[];
-            }>({
+            const chartProxy = (await createChart({
                 data: [],
                 series: [testOptions.seriesOptions],
-            });
-            const chartProxy = AgCharts.create(chartOptions);
+            })) as AgChartProxy;
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
             expect(testOptions.getNodes(chart).length).toEqual(0);
 
             await chartProxy.updateDelta({
@@ -705,12 +700,10 @@ describe('Chart', () => {
     });
 
     describe('Chart data inherited by Series', () => {
-        async function createSeriesTestChart(options: object) {
-            const chartOptions = prepareTestOptions(options);
-            const chartProxy = AgCharts.create(chartOptions) as AgChartProxy;
+        async function createSeriesTestChart(options: AgCartesianChartOptions) {
+            const chartProxy = (await createChart(options)) as AgChartProxy;
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
-            return { chartProxy, chartOptions };
+            return { chartProxy };
         }
 
         async function updateChart(chartProxy: AgChartProxy, options: object) {
@@ -1128,8 +1121,7 @@ describe('Chart', () => {
         });
 
         const createMarkerChart = async (options: AgCartesianChartOptions) => {
-            chart = deproxy(AgCharts.create(prepareTestOptions(options)));
-            await waitForChartStability(chart);
+            chart = deproxy(await createChart(options));
 
             const [node] = classCast(chart.series[0], LineSeries).contextNodeData?.nodeData ?? [];
             expect(node).toBeDefined();
@@ -1229,11 +1221,8 @@ describe('Chart', () => {
 
         async function createChartWithClickListener(options: AgCartesianChartOptions) {
             click = vi.fn();
-            chartInstance = AgCharts.create(
-                prepareTestOptions<AgCartesianChartOptions>({ ...options, listeners: { click } })
-            ) as AgChartProxy;
+            chartInstance = (await createChart({ ...options, listeners: { click } })) as AgChartProxy;
             chart = deproxy(chartInstance);
-            await waitForChartStability(chart);
         }
 
         /**
@@ -2092,6 +2081,7 @@ describe('Chart destroy() / performUpdate() race condition', () => {
         { x: 'C', y: 30 },
     ];
 
+    // Bespoke: no `prepareTestOptions`, so the chart is created with the bare options and the document body as container.
     async function testDestroyRace(seriesType: 'bar' | 'area' | 'line') {
         const proxy = AgCharts.create({
             container: document.body,
@@ -2340,6 +2330,8 @@ describe('AG-17830 QA — validations.issueRaised', () => {
         for (const proxy of created.splice(0)) proxy.destroy();
     });
 
+    // Bespoke: creates synchronously without `prepareTestOptions` or a stability wait, to observe failures raised
+    // during `AgCharts.create` itself.
     // Every chart a test creates, including those a listener creates re-entrantly, so all are destroyed.
     function create(options: AgCartesianChartOptions) {
         const proxy = AgCharts.create(options) as AgChartProxy;

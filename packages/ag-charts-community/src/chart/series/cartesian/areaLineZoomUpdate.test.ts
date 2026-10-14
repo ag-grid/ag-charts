@@ -167,7 +167,7 @@ describe('area and line series zoom updates', () => {
     describe('node data', () => {
         it.each(cases)('%s matches a chart created at the same zoom', async (_, type, variant) => {
             await zoomThrough(type, variant, async (chart, range) => {
-                const fresh = await createChart(buildOptions(type, variant, range));
+                const fresh = deproxy(await createChart(buildOptions(type, variant, range)));
                 try {
                     expect(snapshotChart(chart), `zoom ${range}`).toEqual(snapshotChart(fresh));
                 } finally {

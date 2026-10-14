@@ -948,8 +948,7 @@ describe('Legend', () => {
                 ],
                 legend: { position },
             };
-            prepareTestOptions(options as any);
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createChart(options));
             await compare(chart);
         }
 
@@ -1228,12 +1227,12 @@ describe('Legend', () => {
         }
 
         async function setupChart(legendOverrides: AgCartesianChartOptions['legend'] = {}) {
-            const options: AgCartesianChartOptions = prepareTestOptions({
-                ...TOOLTIP_OPTIONS,
-                legend: { ...TOOLTIP_OPTIONS.legend, ...legendOverrides },
-            });
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(
+                await createChart({
+                    ...TOOLTIP_OPTIONS,
+                    legend: { ...TOOLTIP_OPTIONS.legend, ...legendOverrides },
+                })
+            );
             const box = computeLegendBBox(chart);
             legendX = box.x;
             legendY = box.y;
