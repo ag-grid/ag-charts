@@ -94,8 +94,10 @@ async function timeUpdate(target: AgChartInstance, update: () => Promise<unknown
 async function performRedraw(next: RectState, change: Change): Promise<number> {
     const target = await ensureChart(next);
     switch (change) {
-        case 'same data':
-            return timeUpdate(target, () => target.updateDelta({ data: generateData(next.bars, shift) }));
+        case 'same data': {
+            const data = generateData(next.bars, shift);
+            return timeUpdate(target, () => target.updateDelta({ data }));
+        }
         case 'title':
             return timeUpdate(target, () =>
                 target.updateDelta({ title: { text: `${next.kind} chart title ${++titleCount}` } })
@@ -103,14 +105,26 @@ async function performRedraw(next: RectState, change: Change): Promise<number> {
         case 'colour only':
             fillIndex = (fillIndex + 1) % FILLS.length;
             return timeUpdate(target, () => target.updateDelta({ series: createSeries(next, FILLS[fillIndex]) }));
-        case 'moved':
-            return timeUpdate(target, () => target.updateDelta({ data: generateData(next.bars, ++shift) }));
+        case 'moved': {
+            const data = generateData(next.bars, ++shift);
+            return timeUpdate(target, () => target.updateDelta({ data }));
+        }
     }
 }
 
 /** inScope */
 function nextFrame(): Promise<void> {
-    return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    // Falls back to a timer so a throttled or hidden page cannot stall the run on requestAnimationFrame.
+    const frames = new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    const fallback = new Promise<void>((resolve) => setTimeout(resolve, 1000));
+    return Promise.race([frames, fallback]);
+}
+
+/** inScope */
+function median(values: number[]): number {
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = sorted.length >> 1;
+    return sorted.length % 2 === 1 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 /** inScope */
@@ -148,7 +162,8 @@ async function performPixelStability(label: string, next: RectState): Promise<nu
     await nextFrame();
     const initial = readPixels();
 
-    const elapsed = await timeUpdate(chart!, () => chart!.updateDelta({ data: generateData(next.bars, shift) }));
+    const firstData = generateData(next.bars, shift);
+    const elapsed = await timeUpdate(chart!, () => chart!.updateDelta({ data: firstData }));
     await nextFrame();
     const afterFirst = readPixels();
 
@@ -181,7 +196,6 @@ function getBenchmarkConfig(): BenchmarkConfig {
     return {
         testCases: [
             {
-                // AG-18911
                 id: 'no-move-redraw',
                 label: 'No-Move Redraw',
                 variants: shapes.flatMap((shape) =>
@@ -192,7 +206,6 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 ),
             },
             {
-                // AG-18915
                 id: 'pixel-stability',
                 label: 'Pixel Stability (first vs second identical redraw)',
                 variants: stabilityCases.map(({ label, state: s }) => ({
@@ -214,8 +227,8 @@ function getBenchmarkConfig(): BenchmarkConfig {
             console.table(
                 Object.entries(pixelStability).map(([label, { firstRedraw, secondRedraw }]) => ({
                     label,
-                    firstRedrawMaxChangedPixels: Math.max(...firstRedraw),
-                    secondRedrawMaxChangedPixels: Math.max(...secondRedraw),
+                    firstRedrawMedianChangedPixels: median(firstRedraw),
+                    secondRedrawMedianChangedPixels: median(secondRedraw),
                 }))
             );
         },

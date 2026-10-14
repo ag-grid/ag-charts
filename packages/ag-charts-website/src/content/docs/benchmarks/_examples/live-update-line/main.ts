@@ -107,11 +107,12 @@ async function performStreamingUpdate(points: number, method: Method): Promise<n
 function getBenchmarkConfig(): BenchmarkConfig {
     return {
         testCases: [600, 6_000, 60_000].map((points) => ({
-            // AG-18914
             id: `stream-${points}`,
             label: `Streaming Line (${points.toLocaleString('en-GB')} points)`,
             variants: METHODS.map((method) => ({
                 params: { Points: points.toLocaleString('en-GB'), Method: method },
+                // applyTransaction() was added in 12.3.0
+                minVersion: method.startsWith('applyTransaction') ? '12.3.0' : undefined,
                 run: () => performStreamingUpdate(points, method),
             })),
         })),

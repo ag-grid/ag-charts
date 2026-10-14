@@ -69,7 +69,6 @@ function getBenchmarkConfig(): BenchmarkConfig {
     return {
         testCases: [
             {
-                // AG-18909
                 id: 'radar-update',
                 label: 'Radar Data Update',
                 variants: [26, 52, 104, 208, 416].flatMap((categories) =>

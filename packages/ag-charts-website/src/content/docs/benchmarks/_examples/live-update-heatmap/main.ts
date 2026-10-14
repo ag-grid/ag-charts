@@ -49,6 +49,9 @@ function createOptions(state: HeatmapState, data: Datum[]): AgCartesianChartOpti
 }
 /* @ag-options-end */
 
+// dataIdKey (needed for applyTransaction() on a heatmap) was added in 13.1.0
+const DATA_ID_MIN_VERSION = '13.1.0';
+
 let chart: AgChartInstance | null = null;
 let state: HeatmapState | null = null;
 let data: Datum[] = [];
@@ -159,7 +162,6 @@ function getBenchmarkConfig(): BenchmarkConfig {
     return {
         testCases: [
             {
-                // AG-18910, AG-18912
                 id: 'full-update',
                 label: 'Full Update',
                 variants: sizes.flatMap(({ columns, rows }) =>
@@ -170,7 +172,6 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 ),
             },
             {
-                // AG-18913
                 id: 'partial-update',
                 label: 'Partial Update',
                 variants: [
@@ -180,16 +181,17 @@ function getBenchmarkConfig(): BenchmarkConfig {
                             Changed: label,
                             Method: 'applyTransaction()',
                         },
+                        minVersion: DATA_ID_MIN_VERSION,
                         run: () => performPartialUpdate(referenceWithIds, changed),
                     })),
                     {
                         params: { Cells: cellLabel(COLUMNS, REFERENCE_ROWS), Changed: '100%', Method: 'updateDelta()' },
+                        minVersion: DATA_ID_MIN_VERSION,
                         run: () => performFullUpdate(referenceWithIds),
                     },
                 ],
             },
             {
-                // AG-18911 (heatmap)
                 id: 'no-move-redraw',
                 label: 'No-Move Redraw',
                 variants: [
