@@ -5903,4 +5903,192 @@ describe('ChartOptions', () => {
             });
         });
     });
+
+    describe('delta updates', () => {
+        const rows = (count: number) =>
+            Array.from({ length: count }, (_, i) => ({ id: `r${i}`, x: `c${i}`, y: i * 2 + 1, z: i }));
+
+        const sparklineMetadata: ConstructorParameters<typeof ChartOptions>[4] = {
+            presetType: 'sparkline',
+            pool: true,
+            domMode: 'minimal',
+        };
+        const createBase = (userOptions: AgChartOptions) =>
+            new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {});
+        const applyDelta = (
+            base: ChartOptions,
+            delta: object,
+            metadata: ConstructorParameters<typeof ChartOptions>[4] = {}
+        ) => new ChartOptions(base, {} as AgChartOptions, {}, {}, metadata, delta as any);
+
+        // The same user options built from scratch, as `update()` of a new chart would.
+        const strip = (options: any) => ({ ...options, container: undefined });
+
+        describe('growing `data`', () => {
+            it.each([
+                {
+                    name: 'a bar series',
+                    options: { series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] },
+                },
+                {
+                    name: 'a bar series keyed by dataIdKey',
+                    options: { dataIdKey: 'id', series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] },
+                },
+                {
+                    name: 'multiple series with their own fills',
+                    options: {
+                        series: [
+                            { type: 'line', xKey: 'x', yKey: 'y' },
+                            { type: 'line', xKey: 'x', yKey: 'z' },
+                            { type: 'bar', xKey: 'x', yKey: 'z', fill: 'red' },
+                        ],
+                    },
+                },
+                {
+                    name: 'a pie series with more sectors than palette colours',
+                    options: { series: [{ type: 'pie', angleKey: 'y', sectorLabelKey: 'x' }] },
+                },
+                {
+                    name: 'a donut series with a cycled fill palette',
+                    options: {
+                        series: [{ type: 'donut', angleKey: 'y', fills: ['red', 'green', 'blue'] }],
+                    },
+                },
+            ])('takes the fast path and matches a fresh pass for $name', ({ options }) => {
+                const base = createBase({ ...options, data: rows(4) } as AgChartOptions);
+                const grown = rows(20);
+
+                const updated = applyDelta(base, { data: grown });
+                const fresh = createBase({ ...options, data: grown } as AgChartOptions);
+
+                // `revalidated` is false only when the fast path carried the previous pass forward.
+                expect(updated.revalidated).toBe(false);
+                expect(updated.processedOptions.data).toEqual(grown);
+                expect(strip(updated.processedOptions)).toEqual(strip(fresh.processedOptions));
+            });
+
+            it('takes the fast path for a shrinking data set', () => {
+                const base = createBase({
+                    data: rows(20),
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+
+                const updated = applyDelta(base, { data: rows(3) });
+
+                expect(updated.revalidated).toBe(false);
+                expect(updated.processedOptions.data).toHaveLength(3);
+            });
+
+            it.each([
+                { name: 'filling an empty data set', from: 0, to: 5 },
+                { name: 'emptying a data set', from: 5, to: 0 },
+            ])('keeps the slow path when $name, which changes the predicted axes', ({ from, to }) => {
+                const base = createBase({
+                    data: rows(from),
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+
+                const updated = applyDelta(base, { data: rows(to) });
+
+                expect(updated.revalidated).toBe(true);
+                expect(updated.processedOptions.data).toHaveLength(to);
+            });
+
+            it('keeps the preset data transform on a sparkline whose data grows', () => {
+                const metadata = sparklineMetadata;
+                const options = { type: 'line', data: [1, 2, 3] } as AgChartOptions;
+                const base = new ChartOptions(undefined, options, {}, {}, metadata);
+
+                const updated = applyDelta(base, { data: [1, 2, 3, 4, 5] }, metadata);
+                const fresh = new ChartOptions(
+                    undefined,
+                    { ...options, data: [1, 2, 3, 4, 5] } as AgChartOptions,
+                    {},
+                    {},
+                    metadata
+                );
+
+                expect(updated.processedOptions.data).toEqual([
+                    { x: 0, y: 1 },
+                    { x: 1, y: 2 },
+                    { x: 2, y: 3 },
+                    { x: 3, y: 4 },
+                    { x: 4, y: 5 },
+                ]);
+                expect(strip(updated.processedOptions)).toEqual(strip(fresh.processedOptions));
+            });
+        });
+
+        describe('deltas that do not pass `data`', () => {
+            const options = {
+                data: rows(10),
+                title: { text: 'Before' },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            } as AgChartOptions;
+
+            it.each([
+                { name: 'a title', delta: { title: { text: 'After' } } },
+                { name: 'a series colour', delta: { series: [{ type: 'bar', xKey: 'x', yKey: 'y', fill: 'red' }] } },
+            ])('does not report a data change for $name', ({ delta }) => {
+                const base = createBase(options);
+
+                const updated = applyDelta(base, delta);
+
+                // The slow path ran, so the options were rebuilt around the unchanged data.
+                expect(updated.revalidated).toBe(true);
+                expect(updated.userOptions.data).toBe(base.userOptions.data);
+                expect(updated.processedOptions.data).toBe(base.processedOptions.data);
+                expect(updated.diffOptions(base)).not.toHaveProperty('data');
+            });
+
+            it('keeps the previous series data when the series are not in the delta', () => {
+                const base = createBase({
+                    title: { text: 'Before' },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', data: rows(5) }],
+                } as AgChartOptions);
+
+                const updated = applyDelta(base, { title: { text: 'After' } });
+
+                const seriesData = (chartOptions: ChartOptions) =>
+                    (chartOptions.processedOptions.series?.[0] as { data?: unknown } | undefined)?.data;
+                expect(seriesData(updated)).toBe(seriesData(base));
+                expect(updated.diffOptions(base)).toEqual({ title: { text: 'After' } });
+            });
+
+            it('does not report the preset data of a sparkline as changed', () => {
+                const metadata = sparklineMetadata;
+                const base = new ChartOptions(
+                    undefined,
+                    { type: 'line', data: [1, 2, 3] } as AgChartOptions,
+                    {},
+                    {},
+                    metadata
+                );
+
+                const updated = applyDelta(base, { title: { text: 'After' } }, metadata);
+
+                expect(updated.diffOptions(base)).not.toHaveProperty('data');
+            });
+
+            it('still reports data the delta passes', () => {
+                const base = createBase(options);
+                const data = rows(10);
+
+                const updated = applyDelta(base, { data });
+
+                expect(updated.processedOptions.data).toEqual(data);
+                expect(updated.diffOptions(base)).toHaveProperty('data');
+            });
+
+            it('does not let later deltas mutate the data the caller passed', () => {
+                const data = rows(3);
+                const base = createBase({ ...options, data } as AgChartOptions);
+
+                const updated = applyDelta(base, { title: { text: 'After' } });
+
+                expect(updated.userOptions.data).not.toBe(data);
+                expect(data).toEqual(rows(3));
+            });
+        });
+    });
 });

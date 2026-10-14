@@ -633,6 +633,34 @@ describe('Chart', () => {
             expect(chart.data.data.length).toBe(lengthBeforeMutation);
         });
 
+        it('should not reprocess the data for an updateDelta() that does not pass `data`', async () => {
+            const rows = (count: number) => Array.from({ length: count }, (_, i) => ({ year: `${2000 + i}`, gdp: i }));
+            const chartProxy = AgCharts.create(
+                prepareTestOptions({
+                    data: rows(5),
+                    title: { text: 'Before' },
+                    series: [{ type: 'line', xKey: 'year', yKey: 'gdp' }],
+                } as any)
+            );
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            // `processData` runs for a node data refresh, which a title change has no reason to force.
+            const processData = vi.spyOn(Object.getPrototypeOf(chart), 'processData');
+            try {
+                await chartProxy.updateDelta({ title: { text: 'After' } });
+                await waitForChartStability(chart);
+                expect(processData).not.toHaveBeenCalled();
+
+                await chartProxy.updateDelta({ data: rows(6) });
+                await waitForChartStability(chart);
+                expect(processData).toHaveBeenCalled();
+                expect(chart.data.data).toHaveLength(6);
+            } finally {
+                processData.mockRestore();
+            }
+        });
+
         // updateDelta must not reset data accumulated via applyTransaction.
         it('should preserve applyTransaction data when updateDelta changes series options', async () => {
             const initialData = [

@@ -1789,7 +1789,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        if (this.applyAxes(this, newOpts, seriesStatus)) {
+        // Axes applied in place with unchanged options move no datum, so only new axes or axes in the delta refresh.
+        const axesRecreated = this.applyAxes(this, newOpts, seriesStatus);
+        if (axesRecreated || 'axes' in deltaOptions) {
             forceNodeDataRefresh = true;
         }
 
@@ -2114,6 +2116,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return isUpdated ? 'updated' : 'no-op';
     }
 
+    /** Returns true when the axes were created anew, rather than updated in place or absent. */
     private applyAxes(chart: SeriesAxesHost, options: AgChartOptions, seriesStatus: SeriesChangeType) {
         if (!('axes' in options) || !options.axes) {
             return false;
@@ -2145,7 +2148,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             axis.userKey = unmappedAxisKeys.get(axis.id) ?? axis.id;
             axis.setPickComputationEnabled(pickComputationEnabled);
         }
-        return true;
+        return !matchingTypes;
     }
 
     private createSeries(seriesOptions: SeriesOptionsTypes): UnknownSeries {

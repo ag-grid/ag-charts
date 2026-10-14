@@ -362,6 +362,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ...ChartOptions.OPTIONS_CLONE_OPTS_SLOW,
                 seen: [],
             }) as T;
+            this.reuseUnchangedData(this.userOptions, baseChartOptions.userOptions, deltaOptions);
         } else {
             // Full update case.
             this.userOptions = deepClone(currentUserOptions ?? newUserOptions, {
@@ -392,10 +393,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (stripSymbols) {
                 this.removeLeftoverSymbols(this.userOptions);
             }
-            const dataChangedLength =
+            // The fast path keeps the axes predicted from a sample of the previous data, and an empty data set
+            // has no sample to predict from, so only a change to or from empty needs the slow path.
+            const dataEmptinessChanged =
                 currentUserOptions instanceof ChartOptions &&
                 deltaOptions?.data !== undefined &&
-                deltaOptions?.data?.length !== currentUserOptions.userOptions.data?.length;
+                ((deltaOptions.data?.length ?? 0) === 0) !== ((currentUserOptions.userOptions.data?.length ?? 0) === 0);
 
             const presetDef =
                 this.optionMetadata.presetType == null
@@ -408,7 +411,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 deltaOptions !== undefined &&
                 ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
                 baseChartOptions != null &&
-                !dataChangedLength
+                !dataEmptinessChanged
             ) {
                 ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
                 themeParameters = baseChartOptions.themeParameters;
@@ -433,6 +436,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     remappedAxisKeys,
                     presetOptions,
                 } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
+                // The preset's data transform is a pure function of `data`, so its result carries over rather than
+                // reading as a data change to the chart.
+                if (presetDef?.processData != null && this.userOptions.data === baseChartOptions?.userOptions.data) {
+                    processedOptions.data = baseChartOptions?.processedOptions.data;
+                }
             }
         } catch (error) {
             rejected = true;
@@ -1917,6 +1925,23 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const value = optionsNode[key];
             if (isSymbol(value)) {
                 delete optionsNode[key];
+            }
+        }
+    }
+
+    /**
+     * Gives `data` back the reference it had in `baseOptions` when the delta left it alone. The clone of the merged
+     * options copies every `data` array, and the chart reads a new reference as changed data.
+     */
+    private reuseUnchangedData(options: Partial<T>, baseOptions: Partial<T>, deltaOptions: DeepPartial<T> | null) {
+        if (deltaOptions?.data === undefined && baseOptions.data !== undefined) {
+            options.data = baseOptions.data;
+        }
+        if (deltaOptions?.series !== undefined || options.series == null || baseOptions.series == null) return;
+        for (const [index, series] of (options.series as { data?: unknown }[]).entries()) {
+            const baseSeries = (baseOptions.series as { data?: unknown }[])[index];
+            if (baseSeries?.data !== undefined && series != null) {
+                series.data = baseSeries.data;
             }
         }
     }
