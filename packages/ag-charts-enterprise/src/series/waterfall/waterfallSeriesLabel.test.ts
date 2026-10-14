@@ -1,25 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { setupEnterpriseModules } from '../../setup';
+import { resolveSeries } from '../../test/seriesHelpers';
 
 setupEnterpriseModules();
 
 const ITEM_TYPES = ['positive', 'negative', 'total'] as const;
-
-const resolveSeries = (series: object, theme?: object): Record<string, any> => {
-    const options = { series: [series], ...(theme == null ? {} : { theme }) } as unknown as AgChartOptions;
-    const { processedOptions } = new _ModuleSupport.ChartOptions(
-        options,
-        {} as AgChartOptions,
-        {},
-        {},
-        {}
-    ) as unknown as { processedOptions: { series: Record<string, any>[] } };
-    return processedOptions.series[0];
-};
 
 const resolveLabels = (series: object, theme?: object) => {
     const resolved = resolveSeries({ type: 'waterfall', xKey: 'x', yKey: 'y', ...series }, theme);

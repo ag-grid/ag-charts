@@ -14,6 +14,7 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { buildLogAxisTestCase } from '../../test/axisTestCases';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
@@ -68,17 +69,6 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
-
-const buildLogAxisTestCase = (
-    data: any[],
-    extra?: { warnings?: string[]; skipWarningsReversed?: boolean }
-): CartesianOrPolarTestCase => {
-    return {
-        options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'bar'),
-        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'log' }, seriesTypes: ['bar'] }),
-        ...extra,
-    };
-};
 
 const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
     ...mixinReversedAxesCases({
@@ -166,10 +156,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 seriesTypes: repeat('bar', 4),
             }),
         },
-        COLUMN_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
-        COLUMN_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
-        COLUMN_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
-        COLUMN_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS, {
+        COLUMN_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase('bar', DATA_POSITIVE_LOG_AXIS),
+        COLUMN_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase('bar', DATA_NEGATIVE_LOG_AXIS),
+        COLUMN_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase('bar', DATA_FRACTIONAL_LOG_AXIS),
+        COLUMN_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase('bar', DATA_ZERO_EXTENT_LOG_AXIS, {
             warnings: [
                 'AG Charts - The log axis domain contains a value of 0, the chart data cannot be rendered. See log axis documentation for more information.',
             ],
@@ -361,7 +351,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
-    COLUMN_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase(DATA_INVALID_DOMAIN_LOG_AXIS),
+    COLUMN_CATEGORY_X_AXIS_INVALID_DOMAIN_LOG_Y_AXIS: buildLogAxisTestCase('bar', DATA_INVALID_DOMAIN_LOG_AXIS),
 };
 
 describe('BarSeries', () => {
