@@ -4793,3 +4793,64 @@ describe('BarSeries category/gridline pixel alignment', () => {
         }
     }
 });
+
+describe('BarSeries redraw with identical data', () => {
+    const ctx = setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const makeData = (count: number) =>
+        Array.from({ length: count }, (_, i) => {
+            const value = 10 + (i % 17);
+            return { cat: `C${i}`, value: i % 3 === 0 ? -value / 2 : value };
+        });
+
+    // The first frame must not apply the device-pixel category snap when the bars are not crisp, otherwise
+    // the next redraw (which writes the unsnapped node geometry) repaints every bar. Crisp bars snap again
+    // at render, so only their pixels (not their node geometry) are expected to match.
+    const CASES: Array<{ name: string; bars: number; crisp?: boolean; exactGeometry: boolean; dprs: number[] }> = [
+        { name: 'crisp: false', bars: 50, crisp: false, exactGeometry: true, dprs: [1, 2] },
+        { name: 'crisp: false, wide bars', bars: 5, crisp: false, exactGeometry: true, dprs: [1, 2] },
+        // Control: crisp bars are unchanged by the non-crisp fix.
+        { name: 'crisp: true', bars: 50, crisp: true, exactGeometry: false, dprs: [1] },
+        { name: 'crisp auto, few wide bars', bars: 5, exactGeometry: false, dprs: [1] },
+    ];
+
+    for (const { name, bars, crisp, exactGeometry, dprs } of CASES) {
+        for (const dpr of dprs) {
+            it(`renders the same pixels on an identical-data redraw (${name}, dpr ${dpr})`, async () => {
+                const data = makeData(bars);
+                const options: any = prepareTestOptions({
+                    data,
+                    animation: { enabled: false },
+                    series: [{ type: 'bar', xKey: 'cat', yKey: 'value', crisp }],
+                    legend: { enabled: false },
+                    axes: { x: { type: 'category', label: { enabled: false } }, y: { type: 'number' } },
+                } as any);
+                options.overrideDevicePixelRatio = dpr;
+                options.width = 800;
+                options.height = 600;
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                const sampleScene = createSceneGeometrySampler(chart);
+                const first = sampleScene();
+                const firstImage = ctx.snapshot();
+                expect([...first.keys()].filter((k) => k.startsWith('series[0]/rect')).length).toBeGreaterThan(0);
+
+                await chart.updateDelta({ data: makeData(bars) });
+                await waitForChartStability(chart);
+
+                expect(ctx.snapshot()).toMatchImage(firstImage);
+                if (exactGeometry) {
+                    expectSceneSamplesMatch(sampleScene(), first, 0);
+                }
+            });
+        }
+    }
+});

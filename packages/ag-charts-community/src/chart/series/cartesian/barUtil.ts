@@ -131,7 +131,11 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
     // Animate to the device-snapped category position so the settle crisp is a no-op. Only the
     // category dimension is snapped; the value dimension may legitimately collapse to 0.
     const alignScratch = { start: 0, length: 0 };
-    const snapCategory = (rect: BarRect, geom: AnimatableBarDatum): AnimatableBarDatum => {
+    const snapCategory = (rect: BarRect, geom: AnimatableBarDatum, crisp: boolean | undefined): AnimatableBarDatum => {
+        // Non-crisp bars are never snapped at render, so snapping here would make the first frame differ
+        // from every later redraw, which writes the unsnapped node geometry.
+        if (!crisp) return geom;
+
         const dir = rect.crispCentreDirection;
         if (dir == null) return geom;
 
@@ -196,7 +200,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
         }
 
         const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
-        return { ...snapCategory(rect, source), phase };
+        return { ...snapCategory(rect, source, (datum as Partial<RectDatum>).crisp), phase };
     };
     const toFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
         if (status === 'removed' && rect.datum == null && initPos.mode === 'fade') {
@@ -205,14 +209,18 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
         } else if (status === 'removed' || isRemoved(rect.unsafeDatum)) {
             return initPos.calculate(rect.unsafeDatum, rect.unsafePreviousDatum);
         } else {
-            return snapCategory(rect, {
-                x: datum.x,
-                y: datum.y,
-                width: datum.width,
-                height: datum.height,
-                clipBBox: datum.clipBBox,
-                opacity: datum.opacity ?? 1,
-            });
+            return snapCategory(
+                rect,
+                {
+                    x: datum.x,
+                    y: datum.y,
+                    width: datum.width,
+                    height: datum.height,
+                    clipBBox: datum.clipBBox,
+                    opacity: datum.opacity ?? 1,
+                },
+                (datum as Partial<RectDatum>).crisp
+            );
         }
     };
     const applyFn: ApplyFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
