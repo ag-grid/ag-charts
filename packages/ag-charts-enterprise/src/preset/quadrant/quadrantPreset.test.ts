@@ -377,6 +377,24 @@ describe('Quadrant Preset', () => {
         expect(console.warn).not.toHaveBeenCalled();
     });
 
+    it('selects an item through the series id it is given', async () => {
+        const options: AgQuadrantChartOptions = {
+            ...BUBBLE_SIZED_NUMERIC,
+            id: 'points',
+            dataIdKey: 'label',
+            selection: { enabled: true },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.createQuadrantChart(options);
+        await waitForChartStability(chart);
+        chart.setSelection([{ seriesId: 'points', itemId: 'Two' }]);
+
+        expect(Array.from(chart.getSelection(), ({ seriesId, itemId }) => ({ seriesId, itemId }))).toEqual([
+            { seriesId: 'points', itemId: 'Two' },
+        ]);
+    });
+
     it('forwards sizeName to the tooltip renderer params', () => {
         const rendererParams: unknown[] = [];
 

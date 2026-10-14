@@ -54,6 +54,12 @@ export interface AgQuadrantPreset<TDatum, TContext>
     contextMenu?: AgContextMenuOptions<TDatum, TContext, AgQuadrantContextMenuParams>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions<TDatum, TContext>;
+    /**
+     * Primary identifier for the chart's series. This is provided as `seriesId` in user callbacks, and is how `setSelection()` addresses the series. Auto-generated ids are subject to future change without warning, so supply your own unique `id` value if you need to refer to the series.
+     *
+     * Default: `auto-generated value`
+     */
+    id?: string;
     /** Function used to return formatting for individual markers, based on the supplied information.*/
     itemStyler?: Styler<AgQuadrantItemStylerParams<TDatum, TContext>, AgQuadrantRegionMarkerStyle>;
     /** Configuration for the labels shown on top of data points. */
