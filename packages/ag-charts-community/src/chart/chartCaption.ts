@@ -201,10 +201,15 @@ export class ChartCaption implements CaptionLike {
         }
 
         // Signal interactivity only on captions that actually have a click listener.
-        this.proxyText.setCursor(this.hasClickListener(moduleCtx) ? 'pointer' : undefined);
-
-        const tabIndex = this.needsTabIndex(moduleCtx) ? 0 : undefined;
-        this.proxyText.setTabIndex(tabIndex);
+        if (this.isInteractive(moduleCtx)) {
+            this.proxyText.setCursor('pointer');
+            this.proxyText.setAriaRole('button');
+            this.proxyText.setTabIndex(0);
+        } else {
+            this.proxyText.setCursor(undefined);
+            this.proxyText.setAriaRole('presentation');
+            this.proxyText.setTabIndex(undefined);
+        }
 
         const textContent = toPlainText(this.text);
         if (textContent !== this.lastProxyTextContent) {
@@ -290,7 +295,7 @@ export class ChartCaption implements CaptionLike {
         );
     }
 
-    private needsTabIndex(moduleCtx: DynamicContext<ChartRegistry>): boolean {
+    private isInteractive(moduleCtx: DynamicContext<ChartRegistry>): boolean {
         return this.hasClickListener(moduleCtx) || this.contextMenuOpts.enabled;
     }
 
