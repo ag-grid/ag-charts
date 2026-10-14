@@ -322,6 +322,14 @@ test('workflow: the report job merges memory shards per side and hands them to t
     assert.doesNotMatch(runOf(compareStep), /--base "\$\{?base\.mem/);
 });
 
+test('workflow: a memory merge failure warns instead of failing the report job', () => {
+    const mergeStep = reportSteps.find((s) => runOf(s).includes('.mem.json'));
+    assert.match(
+        runOf(mergeStep),
+        /\.mem\.json" "\$\{mem_shards\[@\]\}" \|\| \\\s*\n\s*echo "::warning::\$\{side\} memory reports could not be merged/
+    );
+});
+
 test('workflow: the memory example pattern, when limited, covers the high-perf and data-selection-zoom examples', () => {
     const pattern = new RegExp(workflow.env.AG_MEMORY_EXAMPLE_PATTERN);
     for (const name of ['high-perf-bar', 'high-perf-bar-stacked', 'data-selection-zoom-line-area']) {

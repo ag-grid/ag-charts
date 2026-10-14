@@ -479,7 +479,8 @@ jobs:
                   for side in head base; do
                     mem_shards=(reports/browser-benchmarks/shards/${side}-*.mem.json)
                     if [[ ${#mem_shards[@]} -gt 0 ]]; then
-                      node ./tools/benchmark/merge-browser-results.js --output "reports/browser-benchmarks/${side}.mem.json" "${mem_shards[@]}"
+                      node ./tools/benchmark/merge-browser-results.js --output "reports/browser-benchmarks/${side}.mem.json" "${mem_shards[@]}" || \
+                        echo "::warning::${side} memory reports could not be merged; allocation omitted"
                     fi
                   done
 
