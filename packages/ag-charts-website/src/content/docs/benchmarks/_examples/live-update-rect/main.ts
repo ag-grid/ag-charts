@@ -198,6 +198,8 @@ function getBenchmarkConfig(): BenchmarkConfig {
             {
                 id: 'no-move-redraw',
                 label: 'No-Move Redraw',
+                // Keyed `axes` options were added in 13.0.0 (12.x takes an array)
+                minVersion: '13.0.0',
                 variants: shapes.flatMap((shape) =>
                     changes.map((change) => ({
                         params: { Series: shape.kind, Bars: String(shape.bars), Change: change },
@@ -208,6 +210,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
             {
                 id: 'pixel-stability',
                 label: 'Pixel Stability (first vs second identical redraw)',
+                minVersion: '13.0.0',
                 variants: stabilityCases.map(({ label, state: s }) => ({
                     params: { Series: s.kind, Bars: String(s.bars), Change: label },
                     run: () => performPixelStability(label, s),

@@ -49,8 +49,8 @@ function createOptions(state: HeatmapState, data: Datum[]): AgCartesianChartOpti
 }
 /* @ag-options-end */
 
-// dataIdKey (needed for applyTransaction() on a heatmap) was added in 13.1.0
-const DATA_ID_MIN_VERSION = '13.1.0';
+// dataIdKey (needed for applyTransaction() on a heatmap) was added in 13.2.0
+const DATA_ID_MIN_VERSION = '13.2.0';
 
 let chart: AgChartInstance | null = null;
 let state: HeatmapState | null = null;
