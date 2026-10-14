@@ -18,6 +18,8 @@ import {
 } from 'ag-charts-core';
 import type { Arc } from 'ag-charts-core';
 
+import { drawPolygonRing } from './polygonRing';
+
 const { generateTicks, getAxisLabelSideFlag, AxisGroupZIndexMap } = _ModuleSupport;
 
 interface GeneratedTicks {
@@ -257,28 +259,7 @@ export abstract class RadiusAxis<
                 return;
             }
 
-            const radius = this.getTickRadius(value);
-            for (const [idx, angle] of angles.entries()) {
-                const x = radius * Math.cos(angle);
-                const y = radius * Math.sin(angle);
-                if (idx === 0) {
-                    path.moveTo(x, y);
-                } else {
-                    path.lineTo(x, y);
-                }
-
-                for (const [innerIdx, innerAngle] of angles.entries()) {
-                    const x2 = radius * Math.cos(innerAngle);
-                    const y2 = radius * Math.sin(innerAngle);
-                    if (innerIdx === 0) {
-                        path.moveTo(x2, y2);
-                    } else {
-                        path.lineTo(x2, y2);
-                    }
-                }
-                path.closePath();
-            }
-            path.closePath();
+            drawPolygonRing(path, angles, this.getTickRadius(value));
         };
 
         const drawFn = shape === 'circle' ? drawCircleShape : drawPolygonShape;
