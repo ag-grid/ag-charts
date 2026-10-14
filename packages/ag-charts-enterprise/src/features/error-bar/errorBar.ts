@@ -62,6 +62,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
+    // Resolved while the series anchors its labels, then drawn by the `data-update` that follows.
+    private readonly anchoredStyles = new Map<ErrorBarNodeDatum, NormalisedErrorBarStyles>();
 
     constructor(private readonly ctx: _ModuleSupport.ChartSeriesRegistry) {
         super();
@@ -209,6 +211,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             this.createNodeData();
             this.update();
         }
+        this.anchoredStyles.clear();
     }
 
     private onDataSelectionChange(_event: null) {
@@ -223,8 +226,9 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         const nodeData = this.getNodeData();
         if (nodeData == null) return;
 
+        const { anchoredStyles } = this;
         for (const datum of nodeData) {
-            this.updateWhiskers(datum);
+            if (!anchoredStyles.has(datum)) this.updateWhiskers(datum);
         }
     }
 
@@ -236,9 +240,9 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
     updateNodeDatum(datum: ErrorBarNodeDatum) {
         if (!this.updateWhiskers(datum)) return;
-        // Resolved ahead of drawing so the series can anchor its label; `updateNode` refreshes it once drawn.
+        const styles = this.resolveStyles(datum);
+        this.anchoredStyles.set(datum, styles);
         if (this.options.visible) {
-            const styles = this.resolveStyles(datum);
             const capLength = errorBarCapLength(styles.capsStyle ?? {}, datum.capDefaults);
             datum.overlayBounds = errorBarDrawnBounds(datum, styles.whiskerStyle, styles.capsStyle, capLength);
         } else {
@@ -364,21 +368,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
-        const active = this.ctx.highlightManager.getActiveHighlight();
-        const isHighlight = active?.series.id === datum.series.id && active.datumIndex === datum.datumIndex;
-
-        const highlightState = this.cartesianSeries.getHighlightStateString(active, isHighlight, datum.datumIndex);
-        const selectionState = this.cartesianSeries.getSelectionStateString(datum.datumIndex);
-        const candidateState = this.cartesianSeries.getCandidateStateString(datum.datumIndex);
         node.datum = datum;
-        node.update(
-            this.getDefaultStyle(),
-            this.options,
-            this.cartesianSeries,
-            highlightState,
-            selectionState,
-            candidateState
-        );
+        node.draw(this.anchoredStyles.get(datum) ?? this.resolveStyles(datum));
         node.updateBBoxes();
         const { visible } = this.options;
         datum.overlayBounds = visible ? node.drawnBounds() : undefined;

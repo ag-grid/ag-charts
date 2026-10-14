@@ -19,7 +19,6 @@ import type {
     LabelPlacement,
     NormalisedColorType,
     NormalisedTextOrSegments,
-    ObstacleCategory,
     OrientationAnchor,
     Point,
     PointLabelDatum,
@@ -713,15 +712,14 @@ export function barLabelObstaclesFor<TParams, TElement>(
 /** Adds an obstacle for every whisker and cap drawn over the series' shapes to `obstacles`. */
 export function withOverlayLabelObstacles(
     obstacles: LabelObstacle[] | undefined,
-    nodeData: readonly { readonly overlayBoxes?: readonly BoxBounds[] }[] | undefined,
-    category: ObstacleCategory
+    nodeData: readonly { readonly overlayBoxes?: readonly BoxBounds[] }[] | undefined
 ): LabelObstacle[] | undefined {
     if (nodeData == null) return obstacles;
     for (const { overlayBoxes } of nodeData) {
         if (overlayBoxes == null) continue;
         obstacles ??= [];
         for (const box of overlayBoxes) {
-            obstacles.push({ kind: 'rect', box, category, overlay: true });
+            obstacles.push({ kind: 'rect', box, overlay: true });
         }
     }
     return obstacles;

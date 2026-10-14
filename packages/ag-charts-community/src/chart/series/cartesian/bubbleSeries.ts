@@ -1158,7 +1158,7 @@ export abstract class BubbleScatterSeries<
     }
 
     getLabelObstacles() {
-        return withOverlayLabelObstacles(undefined, this.contextNodeData?.nodeData, 'marker');
+        return withOverlayLabelObstacles(undefined, this.contextNodeData?.nodeData);
     }
 
     override getLabelData() {

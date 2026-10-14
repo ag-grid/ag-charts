@@ -1063,6 +1063,8 @@ describe('ErrorBars', () => {
         it.each([
             ['a thicker cap', { cap: { strokeWidth: 10 } }, 5],
             ['a hidden error bar', { visible: false }, undefined],
+            ['a zero-width stroke', { strokeWidth: 0 }, undefined],
+            ['a transparent stroke', { strokeOpacity: 0 }, undefined],
         ])('anchors outside-end labels to the error bar an itemStyler draws (%s)', async (_, styled, capHalfStroke) => {
             chart = await createEnterpriseChart({
                 data: [
@@ -1087,7 +1089,19 @@ describe('ErrorBars', () => {
                         ? node.y
                         : Math.min(node.yBar.lowerPoint.y, node.yBar.upperPoint.y) - capHalfStroke;
                 expect(node.label.y).toBeCloseTo(top - SPACING);
+                expect(node.overlayBoxes.length).toBe(capHalfStroke == null ? 0 : 3);
             }
+        });
+
+        it('calls the itemStyler once per error bar when the bars are labelled', async () => {
+            const itemStyler = vi.fn(() => ({}));
+            chart = await createEnterpriseChart({
+                data: MIXED_SIGN_DATA,
+                series: [
+                    { ...barSeries('a', 'outside-end'), errorBar: { yLowerKey: 'aLo', yUpperKey: 'aHi', itemStyler } },
+                ],
+            });
+            expect(itemStyler).toHaveBeenCalledTimes(MIXED_SIGN_DATA.length);
         });
 
         it('places a scatter label past the full length of its whisker caps', async () => {
@@ -1197,14 +1211,30 @@ describe('ErrorBars', () => {
             }
         );
 
-        it('moves inside marker labels off their own whiskers', async () => {
+        it.each([
+            ['without error bars', undefined, {}, 'inside'],
+            ['off their own whiskers', SERIES_BOYLESLAW.errorBar, {}, 'bottom'],
+            ['off the whiskers with marker collision off', SERIES_BOYLESLAW.errorBar, { markers: false }, 'bottom'],
+        ])('places inside marker labels %s', async (_, errorBar, collideWith, expected) => {
             chart = await createEnterpriseChart({
-                series: [{ ...SERIES_BOYLESLAW, label: { placement: ['inside', 'bottom'], spacing: SPACING } }],
+                series: [
+                    {
+                        ...SERIES_BOYLESLAW,
+                        errorBar,
+                        size: 30,
+                        label: {
+                            placement: ['inside', 'bottom'],
+                            spacing: SPACING,
+                            formatter: () => 'a',
+                            collision: { collideWith },
+                        },
+                    } as AgScatterSeriesOptions,
+                ],
             });
             const placed = placedLabelsOf(0);
             expect(placed.length).toBe(nodeDataOf(0).length);
             for (const label of placed) {
-                expect(label.placement).toBe('bottom');
+                expect(label.placement).toBe(expected);
             }
         });
     });

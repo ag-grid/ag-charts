@@ -1053,7 +1053,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
     }
 
     getLabelObstacles() {
-        return withOverlayLabelObstacles(undefined, this.contextNodeData?.nodeData, 'marker');
+        return withOverlayLabelObstacles(undefined, this.contextNodeData?.nodeData);
     }
 
     override getLabelData(): (LineNodeDatum & PointLabelDatum)[] {

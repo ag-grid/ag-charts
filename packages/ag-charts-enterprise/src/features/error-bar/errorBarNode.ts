@@ -69,7 +69,14 @@ export function errorBarCapLength(capsTheme: CapLengthOptions, capDefaults: CapD
 
 interface StrokeStyle {
     readonly visible?: boolean;
+    readonly stroke?: unknown;
     readonly strokeWidth?: number;
+    readonly strokeOpacity?: number;
+}
+
+/** Matches the conditions under which `Shape` paints a stroke. */
+function strokeDrawn({ visible, stroke, strokeWidth = 0, strokeOpacity = 1 }: StrokeStyle): boolean {
+    return visible !== false && stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0;
 }
 
 /** The extent of the whiskers and caps drawn for a datum, strokes and cap lengths included. */
@@ -79,8 +86,8 @@ export function errorBarDrawnBounds(
     caps: StrokeStyle | undefined,
     capLength: number
 ): BoxBounds | undefined {
-    const whiskerVisible = whisker.visible !== false;
-    const capsVisible = caps != null && caps.visible !== false;
+    const whiskerVisible = strokeDrawn(whisker);
+    const capsVisible = caps != null && strokeDrawn(caps);
     if (!whiskerVisible && !capsVisible) return undefined;
     const across = Math.max(whiskerVisible ? (whisker.strokeWidth ?? 0) / 2 : 0, capsVisible ? capLength / 2 : 0);
     const along = capsVisible ? (caps.strokeWidth ?? 0) / 2 : 0;
@@ -233,15 +240,16 @@ export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
             return;
         }
 
-        const { whiskerStyle, capsStyle } = resolveErrorBarStyles(
-            this.datum,
-            style,
-            formatters,
-            caller,
-            highlightState,
-            selectionState,
-            candidateState
+        this.draw(
+            resolveErrorBarStyles(this.datum, style, formatters, caller, highlightState, selectionState, candidateState)
         );
+    }
+
+    draw({ whiskerStyle, capsStyle }: NormalisedErrorBarStyles) {
+        if (this.datum === undefined) {
+            return;
+        }
+
         const { xBar, yBar, capDefaults } = this.datum;
 
         const whisker = this.whiskerPath;
@@ -288,8 +296,8 @@ export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
     /** The boxes of the whiskers and caps actually drawn; each bar's boxes are its whisker then two caps. */
     get drawnBBoxComponents(): readonly BBox[] {
         const { components } = this.bboxes;
-        const whisker = this.whiskerPath.visible;
-        const caps = this.capsPath.visible;
+        const whisker = strokeDrawn(this.whiskerPath);
+        const caps = strokeDrawn(this.capsPath);
         if (whisker && caps) return components;
         return components.filter((_, i) => (i % 3 === 0 ? whisker : caps));
     }

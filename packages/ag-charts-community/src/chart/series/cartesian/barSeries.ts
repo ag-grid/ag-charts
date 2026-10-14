@@ -1914,7 +1914,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             this.isLabelEnabled() && !this.usesPlacedLabels,
             (node) => node.label
         );
-        return withOverlayLabelObstacles(obstacles, nodeData, 'seriesItem');
+        return withOverlayLabelObstacles(obstacles, nodeData);
     }
 
     private overlayPlugins() {

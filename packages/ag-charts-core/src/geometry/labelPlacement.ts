@@ -443,8 +443,8 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
  * index; the discriminant selects the exact narrow-phase test. `circle` and `rect` are dispatched
  * inline (no allocation on the hot path); `custom` carries its own predicate for shapes the core
  * engine doesn't model (e.g. pie sectors, whose geometry lives in the community package). An `overlay`
- * obstacle is drawn over series shapes (an error bar), so a label is not excused from it by sitting on
- * its own shape.
+ * obstacle is drawn over series shapes (an error bar), so neither sitting on its own shape nor a
+ * `collideWith` toggle excuses a label from it.
  */
 export type LabelObstacle =
     | {
@@ -854,6 +854,7 @@ function obstacleExcluded(o: LabelObstacle): boolean {
         return true;
     }
 
+    if (o.overlay === true) return false;
     const enabled = candidateCollideWith?.[category];
     return category === 'axisLabel' ? enabled !== true : enabled === false;
 }
