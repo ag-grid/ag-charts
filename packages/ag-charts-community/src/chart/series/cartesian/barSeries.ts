@@ -16,6 +16,7 @@ import type {
     RequireOptional,
     Scale,
     Segment,
+    SeriesPluginModuleInstance,
     Text,
 } from 'ag-charts-core';
 import {
@@ -88,11 +89,13 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '../../label';
-import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
+import type { BarEndOverhang, BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import {
     adjustLabelPlacement,
+    barEndOverhang,
     barLabelDataContext,
     barLabelObstaclesFor,
+    barPlacementSpacing,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
     createBarPositionedCandidateResolver,
@@ -102,6 +105,7 @@ import {
     styledBarLabelBox,
     toResolvedPlacement,
     updateLabelNode,
+    withOverlayLabelObstacles,
 } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -252,6 +256,8 @@ interface BarSeriesNodeDatumContext {
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
     readonly labelFit: LabelFit | undefined;
+    /** Plugins drawing over each bar (error bars), whose geometry an end-anchored label must clear. */
+    readonly overlayPlugins: readonly SeriesPluginModuleInstance[];
     readonly yDomain: any[];
 }
 
@@ -809,6 +815,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelRotation: barLabelRotation(toArray(label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
             labelFit,
+            overlayPlugins: labelsEnabled ? this.overlayPlugins() : [],
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
         return this.nodeDatumContext;
@@ -1087,6 +1094,13 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         mutableNode.crisp = ctx.crisp;
 
         const rect = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
+        let endOverhang: BarEndOverhang | undefined;
+        if (nodeLabelText != null && ctx.overlayPlugins.length > 0) {
+            for (const plugin of ctx.overlayPlugins) {
+                plugin.updateNodeDatum?.(node);
+            }
+            endOverhang = barEndOverhang(node, rect, isUpward, ctx.barAlongX);
+        }
         if (nodeLabelText == null) {
             mutableNode.label = undefined;
         } else if (ctx.labelUsesCandidates) {
@@ -1101,6 +1115,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 placements: ctx.labelPlacements,
                 orientations,
                 spacing: ctx.label.spacing,
+                endOverhang,
                 label: ctx.label,
                 textWidth: text.width,
                 textHeight: text.height,
@@ -1157,6 +1172,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.
             // The rect is only needed to bound the fit or to resolve orientation, so skip it otherwise.
             const isInside = placement == null || placement.startsWith('inside');
+            const spacing = barPlacementSpacing(ctx.label.spacing, placement, endOverhang);
             // Region reserves the anchored-side spacing gap; container is that region minus the box.
             const bounds =
                 isInside && (ctx.labelFit != null || ctx.labelResolvesOrientation)
@@ -1165,7 +1181,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                           placement ?? 'inside-center',
                           isUpward,
                           !ctx.barAlongX,
-                          ctx.label.spacing,
+                          spacing,
                           ctx.labelBoxExtent
                       )
                     : undefined;
@@ -1185,7 +1201,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 isUpward,
                 isVertical: !ctx.barAlongX,
                 placement,
-                spacing: ctx.label.spacing,
+                spacing,
                 boxPadding: ctx.boxPadding,
                 rect,
                 rotation,
@@ -1890,13 +1906,19 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     getLabelObstacles() {
-        return barLabelObstaclesFor(
+        const nodeData = this.contextNodeData?.nodeData;
+        const obstacles = barLabelObstaclesFor(
             this.options.label,
-            this.contextNodeData?.nodeData,
+            nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
             (node) => node.label
         );
+        return withOverlayLabelObstacles(obstacles, nodeData, 'seriesItem');
+    }
+
+    private overlayPlugins() {
+        return Array.from(this.moduleMap.modules()).filter((plugin) => plugin.updateNodeDatum != null);
     }
 
     override getLabelData(): PointLabelDatum[] {

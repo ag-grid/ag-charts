@@ -973,4 +973,139 @@ describe('ErrorBars', () => {
             itemStyler.expect().toHaveBeenCalledTimes(4).withContext(seriesContext);
         });
     });
+
+    describe('labels', () => {
+        const SPACING = 4;
+        const MIXED_SIGN_DATA = [
+            { q: 'Q1', a: 20, aLo: 16, aHi: 24, b: 14, bLo: 11, bHi: 17 },
+            { q: 'Q2', a: -12, aLo: -15, aHi: -9, b: -8, bLo: -10, bHi: -6 },
+            { q: 'Q3', a: 26, aLo: 21, aHi: 31, b: 18, bLo: 15, bHi: 21 },
+            { q: 'Q4', a: -18, aLo: -22, aHi: -14, b: -11, bLo: -14, bHi: -8 },
+        ];
+        const barSeries = (yKey: 'a' | 'b', placement: 'outside-end' | 'inside-end', direction?: 'horizontal') => ({
+            type: 'bar' as const,
+            xKey: 'q',
+            yKey,
+            direction,
+            label: { placement, spacing: SPACING },
+            errorBar: { yLowerKey: `${yKey}Lo`, yUpperKey: `${yKey}Hi` },
+        });
+
+        const nodeDataOf = (seriesIndex: number) => (chart['series'][seriesIndex] as any).contextNodeData.nodeData;
+        const placedLabelsOf = (seriesIndex: number) => (chart['series'][seriesIndex] as any).placedLabelData;
+
+        // The anchor sits `spacing` past the whisker span along the value axis, on the side `inside` names.
+        const expectAnchoredPastWhisker = (seriesIndex: number, inside: boolean, horizontal: boolean) => {
+            const nodes = nodeDataOf(seriesIndex);
+            expect(nodes.length).toBe(MIXED_SIGN_DATA.length);
+            for (const node of nodes) {
+                const whisker = horizontal ? node.xBar : node.yBar;
+                const axis = horizontal ? 'x' : 'y';
+                const whiskerMin = Math.min(whisker.lowerPoint[axis], whisker.upperPoint[axis]);
+                const whiskerMax = Math.max(whisker.lowerPoint[axis], whisker.upperPoint[axis]);
+                const anchor = node.label[axis];
+                const gap = anchor < whiskerMin ? whiskerMin - anchor : anchor - whiskerMax;
+                expect(gap).toBeCloseTo(SPACING);
+
+                const rectMin = horizontal ? node.x : node.y;
+                const rectMax = rectMin + (horizontal ? node.width : node.height);
+                expect(anchor > rectMin && anchor < rectMax).toBe(inside);
+            }
+        };
+
+        it('anchors outside-end and inside-end bar labels past the whisker caps', async () => {
+            chart = await createEnterpriseChart({
+                data: MIXED_SIGN_DATA,
+                series: [barSeries('a', 'outside-end'), barSeries('b', 'inside-end')],
+            });
+            expectAnchoredPastWhisker(0, false, false);
+            expectAnchoredPastWhisker(1, true, false);
+            await compare();
+        });
+
+        it('anchors horizontal bar labels past the whiskers on a reversed value axis', async () => {
+            chart = await createEnterpriseChart({
+                data: MIXED_SIGN_DATA,
+                series: [barSeries('a', 'outside-end', 'horizontal'), barSeries('b', 'inside-end', 'horizontal')],
+                axes: {
+                    x: { type: 'number', position: 'bottom', reverse: true },
+                    y: { type: 'category', position: 'left' },
+                } as any,
+            });
+            expectAnchoredPastWhisker(0, false, true);
+            expectAnchoredPastWhisker(1, true, true);
+            await compare();
+        });
+
+        it('places line and scatter labels past the whiskers on their side', async () => {
+            chart = await createEnterpriseChart({
+                series: [
+                    {
+                        type: 'line',
+                        data: [1, 2, 3, 4].map((x) => ({ x, y: 12 - x, lo: 11 - x, hi: 13.5 - x })),
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: { placement: 'top', spacing: SPACING },
+                        errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
+                    },
+                    { ...SERIES_BOYLESLAW, label: { placement: 'right', spacing: SPACING } },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                } as any,
+            });
+            const lineNodes = nodeDataOf(0);
+            const lineLabels = placedLabelsOf(0);
+            expect(lineLabels.length).toBe(lineNodes.length);
+            for (const placed of lineLabels) {
+                const { yBar } = placed.datum;
+                const whiskerTop = Math.min(yBar.lowerPoint.y, yBar.upperPoint.y);
+                expect(placed.y + placed.height).toBeCloseTo(whiskerTop - SPACING);
+            }
+
+            const scatterLabels = placedLabelsOf(1);
+            expect(scatterLabels.length).toBe(nodeDataOf(1).length);
+            for (const placed of scatterLabels) {
+                const { xBar } = placed.datum;
+                const whiskerRight = Math.max(xBar.lowerPoint.x, xBar.upperPoint.x);
+                expect(placed.x).toBeCloseTo(whiskerRight + SPACING);
+            }
+            await compare();
+        });
+
+        it('moves inside labels off the whiskers drawn through them', async () => {
+            chart = await createEnterpriseChart({
+                data: [
+                    { q: 'Q1', v: 10, lo: 2, hi: 18 },
+                    { q: 'Q2', v: 14, lo: 4, hi: 24 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'q',
+                        yKey: 'v',
+                        label: { placement: ['inside-center', 'outside-end'], spacing: SPACING },
+                        errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
+                    },
+                ],
+            });
+            const nodes = nodeDataOf(0);
+            expect(nodes.length).toBe(2);
+            for (const node of nodes) {
+                expect(node.label.placement).toBe('outside-end');
+            }
+        });
+
+        it('moves inside marker labels off their own whiskers', async () => {
+            chart = await createEnterpriseChart({
+                series: [{ ...SERIES_BOYLESLAW, label: { placement: ['inside', 'bottom'], spacing: SPACING } }],
+            });
+            const placed = placedLabelsOf(0);
+            expect(placed.length).toBe(nodeDataOf(0).length);
+            for (const label of placed) {
+                expect(label.placement).toBe('bottom');
+            }
+        });
+    });
 });

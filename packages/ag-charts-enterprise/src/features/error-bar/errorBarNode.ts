@@ -241,6 +241,10 @@ export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
         caps.path.closePath();
     }
 
+    get bboxComponents(): readonly BBox[] {
+        return this.bboxes.components;
+    }
+
     updateBBoxes(): void {
         const { capLength, whiskerPath: whisker, capsPath: caps } = this;
         const { yBar, xBar } = this.datum ?? {};

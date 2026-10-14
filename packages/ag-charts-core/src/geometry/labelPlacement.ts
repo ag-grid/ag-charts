@@ -189,6 +189,8 @@ export interface PointLabelDatum {
      * styler (`size: size * 2`).
      */
     readonly markerSize?: number;
+    /** Box spanned by marks drawn over the point (error bars), which a directional label sits beyond. */
+    readonly overlayBounds?: BoxBounds;
     readonly label: MeasuredLabel;
     /**
      * Re-fits the text to each candidate in turn instead of to one container picked before the cascade,
@@ -440,7 +442,9 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
  * A single obstacle labels must avoid. `box` is the AABB used to prune candidates in the spatial
  * index; the discriminant selects the exact narrow-phase test. `circle` and `rect` are dispatched
  * inline (no allocation on the hot path); `custom` carries its own predicate for shapes the core
- * engine doesn't model (e.g. pie sectors, whose geometry lives in the community package).
+ * engine doesn't model (e.g. pie sectors, whose geometry lives in the community package). An `overlay`
+ * obstacle is drawn over series shapes (an error bar), so a label is not excused from it by sitting on
+ * its own shape.
  */
 export type LabelObstacle =
     | {
@@ -452,6 +456,7 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          readonly overlay?: boolean;
       }
     | {
           readonly kind: 'rect';
@@ -459,6 +464,7 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          readonly overlay?: boolean;
       }
     | {
           readonly kind: 'custom';
@@ -467,6 +473,7 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          readonly overlay?: boolean;
       };
 
 /** External obstacles, or a function producing them so a solve that never queries the index skips gathering. */
@@ -840,6 +847,7 @@ function obstacleExcluded(o: LabelObstacle): boolean {
     // excluded; `ownBoxLabelsCollide` opts sibling labels back in (range-bar shares one bar rect).
     if (
         candidateOwnBox != null &&
+        o.overlay !== true &&
         !(candidateOwnBoxLabelsCollide && category === 'label') &&
         boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height)
     ) {
@@ -1358,6 +1366,12 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     return count + 1;
 }
 
+/** The point's gap on one axis, widened to clear the overlay on the side `direction` faces. */
+function overlayGap(gap: number, direction: number, point: number, start: number, size: number): number {
+    if (direction === 0) return gap;
+    return Math.max(gap, direction < 0 ? point - start : start + size - point);
+}
+
 /** Writes the label box top-left for `placement` into `out`, offset from the point by gap+spacing. */
 function positionLabelBox(
     out: BoxBounds,
@@ -1373,8 +1387,11 @@ function positionLabelBox(
     let dy = 0;
     if (gap > 0 && placement != null) {
         const vec = labelPlacements[placement];
-        dx = (width / 2 + gap + spacing) * vec.x;
-        dy = (height / 2 + gap + spacing) * vec.y;
+        const overlay = d.overlayBounds;
+        const gapX = overlay == null ? gap : overlayGap(gap, vec.x, point.x, overlay.x, overlay.width);
+        const gapY = overlay == null ? gap : overlayGap(gap, vec.y, point.y, overlay.y, overlay.height);
+        dx = (width / 2 + gapX + spacing) * vec.x;
+        dy = (height / 2 + gapY + spacing) * vec.y;
     }
     let x = point.x - width / 2 + dx;
     let y = point.y - height / 2 + dy;

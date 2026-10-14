@@ -58,6 +58,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
+import { withOverlayLabelObstacles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -1049,6 +1050,10 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
     protected override get labelProperty() {
         return this.options.label;
+    }
+
+    getLabelObstacles() {
+        return withOverlayLabelObstacles(undefined, this.contextNodeData?.nodeData, 'marker');
     }
 
     override getLabelData(): (LineNodeDatum & PointLabelDatum)[] {
