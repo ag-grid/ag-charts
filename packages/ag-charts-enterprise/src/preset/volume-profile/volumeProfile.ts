@@ -67,7 +67,6 @@ export function createVolumeProfileSeries(
             xKeyAxis: priceAxisKey,
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
-            fillOpacity: 1,
             // @ts-expect-error undocumented option
             simpleItemStyler: () => ({ fill: getTheme().palette.up?.fill }),
             tooltip: {
@@ -93,7 +92,6 @@ export function createVolumeProfileSeries(
             xKeyAxis: priceAxisKey,
             yKeyAxis: 'yVolumeProfile',
             stackGroup: 'volumeProfile',
-            fillOpacity: 1,
             // @ts-expect-error undocumented option
             simpleItemStyler: () => ({ fill: getTheme().palette.down?.fill }),
             tooltip: {
@@ -240,6 +238,7 @@ export function createVolumeProfileAxis(
             line: { enabled: false },
             crosshair: { enabled: false },
             gridLine: { enabled: false },
+            paddingInner: 0,
             // @ts-expect-error undocumented options
             layoutConstraints: {
                 stacked: false,
