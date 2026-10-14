@@ -105,6 +105,18 @@ interface GcStats {
     allocationRateBytesPerSec: number;
 }
 
+/** Sampled JS heap allocation over the measured iterations, recorded only in the runner's memory pass. */
+interface AllocationStats {
+    /** Estimated bytes allocated per measured iteration (`totalBytes / iterations`). */
+    bytesPerIteration: number;
+    /** Estimated bytes allocated across all measured iterations; warmup is excluded. */
+    totalBytes: number;
+    /** Measured iterations that contributed. */
+    iterations: number;
+    /** Standard error of `bytesPerIteration`; absent with fewer than two iterations. */
+    stdErrBytes?: number;
+}
+
 interface BenchmarkResult {
     testCase: string;
     params: Record<string, string>;
@@ -115,6 +127,7 @@ interface BenchmarkResult {
     timings: number[];
     frameStats?: FrameStats;
     gcStats?: GcStats;
+    allocation?: AllocationStats;
 }
 
 interface CompactResult {
@@ -1382,6 +1395,21 @@ function readPerformanceMemory(): MemoryInfo | null {
     return mem;
 }
 
+/** Hooks the runner exposes in its memory pass only; `stop` resolves to the bytes sampled, or null on failure. */
+interface MemoryHooks {
+    start: () => Promise<void>;
+    stop: () => Promise<number | null>;
+}
+
+function getMemoryHooks(): MemoryHooks | null {
+    const w = window as unknown as { __benchmarkMemoryStart?: unknown; __benchmarkMemoryStop?: unknown };
+    if (typeof w.__benchmarkMemoryStart !== 'function' || typeof w.__benchmarkMemoryStop !== 'function') return null;
+    return {
+        start: w.__benchmarkMemoryStart as MemoryHooks['start'],
+        stop: w.__benchmarkMemoryStop as MemoryHooks['stop'],
+    };
+}
+
 /**
  * Samples frame cadence, long-animation-frame entries, and JS heap usage during a measurement
  * window. The rAF counter is portable. Long-frame detail requires Chromium 123+. GC stats require
@@ -1755,6 +1783,32 @@ class BenchmarkRunner {
 
         const { updatesPerTest, maxCollectionTimeMs, warmupUpdates } = this.config.config;
 
+        // The sampling bracket covers all of `variant.run`, including any setup the returned timing
+        // excludes, so allocation can slightly exceed the timed span.
+        const memoryHooks = getMemoryHooks();
+        const allocation = { totalBytes: 0, iterations: 0, mean: 0, m2: 0 };
+        const variantRun = variant.run;
+        const measuredRun = memoryHooks
+            ? async () => {
+                  await memoryHooks.start();
+                  let elapsed = 0;
+                  try {
+                      elapsed = await variantRun();
+                  } finally {
+                      const bytes = await memoryHooks.stop();
+                      // Only iterations that enter `timings` count; mean and m2 (Welford) give the standard error.
+                      if (elapsed > 0 && bytes !== null) {
+                          allocation.totalBytes += bytes;
+                          allocation.iterations++;
+                          const delta = bytes - allocation.mean;
+                          allocation.mean += delta / allocation.iterations;
+                          allocation.m2 += delta * (bytes - allocation.mean);
+                      }
+                  }
+                  return elapsed;
+              }
+            : variantRun;
+
         // Emit `<testCaseId>:<warmup|iter>-<N>:start|end` marks so Chrome traces slice cleanly per iter.
         const phase = testCase.id;
         const markIteration = async (label: string, index: number, run: () => Promise<number>): Promise<number> => {
@@ -1820,6 +1874,20 @@ class BenchmarkRunner {
                         timings: [...timings],
                         frameStats: samplerResult?.frameStats,
                         gcStats: samplerResult?.gcStats,
+                        allocation:
+                            allocation.iterations > 0
+                                ? {
+                                      bytesPerIteration: allocation.totalBytes / allocation.iterations,
+                                      totalBytes: allocation.totalBytes,
+                                      iterations: allocation.iterations,
+                                      stdErrBytes:
+                                          allocation.iterations > 1
+                                              ? Math.sqrt(
+                                                    allocation.m2 / (allocation.iterations - 1) / allocation.iterations
+                                                )
+                                              : undefined,
+                                  }
+                                : undefined,
                     });
                     return;
                 }
@@ -1827,7 +1895,7 @@ class BenchmarkRunner {
                 if (!updateInFlight) {
                     updateInFlight = true;
                     try {
-                        const elapsed = await markIteration('iter', updateCount, variant.run);
+                        const elapsed = await markIteration('iter', updateCount, measuredRun);
                         if (elapsed > 0) {
                             timings.push(elapsed);
                             updateCount++;
@@ -1988,6 +2056,7 @@ class BenchmarkRunner {
                 timings: r.timings,
                 frameStats: r.frameStats,
                 gcStats: r.gcStats,
+                allocation: r.allocation,
             })),
         };
     }
