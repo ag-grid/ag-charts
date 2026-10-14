@@ -18,7 +18,7 @@ import {
 } from 'ag-charts-core';
 import type { Arc } from 'ag-charts-core';
 
-import { drawPolygonRing } from './polygonRing';
+import { drawPolygonRing } from '../polygonRing';
 
 const { generateTicks, getAxisLabelSideFlag, AxisGroupZIndexMap } = _ModuleSupport;
 
