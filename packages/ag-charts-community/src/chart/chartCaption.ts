@@ -186,12 +186,8 @@ export class ChartCaption implements CaptionLike {
             this.proxyText = proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
             this.proxyTextListeners = [
                 this.proxyText.addListener('contextmenu', (ev) => this.handleContextMenu(moduleCtx, ev)),
-                this.proxyText.addListener('click', (ev) => {
-                    if (this.hasClickListener(moduleCtx)) this.handleClick(moduleCtx, ev);
-                }),
-                this.proxyText.addListener('dblclick', (ev) => {
-                    if (this.hasClickListener(moduleCtx)) this.handleClick(moduleCtx, ev);
-                }),
+                this.proxyText.addListener('click', (ev) => this.handleClick(moduleCtx, ev)),
+                this.proxyText.addListener('dblclick', (ev) => this.handleClick(moduleCtx, ev)),
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
                 this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
                 this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx)),
@@ -307,6 +303,7 @@ export class ChartCaption implements CaptionLike {
      * the same `captionType` discriminator.
      */
     private handleClick(moduleCtx: DynamicContext<ChartRegistry>, event: ClickWidgetEvent | DblClickWidgetEvent) {
+        if (!this.hasClickListener(moduleCtx)) return;
         // Keyboard activation of caption listeners is not supported.
         if (event.device === 'keyboard') return;
 
