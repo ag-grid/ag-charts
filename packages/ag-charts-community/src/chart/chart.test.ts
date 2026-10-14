@@ -15,6 +15,7 @@ import type { Node } from 'ag-charts-core';
 import { Caster, classCast } from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
+    AgChartInstance,
     AgChartValidationsOptions,
     AgLineSeriesOptions,
     AgPolarChartOptions,
@@ -700,13 +701,7 @@ describe('Chart', () => {
     });
 
     describe('Chart data inherited by Series', () => {
-        async function createSeriesTestChart(options: AgCartesianChartOptions) {
-            const chartProxy = (await createChart(options)) as AgChartProxy;
-            chart = deproxy(chartProxy);
-            return { chartProxy };
-        }
-
-        async function updateChart(chartProxy: AgChartProxy, options: object) {
+        async function updateChart(chartProxy: AgChartInstance, options: object) {
             const chartOptions = prepareTestOptions(options);
             await chartProxy.update(chartOptions);
             await waitForChartStability(deproxy(chartProxy));
@@ -715,7 +710,7 @@ describe('Chart', () => {
         it('Chart data inherited only when Series data is not defined ', async () => {
             const moreData = datasets.economy.data;
             const lessData = datasets.economy.data.slice(0, 2);
-            const { chartProxy } = await createSeriesTestChart({
+            const chartProxy = await createChart({
                 data: moreData,
                 series: [
                     {
@@ -731,6 +726,7 @@ describe('Chart', () => {
                     },
                 ],
             });
+            chart = deproxy(chartProxy);
             expect(chart.data).toEqual(DataSet.wrap(moreData, chart.ctx.logger));
             expect(chart.series[0].data).toEqual(DataSet.wrap(moreData, chart.ctx.logger));
             expect(chart.series[1].data).toEqual(DataSet.wrap(lessData, chart.ctx.logger));

@@ -151,17 +151,14 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         { x: 11000, value: 2 },
     ];
 
-    const createBarChart = async (xAxis: object, chartData: object[] = data) => {
-        const options: AgCartesianChartOptions = {
-            data: chartData as AgCartesianChartOptions['data'],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'value' }],
-            axes: {
-                x: { type: 'number', position: 'bottom', ...xAxis },
-                y: { type: 'number', position: 'left' },
-            },
-        };
-        return await createChart(options);
-    };
+    const barOptions = (xAxis: object, chartData: object[] = data): AgCartesianChartOptions => ({
+        data: chartData as AgCartesianChartOptions['data'],
+        series: [{ type: 'bar', xKey: 'x', yKey: 'value' }],
+        axes: {
+            x: { type: 'number', position: 'bottom', ...xAxis },
+            y: { type: 'number', position: 'left' },
+        },
+    });
 
     const xAxis = () => {
         const axis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'x');
@@ -177,7 +174,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
             .filter((text): text is string => text != null && text !== '');
 
     it('keeps the x domain fitted to the data when interval.step is dense', async () => {
-        chart = await createBarChart({ interval: { step: 100 } });
+        chart = await createChart(barOptions({ interval: { step: 100 } }));
 
         // Bars pad the 0..11000 keys by half the 1000 key interval, then the domain snaps to the 100 step.
         expect(xDomain()).toEqual([-500, 11500]);
@@ -186,7 +183,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
     it('keeps the x domain fitted to the data when interval.values is dense', async () => {
         // 116 explicit values at spacing 100 cover the padded data extent.
         const values = Array.from({ length: 116 }, (_, i) => -500 + i * 100);
-        chart = await createBarChart({ interval: { values } });
+        chart = await createChart(barOptions({ interval: { values } }));
 
         // Pinned ticks leave no tick count for the bounds to be niced against, so they stay on the data.
         expect(xDomain()).toEqual([-500, 11500]);
@@ -196,9 +193,11 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
         // (-500 + i * 100) / 10000 is spaced 0.01 apart, but adjacent subtractions disagree in the
         // last bits, so an exact comparison would miss the spacing and leave the bounds on [-1, 2].
         const values = Array.from({ length: 116 }, (_, i) => (-500 + i * 100) / 10000);
-        chart = await createBarChart(
-            { interval: { values } },
-            data.map(({ x, value }) => ({ x: x / 10000, value }))
+        chart = await createChart(
+            barOptions(
+                { interval: { values } },
+                data.map(({ x, value }) => ({ x: x / 10000, value }))
+            )
         );
 
         const [d0, d1] = xDomain();
@@ -230,14 +229,17 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
     it('still reduces colliding labels when the step is too dense for the scale to honour', async () => {
         // Over an 8000-wide domain this is far more than one tick per pixel, so the scale rejects the
         // step and falls back to automatic ticks driven by the tick count.
-        chart = await createBarChart(
-            {
-                interval: { step: 1 },
-                label: {
-                    formatter: ({ value }: { value: any }) => `an extremely long axis label text for value ${value}`,
+        chart = await createChart(
+            barOptions(
+                {
+                    interval: { step: 1 },
+                    label: {
+                        formatter: ({ value }: { value: any }) =>
+                            `an extremely long axis label text for value ${value}`,
+                    },
                 },
-            },
-            Array.from({ length: 9 }, (_, i) => ({ x: i * 1000, value: i }))
+                Array.from({ length: 9 }, (_, i) => ({ x: i * 1000, value: i }))
+            )
         );
 
         expectWarningMessages([
