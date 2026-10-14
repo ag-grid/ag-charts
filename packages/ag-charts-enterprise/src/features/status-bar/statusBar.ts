@@ -436,22 +436,15 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         }
         if (band == null) return { wrapped: false, end: start - outerSpacing };
 
-        let maxTotal = 0;
-        for (const level of band.levels) maxTotal = Math.max(maxTotal, level.total);
-        const widest: BandValues = {
-            priceLow: band.levels.at(-1)!.priceLow,
-            priceHigh: band.levels[0].priceHigh,
-            up: maxTotal,
-            down: maxTotal,
-            total: maxTotal,
-        };
-
         const fields = bandLabels.map((field) => {
             const label = this.ctx.localeManager.t(field.labelKey);
             const titleWidth = cachedTextMeasurer(opts.title).measureLines(label).width;
-            const valueWidth = cachedTextMeasurer(opts[field.style]).textWidth(
-                field.text(widest, (n) => field.formatter.format(n))
-            );
+            const measurer = cachedTextMeasurer(opts[field.style]);
+            const format = (n: number) => field.formatter.format(n);
+            let valueWidth = 0;
+            for (const level of band.levels) {
+                if (level.total > 0) valueWidth = Math.max(valueWidth, measurer.textWidth(field.text(level, format)));
+            }
             return { ...field, label, titleWidth, valueWidth };
         });
 

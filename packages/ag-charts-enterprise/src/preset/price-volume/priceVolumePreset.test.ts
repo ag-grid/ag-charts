@@ -413,6 +413,20 @@ describe('priceVolumePreset', () => {
             await compare();
         });
 
+        it('should size each field for the widest level, not the largest value', async () => {
+            // The 200 level totals 999.00K, which is wider than the 1.00M of the largest level.
+            const volumes: Record<number, [number, number]> = { 197.5: [500_000, 500_000], 200: [600_000, 399_000] };
+            const data = getRegularVolumeProfile().map(({ price }) => {
+                const [upVolume, downVolume] = volumes[price] ?? [50_000, 50_000];
+                return { price, upVolume, downVolume };
+            });
+            data.push({ price: 95, upVolume: 1_000, downVolume: 1_000 });
+            await create({ volumeProfile: { data, upKey: 'upVolume', downKey: 'downVolume' } });
+            await hoverCandleAtLevel(50, LEVEL_200);
+
+            await compare();
+        });
+
         it('should render only the hovered candle over a level without volume', async () => {
             await create({ volumeProfile });
             await hoverCandleAtLevel(50, EMPTY_LEVEL);
