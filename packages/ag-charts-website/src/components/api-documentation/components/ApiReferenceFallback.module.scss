@@ -28,6 +28,48 @@
     }
 }
 
+/*
+    Links between reference pages, in the column the hydrated navigation tree occupies. Like the tree,
+    it is hidden below the medium breakpoint, and above it scrolls independently of the page.
+*/
+.referenceNav {
+    --total-header-height: calc(var(--header-nav-height) + var(--tab-bar-height));
+
+    display: none;
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        position: sticky;
+        top: var(--total-header-height);
+        display: block;
+        max-height: calc(100vh - var(--total-header-height));
+        padding: $spacing-size-4 $spacing-size-4 $spacing-size-4 var(--layout-horizontal-margins);
+        overflow-y: auto;
+        font-size: var(--text-fs-sm);
+    }
+
+    @media screen and (min-width: $breakpoint-options-extra-large) {
+        padding: $spacing-size-4;
+    }
+
+    ul {
+        margin: 0;
+        padding-left: $spacing-size-4;
+        list-style: none;
+    }
+
+    li {
+        margin: $spacing-size-1 0;
+    }
+
+    a[aria-current='page'] {
+        font-weight: var(--text-bold);
+    }
+}
+
+.referenceNavGroup {
+    font-family: var(--text-monospace-font-family);
+}
+
 .referenceContent {
     width: calc(100% + var(--layout-gap) * 2);
     margin-left: calc(var(--layout-gap) * -1);
