@@ -4,7 +4,13 @@ import { getSitemapXml } from '@ag-website-shared/utils/getSitemapXml';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { siteRootUrl } from '@ag-website-shared/utils/structuredData';
 import { getFrameworkPath } from '@components/docs/utils/urlPaths';
-import { DISABLE_MARKDOWN_DOCS, LIVE_SITEMAP_URL, PRODUCTION_CHARTS_SITE_URL, agChartsVersion } from '@constants';
+import {
+    DEFAULT_FRAMEWORK,
+    DISABLE_MARKDOWN_DOCS,
+    LIVE_SITEMAP_URL,
+    PRODUCTION_CHARTS_SITE_URL,
+    agChartsVersion,
+} from '@constants';
 import { buildLlmsTxt } from '@utils/agentReadinessFiles';
 import { navPageNames, navSectionsToIndex } from '@utils/docsNavIndex';
 import { buildSitePageIndex } from '@utils/sitePageIndex';
@@ -49,10 +55,12 @@ export async function GET() {
     const output = buildLlmsTxt({
         siteRoot,
         majorVersion: parseVersion(agChartsVersion).major,
-        chartsDocsPrefix: getFrameworkPath(CANONICAL_FRAMEWORK),
+        // The curated links follow the header's Docs and API links, so they use the default framework.
+        chartsDocsPrefix: getFrameworkPath(DEFAULT_FRAMEWORK),
         includeMarkdownDocs: !DISABLE_MARKDOWN_DOCS,
         docsIndex,
         siteIndex,
+        indexDocsPrefix: getFrameworkPath(CANONICAL_FRAMEWORK),
     });
 
     return new Response(output, {
