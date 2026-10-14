@@ -207,6 +207,11 @@ export type NormalisedStatusBarOptions = {
     lowKey?: string;
     closeKey?: string;
     volumeKey?: string;
+    // Volume Profile levels, highest price first, which the status bar looks up by the pointer's price on `priceAxisKey`.
+    volumeProfile?: {
+        priceAxisKey: string;
+        levels: { priceLow: number; priceHigh: number; up: number; down: number; total: number }[];
+    };
     layoutStyle: 'block' | 'overlay';
     title: NormalisedStatusBarLabelOptions;
     positive: NormalisedStatusBarLabelOptions;

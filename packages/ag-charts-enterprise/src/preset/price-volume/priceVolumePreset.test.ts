@@ -6,6 +6,7 @@ import {
     compareImageSnapshot,
     deproxy,
     hoverAction,
+    isTooltipVisible,
     prepareFinancialTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -343,6 +344,250 @@ describe('priceVolumePreset', () => {
                     volumeProfile: { data, priceKey: 'level', upKey: 'buys', downKey: 'sells' },
                 })
             );
+            await compare();
+        });
+    });
+
+    describe('volume profile status bar', () => {
+        interface StatusBarState {
+            labels: Array<{ title: { text?: string }; value: { text?: string }; domain?: number[] }>;
+            bandLabels: Array<{ title: { text?: string }; value: { text?: string; visible: boolean; fill?: unknown } }>;
+            bandSeparator: { visible: boolean };
+            labelGroup: { visible: boolean };
+            backgroundNode: { width: number };
+            candleWidth: number;
+            bandWidth: number;
+        }
+
+        interface NodeDatum {
+            datumIndex: number;
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            centerX?: number;
+        }
+
+        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
+        const LAST_CANDLE_TEXTS = [
+            '200.01',
+            '202.60',
+            '202.60',
+            '199.30',
+            '199.30',
+            '202.26',
+            '202.26',
+            '202.26',
+            '15.30M',
+        ];
+
+        // Levels run highest price first, so index 2 is 200, index 8 is 185 and index 21 is 152.5, which has no volume.
+        const LEVEL_200 = { price: '198.75-201.25', up: '56.39M', down: '63.12M', total: '119.51M' };
+        const LEVEL_185 = { price: '183.75-186.25', up: '29.36M', down: '33.76M', total: '63.12M' };
+        const EMPTY_LEVEL_INDEX = 21;
+        const CANDLE_50_TEXTS = [
+            '119.30',
+            '122.89',
+            '122.89',
+            '117.94',
+            '117.94',
+            '118.14',
+            '118.14',
+            '118.14',
+            '14.63M',
+        ];
+
+        const create = async (options: Partial<AgFinancialChartOptions>) => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({ data: getStockData(), ...options } as AgFinancialChartOptions)
+            );
+            await waitForChartStability(chart);
+        };
+
+        const statusBar = () => {
+            const state = deproxy(chart).modulesManager.getModule<StatusBarState>('statusBar');
+            expect(state).toBeDefined();
+            return state!;
+        };
+        const candleTexts = () => statusBar().labels.map((label) => label.value.text);
+        const bandTexts = () => statusBar().bandLabels.map((label) => label.value.text);
+        const visibleBandLabels = () => statusBar().bandLabels.filter((label) => label.value.visible);
+        const statusBarOptions = () =>
+            (
+                deproxy(chart).chartOptions.processedOptions as {
+                    statusBar: Record<'positive' | 'negative' | 'neutral', { color: string }> & {
+                        enabled: boolean;
+                        volumeProfile?: unknown;
+                    };
+                }
+            ).statusBar;
+
+        const nodeCentre = (type: string, yKey: string | undefined, datumIndex: number) => {
+            const series = deproxy(chart).ctx.chartService.series.find(
+                (s) => s.type === type && (yKey == null || s.options.yKey === yKey)
+            );
+            expect(series).toBeDefined();
+            const { nodeData } = (series as unknown as { contextNodeData: { nodeData: NodeDatum[] } }).contextNodeData;
+            const node = nodeData.find((n) => n.datumIndex === datumIndex);
+            expect(node).toBeDefined();
+            const { x, y } = deproxy(chart).ctx.chartService.seriesRect!;
+            return {
+                x: x + (node!.centerX ?? node!.x + node!.width / 2),
+                y: y + node!.y + node!.height / 2,
+            };
+        };
+
+        // The pointer sits over a candle's column, at the height of a level's bar.
+        const pointAt = (candleIndex: number, levelIndex: number) => ({
+            x: nodeCentre('candlestick', undefined, candleIndex).x,
+            y: nodeCentre('bar', 'upVolume', levelIndex).y,
+        });
+
+        const hover = async ({ x, y }: { x: number; y: number }) => {
+            await hoverAction(x, y)(deproxy(chart));
+            await waitForChartStability(chart);
+        };
+
+        const highlight = () => deproxy(chart).ctx.highlightManager.getActiveHighlight();
+        const PROFILE_KEYS = ['upVolume', 'downVolume'];
+
+        const bandValues = ({ price, up, down, total }: typeof LEVEL_200) => [price, up, down, total];
+
+        it('should append the level under the pointer to the hovered candle with the right text and colours', async () => {
+            await create({ volumeProfile });
+            expect(candleTexts()).toEqual(LAST_CANDLE_TEXTS);
+            expect(statusBar().bandSeparator.visible).toBe(false);
+            expect(visibleBandLabels()).toHaveLength(0);
+
+            await hover(pointAt(50, 2));
+
+            expect(highlight()?.datumIndex).toBe(50);
+            expect(candleTexts()).not.toEqual(LAST_CANDLE_TEXTS);
+            expect(candleTexts()).toEqual(CANDLE_50_TEXTS);
+            expect(statusBar().bandLabels.map((label) => label.title.text)).toEqual(['Price', 'Up', 'Down', 'Total']);
+            expect(bandTexts()).toEqual(bandValues(LEVEL_200));
+            expect(statusBar().bandSeparator.visible).toBe(true);
+            expect(visibleBandLabels()).toHaveLength(4);
+
+            const { positive, negative, neutral } = statusBarOptions();
+            expect(new Set([positive.color, negative.color, neutral.color]).size).toBe(3);
+            expect(statusBar().bandLabels.map((label) => label.value.fill)).toEqual([
+                neutral.color,
+                positive.color,
+                negative.color,
+                neutral.color,
+            ]);
+
+            expect(statusBar().backgroundNode.width).toBe(statusBar().bandWidth);
+            expect(statusBar().bandWidth).toBeGreaterThan(statusBar().candleWidth);
+        });
+
+        it('should not highlight the profile bars or show a tooltip for them', async () => {
+            await create({ volumeProfile });
+
+            await hover(nodeCentre('bar', 'downVolume', 2));
+
+            expect(PROFILE_KEYS).not.toContain(highlight()?.yKey);
+            expect(isTooltipVisible(deproxy(chart))).toBe(false);
+            expect(bandTexts()).toEqual(bandValues(LEVEL_200));
+        });
+
+        it('should update the fields when the pointer moves between two levels', async () => {
+            await create({ volumeProfile });
+
+            await hover(pointAt(50, 2));
+            expect(bandTexts()).toEqual(bandValues(LEVEL_200));
+
+            await hover(pointAt(50, 8));
+            expect(bandTexts()).toEqual(bandValues(LEVEL_185));
+            expect(statusBar().bandSeparator.visible).toBe(true);
+            expect(candleTexts()).toEqual(CANDLE_50_TEXTS);
+        });
+
+        it('should keep the level when the pointer moves to another candle', async () => {
+            await create({ volumeProfile });
+
+            await hover(pointAt(50, 2));
+            await hover(pointAt(100, 2));
+
+            expect(highlight()?.datumIndex).toBe(100);
+            expect(candleTexts()).not.toEqual(CANDLE_50_TEXTS);
+            expect(bandTexts()).toEqual(bandValues(LEVEL_200));
+        });
+
+        it('should show no level where the pointer is above the profile or over a level without volume', async () => {
+            await create({ volumeProfile });
+            await hover(pointAt(50, 2));
+            expect(visibleBandLabels()).toHaveLength(4);
+
+            await hover(pointAt(50, EMPTY_LEVEL_INDEX));
+            expect(statusBar().bandSeparator.visible).toBe(false);
+            expect(visibleBandLabels()).toHaveLength(0);
+            expect(statusBar().backgroundNode.width).toBe(statusBar().candleWidth);
+            expect(candleTexts()).toEqual(CANDLE_50_TEXTS);
+
+            await hover(pointAt(50, 2));
+            expect(visibleBandLabels()).toHaveLength(4);
+
+            const { x, y } = pointAt(50, 0);
+            await hover({ x, y: y - 100 });
+            expect(visibleBandLabels()).toHaveLength(0);
+        });
+
+        describe('without a volume profile', () => {
+            it.each([
+                { name: 'absent', options: {} },
+                { name: 'disabled', options: { volumeProfile: { ...volumeProfile, enabled: false } } },
+            ])('should leave the status bar unchanged when the volume profile is $name', async ({ options }) => {
+                await create({ volumeProfile });
+                const points = [2, 5, 8, 12].map((levelIndex) => pointAt(50, levelIndex));
+                chart.destroy();
+
+                await create(options);
+                expect(statusBarOptions().volumeProfile).toBeUndefined();
+                expect(candleTexts()).toEqual(LAST_CANDLE_TEXTS);
+
+                for (const point of points) {
+                    await hover(point);
+                    expect(statusBar().bandSeparator.visible).toBe(false);
+                    expect(visibleBandLabels()).toHaveLength(0);
+                    expect(statusBar().backgroundNode.width).toBe(statusBar().candleWidth);
+                    expect(statusBar().bandWidth).toBe(statusBar().candleWidth);
+                }
+            });
+        });
+
+        describe('with the status bar off', () => {
+            it('should show neither a status bar nor a tooltip for a hovered level', async () => {
+                await create({ volumeProfile, statusBar: false });
+                expect(statusBar().labelGroup.visible).toBe(false);
+                expect(statusBarOptions().enabled).toBe(false);
+                expect(statusBarOptions().volumeProfile).toBeUndefined();
+
+                await hover(nodeCentre('bar', 'upVolume', 2));
+
+                expect(PROFILE_KEYS).not.toContain(highlight()?.yKey);
+                expect(isTooltipVisible(deproxy(chart))).toBe(false);
+                expect(statusBar().labelGroup.visible).toBe(false);
+            });
+        });
+
+        it('should size the Vol label from the candle volume, not the profile', async () => {
+            await create({ volumeProfile });
+
+            const volLabel = statusBar().labels.find((label) => label.title.text === 'Vol');
+            const candleVolumes = getStockData().map((d) => d.volume);
+            const profileMax = Math.max(...getRegularVolumeProfile().map((d) => d.total));
+            expect(Math.max(...candleVolumes)).toBeLessThan(profileMax);
+
+            expect(volLabel?.domain?.at(-1)).toBe(Math.max(...candleVolumes));
+        });
+
+        it('should render the hovered level in the status bar', async () => {
+            await create({ volumeProfile });
+            await hover(pointAt(50, 2));
+            expect(visibleBandLabels()).toHaveLength(4);
+
             await compare();
         });
     });

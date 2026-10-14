@@ -48,16 +48,19 @@ export function createVolumeProfileSeries(
     getTheme: () => ChartTheme,
     priceAxisKey: string,
     levels?: VolumeProfileDatum[],
-    selection?: AgVolumeProfileSelectionOptions
+    selection?: AgVolumeProfileSelectionOptions,
+    hoverable = true
 ) {
     const seriesData = levels == null ? {} : { data: levels };
     const seriesSelection = createSeriesSelectionOptions(selection);
+    const seriesHover = hoverable ? undefined : { hoverable: false };
 
     return [
         {
             ...seriesData,
             ...seriesSelection,
             id: VOLUME_PROFILE_UP_SERIES_ID,
+            ...seriesHover,
             type: 'bar',
             direction: 'horizontal',
             xKey: 'price',
@@ -83,6 +86,7 @@ export function createVolumeProfileSeries(
             ...seriesData,
             ...seriesSelection,
             id: VOLUME_PROFILE_DOWN_SERIES_ID,
+            ...seriesHover,
             type: 'bar',
             direction: 'horizontal',
             xKey: 'price',
@@ -108,6 +112,22 @@ export function createVolumeProfileSeries(
             },
         } satisfies AgBarSeriesOptions,
     ];
+}
+
+/** The levels the status bar looks up under the pointer, by the price axis the pointer is read against. */
+export function createVolumeProfileStatusBarOptions(levels: VolumeProfileDatum[], priceAxisKey: string) {
+    if (levels.length === 0) return undefined;
+
+    return {
+        priceAxisKey,
+        levels: levels.map(({ priceLow, priceHigh, upVolume, downVolume, total }) => ({
+            priceLow,
+            priceHigh,
+            up: upVolume,
+            down: downVolume,
+            total,
+        })),
+    };
 }
 
 /**

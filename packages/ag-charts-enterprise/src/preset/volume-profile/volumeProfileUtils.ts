@@ -43,13 +43,23 @@ export function normaliseVolumeProfile(
     const levels: VolumeProfileDatum[] = [];
     for (let index = highest; index >= lowest; index--) {
         const { upVolume = 0, downVolume = 0 } = byLevel.get(index) ?? {};
-        levels.push({ price: stripFloatNoise(index * tickSize), upVolume, downVolume, total: upVolume + downVolume });
+        levels.push({
+            price: stripFloatNoise(index * tickSize),
+            priceLow: stripFloatNoise((index - 0.5) * tickSize),
+            priceHigh: stripFloatNoise((index + 0.5) * tickSize),
+            upVolume,
+            downVolume,
+            total: upVolume + downVolume,
+        });
     }
     return levels;
 }
 
 export interface VolumeProfileDatum {
     price: number;
+    // The extent of the prices merged into this level: its centre `price` plus or minus half the tick size.
+    priceLow: number;
+    priceHigh: number;
     upVolume: number;
     downVolume: number;
     total: number;

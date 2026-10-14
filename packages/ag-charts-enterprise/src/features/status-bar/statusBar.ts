@@ -2,6 +2,7 @@ import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSuppo
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
+    ChartUpdateType,
     type DynamicContext,
     Group,
     type NormalisedStatusBarOptions,
@@ -10,6 +11,7 @@ import {
     TranslatableGroup,
     ZIndexMap,
     cachedTextMeasurer,
+    isFiniteNumber,
     isNumericValue,
 } from 'ag-charts-core';
 
@@ -51,6 +53,22 @@ const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = 
     'high-low': LabelConfiguration.NeutralLow | LabelConfiguration.NeutralHigh | LabelConfiguration.Volume,
 };
 
+// Shared with the Volume Profile fields, so a hovered level reads like the candle beside it.
+const createPriceFormatter = () =>
+    new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+
+const createVolumeFormatter = () =>
+    new Intl.NumberFormat('en-US', {
+        notation: 'compact',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+
+type BandValues = NonNullable<NormalisedStatusBarOptions['volumeProfile']>['levels'][number];
+
 const itemIdMap: Record<string, 'positive' | 'negative' | 'neutral' | 'altNeutral'> = {
     up: 'positive',
     down: 'negative',
@@ -83,10 +101,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             id: 'openValue' as const,
             key: 'openKey' as const,
             domain: undefined as number[] | undefined,
-            formatter: new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }),
+            formatter: createPriceFormatter(),
         },
         {
             label: 'H',
@@ -96,10 +111,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             id: 'highValue' as const,
             key: 'highKey' as const,
             domain: undefined as number[] | undefined,
-            formatter: new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }),
+            formatter: createPriceFormatter(),
         },
         {
             label: 'H',
@@ -110,10 +122,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             id: 'highValue' as const,
             key: 'highKey' as const,
             domain: undefined as number[] | undefined,
-            formatter: new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }),
+            formatter: createPriceFormatter(),
         },
         {
             label: 'L',
@@ -123,10 +132,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             id: 'lowValue' as const,
             key: 'lowKey' as const,
             domain: undefined as number[] | undefined,
-            formatter: new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }),
+            formatter: createPriceFormatter(),
         },
         {
             label: 'L',
@@ -137,10 +143,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             id: 'lowValue' as const,
             key: 'lowKey' as const,
             domain: undefined as number[] | undefined,
-            formatter: new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }),
+            formatter: createPriceFormatter(),
         },
         {
             label: 'C',
@@ -150,10 +153,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             id: 'closeValue' as const,
             key: 'closeKey' as const,
             domain: undefined as number[] | undefined,
-            formatter: new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }),
+            formatter: createPriceFormatter(),
         },
         {
             label: 'C',
@@ -164,10 +164,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             key: 'closeKey' as const,
             style: 'neutral' as const,
             domain: undefined as number[] | undefined,
-            formatter: new Intl.NumberFormat('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }),
+            formatter: createPriceFormatter(),
         },
         {
             label: '',
@@ -178,11 +175,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             id: 'closeValue' as const,
             key: 'closeKey' as const,
             domain: undefined as number[] | undefined,
-            formatter: new Intl.NumberFormat('en-US', {
-                notation: 'compact',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }),
+            formatter: createVolumeFormatter(),
         },
         {
             label: 'Vol',
@@ -192,13 +185,54 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             id: 'volumeValue' as const,
             key: 'volumeKey' as const,
             domain: undefined as number[] | undefined,
-            formatter: new Intl.NumberFormat('en-US', {
-                notation: 'compact',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-            }),
+            formatter: createVolumeFormatter(),
         },
     ];
+
+    // The hovered Volume Profile level, appended after the candle fields and shown only while a level is hovered.
+    private readonly bandSeparator = this.labelGroup.appendChild(new Text());
+    private readonly bandLabels = [
+        {
+            labelKey: 'statusBarVolumeProfilePrice' as const,
+            style: 'neutral' as const,
+            title: this.labelGroup.appendChild(new Text()),
+            value: this.labelGroup.appendChild(new Text()),
+            formatter: createPriceFormatter(),
+            text: (band: BandValues, format: (value: number) => string) =>
+                `${format(band.priceLow)}-${format(band.priceHigh)}`,
+        },
+        {
+            labelKey: 'statusBarVolumeProfileUp' as const,
+            style: 'positive' as const,
+            title: this.labelGroup.appendChild(new Text()),
+            value: this.labelGroup.appendChild(new Text()),
+            formatter: createVolumeFormatter(),
+            text: (band: BandValues, format: (value: number) => string) => format(band.up),
+        },
+        {
+            labelKey: 'statusBarVolumeProfileDown' as const,
+            style: 'negative' as const,
+            title: this.labelGroup.appendChild(new Text()),
+            value: this.labelGroup.appendChild(new Text()),
+            formatter: createVolumeFormatter(),
+            text: (band: BandValues, format: (value: number) => string) => format(band.down),
+        },
+        {
+            labelKey: 'statusBarVolumeProfileTotal' as const,
+            style: 'neutral' as const,
+            title: this.labelGroup.appendChild(new Text()),
+            value: this.labelGroup.appendChild(new Text()),
+            formatter: createVolumeFormatter(),
+            text: (band: BandValues, format: (value: number) => string) => format(band.total),
+        },
+    ];
+
+    // The background spans the candle fields alone until the pointer is over a Volume Profile level.
+    private candleWidth = 0;
+    private bandWidth = 0;
+    private seriesTop = 0;
+    private pointerY: number | undefined;
+    private band: BandValues | undefined;
 
     public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
@@ -215,7 +249,9 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             }),
             ctx.eventsHub.on('data:update', (data) => {
                 this.chartData = data;
-            })
+            }),
+            ctx.eventsHub.on('series-area:hover', ({ canvasY }) => this.onPointerMove(canvasY)),
+            ctx.widgets.seriesBoundsWidget.addListener('mouseleave', () => this.onPointerMove(undefined))
         );
     }
 
@@ -237,8 +273,9 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             const yDomain = domainResult?.domain;
             if (!Array.isArray(yDomain) || yDomain.length < 2) continue;
 
-            // Volume series (bar) is identified by its type
+            // The volume series is the bar series on the volume key; the Volume Profile bars are bar series too.
             if (s.type === 'bar') {
+                if (s.options.yKey !== opts.volumeKey) continue;
                 volumeDomain = [yDomain[0] as number, yDomain.at(-1) as number];
             } else {
                 // Price series (candlestick, ohlc, hlc, range-bar, line)
@@ -345,16 +382,87 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             left += maxValueWidth + outerSpacing;
         }
 
+        this.candleWidth = left - outerSpacing;
+        left = this.layoutBandLabels(left, offsetTop, textVAlign, innerSpacing, outerSpacing);
+        this.bandWidth = left - outerSpacing;
+
         this.backgroundNode.x = 0;
         this.backgroundNode.y = 0;
-        this.backgroundNode.width = left - outerSpacing;
+        this.backgroundNode.width = this.candleWidth;
         this.backgroundNode.height = lineHeight + spacingAbove + spacingBelow;
         this.backgroundNode.fill = opts.background.fill;
         this.backgroundNode.fillOpacity = opts.background.fillOpacity;
     }
 
+    // Positions the Volume Profile fields after the candle fields and returns the end of the last one. They are not
+    // visible until a level is hovered, but the room is measured now so the bar's width does not change as they appear.
+    private layoutBandLabels(
+        start: number,
+        offsetTop: number,
+        textVAlign: CanvasTextBaseline,
+        innerSpacing: number,
+        outerSpacing: number
+    ) {
+        const { opts, bandSeparator, bandLabels } = this;
+        const band = opts.volumeProfile;
+
+        bandSeparator.visible = false;
+        for (const { title, value } of bandLabels) {
+            title.visible = false;
+            value.visible = false;
+        }
+        if (band == null) return start;
+
+        let left = start;
+
+        const separatorMetrics = cachedTextMeasurer(opts.title).measureLines('|');
+        bandSeparator.setFont(opts.title);
+        bandSeparator.fill = opts.title.color;
+        bandSeparator.text = '|';
+        bandSeparator.textAlign = 'left';
+        bandSeparator.textBaseline = textVAlign;
+        bandSeparator.x = left;
+        bandSeparator.y = offsetTop;
+        left += separatorMetrics.width + outerSpacing;
+
+        let maxTotal = 0;
+        for (const level of band.levels) maxTotal = Math.max(maxTotal, level.total);
+        const widest: BandValues = {
+            priceLow: band.levels.at(-1)!.priceLow,
+            priceHigh: band.levels[0].priceHigh,
+            up: maxTotal,
+            down: maxTotal,
+            total: maxTotal,
+        };
+
+        for (const { labelKey, style, title, value, formatter, text } of bandLabels) {
+            const label = this.ctx.localeManager.t(labelKey);
+            const titleMetrics = cachedTextMeasurer(opts.title).measureLines(label);
+            title.setFont(opts.title);
+            title.fill = opts.title.color;
+            title.text = label;
+            title.textAlign = 'left';
+            title.textBaseline = textVAlign;
+            title.x = left;
+            title.y = offsetTop;
+
+            left += titleMetrics.width + innerSpacing;
+
+            value.textAlign = 'left';
+            value.textBaseline = textVAlign;
+            value.x = left;
+            value.y = offsetTop;
+
+            const widestText = text(widest, (n) => formatter.format(n));
+            left += cachedTextMeasurer(opts[style]).textWidth(widestText) + outerSpacing;
+        }
+
+        return left;
+    }
+
     private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
         this.labelGroup.translationX = opts.series.rect.x;
+        this.seriesTop = opts.series.rect.y;
 
         this.updateHighlight(this.ctx.chartState.getValue('highlight'));
     }
@@ -400,6 +508,63 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             value.fill = opts[labelStyle].color;
             // Intl.NumberFormat.format accepts bigint natively, so a bigint OHLC/volume renders full-precision.
             value.text = isNumericValue(datumValue) ? formatter.format(datumValue) : '';
+        }
+
+        this.updateBandLabels(this.findHoveredBand());
+    }
+
+    private onPointerMove(pointerY: number | undefined) {
+        if (!this.opts.enabled) return;
+
+        this.pointerY = pointerY;
+        if (this.findHoveredBand() === this.band) return;
+
+        this.updateHighlight(this.ctx.chartState.getValue('highlight'));
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+    }
+
+    // The level under the pointer, as long as it holds volume; levels run from the highest price down.
+    private findHoveredBand(): BandValues | undefined {
+        const { pointerY } = this;
+        const band = this.opts.volumeProfile;
+        if (pointerY == null || band == null) return undefined;
+
+        const axis = this.ctx.axisManager
+            .getAxisContext(ChartAxisDirection.Y)
+            .find((a) => a.userAxisId === band.priceAxisKey);
+        const price = axis?.scaleInvert(pointerY - this.seriesTop);
+        if (!isFiniteNumber(price)) return undefined;
+
+        const { levels } = band;
+        let lo = 0;
+        let hi = levels.length - 1;
+        while (lo < hi) {
+            const mid = (lo + hi) >> 1;
+            if (price < levels[mid].priceLow) {
+                lo = mid + 1;
+            } else {
+                hi = mid;
+            }
+        }
+        const level = levels[lo];
+        return level.total > 0 && price >= level.priceLow && price <= level.priceHigh ? level : undefined;
+    }
+
+    private updateBandLabels(band: BandValues | undefined) {
+        const { opts, bandSeparator, bandLabels } = this;
+
+        this.band = band;
+        bandSeparator.visible = band != null;
+        this.backgroundNode.width = band == null ? this.candleWidth : this.bandWidth;
+
+        for (const { style, title, value, formatter, text } of bandLabels) {
+            title.visible = band != null;
+            value.visible = band != null;
+            if (band == null) continue;
+
+            value.setFont(opts[style]);
+            value.fill = opts[style].color;
+            value.text = text(band, (n) => formatter.format(n));
         }
     }
 
