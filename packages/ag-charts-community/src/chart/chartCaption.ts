@@ -7,6 +7,7 @@ import type {
     LabelFit,
     MouseWidgetEvent,
     NormalisedChartCaptionOptions,
+    NormalisedContextMenuOptions,
     NormalisedTextOrSegments,
 } from 'ag-charts-core';
 import {
@@ -74,6 +75,10 @@ export class ChartCaption implements CaptionLike {
 
     get opts(): NormalisedChartCaptionOptions {
         return this.ctx.chartState.getValue('options', this.key) ?? {};
+    }
+
+    get contextMenuOpts(): Pick<NormalisedContextMenuOptions, 'enabled'> {
+        return this.ctx.chartState.getValue('options', 'contextMenu') ?? { enabled: false };
     }
 
     // Members required by CaptionLike. Other field reads go through `opts` at the call site.
@@ -198,6 +203,9 @@ export class ChartCaption implements CaptionLike {
         // Signal interactivity only on captions that actually have a click listener.
         this.proxyText.setCursor(this.hasClickListener(moduleCtx) ? 'pointer' : undefined);
 
+        const tabIndex = this.needsTabIndex(moduleCtx) ? 0 : undefined;
+        this.proxyText.setTabIndex(tabIndex);
+
         const textContent = toPlainText(this.text);
         if (textContent !== this.lastProxyTextContent) {
             this.proxyText.textContent = textContent;
@@ -282,6 +290,10 @@ export class ChartCaption implements CaptionLike {
         );
     }
 
+    private needsTabIndex(moduleCtx: DynamicContext<ChartRegistry>): boolean {
+        return this.hasClickListener(moduleCtx) || this.contextMenuOpts.enabled;
+    }
+
     /**
      * A caption is a click target only while a listener is registered for it, so that with none the
      * interaction falls through exactly as it did before (AG-17638).
@@ -304,8 +316,6 @@ export class ChartCaption implements CaptionLike {
      */
     private handleClick(moduleCtx: DynamicContext<ChartRegistry>, event: ClickWidgetEvent | DblClickWidgetEvent) {
         if (!this.hasClickListener(moduleCtx)) return;
-        // Keyboard activation of caption listeners is not supported.
-        if (event.device === 'keyboard') return;
 
         const isDoubleClick = event.type === 'dblclick';
         const params = { event: event.sourceEvent, captionType: this.key, text: this.text ?? '' };

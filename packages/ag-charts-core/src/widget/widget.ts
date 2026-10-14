@@ -211,7 +211,7 @@ export abstract class Widget<
         setAttribute(this.elem, 'data-preventdefault', preventDefault);
     }
 
-    setTabIndex(tabIndex: BaseAttributeTypeMap['tabindex']) {
+    setTabIndex(tabIndex: BaseAttributeTypeMap['tabindex'] | undefined) {
         setAttribute(this.elem, 'tabindex', tabIndex);
     }
 
