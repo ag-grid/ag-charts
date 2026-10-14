@@ -2042,6 +2042,61 @@ describe('placeLabels shape-fitted rotated labels', () => {
     });
 });
 
+describe('placeLabels shape-fitted stacks', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+    const padding = { top: 0, right: 0, bottom: 0, left: 0 };
+    const anchor: OrientationAnchor = { x: 100, y: 100, textAlign: 'center', textBaseline: 'middle' };
+    const bandRegion = (fits: (height: number) => boolean): FitRegion => ({
+        spanAt: (top, bottom) => (fits(bottom - top) ? [-500, 500] : [0, 0]),
+        extentAbove: Infinity,
+        extentBelow: Infinity,
+    });
+
+    const stackDatum = (
+        text: string,
+        fontSize: number,
+        minimumFontSize: number,
+        shapes: FitRegion[],
+        neverDrop = false
+    ): PointLabelDatum => {
+        const fit = {
+            text,
+            policy: { overflowStrategy: 'ellipsis' as const, minimumFontSize },
+            font: { fontSize, fontFamily: 'sans-serif' },
+            fitOverflow: neverDrop ? { overflowStrategy: 'ellipsis' as const } : undefined,
+        };
+        return {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text, width: 10, height: 10 },
+            fit,
+            stack: { blocks: [{ fit }], spacing: 0 },
+            anchor: undefined,
+            placement: undefined,
+            neverDrop,
+            positionedCandidates: shapes.map((shape) => ({
+                box: { x: 95, y: 95, width: 10, height: 10 },
+                fitTo: { shape, anchor, padding },
+            })),
+        };
+    };
+
+    const placeOne = (datum: PointLabelDatum) =>
+        placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 0).get('s')!;
+
+    it('finds the largest size a shape holds when it holds only a middle band of sizes', () => {
+        // Line heights of about 21.7px and 23.3px: only the 13px and 14px sizes.
+        const [placed] = placeOne(stackDatum('AB', 16, 8, [bandRegion((height) => height >= 21 && height <= 24)]));
+        expect(placed?.stack?.blocks[0]?.fontSize).toBe(14);
+    });
+
+    it('prefers a truncated fit to an always-shown overflow from a shape with no room', () => {
+        const narrow: FitRegion = { spanAt: () => [-25, 25], extentAbove: Infinity, extentBelow: Infinity };
+        const datum = stackDatum('ABCDEFGHIJ', 12, 12, [narrow, bandRegion(() => false)], true);
+        const [placed] = placeOne(datum);
+        expect(placed?.candidate).toBe(datum.positionedCandidates![0]);
+    });
+});
+
 describe('resolveLabelFit', () => {
     it('returns undefined (show) when there is no overflow strategy and no wrapping', () => {
         expect(resolveLabelFit({})).toBeUndefined();

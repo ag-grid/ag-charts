@@ -2382,9 +2382,11 @@ function placeFromPositionedCandidates(
         candidateBox.width = c.box.width;
         candidateBox.height = c.box.height;
         candidateStack = undefined;
+        let overflowing = false;
         if (d.stack != null && fit != null && c.fitTo != null) {
             if (!fitStackToCandidate(d.stack, c.fitTo, threshold)) continue;
             ({ text, dropped, shrink } = fittedLabel);
+            overflowing = candidateStack!.overflows;
             writeCandidateLabel(c.fitTo.padding, fit.font);
             ({ width, height } = candidateLabel);
             resizeCandidateBox(c, width, height);
@@ -2440,7 +2442,8 @@ function placeFromPositionedCandidates(
             writeOrientedRect(candidateRect, x + cw / 2, y + ch / 2, width + grow, height + grow, rotation);
         }
         const contained = boxContains(region, x, y, cw, ch);
-        if (contained && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+        // An overflowing stack ranks with the overflowing candidates, below any that fit truncated.
+        if (contained && !overflowing && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
             if (dropped === 0) {
                 candidateOriented = false;
                 return {

@@ -63,6 +63,8 @@ export interface FittedLabelStack {
     readonly dropped: number;
     /** How much of the stack's unfitted area the fit gave up, in `[0, 1)`. */
     readonly shrink: number;
+    /** A block that must always show overruns its room. */
+    readonly overflows: boolean;
 }
 
 const ZERO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -118,12 +120,20 @@ function fitStackBlocks(
         const full = measureLabelText(text, font);
         fullArea += full.width * full.height;
     }
-    return findLargestFittingStep(ladder.length, function probeStackStep(step) {
+    const probeStackStep = (step: number): FittedLabelStack | undefined => {
         const fitted = fitStackAtSizes(stack, included, ladder[step], step === 0, container, shape, shapeAlign);
         if (fitted == null) return undefined;
         const shrink = fullArea <= 0 ? 0 : Math.min(Math.max(0, 1 - fitted.area / fullArea), MAX_SHRINK);
-        return { blocks: fitted.blocks, width: fitted.width, height: fitted.height, dropped: fitted.dropped, shrink };
-    });
+        const { blocks, width, height, dropped, overflows } = fitted;
+        return { blocks, width, height, dropped, shrink, overflows };
+    };
+    if (shape == null) return findLargestFittingStep(ladder.length, probeStackStep);
+    // A shape can hold a middle band of sizes and not those either side, which a bisection would step past.
+    for (let step = ladder.length - 1; step >= 0; step--) {
+        const fitted = probeStackStep(step);
+        if (fitted != null) return fitted;
+    }
+    return undefined;
 }
 
 /** Block sizes per step, smallest first; each step shrinks the block proportionally furthest from its minimum. */
