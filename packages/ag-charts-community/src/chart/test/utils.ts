@@ -1824,6 +1824,29 @@ export function expectSceneSamplesMatch(actual: SceneGeometrySample, expected: S
 }
 
 /**
+ * Redraws `chart` with `data`, which must equal the data it already shows, and asserts that no pixel and (unless
+ * `geometry` is false) no node geometry changed. Call it once the chart has stabilised.
+ */
+export async function expectRedrawWithSameDataIsStable(
+    chart: AgChartInstance,
+    canvasCtx: Pick<ReturnType<typeof setupMockCanvas>, 'snapshot'>,
+    data: unknown[],
+    { geometry = true }: { geometry?: boolean } = {}
+): Promise<void> {
+    const sampleScene = createSceneGeometrySampler(chart);
+    const before = sampleScene();
+    const beforeImage = canvasCtx.snapshot();
+
+    await chart.updateDelta({ data });
+    await waitForChartStability(chart);
+
+    expect(canvasCtx.snapshot()).toMatchImage(beforeImage);
+    if (geometry) {
+        expectSceneSamplesMatch(sampleScene(), before, 0);
+    }
+}
+
+/**
  * A cross-node check evaluated on every captured frame — for relationships no per-node/per-property
  * expectation can express (e.g. "stacked layer N's far edge equals layer N+1's near edge on every
  * frame"). Return a message to fail, undefined to pass; only the first failing frame per invariant is
