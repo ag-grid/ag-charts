@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
     CHART_FEATURES,
     CHART_FEATURE_IDS,
+    type ChartFeatureId,
     type ChartFeatures,
     DEFAULT_CHART_FEATURES,
     isFeatureActive,
@@ -23,6 +24,7 @@ import {
     PREVIEW_DATA,
     PREVIEW_SERIES,
     SERIES_COUNT_OPTIONS,
+    THUMBNAIL_LINE_KEY,
     THUMBNAIL_SERIES_KEYS,
 } from './previewData';
 
@@ -44,6 +46,8 @@ const strokeWidthOf = (series: unknown) => {
 const SERIES_STROKE_TYPES = PREVIEW_CHART_TYPES.filter((type) => type.features.includes('seriesStrokes'));
 
 const CANDLESTICK = PREVIEW_CHART_TYPES.find((type) => type.id === 'candlestick')!;
+
+const NAVIGATION_FEATURES: ChartFeatureId[] = ['zoom', 'scrollbar', 'navigator'];
 
 describe('preview chart types', () => {
     it('builds the requested number of series at every offered count', () => {
@@ -104,19 +108,19 @@ describe('preview chart types', () => {
         // Deliberate: the cards separate themes from each other, and at a
         // user-chosen count of two the lookalike palettes would converge again.
         // The count control drives the panes only.
-        expect(seriesOf(THUMBNAIL_OPTIONS).length).toBe(8);
+        const types = (seriesOf(THUMBNAIL_OPTIONS) as { type: string }[]).map(({ type }) => type);
+        expect(types.filter((type) => type === 'bar').length).toBe(8);
+        expect(types.filter((type) => type === 'line').length).toBe(1);
         expect(THUMBNAIL_SERIES_KEYS.length).toBe(8);
     });
 
-    it('has thumbnail data behind every band the card draws', () => {
-        // The card takes a prefix of the rows, so a key missing from one of them
-        // leaves a gap that reads as a palette one colour short rather than as a
-        // chart with something wrong with it.
-        const { data, series } = THUMBNAIL_OPTIONS as { data: Record<string, unknown>[]; series: unknown[] };
+    it('gives every thumbnail bar series a month of its own', () => {
+        // A series with no month leaves the palette looking one colour short.
+        const { data } = THUMBNAIL_OPTIONS as { data: Record<string, unknown>[] };
+        const barKeysPerRow = data.map((row) => THUMBNAIL_SERIES_KEYS.filter((key) => typeof row[key] === 'number'));
+        expect(barKeysPerRow).toEqual(THUMBNAIL_SERIES_KEYS.map((key) => [key]));
         for (const row of data) {
-            for (const { yKey } of series as { yKey: string }[]) {
-                expect(typeof row[yKey], `${String(row.period)}.${yKey}`).toBe('number');
-            }
+            expect(typeof row[THUMBNAIL_LINE_KEY], String(row.month)).toBe('number');
         }
     });
 
@@ -196,6 +200,40 @@ describe('preview chart types', () => {
             expect(candle.low).toBeGreaterThan(0);
             // Weekends are skipped so the ordinal-time axis has no gaps to draw.
             expect([1, 2, 3, 4, 5]).toContain(candle.date.getDay());
+        }
+    });
+
+    it('offers the tooltip and context menu on every type, and navigation on every cartesian one', () => {
+        for (const type of PREVIEW_CHART_TYPES) {
+            expect(type.features, type.id).toEqual(expect.arrayContaining(['tooltip', 'contextMenu']));
+        }
+        const donut = PREVIEW_CHART_TYPES.find((type) => type.id === 'donut')!;
+        for (const type of PREVIEW_CHART_TYPES.filter((other) => other !== donut)) {
+            expect(type.features, type.id).toEqual(expect.arrayContaining(NAVIGATION_FEATURES));
+        }
+        for (const id of NAVIGATION_FEATURES) {
+            expect(donut.features).not.toContain(id);
+        }
+    });
+
+    it('shows the zoom buttons without a hover only when asked to', () => {
+        for (const type of PREVIEW_CHART_TYPES.filter((other) => other.features.includes('zoom'))) {
+            const zoomButtons = (shown?: boolean) =>
+                (type.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON, shown) as { zoom: Record<string, unknown> }).zoom
+                    .buttons;
+            expect(zoomButtons(true), type.id).toEqual({ visible: 'always' });
+            expect(zoomButtons(), type.id).toBeUndefined();
+        }
+    });
+
+    it('gives the context menu rows beyond its defaults to show the menu styles on', () => {
+        for (const type of PREVIEW_CHART_TYPES) {
+            const { contextMenu } = type.buildOptions(DEFAULT_SERIES_COUNT, ALL_OFF) as {
+                contextMenu: { items: unknown[] };
+            };
+            expect(contextMenu.items, type.id).toContain('defaults');
+            const extraItems = contextMenu.items.filter((item) => typeof item === 'object');
+            expect(extraItems.length, type.id).toBeGreaterThanOrEqual(3);
         }
     });
 

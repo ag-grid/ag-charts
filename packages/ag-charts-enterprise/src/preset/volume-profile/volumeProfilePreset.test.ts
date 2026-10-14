@@ -48,6 +48,11 @@ describe('volumeProfilePreset', () => {
         'matching tick size': { ...volumeProfile, tickSize: 2.5 },
         'larger tick size': { ...volumeProfile, tickSize: 5 },
         'irregular data': { ...volumeProfile, data: getIrregularVolumeProfile() },
+        'a single level with the total segment': {
+            ...volumeProfile,
+            data: [{ price: 100, upVolume: 60e6, downVolume: 40e6 }],
+            totalSegment: { enabled: true },
+        },
     };
 
     it.each(Object.entries(EXAMPLES))(

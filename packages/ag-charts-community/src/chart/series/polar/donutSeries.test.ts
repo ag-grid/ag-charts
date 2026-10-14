@@ -13,7 +13,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { OptionsGraph } from '../../../module/optionsGraph';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
@@ -1045,7 +1044,6 @@ describe('DonutSeries', () => {
         let donutSeries: DonutSeries;
 
         beforeEach(async () => {
-            OptionsGraph.clearValueCache();
             const transactionOptions = prepareTestOptions({
                 theme: {
                     palette: {
@@ -1078,8 +1076,8 @@ describe('DonutSeries', () => {
             donutSeries = undefined!;
         });
 
-        test('reprocesses palette entries for new data', async () => {
-            expect(donutSeries.options.fills).toEqual(['red', 'green']);
+        test('colours new rows from the palette', async () => {
+            expect((donutSeries.getNodeData() ?? []).map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green']);
 
             await chartProxy.applyTransaction({
                 add: [
@@ -1089,7 +1087,6 @@ describe('DonutSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(donutSeries.options.fills).toEqual(['red', 'green', 'red', 'green']);
             const nodeData = donutSeries.getNodeData() ?? [];
             expect(nodeData).toHaveLength(4);
             expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);

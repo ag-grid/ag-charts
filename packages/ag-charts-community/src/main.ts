@@ -44,4 +44,4 @@ export { AllPolarModule } from './module-bundles/polar';
 
 // Undocumented APIs used by Integrated Charts.
 export { AgChartsCommunityModule } from './module-bundles/integrated';
-export { _Scene, _Theme, _Util } from './integrated-charts';
+export { _Theme } from './integrated-charts';

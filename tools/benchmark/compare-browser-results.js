@@ -6,13 +6,17 @@
  * Usage:
  *   node compare-browser-results.js --base base.json --compare head.json
  *   node compare-browser-results.js --base base.json --compare head.json --format json
+ *   node compare-browser-results.js --base base.json --compare head.json \
+ *       --base-memory base.mem.json --compare-memory head.mem.json
  */
 
 const fs = require('fs');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
 
+const { aggregateAllocation, allocationChange, formatMb } = require('./allocation');
 const { formatPercentageChange } = require('./format-utils');
+const { median, pctChange } = require('./stats');
 
 const argv = yargs(hideBin(process.argv))
     .option('base', {
@@ -28,6 +32,20 @@ const argv = yargs(hideBin(process.argv))
         array: true,
         demandOption: true,
         describe: 'Path(s) to compare (head) browser benchmark JSON report(s). Multiple = independent runs.',
+    })
+    .option('base-memory', {
+        type: 'string',
+        array: true,
+        default: [],
+        describe:
+            'Path(s) to base memory-pass report(s) (browser-benchmark.ts --memory). Adds allocated MB per ' +
+            'iteration next to the timings; reported only, never gated.',
+    })
+    .option('compare-memory', {
+        type: 'string',
+        array: true,
+        default: [],
+        describe: 'Path(s) to compare (head) memory-pass report(s).',
     })
     .option('min-pct', {
         type: 'number',
@@ -76,6 +94,19 @@ function loadReport(filePath) {
     return JSON.parse(raw);
 }
 
+/** Timing reports must come from passes without heap sampling attached. */
+function loadTimingReport(filePath) {
+    const report = loadReport(filePath);
+    if (report.memoryPass) {
+        console.error(
+            `${filePath} is a memory-pass report: its timings are distorted by heap sampling. ` +
+                'Pass it with --base-memory / --compare-memory instead.'
+        );
+        process.exit(2);
+    }
+    return report;
+}
+
 /**
  * Build a unique comparison key for a benchmark result within an example.
  * Mirrors benchmarkHarness.ts resultKey() but prefixed with the example name
@@ -113,13 +144,6 @@ function timeFormat(timeMs) {
 }
 
 // --- Statistics helpers ---
-
-function median(values) {
-    if (!values?.length) return null;
-    const sorted = values.toSorted((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-}
 
 /** Coefficient of variation (stddev / mean); null when not computable. */
 function coefficientOfVariation(values) {
@@ -256,13 +280,20 @@ function extractResults(reports) {
 
 // --- Compare ---
 
-const baseReports = argv.base.map(loadReport);
-const compareReports = argv.compare.map(loadReport);
+const baseReports = argv.base.map(loadTimingReport);
+const compareReports = argv.compare.map(loadTimingReport);
 
 const base = extractResults(baseReports);
 const compare = extractResults(compareReports);
 
 const runCount = Math.min(baseReports.length, compareReports.length);
+
+// Allocation comes from separate memory passes. The columns appear only when memory reports are
+// supplied; a side (or test) without data then reads as `—` and is left out of the allocation
+// ranking, so an older base harness never fails or skews the comparison.
+const baseAllocation = aggregateAllocation(argv['base-memory'].map(loadReport), comparisonKey);
+const compareAllocation = aggregateAllocation(argv['compare-memory'].map(loadReport), comparisonKey);
+const showAllocation = argv['base-memory'].length > 0 || argv['compare-memory'].length > 0;
 
 const baseKeys = new Set(base.results.keys());
 const compareKeys = new Set(compare.results.keys());
@@ -289,8 +320,7 @@ for (const key of baseKeys) {
         }
         // Median is robust to outlier iterations (GC pauses, CI noise spikes);
         // it falls back to the average when raw timings are unavailable.
-        const pctTimeChange =
-            b.medianTime === 0 ? null : Math.round(((c.medianTime - b.medianTime) / b.medianTime) * 1000) / 10;
+        const pctTimeChange = pctChange(b.medianTime, c.medianTime);
         const noisy = (b.cv ?? 0) > NOISY_CV_THRESHOLD || (c.cv ?? 0) > NOISY_CV_THRESHOLD;
         // Run-to-run noise band: the worse side's cross-run CV, as a percentage. A change must
         // clear NOISE_BAND_FACTOR x this to be signal rather than measurement drift.
@@ -309,6 +339,7 @@ for (const key of baseKeys) {
             afterMinMs: timeFormat(c.minTime),
             beforeSamples: b.sampleCount,
             afterSamples: c.sampleCount,
+            ...allocationChange(baseAllocation.get(key), compareAllocation.get(key)),
         });
     }
 }
@@ -359,6 +390,27 @@ function isNotableRegression(r) {
 }
 const notable = rankedByTime.filter(isNotableRegression);
 
+// Allocation is reported, not gated: it never feeds `notable` or the exit code. Deltas within the
+// sampling noise band are left out of the ranking; the rest sort smallest delta first, like time.
+const withAllocation = matched.filter((r) => r.deltaMb !== null);
+const rankedByAllocation = withAllocation.filter((r) => !r.withinNoise).toSorted((a, b) => a.deltaMb - b.deltaMb);
+const allocationWithinNoise = withAllocation.length - rankedByAllocation.length;
+
+/** Before/After/delta MB columns for a table row; empty when no memory reports were supplied. */
+function allocationColumns(r) {
+    if (!showAllocation) return {};
+    return {
+        'Before (MB)': formatMb(r.beforeMb),
+        'After (MB)': formatMb(r.afterMb),
+        'Δ (MB)': formatMb(r.deltaMb, { signed: true }) + (r.withinNoise ? ' (noise)' : ''),
+    };
+}
+
+/** First 5 and last 5 rows with a blank separator, as the time table does. */
+function topAndBottom(rows) {
+    return rows.length > 10 ? [...rows.slice(0, 5), {}, ...rows.slice(-5)] : rows;
+}
+
 // --- Output ---
 
 const baseLabel = argv['base-label'];
@@ -388,11 +440,9 @@ if (argv.format === 'table') {
         }
     }
 
-    const rankedOutput =
-        rankedByTime.length > 10 ? [...rankedByTime.slice(0, 5), {}, ...rankedByTime.slice(-5)] : rankedByTime;
     console.log('Time (top 5/bottom 5)');
     console.table(
-        rankedOutput.map((r) =>
+        topAndBottom(rankedByTime).map((r) =>
             Object.keys(r).length === 0
                 ? {}
                 : {
@@ -400,9 +450,31 @@ if (argv.format === 'table') {
                       '%': formatPercentageChange(r.pctTimeChange) + (r.noisy ? ' ~' : ''),
                       'Before (ms)': r.beforeMs,
                       'After (ms)': r.afterMs,
+                      ...allocationColumns(r),
                   }
         )
     );
+
+    if (showAllocation) {
+        console.log(
+            `\nAllocation per iteration (top 5/bottom 5 by change; ${withAllocation.length} of ${matched.length} with data on both sides, ${allocationWithinNoise} within sampling noise)`
+        );
+        if (rankedByAllocation.length > 0) {
+            console.table(
+                topAndBottom(rankedByAllocation).map((r) =>
+                    Object.keys(r).length === 0
+                        ? {}
+                        : { test: r.test, '%': formatPercentageChange(r.pctChange), ...allocationColumns(r) }
+                )
+            );
+        } else if (withAllocation.length === 0) {
+            console.log(
+                '  — no test has allocation data on both sides (is the base harness older than the memory pass?)'
+            );
+        } else {
+            console.log('  — every change is within sampling noise');
+        }
+    }
 
     if (added.length > 0) {
         console.log(`\nAdded (${added.length}):`);
@@ -427,6 +499,15 @@ if (argv.format === 'table') {
     const improvements = rankedByTime.filter((r) => r.pctTimeChange !== null && r.pctTimeChange < 0).length;
     const regressions = rankedByTime.filter((r) => r.pctTimeChange !== null && r.pctTimeChange > 0).length;
     console.log(`\nSummary: ${improvements} improved, ${regressions} regressed, ${matched.length} total`);
+    if (showAllocation) {
+        const lower = rankedByAllocation.filter((r) => r.deltaMb < 0).length;
+        const higher = rankedByAllocation.filter((r) => r.deltaMb > 0).length;
+        const unjudged = rankedByAllocation.filter((r) => r.withinNoise === null).length;
+        console.log(
+            `Allocation: ${lower} lower, ${higher} higher, ${allocationWithinNoise} within sampling noise ` +
+                `(${unjudged} of the changes have no noise estimate), ${withAllocation.length} of ${matched.length} with data (not gated)`
+        );
+    }
 } else if (argv.format === 'json') {
     console.log(
         JSON.stringify(
@@ -437,6 +518,7 @@ if (argv.format === 'table') {
                 thresholds: { minPct: MIN_PCT, minAbsMs: MIN_ABS_MS, noiseBandFactor: NOISE_BAND_FACTOR },
                 notable: notable.map((r) => r.test),
                 rankedByTime,
+                rankedByAllocation,
                 added,
                 removed,
                 errors,

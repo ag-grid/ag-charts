@@ -1,0 +1,46 @@
+diff --git a/node_modules/rolldown/dist/shared/normalize-string-or-regex-B7Gsiuz7.mjs b/node_modules/rolldown/dist/shared/normalize-string-or-regex-B7Gsiuz7.mjs
+index b478e8d..dfcbcdb 100644
+--- a/node_modules/rolldown/dist/shared/normalize-string-or-regex-B7Gsiuz7.mjs
++++ b/node_modules/rolldown/dist/shared/normalize-string-or-regex-B7Gsiuz7.mjs
+@@ -1,3 +1,4 @@
++import { AsyncResource } from "node:async_hooks";
+ import { n as __toESM, t as require_binding } from "./binding-DlR5d34p.mjs";
+ import { n as error, u as logPluginError } from "./logs-D6uA606S.mjs";
+ //#region src/builtin-plugin/utils.ts
+@@ -12,8 +13,35 @@ var BuiltinPlugin = class {
+ 		this._options = _options;
+ 	}
+ };
++// AG Charts patch (patches/rolldown+1.2.13.patch): stops a restarted Vite dev server being retained by the
++// native callable builtin plugins (e.g. `vite:resolve`). Without it every in-place `astro dev` restart keeps the
++// whole previous server alive (about +87 MB per restart on the docs site). Two independent retainers:
++//
++// B1: the JS callbacks handed to the native side are kept alive by a global handle.
++//     Upstream: https://github.com/rolldown/rolldown/issues/10887, fix PR
++//     https://github.com/rolldown/rolldown/pull/10961 (draft at 1.2.13). Drop this part once that ships.
++//     The native side now only sees forwarders holding a WeakRef; the strong references stay on the JS plugin
++//     object (`plugin._options`), which the JS context owns.
++// B2: `new BindingCallableBuiltinPlugin(...)` captures the async context it is constructed in. Vite builds some
++//     lazily inside a request (`AsyncLocalStorage.run`), so the request's context, and through it the server,
++//     becomes reachable from a global handle. Not reported upstream and not covered by #10961; construct it in
++//     a context bound at module load instead. Drop this part once rolldown no longer captures the caller's
++//     async context. Consequence: callbacks of these plugins run in the root async context.
++//
++// This patch is tied to this hashed dist file and to rolldown 1.2.13: redo or drop it on every rolldown bump.
++const detachedAsyncContext = AsyncResource.bind((fn) => fn());
++function weakCallback(callback, pluginName, key) {
++	const reference = new WeakRef(callback);
++	return function(...args) {
++		const current = reference.deref();
++		if (!current) throw new Error("Released callback owner: " + pluginName + "." + key);
++		return current.apply(this, args);
++	};
++}
+ function makeBuiltinPluginCallable(plugin) {
+-	let callablePlugin = new import_binding.BindingCallableBuiltinPlugin(bindingifyBuiltInPlugin(plugin));
++	const binding = bindingifyBuiltInPlugin(plugin);
++	if (binding.options) binding.options = Object.fromEntries(Object.entries(binding.options).map(([key, value]) => [key, typeof value === "function" ? weakCallback(value, plugin.name, key) : value]));
++	let callablePlugin = detachedAsyncContext(() => new import_binding.BindingCallableBuiltinPlugin(binding));
+ 	const wrappedPlugin = plugin;
+ 	for (const key in callablePlugin) {
+ 		const wrappedHook = async function(...args) {

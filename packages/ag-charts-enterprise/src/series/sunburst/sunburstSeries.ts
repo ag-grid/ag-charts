@@ -21,6 +21,7 @@ import {
     Selection,
     Text,
     TransformableText,
+    cycledValue,
     findDiscreteColorBinLabel,
     formatValue,
     isGradientFill,
@@ -221,9 +222,9 @@ export class SunburstSeries extends HierarchySeries<
     private itemStyle(index: number): ItemStyle {
         const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity } = this.options;
         return {
-            fill: fills[index % fills.length],
+            fill: cycledValue(fills, index),
             fillOpacity,
-            stroke: strokes[index % strokes.length],
+            stroke: cycledValue(strokes, index),
             strokeWidth,
             strokeOpacity,
             opacity: 1,

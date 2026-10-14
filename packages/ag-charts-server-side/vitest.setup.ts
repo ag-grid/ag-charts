@@ -1,5 +1,5 @@
 import { type MatchImageSnapshotOptions } from 'jest-image-snapshot';
-import { toMatchImageSnapshot } from 'jest-image-snapshot';
+import { configureToMatchImageSnapshot } from 'jest-image-snapshot';
 import path from 'path';
 import { DOMMatrix, FontLibrary, Image, Path2D } from 'skia-canvas';
 import { expect } from 'vitest';
@@ -19,6 +19,8 @@ declare module 'vitest' {
     }
 }
 
+// The default out-of-process diff child can deadlock in `process.exit` on Node 24, hanging the worker forever.
+const toMatchImageSnapshot = configureToMatchImageSnapshot({ runInProcess: true });
 expect.extend({ toMatchImageSnapshot });
 
 interface BrowserGlobals {

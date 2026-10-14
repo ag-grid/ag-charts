@@ -12,6 +12,61 @@ import { DOMAIN_BANDS, REDUCER_BANDS, SHARED_ZERO_INDICES } from '../../dataMode
 import type { DataModelContext } from '../dataModelContext';
 import { createArray, toKeyString } from '../utils/helpers';
 
+// The fast path needs a single kind: `5`, `5n` and `'5'` share a `toKeyString` but not a `Map` key.
+type PrimitiveKeyKind = 'number' | 'string' | 'bigint' | 'date';
+
+function primitiveKeyKind(key: unknown): PrimitiveKeyKind | undefined {
+    switch (typeof key) {
+        case 'number':
+            return 'number';
+        case 'string':
+            return 'string';
+        case 'bigint':
+            return 'bigint';
+        case 'object':
+            return key instanceof Date ? 'date' : undefined;
+        default:
+            return undefined;
+    }
+}
+
+/** Looks groups up by primitive key while all keys are one kind, else by `toKeyString`. */
+class GroupLookup {
+    private readonly indexByKey = new Map<unknown, number>();
+    // `undefined` until the first key, `null` once keyed by string.
+    private kind: PrimitiveKeyKind | undefined | null = undefined;
+
+    constructor(private readonly groupKeys: readonly unknown[][]) {}
+
+    /** The index of the group with these keys, or -1 after recording `nextIndex` as that group's index. */
+    findOrAdd(keys: unknown[], nextIndex: number): number {
+        const key = this.keyOf(keys);
+        const index = this.indexByKey.get(key);
+        if (index !== undefined) return index;
+
+        this.indexByKey.set(key, nextIndex);
+        return -1;
+    }
+
+    private keyOf(keys: unknown[]): unknown {
+        if (this.kind === null) return toKeyString(keys);
+
+        const key: unknown = keys.length === 1 ? keys[0] : undefined;
+        const kind = primitiveKeyKind(key);
+        if (kind != null && (this.kind === undefined || this.kind === kind)) {
+            this.kind = kind;
+            return kind === 'date' ? (key as Date).valueOf() : key;
+        }
+
+        this.kind = null;
+        this.indexByKey.clear();
+        for (let i = 0; i < this.groupKeys.length; i++) {
+            this.indexByKey.set(toKeyString(this.groupKeys[i]), i);
+        }
+        return toKeyString(keys);
+    }
+}
+
 /**
  * DataGrouper handles grouping of extracted data into groups based on keys.
  *
@@ -65,11 +120,10 @@ export class DataGrouper<D extends object, K extends keyof D & string> {
         const { keys: dataKeys, columns: allColumns, columnScopes, invalidKeys, invalidData } = data;
 
         const allScopes = data.scopes;
-        const resultGroups = [];
+        const resultGroups: unknown[][] = [];
         const resultData = [];
 
-        const groups =
-            allScopes.size !== 1 || customGroupingFn != null ? new Map<string, [number, Group]>() : undefined;
+        const groups = allScopes.size !== 1 || customGroupingFn != null ? new GroupLookup(resultGroups) : undefined;
         let groupsUnique = true;
         let groupIndex = 0;
 
@@ -110,22 +164,31 @@ export class DataGrouper<D extends object, K extends keyof D & string> {
             scopeInvalidKeys,
         ] of columnBatches) {
             const firstColumn = allColumns[first(scopeColumnIndexes)];
+            const keyCount = scopeKeys.length;
+            // Reused between datums, and copied only when a group is created.
+            const scratchKeys: unknown[] | undefined = groups ? new Array(keyCount) : undefined;
             for (let datumIndex = 0; datumIndex < firstColumn.length; datumIndex++) {
                 if (scopeInvalidKeys?.[datumIndex] === true) continue;
 
-                const keys = scopeKeys.map((k) => k[datumIndex]);
-                if (keys == null || keys.length === 0) {
+                if (keyCount === 0) {
                     throw new Error('AG Charts - no keys found for scope(s): ' + scopes.join(', '));
                 }
 
-                const group = customGroupingFn?.(keys) ?? keys;
-                const groupStr = groups == null ? undefined : toKeyString(group);
+                const keys: unknown[] = scratchKeys ?? new Array(keyCount);
+                for (let k = 0; k < keyCount; k++) {
+                    keys[k] = scopeKeys[k][datumIndex];
+                }
 
-                let outputGroup: [number, Group] | undefined = groups?.get(groupStr!);
-                let currentGroup: Group | undefined;
-                let currentGroupIndex: number;
+                let group = customGroupingFn?.(keys) ?? keys;
+
+                let currentGroupIndex = groups?.findOrAdd(group, groupIndex) ?? -1;
+
+                let currentGroup: Group;
                 let isNewGroup = false;
-                if (outputGroup == null) {
+                if (currentGroupIndex === -1) {
+                    if (group === keys && scratchKeys != null) {
+                        group = scratchKeys.slice();
+                    }
                     currentGroup = {
                         keys: group,
                         datumIndices: [],
@@ -133,15 +196,12 @@ export class DataGrouper<D extends object, K extends keyof D & string> {
                         validScopes: allScopes,
                     };
                     currentGroupIndex = groupIndex++;
-                    outputGroup = [currentGroupIndex, currentGroup];
                     isNewGroup = true;
-
-                    groups?.set(groupStr!, outputGroup);
 
                     resultGroups.push(currentGroup.keys);
                     resultData.push(currentGroup);
                 } else {
-                    [currentGroupIndex, currentGroup] = outputGroup;
+                    currentGroup = resultData[currentGroupIndex];
                     groupsUnique = false;
                 }
 

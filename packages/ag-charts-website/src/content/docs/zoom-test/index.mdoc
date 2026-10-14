@@ -73,6 +73,18 @@ What to test:
 {% chartExampleRunner title="async-unit-time" name="async-unit-time" type="generated" /%}
 {% /if %}
 
+### Async Axis Type (AG-17505)
+
+What to test:
+
+- Reload on each axis type and confirm the initial load makes the expected number of `getData()` calls (see the log to the right of the chart).
+- Click the zoom-in button repeatedly and confirm each click makes exactly one call, and the visible window keeps its end and shrinks by one step.
+- On `ordinal-time`, the click where the granularity changes (4w to 1w) moves the visible window forward instead of keeping its end.
+
+{% if isFramework("javascript") %}
+{% chartExampleRunner title="async-axis-type" name="async-axis-type" type="generated" /%}
+{% /if %}
+
 ### Async Loading
 
 What to test:

@@ -3,6 +3,7 @@ import {
     AbstractModuleInstance,
     type BBox,
     type BoxBounds,
+    ChartAxisDirection,
     type DynamicContext,
     type Group,
     type NormalisedNavigatorOptions,
@@ -10,6 +11,7 @@ import {
     clamp,
 } from 'ag-charts-core';
 
+import { resolveBandTimeMapping } from '../zoom/bandTimeMapping';
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
 import { RangeHandle } from './shapes/rangeHandle';
@@ -164,6 +166,7 @@ export class Navigator extends AbstractModuleInstance {
 
         this.domProxy.updateVisibility(enabled);
         if (enabled) {
+            this.syncNavigatorRatios();
             const { _min: min, _max: max } = this.domProxy;
             this.layoutNodes(x, y, width, height, min, max);
             this.domProxy.updateBounds({ x, y, width, height });
@@ -198,7 +201,7 @@ export class Navigator extends AbstractModuleInstance {
         // Retrieve the zoom from the chart state directly to ensure we are always using the latest value.
         const zoom = this.ctx.chartState.getValue('zoom');
         if (!zoom?.x) return;
-        let { min, max } = zoom.x;
+        let { min, max } = this.toNavigatorRatios(zoom.x);
 
         const ratio = (offsetX - x) / width;
 
@@ -224,10 +227,37 @@ export class Navigator extends AbstractModuleInstance {
 
         const { x, y, width } = this;
         const { height } = this.opts;
-        const { min, max } = xZoom;
+        const { min, max } = this.toNavigatorRatios(xZoom);
 
         this.domProxy.updateMinMax(min, max);
         this.layoutNodes(x, y, width, height, min, max);
+    }
+
+    private getBandMapping() {
+        return resolveBandTimeMapping(
+            this.ctx.dataService.isLazy(),
+            this.ctx.zoomManager?.getPrimaryAxis(ChartAxisDirection.X)?.scale
+        );
+    }
+
+    private toNavigatorRatios({ min, max }: { min: number; max: number }) {
+        const mapping = this.getBandMapping();
+        return mapping ? { min: mapping.toTimeRatio(min), max: mapping.toTimeRatio(max) } : { min, max };
+    }
+
+    public toZoomRatios({ min, max }: { min: number; max: number }) {
+        const mapping = this.getBandMapping();
+        return mapping ? { min: mapping.fromTimeRatio(min), max: mapping.fromTimeRatio(max) } : { min, max };
+    }
+
+    private syncNavigatorRatios() {
+        const zoom = this.ctx.chartState.getValue('zoom');
+        if (!zoom?.x || this.getBandMapping() == null) return;
+
+        const { min, max } = this.toNavigatorRatios(zoom.x);
+        if (min !== this.domProxy._min || max !== this.domProxy._max) {
+            this.domProxy.updateMinMax(min, max);
+        }
     }
 
     private layoutNodes(x: number, y: number, width: number, height: number, min: number, max: number) {

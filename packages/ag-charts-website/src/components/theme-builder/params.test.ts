@@ -28,12 +28,45 @@ describe('charts theme builder param layout', () => {
     it('places each param in exactly one group', () => {
         const seen = new Map<string, string[]>();
         for (const group of PARAM_GROUPS) {
-            for (const { key } of group.params) {
+            for (const { key } of group.params.flat()) {
                 seen.set(key, [...(seen.get(key) ?? []), group.id]);
             }
         }
         const duplicated = [...seen.entries()].filter(([, groups]) => groups.length > 1);
         expect(duplicated).toEqual([]);
+    });
+
+    it('opens with the designed groups, each leading with its designed rows', () => {
+        const DESIGNED: [string, (string | [string, string])[]][] = [
+            ['General', [['fontFamily', 'fontSize'], 'backgroundColor', 'foregroundColor', 'accentColor']],
+            ['Borders & Spacing', ['borderColor', 'borderRadius', 'chartPadding']],
+            [
+                'Axis & Grid',
+                ['axisTitleFontFamily', ['axisTitleColor', 'axisTitleFontSize'], 'axisLineColor', 'gridLineColor'],
+            ],
+            [
+                'Titles & Footnote',
+                [
+                    'titleFontFamily',
+                    ['titleColor', 'titleFontSize'],
+                    'subtitleFontFamily',
+                    ['subtitleColor', 'subtitleFontSize'],
+                    'footnoteFontFamily',
+                    ['footnoteColor', 'footnoteFontSize'],
+                ],
+            ],
+        ];
+        const rowKeys = PARAM_GROUPS.map((group) =>
+            group.params.map((row) => (Array.isArray(row) ? row.map(({ key }) => key) : row.key))
+        );
+        DESIGNED.forEach(([label, rows], index) => {
+            expect(PARAM_GROUPS[index].label).toBe(label);
+            expect(rowKeys[index].slice(0, rows.length), label).toEqual(rows);
+        });
+    });
+
+    it('opens only the General group by default', () => {
+        expect(PARAM_GROUPS.filter((group) => group.expanded).map(({ label }) => label)).toEqual(['General']);
     });
 });
 

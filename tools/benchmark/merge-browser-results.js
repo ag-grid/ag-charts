@@ -6,7 +6,9 @@
  * single report consumable by compare-browser-results.js.
  *
  * Each shard runs a disjoint subset of examples, so merging is a union of the
- * `examples` maps with the `summary` recomputed.
+ * `examples` maps with the `summary` recomputed. The `memoryPass` marker is carried through so
+ * compare-browser-results.js can still tell a merged memory-pass report from a timing report;
+ * shards that disagree on it are rejected, since the merged timings would be a mixture.
  *
  * Usage:
  *   node merge-browser-results.js --output merged.json shard1.json shard2.json ...
@@ -30,9 +32,19 @@ const argv = yargs(hideBin(process.argv))
 const inputPaths = argv._.map(String);
 const reports = inputPaths.map((p) => JSON.parse(fs.readFileSync(p, 'utf8')));
 
+const memoryShards = reports.filter((r) => r.memoryPass).length;
+if (memoryShards !== 0 && memoryShards !== reports.length) {
+    console.error(
+        `${memoryShards} of ${reports.length} input reports are memory-pass reports — ` +
+            'memory-pass and timing shards cannot be merged together'
+    );
+    process.exit(1);
+}
+
 const merged = {
     timestamp: reports[0].timestamp,
     environment: reports[0].environment,
+    ...(reports[0].memoryPass && { memoryPass: reports[0].memoryPass }),
     // Each shard ran on a different VM; keep every shard's host identity so cross-shard
     // hardware heterogeneity is visible (a major source of variance independent of steal).
     shardEnvironments: reports.map((r) => r.environment).filter(Boolean),

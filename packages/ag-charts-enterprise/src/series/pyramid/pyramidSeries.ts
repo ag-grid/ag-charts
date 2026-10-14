@@ -33,6 +33,7 @@ import {
     barLabelPropsRouteThroughEngine,
     buildBarPositionedLabelDatum,
     cachedTextMeasurer,
+    cycledValue,
     fontWithSize,
     isArray,
     measureLabelText,
@@ -230,9 +231,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private itemStyle(index: number = 0): Required<NormalisedPyramidSeriesStyle> & { opacity: number } {
         const { fills, strokes, fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.options;
         return {
-            fill: fills[index % fills.length],
+            fill: cycledValue(fills, index),
             fillOpacity,
-            stroke: strokes[index % strokes.length],
+            stroke: cycledValue(strokes, index),
             strokeWidth,
             strokeOpacity,
             lineDash,
@@ -1132,8 +1133,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private legendItemSymbol(datumIndex: number) {
         const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.options;
-        const fill = fills[datumIndex] ?? 'black';
-        const stroke = strokes[datumIndex] ?? 'black';
+        const fill = cycledValue(fills, datumIndex) ?? 'black';
+        const stroke = cycledValue(strokes, datumIndex) ?? 'black';
         return {
             marker: {
                 fill,

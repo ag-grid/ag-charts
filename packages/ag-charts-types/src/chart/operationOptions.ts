@@ -4,7 +4,6 @@ import type { AgChartAllThemeParams } from './themeParamsOptions';
 export type WithThemeParams<T> = ExtendLiteralLeaves<T, Operation, ExcludeLeaves>;
 
 export type Operation =
-    | CacheOperation
     | ChartOperation
     | ColorOperation
     | FontOperation
@@ -98,8 +97,6 @@ type PaletteParam =
     | 'altDown.stroke'
     | 'neutral.fill'
     | 'neutral.stroke';
-
-type CacheOperation = { $cacheMax: Leaf<number> };
 
 type ChartOperation =
     | { $hasSeriesType: Leaf<string> }

@@ -195,9 +195,10 @@ export class AxisInsetValue extends AbstractModuleInstance {
             node.fontWeight = font.fontWeight;
             node.textAlign = 'center';
             node.textBaseline = 'middle';
+            // `visible` already admits a row thinner than a full line, so only the width truncates.
             node.text = fitLabelToContainer(block.text, { wrapping: 'never', overflowStrategy: 'ellipsis' }, font, {
                 width: Math.max(horizontal ? thickness : width - padding * 2, 0),
-                height: horizontal ? width : thickness,
+                height: Infinity,
             });
             node.x = horizontal ? block.start + thickness / 2 : width / 2;
             node.y = horizontal ? width / 2 : block.start + thickness / 2;

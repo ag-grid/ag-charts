@@ -20,7 +20,6 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         direction: 'vertical',
         fills: {
             $applyCycle: [
-                { $size: { $path: ['./data', { $path: '/data' }] } },
                 {
                     $if: [
                         { $eq: [{ $palette: 'type' }, 'inbuilt'] },
@@ -33,7 +32,6 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'cone-funnel'> = {
         },
         strokes: {
             $applyCycle: [
-                { $size: { $path: ['./data', { $path: '/data' }] } },
                 {
                     $if: [
                         { $eq: [{ $palette: 'type' }, 'inbuilt'] },

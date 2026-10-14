@@ -52,7 +52,6 @@ const INTEGRATED_THEME = {
                 strokeWidth: 8,
                 fills: {
                     $applyCycle: [
-                        { $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } },
                         { $palette: 'fills' },
                         {
                             $if: [
@@ -65,7 +64,6 @@ const INTEGRATED_THEME = {
                 },
                 strokes: {
                     $applyCycle: [
-                        { $cacheMax: { $size: { $path: ['./data', { $path: '/data' }] } } },
                         { $palette: 'strokes' },
                         {
                             $if: [

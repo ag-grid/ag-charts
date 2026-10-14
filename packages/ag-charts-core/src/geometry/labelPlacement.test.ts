@@ -31,6 +31,7 @@ import {
     type OrientationAnchor,
     type PlacedLabel,
     type PointLabelDatum,
+    type PositionedCandidateResolver,
     type PositionedLabelCandidate,
     type SeriesLabelDefaults,
     type SeriesLabels,
@@ -2332,6 +2333,66 @@ describe('placeLabels per-candidate fit', () => {
             expect(placed.width).toBe(40);
             expect(placed.y).toBe(140);
         });
+
+        describe('nudging along the bar', () => {
+            const region = { x: 20, y: 20, width: 60, height: 60 };
+            const placeNudged = (obstacle: LabelObstacle) =>
+                placeLabels(
+                    new Map([
+                        [
+                            's',
+                            seriesLabels([
+                                buildBarPositionedLabelDatum(
+                                    TEXT,
+                                    50,
+                                    20,
+                                    [
+                                        {
+                                            box: { x: 25, y: 40, width: 50, height: 20 },
+                                            region,
+                                            slideAxis: 'y',
+                                            fitTo: { container: { width: 60, height: 60 }, anchor, padding },
+                                        },
+                                    ],
+                                    target(),
+                                    region,
+                                    false,
+                                    {},
+                                    0,
+                                    true,
+                                    { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
+                                ),
+                            ]),
+                        ],
+                    ]),
+                    bounds,
+                    0,
+                    [obstacle]
+                ).get('s')!;
+            const obstacle = (x: number, y: number, width: number, height: number): LabelObstacle => ({
+                kind: 'rect',
+                box: { x, y, width, height },
+                category: 'label',
+            });
+
+            it('nudges a label clear of an obstacle a few pixels along the bar', () => {
+                const [placed] = placeNudged(obstacle(0, 30, 100, 13));
+                expect(placed.text).toBe(TEXT);
+                expect(placed.x).toBe(25);
+                expect(placed.y).toBe(43);
+            });
+
+            it('hides a label that would need more than the nudge allowance', () => {
+                expect(placeNudged(obstacle(0, 30, 100, 16))).toEqual([]);
+            });
+
+            it('truncates in place rather than nudging a label across the bar', () => {
+                const [placed] = placeNudged(obstacle(0, 40, 27, 20));
+                expect(placed.text).toBe('WWW…');
+                expect(placed.x + placed.width / 2).toBe(50);
+                expect(placed.y).toBe(40);
+            });
+        });
     });
 });
 
@@ -2720,15 +2781,92 @@ describe('placeLabels collision shrink', () => {
         expect(place([shrinkable(200, { fit: undefined })], [leftBlocker])).toEqual([]);
     });
 
-    it('keeps the full-size fallback when no size clears and the label is kept', () => {
+    describe('when no size clears and the label is kept', () => {
         const wide: LabelObstacle = {
             kind: 'rect',
             box: { x: 100, y: 180, width: 105, height: 20 },
             category: 'label',
         };
-        const [placed] = place([shrinkable(200, { alwaysShow: true })], [wide]);
-        expect(placed.fontSize).toBeUndefined();
-        expect(placed.width).toBe(50);
+
+        it('keeps the fallback at minimumFontSize', () => {
+            const [placed] = place([shrinkable(200, { alwaysShow: true })], [wide]);
+            expect(placed.fontSize).toBe(6);
+            expect(placed.width).toBeCloseTo(25);
+            expect(placed.text).toBe(TEXT);
+        });
+
+        it('keeps the fallback at its configured size without a minimumFontSize', () => {
+            const datum = shrinkable(200, {
+                alwaysShow: true,
+                fit: { text: TEXT, policy: {}, font: FONT, boxPadding: NO_PADDING, boundByRegion: false },
+            });
+            const [placed] = place([datum], [wide]);
+            expect(placed.fontSize).toBeUndefined();
+            expect(placed.width).toBe(50);
+        });
+    });
+
+    describe('when the itemStyler resolves a larger font', () => {
+        // 'WWWWW' centred on x=200 measures 100px at 24px, so it clears an obstacle ending at x=157 from 20px
+        // down (83.3px wide, left edge 158.3) but not at 21px (87.5px wide, left edge 156.25).
+        const blocker: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 100, y: 180, width: 57, height: 20 },
+            category: 'label',
+        };
+        const STYLED = { ...FONT, fontSize: 24 };
+        const datum = () =>
+            shrinkable(200, {
+                fit: {
+                    text: TEXT,
+                    policy: { minimumFontSize: 8 },
+                    font: FONT,
+                    boxPadding: NO_PADDING,
+                    boundByRegion: false,
+                },
+            });
+
+        it('compass path: shrinks from the styled size to the largest that clears', () => {
+            const resolveCandidateStyle: CandidateStyleResolver = () => ({ font: STYLED, boxPadding: NO_PADDING });
+            const [placed] = placeLabels(new Map([['s', { datums: [datum()], resolveCandidateStyle }]]), bounds, 0, [
+                blocker,
+            ]).get('s')!;
+            expect(placed.fontSize).toBe(20);
+        });
+
+        it('control: unblocked styled labels draw at the styled size', () => {
+            const resolveCandidateStyle: CandidateStyleResolver = () => ({ font: STYLED, boxPadding: NO_PADDING });
+            const [placed] = placeLabels(new Map([['s', { datums: [datum()], resolveCandidateStyle }]]), bounds, 0).get(
+                's'
+            )!;
+            expect(placed.width).toBe(100);
+        });
+
+        it('positioned path: shrinks from the styled size to the largest that clears', () => {
+            const anchor: OrientationAnchor = { x: 200, y: 190, textAlign: 'center', textBaseline: 'middle' };
+            const padding = NO_PADDING;
+            const d = buildBarPositionedLabelDatum(
+                TEXT,
+                50,
+                20,
+                [{ box: { x: 175, y: 180, width: 50, height: 20 }, fitTo: { anchor, padding } }],
+                { rotation: 0 },
+                { x: 0, y: 300, width: 10, height: 10 },
+                false,
+                {},
+                0,
+                false,
+                { text: TEXT, policy: { minimumFontSize: 8 }, font: FONT, boxPadding: NO_PADDING }
+            );
+            const resolveCandidate: PositionedCandidateResolver = (_d, c) => ({
+                ...c,
+                fitTo: { ...c.fitTo!, font: STYLED },
+            });
+            const [placed] = placeLabels(new Map([['s', { datums: [d], resolveCandidate }]]), bounds, 0, [blocker]).get(
+                's'
+            )!;
+            expect(placed.fontSize).toBe(20);
+        });
     });
 
     it('blocks a later label by the shrunken box rather than the full-size one', () => {

@@ -245,6 +245,10 @@ export type DatumPropertyType = 'range' | 'category';
 // Keep track of the number of missing values in each per-series data array.
 export type MissMap = Map<string, number>;
 
+/**
+ * Maps a datum's keys to its group's keys. The `keys` array is reused between calls, so the function must not retain
+ * it; return a copy to keep one.
+ */
 export type GroupingFn<K> = (keys: unknown[]) => K[];
 export type GroupByFn = (extractedData: UngroupedData<any>) => GroupingFn<any>;
 export type DataModelOptions<K, Grouped extends boolean | undefined, IsScoped extends boolean = true> = {
@@ -320,7 +324,13 @@ export type AggregatePropertyDefinition<
 > = Omit<PropertyIdentifiers, 'scopes'> &
     PropertySelectors & {
         type: 'aggregate';
-        aggregateFunction: (values: D[K][], keys?: D[K][]) => R;
+        /**
+         * Called once per datum. `out`, when provided, is a caller-owned scratch tuple the function may re-seed,
+         * fill and return instead of allocating. `values` and `out` are reused across calls, so neither may be
+         * retained, and callers must use the returned tuple. The returned tuple must be `out` or a fresh array,
+         * never a retained or shared one, because callers (e.g. `area`) may modify it in place.
+         */
+        aggregateFunction: (values: D[K][], keys?: D[K][], out?: R) => R;
         groupAggregateFunction?: (next?: R, acc?: R2) => R2;
         finalFunction?: (result: R2) => [number, number];
     };
