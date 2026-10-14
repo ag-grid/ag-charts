@@ -9,6 +9,7 @@ import {
     calculateAxisBBox,
     cartesianChartAssertions,
     compareImageSnapshot,
+    deproxy,
     mixinDerivedCases,
     setupMockCanvas,
     setupMockConsole,
@@ -520,7 +521,7 @@ describe('Ordinal Time Axis Examples', () => {
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
         it(`for ${exampleName} it should create chart instance as expected`, async () => {
-            chart = await createEnterpriseChart(example.options);
+            chart = deproxy(await createEnterpriseChart(example.options));
             await example.assertions(chart);
         });
 
@@ -538,7 +539,7 @@ describe('Ordinal Time Axis Examples', () => {
                 }
             };
 
-            chart = await createEnterpriseChart(example.options);
+            chart = deproxy(await createEnterpriseChart(example.options));
             await axisCompare();
 
             if (example.extraScreenshotActions) {
@@ -556,25 +557,27 @@ describe('Ordinal Time Axis Examples', () => {
                 return { timestamp, price: 1 };
             }).reverse();
 
-            chart = await createEnterpriseChart<AgCartesianChartOptions>({
-                data,
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'timestamp',
-                        yKey: 'price',
-                        marker: { enabled: false },
+            chart = deproxy(
+                await createEnterpriseChart<AgCartesianChartOptions>({
+                    data,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'timestamp',
+                            yKey: 'price',
+                            marker: { enabled: false },
+                        },
+                    ],
+                    axes: {
+                        y: { type: 'number', position: 'left' },
+                        x: {
+                            type: 'ordinal-time',
+                            position: 'bottom',
+                            parentLevel: { enabled: true },
+                        },
                     },
-                ],
-                axes: {
-                    y: { type: 'number', position: 'left' },
-                    x: {
-                        type: 'ordinal-time',
-                        position: 'bottom',
-                        parentLevel: { enabled: true },
-                    },
-                },
-            });
+                })
+            );
 
             const axis = (chart.axes as _ModuleSupport.ChartAxis[]).find((a) => a.type === 'ordinal-time')!;
 
@@ -613,7 +616,7 @@ describe('Ordinal Time Axis Examples', () => {
 
         const isParentTier = (text: string) => /[A-Za-z]/.test(text);
 
-        chart = await createEnterpriseChart(baseLabelOptions(true));
+        chart = deproxy(await createEnterpriseChart(baseLabelOptions(true)));
         const withBase = labelTexts(chart);
         // Base (numeric day) and parent (month name) tiers both present initially.
         expect(withBase.some((t) => !isParentTier(t))).toBe(true);
@@ -630,18 +633,18 @@ describe('Ordinal Time Axis Examples', () => {
 
     it('should render interval on as expected', async () => {
         const options = applyIntervalOn(BASIC_ORDINAL_TIME_AXIS_EXAMPLE, ['ordinal-time']);
-        chart = await createEnterpriseChart(options);
+        chart = deproxy(await createEnterpriseChart(options));
         await compareImageSnapshot(chart, ctx);
     });
 
     it('should render interval between as expected', async () => {
         const options = applyIntervalBetween(BASIC_ORDINAL_TIME_AXIS_EXAMPLE, ['ordinal-time']);
-        chart = await createEnterpriseChart(options);
+        chart = deproxy(await createEnterpriseChart(options));
         await compareImageSnapshot(chart, ctx);
     });
 
     it('should render reversed ordinal-time axis zoomed to end as expected', async () => {
-        chart = await createEnterpriseChart(ORDINAL_TIME_AXIS_REVERSED_ZOOM_END);
+        chart = deproxy(await createEnterpriseChart(ORDINAL_TIME_AXIS_REVERSED_ZOOM_END));
         await compareImageSnapshot(chart, ctx);
     });
 
@@ -653,15 +656,17 @@ describe('Ordinal Time Axis Examples', () => {
             open: 100 + Math.sin(i / 100) * 50,
         }));
 
-        chart = await createEnterpriseChart({
-            width: 300,
-            height: 200,
-            data: largeData,
-            axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
-            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
-            zoom: {},
-            initialState: { zoom: { ratioX: { start: 0.499, end: 0.501 } } },
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                width: 300,
+                height: 200,
+                data: largeData,
+                axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
+                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+                zoom: {},
+                initialState: { zoom: { ratioX: { start: 0.499, end: 0.501 } } },
+            })
+        );
 
         await waitForChartStability(chart);
         expect(chart).toBeDefined();
@@ -669,24 +674,26 @@ describe('Ordinal Time Axis Examples', () => {
 
     it('fits a label bounded through an ordinal-time axis theme override', async () => {
         const text = 'A cross line label long enough to need fitting';
-        chart = await createEnterpriseChart(
-            prepareEnterpriseTestOptions({
-                data: DATA,
-                series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
-                axes: {
-                    x: {
-                        type: 'ordinal-time',
-                        position: 'bottom',
-                        crossLines: [{ type: 'line', value: DATA[2].date }],
+        chart = deproxy(
+            await createEnterpriseChart(
+                prepareEnterpriseTestOptions({
+                    data: DATA,
+                    series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+                    axes: {
+                        x: {
+                            type: 'ordinal-time',
+                            position: 'bottom',
+                            crossLines: [{ type: 'line', value: DATA[2].date }],
+                        },
+                        y: { type: 'number', position: 'left' },
                     },
-                    y: { type: 'number', position: 'left' },
-                },
-                theme: {
-                    overrides: {
-                        common: { axes: { 'ordinal-time': { crossLines: { label: { text, maxWidth: 40 } } } } },
+                    theme: {
+                        overrides: {
+                            common: { axes: { 'ordinal-time': { crossLines: { label: { text, maxWidth: 40 } } } } },
+                        },
                     },
-                },
-            })
+                })
+            )
         );
 
         const [crossLine] = _ModuleSupport.getCrossLinesPlugin(chart.axes.findById('x'))!.getInstances() as any[];

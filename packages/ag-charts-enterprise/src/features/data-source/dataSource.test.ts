@@ -1021,6 +1021,7 @@ describe('DataSource', () => {
             sunburst: { series: [{ type: 'sunburst', labelKey: 'label', sizeKey: 'value' }] },
         };
 
+        // Bespoke: waits for the data service to finish loading rather than `waitForChartStability`.
         const createLoadedChart = async (options: AgChartOptions) => {
             const loaded = deproxy(AgCharts.create(prepareEnterpriseTestOptions(options)));
             await waitForChartStabilityUntil(

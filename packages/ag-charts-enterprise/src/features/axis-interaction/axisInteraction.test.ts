@@ -895,8 +895,8 @@ describe('AxisInteraction', () => {
 
         type ChartOverrides = Pick<AgCartesianChartOptions, 'axes' | 'zoom'>;
 
-        async function createChart(overrides: ChartOverrides = {}) {
-            const options: AgCartesianChartOptions = {
+        function chartOptions(overrides: ChartOverrides = {}): AgCartesianChartOptions {
+            return {
                 data: [
                     { x: 'A', y: 1 },
                     { x: 'B', y: 2 },
@@ -905,7 +905,6 @@ describe('AxisInteraction', () => {
                 listeners: { click: chartClick, doubleClick: chartDoubleClick },
                 ...overrides,
             };
-            return createEnterpriseChart(options);
         }
 
         beforeEach(() => {
@@ -914,7 +913,7 @@ describe('AxisInteraction', () => {
         });
 
         test('fires for a click on either axis area', async () => {
-            chart = deproxy(await createChart());
+            chart = deproxy(await createEnterpriseChart(chartOptions()));
 
             await clickAction(...X_AXIS_AREA)(chart);
             await clickAction(...Y_AXIS_AREA)(chart);
@@ -927,7 +926,7 @@ describe('AxisInteraction', () => {
         });
 
         test('fires doubleClick for a double-click on the axis area', async () => {
-            chart = deproxy(await createChart());
+            chart = deproxy(await createEnterpriseChart(chartOptions()));
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -936,7 +935,9 @@ describe('AxisInteraction', () => {
         });
 
         test('an axis listener consumes the click, and only for its own axis', async () => {
-            chart = deproxy(await createChart({ axes: { x: { listeners: { click } }, y: {} } }));
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ axes: { x: { listeners: { click } }, y: {} } }))
+            );
 
             await clickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -955,7 +956,9 @@ describe('AxisInteraction', () => {
         // A listener for one event type must not suppress the fallback for the other: the dispatch below
         // picks its listener by event type, so the unmatched event would otherwise reach nothing at all.
         test('a click-only axis listener leaves doubleClick to the chart', async () => {
-            chart = deproxy(await createChart({ axes: { x: { listeners: { click } }, y: {} } }));
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ axes: { x: { listeners: { click } }, y: {} } }))
+            );
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -967,7 +970,9 @@ describe('AxisInteraction', () => {
 
         test('a doubleClick-only axis listener leaves click to the chart', async () => {
             const doubleClick = vi.fn();
-            chart = deproxy(await createChart({ axes: { x: { listeners: { doubleClick } }, y: {} } }));
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ axes: { x: { listeners: { doubleClick } }, y: {} } }))
+            );
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -981,7 +986,9 @@ describe('AxisInteraction', () => {
         });
 
         test('zoom owns the axis, so nothing is handed back to the chart', async () => {
-            chart = deproxy(await createChart({ zoom: { enabled: true, enableDoubleClickToReset: true } }));
+            chart = deproxy(
+                await createEnterpriseChart(chartOptions({ zoom: { enabled: true, enableDoubleClickToReset: true } }))
+            );
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);

@@ -1445,13 +1445,13 @@ describe('RadialColumnSeries', () => {
             });
 
             it('defaults to a disabled shadow', async () => {
-                chart = await createEnterpriseChart(shadowOptions());
+                chart = deproxy(await createEnterpriseChart(shadowOptions()));
 
                 expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
             });
 
             it('shadows nothing when no shadow is set', async () => {
-                chart = await createEnterpriseChart(shadowOptions());
+                chart = deproxy(await createEnterpriseChart(shadowOptions()));
 
                 const shapes = collectShapes(chart.series[0].contentGroup);
                 expect(shapes).toHaveLength(shadowData.length);
@@ -1459,7 +1459,7 @@ describe('RadialColumnSeries', () => {
             });
 
             it('applies an enabled shadow to every shape', async () => {
-                chart = await createEnterpriseChart(shadowOptions(SHADOW));
+                chart = deproxy(await createEnterpriseChart(shadowOptions(SHADOW)));
 
                 const shapes = collectShapes(chart.series[0].contentGroup);
                 expect(shapes).toHaveLength(shadowData.length);
@@ -1469,7 +1469,7 @@ describe('RadialColumnSeries', () => {
             });
 
             it('renders with the shadow enabled', async () => {
-                chart = await createEnterpriseChart(shadowOptions(SHADOW));
+                chart = deproxy(await createEnterpriseChart(shadowOptions(SHADOW)));
                 await compare();
             });
         });

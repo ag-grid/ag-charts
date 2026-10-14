@@ -1215,6 +1215,8 @@ describe('Zoom', () => {
             return data;
         }
 
+        // Bespoke: delegates to this file's `prepareChart`, which derives the pointer position from the prepared options
+        // and clicks the chart after creation, neither of which the shared factory exposes.
         async function createMinichartChart(
             initialState: NonNullable<AgChartOptions['initialState']>['zoom'],
             myOptions: AgCartesianChartOptions<TDatum>

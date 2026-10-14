@@ -89,8 +89,7 @@ describe('HlcSeries', () => {
     };
 
     const createChart = async (options: AgChartOptions) => {
-        chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
         return deproxy(chart).series[0] as any;
     };
 
