@@ -245,6 +245,10 @@ export type DatumPropertyType = 'range' | 'category';
 // Keep track of the number of missing values in each per-series data array.
 export type MissMap = Map<string, number>;
 
+/**
+ * Maps a datum's keys to its group's keys. The `keys` array is reused between calls, so the function must not retain
+ * it; return a copy to keep one.
+ */
 export type GroupingFn<K> = (keys: unknown[]) => K[];
 export type GroupByFn = (extractedData: UngroupedData<any>) => GroupingFn<any>;
 export type DataModelOptions<K, Grouped extends boolean | undefined, IsScoped extends boolean = true> = {
