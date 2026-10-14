@@ -1184,6 +1184,36 @@ describe('ErrorBars', () => {
             await compare();
         });
 
+        it('places labels past the whiskers of a marker drawn off its point', async () => {
+            chart = await createEnterpriseChart({
+                series: [
+                    {
+                        type: 'scatter',
+                        data: [
+                            { x: 1, y: 6, lo: 3, hi: 6.5 },
+                            { x: 2, y: 5, lo: 2, hi: 5.5 },
+                        ],
+                        xKey: 'x',
+                        yKey: 'y',
+                        shape: 'pin',
+                        size: 30,
+                        label: { placement: 'bottom', spacing: SPACING },
+                        errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 3 },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                } as any,
+            });
+            const placed = placedLabelsOf(0);
+            expect(placed.length).toBe(2);
+            for (const label of placed) {
+                const { overlayBounds } = label.datum;
+                expect(label.y).toBeCloseTo(overlayBounds.y + overlayBounds.height + SPACING);
+            }
+        });
+
         it.each([false, true])(
             'moves inside labels off the whiskers drawn through them (reverse: %s)',
             async (reverse) => {

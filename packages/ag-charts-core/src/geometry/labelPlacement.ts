@@ -1367,10 +1367,10 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     return count + 1;
 }
 
-/** The point's gap on one axis, widened to clear the overlay on the side `direction` faces. */
-function overlayGap(gap: number, direction: number, point: number, start: number, size: number): number {
+/** The gap from `centre` on one axis, widened to clear the overlay on the side `direction` faces. */
+function overlayGap(gap: number, direction: number, centre: number, start: number, size: number): number {
     if (direction === 0) return gap;
-    return Math.max(gap, direction < 0 ? point - start : start + size - point);
+    return Math.max(gap, direction < 0 ? centre - start : start + size - centre);
 }
 
 /** Writes the label box top-left for `placement` into `out`, offset from the point by gap+spacing. */
@@ -1384,23 +1384,22 @@ function positionLabelBox(
     placement: LabelPlacement | undefined
 ) {
     const { point, anchor } = d;
+    const markerSize = markerSizeOf(d);
+    const shiftX = anchor ? (anchor.x - 0.5) * markerSize : 0;
+    const shiftY = anchor ? (anchor.y - 0.5) * markerSize : 0;
     let dx = 0;
     let dy = 0;
     if (gap > 0 && placement != null) {
         const vec = labelPlacements[placement];
         const overlay = d.overlayBounds;
-        const gapX = overlay == null ? gap : overlayGap(gap, vec.x, point.x, overlay.x, overlay.width);
-        const gapY = overlay == null ? gap : overlayGap(gap, vec.y, point.y, overlay.y, overlay.height);
+        // Clear the overlay from the marker's drawn centre, which the label is offset from.
+        const gapX = overlay == null ? gap : overlayGap(gap, vec.x, point.x - shiftX, overlay.x, overlay.width);
+        const gapY = overlay == null ? gap : overlayGap(gap, vec.y, point.y - shiftY, overlay.y, overlay.height);
         dx = (width / 2 + gapX + spacing) * vec.x;
         dy = (height / 2 + gapY + spacing) * vec.y;
     }
-    let x = point.x - width / 2 + dx;
-    let y = point.y - height / 2 + dy;
-    const markerSize = markerSizeOf(d);
-    if (anchor) {
-        x -= (anchor.x - 0.5) * markerSize;
-        y -= (anchor.y - 0.5) * markerSize;
-    }
+    let x = point.x - width / 2 + dx - shiftX;
+    let y = point.y - height / 2 + dy - shiftY;
     if (placement === 'inside' && d.insideOffset) {
         x += d.insideOffset.x * markerSize;
         y += d.insideOffset.y * markerSize;
