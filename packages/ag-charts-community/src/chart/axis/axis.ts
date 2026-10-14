@@ -86,7 +86,7 @@ import type { AxisLabelFormatterCache } from './axisLabelUtil';
 import { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { type AxisGroupDatumTranslation, NiceMode, type TickDatum } from './axisUtil';
-import type { AnyTimeInterval } from './generateTicksUtils';
+import { type AnyTimeInterval, isLabelFitEnabled } from './generateTicksUtils';
 
 export interface AxisPickDatum {
     readonly index: number;
@@ -896,7 +896,12 @@ export abstract class Axis<
 
     private getScrollbarLayoutCacheKey(chartLayout?: ChartLayout): string {
         const scrollbar = chartLayout?.scrollbars?.[this.id];
-        if (!scrollbar?.enabled) return 'none';
+        if (!scrollbar?.enabled) {
+            // Fitted labels depend on the axis cap even without a scrollbar.
+            return isLabelFitEnabled(this.options.label as { maxWidth?: number; maxHeight?: number })
+                ? `none:${chartLayout?.sizeLimit}`
+                : 'none';
+        }
         return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}:${chartLayout?.sizeLimit}`;
     }
 

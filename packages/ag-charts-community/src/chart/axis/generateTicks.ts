@@ -39,6 +39,9 @@ import {
     getTextAlign,
     getTextBaseline,
     getTimeIntervalTicks,
+    isLabelFitEnabled,
+    labelFitWrapOptions,
+    refitAutoRotatedLabels,
     ticksEqual,
     ticksSpacing,
     timeIntervalMaxLabelSize,
@@ -145,6 +148,16 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         avoidCollisions,
         tryAutoRotate ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335) : undefined
     );
+
+    if (autoRotation !== 0 && isLabelFitEnabled(label)) {
+        const refit = (keepWidth: boolean) => ({
+            ...tickData,
+            ticks: refitAutoRotatedLabels(options, tickData.ticks, autoRotation, keepWidth),
+        });
+        // At shallow angles a label widened onto one line can reach its neighbour, so keep the checked width.
+        const widened = refit(false);
+        tickData = checkLabelOverlap(widened, autoRotation) ? refit(true) : widened;
+    }
 
     const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
     const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
@@ -547,12 +560,17 @@ function createTimeLabelData<TScale extends Scale<TDatum, number, TickInterval<T
 
     const spacing = ticksSpacing(ticks);
     const { label, labelOffset, primaryLabel, domain } = options;
+    // Secondary labels are fitted on a continuous scale, which has no band to limit them.
+    const fitOptions = isLabelFitEnabled(label)
+        ? labelFitWrapOptions(label, options.isVertical, options.labelRoom ?? options.sizeLimit ?? Infinity, Infinity)
+        : undefined;
     const { width, height } = timeIntervalMaxLabelSize(
         label,
         primaryLabel,
         niceDomain ?? domain,
         timeInterval,
-        cachedTextMeasurer(label)
+        cachedTextMeasurer(label),
+        fitOptions
     );
 
     const labelData: BoxBounds[] = [];

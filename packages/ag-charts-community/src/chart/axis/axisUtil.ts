@@ -25,6 +25,8 @@ export interface TickDatum {
     tickId: string;
     translation: number;
     textUntruncated: string | undefined;
+    /** Formatter output of a label changed by maxWidth / maxHeight fitting, kept so it can be re-fitted. */
+    fitSource?: NormalisedTextOrSegments;
     isPrimary: boolean;
     textMetrics: Size;
 }
