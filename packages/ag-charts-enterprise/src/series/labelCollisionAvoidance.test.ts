@@ -1650,4 +1650,77 @@ describe('label collision avoidance', () => {
             });
         });
     });
+
+    describe('sankey', () => {
+        const data = [
+            { from: 'Alpha source with a long name', to: 'An interior node with a very long label', size: 10 },
+            { from: 'Beta', to: 'Another long interior label here', size: 6 },
+            { from: 'An interior node with a very long label', to: 'Gamma destination', size: 10 },
+            { from: 'Another long interior label here', to: 'Gamma destination', size: 6 },
+            { from: 'Gamma destination', to: 'Delta end of the long flow', size: 16 },
+        ];
+        const options = (label: object) => ({
+            data,
+            series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label }],
+        });
+        type LabelNode = { visible: boolean; text: string; getBBox(): Box };
+        const drawnLabels = () =>
+            (chart.series[0].labelSelection.nodes() as LabelNode[]).filter((node) => node.visible && node.text !== '');
+        const overlappingPairs = () => {
+            const boxes = drawnLabels().map((node) => node.getBBox());
+            let pairs = 0;
+            for (let i = 0; i < boxes.length; i++) {
+                for (let j = i + 1; j < boxes.length; j++) {
+                    if (overlaps(boxes[i], boxes[j])) pairs++;
+                }
+            }
+            return pairs;
+        };
+        const render = async (opts: object) => {
+            chart?.destroy();
+            prepareEnterpriseTestOptions(opts as AgChartOptions);
+            chart = deproxy(AgCharts.create({ ...opts, width: 520, height: 360 } as AgChartOptions));
+            await waitForChartStability(chart);
+        };
+
+        it('keeps centred labels running past their column clear of each other', async () => {
+            await render(options({ placement: 'center' }));
+            expect(drawnLabels().length).toBeGreaterThan(0);
+            expect(overlappingPairs()).toBe(0);
+        });
+
+        it('shrinks the label running past its column rather than the one within its own column', async () => {
+            await render(options({ placement: 'center' }));
+            const texts = drawnLabels().map((node) => node.text);
+            expect(texts).toContain('Alpha source with a…');
+            expect(texts).not.toContain('An interior node with a very long label');
+            expect(texts.some((text) => text.startsWith('An interior') && text.endsWith('…'))).toBe(true);
+        });
+
+        describe('when a label cannot shrink clear of a collision', () => {
+            const colliding = 'An interior node with a very long label';
+            const shortSource = data.map((d) => (d.from.startsWith('Alpha') ? { ...d, from: 'Alpha source' } : d));
+            const unshrinkable = (collision: object) => ({
+                ...options({ placement: 'center', wrapping: 'never', truncate: false, collision }),
+                data: shortSource,
+            });
+
+            it('hides it by default', async () => {
+                await render(unshrinkable({}));
+                const texts = drawnLabels().map((node) => node.text);
+                expect(texts).toContain('Alpha source');
+                expect(texts).not.toContain(colliding);
+            });
+
+            it('keeps it when alwaysShow is true', async () => {
+                await render(unshrinkable({ alwaysShow: true }));
+                expect(drawnLabels().map((node) => node.text)).toContain(colliding);
+            });
+        });
+
+        it('renders centred labels shrunk clear of each other', async () => {
+            await render(options({ placement: 'center' }));
+            await compareImageSnapshot(chart, ctx);
+        });
+    });
 });
