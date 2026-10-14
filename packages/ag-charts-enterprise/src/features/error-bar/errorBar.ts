@@ -2,7 +2,6 @@ import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-ch
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
-    type BoxBounds,
     ChartAxisDirection,
     type Logger,
     type NormalisedErrorBarOptions,
@@ -20,8 +19,14 @@ import {
 import type { Node } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
-import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
-import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
+import type { ErrorBarNodeDatum, ErrorBarStylingOptions, NormalisedErrorBarStyles } from './errorBarNode';
+import {
+    ErrorBarGroup,
+    ErrorBarNode,
+    errorBarCapLength,
+    errorBarDrawnBounds,
+    resolveErrorBarStyles,
+} from './errorBarNode';
 
 const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty } = _ModuleSupport;
 
@@ -40,23 +45,6 @@ type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
 type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
-
-type Whisker = ErrorBarNodeDatum['xBar'];
-
-/** The whiskers' drawn extent: their end points, widened by half the thickest stroke. */
-function whiskerBounds(midPoint: Point, xBar: Whisker, yBar: Whisker, halfStroke: number): BoxBounds | undefined {
-    if (xBar == null && yBar == null) return undefined;
-    const x0 = xBar == null ? midPoint.x : Math.min(xBar.lowerPoint.x, xBar.upperPoint.x);
-    const x1 = xBar == null ? midPoint.x : Math.max(xBar.lowerPoint.x, xBar.upperPoint.x);
-    const y0 = yBar == null ? midPoint.y : Math.min(yBar.lowerPoint.y, yBar.upperPoint.y);
-    const y1 = yBar == null ? midPoint.y : Math.max(yBar.lowerPoint.y, yBar.upperPoint.y);
-    return {
-        x: x0 - halfStroke,
-        y: y0 - halfStroke,
-        width: x1 - x0 + 2 * halfStroke,
-        height: y1 - y0 + 2 * halfStroke,
-    };
-}
 
 function clearOverlay(datum: ErrorBarNodeDatum) {
     // Writes only when set, so datums of series without error bars keep their shape.
@@ -236,7 +224,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         if (nodeData == null) return;
 
         for (const datum of nodeData) {
-            this.updateNodeDatum(datum);
+            this.updateWhiskers(datum);
         }
     }
 
@@ -247,16 +235,29 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     updateNodeDatum(datum: ErrorBarNodeDatum) {
+        if (!this.updateWhiskers(datum)) return;
+        // Resolved ahead of drawing so the series can anchor its label; `updateNode` refreshes it once drawn.
+        if (this.options.visible) {
+            const styles = this.resolveStyles(datum);
+            const capLength = errorBarCapLength(styles.capsStyle ?? {}, datum.capDefaults);
+            datum.overlayBounds = errorBarDrawnBounds(datum, styles.whiskerStyle, styles.capsStyle, capLength);
+        } else {
+            datum.overlayBounds = undefined;
+        }
+    }
+
+    /** Writes the datum's whisker end points, returning false (and clearing its overlays) when it has none. */
+    private updateWhiskers(datum: ErrorBarNodeDatum): boolean {
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
         if (!xScale || !yScale || !this.hasErrorBars()) {
             clearOverlay(datum);
-            return;
+            return false;
         }
         const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(datum);
         if (midPoint == null) {
             clearOverlay(datum);
-            return;
+            return false;
         }
 
         let xBar, yBar;
@@ -274,9 +275,22 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         }
         datum.xBar = xBar;
         datum.yBar = yBar;
-        const { visible, strokeWidth, cap } = this.options;
-        const halfStroke = Math.max(strokeWidth, cap.strokeWidth ?? strokeWidth) / 2;
-        datum.overlayBounds = visible ? whiskerBounds(midPoint, xBar, yBar, halfStroke) : undefined;
+        return true;
+    }
+
+    private resolveStyles(datum: ErrorBarNodeDatum): NormalisedErrorBarStyles {
+        const { cartesianSeries: series } = this;
+        const active = this.ctx.highlightManager.getActiveHighlight();
+        const isHighlight = active?.series.id === datum.series.id && active.datumIndex === datum.datumIndex;
+        return resolveErrorBarStyles(
+            datum,
+            this.getDefaultStyle(),
+            this.options,
+            series,
+            series.getHighlightStateString(active, isHighlight, datum.datumIndex),
+            series.getSelectionStateString(datum.datumIndex),
+            series.getCandidateStateString(datum.datumIndex)
+        );
     }
 
     private getMaybeFlippedKeys() {
@@ -366,7 +380,9 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             candidateState
         );
         node.updateBBoxes();
-        datum.overlayBoxes = this.options.visible ? node.bboxComponents : undefined;
+        const { visible } = this.options;
+        datum.overlayBounds = visible ? node.drawnBounds() : undefined;
+        datum.overlayBoxes = visible ? node.drawnBBoxComponents : undefined;
     }
 
     pickNodeExact(point: Point): PickNodeDatumResult {

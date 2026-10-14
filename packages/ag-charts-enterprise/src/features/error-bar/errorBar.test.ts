@@ -1036,25 +1036,103 @@ describe('ErrorBars', () => {
             await compare();
         });
 
-        it('keeps an inside-end label on its bar when the inner whisker reaches past the base', async () => {
+        it.each([-3, 0.15])(
+            'keeps an inside-end label on its bar when the inner whisker leaves no room (lo: %s)',
+            async (lo) => {
+                chart = await createEnterpriseChart({
+                    data: [
+                        { q: 'Q1', v: 2, lo, hi: 7 },
+                        { q: 'Q2', v: 20, lo: 18, hi: 22 },
+                    ],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'q',
+                            yKey: 'v',
+                            label: { placement: 'inside-end', spacing: SPACING },
+                            errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
+                        },
+                    ],
+                });
+                const [node] = nodeDataOf(0);
+                expect(node.label.y).toBeGreaterThan(node.y);
+                expect(node.label.y).toBeLessThan(node.y + node.height);
+            }
+        );
+
+        it.each([
+            ['a thicker cap', { cap: { strokeWidth: 10 } }, 5],
+            ['a hidden error bar', { visible: false }, undefined],
+        ])('anchors outside-end labels to the error bar an itemStyler draws (%s)', async (_, styled, capHalfStroke) => {
             chart = await createEnterpriseChart({
                 data: [
-                    { q: 'Q1', v: 2, lo: -3, hi: 7 },
-                    { q: 'Q2', v: 20, lo: 18, hi: 22 },
+                    { q: 'Q1', v: 10, lo: 8, hi: 14 },
+                    { q: 'Q2', v: 14, lo: 12, hi: 18 },
                 ],
                 series: [
                     {
                         type: 'bar',
                         xKey: 'q',
                         yKey: 'v',
-                        label: { placement: 'inside-end', spacing: SPACING },
-                        errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
+                        label: { placement: 'outside-end', spacing: SPACING },
+                        errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', itemStyler: () => styled },
                     },
                 ],
             });
-            const [node] = nodeDataOf(0);
-            expect(node.label.y).toBeGreaterThan(node.y);
-            expect(node.label.y).toBeLessThan(node.y + node.height);
+            const nodes = nodeDataOf(0);
+            expect(nodes.length).toBe(2);
+            for (const node of nodes) {
+                const top =
+                    capHalfStroke == null
+                        ? node.y
+                        : Math.min(node.yBar.lowerPoint.y, node.yBar.upperPoint.y) - capHalfStroke;
+                expect(node.label.y).toBeCloseTo(top - SPACING);
+            }
+        });
+
+        it('places a scatter label past the full length of its whisker caps', async () => {
+            chart = await createEnterpriseChart({
+                series: [
+                    {
+                        type: 'scatter',
+                        data: [
+                            { x: 1, y: 5, lo: 4.9, hi: 5.1 },
+                            { x: 2, y: 6, lo: 5.9, hi: 6.1 },
+                        ],
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: { placement: 'right', spacing: SPACING },
+                        errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', cap: { length: 40 } },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 3 },
+                    y: { type: 'number', position: 'left' },
+                } as any,
+            });
+            const placed = placedLabelsOf(0);
+            expect(placed.length).toBe(2);
+            for (const label of placed) {
+                expect(label.x).toBeCloseTo(label.datum.midPoint.x + 20 + SPACING);
+            }
+        });
+
+        it('publishes no collision obstacles for hidden caps', async () => {
+            chart = await createEnterpriseChart({
+                data: MIXED_SIGN_DATA,
+                series: [
+                    {
+                        ...barSeries('a', 'outside-end'),
+                        errorBar: { yLowerKey: 'aLo', yUpperKey: 'aHi', cap: { visible: false } },
+                    },
+                ],
+            });
+            const nodes = nodeDataOf(0);
+            expect(nodes.length).toBe(MIXED_SIGN_DATA.length);
+            for (const node of nodes) {
+                expect(node.overlayBoxes.length).toBe(1);
+                expect(node.overlayBoxes[0].width).toBe(1);
+            }
         });
 
         it('places line and scatter labels past the whiskers on their side', async () => {

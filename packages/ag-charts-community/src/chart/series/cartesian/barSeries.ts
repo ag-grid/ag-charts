@@ -1099,7 +1099,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             for (const plugin of ctx.overlayPlugins) {
                 plugin.updateNodeDatum?.(node);
             }
-            endOverhang = barEndOverhang(node, rect, isUpward, ctx.barAlongX);
+            endOverhang = barEndOverhang(node, rect, isUpward, ctx.barAlongX, ctx.label.spacing);
         }
         if (nodeLabelText == null) {
             mutableNode.label = undefined;
