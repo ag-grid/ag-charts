@@ -106,6 +106,7 @@ import {
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     maxMarkerStrokePickInflation,
+    moveNodePoints,
     resetMarkerFn,
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,
@@ -636,6 +637,9 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         if (seriesBelowStackContext?.fillSpans) {
             phantomSpans = seriesBelowStackContext?.fillSpans;
         } else {
+            const baselineY = yScale.convert(0);
+            // Each bucket ends on the datum that starts the next, so its x is carried over rather than converted twice.
+            let nextX0 = 0;
             for (let metaIndex = m0; metaIndex < m1; metaIndex += 1) {
                 const startIndex = metaIndices[metaIndex];
                 const endIndex = metaIndices[metaIndex + 1];
@@ -646,13 +650,16 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 const xValue0 = xValues[startDatumIndex];
                 const xValue1 = xValues[endDatumIndex];
 
+                const x0 = metaIndex === m0 ? xScale.convert(xValue0) + xOffset : nextX0;
+                nextX0 = xScale.convert(xValue1) + xOffset;
+
                 const span: LinePathSpan['span'] = {
                     type: 'linear',
                     moveTo: false,
-                    x0: xScale.convert(xValue0) + xOffset,
-                    y0: yScale.convert(0),
-                    x1: xScale.convert(xValue1) + xOffset,
-                    y1: yScale.convert(0),
+                    x0,
+                    y0: baselineY,
+                    x1: nextX0,
+                    y1: baselineY,
                 };
 
                 phantomSpans.push({
@@ -669,6 +676,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const fillSpans: LinePathSpan[] = [];
         const strokeSpans: LinePathSpan[] = [];
         let phantomIndex = 0;
+        // The last datum of a bucket is also the first of the next, so keep its converted position to use it twice.
+        let carriedDatumIndex = -1;
+        let carriedX = 0;
+        let carriedY = 0;
         for (let metaIndex = m0; metaIndex < m1; metaIndex += 1) {
             const startIndex = metaIndices[metaIndex];
             const endIndex = metaIndices[metaIndex + 1];
@@ -687,7 +698,19 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 continue;
             }
 
-            const bucketPoints: LineSpanPointDatum[] = [];
+            // Only the end points and the interior points are needed, so track the end points in locals
+            // and emit each interior point as it is passed rather than staging a wrapper per point.
+            let validCount = 0;
+            let xDatum0: any;
+            let yDatum0: any;
+            let x0 = 0;
+            let y0 = 0;
+            let xDatum1: any;
+            let yDatum1: any;
+            let x1 = 0;
+            let y1 = 0;
+            let datumIndex1 = -1;
+            let midPoints: Point[] | undefined;
             for (let i = startIndex; i <= endIndex; i++) {
                 const datumIndex = indices[i];
                 if (invalidData?.[datumIndex]) continue;
@@ -697,41 +720,60 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 if (!isContinuous(yValue)) continue;
 
                 const xDatum = xValues[datumIndex];
-                bucketPoints.push({
-                    point: {
-                        x: xScale.convert(xDatum) + xOffset,
-                        y: yScale.convert(yValue),
-                    },
-                    xDatum,
-                    yDatum: yValue,
-                });
+                let x: number;
+                let y: number;
+                if (datumIndex === carriedDatumIndex) {
+                    x = carriedX;
+                    y = carriedY;
+                } else {
+                    x = xScale.convert(xDatum) + xOffset;
+                    y = yScale.convert(yValue);
+                }
+
+                if (validCount === 0) {
+                    xDatum0 = xDatum;
+                    yDatum0 = yValue;
+                    x0 = x;
+                    y0 = y;
+                } else if (validCount === 1) {
+                    midPoints = [];
+                } else {
+                    // The previous end point turned out to be an interior point.
+                    midPoints!.push({ x: x1, y: y1 });
+                }
+                xDatum1 = xDatum;
+                yDatum1 = yValue;
+                x1 = x;
+                y1 = y;
+                datumIndex1 = datumIndex;
+                validCount++;
             }
 
-            if (bucketPoints.length < 2) {
+            carriedDatumIndex = datumIndex1;
+            carriedX = x1;
+            carriedY = y1;
+
+            if (validCount < 2) {
                 fillSpans.push(phantomSpanDatum);
                 strokeSpans.push(phantomSpanDatum);
                 continue;
             }
 
-            const startPoint = bucketPoints[0];
-            const endPoint = bucketPoints.at(-1)!;
-            const midPoints: Point[] = bucketPoints.slice(1, -1).map((p) => p.point);
-
             const span: LinePathSpan['span'] = {
                 type: 'multi-line',
                 moveTo: false,
-                x0: startPoint.point.x,
-                y0: startPoint.point.y,
-                x1: endPoint.point.x,
-                y1: endPoint.point.y,
-                midPoints,
+                x0,
+                y0,
+                x1,
+                y1,
+                midPoints: midPoints!,
             };
             const spanDatum: LinePathSpan = {
                 span,
-                xValue0: startPoint.xDatum,
-                xValue1: endPoint.xDatum,
-                yValue0: startPoint.yDatum,
-                yValue1: endPoint.yDatum,
+                xValue0: xDatum0,
+                xValue1: xDatum1,
+                yValue0: yDatum0,
+                yValue1: yDatum1,
             };
 
             fillSpans.push(spanDatum);
@@ -1138,14 +1180,14 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 // Update existing node in place
                 existingNode.datum = scratch.datum;
                 existingNode.datumIndex = datumIndex;
-                existingNode.midPoint = { x: scratch.x, y: scratch.y };
                 // Metadata only (tooltips/error-bars); position already used the exact bigint, so narrowing here is fine.
                 existingNode.cumulativeValue = Number(scratch.yCumulative);
                 existingNode.cumulativeValueExact = scratch.yCumulative;
                 existingNode.yValue = scratch.yDatum;
                 existingNode.xValue = scratch.xDatum;
-                existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.markerSize };
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
+
+                moveNodePoints(existingNode, scratch.x, scratch.y, ctx.markerSize);
             } else {
                 ctx.nodes.push({
                     series: this,

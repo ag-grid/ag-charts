@@ -331,6 +331,32 @@ describe('MapShapeSeries', () => {
             });
         });
 
+        describe('itemStyler font size', () => {
+            const renderSizes = async (label: object) => {
+                const options: AgChartOptions = {
+                    data: usData,
+                    topology: usTopology,
+                    series: [{ type: 'map-shape', idKey: 'name', labelKey: 'code', label: { fontSize: 10, ...label } }],
+                } as AgChartOptions;
+                prepareEnterpriseTestOptions(options);
+                chart = deproxy(AgCharts.create(options));
+                await waitForChartStability(chart);
+                return (chart.series[0].contextNodeData?.labelData ?? []).map((d: { fontSize: number }) => d.fontSize);
+            };
+
+            it('lays labels out at the styled size', async () => {
+                const sizes = await renderSizes({ itemStyler: () => ({ fontSize: 20 }) });
+                expect(sizes.length).toBeGreaterThan(0);
+                expect(new Set(sizes)).toEqual(new Set([20]));
+            });
+
+            it('shrinks from the styled size rather than the configured one', async () => {
+                const sizes = await renderSizes({ minimumFontSize: 8, itemStyler: () => ({ fontSize: 20 }) });
+                expect(sizes).toContain(20);
+                expect(sizes.some((size: number) => size > 10 && size < 20)).toBe(true);
+            });
+        });
+
         // setupMockConsole() fails on any unasserted warning, so each case here must consume its deprecation notice.
         describe('deprecated overflowStrategy', () => {
             const render = async (label: object) => {

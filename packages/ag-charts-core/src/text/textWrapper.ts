@@ -99,6 +99,8 @@ export interface WrapOptions {
      * keeps every line on `maxWidth`, so a box-bounded label is unaffected.
      */
     maxWidthAt?: (top: number, bottom: number) => number;
+    /** A label fit drops a `'never'` line taller than `maxHeight`; other callers clip or keep it themselves. */
+    rejectTallFirstLine?: boolean;
 }
 
 /** Width the line spanning `[top, bottom]` of the block may use, capped by the label's own `maxWidth`. */
@@ -115,6 +117,12 @@ function shouldHideOverflow(clippedResult: string[], options: WrapOptions, sourc
     if (options.overflow !== 'hide') return false;
     if (clippedResult.some(isTextTruncated)) return true;
     return keptCharacterCount(clippedResult.join('')) < keptCharacterCount(source);
+}
+
+function firstLineOverflows(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
+    if (!options.rejectTallFirstLine || lines.length === 0 || !isFiniteNumber(options.maxHeight)) return false;
+    const lineHeight = options.lineHeight ?? measurer.measureLines(lines[0]).lineMetrics[0].height;
+    return lineHeight > options.maxHeight;
 }
 
 function keptCharacterCount(text: string) {
@@ -158,6 +166,7 @@ export function fitLabelText(
         lineHeight,
         textWrap: wrapping,
         overflow,
+        rejectTallFirstLine: true,
     };
     // This caller writes the text where it already is, so the fit has to be the one the anchor can draw:
     // an offset chosen to exploit an asymmetric shape would be discarded here and the text overflow it.
@@ -190,6 +199,7 @@ export function fitLabelTextToRegion(
             lineHeight: fit.lineHeight,
             textWrap: fit.wrapping,
             overflow,
+            rejectTallFirstLine: true,
         },
         fit.region,
         fit.regionAlign ?? 'center',
@@ -738,6 +748,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
             result.push(truncatedLine);
             widthOffset = 0;
         }
+        if (firstLineOverflows(result, measurer, options)) return [];
         return shouldHideOverflow(result, options, text) ? [] : result;
     }
 

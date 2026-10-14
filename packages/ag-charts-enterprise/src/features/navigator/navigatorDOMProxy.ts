@@ -7,6 +7,7 @@ export type NavigatorButtonType = 'min' | 'max' | 'pan';
 type SliderDragHandlers = {
     onDragStart(type: NavigatorButtonType, event: { offsetX: number }): void;
     onDrag(type: NavigatorButtonType, event: { offsetX: number }): void;
+    toZoomRatios(ratios: { min: number; max: number }): { min: number; max: number };
 };
 
 type NavigatorDOMProxyModuleContext = Pick<
@@ -97,7 +98,7 @@ export class NavigatorDOMProxy {
 
         this.ctx.zoomManager?.updateZoom(
             { source: 'user-interaction', sourceDetail: 'navigatorDOM' },
-            { x: { min, max } }
+            { x: this.sliderHandlers.toZoomRatios({ min, max }) }
         );
     }
 

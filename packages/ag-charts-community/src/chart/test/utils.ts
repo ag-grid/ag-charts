@@ -322,16 +322,18 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
     }
 
     if (typeof options?.theme === 'object') {
-        // fontFamily must stay pinned to the bundled test font even in dark mode: the default stack
-        // is unregistered and resolves per-platform, breaking snapshots.
+        // fontFamily must stay pinned to the bundled test font whatever params a test supplies: the
+        // default stack is unregistered and resolves per-platform, breaking snapshots.
+        const fontFamily = baseTestTheme.params!.fontFamily;
+        let params = options.theme.params ? { fontFamily, ...options.theme.params } : baseTestTheme.params;
+        if (baseThemeString === 'ag-default-dark') {
+            params = { fontFamily };
+        }
         baseTestTheme = {
             ...options.theme,
             baseTheme: options.theme.baseTheme ?? baseTestTheme.baseTheme,
             palette: options.theme.palette ?? baseTestTheme.palette,
-            params:
-                baseThemeString === 'ag-default-dark'
-                    ? { fontFamily: baseTestTheme.params!.fontFamily }
-                    : (options.theme.params ?? baseTestTheme.params),
+            params,
         };
     } else if (typeof options?.theme === 'string') {
         // Override colours.
@@ -360,7 +362,7 @@ export interface SeriesAggregationInternals {
     id: string;
     data: { getItemIdFromIndex(datumIndex: number): string | number } | undefined;
     dataAggregation: object | undefined;
-    aggregateIndexSet?: Map<number, number[]>;
+    aggregateIndexSet?: Map<number, Uint32Array>;
     contextNodeData?: { nodeData?: ReadonlyArray<unknown> };
     /** Present on series that aggregate via `AggregationManager` (e.g. range-bar). */
     aggregationManager?: { getFilterForRange(range: number): { maxRange: number } | undefined };
@@ -393,6 +395,55 @@ export function getAggregatedMarkerXValues(chartOrProxy: ChartOrProxy<any>, seri
     expect(series.dataAggregation).toBeDefined();
     const nodeData = (series.contextNodeData?.nodeData ?? []) as ReadonlyArray<{ xValue: number }>;
     return nodeData.map(({ xValue }) => xValue).sort((a, b) => a - b);
+}
+
+/**
+ * Asserts that the markers of an aggregated bubble/scatter series stand for every datum exactly once: each cluster
+ * marker for the datums of its index set, each other marker for its own datum. A cluster's index set is read through
+ * the bucket lookup in ascending datum order, as selection changes list it, and reading it leaves the cluster's
+ * stored indices as they were.
+ */
+export function expectAggregatedMarkersCoverEveryDatumOnce(
+    chartOrProxy: ChartOrProxy<any>,
+    datumCount: number,
+    seriesIndex = 0
+) {
+    const series = getSeriesAggregationInternals(chartOrProxy, seriesIndex);
+    expect(series.dataAggregation).toBeDefined();
+    const clusters = series.aggregateIndexSet;
+    expect(clusters).toBeDefined();
+    const bucketLookup = series.ensureBucketLookupFeature();
+    expect(bucketLookup).toBeDefined();
+
+    const represented = new Set<number>();
+    const represent = (datumIndex: number) => {
+        expect(represented.has(datumIndex)).toBe(false);
+        represented.add(datumIndex);
+    };
+
+    let clusteredDatums = 0;
+    for (const [primaryDatumIndex, stored] of clusters!) {
+        const storedBefore = Array.from(stored);
+        const indexSet = Array.from(bucketLookup!.getIndexSet(primaryDatumIndex)!);
+
+        expect(indexSet).toEqual([...storedBefore].sort((a, b) => a - b));
+        expect(indexSet).toContain(primaryDatumIndex);
+        expect(Array.from(stored)).toEqual(storedBefore);
+        expect(Array.from(bucketLookup!.getIndexSet(primaryDatumIndex)!)).toEqual(indexSet);
+
+        for (const datumIndex of indexSet) {
+            represent(datumIndex);
+        }
+        clusteredDatums += indexSet.length;
+    }
+    // Aggregation must have actually clustered something, or the checks above held vacuously.
+    expect(clusteredDatums).toBeGreaterThan(clusters!.size);
+
+    const nodeData = (series.contextNodeData?.nodeData ?? []) as ReadonlyArray<{ datumIndex: number }>;
+    for (const { datumIndex } of nodeData) {
+        if (!clusters!.has(datumIndex)) represent(datumIndex);
+    }
+    expect(represented.size).toBe(datumCount);
 }
 
 export function repeat<T>(value: T, count: number): T[] {
@@ -1122,6 +1173,15 @@ export async function tabIntoChart(chart: ChartOrProxy) {
     expect(announcer).not.toBeNull();
     announcer!.focus();
     await waitForChartStability(chart);
+}
+
+// The swap-chain's visible announcer is labelled by the text read out for the focused datum.
+export function getSwapChainText() {
+    const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[aria-hidden="false"]');
+    expect(announcer).not.toBeNull();
+    const label = document.getElementById(announcer!.getAttribute('aria-labelledby') ?? '');
+    expect(label).not.toBeNull();
+    return label!.textContent;
 }
 
 // The series-area widget handles keyboard navigation.

@@ -1300,6 +1300,7 @@ function positionBarLabelCandidate<TPlacement extends string>(
         box: { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh },
         region,
         flushToRegion: isInside ? undefined : false,
+        slideAxis: spec.isVertical ? 'y' : 'x',
         rotation: rotationDeg === 0 ? undefined : rotationDeg,
         anchor,
         placement: reportedPlacement,

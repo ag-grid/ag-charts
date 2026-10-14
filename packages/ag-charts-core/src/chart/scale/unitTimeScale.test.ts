@@ -129,6 +129,90 @@ describe('UnitTimeScale', () => {
         });
     });
 
+    // Ten bands over [0, 100] with no padding: band i starts at 10 * i and a value is `fraction` of the way to
+    // the next band, so every expected position here follows from the band layout alone.
+    describe('convert by alignment', () => {
+        const HOUR_MS = 60 * 60 * 1000;
+        const DAY_MS = 24 * HOUR_MS;
+        const unitCases: [string, AgTimeIntervalUnit, Date, number][] = [
+            ['linear unit (hour)', 'hour', new Date(2024, 0, 1, 0), HOUR_MS],
+            ['calendar unit (day)', 'day', new Date(2024, 0, 1), DAY_MS],
+        ];
+
+        describe.each(unitCases)('%s', (_name, unit, start, unitMs) => {
+            const bandStart = (index: number) => new Date(start.valueOf() + index * unitMs);
+            const at = (index: number, fraction: number) => new Date(start.valueOf() + (index + fraction) * unitMs);
+            const create = () => createScale([bandStart(0), bandStart(9)], unit);
+
+            it('leading alignment puts a value on the band containing it', () => {
+                const scale = create();
+
+                expect(scale.convert(bandStart(0))).toBe(0);
+                expect(scale.convert(at(2, 0.5))).toBe(20);
+                expect(scale.convert(at(8, 0.99))).toBe(80);
+                expect(scale.convert(bandStart(9))).toBe(90);
+            });
+
+            it('trailing alignment puts a value on the first band at or after it', () => {
+                const scale = create();
+
+                expect(scale.convert(bandStart(3), { alignment: ScaleAlignment.Trailing })).toBe(30);
+                expect(scale.convert(at(2, 0.5), { alignment: ScaleAlignment.Trailing })).toBe(30);
+            });
+
+            it('interpolate alignment positions a value between the bands around it', () => {
+                const scale = create();
+
+                expect(scale.convert(bandStart(4), { alignment: ScaleAlignment.Interpolate })).toBe(40);
+                expect(scale.convert(at(2, 0.5), { alignment: ScaleAlignment.Interpolate })).toBe(25);
+                expect(scale.convert(at(6, 0.25), { alignment: ScaleAlignment.Interpolate })).toBe(62.5);
+                expect(scale.convert(at(8, 0.5), { alignment: ScaleAlignment.Interpolate })).toBe(85);
+                // Within the final band there is no next band, so the last step continues.
+                expect(scale.convert(at(9, 0.5), { alignment: ScaleAlignment.Interpolate })).toBe(95);
+            });
+
+            it('clamped conversions stay within the range for every alignment', () => {
+                const scale = create();
+                const before = new Date(start.valueOf() - 3 * unitMs);
+                const after = new Date(start.valueOf() + 20 * unitMs);
+
+                for (const alignment of [ScaleAlignment.Leading, ScaleAlignment.Trailing, ScaleAlignment.Interpolate]) {
+                    expect(scale.convert(before, { clamp: true, alignment })).toBe(0);
+                    expect(scale.convert(after, { clamp: true, alignment })).toBe(100);
+                }
+                expect(scale.convert(at(4, 0.5), { clamp: true, alignment: ScaleAlignment.Interpolate })).toBe(45);
+            });
+
+            it('gives the same positions whether or not the numeric bands were read first', () => {
+                const fresh = create();
+                const warmed = create();
+                expect(warmed.exposedNumericBands).toHaveLength(10);
+                const options = [
+                    {},
+                    { clamp: true },
+                    { alignment: ScaleAlignment.Trailing },
+                    { alignment: ScaleAlignment.Interpolate },
+                    { clamp: true, alignment: ScaleAlignment.Interpolate },
+                ];
+
+                for (const value of [at(-1, 0.5), bandStart(0), at(3, 0.5), bandStart(5), at(9, 0.5), at(12, 0)]) {
+                    for (const option of options) {
+                        expect(fresh.convert(value, option)).toBe(warmed.convert(value, option));
+                    }
+                }
+            });
+        });
+
+        it('positions a value in a month of 31 days by the elapsed time within the band', () => {
+            const scale = createScale([new Date(2022, 0, 1), new Date(2022, 11, 1)], 'month');
+            const halfJanuary = new Date(new Date(2022, 0, 1).valueOf() + 15.5 * DAY_MS);
+
+            expect(scale.convert(halfJanuary, { alignment: ScaleAlignment.Interpolate })).toBeCloseTo(100 / 24, 10);
+            expect(scale.convert(halfJanuary)).toBe(0);
+            expect(scale.convert(new Date(2022, 5, 1))).toBeCloseTo((100 * 5) / 12, 10);
+        });
+    });
+
     it('coerces ISO string and bigint epoch to the same position as the equivalent Date', () => {
         const scale = new UnitTimeScale();
         scale.range = [0, 100];

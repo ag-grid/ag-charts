@@ -1101,10 +1101,9 @@ describe('DataSelection', () => {
 
             const expandedIndices = bucketLookup!.getIndexSet(primaryDatumIndex);
             expect(expandedIndices).toBeDefined();
-            expect([...expandedIndices!]).toEqual(expect.arrayContaining(expectedIndices));
-            expect([...expandedIndices!]).toHaveLength(expectedIndices.length);
+            expect([...expandedIndices!]).toEqual([...expectedIndices].sort((a, b) => a - b));
 
-            const itemsToSelect = expectedIndices.map((idx) => ({
+            const itemsToSelect = Array.from(expectedIndices, (idx) => ({
                 seriesId,
                 itemId: dataSet.getItemIdFromIndex(idx),
             }));

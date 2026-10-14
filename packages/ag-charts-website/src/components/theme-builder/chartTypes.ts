@@ -16,6 +16,7 @@ import {
     PREVIEW_DATA,
     SERIES_COUNT_OPTIONS,
     THUMBNAIL_DATA,
+    THUMBNAIL_LINE_KEY,
     THUMBNAIL_SERIES_KEYS,
     seriesFor,
     totalsFor,
@@ -62,14 +63,18 @@ export type PreviewChartType = {
 
 /**
  * The chart every preset card draws, so a row of cards reads as a row of
- * palettes rather than of shapes. Eight series, the stock palettes only
- * diverging a few slots in.
+ * palettes rather than of shapes. Eight bar series, the stock palettes only
+ * diverging a few slots in, and a line in the ninth.
  */
 export const THUMBNAIL_OPTIONS: AgChartOptions = {
     data: THUMBNAIL_DATA,
-    series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'bar', xKey: 'period', yKey: key })),
+    series: [
+        // Stacked, as each month has one bar and grouping would leave it an eighth of the band.
+        ...THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'bar' as const, xKey: 'month', yKey: key, stacked: true })),
+        { type: 'line', xKey: 'month', yKey: THUMBNAIL_LINE_KEY },
+    ],
     // Text, so a preset's typography shows on its card.
-    title: { text: 'Quarterly Revenue' },
+    title: { text: 'Monthly Revenue' },
     axes: {
         x: { type: 'category', position: 'bottom' },
         y: { type: 'number', position: 'left' },
@@ -275,11 +280,10 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
          * No series-strokes switch: daily candles render barely a pixel wide,
          * below the three AG Charts needs to draw a body rather than a wick.
          */
-        features: [...CARTESIAN_FEATURES.filter((id) => id !== 'seriesStrokes'), 'rangeButtons', 'toolbar'],
+        features: [...CARTESIAN_FEATURES.filter((id) => id !== 'seriesStrokes'), 'rangeButtons'],
         tooltipTarget: CANDLESTICK_TOOLTIP_TARGET,
         buildOptions: (_count, features, showZoomButtons) => {
             const crosshair = { enabled: isFeatureActive(features, 'crosshairs') };
-            const toolbar = { enabled: isFeatureActive(features, 'toolbar') };
             return {
                 data: CANDLESTICK_DATA,
                 title: { text: 'Acme Corp.' },
@@ -301,7 +305,6 @@ export const PREVIEW_CHART_TYPES: PreviewChartType[] = [
                 },
                 ...navigationOptions(features, showZoomButtons),
                 ranges: { enabled: isFeatureActive(features, 'rangeButtons') },
-                annotations: { ...toolbar, toolbar },
                 ...commonOptions(features),
             };
         },

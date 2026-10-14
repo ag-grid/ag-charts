@@ -114,6 +114,7 @@ function setPixelValue(style: CSSStyleDeclaration, key: string, value: number | 
     if (value == null) {
         style.removeProperty(key);
     } else {
-        style.setProperty(key, `${value}px`);
+        const px = Math.abs(value) < 1e-6 ? 0 : value;
+        style.setProperty(key, `${px}px`);
     }
 }

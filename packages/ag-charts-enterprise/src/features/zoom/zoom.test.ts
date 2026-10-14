@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     type AgCartesianChartOptions,
@@ -18,8 +18,10 @@ import {
     doubleTapAction,
     dragAction,
     findChartTarget,
+    focusIndicatorContainsCanvasPoint,
     getAggregatedMarkerXValues,
     getLegendModule,
+    getSwapChainText,
     hoverAction,
     mouseDownAction,
     mouseMoveAction,
@@ -35,7 +37,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection, type DeepReadonly, Transformable } from 'ag-charts-core';
-import { WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
+import { Caster, WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -1029,6 +1031,32 @@ describe('Zoom', () => {
         });
     });
 
+    describe('preserveDomain on discrete time axes', () => {
+        const day = 24 * 60 * 60 * 1000;
+        const unitTimeOptions = (): AgChartOptions => ({
+            data: Array.from({ length: 10 }, (_, i) => ({ date: new Date(Date.UTC(2024, 0, 1) + i * day), value: i })),
+            series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+            axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+            zoom: { enabled: true, onDataChange: { strategy: 'preserveDomain' } },
+        });
+
+        it('keeps a fractional window across a data update that leaves the domain unchanged', async () => {
+            const options = unitTimeOptions();
+            await prepareChart(undefined, { ratioX: { start: 0.23, end: 0.77 } }, options, false);
+            await waitForChartStability(chart);
+
+            await chart.update({
+                ...options,
+                data: options.data!.map((d: any) => ({ ...d, value: d.value + 1 })),
+            } as AgChartOptions);
+            await waitForChartStability(chart);
+
+            const { start, end } = chart.getState().zoom?.ratioX ?? {};
+            expect(start).toBeCloseTo(0.23, 3);
+            expect(end).toBeCloseTo(0.77, 3);
+        });
+    });
+
     describe('autoScaling', () => {
         it('should auto scale the y axis on a continuous x axis', async () => {
             const options: AgCartesianChartOptions = {
@@ -1796,6 +1824,82 @@ describe('Zoom', () => {
             expect(start).toBeGreaterThan(0);
             expect(end).toBeGreaterThan(0.25);
             expect(end - start).toBeCloseTo(0.25, 10);
+        });
+
+        describe('AG-14101 ArrowDown into a series whose datum is outside the viewport', () => {
+            function getBarCentre(seriesIndex: number, datumIndex: number) {
+                const series = new Caster(deproxy(chart))
+                    .accessProperty('series')
+                    .accessProperty(`${seriesIndex}`)
+                    .cast(_ModuleSupport.AbstractBarSeries).value;
+                const node = series.getNodeData()?.find((datum) => datum.datumIndex === datumIndex) as
+                    { x: number; y: number; width: number; height: number } | undefined;
+                expect(node).toEqual(
+                    expect.objectContaining({
+                        x: expect.any(Number),
+                        y: expect.any(Number),
+                        width: expect.any(Number),
+                        height: expect.any(Number),
+                    })
+                );
+                return Transformable.toCanvasPoint(
+                    series.contentGroup,
+                    node!.x + node!.width / 2,
+                    node!.y + node!.height / 2
+                );
+            }
+
+            beforeEach(async () => {
+                // Each series has 1,000 records, so the bar series only creates nodes inside the viewport. Series 'b'
+                // is shifted 500 to the left of series 'a', so the same datum index is at a different x in each one.
+                const options: AgCartesianChartOptions = {
+                    animation: { enabled: false },
+                    axes: {
+                        x: { type: 'number', position: 'bottom', min: 0, max: 1500 },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [
+                        {
+                            id: 'a',
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y1',
+                            data: Array.from({ length: 1000 }, (_v, index) => ({
+                                x: index + 500,
+                                y1: 10 + (index % 7),
+                            })),
+                        },
+                        {
+                            id: 'b',
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y2',
+                            data: Array.from({ length: 1000 }, (_v, index) => ({ x: index, y2: 5 + (index % 5) })),
+                        },
+                    ],
+                    zoom: { enabled: true, axes: 'x' },
+                    initialState: { zoom: { ratioX: { start: 0.3, end: 0.4 } } },
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+            });
+
+            it('pans to the datum with the same index in the other series', async () => {
+                // Series 'a' datum 0 (x = 500) is in the viewport; series 'b' datum 0 (x = 0) is to its left.
+                await tabIntoChart(chart);
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(0, 0))).toBe(true);
+                // Tabbing in does not activate an item, so there is no `activeItem` to check yet.
+                expect(getSwapChainText()).toBe('500; y1; 10; y2; 5');
+
+                await pressKey(chart, 'ArrowDown');
+                const { start = Number.NaN, end = Number.NaN } = chart.getState().zoom?.ratioX ?? {};
+                expect(start).toBeLessThan(0.3);
+                expect(end - start).toBeCloseTo(0.1, 10);
+                expect(focusIndicatorContainsCanvasPoint(chart, getBarCentre(1, 0))).toBe(true);
+                expect(chart.getState().active?.activeItem).toEqual({ type: 'series-node', seriesId: 'b', itemId: 0 });
+                expect(getSwapChainText()).toBe('0; y2; 5');
+            });
         });
     });
 });

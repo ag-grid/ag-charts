@@ -914,6 +914,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return changeAccepted;
     }
 
+    public getAxisRange(axisId: AxisID): ZoomMementoRange | undefined {
+        return this.getRange(axisId, this.getAxisZoom(axisId));
+    }
+
+    public rangeToAxisRatio(axisId: AxisID, range: ZoomMementoRange): ZoomMinMax | undefined {
+        return this.rangeToRatioAxis(this.findAxis(axisId), range);
+    }
+
     private getRange(axisId: AxisID, ratio: ZoomMinMax) {
         return this.getRangeAxis(this.findAxis(axisId), ratio);
     }

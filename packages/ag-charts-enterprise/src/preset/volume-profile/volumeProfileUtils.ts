@@ -37,8 +37,6 @@ export function normaliseVolumeProfile(
         lowest = Math.min(lowest, index);
         highest = Math.max(highest, index);
     }
-    // The price axis needs two levels to align its bands with the price scale.
-    if (highest === lowest) highest += 1;
 
     // Every level between the extremes is a category, so the bands stay evenly spaced in price; highest first, as
     // the first category is drawn at the top.

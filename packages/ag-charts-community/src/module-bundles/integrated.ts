@@ -2,15 +2,13 @@ import { ModuleRegistry } from 'ag-charts-core';
 import type { IntegratedModule } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { _Scene, _Theme, _Util } from '../integrated-charts';
+import { _Theme } from '../integrated-charts';
 import { VERSION } from '../version';
 import { AllCommunityModule } from './all';
 
 export const AgChartsCommunityModule = {
     VERSION,
-    _Scene,
     _Theme,
-    _Util,
     create: AgCharts.create.bind(AgCharts),
     createSparkline: AgCharts.__createSparkline.bind(AgCharts),
     setup: () => {

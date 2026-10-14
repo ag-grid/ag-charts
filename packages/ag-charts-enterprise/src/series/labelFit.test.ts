@@ -545,6 +545,130 @@ describe('series label fit', () => {
             });
         });
 
+        describe('small funnel-family charts', () => {
+            const MINIMUM = 8;
+            const stages = [
+                { stage: 'Visits', value: 100, label: 'Site visits' },
+                { stage: 'Sign-ups', value: 45, label: 'Newsletter sign-ups' },
+                { stage: 'Trials', value: 20, label: 'Free trial activations' },
+                { stage: 'Paid', value: 9, label: 'Paid subscriptions' },
+                { stage: 'Renewed', value: 4, label: 'Annual renewals completed' },
+            ];
+            const renderAt = (width: number, height: number, type: string, label: object) => {
+                const options = {
+                    data: stages,
+                    legend: { enabled: false },
+                    series: [
+                        {
+                            type,
+                            stageKey: 'stage',
+                            valueKey: 'value',
+                            label: shrinkableLabel({
+                                minimumFontSize: MINIMUM,
+                                collision: { alwaysShow: true },
+                                formatter: (p: any) => p.datum.label,
+                                ...label,
+                            }),
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options as AgChartOptions);
+                Object.assign(options, { width, height });
+                chart = deproxy(AgCharts.create(options as AgChartOptions));
+                return waitForChartStability(chart);
+            };
+
+            type StageLabel = LabelNode & {
+                datum: { datumIndex: number };
+                getBBox(): { x: number; y: number; width: number; height: number };
+            };
+            type StageRect = { x: number; y: number; width: number; height: number };
+            const stageLabels = () => drawnLabels() as StageLabel[];
+            const stageRect = (node: StageLabel): StageRect =>
+                chart.series[0].contextNodeData.nodeData[node.datum.datumIndex];
+            const centreX = (box: StageRect) => box.x + box.width / 2;
+
+            it('shrinks outside-end funnel labels into the gap between stages, centred on their stage', async () => {
+                await renderAt(380, 440, 'funnel', { placement: 'outside-end' });
+                const rendered = stageLabels();
+                expect(rendered.length).toBe(stages.length);
+                for (const node of rendered) {
+                    expect(centreX(node.getBBox())).toBeCloseTo(centreX(stageRect(node)), 0);
+                    expect(node.text).not.toContain(ELLIPSIS);
+                }
+                expect(rendered.slice(0, -1).every((node) => node.fontSize < FONT_SIZE)).toBe(true);
+                // The last label overflows at any size, so it is kept at the smallest one it may take.
+                expect(rendered.at(-1)!.fontSize).toBe(MINIMUM);
+            });
+
+            it('never slides an outside-end funnel label off its stage when alwaysShow is false', async () => {
+                await renderAt(380, 440, 'funnel', { placement: 'outside-end', collision: { alwaysShow: false } });
+                const rendered = stageLabels();
+                // The last stage ends at the bottom of the series area, leaving its label no room beneath it.
+                expect(rendered.map((node) => node.datum.datumIndex)).toEqual([0, 1, 2, 3]);
+                for (const node of rendered) {
+                    expect(centreX(node.getBBox())).toBeCloseTo(centreX(stageRect(node)), 0);
+                }
+            });
+
+            it.each([
+                ['start-center', 'cone-funnel'],
+                ['end-center', 'cone-funnel'],
+            ])('shrinks %s cone-funnel labels before truncating them', async (placement, type) => {
+                await renderAt(220, 440, type, { placement });
+                const rendered = stageLabels();
+                expect(rendered.length).toBe(stages.length);
+                const truncatedAboveMinimum = rendered.filter(
+                    (n) => n.text.includes(ELLIPSIS) && n.fontSize !== MINIMUM
+                );
+                expect(truncatedAboveMinimum).toEqual([]);
+                expect(rendered.some((node) => node.fontSize < FONT_SIZE)).toBe(true);
+            });
+
+            // Cone-funnel labels sit on a stage divider rather than inside a stage, so are not height-bound.
+            const stageBound = [
+                ['funnel', 'inside-start'],
+                ['funnel', 'inside-center'],
+                ['pyramid', 'inside-center'],
+            ];
+
+            it.each(stageBound)('shrinks unwrapped %s %s labels to the stage height', async (type, placement) => {
+                await renderAt(380, 120, type, { placement });
+                const rendered = stageLabels();
+                expect(rendered.length).toBe(stages.length);
+                const tallerAboveMinimum = rendered.filter(
+                    (n) => n.getBBox().height > stageRect(n).height + 0.5 && n.fontSize !== MINIMUM
+                );
+                expect(tallerAboveMinimum).toEqual([]);
+                expect(rendered.some((node) => node.fontSize < FONT_SIZE)).toBe(true);
+            });
+
+            describe.each([...stageBound, ['cone-funnel', 'middle-center']])('%s %s', (type, placement) => {
+                it.each([
+                    ['never', 380, 80, MINIMUM],
+                    ['on-space', 380, 120, MINIMUM],
+                    ['on-space', 380, 200, MINIMUM],
+                    ['on-space', 380, 200, undefined],
+                ])(
+                    'keeps every %s-wrapped label at %ix%i with minimumFontSize %s when alwaysShow is true',
+                    async (wrapping, width, height, minimumFontSize) => {
+                        await renderAt(width, height, type, { placement, wrapping, minimumFontSize });
+                        const rendered = stageLabels();
+                        expect(rendered.length).toBe(stages.length);
+                        expect(rendered.filter((node) => node.text === ELLIPSIS)).toEqual([]);
+                    }
+                );
+            });
+
+            it.each([
+                ['outside-end', 'on-space', 380, 440],
+                ['inside-center', 'never', 380, 80],
+            ])('renders %s %s-wrapped funnel labels at %ix%i', async (placement, wrapping, width, height) => {
+                await renderAt(width, height, 'funnel', { placement, wrapping });
+                await compareImageSnapshot(chart, ctx);
+            });
+        });
+
         // One chart per series, as they cannot share a chart; each stage label exercises a different fit outcome.
         describe('visual: funnel family', () => {
             const spectrum = [

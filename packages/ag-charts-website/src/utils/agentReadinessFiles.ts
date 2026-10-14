@@ -20,8 +20,9 @@ interface AgentReadinessInput {
     /** Current major version, e.g. `12`. */
     majorVersion: number;
     /**
-     * Framework segment used for the docs links, e.g. `javascript`. JavaScript is the
-     * framework-agnostic core, so it is the natural canonical entry point for an LLM-facing guide.
+     * Framework segment used for the curated docs links, e.g. `react`. This is the site's default
+     * framework, the one the header's Docs and API links point at, so agents and crawlers are sent
+     * to the same entry point as people (SE-206).
      */
     chartsDocsPrefix: string;
     /**
@@ -37,6 +38,12 @@ interface AgentReadinessInput {
      */
     docsIndex?: LlmsTxtSection[];
     siteIndex?: LlmsTxtSection[];
+    /**
+     * Framework segment of the `docsIndex` URLs, e.g. `javascript`. The index publishes the
+     * framework-agnostic JavaScript docs once rather than all four frameworks. Defaults to
+     * `chartsDocsPrefix`.
+     */
+    indexDocsPrefix?: string;
 }
 
 interface AgentReadinessLinks {
@@ -54,6 +61,8 @@ interface AgentReadinessLinks {
     homepageMarkdown: string;
 }
 
+const FRAMEWORKS = ['javascript', 'react', 'angular', 'vue'];
+
 function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentReadinessLinks {
     const docs = `${siteRoot}${chartsDocsPrefix}/`;
     return {
@@ -70,6 +79,14 @@ function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentR
         llmsTxt: `${siteRoot}llms.txt`,
         homepageMarkdown: `${siteRoot}index.md`,
     };
+}
+
+/** The instruction for reaching another framework's copy of a docs URL, by swapping its framework segment. */
+function frameworkSubstitution(docsPrefix: string): string {
+    const [framework] = docsPrefix.split('-');
+    const others = FRAMEWORKS.filter((f) => f !== framework).map((f) => `\`${f}\``);
+    const otherList = `${others.slice(0, -1).join(', ')} or ${others[others.length - 1]}`;
+    return `replace \`${docsPrefix}\` with \`${docsPrefix.replace(/^[a-z]+/, '<framework>')}\` (${otherList})`;
 }
 
 /**
@@ -94,15 +111,14 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
     const siteIndex = renderIndex(input.siteIndex);
     // The docs exist once per framework, so listing all four would quadruple the file for no new
     // information. Publish the framework-agnostic JavaScript URL and state the substitution.
-    const anyFrameworkPrefix = input.chartsDocsPrefix.replace(/^[a-z]+/, '<framework>');
+    const indexDocsPrefix = input.indexDocsPrefix ?? input.chartsDocsPrefix;
     const docsIndexSection =
         docsIndex.length > 0
             ? [
                   '',
                   '## Documentation',
                   'Every documentation page, in navigation order. Each URL is the framework-agnostic' +
-                      ` JavaScript one; replace \`${input.chartsDocsPrefix}\` with \`${anyFrameworkPrefix}\`` +
-                      ' (`react`, `angular` or `vue`) for the framework-specific page.',
+                      ` JavaScript one; ${frameworkSubstitution(indexDocsPrefix)} for the framework-specific page.`,
                   '',
                   `${docsIndex}\n`,
               ].join('\n')
@@ -119,7 +135,8 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
 ## Docs and tools
 - [Quick start](${l.quickStart}): create your first chart
 - [Options reference](${l.options}): complete chart options and API
-- [Gallery](${l.gallery}): live, runnable chart examples${markdownLine}
+- [Gallery](${l.gallery}): live, runnable chart examples
+- Frameworks: the framework-specific docs links above are for the site's default framework; ${frameworkSubstitution(input.chartsDocsPrefix)} for another framework's page.${markdownLine}
 
 ## Optional
 - [Community](${l.community}): showcase, events, media and tools & extensions
@@ -148,6 +165,7 @@ export function buildAgentsMd(input: AgentReadinessInput): string {
 - **Current version:** v${input.majorVersion}. APIs can change across majors — check the version before generating code.
 - **Install:** \`npm i ag-charts-community\` (or \`ag-charts-enterprise\`), plus the framework wrapper - \`ag-charts-react\`, \`ag-charts-angular\` or \`ag-charts-vue3\`. JavaScript needs no wrapper.
 - **Where to look:** [quick start](${l.quickStart}), [options reference](${l.options}), [gallery](${l.gallery}) and the [changelog](${l.changelog}).
+- **Frameworks:** the framework-specific docs links here are for the site's default framework; ${frameworkSubstitution(input.chartsDocsPrefix)} for another framework's page.
 - **Common tasks:** "create a bar/line/pie chart", "configure axes", "add a legend", "theme a chart", "make a chart interactive" - each has a canonical example in the docs.${markdownBullet}
 
 Machine-readable index: [llms.txt](${l.llmsTxt}).
