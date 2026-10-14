@@ -4,6 +4,7 @@ import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 import { stubAggregationDataModel } from '../../test/aggregationStubs';
 import { BIG } from '../../test/bigintExamples';
+import { seedRandom } from '../../test/random';
 import type { BubbleAggregation, BubbleAggregationNode, BubbleAggregationOptions } from './bubbleAggregation';
 import {
     aggregateBubbleDataFromDataModel,
@@ -678,10 +679,7 @@ describe('computeBubbleAggregationCount sizeMode', () => {
     });
 });
 
-/**
- * The quadtree as it was built before the datum indices were partitioned in place: every node owned its own
- * `indices` array, copied from its parent. Kept as an oracle for the shared-buffer implementation.
- */
+/** Oracle: the quadtree as built before indices were partitioned in place, each node copying its parent's array. */
 interface ReferenceNode {
     scale: number;
     x0: number;
@@ -874,16 +872,6 @@ function expectSameTree(aggregation: BubbleAggregation, node: BubbleAggregationN
 }
 
 describe('computeBubbleAggregation partitions indices in place', () => {
-    function random(seed: number) {
-        let state = seed;
-        return () => {
-            state = (state + 0x6d2b79f5) >>> 0;
-            let t = Math.imul(state ^ (state >>> 15), 1 | state);
-            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
-    }
-
     interface Dataset {
         xValues: Array<number | Date | null | undefined>;
         yValues: Array<number | null | undefined>;
@@ -892,7 +880,7 @@ describe('computeBubbleAggregation partitions indices in place', () => {
     }
 
     function dataset(count: number, seed: number, make: (r: () => number, i: number) => number[]): Dataset {
-        const r = random(seed);
+        const r = seedRandom(seed);
         const points = Array.from({ length: count }, (_, i) => make(r, i));
         return {
             xValues: points.map((p) => p[0]),
@@ -923,8 +911,7 @@ describe('computeBubbleAggregation partitions indices in place', () => {
     };
     dated.xValues = dated.xValues.map((x, i) => (i % 23 === 0 ? undefined : new Date(x as number)));
 
-    // Geometrically nested points peel off one per level while five or more remain, so the tree gets deeper than
-    // the build's initial per-depth buffers.
+    // Nested points peel off one per level, so the tree is deeper than the initial per-depth buffers.
     const nested = Array.from({ length: 40 }, (_, k) => 2 ** -k * 1e-3);
     const deepCluster: Dataset = {
         xValues: [0, 1, ...nested.map((d) => 0.3 + d)],
@@ -1036,8 +1023,7 @@ describe('computeBubbleAggregation partitions indices in place', () => {
 
 describe('computeBubbleAggregation node contents', () => {
     const NUMBERS = { xNeedsValueOf: false, yNeedsValueOf: false };
-    // Every size bubble is 100px across and the series area is 100px square, so a dilation of 4 groups any node whose
-    // diagonal is at most 2 (the unit square's is 1.41).
+    // 100px bubbles in a 100px series area: a dilation of 4 groups any node with a diagonal of at most 2.
     const WALK: BubbleAggregationOptions = {
         xRange: 100,
         yRange: 100,
@@ -1055,8 +1041,7 @@ describe('computeBubbleAggregation node contents', () => {
         sizeDomain: [number, number] = [0, 0]
     ) => computeBubbleAggregation(domain, domain, xValues, yValues, sizeValues, sizeDomain, NUMBERS)!;
 
-    // A datum in each corner of the domain, listed against quadrant order (so datum order differs from the order of
-    // the quadrants) and followed by a datum with no x and a datum with no y.
+    // A datum per corner, out of quadrant order, then one with no x and one with no y.
     const corners = {
         xValues: [100, 0, 100, 0, null, 50],
         yValues: [100, 100, 0, 0, 50, undefined],
@@ -1079,8 +1064,7 @@ describe('computeBubbleAggregation node contents', () => {
         const aggregation = aggregate(corners.xValues, corners.yValues);
         const root = aggregation.filters[0].node!;
 
-        // All four corners are the same distance from (0.5, 0.5); datum 0 is the first of them in datum order,
-        // though it is the last in the node's own range.
+        // All four corners are equidistant from the middle; datum 0 is first in datum order but last in the range.
         expect(root.primaryDatumIndex).toBe(0);
     });
 
@@ -1106,8 +1090,7 @@ describe('computeBubbleAggregation node contents', () => {
     });
 
     it('returns the only child of a node in place of the node itself', () => {
-        // Four close datums share a quadrant, so the unit square has one child, and that child is what is returned:
-        // the datums with a null x/y belong to the discarded parent, not to the node that is kept.
+        // The unit square has a single child, which is returned; the null x/y datums belong to the discarded parent.
         const aggregation = aggregate([null, 10, 11, 11.4, 13, 50], [20, 10, 11, 11.4, 13, undefined]);
         const root = aggregation.filters[0].node!;
 
@@ -1123,7 +1106,7 @@ describe('computeBubbleAggregation node contents', () => {
     });
 
     it('collapses datums that are all equal into one leaf in datum order', () => {
-        // A zero-width domain; the datums are the same distance from the middle, so the first is the primary.
+        // Zero-width domain: every datum is equidistant from the middle, so the first is the primary.
         const xValues = Array.from({ length: 12 }, () => 5);
         const yValues = Array.from({ length: 12 }, () => 5);
         yValues[3] = null as any;
@@ -1178,7 +1161,7 @@ describe('computeBubbleAggregation node contents', () => {
     });
 
     it('reads the same datums for any walk, whatever order the nodes are visited in', () => {
-        // Walking twice, and walking with a different dilation in between, must not disturb the shared buffer.
+        // Walks, in any order, must not disturb the shared buffer.
         const aggregation = aggregate(corners.xValues, corners.yValues);
         const before = Array.from(aggregation.indices);
 
@@ -1195,16 +1178,8 @@ describe('computeBubbleAggregation node contents', () => {
 });
 
 describe('computeBubbleAggregation tree invariants', () => {
-    // Checked against the data itself rather than a model of the algorithm: for every node, the bounds are those of
-    // its datums, its children split exactly its non-null datums, and a leaf lists them in datum order.
-    function lcg(seed: number) {
-        let state = seed;
-        return () => {
-            state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-            return state / 4294967296;
-        };
-    }
-
+    // Checked against the data, not a model of the algorithm: bounds are those of a node's datums, children split
+    // exactly its non-null datums, and a leaf lists them in datum order.
     const cases: Array<[string, number, (r: () => number, i: number) => [number | null, number | null]]> = [
         ['scattered', 4000, (r) => [r() * 1000, r() * 1000]],
         ['scattered with gaps', 3000, (r, i) => [i % 11 === 0 ? null : r() * 50, i % 13 === 0 ? null : r() * 50]],
@@ -1213,7 +1188,7 @@ describe('computeBubbleAggregation tree invariants', () => {
     ];
 
     it.each(cases)('%s', (_name, count, make) => {
-        const r = lcg(count);
+        const r = seedRandom(count);
         const points = Array.from({ length: count }, (_, i) => make(r, i));
         const xValues = points.map((p) => p[0]);
         const yValues = points.map((p) => p[1]);
