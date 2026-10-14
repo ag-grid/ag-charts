@@ -35,18 +35,17 @@ class GroupLookup {
     private readonly indexByKey = new Map<unknown, number>();
     // `undefined` until the first key, `null` once keyed by string.
     private kind: PrimitiveKeyKind | undefined | null = undefined;
-    private key: unknown;
 
     constructor(private readonly groupKeys: readonly unknown[][]) {}
 
-    /** The group index for these keys, or -1. `add` records a new group under the last key searched. */
-    find(keys: unknown[]): number {
-        this.key = this.keyOf(keys);
-        return this.indexByKey.get(this.key) ?? -1;
-    }
+    /** The index of the group with these keys, or -1 after recording `nextIndex` as that group's index. */
+    findOrAdd(keys: unknown[], nextIndex: number): number {
+        const key = this.keyOf(keys);
+        const index = this.indexByKey.get(key);
+        if (index !== undefined) return index;
 
-    add(groupIndex: number) {
-        this.indexByKey.set(this.key, groupIndex);
+        this.indexByKey.set(key, nextIndex);
+        return -1;
     }
 
     private keyOf(keys: unknown[]): unknown {
@@ -182,7 +181,7 @@ export class DataGrouper<D extends object, K extends keyof D & string> {
 
                 let group = customGroupingFn?.(keys) ?? keys;
 
-                let currentGroupIndex = groups?.find(group) ?? -1;
+                let currentGroupIndex = groups?.findOrAdd(group, groupIndex) ?? -1;
 
                 let currentGroup: Group;
                 let isNewGroup = false;
@@ -198,8 +197,6 @@ export class DataGrouper<D extends object, K extends keyof D & string> {
                     };
                     currentGroupIndex = groupIndex++;
                     isNewGroup = true;
-
-                    groups?.add(currentGroupIndex);
 
                     resultGroups.push(currentGroup.keys);
                     resultData.push(currentGroup);
