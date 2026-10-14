@@ -45,6 +45,8 @@ const EXAMPLES: Record<string, AgFinancialChartOptions> = {
 
 setupEnterpriseModules();
 
+const byName = (a: string, b: string) => a.localeCompare(b);
+
 describe('priceVolumePreset', () => {
     setupMockConsole();
 
@@ -94,9 +96,17 @@ describe('priceVolumePreset', () => {
         return statusBar?.labels.find((label) => label.title?.text === title)?.value.text;
     };
 
-    it.each(['candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'] as const)(
+    it.each([
+        ['candlestick', 'candlestick'],
+        ['hollow-candlestick', 'candlestick'],
+        ['ohlc', 'ohlc'],
+        ['line', 'line'],
+        ['step-line', 'line'],
+        ['hlc', 'hlc'],
+        ['high-low', 'range-bar'],
+    ] as const)(
         'gives the %s price series the fixed id `price` and the volume bars `volume`',
-        async (chartType) => {
+        async (chartType, priceType) => {
             chart = AgCharts.createFinancialChart(
                 prepareFinancialTestOptions({
                     chartType,
@@ -105,10 +115,46 @@ describe('priceVolumePreset', () => {
             );
             await waitForChartStability(chart);
 
-            const ids = deproxy(chart).ctx.chartService.series.map((series) => series.id);
-            expect(new Set(ids)).toEqual(new Set(['price', 'volume']));
+            const series = deproxy(chart).ctx.chartService.series;
+            expect(series.map((s) => s.id).sort(byName)).toEqual(['price', 'volume']);
+            expect(series.find((s) => s.id === 'volume')?.type).toBe('bar');
+            expect(series.find((s) => s.id === 'price')?.type).toBe(priceType);
         }
     );
+
+    it('keeps the fixed ids when the chart type is switched', async () => {
+        chart = AgCharts.createFinancialChart(
+            prepareFinancialTestOptions({
+                chartType: 'candlestick',
+                data: getStockData().slice(0, 40),
+            } as AgFinancialChartOptions)
+        );
+        await waitForChartStability(chart);
+        const ids = () =>
+            deproxy(chart)
+                .ctx.chartService.series.map((s) => s.id)
+                .sort(byName);
+        expect(ids()).toEqual(['price', 'volume']);
+
+        await chart.updateDelta({ chartType: 'ohlc' });
+        await waitForChartStability(chart);
+
+        expect(ids()).toEqual(['price', 'volume']);
+    });
+
+    it('gives the price, volume and volume profile series four distinct fixed ids', async () => {
+        chart = AgCharts.createFinancialChart(
+            prepareFinancialTestOptions({
+                data: getStockData(),
+                volumeProfile: { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' },
+            } as AgFinancialChartOptions)
+        );
+        await waitForChartStability(chart);
+
+        const ids = deproxy(chart).ctx.chartService.series.map((s) => s.id);
+        ids.sort(byName);
+        expect(ids).toEqual(['price', 'volume', 'volumeProfileDown', 'volumeProfileUp']);
+    });
 
     it('keeps the preset base theme under a user theme naming no base of its own', async () => {
         const options = prepareFinancialTestOptions({

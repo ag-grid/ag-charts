@@ -13,7 +13,12 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import type { Rect } from 'ag-charts-core';
-import type { AgChartInstance, AgFinancialChartOptions, AgVolumeProfileSelectionOptions } from 'ag-charts-types';
+import type {
+    AgChartInstance,
+    AgFinancialChartOptions,
+    AgSelectionChangeEvent,
+    AgVolumeProfileSelectionOptions,
+} from 'ag-charts-types';
 
 import { setupEnterpriseModules } from '../../setup';
 import { getStockData } from '../test/stockData';
@@ -92,6 +97,41 @@ describe('priceVolume volume profile selection', () => {
         await create();
 
         expect(profileSeries().map((s) => s.id)).toEqual([UP, DOWN]);
+    });
+
+    it('round-trips `setSelection()` by `volumeProfileDown` and reports fixed ids in `selectionChange`', async () => {
+        const events: AgSelectionChangeEvent<any, any>[] = [];
+        chart = AgCharts.createFinancialChart(
+            prepareFinancialTestOptions({
+                data: getStockData(),
+                volumeProfile: {
+                    data: getRegularVolumeProfile(),
+                    upKey: 'upVolume',
+                    downKey: 'downVolume',
+                    selection: { enabled: true },
+                },
+                listeners: { selectionChange: (event: AgSelectionChangeEvent<any, any>) => events.push(event) },
+            } as AgFinancialChartOptions)
+        );
+        await waitForChartStability(chart);
+
+        chart.setSelection([{ seriesId: DOWN, itemId: 3 }]);
+        await waitForChartStability(chart);
+        expect(selected().sort(byName)).toEqual([`${DOWN}:3`, `${UP}:3`].sort(byName));
+
+        await clickProfileBar(0, 5);
+        const user = events.find((event) => event.source === 'user-interaction')!;
+        expect(user.added.map((item) => item.seriesId).sort(byName)).toEqual([UP, DOWN].sort(byName));
+    });
+
+    it('keeps the fixed series ids when selection is not enabled', async () => {
+        await create(null);
+
+        expect(
+            allSeries()
+                .map((s) => s.id)
+                .sort(byName)
+        ).toEqual(['price', 'volume', DOWN, UP].sort(byName));
     });
 
     it.each<AgVolumeProfileSelectionOptions>([

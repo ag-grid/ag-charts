@@ -135,6 +135,21 @@ describe('volumeProfile selection', () => {
         expect(seriesList().map((series) => series.id)).toEqual([UP, DOWN]);
     });
 
+    it('puts the up volume in `volumeProfileUp` and the down volume in `volumeProfileDown`', async () => {
+        await create();
+
+        const keys = Object.fromEntries(
+            seriesList().map((series) => [series.id, (series as unknown as { options: { yKey: string } }).options.yKey])
+        );
+        expect(keys).toEqual({ [UP]: 'upVolume', [DOWN]: 'downVolume' });
+    });
+
+    it('keeps the fixed ids when selection is not enabled', async () => {
+        await create({ selection: undefined });
+
+        expect(seriesList().map((series) => series.id)).toEqual([UP, DOWN]);
+    });
+
     it('round-trips `setSelection()` and `getSelection()` by the fixed `seriesId`', async () => {
         await create();
 
@@ -142,6 +157,29 @@ describe('volumeProfile selection', () => {
         await waitForChartStability(chart);
 
         expect(selected().sort(byName)).toEqual([`${DOWN}:3`, `${UP}:3`].sort(byName));
+    });
+
+    it('selects a level by `volumeProfileUp` and `volumeProfileDown` alike, and `getSelection()` returns both', async () => {
+        await create();
+
+        chart.setSelection([{ seriesId: UP, itemId: 2 }]);
+        await waitForChartStability(chart);
+        const fromUp = selected().sort(byName);
+        chart.clearSelection();
+        chart.setSelection([{ seriesId: DOWN, itemId: 2 }]);
+        await waitForChartStability(chart);
+
+        expect(selected().sort(byName)).toEqual(fromUp);
+        expect(fromUp).toEqual([`${DOWN}:2`, `${UP}:2`].sort(byName));
+    });
+
+    it('does not select anything for an unknown `seriesId`', async () => {
+        await create();
+
+        chart.setSelection([{ seriesId: 'BarSeries-1', itemId: 2 }]);
+        await waitForChartStability(chart);
+
+        expect(selected()).toEqual([]);
     });
 
     it('clears both segments when clicking away', async () => {
