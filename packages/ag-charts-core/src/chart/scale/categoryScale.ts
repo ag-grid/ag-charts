@@ -19,10 +19,11 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
      */
     protected index: Map<D, number> = new Map();
     protected indexInitialized = false;
-    /** The domain captured by `snapshotDomain`, with its index, until the matching `restoreDomain`. */
-    private _snapshot: DomainIndex<D> | undefined;
-    /** The temporary domain `restoreDomain` swapped out; only the next `domain` set may reuse its index, then it is dropped. */
-    private _kept: DomainIndex<D> | undefined;
+    /**
+     * The domain this one replaced, with its index. Tick generation swaps a temporary domain in and back, so
+     * setting this array again swaps the two back rather than rebuilding the index.
+     */
+    private previous: DomainIndex<D> | undefined;
 
     /**
      * Contains unique data only.
@@ -31,43 +32,18 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
     set domain(values: D[]) {
         if (this._domain === values) return;
 
-        const kept = this._kept;
-        this._kept = undefined;
+        const { previous } = this;
+        const swapBack = previous?.domain === values;
         this.invalid = true;
+        // The outgoing index is kept, so replace the current one rather than clearing it in place.
+        this.previous = { domain: this._domain, index: this.index, indexInitialized: this.indexInitialized };
         this._domain = values;
-        // The outgoing index may be held by a snapshot, so replace it rather than clearing it in place.
-        if (kept?.domain === values) {
-            this.index = kept.index;
-            this.indexInitialized = kept.indexInitialized;
-        } else {
-            this.index = new Map();
-            this.indexInitialized = false;
-        }
+        this.index = swapBack ? previous.index : new Map();
+        this.indexInitialized = swapBack && previous.indexInitialized;
     }
 
     get domain(): D[] {
         return this._domain;
-    }
-
-    /** Tick generation swaps in a temporary domain and back; the index of either survives the round trip. */
-    override snapshotDomain(): D[] {
-        const domain = this._domain;
-        this._snapshot = { domain, index: this.index, indexInitialized: this.indexInitialized };
-        return domain;
-    }
-
-    override restoreDomain(snapshot: D[]): void {
-        const snapped = this._snapshot;
-        this._snapshot = undefined;
-        if (snapshot === this._domain) return;
-
-        const temporary = { domain: this._domain, index: this.index, indexInitialized: this.indexInitialized };
-        this.domain = snapshot;
-        if (snapped?.domain === snapshot) {
-            this.index = snapped.index;
-            this.indexInitialized = snapped.indexInitialized;
-        }
-        this._kept = temporary;
     }
 
     get bands() {

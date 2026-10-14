@@ -253,16 +253,30 @@ describe('CategoryScale domain index', () => {
         scale.findIndex('A');
         const temporary = ['B', 'C'];
 
-        let temporaryIndex: Map<string, number> | undefined;
         for (let i = 0; i < 3; i++) {
             const snapshot = scale.snapshotDomain();
             scale.domain = temporary;
+            // Both indexes are already built from the second swap on: nothing is rebuilt.
+            expect(scale.isIndexBuilt).toBe(i > 0);
             expect(scale.findIndex('C')).toBe(1);
-            temporaryIndex ??= scale.indexMap;
-            expect(scale.indexMap).toBe(temporaryIndex);
             scale.restoreDomain(snapshot);
+            expect(scale.isIndexBuilt).toBe(true);
             expect(scale.findIndex('D')).toBe(3);
         }
+    });
+
+    test('a snapshot and restore of an unchanged domain keeps the built index', () => {
+        const domain = ['A', 'B', 'C'];
+        const scale = newScale(domain);
+        expect(scale.findIndex('C')).toBe(2);
+        const index = scale.indexMap;
+
+        scale.restoreDomain(scale.snapshotDomain());
+
+        expect(scale.domain).toBe(domain);
+        expect(scale.isIndexBuilt).toBe(true);
+        expect(scale.indexMap).toBe(index);
+        expect(index.size).toBe(3);
     });
 
     test('does not build the index on restore when it was never built', () => {
@@ -277,7 +291,7 @@ describe('CategoryScale domain index', () => {
         expect(scale.findIndex('C')).toBe(2);
     });
 
-    test('a domain set after a restore drops the kept temporary index', () => {
+    test('a different domain set in between drops the index of the earlier swap partner', () => {
         const scale = newScale(['A', 'B', 'C']);
         const temporary = ['B'];
 
@@ -289,7 +303,7 @@ describe('CategoryScale domain index', () => {
         expect(scale.findIndex('Y')).toBe(1);
         expect(scale.findIndex('B')).toBeUndefined();
 
-        // Setting the temporary array again must index its own contents, not a stale kept index.
+        // Setting the temporary array again must index its own contents, not a stale index.
         temporary[0] = 'Z';
         scale.domain = temporary;
         expect(scale.findIndex('Z')).toBe(0);
@@ -311,7 +325,7 @@ describe('CategoryScale domain index', () => {
         expect(scale.findIndex(new Date('2023'))).toBeUndefined();
     });
 
-    test('keeps object categories indexed by value across the round trip', () => {
+    test('keeps object categories indexed by reference across the round trip', () => {
         const a = { toString: () => 'a' };
         const b = { toString: () => 'b' };
         const scale = newScale<object>([a, b]);
