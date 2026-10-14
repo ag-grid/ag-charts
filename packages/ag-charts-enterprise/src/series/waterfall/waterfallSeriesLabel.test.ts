@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { setupEnterpriseModules } from '../../setup';
 import { resolveSeries } from '../../test/seriesHelpers';
 
