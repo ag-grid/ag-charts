@@ -1772,14 +1772,13 @@ describe('WaterfallSeries redraw with identical data', () => {
             v: i % 4 === 3 ? -(5 + (i % 9)) : 10 + ((i * 7) % 13),
         }));
 
-    const createChart = async (count: number, dpr: number, extra: object = {}) => {
+    const createChart = async (count: number, dpr: number) => {
         const options: any = prepareEnterpriseTestOptions({
             data: makeData(count),
             animation: { enabled: false },
             series: [{ type: 'waterfall', xKey: 'x', yKey: 'v' }],
             legend: { enabled: false },
             axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
-            ...extra,
         });
         options.overrideDevicePixelRatio = dpr;
         options.width = 1200;

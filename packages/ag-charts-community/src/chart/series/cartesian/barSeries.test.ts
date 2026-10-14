@@ -4865,7 +4865,7 @@ describe('BarSeries redraw with identical data', () => {
         });
     }
 
-    // Crisp redraws at dpr 2 still change pixels, with or without the non-crisp fix; that gap is tracked separately.
+    // Crisp bars at dpr 2 change pixels on redraw (a separate known gap), so these controls run at dpr 1.
     for (const { name, count, options } of [
         { name: '50 bars, crisp: true, dpr 1', count: 50, options: { crisp: true, dpr: 1 } },
         { name: '5 wide bars, crisp auto, dpr 1', count: 5, options: { dpr: 1 } },
