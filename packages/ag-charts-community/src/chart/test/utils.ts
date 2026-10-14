@@ -322,16 +322,18 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
     }
 
     if (typeof options?.theme === 'object') {
-        // fontFamily must stay pinned to the bundled test font even in dark mode: the default stack
-        // is unregistered and resolves per-platform, breaking snapshots.
+        // fontFamily must stay pinned to the bundled test font whatever params a test supplies: the
+        // default stack is unregistered and resolves per-platform, breaking snapshots.
+        const fontFamily = baseTestTheme.params!.fontFamily;
+        let params = options.theme.params ? { fontFamily, ...options.theme.params } : baseTestTheme.params;
+        if (baseThemeString === 'ag-default-dark') {
+            params = { fontFamily };
+        }
         baseTestTheme = {
             ...options.theme,
             baseTheme: options.theme.baseTheme ?? baseTestTheme.baseTheme,
             palette: options.theme.palette ?? baseTestTheme.palette,
-            params:
-                baseThemeString === 'ag-default-dark'
-                    ? { fontFamily: baseTestTheme.params!.fontFamily }
-                    : (options.theme.params ?? baseTestTheme.params),
+            params,
         };
     } else if (typeof options?.theme === 'string') {
         // Override colours.
