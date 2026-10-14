@@ -296,11 +296,7 @@ export interface PointLabelDatum {
      * preserves the default exclude-all-categories behaviour for stacked/grouped bars.
      */
     readonly ownBoxLabelsCollide?: boolean;
-    /**
-     * Several labels fitted and placed as one box, stacked in order; positioned-candidate path only. Each
-     * candidate's `fitTo.container` bounds the whole stack, drawn boxes included, and {@link fit} must
-     * describe the first block.
-     */
+    /** Labels fitted as one box on the positioned path; {@link fit} must describe the first block. */
     readonly stack?: LabelStack;
 }
 
@@ -656,8 +652,7 @@ const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const deflatedRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const deflatedInsideRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const fitRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
-// The candidate's rotated rectangle, grown by the collision threshold, tested in place of its box when
-// `candidateOriented` is set.
+// OPTIMIZATION: scratch for the candidate's rotated rectangle, tested in place of its box when `candidateOriented`.
 const candidateRect: OrientedRect = { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 };
 let candidateOriented = false;
 // The candidate datum's per-category obstacle config, set before each obstacle query.
@@ -908,10 +903,7 @@ function obstacleOverlapsCandidateRect(o: LabelObstacle, testBox: BoxBounds): bo
     }
 }
 
-/**
- * A label fitted inside its own shape collides by its rotated rectangle, which that shape bounds, rather
- * than by the axis-aligned footprint that reaches over its neighbours.
- */
+/** A label fitted inside its own shape collides by its rotated rectangle, not its wider axis-aligned box. */
 function collidesByRotatedRect(candidate: PositionedLabelCandidate | undefined, rotation: number | undefined) {
     return candidate?.fitTo?.shape != null && rotation != null && rotation % 90 !== 0;
 }
@@ -2495,11 +2487,7 @@ function placeFromPositionedCandidates(
     return placeBestChoice(index, d);
 }
 
-/**
- * Fits a stacked label to one candidate, leaving the stack in {@link candidateStack} and its outline in
- * {@link fittedLabel}. The clearance the threshold keeps must not erase the stack, so a stack that only
- * fits the candidate's own room is fitted to that instead.
- */
+/** Fits a stack into {@link candidateStack}; one that fits only without the threshold's clearance is kept. */
 function fitStackToCandidate(stack: LabelStack, fitTo: CandidateFitTarget, threshold: number): boolean {
     const container = deflateContainer(fitTo.container, threshold);
     let fitted = fitLabelStack(stack, container, fitTo.shape, fitTo.shapeAlign);

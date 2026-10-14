@@ -84,11 +84,8 @@ interface StackFit {
 type Container = { readonly width: number; readonly height: number } | undefined;
 
 /**
- * Fits a stack to the room a candidate offers: `container` bounds the whole stack and `shape`, when set,
- * narrows it to the width the shape offers across the band the stack occupies. Every block steps down
- * towards its minimum size at a pace proportional to its own range, the largest step that holds every
- * block wins, and only at the smallest step may a block truncate. When even that fails, optional blocks
- * are dropped one at a time, last first. `undefined` when no block can be held.
+ * Fits a stack within `container`, narrowed by `shape` when set: blocks shrink together, truncate only at
+ * their minimum, then optional blocks drop last first. `undefined` when no block can be held.
  */
 export function fitLabelStack(
     stack: LabelStack,
@@ -129,11 +126,7 @@ function fitStackBlocks(
     });
 }
 
-/**
- * Every combination of block sizes the stack steps through, smallest-first so index `0` is every block at
- * its minimum. Each step takes one size off whichever block is proportionally furthest from its minimum.
- * Sizes are index-parallel with `included`.
- */
+/** Block sizes per step, smallest first; each step shrinks the block proportionally furthest from its minimum. */
 function stackLadder(blocks: readonly LabelStackBlock[], included: readonly number[]): number[][] {
     const sizes: number[] = [];
     const floors: number[] = [];
