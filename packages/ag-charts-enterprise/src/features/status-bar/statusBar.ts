@@ -231,6 +231,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
     private candleWidth = 0;
     private bandWidth = 0;
     private seriesTop = 0;
+    private seriesWidth = Infinity;
     private pointerY: number | undefined;
     private band: BandValues | undefined;
 
@@ -463,6 +464,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
     private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
         this.labelGroup.translationX = opts.series.rect.x;
         this.seriesTop = opts.series.rect.y;
+        this.seriesWidth = opts.series.rect.width;
 
         this.updateHighlight(this.ctx.chartState.getValue('highlight'));
     }
@@ -527,7 +529,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
     private findHoveredBand(): BandValues | undefined {
         const { pointerY } = this;
         const band = this.opts.volumeProfile;
-        if (pointerY == null || band == null) return undefined;
+        if (pointerY == null || band == null || this.bandWidth > this.seriesWidth) return undefined;
 
         const axis = this.ctx.axisManager
             .getAxisContext(ChartAxisDirection.Y)

@@ -572,6 +572,22 @@ describe('priceVolumePreset', () => {
             });
         });
 
+        it('should show no level when the fields do not fit the width of the series area', async () => {
+            await create({ volumeProfile });
+            const options = deproxy(chart).chartOptions.userOptions as AgFinancialChartOptions;
+            await chart.update({ ...options, width: 450 });
+            await waitForChartStability(chart);
+            expect(statusBar().bandWidth).toBeGreaterThan(deproxy(chart).ctx.chartService.seriesRect!.width);
+
+            await hover(pointAt(50, 2));
+
+            expect(highlight()?.datumIndex).toBe(50);
+            expect(candleTexts()).toEqual(CANDLE_50_TEXTS);
+            expect(statusBar().bandSeparator.visible).toBe(false);
+            expect(visibleBandLabels()).toHaveLength(0);
+            expect(statusBar().backgroundNode.width).toBe(statusBar().candleWidth);
+        });
+
         it('should size the Vol label from the candle volume, not the profile', async () => {
             await create({ volumeProfile });
 
