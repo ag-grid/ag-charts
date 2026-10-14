@@ -346,6 +346,15 @@ export function radialGaugeLabelTexts(
     return { labelDatum, labelText, secondaryLabelDatum, secondaryLabelText };
 }
 
+/** True when `frame` formats every label at its datum value, so it shares the final texts. */
+export function isFinalLabelFrame(labelData: Iterable<RadialGaugeLabelDatum>, frame: RadialGaugeLabelFrame) {
+    for (const datum of labelData) {
+        const value = frame[radialGaugeLabelKey(datum.label)];
+        if (value != null && value !== datum.value) return false;
+    }
+    return true;
+}
+
 function layoutRadialGaugeLabels(
     texts: RadialGaugeLabelTexts | undefined,
     opts: RadialGaugeLabelOpts,
@@ -437,7 +446,8 @@ export function radialGaugeLabelData(
         const textBox = Text.measureBBox(layout.text, x, y, { font, lineHeight: layout.lineHeight, textAlign });
         const box = { x: textBox.x, y: top, width: textBox.width, height: layout.height };
         const key = radialGaugeLabelKey(datum.label);
-        const labelDatum = gaugeLabelDatum(key, layout.text, [{ id: 0, box }], datum.collision, true, seriesArea);
+        const candidates = [{ id: 0, box }];
+        const labelDatum = gaugeLabelDatum(key, layout.text, candidates, datum.collision, true, seriesArea, 'stacked');
         if (labelDatum != null) {
             data.push(labelDatum);
         }

@@ -1757,6 +1757,32 @@ describe('placeLabels positioned candidates', () => {
         expect(placed[0].candidate).toBe(overflowing);
     });
 
+    it('never blocks a label with a placed label of the same labelGroup', () => {
+        const stacked = (id: string, y: number, labelGroup?: string): PointLabelDatum => {
+            const box = { x: 50, y, width: 40, height: 20 };
+            return {
+                point: { x: 70, y: y + 10, size: 0 },
+                label: { text: id, width: box.width, height: box.height },
+                anchor: undefined,
+                placement: undefined,
+                alwaysShow: false,
+                collideWith: { marker: true, label: true, seriesItem: false, seriesArea: true },
+                threshold: 10,
+                labelGroup,
+                positionedCandidates: [{ box, region: bounds, flushToRegion: false, size: box }],
+            };
+        };
+        const placeStack = (labelGroup?: string) =>
+            placeLabels(
+                new Map([['s', seriesLabels([stacked('a', 50, labelGroup), stacked('b', 75, labelGroup)])]]),
+                bounds,
+                5
+            ).get('s')!;
+
+        expect(placeStack()).toHaveLength(1);
+        expect(placeStack('stack')).toHaveLength(2);
+    });
+
     it('keeps the least buried candidate when every one fits its region but collides (neverDrop)', () => {
         const buried: BarCandidate = {
             box: { x: 10, y: 10, width: 20, height: 10 },

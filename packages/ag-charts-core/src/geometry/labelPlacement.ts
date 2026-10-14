@@ -268,6 +268,8 @@ export interface PointLabelDatum {
     readonly neverDrop?: boolean;
     /** When `false`, the placed label is not an obstacle for the labels resolved after it. */
     readonly obstacle?: boolean;
+    /** Placed labels sharing a group never block one another, as when several are laid out as one block. */
+    readonly labelGroup?: string;
     /**
      * Authoritative pre-positioned candidates, tried in order; each carries its own region. When
      * present the engine cascades over these opaque boxes and never computes a placement itself
@@ -459,6 +461,8 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          /** The {@link PointLabelDatum.labelGroup} of the placed label this obstacle stands for. */
+          readonly labelGroup?: string;
       }
     | {
           readonly kind: 'custom';
@@ -621,6 +625,7 @@ interface PooledRectObstacle {
     kind: 'rect';
     box: BoxBounds;
     category: ObstacleCategory;
+    labelGroup: string | undefined;
 }
 
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
@@ -657,6 +662,8 @@ let candidateOwnBox: BoxBounds | undefined;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
+// The candidate datum's label group: placed labels in the same group are never obstacles to it.
+let candidateLabelGroup: string | undefined;
 // The label's text/box after the fit step, reused per candidate to keep the hot path allocation-free.
 // `dropped` is how many characters truncation removed and `shrink` how much of the source text's area the
 // glyph gave up, ranking candidates when none holds the full text at full size; `fontSize` is the
@@ -816,6 +823,10 @@ function worstObstacleOverlap(o: LabelObstacle): void {
 
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
+    if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
+        return true;
+    }
+
     const category = o.category ?? 'seriesItem';
     // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
     // directional labels fall through to the circle test, which measures their real clearance.
@@ -1302,12 +1313,14 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
 function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     const box = labelObstacleBox(placed);
+    const { labelGroup } = placed.datum;
     let obstacle = labelObstaclePool[count];
     if (obstacle == null) {
-        obstacle = { kind: 'rect', box, category: 'label' };
+        obstacle = { kind: 'rect', box, category: 'label', labelGroup };
         labelObstaclePool.push(obstacle);
     } else {
         obstacle.box = box;
+        obstacle.labelGroup = labelGroup;
     }
     obstacleIndex.insert(box, obstacle);
     return count + 1;
@@ -2251,6 +2264,7 @@ function placeAvoidingLabel(
     // leave it unset (their own marker is handled by the own-marker circle gate above).
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
+    candidateLabelGroup = d.labelGroup;
     cascadeRawRegion = d.region ?? bounds;
     cascadeContainThreshold = containmentThreshold(threshold);
     cascadeRegion = deflateRegion(deflatedRegionBox, cascadeRawRegion, cascadeContainThreshold);
@@ -2298,6 +2312,7 @@ function placeFromPositionedCandidates(
     candidateOwnMarkerR = -1;
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
+    candidateLabelGroup = d.labelGroup;
 
     const { fit } = d;
     // Measured once here rather than per candidate: every candidate refits the same source text. A

@@ -73,6 +73,7 @@ import {
     getRadialGaugeBarStyle,
     getRadialGaugeScaleStyle,
     getRadialGaugeTargetStyle,
+    isFinalLabelFrame,
     prepareRadialGaugeSeriesAnimationFunctions,
     radialGaugeLabelData,
     radialGaugeLabelTexts,
@@ -1260,12 +1261,27 @@ export class RadialGaugeSeries
 
     formatLabelText(datum?: RadialGaugeLabelFrame) {
         const labelData = this.contextNodeData?.labelData ?? [];
-        const texts = radialGaugeLabelTexts(this, this.ctx, labelData, datum);
+        let texts: RadialGaugeLabelTexts | undefined;
         if (datum == null) {
+            texts = radialGaugeLabelTexts(this, this.ctx, labelData);
             this.finalLabelTexts = { labelData, texts };
+        } else if (isFinalLabelFrame(labelData, datum)) {
+            texts = this.finalTexts(labelData);
+        } else {
+            texts = radialGaugeLabelTexts(this, this.ctx, labelData, datum);
         }
         this.labelTexts = texts;
         this.layoutLabels();
+    }
+
+    private finalTexts(labelData: RadialGaugeLabelDatum[]) {
+        const { finalLabelTexts } = this;
+        if (finalLabelTexts?.labelData === labelData) {
+            return finalLabelTexts.texts;
+        }
+        const texts = radialGaugeLabelTexts(this, this.ctx, labelData);
+        this.finalLabelTexts = { labelData, texts };
+        return texts;
     }
 
     private layoutLabels() {
@@ -1282,11 +1298,7 @@ export class RadialGaugeSeries
         const { seriesRectWidth: width, seriesRectHeight: height } = this.nodeDataDependencies;
         const seriesArea = { x: 0, y: 0, width, height };
         const labelData = this.contextNodeData?.labelData ?? [];
-        const { finalLabelTexts } = this;
-        const texts =
-            finalLabelTexts?.labelData === labelData
-                ? finalLabelTexts.texts
-                : radialGaugeLabelTexts(this, this.ctx, labelData);
+        const texts = this.finalTexts(labelData);
         const labels = radialGaugeLabelData(
             labelData,
             texts,

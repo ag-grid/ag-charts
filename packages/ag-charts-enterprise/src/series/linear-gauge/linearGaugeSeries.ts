@@ -1145,13 +1145,30 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     formatLabelText(datum?: { label: AgNumericValue }) {
         const labelDatum = this.contextNodeData?.labelData[0];
-        const text = labelDatum == null ? undefined : getLabelText(this.id, this.ctx, labelDatum, datum?.label);
-        if (datum == null && labelDatum != null) {
+        let text: NormalisedTextOrSegments | undefined;
+        if (labelDatum == null) {
+            text = undefined;
+        } else if (datum == null) {
+            text = getLabelText(this.id, this.ctx, labelDatum);
             this.finalLabelText = { labelDatum, text };
+        } else if (datum.label === labelDatum.value) {
+            text = this.finalText(labelDatum);
+        } else {
+            text = getLabelText(this.id, this.ctx, labelDatum, datum.label);
         }
         this.labelFrame = datum;
         this.labelText = text;
         this.layoutLabels();
+    }
+
+    private finalText(labelDatum: LinearGaugeLabelDatum) {
+        const { finalLabelText } = this;
+        if (finalLabelText?.labelDatum === labelDatum) {
+            return finalLabelText.text;
+        }
+        const text = getLabelText(this.id, this.ctx, labelDatum);
+        this.finalLabelText = { labelDatum, text };
+        return text;
     }
 
     private layoutLabels() {
@@ -1170,11 +1187,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const labels: GaugePointLabelDatum[] = [];
 
         const labelDatum = this.contextNodeData?.labelData[0];
-        const { finalLabelText } = this;
-        const text =
-            labelDatum == null || finalLabelText?.labelDatum === labelDatum
-                ? finalLabelText?.text
-                : getLabelText(this.id, this.ctx, labelDatum);
+        const text = labelDatum == null ? undefined : this.finalText(labelDatum);
         if (labelDatum != null && text != null) {
             const bboxes = this.labelBBoxes(this.options.value);
             const label = linearGaugeLabelDatum(labelDatum, text, this.labelLayoutOptions(), bboxes);

@@ -38,7 +38,8 @@ export function gaugeLabelDatum(
     candidates: readonly GaugeLabelCandidate[],
     collision: AgChartLabelCollisionOptions | undefined,
     keepWithoutCollision: boolean,
-    seriesArea: BoxBounds
+    seriesArea: BoxBounds,
+    labelGroup?: string
 ): GaugePointLabelDatum | undefined {
     const [first] = candidates;
     if (first == null) return;
@@ -61,6 +62,7 @@ export function gaugeLabelDatum(
         neverDrop: keep,
         collideWith,
         threshold: collision?.threshold,
+        labelGroup,
         positionedCandidates: candidates.map(({ box, region = box }) => ({
             box,
             region: area == null ? region : intersectBounds(region, area),

@@ -1239,6 +1239,11 @@ describe('series label fit', () => {
             expect(gaugeLabelTexts()).toEqual(['Score', longText]);
         });
 
+        it('never hides a radial-gauge secondary label for colliding with its own primary label', async () => {
+            await renderGauge(radialGauge({ text: 'Score' }, { text: 'Label', collision: { threshold: 30 } }));
+            expect(gaugeLabelTexts()).toEqual(['Score', 'Label']);
+        });
+
         const targetLabelTexts = () => visibleTexts(chart.series[0].targetLabelSelection);
         const firstLabelNode = () => chart.series[0].labelSelection.nodes()[0];
         const horizontalLinearGauge = (options: object) => ({
