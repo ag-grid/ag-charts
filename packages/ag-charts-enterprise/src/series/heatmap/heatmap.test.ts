@@ -1709,7 +1709,10 @@ describe('HeatmapSeries', () => {
             { year: '2021', person: 'B', spending: 40 },
         ];
 
-        const buildOptions = (overrides: Record<string, unknown> = {}, data = DATA) =>
+        const buildOptions = (
+            overrides: Record<string, unknown> = {},
+            data: Array<(typeof DATA)[number] | object> = DATA
+        ) =>
             prepareEnterpriseTestOptions({
                 width: 400,
                 height: 300,
@@ -1811,6 +1814,114 @@ describe('HeatmapSeries', () => {
             expect(styles.filter(({ fill }) => fill !== 'lime').map(({ fill }) => fill)).toEqual(
                 fills.filter((_, i) => i !== 1)
             );
+        });
+
+        it('dims the other cells on hover with the default theme highlight and restores them', async () => {
+            chart = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+            const fills = cellFills(chart);
+
+            await hoverDatumByIndex(chart, 0, 0);
+            const hovered = cellStyles(chart);
+            expect(hovered.filter(({ opacity }) => opacity != null && opacity < 1).length).toBeGreaterThanOrEqual(3);
+            expect(hovered.map(({ fill }) => fill)).toEqual(fills);
+
+            await hoverAction(1, 1)(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+            expect(cellStyles(chart)).toEqual(fills.map((fill) => ({ fill, opacity: 1 })));
+        });
+
+        it('restores the stroke a highlighted item style changed once the pointer leaves', async () => {
+            const strokes = (c: Chart) =>
+                collectShapes(classCast(c.series[0], HeatmapSeries).contentGroup).map((rect) => String(rect.stroke));
+
+            chart = deproxy(
+                AgCharts.create(
+                    buildOptions({
+                        highlight: { highlightedItem: { stroke: 'magenta', strokeWidth: 4 } },
+                    })
+                )
+            );
+            await waitForChartStability(chart);
+            const before = strokes(chart);
+            expect(before).not.toContain('magenta');
+
+            await hoverDatumByIndex(chart, 0, 0);
+            await hoverAction(1, 1)(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+
+            expect(strokes(chart)).toEqual(before);
+        });
+
+        it('keeps the new colour scale fills when the domain changes during a hover', async () => {
+            chart = deproxy(AgCharts.create(buildOptions({ highlight: { unhighlightedItem: { opacity: 0.4 } } })));
+            await waitForChartStability(chart);
+            await hoverDatumByIndex(chart, 0, 0);
+
+            const data = DATA.map((d, i) => ({ ...d, spending: [40, 5, 10, 100][i] }));
+            chart.publicApi.updateDelta({ data });
+            await waitForChartStability(chart);
+
+            const fills = cellFills(chart);
+            expect(fills).toEqual(await freshCellFills(buildOptions({}, data)));
+            expect(new Set(fills).size).toBe(DATA.length);
+        });
+
+        it('restores the colour scale styling when the selection is cleared', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    buildOptions({
+                        selection: { enabled: true, unselectedItem: { opacity: 0.3 }, selectedItem: { fill: 'lime' } },
+                    })
+                )
+            );
+            await waitForChartStability(chart);
+            const initial = cellStyles(chart);
+
+            const series = classCast(chart.series[0], HeatmapSeries);
+            const itemId = series.data!.getItemIdFromIndex(1);
+            chart.publicApi.setSelection([{ seriesId: series.id, itemId }]);
+            await waitForChartStability(chart);
+            expect(cellStyles(chart)).not.toEqual(initial);
+
+            chart.publicApi.setSelection([]);
+            await waitForChartStability(chart);
+            expect(cellStyles(chart)).toEqual(initial);
+        });
+
+        it('applies an itemStyler over the colour scale fill and follows a domain change', async () => {
+            const itemStyler = ({ datum }: { datum: { year: string; person: string } }) =>
+                datum.person === 'A' ? { stroke: 'black', strokeWidth: 3 } : {};
+            const strokeWidths = (c: Chart) =>
+                collectShapes(classCast(c.series[0], HeatmapSeries).contentGroup).map((rect) => rect.strokeWidth);
+
+            chart = deproxy(AgCharts.create(buildOptions({ itemStyler })));
+            await waitForChartStability(chart);
+            const widths = strokeWidths(chart);
+            expect(widths.filter((w) => w === 3)).toHaveLength(2);
+
+            const data = DATA.map((d, i) => ({ ...d, spending: [40, 5, 10, 100][i] }));
+            chart.publicApi.updateDelta({ data });
+            await waitForChartStability(chart);
+
+            expect(cellFills(chart)).toEqual(await freshCellFills(buildOptions({ itemStyler }, data)));
+            expect(strokeWidths(chart)).toEqual(widths);
+        });
+
+        it('fills cells without a colour value with missingDataFill and restyles them on update', async () => {
+            const missingDataFill = '#cccccc';
+            const colorScale = { fills: [{ color: 'blue' }, { color: 'red' }], missingDataFill };
+            const withGap = DATA.map((d, i) => (i === 1 ? { ...d, spending: undefined } : d));
+
+            chart = deproxy(AgCharts.create(buildOptions({ colorScale }, withGap)));
+            await waitForChartStability(chart);
+            const fills = cellFills(chart);
+            expect(fills.filter((f) => f === missingDataFill)).toHaveLength(1);
+
+            chart.publicApi.updateDelta({ data: DATA });
+            await waitForChartStability(chart);
+            expect(cellFills(chart)).not.toContain(missingDataFill);
+            expect(cellFills(chart)).toEqual(await freshCellFills(buildOptions({ colorScale })));
         });
 
         it('keeps the colour scale fill in the tooltip symbol', async () => {
