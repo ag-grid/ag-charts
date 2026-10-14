@@ -1,0 +1,46 @@
+---
+/**
+ * Server-rendered links through an API reference section, for crawlers that don't execute
+ * JavaScript. Replaced, along with the rest of the fallback, by the interactive navigation tree once
+ * the React reference island mounts.
+ */
+import { buildFallbackNav } from '@components/api-documentation/apiReferenceFallbackNav';
+import type { SpecialTypesMap } from '@components/api-documentation/apiReferenceHelpers';
+import { getInterfacesReference } from '@utils/server/getInterfacesReference';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import ApiReferenceFallbackNavList from './ApiReferenceFallbackNavList.astro';
+import styles from './ApiReferenceFallback.module.scss';
+
+/**
+ * Levels of the tree to list. Each level multiplies the links on every page in the section, so it
+ * stays at the depth that reaches every reference page while keeping the served HTML small.
+ */
+const NAV_DEPTH = 2;
+
+interface Props {
+    /** Accessible name of the `<nav>`. */
+    label: string;
+    rootInterface: string;
+    rootLabel: string;
+    basePath: string;
+    pageInterface?: string;
+    specialTypes?: SpecialTypesMap;
+    noExpand?: string[];
+}
+
+const { label, rootInterface, rootLabel, basePath, pageInterface, specialTypes, noExpand } = Astro.props;
+
+const root = buildFallbackNav({
+    reference: getInterfacesReference(),
+    rootInterface,
+    rootLabel,
+    basePath: `${urlWithBaseUrl(`/${basePath}`)}/`,
+    config: { specialTypes, noExpand },
+    pageInterface,
+    depth: NAV_DEPTH,
+});
+---
+
+<nav class={styles.referenceNav} aria-label={label}>
+    <ApiReferenceFallbackNavList items={[root]} />
+</nav>

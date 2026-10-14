@@ -1,9 +1,17 @@
 ---
+import type { SpecialTypesMap } from '@components/api-documentation/apiReferenceHelpers';
 import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
+import ApiReferenceFallbackNav from '@components/api-documentation/components/ApiReferenceFallbackNav.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
-import OptionsReferenceFallbackNav from '@components/api-documentation/components/OptionsReferenceFallbackNav.astro';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { OPTIONS_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePageContent';
+
+const specialTypes: SpecialTypesMap = {
+    AgAnnotation: 'InterfaceArray',
+    AgChartAxesOptions: 'InterfaceRecord',
+    AgChartSeriesOptions: 'InterfaceArray',
+    AgMiniChartSeriesOptions: 'InterfaceArray',
+};
 ---
 
 <APIViewLayout title={OPTIONS_API_PAGE_CONTENT.title} description={OPTIONS_API_PAGE_CONTENT.description}>
@@ -15,16 +23,19 @@ import { OPTIONS_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePage
         rootInterface="AgChartOptions"
         breadcrumbs={['options']}
         basePath="options"
-        specialTypes={{
-            AgAnnotation: 'InterfaceArray',
-            AgChartAxesOptions: 'InterfaceRecord',
-            AgChartSeriesOptions: 'InterfaceArray',
-            AgMiniChartSeriesOptions: 'InterfaceArray',
-        }}
+        specialTypes={specialTypes}
         noExpand={['theme']}
     >
         <ApiReferenceFallback slot="fallback" rootInterface="AgChartOptions">
-            <OptionsReferenceFallbackNav slot="nav" />
+            <ApiReferenceFallbackNav
+                slot="nav"
+                label="Options API reference"
+                rootInterface="AgChartOptions"
+                rootLabel="options"
+                basePath="options"
+                specialTypes={specialTypes}
+                noExpand={['theme']}
+            />
         </ApiReferenceFallback>
     </ApiReferencePage>
 </APIViewLayout>
