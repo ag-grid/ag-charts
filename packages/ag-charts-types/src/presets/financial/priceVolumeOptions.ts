@@ -8,7 +8,7 @@ export type AgPriceVolumeChartType =
 export interface AgPriceVolumePreset {
     /** Series type used for the OHLC data.
      *
-     * The series has the fixed id `'price'` for every chart type, for use in callbacks and the Selection API.
+     * The series has the fixed id `'price'` for every chart type, for use in callbacks.
      *
      *  Default: `'candlestick'`
      */
@@ -52,7 +52,7 @@ export interface AgPriceVolumePreset {
      *
      *  If set to `false`, no volume data is required.
      *
-     * The series has the fixed id `'volume'`, for use in callbacks and the Selection API.
+     * The series has the fixed id `'volume'`, for use in callbacks.
      *
      * Default: `true`
      */
