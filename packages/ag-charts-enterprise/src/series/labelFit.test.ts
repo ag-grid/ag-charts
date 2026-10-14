@@ -1293,6 +1293,56 @@ describe('series label fit', () => {
             expect(firstLabelNode().fill).toBe('green');
         });
 
+        it('boxes linear-gauge labels from insideStyle or outsideStyle and fits the box', async () => {
+            const label = {
+                enabled: true,
+                text: 'Label',
+                truncate: false,
+                insideStyle: { fill: 'yellow', padding: 4 },
+                outsideStyle: { fill: 'grey', border: { stroke: 'black' } },
+            };
+            await renderGauge(horizontalLinearGauge({ value: 80, label: { ...label, placement: 'bar-inside' } }));
+            expect(firstLabelNode().getBoxingProperties()).toMatchObject({ fill: 'yellow', padding: 4 });
+
+            await renderGauge(horizontalLinearGauge({ value: 80, label: { ...label, placement: 'inside-end' } }));
+            expect(firstLabelNode().getBoxingProperties()).toMatchObject({ fill: 'grey', border: { enabled: true } });
+
+            const paddedOut = { ...label, insideStyle: { fill: 'yellow', padding: 300 }, placement: 'bar-inside' };
+            await renderGauge(horizontalLinearGauge({ value: 80, label: paddedOut }));
+            expect(gaugeLabelTexts()).toEqual([]);
+
+            await renderGauge(horizontalLinearGauge({ value: 80, label: { enabled: true, text: 'Label' } }));
+            expect(firstLabelNode().hasBoxing()).toBe(false);
+        });
+
+        it('boxes radial-gauge labels and fits the boxes within the gauge', async () => {
+            const label = { text: 'Score', fill: 'yellow', padding: 4 };
+            const secondaryLabel = { text: 'Label', border: { stroke: 'red' } };
+            await renderGauge(radialGauge(label, secondaryLabel));
+            const [primaryNode, secondaryNode] = chart.series[0].labelSelection.nodes();
+            expect(primaryNode.getBoxingProperties()).toMatchObject({ fill: 'yellow', padding: 4 });
+            expect(secondaryNode.getBoxingProperties()).toMatchObject({ border: { enabled: true, stroke: 'red' } });
+            expect(primaryNode.getBBox().y + primaryNode.getBBox().height).toBeLessThanOrEqual(
+                secondaryNode.getBBox().y
+            );
+
+            await renderGauge(radialGauge({ ...label, padding: 300 }));
+            expect(gaugeLabelTexts()).toEqual([]);
+        });
+
+        it.each([
+            ['radial-gauge', { type: 'radial-gauge', value: 50, scale: { min: 0, max: 100 } }],
+            ['linear-gauge', { type: 'linear-gauge', value: 50, scale: { min: 0, max: 100 } }],
+        ] as const)('boxes %s target labels', async (_, options) => {
+            const label = { fill: 'yellow', padding: 3, border: { stroke: 'red' } };
+            await renderGauge({ ...options, targets: [{ value: 30, text: 'Target', label }] });
+            const [node] = chart.series[0].targetLabelSelection.nodes();
+            expect(node.getBoxingProperties()).toMatchObject({ fill: 'yellow', padding: 3, border: { enabled: true } });
+
+            await renderGauge({ ...options, targets: [{ value: 30, text: 'Target' }] });
+            expect(chart.series[0].targetLabelSelection.nodes()[0].hasBoxing()).toBe(false);
+        });
+
         it('keeps an alwaysShow linear-gauge label at an overflowing placement over one with no room', async () => {
             await renderGauge(
                 horizontalLinearGauge({
@@ -1476,6 +1526,47 @@ describe('series label fit', () => {
                 ],
             });
             expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
+        });
+
+        it('renders boxed linear-gauge labels and target labels', async () => {
+            await renderGaugeAndSnapshot(
+                horizontalLinearGauge({
+                    value: 70,
+                    label: {
+                        enabled: true,
+                        text: 'Boxed label',
+                        placement: 'bar-inside',
+                        insideStyle: {
+                            color: 'black',
+                            fill: 'white',
+                            cornerRadius: 6,
+                            padding: { left: 12, right: 12 },
+                        },
+                        outsideStyle: { fill: 'black' },
+                    },
+                    targets: [
+                        { value: 30, text: 'Filled', label: { fill: 'gold', padding: 4 } },
+                        { value: 85, text: 'Bordered', label: { border: { stroke: 'red', strokeWidth: 2 } } },
+                    ],
+                })
+            );
+            expect(gaugeLabelTexts()).toEqual(['Boxed label']);
+            expect(targetLabelTexts()).toEqual(['Filled', 'Bordered']);
+        });
+
+        it('renders boxed radial-gauge labels and target labels', async () => {
+            await renderGaugeAndSnapshot({
+                type: 'radial-gauge',
+                width: 400,
+                height: 400,
+                value: 60,
+                scale: { min: 0, max: 100 },
+                label: { text: 'Boxed label', fontSize: 30, fill: 'gold', cornerRadius: 8 },
+                secondaryLabel: { text: 'Bordered', border: { stroke: 'red' }, padding: 4 },
+                targets: [{ value: 30, text: 'Target', label: { fill: 'lightblue', padding: 4 } }],
+            });
+            expect(gaugeLabelTexts()).toEqual(['Boxed label', 'Bordered']);
+            expect(targetLabelTexts()).toEqual(['Target']);
         });
     });
 });

@@ -81,7 +81,7 @@ import {
     resetRadialGaugeSeriesResetSectorFunction,
 } from './radialGaugeUtil';
 
-const { fromToMotion, resetMotion, SeriesNodePickMode, createDatumId } = _ModuleSupport;
+const { fromToMotion, resetMotion, SeriesNodePickMode, createDatumId, expandLabelBoxExtent } = _ModuleSupport;
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
@@ -453,7 +453,11 @@ export class RadialGaugeSeries
                 spacing,
                 size,
                 rotation,
-                label: { ...pickGaugeTargetLabelOptions(label), color: label.color, spacing: label.spacing },
+                label: {
+                    ...pickGaugeTargetLabelOptions(label, target.label),
+                    color: label.color,
+                    spacing: label.spacing,
+                },
                 style: getRadialGaugeTargetStyle(target),
             };
         });
@@ -697,6 +701,8 @@ export class RadialGaugeSeries
                 truncate,
                 collision,
                 formatter,
+                box: label,
+                boxExtent: expandLabelBoxExtent(label),
             });
         }
 
@@ -730,6 +736,8 @@ export class RadialGaugeSeries
                 truncate,
                 collision,
                 formatter,
+                box: secondaryLabel,
+                boxExtent: expandLabelBoxExtent(secondaryLabel),
             });
         }
 

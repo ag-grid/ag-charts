@@ -314,7 +314,7 @@ interface LinearGaugeLabelOpts {
     barEnabled: boolean;
 }
 
-export const LINEAR_GAUGE_LABEL_KEY = 'label';
+const LINEAR_GAUGE_LABEL_KEY = 'label';
 
 interface LinearGaugeLabelBounds {
     width?: number;
@@ -448,29 +448,40 @@ function layoutLinearGaugeLabel(
     const fitToGauge = bounds.inner && !legacyKeep;
     const boundingWidth = bounds.width ?? (fitToGauge ? gaugeRect.width : Infinity);
     const boundingHeight = bounds.height ?? (fitToGauge ? gaugeRect.height : Infinity);
-    const layout = measureLinearGaugeLabel(labelText, labelDatum, padding, boundingWidth, boundingHeight, overflow);
+    const { boxExtent } = labelDatum;
+    const boxWidth = boxExtent.left + boxExtent.right;
+    const boxHeight = boxExtent.top + boxExtent.bottom;
+    const layout = measureLinearGaugeLabel(
+        labelText,
+        labelDatum,
+        padding,
+        boundingWidth - boxWidth,
+        boundingHeight - boxHeight,
+        overflow
+    );
     if (layout == null) return;
 
     const s = bounds.anchor + bounds.direction * labelDatum.spacing * (horizontal ? 1 : -1);
-    const x = horizontal ? s : gaugeRect.x + gaugeRect.width / 2;
-    const y = horizontal ? gaugeRect.y + gaugeRect.height / 2 : s;
+    const width = layout.width + boxWidth;
+    const height = layout.height + boxHeight;
+    const box = horizontal
+        ? new BBox(
+              s + horizontalAlignFactors[bounds.align] * width,
+              gaugeRect.y + (gaugeRect.height - height) / 2,
+              width,
+              height
+          )
+        : new BBox(
+              gaugeRect.x + (gaugeRect.width - width) / 2,
+              s + verticalAlignFactors[bounds.align] * height,
+              width,
+              height
+          );
 
-    let box: BBox;
-    if (horizontal) {
-        box = new BBox(
-            x + horizontalAlignFactors[bounds.align] * layout.width,
-            y - layout.height / 2,
-            layout.width,
-            layout.height
-        );
-    } else {
-        box = new BBox(
-            x - layout.width / 2,
-            y + verticalAlignFactors[bounds.align] * layout.height,
-            layout.width,
-            layout.height
-        );
-    }
+    const textX = box.x + boxExtent.left;
+    const textY = box.y + boxExtent.top;
+    const x = horizontal ? textX - horizontalAlignFactors[bounds.align] * layout.width : textX + layout.width / 2;
+    const y = horizontal ? textY + layout.height / 2 : textY - verticalAlignFactors[bounds.align] * layout.height;
 
     let region: BoxBounds | undefined;
     const { bounds0, bounds1 } = bounds;
@@ -543,10 +554,9 @@ export function formatLinearGaugeLabels(
         const { placements: labelPlacements } = labelDatum;
         const placement = labelPlacements[candidateId % labelPlacements.length];
         const overflow = candidateId >= labelPlacements.length;
-        return (
-            layoutLinearGaugeLabel(labelText, labelDatum, placement, overflow, opts, bboxes) ??
-            layoutLinearGaugeLabel(labelText, labelDatum, placement, true, opts, bboxes)
-        );
+        const layout = layoutLinearGaugeLabel(labelText, labelDatum, placement, overflow, opts, bboxes);
+        if (layout != null || overflow) return layout;
+        return layoutLinearGaugeLabel(labelText, labelDatum, placement, true, opts, bboxes);
     };
 
     selection.each((label, labelDatum) => {
@@ -565,7 +575,9 @@ export function formatLinearGaugeLabels(
         label.text = layout.text;
         label.fontSize = layout.fontSize;
         label.lineHeight = layout.lineHeight;
-        label.fill = (inside ? labelDatum.insideFill : labelDatum.outsideFill) ?? labelDatum.fill;
+        const style = inside ? labelDatum.insideStyle : labelDatum.outsideStyle;
+        label.fill = style.color;
+        label.setBoxing(style);
 
         label.textAlign = horizontal ? horizontalTextAligns[align] : 'center';
         label.textBaseline = horizontal ? 'middle' : verticalTextBaselines[align];

@@ -268,7 +268,7 @@ export interface PointLabelDatum {
     readonly neverDrop?: boolean;
     /** When `false`, the placed label is not an obstacle for the labels resolved after it. */
     readonly obstacle?: boolean;
-    /** Placed labels sharing a group never block one another, as when several are laid out as one block. */
+    /** Placed labels sharing a group never block one another. */
     readonly labelGroup?: string;
     /**
      * Authoritative pre-positioned candidates, tried in order; each carries its own region. When

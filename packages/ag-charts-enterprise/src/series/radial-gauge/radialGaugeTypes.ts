@@ -1,11 +1,16 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import type { NormalisedGaugeSeriesStyle, NormalisedRadialGaugeLabelOptions } from 'ag-charts-core';
+import type {
+    NormalisedGaugeSeriesStyle,
+    NormalisedRadialGaugeLabelOptions,
+    TextBoxingProperties,
+} from 'ag-charts-core';
 import type {
     AgChartLabelCollisionOptions,
     AgNumericValue,
     AgRadialGaugeMarkerShape,
     FontStyle,
     FontWeight,
+    PaddingOptions,
 } from 'ag-charts-types';
 
 import type { GaugeTargetDatumLabel } from '../gauge-util/labelPlacement';
@@ -70,4 +75,6 @@ export type RadialGaugeLabelDatum = {
     maxWidth?: number;
     maxHeight?: number;
     formatter: NormalisedRadialGaugeLabelOptions['formatter'];
+    box: TextBoxingProperties;
+    boxExtent: Required<PaddingOptions>;
 };

@@ -1,5 +1,6 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 import type {
+    NormalisedChartLabelStyleOptions,
     NormalisedGaugeSeriesStyle,
     NormalisedLinearGaugeLabelOptions,
     NormalisedTextOrSegments,
@@ -11,6 +12,7 @@ import type {
     AgNumericValue,
     FontStyle,
     FontWeight,
+    PaddingOptions,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -61,8 +63,9 @@ export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum {
     spacing: number;
     maxWidth: number | undefined;
     maxHeight: number | undefined;
-    insideFill: string | undefined;
-    outsideFill: string | undefined;
+    insideStyle: NormalisedChartLabelStyleOptions;
+    outsideStyle: NormalisedChartLabelStyleOptions;
+    boxExtent: Required<PaddingOptions>;
     text: NormalisedTextOrSegments | undefined;
     value: AgNumericValue;
     fill: string | undefined;

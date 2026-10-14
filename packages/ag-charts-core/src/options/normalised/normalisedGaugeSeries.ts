@@ -1,6 +1,5 @@
 import type {
     AgChartLabelFormatterParams,
-    AgChartLabelPlacementStyleOptions,
     AgGaugeColorStop,
     AgGaugeSegmentation,
     AgGaugeSegmentationInterval,
@@ -33,6 +32,10 @@ import type {
 import type { RequireOptional } from '../../types/global';
 import type { Normalised } from './normalise';
 import type { FillStrokeMorph } from './normalisedCommonOptions';
+import type {
+    NormalisedChartLabelPlacementStyleOptions,
+    NormalisedChartLabelStyleOptions,
+} from './normalisedLabelOptions';
 
 /** Fill, stroke and dash style shared by every gauge shape; `fill` may be a resolved gradient. */
 export type NormalisedGaugeSeriesStyle = Normalised<
@@ -90,23 +93,27 @@ export type NormalisedRadialGaugeNeedleOptions = Normalised<
 
 type GaugeLabelFormatter<TParams> = RichFormatter<AgChartLabelFormatterParams<unknown> & RequireOptional<TParams>>;
 
+type LabelBoxOverrides = Pick<NormalisedChartLabelStyleOptions, 'fill' | 'border'>;
+
 export type NormalisedRadialGaugeLabelOptions = Normalised<
     AgRadialGaugeLabelOptions,
     'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate' | 'spacing',
-    { color?: CssColor; formatter?: GaugeLabelFormatter<AgRadialGaugeLabelFormatterParams> }
+    LabelBoxOverrides & { color?: CssColor; formatter?: GaugeLabelFormatter<AgRadialGaugeLabelFormatterParams> }
 >;
 
 export type NormalisedRadialGaugeSecondaryLabelOptions = Normalised<
     AgRadialGaugeSecondaryLabelOptions,
     'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate',
-    { color?: CssColor; formatter?: GaugeLabelFormatter<AgRadialGaugeLabelFormatterParams> }
+    LabelBoxOverrides & { color?: CssColor; formatter?: GaugeLabelFormatter<AgRadialGaugeLabelFormatterParams> }
 >;
 
 /** A user-configured radial target; anything left unset falls back to the themed `defaultTarget`. */
 export type NormalisedRadialGaugeTargetOptions = Normalised<
     AgRadialGaugeTarget,
     never,
-    FillStrokeMorph & { label?: Normalised<AgRadialGaugeTargetLabelOptions, never, { color?: CssColor }> }
+    FillStrokeMorph & {
+        label?: Normalised<AgRadialGaugeTargetLabelOptions, never, LabelBoxOverrides & { color?: CssColor }>;
+    }
 >;
 
 export type NormalisedRadialGaugeDefaultTargetOptions = Normalised<
@@ -117,7 +124,7 @@ export type NormalisedRadialGaugeDefaultTargetOptions = Normalised<
         label: Normalised<
             AgRadialGaugeTargetLabelOptions,
             'enabled' | 'fontStyle' | 'fontWeight' | 'fontSize' | 'fontFamily' | 'spacing',
-            { color: CssColor }
+            LabelBoxOverrides & { color: CssColor }
         >;
     }
 >;
@@ -187,16 +194,14 @@ export type NormalisedLinearGaugeBarOptions = Normalised<
     GaugeFillsOverrides
 >;
 
-type NormalisedLabelPlacementStyle = Normalised<AgChartLabelPlacementStyleOptions, never, { color?: CssColor }>;
-
 export type NormalisedLinearGaugeLabelOptions = Normalised<
     AgLinearGaugeLabelOptions,
     'enabled' | 'fontSize' | 'fontFamily' | 'wrapping' | 'truncate' | 'spacing' | 'placement',
-    {
+    LabelBoxOverrides & {
         color?: CssColor;
         formatter?: GaugeLabelFormatter<unknown>;
-        insideStyle?: NormalisedLabelPlacementStyle;
-        outsideStyle?: NormalisedLabelPlacementStyle;
+        insideStyle?: NormalisedChartLabelPlacementStyleOptions;
+        outsideStyle?: NormalisedChartLabelPlacementStyleOptions;
     }
 >;
 
@@ -208,7 +213,7 @@ export type NormalisedLinearGaugeTargetOptions = Normalised<AgLinearGaugeTarget,
 export type NormalisedLinearGaugeTargetLabelOptions = Normalised<
     AgLinearGaugeTargetLabelOptions,
     never,
-    { color?: CssColor }
+    LabelBoxOverrides & { color?: CssColor }
 >;
 
 export type NormalisedLinearGaugeDefaultTargetOptions = Normalised<
@@ -219,7 +224,7 @@ export type NormalisedLinearGaugeDefaultTargetOptions = Normalised<
     label: Normalised<
         AgLinearGaugeTargetLabelOptions,
         'enabled' | 'fontStyle' | 'fontWeight' | 'fontSize' | 'fontFamily' | 'spacing',
-        { color: CssColor }
+        LabelBoxOverrides & { color: CssColor }
     >;
 };
 

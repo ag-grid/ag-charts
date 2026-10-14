@@ -4,6 +4,7 @@ import {
     FONT_SIZE,
     FONT_THEME_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    LABEL_PLACEMENT_STYLE_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
     SERIES_INTERACTION_THEME_DEFAULTS,
@@ -73,12 +74,8 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             spacing: 18,
             wrapping: 'on-space',
             truncate: AUTO_SIZED_LABEL_TRUNCATE,
-            insideStyle: {
-                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
-            },
-            outsideStyle: {
-                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
-            },
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('inside', 'chartBackgroundColor'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('outside', 'chartBackgroundColor'),
         },
         tooltip: {
             ...SERIES_TOOLTIP_THEME,
@@ -106,6 +103,7 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
                 spacing: 5,
                 rotation: 0,
                 label: {
+                    ...LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     fontStyle: 'normal',
                     ...FONT_THEME_DEFAULTS,

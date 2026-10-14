@@ -73,7 +73,16 @@ import {
     resetLinearGaugeSeriesResetRectFunction,
 } from './linearGaugeUtil';
 
-const { fromToMotion, resetMotion, SeriesNodePickMode, createDatumId, generateTicks, NiceMode } = _ModuleSupport;
+const {
+    fromToMotion,
+    resetMotion,
+    SeriesNodePickMode,
+    createDatumId,
+    generateTicks,
+    NiceMode,
+    expandPlacementLabelBoxExtent,
+    resolvePlacementLabelStyle,
+} = _ModuleSupport;
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
@@ -287,7 +296,11 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 spacing,
                 size,
                 rotation,
-                label: { ...pickGaugeTargetLabelOptions(label), color: label.color, spacing: label.spacing },
+                label: {
+                    ...pickGaugeTargetLabelOptions(label, target.label),
+                    color: label.color,
+                    spacing: label.spacing,
+                },
                 style: getLinearGaugeTargetStyle(target, defaultTarget),
             };
         });
@@ -392,8 +405,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             spacing,
             maxWidth,
             maxHeight,
-            insideFill: insideStyle?.color,
-            outsideFill: outsideStyle?.color,
+            insideStyle: resolvePlacementLabelStyle(label, insideStyle),
+            outsideStyle: resolvePlacementLabelStyle(label, outsideStyle),
+            boxExtent: expandPlacementLabelBoxExtent(label),
             text,
             value,
             fill,
@@ -426,7 +440,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             labelSize = wrapped?.height ?? labelSize;
         }
 
-        return label.spacing + Math.min(labelSize, maxHeight ?? Infinity);
+        const { top, bottom } = expandPlacementLabelBoxExtent(label);
+        return label.spacing + Math.min(labelSize, maxHeight ?? Infinity) + top + bottom;
     }
 
     private horizontalLabelInset() {
@@ -459,7 +474,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             return Math.max(accum, width);
         }, 0);
 
-        return label.spacing + Math.min(labelSize, label.maxWidth ?? Infinity);
+        const { left, right } = expandPlacementLabelBoxExtent(label);
+        return label.spacing + Math.min(labelSize, label.maxWidth ?? Infinity) + left + right;
     }
 
     private tickFormatter(

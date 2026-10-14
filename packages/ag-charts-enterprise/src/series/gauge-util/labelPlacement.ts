@@ -1,3 +1,4 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     type BoxBounds,
     type CollideWith,
@@ -8,11 +9,14 @@ import {
     type PointLabelDatum,
     type Selection,
     Text,
+    type TextBoxingProperties,
     resolveCollideWith,
 } from 'ag-charts-core';
-import type { AgChartLabelCollisionOptions, FontStyle, FontWeight, TextWrap } from 'ag-charts-types';
+import type { AgChartLabelCollisionOptions, FontStyle, FontWeight, PaddingOptions, TextWrap } from 'ag-charts-types';
 
 import { formatSingleLabel } from '../util/labelFormatter';
+
+const { expandLabelBoxExtent } = _ModuleSupport;
 
 const COLLIDE_WITH_NOTHING: CollideWith = { marker: false, label: false, seriesItem: false, seriesArea: false };
 
@@ -121,15 +125,19 @@ export interface GaugeTargetLabelOptions {
     truncate: boolean | undefined;
     minimumFontSize: number | undefined;
     collision: AgChartLabelCollisionOptions | undefined;
+    box: TextBoxingProperties;
 }
 
-type OptionalTargetLabelKeys = Exclude<keyof GaugeTargetLabelOptions, 'enabled' | 'fontSize' | 'fontFamily'>;
+type OptionalTargetLabelKeys = Exclude<keyof GaugeTargetLabelOptions, 'enabled' | 'fontSize' | 'fontFamily' | 'box'>;
 
 export function pickGaugeTargetLabelOptions(
-    label: Omit<GaugeTargetLabelOptions, OptionalTargetLabelKeys> &
-        Partial<Pick<GaugeTargetLabelOptions, OptionalTargetLabelKeys>>
+    label: Omit<GaugeTargetLabelOptions, OptionalTargetLabelKeys | 'box'> &
+        Partial<Pick<GaugeTargetLabelOptions, OptionalTargetLabelKeys>> &
+        TextBoxingProperties,
+    targetLabel: TextBoxingProperties | undefined
 ): GaugeTargetLabelOptions {
     return {
+        box: targetLabelBox(label, targetLabel),
         enabled: label.enabled,
         fontSize: label.fontSize,
         fontFamily: label.fontFamily,
@@ -144,6 +152,13 @@ export function pickGaugeTargetLabelOptions(
     };
 }
 
+/** Setting any `border` option on a target's own label enables its border, as the theme does for other labels. */
+function targetLabelBox(label: TextBoxingProperties, targetLabel: TextBoxingProperties | undefined) {
+    const border = targetLabel?.border;
+    if (border == null || border.enabled != null) return label;
+    return { ...label, border: { ...label.border, enabled: true } };
+}
+
 /** A target label fitted to its options; `text` is undefined when the label is not drawn. */
 export interface GaugeTargetLabelLayout {
     text: NormalisedTextOrSegments | undefined;
@@ -152,6 +167,8 @@ export interface GaugeTargetLabelLayout {
     fontStyle: FontStyle | undefined;
     fontWeight: FontWeight | undefined;
     collision: AgChartLabelCollisionOptions | undefined;
+    box: TextBoxingProperties;
+    boxExtent: Required<PaddingOptions>;
 }
 
 export interface GaugeTargetDatumLabel extends GaugeTargetLabelLayout {
@@ -168,8 +185,9 @@ export function layoutGaugeTargetLabel(
     text: string | undefined,
     label: GaugeTargetLabelOptions
 ): GaugeTargetLabelLayout {
-    const { fontSize, fontFamily, fontStyle, fontWeight, collision, maxWidth, maxHeight } = label;
-    const layout = { text: undefined, fontSize, fontFamily, fontStyle, fontWeight, collision };
+    const { fontSize, fontFamily, fontStyle, fontWeight, collision, maxWidth, maxHeight, box } = label;
+    const boxExtent = expandLabelBoxExtent(box);
+    const layout = { text: undefined, fontSize, fontFamily, fontStyle, fontWeight, collision, box, boxExtent };
     if (!label.enabled || text == null) return layout;
     if (maxWidth == null && maxHeight == null) return { ...layout, text };
 
@@ -185,10 +203,48 @@ export function gaugeTargetLabelDatum(
     y: number,
     seriesArea: BoxBounds
 ): GaugePointLabelDatum | undefined {
-    const { text, textAlign, textBaseline } = label;
+    const { text, textAlign, textBaseline, boxExtent } = label;
     if (text == null) return;
-    const box = Text.measureBBox(text, x + label.offsetX, y + label.offsetY, { font: label, textAlign, textBaseline });
+    const anchor = boxedTargetLabelAnchor(label, x, y);
+    const textBox = Text.measureBBox(text, anchor.x, anchor.y, { font: label, textAlign, textBaseline });
+    const box = growBox(textBox, boxExtent);
     return gaugeLabelDatum(key, text, [{ id: 0, box }], label.collision, true, seriesArea);
+}
+
+/** Text anchor that keeps the label's box edge, rather than its text, at the target label's offset. */
+function boxedTargetLabelAnchor(label: GaugeTargetDatumLabel, x: number, y: number) {
+    const offset = boxedTextOffset(label.boxExtent, label.textAlign, label.textBaseline);
+    return { x: x + label.offsetX + offset.x, y: y + label.offsetY + offset.y };
+}
+
+/** Shift from a box's anchor to its text's anchor, for a box aligned the same way as its text. */
+export function boxedTextOffset(
+    extent: Required<PaddingOptions>,
+    textAlign: CanvasTextAlign,
+    textBaseline: CanvasTextBaseline
+) {
+    let x = (extent.left - extent.right) / 2;
+    if (textAlign === 'left') {
+        x = extent.left;
+    } else if (textAlign === 'right') {
+        x = -extent.right;
+    }
+    let y = (extent.top - extent.bottom) / 2;
+    if (textBaseline === 'top') {
+        y = extent.top;
+    } else if (textBaseline === 'bottom') {
+        y = -extent.bottom;
+    }
+    return { x, y };
+}
+
+export function growBox(box: BoxBounds, extent: Required<PaddingOptions>): BoxBounds {
+    return {
+        x: box.x - extent.left,
+        y: box.y - extent.top,
+        width: box.width + extent.left + extent.right,
+        height: box.height + extent.top + extent.bottom,
+    };
 }
 
 export function updateGaugeTargetLabelNode(
@@ -204,9 +260,11 @@ export function updateGaugeTargetLabelNode(
         return;
     }
 
-    node.x = x + label.offsetX;
-    node.y = y + label.offsetY;
+    const anchor = boxedTargetLabelAnchor(label, x, y);
+    node.x = anchor.x;
+    node.y = anchor.y;
     node.text = text;
+    node.setBoxing(label.box);
     node.fill = label.fill;
     node.fontStyle = label.fontStyle;
     node.fontWeight = label.fontWeight;
