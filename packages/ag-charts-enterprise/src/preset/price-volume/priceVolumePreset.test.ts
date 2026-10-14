@@ -349,6 +349,16 @@ describe('priceVolumePreset', () => {
     });
 
     describe('volume profile status bar', () => {
+        interface Measurable {
+            text?: string;
+            getBBox(): { x: number; width: number };
+        }
+
+        interface StatusBarState {
+            bandLabels: Array<{ title: Measurable; value: Measurable }>;
+            backgroundNode: { width: number };
+        }
+
         interface NodeDatum {
             datumIndex: number;
             x: number;
@@ -424,7 +434,21 @@ describe('priceVolumePreset', () => {
             await create({ volumeProfile: { data, upKey: 'upVolume', downKey: 'downVolume' } });
             await hoverCandleAtLevel(50, LEVEL_200);
 
-            await compare();
+            const { bandLabels, backgroundNode } =
+                deproxy(chart).modulesManager.getModule<StatusBarState>('statusBar')!;
+            expect(bandLabels.map(({ value }) => value.text)).toEqual([
+                '198.75-201.25',
+                '600.00K',
+                '399.00K',
+                '999.00K',
+            ]);
+
+            const rightEdge = ({ x, width }: { x: number; width: number }) => x + width;
+            const gaps = bandLabels.map(({ value }, i) => {
+                const next = bandLabels.at(i + 1);
+                return (next ? next.title.getBBox().x : backgroundNode.width) - rightEdge(value.getBBox());
+            });
+            expect(Math.min(...gaps)).toBeGreaterThanOrEqual(0);
         });
 
         it('should render only the hovered candle over a level without volume', async () => {
