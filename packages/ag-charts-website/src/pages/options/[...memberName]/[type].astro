@@ -1,8 +1,8 @@
 ---
-import { getOptionsStaticPaths } from '@components/api-documentation/apiReferenceHelpers';
+import { type SpecialTypesMap, getOptionsStaticPaths } from '@components/api-documentation/apiReferenceHelpers';
 import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
+import ApiReferenceFallbackNav from '@components/api-documentation/components/ApiReferenceFallbackNav.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
-import OptionsReferenceFallbackNav from '@components/api-documentation/components/OptionsReferenceFallbackNav.astro';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { optionsVariantPageContent } from '@utils/markdown-pages/apiReferencePageContent';
 import { getInterfacesReference } from '@utils/server/getInterfacesReference';
@@ -13,6 +13,13 @@ export async function getStaticPaths() {
 }
 
 const { title, description } = optionsVariantPageContent(Astro.props.pageTitle);
+
+const specialTypes: SpecialTypesMap = {
+    AgAnnotation: 'InterfaceArray',
+    AgChartAxesOptions: 'InterfaceRecord',
+    AgChartSeriesOptions: 'InterfaceArray',
+    AgMiniChartSeriesOptions: 'InterfaceArray',
+};
 ---
 
 <APIViewLayout title={title} description={description}>
@@ -24,12 +31,7 @@ const { title, description } = optionsVariantPageContent(Astro.props.pageTitle);
         rootInterface="AgChartOptions"
         breadcrumbs={['options']}
         basePath="options"
-        specialTypes={{
-            AgAnnotation: 'InterfaceArray',
-            AgChartAxesOptions: 'InterfaceRecord',
-            AgChartSeriesOptions: 'InterfaceArray',
-            AgMiniChartSeriesOptions: 'InterfaceArray',
-        }}
+        specialTypes={specialTypes}
     >
         <ApiReferenceFallback
             slot="fallback"
@@ -37,7 +39,15 @@ const { title, description } = optionsVariantPageContent(Astro.props.pageTitle);
             pageInterface={Astro.props.pageInterface}
             pageTitle={Astro.props.pageTitle}
         >
-            <OptionsReferenceFallbackNav slot="nav" />
+            <ApiReferenceFallbackNav
+                slot="nav"
+                label="Options API reference"
+                rootInterface="AgChartOptions"
+                rootLabel="options"
+                basePath="options"
+                pageInterface={Astro.props.pageInterface}
+                specialTypes={specialTypes}
+            />
         </ApiReferenceFallback>
     </ApiReferencePage>
 </APIViewLayout>

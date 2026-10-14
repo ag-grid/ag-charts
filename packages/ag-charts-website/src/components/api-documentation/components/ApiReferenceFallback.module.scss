@@ -57,6 +57,10 @@
         list-style: none;
     }
 
+    > ul {
+        padding-left: 0;
+    }
+
     li {
         margin: $spacing-size-1 0;
     }
@@ -64,10 +68,6 @@
     a[aria-current='page'] {
         font-weight: var(--text-bold);
     }
-}
-
-.referenceNavGroup {
-    font-family: var(--text-monospace-font-family);
 }
 
 .referenceContent {
