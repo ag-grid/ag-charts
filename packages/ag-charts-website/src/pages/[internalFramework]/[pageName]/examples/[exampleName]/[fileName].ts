@@ -7,6 +7,7 @@ import { getDocExampleFiles } from '@components/docs/utils/pageData';
 import { getIsDev } from '@utils/env';
 import { fileNameToMimeType } from '@utils/mimeType';
 import { getContentRootFileUrl } from '@utils/pages';
+import { shareInFlight } from '@utils/shareInFlight';
 import { getCollection } from 'astro:content';
 
 import { getGeneratedContents } from '../../../../../components/example-generator';
@@ -18,12 +19,15 @@ interface Params {
     fileName: string;
 }
 
-export async function getStaticPaths() {
+// Every request for an example file re-runs `getStaticPaths` in dev, and Astro only caches its settled result,
+// so concurrent requests would each scan every generated `contents.json`. Share the run in flight instead.
+const loadExampleFiles = shareInFlight(async () => {
     const pages = await getCollection('docs');
-    const exampleFiles = await getDocExampleFiles({
-        pages,
-    });
-    return exampleFiles;
+    return getDocExampleFiles({ pages });
+});
+
+export async function getStaticPaths() {
+    return loadExampleFiles();
 }
 
 export async function GET({ params }: { params: Params }) {
