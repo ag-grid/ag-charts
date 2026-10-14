@@ -38,6 +38,8 @@ In this example:
 
 Set `selection.enabled` to let users click a price level to select it, highlighting both its up and down segments and the background behind it. In a Financial Chart, set the same options on `volumeProfile.selection`.
 
+The two segments have the fixed series ids `'volumeProfileUp'` and `'volumeProfileDown'`, in both chart types, for use in selection callbacks, `setSelection()` and `getSelection()`.
+
 {% chartExampleRunner title="Selecting Price Levels" name="selection" type="generated" /%}
 
 ```js format="snippet"
@@ -55,3 +57,13 @@ In this example:
 - Click a price level to select it, or click away from the bars to clear the selection.
 - With `enableDrag` set, drag across the chart to select every price level the rectangle touches.
 - Use the Click Mode buttons to switch `selection.clickMode` between `'single'`, where each click replaces the selection, and `'multiple'`, where each click toggles a level.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgVolumeProfileChartOptions" label="Options" %}
+{% apiReference id="AgVolumeProfileChartOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

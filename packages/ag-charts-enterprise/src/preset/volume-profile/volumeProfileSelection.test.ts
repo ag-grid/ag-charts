@@ -26,6 +26,9 @@ setupEnterpriseModules();
 
 const byName = (a: string, b: string) => a.localeCompare(b);
 
+const UP = 'volumeProfileUp';
+const DOWN = 'volumeProfileDown';
+
 type Chart = AgChartInstance<AgVolumeProfileChartOptions>;
 
 describe('volumeProfile selection', () => {
@@ -79,58 +82,104 @@ describe('volumeProfile selection', () => {
 
     it('selects the up and down segments of a clicked level together', async () => {
         await create();
-        const [up, down] = seriesList();
 
         await click(0, 2);
 
-        expect(selected().sort(byName)).toEqual([`${up.id}:2`, `${down.id}:2`].sort(byName));
+        expect(selected().sort(byName)).toEqual([`${UP}:2`, `${DOWN}:2`].sort(byName));
     });
 
     it('reports one item per segment in `selectionChange`', async () => {
         await create();
-        const [up, down] = seriesList();
 
         await click(1, 3);
 
         expect(events).toHaveLength(1);
         expect(events[0].source).toBe('user-interaction');
-        expect(events[0].added.map((item) => item.seriesId).sort(byName)).toEqual([up.id, down.id].sort(byName));
+        expect(events[0].added.map((item) => item.seriesId).sort(byName)).toEqual([UP, DOWN].sort(byName));
         expect(events[0].added.map((item) => item.itemId)).toEqual([3, 3]);
         expect(events[0].removed).toEqual([]);
     });
 
     it('replaces the selected level in `single` click mode', async () => {
         await create({ selection: { enabled: true, clickMode: 'single' } });
-        const [up, down] = seriesList();
 
         await click(0, 1);
         await click(0, 4);
 
-        expect(selected().sort(byName)).toEqual([`${up.id}:4`, `${down.id}:4`].sort(byName));
+        expect(selected().sort(byName)).toEqual([`${UP}:4`, `${DOWN}:4`].sort(byName));
     });
 
     it('accumulates scattered levels, and deselects one on a second click, in `multiple` click mode', async () => {
         await create({ selection: { enabled: true, clickMode: 'multiple' } });
-        const [up, down] = seriesList();
 
         await click(0, 1);
         await click(1, 4);
-        expect(selected().sort(byName)).toEqual(
-            [`${up.id}:1`, `${down.id}:1`, `${up.id}:4`, `${down.id}:4`].sort(byName)
-        );
+        expect(selected().sort(byName)).toEqual([`${UP}:1`, `${DOWN}:1`, `${UP}:4`, `${DOWN}:4`].sort(byName));
 
         await click(1, 1);
-        expect(selected().sort(byName)).toEqual([`${up.id}:4`, `${down.id}:4`].sort(byName));
+        expect(selected().sort(byName)).toEqual([`${UP}:4`, `${DOWN}:4`].sort(byName));
     });
 
     it('selects both segments when the API is given only one', async () => {
         await create();
-        const [up, down] = seriesList();
 
-        chart.setSelection([{ seriesId: up.id, itemId: 5 }]);
+        chart.setSelection([{ seriesId: UP, itemId: 5 }]);
         await waitForChartStability(chart);
 
-        expect(selected().sort(byName)).toEqual([`${up.id}:5`, `${down.id}:5`].sort(byName));
+        expect(selected().sort(byName)).toEqual([`${UP}:5`, `${DOWN}:5`].sort(byName));
+    });
+
+    it('gives the segments the fixed ids `volumeProfileUp` and `volumeProfileDown`', async () => {
+        await create();
+
+        expect(seriesList().map((series) => series.id)).toEqual([UP, DOWN]);
+    });
+
+    it('puts the up volume in `volumeProfileUp` and the down volume in `volumeProfileDown`', async () => {
+        await create();
+
+        const keys = Object.fromEntries(
+            seriesList().map((series) => [series.id, (series as unknown as { options: { yKey: string } }).options.yKey])
+        );
+        expect(keys).toEqual({ [UP]: 'upVolume', [DOWN]: 'downVolume' });
+    });
+
+    it('keeps the fixed ids when selection is not enabled', async () => {
+        await create({ selection: undefined });
+
+        expect(seriesList().map((series) => series.id)).toEqual([UP, DOWN]);
+    });
+
+    it('round-trips `setSelection()` and `getSelection()` by the fixed `seriesId`', async () => {
+        await create();
+
+        chart.setSelection([{ seriesId: DOWN, itemId: 3 }]);
+        await waitForChartStability(chart);
+
+        expect(selected().sort(byName)).toEqual([`${DOWN}:3`, `${UP}:3`].sort(byName));
+    });
+
+    it('selects a level by `volumeProfileUp` and `volumeProfileDown` alike, and `getSelection()` returns both', async () => {
+        await create();
+
+        chart.setSelection([{ seriesId: UP, itemId: 2 }]);
+        await waitForChartStability(chart);
+        const fromUp = selected().sort(byName);
+        chart.clearSelection();
+        chart.setSelection([{ seriesId: DOWN, itemId: 2 }]);
+        await waitForChartStability(chart);
+
+        expect(selected().sort(byName)).toEqual(fromUp);
+        expect(fromUp).toEqual([`${DOWN}:2`, `${UP}:2`].sort(byName));
+    });
+
+    it('does not select anything for an unknown `seriesId`', async () => {
+        await create();
+
+        chart.setSelection([{ seriesId: 'BarSeries-1', itemId: 2 }]);
+        await waitForChartStability(chart);
+
+        expect(selected()).toEqual([]);
     });
 
     it('clears both segments when clicking away', async () => {
@@ -171,13 +220,12 @@ describe('volumeProfile selection', () => {
 
     it('keeps the selected level when the data is replaced and `dataIdKey` is set', async () => {
         await create({ dataIdKey: 'price' } as Partial<AgVolumeProfileChartOptions>);
-        const [up, down] = seriesList();
 
         await click(0, 2);
         await chart.updateDelta({ data: getRegularVolumeProfile() });
         await waitForChartStability(chart);
 
-        expect(selected().sort(byName)).toEqual([`${up.id}:2`, `${down.id}:2`].sort(byName));
+        expect(selected().sort(byName)).toEqual([`${UP}:2`, `${DOWN}:2`].sort(byName));
     });
 
     describe('drag selection', () => {
@@ -188,7 +236,7 @@ describe('volumeProfile selection', () => {
         };
         const levels = (seriesIndex: number) =>
             selected()
-                .filter((item) => item.startsWith(seriesList()[seriesIndex].id))
+                .filter((item) => item.startsWith(`${[UP, DOWN][seriesIndex]}:`))
                 .map((item) => Number(item.split(':')[1]));
 
         it('is off unless `selection.enableDrag` is set', async () => {
@@ -260,7 +308,7 @@ describe('volumeProfile selection', () => {
 
     describe('rendering', () => {
         const select = async (levels: number[]) => {
-            chart.setSelection(levels.map((itemId) => ({ seriesId: seriesList()[0].id, itemId })));
+            chart.setSelection(levels.map((itemId) => ({ seriesId: UP, itemId })));
             await waitForChartStability(chart);
         };
 
