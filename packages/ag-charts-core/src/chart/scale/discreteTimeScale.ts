@@ -79,11 +79,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         return this.bands.map((d) => d.valueOf());
     }
 
-    /**
-     * The numeric band values a lookup should search, or undefined when it should search `bands` directly.
-     * Subclasses whose `numericBands` costs a pass over every band can answer undefined for the first few lookups,
-     * so a handful of lookups (tick generation makes a few per pass) doesn't pay for building all of them.
-     */
+    /** The numbers a lookup should search, or undefined to search `bands` while building them isn't worth it. */
     protected numericBandsForLookup(): number[] | undefined {
         return this.numericBands;
     }
@@ -185,36 +181,23 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
         if (value == null) return undefined;
 
         const numericBands = this.numericBandsForLookup();
-        if (numericBands === undefined) return this.findIndexInBands(value, alignment, alignmentExclusive);
-
-        const n = numericBands.length;
-
-        if (n === 0) return undefined;
-        if (n === 1) return 0;
-
-        const target = value.valueOf();
-
-        const isTrailing = alignment === ScaleAlignment.Trailing;
-        if (isTrailing !== alignmentExclusive) {
-            return findMinIndex(0, n - 1, (index) => numericBands[index] >= target);
-        }
-        return findMaxIndex(0, n - 1, (index) => numericBands[index] <= target);
-    }
-
-    /** `findIndex` over `bands` themselves, for lookups that don't (yet) justify building `numericBands`. */
-    private findIndexInBands(value: Date, alignment: ScaleAlignment, alignmentExclusive: boolean): number | undefined {
-        const { bands } = this;
-        const n = bands.length;
+        const bands = numericBands === undefined ? this.bands : undefined;
+        const n = numericBands?.length ?? bands!.length;
 
         if (n === 0) return undefined;
         if (n === 1) return 0;
 
         const target = value.valueOf();
+        const findMin = (alignment === ScaleAlignment.Trailing) !== alignmentExclusive;
 
-        const isTrailing = alignment === ScaleAlignment.Trailing;
-        if (isTrailing !== alignmentExclusive) {
-            return findMinIndex(0, n - 1, (index) => bands[index].valueOf() >= target);
+        // Two searches rather than one over an accessor: this runs per datum, so it must not pay a call per probe.
+        if (numericBands === undefined) {
+            return findMin
+                ? findMinIndex(0, n - 1, (index) => bands![index].valueOf() >= target)
+                : findMaxIndex(0, n - 1, (index) => bands![index].valueOf() <= target);
         }
-        return findMaxIndex(0, n - 1, (index) => bands[index].valueOf() <= target);
+        return findMin
+            ? findMinIndex(0, n - 1, (index) => numericBands[index] >= target)
+            : findMaxIndex(0, n - 1, (index) => numericBands[index] <= target);
     }
 }

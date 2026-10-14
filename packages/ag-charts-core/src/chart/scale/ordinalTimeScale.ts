@@ -14,11 +14,7 @@ import { getDateTicksForInterval } from './timeScale';
 
 const APPROXIMATE_THRESHOLD = 1000;
 
-/**
- * A lookup over `Date`s costs about three times one over numbers, but the numbers cost a pass over every band to
- * build. Lookups search `bands` until there has been one per this many bands, then the numbers are built: the
- * extra spent searching `Date`s stays near the cost of that build.
- */
+/** Lookups search `bands` until there has been one per this many bands, then `numericBands` is built. */
 const BANDS_PER_UNBUILT_LOOKUP = 64;
 
 /** Lazily built values derived from one domain array; dropped as a unit when the domain changes. */
@@ -44,13 +40,9 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
     private _domain: Date[] = [];
     private isReversed: boolean = false;
     private _cache: BandCache = {};
-    /** The domain captured by `snapshotDomain`, with the caches built for it, until the matching `restoreDomain`. */
+    /** The domain captured by `snapshotDomain`, with its caches, until the matching `restoreDomain`. */
     private _snapshot: { domain: Date[]; cache: BandCache } | undefined;
-    /**
-     * The temporary domain `restoreDomain` swapped out, with its caches. Tick generation sets that domain more
-     * than once and the axis then adopts it, so the next `domain` set reuses these rather than rebuilding them;
-     * any other set drops them, which bounds this to the gap between a restore and the next domain change.
-     */
+    /** The temporary domain `restoreDomain` swapped out; only the next `domain` set may reuse it, then it is dropped. */
     private _kept: { domain: Date[]; cache: BandCache } | undefined;
 
     override set domain(domain: Date[]) {
@@ -67,10 +59,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         return this._domain;
     }
 
-    /**
-     * Tick generation swaps in a temporary domain and back. Carry the caches built for either domain through
-     * that round trip, rather than rebuilding them (one `Date` -> number pass per band) on each swap.
-     */
+    /** Tick generation swaps in a temporary domain and back; the caches of either survive the round trip. */
     override snapshotDomain(): Date[] {
         const domain = this._domain;
         this._snapshot = { domain, cache: this._cache };
@@ -104,7 +93,6 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const cache = this._cache;
         if (cache.numericBands !== undefined) return cache.numericBands;
 
-        // A large domain that is only looked up a few times (e.g. once per tick pass) never builds them.
         const lookups = (cache.unbuiltLookups ?? 0) + 1;
         cache.unbuiltLookups = lookups;
         return lookups < this.bands.length / BANDS_PER_UNBUILT_LOOKUP ? undefined : this.numericBands;

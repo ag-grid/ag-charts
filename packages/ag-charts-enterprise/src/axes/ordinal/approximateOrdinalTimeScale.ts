@@ -57,8 +57,7 @@ export class ApproximateOrdinalTimeScale extends OrdinalTimeScale {
         delegateReadOnly('rawBandwidth');
     }
 
-    // `domain` is redirected to the source scale above, so the base class's own copy of it is not the live one;
-    // the temporary-domain round trip must be carried out by the scale that actually holds the domain.
+    // `domain` lives on the source scale, so the temporary-domain round trip must run there.
     override snapshotDomain(): Date[] {
         return this._sourceScale ? this._sourceScale.snapshotDomain() : super.snapshotDomain();
     }

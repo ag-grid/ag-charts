@@ -6,8 +6,7 @@ import { ApproximateOrdinalTimeScale } from './approximateOrdinalTimeScale';
 
 const minutes = (count: number, step = 1) => Array.from({ length: count }, (_, i) => new Date(2024, 0, 1, 0, i * step));
 
-// Tick generation swaps a temporary domain in through the scale it was given and restores the original
-// afterwards. With a source scale set the domain lives on the source, so the round trip must reach it.
+// With a source scale the domain lives on the source, so the temporary-domain round trip must reach it.
 describe('ApproximateOrdinalTimeScale temporary domain round trip', () => {
     function create() {
         const source = new OrdinalTimeScale();
