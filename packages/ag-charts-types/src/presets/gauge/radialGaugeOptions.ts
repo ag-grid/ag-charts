@@ -154,7 +154,7 @@ export interface AgRadialGaugePreset<TContext = ContextDefault> extends AgRadial
     /** Configuration for the Radial Gauge. */
     type: 'radial-gauge';
     /**
-     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series. If your callbacks need to vary behaviour by series please supply your own unique `id` value.
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series.
      *
      * Default: `'gauge'`
      */
