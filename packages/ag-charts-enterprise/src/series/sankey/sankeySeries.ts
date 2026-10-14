@@ -84,7 +84,8 @@ interface SankeyLabelLayout {
     readonly x: number;
     readonly y: number;
     readonly text: string;
-    readonly fontSize?: number;
+    readonly width: number;
+    readonly height: number;
     readonly source: string;
     readonly font: FontOptions;
     readonly room: number;
@@ -390,7 +391,7 @@ export class SankeySeries extends FlowProportionSeries<
                 if (labelPlacement === 'center' && edgeLabelPlacement == null) maxWidth /= 2;
                 const { font, hidden } = this.getLabelLayoutStyle(node.datum.size);
                 if (hidden) return acc;
-                const { text, fontSize } = this.fitNodeLabel(node.datum.label, font, maxWidth, 'ellipsis');
+                const { text, fontSize } = this.fitNodeLabel(node.datum.label, font, maxWidth, Infinity, 'ellipsis');
                 let { width } = this.labelMeasurer(font, fontSize).measureLines(text);
                 if (labelPlacement === 'center' && edgeLabelPlacement == null) width /= 2;
                 return Math.max(acc, width);
@@ -649,7 +650,7 @@ export class SankeySeries extends FlowProportionSeries<
         if (node.label == null) return;
 
         const {
-            label: { spacing: labelSpacing, edgePlacement: edgeLabelPlacement, truncate },
+            label: { spacing: labelSpacing, edgePlacement: edgeLabelPlacement },
             node: { width: nodeWidth },
         } = this.options;
         const { font, hidden } = this.getLabelLayoutStyle(node.size);
@@ -669,7 +670,7 @@ export class SankeySeries extends FlowProportionSeries<
             let halfHeight = lineHeight;
             for (let attempt = 0; attempt < 3; attempt++) {
                 const room = this.getClearLabelRoom(nodeGraph, node, x, textAlign, y - halfHeight, y + halfHeight);
-                const candidate = { ...this.fitNodeLabel(node.label, font, room, 'hide', heightRoom), room };
+                const candidate = { ...this.fitNodeLabel(node.label, font, room, heightRoom, 'hide'), room };
                 if (candidate.text === '') break;
                 fitted = candidate;
                 if (!candidate.text.includes('\n')) break;
@@ -687,16 +688,12 @@ export class SankeySeries extends FlowProportionSeries<
             textAlign === 'center' || extendsOutward
                 ? columnWidth - labelInset
                 : columnWidth - nodeWidth - labelSpacing * 2;
-        const overflowStrategy = truncate === false ? 'hide' : 'ellipsis';
-        fitted ??= {
-            ...this.fitNodeLabel(node.label, font, columnRoom, overflowStrategy, heightRoom),
-            room: columnRoom,
-        };
+        fitted ??= { ...this.fitNodeLabel(node.label, font, columnRoom, heightRoom), room: columnRoom };
 
         const { text, room } = fitted;
         if (text === '') return;
 
-        const { width } = this.labelMeasurer(font, fitted.fontSize).measureLines(text);
+        const { width, height } = this.labelMeasurer(font, fitted.fontSize).measureLines(text);
         // Even a lone ellipsis can be wider than the room left, and must not be drawn over a node.
         if (width > Math.max(room, 0) + 0.5) return;
 
@@ -714,7 +711,8 @@ export class SankeySeries extends FlowProportionSeries<
                 x,
                 y,
                 text,
-                fontSize: fitted.fontSize,
+                width,
+                height,
                 source: node.label,
                 font,
                 room,
@@ -776,14 +774,8 @@ export class SankeySeries extends FlowProportionSeries<
     override getLabelData(): PointLabelDatum[] {
         if (!this.isLabelEnabled()) return [];
         const { label } = this.options;
-        const { maxWidth, maxHeight, wrapping = 'never', truncate, minimumFontSize, collision } = label;
-        const policy: LabelFit = {
-            maxWidth,
-            maxHeight,
-            wrapping,
-            overflowStrategy: truncate === false ? 'hide' : 'ellipsis',
-            minimumFontSize,
-        };
+        const { collision } = label;
+        const policy = this.labelFitPolicy();
         const padding = expandLabelBoxExtent(label);
         const collideWith = resolveCollideWith(collision);
         const threshold = collision.threshold ?? 0;
@@ -792,13 +784,16 @@ export class SankeySeries extends FlowProportionSeries<
         for (const runsPastColumn of [false, true]) {
             for (const target of this.contextNodeData?.labelData ?? []) {
                 if (target.layout.runsPastColumn !== runsPastColumn) continue;
-                const { x, y, text, fontSize, source, font, room, heightRoom } = target.layout;
-                const glyph = this.labelMeasurer(font, fontSize).measureLines(text);
-                const width = glyph.width + padding.left + padding.right;
-                const height = glyph.height + padding.top + padding.bottom;
+                const { x, y, text, source, font, room, heightRoom } = target.layout;
+                const width = target.layout.width + padding.left + padding.right;
+                const height = target.layout.height + padding.top + padding.bottom;
                 const anchor = { x, y, textAlign: target.textAlign, textBaseline: 'middle' } as const;
                 const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, padding);
                 const box = { x: centre.x - width / 2, y: centre.y - height / 2, width, height };
+                // A narrower refit may wrap onto more lines, up to the height room around the anchor.
+                const top = Math.min(box.y, y - heightRoom / 2 - padding.top);
+                const bottom = Math.max(box.y + height, y + heightRoom / 2 + padding.bottom);
+                const region = { x: box.x, y: top, width, height: bottom - top };
                 const { nodeDatum } = target;
                 data.push({
                     point: { x: 0, y: 0, size: 0 },
@@ -813,12 +808,12 @@ export class SankeySeries extends FlowProportionSeries<
                     positionedCandidates: [
                         {
                             box,
-                            region: box,
+                            region,
                             flushToRegion: false,
                             fitTo: { container: { width: room, height: heightRoom }, anchor, padding, font },
                         },
                     ],
-                    ownBox: { x: nodeDatum.x, y: nodeDatum.y, width: nodeDatum.width, height: nodeDatum.height },
+                    ownBox: nodeDatum,
                     ownBoxLabelsCollide: true,
                     target,
                 });
@@ -865,23 +860,33 @@ export class SankeySeries extends FlowProportionSeries<
         return { fromKey, size, sizeKey, toKey };
     }
 
+    private labelFitPolicy(): LabelFit {
+        const { maxWidth, maxHeight, wrapping = 'never', truncate, minimumFontSize } = this.options.label;
+        return {
+            maxWidth,
+            maxHeight,
+            wrapping,
+            overflowStrategy: truncate === false ? 'hide' : 'ellipsis',
+            minimumFontSize,
+        };
+    }
+
     private fitNodeLabel(
         text: string,
         font: FontOptions,
         room: number,
-        overflowStrategy: OverflowStrategy,
-        heightRoom = Infinity
+        heightRoom: number,
+        overflowStrategy?: OverflowStrategy
     ) {
-        const { label } = this.options;
-        const maxHeight = Math.min(heightRoom, label.maxHeight ?? Infinity);
+        const policy = this.labelFitPolicy();
+        const maxHeight = Math.min(heightRoom, policy.maxHeight ?? Infinity);
         const fitted = fitLabelTextAutoSize(
             text,
             {
-                maxWidth: Math.min(room, label.maxWidth ?? Infinity),
+                ...policy,
+                maxWidth: Math.min(room, policy.maxWidth ?? Infinity),
                 maxHeight: Number.isFinite(maxHeight) ? maxHeight : undefined,
-                wrapping: label.wrapping ?? 'never',
-                overflowStrategy,
-                minimumFontSize: label.minimumFontSize,
+                overflowStrategy: overflowStrategy ?? policy.overflowStrategy,
             },
             font
         );

@@ -1697,6 +1697,14 @@ describe('label collision avoidance', () => {
             expect(texts.some((text) => text.startsWith('An interior') && text.endsWith('…'))).toBe(true);
         });
 
+        it('rewraps a colliding label onto more lines rather than hiding it', async () => {
+            await render(options({ placement: 'center', wrapping: 'on-space' }));
+            const interior = drawnLabels().filter((node) => node.text.startsWith('An interior'));
+            expect(interior).toHaveLength(1);
+            expect(interior[0].text).toContain('\n');
+            expect(overlappingPairs()).toBe(0);
+        });
+
         describe('when a label cannot shrink clear of a collision', () => {
             const colliding = 'An interior node with a very long label';
             const shortSource = data.map((d) => (d.from.startsWith('Alpha') ? { ...d, from: 'Alpha source' } : d));
