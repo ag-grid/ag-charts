@@ -65,30 +65,9 @@ export function supplierColors(supplierIds: string[]): Record<string, string> {
  * Stepped in OKLCH so the steps are evenly spaced *perceptually*; four of them, because no
  * commodity in the catalogue has more than four subcategories. Each step is ΔL 0.14 from its
  * neighbour and gains chroma as it darkens, so the bands differ in two channels at once — lightness
- * alone leaves four stacked bands hard to tell apart. The whole scale below `MATERIAL_INK` is this
- * ramp's to use.
+ * alone leaves four stacked bands hard to tell apart.
  */
 export const SUBCATEGORY_RAMP = ['#a79c93', '#807265', '#5a493a', '#372411'];
-
-/**
- * The material ring: one flat tone, lighter than every step of the subcategory ramp.
- *
- * Not a ramp, because there is nothing for a ramp to encode. Materials are nominal — swapping two
- * of them changes nothing — and which subcategory a material belongs to is already said by the
- * sector it sits inside.
- *
- * Held at 2.04:1 against the panel: a tone paler than that is a sector the reader cannot see.
- */
-export const MATERIAL_INK = '#b9b5b1';
-
-/**
- * Ink for the sunburst's centre: her commodity, which is context rather than a value.
- *
- * Placed midway between two steps of the ramp it touches, so it is no closer to either than the
- * steps are to each other. Below the darkest step it crowds that step and weighs the chart down;
- * paler than the rings it loses its label, which the series draws in one colour for every sector.
- */
-export const COMMODITY_INK = '#655f5b';
 
 /**
  * Delivery status, on the theme's RAG tokens rather than the categorical palette — the spec
@@ -175,7 +154,7 @@ export const THEME: AgChartTheme = {
                 },
             },
             legend: {
-                spacing: 8,
+                spacing: 12,
                 position: 'bottom',
                 item: {
                     marker: { size: 12 },

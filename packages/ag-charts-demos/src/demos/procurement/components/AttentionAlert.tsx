@@ -106,7 +106,7 @@ export function AttentionAlert({ items, onSelect, onResolve }: AttentionAlertPro
     );
 
     return (
-        <div className="pc-alert">
+        <div className="pc-alert" data-keeps-selection>
             <Button
                 ref={triggerRef}
                 className="pc-icon-btn pc-alert-trigger"

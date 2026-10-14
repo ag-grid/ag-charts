@@ -245,12 +245,16 @@ async function expectTabState(tab: Locator, panel: Locator, active: boolean) {
 /**
  * A single-selection toggle group: a radiogroup whose radios report `aria-checked`, where focus
  * landing on the group moves to the checked radio, the arrow keys move focus (not the selection)
- * with wrap-around, and Enter checks the focused radio.
+ * with wrap-around, and Enter checks the focused radio. `scope` tells apart groups that share a name.
  */
-export async function expectRadioGroupContract(page: Page, spec: RadioGroupSpec) {
-    const group = page.getByRole('radiogroup', { name: spec.name, exact: true });
+export async function expectRadioGroupContract(page: Page, spec: RadioGroupSpec, scope: Page | Locator = page) {
+    const group = scope.getByRole('radiogroup', { name: spec.name, exact: true });
     const radios = group.getByRole('radio');
-    await expect(radios).toHaveText([...spec.options]);
+    await expect(radios).toHaveCount(spec.options.length);
+    // By accessible name, not text: an icon-only radio is named by its aria-label.
+    for (const [index, label] of spec.options.entries()) {
+        await expect(radios.nth(index)).toHaveAccessibleName(label);
+    }
 
     const initial = spec.options.indexOf(spec.initial);
     const expectChecked = async (index: number) => {

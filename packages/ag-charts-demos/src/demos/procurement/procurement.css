@@ -80,8 +80,8 @@
     --pc-bad: var(--color-danger-text);
     --pc-bad-fill: var(--color-danger);
     --pc-bad-soft: var(--color-danger-bg);
-    --pc-radius: 8px;
-    --pc-radius-sm: 6px;
+    --pc-radius: 3px;
+    --pc-radius-sm: 3px;
     /* The single elevation in the app: a popover genuinely floats above content. */
     --pc-shadow-popover: 0 4px 16px rgba(23, 24, 26, 0.12);
     color: var(--pc-text);
@@ -204,9 +204,12 @@
         background 0.12s ease,
         color 0.12s ease;
 }
-.pc-side-action:hover {
+.pc-side-action:not([aria-disabled='true']):hover {
     color: var(--pc-text);
     background: var(--pc-panel-2);
+}
+.pc-side-action[aria-disabled='true'] {
+    cursor: default;
 }
 .pc-side-action:focus-visible {
     outline: 2px solid var(--pc-accent);
@@ -340,12 +343,12 @@
     min-width: 0;
     min-height: 0;
     overflow-y: auto;
-    padding: 20px 24px 40px;
+    padding: 20px 24px 24px;
 }
 .pc-view {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
     max-width: 1660px;
     margin: 0 auto;
     /* Fills the scroll region, so a view that asks to fill the page has a height to fill.
@@ -355,7 +358,7 @@
 .pc-view-content {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 12px;
 }
 /* A view whose last row takes whatever height is left, rather than the page ending under it. */
 .pc-view-content--fill {
@@ -487,6 +490,16 @@
     color: var(--pc-muted);
     margin-top: 2px;
 }
+/* A title with its subtitle beside it rather than beneath; the subtitle wraps under when the card is narrow. */
+.pc-card-title-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 8px;
+}
+.pc-card-title-inline .pc-card-sub {
+    margin-top: 0;
+}
 .pc-chart-box {
     height: clamp(280px, 30vh, 380px);
     min-width: 0;
@@ -546,17 +559,37 @@
     color: var(--pc-text);
     font-variant-numeric: tabular-nums;
 }
-/* Progress against target, between the figure and the line that explains it. */
+/* The figure with its chart to the right */
+.pc-kpi-figure {
+    display: flex;
+    align-items: center;
+    gap: 220px;
+}
+.pc-kpi-value {
+    flex: none;
+}
+/* Progress against target, beside the figure. */
 .pc-kpi-gauge {
     display: block;
+    flex: 1 1 auto;
+    min-width: 0;
     height: 18px;
-    margin: 2px 0;
 }
 /* What the figure is drawn from, as one segmented bar plus its bands in text. */
 .pc-kpi-segments {
     display: block;
-    height: 12px;
-    margin: 4px 0 2px;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 18px;
+}
+/* Chart under the figure, for tiles too narrow to hold both on one row. */
+.pc-kpis--stacked .pc-kpi-figure {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+}
+.pc-kpis--stacked .pc-kpi-gauge {
+    margin: 2px 0;
 }
 /* The explanatory line and the bands, on one row: the sentence takes the slack and the counts
    range right against it, wrapping under only when the tile is too narrow to hold both. */
@@ -567,7 +600,7 @@
     flex-wrap: wrap;
     gap: 2px 12px;
 }
-.pc-kpi-segment-keys {
+.pc-status-keys {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
@@ -576,7 +609,7 @@
     color: var(--pc-muted);
     font-variant-numeric: tabular-nums;
 }
-.pc-kpi-segment-key {
+.pc-status-key {
     white-space: nowrap;
 }
 .pc-kpi-detail {
@@ -591,8 +624,15 @@
 .pc-grid-2 {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
+    gap: 12px;
     align-items: stretch;
+}
+/* Cards stacked within one column of a grid, so a single card can span them from the next column. */
+.pc-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
 }
 /* Takes the height its view has left over, and passes it to both cards. */
 .pc-grid-2--fill {
@@ -709,7 +749,7 @@
 .pc-attention-body:focus-visible {
     outline: 2px solid var(--pc-accent);
     outline-offset: 2px;
-    border-radius: 3px;
+    border-radius: var(--pc-radius-sm);
 }
 .pc-attention-title {
     font-weight: 600;
@@ -772,11 +812,17 @@
 .pc-supplier-swatch {
     width: 10px;
     height: 10px;
-    border-radius: 3px;
+    border-radius: var(--pc-radius-sm);
     flex: 0 0 auto;
 }
 .pc-supplier-name {
     font-weight: 700;
+}
+/* A supplier leaf in the spend breakdown grid: swatch then name, as on the roster. */
+.pc-spend-supplier {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 /* A figure the wrong side of its target, or of contract price. */
 .pc-down {
@@ -795,33 +841,6 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-}
-
-/* ---- shared status legend (board + map) ---- */
-.pc-legend {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    font-size: 12px;
-    color: var(--pc-muted);
-}
-.pc-legend-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-.pc-legend-glyph {
-    font-size: 11px;
-}
-.pc-legend-item.is-ok .pc-legend-glyph {
-    color: var(--pc-ok);
-}
-.pc-legend-item.is-warn .pc-legend-glyph {
-    color: var(--pc-warn);
-}
-.pc-legend-item.is-bad .pc-legend-glyph {
-    color: var(--pc-bad);
 }
 
 /* ---- active-filter chips ---- */
@@ -931,7 +950,7 @@
 .pc-link-btn:focus-visible {
     outline: 2px solid var(--pc-accent);
     outline-offset: 2px;
-    border-radius: 3px;
+    border-radius: var(--pc-radius-sm);
 }
 .pc-po-actions {
     display: inline-flex;
@@ -974,7 +993,7 @@
     align-items: center;
     height: 30px;
     padding: 0 26px 0 12px;
-    border-radius: 7px;
+    border-radius: var(--pc-radius);
     cursor: pointer;
     color: var(--pc-text);
 }
@@ -1081,6 +1100,7 @@
     flex: 0 0 auto;
     margin-top: var(--pc-facet-band-top, 0);
     margin-bottom: var(--pc-facet-band-bottom, 0);
+    padding-top: 14px;
 }
 /* Fixed, so every pie is the same size: the facets grow with the card, and a pie that grew with them
    would vary in size for a reason that has nothing to do with its data. */
@@ -1145,7 +1165,7 @@
     align-items: center;
     gap: 5px;
     padding: 2px 8px;
-    border-radius: 4px;
+    border-radius: var(--pc-radius-sm);
     background: var(--pc-panel-2);
     color: var(--pc-muted);
     font-size: 11px;

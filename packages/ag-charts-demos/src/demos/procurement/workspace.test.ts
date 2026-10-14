@@ -9,6 +9,7 @@ import {
     SHIPMENTS,
     SUBCATEGORIES,
     SUPPLIERS,
+    YEAR_START,
     sumSpend,
 } from './data';
 import {
@@ -114,6 +115,26 @@ describe('orders tab filters', () => {
         const summary = mySummary([], scope);
         const counted = Object.values(summary.shipmentsByStatus).reduce((total, count) => total + count, 0);
         expect(counted).toBe(scope.shipments.length);
+    });
+
+    it('narrows the headline figures to the filtered supplier', () => {
+        const whole = mySummary([], myOrdersScope(DEFAULT_ORDERS_FILTER));
+        const filtered = mySummary([], myOrdersScope({ supplierId, subcategory: ALL_FILTER }));
+        const theirs = MY_ORDERS.filter((order) => order.supplierId === supplierId);
+
+        expect(filtered.openOrders).toBe(theirs.filter((order) => order.actualDate == null).length);
+        expect(filtered.spendYtd).toBeCloseTo(sumSpend(theirs.filter((order) => order.orderDate >= YEAR_START)));
+        expect(filtered.atRiskShipments).toBe(
+            MY_TRACKED_SHIPMENTS.filter(
+                (shipment) =>
+                    shipment.supplierId === supplierId && (shipment.status === 'At risk' || shipment.status === 'Late')
+            ).length
+        );
+
+        expect(filtered.openOrders).toBeLessThan(whole.openOrders);
+        expect(filtered.spendYtd).toBeLessThan(whole.spendYtd);
+        expect(filtered.deliveredCount).toBeGreaterThan(0);
+        expect(filtered.deliveredCount).toBeLessThan(whole.deliveredCount);
     });
 });
 

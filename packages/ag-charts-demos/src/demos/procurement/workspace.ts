@@ -25,6 +25,7 @@ import {
     daysBetween,
     deliveredInRange,
     inRange,
+    materialQualityCost,
     monthBuckets,
     qualityCost,
     scorecard,
@@ -45,6 +46,7 @@ import type {
     BurnUpPoint,
     CommodityManager,
     DateRange,
+    MaterialQualityCost,
     MonthBucket,
     PurchaseOrder,
     QualityCost,
@@ -487,6 +489,12 @@ export const mySupplierTrend = (months: PeriodMonths): Map<string, SupplierTrend
 /** What her rejected material cost, per supplier, over the selected window. */
 export const myQualityCost = (months: PeriodMonths): QualityCost[] =>
     qualityCost(myDeliveredIn(months), MANAGER.supplierIds);
+
+/** What her rejected material cost, per material, for each of her suppliers over the selected window. */
+export const myMaterialQualityCost = (months: PeriodMonths): Map<string, MaterialQualityCost[]> => {
+    const delivered = myDeliveredIn(months);
+    return new Map(MANAGER.supplierIds.map((supplierId) => [supplierId, materialQualityCost(delivered, supplierId)]));
+};
 
 /**
  * Her committed spend against budget pace, across the whole of the selected window.

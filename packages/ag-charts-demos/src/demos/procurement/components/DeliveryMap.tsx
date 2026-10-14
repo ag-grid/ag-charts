@@ -1,6 +1,7 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import type {
+    AgInitialStateZoomOptions,
     AgMapLineSeriesOptions,
     AgMapMarkerSeriesOptions,
     AgSelectionItemIds,
@@ -10,7 +11,7 @@ import { AgCharts } from 'ag-charts-react';
 
 import { NEUTRAL, STATUS_COLORS, STATUS_SHAPES, THEME } from '../chartTheme';
 import { PLANTS } from '../data';
-import { fmtCurrency, fmtDate, fmtDaysToGo, fmtPct, fmtSlack } from '../format';
+import { fmtCurrency, fmtDate, fmtDaysToGo, fmtPct } from '../format';
 import { ROUTE_TOPOLOGY, WORLD_TOPOLOGY } from '../routes';
 import type { ShipmentStatus, TrackedShipment } from '../types';
 import { useShipmentSelection } from './useShipmentSelection';
@@ -53,6 +54,70 @@ const PLANT_POINTS: MapPoint[] = PLANTS.map((plant) => ({
     longitude: plant.destination.longitude,
 }));
 
+const RADIANS_PER_DEGREE = Math.PI / 180;
+
+/** Projected y on the Web Mercator projection the map series draw with; north is smaller. */
+const mercatorY = (latitude: number) => -Math.log(Math.tan(Math.PI / 4 + (latitude * RADIANS_PER_DEGREE) / 2));
+
+/** Every `[longitude, latitude]` in a geometry's coordinates, however deeply they nest. */
+function* positionsIn(coordinates: unknown): Generator<number[]> {
+    if (!Array.isArray(coordinates)) return;
+    if (typeof coordinates[0] === 'number') {
+        yield coordinates;
+        return;
+    }
+    for (const child of coordinates) yield* positionsIn(child);
+}
+
+function* topologyPositions(topology: typeof WORLD_TOPOLOGY): Generator<number[]> {
+    for (const feature of topology.features) yield* positionsIn(feature.geometry?.coordinates);
+}
+
+function boundsOf(positions: Iterable<number[]>) {
+    let west = Infinity;
+    let east = -Infinity;
+    let south = Infinity;
+    let north = -Infinity;
+    for (const [longitude, latitude] of positions) {
+        west = Math.min(west, longitude);
+        east = Math.max(east, longitude);
+        south = Math.min(south, latitude);
+        north = Math.max(north, latitude);
+    }
+    return { west, east, south, north };
+}
+
+// The chart fits its view to the background's bounds, so zoom ratios are fractions of these.
+const WORLD_BOUNDS = boundsOf(topologyPositions(WORLD_TOPOLOGY));
+const LANE_BOUNDS = boundsOf([
+    ...topologyPositions(ROUTE_TOPOLOGY),
+    ...PLANTS.map(({ destination }) => [destination.longitude, destination.latitude]),
+]);
+
+/**
+ * The zoom that spans the world's full width across the chart, with the band of latitudes it then
+ * has room for centred on the shipping lanes. Undefined when the unzoomed map already fills the width.
+ */
+function fitWidthZoom(width: number, height: number): AgInitialStateZoomOptions | undefined {
+    if (width <= 0 || height <= 0) return undefined;
+
+    const top = mercatorY(WORLD_BOUNDS.north);
+    const mapWidth = (WORLD_BOUNDS.east - WORLD_BOUNDS.west) * RADIANS_PER_DEGREE;
+    const mapHeight = mercatorY(WORLD_BOUNDS.south) - top;
+    // The share of the map's height still visible once its width fills the chart.
+    const span = (height * mapWidth) / (width * mapHeight);
+    if (span >= 1) return undefined;
+
+    const fromTop = (latitude: number) => (mercatorY(latitude) - top) / mapHeight;
+    const lanesFromTop = (fromTop(LANE_BOUNDS.north) + fromTop(LANE_BOUNDS.south)) / 2;
+    // Zoom ratios run south to north, the reverse of `fromTop`.
+    const start = Math.min(Math.max(1 - lanesFromTop - span / 2, 0), 1 - span);
+    return {
+        ratioX: { start: (1 - span) / 2, end: (1 + span) / 2 },
+        ratioY: { start, end: Math.min(start + span, 1) },
+    };
+}
+
 export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange }: DeliveryMapProps) {
     // Series data is not chart data, so `dataIdKey` does not reach it: items are addressed by index.
     const pointsByStatus = useMemo(
@@ -89,6 +154,14 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
         shipmentIdOf,
         itemsFor,
     });
+
+    const boxRef = useRef<HTMLDivElement>(null);
+    // Measured once, on mount: later resizes leave the reader's own zoom alone.
+    const [initialZoom, setInitialZoom] = useState<AgInitialStateZoomOptions>();
+    useLayoutEffect(() => {
+        const box = boxRef.current!;
+        setInitialZoom(fitWidthZoom(box.clientWidth, box.clientHeight));
+    }, []);
 
     const options = useMemo<AgTopologyChartOptions<MapPoint>>(() => {
         const dimmed = (id: string) => selectedShipmentIds.length > 0 && !selectedShipmentIds.includes(id);
@@ -127,13 +200,19 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
             fill: STATUS_COLORS[status],
             fillOpacity: 1,
             stroke: 'var(--pc-panel)',
-            strokeWidth: 1.5,
-            selection: { unselectedItem: { opacity: 0.25 }, unselectedSeries: { opacity: 0.25 } },
+            strokeWidth: 1,
+            selection: {
+                selectedItem: { strokeWidth: 0 },
+                unselectedItem: { opacity: 0.3 },
+                unselectedSeries: { opacity: 0.3 },
+            },
+            highlight: { enabled: false },
             tooltip: {
                 renderer: ({ datum }) => {
                     const shipment = datum.shipment;
                     if (!shipment) return undefined;
                     return {
+                        heading: '',
                         title: `${shipment.shipmentId} · ${shipment.status}`,
                         data: [
                             { label: 'Lane', value: `${shipment.supplierName} → ${shipment.plantName}` },
@@ -148,7 +227,6 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
                                 label: 'Required',
                                 value: `${fmtDate(shipment.requiredDate)} · ${fmtDaysToGo(shipment.daysToRequired)}`,
                             },
-                            { label: 'Against required', value: fmtSlack(shipment.slackDays) },
                             ...(shipment.carrierDelay ? [{ label: 'Carrier', value: 'Delay logged' }] : []),
                         ],
                     };
@@ -167,7 +245,7 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
             size: 9,
             fill: 'var(--pc-text)',
             stroke: 'var(--pc-panel)',
-            strokeWidth: 1.5,
+            strokeWidth: 1,
             // Plants sit where every lane converges, so an ordered fallback list is tried until a placement fits.
             label: {
                 fontSize: 11,
@@ -177,6 +255,7 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
             },
             tooltip: {
                 renderer: ({ datum }) => ({
+                    heading: '',
                     title: datum.label,
                     data: [{ label: 'Site', value: 'Receiving plant' }],
                 }),
@@ -203,11 +282,19 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
             // The status legend is rendered as HTML alongside the board, carrying the same glyphs as the tiles.
             legend: { enabled: false },
             padding: 0,
+            zoom: {
+                enabled: true,
+            },
+            initialState: initialZoom && { zoom: initialZoom },
             // Ctrl/Cmd-click adds or removes a marker; a click on empty sea clears.
             selection: { enabled: true },
             listeners: { selectionChange: onChartSelectionChange },
         };
-    }, [pointsByStatus, selectedShipmentIds, onChartSelectionChange]);
+    }, [pointsByStatus, selectedShipmentIds, onChartSelectionChange, initialZoom]);
 
-    return <AgCharts ref={chartRef} options={options} style={{ height: '100%', width: '100%' }} />;
+    return (
+        <div ref={boxRef} style={{ height: '100%', width: '100%' }}>
+            <AgCharts ref={chartRef} options={options} style={{ height: '100%', width: '100%' }} />
+        </div>
+    );
 }

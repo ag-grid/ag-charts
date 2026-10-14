@@ -136,12 +136,14 @@ function stackedBarOptions(
         stacked: true,
         normalizedTo: 100,
         fill: supplierColors[supplierId] ?? NEUTRAL,
+        cornerRadius: 2,
         ...SEGMENT_SEPARATOR,
         tooltip: {
             renderer: ({ datum }) => {
                 const spend = Number(datum[name] ?? 0);
                 const total = [...supplierNames.values()].reduce((sum, key) => sum + Number(datum[key] ?? 0), 0);
                 return {
+                    heading: '',
                     title: `${name} · ${datum.subcategory}`,
                     data: [
                         { label: 'Spend', value: fmtCurrency(spend) },

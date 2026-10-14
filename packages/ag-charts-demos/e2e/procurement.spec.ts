@@ -24,8 +24,8 @@ const DEMO_ID = 'procurement';
  * what catches a chart that silently stopped rendering.
  */
 const TABS = [
-    // Arrival schedule, the delivery map, the on-time gauge and the at-risk segmented bar.
-    { name: 'My orders', charts: 4 },
+    // Arrival schedule, the delivery map and the at-risk segmented bar.
+    { name: 'My orders', charts: 3 },
     // Per-supplier charts, so this count moves if the roster does.
     { name: 'My suppliers', charts: 13 },
     // The spend-YTD gauge, budget burn-up, monthly spend trend, sunburst and supplier concentration.
@@ -53,6 +53,10 @@ const SPEND_PERIOD = {
 };
 /** The supplier-trend metric toggle group of My suppliers. */
 const METRIC = { name: 'Trend metric', options: ['Price', 'On time', 'Quality'], initial: 'Price' };
+/** The toggle groups of My spend; the two "View as" groups share a name, so each is found within its card. */
+const SPLIT_BY = { name: 'Split by', options: ['Material', 'Supplier'], initial: 'Material' };
+const BREAKDOWN_VIEW = { name: 'View as', options: ['Sunburst', 'Grouped table'], initial: 'Sunburst' };
+const SHARE_VIEW = { name: 'View as', options: ['Heatmap', 'Stacked bar'], initial: 'Heatmap' };
 
 /** Rows of the supplier roster grid, matched by the row class the demo sets. */
 const rosterRows = (page: Page) => page.locator('.ag-row.pc-supplier');
@@ -118,7 +122,22 @@ async function setOrdersFilter(page: Page, name: string, option: string) {
     await waitForAllChartUpdates(page);
 }
 
+/** Every option one of the orders tab's filter selects offers, read from its open list. */
+async function ordersFilterOptions(page: Page, name: string): Promise<string[]> {
+    await page.getByRole('combobox', { name }).click();
+    await expect(page.getByRole('option').first()).toBeVisible();
+    const options = await page.getByRole('option').allInnerTexts();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('option')).toHaveCount(0);
+    return options;
+}
+
 const SUPPLIER_FILTER = 'Supplier my orders are narrowed to';
+const SUBCATEGORY_FILTER = 'Material subcategory my orders are narrowed to';
+
+/** The chart card titled `title`. */
+const chartCard = (page: Page, title: string) =>
+    page.locator('.pc-card', { has: page.getByRole('heading', { name: title }) });
 
 /** Switch to a tab, then wait for its charts to mount and settle. */
 async function openTab(page: Page, name: string) {
@@ -236,6 +255,37 @@ test.describe(DEMO_ID, () => {
         expect(popConsoleIssues(), 'console output while following a worklist item').toEqual([]);
     });
 
+    test('following a worklist item the supplier filter hides clears the filter', async ({ page }) => {
+        const popConsoleIssues = watchConsole(page);
+        await openWorklist(page);
+        const title = await page.locator('.pc-attention-title').first().innerText();
+        await page.keyboard.press('Escape');
+        const [, supplier, shipmentId] = /^(.+) shipment (SHP-\d+)/.exec(title) ?? [];
+        expect(shipmentId, `a shipment in "${title}"`).toBeDefined();
+
+        const options = await ordersFilterOptions(page, SUPPLIER_FILTER);
+        const other = options.find((name) => name !== 'All suppliers' && name !== supplier);
+        expect(other, `a second supplier among ${options.join(', ')}`).toBeDefined();
+        await setOrdersFilter(page, SUPPLIER_FILTER, other!);
+
+        await openWorklist(page);
+        await page.locator('.pc-attention-body', { hasText: shipmentId }).click();
+        await waitForAllChartUpdates(page);
+
+        await expect(page.getByRole('combobox', { name: SUPPLIER_FILTER })).toContainText('All suppliers');
+        await expect(chips(page)).toHaveText([shipmentId]);
+
+        expect(popConsoleIssues(), 'console output while following a hidden worklist item').toEqual([]);
+    });
+
+    test('dismissing the help card hands focus to the next control', async ({ page }) => {
+        const help = page.getByRole('region', { name: 'Need a hand?' });
+        await expect(help).toBeVisible();
+        await help.getByRole('button', { name: 'Dismiss help' }).click();
+        await expect(help).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Settings' })).toBeFocused();
+    });
+
     test('Ctrl-click adds to the schedule selection, and a plain click narrows it to one', async ({ page }) => {
         const popConsoleIssues = watchConsole(page);
         const card = scheduleCard(page);
@@ -269,15 +319,14 @@ test.describe(DEMO_ID, () => {
         await page.keyboard.press('Space');
         await expect(chips(page)).toHaveText([selected.shipmentId]);
 
-        await page.getByRole('combobox', { name: SUPPLIER_FILTER }).click();
-        const options = await page.getByRole('option').allInnerTexts();
-        await page.keyboard.press('Escape');
+        const options = await ordersFilterOptions(page, SUPPLIER_FILTER);
         const other = options.find((name) => name !== 'All suppliers' && name !== selected.supplier);
         expect(other, `a second supplier among ${options.join(', ')}`).toBeDefined();
         await setOrdersFilter(page, SUPPLIER_FILTER, other!);
 
         await expect(chips(page)).toHaveCount(0);
         await expect(page.locator('.pc-card-sub', { hasText: 'No shipment selected.' })).toBeVisible();
+        await expect(page.locator('.pc-kpi-detail').first()).toContainText(`filtered to ${other}`);
         // Refocusing repeats the last announcement; a key press reads the filtered rows afresh.
         await card.locator('.ag-charts-series-area').focus();
         await page.keyboard.press('ArrowRight');
@@ -299,6 +348,47 @@ test.describe(DEMO_ID, () => {
         await button.click();
         await expect(button).toHaveAttribute('aria-pressed', 'false');
         await expect(page.locator('.ag-row.is-selected')).toHaveCount(0);
+    });
+
+    test('a supplier selected on a chart selects it across the tab, and a click away clears it', async ({ page }) => {
+        const popConsoleIssues = watchConsole(page);
+        await openTab(page, 'My suppliers');
+        const pressed = page.locator('.pc-supplier-main[aria-pressed="true"]');
+
+        await chartCard(page, 'Cost of rejected material').locator('.ag-charts-series-area').focus();
+        await page.keyboard.press('Space');
+        await expect(pressed).toHaveCount(1);
+        await expect(page.locator('.ag-row.is-selected').first()).toBeVisible();
+
+        await page.locator('.pc-page-title').click();
+        await expect(pressed).toHaveCount(0);
+
+        expect(popConsoleIssues(), 'console output while selecting a supplier on a chart').toEqual([]);
+    });
+
+    test("a quality-cost bar's context menu drills into that supplier's materials, and back", async ({ page }) => {
+        const popConsoleIssues = watchConsole(page);
+        await openTab(page, 'My suppliers');
+        const card = chartCard(page, 'Cost of rejected material');
+
+        // Keyboard focus outlines the first bar, which gives a point on it to right-click.
+        await card.locator('.ag-charts-series-area').focus();
+        const bar = await card.locator('.ag-charts-focus-indicator > div').boundingBox();
+        expect(bar, 'a focused bar').not.toBeNull();
+        await page.mouse.click(bar!.x + bar!.width / 2, bar!.y + bar!.height / 2, { button: 'right' });
+        await page.getByRole('menuitem', { name: /^Drill down into .+'s materials$/ }).click();
+        await waitForAllChartUpdates(page);
+
+        const back = card.getByRole('button', { name: '← Back to all suppliers' });
+        await expect(back).toBeVisible();
+        await expect(card.locator('.pc-card-sub', { hasText: /^from / })).toBeVisible();
+        await expect(page.locator('.pc-supplier-main[aria-pressed="true"]')).toHaveCount(1);
+
+        await back.click();
+        await waitForAllChartUpdates(page);
+        await expect(back).toHaveCount(0);
+
+        expect(popConsoleIssues(), 'console output while drilling into a supplier').toEqual([]);
     });
 
     /**
@@ -404,6 +494,22 @@ test.describe(DEMO_ID, () => {
             await expectTabsContract(page, VIEWS);
         });
 
+        test('typing on the closed orders filters changes their value', async ({ page }) => {
+            for (const name of [SUPPLIER_FILTER, SUBCATEGORY_FILTER]) {
+                const options = await ordersFilterOptions(page, name);
+                await expectSelectClosedTypeahead(page, { name, options, initial: options[0] });
+                await setOrdersFilter(page, name, options[0]);
+            }
+        });
+
+        test('typing in the open orders filters moves focus to the match', async ({ page }) => {
+            for (const name of [SUPPLIER_FILTER, SUBCATEGORY_FILTER]) {
+                const options = await ordersFilterOptions(page, name);
+                await expectSelectOpenTypeahead(page, { name, options, initial: options[0] });
+                await setOrdersFilter(page, name, options[0]);
+            }
+        });
+
         test('typing on the closed period selects changes their value', async ({ page }) => {
             await openTab(page, 'My suppliers');
             await expectSelectClosedTypeahead(page, PERIOD);
@@ -421,6 +527,13 @@ test.describe(DEMO_ID, () => {
         test('the trend-metric group roves focus with the arrow keys', async ({ page }) => {
             await openTab(page, 'My suppliers');
             await expectRadioGroupContract(page, METRIC);
+        });
+
+        test('the spend toggle groups rove focus with the arrow keys', async ({ page }) => {
+            await openTab(page, 'My spend');
+            await expectRadioGroupContract(page, SPLIT_BY, chartCard(page, 'Spend over time'));
+            await expectRadioGroupContract(page, BREAKDOWN_VIEW, chartCard(page, 'Spend breakdown'));
+            await expectRadioGroupContract(page, SHARE_VIEW, chartCard(page, 'Supplier concentration'));
         });
     });
 });
