@@ -24,6 +24,7 @@ import {
     expectBarCentresOnCategoryGridlines,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
+    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
@@ -1753,4 +1754,63 @@ describe('WaterfallSeries category/gridline pixel alignment', () => {
 
         expectBarCentresOnCategoryGridlines(chart);
     });
+});
+
+describe('WaterfallSeries non-crisp first frame (AG-18915)', () => {
+    const ctx = setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const makeData = (count: number) =>
+        Array.from({ length: count }, (_, i) => ({
+            x: `C${i}`,
+            v: i % 4 === 3 ? -(5 + (i % 9)) : 10 + ((i * 7) % 13),
+        }));
+
+    // Redraw with identical data must not change a pixel: the first frame may not snap non-crisp bars. 400
+    // bars on a 1200px chart resolve to non-crisp (gap under 1px); 20 bars are crisp (control, dpr 1 only).
+    for (const { count, dpr, expectCrisp } of [
+        { count: 20, dpr: 1, expectCrisp: true },
+        { count: 400, dpr: 2, expectCrisp: false },
+        { count: 400, dpr: 1, expectCrisp: false },
+    ]) {
+        it(`redraw with identical data changes no pixels or node geometry (${count} bars, dpr ${dpr})`, async () => {
+            const options: any = prepareEnterpriseTestOptions({
+                data: makeData(count),
+                animation: { enabled: false },
+                series: [{ type: 'waterfall', xKey: 'x', yKey: 'v' }],
+                legend: { enabled: false },
+                axes: [
+                    { type: 'category', position: 'bottom', label: { enabled: false } },
+                    { type: 'number', position: 'left' },
+                ],
+            } as any);
+            options.overrideDevicePixelRatio = dpr;
+            options.width = count >= 400 ? 1200 : 800;
+            options.height = 600;
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const nodeCrisp = (deproxy(chart).series[0] as any).contextNodeData.nodeData.map((d: any) => d.crisp);
+            expect(nodeCrisp.every((crisp: boolean) => crisp === expectCrisp)).toBe(true);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const first = sampleScene();
+            const firstImage = ctx.snapshot();
+            expect([...first.keys()].filter((k) => k.startsWith('series[0]/rect')).length).toBeGreaterThanOrEqual(
+                count
+            );
+
+            await chart.updateDelta({ data: makeData(count) });
+            await waitForChartStability(chart);
+
+            expect(ctx.snapshot()).toMatchImage(firstImage);
+            expectSceneSamplesMatch(sampleScene(), first, 0);
+        });
+    }
 });

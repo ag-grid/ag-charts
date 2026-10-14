@@ -4854,3 +4854,135 @@ describe('BarSeries redraw with identical data', () => {
         }
     }
 });
+
+describe('BarSeries non-crisp first frame (AG-18915)', () => {
+    const ctx = setupMockCanvas();
+
+    let chart: AgChartInstance | undefined;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const makeData = (count: number) =>
+        Array.from({ length: count }, (_, i) => ({
+            cat: `C${i}`,
+            a: 20 + ((i * 7) % 31),
+            b: 5 + ((i * 11) % 19),
+        }));
+
+    const createBarChart = async (
+        count: number,
+        {
+            series = {},
+            seriesCount = 1,
+            animation = false,
+            dpr = 2,
+        }: { series?: Record<string, unknown>; seriesCount?: number; animation?: boolean; dpr?: number } = {}
+    ) => {
+        const yKeys = ['a', 'b'].slice(0, seriesCount);
+        const options: any = prepareTestOptions({
+            data: makeData(count),
+            animation: { enabled: animation },
+            series: yKeys.map((yKey) => ({ type: 'bar', xKey: 'cat', yKey, ...series })),
+            legend: { enabled: false },
+            axes:
+                series.direction === 'horizontal'
+                    ? {
+                          x: { type: 'category', position: 'left', label: { enabled: false } },
+                          y: { type: 'number', position: 'bottom' },
+                      }
+                    : { x: { type: 'category', label: { enabled: false } }, y: { type: 'number' } },
+        } as any);
+        options.overrideDevicePixelRatio = dpr;
+        // Wide enough that 500 bars are a few px each, as in the live-update benchmark, rather than hairlines.
+        options.width = count >= 500 ? 1600 : 800;
+        options.height = 600;
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        return chart;
+    };
+
+    const nodeDataOf = (c: AgChartInstance, index = 0): Array<{ x: number; y: number; crisp: boolean }> =>
+        (deproxy(c).series[index] as any).contextNodeData.nodeData;
+
+    const rectsOf = (sample: SceneGeometrySample, seriesIndex = 0) =>
+        [...sample].filter(([key]) => key.startsWith(`series[${seriesIndex}]/rect`));
+
+    // AC: "Click 'Redraw with same data'. Expected: no pixels change."
+    const CASES = [
+        { name: '500 bars, crisp auto (resolves non-crisp)', count: 500, series: {}, expectCrisp: false },
+        { name: '50 bars, crisp: false', count: 50, series: { crisp: false }, expectCrisp: false },
+        {
+            name: '500 horizontal bars, crisp auto',
+            count: 500,
+            series: { direction: 'horizontal' },
+            expectCrisp: false,
+        },
+        {
+            name: '500 stacked bars, crisp auto',
+            count: 500,
+            series: { stacked: true },
+            seriesCount: 2,
+            expectCrisp: false,
+        },
+        {
+            name: '500 grouped bars, crisp: false',
+            count: 500,
+            series: { crisp: false },
+            seriesCount: 2,
+            expectCrisp: false,
+        },
+    ];
+
+    for (const { name, count, series, seriesCount, expectCrisp } of CASES) {
+        for (const animation of [false, true]) {
+            it(`redraw with identical data changes no pixels or node geometry (${name}, animation ${animation})`, async () => {
+                const c = await createBarChart(count, { series, seriesCount, animation });
+                expect(nodeDataOf(c).every((d) => d.crisp === expectCrisp)).toBe(true);
+
+                const sampleScene = createSceneGeometrySampler(c);
+                const first = sampleScene();
+                const firstImage = ctx.snapshot();
+                expect(rectsOf(first).length).toBe(count);
+
+                await c.updateDelta({ data: makeData(count) });
+                await waitForChartStability(c);
+
+                expect(ctx.snapshot()).toMatchImage(firstImage);
+                expectSceneSamplesMatch(sampleScene(), first, 0);
+            });
+        }
+    }
+
+    // AC: with crisp off, bars are not snapped, so the first frame draws the exact datum geometry.
+    it('draws the first frame of non-crisp bars at the exact unsnapped datum x', async () => {
+        const c = await createBarChart(500, { series: { crisp: false } });
+        const nodeData = nodeDataOf(c);
+        const rects = rectsOf(createSceneGeometrySampler(c)());
+        expect(rects.length).toBe(nodeData.length);
+
+        const expected = nodeData.map((d) => d.x).sort((a, b) => a - b);
+        const actual = rects.map(([, { x }]) => x).sort((a, b) => a - b);
+        for (const [i, x] of actual.entries()) {
+            expect(Math.abs(x - expected[i]), `rect ${i}`).toBeLessThan(1e-6);
+        }
+        // Guard the premise: at dpr 2 the exact positions are not already on the 0.5 CSS px device grid.
+        expect(nodeData.some((d) => Math.abs(d.x * 2 - Math.round(d.x * 2)) > 1e-3)).toBe(true);
+    });
+
+    // Control: the fix is gated on crisp, so crisp bars are still snapped to the device grid on the first frame.
+    it('still snaps the first frame of crisp bars to the device grid (crisp: true, dpr 2)', async () => {
+        const c = await createBarChart(50, { series: { crisp: true } });
+        const nodeData = nodeDataOf(c);
+        expect(nodeData.every((d) => d.crisp)).toBe(true);
+
+        const rects = rectsOf(createSceneGeometrySampler(c)());
+        expect(rects.length).toBe(nodeData.length);
+        const expected = nodeData.map((d) => d.x).sort((a, b) => a - b);
+        const actual = rects.map(([, { x }]) => x).sort((a, b) => a - b);
+        expect(actual.some((x, i) => Math.abs(x - expected[i]) > 1e-3)).toBe(true);
+    });
+});

@@ -34,6 +34,7 @@ import {
     expectBarCentresRenderedOnCategoryGridlines,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
+    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     focusIndicatorContainsCanvasPoint,
@@ -2484,6 +2485,62 @@ describe('RangeBarSeries aggregated device-pixel snap', () => {
             const offGrid = rects.filter(([, { x, width }]) => !onDeviceGrid(x, dpr) || !onDeviceGrid(x + width, dpr));
             // Sliced so a wholesale failure reports a readable handful rather than every bar.
             expect(offGrid.slice(0, 5).map(([key, { x, width }]) => `${key} x=${x} width=${width}`)).toEqual([]);
+        });
+    }
+});
+
+describe('RangeBarSeries non-crisp first frame (AG-18915)', () => {
+    const ctx = setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const makeData = (count: number) =>
+        Array.from({ length: count }, (_, i) => ({ x: `C${i}`, lo: 10 + ((i * 7) % 13), hi: 30 + ((i * 11) % 17) }));
+
+    // Redraw with identical data must not change a pixel: the first frame may not snap non-crisp bars. 400
+    // bars on a 1200px chart resolve to non-crisp (gap under 1px); 20 bars are crisp (control, dpr 1 only).
+    for (const { count, dpr, expectCrisp } of [
+        { count: 20, dpr: 1, expectCrisp: true },
+        { count: 400, dpr: 2, expectCrisp: false },
+        { count: 400, dpr: 1, expectCrisp: false },
+    ]) {
+        it(`redraw with identical data changes no pixels or node geometry (${count} bars, dpr ${dpr})`, async () => {
+            const options: any = prepareEnterpriseTestOptions({
+                data: makeData(count),
+                animation: { enabled: false },
+                series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi' }],
+                legend: { enabled: false },
+                axes: [
+                    { type: 'category', position: 'bottom', label: { enabled: false } },
+                    { type: 'number', position: 'left' },
+                ],
+            } as any);
+            options.overrideDevicePixelRatio = dpr;
+            options.width = count >= 400 ? 1200 : 800;
+            options.height = 600;
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const nodeCrisp = (deproxy(chart).series[0] as any).contextNodeData.nodeData.map((d: any) => d.crisp);
+            expect(nodeCrisp.every((crisp: boolean) => crisp === expectCrisp)).toBe(true);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const first = sampleScene();
+            const firstImage = ctx.snapshot();
+            expect([...first.keys()].filter((k) => k.startsWith('series[0]/rect')).length).toBeGreaterThanOrEqual(
+                count
+            );
+
+            await chart.updateDelta({ data: makeData(count) });
+            await waitForChartStability(chart);
+
+            expect(ctx.snapshot()).toMatchImage(firstImage);
+            expectSceneSamplesMatch(sampleScene(), first, 0);
         });
     }
 });
