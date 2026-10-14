@@ -71,11 +71,12 @@ function getBenchmarkConfig(): BenchmarkConfig {
             {
                 id: 'radar-update',
                 label: 'Radar Data Update',
-                // Requires >= 13.0.0: keyed `axes` options (12.x takes an array)
-                minVersion: '13.0.0',
                 variants: [26, 52, 104, 208, 416].flatMap((categories) =>
                     (['polygon', 'circle'] as Shape[]).map((shape) => ({
                         params: { Categories: String(categories), Grid: shape },
+                        // Requires >= 13.0.0: keyed `axes` options (12.x takes an array). Gated per variant, as
+                        // a test case with no available variants still completes, but no test cases never does.
+                        minVersion: '13.0.0',
                         run: () => performRadarUpdate(categories, shape),
                     }))
                 ),

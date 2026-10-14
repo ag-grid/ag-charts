@@ -152,6 +152,11 @@ function countChangedPixels(before: Uint8ClampedArray[], after: Uint8ClampedArra
     return changed;
 }
 
+const WARMUP_UPDATES = 5;
+const UPDATES_PER_TEST = 30;
+// The harness calls a variant once per warmup and once per measured update.
+const SAMPLES_PER_RUN = WARMUP_UPDATES + UPDATES_PER_TEST;
+
 const pixelStability: Record<string, { firstRedraw: number[]; secondRedraw: number[] }> = {};
 
 // Recreates the chart each iteration: the instability only shows on the first redraw after creation.
@@ -172,7 +177,12 @@ async function performPixelStability(label: string, next: RectState): Promise<nu
     await nextFrame();
     const afterSecond = readPixels();
 
-    pixelStability[label] ??= { firstRedraw: [], secondRedraw: [] };
+    const samples = (pixelStability[label] ??= { firstRedraw: [], secondRedraw: [] });
+    if (samples.firstRedraw.length >= SAMPLES_PER_RUN) {
+        // A previous run of this variant completed, so this call starts a new one: drop only its own counts.
+        samples.firstRedraw.length = 0;
+        samples.secondRedraw.length = 0;
+    }
     pixelStability[label].firstRedraw.push(countChangedPixels(initial, afterFirst));
     pixelStability[label].secondRedraw.push(countChangedPixels(afterFirst, afterSecond));
     return elapsed;
@@ -198,11 +208,12 @@ function getBenchmarkConfig(): BenchmarkConfig {
             {
                 id: 'no-move-redraw',
                 label: 'No-Move Redraw',
-                // Requires >= 13.0.0: keyed `axes` options (12.x takes an array)
-                minVersion: '13.0.0',
                 variants: shapes.flatMap((shape) =>
                     changes.map((change) => ({
                         params: { Series: shape.kind, Bars: String(shape.bars), Change: change },
+                        // Requires >= 13.0.0: keyed `axes` options (12.x takes an array). Gated per variant, as
+                        // a test case with no available variants still completes, but no test cases never does.
+                        minVersion: '13.0.0',
                         run: () => performRedraw(shape, change),
                     }))
                 ),
@@ -210,23 +221,17 @@ function getBenchmarkConfig(): BenchmarkConfig {
             {
                 id: 'pixel-stability',
                 label: 'Pixel Stability (first vs second identical redraw)',
-                minVersion: '13.0.0',
-                // The harness clears its timings on every run, so the pixel counts must restart with them.
-                setup: () => {
-                    for (const label of Object.keys(pixelStability)) {
-                        delete pixelStability[label];
-                    }
-                },
                 variants: stabilityCases.map(({ label, state: s }) => ({
                     params: { Series: s.kind, Bars: String(s.bars), Case: label },
+                    minVersion: '13.0.0',
                     run: () => performPixelStability(label, s),
                 })),
             },
         ],
         config: {
-            updatesPerTest: 30,
+            updatesPerTest: UPDATES_PER_TEST,
             maxCollectionTimeMs: 6000,
-            warmupUpdates: 5,
+            warmupUpdates: WARMUP_UPDATES,
         },
         metadata: {
             version: VERSION,
@@ -240,6 +245,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
                     label,
                     firstRedrawMedianChangedPixels: median(firstRedraw),
                     secondRedrawMedianChangedPixels: median(secondRedraw),
+                    secondRedrawNonZeroSamples: secondRedraw.filter((count) => count > 0).length,
                 }))
             );
         },
