@@ -1705,6 +1705,42 @@ describe('label collision avoidance', () => {
             expect(overlappingPairs()).toBe(0);
         });
 
+        it('reserves the box an itemStyler gives each label', async () => {
+            await render(options({ itemStyler: () => ({ padding: 24, fill: 'white' }) }));
+            expect(drawnLabels().length).toBeGreaterThan(0);
+            expect(overlappingPairs()).toBe(0);
+        });
+
+        describe('collision threshold', () => {
+            const lone = (collision: object) => ({
+                data: [{ from: 'A long source name', to: 'A long destination name', size: 1 }],
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size', label: { collision } }],
+            });
+
+            it('leaves a label with nothing nearby untouched', async () => {
+                await render(lone({ threshold: 40 }));
+                expect(drawnLabels().map((node) => node.text)).toEqual([
+                    'A long source name',
+                    'A long destination name',
+                ]);
+            });
+
+            it('keeps labels at least the threshold apart', async () => {
+                const threshold = 12;
+                await render(options({ placement: 'center', collision: { threshold } }));
+                const boxes = drawnLabels().map((node) => node.getBBox());
+                expect(boxes.length).toBeGreaterThan(1);
+                const grown = boxes.map(({ x, y, width, height }) => ({
+                    x: x - threshold,
+                    y: y - threshold,
+                    width: width + 2 * threshold,
+                    height: height + 2 * threshold,
+                }));
+                const close = grown.flatMap((a, i) => boxes.filter((b, j) => j !== i && overlaps(a, b)));
+                expect(close).toEqual([]);
+            });
+        });
+
         describe('when a label cannot shrink clear of a collision', () => {
             const colliding = 'An interior node with a very long label';
             const shortSource = data.map((d) => (d.from.startsWith('Alpha') ? { ...d, from: 'Alpha source' } : d));

@@ -10,6 +10,7 @@ import {
     type FontOptions,
     type LabelFit,
     type LabelObstacle,
+    type NormalisedChartLabelStyleOptions,
     type NormalisedSankeySeriesLinkOptions,
     type NormalisedSankeySeriesNodeOptions,
     type NormalisedSankeySeriesNodeStyle,
@@ -29,7 +30,7 @@ import {
     writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type { Path, Selection, TransformableText } from 'ag-charts-core';
-import type { OverflowStrategy } from 'ag-charts-types';
+import type { OverflowStrategy, PaddingOptions } from 'ag-charts-types';
 
 import {
     type FlowLinkDatumIndex,
@@ -88,6 +89,7 @@ interface SankeyLabelLayout {
     readonly height: number;
     readonly source: string;
     readonly font: FontOptions;
+    readonly padding: Required<PaddingOptions>;
     readonly room: number;
     readonly heightRoom: number;
     readonly runsPastColumn: boolean;
@@ -715,6 +717,7 @@ export class SankeySeries extends FlowProportionSeries<
                 height,
                 source: node.label,
                 font,
+                padding: expandLabelBoxExtent(font),
                 room,
                 heightRoom,
                 runsPastColumn: width > columnRoom + 0.5,
@@ -773,10 +776,8 @@ export class SankeySeries extends FlowProportionSeries<
 
     override getLabelData(): PointLabelDatum[] {
         if (!this.isLabelEnabled()) return [];
-        const { label } = this.options;
-        const { collision } = label;
+        const { collision } = this.options.label;
         const policy = this.labelFitPolicy();
-        const padding = expandLabelBoxExtent(label);
         const collideWith = resolveCollideWith(collision);
         const threshold = collision.threshold ?? 0;
         const data: SankeyPlacedLabelDatum[] = [];
@@ -784,7 +785,7 @@ export class SankeySeries extends FlowProportionSeries<
         for (const runsPastColumn of [false, true]) {
             for (const target of this.contextNodeData?.labelData ?? []) {
                 if (target.layout.runsPastColumn !== runsPastColumn) continue;
-                const { x, y, text, source, font, room, heightRoom } = target.layout;
+                const { x, y, text, source, font, padding, room, heightRoom } = target.layout;
                 const width = target.layout.width + padding.left + padding.right;
                 const height = target.layout.height + padding.top + padding.bottom;
                 const anchor = { x, y, textAlign: target.textAlign, textBaseline: 'middle' } as const;
@@ -810,7 +811,13 @@ export class SankeySeries extends FlowProportionSeries<
                             box,
                             region,
                             flushToRegion: false,
-                            fitTo: { container: { width: room, height: heightRoom }, anchor, padding, font },
+                            fitTo: {
+                                container: { width: room, height: heightRoom },
+                                ownShape: false,
+                                anchor,
+                                padding,
+                                font,
+                            },
                         },
                     ],
                     ownBox: nodeDatum,
@@ -848,7 +855,10 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     /** Laid out with the unhighlighted `itemStyler` result, so hovering restyles a label without reflowing it. */
-    private getLabelLayoutStyle(size: number): { font: FontOptions; hidden: boolean } {
+    private getLabelLayoutStyle(size: number): {
+        font: NormalisedChartLabelStyleOptions & FontOptions;
+        hidden: boolean;
+    } {
         const { label } = this.options;
         if (label.itemStyler == null) return { font: label, hidden: false };
         const style = getLabelStyles(this, undefined, this.getLabelFormatterParams(size), label, false, undefined);
