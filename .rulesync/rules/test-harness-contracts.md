@@ -24,11 +24,20 @@ Its `afterEach` asserts `console.warn`/`console.error` were not called. In suite
 -   Do NOT add `vi.spyOn(console, 'error')` + `expect(spy).not.toHaveBeenCalled()` — it is dead weight, and layering a spy over the harness's mock then calling `mockRestore()` can desynchronise it.
 -   To assert *specific expected* warnings, use `expectWarningsCalls()` inline snapshots from the same harness.
 
+## Chart factories: `createChart` and `createEnterpriseChart`
+
+-   **Use the shared factories to create a chart in a test**: `createChart` (`packages/ag-charts-community/src/chart/test/utils.ts`, also exported from `ag-charts-community-test`) for community charts and `createEnterpriseChart` (`packages/ag-charts-enterprise/src/test/utils.ts`) for enterprise charts. Do not write a local `createChart` copy or a one-off `create*Chart` helper.
+-   **What they do**: copy the options, apply the test preparation (`prepareTestOptions` / `prepareEnterpriseTestOptions`: canvas size, container, test theme, and animations off for enterprise), call `AgCharts.create`, and await `waitForChartStability`.
+-   **What they return**: the public `AgChartInstance`, not the internal `Chart`. A test that needs internals (`series`, `axes`, `ctx`, `seriesRect`, managers) opts in at the call site so the internal access is visible: `const chart = deproxy(await createChart(options));`. A test that only uses the public API keeps the public instance.
+-   **A local helper may stay only as an options builder** (`const barOptions = (extra) => ({ ... })`) whose result is passed to the shared factory, or as a thin wrapper that calls the shared factory and then does extra work (hovering, stubbing, reading a node).
+-   **Keep a bespoke factory only when the shared ones cannot do the job**: a custom container, a size set after preparation, no preparation at all, a `params` argument to `AgCharts.create`, a stub installed between create and first render, or a different readiness condition. Say why in a comment on the helper.
+-   **`any`-typed chart variables hide the change in return type.** `let chart: any` no longer type-checks internal reads against anything, so wrap the factory call in `deproxy()` when the variable is read for internals.
+
 ## Shared fixtures and helper extraction
 
 -   **Search before writing a helper.** Look in `packages/ag-charts-community/src/chart/test/` and `packages/ag-charts-enterprise/src/test/` for an existing helper (axis option mixins such as `applyAxesFlip` and `mixinDerivedCases` live in `chart/test/axisTestCases.ts`) before adding a local one; if one almost fits, extend it instead of copying it. Give a genuinely different variant its own name in the shared module rather than a second local copy under the same name.
 -   **If the same test body, builder, or stub appears in two or more files, hoist it** into the suite's shared fixture module before merging: community-wide fixtures in `packages/ag-charts-community/src/chart/test/` (exported via `src/main-test.ts` so enterprise imports from `ag-charts-community-test`), enterprise-only helpers in `packages/ag-charts-enterprise/src/test/`.
--   Helpers shared by community AND enterprise tests must live in community-test space — enterprise can import community, not vice versa. Helpers that call `expect` also belong there: enterprise `src/test` is linted as shippable source and stays `expect`-free.
+-   Helpers shared by community AND enterprise tests must live in community-test space — enterprise can import community, not vice versa. Helpers that call `expect` also belong there: enterprise `src/test` must not import from `vitest` (the dependency-cruiser `not-to-dev-dep` rule), so it uses the vitest globals instead (e.g. `aggregationSharedTests.ts`).
 -   A copy-pasted explanatory comment travelling with a copy-pasted block is the strongest extraction signal: the comment belongs once, on the shared helper.
 -   Stub factories for internal interfaces (e.g. the `DataModel` stub in `chart/test/aggregationStubs.ts`) must be defined once so interface drift is caught in one place instead of silently diverging across files.
 
