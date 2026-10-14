@@ -36,7 +36,7 @@ import {
     cachedTextMeasurer,
     cycledValue,
     findDiscreteColorBinLabel,
-    findLargestFittingStep,
+    findLargestFittingFontSize,
     fitLabelText,
     fontWithSize,
     formatValue,
@@ -112,14 +112,6 @@ function labelFitDescriptor(
     const fit = autoSizedLabelFit(text, label, boxPadding);
     if (fit.fitOverflow == null || overflowWidth == null) return fit;
     return { ...fit, fitOverflow: { ...fit.fitOverflow, maxWidth: overflowWidth } };
-}
-
-/** Every whole font size from `floor` up to `fontSize`, smallest first, both bounds included. */
-function fontSizeSteps(floor: number, fontSize: number): number[] {
-    const sizes = [floor];
-    for (let size = Math.floor(floor) + 1; size < fontSize; size++) sizes.push(size);
-    if (fontSize > floor) sizes.push(fontSize);
-    return sizes;
 }
 
 function pairTags(primary: unknown, secondary: unknown): TextNodeTag[] {
@@ -243,7 +235,6 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         const height = Math.min(maxHeight, Math.max(heightCap, floorLineHeight));
         const { policy, fitOverflow } = labelFitDescriptor(labelValue, label, width);
         const bounded = { ...policy, maxWidth: width, maxHeight: height };
-        const sizes = fontSizeSteps(floorFontSize, fontSize);
         const fitAt = (size: number, fit: LabelFit) => {
             const font = fontWithSize(label, size);
             const text = toPlainText(fitLabelText(labelValue, fit, font));
@@ -252,9 +243,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
                 : { text, fontSize: size, labelHeight: measureLabelText(text, font).height };
         };
         const fitted =
-            findLargestFittingStep(sizes.length, (index) => {
+            findLargestFittingFontSize(floorFontSize, fontSize, (size, atFloor) => {
                 // Truncating is the last resort, once the title is at its minimum size.
-                const step = fitAt(sizes[index], index === 0 ? bounded : { ...bounded, overflowStrategy: 'hide' });
+                const step = fitAt(size, atFloor ? bounded : { ...bounded, overflowStrategy: 'hide' });
                 // `'never'` keeps every manual line whatever the height, so it can still be too tall here.
                 return step == null || step.labelHeight > height ? undefined : step;
             }) ?? (fitOverflow == null ? undefined : fitAt(floorFontSize, fitOverflow));
@@ -802,7 +793,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
             updateRectFn(datum, rect, true);
         });
 
-        this.updateLabelNodes();
+        if (!this.usesPlacedLabels) this.updateLabelNodes();
     }
 
     private labelFormatterParams(node: TreemapNode): RequireOptional<AgTreemapSeriesLabelFormatterParams> {
@@ -1036,13 +1027,13 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
      * Lays the fitted blocks out within the tile: each block aligns on its own `verticalAlign`, and a pair
      * that shares an alignment, or overflows the tile, is kept together as one block.
      */
-    private writeTileLabels({ node, room, tags }: TreemapPlacedLabelDatum, stack: FittedLabelStack) {
+    private writeTileLabels({ node, room, tags, stack: labelStack }: TreemapPlacedLabelDatum, stack: FittedLabelStack) {
         const { tile } = this.options;
         const { spacing } = tile.label;
         const blocks = tags.map((tag, index) => {
             const fitted = stack.blocks[index];
             const props = tag === TextNodeTag.Primary ? tile.label : tile.secondaryLabel;
-            const padding = this.labelBoxExtent(node, props, tag);
+            const padding = labelStack?.blocks[index].fit.boxPadding ?? expandLabelBoxExtent(props);
             return fitted == null
                 ? undefined
                 : { tag, fitted, props, padding, height: fitted.height + boxHeightOf(padding) };

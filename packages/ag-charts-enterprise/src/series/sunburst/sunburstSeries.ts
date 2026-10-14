@@ -566,7 +566,7 @@ export class SunburstSeries extends HierarchySeries<
             });
         }
 
-        this.updateLabelNodes();
+        if (!this.usesPlacedLabels) this.updateLabelNodes();
 
         if (centre != null && innerLabels.length > 0) {
             this.updateInnerLabelNodes(centre);
@@ -709,7 +709,7 @@ export class SunburstSeries extends HierarchySeries<
     }
 
     private writeSectorLabels(
-        { node, tags }: SunburstPlacedLabelDatum,
+        { node, tags, stack: labelStack }: SunburstPlacedLabelDatum,
         labelPlacement: LabelPlacement,
         stack: FittedLabelStack
     ) {
@@ -731,7 +731,7 @@ export class SunburstSeries extends HierarchySeries<
             if (fitted == null) continue;
             const primary = tag === TextNodeTag.Primary;
             const props = primary ? this.options.label : this.options.secondaryLabel;
-            const box = this.labelBoxExtent(node, props);
+            const box = labelStack?.blocks[index].fit.boxPadding ?? expandLabelBoxExtent(props);
             const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = props;
             const layout: LabelLayout = {
                 text: fitted.text,
