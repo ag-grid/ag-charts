@@ -91,7 +91,7 @@ export interface AgAreaSparklinePreset<TDatum = DatumDefault>
         AgSparklineDataKeysOptions,
         Omit<AgAreaSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
     /**
-     * Primary identifier for the series. This is provided as `seriesId` in user callbacks, and is how `setSelection()` addresses the series.
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series, and is how `setSelection()` addresses the series. If your callbacks need to vary behaviour by series please supply your own unique `id` value.
      *
      * Default: `'sparkline'`
      */
@@ -104,7 +104,7 @@ export interface AgBarSparklinePreset<TDatum = DatumDefault>
         AgSparklineDataKeysOptions,
         Omit<AgBarSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
     /**
-     * Primary identifier for the series. This is provided as `seriesId` in user callbacks, and is how `setSelection()` addresses the series.
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series, and is how `setSelection()` addresses the series. If your callbacks need to vary behaviour by series please supply your own unique `id` value.
      *
      * Default: `'sparkline'`
      */
@@ -119,7 +119,7 @@ export interface AgLineSparklinePreset<TDatum = DatumDefault>
     /** The type of sparkline series. */
     type: 'line';
     /**
-     * Primary identifier for the series. This is provided as `seriesId` in user callbacks, and is how `setSelection()` addresses the series.
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series, and is how `setSelection()` addresses the series. If your callbacks need to vary behaviour by series please supply your own unique `id` value.
      *
      * Default: `'sparkline'`
      */
