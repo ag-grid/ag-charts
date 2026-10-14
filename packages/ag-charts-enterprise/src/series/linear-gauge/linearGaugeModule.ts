@@ -73,8 +73,12 @@ const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
             spacing: 18,
             wrapping: 'on-space',
             truncate: AUTO_SIZED_LABEL_TRUNCATE,
-            insideStyle: { color: { $ref: 'chartBackgroundColor' } },
-            outsideStyle: { color: { $ref: 'chartBackgroundColor' } },
+            insideStyle: {
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
+            },
+            outsideStyle: {
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
+            },
         },
         tooltip: {
             ...SERIES_TOOLTIP_THEME,

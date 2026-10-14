@@ -43,10 +43,13 @@ import { DatumUnion } from '../gauge-util/datumUnion';
 import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import {
-    type GaugeTargetLabelFit,
+    type GaugeTargetDatumLabel,
+    type GaugeTargetLabelOptions,
     avoidTargetLabelCollisions,
-    fitGaugeTargetLabelText,
     hasTargetLabelCollision,
+    layoutGaugeTargetLabel,
+    pickGaugeTargetLabelOptions,
+    updateGaugeTargetLabelNode,
     visibleLabelBoxes,
 } from '../gauge-util/labelCollision';
 import { LineMarker, lineMarker } from '../gauge-util/lineMarker';
@@ -59,7 +62,6 @@ import {
     type RadialGaugeLabelDatum,
     type RadialGaugeNodeDatum,
     type RadialGaugeTargetDatum,
-    type RadialGaugeTargetDatumLabel,
 } from './radialGaugeTypes';
 import {
     formatRadialGaugeLabels,
@@ -75,8 +77,7 @@ const { fromToMotion, resetMotion, SeriesNodePickMode, createDatumId } = _Module
 
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum;
 
-interface TargetLabel extends GaugeTargetLabelFit {
-    enabled: boolean;
+interface TargetLabel extends GaugeTargetLabelOptions {
     color: string;
     spacing: number;
 }
@@ -435,21 +436,7 @@ export class RadialGaugeSeries
                 spacing,
                 size,
                 rotation,
-                label: {
-                    enabled: label.enabled,
-                    color: label.color,
-                    fontStyle: label.fontStyle,
-                    fontWeight: label.fontWeight,
-                    fontSize: label.fontSize,
-                    fontFamily: label.fontFamily,
-                    spacing: label.spacing,
-                    maxWidth: label.maxWidth,
-                    maxHeight: label.maxHeight,
-                    wrapping: label.wrapping,
-                    truncate: label.truncate,
-                    minimumFontSize: label.minimumFontSize,
-                    collision: label.collision,
-                },
+                label: { ...pickGaugeTargetLabelOptions(label), color: label.color, spacing: label.spacing },
                 style: getRadialGaugeTargetStyle(target),
             };
         });
@@ -473,7 +460,7 @@ export class RadialGaugeSeries
         }
     }
 
-    private getTargetLabel(target: Target): RadialGaugeTargetDatumLabel {
+    private getTargetLabel(target: Target): GaugeTargetDatumLabel {
         const { scale } = this;
 
         const { value, size, placement, label } = target;
@@ -513,16 +500,7 @@ export class RadialGaugeSeries
             fill,
             textAlign,
             textBaseline,
-            fontStyle: label.fontStyle,
-            fontWeight: label.fontWeight,
-            fontSize: label.fontSize,
-            fontFamily: label.fontFamily,
-            maxWidth: label.maxWidth,
-            maxHeight: label.maxHeight,
-            wrapping: label.wrapping,
-            truncate: label.truncate,
-            minimumFontSize: label.minimumFontSize,
-            collision: label.collision,
+            ...layoutGaugeTargetLabel(target.text, label),
         };
     }
 
@@ -1074,26 +1052,10 @@ export class RadialGaugeSeries
         const { targetLabelSelection } = this;
 
         targetLabelSelection.each((label, target) => {
-            const { centerX, centerY, radius, angle, text } = target;
-            const { offsetX, offsetY, fill, fontStyle, fontWeight, fontFamily, textAlign, textBaseline } = target.label;
-            const fitted = text == null ? undefined : fitGaugeTargetLabelText(text, target.label);
-
-            if (fitted == null) {
-                label.visible = false;
-                return;
-            }
-
-            label.visible = true;
-            label.x = centerX + radius * Math.cos(angle) + offsetX;
-            label.y = centerY + radius * Math.sin(angle) + offsetY;
-            label.text = fitted.text;
-            label.fill = fill;
-            label.fontStyle = fontStyle;
-            label.fontWeight = fontWeight;
-            label.fontSize = fitted.fontSize;
-            label.fontFamily = fontFamily;
-            label.textAlign = textAlign;
-            label.textBaseline = textBaseline;
+            const { centerX, centerY, radius, angle } = target;
+            const x = centerX + radius * Math.cos(angle);
+            const y = centerY + radius * Math.sin(angle);
+            updateGaugeTargetLabelNode(label, target.label, x, y);
         });
 
         avoidTargetLabelCollisions(targetLabelSelection, () =>

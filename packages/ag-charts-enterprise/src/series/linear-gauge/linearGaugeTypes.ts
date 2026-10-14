@@ -14,7 +14,7 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-import type { GaugeTargetLabelFit } from '../gauge-util/labelCollision';
+import type { GaugeTargetDatumLabel } from '../gauge-util/labelCollision';
 
 export enum NodeDataType {
     Node,
@@ -41,14 +41,6 @@ export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     style: NormalisedGaugeSeriesStyle;
 }
 
-export interface LinearGaugeTargetDatumLabel extends GaugeTargetLabelFit {
-    offsetX: number;
-    offsetY: number;
-    fill: string | undefined;
-    textAlign: CanvasTextAlign;
-    textBaseline: CanvasTextBaseline;
-}
-
 export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     type: NodeDataType.Target;
     readonly itemId: `target-${number}`;
@@ -59,7 +51,7 @@ export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     shape: AgLinearGaugeMarkerShape;
     size: number;
     rotation: number;
-    label: LinearGaugeTargetDatumLabel;
+    label: GaugeTargetDatumLabel;
     style: NormalisedGaugeSeriesStyle;
 }
 

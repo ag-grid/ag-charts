@@ -20,7 +20,7 @@ import type { BBox, Sector, Selection, Text } from 'ag-charts-core';
 import type { AgGaugeFillMode, AgNumericValue } from 'ag-charts-types';
 
 import { getLabelText } from '../gauge-util/label';
-import { collidesWithAny } from '../gauge-util/labelCollision';
+import { hiddenByCollision } from '../gauge-util/labelCollision';
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
 import type { RadialGaugeNeedle } from './radialGaugeNeedle';
 import { LabelType, type RadialGaugeLabelDatum } from './radialGaugeTypes';
@@ -391,12 +391,7 @@ export function formatRadialGaugeLabels(
         label.y = datum.centerY + rectOriginInLabelRect - rectYOffset;
         label.x = datum.centerX;
 
-        const { collision } = datum;
-        if (
-            collision != null &&
-            !collision.alwaysShow &&
-            collidesWithAny(label.getBBox(), obstacles, collision.threshold)
-        ) {
+        if (hiddenByCollision(label.getBBox(), datum.collision, obstacles)) {
             label.visible = false;
         }
     });

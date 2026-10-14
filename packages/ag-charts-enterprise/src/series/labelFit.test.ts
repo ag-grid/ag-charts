@@ -1274,8 +1274,41 @@ describe('series label fit', () => {
             await renderGauge(horizontalLinearGauge({ value: 80, label: { ...label, placement: 'inside-end' } }));
             expect(firstLabelNode().fill).toBe('blue');
 
-            await renderGauge(horizontalLinearGauge({ value: 80, label: { ...label, color: 'green' } }));
+            await renderGauge(
+                horizontalLinearGauge({ value: 80, label: { ...label, placement: 'bar-inside', color: 'green' } })
+            );
+            expect(firstLabelNode().fill).toBe('red');
+
+            await renderGauge(
+                horizontalLinearGauge({
+                    value: 80,
+                    label: { enabled: true, text: 'Label', placement: 'bar-inside', color: 'green' },
+                })
+            );
             expect(firstLabelNode().fill).toBe('green');
+        });
+
+        it('keeps an alwaysShow linear-gauge label at an overflowing placement over one with no room', async () => {
+            await renderGauge(
+                horizontalLinearGauge({
+                    value: 95,
+                    label: {
+                        enabled: true,
+                        text: 'A long label text',
+                        placement: ['inside-end', 'outside-end'],
+                        truncate: false,
+                        collision: { alwaysShow: true },
+                    },
+                })
+            );
+            expect(gaugeLabelTexts()).toHaveLength(1);
+            expect(firstLabelNode().textAlign).toBe('right');
+        });
+
+        it('reserves room for an outside linear-gauge label within its maxWidth', async () => {
+            const label = { enabled: true, text: 'A much longer label text', spacing: 10, placement: 'outside-start' };
+            await renderGauge(horizontalLinearGauge({ label: { ...label, maxWidth: 60 } }));
+            expect(chart.series[0].gaugeRect.x).toBeLessThanOrEqual(70);
         });
 
         it.each([
@@ -1346,6 +1379,31 @@ describe('series label fit', () => {
                 })
             );
             expect(someTruncated(targetLabelTexts())).toBe(true);
+        });
+
+        it.each([
+            ['radial-gauge', { type: 'radial-gauge', width: 400, height: 400 }],
+            ['linear-gauge', horizontalLinearGauge({})],
+        ] as const)('%s hides a target label that is not enabled', async (_, base) => {
+            await renderGauge({
+                ...base,
+                value: 50,
+                scale: { min: 0, max: 100 },
+                targets: [
+                    { value: 30, text: 'Shown' },
+                    { value: 70, text: 'Hidden', label: { enabled: false } },
+                ],
+            });
+            expect(targetLabelTexts()).toEqual(['Shown']);
+        });
+
+        it('ignores linear-gauge targets without text as collision obstacles', async () => {
+            await renderGauge(
+                horizontalLinearGauge({
+                    targets: [{ value: 50 }, { value: 51, text: 'B', label: { collision: { threshold: 4 } } }],
+                })
+            );
+            expect(targetLabelTexts()).toEqual(['B']);
         });
 
         it.each([

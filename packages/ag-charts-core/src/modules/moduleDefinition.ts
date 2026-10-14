@@ -138,6 +138,8 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     themeTemplate?: ExtensibleTheme;
     /** The public entry point the preset is reached through, named in the missing-module warning. */
     readonly apiName?: string;
+    /** The preset's option defs embed its series defs, so the series it creates need not repeat their advisories. */
+    readonly reportsSeriesAdvisories?: boolean;
 
     // Remove these keys from the compiled theme to treat them as `undefined` with priority over the series theme.
     removeThemeSeriesKeys?: string[];

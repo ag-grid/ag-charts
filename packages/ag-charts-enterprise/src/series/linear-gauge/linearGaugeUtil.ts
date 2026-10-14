@@ -303,6 +303,7 @@ interface LinearGaugeLabelCandidate {
     box: BBox;
     overflow: number;
     blocked: boolean;
+    clipped: boolean;
 }
 
 type LinearGaugeLabelBBoxes = { seriesRect: BBox; gaugeRect: BBox; barRect: BBox };
@@ -428,7 +429,7 @@ export function formatLinearGaugeLabels(
     obstacles: readonly BBox[],
     datumOverrides?: { label: AgNumericValue | undefined }
 ) {
-    const { gaugeRect, barRect } = bboxes;
+    const { seriesRect, gaugeRect, barRect } = bboxes;
     const { padding, horizontal, barEnabled } = opts;
 
     selection.each((label, labelDatum) => {
@@ -478,7 +479,13 @@ export function formatLinearGaugeLabels(
             const overflow = Math.max(0, min - s0) + Math.max(0, s1 - max);
             const blocked = avoidObstacles && collidesWithAny(box, obstacles, collision.threshold);
 
-            return { layout, x, y, align: bounds.align, box, overflow, blocked };
+            const clipped =
+                box.x < 0 ||
+                box.y < 0 ||
+                box.x + box.width > seriesRect.width ||
+                box.y + box.height > seriesRect.height;
+
+            return { layout, x, y, align: bounds.align, box, overflow, blocked, clipped };
         };
 
         let chosen: LinearGaugeLabelCandidate | undefined;
@@ -487,7 +494,7 @@ export function formatLinearGaugeLabels(
         } else {
             for (const placement of placements) {
                 const candidate = layoutCandidate(placement, false);
-                if (candidate != null && candidate.overflow === 0 && !candidate.blocked) {
+                if (candidate?.overflow === 0 && !candidate.blocked) {
                     chosen = candidate;
                     break;
                 }
@@ -516,7 +523,7 @@ export function formatLinearGaugeLabels(
         label.text = layout.text;
         label.fontSize = layout.fontSize;
         label.lineHeight = layout.lineHeight;
-        label.fill = labelDatum.fill ?? (inside ? labelDatum.insideFill : labelDatum.outsideFill);
+        label.fill = (inside ? labelDatum.insideFill : labelDatum.outsideFill) ?? labelDatum.fill;
 
         label.textAlign = horizontal ? horizontalTextAligns[align] : 'center';
         label.textBaseline = horizontal ? 'middle' : verticalTextBaselines[align];
@@ -528,5 +535,6 @@ export function formatLinearGaugeLabels(
 function isBetterFallback(candidate: LinearGaugeLabelCandidate, current: LinearGaugeLabelCandidate | undefined) {
     if (current == null) return true;
     if (candidate.blocked !== current.blocked) return !candidate.blocked;
+    if (candidate.clipped !== current.clipped) return !candidate.clipped;
     return candidate.overflow < current.overflow;
 }

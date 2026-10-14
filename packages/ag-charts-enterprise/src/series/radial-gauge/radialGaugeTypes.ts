@@ -8,7 +8,7 @@ import type {
     FontWeight,
 } from 'ag-charts-types';
 
-import type { GaugeTargetLabelFit } from '../gauge-util/labelCollision';
+import type { GaugeTargetDatumLabel } from '../gauge-util/labelCollision';
 
 export enum NodeDataType {
     Node,
@@ -36,14 +36,6 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     style: NormalisedGaugeSeriesStyle;
 }
 
-export interface RadialGaugeTargetDatumLabel extends GaugeTargetLabelFit {
-    offsetX: number;
-    offsetY: number;
-    fill: string | undefined;
-    textAlign: CanvasTextAlign;
-    textBaseline: CanvasTextBaseline;
-}
-
 export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     type: NodeDataType.Target;
     readonly itemId: `target-${number}`;
@@ -56,7 +48,7 @@ export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     angle: number;
     size: number;
     rotation: number;
-    label: RadialGaugeTargetDatumLabel;
+    label: GaugeTargetDatumLabel;
     style: NormalisedGaugeSeriesStyle;
 }
 
