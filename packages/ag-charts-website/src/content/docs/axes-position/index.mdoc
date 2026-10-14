@@ -82,6 +82,30 @@ In this example:
 When the target value leaves the visible range, such as by [Zooming](./zoom/), the axis will stick to the edge of the chart and remain in view.
 Set `sticky: false` to allow the axis to be moved out of view in this scenario.
 
+## Axis Length
+
+The `lengthRatio` option sets the length of an axis as a ratio of the series area. Series on that axis are scaled to its length, so they can occupy part of the chart, such as volume bars below a price line.
+
+{% chartExampleRunner title="Axis Length" name="axis-length-ratio" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        yVolume: {
+            type: 'number',
+            position: 'left',
+            lengthRatio: 0.2,
+        },
+    },
+}
+```
+
+In this example:
+
+- The volume axis has a `lengthRatio` of `0.2`, so the volume bars use the bottom 20% of the series area.
+- The axis starts at the end where its minimum value or first category sits. Set `reverse: true` to start it from the opposite end.
+- When [fixed width bars](./bars/#fixed-width) need more room than the axis length allows, `lengthRatio` is ignored.
+
 ## Band Alignment
 
 The `bandAlignment` option controls the band layout when using [fixed width bars](./bars/#fixed-width).

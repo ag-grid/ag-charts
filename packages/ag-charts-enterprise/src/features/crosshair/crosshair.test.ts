@@ -420,6 +420,31 @@ describe('Crosshair', () => {
         await compare();
     });
 
+    it('should follow the pointer on zoomed ratio-sized axes', async () => {
+        const options: AgCartesianChartOptions = {
+            theme: BASE_OPTIONS.theme,
+            data: BASE_OPTIONS.data,
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'y1' },
+                { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'ySecondary' },
+                { type: 'line', xKey: 'x', yKey: 'y3' },
+            ],
+            axes: {
+                x: { type: 'number', position: 'bottom', crosshair: CROSSHAIR_OPTIONS, lengthRatio: 0.7 },
+                y: { type: 'number', position: 'left', crosshair: CROSSHAIR_OPTIONS },
+                ySecondary: { type: 'number', position: 'right', crosshair: CROSSHAIR_OPTIONS, lengthRatio: 0.4 },
+            },
+            zoom: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.2, end: 0.8 } } },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        await hoverAction(300, 450)(chart);
+        await compare();
+    });
+
     it('AG-16613 should handle null category values with crosshair', async () => {
         const options: AgCartesianChartOptions = {
             data: [

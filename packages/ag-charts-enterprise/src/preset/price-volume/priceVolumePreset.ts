@@ -345,13 +345,7 @@ function createVolumeAxis(volume: boolean): Record<string, AgNumberAxisOptions> 
             crosshair: { enabled: false },
             gridLine: { enabled: false },
             nice: false,
-            // @ts-expect-error undocumented option
-            layoutConstraints: {
-                stacked: false,
-                width: 20,
-                unit: 'percent',
-                align: 'end',
-            },
+            lengthRatio: 0.2,
         } satisfies AgNumberAxisOptions,
     };
 }
