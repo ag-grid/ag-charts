@@ -8,18 +8,26 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
     ColorScale,
     type DomainWithMetadata,
     type DynamicContext,
+    type FontOptions,
     type InternalAgColorType,
+    type LabelObstacle,
     type Mutable,
     type NormalisedHeatmapSeriesOwnOptions,
     type NormalisedHeatmapSeriesStyle,
     type NormalisedTextOrSegments,
+    type OrientationAnchor,
+    type PlacedLabel,
     type Point,
+    type PointLabelDatum,
     PointerEvents,
+    type PositionedCandidateResolver,
+    type PositionedLabelCandidate,
     Rect,
     type ResolvedTextAlign,
     STROKE_STYLE_THEME_DEFAULTS,
@@ -29,13 +37,17 @@ import {
     findDiscreteColorBinLabel,
     formatValue,
     joinFormatted,
+    measureLabelText,
     mergeDefaults,
+    resolveCollideWith,
     resolveTextAlign,
     upsertNodeDatum,
+    writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type { BBox, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
+import type { PaddingOptions } from 'ag-charts-types';
 
-import { formatLabels } from '../util/labelFormatter';
+import { autoSizedLabelFit } from '../util/autoSizedLabelFit';
 
 const {
     SeriesNodePickMode,
@@ -50,6 +62,7 @@ const {
     createDatumId,
     addHitTestersToQuadtree,
     findQuadtreeMatch,
+    expandLabelBoxExtent,
     getLabelStyles,
     updateLabelNode,
 } = _ModuleSupport;
@@ -69,8 +82,11 @@ interface HeatmapLabelDatum extends Point {
     datum: any;
     itemId?: never;
     text: NormalisedTextOrSegments;
-    fittedFontSize: number;
-    lineHeight: number;
+    fittedText?: NormalisedTextOrSegments;
+    fittedFontSize?: number;
+    offsetX?: number;
+    offsetY?: number;
+    hidden?: boolean;
     fontStyle: FontStyle | undefined;
     fontFamily: string;
     fontWeight: FontWeight | undefined;
@@ -83,6 +99,14 @@ interface HeatmapLabelDatum extends Point {
     xSpan: number;
     ySpan: number;
     style: NormalisedHeatmapSeriesStyle;
+}
+
+interface HeatmapLabelCandidate extends PositionedLabelCandidate {
+    readonly anchor: OrientationAnchor & { textAlign: ResolvedTextAlign; textBaseline: VerticalAlign };
+}
+
+interface HeatmapPlacedLabelDatum extends PointLabelDatum {
+    readonly target: HeatmapLabelDatum;
 }
 
 type ItemStyle = Pick<NormalisedHeatmapSeriesStyle, 'fill'> &
@@ -570,29 +594,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                   )
                 : undefined;
 
-        const sizeFittingHeight = () => ({ width, height, meta: null });
-        const labels = formatLabels(
-            // Preserve `ContentSegment[]` rather than flattening, so image-bearing labels keep images.
-            labelText,
-            this.options.label,
-            undefined,
-            this.options.label,
-            { padding: itemPadding },
-            sizeFittingHeight
-        );
+        if (labelText == null || labelText === '') return undefined;
 
-        if (labels?.label == null) {
-            return undefined;
-        }
-
-        const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
-        const { fontStyle, fontFamily, fontWeight, color, textAlign, verticalAlign } = this.options.label;
+        const { fontStyle, fontFamily, fontWeight, color, textAlign, verticalAlign } = label;
         const anchorX = nodeDatum.point.x;
-        const anchorY = nodeDatum.point.y - (labels.height - labelHeight) * 0.5;
+        const anchorY = nodeDatum.point.y;
         const xSpan = width - 2 * itemPadding;
         const ySpan = height - 2 * itemPadding;
-        const lx = anchorX + textAlignFactor * xSpan;
-        const ly = anchorY + verticalAlignFactor * ySpan;
 
         return {
             anchorX,
@@ -602,17 +610,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             series: this,
             datum,
             datumIndex,
-            text,
-            fittedFontSize: fontSize,
-            lineHeight,
+            text: labelText,
             fontStyle,
             fontFamily,
             fontWeight,
             color,
             textAlign,
             textBaseline: verticalAlign,
-            x: lx,
-            y: ly,
+            x: anchorX + textAlignFactor * xSpan,
+            y: anchorY + verticalAlignFactor * ySpan,
             style: nodeDatum.style,
         };
     }
@@ -776,16 +782,15 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const styledAlignment = this.options.label.itemStyler != null;
         opts.labelSelection.each((text, datum) => {
+            if (datum.hidden === true) {
+                text.visible = false;
+                return;
+            }
             text.pointerEvents = PointerEvents.None;
-            text.text = datum.text;
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex)?.opacity ?? 1;
             type P = AgHeatmapSeriesLabelFormatterParams;
             type D = HeatmapLabelDatum;
-            if (styledAlignment) {
-                this.anchorStyledLabel(datum, isHighlight, activeHighlight);
-            }
             updateLabelNode<P, D>(this, text, this.makeLabelFormatterParams(), this.options.label, datum, {
                 isHighlight,
                 activeHighlight,
@@ -793,38 +798,154 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         });
     }
 
-    /**
-     * Re-anchors a cell's label to the alignment its label styler returned. The shared label update
-     * reads the position off the datum, so the styled alignment has to be resolved into it first.
-     */
-    private anchorStyledLabel(
-        datum: HeatmapLabelDatum,
-        isHighlight: boolean,
-        activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined
-    ) {
-        const style: Record<string, unknown> = {
-            ...getLabelStyles<AgHeatmapSeriesLabelFormatterParams>(
-                this,
-                datum,
-                this.makeLabelFormatterParams(),
-                this.options.label,
-                isHighlight,
-                activeHighlight
-            ),
-        };
-        const textAlign = TEXT_ALIGNS.find((value) => value === style.textAlign);
-        const verticalAlign = VERTICAL_ALIGNS.find((value) => value === style.verticalAlign);
-        if (textAlign == null && verticalAlign == null) return;
+    protected override resolveUsesPlacedLabels(): boolean {
+        return this.options.label.enabled;
+    }
 
-        if (textAlign != null) {
-            datum.textAlign = textAlign;
-            const factor = textAlignFactors[resolveTextAlign(textAlign, this.ctx.domManager.isRtl)];
-            datum.x = datum.anchorX + factor * datum.xSpan;
+    getLabelObstacles(): LabelObstacle[] | undefined {
+        const nodeData = this.contextNodeData?.nodeData;
+        if (nodeData == null || nodeData.length === 0) return undefined;
+        const obstacles: LabelObstacle[] = [];
+        for (const { point, width, height } of nodeData) {
+            if (width <= 0 || height <= 0) continue;
+            const box = { x: point.x - width / 2, y: point.y - height / 2, width, height };
+            obstacles.push({ kind: 'rect', box, category: 'seriesItem' });
         }
-        if (verticalAlign != null) {
-            datum.textBaseline = verticalAlign;
-            datum.y = datum.anchorY + verticalAlignFactors[verticalAlign] * datum.ySpan;
+        return obstacles;
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        const { label } = this.options;
+        if (!this.usesPlacedLabels || !label.enabled) return [];
+        const alwaysShow = label.collision?.alwaysShow === true;
+        const collideWith = resolveCollideWith({ ...label.collision, alwaysShow });
+        const threshold = label.collision?.threshold ?? 0;
+        const boxPadding = expandLabelBoxExtent(label);
+        const data: HeatmapPlacedLabelDatum[] = [];
+        for (const labelDatum of this.contextNodeData?.labelData ?? []) {
+            const { text, anchorX, anchorY, xSpan, ySpan } = labelDatum;
+            const region = {
+                x: anchorX - xSpan / 2,
+                y: anchorY - ySpan / 2,
+                width: Math.max(0, xSpan),
+                height: Math.max(0, ySpan),
+            };
+            const glyph = measureLabelText(text, label);
+            const candidate = this.labelCandidate(
+                labelDatum,
+                region,
+                label.textAlign,
+                label.verticalAlign,
+                glyph,
+                boxPadding
+            );
+            data.push({
+                point: { x: 0, y: 0, size: 0 },
+                label: { text, width: candidate.box.width, height: candidate.box.height },
+                fit: autoSizedLabelFit(text, label, boxPadding),
+                anchor: undefined,
+                placement: undefined,
+                neverDrop: alwaysShow,
+                collideWith,
+                threshold,
+                positionedCandidates: [candidate],
+                ownBox: region,
+                target: labelDatum,
+            });
         }
+        return data;
+    }
+
+    override getLabelCandidateResolver(): PositionedCandidateResolver | undefined {
+        const { label } = this.options;
+        if (label.itemStyler == null) return undefined;
+        const params = this.makeLabelFormatterParams();
+        return (datum, candidate) => {
+            const { target } = datum as HeatmapPlacedLabelDatum;
+            const style = getLabelStyles<AgHeatmapSeriesLabelFormatterParams>(
+                this,
+                target,
+                params,
+                label,
+                false,
+                undefined
+            );
+            const styled: Record<string, unknown> = { ...style };
+            const textAlign = TEXT_ALIGNS.find((value) => value === styled.textAlign) ?? label.textAlign;
+            const verticalAlign =
+                VERTICAL_ALIGNS.find((value) => value === styled.verticalAlign) ?? label.verticalAlign;
+            return this.labelCandidate(
+                target,
+                candidate.region!,
+                textAlign,
+                verticalAlign,
+                measureLabelText(target.text, style),
+                expandLabelBoxExtent(style),
+                style,
+                !style.enabled
+            );
+        };
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<HeatmapLabelDatum>[]) {
+        for (const labelDatum of this.contextNodeData?.labelData ?? []) {
+            labelDatum.hidden = true;
+        }
+        for (const { datum, candidate, text, fontSize, offsetX, offsetY } of placed as PlacedLabel<unknown>[]) {
+            const { target } = datum as HeatmapPlacedLabelDatum;
+            const { anchor } = candidate as HeatmapLabelCandidate;
+            target.hidden = false;
+            target.x = anchor.x;
+            target.y = anchor.y;
+            target.textAlign = anchor.textAlign;
+            target.textBaseline = anchor.textBaseline;
+            target.offsetX = offsetX ?? 0;
+            target.offsetY = offsetY ?? 0;
+            target.fittedText = text;
+            target.fittedFontSize = fontSize;
+        }
+        this.refreshPlacedLabelNodes();
+    }
+
+    /** The one candidate a cell label has: aligned within the padded cell, and fitted to it. */
+    private labelCandidate(
+        labelDatum: HeatmapLabelDatum,
+        region: BoxBounds,
+        textAlign: TextAlign,
+        verticalAlign: VerticalAlign,
+        glyph: { width: number; height: number },
+        boxPadding: Required<PaddingOptions>,
+        font?: FontOptions,
+        hidden?: boolean
+    ): HeatmapLabelCandidate {
+        const resolvedAlign = resolveTextAlign(textAlign, this.ctx.domManager.isRtl);
+        const anchor = {
+            x: labelDatum.anchorX + textAlignFactors[resolvedAlign] * labelDatum.xSpan,
+            y: labelDatum.anchorY + verticalAlignFactors[verticalAlign] * labelDatum.ySpan,
+            textAlign: resolvedAlign,
+            textBaseline: verticalAlign,
+        };
+        const boxWidth = boxPadding.left + boxPadding.right;
+        const boxHeight = boxPadding.top + boxPadding.bottom;
+        const width = glyph.width + boxWidth;
+        const height = glyph.height + boxHeight;
+        const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
+        return {
+            box: { x: centre.x - width / 2, y: centre.y - height / 2, width, height },
+            region,
+            anchor,
+            size: font == null ? undefined : { width, height },
+            hidden,
+            fitTo: {
+                container: {
+                    width: Math.max(0, region.width - boxWidth),
+                    height: Math.max(0, region.height - boxHeight),
+                },
+                anchor,
+                padding: boxPadding,
+                font,
+            },
+        };
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {

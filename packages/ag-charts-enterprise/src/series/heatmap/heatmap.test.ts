@@ -1213,8 +1213,7 @@ describe('HeatmapSeries', () => {
     });
 
     describe('block-leading image segments (treemap parity)', () => {
-        // Heatmap cell labels go through formatLabels() like treemap, so a `block: true` image
-        // segment must render the same way: anchored left of the cell label with text beside it.
+        // A `block: true` image segment renders as in treemap: left of the cell label, text beside it.
         const iconSvg = (letter: string) =>
             `data:image/svg+xml;utf8,${encodeURIComponent(
                 `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28">` +

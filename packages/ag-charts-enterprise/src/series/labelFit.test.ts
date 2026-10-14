@@ -1084,7 +1084,9 @@ describe('series label fit', () => {
             return texts;
         };
         const heatmapLabelTexts = (): string[] =>
-            (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: unknown }) => String(d.text));
+            (chart.series[0].contextNodeData?.labelData ?? [])
+                .filter((d: { hidden?: boolean }) => d.hidden !== true)
+                .map((d: { text: unknown; fittedText?: unknown }) => String(d.fittedText ?? d.text));
         const longNameShown = (texts: string[]) => tileNames.filter((name) => texts.includes(name)).length;
 
         it.each([
@@ -1279,7 +1281,7 @@ describe('series label fit', () => {
                         },
                     ],
                 },
-                { width: 150, height: 150 }
+                { width: 220, height: 220 }
             );
             const drawn: { text: string; fontSize: number; box: BBox }[] = [];
             chart.series[0].labelSelection.each((group: any) => {
@@ -1291,7 +1293,7 @@ describe('series label fit', () => {
             });
             expect(drawn.length).toBeGreaterThan(0);
             expect(drawn.filter((label) => label.fontSize >= 14).map((label) => label.text)).toEqual([]);
-            const canvas = { x: 0, y: 0, width: 150, height: 150 };
+            const canvas = { x: 0, y: 0, width: 220, height: 220 };
             expect(drawn.filter(({ box }) => !contains(canvas, box)).map((label) => label.text)).toEqual([]);
         });
     });

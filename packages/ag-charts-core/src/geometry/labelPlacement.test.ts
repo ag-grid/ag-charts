@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 
+import { measureLabelText } from '../rendering/textMeasurer';
 import type { Point, SizedPoint } from '../types/scene';
 import {
     type BarLabelTarget,
@@ -22,6 +23,7 @@ import {
     sectorLabelContainer,
 } from './barLabelGeometry';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import type { FitRegion } from './fitRegion';
 import {
     type CandidateLabelStyle,
     type CandidateStyleResolver,
@@ -36,7 +38,6 @@ import {
     type SeriesLabels,
     labelGlyphCentre,
     labelsAvoidAxisLabels,
-    measureLabelText,
     placeLabels,
     resolveLabelFit,
 } from './labelPlacement';
@@ -1976,6 +1977,68 @@ describe('placeLabels sole positioned candidate', () => {
 
         expect(place()).toMatchObject({ x: 120, y: 120 });
         expect(place(false)).toMatchObject({ x: fixedBox.x, y: fixedBox.y });
+    });
+});
+
+describe('placeLabels shape-fitted rotated labels', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const padding = { top: 0, right: 0, bottom: 0, left: 0 };
+    const unbounded: FitRegion = { spanAt: () => [-1000, 1000], extentAbove: Infinity, extentBelow: Infinity };
+
+    /** A 50×20 'WWWWW' label rotated 45° about `(cx, cy)`, fitted to `shape` when one is given. */
+    const rotatedLabel = (cx: number, cy: number, shape?: FitRegion): PointLabelDatum => {
+        const footprint = (50 + 20) * Math.SQRT1_2;
+        return {
+            point: { x: cx, y: cy, size: 0 },
+            label: { text: 'WWWWW', width: 50, height: 20 },
+            fit: { text: 'WWWWW', policy: { overflowStrategy: 'ellipsis' }, font: FONT },
+            anchor: undefined,
+            placement: undefined,
+            positionedCandidates: [
+                {
+                    box: { x: cx - footprint / 2, y: cy - footprint / 2, width: footprint, height: footprint },
+                    rotation: 45,
+                    fitTo: { shape, anchor: { x: cx, y: cy, textAlign: 'center', textBaseline: 'middle' }, padding },
+                },
+            ],
+        };
+    };
+
+    // Side by side across their 20px height, 24px apart: the rotated boxes clear, their footprints overlap.
+    const place = (shape?: FitRegion) =>
+        placeLabels(
+            new Map([
+                ['a', seriesLabels([rotatedLabel(100, 100, shape)])],
+                [
+                    'b',
+                    seriesLabels([rotatedLabel(100 - 24 * Math.SQRT1_2, 100 + 24 * Math.SQRT1_2, shape)], {
+                        alwaysShow: false,
+                    }),
+                ],
+            ]),
+            bounds,
+            0
+        ).get('b');
+
+    it('collides by the rotated box when fitted inside a shape', () => {
+        expect(place(unbounded)).toHaveLength(1);
+    });
+
+    it('collides by the axis-aligned footprint otherwise', () => {
+        expect(place()).toHaveLength(0);
+    });
+
+    it('still collides when the rotated boxes overlap', () => {
+        const placed = placeLabels(
+            new Map([
+                ['a', seriesLabels([rotatedLabel(100, 100, unbounded)])],
+                ['b', seriesLabels([rotatedLabel(110, 110, unbounded)], { alwaysShow: false })],
+            ]),
+            bounds,
+            0
+        ).get('b');
+        expect(placed).toHaveLength(0);
     });
 });
 

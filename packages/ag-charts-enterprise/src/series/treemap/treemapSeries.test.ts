@@ -1807,6 +1807,8 @@ describe('TreemapSeries', () => {
                             spacing: 8,
                             fill: 'pink',
                             border: { stroke: 'black', strokeWidth: 1 },
+                            // Lets each box's padding and border overhang its tile rather than crowd out the text.
+                            collision: { threshold: -10 },
                         },
                         secondaryLabel: {
                             formatter: (params) => `£${params.value.toFixed(1)}bn`,
