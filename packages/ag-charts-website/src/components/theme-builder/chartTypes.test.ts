@@ -24,6 +24,7 @@ import {
     PREVIEW_DATA,
     PREVIEW_SERIES,
     SERIES_COUNT_OPTIONS,
+    THUMBNAIL_LINE_KEY,
     THUMBNAIL_SERIES_KEYS,
 } from './previewData';
 
@@ -107,19 +108,19 @@ describe('preview chart types', () => {
         // Deliberate: the cards separate themes from each other, and at a
         // user-chosen count of two the lookalike palettes would converge again.
         // The count control drives the panes only.
-        expect(seriesOf(THUMBNAIL_OPTIONS).length).toBe(8);
+        const types = (seriesOf(THUMBNAIL_OPTIONS) as { type: string }[]).map(({ type }) => type);
+        expect(types.filter((type) => type === 'bar').length).toBe(8);
+        expect(types.filter((type) => type === 'line').length).toBe(1);
         expect(THUMBNAIL_SERIES_KEYS.length).toBe(8);
     });
 
-    it('has thumbnail data behind every band the card draws', () => {
-        // The card takes a prefix of the rows, so a key missing from one of them
-        // leaves a gap that reads as a palette one colour short rather than as a
-        // chart with something wrong with it.
-        const { data, series } = THUMBNAIL_OPTIONS as { data: Record<string, unknown>[]; series: unknown[] };
+    it('gives every thumbnail bar series a month of its own', () => {
+        // A series with no month leaves the palette looking one colour short.
+        const { data } = THUMBNAIL_OPTIONS as { data: Record<string, unknown>[] };
+        const barKeysPerRow = data.map((row) => THUMBNAIL_SERIES_KEYS.filter((key) => typeof row[key] === 'number'));
+        expect(barKeysPerRow).toEqual(THUMBNAIL_SERIES_KEYS.map((key) => [key]));
         for (const row of data) {
-            for (const { yKey } of series as { yKey: string }[]) {
-                expect(typeof row[yKey], `${String(row.period)}.${yKey}`).toBe('number');
-            }
+            expect(typeof row[THUMBNAIL_LINE_KEY], String(row.month)).toBe('number');
         }
     });
 

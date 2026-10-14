@@ -16,6 +16,7 @@ import {
     PREVIEW_DATA,
     SERIES_COUNT_OPTIONS,
     THUMBNAIL_DATA,
+    THUMBNAIL_LINE_KEY,
     THUMBNAIL_SERIES_KEYS,
     seriesFor,
     totalsFor,
@@ -62,14 +63,18 @@ export type PreviewChartType = {
 
 /**
  * The chart every preset card draws, so a row of cards reads as a row of
- * palettes rather than of shapes. Eight series, the stock palettes only
- * diverging a few slots in.
+ * palettes rather than of shapes. Eight bar series, the stock palettes only
+ * diverging a few slots in, and a line in the ninth.
  */
 export const THUMBNAIL_OPTIONS: AgChartOptions = {
     data: THUMBNAIL_DATA,
-    series: THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'bar', xKey: 'period', yKey: key })),
+    series: [
+        // Stacked, as each month has one bar and grouping would leave it an eighth of the band.
+        ...THUMBNAIL_SERIES_KEYS.map((key) => ({ type: 'bar' as const, xKey: 'month', yKey: key, stacked: true })),
+        { type: 'line', xKey: 'month', yKey: THUMBNAIL_LINE_KEY },
+    ],
     // Text, so a preset's typography shows on its card.
-    title: { text: 'Quarterly Revenue' },
+    title: { text: 'Monthly Revenue' },
     axes: {
         x: { type: 'category', position: 'bottom' },
         y: { type: 'number', position: 'left' },

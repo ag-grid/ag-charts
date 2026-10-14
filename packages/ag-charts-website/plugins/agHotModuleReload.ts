@@ -28,6 +28,13 @@ export default function createAgHotModuleReload(): Plugin {
                 .on('add', (path) => {
                     fullReload(path);
                 });
+
+            // Vite's in-place restart closes the old HTTP server; without this the watcher (and the
+            // `server` its callbacks capture) outlives every restarted generation.
+            server.httpServer?.once('close', () => {
+                clearTimeout(timeout);
+                void watcher.close();
+            });
         },
     };
 }

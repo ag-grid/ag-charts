@@ -38,6 +38,7 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
+    expectAggregatedMarkersCoverEveryDatumOnce,
     expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
     expectSceneTrajectory,
@@ -1294,6 +1295,49 @@ describe('BubbleSeries', () => {
             await chart.update(prepareTestOptions(aggregatedOptions(true)));
             await waitForChartStability(chart);
             expect(getAggregatedMarkerXValues(chart)).toEqual(expected);
+        });
+    });
+
+    describe('aggregated clusters', () => {
+        // The size domain extends past the largest size, which spreads the datums over all three size buckets.
+        const datum = (i: number) => ({ x: (i * 37) % 211, y: (i * 53) % 97, s: 1 + (i % 7) });
+
+        it('should represent every datum exactly once, with each cluster listed in datum order', async () => {
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 600 }, (_, i) => datum(i)),
+                series: [
+                    { type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', sizeDomain: [0, 8], maxRenderedItems: 80 },
+                ],
+                legend: { enabled: false },
+            };
+            chart = AgCharts.create(prepareTestOptions(options));
+            await waitForChartStability(chart);
+
+            const series = getSeriesAggregationInternals(chart);
+            expect(series.contextNodeData?.nodeData?.length).toBeLessThan(600);
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 600);
+        });
+
+        it('should keep clusters complete when the data changes', async () => {
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 500 }, (_, i) => datum(i)),
+                series: [
+                    { type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', sizeDomain: [0, 8], maxRenderedItems: 60 },
+                ],
+                legend: { enabled: false },
+            };
+            chart = AgCharts.create(prepareTestOptions(options));
+            await waitForChartStability(chart);
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 500);
+
+            await chart.update(
+                prepareTestOptions({
+                    ...options,
+                    data: Array.from({ length: 700 }, (_, i) => datum(i + 3)),
+                })
+            );
+            await waitForChartStability(chart);
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 700);
         });
     });
 

@@ -182,6 +182,7 @@ export function createQuadrant(
         'fill',
         'fillOpacity',
         'highlight',
+        'id',
         'itemStyler',
         'lineDash',
         'lineDashOffset',

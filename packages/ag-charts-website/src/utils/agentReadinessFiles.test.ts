@@ -6,7 +6,7 @@ import { createSiteRouteResolver } from './test/siteRoutes';
 const INPUT = {
     siteRoot: 'https://www.ag-grid.com/charts/',
     majorVersion: 12,
-    chartsDocsPrefix: 'javascript',
+    chartsDocsPrefix: 'react',
 };
 
 describe('buildLlmsTxt', () => {
@@ -18,16 +18,25 @@ describe('buildLlmsTxt', () => {
     });
 
     test('links the key charts pages from the canonical base', () => {
-        expect(txt).toContain('(https://www.ag-grid.com/charts/javascript/quick-start/)');
+        expect(txt).toContain('(https://www.ag-grid.com/charts/react/quick-start/)');
         expect(txt).toContain('(https://www.ag-grid.com/charts/license-pricing/)');
         expect(txt).toContain('(https://www.ag-grid.com/charts/community/)');
         expect(txt).toContain('(https://www.ag-grid.com/charts/documentation-archive/)');
         expect(txt).toContain('(https://www.ag-grid.com/charts/sitemap-index.xml)');
     });
 
+    // SE-206: agents are sent to the same framework as the header's Docs link.
+    test('links the docs for the given framework and states how to reach the others', () => {
+        expect(txt).toContain('- [Quick start](https://www.ag-grid.com/charts/react/quick-start/):');
+        expect(txt).toContain(
+            'replace `react` with `<framework>` (`javascript`, `angular` or `vue`) for another framework'
+        );
+        expect(txt).not.toContain('charts/javascript/');
+    });
+
     test('advertises the markdown (.md) convention as a site-wide rule, not a page list', () => {
         expect(txt).toContain('.md');
-        expect(txt).toContain('https://www.ag-grid.com/charts/javascript/quick-start.md');
+        expect(txt).toContain('https://www.ag-grid.com/charts/react/quick-start.md');
         // Every page in the sitemap has a twin, so llms.txt states the rule. Enumerating pages
         // here would drift the moment one is added (see markdownPages.test.ts).
         expect(txt).toContain('append `.md` to any page URL listed in the sitemap');
@@ -68,7 +77,12 @@ describe('buildLlmsTxt', () => {
         const SITE_INDEX = [
             { title: 'General', links: [{ title: 'Gallery', url: 'https://www.ag-grid.com/charts/gallery/' }] },
         ];
-        const indexed = buildLlmsTxt({ ...INPUT, docsIndex: DOCS_INDEX, siteIndex: SITE_INDEX });
+        const indexed = buildLlmsTxt({
+            ...INPUT,
+            docsIndex: DOCS_INDEX,
+            siteIndex: SITE_INDEX,
+            indexDocsPrefix: 'javascript',
+        });
 
         test('publishes the docs under their navigation groups, in the order given', () => {
             expect(indexed).toContain('## Documentation');
@@ -82,7 +96,9 @@ describe('buildLlmsTxt', () => {
         });
 
         test('states the framework substitution instead of repeating the docs four times', () => {
-            expect(indexed).toContain('replace `javascript` with `<framework>`');
+            expect(indexed).toContain(
+                'replace `javascript` with `<framework>` (`react`, `angular` or `vue`) for the framework-specific page'
+            );
             expect(indexed).not.toContain('react/bar-series');
         });
 
@@ -116,12 +132,20 @@ describe('buildAgentsMd', () => {
 
     test('advertises the markdown (.md) versions as a site-wide rule', () => {
         expect(md).toContain('Markdown for LLMs');
-        expect(md).toContain('https://www.ag-grid.com/charts/javascript/quick-start.md');
+        expect(md).toContain('https://www.ag-grid.com/charts/react/quick-start.md');
         // Every page in the sitemap has a twin, so point at the sitemap rather than listing
         // pages that would drift (see markdownPages.test.ts for the guarantee).
         expect(md).toContain('append `.md` to any page URL listed in the');
         expect(md).toContain('[sitemap](https://www.ag-grid.com/charts/sitemap-index.xml)');
         expect(md).not.toContain('exception');
+    });
+
+    test('links the docs for the given framework and states how to reach the others', () => {
+        expect(md).toContain('[quick start](https://www.ag-grid.com/charts/react/quick-start/)');
+        expect(md).toContain(
+            'replace `react` with `<framework>` (`javascript`, `angular` or `vue`) for another framework'
+        );
+        expect(md).not.toContain('charts/javascript/');
     });
 
     test('points at index.md for the homepage, whose twin is not a `.md` suffix', () => {

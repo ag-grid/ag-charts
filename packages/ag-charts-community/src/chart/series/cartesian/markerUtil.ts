@@ -140,6 +140,33 @@ export function resetMarkerPositionFn<D extends CartesianSeriesNodeDatum>(_node:
     };
 }
 
+/**
+ * Moves a node datum's `point` and `midPoint` in place, so that an update that reuses the node does not allocate
+ * both objects again for every datum. A `point` that has been given a focus size is replaced instead, so that the
+ * focus size is not carried over to the datum the node now represents.
+ */
+export function moveNodePoints(
+    node: { point?: SizedPoint; midPoint?: Point },
+    x: number,
+    y: number,
+    size: number
+): void {
+    const { point, midPoint } = node;
+    if (point == null || point.focusSize !== undefined) {
+        node.point = { x, y, size };
+    } else {
+        point.x = x;
+        point.y = y;
+        point.size = size;
+    }
+    if (midPoint == null) {
+        node.midPoint = { x, y };
+    } else {
+        midPoint.x = x;
+        midPoint.y = y;
+    }
+}
+
 interface MarkerNodeDatum extends SeriesNodeDatum {
     readonly point: Point & SizedPoint;
 }

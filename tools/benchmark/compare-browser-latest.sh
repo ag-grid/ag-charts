@@ -27,11 +27,15 @@
 #   -j            Output JSON instead of table format
 #   -n <N>        Run the benchmark N times per side and aggregate (median of run medians;
 #                 cross-run variance gates noise). Default 1. Use >=3 to see past the noise floor.
+#   -m            Add one memory pass per side (heap sampling) and report allocated MB per
+#                 iteration next to the timings. Separate from the timing runs, so it cannot
+#                 distort them; allocation is reported, never gated.
 #
 # Examples:
 #   ./tools/benchmark/compare-browser-latest.sh origin/b13.2.0
 #   ./tools/benchmark/compare-browser-latest.sh npm:13.3.1
 #   ./tools/benchmark/compare-browser-latest.sh -n 3 npm:13.3.1
+#   ./tools/benchmark/compare-browser-latest.sh -m npm:13.3.1 -- --examples high-perf-bar
 #   ./tools/benchmark/compare-browser-latest.sh -j origin/latest
 #   ./tools/benchmark/compare-browser-latest.sh origin/latest -- --examples data-selection-zoom-line-area --test-cases line
 
@@ -43,11 +47,15 @@ export NX_DAEMON=false
 
 format=table
 runs=1
+memory=false
 
-while getopts "jn:" opt; do
+while getopts "jmn:" opt; do
     case $opt in
         j)
             format=json
+            ;;
+        m)
+            memory=true
             ;;
         n)
             runs=$OPTARG
@@ -65,7 +73,7 @@ if ! [[ "$runs" =~ ^[1-9][0-9]*$ ]]; then
     exit 1
 fi
 
-base_ref=${1:?Usage: compare-browser-latest.sh [-j] <base-ref|npm:version> [-- <browser-benchmark.ts args>]}
+base_ref=${1:?Usage: compare-browser-latest.sh [-j] [-m] <base-ref|npm:version> [-- <browser-benchmark.ts args>]}
 shift
 
 # npm:<version> selects published-library mode (head site + published bundles).
@@ -112,6 +120,8 @@ mkdir -p "${reports_dir}"
 
 head_results="${reports_dir}/head.json"
 base_results="${reports_dir}/base.json"
+head_memory="${reports_dir}/head.mem.json"
+base_memory="${reports_dir}/base.mem.json"
 
 # --- Logging helpers ---
 
@@ -294,6 +304,23 @@ run_benchmarks_n() {
     done
 }
 
+# One heap-sampling pass over a served site, written to <output>. Sampling distorts timings, so
+# this is a separate invocation from the timing runs. Advisory only: a failure is logged and the
+# comparison simply has no allocation data for that side.
+run_memory_pass() {
+    local base_url=$1
+    local output=$2
+
+    log "Running memory pass against ${base_url}..."
+    rm -f "$output"
+    (cd "$root" && npx tsx "${tools_dir}/browser-benchmark.ts" \
+        --base-url "$base_url" \
+        --output "$output" \
+        --memory \
+        "${benchmark_args[@]+"${benchmark_args[@]}"}") || \
+        log "Memory pass had failures; allocation data may be incomplete"
+}
+
 head_run_files=()
 base_run_files=()
 
@@ -361,6 +388,10 @@ run_benchmarks_n "$HEAD_URL" "${reports_dir}/head" || {
 head_run_files=("${RUN_FILES[@]+"${RUN_FILES[@]}"}")
 # Keep head.json (= first run) for consumers that read the single-run path.
 [[ ${#head_run_files[@]} -gt 0 ]] && cp "${head_run_files[0]}" "$head_results"
+rm -f "$head_memory" "$base_memory"
+if [[ "$memory" == "true" ]]; then
+    run_memory_pass "$HEAD_URL" "$head_memory"
+fi
 
 log "Stopping head static server..."
 stop_static_server "$HEAD_SERVER_PID"
@@ -406,6 +437,9 @@ if [[ -n "$published_version" ]]; then
         }
         base_run_files=("${RUN_FILES[@]+"${RUN_FILES[@]}"}")
         [[ ${#base_run_files[@]} -gt 0 ]] && cp "${base_run_files[0]}" "$base_results"
+        if [[ "$memory" == "true" ]]; then
+            run_memory_pass "$BASE_URL" "$base_memory"
+        fi
 
         log "Stopping base static server..."
         stop_static_server "$BASE_SERVER_PID"
@@ -488,6 +522,9 @@ if [[ -d "${worktree_dir}" ]]; then
             }
             base_run_files=("${RUN_FILES[@]+"${RUN_FILES[@]}"}")
             [[ ${#base_run_files[@]} -gt 0 ]] && cp "${base_run_files[0]}" "$base_results"
+            if [[ "$memory" == "true" ]]; then
+                run_memory_pass "$BASE_URL" "$base_memory"
+            fi
 
             log "Stopping base static server..."
             stop_static_server "$BASE_SERVER_PID"
@@ -549,9 +586,15 @@ compare_file_args=()
 for f in "${head_run_files[@]+"${head_run_files[@]}"}"; do compare_file_args+=(--compare "$f"); done
 [[ ${#compare_file_args[@]} -eq 0 ]] && compare_file_args=(--compare "$head_results")
 
+# Memory-pass reports exist only when -m ran them; a side whose pass failed has no file.
+memory_args=()
+[[ -f "$base_memory" ]] && memory_args+=(--base-memory "$base_memory")
+[[ -f "$head_memory" ]] && memory_args+=(--compare-memory "$head_memory")
+
 node "${tools_dir}/compare-browser-results.js" \
     "${base_file_args[@]}" \
     "${compare_file_args[@]}" \
+    "${memory_args[@]+"${memory_args[@]}"}" \
     --base-label "$base_label" \
     --compare-label "$compare_label" \
     "${base_version_args[@]+"${base_version_args[@]}"}" \

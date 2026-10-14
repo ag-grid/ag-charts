@@ -28,8 +28,13 @@ const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
     <ApiReferencePage> island hydrates. Deliberately flat, to keep the served HTML small.
 */}
 <div class="api-reference-fallback layout-grid">
-    {/* Reserves the left-nav width so the page does not shift horizontally on hydration. */}
-    <div class={styles.navPlaceholder} aria-hidden="true"></div>
+    {/*
+        Reserves the left-nav width so the page does not shift horizontally on hydration, and holds any
+        server-rendered links between reference pages passed in the `nav` slot.
+    */}
+    <div class={styles.navPlaceholder}>
+        <slot name="nav" />
+    </div>
 
     <div class={styles.referenceContent}>
         <header>

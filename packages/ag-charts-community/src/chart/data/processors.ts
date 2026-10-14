@@ -587,6 +587,8 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
 function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailing'; separateNegative?: boolean }) {
     return function buildGroupAccFnResetFn() {
         return function buildGroupAccFnGroupResetFn() {
+            // Shared by every group of this pass: it is reset per call and never read after the call returns.
+            const acc: [AgNumericValue, AgNumericValue] = [0, 0];
             return function buildGroupAccFnResultFn(
                 columns: any[][],
                 valueIndexes: number[],
@@ -594,7 +596,8 @@ function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailin
                 groupIndex: number
             ) {
                 // Number `0` seeds promote to bigint via addAccumulated so stacked totals stay exact.
-                const acc: [AgNumericValue, AgNumericValue] = [0, 0];
+                acc[0] = 0;
+                acc[1] = 0;
                 for (const valueIdx of valueIndexes) {
                     const datumIndices = dataGroup.datumIndices[valueIdx];
                     if (datumIndices == null) continue;
