@@ -31,11 +31,13 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
+    expectAggregatedMarkersCoverEveryDatumOnce,
     expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
     expectSceneTrajectory,
     expectWarningsCalls,
     getAggregatedMarkerXValues,
+    getSeriesAggregationInternals,
     hoverAction,
     looserSnapshotDefaults,
     prepareTestOptions,
@@ -1177,6 +1179,72 @@ describe('ScatterSeries', () => {
                     ])
                 )
             );
+        });
+    });
+
+    describe('aggregated clusters', () => {
+        const datum = (i: number) => ({ x: (i * 37) % 211, y: (i * 53) % 97 });
+        const createAggregated = async (data: object[], maxRenderedItems: number) => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', maxRenderedItems }],
+                legend: { enabled: false },
+            };
+            chart = AgCharts.create(prepareTestOptions(options));
+            await waitForChartStability(chart);
+        };
+
+        it('should represent every datum exactly once, with each cluster listed in datum order', async () => {
+            await createAggregated(
+                Array.from({ length: 800 }, (_, i) => datum(i)),
+                80
+            );
+
+            const series = getSeriesAggregationInternals(chart);
+            expect(series.contextNodeData?.nodeData?.length).toBeLessThan(800);
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 800);
+        });
+
+        it('should represent every datum when all of them are at one point', async () => {
+            await createAggregated(
+                Array.from({ length: 300 }, () => ({ x: 4, y: 4 })),
+                50
+            );
+
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 300);
+        });
+
+        it('should keep clusters complete when the data changes', async () => {
+            await createAggregated(
+                Array.from({ length: 500 }, (_, i) => datum(i)),
+                60
+            );
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 500);
+
+            await chart.update(
+                prepareTestOptions({
+                    data: Array.from({ length: 700 }, (_, i) => datum(i + 3)),
+                    series: [{ type: 'scatter', xKey: 'x', yKey: 'y', maxRenderedItems: 60 }],
+                    legend: { enabled: false },
+                })
+            );
+            await waitForChartStability(chart);
+            expectAggregatedMarkersCoverEveryDatumOnce(chart, 700);
+        });
+
+        it('should not cluster datums that have no x or y value', async () => {
+            const data = Array.from({ length: 400 }, (_, i) => ({
+                x: i % 25 === 0 ? null : (i * 37) % 211,
+                y: i % 31 === 0 ? null : (i * 53) % 97,
+            }));
+            await createAggregated(data, 60);
+
+            const series = getSeriesAggregationInternals(chart);
+            expect(series.dataAggregation).toBeDefined();
+            const missing = new Set(data.flatMap((d, i) => (d.x == null || d.y == null ? [i] : [])));
+            const clustered = [...series.aggregateIndexSet!.values()].flatMap((indices) => Array.from(indices));
+            expect(clustered.length).toBeGreaterThan(0);
+            expect(clustered.filter((i) => missing.has(i))).toEqual([]);
         });
     });
 
