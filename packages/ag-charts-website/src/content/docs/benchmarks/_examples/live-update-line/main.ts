@@ -111,7 +111,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
             label: `Streaming Line (${points.toLocaleString('en-GB')} points)`,
             variants: METHODS.map((method) => ({
                 params: { Points: points.toLocaleString('en-GB'), Method: method },
-                // applyTransaction() was added in 12.3.0
+                // Requires >= 12.3.0: applyTransaction()
                 minVersion: method.startsWith('applyTransaction') ? '12.3.0' : undefined,
                 run: () => performStreamingUpdate(points, method),
             })),

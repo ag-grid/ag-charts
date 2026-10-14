@@ -198,7 +198,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
             {
                 id: 'no-move-redraw',
                 label: 'No-Move Redraw',
-                // Keyed `axes` options were added in 13.0.0 (12.x takes an array)
+                // Requires >= 13.0.0: keyed `axes` options (12.x takes an array)
                 minVersion: '13.0.0',
                 variants: shapes.flatMap((shape) =>
                     changes.map((change) => ({
@@ -211,8 +211,14 @@ function getBenchmarkConfig(): BenchmarkConfig {
                 id: 'pixel-stability',
                 label: 'Pixel Stability (first vs second identical redraw)',
                 minVersion: '13.0.0',
+                // The harness clears its timings on every run, so the pixel counts must restart with them.
+                setup: () => {
+                    for (const label of Object.keys(pixelStability)) {
+                        delete pixelStability[label];
+                    }
+                },
                 variants: stabilityCases.map(({ label, state: s }) => ({
-                    params: { Series: s.kind, Bars: String(s.bars), Change: label },
+                    params: { Series: s.kind, Bars: String(s.bars), Case: label },
                     run: () => performPixelStability(label, s),
                 })),
             },
@@ -224,6 +230,8 @@ function getBenchmarkConfig(): BenchmarkConfig {
         },
         metadata: {
             version: VERSION,
+            // Keyed `axes` need 13.0.0+, so the compare step skips this example on an older published base.
+            minVersion: '13.0.0',
             pixelStability,
         },
         onComplete: async () => {

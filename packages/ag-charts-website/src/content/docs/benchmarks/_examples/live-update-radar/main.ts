@@ -71,7 +71,7 @@ function getBenchmarkConfig(): BenchmarkConfig {
             {
                 id: 'radar-update',
                 label: 'Radar Data Update',
-                // Keyed `axes` options were added in 13.0.0 (12.x takes an array)
+                // Requires >= 13.0.0: keyed `axes` options (12.x takes an array)
                 minVersion: '13.0.0',
                 variants: [26, 52, 104, 208, 416].flatMap((categories) =>
                     (['polygon', 'circle'] as Shape[]).map((shape) => ({
@@ -89,6 +89,8 @@ function getBenchmarkConfig(): BenchmarkConfig {
         metadata: {
             seriesType: 'radar-line',
             version: VERSION,
+            // Keyed `axes` need 13.0.0+, so the compare step skips this example on an older published base.
+            minVersion: '13.0.0',
         },
     };
 }
