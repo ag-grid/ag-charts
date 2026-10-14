@@ -4,5 +4,5 @@ import type { Normalised } from './normalise';
 
 export type NormalisedContextMenuOptions = Normalised<
     AgContextMenuOptions,
-    'enabled' | 'allowBrowserMenuWithModifierKey' | 'items' | 'getItems'
+    'enabled' | 'allowBrowserMenuWithModifierKey'
 >;

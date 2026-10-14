@@ -96,8 +96,6 @@ export class ContextMenu extends AbstractModuleInstance {
             this.ctx.chartState.getValue('options', 'contextMenu') ?? {
                 enabled: false,
                 allowBrowserMenuWithModifierKey: false,
-                getItems: (): undefined => {},
-                items: [],
             }
         );
     }
