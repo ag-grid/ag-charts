@@ -661,6 +661,75 @@ describe('Chart', () => {
             }
         });
 
+        describe('updateDelta() without `data`', () => {
+            const rows = (count: number) =>
+                Array.from({ length: count }, (_, i) => ({ year: `${2000 + i}`, gdp: i + 1, tax: i * 2 }));
+
+            it.each([
+                {
+                    name: 'a title on a bar series',
+                    options: { series: [{ type: 'bar', xKey: 'year', yKey: 'gdp' }] },
+                    delta: { title: { text: 'After' } },
+                },
+                {
+                    name: 'a title on a chart with explicit axes',
+                    options: {
+                        series: [{ type: 'bar', xKey: 'year', yKey: 'gdp' }],
+                        axes: {
+                            x: { type: 'category', position: 'bottom' },
+                            y: { type: 'number', position: 'left' },
+                        },
+                    },
+                    delta: { title: { text: 'After' } },
+                },
+            ])('does not refresh node data for $name', async ({ options, delta }) => {
+                const chartProxy = AgCharts.create(
+                    prepareTestOptions({ data: rows(8), title: { text: 'Before' }, ...options } as any)
+                );
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+                const dataBefore = chart.data.data;
+
+                const processData = vi.spyOn(Object.getPrototypeOf(chart), 'processData');
+                try {
+                    await chartProxy.updateDelta(delta as any);
+                    await waitForChartStability(chart);
+                    expect(processData).not.toHaveBeenCalled();
+                    expect(chart.data.data).toBe(dataBefore);
+                } finally {
+                    processData.mockRestore();
+                }
+            });
+
+            it('shows the extra row after a growing updateDelta({ data }) with the colours of a fresh chart', async () => {
+                const series = [
+                    { type: 'bar', xKey: 'year', yKey: 'gdp' },
+                    { type: 'bar', xKey: 'year', yKey: 'tax' },
+                    { type: 'line', xKey: 'year', yKey: 'gdp', stroke: 'purple' },
+                ];
+                const chartProxy = AgCharts.create(prepareTestOptions({ data: rows(5), series } as any));
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+
+                await chartProxy.updateDelta({ data: rows(6) } as any);
+                await waitForChartStability(chart);
+
+                const fresh = deproxy(AgCharts.create(prepareTestOptions({ data: rows(6), series } as any)));
+                try {
+                    await waitForChartStability(fresh);
+                    expect(chart.data.data).toHaveLength(6);
+                    const colours = (c: Chart) =>
+                        c.series.map((s: any) => s.options.fill ?? s.options.stroke ?? s.options.fills);
+                    expect(colours(chart)).toEqual(colours(fresh));
+                    const nodeCounts = (c: Chart) => c.series.map((s: any) => s.getNodeData()?.length);
+                    expect(nodeCounts(chart)).toEqual(nodeCounts(fresh));
+                    expect(nodeCounts(chart)[0]).toBe(6);
+                } finally {
+                    fresh.destroy();
+                }
+            });
+        });
+
         // updateDelta must not reset data accumulated via applyTransaction.
         it('should preserve applyTransaction data when updateDelta changes series options', async () => {
             const initialData = [
