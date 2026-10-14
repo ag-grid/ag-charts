@@ -1614,42 +1614,58 @@ describe('series label fit', () => {
             await compareImageSnapshot(chart, ctx);
         };
 
-        it('renders linear-gauge label fallback, placement styles and fitted target labels', async () => {
-            await renderGaugeAndSnapshot(
-                horizontalLinearGauge({
-                    value: 90,
-                    label: {
-                        enabled: true,
-                        text: 'Fallback label',
-                        placement: ['bar-outside-end', 'bar-inside'],
-                        insideStyle: { color: 'white' },
-                        outsideStyle: { color: 'black' },
+        const fittedLinearGauge = (targetLabel: object) =>
+            horizontalLinearGauge({
+                value: 90,
+                label: {
+                    enabled: true,
+                    text: 'Fallback label',
+                    placement: ['bar-outside-end', 'bar-inside'],
+                    insideStyle: { color: 'white' },
+                    outsideStyle: { color: 'black' },
+                },
+                targets: [
+                    {
+                        value: 20,
+                        text: 'Wrapped target text',
+                        label: { maxWidth: 50, color: 'red', spacing: 4, ...targetLabel },
                     },
-                    targets: [
-                        { value: 20, text: 'Wrapped target text', label: { maxWidth: 50, color: 'red', spacing: 4 } },
-                        { value: 80, text: 'Target', label: { fontSize: 16, fontWeight: 'bold' } },
-                        { value: 82, text: 'Hidden', label: { collision: {} } },
-                    ],
-                })
-            );
+                    { value: 80, text: 'Target', label: { fontSize: 16, fontWeight: 'bold', ...targetLabel } },
+                    { value: 82, text: 'Hidden', label: { collision: {} } },
+                ],
+            });
+        const fittedRadialGauge = (targetLabel: object) => ({
+            type: 'radial-gauge',
+            width: 400,
+            height: 400,
+            value: 60,
+            scale: { min: 0, max: 100 },
+            label: { text: 'A long radial gauge label', fontSize: 30, maxWidth: 120 },
+            targets: [
+                { value: 20, text: 'Wrapped target text', label: { maxWidth: 50, color: 'red', ...targetLabel } },
+                { value: 70, text: 'Target', label: { fontSize: 16, fontWeight: 'bold', ...targetLabel } },
+                { value: 71, text: 'Hidden', label: { fontSize: 16, collision: {} } },
+            ],
+        });
+
+        it('renders linear-gauge label fallback, placement styles and fitted target labels always shown without collision', async () => {
+            await renderGaugeAndSnapshot(fittedLinearGauge({}));
             expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
         });
 
-        it('renders radial-gauge fitted labels and target labels', async () => {
-            await renderGaugeAndSnapshot({
-                type: 'radial-gauge',
-                width: 400,
-                height: 400,
-                value: 60,
-                scale: { min: 0, max: 100 },
-                label: { text: 'A long radial gauge label', fontSize: 30, maxWidth: 120 },
-                targets: [
-                    { value: 20, text: 'Wrapped target text', label: { maxWidth: 50, color: 'red' } },
-                    { value: 70, text: 'Target', label: { fontSize: 16, fontWeight: 'bold' } },
-                    { value: 71, text: 'Hidden', label: { fontSize: 16, collision: {} } },
-                ],
-            });
+        it('renders linear-gauge fitted target labels avoiding scale labels with collision', async () => {
+            await renderGaugeAndSnapshot(fittedLinearGauge({ collision: {} }));
+            expect(targetLabelTexts()).toEqual([]);
+        });
+
+        it('renders radial-gauge fitted labels and target labels always shown without collision', async () => {
+            await renderGaugeAndSnapshot(fittedRadialGauge({}));
             expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
+        });
+
+        it('renders radial-gauge fitted target labels avoiding scale labels with collision', async () => {
+            await renderGaugeAndSnapshot(fittedRadialGauge({ collision: {} }));
+            expect(targetLabelTexts()).toEqual(['Target']);
         });
 
         it('renders boxed linear-gauge labels and target labels', async () => {
