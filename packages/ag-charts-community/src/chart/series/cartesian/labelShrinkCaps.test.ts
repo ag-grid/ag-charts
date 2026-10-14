@@ -4,8 +4,7 @@ import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { createChart, deproxy, setupMockCanvas, setupMockConsole } from '../../test/utils';
 
-// `truncate: false` with `collision.alwaysShow: false` is what the engine reads as
-// `overflowStrategy: 'hide'`; neither is on the line series' typed label surface, hence the casts.
+// `truncate: false` with `collision.alwaysShow: false` is what the engine reads as `overflowStrategy: 'hide'`.
 describe('label shrink pass overflow caps', () => {
     setupMockConsole();
 

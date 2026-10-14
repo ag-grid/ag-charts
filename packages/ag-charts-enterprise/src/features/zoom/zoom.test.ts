@@ -40,7 +40,7 @@ import { ChartAxisDirection, type DeepReadonly, Transformable } from 'ag-charts-
 import { Caster, WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('Zoom', () => {
     setupMockConsole();
@@ -1215,8 +1215,6 @@ describe('Zoom', () => {
             return data;
         }
 
-        // Bespoke: delegates to this file's `prepareChart`, which derives the pointer position from the prepared options
-        // and clicks the chart after creation, neither of which the shared factory exposes.
         async function createMinichartChart(
             initialState: NonNullable<AgChartOptions['initialState']>['zoom'],
             myOptions: AgCartesianChartOptions<TDatum>
@@ -1240,7 +1238,7 @@ describe('Zoom', () => {
                 },
                 ...myOptions,
             };
-            await prepareChart(undefined, initialState, options, false);
+            chart = await createEnterpriseChart({ ...options, initialState: { zoom: initialState } });
         }
 
         it('should stay in sync with series-area', async () => {

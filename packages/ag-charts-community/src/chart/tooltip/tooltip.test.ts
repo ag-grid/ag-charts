@@ -38,19 +38,17 @@ describe('Tooltip', () => {
 
     describe('Validation', () => {
         it('should show 1 warning for invalid tooltip value', async () => {
-            chart = deproxy(
-                await createChart({
-                    data: [
-                        { month: 'Jun', sweaters: 50 },
-                        { month: 'Jul', sweaters: 70 },
-                        { month: 'Aug', sweaters: 60 },
-                    ],
-                    series: [{ type: 'line', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
-                    tooltip: {
-                        position: '2' as any,
-                    },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { month: 'Jun', sweaters: 50 },
+                    { month: 'Jul', sweaters: 70 },
+                    { month: 'Aug', sweaters: 60 },
+                ],
+                series: [{ type: 'line', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
+                tooltip: {
+                    position: '2' as any,
+                },
+            });
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -62,19 +60,17 @@ describe('Tooltip', () => {
         });
 
         it('should show 1 warning for invalid tooltip anchorTo value', async () => {
-            chart = deproxy(
-                await createChart({
-                    data: [
-                        { month: 'Jun', sweaters: 50 },
-                        { month: 'Jul', sweaters: 70 },
-                        { month: 'Aug', sweaters: 60 },
-                    ],
-                    series: [{ type: 'line', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
-                    tooltip: {
-                        position: { anchorTo: 'ponter' as any, xOffset: 80, yOffset: 80 },
-                    },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { month: 'Jun', sweaters: 50 },
+                    { month: 'Jul', sweaters: 70 },
+                    { month: 'Aug', sweaters: 60 },
+                ],
+                series: [{ type: 'line', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
+                tooltip: {
+                    position: { anchorTo: 'ponter' as any, xOffset: 80, yOffset: 80 },
+                },
+            });
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -174,24 +170,22 @@ describe('Tooltip', () => {
         };
 
         it('should use the same default behaviour as v9', async () => {
-            chart = deproxy(
-                await createChart({
-                    data: [
-                        { x: 'Q1', a: 22, b: 25, L: 3.4 },
-                        { x: 'Q2', a: 18, b: 13, L: 4 },
-                    ],
-                    series: [
-                        { type: 'bar', xKey: 'x', yKey: 'a' },
-                        { type: 'bar', xKey: 'x', yKey: 'b' },
-                        { type: 'line', xKey: 'x', yKey: 'L', yKeyAxis: 'ySecondary' },
-                    ],
-                    axes: {
-                        x: { type: 'category', position: 'bottom' },
-                        y: { type: 'number', position: 'left' },
-                        ySecondary: { type: 'number', position: 'right' },
-                    },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'Q1', a: 22, b: 25, L: 3.4 },
+                    { x: 'Q2', a: 18, b: 13, L: 4 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a' },
+                    { type: 'bar', xKey: 'x', yKey: 'b' },
+                    { type: 'line', xKey: 'x', yKey: 'L', yKeyAxis: 'ySecondary' },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    ySecondary: { type: 'number', position: 'right' },
+                },
+            });
             await testHover(221, 256); // highlight datum Q1 series L
             await testHover(666, 251); // highlight datum Q2 series L
             await testHover(152, 217); // highlight datum Q1 series a
@@ -199,39 +193,33 @@ describe('Tooltip', () => {
         });
 
         it('should use chart tooltip.range as default', async () => {
-            chart = deproxy(
-                await createChart({
-                    tooltip: { range: 20 },
-                    data: [{ x: 'Q1', a: 22 }],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'a' }],
-                })
-            );
+            chart = await createChart({
+                tooltip: { range: 20 },
+                data: [{ x: 'Q1', a: 22 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'a' }],
+            });
             await testHover(58, 28); // highlight nothing
             await testHover(160, 137); // highlight datum Q1 series b
         });
 
         it('should use series tooltip.range as default', async () => {
-            chart = deproxy(
-                await createChart({
-                    data: [{ x: 'Q1', a: 22, b: 25 }],
-                    series: [
-                        { type: 'bar', xKey: 'x', yKey: 'a' },
-                        { type: 'bar', xKey: 'x', yKey: 'b', tooltip: { range: 'nearest' } },
-                    ],
-                })
-            );
+            chart = await createChart({
+                data: [{ x: 'Q1', a: 22, b: 25 }],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a' },
+                    { type: 'bar', xKey: 'x', yKey: 'b', tooltip: { range: 'nearest' } },
+                ],
+            });
             await testHover(250, 250); // exact match on series a
             await testHover(100, 300); // nearest match on series b (even though series a is nearest)
         });
 
         it('should prefer series tooltip.range over chart tooltip.range', async () => {
-            chart = deproxy(
-                await createChart({
-                    tooltip: { range: 'nearest' },
-                    data: [{ x: 'Q1', a: 22 }],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'a', tooltip: { range: 20 } }],
-                })
-            );
+            chart = await createChart({
+                tooltip: { range: 'nearest' },
+                data: [{ x: 'Q1', a: 22 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'a', tooltip: { range: 20 } }],
+            });
             await testHover(58, 28); // no highlight match
             await testHover(140, 140); // match within range <= 20
         });
@@ -520,24 +508,22 @@ describe('Tooltip', () => {
             const formatterMock = vi.fn((params: { value: unknown }) =>
                 params.value === null ? 'NULL' : String(params.value)
             );
-            chart = deproxy(
-                await createChart({
-                    data: [
-                        { x: 'A', y: 10 },
-                        { x: null, y: 20 },
-                        { x: 'B', y: 15 },
-                    ],
-                    axes: {
-                        x: {
-                            type: 'category',
-                            position: 'bottom',
-                            label: { formatter: formatterMock },
-                        },
-                        y: { type: 'number', position: 'left' },
+            chart = await createChart({
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: null, y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: { formatter: formatterMock },
                     },
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
-                })
-            );
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+            });
             await waitForChartStability(chart);
 
             // Verify formatter was called with actual null value (not string "null")

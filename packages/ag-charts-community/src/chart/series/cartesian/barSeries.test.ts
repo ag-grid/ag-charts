@@ -4612,8 +4612,8 @@ describe('BarSeries', () => {
         });
     });
     describe('AG-14101 ArrowDown into a series with a missing datum', () => {
-        function createTwoSeriesChart(data: Array<{ x: number; y1: number; y2?: number }>) {
-            const options: AgCartesianChartOptions = {
+        function twoSeriesOptions(data: Array<{ x: number; y1: number; y2?: number }>): AgCartesianChartOptions {
+            return {
                 data,
                 animation: { enabled: false },
                 series: [
@@ -4621,9 +4621,6 @@ describe('BarSeries', () => {
                     { id: 'y2', type: 'bar', xKey: 'x', yKey: 'y2' },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            return waitForChartStability(chart);
         }
 
         function getBarCentre(seriesIndex: number, datumIndex: number) {
@@ -4646,12 +4643,14 @@ describe('BarSeries', () => {
 
         describe('missing middle datum', () => {
             beforeEach(async () => {
-                await createTwoSeriesChart([
-                    { x: 0, y1: 10, y2: 12 },
-                    { x: 1, y1: 11 }, // y2 missing
-                    { x: 3, y1: 12, y2: 16 },
-                    { x: 4, y1: 13, y2: 18 },
-                ]);
+                chart = await createChart(
+                    twoSeriesOptions([
+                        { x: 0, y1: 10, y2: 12 },
+                        { x: 1, y1: 11 }, // y2 missing
+                        { x: 3, y1: 12, y2: 16 },
+                        { x: 4, y1: 13, y2: 18 },
+                    ])
+                );
             });
 
             it('ArrowDown from y1 x:1 focuses y2 x:0', async () => {
@@ -4674,12 +4673,14 @@ describe('BarSeries', () => {
 
         describe('missing first datum', () => {
             beforeEach(async () => {
-                await createTwoSeriesChart([
-                    { x: 0, y1: 10 }, // y2 missing
-                    { x: 1, y1: 11, y2: 14 },
-                    { x: 3, y1: 12, y2: 16 },
-                    { x: 4, y1: 13, y2: 18 },
-                ]);
+                chart = await createChart(
+                    twoSeriesOptions([
+                        { x: 0, y1: 10 }, // y2 missing
+                        { x: 1, y1: 11, y2: 14 },
+                        { x: 3, y1: 12, y2: 16 },
+                        { x: 4, y1: 13, y2: 18 },
+                    ])
+                );
             });
 
             it('ArrowDown from y1 x:0 focuses y2 x:1', async () => {
@@ -4697,12 +4698,14 @@ describe('BarSeries', () => {
 
         describe('missing last datum', () => {
             beforeEach(async () => {
-                await createTwoSeriesChart([
-                    { x: 0, y1: 10, y2: 12 },
-                    { x: 1, y1: 11, y2: 14 },
-                    { x: 3, y1: 12, y2: 16 },
-                    { x: 4, y1: 13 }, // y2 missing
-                ]);
+                chart = await createChart(
+                    twoSeriesOptions([
+                        { x: 0, y1: 10, y2: 12 },
+                        { x: 1, y1: 11, y2: 14 },
+                        { x: 3, y1: 12, y2: 16 },
+                        { x: 4, y1: 13 }, // y2 missing
+                    ])
+                );
             });
 
             it('ArrowDown from y1 x:4 focuses y2 x:3', async () => {

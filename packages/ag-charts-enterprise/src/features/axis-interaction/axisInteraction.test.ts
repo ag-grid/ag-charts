@@ -5,7 +5,6 @@
 import { vi } from 'vitest';
 
 import type { AgCartesianChartOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import { clickAction, doubleClickAction, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
 import { closeToBigInt, closeToDate, expectWarningsCalls, setupMockConsole } from 'ag-charts-test';
 import type { AgChartInstance } from 'ag-charts-types';
@@ -980,28 +979,19 @@ describe('AxisInteraction', () => {
             { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'y2' },
         ];
 
-        // Creates through the public API so that the test can also drive `update` on the same instance.
-        async function create(options: AgCartesianChartOptions) {
-            prepareEnterpriseTestOptions(options);
-            const proxy = AgCharts.create(options);
-            chart = proxy;
-            await waitForChartStability(chart);
-            return proxy;
-        }
-
-        async function update(proxy: ReturnType<typeof AgCharts.create>, options: AgCartesianChartOptions) {
+        async function update(proxy: AgChartInstance, options: AgCartesianChartOptions) {
             prepareEnterpriseTestOptions(options);
             await proxy.update(options);
             await waitForChartStability(chart);
         }
 
         test('defaults to the axis keys when no axes are configured', async () => {
-            await create(lineOptions());
+            chart = await createEnterpriseChart(lineOptions());
             expect(regionLabels()).toEqual(expect.arrayContaining(['x', 'y']));
         });
 
         test('uses the axis title text', async () => {
-            await create(
+            chart = await createEnterpriseChart(
                 lineOptions({
                     x: { type: 'number', title: { text: 'Time' } },
                     y: { type: 'number', title: { text: 'Price' } },
@@ -1011,7 +1001,7 @@ describe('AxisInteraction', () => {
         });
 
         test('ariaLabel wins over the title', async () => {
-            await create(
+            chart = await createEnterpriseChart(
                 lineOptions({
                     x: { type: 'number', ariaLabel: 'Horizontal', title: { text: 'Time' } },
                     y: { type: 'number', title: { text: 'Price' } },
@@ -1021,7 +1011,7 @@ describe('AxisInteraction', () => {
         });
 
         test('a disabled title falls back to the axis key', async () => {
-            await create(
+            chart = await createEnterpriseChart(
                 lineOptions({
                     x: { type: 'number', title: { enabled: false, text: 'Time' } },
                     y: { type: 'number', title: { enabled: true, text: 'Price' } },
@@ -1031,7 +1021,7 @@ describe('AxisInteraction', () => {
         });
 
         test('a secondary axis is labelled with its key, never the internal id', async () => {
-            await create(
+            chart = await createEnterpriseChart(
                 lineOptions(
                     {
                         x: { type: 'number' },
@@ -1051,10 +1041,10 @@ describe('AxisInteraction', () => {
                 x: { type: 'number' },
                 y: { type: 'number', title: { text } },
             });
-            const proxy = await create(lineOptions(axes('Before')));
+            chart = await createEnterpriseChart(lineOptions(axes('Before')));
             expect(regionLabels()).toEqual(['Before', 'x']);
 
-            await update(proxy, lineOptions(axes('After')));
+            await update(chart, lineOptions(axes('After')));
             expect(regionLabels()).toEqual(['After', 'x']);
         });
 
@@ -1063,15 +1053,15 @@ describe('AxisInteraction', () => {
                 x: { type: 'number' },
                 y: { type: 'number', ariaLabel: 'Fixed', title: { text } },
             });
-            const proxy = await create(lineOptions(axes('Before')));
+            chart = await createEnterpriseChart(lineOptions(axes('Before')));
             expect(regionLabels()).toEqual(['Fixed', 'x']);
 
-            await update(proxy, lineOptions(axes('After')));
+            await update(chart, lineOptions(axes('After')));
             expect(regionLabels()).toEqual(['Fixed', 'x']);
         });
 
         test('axes sharing a title are disambiguated by key', async () => {
-            await create(
+            chart = await createEnterpriseChart(
                 lineOptions(
                     {
                         x: { type: 'number' },
@@ -1093,7 +1083,7 @@ describe('AxisInteraction', () => {
                 },
                 twoYSeries
             );
-            await create(options);
+            chart = await createEnterpriseChart(options);
             expect(regionLabels()).toEqual(['Same', 'Same', 'x']);
             expectWarningsCalls().toEqual([[expect.stringContaining('[ariaLabel]')]]);
         });

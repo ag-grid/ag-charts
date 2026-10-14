@@ -17,7 +17,7 @@ import { DonutNodeTag } from './polar/donutSeries';
 const ELLIPSIS = '…';
 
 // Several series here still keep their label-fit options undocumented, so the label objects below are built
-// untyped and cast at the AgCharts.create boundary; `setupMockConsole` fails on any "property is unknown".
+// untyped and passed through to `createChart` unchecked; `setupMockConsole` fails on any "property is unknown".
 describe('series label fit', () => {
     setupMockConsole();
 
