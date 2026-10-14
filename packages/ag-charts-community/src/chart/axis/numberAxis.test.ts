@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import type { Chart } from '../chart';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import { createChart, deproxy, expectWarningMessages, setupMockCanvas, setupMockConsole } from '../test/utils';
 
@@ -28,18 +27,19 @@ describe('NumberAxis BigInt labels', () => {
             .filter((text): text is string => text != null && text !== '');
     };
 
-    const createLineChart = (data: unknown[]): Promise<AgChartInstance> =>
-        createChart({
-            data: data as AgCartesianChartOptions['data'],
-            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-        });
+    const lineOptions = (data: unknown[]): AgCartesianChartOptions => ({
+        data: data as AgCartesianChartOptions['data'],
+        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+    });
 
     it('renders exact labels for a span larger than Number.MAX_SAFE_INTEGER (AC #16)', async () => {
         const span = 10n ** 21n;
-        chart = await createLineChart([
-            { x: 0, y: 0n },
-            { x: 1, y: span },
-        ]);
+        chart = await createChart(
+            lineOptions([
+                { x: 0, y: 0n },
+                { x: 1, y: span },
+            ])
+        );
 
         const labels = yAxisLabelText(chart);
         // 2 × 10^20 — exact only if the tick value reached the formatter as a BigInt.
@@ -49,10 +49,12 @@ describe('NumberAxis BigInt labels', () => {
 
     it('preserves precision past the float64 boundary (AC #15e)', async () => {
         // Odd values above 2^53 are unrepresentable as Number, so exact labels prove the tick stayed a BigInt.
-        chart = await createLineChart([
-            { x: 0, y: 9_007_199_254_740_990n },
-            { x: 1, y: 9_007_199_254_740_995n },
-        ]);
+        chart = await createChart(
+            lineOptions([
+                { x: 0, y: 9_007_199_254_740_990n },
+                { x: 1, y: 9_007_199_254_740_995n },
+            ])
+        );
 
         const labels = yAxisLabelText(chart);
         expect(labels).toContain('9,007,199,254,740,991');
@@ -127,7 +129,7 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart != null) {
@@ -158,11 +160,11 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
                 y: { type: 'number', position: 'left' },
             },
         };
-        return deproxy(await createChart(options));
+        return await createChart(options);
     };
 
     const xAxis = () => {
-        const axis = (chart.axes as any[]).find((a) => a.direction === 'x');
+        const axis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'x');
         expect(axis).toBeDefined();
         return axis;
     };
@@ -219,9 +221,9 @@ describe('NumberAxis fixed interval too small to honour (AG-18574)', () => {
                 y: { type: 'number', position: 'left', interval: { values: [0, -148.1] } },
             },
         };
-        chart = deproxy(await createChart(options));
+        chart = await createChart(options);
 
-        const yAxis = (chart.axes as any[]).find((a) => a.direction === 'y');
+        const yAxis = (deproxy(chart).axes as any[]).find((a) => a.direction === 'y');
         expect(yAxis.scale.domain.map(Number)).toEqual([-150, 50]);
     });
 

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgBarSeriesOptions, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import {
     type Chart,
@@ -39,14 +39,14 @@ describe('CRT-1122 hover cursor', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         chart?.destroy();
     });
 
     it('shows the default cursor on a non-interactive series', async () => {
-        chart = deproxy(await createChart(barOptions()));
+        chart = await createChart(barOptions());
 
         await hoverAction(overBar.x, overBar.y)(chart);
         await waitForChartStability(chart);
@@ -55,7 +55,7 @@ describe('CRT-1122 hover cursor', () => {
     });
 
     it('shows the pointer cursor when selection is enabled', async () => {
-        chart = deproxy(await createChart(barOptions({ selection: { enabled: true } })));
+        chart = await createChart(barOptions({ selection: { enabled: true } }));
 
         await hoverAction(overBar.x, overBar.y)(chart);
         await waitForChartStability(chart);
@@ -64,7 +64,7 @@ describe('CRT-1122 hover cursor', () => {
     });
 
     it('shows the pointer cursor when a seriesNodeClick listener is present', async () => {
-        chart = deproxy(await createChart(barOptions({ listeners: { seriesNodeClick: () => undefined } })));
+        chart = await createChart(barOptions({ listeners: { seriesNodeClick: () => undefined } }));
 
         await hoverAction(overBar.x, overBar.y)(chart);
         await waitForChartStability(chart);

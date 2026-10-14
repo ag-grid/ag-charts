@@ -265,38 +265,44 @@ describe('CartesianChart', () => {
     });
 
     describe('axes without a position', () => {
-        const createAxesChart = async (axes: Record<string, object>) => {
-            const options = {
+        const axesOptions = (axes: Record<string, object>) =>
+            ({
                 data: getData(),
                 series: [{ type: 'line', xKey: 'year', yKey: 'adults' }],
                 axes,
-            } as AgCartesianChartOptions;
-
-            chart = deproxy(await createChart(options)) as CartesianChart;
-            return chart;
-        };
+            }) as AgCartesianChartOptions;
         const axisPositions = () => chart.axes.map((axis) => axis.position);
 
         it('should render an unreferenced axis', async () => {
-            await createAxesChart({ x: { type: 'category' }, y: { type: 'number' }, y2: { type: 'number' } });
+            chart = deproxy(
+                await createChart(
+                    axesOptions({ x: { type: 'category' }, y: { type: 'number' }, y2: { type: 'number' } })
+                )
+            ) as CartesianChart;
 
             expect(axisPositions()).toEqual(['bottom', 'left', 'right']);
             expectWarningsCalls().toEqual([[expect.stringContaining('`axes.y2` is not used by any series.')]]);
         });
 
         it('should render an untyped axis whose position is invalid', async () => {
-            await createAxesChart({ x: { position: 'middle' }, y: { type: 'number' } });
+            chart = deproxy(
+                await createChart(axesOptions({ x: { position: 'middle' }, y: { type: 'number' } }))
+            ) as CartesianChart;
 
             expect(axisPositions()).toEqual(['bottom', 'left']);
             expectWarningsCalls().toEqual([[expect.stringContaining('cannot be set to `"middle"`')]]);
         });
 
         it('should render after an update removes an unreferenced axis position', async () => {
-            await createAxesChart({
-                x: { type: 'category' },
-                y: { type: 'number' },
-                y2: { type: 'number', position: 'top' },
-            });
+            chart = deproxy(
+                await createChart(
+                    axesOptions({
+                        x: { type: 'category' },
+                        y: { type: 'number' },
+                        y2: { type: 'number', position: 'top' },
+                    })
+                )
+            ) as CartesianChart;
 
             await chart.publicApi?.update({
                 data: getData(),
@@ -311,21 +317,18 @@ describe('CartesianChart', () => {
     });
 
     describe('unused axes', () => {
-        const createAxesChart = async (axes: Record<string, object>) => {
-            const options = {
+        const axesOptions = (axes: Record<string, object>) =>
+            ({
                 data: getData(),
                 series: [
                     { type: 'line', xKey: 'year', yKey: 'adults', yKeyAxis: 'axisA' },
                     { type: 'line', xKey: 'year', yKey: 'children', yKeyAxis: 'axisB' },
                 ],
                 axes,
-            } as AgCartesianChartOptions;
-
-            chart = deproxy(await createChart(options)) as CartesianChart;
-        };
+            }) as AgCartesianChartOptions;
 
         it('should warn once about an axes key that no series uses', async () => {
-            await createAxesChart({ orphanKey: { type: 'number' } });
+            chart = deproxy(await createChart(axesOptions({ orphanKey: { type: 'number' } }))) as CartesianChart;
             chart.update(ChartUpdateType.FULL);
             await waitForChartStability(chart);
 
@@ -333,7 +336,9 @@ describe('CartesianChart', () => {
         });
 
         it('should not warn when every axes key is used', async () => {
-            await createAxesChart({ axisA: { type: 'number' }, axisB: { type: 'number' } });
+            chart = deproxy(
+                await createChart(axesOptions({ axisA: { type: 'number' }, axisB: { type: 'number' } }))
+            ) as CartesianChart;
 
             expectWarningsCalls().toEqual([]);
         });

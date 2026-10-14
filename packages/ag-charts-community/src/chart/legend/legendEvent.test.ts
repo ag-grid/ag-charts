@@ -2,6 +2,7 @@ import { afterEach, describe, expect, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
+    AgChartInstance,
     AgChartLegendClickEvent,
     AgChartLegendDoubleClickEvent,
     AgChartOptions,
@@ -9,7 +10,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import type { Chart } from '../chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -44,7 +44,7 @@ function strictKeyMatcher<T>(matcherObject: { [K in keyof T]: null }) {
 
 describe('LegendEvent', () => {
     setupMockConsole();
-    let chart: Chart;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     const compare = async () => {
@@ -71,7 +71,7 @@ describe('LegendEvent', () => {
                 preventDefault: null,
             });
 
-            chart = deproxy(await createChart({ ...OPTIONS, legend: { listeners: { legendItemClick } } }));
+            chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemClick } } });
             await clickAction(355, 575)(chart);
             expect(legendItemClick).toHaveBeenCalledTimes(1);
         });
@@ -88,7 +88,7 @@ describe('LegendEvent', () => {
                 preventDefault: null,
             });
 
-            chart = deproxy(await createChart({ ...OPTIONS, legend: { listeners: { legendItemDoubleClick } } }));
+            chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemDoubleClick } } });
             await doubleClickAction(355, 575)(chart);
             expect(legendItemDoubleClick).toHaveBeenCalledTimes(1);
         });
@@ -102,7 +102,7 @@ describe('LegendEvent', () => {
                 legendItemName: null,
             });
 
-            chart = deproxy(await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange } }));
+            chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange } });
             await clickAction(355, 575)(chart);
             expect(seriesVisibilityChange).toHaveBeenCalledTimes(1);
         });
@@ -117,16 +117,14 @@ describe('LegendEvent', () => {
                     legendItemName: 'tomato',
                 });
             });
-            chart = deproxy(
-                await createChart({
-                    data: [
-                        { name: 'tomato', value: 5 },
-                        { name: 'potato', value: 3 },
-                    ],
-                    series: [{ type: 'pie', legendItemKey: 'name', angleKey: 'value' }],
-                    listeners: { seriesVisibilityChange },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { name: 'tomato', value: 5 },
+                    { name: 'potato', value: 3 },
+                ],
+                series: [{ type: 'pie', legendItemKey: 'name', angleKey: 'value' }],
+                listeners: { seriesVisibilityChange },
+            });
             await clickAction(355, 575)(chart);
             expect(seriesVisibilityChange).toHaveBeenCalledTimes(1);
         });
@@ -140,13 +138,11 @@ describe('LegendEvent', () => {
             const seriesVisibilityChange = vi.fn((_event: AgSeriesVisibilityChange) => {
                 expect(legendItemClick).toHaveBeenCalled();
             });
-            chart = deproxy(
-                await createChart({
-                    ...OPTIONS,
-                    listeners: { seriesVisibilityChange },
-                    legend: { listeners: { legendItemClick } },
-                })
-            );
+            chart = await createChart({
+                ...OPTIONS,
+                listeners: { seriesVisibilityChange },
+                legend: { listeners: { legendItemClick } },
+            });
             await clickAction(355, 575)(chart);
             expect(legendItemClick).toHaveBeenCalledTimes(1);
             expect(seriesVisibilityChange).toHaveBeenCalledTimes(1);
@@ -159,13 +155,11 @@ describe('LegendEvent', () => {
             const seriesVisibilityChange = vi.fn((event: AgSeriesVisibilityChange) => {
                 expect(event.visible).toBe(false);
             });
-            chart = deproxy(
-                await createChart({
-                    ...OPTIONS,
-                    listeners: { seriesVisibilityChange },
-                    legend: { listeners: { legendItemClick } },
-                })
-            );
+            chart = await createChart({
+                ...OPTIONS,
+                listeners: { seriesVisibilityChange },
+                legend: { listeners: { legendItemClick } },
+            });
             await clickAction(355, 575)(chart);
             expect(legendItemClick).toHaveBeenCalledTimes(1);
             expect(seriesVisibilityChange).toHaveBeenCalledTimes(1);
@@ -173,16 +167,14 @@ describe('LegendEvent', () => {
 
         test('visible is per legend item, not per series', async () => {
             const legendItemClick = vi.fn((_event: AgChartLegendClickEvent) => {});
-            chart = deproxy(
-                await createChart({
-                    data: [
-                        { name: 'tomato', value: 5 },
-                        { name: 'potato', value: 3 },
-                    ],
-                    series: [{ type: 'pie', legendItemKey: 'name', angleKey: 'value' }],
-                    legend: { listeners: { legendItemClick } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { name: 'tomato', value: 5 },
+                    { name: 'potato', value: 3 },
+                ],
+                series: [{ type: 'pie', legendItemKey: 'name', angleKey: 'value' }],
+                legend: { listeners: { legendItemClick } },
+            });
             await clickAction(355, 575)(chart);
             await waitForChartStability(chart);
             await clickAction(355, 575)(chart);
@@ -198,13 +190,11 @@ describe('LegendEvent', () => {
             });
             const seriesVisibilityChange = vi.fn((_event: AgSeriesVisibilityChange) => {});
 
-            chart = deproxy(
-                await createChart({
-                    ...OPTIONS,
-                    listeners: { seriesVisibilityChange },
-                    legend: { listeners: { legendItemClick } },
-                })
-            );
+            chart = await createChart({
+                ...OPTIONS,
+                listeners: { seriesVisibilityChange },
+                legend: { listeners: { legendItemClick } },
+            });
             await clickAction(355, 575)(chart);
             expect(legendItemClick).toHaveBeenCalledTimes(1);
             expect(seriesVisibilityChange).not.toHaveBeenCalled();
@@ -218,7 +208,7 @@ describe('LegendEvent', () => {
 
             const opts = prepareTestOptions({ ...OPTIONS, listeners: { seriesVisibilityChange } });
             const apiChart = AgCharts.create(opts);
-            chart = deproxy(apiChart);
+            chart = apiChart;
             await waitForChartStability(chart);
             await apiChart.update({
                 ...opts,
@@ -257,7 +247,7 @@ describe('LegendEvent', () => {
                 series: [{ id: 'donut-1', type: 'donut', angleKey: 'share', legendItemKey: 'os' }],
             } as AgChartOptions);
             const apiChart = AgCharts.create(opts);
-            chart = deproxy(apiChart);
+            chart = apiChart;
             await waitForChartStability(chart);
 
             await apiChart.update({
@@ -268,7 +258,7 @@ describe('LegendEvent', () => {
 
             // `itemId: 0` addresses the first slice only; a truthiness check on `itemId` matched
             // every item in the series instead.
-            const { legendManager } = chart.ctx;
+            const { legendManager } = deproxy(chart).ctx;
             expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 0 })).toBe(true);
             expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 1 })).toBe(true);
             expect(legendManager?.getItemEnabled({ seriesId: 'donut-1', itemId: 2 })).toBe(true);
@@ -279,21 +269,19 @@ describe('LegendEvent', () => {
         test('line', async () => {
             // https://plnkr.co/edit/95LNJoaB0eYqh6DU?open=main.js&preview
             const legendItemClick = vi.fn((_event: AgChartLegendClickEvent) => {});
-            chart = deproxy(
-                await createChart({
-                    data: [
-                        { x: 0, Au: 3, Ag: 5, Cu: 3 },
-                        { x: 1, Au: 5, Ag: 7, Cu: 3 },
-                        { x: 2, Au: 1, Ag: 2, Cu: 6 },
-                    ],
-                    series: [
-                        { type: 'line', xKey: 'x', yKey: 'Au', yName: 'Gold' },
-                        { type: 'line', xKey: 'x', yKey: 'Ag', yName: 'Silver' },
-                        { type: 'line', xKey: 'x', yKey: 'Cu', yName: 'Copper' },
-                    ],
-                    legend: { listeners: { legendItemClick } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 0, Au: 3, Ag: 5, Cu: 3 },
+                    { x: 1, Au: 5, Ag: 7, Cu: 3 },
+                    { x: 2, Au: 1, Ag: 2, Cu: 6 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'Au', yName: 'Gold' },
+                    { type: 'line', xKey: 'x', yKey: 'Ag', yName: 'Silver' },
+                    { type: 'line', xKey: 'x', yKey: 'Cu', yName: 'Copper' },
+                ],
+                legend: { listeners: { legendItemClick } },
+            });
             await clickAction(313, 573)(chart);
             await clickAction(394, 573)(chart);
             await clickAction(493, 573)(chart);
@@ -306,17 +294,15 @@ describe('LegendEvent', () => {
         test('pie', async () => {
             // https://plnkr.co/edit/BoHbSyw1KYOpprOg?open=main.js
             const legendItemClick = vi.fn((_event: AgChartLegendClickEvent) => {});
-            chart = deproxy(
-                await createChart({
-                    data: [
-                        { votes: 30, name: 'Labour' },
-                        { votes: 30, name: 'LibDem' },
-                        { votes: 30, name: 'Greens' },
-                    ],
-                    series: [{ type: 'pie', angleKey: 'votes', legendItemKey: 'name' }],
-                    legend: { listeners: { legendItemClick } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { votes: 30, name: 'Labour' },
+                    { votes: 30, name: 'LibDem' },
+                    { votes: 30, name: 'Greens' },
+                ],
+                series: [{ type: 'pie', angleKey: 'votes', legendItemKey: 'name' }],
+                legend: { listeners: { legendItemClick } },
+            });
             await clickAction(325, 573)(chart);
             await clickAction(398, 573)(chart);
             await clickAction(496, 573)(chart);
@@ -329,34 +315,32 @@ describe('LegendEvent', () => {
         test('donuts', async () => {
             // https://plnkr.co/edit/BoHbSyw1KYOpprOg?open=main.js
             const legendItemClick = vi.fn((_event: AgChartLegendClickEvent) => {});
-            chart = deproxy(
-                await createChart({
-                    data: [
-                        { votes2020: 10, votes2024: 30, name: 'Labour' },
-                        { votes2020: 20, votes2024: 30, name: 'LibDem' },
-                        { votes2020: 30, votes2024: 30, name: 'Greens' },
-                    ],
-                    series: [
-                        {
-                            type: 'donut',
-                            angleKey: 'votes2020',
-                            calloutLabelKey: 'name',
-                            outerRadiusRatio: 0.6,
-                            innerRadiusRatio: 0.4,
-                            title: { text: '2020', showInLegend: true },
-                        },
-                        {
-                            type: 'donut',
-                            angleKey: 'votes2024',
-                            calloutLabelKey: 'name',
-                            outerRadiusRatio: 1,
-                            innerRadiusRatio: 0.8,
-                            title: { text: '2024', showInLegend: true },
-                        },
-                    ],
-                    legend: { listeners: { legendItemClick } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { votes2020: 10, votes2024: 30, name: 'Labour' },
+                    { votes2020: 20, votes2024: 30, name: 'LibDem' },
+                    { votes2020: 30, votes2024: 30, name: 'Greens' },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'votes2020',
+                        calloutLabelKey: 'name',
+                        outerRadiusRatio: 0.6,
+                        innerRadiusRatio: 0.4,
+                        title: { text: '2020', showInLegend: true },
+                    },
+                    {
+                        type: 'donut',
+                        angleKey: 'votes2024',
+                        calloutLabelKey: 'name',
+                        outerRadiusRatio: 1,
+                        innerRadiusRatio: 0.8,
+                        title: { text: '2024', showInLegend: true },
+                    },
+                ],
+                legend: { listeners: { legendItemClick } },
+            });
             await clickAction(60, 575)(chart);
             await clickAction(180, 575)(chart);
             await clickAction(300, 575)(chart);

@@ -702,7 +702,6 @@ describe('Scrollbar stays within the chart when a long axis label widens the axi
     // Bespoke: the size must override the default canvas size that `prepareEnterpriseTestOptions` applies, which the
     // shared `createEnterpriseChart` would re-apply over it.
     async function createSizedChart(options: AgCartesianChartOptions) {
-        // `prepareEnterpriseTestOptions` sizes the chart to the default canvas, so set the size afterwards.
         const proxy = AgCharts.create({
             ...prepareEnterpriseTestOptions(options),
             width: CHART_WIDTH,

@@ -1032,8 +1032,7 @@ describe('DataSource', () => {
             return loaded;
         };
         // `expectPixelIdenticalAcrossUpdate` drives the chart through the public API.
-        const createLoadedPublicChart = async (options: AgChartOptions) =>
-            (await createLoadedChart(options)).publicApi!;
+        const loadPublicChart = async (options: AgChartOptions) => (await createLoadedChart(options)).publicApi!;
 
         const dataSourceOptions = (base: AgChartOptions, data?: typeof ROWS): AgChartOptions => ({
             ...base,
@@ -1052,7 +1051,7 @@ describe('DataSource', () => {
             it(`should colour ${name} items as with inline data when there is no initial data`, async () => {
                 await expectPixelIdenticalAcrossUpdate(
                     ctx,
-                    createLoadedPublicChart,
+                    loadPublicChart,
                     dataSourceOptions(base),
                     dataOptions(base)
                 );
@@ -1061,7 +1060,7 @@ describe('DataSource', () => {
             it(`should colour ${name} items as with inline data when there are fewer initial rows`, async () => {
                 await expectPixelIdenticalAcrossUpdate(
                     ctx,
-                    createLoadedPublicChart,
+                    loadPublicChart,
                     dataSourceOptions(base, ROWS.slice(0, 1)),
                     dataOptions(base)
                 );

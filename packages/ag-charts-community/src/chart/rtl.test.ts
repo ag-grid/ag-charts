@@ -44,59 +44,68 @@ describe('RTL', () => {
         await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
-    const createRtlChart = (options: AgChartOptions) =>
-        createChart({
-            enableRtl: true,
-            data: HEBREW_CARTESIAN_DATA,
-            title: { text: 'תרשים נתונים' },
-            legend: { enabled: true },
-            ...options,
-        });
+    const rtlOptions = (options: AgChartOptions): AgChartOptions => ({
+        enableRtl: true,
+        data: HEBREW_CARTESIAN_DATA,
+        title: { text: 'תרשים נתונים' },
+        legend: { enabled: true },
+        ...options,
+    });
 
     describe('cartesian series', () => {
         test('bar', async () => {
-            chart = await createRtlChart({
-                series: [
-                    { type: 'bar', xKey: 'category', yKey: 'sales', yName: 'מכירות' },
-                    { type: 'bar', xKey: 'category', yKey: 'revenue', yName: 'הכנסות' },
-                ],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    series: [
+                        { type: 'bar', xKey: 'category', yKey: 'sales', yName: 'מכירות' },
+                        { type: 'bar', xKey: 'category', yKey: 'revenue', yName: 'הכנסות' },
+                    ],
+                })
+            );
             await compare();
         });
 
         test('line', async () => {
-            chart = await createRtlChart({
-                series: [
-                    { type: 'line', xKey: 'category', yKey: 'sales', yName: 'מכירות' },
-                    { type: 'line', xKey: 'category', yKey: 'revenue', yName: 'הכנסות' },
-                ],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    series: [
+                        { type: 'line', xKey: 'category', yKey: 'sales', yName: 'מכירות' },
+                        { type: 'line', xKey: 'category', yKey: 'revenue', yName: 'הכנסות' },
+                    ],
+                })
+            );
             await compare();
         });
 
         test('area', async () => {
-            chart = await createRtlChart({
-                series: [
-                    { type: 'area', xKey: 'category', yKey: 'sales', yName: 'מכירות', stacked: true },
-                    { type: 'area', xKey: 'category', yKey: 'revenue', yName: 'הכנסות', stacked: true },
-                ],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    series: [
+                        { type: 'area', xKey: 'category', yKey: 'sales', yName: 'מכירות', stacked: true },
+                        { type: 'area', xKey: 'category', yKey: 'revenue', yName: 'הכנסות', stacked: true },
+                    ],
+                })
+            );
             await compare();
         });
 
         test('scatter', async () => {
-            chart = await createRtlChart({
-                title: { text: 'פיזור מכירות והכנסות' },
-                series: [{ type: 'scatter', xKey: 'sales', yKey: 'revenue' }],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    title: { text: 'פיזור מכירות והכנסות' },
+                    series: [{ type: 'scatter', xKey: 'sales', yKey: 'revenue' }],
+                })
+            );
             await compare();
         });
 
         test('bubble', async () => {
-            chart = await createRtlChart({
-                title: { text: 'בועות מכירות והכנסות' },
-                series: [{ type: 'bubble', xKey: 'sales', yKey: 'revenue', sizeKey: 'sales' }],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    title: { text: 'בועות מכירות והכנסות' },
+                    series: [{ type: 'bubble', xKey: 'sales', yKey: 'revenue', sizeKey: 'sales' }],
+                })
+            );
             await compare();
         });
     });
@@ -133,81 +142,93 @@ describe('RTL', () => {
 
     describe('captions with BiDi text', () => {
         test('Hebrew captions on bar chart', async () => {
-            chart = await createRtlChart({
-                title: { text: 'תרשים עמודות' },
-                subtitle: { text: 'נתוני Sales מוצרים' },
-                footnote: { text: 'Source מחלקת report' },
-                series: [
-                    { type: 'bar', xKey: 'category', yKey: 'sales', yName: 'מכירות' },
-                    { type: 'bar', xKey: 'category', yKey: 'revenue', yName: 'הכנסות' },
-                ],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    title: { text: 'תרשים עמודות' },
+                    subtitle: { text: 'נתוני Sales מוצרים' },
+                    footnote: { text: 'Source מחלקת report' },
+                    series: [
+                        { type: 'bar', xKey: 'category', yKey: 'sales', yName: 'מכירות' },
+                        { type: 'bar', xKey: 'category', yKey: 'revenue', yName: 'הכנסות' },
+                    ],
+                })
+            );
             await compare();
         });
 
         test('mixed text alignment', async () => {
-            chart = await createRtlChart({
-                title: { text: 'Sales in שקלים for 2024', textAlign: 'left' },
-                subtitle: { text: 'מכירות Sales מוצרים', textAlign: 'center' },
-                footnote: { text: 'Revenue מכירות', textAlign: 'right' },
-                series: [
-                    { type: 'line', xKey: 'category', yKey: 'sales', yName: 'מכירות' },
-                    { type: 'line', xKey: 'category', yKey: 'revenue', yName: 'הכנסות' },
-                ],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    title: { text: 'Sales in שקלים for 2024', textAlign: 'left' },
+                    subtitle: { text: 'מכירות Sales מוצרים', textAlign: 'center' },
+                    footnote: { text: 'Revenue מכירות', textAlign: 'right' },
+                    series: [
+                        { type: 'line', xKey: 'category', yKey: 'sales', yName: 'מכירות' },
+                        { type: 'line', xKey: 'category', yKey: 'revenue', yName: 'הכנסות' },
+                    ],
+                })
+            );
             await compare();
         });
 
         test('text wrapping', async () => {
-            chart = await createRtlChart({
-                title: {
-                    text: 'תרשים עמודות המציג נתוני מכירות חודשיים של מוצרים שונים בשנת אלפיים עשרים וארבע',
-                    wrapping: 'always',
-                    maxWidth: 300,
-                },
-                footnote: { text: 'מקור: מחלקת מכירות\nעדכון: פברואר 2024' },
-                series: [
-                    { type: 'area', xKey: 'category', yKey: 'sales', yName: 'מכירות', stacked: true },
-                    { type: 'area', xKey: 'category', yKey: 'revenue', yName: 'הכנסות', stacked: true },
-                ],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    title: {
+                        text: 'תרשים עמודות המציג נתוני מכירות חודשיים של מוצרים שונים בשנת אלפיים עשרים וארבע',
+                        wrapping: 'always',
+                        maxWidth: 300,
+                    },
+                    footnote: { text: 'מקור: מחלקת מכירות\nעדכון: פברואר 2024' },
+                    series: [
+                        { type: 'area', xKey: 'category', yKey: 'sales', yName: 'מכירות', stacked: true },
+                        { type: 'area', xKey: 'category', yKey: 'revenue', yName: 'הכנסות', stacked: true },
+                    ],
+                })
+            );
             await compare();
         });
     });
 
     describe('negative values', () => {
         test('numeric axis spanning negative values', async () => {
-            chart = await createRtlChart({
-                data: NEGATIVE_DATA,
-                title: { text: 'מאזן' },
-                series: [{ type: 'bar', xKey: 'category', yKey: 'profit', yName: 'רווח' }],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    data: NEGATIVE_DATA,
+                    title: { text: 'מאזן' },
+                    series: [{ type: 'bar', xKey: 'category', yKey: 'profit', yName: 'רווח' }],
+                })
+            );
             await compare();
         });
 
         test('negative values on both axes', async () => {
-            chart = await createRtlChart({
-                data: NEGATIVE_DATA,
-                title: { text: 'מאזן' },
-                series: [{ type: 'scatter', xKey: 'profit', yKey: 'change' }],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    data: NEGATIVE_DATA,
+                    title: { text: 'מאזן' },
+                    series: [{ type: 'scatter', xKey: 'profit', yKey: 'change' }],
+                })
+            );
             await compare();
         });
 
         test('negative data labels', async () => {
-            chart = await createRtlChart({
-                data: NEGATIVE_DATA,
-                title: { text: 'מאזן' },
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'category',
-                        yKey: 'profit',
-                        yName: 'רווח',
-                        label: { enabled: true },
-                    },
-                ],
-            });
+            chart = await createChart(
+                rtlOptions({
+                    data: NEGATIVE_DATA,
+                    title: { text: 'מאזן' },
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'category',
+                            yKey: 'profit',
+                            yName: 'רווח',
+                            label: { enabled: true },
+                        },
+                    ],
+                })
+            );
             await compare();
         });
 
@@ -229,7 +250,7 @@ describe('RTL', () => {
                     y: { type: 'number', position: 'left', label: { formatter: ({ value }) => `${value}°C` } },
                 },
             };
-            chart = await createRtlChart(options);
+            chart = await createChart(rtlOptions(options));
             await compare();
         });
     });

@@ -1,16 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartUpdateType } from 'ag-charts-core';
-import type { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import {
-    type Chart,
-    createChart,
-    deproxy,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from '../test/utils';
+import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
 
 const OPTIONS: AgCartesianChartOptions = {
     data: [
@@ -29,7 +22,7 @@ describe('Axis font loading', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Chart | undefined;
+    let chart: AgChartInstance | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -37,16 +30,16 @@ describe('Axis font loading', () => {
     });
 
     it('re-measures tick layouts when fonts load', async () => {
-        chart = deproxy(await createChart(OPTIONS));
-        const axis = chart.axes.find((a) => a.position === 'bottom')!;
+        chart = await createChart(OPTIONS);
+        const axis = deproxy(chart).axes.find((a) => a.position === 'bottom')!;
         const calculateTickLayout = vi.spyOn(axis as any, 'calculateTickLayout');
 
         // A layout with no domain/range change must hit the cache, or the second assertion is vacuous.
-        chart.update(ChartUpdateType.PERFORM_LAYOUT);
+        deproxy(chart).update(ChartUpdateType.PERFORM_LAYOUT);
         await waitForChartStability(chart);
         expect(calculateTickLayout).not.toHaveBeenCalled();
 
-        chart.ctx.eventsHub.emit('font:load', null);
+        deproxy(chart).ctx.eventsHub.emit('font:load', null);
         await waitForChartStability(chart);
         expect(calculateTickLayout).toHaveBeenCalled();
     });

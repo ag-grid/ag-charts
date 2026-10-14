@@ -116,7 +116,7 @@ describe('SunburstSeries', () => {
             { name: 'Group B', children: [{ name: 'Leaf B1', size: 5 }] },
         ];
 
-        const createChart = async (highlight: any) => {
+        const renderWithHighlight = async (highlight: any) => {
             const options: AgChartOptions = {
                 data: DATA,
                 series: [
@@ -143,13 +143,13 @@ describe('SunburstSeries', () => {
         };
 
         it('highlights a node on hover by default (control)', async () => {
-            await createChart({});
+            await renderWithHighlight({});
             const series = chart.series[0] as SunburstSeries;
             expect(await highlightLeafFill(series)).toEqual('lime');
         });
 
         it('suppresses all highlighting when highlight.enabled is false', async () => {
-            await createChart({ enabled: false });
+            await renderWithHighlight({ enabled: false });
             const series = chart.series[0] as SunburstSeries;
             expect(await highlightLeafFill(series)).not.toEqual('lime');
         });
@@ -1223,7 +1223,7 @@ describe('SunburstSeries', () => {
             legend: { enabled: false },
             animation: { enabled: false },
         });
-        const createChart = async (seriesShadow?: typeof shadow) => {
+        const renderSeries = async (seriesShadow?: typeof shadow) => {
             proxy = await createEnterpriseChart(shadowOptions(seriesShadow));
             chart = deproxy(proxy);
             return chart.series[0] as SunburstSeries;
@@ -1236,20 +1236,20 @@ describe('SunburstSeries', () => {
         };
 
         it('defaults to a disabled shadow', async () => {
-            const series = await createChart();
+            const series = await renderSeries();
 
             expect(series['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const series = await createChart();
+            const series = await renderSeries();
 
             expect(sectors(series)).toHaveLength(7);
             expect(shadowedShapes(series.contentGroup)).toEqual([]);
         });
 
         it('applies an enabled shadow to every sector', async () => {
-            const series = await createChart(shadow);
+            const series = await renderSeries(shadow);
 
             const nodes = sectors(series);
             expect(nodes).toHaveLength(7);
@@ -1259,13 +1259,13 @@ describe('SunburstSeries', () => {
         });
 
         it('renders with the shadow enabled', async () => {
-            await createChart(shadow);
+            await renderSeries(shadow);
             await compare();
         });
 
         // The hovered sector is redrawn on the highlight layer; only that copy casts its shadow.
         it('renders a hovered sector with a single shadow', async () => {
-            const series = await createChart(shadow);
+            const series = await renderSeries(shadow);
 
             const leaf = (series as any).rootNode.children[0].children[0];
             (chart as Chart).ctx.highlightManager.updateHighlight(chart.id, leaf);
@@ -1278,7 +1278,7 @@ describe('SunburstSeries', () => {
                 Array.from(series.pickNodesInBBox(wholeChart), (node) => node.datumIndex);
 
             it('yields sectors in datum order although they are drawn in depth order', async () => {
-                const series = await createChart(shadow);
+                const series = await renderSeries(shadow);
 
                 const picked = pickedIndices(series);
                 expect(picked).toHaveLength(7);
@@ -1286,7 +1286,7 @@ describe('SunburstSeries', () => {
             });
 
             it('keeps datum order after a keyed update adds sectors', async () => {
-                const series = await createChart(shadow);
+                const series = await renderSeries(shadow);
 
                 const [{ children }] = data;
                 const grown = [
@@ -1576,7 +1576,7 @@ describe('SunburstSeries', () => {
         let proxy: any;
         let lastOptions: AgChartOptions;
 
-        const createChart = async (seriesOptions: any = {}, data: any = MULTI_ROOT_DATA, chartOptions: any = {}) => {
+        const renderSeries = async (seriesOptions: any = {}, data: any = MULTI_ROOT_DATA, chartOptions: any = {}) => {
             const options: AgChartOptions = {
                 data,
                 series: [{ type: 'sunburst', labelKey: 'name', sizeKey: 'size', ...seriesOptions }],
@@ -1590,9 +1590,9 @@ describe('SunburstSeries', () => {
             return chart.series[0] as SunburstSeries;
         };
 
-        const replaceChart = async (...args: Parameters<typeof createChart>) => {
+        const replaceChart = async (...args: Parameters<typeof renderSeries>) => {
             chart.destroy();
-            return createChart(...args);
+            return renderSeries(...args);
         };
 
         const seriesRadius = () => Math.min(chart.seriesRect.width, chart.seriesRect.height) / 2;
@@ -1636,7 +1636,7 @@ describe('SunburstSeries', () => {
         const tooltipShown = () => tooltip()?.hasAttribute('data-presented-as-popover') === true;
 
         it('creates no inner-circle node when the options are unset', async () => {
-            const series = await createChart();
+            const series = await renderSeries();
 
             expect(circleNodes(series)).toHaveLength(0);
             expect(atDepth(series, 0)[0].innerRadius).toBe(0);
@@ -1644,7 +1644,7 @@ describe('SunburstSeries', () => {
         });
 
         it('carves a hole from innerRadiusRatio and spaces every level evenly', async () => {
-            const series = await createChart({ innerRadiusRatio: 0.3 });
+            const series = await renderSeries({ innerRadiusRatio: 0.3 });
 
             const radius = seriesRadius();
             const hole = radius * 0.3;
@@ -1664,7 +1664,7 @@ describe('SunburstSeries', () => {
         });
 
         it('keeps the hole independent of maxDepth', async () => {
-            const shallow = await createChart({ innerRadiusRatio: 0.25 });
+            const shallow = await renderSeries({ innerRadiusRatio: 0.25 });
             expect(maxDepthOf(shallow)).toBe(1);
             const shallowInnerRadius = atDepth(shallow, 0)[0].innerRadius;
             expect(shallowInnerRadius).toBeCloseTo(seriesRadius() * 0.25, 5);
@@ -1683,14 +1683,14 @@ describe('SunburstSeries', () => {
                 hole: (radius: number): number => radius * 0.2 + 30,
             },
         ])('carves the hole from $label', async ({ options, hole }) => {
-            const series = await createChart(options);
+            const series = await renderSeries(options);
 
             expect(atDepth(series, 0)[0].innerRadius).toBeCloseTo(hole(seriesRadius()), 5);
             expectWarningsCalls().toEqual([]);
         });
 
         it('leaves the geometry untouched when innerCircle is set without a radius option', async () => {
-            const series = await createChart({ innerCircle: { fill: 'red' } });
+            const series = await renderSeries({ innerCircle: { fill: 'red' } });
 
             expect(atDepth(series, 0)[0].innerRadius).toBe(0);
             expect(circleNodes(series)).toHaveLength(0);
@@ -1698,7 +1698,7 @@ describe('SunburstSeries', () => {
         });
 
         it('paints the circle with innerCircle.fill rather than a scale-derived colour', async () => {
-            const series = await createChart({
+            const series = await renderSeries({
                 colorKey: 'change',
                 colorScale: { fills: [{ color: 'blue' }, { color: 'yellow' }], missingDataFill: '#cccccc' },
                 innerRadiusRatio: 0.35,
@@ -1713,7 +1713,7 @@ describe('SunburstSeries', () => {
         });
 
         it('shows no tooltip inside the hole with an exact tooltip range', async () => {
-            const series = await createChart(
+            const series = await renderSeries(
                 { innerRadiusRatio: 0.5, innerCircle: { fill: 'red' }, tooltip: nameTooltip },
                 MULTI_ROOT_DATA,
                 { tooltip: { range: 'exact' as InteractionRange } }
@@ -1730,7 +1730,7 @@ describe('SunburstSeries', () => {
         // With a 'nearest' range the hole is still within reach of the surrounding sectors, so a
         // tooltip does appear - what must never happen is the painted circle itself being picked.
         it('never resolves the painted circle as the nearest datum', async () => {
-            const series = await createChart(
+            const series = await renderSeries(
                 { innerRadiusRatio: 0.5, innerCircle: { fill: 'red' }, tooltip: nameTooltip },
                 MULTI_ROOT_DATA,
                 { tooltip: { range: 'nearest' as InteractionRange } }
@@ -1753,7 +1753,7 @@ describe('SunburstSeries', () => {
 
         it('never invokes itemStyler for the inner circle', async () => {
             const itemStyler = vi.fn(() => ({}));
-            const series = await createChart({
+            const series = await renderSeries({
                 innerRadiusRatio: 0.4,
                 innerCircle: { fill: 'red' },
                 itemStyler,
@@ -1774,7 +1774,7 @@ describe('SunburstSeries', () => {
         });
 
         it('parents the inner circle inside the scaling group with pointer events disabled', async () => {
-            const series = await createChart({ innerRadiusRatio: 0.3, innerCircle: { fill: 'red' } });
+            const series = await renderSeries({ innerRadiusRatio: 0.3, innerCircle: { fill: 'red' } });
 
             const [circle] = circleNodes(series);
             expect(circle).toBeDefined();
@@ -1792,7 +1792,7 @@ describe('SunburstSeries', () => {
         // renders exactly as it did before innerCircle/innerLabels existed, and the options warn.
         it('leaves a sole 100% root node exactly as it renders without the centre options', async () => {
             const itemStyler = vi.fn(() => ({}));
-            const control = await createChart({ itemStyler, tooltip: nameTooltip }, SOLE_ROOT_DATA);
+            const control = await renderSeries({ itemStyler, tooltip: nameTooltip }, SOLE_ROOT_DATA);
             const radiusScale = seriesRadius() / (maxDepthOf(control) + 1);
             const controlRoot = atDepth(control, 0)[0];
             const controlGeometry = { inner: controlRoot.innerRadius, outer: controlRoot.outerRadius };
@@ -1837,7 +1837,7 @@ describe('SunburstSeries', () => {
         });
 
         it('warns exactly once when innerCircle has no centre to paint, even once innerLabels join it', async () => {
-            await createChart({ innerCircle: { fill: 'red' } });
+            await renderSeries({ innerCircle: { fill: 'red' } });
             expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
 
             // `expectWarningsCalls` clears the buffer, so an empty second read means the warning
@@ -1859,7 +1859,7 @@ describe('SunburstSeries', () => {
         // AG-9835: the warning reports an unset option, not a hole that happens to come out empty -
         // a series that asks for no hole has been configured, so it renders one and stays silent.
         it('stays silent when an inner-radius option is set but carves no hole', async () => {
-            const zeroRatio = await createChart({ innerRadiusRatio: 0, innerCircle: { fill: 'red' } });
+            const zeroRatio = await renderSeries({ innerRadiusRatio: 0, innerCircle: { fill: 'red' } });
             expect(zeroRatio.resolveCentreCircle()).toBeNull();
             expect((zeroRatio as any).innerCircleSelection.nodes()).toHaveLength(0);
             expectWarningsCalls().toEqual([]);
@@ -1869,7 +1869,7 @@ describe('SunburstSeries', () => {
         // reaches the series radius leaves the sectors no room, so the chart renders empty rather
         // than snapping back to a full sunburst.
         it('renders nothing when innerRadiusSize exceeds the series radius', async () => {
-            await createChart();
+            await renderSeries();
             const oversized = await replaceChart({
                 innerRadiusSize: seriesRadius() * 2,
                 innerCircle: { fill: 'red' },
@@ -1890,7 +1890,7 @@ describe('SunburstSeries', () => {
         });
 
         it('rejects an innerRadiusSize of zero or less', async () => {
-            await createChart({ innerRadiusSize: 0, innerCircle: { fill: 'red' } });
+            await renderSeries({ innerRadiusSize: 0, innerCircle: { fill: 'red' } });
 
             expectWarningsCalls().toContainEqual([
                 'AG Charts - Option `series[0].innerRadiusSize` cannot be set to `0`; expecting a number greater than 0, ignoring.',
@@ -1898,7 +1898,7 @@ describe('SunburstSeries', () => {
         });
 
         it('lays a sole root label inside its annulus once a hole is carved', async () => {
-            const series = await createChart({ innerRadiusRatio: 0.4 }, SOLE_ROOT_DATA);
+            const series = await renderSeries({ innerRadiusRatio: 0.4 }, SOLE_ROOT_DATA);
 
             const radius = seriesRadius();
             const hole = radius * 0.4;
@@ -1912,7 +1912,7 @@ describe('SunburstSeries', () => {
         });
 
         it('resolves the centre circle only for a carved hole', async () => {
-            const holed = await createChart({ innerRadiusRatio: 0.3 });
+            const holed = await renderSeries({ innerRadiusRatio: 0.3 });
             expect(holed.resolveCentreCircle()?.radius).toBeCloseTo(seriesRadius() * 0.3, 5);
 
             const sized = await replaceChart({ innerRadiusSize: 20 });
@@ -1931,7 +1931,7 @@ describe('SunburstSeries', () => {
         });
 
         it('warns when innerCircle is supplied without a fill on the series option', async () => {
-            await createChart({ innerRadiusRatio: 0.3, innerCircle: { fillOpacity: 0.5 } });
+            await renderSeries({ innerRadiusRatio: 0.3, innerCircle: { fillOpacity: 0.5 } });
             expectWarningsCalls().toContainEqual([
                 'AG Charts - Option `series[0].innerCircle.fill` is required and has not been provided; expecting a supported color string (hex, rgb(), hsl(), oklch() or a CSS color name), a color object or a color ref and where a color ref with [onto] or [ontoColor] must also have [mix], ignoring.',
             ]);
@@ -1955,7 +1955,7 @@ describe('SunburstSeries', () => {
             };
 
             it('creates one node per innerLabels entry, each carrying its own font styling', async () => {
-                const series = await createChart({
+                const series = await renderSeries({
                     innerRadiusRatio: 0.4,
                     innerLabels: [
                         { text: 'Total', fontSize: 20, fontWeight: 'bold', color: 'red' },
@@ -1988,7 +1988,7 @@ describe('SunburstSeries', () => {
                     ],
                 });
 
-                const series = await createChart({
+                const series = await renderSeries({
                     innerRadiusRatio: 0.4,
                     innerLabels: [
                         { text: 'Total', fontSize: 16, spacing: 4 },
@@ -2020,7 +2020,7 @@ describe('SunburstSeries', () => {
             // descent below the centre. 1px of tolerance: the boxes come from text measurement under
             // the canvas mock, while the defect being caught is a whole descent at 48px type.
             it('centres a single inner label on the centre of the hole', async () => {
-                const series = await createChart({
+                const series = await renderSeries({
                     innerRadiusRatio: 0.6,
                     innerLabels: [{ text: 'Total', fontSize: 48 }],
                 });
@@ -2033,7 +2033,7 @@ describe('SunburstSeries', () => {
 
             it('centres a two-line inner label stack on the centre of the hole, spacing intact', async () => {
                 const spacing = 6;
-                const series = await createChart({
+                const series = await renderSeries({
                     innerRadiusRatio: 0.6,
                     innerLabels: [
                         { text: 'Total', fontSize: 24, spacing },
@@ -2050,7 +2050,7 @@ describe('SunburstSeries', () => {
             });
 
             it('hides every inner label together when the stack cannot fit the hole, and shows them all when it can', async () => {
-                const cramped = await createChart({
+                const cramped = await renderSeries({
                     innerRadiusRatio: 0.06,
                     innerLabels: [
                         { text: 'A dramatically long inner label string that will never fit', fontSize: 40 },
@@ -2079,7 +2079,7 @@ describe('SunburstSeries', () => {
             // centre because innerLabels never render without a hole; with a hole carved, depth 0 is
             // an annulus whose label sits outside the hole, so the two can never collide.
             it('never displaces the sole-root centre label, and coexists with it once a hole is carved', async () => {
-                const withoutInnerLabels = await createChart({ secondaryLabelKey: 'change' }, SOLE_ROOT_DATA);
+                const withoutInnerLabels = await renderSeries({ secondaryLabelKey: 'change' }, SOLE_ROOT_DATA);
                 expect(rootPrimaryLabelText(withoutInnerLabels)?.visible).toBe(true);
                 expectWarningsCalls().toEqual([]);
 
@@ -2109,7 +2109,7 @@ describe('SunburstSeries', () => {
             });
 
             it('excludes the inner labels group and every node from pointer events', async () => {
-                const series = await createChart({
+                const series = await renderSeries({
                     innerRadiusRatio: 0.4,
                     innerLabels: [{ text: 'Total', fontSize: 16 }],
                 });
@@ -2123,7 +2123,7 @@ describe('SunburstSeries', () => {
 
             it('never invokes itemStyler for an inner label', async () => {
                 const itemStyler = vi.fn(() => ({}));
-                const series = await createChart({
+                const series = await renderSeries({
                     innerRadiusRatio: 0.4,
                     innerLabels: [{ text: 'Total', fontSize: 16 }],
                     itemStyler,
@@ -2140,7 +2140,7 @@ describe('SunburstSeries', () => {
             });
 
             it('shows no tooltip inside the hole with an exact tooltip range', async () => {
-                const series = await createChart(
+                const series = await renderSeries(
                     {
                         innerRadiusRatio: 0.4,
                         innerLabels: [{ text: 'Total', fontSize: 16 }],
@@ -2160,7 +2160,7 @@ describe('SunburstSeries', () => {
 
             it('resolves only a sector as the nearest datum inside the hole, never an inner label', async () => {
                 const innerLabelTexts = ['Total', '100'];
-                const series = await createChart(
+                const series = await renderSeries(
                     {
                         innerRadiusRatio: 0.4,
                         innerLabels: innerLabelTexts.map((text) => ({ text, fontSize: 16 })),
@@ -2187,12 +2187,12 @@ describe('SunburstSeries', () => {
             });
 
             it('warns exactly once when innerLabels alone has no centre to render into', async () => {
-                await createChart({ innerLabels: [{ text: 'Total', fontSize: 14 }] });
+                await renderSeries({ innerLabels: [{ text: 'Total', fontSize: 14 }] });
                 expectWarningsCalls().toEqual([[UNSUITABLE_WARNING]]);
             });
 
             it('accepts an innerLabels text segments array without warnings and still rejects a malformed segment', async () => {
-                await createChart({
+                await renderSeries({
                     innerRadiusRatio: 0.4,
                     innerLabels: [
                         {
@@ -2227,7 +2227,7 @@ describe('SunburstSeries', () => {
             });
 
             it('leaves the inner-labels selection and group empty when innerLabels is unset or an explicit empty array', async () => {
-                const unset = await createChart({ innerRadiusRatio: 0.4 });
+                const unset = await renderSeries({ innerRadiusRatio: 0.4 });
                 expect(unset.innerLabelsSelection.nodes()).toHaveLength(0);
                 expect(Array.from((unset as any).innerLabelsGroup.children())).toHaveLength(0);
                 expectWarningsCalls().toEqual([]);
@@ -2239,7 +2239,7 @@ describe('SunburstSeries', () => {
             });
 
             it('renders inner labels using theme defaults when no font options are set at all', async () => {
-                const series = await createChart({ innerRadiusRatio: 0.4, innerLabels: [{ text: 'Total' }] });
+                const series = await renderSeries({ innerRadiusRatio: 0.4, innerLabels: [{ text: 'Total' }] });
 
                 const [node] = series.innerLabelsSelection.nodes();
                 expect(node.fill).toBeDefined();
@@ -2252,7 +2252,7 @@ describe('SunburstSeries', () => {
             });
 
             it('leaves innerLabels absent so no theme default can populate it', async () => {
-                const series = await createChart();
+                const series = await renderSeries();
                 const { options } = series as unknown as { options: { innerLabels?: unknown[] } };
                 expect(options.innerLabels).toBeUndefined();
                 expect(series.innerLabelsSelection.nodes()).toHaveLength(0);

@@ -1,12 +1,10 @@
 import { afterEach, describe, it } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
-import type { Chart } from '../chart';
 import {
     compareImageSnapshot,
     createChart,
-    deproxy,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -16,7 +14,7 @@ describe('Marker Shapes', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
 
-    let chart: Chart;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         if (chart != null) {
@@ -47,7 +45,7 @@ describe('Marker Shapes', () => {
                 ],
             };
             prepareTestOptions(options);
-            chart = deproxy(await createChart(options));
+            chart = await createChart(options);
             await compare();
         });
 
@@ -71,7 +69,7 @@ describe('Marker Shapes', () => {
                 ],
             };
             prepareTestOptions(options);
-            chart = deproxy(await createChart(options));
+            chart = await createChart(options);
             await compare();
         });
 
@@ -102,7 +100,7 @@ describe('Marker Shapes', () => {
                 },
             };
             prepareTestOptions(options);
-            chart = deproxy(await createChart(options));
+            chart = await createChart(options);
             await compare();
         });
     });

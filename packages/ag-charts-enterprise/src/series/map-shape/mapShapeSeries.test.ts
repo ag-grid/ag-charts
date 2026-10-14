@@ -115,19 +115,19 @@ describe('MapShapeSeries', () => {
             series: [{ type: 'map-shape', idKey: 'name', shadow: seriesShadow }],
         });
 
-        const createChart = async (options: AgChartOptions) => {
+        const renderSeries = async (options: AgChartOptions) => {
             chart = deproxy(await createEnterpriseChart(options));
             return chart.series[0];
         };
 
         it('defaults to a disabled shadow', async () => {
-            const series = await createChart(shadowOptions());
+            const series = await renderSeries(shadowOptions());
 
             expect(series['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            const series = await createChart(shadowOptions());
+            const series = await renderSeries(shadowOptions());
 
             const shapes = collectShapes(series.contentGroup);
             expect(shapes.length).toBeGreaterThan(0);
@@ -135,7 +135,7 @@ describe('MapShapeSeries', () => {
         });
 
         it('applies an enabled shadow to every shape', async () => {
-            const series = await createChart(shadowOptions(SMALL_SHADOW));
+            const series = await renderSeries(shadowOptions(SMALL_SHADOW));
 
             const shapes = collectShapes(series.contentGroup);
             expect(shapes.length).toBeGreaterThan(0);
@@ -145,13 +145,13 @@ describe('MapShapeSeries', () => {
         });
 
         it('should render a chart with the shadow enabled', async () => {
-            await createChart(shadowOptions(SMALL_SHADOW));
+            await renderSeries(shadowOptions(SMALL_SHADOW));
             await compare();
         });
 
         describe('cutout drawing mode', () => {
             const highlightFirstShape = async (options: AgChartOptions) => {
-                await createChart(options);
+                await renderSeries(options);
 
                 const seriesImpl = chart.series[0] as MapShapeSeries;
                 const node = seriesImpl?.['contextNodeData']?.nodeData[0];
