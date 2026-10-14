@@ -53,10 +53,7 @@ export function hasTargetLabelCollision<T extends { label: { collision: AgChartL
     return false;
 }
 
-/**
- * Hides target labels with a `collision` option that overlap a scale label, a gauge label or an earlier
- * target label, unless `collision.alwaysShow` keeps them.
- */
+/** Hides target labels with a `collision` option that overlap a scale, gauge or earlier target label. */
 export function avoidTargetLabelCollisions<
     T extends { label: { collision: AgChartLabelCollisionOptions | undefined } },
 >(selection: Selection<T, Node<T>>, getObstacles: () => BBox[]) {

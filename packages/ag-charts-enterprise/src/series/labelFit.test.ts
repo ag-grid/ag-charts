@@ -1186,11 +1186,12 @@ describe('series label fit', () => {
 
     describe('gauge labels', () => {
         const longText = 'Supercalifragilistic'.repeat(6);
-        const gaugeLabelTexts = (): string[] =>
-            chart.series[0].labelSelection
+        const visibleTexts = (selection: any): string[] =>
+            selection
                 .nodes()
                 .filter((node: any) => node.visible)
                 .map((node: any) => String(node.text));
+        const gaugeLabelTexts = () => visibleTexts(chart.series[0].labelSelection);
         const renderGauge = async (options: object) => {
             prepareEnterpriseTestOptions(options as AgChartOptions);
             chart = deproxy(AgCharts.createGauge(options as any));
@@ -1238,11 +1239,6 @@ describe('series label fit', () => {
             expect(gaugeLabelTexts()).toEqual(['Score', longText]);
         });
 
-        const visibleTexts = (selection: any): string[] =>
-            selection
-                .nodes()
-                .filter((node: any) => node.visible)
-                .map((node: any) => String(node.text));
         const targetLabelTexts = () => visibleTexts(chart.series[0].targetLabelSelection);
         const firstLabelNode = () => chart.series[0].labelSelection.nodes()[0];
         const horizontalLinearGauge = (options: object) => ({

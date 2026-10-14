@@ -115,7 +115,7 @@ export interface AgLinearGaugeLabelOptions
     /**
      * Avoid label collisions with the bar and/or scale.
      *
-     * @deprecated v14.2.0 Use `collision.alwaysShow` instead.
+     * @deprecated v14.3.0 Use `collision.alwaysShow` instead.
      */
     avoidCollisions?: boolean;
     /**

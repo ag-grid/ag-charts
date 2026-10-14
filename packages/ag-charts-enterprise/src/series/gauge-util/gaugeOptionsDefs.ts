@@ -38,7 +38,6 @@ export const gaugeTooltipOptionsDef: OptionsDefs<AgSeriesTooltip<any> & AgChartT
     ...(commonChartOptionsDefs.tooltip as OptionsDefs<AgChartTooltipOptions>),
 };
 
-/** Target labels on both gauges share one shape. */
 export const gaugeTargetLabelOptionsDef: OptionsDefs<AgRadialGaugeTargetLabelOptions> = {
     ...seriesLabelOptionsDefs,
     ...labelCollisionFitOptionsDefs,
