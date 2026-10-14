@@ -11,12 +11,6 @@
       "require": "./dist/package/main.cjs.js",
       "import": "./dist/package/main.esm.mjs",
       "default": "./dist/package/main.cjs.js"
-    },
-    "./scene": {
-      "types": "./dist/types/src/main-scene.d.ts",
-      "require": "./dist/package/main-scene.cjs.js",
-      "import": "./dist/package/main-scene.esm.mjs",
-      "default": "./dist/package/main-scene.cjs.js"
     }
   },
   "scripts": {

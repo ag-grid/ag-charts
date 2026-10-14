@@ -1,4 +1,4 @@
-import { AgCharts, ModuleRegistry, VERSION, _Scene, _Theme, _Util } from 'ag-charts-community';
+import { AgCharts, ModuleRegistry, VERSION, _Theme } from 'ag-charts-community';
 import type { IntegratedModule } from 'ag-charts-types';
 
 import { LicenseManager as RealLicenseManager } from '../license/licenseManager';
@@ -12,9 +12,7 @@ export const LicenseManager = {
 
 export const AgChartsEnterpriseModule: IntegratedModule = {
     VERSION,
-    _Scene,
     _Theme,
-    _Util,
     create: AgCharts.create.bind(AgCharts),
     createSparkline: AgCharts.__createSparkline.bind(AgCharts),
     setup: () => {
