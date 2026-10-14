@@ -2277,3 +2277,14 @@ export function captureUncaught(
         },
     };
 }
+
+/**
+ * Anti-vacuity check for a financial series: three subpaths over a real pixel height means the datum is drawn at
+ * full size, not parked collapsed at a baseline waiting to grow.
+ */
+export function expectDrawnAtFullRange(sample: SceneGeometrySample, key: string) {
+    const node = sample.get(key);
+    expect(node, key).toBeDefined();
+    expect(node!.subpaths, `${key} subpaths`).toBe(3);
+    expect(node!.height, `${key} height`).toBeGreaterThan(20);
+}

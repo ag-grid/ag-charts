@@ -1,11 +1,11 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, it } from 'vitest';
 
-import { mapValues } from 'ag-charts-core';
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
+import { applyIntervalBetween, applyIntervalOn } from '../test/axisTestCases';
 import { DOCS_EXAMPLES } from '../test/examples';
 import type { ChartOrProxy } from '../test/utils';
 import {
@@ -18,52 +18,6 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../test/utils';
-
-const EXAMPLE_GRID_LINE = {
-    width: 2,
-    style: [
-        { fill: 'red', fillOpacity: 0.1, stroke: 'red' },
-        { fill: 'blue', fillOpacity: 0.1, stroke: 'blue' },
-        { fill: 'green', fillOpacity: 0.1, stroke: 'green' },
-        { fill: 'yellow', fillOpacity: 0.1, stroke: 'yellow' },
-    ],
-};
-
-const axesToTest = ['category', 'grouped-category', 'unit-time', 'ordinal-time'];
-
-function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
-    return {
-        ...opts,
-        axes:
-            mapValues(opts.axes ?? {}, (axis) =>
-                axis.type != null && axesToTest.includes(axis.type)
-                    ? {
-                          ...axis,
-                          interval: { ...(axis.interval ?? {}), placement: 'on' },
-                          gridLine: EXAMPLE_GRID_LINE,
-                          tick: { ...(axis.tick ?? {}), enabled: true },
-                      }
-                    : axis
-            ) ?? undefined,
-    };
-}
-
-function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
-    return {
-        ...opts,
-        axes:
-            mapValues(opts.axes ?? {}, (axis) =>
-                axis.type != null && axesToTest.includes(axis.type)
-                    ? {
-                          ...axis,
-                          interval: { ...(axis.interval ?? {}), placement: 'between' },
-                          gridLine: EXAMPLE_GRID_LINE,
-                          tick: { ...(axis.tick ?? {}), enabled: true },
-                      }
-                    : axis
-            ) ?? undefined,
-    };
-}
 
 const DATA = [
     {

@@ -2,28 +2,17 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
 import {
+    calculateAxisBBox,
     compareImageSnapshot,
     deproxy,
+    seedLcgRandom,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { BBox } from 'ag-charts-core';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../test/utils';
-
-function calculateAxisBBox(axis: { getBBox(): BBox }): {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-} {
-    const bbox = axis.getBBox();
-
-    const { x, y, width, height } = bbox;
-    return { x, y, width, height };
-}
 
 const TIME_AXIS_DATA = [];
 for (let i = 0; i < 200; i++) {
@@ -126,16 +115,9 @@ describe('Time Axis Examples', () => {
             const startPrice = 100;
             const maxDailyPriceChange = 1;
 
-            function seedRandom(seed = 1337) {
-                return function random() {
-                    seed = (seed * 16807) % 2147483647;
-                    return (seed - 1) / 2147483646;
-                };
-            }
-
             function getData(days: number) {
                 let currentPrice = startPrice;
-                const random = seedRandom();
+                const random = seedLcgRandom();
                 return Array.from({ length: days }, (_, i) => {
                     const price = currentPrice;
                     currentPrice += (random() * 2 - 1) * maxDailyPriceChange;
