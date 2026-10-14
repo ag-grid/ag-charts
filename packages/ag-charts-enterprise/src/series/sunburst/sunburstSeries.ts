@@ -408,13 +408,13 @@ export class SunburstSeries extends HierarchySeries<
                 // centre-circle and wedge-from-centre label forms no longer apply to it.
                 const isCenterCircle = depth === 0 && hole === 0 && parent?.sumSize === sumSize;
                 if (isCenterCircle) {
-                    const labelWidth = 2 * Math.sqrt(outerRadius ** 2 - (labelHeight * 0.5) ** 2);
+                    const labelWidth = 2 * Math.sqrt(Math.max(0, outerRadius ** 2 - (labelHeight * 0.5) ** 2));
                     return { width: labelWidth, height: labelHeight, meta: LabelPlacement.CenterCircle };
                 }
 
                 const parallelHeight = labelHeight;
                 const availableWidthUntilItHitsTheOuterRadius =
-                    2 * Math.sqrt(outerRadius ** 2 - (innerRadius + parallelHeight) ** 2);
+                    2 * Math.sqrt(Math.max(0, outerRadius ** 2 - (innerRadius + parallelHeight) ** 2));
                 const availableWidthUntilItHitsTheStraightEdges =
                     deltaInnerAngle < Math.PI ? 2 * innerRadius * Math.tan(deltaInnerAngle * 0.5) : Infinity;
                 const parallelWidth = Math.min(
@@ -429,12 +429,13 @@ export class SunburstSeries extends HierarchySeries<
                     // Wedge from center - maximize the width of a box with fixed height
                     perpendicularHeight = labelHeight;
                     perpendicularWidth =
-                        Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) -
+                        Math.sqrt(Math.max(0, outerRadius ** 2 - (perpendicularHeight / 2) ** 2)) -
                         labelHeight / (2 * Math.tan(deltaOuterAngle * 0.5));
                 } else if (normalizeAngle360(deltaInnerAngle) < maxPerpendicularAngle) {
                     // Outer wedge - fit the height to the sector, then fit the width
                     perpendicularHeight = 2 * innerRadius * Math.tan(deltaInnerAngle * 0.5);
-                    perpendicularWidth = Math.sqrt(outerRadius ** 2 - (perpendicularHeight / 2) ** 2) - innerRadius;
+                    perpendicularWidth =
+                        Math.sqrt(Math.max(0, outerRadius ** 2 - (perpendicularHeight / 2) ** 2)) - innerRadius;
                 } else {
                     perpendicularWidth = 0;
                     perpendicularHeight = 0;

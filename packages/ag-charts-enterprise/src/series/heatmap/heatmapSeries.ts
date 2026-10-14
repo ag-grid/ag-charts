@@ -69,7 +69,7 @@ interface HeatmapLabelDatum extends Point {
     datum: any;
     itemId?: never;
     text: NormalisedTextOrSegments;
-    fontSize: number;
+    fittedFontSize: number;
     lineHeight: number;
     fontStyle: FontStyle | undefined;
     fontFamily: string;
@@ -603,7 +603,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             datum,
             datumIndex,
             text,
-            fontSize,
+            fittedFontSize: fontSize,
             lineHeight,
             fontStyle,
             fontFamily,
