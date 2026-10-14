@@ -98,6 +98,7 @@ import {
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     maxMarkerStrokePickInflation,
+    moveNodePoints,
     resetMarkerFn,
     resetMarkerPositionFn,
     resetMarkerSelectionsDirect,
@@ -181,6 +182,13 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
     private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
     public nodeDatumContext: LineSeriesDatumContext | undefined = undefined;
+
+    /**
+     * Span points are consumed by `interpolatePoints()` at the end of each `createNodeData()` pass, which copies
+     * their coordinates into spans, so the objects are recycled between passes rather than reallocated per datum.
+     */
+    private readonly spanPointPool: LineSpanPointDatum[] = [];
+    private spanPointCount = 0;
     private hideWithSize0 = false;
     private markerNodesPickable = true;
 
@@ -473,6 +481,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
      */
     protected override createNodeDatumContext(xAxis: ChartAxis, yAxis: ChartAxis): LineSeriesDatumContext | undefined {
         this.nodeDatumContext = undefined;
+        this.spanPointCount = 0;
 
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return undefined;
@@ -605,8 +614,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 // Update existing node datum in place
                 existingNode.datum = scratch.datum;
                 existingNode.datumIndex = datumIndex;
-                existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.size };
-                existingNode.midPoint = { x: scratch.x, y: scratch.y };
+                moveNodePoints(existingNode, scratch.x, scratch.y, ctx.size);
                 // Metadata only; position already used the exact bigint, so narrowing here is fine.
                 existingNode.cumulativeValue = Number(scratch.yCumulative);
                 existingNode.cumulativeValueExact = scratch.yCumulative;
@@ -647,8 +655,31 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             }
         }
 
-        // Update span points for path rendering
-        this.updateSpanPoints(ctx, scratch);
+        // Update span points for path rendering (a focus-bounds lookup writes to `dst` and has no path to render)
+        if (dst === undefined) {
+            this.updateSpanPoints(ctx, scratch);
+        }
+    }
+
+    private acquireSpanPoint(scratch: LineNodeDatumScratch): LineSpanPointDatum {
+        const { spanPointPool } = this;
+        const poolIndex = this.spanPointCount++;
+        if (poolIndex < spanPointPool.length) {
+            const spanPoint = spanPointPool[poolIndex];
+            spanPoint.point.x = scratch.x;
+            spanPoint.point.y = scratch.y;
+            spanPoint.xDatum = scratch.xDatum;
+            spanPoint.yDatum = scratch.yCumulative;
+            return spanPoint;
+        }
+
+        const spanPoint: LineSpanPointDatum = {
+            point: { x: scratch.x, y: scratch.y },
+            xDatum: scratch.xDatum,
+            yDatum: scratch.yCumulative,
+        };
+        spanPointPool.push(spanPoint);
+        return spanPoint;
     }
 
     /**
@@ -658,11 +689,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined = ctx.spanPoints.at(-1);
 
         if (scratch.yDatum != null) {
-            const spanPoint: LineSpanPointDatum = {
-                point: { x: scratch.x, y: scratch.y },
-                xDatum: scratch.xDatum,
-                yDatum: scratch.yCumulative,
-            };
+            const spanPoint = this.acquireSpanPoint(scratch);
 
             if (Array.isArray(currentSpanPoints)) {
                 currentSpanPoints.push(spanPoint);
@@ -768,6 +795,12 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             return Array.isArray(p) ? interpolatePoints(p, this.options.interpolation) : [];
         });
         result.strokeData = { itemId: ctx.yKey, spans: strokeSpans };
+
+        // Keep the pool no larger than the nodes, so that it does not hold on to memory after zooming back in.
+        const { spanPointPool, spanPointCount } = this;
+        if (spanPointPool.length > spanPointCount) {
+            spanPointPool.length = spanPointCount;
+        }
 
         result.crossFiltering = this.options.selectedKey != null;
 
