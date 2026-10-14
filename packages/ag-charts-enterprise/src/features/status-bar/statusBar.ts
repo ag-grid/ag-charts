@@ -227,11 +227,14 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         },
     ];
 
-    // The background spans the candle fields alone until the pointer is over a Volume Profile level.
+    // The background spans the candle fields alone until the pointer is over a Volume Profile level, which moves to a
+    // second line when it does not fit beside them.
     private candleWidth = 0;
     private bandWidth = 0;
+    private candleHeight = 0;
+    private bandHeight = 0;
+    private wrapped = false;
     private seriesTop = 0;
-    private seriesWidth = Infinity;
     private pointerY: number | undefined;
     private band: BandValues | undefined;
 
@@ -330,7 +333,6 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         let offsetTop: number;
         let textVAlign: CanvasTextBaseline = 'alphabetic';
         if (opts.layoutStyle === 'block') {
-            layoutBox.shrink(spacingAbove + lineHeight + spacingBelow, 'top');
             offsetTop = ascent;
         } else {
             const { title } = this.ctx.chartService;
@@ -344,6 +346,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             }
         }
 
+        const lineStart = left;
         for (const { label, configuration, title, value, domain, formatter } of this.labels) {
             if (domain == null || (labelConfigurations & configuration) === 0) {
                 title.visible = false;
@@ -384,26 +387,45 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         }
 
         this.candleWidth = left - outerSpacing;
-        left = this.layoutBandLabels(left, offsetTop, textVAlign, innerSpacing, outerSpacing);
-        this.bandWidth = left - outerSpacing;
+        const { wrapped, end } = this.layoutBandLabels({
+            start: left,
+            lineStart,
+            availableWidth: layoutBox.width,
+            offsetTop,
+            lineHeight,
+            textVAlign,
+            innerSpacing,
+            outerSpacing,
+        });
+        this.wrapped = wrapped;
+        this.bandWidth = wrapped ? Math.max(this.candleWidth, end) : end;
+        this.candleHeight = lineHeight + spacingAbove + spacingBelow;
+        this.bandHeight = (wrapped ? 2 : 1) * lineHeight + spacingAbove + spacingBelow;
+
+        // The second line is reserved whether or not a level is shown, so the chart does not move as the pointer does.
+        if (opts.layoutStyle === 'block') layoutBox.shrink(this.bandHeight, 'top');
 
         this.backgroundNode.x = 0;
         this.backgroundNode.y = 0;
         this.backgroundNode.width = this.candleWidth;
-        this.backgroundNode.height = lineHeight + spacingAbove + spacingBelow;
+        this.backgroundNode.height = this.candleHeight;
         this.backgroundNode.fill = opts.background.fill;
         this.backgroundNode.fillOpacity = opts.background.fillOpacity;
     }
 
-    // Positions the Volume Profile fields after the candle fields and returns the end of the last one. They are not
-    // visible until a level is hovered, but the room is measured now so the bar's width does not change as they appear.
-    private layoutBandLabels(
-        start: number,
-        offsetTop: number,
-        textVAlign: CanvasTextBaseline,
-        innerSpacing: number,
-        outerSpacing: number
-    ) {
+    // Measured while hidden, so the bar's size does not change when a level appears.
+    private layoutBandLabels(params: {
+        start: number;
+        lineStart: number;
+        availableWidth: number;
+        offsetTop: number;
+        lineHeight: number;
+        textVAlign: CanvasTextBaseline;
+        innerSpacing: number;
+        outerSpacing: number;
+    }) {
+        const { start, lineStart, availableWidth, offsetTop, lineHeight, textVAlign, innerSpacing, outerSpacing } =
+            params;
         const { opts, bandSeparator, bandLabels } = this;
         const band = opts.volumeProfile;
 
@@ -412,19 +434,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             title.visible = false;
             value.visible = false;
         }
-        if (band == null) return start;
-
-        let left = start;
-
-        const separatorMetrics = cachedTextMeasurer(opts.title).measureLines('|');
-        bandSeparator.setFont(opts.title);
-        bandSeparator.fill = opts.title.color;
-        bandSeparator.text = '|';
-        bandSeparator.textAlign = 'left';
-        bandSeparator.textBaseline = textVAlign;
-        bandSeparator.x = left;
-        bandSeparator.y = offsetTop;
-        left += separatorMetrics.width + outerSpacing;
+        if (band == null) return { wrapped: false, end: start - outerSpacing };
 
         let maxTotal = 0;
         for (const level of band.levels) maxTotal = Math.max(maxTotal, level.total);
@@ -436,35 +446,61 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
             total: maxTotal,
         };
 
-        for (const { labelKey, style, title, value, formatter, text } of bandLabels) {
-            const label = this.ctx.localeManager.t(labelKey);
-            const titleMetrics = cachedTextMeasurer(opts.title).measureLines(label);
+        const fields = bandLabels.map((field) => {
+            const label = this.ctx.localeManager.t(field.labelKey);
+            const titleWidth = cachedTextMeasurer(opts.title).measureLines(label).width;
+            const valueWidth = cachedTextMeasurer(opts[field.style]).textWidth(
+                field.text(widest, (n) => field.formatter.format(n))
+            );
+            return { ...field, label, titleWidth, valueWidth };
+        });
+
+        const separatorWidth = cachedTextMeasurer(opts.title).measureLines('|').width + outerSpacing;
+        let fieldsWidth = 0;
+        for (const { titleWidth, valueWidth } of fields) {
+            fieldsWidth += titleWidth + innerSpacing + valueWidth + outerSpacing;
+        }
+
+        const wrapped = start + separatorWidth + fieldsWidth - outerSpacing > availableWidth;
+        const y = wrapped ? offsetTop + lineHeight : offsetTop;
+        let left = wrapped ? lineStart : start;
+
+        if (!wrapped) {
+            bandSeparator.setFont(opts.title);
+            bandSeparator.fill = opts.title.color;
+            bandSeparator.text = '|';
+            bandSeparator.textAlign = 'left';
+            bandSeparator.textBaseline = textVAlign;
+            bandSeparator.x = left;
+            bandSeparator.y = y;
+            left += separatorWidth;
+        }
+
+        for (const { label, title, value, titleWidth, valueWidth } of fields) {
             title.setFont(opts.title);
             title.fill = opts.title.color;
             title.text = label;
             title.textAlign = 'left';
             title.textBaseline = textVAlign;
             title.x = left;
-            title.y = offsetTop;
+            title.y = y;
 
-            left += titleMetrics.width + innerSpacing;
+            left += titleWidth + innerSpacing;
 
             value.textAlign = 'left';
             value.textBaseline = textVAlign;
             value.x = left;
-            value.y = offsetTop;
+            value.y = y;
 
-            const widestText = text(widest, (n) => formatter.format(n));
-            left += cachedTextMeasurer(opts[style]).textWidth(widestText) + outerSpacing;
+            left += valueWidth + outerSpacing;
         }
 
-        return left;
+        return { wrapped, end: left - outerSpacing };
     }
 
     private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
         this.labelGroup.translationX = opts.series.rect.x;
         this.seriesTop = opts.series.rect.y;
-        this.seriesWidth = opts.series.rect.width;
 
         this.updateHighlight(this.ctx.chartState.getValue('highlight'));
     }
@@ -529,7 +565,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
     private findHoveredBand(): BandValues | undefined {
         const { pointerY } = this;
         const band = this.opts.volumeProfile;
-        if (pointerY == null || band == null || this.bandWidth > this.seriesWidth) return undefined;
+        if (pointerY == null || band == null) return undefined;
 
         const axis = this.ctx.axisManager
             .getAxisContext(ChartAxisDirection.Y)
@@ -556,8 +592,9 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         const { opts, bandSeparator, bandLabels } = this;
 
         this.band = band;
-        bandSeparator.visible = band != null;
+        bandSeparator.visible = band != null && !this.wrapped;
         this.backgroundNode.width = band == null ? this.candleWidth : this.bandWidth;
+        this.backgroundNode.height = band == null ? this.candleHeight : this.bandHeight;
 
         for (const { style, title, value, formatter, text } of bandLabels) {
             title.visible = band != null;

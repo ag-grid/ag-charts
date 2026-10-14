@@ -5,64 +5,146 @@ import { normaliseVolumeProfile } from './volumeProfileUtils';
 describe('volumeProfileUtils', () => {
     describe('normaliseVolumeProfile', () => {
         const keys = { priceKey: 'price', upKey: 'up', downKey: 'down' };
+        const levelsFor = (prices: number[], tickSize: number) =>
+            normaliseVolumeProfile(
+                prices.map((price) => ({ price, up: 1, down: 2 })),
+                keys,
+                tickSize
+            );
 
-        it.each([
-            {
-                tickSize: 2.5,
-                prices: [135, 137.5, 140],
-                expected: [
-                    [140, 138.75, 141.25],
-                    [137.5, 136.25, 138.75],
-                    [135, 133.75, 136.25],
+        it('should give each level a price range of half the tick size either side', () => {
+            expect({
+                tick2_5: levelsFor([135, 137.5, 140], 2.5),
+                tick0_1: levelsFor([1.1, 1.2, 1.3], 0.1),
+                tick0_01: levelsFor([0.07, 0.08], 0.01),
+            }).toMatchInlineSnapshot(`
+              {
+                "tick0_01": [
+                  {
+                    "downVolume": 2,
+                    "price": 0.08,
+                    "priceHigh": 0.085,
+                    "priceLow": 0.075,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
+                  {
+                    "downVolume": 2,
+                    "price": 0.07,
+                    "priceHigh": 0.075,
+                    "priceLow": 0.065,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
                 ],
-            },
-            {
-                tickSize: 0.1,
-                prices: [1.1, 1.2, 1.3],
-                expected: [
-                    [1.3, 1.25, 1.35],
-                    [1.2, 1.15, 1.25],
-                    [1.1, 1.05, 1.15],
+                "tick0_1": [
+                  {
+                    "downVolume": 2,
+                    "price": 1.3,
+                    "priceHigh": 1.35,
+                    "priceLow": 1.25,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
+                  {
+                    "downVolume": 2,
+                    "price": 1.2,
+                    "priceHigh": 1.25,
+                    "priceLow": 1.15,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
+                  {
+                    "downVolume": 2,
+                    "price": 1.1,
+                    "priceHigh": 1.15,
+                    "priceLow": 1.05,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
                 ],
-            },
-            {
-                tickSize: 0.01,
-                prices: [0.07, 0.08],
-                expected: [
-                    [0.08, 0.075, 0.085],
-                    [0.07, 0.065, 0.075],
+                "tick2_5": [
+                  {
+                    "downVolume": 2,
+                    "price": 140,
+                    "priceHigh": 141.25,
+                    "priceLow": 138.75,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
+                  {
+                    "downVolume": 2,
+                    "price": 137.5,
+                    "priceHigh": 138.75,
+                    "priceLow": 136.25,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
+                  {
+                    "downVolume": 2,
+                    "price": 135,
+                    "priceHigh": 136.25,
+                    "priceLow": 133.75,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
                 ],
-            },
-        ])(
-            'should give each level a price range of half the tick size either side with tick $tickSize',
-            ({ tickSize, prices, expected }) => {
-                const data = prices.map((price) => ({ price, up: 1, down: 2 }));
-
-                const levels = normaliseVolumeProfile(data, keys, tickSize);
-
-                expect(levels.map(({ price, priceLow, priceHigh }) => [price, priceLow, priceHigh])).toEqual(expected);
-            }
-        );
-
-        it('should span the full tick for a level between the extremes that has no data', () => {
-            const data = [
-                { price: 10, up: 1, down: 1 },
-                { price: 15, up: 1, down: 1 },
-            ];
-
-            const levels = normaliseVolumeProfile(data, keys, 2.5);
-
-            expect(levels.map(({ priceLow, priceHigh, total }) => [priceLow, priceHigh, total])).toEqual([
-                [13.75, 16.25, 2],
-                [11.25, 13.75, 0],
-                [8.75, 11.25, 2],
-            ]);
+              }
+            `);
         });
 
-        it('should keep the range of a single level one tick wide', () => {
-            const levels = normaliseVolumeProfile([{ price: 10, up: 1, down: 1 }], keys, 2.5);
-
-            expect(levels.map(({ priceLow, priceHigh }) => priceHigh - priceLow)).toEqual([2.5, 2.5]);
+        it('should span the full tick for a level between the extremes that has no data, and for a single level', () => {
+            expect({
+                gap: levelsFor([10, 15], 2.5),
+                single: levelsFor([10], 2.5),
+            }).toMatchInlineSnapshot(`
+              {
+                "gap": [
+                  {
+                    "downVolume": 2,
+                    "price": 15,
+                    "priceHigh": 16.25,
+                    "priceLow": 13.75,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
+                  {
+                    "downVolume": 0,
+                    "price": 12.5,
+                    "priceHigh": 13.75,
+                    "priceLow": 11.25,
+                    "total": 0,
+                    "upVolume": 0,
+                  },
+                  {
+                    "downVolume": 2,
+                    "price": 10,
+                    "priceHigh": 11.25,
+                    "priceLow": 8.75,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
+                ],
+                "single": [
+                  {
+                    "downVolume": 0,
+                    "price": 12.5,
+                    "priceHigh": 13.75,
+                    "priceLow": 11.25,
+                    "total": 0,
+                    "upVolume": 0,
+                  },
+                  {
+                    "downVolume": 2,
+                    "price": 10,
+                    "priceHigh": 11.25,
+                    "priceLow": 8.75,
+                    "total": 3,
+                    "upVolume": 1,
+                  },
+                ],
+              }
+            `);
         });
     });
 });
