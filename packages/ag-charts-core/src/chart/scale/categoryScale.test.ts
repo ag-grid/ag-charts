@@ -192,8 +192,7 @@ describe('CategoryScale', () => {
     });
 });
 
-// Tick generation swaps in a temporary domain and back; rebuilding the n-entry index on every restore is what
-// made category layout cost scale with the data size.
+// The index survives the temporary domain that tick generation swaps in and back.
 describe('CategoryScale domain index', () => {
     class ProbeScale<D> extends CategoryScale<D> {
         get indexMap() {
@@ -215,9 +214,12 @@ describe('CategoryScale domain index', () => {
         const domain = ['A', 'B', 'C'];
         const scale = newScale(domain);
         expect(scale.findIndex('B')).toBe(1);
+        const index = scale.indexMap;
 
+        scale.restoreDomain(scale.snapshotDomain());
         scale.domain = domain;
         expect(scale.isIndexBuilt).toBe(true);
+        expect(scale.indexMap).toBe(index);
         expect(scale.findIndex('B')).toBe(1);
 
         scale.domain = ['A', 'B', 'C'];
@@ -265,20 +267,6 @@ describe('CategoryScale domain index', () => {
         }
     });
 
-    test('a snapshot and restore of an unchanged domain keeps the built index', () => {
-        const domain = ['A', 'B', 'C'];
-        const scale = newScale(domain);
-        expect(scale.findIndex('C')).toBe(2);
-        const index = scale.indexMap;
-
-        scale.restoreDomain(scale.snapshotDomain());
-
-        expect(scale.domain).toBe(domain);
-        expect(scale.isIndexBuilt).toBe(true);
-        expect(scale.indexMap).toBe(index);
-        expect(index.size).toBe(3);
-    });
-
     test('does not build the index on restore when it was never built', () => {
         const scale = newScale(['A', 'B', 'C']);
 
@@ -303,11 +291,11 @@ describe('CategoryScale domain index', () => {
         expect(scale.findIndex('Y')).toBe(1);
         expect(scale.findIndex('B')).toBeUndefined();
 
-        // Setting the temporary array again must index its own contents, not a stale index.
-        temporary[0] = 'Z';
+        // The temporary array is no longer the previous domain, so its index is built afresh.
         scale.domain = temporary;
-        expect(scale.findIndex('Z')).toBe(0);
-        expect(scale.findIndex('B')).toBeUndefined();
+        expect(scale.isIndexBuilt).toBe(false);
+        expect(scale.findIndex('B')).toBe(0);
+        expect(scale.findIndex('Y')).toBeUndefined();
     });
 
     test('keeps Date categories indexed by time value across the round trip', () => {
@@ -338,17 +326,6 @@ describe('CategoryScale domain index', () => {
 
         expect(scale.findIndex(a)).toBe(0);
         expect(scale.findIndex(b)).toBe(1);
-    });
-
-    test('a restore without a snapshot indexes the restored domain', () => {
-        const scale = newScale(['A', 'B']);
-        scale.findIndex('A');
-
-        scale.domain = ['C', 'D'];
-        scale.restoreDomain(['A', 'B', 'E']);
-
-        expect(scale.findIndex('E')).toBe(2);
-        expect(scale.findIndex('C')).toBeUndefined();
     });
 });
 

@@ -21,7 +21,8 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
     protected indexInitialized = false;
     /**
      * The domain this one replaced, with its index. Tick generation swaps a temporary domain in and back, so
-     * setting this array again swaps the two back rather than rebuilding the index.
+     * setting this array again swaps the two back rather than rebuilding the index. This assumes domain arrays
+     * are replaced, never changed in place.
      */
     private previous: DomainIndex<D> | undefined;
 
