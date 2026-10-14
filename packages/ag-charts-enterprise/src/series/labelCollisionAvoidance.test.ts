@@ -1676,12 +1676,21 @@ describe('label collision avoidance', () => {
             }
             return pairs;
         };
-        const render = async (opts: object) => {
+        const render = async (opts: object, width = 520, height = 360) => {
             chart?.destroy();
             prepareEnterpriseTestOptions(opts as AgChartOptions);
-            chart = deproxy(AgCharts.create({ ...opts, width: 520, height: 360 } as AgChartOptions));
+            chart = deproxy(AgCharts.create({ ...opts, width, height } as AgChartOptions));
             await waitForChartStability(chart);
         };
+        const plunker = () => ({ ...options({ placement: 'center' }), title: { text: 'Centre placement' } });
+        const interiorText = () => drawnLabels().find((node) => node.text.startsWith('An interior'))?.text;
+
+        it('runs a label past its column even when it cannot run past whole', async () => {
+            await render(plunker(), 480, 400);
+            const runningWhole = interiorText();
+            await render(plunker(), 479, 400);
+            expect(interiorText()?.length).toBeGreaterThanOrEqual(runningWhole!.length - 2);
+        });
 
         it('keeps centred labels running past their column clear of each other', async () => {
             await render(options({ placement: 'center' }));

@@ -667,12 +667,12 @@ export class SankeySeries extends FlowProportionSeries<
         let fitted: { text: string; fontSize?: number; room: number } | undefined;
 
         if (!leading && !trailing) {
-            // A label may run past its column while nothing is in the way, but only if it fits whole.
+            // A label may run past its column into the room clear of nodes; neighbouring labels are the engine's job.
             const lineHeight = this.labelMeasurer(font, font.fontSize).lineHeight();
             let halfHeight = lineHeight;
             for (let attempt = 0; attempt < 3; attempt++) {
                 const room = this.getClearLabelRoom(nodeGraph, node, x, textAlign, y - halfHeight, y + halfHeight);
-                const candidate = { ...this.fitNodeLabel(node.label, font, room, heightRoom, 'hide'), room };
+                const candidate = { ...this.fitNodeLabel(node.label, font, room, heightRoom), room };
                 if (candidate.text === '') break;
                 fitted = candidate;
                 if (!candidate.text.includes('\n')) break;
