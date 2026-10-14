@@ -12,13 +12,7 @@ import { DOMAIN_BANDS, REDUCER_BANDS, SHARED_ZERO_INDICES } from '../../dataMode
 import type { DataModelContext } from '../dataModelContext';
 import { createArray, toKeyString } from '../utils/helpers';
 
-/**
- * The kind of primitive a single-key group is looked up by. Within one kind, `Map` key equality is exactly
- * `toKeyString` equality: `String(n)` is injective over numbers (with `-0` and `0` sharing a `Map` key, as they
- * share a string), strings are their own key, and `Date` stringifies to its ISO time (invalid dates all to `null`),
- * which `valueOf()` reproduces. Across kinds it is not: `5`, `5n` and `'5'` share a string but not a `Map` key, and
- * a `Date` may equal a string. So the fast path is only used while every key is of one kind.
- */
+// The fast path needs a single kind: `5`, `5n` and `'5'` share a `toKeyString` but not a `Map` key.
 type PrimitiveKeyKind = 'number' | 'string' | 'bigint' | 'date';
 
 function primitiveKeyKind(key: unknown): PrimitiveKeyKind | undefined {
@@ -36,11 +30,7 @@ function primitiveKeyKind(key: unknown): PrimitiveKeyKind | undefined {
     }
 }
 
-/**
- * Finds the group a datum's keys belong to. Groups are looked up by the primitive key while every key is a single
- * value of one `PrimitiveKeyKind`, and by `toKeyString` once any key is not (the lookup is then rebuilt from the
- * groups created so far, so both modes group identically).
- */
+/** Looks groups up by primitive key while all keys are one kind, else by `toKeyString`. */
 class GroupLookup {
     private readonly indexByKey = new Map<unknown, number>();
     // `undefined` until the first key, `null` once keyed by string.
@@ -49,7 +39,7 @@ class GroupLookup {
 
     constructor(private readonly groupKeys: readonly unknown[][]) {}
 
-    /** The index of the group with these keys, or -1. `add` records a new group under the last key searched. */
+    /** The group index for these keys, or -1. `add` records a new group under the last key searched. */
     find(keys: unknown[]): number {
         this.key = this.keyOf(keys);
         return this.indexByKey.get(this.key) ?? -1;
@@ -176,8 +166,7 @@ export class DataGrouper<D extends object, K extends keyof D & string> {
         ] of columnBatches) {
             const firstColumn = allColumns[first(scopeColumnIndexes)];
             const keyCount = scopeKeys.length;
-            // Without a lookup map every datum starts a group that retains its keys, so there is nothing to reuse.
-            // Otherwise the keys are only copied when a group is created (see `GroupingFn` for the fn contract).
+            // Reused between datums, and copied only when a group is created.
             const scratchKeys: unknown[] | undefined = groups ? new Array(keyCount) : undefined;
             for (let datumIndex = 0; datumIndex < firstColumn.length; datumIndex++) {
                 if (scopeInvalidKeys?.[datumIndex] === true) continue;
