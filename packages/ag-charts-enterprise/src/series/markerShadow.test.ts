@@ -5,6 +5,7 @@ import {
     type Chart,
     MARKER_SHADOW,
     customMarkerShape,
+    deproxy,
     setupMockCanvas,
     setupMockConsole,
 } from 'ag-charts-community-test';
@@ -114,7 +115,7 @@ describe('marker shadow', () => {
     });
 
     const create = async (options: AgChartOptions) => {
-        chart = await createEnterpriseChart(options);
+        chart = deproxy(await createEnterpriseChart(options));
         return chart;
     };
 

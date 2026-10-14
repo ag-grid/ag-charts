@@ -334,7 +334,7 @@ describe('Axis Examples', () => {
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
         it(`for ${exampleName} it should create chart instance as expected`, async () => {
-            chart = await createChart(example.options);
+            chart = deproxy(await createChart(example.options));
             await example.assertions(chart);
         });
 
@@ -350,7 +350,7 @@ describe('Axis Examples', () => {
                 }
             };
 
-            chart = await createChart(example.options);
+            chart = deproxy(await createChart(example.options));
             await axisCompare();
 
             if (example.extraScreenshotActions) {
@@ -363,12 +363,12 @@ describe('Axis Examples', () => {
     describe('no series cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_NO_SERIES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -378,7 +378,7 @@ describe('Axis Examples', () => {
             });
 
             it(`for ${exampleName} it should render identically after legend toggle`, async () => {
-                chart = await createChart({ ...example.options, legend: { enabled: true } });
+                chart = deproxy(await createChart({ ...example.options, legend: { enabled: true } }));
                 const reference = await snapshot();
 
                 for (const s of chart.series) {
@@ -404,7 +404,9 @@ describe('Axis Examples', () => {
 
     describe('toggle secondary axis series', () => {
         it(`for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should render identically after legend toggle`, async () => {
-            chart = await createChart({ ...examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE, legend: { enabled: true } });
+            chart = deproxy(
+                await createChart({ ...examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE, legend: { enabled: true } })
+            );
             const reference = await snapshot();
 
             const secondarySeries = chart.series[2] as any;
@@ -427,10 +429,12 @@ describe('Axis Examples', () => {
         });
 
         it(`for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should render identically after legend toggle with reversed axes`, async () => {
-            chart = await createChart({
-                ...reverseAxes(examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE, true),
-                legend: { enabled: true },
-            });
+            chart = deproxy(
+                await createChart({
+                    ...reverseAxes(examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE, true),
+                    legend: { enabled: true },
+                })
+            );
 
             const reference = await snapshot();
 
@@ -458,12 +462,12 @@ describe('Axis Examples', () => {
     describe('configured tick values cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_TICK_VALUES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await compare(PATTERN_SNAPSHOT_DEFAULTS);
 
                 if (example.extraScreenshotActions) {
@@ -477,12 +481,12 @@ describe('Axis Examples', () => {
     describe('configured tick spacing cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_TICK_SPACING)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await compare(PATTERN_SNAPSHOT_DEFAULTS);
 
                 if (example.extraScreenshotActions) {
@@ -496,12 +500,12 @@ describe('Axis Examples', () => {
     describe('grid and tick line clipping cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_CLIPPING)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -514,23 +518,25 @@ describe('Axis Examples', () => {
 
     describe('AG-10654', () => {
         it('should render secondary category axis', async () => {
-            chart = await createChart({
-                data: [
-                    { quarter: 'Q1', quarter2: 'Q21', petrol: 200, diesel: 100 },
-                    { quarter: 'Q2', quarter2: 'Q22', petrol: 300, diesel: 130 },
-                    { quarter: 'Q3', quarter2: 'Q23', petrol: 350, diesel: 160 },
-                    { quarter: 'Q4', quarter2: 'Q24', petrol: 400, diesel: 200 },
-                ],
-                series: [
-                    { type: 'line', xKey: 'quarter', yKey: 'petrol' },
-                    { type: 'line', xKey: 'quarter2', yKey: 'diesel', xKeyAxis: 'secondaryX' },
-                ],
-                axes: {
-                    x: { type: 'category', position: 'top' },
-                    secondaryX: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { quarter: 'Q1', quarter2: 'Q21', petrol: 200, diesel: 100 },
+                        { quarter: 'Q2', quarter2: 'Q22', petrol: 300, diesel: 130 },
+                        { quarter: 'Q3', quarter2: 'Q23', petrol: 350, diesel: 160 },
+                        { quarter: 'Q4', quarter2: 'Q24', petrol: 400, diesel: 200 },
+                    ],
+                    series: [
+                        { type: 'line', xKey: 'quarter', yKey: 'petrol' },
+                        { type: 'line', xKey: 'quarter2', yKey: 'diesel', xKeyAxis: 'secondaryX' },
+                    ],
+                    axes: {
+                        x: { type: 'category', position: 'top' },
+                        secondaryX: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left' },
+                    },
+                })
+            );
             await compare();
         });
     });
@@ -538,12 +544,12 @@ describe('Axis Examples', () => {
     describe('label text alignment cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_LABEL_TEXT_ALIGN)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await compare();
             });
         }
@@ -552,12 +558,12 @@ describe('Axis Examples', () => {
     describe('label vertical alignment cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_LABEL_VERTICAL_ALIGN)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await compare();
             });
         }
@@ -574,12 +580,12 @@ describe('Axis Examples', () => {
 
         for (const [exampleName, example] of Object.entries(EXAMPLES_LAYOUT)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await example.assertions(chart);
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                chart = await createChart(example.options);
+                chart = deproxy(await createChart(example.options));
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -592,13 +598,15 @@ describe('Axis Examples', () => {
 
     describe('empty data', () => {
         it.each(['number', 'time', 'unit-time'] as const)(`should render empty %s axis`, async (axisType) => {
-            chart = await createChart({
-                data: [],
-                axes: {
-                    y: { type: 'number', position: 'left' },
-                    x: { type: axisType, position: 'bottom', min: 1 },
-                },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [],
+                    axes: {
+                        y: { type: 'number', position: 'left' },
+                        x: { type: axisType, position: 'bottom', min: 1 },
+                    },
+                })
+            );
             await compare();
         });
     });

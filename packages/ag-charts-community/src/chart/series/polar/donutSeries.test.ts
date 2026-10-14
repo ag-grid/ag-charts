@@ -271,118 +271,128 @@ describe('DonutSeries', () => {
 
     describe('#create', () => {
         test('multiple donuts', async () => {
-            chart = await createChart({
-                ...options,
-                series: [
-                    {
-                        data: [
-                            { city: 'Berlin', value: 150, index: 0 },
-                            { city: 'Munich', value: 100, index: 1 },
-                            { city: 'Hamburg', value: 180, index: 2 },
-                            { city: 'London', value: 120, index: 3 },
-                            { city: 'Manchester', value: 90, index: 4 },
-                            { city: 'Birmingham', value: 160, index: 5 },
-                            { city: 'Rome', value: 130, index: 6 },
-                            { city: 'Milan', value: 80, index: 7 },
-                            { city: 'Venice', value: 110, index: 8 },
-                            { city: 'Singapore City', value: 110, index: 9 },
-                            { city: 'Jurong', value: 120, index: 10 },
-                            { city: 'Woodlands', value: 100, index: 11 },
-                            { city: 'Delhi', value: 90, index: 12 },
-                            { city: 'Mumbai', value: 70, index: 13 },
-                            { city: 'Bangalore', value: 130, index: 14 },
-                            { city: 'Tokyo', value: 120, index: 15 },
-                            { city: 'Osaka', value: 100, index: 16 },
-                            { city: 'Kyoto', value: 110, index: 17 },
-                        ],
-                        type: 'donut',
-                        angleKey: 'value',
-                        sectorLabelKey: 'city',
-                        outerRadiusRatio: 0.8,
-                        innerRadiusRatio: 0.6,
-                    },
-                    {
-                        data: [
-                            { country: 'Germany', value: 430, index: 0 },
-                            { country: 'England', value: 370, index: 1 },
-                            { country: 'Italy', value: 320, index: 2 },
-                            { country: 'Singapore', value: 330, index: 3 },
-                            { country: 'India', value: 290, index: 4 },
-                            { country: 'Japan', value: 330, index: 5 },
-                        ],
-                        type: 'donut',
-                        angleKey: 'value',
-                        sectorLabelKey: 'country',
-                        outerRadiusRatio: 0.6,
-                        innerRadiusRatio: 0.4,
-                    },
-                    {
-                        data: [
-                            { continent: 'Europe', value: 1120 },
-                            { continent: 'Asia', value: 950 },
-                        ],
-                        type: 'donut',
-                        angleKey: 'value',
-                        sectorLabelKey: 'continent',
-                        outerRadiusRatio: 0.4,
-                        innerRadiusRatio: 0.2,
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    series: [
+                        {
+                            data: [
+                                { city: 'Berlin', value: 150, index: 0 },
+                                { city: 'Munich', value: 100, index: 1 },
+                                { city: 'Hamburg', value: 180, index: 2 },
+                                { city: 'London', value: 120, index: 3 },
+                                { city: 'Manchester', value: 90, index: 4 },
+                                { city: 'Birmingham', value: 160, index: 5 },
+                                { city: 'Rome', value: 130, index: 6 },
+                                { city: 'Milan', value: 80, index: 7 },
+                                { city: 'Venice', value: 110, index: 8 },
+                                { city: 'Singapore City', value: 110, index: 9 },
+                                { city: 'Jurong', value: 120, index: 10 },
+                                { city: 'Woodlands', value: 100, index: 11 },
+                                { city: 'Delhi', value: 90, index: 12 },
+                                { city: 'Mumbai', value: 70, index: 13 },
+                                { city: 'Bangalore', value: 130, index: 14 },
+                                { city: 'Tokyo', value: 120, index: 15 },
+                                { city: 'Osaka', value: 100, index: 16 },
+                                { city: 'Kyoto', value: 110, index: 17 },
+                            ],
+                            type: 'donut',
+                            angleKey: 'value',
+                            sectorLabelKey: 'city',
+                            outerRadiusRatio: 0.8,
+                            innerRadiusRatio: 0.6,
+                        },
+                        {
+                            data: [
+                                { country: 'Germany', value: 430, index: 0 },
+                                { country: 'England', value: 370, index: 1 },
+                                { country: 'Italy', value: 320, index: 2 },
+                                { country: 'Singapore', value: 330, index: 3 },
+                                { country: 'India', value: 290, index: 4 },
+                                { country: 'Japan', value: 330, index: 5 },
+                            ],
+                            type: 'donut',
+                            angleKey: 'value',
+                            sectorLabelKey: 'country',
+                            outerRadiusRatio: 0.6,
+                            innerRadiusRatio: 0.4,
+                        },
+                        {
+                            data: [
+                                { continent: 'Europe', value: 1120 },
+                                { continent: 'Asia', value: 950 },
+                            ],
+                            type: 'donut',
+                            angleKey: 'value',
+                            sectorLabelKey: 'continent',
+                            outerRadiusRatio: 0.4,
+                            innerRadiusRatio: 0.2,
+                        },
+                    ],
+                })
+            );
             await compare();
         });
 
         test('zerosum donut', async () => {
-            chart = await createChart({
-                ...options,
-                data: [{ value: 0 }, { value: 0 }],
-                series: [{ type: 'donut', angleKey: 'value', innerRadiusRatio: 0.5 }],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [{ value: 0 }, { value: 0 }],
+                    series: [{ type: 'donut', angleKey: 'value', innerRadiusRatio: 0.5 }],
+                })
+            );
             await compare();
         });
 
         test('one zerosum donut', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { a: 0, b: 1 },
-                    { a: 0, b: 3 },
-                ],
-                series: [
-                    { type: 'donut', angleKey: 'a', outerRadiusRatio: 0.9, innerRadiusRatio: 0.7 },
-                    { type: 'donut', angleKey: 'b', outerRadiusRatio: 0.4, innerRadiusRatio: 0.1 },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { a: 0, b: 1 },
+                        { a: 0, b: 3 },
+                    ],
+                    series: [
+                        { type: 'donut', angleKey: 'a', outerRadiusRatio: 0.9, innerRadiusRatio: 0.7 },
+                        { type: 'donut', angleKey: 'b', outerRadiusRatio: 0.4, innerRadiusRatio: 0.1 },
+                    ],
+                })
+            );
             await compare();
         });
 
         test('two zerosum donuts', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { a: 0, b: 0 },
-                    { a: 0, b: 0 },
-                ],
-                series: [
-                    { type: 'donut', angleKey: 'a', outerRadiusRatio: 0.9, innerRadiusRatio: 0.7 },
-                    { type: 'donut', angleKey: 'b', outerRadiusRatio: 0.4, innerRadiusRatio: 0.1 },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { a: 0, b: 0 },
+                        { a: 0, b: 0 },
+                    ],
+                    series: [
+                        { type: 'donut', angleKey: 'a', outerRadiusRatio: 0.9, innerRadiusRatio: 0.7 },
+                        { type: 'donut', angleKey: 'b', outerRadiusRatio: 0.4, innerRadiusRatio: 0.1 },
+                    ],
+                })
+            );
             await compare();
         });
     });
 
     describe('#validation', () => {
         test('null callout label key warning', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { label: 'A', value: 10 },
-                    { label: null, value: 20 },
-                    { label: 'B', value: 15 },
-                ],
-                series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label', innerRadiusRatio: 0.5 }],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { label: 'A', value: 10 },
+                        { label: null, value: 20 },
+                        { label: 'B', value: 15 },
+                    ],
+                    series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label', innerRadiusRatio: 0.5 }],
+                })
+            );
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -402,15 +412,17 @@ describe('DonutSeries', () => {
     describe('object-valued category data', () => {
         it('should resolve object-valued sector-label data without a data-type warning', async () => {
             const label = (text: string) => ({ id: text, label: text, toString: () => text });
-            chart = await createChart({
-                ...options,
-                data: [
-                    { city: label('Berlin'), value: 150 },
-                    { city: label('Munich'), value: 100 },
-                    { city: label('Hamburg'), value: 180 },
-                ],
-                series: [{ type: 'donut', angleKey: 'value', sectorLabelKey: 'city', innerRadiusRatio: 0.5 }],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { city: label('Berlin'), value: 150 },
+                        { city: label('Munich'), value: 100 },
+                        { city: label('Hamburg'), value: 180 },
+                    ],
+                    series: [{ type: 'donut', angleKey: 'value', sectorLabelKey: 'city', innerRadiusRatio: 0.5 }],
+                })
+            );
             await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([]);
@@ -422,7 +434,7 @@ describe('DonutSeries', () => {
             const opts: AgChartOptions = examples.DONUT_NULL_ANGLE_KEY_EXAMPLE;
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -443,7 +455,7 @@ describe('DonutSeries', () => {
             const opts: AgChartOptions = examples.DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -453,7 +465,7 @@ describe('DonutSeries', () => {
             const opts: AgChartOptions = examples.DONUT_UNDEFINED_CATEGORY_KEY_EXAMPLE;
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -474,7 +486,7 @@ describe('DonutSeries', () => {
             const opts: AgChartOptions = examples.DONUT_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -484,7 +496,7 @@ describe('DonutSeries', () => {
             const opts: AgChartOptions = examples.DONUT_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -517,7 +529,7 @@ describe('DonutSeries', () => {
             };
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             expect(calloutLabelFormatter).toHaveBeenCalled();
             const callWithNull = calloutLabelFormatter.mock.calls.find((c: any[]) => c[0]?.value === null);
@@ -544,7 +556,7 @@ describe('DonutSeries', () => {
             };
             prepareTestOptions(opts);
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
 
             await compare();
         });
@@ -552,357 +564,375 @@ describe('DonutSeries', () => {
 
     describe('pattern fill', () => {
         it('should render donut series with pattern fills', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                    { cat: 3, fox: 11, dog: 30 },
-                ],
-                series: [
-                    {
-                        type: 'donut',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        innerRadiusRatio: 0.5,
-                        fills: [
-                            {
-                                type: 'pattern',
-                                pattern: 'hearts',
-                                fill: 'red',
-                                stroke: 'red',
-                                backgroundFill: 'cyan',
-                                backgroundFillOpacity: 0.6,
-                                fillOpacity: 1,
-                                strokeWidth: 1,
-                                width: 60,
-                                height: 60,
-                            },
-                            {
-                                type: 'pattern',
-                                pattern: 'stars',
-                                fill: 'cyan',
-                                stroke: 'blue',
-                                backgroundFill: 'yellow',
-                                backgroundFillOpacity: 0.6,
-                                fillOpacity: 1,
-                                strokeWidth: 1,
-                                width: 20,
-                                height: 20,
-                            },
-                            {
-                                type: 'pattern',
-                                pattern: 'circles',
-                                fill: 'cyan',
-                                stroke: 'blue',
-                                backgroundFill: 'yellow',
-                                backgroundFillOpacity: 0.6,
-                                fillOpacity: 1,
-                                strokeWidth: 2,
-                                width: 50,
-                                height: 50,
-                            },
-                            {
-                                type: 'pattern',
-                                fill: 'cyan',
-                                stroke: 'blue',
-                                backgroundFill: 'yellow',
-                                backgroundFillOpacity: 0.6,
-                                fillOpacity: 1,
-                                strokeWidth: 2,
-                                path: 'M 0 17.83 V 0 h 17.83 a 3 3 0 0 1 -5.66 2 H 5.9 A 5 5 0 0 1 2 5.9 v 6.27 a 3 3 0 0 1 -2 5.66 Z m 0 18.34 a 3 3 0 0 1 2 5.66 v 6.27 A 5 5 0 0 1 5.9 52 h 6.27 a 3 3 0 0 1 5.66 0 H 0 V 36.17 Z M 36.17 52 a 3 3 0 0 1 5.66 0 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 0 1 0 -5.66 V 52 H 36.17 Z M 0 31.93 v -9.78 a 5 5 0 0 1 3.8 0.72 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 L 5.2 24.28 a 5 5 0 0 1 0 5.52 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 3.8 31.2 a 5 5 0 0 1 -3.8 0.72 Z m 52 -14.1 a 3 3 0 0 1 0 -5.66 V 5.9 A 5 5 0 0 1 48.1 2 h -6.27 a 3 3 0 0 1 -5.66 -2 H 52 v 17.83 Z m 0 14.1 a 4.97 4.97 0 0 1 -1.72 -0.72 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 0 -5.52 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 c 0.53 -0.35 1.12 -0.6 1.72 -0.72 v 9.78 Z M 22.15 0 h 9.78 a 5 5 0 0 1 -0.72 3.8 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 29.8 5.2 a 5 5 0 0 1 -5.52 0 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 -0.72 -3.8 Z m 0 52 c 0.13 -0.6 0.37 -1.19 0.72 -1.72 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 a 5 5 0 0 1 5.52 0 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 l -4.44 4.43 c 0.36 0.53 0.6 1.12 0.72 1.72 h -9.78 Z m 9.75 -24 a 5 5 0 0 1 -3.9 3.9 v 6.27 a 3 3 0 1 1 -2 0 V 31.9 a 5 5 0 0 1 -3.9 -3.9 h -6.27 a 3 3 0 1 1 0 -2 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 1 1 2 0 v 6.27 a 5 5 0 0 1 3.9 3.9 h 6.27 a 3 3 0 1 1 0 2 H 31.9 Z',
-                                width: 50,
-                                height: 50,
-                            },
-                            {
-                                type: 'pattern',
-                                pattern: 'crosses',
-                                fill: 'orange',
-                                stroke: 'red',
-                                backgroundFill: 'cyan',
-                                backgroundFillOpacity: 0.6,
-                                fillOpacity: 1,
-                                strokeWidth: 1,
-                                padding: 5,
-                                width: 40,
-                                height: 40,
-                            },
-                        ],
-                    } as AgDonutSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                        { cat: 3, fox: 11, dog: 30 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            innerRadiusRatio: 0.5,
+                            fills: [
+                                {
+                                    type: 'pattern',
+                                    pattern: 'hearts',
+                                    fill: 'red',
+                                    stroke: 'red',
+                                    backgroundFill: 'cyan',
+                                    backgroundFillOpacity: 0.6,
+                                    fillOpacity: 1,
+                                    strokeWidth: 1,
+                                    width: 60,
+                                    height: 60,
+                                },
+                                {
+                                    type: 'pattern',
+                                    pattern: 'stars',
+                                    fill: 'cyan',
+                                    stroke: 'blue',
+                                    backgroundFill: 'yellow',
+                                    backgroundFillOpacity: 0.6,
+                                    fillOpacity: 1,
+                                    strokeWidth: 1,
+                                    width: 20,
+                                    height: 20,
+                                },
+                                {
+                                    type: 'pattern',
+                                    pattern: 'circles',
+                                    fill: 'cyan',
+                                    stroke: 'blue',
+                                    backgroundFill: 'yellow',
+                                    backgroundFillOpacity: 0.6,
+                                    fillOpacity: 1,
+                                    strokeWidth: 2,
+                                    width: 50,
+                                    height: 50,
+                                },
+                                {
+                                    type: 'pattern',
+                                    fill: 'cyan',
+                                    stroke: 'blue',
+                                    backgroundFill: 'yellow',
+                                    backgroundFillOpacity: 0.6,
+                                    fillOpacity: 1,
+                                    strokeWidth: 2,
+                                    path: 'M 0 17.83 V 0 h 17.83 a 3 3 0 0 1 -5.66 2 H 5.9 A 5 5 0 0 1 2 5.9 v 6.27 a 3 3 0 0 1 -2 5.66 Z m 0 18.34 a 3 3 0 0 1 2 5.66 v 6.27 A 5 5 0 0 1 5.9 52 h 6.27 a 3 3 0 0 1 5.66 0 H 0 V 36.17 Z M 36.17 52 a 3 3 0 0 1 5.66 0 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 0 1 0 -5.66 V 52 H 36.17 Z M 0 31.93 v -9.78 a 5 5 0 0 1 3.8 0.72 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 L 5.2 24.28 a 5 5 0 0 1 0 5.52 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 3.8 31.2 a 5 5 0 0 1 -3.8 0.72 Z m 52 -14.1 a 3 3 0 0 1 0 -5.66 V 5.9 A 5 5 0 0 1 48.1 2 h -6.27 a 3 3 0 0 1 -5.66 -2 H 52 v 17.83 Z m 0 14.1 a 4.97 4.97 0 0 1 -1.72 -0.72 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 0 -5.52 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 c 0.53 -0.35 1.12 -0.6 1.72 -0.72 v 9.78 Z M 22.15 0 h 9.78 a 5 5 0 0 1 -0.72 3.8 l 4.44 4.43 a 3 3 0 1 1 -1.42 1.42 L 29.8 5.2 a 5 5 0 0 1 -5.52 0 l -4.43 4.44 a 3 3 0 1 1 -1.41 -1.42 l 4.43 -4.43 a 5 5 0 0 1 -0.72 -3.8 Z m 0 52 c 0.13 -0.6 0.37 -1.19 0.72 -1.72 l -4.43 -4.43 a 3 3 0 1 1 1.41 -1.41 l 4.43 4.43 a 5 5 0 0 1 5.52 0 l 4.43 -4.43 a 3 3 0 1 1 1.42 1.41 l -4.44 4.43 c 0.36 0.53 0.6 1.12 0.72 1.72 h -9.78 Z m 9.75 -24 a 5 5 0 0 1 -3.9 3.9 v 6.27 a 3 3 0 1 1 -2 0 V 31.9 a 5 5 0 0 1 -3.9 -3.9 h -6.27 a 3 3 0 1 1 0 -2 h 6.27 a 5 5 0 0 1 3.9 -3.9 v -6.27 a 3 3 0 1 1 2 0 v 6.27 a 5 5 0 0 1 3.9 3.9 h 6.27 a 3 3 0 1 1 0 2 H 31.9 Z',
+                                    width: 50,
+                                    height: 50,
+                                },
+                                {
+                                    type: 'pattern',
+                                    pattern: 'crosses',
+                                    fill: 'orange',
+                                    stroke: 'red',
+                                    backgroundFill: 'cyan',
+                                    backgroundFillOpacity: 0.6,
+                                    fillOpacity: 1,
+                                    strokeWidth: 1,
+                                    padding: 5,
+                                    width: 40,
+                                    height: 40,
+                                },
+                            ],
+                        } as AgDonutSeriesOptions,
+                    ],
+                })
+            );
             await compare(undefined, PATTERN_SNAPSHOT_DEFAULTS);
         });
     });
 
     describe('gradient fill', () => {
         it('should render donut series with a default radial gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'donut',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        innerRadiusRatio: 0.5,
-                        fills: [
-                            {
-                                type: 'gradient',
-                            },
-                        ],
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            innerRadiusRatio: 0.5,
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                },
+                            ],
+                        },
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render donut series with a radial gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'donut',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        innerRadiusRatio: 0.5,
-                        fills: [
-                            {
-                                type: 'gradient',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            innerRadiusRatio: 0.5,
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render donut series with a mix of radial gradient and string fills', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'donut',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        innerRadiusRatio: 0.5,
-                        fills: [
-                            {
-                                type: 'gradient',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                            'blue',
-                        ],
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            innerRadiusRatio: 0.5,
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                                'blue',
+                            ],
+                        },
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render donut series with a series bound radial gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'donut',
-                        radiusKey: 'cat',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        innerRadiusRatio: 0.1,
-                        fills: [
-                            {
-                                type: 'gradient',
-                                /* @ts-expect-error internal option */
-                                bounds: 'series',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    } as AgDonutSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            radiusKey: 'cat',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            innerRadiusRatio: 0.1,
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    /* @ts-expect-error internal option */
+                                    bounds: 'series',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            ],
+                        } as AgDonutSeriesOptions,
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render donut series with an item bound radial gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'donut',
-                        radiusKey: 'cat',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        innerRadiusRatio: 0.1,
-                        fills: [
-                            {
-                                type: 'gradient',
-                                /* @ts-expect-error internal option */
-                                bounds: 'item',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    } as AgDonutSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            radiusKey: 'cat',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            innerRadiusRatio: 0.1,
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    /* @ts-expect-error internal option */
+                                    bounds: 'item',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            ],
+                        } as AgDonutSeriesOptions,
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render donut series with an item bound linear gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'donut',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        innerRadiusRatio: 0.5,
-                        fills: [
-                            {
-                                type: 'gradient',
-                                /* @ts-expect-error internal option */
-                                gradient: 'linear',
-                                bounds: 'item',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    } as AgDonutSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            innerRadiusRatio: 0.5,
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    /* @ts-expect-error internal option */
+                                    gradient: 'linear',
+                                    bounds: 'item',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            ],
+                        } as AgDonutSeriesOptions,
+                    ],
+                })
+            );
             await compare();
         });
 
         it('should render donut series with a series bound linear gradient fill', async () => {
-            chart = await createChart({
-                ...options,
-                data: [
-                    { cat: 1, fox: 20, dog: 37 },
-                    { cat: 3, fox: 10, dog: 32 },
-                    { cat: 7, fox: 15, dog: 35 },
-                    { cat: 8, fox: 17, dog: 36 },
-                ],
-                series: [
-                    {
-                        type: 'donut',
-                        radiusKey: 'dog',
-                        angleKey: 'fox',
-                        sectorLabelKey: 'fox',
-                        innerRadiusRatio: 0.5,
-                        fills: [
-                            {
-                                type: 'gradient',
-                                /* @ts-expect-error internal option */
-                                gradient: 'linear',
-                                bounds: 'series',
-                                colorStops: [
-                                    {
-                                        color: 'green',
-                                    },
-                                    {
-                                        color: 'white',
-                                    },
-                                ],
-                            },
-                        ],
-                    } as AgDonutSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [
+                        { cat: 1, fox: 20, dog: 37 },
+                        { cat: 3, fox: 10, dog: 32 },
+                        { cat: 7, fox: 15, dog: 35 },
+                        { cat: 8, fox: 17, dog: 36 },
+                    ],
+                    series: [
+                        {
+                            type: 'donut',
+                            radiusKey: 'dog',
+                            angleKey: 'fox',
+                            sectorLabelKey: 'fox',
+                            innerRadiusRatio: 0.5,
+                            fills: [
+                                {
+                                    type: 'gradient',
+                                    /* @ts-expect-error internal option */
+                                    gradient: 'linear',
+                                    bounds: 'series',
+                                    colorStops: [
+                                        {
+                                            color: 'green',
+                                        },
+                                        {
+                                            color: 'white',
+                                        },
+                                    ],
+                                },
+                            ],
+                        } as AgDonutSeriesOptions,
+                    ],
+                })
+            );
             await compare();
         });
     });
 
     describe('#validation', () => {
         test('missing data warning', async () => {
-            chart = await createChart({
-                ...options,
-                data: [{ cat: '1' }, { cat: '2' }, { fox: 'L' }, { cat: '4', dog: 10 }, { cat: '5', dog: 20 }],
-                series: [
-                    {
-                        type: 'donut',
-                        calloutLabelKey: 'cat',
-                        angleKey: 'dog',
-                        sectorLabelKey: 'fox',
-                        innerRadiusRatio: 0.5,
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data: [{ cat: '1' }, { cat: '2' }, { fox: 'L' }, { cat: '4', dog: 10 }, { cat: '5', dog: 20 }],
+                    series: [
+                        {
+                            type: 'donut',
+                            calloutLabelKey: 'cat',
+                            angleKey: 'dog',
+                            sectorLabelKey: 'fox',
+                            innerRadiusRatio: 0.5,
+                        },
+                    ],
+                })
+            );
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -950,28 +980,30 @@ describe('DonutSeries', () => {
         };
 
         beforeEach(async () => {
-            chart = await createChart({
-                series: [
-                    {
-                        type: 'pie',
-                        data,
-                        angleKey: 'share',
-                        legendItemKey: 'browser',
-                        sectorLabelKey: 'share',
-                        outerRadiusRatio: 0.5,
-                    },
-                    {
-                        type: 'donut',
-                        data,
-                        angleKey: 'share',
-                        legendItemKey: 'browser',
-                        sectorLabelKey: 'share',
-                        calloutLabelKey: 'browser',
-                        innerRadiusRatio: 0.6,
-                        showInLegend: false,
-                    },
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    series: [
+                        {
+                            type: 'pie',
+                            data,
+                            angleKey: 'share',
+                            legendItemKey: 'browser',
+                            sectorLabelKey: 'share',
+                            outerRadiusRatio: 0.5,
+                        },
+                        {
+                            type: 'donut',
+                            data,
+                            angleKey: 'share',
+                            legendItemKey: 'browser',
+                            sectorLabelKey: 'share',
+                            calloutLabelKey: 'browser',
+                            innerRadiusRatio: 0.6,
+                            showInLegend: false,
+                        },
+                    ],
+                })
+            );
         });
 
         test('lights the linked series labels with the legend owner on legend hover', async () => {
@@ -998,14 +1030,16 @@ describe('DonutSeries', () => {
 
     describe('AG-14232 legend toggling', () => {
         beforeEach(async () => {
-            chart = await createChart({
-                data: [
-                    { name: 'Froot-Loops', value: 3 },
-                    { name: 'Cheerios', value: 4 },
-                    { name: 'Weetos', value: 5 },
-                ],
-                series: [{ type: 'donut', angleKey: 'value', legendItemKey: 'name' }],
-            });
+            chart = deproxy(
+                await createChart({
+                    data: [
+                        { name: 'Froot-Loops', value: 3 },
+                        { name: 'Cheerios', value: 4 },
+                        { name: 'Weetos', value: 5 },
+                    ],
+                    series: [{ type: 'donut', angleKey: 'value', legendItemKey: 'name' }],
+                })
+            );
         });
         describe('click', () => {
             test('mouse', async () => {
@@ -1135,13 +1169,13 @@ describe('DonutSeries', () => {
         });
 
         it('should display legend item for zero value sectors when `hideZeroValueSectorsInLegend` is not supplied in the options', async () => {
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
             await compare();
         });
         it('should hide legend item for zero value sectors when `hideZeroValueSectorsInLegend` is set to `true`', async () => {
             opts.series[0] = { ...series[0], hideZeroValueSectorsInLegend: true };
 
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
             await compare();
         });
     });
@@ -1172,7 +1206,7 @@ describe('DonutSeries', () => {
                 ],
             };
 
-            chart = await createChart(invalidDataOptions);
+            chart = deproxy(await createChart(invalidDataOptions));
             await compare();
 
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -1231,12 +1265,12 @@ describe('DonutSeries', () => {
     });
 
     test('AG-8290 label boxing', async () => {
-        chart = await createChart(labelBoxingOptions());
+        chart = deproxy(await createChart(labelBoxingOptions()));
         await compare();
     });
 
     test('AG-8290 label boxing with zero callout offset', async () => {
-        chart = await createChart(labelBoxingOptions(0));
+        chart = deproxy(await createChart(labelBoxingOptions(0)));
         await compare();
     });
 
@@ -1297,7 +1331,7 @@ describe('DonutSeries', () => {
                     },
                 ],
             };
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
         });
         test('calls', () => {
             expect(itemStyler.mock.mock.calls).toMatchSnapshot();
@@ -1350,7 +1384,7 @@ describe('DonutSeries', () => {
                     },
                 ],
             };
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
         });
         test('calls', () => {
             expect(itemStyler.mock.mock.calls).toMatchSnapshot();
@@ -1392,7 +1426,7 @@ describe('DonutSeries', () => {
                     },
                 ],
             };
-            chart = await createChart(opts);
+            chart = deproxy(await createChart(opts));
         });
         test('calls', () => {
             expect(itemStyler.mock.mock.calls).toMatchSnapshot();
@@ -1432,7 +1466,7 @@ describe('DonutSeries', () => {
                 },
             };
 
-            chart = await createChart(cutoutOptions);
+            chart = deproxy(await createChart(cutoutOptions));
 
             await hoverAction(250, 200)(chart);
             await compare();
@@ -1459,7 +1493,7 @@ describe('DonutSeries', () => {
                 },
             };
 
-            chart = await createChart(pieOptions);
+            chart = deproxy(await createChart(pieOptions));
 
             await hoverAction(250, 200)(chart);
             await compare();
@@ -1485,11 +1519,13 @@ describe('DonutSeries', () => {
         };
 
         it('anchors single-segment labels identically to the equivalent plain strings', async () => {
-            chart = await createChart(
-                segmentsOptions([
-                    { text: 'Total', fontSize: 16 },
-                    { text: '100', fontSize: 16, spacing: 8 },
-                ])
+            chart = deproxy(
+                await createChart(
+                    segmentsOptions([
+                        { text: 'Total', fontSize: 16 },
+                        { text: '100', fontSize: 16, spacing: 8 },
+                    ])
+                )
             );
             const plain = innerLabelGeometry(chart);
 
@@ -1522,16 +1558,18 @@ describe('DonutSeries', () => {
         });
 
         it('accepts a segments array without warnings and still rejects a malformed segment', async () => {
-            chart = await createChart(
-                segmentsOptions([
-                    {
-                        text: [
-                            { text: 'Total ' },
-                            { text: '100', fontSize: 20, color: 'red', verticalAlign: 'middle' },
-                        ],
-                        fontSize: 14,
-                    },
-                ])
+            chart = deproxy(
+                await createChart(
+                    segmentsOptions([
+                        {
+                            text: [
+                                { text: 'Total ' },
+                                { text: '100', fontSize: 20, color: 'red', verticalAlign: 'middle' },
+                            ],
+                            fontSize: 14,
+                        },
+                    ])
+                )
             );
 
             expectWarningsCalls().toEqual([]);
@@ -1601,7 +1639,7 @@ describe('DonutSeries', () => {
 
         // 1px tolerance absorbs canvas-mock measurement noise; the defect is a whole descent.
         it('centres a single inner label on the centre of the hole', async () => {
-            chart = await createChart(centredOptions([{ text: '10', fontSize: 80 }]));
+            chart = deproxy(await createChart(centredOptions([{ text: '10', fontSize: 80 }])));
 
             const [node] = classCast(chart.series[0], DonutSeries).innerLabelsSelection.nodes();
             expect(node.visible).toBe(true);
@@ -1610,11 +1648,13 @@ describe('DonutSeries', () => {
         });
 
         it('centres a two-line inner label stack on the centre of the hole, spacing intact', async () => {
-            chart = await createChart(
-                centredOptions([
-                    { text: 'Total', fontSize: 24, spacing: 6 },
-                    { text: '100', fontSize: 18, spacing: 10 },
-                ])
+            chart = deproxy(
+                await createChart(
+                    centredOptions([
+                        { text: 'Total', fontSize: 24, spacing: 6 },
+                        { text: '100', fontSize: 18, spacing: 10 },
+                    ])
+                )
             );
 
             const boxes = innerLabelBoxes(chart);
@@ -1672,11 +1712,13 @@ describe('DonutSeries', () => {
         });
 
         it('hides the inner labels when innerLabels is omitted from the updated options', async () => {
-            chart = await createChart(
-                donutOptions([
-                    { text: 'Total Investment', fontSize: 14 },
-                    { text: '$100,000', fontSize: 20, spacing: 8 },
-                ])
+            chart = deproxy(
+                await createChart(
+                    donutOptions([
+                        { text: 'Total Investment', fontSize: 14 },
+                        { text: '$100,000', fontSize: 20, spacing: 8 },
+                    ])
+                )
             );
             expect(classCast(chart.series[0], DonutSeries).innerLabelsSelection.nodes()).toHaveLength(2);
 
@@ -1702,18 +1744,20 @@ describe('DonutSeries', () => {
         const circleSize = (series: DonutSeries) => series.innerCircleSelection.nodes()[0].size;
 
         const createDonut = async (series: Partial<AgDonutSeriesOptions>) => {
-            chart = await createChart({
-                ...options,
-                data,
-                series: [
-                    {
-                        type: 'donut',
-                        angleKey: 'amount',
-                        innerRadiusRatio: 0.7,
-                        ...series,
-                    } as AgDonutSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    data,
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'amount',
+                            innerRadiusRatio: 0.7,
+                            ...series,
+                        } as AgDonutSeriesOptions,
+                    ],
+                })
+            );
             return classCast(chart.series[0], DonutSeries);
         };
 
@@ -1922,19 +1966,21 @@ describe('DonutSeries', () => {
         const DARK_THEME: AgChartTheme = { baseTheme: 'ag-default-dark' };
 
         const createDonut = async (series: Partial<AgDonutSeriesOptions>, theme: AgChartTheme = LIGHT_THEME) => {
-            chart = await createChart({
-                ...options,
-                theme,
-                data,
-                series: [
-                    {
-                        type: 'donut',
-                        angleKey: 'amount',
-                        innerRadiusRatio: 0.7,
-                        ...series,
-                    } as AgDonutSeriesOptions,
-                ],
-            });
+            chart = deproxy(
+                await createChart({
+                    ...options,
+                    theme,
+                    data,
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'amount',
+                            innerRadiusRatio: 0.7,
+                            ...series,
+                        } as AgDonutSeriesOptions,
+                    ],
+                })
+            );
             return classCast(chart.series[0], DonutSeries);
         };
 
@@ -2038,7 +2084,7 @@ describe('DonutSeries', () => {
         };
 
         test('renders a gradient fill with no explicit rotation', async () => {
-            chart = await createChart(richFillOptions({ type: 'gradient', colorStops: GRADIENT_STOPS }));
+            chart = deproxy(await createChart(richFillOptions({ type: 'gradient', colorStops: GRADIENT_STOPS })));
 
             await compare('donut-inner-circle-gradient-fill');
             const gradient = ctx.snapshot();
@@ -2047,7 +2093,9 @@ describe('DonutSeries', () => {
         });
 
         test('renders a gradient fill at an explicit rotation', async () => {
-            chart = await createChart(richFillOptions({ type: 'gradient', colorStops: GRADIENT_STOPS, rotation: 90 }));
+            chart = deproxy(
+                await createChart(richFillOptions({ type: 'gradient', colorStops: GRADIENT_STOPS, rotation: 90 }))
+            );
 
             await compare('donut-inner-circle-gradient-fill-rotated');
             const rotated = ctx.snapshot();
@@ -2058,7 +2106,7 @@ describe('DonutSeries', () => {
         });
 
         test('renders a bare pattern fill', async () => {
-            chart = await createChart(richFillOptions({ type: 'pattern' }));
+            chart = deproxy(await createChart(richFillOptions({ type: 'pattern' })));
 
             await compare('donut-inner-circle-pattern-fill', PATTERN_SNAPSHOT_DEFAULTS);
             const pattern = ctx.snapshot();
@@ -2096,7 +2144,7 @@ describe('DonutSeries', () => {
         // bbox, so this is the one rich-fill case node state cannot answer.
         test('renders a pattern fill through the rounded-corner composite', async () => {
             const cornerRadius = 20;
-            chart = await createChart(richFillOptions({ type: 'pattern' }, { cornerRadius }));
+            chart = deproxy(await createChart(richFillOptions({ type: 'pattern' }, { cornerRadius })));
 
             const series = classCast(chart.series[0], DonutSeries);
             expect(series.innerCircleGroup.renderToOffscreenCanvas).toBe(true);
@@ -2117,7 +2165,7 @@ describe('DonutSeries', () => {
                 ['variable-radius pie', polarExamples.PIE_SECTORS_DIFFERENT_RADII],
                 ['grouped variable-radius donuts', polarExamples.DONUT_SERIES_DIFFERENT_RADII],
             ])('%s', async (_name, seriesOptions) => {
-                chart = await createChart(seriesOptions);
+                chart = deproxy(await createChart(seriesOptions));
 
                 expect(hasVariableRadius(chart)).toBe(true);
                 expect(labelsOverlappingASector(chart)).toEqual([]);
@@ -2183,7 +2231,7 @@ describe('DonutSeries', () => {
                 ['padded box', 0],
                 ['padded box with a border', 3],
             ])('%s', async (_name, borderWidth) => {
-                chart = await createChart(boxedCalloutLabels(borderWidth));
+                chart = deproxy(await createChart(boxedCalloutLabels(borderWidth)));
 
                 expect(visibleCalloutLabels(chart)).not.toEqual([]);
                 expect(calloutLinesMissingTheirBorder(chart, borderWidth)).toEqual([]);
@@ -2196,14 +2244,14 @@ describe('DonutSeries', () => {
                 ['pie with colliding callouts', polarExamples.PIE_CALLOUT_LABELS_COLLISIONS],
                 ['grouped donuts', polarExamples.DONUT_SERIES],
             ])('%s', async (_name, seriesOptions) => {
-                chart = await createChart(seriesOptions);
+                chart = deproxy(await createChart(seriesOptions));
 
                 expect(labelsOverlappingEachOther(chart)).toEqual([]);
             });
         });
 
         test('a uniform-radius series keeps every label on its own radius', async () => {
-            chart = await createChart(UNIFORM_RADIUS_CROWDED_TOP);
+            chart = deproxy(await createChart(UNIFORM_RADIUS_CROWDED_TOP));
             expect(hasVariableRadius(chart)).toBe(false);
 
             const offsets = calloutSeries(chart).flatMap((series) =>

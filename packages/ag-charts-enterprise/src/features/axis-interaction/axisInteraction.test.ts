@@ -57,27 +57,29 @@ describe('AxisInteraction', () => {
 
     describe('horizontal grouped-category clicks', () => {
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: [
-                    { y: 10, x: ['Food', 'Meat', 'Fish'] },
-                    { y: 10, x: ['Food', 'Meat', 'Chicken'] },
-                    { y: 10, x: ['Food', 'Fruit', 'Banana'] },
-                    { y: 10, x: ['Food', 'Fruit', 'Apple'] },
-                    { y: 10, x: ['Drink', 'Soda', 'Coke'] },
-                    { y: 10, x: ['Drink', 'Soda', 'Pepsi'] },
-                    { y: 10, x: ['Drink', 'Tea', 'Green'] },
-                ],
-                axes: {
-                    x: {
-                        type: 'grouped-category',
-                        depthOptions: [{}, {}, {}],
-                        label: { formatter },
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: [
+                        { y: 10, x: ['Food', 'Meat', 'Fish'] },
+                        { y: 10, x: ['Food', 'Meat', 'Chicken'] },
+                        { y: 10, x: ['Food', 'Fruit', 'Banana'] },
+                        { y: 10, x: ['Food', 'Fruit', 'Apple'] },
+                        { y: 10, x: ['Drink', 'Soda', 'Coke'] },
+                        { y: 10, x: ['Drink', 'Soda', 'Pepsi'] },
+                        { y: 10, x: ['Drink', 'Tea', 'Green'] },
+                    ],
+                    axes: {
+                        x: {
+                            type: 'grouped-category',
+                            depthOptions: [{}, {}, {}],
+                            label: { formatter },
+                            listeners: { click },
+                        },
                     },
-                },
-                zoom: { enabled: true },
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            });
+                    zoom: { enabled: true },
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         // Check that label formatter's indices match the DFS ordering of the x-grouping.
@@ -178,23 +180,25 @@ describe('AxisInteraction', () => {
 
     describe('vertical grouped-category clicks', () => {
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: [
-                    { x: 10, y: ['Food', 'Meat', 'Fish'] },
-                    { x: 10, y: ['Food', 'Meat', 'Chicken'] },
-                    { x: 10, y: ['Food', 'Fruit', 'Banana'] },
-                    { x: 10, y: ['Drink', 'Soda', 'Coke'] },
-                ],
-                axes: {
-                    y: {
-                        type: 'grouped-category',
-                        depthOptions: [{}, {}, {}],
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: [
+                        { x: 10, y: ['Food', 'Meat', 'Fish'] },
+                        { x: 10, y: ['Food', 'Meat', 'Chicken'] },
+                        { x: 10, y: ['Food', 'Fruit', 'Banana'] },
+                        { x: 10, y: ['Drink', 'Soda', 'Coke'] },
+                    ],
+                    axes: {
+                        y: {
+                            type: 'grouped-category',
+                            depthOptions: [{}, {}, {}],
+                            listeners: { click },
+                        },
                     },
-                },
-                zoom: { enabled: true },
-                series: [{ type: 'bar', direction: 'horizontal', xKey: 'y', yKey: 'x' }],
-            });
+                    zoom: { enabled: true },
+                    series: [{ type: 'bar', direction: 'horizontal', xKey: 'y', yKey: 'x' }],
+                })
+            );
         });
 
         test('click - value/index match', async () => {
@@ -235,15 +239,17 @@ describe('AxisInteraction', () => {
 
     describe('continuous axis clicks', () => {
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
-                axes: {
-                    x: { type: 'number', listeners: { click } },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
+                    axes: {
+                        x: { type: 'number', listeners: { click } },
+                        y: { type: 'number' },
+                    },
+                    zoom: { enabled: true },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         // On a continuous axis `value` and `index` deliberately describe different things: `value` is interpolated from
@@ -264,24 +270,26 @@ describe('AxisInteraction', () => {
 
     describe('discrete axis with labels disabled and ticks enabled', () => {
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: [
-                    { x: 'A', y: 1 },
-                    { x: 'B', y: 2 },
-                    { x: 'C', y: 3 },
-                ],
-                axes: {
-                    x: {
-                        type: 'category',
-                        label: { enabled: false },
-                        tick: { enabled: true, size: 30 },
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: [
+                        { x: 'A', y: 1 },
+                        { x: 'B', y: 2 },
+                        { x: 'C', y: 3 },
+                    ],
+                    axes: {
+                        x: {
+                            type: 'category',
+                            label: { enabled: false },
+                            tick: { enabled: true, size: 30 },
+                            listeners: { click },
+                        },
+                        y: { type: 'number' },
                     },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true },
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            });
+                    zoom: { enabled: true },
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         // Clicks land on each band centre, which is also where the tick sits.
@@ -301,20 +309,22 @@ describe('AxisInteraction', () => {
 
     describe('continuous axis with labels disabled and ticks enabled', () => {
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
-                axes: {
-                    x: {
-                        type: 'number',
-                        label: { enabled: false },
-                        tick: { enabled: true, size: 30 },
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
+                    axes: {
+                        x: {
+                            type: 'number',
+                            label: { enabled: false },
+                            tick: { enabled: true, size: 30 },
+                            listeners: { click },
+                        },
+                        y: { type: 'number' },
                     },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+                    zoom: { enabled: true },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         // Ticks sit every 200 across a 0..1000 domain; each click is nearest an unambiguous one.
@@ -334,17 +344,19 @@ describe('AxisInteraction', () => {
 
     describe('suppressed overflow labels', () => {
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                // Zero right padding removes the slack that normally absorbs the overflowing label.
-                padding: { right: 0, left: 0 },
-                data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
-                axes: {
-                    x: { type: 'number', label: { formatter }, listeners: { click } },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createEnterpriseChart({
+                    // Zero right padding removes the slack that normally absorbs the overflowing label.
+                    padding: { right: 0, left: 0 },
+                    data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
+                    axes: {
+                        x: { type: 'number', label: { formatter }, listeners: { click } },
+                        y: { type: 'number' },
+                    },
+                    zoom: { enabled: true },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         // The end labels '0' and '1000' hide themselves to avoid overflowing, but their ticks and label
@@ -383,27 +395,29 @@ describe('AxisInteraction', () => {
 
     describe('axis with labels, ticks and grid lines disabled - category', () => {
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: [
-                    { x: 'A', y: 1 },
-                    { x: 'B', y: 2 },
-                    { x: 'C', y: 3 },
-                ],
-                axes: {
-                    x: {
-                        type: 'category',
-                        label: { enabled: false },
-                        tick: { enabled: false },
-                        gridLine: { enabled: false },
-                        // A title keeps the axis region non-empty, so it stays clickable.
-                        title: { enabled: true, text: 'Category' },
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: [
+                        { x: 'A', y: 1 },
+                        { x: 'B', y: 2 },
+                        { x: 'C', y: 3 },
+                    ],
+                    axes: {
+                        x: {
+                            type: 'category',
+                            label: { enabled: false },
+                            tick: { enabled: false },
+                            gridLine: { enabled: false },
+                            // A title keeps the axis region non-empty, so it stays clickable.
+                            title: { enabled: true, text: 'Category' },
+                            listeners: { click },
+                        },
+                        y: { type: 'number' },
                     },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true, buttons: { enabled: false } },
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            });
+                    zoom: { enabled: true, buttons: { enabled: false } },
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         test('index still resolves to the clicked category', async () => {
@@ -422,23 +436,25 @@ describe('AxisInteraction', () => {
 
     describe('axis with labels, ticks and grid lines disabled - number', () => {
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: Array.from({ length: 6 }, (_, i) => ({ x: i * 100, y: i })),
-                axes: {
-                    x: {
-                        type: 'number',
-                        label: { enabled: false },
-                        tick: { enabled: false },
-                        gridLine: { enabled: false },
-                        // A title keeps the axis region non-empty, so it stays clickable.
-                        title: { enabled: true, text: 'Number' },
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: Array.from({ length: 6 }, (_, i) => ({ x: i * 100, y: i })),
+                    axes: {
+                        x: {
+                            type: 'number',
+                            label: { enabled: false },
+                            tick: { enabled: false },
+                            gridLine: { enabled: false },
+                            // A title keeps the axis region non-empty, so it stays clickable.
+                            title: { enabled: true, text: 'Number' },
+                            listeners: { click },
+                        },
+                        y: { type: 'number' },
                     },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true, buttons: { enabled: false } },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+                    zoom: { enabled: true, buttons: { enabled: false } },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         // The axis line spans canvas x 38..780 over a 0..500 domain, with a tick every 100.
@@ -462,23 +478,25 @@ describe('AxisInteraction', () => {
     // axis keeps its ticks whatever `nice` is set to.
     describe('axis with labels, ticks and grid lines disabled - number, nice: false', () => {
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: Array.from({ length: 6 }, (_, i) => ({ x: i * 100, y: i })),
-                axes: {
-                    x: {
-                        type: 'number',
-                        nice: false,
-                        label: { enabled: false },
-                        tick: { enabled: false },
-                        gridLine: { enabled: false },
-                        title: { enabled: true, text: 'Number' },
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: Array.from({ length: 6 }, (_, i) => ({ x: i * 100, y: i })),
+                    axes: {
+                        x: {
+                            type: 'number',
+                            nice: false,
+                            label: { enabled: false },
+                            tick: { enabled: false },
+                            gridLine: { enabled: false },
+                            title: { enabled: true, text: 'Number' },
+                            listeners: { click },
+                        },
+                        y: { type: 'number' },
                     },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true, buttons: { enabled: false } },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+                    zoom: { enabled: true, buttons: { enabled: false } },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         test('index still resolves to the clicked tick', async () => {
@@ -498,15 +516,17 @@ describe('AxisInteraction', () => {
 
     describe('band interior clicks - category', () => {
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: Array.from({ length: 12 }, (_, i) => `Category-Name-${i}`).map((x, i) => ({ x, y: i })),
-                axes: {
-                    x: { type: 'category', label: { rotation: 0, avoidCollisions: false }, listeners: { click } },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true },
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: Array.from({ length: 12 }, (_, i) => `Category-Name-${i}`).map((x, i) => ({ x, y: i })),
+                    axes: {
+                        x: { type: 'category', label: { rotation: 0, avoidCollisions: false }, listeners: { click } },
+                        y: { type: 'number' },
+                    },
+                    zoom: { enabled: true },
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         // Band 5 spans canvas 360..403. Both clicks are inside it, so both must report the same
@@ -529,19 +549,21 @@ describe('AxisInteraction', () => {
         let Xs: [number, number, number, number];
 
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: Array.from({ length: 4 }, (_, i) => ({ x: i / 5, y: i * 2 })),
-                axes: {
-                    x: {
-                        type: 'number',
-                        label: { rotation: 0, avoidCollisions: false, format: '#{0.9f}' },
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: Array.from({ length: 4 }, (_, i) => ({ x: i / 5, y: i * 2 })),
+                    axes: {
+                        x: {
+                            type: 'number',
+                            label: { rotation: 0, avoidCollisions: false, format: '#{0.9f}' },
+                            listeners: { click },
+                        },
+                        y: { type: 'number' },
                     },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+                    zoom: { enabled: true },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
 
             Xs = measureXGridLines()!;
             expect(Xs).toBeDefined();
@@ -584,19 +606,21 @@ describe('AxisInteraction', () => {
         const nearTick = (x: bigint) => closeToBigInt(x, step / 200n);
 
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: xs.map((x, i) => ({ x, y: i * 2 })),
-                axes: {
-                    x: {
-                        type: 'number',
-                        label: { rotation: 0, avoidCollisions: false },
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: xs.map((x, i) => ({ x, y: i * 2 })),
+                    axes: {
+                        x: {
+                            type: 'number',
+                            label: { rotation: 0, avoidCollisions: false },
+                            listeners: { click },
+                        },
+                        y: { type: 'number' },
                     },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+                    zoom: { enabled: true },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
 
             Xs = measureXGridLines()!;
             expect(Xs).toBeDefined();
@@ -641,23 +665,25 @@ describe('AxisInteraction', () => {
         const nearTick = (x: Date) => closeToDate(x, 10 * 60 * 1000);
 
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: xs.map((x, i) => ({ x, y: i * 2 })),
-                axes: {
-                    x: {
-                        type: 'time',
-                        // One tick per datum, so the four grid lines are ticks 0..3 as in the variants above.
-                        interval: { step: 'day' },
-                        // A full ISO-8601 timestamp is long enough to reproduce the padding the `number`
-                        // variant gets from '#{0.9f}'.
-                        label: { rotation: 0, avoidCollisions: false, format: '%Y-%m-%dT%H:%M:%S.%L' },
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: xs.map((x, i) => ({ x, y: i * 2 })),
+                    axes: {
+                        x: {
+                            type: 'time',
+                            // One tick per datum, so the four grid lines are ticks 0..3 as in the variants above.
+                            interval: { step: 'day' },
+                            // A full ISO-8601 timestamp is long enough to reproduce the padding the `number`
+                            // variant gets from '#{0.9f}'.
+                            label: { rotation: 0, avoidCollisions: false, format: '%Y-%m-%dT%H:%M:%S.%L' },
+                            listeners: { click },
+                        },
+                        y: { type: 'number' },
                     },
-                    y: { type: 'number' },
-                },
-                zoom: { enabled: true },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+                    zoom: { enabled: true },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
 
             Xs = measureXGridLines()!;
             expect(Xs).toBeDefined();
@@ -696,15 +722,17 @@ describe('AxisInteraction', () => {
         let Xs: [number, number, number, number];
 
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: Array.from({ length: 4 }, (_, i) => ({ x: 20_000 + i * 20_000, y: i })),
-                axes: {
-                    // One tick per datum, so the four grid lines are the four ticks.
-                    x: { type: 'number', reverse: true, interval: { step: 20_000 }, listeners: { click } },
-                    y: { type: 'number' },
-                },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: Array.from({ length: 4 }, (_, i) => ({ x: 20_000 + i * 20_000, y: i })),
+                    axes: {
+                        // One tick per datum, so the four grid lines are the four ticks.
+                        x: { type: 'number', reverse: true, interval: { step: 20_000 }, listeners: { click } },
+                        y: { type: 'number' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
             Xs = measureXGridLines()!;
             expect(Xs).toBeDefined();
         });
@@ -743,14 +771,16 @@ describe('AxisInteraction', () => {
         const days = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
 
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: days.map((x, i) => ({ x, y: i })),
-                axes: {
-                    x: { type: 'unit-time', reverse: true, listeners: { click } },
-                    y: { type: 'number' },
-                },
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: days.map((x, i) => ({ x, y: i })),
+                    axes: {
+                        x: { type: 'unit-time', reverse: true, listeners: { click } },
+                        y: { type: 'number' },
+                    },
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         test('each click reports its own band', async () => {
@@ -774,14 +804,16 @@ describe('AxisInteraction', () => {
         const days = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
 
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: days.map((x, i) => ({ x, y: i })),
-                axes: {
-                    x: { type: 'ordinal-time', reverse: true, listeners: { click } },
-                    y: { type: 'number' },
-                },
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            });
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: days.map((x, i) => ({ x, y: i })),
+                    axes: {
+                        x: { type: 'ordinal-time', reverse: true, listeners: { click } },
+                        y: { type: 'number' },
+                    },
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                })
+            );
         });
 
         test('each click reports its own band', async () => {
@@ -807,22 +839,24 @@ describe('AxisInteraction', () => {
         let Xs: [number, number, number, number];
 
         beforeEach(async () => {
-            chart = await createEnterpriseChart({
-                data: [
-                    { x: 0, y: 1 },
-                    { x: 100, y: 2 },
-                    { x: 1, y: 3 },
-                ],
-                axes: {
-                    x: {
-                        type: 'category',
-                        label: { formatter: (p) => `Category Number: ${p.value}` },
-                        listeners: { click },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: [
+                        { x: 0, y: 1 },
+                        { x: 100, y: 2 },
+                        { x: 1, y: 3 },
+                    ],
+                    axes: {
+                        x: {
+                            type: 'category',
+                            label: { formatter: (p) => `Category Number: ${p.value}` },
+                            listeners: { click },
+                        },
+                        y: { type: 'number' },
                     },
-                    y: { type: 'number' },
-                },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            });
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                })
+            );
             Xs = measureXGridLines()!;
             expect(Xs).toBeDefined();
         });
@@ -880,7 +914,7 @@ describe('AxisInteraction', () => {
         });
 
         test('fires for a click on either axis area', async () => {
-            chart = await createChart();
+            chart = deproxy(await createChart());
 
             await clickAction(...X_AXIS_AREA)(chart);
             await clickAction(...Y_AXIS_AREA)(chart);
@@ -893,7 +927,7 @@ describe('AxisInteraction', () => {
         });
 
         test('fires doubleClick for a double-click on the axis area', async () => {
-            chart = await createChart();
+            chart = deproxy(await createChart());
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -902,7 +936,7 @@ describe('AxisInteraction', () => {
         });
 
         test('an axis listener consumes the click, and only for its own axis', async () => {
-            chart = await createChart({ axes: { x: { listeners: { click } }, y: {} } });
+            chart = deproxy(await createChart({ axes: { x: { listeners: { click } }, y: {} } }));
 
             await clickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -921,7 +955,7 @@ describe('AxisInteraction', () => {
         // A listener for one event type must not suppress the fallback for the other: the dispatch below
         // picks its listener by event type, so the unmatched event would otherwise reach nothing at all.
         test('a click-only axis listener leaves doubleClick to the chart', async () => {
-            chart = await createChart({ axes: { x: { listeners: { click } }, y: {} } });
+            chart = deproxy(await createChart({ axes: { x: { listeners: { click } }, y: {} } }));
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -933,7 +967,7 @@ describe('AxisInteraction', () => {
 
         test('a doubleClick-only axis listener leaves click to the chart', async () => {
             const doubleClick = vi.fn();
-            chart = await createChart({ axes: { x: { listeners: { doubleClick } }, y: {} } });
+            chart = deproxy(await createChart({ axes: { x: { listeners: { doubleClick } }, y: {} } }));
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);
@@ -947,7 +981,7 @@ describe('AxisInteraction', () => {
         });
 
         test('zoom owns the axis, so nothing is handed back to the chart', async () => {
-            chart = await createChart({ zoom: { enabled: true, enableDoubleClickToReset: true } });
+            chart = deproxy(await createChart({ zoom: { enabled: true, enableDoubleClickToReset: true } }));
 
             await doubleClickAction(...X_AXIS_AREA)(chart);
             await waitForChartStability(chart);

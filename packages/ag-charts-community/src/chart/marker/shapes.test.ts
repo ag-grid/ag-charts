@@ -6,6 +6,7 @@ import type { Chart } from '../chart';
 import {
     compareImageSnapshot,
     createChart,
+    deproxy,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -46,7 +47,7 @@ describe('Marker Shapes', () => {
                 ],
             };
             prepareTestOptions(options);
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await compare();
         });
 
@@ -70,7 +71,7 @@ describe('Marker Shapes', () => {
                 ],
             };
             prepareTestOptions(options);
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await compare();
         });
 
@@ -101,7 +102,7 @@ describe('Marker Shapes', () => {
                 },
             };
             prepareTestOptions(options);
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await compare();
         });
     });

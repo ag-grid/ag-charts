@@ -10,6 +10,7 @@ import {
     clickAction,
     compareImageSnapshot,
     contextMenuAction,
+    deproxy,
     hoverAction,
     mixinDerivedCases,
     repeat,
@@ -197,28 +198,30 @@ describe('Grouped Category', () => {
 
         describe('without crosshair', () => {
             beforeEach(async () => {
-                chart = await createEnterpriseChart({
-                    data: [
-                        { y: 10, x: ['Food', 'Meat', 'Fish'] },
-                        { y: 10, x: ['Food', 'Meat', 'Chicken'] },
-                        { y: 10, x: ['Food', 'Fruit', 'Banana'] },
-                        { y: 10, x: ['Food', 'Fruit', 'Apple'] },
-                        { y: 10, x: ['Drink', 'Soda', 'Coke'] },
-                        { y: 10, x: ['Drink', 'Soda', 'Pepsi'] },
-                        { y: 10, x: ['Drink', 'Tea', 'Green'] },
-                    ],
-                    axes: {
-                        x: {
-                            type: 'grouped-category',
-                            depthOptions: [{}, {}, {}],
-                            label: { formatter, itemStyler },
-                            listeners: { click },
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: [
+                            { y: 10, x: ['Food', 'Meat', 'Fish'] },
+                            { y: 10, x: ['Food', 'Meat', 'Chicken'] },
+                            { y: 10, x: ['Food', 'Fruit', 'Banana'] },
+                            { y: 10, x: ['Food', 'Fruit', 'Apple'] },
+                            { y: 10, x: ['Drink', 'Soda', 'Coke'] },
+                            { y: 10, x: ['Drink', 'Soda', 'Pepsi'] },
+                            { y: 10, x: ['Drink', 'Tea', 'Green'] },
+                        ],
+                        axes: {
+                            x: {
+                                type: 'grouped-category',
+                                depthOptions: [{}, {}, {}],
+                                label: { formatter, itemStyler },
+                                listeners: { click },
+                            },
                         },
-                    },
-                    zoom: { enabled: true },
-                    contextMenu: { getItems },
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeClick } }],
-                });
+                        zoom: { enabled: true },
+                        contextMenu: { getItems },
+                        series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeClick } }],
+                    })
+                );
             });
 
             test('formatter (init)', () => {
@@ -420,36 +423,38 @@ describe('Grouped Category', () => {
         // out of the tests above.
         describe('crosshair', () => {
             beforeEach(async () => {
-                chart = await createEnterpriseChart({
-                    data: [
-                        { y: 10, x: ['Food', 'Meat', 'Fish'] },
-                        { y: 10, x: ['Food', 'Meat', 'Chicken'] },
-                        { y: 10, x: ['Food', 'Fruit', 'Banana'] },
-                        { y: 10, x: ['Food', 'Fruit', 'Apple'] },
-                        { y: 10, x: ['Drink', 'Soda', 'Coke'] },
-                        { y: 10, x: ['Drink', 'Soda', 'Pepsi'] },
-                        { y: 10, x: ['Drink', 'Tea', 'Green'] },
-                    ],
-                    axes: {
-                        x: {
-                            type: 'grouped-category',
-                            depthOptions: [{}, {}, {}],
-                            label: { formatter, itemStyler },
-                            crosshair: {
-                                enabled: true,
-                                label: {
+                chart = deproxy(
+                    await createEnterpriseChart({
+                        data: [
+                            { y: 10, x: ['Food', 'Meat', 'Fish'] },
+                            { y: 10, x: ['Food', 'Meat', 'Chicken'] },
+                            { y: 10, x: ['Food', 'Fruit', 'Banana'] },
+                            { y: 10, x: ['Food', 'Fruit', 'Apple'] },
+                            { y: 10, x: ['Drink', 'Soda', 'Coke'] },
+                            { y: 10, x: ['Drink', 'Soda', 'Pepsi'] },
+                            { y: 10, x: ['Drink', 'Tea', 'Green'] },
+                        ],
+                        axes: {
+                            x: {
+                                type: 'grouped-category',
+                                depthOptions: [{}, {}, {}],
+                                label: { formatter, itemStyler },
+                                crosshair: {
                                     enabled: true,
-                                    formatter: crosshairFormatter,
-                                    renderer: crosshairRenderer,
+                                    label: {
+                                        enabled: true,
+                                        formatter: crosshairFormatter,
+                                        renderer: crosshairRenderer,
+                                    },
                                 },
+                                listeners: { click },
                             },
-                            listeners: { click },
                         },
-                    },
-                    zoom: { enabled: true },
-                    contextMenu: { getItems },
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeClick } }],
-                });
+                        zoom: { enabled: true },
+                        contextMenu: { getItems },
+                        series: [{ type: 'bar', xKey: 'x', yKey: 'y', listeners: { seriesNodeClick } }],
+                    })
+                );
             });
 
             test('label formatter', async () => {

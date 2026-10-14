@@ -145,7 +145,7 @@ describe('Legend', () => {
     };
 
     const compareSnapshot = async (options: AgChartOptions) => {
-        chart = await createChart(options);
+        chart = deproxy(await createChart(options));
         await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
@@ -173,7 +173,7 @@ describe('Legend', () => {
                     position,
                 },
             };
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await compare(chart);
         });
     });
@@ -181,7 +181,7 @@ describe('Legend', () => {
     describe('Clicks', () => {
         let x: number, y: number;
         beforeEach(async () => {
-            chart = await createChart({ ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS });
+            chart = deproxy(await createChart({ ...examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS }));
             const box = computeLegendBBox(chart);
             x = box.x;
             y = box.y;
@@ -454,7 +454,7 @@ describe('Legend', () => {
         // The toggled-off item is the first one; the second stays enabled so every case also
         // asserts that the enabled item is left alone.
         const disabledItem = async (item: AgChartLegendItemOptions) => {
-            chart = await createChart(withLegendItem(item));
+            chart = deproxy(await createChart(withLegendItem(item)));
             return getLegendModule(chart).itemSelection.nodes();
         };
 
@@ -556,14 +556,16 @@ describe('Legend', () => {
         });
 
         it('should restore the enabled appearance when the item is toggled back on', async () => {
-            chart = await createChart({
-                data: disabledStyleData,
-                series: [
-                    { type: 'line', xKey: 'x', yKey: 'a', marker: { enabled: true } },
-                    { type: 'line', xKey: 'x', yKey: 'b', marker: { enabled: true } },
-                ],
-                legend: { item: { showSeriesStroke: true, marker: { disabledStyle: { fill: '#767676' } } } },
-            });
+            chart = deproxy(
+                await createChart({
+                    data: disabledStyleData,
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'a', marker: { enabled: true } },
+                        { type: 'line', xKey: 'x', yKey: 'b', marker: { enabled: true } },
+                    ],
+                    legend: { item: { showSeriesStroke: true, marker: { disabledStyle: { fill: '#767676' } } } },
+                })
+            );
 
             const nodes = () => getLegendModule(chart).itemSelection.nodes();
             const enabledFill = nodes()[0].marker?.fill;
@@ -581,28 +583,32 @@ describe('Legend', () => {
         });
 
         it('should let chart options override a theme override', async () => {
-            chart = await createChart({
-                ...withLegendItem({ marker: { disabledStyle: { fill: '#111111' } } }),
-                theme: {
-                    overrides: {
-                        common: { legend: { item: { marker: { disabledStyle: { fill: '#eeeeee' } } } } },
+            chart = deproxy(
+                await createChart({
+                    ...withLegendItem({ marker: { disabledStyle: { fill: '#111111' } } }),
+                    theme: {
+                        overrides: {
+                            common: { legend: { item: { marker: { disabledStyle: { fill: '#eeeeee' } } } } },
+                        },
                     },
-                },
-            });
+                })
+            );
 
             const [disabled] = getLegendModule(chart).itemSelection.nodes();
             expect(disabled.marker?.fill).toBe('#111111');
         });
 
         it('should apply a theme override when chart options do not set one', async () => {
-            chart = await createChart({
-                ...withLegendItem({}),
-                theme: {
-                    overrides: {
-                        common: { legend: { item: { marker: { disabledStyle: { fill: '#eeeeee' } } } } },
+            chart = deproxy(
+                await createChart({
+                    ...withLegendItem({}),
+                    theme: {
+                        overrides: {
+                            common: { legend: { item: { marker: { disabledStyle: { fill: '#eeeeee' } } } } },
+                        },
                     },
-                },
-            });
+                })
+            );
 
             const [disabled] = getLegendModule(chart).itemSelection.nodes();
             expect(disabled.marker?.fill).toBe('#eeeeee');
@@ -1032,7 +1038,7 @@ describe('Legend', () => {
             });
 
             animate(1200, 1);
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const legend = getLegendModule(chart);
@@ -1070,7 +1076,7 @@ describe('Legend', () => {
             });
 
             animate(1200, 1);
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const legend = getLegendModule(chart);
@@ -1112,7 +1118,7 @@ describe('Legend', () => {
             });
 
             animate(1200, 1);
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
 
             const { x, y } = computeLegendBBox(chart);
             await clickAction(x, y)(chart);
@@ -1154,7 +1160,7 @@ describe('Legend', () => {
                 ],
             });
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             await waitForChartStability(chart);
 
             const { highlightManager, interactionManager, tooltipManager } = chart.ctx;
@@ -1478,7 +1484,7 @@ describe('Legend', () => {
         }
 
         test('interactions enabled', async () => {
-            chart = await createChart({ ...options });
+            chart = deproxy(await createChart({ ...options }));
             await waitForChartStability(chart);
 
             const EXPECTED_ID = 'ag-charts-3';
@@ -1496,7 +1502,7 @@ describe('Legend', () => {
         });
 
         test('interactions disabled', async () => {
-            chart = await createChart({ ...options, legend: { toggleSeries: false } });
+            chart = deproxy(await createChart({ ...options, legend: { toggleSeries: false } }));
             await waitForChartStability(chart);
 
             const [ariaDescribedById0, ariaDescribedById1, ariaDescribedById2] = findAriaDescribedByIds();

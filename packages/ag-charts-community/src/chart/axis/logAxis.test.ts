@@ -62,7 +62,7 @@ describe('Log Axis Examples', () => {
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
         it(`for ${exampleName} it should create chart instance as expected`, async () => {
-            chart = await createChart(example.options);
+            chart = deproxy(await createChart(example.options));
             await example.assertions(chart);
         });
 
@@ -77,7 +77,7 @@ describe('Log Axis Examples', () => {
                 }
             };
 
-            chart = await createChart(example.options);
+            chart = deproxy(await createChart(example.options));
             await axisCompare();
 
             if (example.extraScreenshotActions) {

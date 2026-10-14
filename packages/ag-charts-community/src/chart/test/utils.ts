@@ -1192,9 +1192,13 @@ export async function pressKey(chart: ChartOrProxy, key: string) {
     await waitForChartStability(chart);
 }
 
-export async function createChart(options: AgChartOptions<any, any>) {
+/**
+ * The canonical chart factory for tests. Returns the public `AgChartInstance`; wrap the result in `deproxy()` where a
+ * test needs chart internals, so that the internal access is visible at the call site.
+ */
+export async function createChart(options: AgChartOptions<any, any>): Promise<AgChartInstance> {
     options = prepareTestOptions({ ...options });
-    const chart = deproxy(AgCharts.create(options) as AgChartProxy);
+    const chart = AgCharts.create(options);
     await waitForChartStability(chart);
     return chart;
 }

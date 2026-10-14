@@ -3,7 +3,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ChartUpdateType } from 'ag-charts-core';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
-import { createChart, setupMockCanvas, setupMockConsole, waitForChartStability } from '../test/utils';
+import {
+    type Chart,
+    createChart,
+    deproxy,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 
 const OPTIONS: AgCartesianChartOptions = {
     data: [
@@ -22,7 +29,7 @@ describe('Axis font loading', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Awaited<ReturnType<typeof createChart>> | undefined;
+    let chart: Chart | undefined;
 
     afterEach(() => {
         chart?.destroy();
@@ -30,7 +37,7 @@ describe('Axis font loading', () => {
     });
 
     it('re-measures tick layouts when fonts load', async () => {
-        chart = await createChart(OPTIONS);
+        chart = deproxy(await createChart(OPTIONS));
         const axis = chart.axes.find((a) => a.position === 'bottom')!;
         const calculateTickLayout = vi.spyOn(axis as any, 'calculateTickLayout');
 

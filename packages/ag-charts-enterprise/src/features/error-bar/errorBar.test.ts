@@ -18,6 +18,7 @@ import {
     clickAction,
     compareImageSnapshot,
     computeLegendBBox,
+    deproxy,
     getCursor,
     hoverAction,
     newFreezableMock,
@@ -180,420 +181,483 @@ describe('ErrorBars', () => {
     };
 
     it('should render 1 line series as expected', async () => {
-        chart = await createEnterpriseChart({ series: [{ ...SERIES_CANADA, type: 'line' }] });
+        chart = deproxy(await createEnterpriseChart({ series: [{ ...SERIES_CANADA, type: 'line' }] }));
         await compare();
     });
 
     it('renders bigint error values on a number axis without error (AG-16608)', async () => {
         // The error-bar domain may hold exact bigint endpoints, which Math.min/Math.max cannot consume.
         const base = 9_007_199_254_740_993n; // beyond MAX_SAFE_INTEGER
-        chart = await createEnterpriseChart({
-            data: [
-                { x: 0, y: base + 2n, lo: base, hi: base + 4n },
-                { x: 1, y: base + 6n, lo: base + 4n, hi: base + 8n },
-            ],
-            series: [{ type: 'bar', xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' } }],
-            axes: {
-                x: { type: 'number', position: 'bottom' },
-                y: { type: 'number', position: 'left' },
-            },
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                data: [
+                    { x: 0, y: base + 2n, lo: base, hi: base + 4n },
+                    { x: 1, y: base + 6n, lo: base + 4n, hi: base + 8n },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' } }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            })
+        );
     });
 
     it('should render 1 bar series as expected', async () => {
-        chart = await createEnterpriseChart({ series: [{ ...SERIES_CANADA, type: 'bar' }] });
+        chart = deproxy(await createEnterpriseChart({ series: [{ ...SERIES_CANADA, type: 'bar' }] }));
         await compare();
     });
 
     it('should render 2 line series as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                { ...SERIES_CANADA, type: 'line' },
-                { ...SERIES_AUSTRALIA, type: 'line' },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    { ...SERIES_CANADA, type: 'line' },
+                    { ...SERIES_AUSTRALIA, type: 'line' },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should render 2 bar series as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                { ...SERIES_CANADA, type: 'bar' },
-                { ...SERIES_AUSTRALIA, type: 'bar' },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    { ...SERIES_CANADA, type: 'bar' },
+                    { ...SERIES_AUSTRALIA, type: 'bar' },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should render 2 bar series with alternate key names as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                { ...SERIES_CANADA, type: 'bar' },
-                { ...SERIES_ALTERNATE_NAMES, type: 'bar' },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    { ...SERIES_CANADA, type: 'bar' },
+                    { ...SERIES_ALTERNATE_NAMES, type: 'bar' },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should render vertical grouped bar series as expected', async () => {
-        chart = await createEnterpriseChart({
-            data: AUSTRALIA_AND_CANADA_DATA,
-            series: [
-                {
-                    type: 'bar',
-                    stackGroup: 'myGroup',
-                    xKey: 'month',
-                    yKey: 'can',
-                    yName: 'Canada',
-                    errorBar: { yLowerKey: 'canLo', yUpperKey: 'canHi' },
-                },
-                {
-                    type: 'bar',
-                    stackGroup: 'myGroup',
-                    xKey: 'month',
-                    yKey: 'aus',
-                    yName: 'Australia',
-                    errorBar: { yLowerKey: 'ausLo', yUpperKey: 'ausHi' },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                data: AUSTRALIA_AND_CANADA_DATA,
+                series: [
+                    {
+                        type: 'bar',
+                        stackGroup: 'myGroup',
+                        xKey: 'month',
+                        yKey: 'can',
+                        yName: 'Canada',
+                        errorBar: { yLowerKey: 'canLo', yUpperKey: 'canHi' },
+                    },
+                    {
+                        type: 'bar',
+                        stackGroup: 'myGroup',
+                        xKey: 'month',
+                        yKey: 'aus',
+                        yName: 'Australia',
+                        errorBar: { yLowerKey: 'ausLo', yUpperKey: 'ausHi' },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should render horizontal grouped bar series as expected', async () => {
-        chart = await createEnterpriseChart({
-            data: AUSTRALIA_AND_CANADA_DATA,
-            series: [
-                {
-                    type: 'bar',
-                    stackGroup: 'myGroup',
-                    xKey: 'month',
-                    yKey: 'can',
-                    yName: 'Canada',
-                    direction: 'horizontal',
-                    errorBar: { yLowerKey: 'canLo', yUpperKey: 'canHi' },
-                },
-                {
-                    type: 'bar',
-                    stackGroup: 'myGroup',
-                    xKey: 'month',
-                    yKey: 'aus',
-                    yName: 'Australia',
-                    direction: 'horizontal',
-                    errorBar: { yLowerKey: 'ausLo', yUpperKey: 'ausHi' },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                data: AUSTRALIA_AND_CANADA_DATA,
+                series: [
+                    {
+                        type: 'bar',
+                        stackGroup: 'myGroup',
+                        xKey: 'month',
+                        yKey: 'can',
+                        yName: 'Canada',
+                        direction: 'horizontal',
+                        errorBar: { yLowerKey: 'canLo', yUpperKey: 'canHi' },
+                    },
+                    {
+                        type: 'bar',
+                        stackGroup: 'myGroup',
+                        xKey: 'month',
+                        yKey: 'aus',
+                        yName: 'Australia',
+                        direction: 'horizontal',
+                        errorBar: { yLowerKey: 'ausLo', yUpperKey: 'ausHi' },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should render horizontal bar series as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                { ...SERIES_CANADA, type: 'bar', direction: 'horizontal' },
-                { ...SERIES_AUSTRALIA, type: 'bar', direction: 'horizontal' },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    { ...SERIES_CANADA, type: 'bar', direction: 'horizontal' },
+                    { ...SERIES_AUSTRALIA, type: 'bar', direction: 'horizontal' },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should render both errorbars on scatter series as expected', async () => {
-        chart = await createEnterpriseChart({ series: [SERIES_BOYLESLAW] });
+        chart = deproxy(await createEnterpriseChart({ series: [SERIES_BOYLESLAW] }));
         await compare();
     });
 
     it('should render both errorbars on continuous line series as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [{ ...SERIES_BOYLESLAW, type: 'line' }],
-            axes: {
-                y: { type: 'number', position: 'left' },
-                x: { type: 'number', position: 'bottom' },
-            },
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [{ ...SERIES_BOYLESLAW, type: 'line' }],
+                axes: {
+                    y: { type: 'number', position: 'left' },
+                    x: { type: 'number', position: 'bottom' },
+                },
+            })
+        );
         await compare();
     });
 
     it('should extend Y axis on line series as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [{ ...SERIES_CANADA, type: 'line', data: EXTENDING_BARS }],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [{ ...SERIES_CANADA, type: 'line', data: EXTENDING_BARS }],
+            })
+        );
         await compare();
     });
 
     it('should extend Y axis on vertical bar series as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [{ ...SERIES_CANADA, type: 'bar', data: EXTENDING_BARS }],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [{ ...SERIES_CANADA, type: 'bar', data: EXTENDING_BARS }],
+            })
+        );
         await compare();
     });
 
     it('should extend X axis on horizontal bar series as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [{ ...SERIES_CANADA, type: 'bar', direction: 'horizontal', data: EXTENDING_BARS }],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [{ ...SERIES_CANADA, type: 'bar', direction: 'horizontal', data: EXTENDING_BARS }],
+            })
+        );
         await compare();
     });
 
     it('should apply stroke styling to whiskers and cap as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'bar',
-                    data: FEWER_MONTHS,
-                    errorBar: {
-                        ...SERIES_CANADA.errorBar,
-                        stroke: 'rgb(0,0,255)',
-                        strokeWidth: 10,
-                        strokeOpacity: 0.5,
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'bar',
+                        data: FEWER_MONTHS,
+                        errorBar: {
+                            ...SERIES_CANADA.errorBar,
+                            stroke: 'rgb(0,0,255)',
+                            strokeWidth: 10,
+                            strokeOpacity: 0.5,
+                        },
                     },
-                },
-            ],
-        });
+                ],
+            })
+        );
         await compare();
     });
 
     it('should apply line dash styling to whiskers and cap as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'bar',
-                    data: FEWER_MONTHS,
-                    errorBar: {
-                        ...SERIES_CANADA.errorBar,
-                        lineDash: [5],
-                        lineDashOffset: 2,
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'bar',
+                        data: FEWER_MONTHS,
+                        errorBar: {
+                            ...SERIES_CANADA.errorBar,
+                            lineDash: [5],
+                            lineDashOffset: 2,
+                        },
                     },
-                },
-            ],
-        });
+                ],
+            })
+        );
         await compare();
     });
 
     it('should override cap styling as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'bar',
-                    data: FEWER_MONTHS,
-                    errorBar: {
-                        ...SERIES_CANADA.errorBar,
-                        visible: false,
-                        stroke: 'rgb(0,0,255)',
-                        strokeWidth: 10,
-                        strokeOpacity: 0.25,
-                        cap: {
-                            visible: true,
-                            stroke: 'rgb(0,255,0)',
-                            strokeWidth: 20,
-                            strokeOpacity: 0.75,
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'bar',
+                        data: FEWER_MONTHS,
+                        errorBar: {
+                            ...SERIES_CANADA.errorBar,
+                            visible: false,
+                            stroke: 'rgb(0,0,255)',
+                            strokeWidth: 10,
+                            strokeOpacity: 0.25,
+                            cap: {
+                                visible: true,
+                                stroke: 'rgb(0,255,0)',
+                                strokeWidth: 20,
+                                strokeOpacity: 0.75,
+                            },
                         },
                     },
-                },
-            ],
-        });
+                ],
+            })
+        );
         await compare();
     });
 
     it('should default to marker size for cap length on line series', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'line',
-                    marker: { size: 55 },
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'line',
+                        marker: { size: 55 },
+                        errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should default to marker size for cap length on scatter series', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_BOYLESLAW,
-                    size: 55,
-                    errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_BOYLESLAW,
+                        size: 55,
+                        errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should default to half lengthRatio for cap length on bar series', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'bar',
-                    direction: 'vertical',
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'bar',
+                        direction: 'vertical',
+                        errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should use marker size for lengthRatio on line series', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'line',
-                    data: FEWER_MONTHS,
-                    marker: { size: 55 },
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 0.25 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'line',
+                        data: FEWER_MONTHS,
+                        marker: { size: 55 },
+                        errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 0.25 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should use marker size for lengthRatio on scatter series', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_BOYLESLAW,
-                    size: 55,
-                    errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4, lengthRatio: 0.25 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_BOYLESLAW,
+                        size: 55,
+                        errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4, lengthRatio: 0.25 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should use bar width for lengthRatio on vertical bar series', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'bar',
-                    direction: 'vertical',
-                    data: FEWER_MONTHS,
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 1 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'bar',
+                        direction: 'vertical',
+                        data: FEWER_MONTHS,
+                        errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 1 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should use bar height for lengthRatio on horizontal bar series', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'bar',
-                    direction: 'horizontal',
-                    data: FEWER_MONTHS,
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 1 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'bar',
+                        direction: 'horizontal',
+                        data: FEWER_MONTHS,
+                        errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, lengthRatio: 1 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should use absolute cap.length on line series', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'line',
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 75 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'line',
+                        errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 75 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should use absolute cap.length on bar series', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'bar',
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 30 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'bar',
+                        errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 30 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should use absolute cap.length on scatter series', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_BOYLESLAW,
-                    errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4, length: 75 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_BOYLESLAW,
+                        errorBar: { ...SERIES_BOYLESLAW.errorBar, cap: { strokeWidth: 4, length: 75 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should limit cap.length to bar width', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'bar',
-                    errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 100 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'bar',
+                        errorBar: { ...SERIES_CANADA.errorBar, cap: { strokeWidth: 4, length: 100 } },
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should favour cap length over cap ratio', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_BOYLESLAW,
-                    type: 'scatter',
-                    errorBar: {
-                        ...SERIES_BOYLESLAW.errorBar,
-                        cap: {
-                            strokeWidth: 4,
-                            length: 45,
-                            lengthRatio: 1,
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_BOYLESLAW,
+                        type: 'scatter',
+                        errorBar: {
+                            ...SERIES_BOYLESLAW.errorBar,
+                            cap: {
+                                strokeWidth: 4,
+                                length: 45,
+                                lengthRatio: 1,
+                            },
                         },
                     },
-                },
-            ],
-        });
+                ],
+            })
+        );
         await compare();
     });
 
     it('should use marker strokeWidth for cap lengthRatio', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_BOYLESLAW,
-                    size: 80,
-                    strokeWidth: 60,
-                    data: [
-                        { volume: 2, volumeLower: 1, volumeUpper: 3, pressure: 2, pressureLower: 1, pressureUpper: 3 },
-                    ],
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_BOYLESLAW,
+                        size: 80,
+                        strokeWidth: 60,
+                        data: [
+                            {
+                                volume: 2,
+                                volumeLower: 1,
+                                volumeUpper: 3,
+                                pressure: 2,
+                                pressureLower: 1,
+                                pressureUpper: 3,
+                            },
+                        ],
+                    },
+                ],
+            })
+        );
         await compare();
     });
 
     it('should render caps over highlight', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'bar',
-                    data: FEWER_MONTHS,
-                    errorBar: { ...SERIES_CANADA.errorBar, strokeWidth: 10, cap: { lengthRatio: 1 } },
-                },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'bar',
+                        data: FEWER_MONTHS,
+                        errorBar: { ...SERIES_CANADA.errorBar, strokeWidth: 10, cap: { lengthRatio: 1 } },
+                    },
+                ],
+            })
+        );
 
         const { x, y } = getItemCoords(2);
         await hoverAction(x, y)(chart);
@@ -601,15 +665,17 @@ describe('ErrorBars', () => {
     });
 
     it('should dim opacity on highlight', async () => {
-        chart = await createEnterpriseChart({
-            highlight: {
-                drawingMode: 'cutout',
-            },
-            series: [
-                { type: 'line', ...SERIES_CANADA },
-                { type: 'line', ...SERIES_AUSTRALIA, highlight: { unhighlightedSeries: { opacity: 0.3 } } },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                series: [
+                    { type: 'line', ...SERIES_CANADA },
+                    { type: 'line', ...SERIES_AUSTRALIA, highlight: { unhighlightedSeries: { opacity: 0.3 } } },
+                ],
+            })
+        );
 
         // Highlight Canada (Australia should be dimmed)
         const { x, y } = getItemCoords(2);
@@ -623,7 +689,7 @@ describe('ErrorBars', () => {
     });
 
     it('should render default tooltips', async () => {
-        chart = await createEnterpriseChart({ series: [SERIES_BOYLESLAW] });
+        chart = deproxy(await createEnterpriseChart({ series: [SERIES_BOYLESLAW] }));
 
         const { x, y } = getItemCoords(4);
         await hoverAction(x, y)(chart);
@@ -634,7 +700,7 @@ describe('ErrorBars', () => {
 
     it('AG-10525 should render tooltips with no errorbars', async () => {
         const { data, xKey, yKey } = SERIES_AUSTRALIA;
-        chart = await createEnterpriseChart({ data, series: [{ type: 'line', xKey, yKey }] });
+        chart = deproxy(await createEnterpriseChart({ data, series: [{ type: 'line', xKey, yKey }] }));
 
         const { x, y } = getItemCoords(4);
         await hoverAction(x, y)(chart);
@@ -660,9 +726,11 @@ describe('ErrorBars', () => {
             return '';
         }
 
-        chart = await createEnterpriseChart({
-            series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
+            })
+        );
 
         const { x, y } = getItemCoords(4);
         await hoverAction(x, y)(chart);
@@ -691,9 +759,11 @@ describe('ErrorBars', () => {
             return '';
         }
 
-        chart = await createEnterpriseChart({
-            series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [{ ...SERIES_BOYLESLAW, errorBar: { ...expectedParams }, tooltip: { renderer } }],
+            })
+        );
 
         const { x, y } = getItemCoords(4);
         await hoverAction(x, y)(chart);
@@ -706,12 +776,14 @@ describe('ErrorBars', () => {
     });
 
     it('should toggle visibility as expected', async () => {
-        chart = await createEnterpriseChart({
-            series: [
-                { ...SERIES_CANADA, type: 'line' },
-                { ...SERIES_AUSTRALIA, type: 'line' },
-            ],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    { ...SERIES_CANADA, type: 'line' },
+                    { ...SERIES_AUSTRALIA, type: 'line' },
+                ],
+            })
+        );
 
         const { x = 0, y = 0, width = 0 } = computeLegendBBox(chart);
 
@@ -766,40 +838,44 @@ describe('ErrorBars', () => {
             }
             return { stroke, cap };
         };
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'line',
-                    marker: { size: 25 },
-                    errorBar: {
-                        ...SERIES_CANADA.errorBar,
-                        strokeWidth: 3,
-                        itemStyler,
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'line',
+                        marker: { size: 25 },
+                        errorBar: {
+                            ...SERIES_CANADA.errorBar,
+                            strokeWidth: 3,
+                            itemStyler,
+                        },
                     },
-                },
-            ],
-        });
+                ],
+            })
+        );
         await compare();
     });
 
     it('should set itemStyler highlightState param as expected', async () => {
         const result: string[] = [];
-        chart = await createEnterpriseChart({
-            series: [
-                {
-                    ...SERIES_CANADA,
-                    type: 'line',
-                    errorBar: {
-                        ...SERIES_CANADA.errorBar,
-                        itemStyler: (param: AgErrorBarItemStylerParams<any>) => {
-                            result.push(param.highlightState ?? 'none');
-                            return {};
+        chart = deproxy(
+            await createEnterpriseChart({
+                series: [
+                    {
+                        ...SERIES_CANADA,
+                        type: 'line',
+                        errorBar: {
+                            ...SERIES_CANADA.errorBar,
+                            itemStyler: (param: AgErrorBarItemStylerParams<any>) => {
+                                result.push(param.highlightState ?? 'none');
+                                return {};
+                            },
                         },
                     },
-                },
-            ],
-        });
+                ],
+            })
+        );
 
         // Check itemStyler initialisation
         const allNone = [
@@ -860,7 +936,7 @@ describe('ErrorBars', () => {
                 },
             ],
         };
-        chart = await createEnterpriseChart(opts);
+        chart = deproxy(await createEnterpriseChart(opts));
 
         expect(errorBarItemStyler).toHaveBeenCalledTimes(3);
         expect(errorBarItemStyler.mock.calls[0][0]).toMatchObject({ seriesId: 'BarSeries-1' });
@@ -874,10 +950,12 @@ describe('ErrorBars', () => {
     });
 
     it('should use correct cursor', async () => {
-        chart = await createEnterpriseChart({
-            tooltip: { range: 2 },
-            series: [{ ...SERIES_BOYLESLAW, cursor: 'grab' }],
-        });
+        chart = deproxy(
+            await createEnterpriseChart({
+                tooltip: { range: 2 },
+                series: [{ ...SERIES_BOYLESLAW, cursor: 'grab' }],
+            })
+        );
 
         const { x, y } = getItemCoords(4);
 
@@ -896,7 +974,7 @@ describe('ErrorBars', () => {
         const options: AgCartesianChartOptions = {
             series: [{ ...SERIES_BOYLESLAW }],
         };
-        chart = await createEnterpriseChart(options);
+        chart = deproxy(await createEnterpriseChart(options));
         await compare();
 
         // Update without errorBar config
@@ -915,7 +993,7 @@ describe('ErrorBars', () => {
                 { ...SERIES_AUSTRALIA, type: 'line' },
             ],
         };
-        chart = await createEnterpriseChart(options);
+        chart = deproxy(await createEnterpriseChart(options));
         await compare();
 
         // Hide first series via update — second series (with error bars) should remain
@@ -965,7 +1043,7 @@ describe('ErrorBars', () => {
                     },
                 ],
             };
-            chart = await createEnterpriseChart(options);
+            chart = deproxy(await createEnterpriseChart(options));
         });
 
         test('itemStyler', () => {

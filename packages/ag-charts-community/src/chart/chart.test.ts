@@ -182,7 +182,7 @@ describe('Chart', () => {
                 ],
                 ...(testParams.chartOptions ?? {}),
             };
-            return createChart(options);
+            return deproxy(await createChart(options));
         };
 
         const hoverChartNodes = async (
@@ -343,8 +343,8 @@ describe('Chart', () => {
 
     // A markerless series' node is the point on the line where the marker would have been.
     describe(`Markerless Line Series node interactions (AG-10226)`, () => {
-        const createMarkerlessLineChart = async (listeners: any) =>
-            createChart({
+        const markerlessLineChartOptions = (listeners: any) =>
+            ({
                 container: document.body,
                 data: datasets.economy.data,
                 series: [
@@ -356,7 +356,7 @@ describe('Chart', () => {
                         listeners,
                     },
                 ],
-            } as AgCartesianChartOptions);
+            }) as AgCartesianChartOptions;
 
         const nodeCanvasPoint = (chartInstance: Chart, datumIndex: number) => {
             const series = chartInstance.series[0] as any;
@@ -367,7 +367,7 @@ describe('Chart', () => {
 
         it(`should handle nodeClick event at a datum's notional marker position`, async () => {
             const seriesNodeClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await clickAction(canvasX, canvasY)(chart);
@@ -379,7 +379,7 @@ describe('Chart', () => {
 
         it(`should not handle nodeClick event well outside the markerless pick range`, async () => {
             const seriesNodeClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await clickAction(canvasX, canvasY + 60)(chart);
@@ -390,7 +390,7 @@ describe('Chart', () => {
 
         it(`should handle nodeDoubleClick event at a datum's notional marker position`, async () => {
             const seriesNodeDoubleClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeDoubleClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await doubleClickAction(canvasX, canvasY)(chart);
@@ -402,7 +402,7 @@ describe('Chart', () => {
 
         it(`should not handle nodeDoubleClick event well outside the markerless pick range`, async () => {
             const seriesNodeDoubleClick = vi.fn();
-            chart = await createMarkerlessLineChart({ seriesNodeDoubleClick });
+            chart = deproxy(await createChart(markerlessLineChartOptions({ seriesNodeDoubleClick })));
 
             const { canvasX, canvasY } = nodeCanvasPoint(chart, 1);
             await doubleClickAction(canvasX, canvasY + 60)(chart);
@@ -798,7 +798,7 @@ describe('Chart', () => {
         };
 
         it('dispatches required range ratio based on seriesRect and direction', async () => {
-            chart = await createChart(baseOptions);
+            chart = deproxy(await createChart(baseOptions));
             const chartAny = chart as any;
             let capturedEvent: { requiredRangeRatio: number; requiredRangeDirection: ChartAxisDirection } | undefined;
 
@@ -818,7 +818,7 @@ describe('Chart', () => {
         });
 
         it('falls back to 0 when the ratio is NaN', async () => {
-            chart = await createChart(baseOptions);
+            chart = deproxy(await createChart(baseOptions));
             const chartAny = chart as any;
             let capturedEvent: { requiredRangeRatio: number } | undefined;
 
@@ -2076,7 +2076,7 @@ describe('Chart', () => {
                 displayNullData: true,
             } as any;
 
-            chart = await createChart(options);
+            chart = deproxy(await createChart(options));
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });

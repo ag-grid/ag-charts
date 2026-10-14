@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-types';
 
 import {
+    type Chart,
     createChart,
+    deproxy,
     getCursor,
     hoverAction,
     isTooltipVisible,
@@ -37,14 +39,14 @@ describe('CRT-1122 hover cursor', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Awaited<ReturnType<typeof createChart>>;
+    let chart: Chart;
 
     afterEach(() => {
         chart?.destroy();
     });
 
     it('shows the default cursor on a non-interactive series', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
 
         await hoverAction(overBar.x, overBar.y)(chart);
         await waitForChartStability(chart);
@@ -53,7 +55,7 @@ describe('CRT-1122 hover cursor', () => {
     });
 
     it('shows the pointer cursor when selection is enabled', async () => {
-        chart = await createChart(barOptions({ selection: { enabled: true } }));
+        chart = deproxy(await createChart(barOptions({ selection: { enabled: true } })));
 
         await hoverAction(overBar.x, overBar.y)(chart);
         await waitForChartStability(chart);
@@ -62,7 +64,7 @@ describe('CRT-1122 hover cursor', () => {
     });
 
     it('shows the pointer cursor when a seriesNodeClick listener is present', async () => {
-        chart = await createChart(barOptions({ listeners: { seriesNodeClick: () => undefined } }));
+        chart = deproxy(await createChart(barOptions({ listeners: { seriesNodeClick: () => undefined } })));
 
         await hoverAction(overBar.x, overBar.y)(chart);
         await waitForChartStability(chart);
@@ -75,7 +77,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Awaited<ReturnType<typeof createChart>>;
+    let chart: Chart;
 
     afterEach(() => {
         chart?.destroy();
@@ -104,7 +106,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     }
 
     it('hides the tooltip and keeps focus on the datum', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         const announcer = document.activeElement;
 
@@ -119,7 +121,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('shows the tooltip again when focus moves to another datum', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         await pressEscape();
         expect(isTooltipVisible(chart)).toBe(false);
@@ -134,7 +136,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('shows the tooltip again when focus moves to another series', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         await pressEscape();
 
@@ -144,7 +146,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('keeps the tooltip hidden when an arrow key cannot move focus', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         await pressEscape();
 
@@ -154,7 +156,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('keeps the tooltip hidden across a chart redraw', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         await pressEscape();
 
@@ -166,7 +168,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('does not consume Escape when the chart is not keyboard-focused', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
 
         const event = await pressEscape();
 
@@ -175,7 +177,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('does not consume a second Escape once the tooltip is dismissed', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await focusFirstDatum();
         await pressEscape();
 
@@ -186,7 +188,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('does not consume Escape when the series tooltip is disabled', async () => {
-        chart = await createChart(barOptions({ tooltip: { enabled: false } }));
+        chart = deproxy(await createChart(barOptions({ tooltip: { enabled: false } })));
         await tabIntoChart(chart);
         await pressKey(chart, 'ArrowRight');
         expect(isTooltipVisible(chart)).toBe(false);
@@ -197,7 +199,7 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
     });
 
     it('does not dismiss a pointer hover tooltip', async () => {
-        chart = await createChart(barOptions());
+        chart = deproxy(await createChart(barOptions()));
         await hoverAction(overBar.x, overBar.y)(chart);
         await waitForChartStability(chart);
         expect(isTooltipVisible(chart)).toBe(true);

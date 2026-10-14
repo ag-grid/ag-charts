@@ -652,11 +652,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('reports a series callback exception as a warning to the overlay and the listener, matching the console', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [throwingFormatterSeries],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [throwingFormatterSeries],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
 
         expect(issueRaised).toHaveBeenCalledWith({
@@ -707,11 +709,13 @@ describe('ChartValidations - chart integration', () => {
     });
 
     it('keeps a callback issue on the overlay across a hover', async () => {
-        chart = await createChart(
-            options({
-                series: [throwingFormatterSeries],
-                validations: { showOverlayOn: ['warning'] },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [throwingFormatterSeries],
+                    validations: { showOverlayOn: ['warning'] },
+                })
+            )
         );
         expect(chart.ctx.validations.hasVisibleIssues()).toBe(true);
 
@@ -724,22 +728,24 @@ describe('ChartValidations - chart integration', () => {
 
     it('reports a tooltip renderer exception to the overlay and the listener at the hover that raised it', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'x',
-                        yKey: 'y',
-                        tooltip: {
-                            renderer: () => {
-                                throw new Error('renderer boom');
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            tooltip: {
+                                renderer: () => {
+                                    throw new Error('renderer boom');
+                                },
                             },
                         },
-                    },
-                ],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+                    ],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
         expect(issueRaised).not.toHaveBeenCalled();
 
@@ -848,11 +854,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('shows an omitted series type on the overlay and tells the listener, with throwOn unset', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [{ xKey: 'x', yKey: 'y' } as any],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [{ xKey: 'x', yKey: 'y' } as any],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
 
         expect(issueRaised).toHaveBeenCalledWith({
@@ -865,11 +873,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('reports an invalid itemStyler return value to the overlay and the listener as a warning', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
 
         expect(issueRaised).toHaveBeenCalledWith({
@@ -903,11 +913,13 @@ describe('ChartValidations - chart integration', () => {
     });
 
     it('keeps a cached itemStyler issue across a data pass that does not clear the callback cache', async () => {
-        chart = await createChart(
-            options({
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
-                validations: { showOverlayOn: ['warning'] },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', itemStyler: () => ({ fill: 123 as any }) }],
+                    validations: { showOverlayOn: ['warning'] },
+                })
+            )
         );
         expect(chart.ctx.validations.getVisibleIssues().warning).toHaveLength(1);
 
@@ -1033,11 +1045,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('shows an unrecognised series type on the overlay and tells the listener, with throwOn unset', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [{ type: '' as any, xKey: 'x', yKey: 'y' }],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [{ type: '' as any, xKey: 'x', yKey: 'y' }],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
 
         expect(issueRaised).toHaveBeenCalledWith({
@@ -1050,11 +1064,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('shows a dropped enterprise module on the overlay and tells the listener, with throwOn unset', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                zoom: { enabled: true },
-                validations: { showOverlayOn: ['error'], issueRaised },
-            } as Partial<AgCartesianChartOptions>)
+        chart = deproxy(
+            await createChart(
+                options({
+                    zoom: { enabled: true },
+                    validations: { showOverlayOn: ['error'], issueRaised },
+                } as Partial<AgCartesianChartOptions>)
+            )
         );
 
         expect(issueRaised).toHaveBeenCalledWith({
@@ -1067,11 +1083,13 @@ describe('ChartValidations - chart integration', () => {
 
     it('carries the issues of a validated pass into the chart it creates', async () => {
         const issueRaised = vi.fn();
-        chart = await createChart(
-            options({
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
-                validations: { showOverlayOn: ['warning'], issueRaised },
-            })
+        chart = deproxy(
+            await createChart(
+                options({
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', strokeWidth: 'thick' as any }],
+                    validations: { showOverlayOn: ['warning'], issueRaised },
+                })
+            )
         );
 
         const issues: LogIssue[] = chart.ctx.validations.issues;
