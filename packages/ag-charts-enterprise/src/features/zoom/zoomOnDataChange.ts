@@ -9,6 +9,8 @@ import type {
 } from 'ag-charts-core';
 import { ChartAxisDirection, clamp, definedZoomState, isNumericValue, toNumber } from 'ag-charts-core';
 
+import { resolveBandTimeMapping } from './bandTimeMapping';
+
 const { userInteraction } = _ModuleSupport;
 
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
@@ -21,6 +23,7 @@ type VisibleMinMax = { axisId: AxisID; visibleMin: number; visibleMax: number };
 type DesiredDomains = {
     type: 'domain';
     domains: VisibleMinMax[];
+    ranges: Array<{ axisId: AxisID; range: NonNullable<ReturnType<_ModuleSupport.ZoomManager['getAxisRange']>> }>;
 };
 
 type DesiredStickToEnd = {
@@ -62,7 +65,7 @@ function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMin
 
 export interface ZoomOnDataChangeCtx extends Pick<
     _ModuleSupport.ChartRegistry,
-    'chartState' | 'eventsHub' | 'axisManager' | 'logger'
+    'chartState' | 'eventsHub' | 'axisManager' | 'logger' | 'dataService'
 > {
     // Optional on ChartRegistry, but the zoom module is the only instantiator and guarantees it.
     readonly zoomManager: _ModuleSupport.ZoomManager;
@@ -152,6 +155,10 @@ export class ZoomOnDataChange {
                         changes[entry.axisId] = fromVisibleMinMax(domainMinMax, entry);
                     }
                 }
+                for (const { axisId, range } of desiredChanges.ranges) {
+                    const ratio = this.ctx.zoomManager.rangeToAxisRatio(axisId, range);
+                    if (ratio) changes[axisId] = { direction: 'x', ...ratio };
+                }
                 return changes;
             }
             case 'stickToEnd': {
@@ -199,19 +206,25 @@ export class ZoomOnDataChange {
     private performPreserveDomain(): void {
         // Data has changes, remember the current domain for all X axes. We'll constrain the next zoom:change-request
         // event to these domain:
-        this.desiredChanges = { type: 'domain', domains: [] };
+        const desiredChanges: DesiredDomains = { type: 'domain', domains: [], ranges: [] };
         const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
-        for (const { id: axisId } of xaxes) {
+        for (const { id: axisId, scale } of xaxes) {
             const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
             // Skip fully zoomed-out axes — avoids snapshotting a placeholder [0,1] domain on a
             // freshly-recreated axis and collapsing the zoom when re-interpolated against the real domain.
             if (ratios.min === 0 && ratios.max === 1) continue;
+            if (resolveBandTimeMapping(this.ctx.dataService.isLazy(), scale)) {
+                const range = this.ctx.zoomManager.getAxisRange(axisId);
+                if (range) desiredChanges.ranges.push({ axisId, range });
+                continue;
+            }
             const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
             if (domainMinMax) {
                 const entry = toVisibleMinMax(axisId, domainMinMax, ratios);
-                this.desiredChanges.domains.push(entry);
+                desiredChanges.domains.push(entry);
             }
         }
+        this.desiredChanges = desiredChanges;
     }
 
     private performStickToEnd(): void {

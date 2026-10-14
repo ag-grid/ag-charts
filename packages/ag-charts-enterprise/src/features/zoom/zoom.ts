@@ -158,6 +158,7 @@ export class Zoom extends AbstractModuleInstance {
             zoomManager: ctx.zoomManager,
             axisManager: ctx.axisManager,
             logger: ctx.logger,
+            dataService: ctx.dataService,
             cleanup: this.cleanup,
             onConstrainChanges: minVisibleItemsCallback,
             get opts() {

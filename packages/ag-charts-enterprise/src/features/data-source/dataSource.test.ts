@@ -369,12 +369,70 @@ describe('DataSource', () => {
 
             const itExpected = axisType === 'ordinal-time' ? it.fails : it;
 
-            itExpected('requests data once per zoom step', async () => {
+            it('requests data once per zoom step', async () => {
                 await prepareZoomableChart();
 
                 const issued = await zoomIn(1);
 
                 expect(issued.map((request) => request.source)).toEqual(['user-interaction']);
+            });
+
+            it('only requests data for the zoom itself across several zoom steps', async () => {
+                await prepareZoomableChart();
+
+                const issued = await zoomIn(6);
+
+                expect(issued.map((request) => request.source)).toEqual(Array(6).fill('user-interaction'));
+            });
+
+            it('keeps the navigator range proportional to the visible time', async () => {
+                await prepareZoomableChart();
+                await zoomIn(3);
+                const [{ start, end }] = requests.slice(-1);
+
+                const { _min: min, _max: max } = deproxy(chart).modulesManager.getModule<any>('navigator').domProxy;
+
+                expect(max - min).toBeCloseTo((end - start) / (dataEnd - dataStart), 1);
+            });
+
+            it('requests the time the navigator minimum handle is dragged to', async () => {
+                await prepareZoomableChart();
+                await zoomIn(3);
+                const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
+                const target = 0.1;
+
+                const issued = await settleAfter(() => {
+                    navigator.onDrag('min', { offsetX: navigator.x + navigator.width * target });
+                    return Promise.resolve();
+                });
+                const [{ start }] = issued.slice(-1);
+
+                expect(Math.abs(start - (dataStart + target * (dataEnd - dataStart)))).toBeLessThan(week * 4);
+            });
+
+            it('only requests data for the pan itself when panning left', async () => {
+                await prepareZoomableChart();
+                await zoomIn(3);
+
+                const issued = await settleAfter(() => dragAction({ x: cx, y: cy }, { x: cx + cx / 4, y: cy })(chart));
+
+                expect(issued.map((request) => request.source)).toEqual(['user-interaction']);
+            });
+
+            it('only requests data for the pan itself when a pan changes the data granularity', async () => {
+                await prepareZoomableChart();
+                for (let step = 0; step < 30; step++) {
+                    const [latest] = (await zoomIn(1)).slice(-1);
+                    if (latest.end - latest.start < week * 13) break;
+                }
+
+                const sources: Array<AgDataSourceRequestSource | undefined> = [];
+                for (const dragTo of [cx + cx / 4, cx - cx / 4, cx + cx / 4, cx - cx / 4]) {
+                    const issued = await settleAfter(() => dragAction({ x: cx, y: cy }, { x: dragTo, y: cy })(chart));
+                    sources.push(...issued.map((request) => request.source));
+                }
+
+                expect(sources.filter((source) => source !== 'user-interaction')).toEqual([]);
             });
 
             itExpected('moves the visible window earlier, without resizing it, when panning left', async () => {

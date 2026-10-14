@@ -1,0 +1,18 @@
+.chart-with-log {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+}
+
+#myChart {
+    flex: 1;
+    min-width: 0;
+}
+
+#requestLog {
+    flex: none;
+    width: 520px;
+    margin: 0 0 0 8px;
+    overflow: auto;
+    font-size: 11px;
+}

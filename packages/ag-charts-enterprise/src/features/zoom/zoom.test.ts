@@ -1029,6 +1029,32 @@ describe('Zoom', () => {
         });
     });
 
+    describe('preserveDomain on discrete time axes', () => {
+        const day = 24 * 60 * 60 * 1000;
+        const unitTimeOptions = (): AgChartOptions => ({
+            data: Array.from({ length: 10 }, (_, i) => ({ date: new Date(Date.UTC(2024, 0, 1) + i * day), value: i })),
+            series: [{ type: 'line', xKey: 'date', yKey: 'value' }],
+            axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+            zoom: { enabled: true, onDataChange: { strategy: 'preserveDomain' } },
+        });
+
+        it('keeps a fractional window across a data update that leaves the domain unchanged', async () => {
+            const options = unitTimeOptions();
+            await prepareChart(undefined, { ratioX: { start: 0.23, end: 0.77 } }, options, false);
+            await waitForChartStability(chart);
+
+            await chart.update({
+                ...options,
+                data: options.data!.map((d: any) => ({ ...d, value: d.value + 1 })),
+            } as AgChartOptions);
+            await waitForChartStability(chart);
+
+            const { start, end } = chart.getState().zoom?.ratioX ?? {};
+            expect(start).toBeCloseTo(0.23, 3);
+            expect(end).toBeCloseTo(0.77, 3);
+        });
+    });
+
     describe('autoScaling', () => {
         it('should auto scale the y axis on a continuous x axis', async () => {
             const options: AgCartesianChartOptions = {
