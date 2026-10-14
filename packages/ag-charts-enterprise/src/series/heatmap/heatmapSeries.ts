@@ -28,6 +28,7 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
+    isEmptyObject,
     joinFormatted,
     mergeDefaults,
     resolveTextAlign,
@@ -38,6 +39,7 @@ import type { BBox, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
 import { formatLabels } from '../util/labelFormatter';
 
 const {
+    HighlightState,
     SeriesNodePickMode,
     computeBarFocusBounds,
     buildColorCategoryLegendData,
@@ -92,6 +94,8 @@ type ItemStyle = Pick<NormalisedHeatmapSeriesStyle, 'fill'> &
 interface HeatmapItemStyleContext {
     readonly colorScaleValid: boolean;
     readonly baseStyle: Omit<ItemStyle, 'fill'>;
+    readonly selectionEnabled: boolean;
+    readonly activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined;
 }
 
 /** Context object caching expensive lookups for createNodeData(). */
@@ -163,6 +167,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     readonly colorScale = new ColorScale();
+
+    /** Whether any cell's stored style was last resolved under a highlight state that restyles it. */
+    private cellsStyledByHighlight = false;
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -426,6 +433,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return {
             colorScaleValid: this.isColorScaleValid(),
             baseStyle: { fillOpacity: 1, stroke, strokeWidth, strokeOpacity, opacity: 1 },
+            selectionEnabled: this.isSelectionEnabled(),
+            activeHighlight: this.ctx.highlightManager?.getActiveHighlight(),
         };
     }
 
@@ -646,10 +655,20 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { options } = this;
         const { itemStyler, colorKey } = options;
         const { missingDataFill } = options.colorScale;
-        const { colorScaleValid, baseStyle } = itemStyleContext;
+        const { colorScaleValid, baseStyle, selectionEnabled, activeHighlight } = itemStyleContext;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const selectionStyle = this.getSelectionStyle(datumIndex);
+        // OPTIMIZATION: with no highlight or selection in play the style is just the cell's fill over the
+        // shared base style, so neither bucket lookup nor a deep merge is needed per cell.
+        highlightState ??= this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        const highlightStyle =
+            highlightState === HighlightState.None
+                ? undefined
+                : this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+        const selectionStyle = selectionEnabled ? this.getSelectionStyle(datumIndex) : undefined;
+        const hasHighlightStyle = highlightStyle != null && !isEmptyObject(highlightStyle);
+        if (hasHighlightStyle && !isHighlight) {
+            this.cellsStyledByHighlight = true;
+        }
         let fill: string;
         if (colorScaleValid && colorValue != null) {
             fill = this.colorScale.convert(colorValue);
@@ -660,11 +679,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
         // Colour refs are resolved during theme-merge before reaching scene nodes.
         // `baseStyle` is shared across cells — do not mutate it.
-        const style = mergeDefaults(
-            selectionStyle,
-            highlightStyle,
-            { fill },
-            baseStyle
+        const style = (
+            !hasHighlightStyle && (selectionStyle == null || isEmptyObject(selectionStyle))
+                ? { fill, ...baseStyle }
+                : mergeDefaults(selectionStyle, highlightStyle, { fill }, baseStyle)
         ) as Required<NormalisedHeatmapSeriesStyle>;
 
         let overrides;
@@ -723,6 +741,21 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         isHighlight: boolean;
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+
+        if (!isHighlight) {
+            // OPTIMIZATION: createNodeData already styled every cell, so while no highlight, selection or
+            // styler can change a cell's style, and none has left a cell restyled, there is nothing to redo.
+            if (
+                !this.cellsStyledByHighlight &&
+                !this.isSelectionEnabled() &&
+                this.options.itemStyler == null &&
+                this.getHighlightState(activeHighlight, false) === HighlightState.None
+            ) {
+                return;
+            }
+            this.cellsStyledByHighlight = false;
+        }
+
         const itemStyleContext = this.createItemStyleContext();
         datumSelection.each((_, nodeDatum) => {
             const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
@@ -997,12 +1030,27 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         return findQuadtreeMatch(this, point);
     }
 
+    // The colour scale alone is not an item styler: it styles each cell once, in createNodeData.
     protected override hasItemStylers(): boolean {
         return (
             this.isSelectionEnabled() ||
             this.options.itemStyler != null ||
             this.options.label.itemStyler != null ||
-            this.isColorScaleValid()
+            this.hasHighlightStateStyle()
+        );
+    }
+
+    /** Whether a highlight state restyles cells, which the stored style must then be refreshed for. */
+    private hasHighlightStateStyle(): boolean {
+        const { highlight } = this.options;
+        return (
+            this.isHighlightEnabled() &&
+            [
+                highlight?.highlightedItem,
+                highlight?.unhighlightedItem,
+                highlight?.highlightedSeries,
+                highlight?.unhighlightedSeries,
+            ].some((bucket) => bucket != null && !isEmptyObject(bucket))
         );
     }
 }

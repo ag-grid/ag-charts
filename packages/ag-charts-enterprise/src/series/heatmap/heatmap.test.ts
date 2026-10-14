@@ -1701,4 +1701,125 @@ describe('HeatmapSeries', () => {
             });
         });
     });
+    describe('cell styling', () => {
+        const DATA = [
+            { year: '2020', person: 'A', spending: 10 },
+            { year: '2020', person: 'B', spending: 20 },
+            { year: '2021', person: 'A', spending: 30 },
+            { year: '2021', person: 'B', spending: 40 },
+        ];
+
+        const buildOptions = (overrides: Record<string, unknown> = {}, data = DATA) =>
+            prepareEnterpriseTestOptions({
+                width: 400,
+                height: 300,
+                data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
+                        ...overrides,
+                    },
+                ],
+                legend: { enabled: false },
+            });
+
+        const cellStyles = (c: Chart) =>
+            collectShapes(classCast(c.series[0], HeatmapSeries).contentGroup).map((rect) => ({
+                fill: String(rect.fill),
+                opacity: rect.fillOpacity,
+            }));
+
+        const cellFills = (c: Chart) => cellStyles(c).map(({ fill }) => fill);
+
+        async function freshCellFills(options: AgChartOptions) {
+            const reference = deproxy(AgCharts.create(options));
+            await waitForChartStability(reference);
+            const fills = cellFills(reference);
+            reference.destroy();
+            return fills;
+        }
+
+        it('restyles every cell when the colour scale domain changes', async () => {
+            chart = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+            const before = cellFills(chart);
+            expect(new Set(before).size).toBe(DATA.length);
+
+            const data = DATA.map((d, i) => ({ ...d, spending: [40, 5, 10, 100][i] }));
+            chart.publicApi.updateDelta({ data });
+            await waitForChartStability(chart);
+
+            const after = cellFills(chart);
+            expect(after).not.toEqual(before);
+            expect(after).toEqual(await freshCellFills(buildOptions({}, data)));
+        });
+
+        it('restyles every cell when the colour scale fills change', async () => {
+            chart = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+            const before = cellFills(chart);
+
+            const colorScale = { fills: [{ color: 'green' }, { color: 'yellow' }] };
+            chart.publicApi.updateDelta({ series: [{ ...buildOptions().series[0], colorScale }] });
+            await waitForChartStability(chart);
+
+            const after = cellFills(chart);
+            expect(after).not.toEqual(before);
+            expect(after).toEqual(await freshCellFills(buildOptions({ colorScale })));
+        });
+
+        it('dims the other cells while one is hovered and restores them afterwards', async () => {
+            chart = deproxy(AgCharts.create(buildOptions({ highlight: { unhighlightedItem: { opacity: 0.4 } } })));
+            await waitForChartStability(chart);
+            const fills = cellFills(chart);
+            expect(cellStyles(chart).map(({ opacity }) => opacity)).toEqual([1, 1, 1, 1]);
+
+            await hoverDatumByIndex(chart, 0, 0);
+            const hovered = cellStyles(chart);
+            // The hovered cell's in-place node sits under its highlight overlay, so only the others are pinned.
+            expect(hovered.filter(({ opacity }) => opacity === 0.4).length).toBeGreaterThanOrEqual(3);
+            expect(hovered.map(({ fill }) => fill)).toEqual(fills);
+
+            await hoverAction(1, 1)(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+            expect(cellStyles(chart).map(({ opacity }) => opacity)).toEqual([1, 1, 1, 1]);
+        });
+
+        it('applies the selection styles over the colour scale fill', async () => {
+            chart = deproxy(
+                AgCharts.create(
+                    buildOptions({
+                        selection: { enabled: true, unselectedItem: { opacity: 0.3 }, selectedItem: { fill: 'lime' } },
+                    })
+                )
+            );
+            await waitForChartStability(chart);
+            const fills = cellFills(chart);
+
+            const series = classCast(chart.series[0], HeatmapSeries);
+            const dataSet = series.data!;
+            chart.publicApi.setSelection([{ seriesId: series.id, itemId: dataSet.getItemIdFromIndex(1) }]);
+            await waitForChartStability(chart);
+
+            const styles = cellStyles(chart);
+            expect(styles.filter(({ opacity }) => opacity === 0.3)).toHaveLength(3);
+            expect(styles.filter(({ fill }) => fill === 'lime')).toHaveLength(1);
+            expect(styles.filter(({ fill }) => fill !== 'lime').map(({ fill }) => fill)).toEqual(
+                fills.filter((_, i) => i !== 1)
+            );
+        });
+
+        it('keeps the colour scale fill in the tooltip symbol', async () => {
+            chart = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+
+            const series = classCast(chart.series[0], HeatmapSeries);
+            const content = series.getTooltipContent(2);
+            expect(content).toMatchObject({ type: 'structured', symbol: { marker: { fill: cellFills(chart)[2] } } });
+        });
+    });
 });
