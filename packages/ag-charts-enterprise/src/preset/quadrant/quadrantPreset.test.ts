@@ -396,9 +396,9 @@ describe('Quadrant Preset', () => {
     });
 
     it.each([
-        { name: 'scatter', chartOptions: NUMERIC },
-        { name: 'bubble', chartOptions: BUBBLE_SIZED_NUMERIC },
-    ])('selects an item by the default series id for a $name chart', async ({ chartOptions }) => {
+        { name: 'scatter', chartOptions: NUMERIC, seriesType: 'scatter' },
+        { name: 'bubble', chartOptions: BUBBLE_SIZED_NUMERIC, seriesType: 'bubble' },
+    ])('selects an item by the default series id for a $name chart', async ({ chartOptions, seriesType }) => {
         const options: AgQuadrantChartOptions = {
             ...chartOptions,
             dataIdKey: 'label',
@@ -408,6 +408,7 @@ describe('Quadrant Preset', () => {
 
         chart = AgCharts.createQuadrantChart(options);
         await waitForChartStability(chart);
+        expect(deproxy(chart).series.map((s) => s.type)).toEqual([seriesType]);
         chart.setSelection([{ seriesId: 'quadrant', itemId: 'Two' }]);
 
         expect(Array.from(chart.getSelection(), ({ seriesId, itemId }) => ({ seriesId, itemId }))).toEqual([
@@ -416,9 +417,9 @@ describe('Quadrant Preset', () => {
     });
 
     it.each([
-        { name: 'scatter', chartOptions: NUMERIC },
-        { name: 'bubble', chartOptions: BUBBLE_SIZED_NUMERIC },
-    ])('selects an item by a custom series id for a $name chart', async ({ chartOptions }) => {
+        { name: 'scatter', chartOptions: NUMERIC, seriesType: 'scatter' },
+        { name: 'bubble', chartOptions: BUBBLE_SIZED_NUMERIC, seriesType: 'bubble' },
+    ])('selects an item by a custom series id for a $name chart', async ({ chartOptions, seriesType }) => {
         const options: AgQuadrantChartOptions = {
             ...chartOptions,
             id: 'my-quadrant',
@@ -429,6 +430,7 @@ describe('Quadrant Preset', () => {
 
         chart = AgCharts.createQuadrantChart(options);
         await waitForChartStability(chart);
+        expect(deproxy(chart).series.map((s) => s.type)).toEqual([seriesType]);
         chart.setSelection([{ seriesId: 'my-quadrant', itemId: 'Two' }]);
 
         expect(Array.from(chart.getSelection(), ({ seriesId, itemId }) => ({ seriesId, itemId }))).toEqual([

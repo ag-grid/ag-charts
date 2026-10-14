@@ -37,4 +37,22 @@ describe('gauge preset series id', () => {
     it.each(GAUGES)('uses the id given to a $name gauge', async ({ options }) => {
         expect(await create({ ...options, id: 'my-gauge' })).toBe('my-gauge');
     });
+
+    it.each(GAUGES)('provides the series id to label callbacks of a $name gauge', async ({ options }) => {
+        const seriesIds = new Set<string>();
+        const label = {
+            formatter: ({ seriesId }: { seriesId: string }) => {
+                seriesIds.add(seriesId);
+                return undefined;
+            },
+        };
+
+        await create({ ...options, label } as AgRadialGaugeOptions);
+        expect(Array.from(seriesIds)).toEqual(['gauge']);
+
+        seriesIds.clear();
+        chart.destroy();
+        await create({ ...options, id: 'my-gauge', label } as AgRadialGaugeOptions);
+        expect(Array.from(seriesIds)).toEqual(['my-gauge']);
+    });
 });
