@@ -192,6 +192,152 @@ describe('CategoryScale', () => {
     });
 });
 
+// Tick generation swaps in a temporary domain and back; rebuilding the n-entry index on every restore is what
+// made category layout cost scale with the data size.
+describe('CategoryScale domain index', () => {
+    class ProbeScale<D> extends CategoryScale<D> {
+        get indexMap() {
+            return this.index;
+        }
+        get isIndexBuilt() {
+            return this.indexInitialized;
+        }
+    }
+
+    const newScale = <D>(domain: D[]) => {
+        const scale = new ProbeScale<D>();
+        scale.domain = domain;
+        scale.range = [0, 1000];
+        return scale;
+    };
+
+    test('findIndex is correct for the same, an equal and a different domain', () => {
+        const domain = ['A', 'B', 'C'];
+        const scale = newScale(domain);
+        expect(scale.findIndex('B')).toBe(1);
+
+        scale.domain = domain;
+        expect(scale.isIndexBuilt).toBe(true);
+        expect(scale.findIndex('B')).toBe(1);
+
+        scale.domain = ['A', 'B', 'C'];
+        expect(scale.findIndex('C')).toBe(2);
+
+        scale.domain = ['C', 'B'];
+        expect(scale.findIndex('C')).toBe(0);
+        expect(scale.findIndex('A')).toBeUndefined();
+    });
+
+    test('keeps the index across a snapshot, temporary domain and restore', () => {
+        const domain = Array.from({ length: 100 }, (_, i) => `c${i}`);
+        const scale = newScale(domain);
+        expect(scale.findIndex('c42')).toBe(42);
+        const index = scale.indexMap;
+
+        const snapshot = scale.snapshotDomain();
+        scale.domain = ['c5', 'c6'];
+        expect(scale.findIndex('c6')).toBe(1);
+        expect(scale.findIndex('c42')).toBeUndefined();
+        scale.restoreDomain(snapshot);
+
+        expect(scale.domain).toBe(domain);
+        expect(scale.indexMap).toBe(index);
+        expect(scale.isIndexBuilt).toBe(true);
+        expect(index.size).toBe(100);
+        expect(scale.findIndex('c42')).toBe(42);
+        expect(scale.findIndex('c5')).toBe(5);
+    });
+
+    test('reuses the temporary domain index on a repeated swap of the same array', () => {
+        const scale = newScale(['A', 'B', 'C', 'D']);
+        scale.findIndex('A');
+        const temporary = ['B', 'C'];
+
+        let temporaryIndex: Map<string, number> | undefined;
+        for (let i = 0; i < 3; i++) {
+            const snapshot = scale.snapshotDomain();
+            scale.domain = temporary;
+            expect(scale.findIndex('C')).toBe(1);
+            temporaryIndex ??= scale.indexMap;
+            expect(scale.indexMap).toBe(temporaryIndex);
+            scale.restoreDomain(snapshot);
+            expect(scale.findIndex('D')).toBe(3);
+        }
+    });
+
+    test('does not build the index on restore when it was never built', () => {
+        const scale = newScale(['A', 'B', 'C']);
+
+        const snapshot = scale.snapshotDomain();
+        scale.domain = ['A'];
+        expect(scale.findIndex('A')).toBe(0);
+        scale.restoreDomain(snapshot);
+
+        expect(scale.isIndexBuilt).toBe(false);
+        expect(scale.findIndex('C')).toBe(2);
+    });
+
+    test('a domain set after a restore drops the kept temporary index', () => {
+        const scale = newScale(['A', 'B', 'C']);
+        const temporary = ['B'];
+
+        const snapshot = scale.snapshotDomain();
+        scale.domain = temporary;
+        scale.restoreDomain(snapshot);
+
+        scale.domain = ['X', 'Y'];
+        expect(scale.findIndex('Y')).toBe(1);
+        expect(scale.findIndex('B')).toBeUndefined();
+
+        // Setting the temporary array again must index its own contents, not a stale kept index.
+        temporary[0] = 'Z';
+        scale.domain = temporary;
+        expect(scale.findIndex('Z')).toBe(0);
+        expect(scale.findIndex('B')).toBeUndefined();
+    });
+
+    test('keeps Date categories indexed by time value across the round trip', () => {
+        const domain = [new Date('2020'), new Date('2021'), new Date('2022')];
+        const scale = newScale(domain);
+        expect(scale.findIndex(new Date('2021'))).toBe(1);
+
+        const snapshot = scale.snapshotDomain();
+        scale.domain = [new Date('2022'), new Date('2023')];
+        expect(scale.findIndex(new Date('2023'))).toBe(1);
+        expect(scale.findIndex(new Date('2021'))).toBeUndefined();
+        scale.restoreDomain(snapshot);
+
+        expect(scale.findIndex(new Date('2021'))).toBe(1);
+        expect(scale.findIndex(new Date('2023'))).toBeUndefined();
+    });
+
+    test('keeps object categories indexed by value across the round trip', () => {
+        const a = { toString: () => 'a' };
+        const b = { toString: () => 'b' };
+        const scale = newScale<object>([a, b]);
+        expect(scale.findIndex(b)).toBe(1);
+
+        const snapshot = scale.snapshotDomain();
+        scale.domain = [b];
+        expect(scale.findIndex(b)).toBe(0);
+        scale.restoreDomain(snapshot);
+
+        expect(scale.findIndex(a)).toBe(0);
+        expect(scale.findIndex(b)).toBe(1);
+    });
+
+    test('a restore without a snapshot indexes the restored domain', () => {
+        const scale = newScale(['A', 'B']);
+        scale.findIndex('A');
+
+        scale.domain = ['C', 'D'];
+        scale.restoreDomain(['A', 'B', 'E']);
+
+        expect(scale.findIndex('E')).toBe(2);
+        expect(scale.findIndex('C')).toBeUndefined();
+    });
+});
+
 describe('GroupedCategoryScale', () => {
     describe('CRT-992 animatable property', () => {
         test('should be animatable on initial domain set', () => {
