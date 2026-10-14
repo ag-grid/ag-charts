@@ -631,6 +631,7 @@ function computeBubbleAggregationCountIndices(
         xNeedsValueOf,
         yNeedsValueOf,
     };
+    const visibleBounds: QuadBounds = { x0: xvr0, y0: yvr0, x1: xvr1, y1: yvr1 };
 
     for (const { sizeRatio, node } of dataAggregation.filters) {
         const diameter =
@@ -670,7 +671,7 @@ function computeBubbleAggregationCountIndices(
                     const fullyVisible = item.x0 >= xvr0 && item.x1 <= xvr1 && item.y0 >= yvr0 && item.y1 <= yvr1;
                     const itemCount = fullyVisible
                         ? end - start
-                        : countVisibleItems(context, order, start, end, { x0: xvr0, y0: yvr0, x1: xvr1, y1: yvr1 });
+                        : countVisibleItems(context, order, start, end, visibleBounds);
                     counter.count += itemCount;
                 }
                 if (singleDatumIndices != null) {
