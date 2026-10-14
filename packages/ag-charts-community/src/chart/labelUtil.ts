@@ -919,9 +919,8 @@ export function barEndOverhang(
     isUpward: boolean,
     barAlongX: boolean
 ): BarEndOverhang | undefined {
-    const whisker = barAlongX ? datum.xBar : datum.yBar;
-    if (whisker == null || datum.overlayBounds == null) return undefined;
-    const { lowerPoint, upperPoint } = whisker;
+    const bounds = datum.overlayBounds;
+    if ((barAlongX ? datum.xBar : datum.yBar) == null || bounds == null) return undefined;
     let end: number;
     let outward: number;
     let lower: number;
@@ -929,17 +928,20 @@ export function barEndOverhang(
     if (barAlongX) {
         end = isUpward ? rect.x + rect.width : rect.x;
         outward = isUpward ? 1 : -1;
-        lower = lowerPoint.x;
-        upper = upperPoint.x;
+        lower = bounds.x;
+        upper = bounds.x + bounds.width;
     } else {
         end = isUpward ? rect.y : rect.y + rect.height;
         outward = isUpward ? -1 : 1;
-        lower = lowerPoint.y;
-        upper = upperPoint.y;
+        lower = bounds.y;
+        upper = bounds.y + bounds.height;
     }
     const toLower = (lower - end) * outward;
     const toUpper = (upper - end) * outward;
-    return { outer: Math.max(0, toLower, toUpper), inner: Math.max(0, -toLower, -toUpper) };
+    const inner = Math.max(0, -toLower, -toUpper);
+    // An inside label can't clear a whisker reaching past the bar's base, so it keeps its plain anchor.
+    const length = barAlongX ? rect.width : rect.height;
+    return { outer: Math.max(0, toLower, toUpper), inner: inner < length ? inner : 0 };
 }
 
 /** `spacing` for `placement`, measured from the end of any overhang an end-anchored label must clear. */

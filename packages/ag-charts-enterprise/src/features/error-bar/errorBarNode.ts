@@ -249,22 +249,35 @@ export class ErrorBarNode extends Group<ErrorBarNodeDatum> {
         const { capLength, whiskerPath: whisker, capsPath: caps } = this;
         const { yBar, xBar } = this.datum ?? {};
         const capOffset = capLength / 2;
+        // Strokes are centred on their path, so each box straddles its line by half the stroke width.
+        const whiskerWidth = whisker.strokeWidth;
+        const capWidth = caps.strokeWidth;
         const components = [];
 
         if (yBar !== undefined) {
-            const whiskerHeight = yBar.lowerPoint.y - yBar.upperPoint.y;
+            const { lowerPoint, upperPoint } = yBar;
             components.push(
-                new BBox(yBar.lowerPoint.x, yBar.upperPoint.y, whisker.strokeWidth, whiskerHeight),
-                new BBox(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y, capLength, caps.strokeWidth),
-                new BBox(yBar.upperPoint.x - capOffset, yBar.upperPoint.y, capLength, caps.strokeWidth)
+                new BBox(
+                    lowerPoint.x - whiskerWidth / 2,
+                    Math.min(lowerPoint.y, upperPoint.y),
+                    whiskerWidth,
+                    Math.abs(lowerPoint.y - upperPoint.y)
+                ),
+                new BBox(lowerPoint.x - capOffset, lowerPoint.y - capWidth / 2, capLength, capWidth),
+                new BBox(upperPoint.x - capOffset, upperPoint.y - capWidth / 2, capLength, capWidth)
             );
         }
         if (xBar !== undefined) {
-            const whiskerWidth = xBar.upperPoint.x - xBar.lowerPoint.x;
+            const { lowerPoint, upperPoint } = xBar;
             components.push(
-                new BBox(xBar.lowerPoint.x, xBar.upperPoint.y, whiskerWidth, whisker.strokeWidth),
-                new BBox(xBar.lowerPoint.x, xBar.lowerPoint.y - capOffset, caps.strokeWidth, capLength),
-                new BBox(xBar.upperPoint.x, xBar.upperPoint.y - capOffset, caps.strokeWidth, capLength)
+                new BBox(
+                    Math.min(lowerPoint.x, upperPoint.x),
+                    upperPoint.y - whiskerWidth / 2,
+                    Math.abs(upperPoint.x - lowerPoint.x),
+                    whiskerWidth
+                ),
+                new BBox(lowerPoint.x - capWidth / 2, lowerPoint.y - capOffset, capWidth, capLength),
+                new BBox(upperPoint.x - capWidth / 2, upperPoint.y - capOffset, capWidth, capLength)
             );
         }
 

@@ -43,13 +43,26 @@ type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
 
 type Whisker = ErrorBarNodeDatum['xBar'];
 
-function whiskerBounds(midPoint: Point, xBar: Whisker, yBar: Whisker): BoxBounds | undefined {
+/** The whiskers' drawn extent: their end points, widened by half the thickest stroke. */
+function whiskerBounds(midPoint: Point, xBar: Whisker, yBar: Whisker, halfStroke: number): BoxBounds | undefined {
     if (xBar == null && yBar == null) return undefined;
     const x0 = xBar == null ? midPoint.x : Math.min(xBar.lowerPoint.x, xBar.upperPoint.x);
     const x1 = xBar == null ? midPoint.x : Math.max(xBar.lowerPoint.x, xBar.upperPoint.x);
     const y0 = yBar == null ? midPoint.y : Math.min(yBar.lowerPoint.y, yBar.upperPoint.y);
     const y1 = yBar == null ? midPoint.y : Math.max(yBar.lowerPoint.y, yBar.upperPoint.y);
-    return { x: x0, y: y0, width: x1 - x0, height: y1 - y0 };
+    return {
+        x: x0 - halfStroke,
+        y: y0 - halfStroke,
+        width: x1 - x0 + 2 * halfStroke,
+        height: y1 - y0 + 2 * halfStroke,
+    };
+}
+
+function clearOverlay(datum: ErrorBarNodeDatum) {
+    // Writes only when set, so datums of series without error bars keep their shape.
+    if (datum.overlayBounds == null && datum.overlayBoxes == null) return;
+    datum.overlayBounds = undefined;
+    datum.overlayBoxes = undefined;
 }
 
 export class ErrorBars extends AbstractModuleInstance implements SeriesPluginModuleInstance {
@@ -229,18 +242,20 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
     private clearOverlays() {
         for (const datum of this.cartesianSeries.contextNodeData?.nodeData ?? []) {
-            datum.overlayBounds = undefined;
-            datum.overlayBoxes = undefined;
+            clearOverlay(datum);
         }
     }
 
     updateNodeDatum(datum: ErrorBarNodeDatum) {
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
+        if (!xScale || !yScale || !this.hasErrorBars()) {
+            clearOverlay(datum);
+            return;
+        }
         const { midPoint, xLower, xUpper, yLower, yUpper } = this.getDatum(datum);
-        if (!xScale || !yScale || midPoint == null || !this.hasErrorBars()) {
-            datum.overlayBounds = undefined;
-            datum.overlayBoxes = undefined;
+        if (midPoint == null) {
+            clearOverlay(datum);
             return;
         }
 
@@ -259,7 +274,9 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         }
         datum.xBar = xBar;
         datum.yBar = yBar;
-        datum.overlayBounds = this.options.visible ? whiskerBounds(midPoint, xBar, yBar) : undefined;
+        const { visible, strokeWidth, cap } = this.options;
+        const halfStroke = Math.max(strokeWidth, cap.strokeWidth ?? strokeWidth) / 2;
+        datum.overlayBounds = visible ? whiskerBounds(midPoint, xBar, yBar, halfStroke) : undefined;
     }
 
     private getMaybeFlippedKeys() {

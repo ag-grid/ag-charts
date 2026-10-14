@@ -994,15 +994,14 @@ describe('ErrorBars', () => {
         const nodeDataOf = (seriesIndex: number) => (chart['series'][seriesIndex] as any).contextNodeData.nodeData;
         const placedLabelsOf = (seriesIndex: number) => (chart['series'][seriesIndex] as any).placedLabelData;
 
-        // The anchor sits `spacing` past the whisker span along the value axis, on the side `inside` names.
+        // The anchor sits `spacing` past the drawn whisker span along the value axis, on the side `inside` names.
         const expectAnchoredPastWhisker = (seriesIndex: number, inside: boolean, horizontal: boolean) => {
             const nodes = nodeDataOf(seriesIndex);
             expect(nodes.length).toBe(MIXED_SIGN_DATA.length);
             for (const node of nodes) {
-                const whisker = horizontal ? node.xBar : node.yBar;
                 const axis = horizontal ? 'x' : 'y';
-                const whiskerMin = Math.min(whisker.lowerPoint[axis], whisker.upperPoint[axis]);
-                const whiskerMax = Math.max(whisker.lowerPoint[axis], whisker.upperPoint[axis]);
+                const whiskerMin = node.overlayBounds[axis];
+                const whiskerMax = whiskerMin + node.overlayBounds[horizontal ? 'width' : 'height'];
                 const anchor = node.label[axis];
                 const gap = anchor < whiskerMin ? whiskerMin - anchor : anchor - whiskerMax;
                 expect(gap).toBeCloseTo(SPACING);
@@ -1037,6 +1036,27 @@ describe('ErrorBars', () => {
             await compare();
         });
 
+        it('keeps an inside-end label on its bar when the inner whisker reaches past the base', async () => {
+            chart = await createEnterpriseChart({
+                data: [
+                    { q: 'Q1', v: 2, lo: -3, hi: 7 },
+                    { q: 'Q2', v: 20, lo: 18, hi: 22 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'q',
+                        yKey: 'v',
+                        label: { placement: 'inside-end', spacing: SPACING },
+                        errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
+                    },
+                ],
+            });
+            const [node] = nodeDataOf(0);
+            expect(node.label.y).toBeGreaterThan(node.y);
+            expect(node.label.y).toBeLessThan(node.y + node.height);
+        });
+
         it('places line and scatter labels past the whiskers on their side', async () => {
             chart = await createEnterpriseChart({
                 series: [
@@ -1059,43 +1079,45 @@ describe('ErrorBars', () => {
             const lineLabels = placedLabelsOf(0);
             expect(lineLabels.length).toBe(lineNodes.length);
             for (const placed of lineLabels) {
-                const { yBar } = placed.datum;
-                const whiskerTop = Math.min(yBar.lowerPoint.y, yBar.upperPoint.y);
-                expect(placed.y + placed.height).toBeCloseTo(whiskerTop - SPACING);
+                const { overlayBounds } = placed.datum;
+                expect(placed.y + placed.height).toBeCloseTo(overlayBounds.y - SPACING);
             }
 
             const scatterLabels = placedLabelsOf(1);
             expect(scatterLabels.length).toBe(nodeDataOf(1).length);
             for (const placed of scatterLabels) {
-                const { xBar } = placed.datum;
-                const whiskerRight = Math.max(xBar.lowerPoint.x, xBar.upperPoint.x);
-                expect(placed.x).toBeCloseTo(whiskerRight + SPACING);
+                const { overlayBounds } = placed.datum;
+                expect(placed.x).toBeCloseTo(overlayBounds.x + overlayBounds.width + SPACING);
             }
             await compare();
         });
 
-        it('moves inside labels off the whiskers drawn through them', async () => {
-            chart = await createEnterpriseChart({
-                data: [
-                    { q: 'Q1', v: 10, lo: 2, hi: 18 },
-                    { q: 'Q2', v: 14, lo: 4, hi: 24 },
-                ],
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'q',
-                        yKey: 'v',
-                        label: { placement: ['inside-center', 'outside-end'], spacing: SPACING },
-                        errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
-                    },
-                ],
-            });
-            const nodes = nodeDataOf(0);
-            expect(nodes.length).toBe(2);
-            for (const node of nodes) {
-                expect(node.label.placement).toBe('outside-end');
+        it.each([false, true])(
+            'moves inside labels off the whiskers drawn through them (reverse: %s)',
+            async (reverse) => {
+                chart = await createEnterpriseChart({
+                    axes: { x: { type: 'category' }, y: { type: 'number', reverse } },
+                    data: [
+                        { q: 'Q1', v: 10, lo: 2, hi: 18 },
+                        { q: 'Q2', v: 14, lo: 4, hi: 24 },
+                    ],
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'q',
+                            yKey: 'v',
+                            label: { placement: ['inside-center', 'outside-end'], spacing: SPACING },
+                            errorBar: { yLowerKey: 'lo', yUpperKey: 'hi' },
+                        },
+                    ],
+                });
+                const nodes = nodeDataOf(0);
+                expect(nodes.length).toBe(2);
+                for (const node of nodes) {
+                    expect(node.label.placement).toBe('outside-end');
+                }
             }
-        });
+        );
 
         it('moves inside marker labels off their own whiskers', async () => {
             chart = await createEnterpriseChart({
