@@ -1,6 +1,7 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
 import {
     BBox,
+    type BoxBounds,
     type InternalAgGradientColor,
     type LinearScale,
     type NormalisedGaugeColorStop,
@@ -19,10 +20,14 @@ import {
     toTextString,
 } from 'ag-charts-core';
 import type { Rect, Selection, Text } from 'ag-charts-core';
-import type { AgGaugeFillMode, AgLinearGaugeLabelPlacement, AgNumericValue } from 'ag-charts-types';
+import type { AgGaugeFillMode, AgLinearGaugeLabelPlacement } from 'ag-charts-types';
 
-import { getLabelText } from '../gauge-util/label';
-import { collidesWithAny } from '../gauge-util/labelCollision';
+import {
+    type GaugeLabelCandidate,
+    type GaugeLabelPlacements,
+    type GaugePointLabelDatum,
+    gaugeLabelDatum,
+} from '../gauge-util/labelPlacement';
 import { type LabelFormatting, formatSingleLabel } from '../util/labelFormatter';
 import type { LinearGaugeLabelDatum } from './linearGaugeTypes';
 
@@ -124,10 +129,6 @@ type RectAnimationParams = {
     horizontalInset: number;
     verticalInset: number;
 };
-
-interface Ctx {
-    chartService: { context?: unknown };
-}
 
 function datumRect(datum: AnimatableRectDatum) {
     const { x0, y0, x1, y1, horizontalInset, verticalInset } = datum;
@@ -295,18 +296,25 @@ const verticalAlignFactors: Record<Align, number> = {
     [Align.After]: -1,
 };
 
-interface LinearGaugeLabelCandidate {
+interface LinearGaugeLabelLayout {
     layout: LabelFormatting;
     x: number;
     y: number;
     align: Align;
     box: BBox;
-    overflow: number;
-    blocked: boolean;
-    clipped: boolean;
+    /** Span of the scale the placement keeps the label within, when it bounds the label at all. */
+    region: BoxBounds | undefined;
 }
 
 type LinearGaugeLabelBBoxes = { seriesRect: BBox; gaugeRect: BBox; barRect: BBox };
+
+interface LinearGaugeLabelOpts {
+    padding: number;
+    horizontal: boolean;
+    barEnabled: boolean;
+}
+
+export const LINEAR_GAUGE_LABEL_KEY = 'label';
 
 interface LinearGaugeLabelBounds {
     width?: number;
@@ -420,102 +428,136 @@ function measureLinearGaugeLabel(
     return { text: labelText, fontSize: labelDatum.fontSize, lineHeight, width, height };
 }
 
+/** The deprecated `avoidCollisions: false` keeps the label at its natural size wherever it lands. */
+function isLegacyKeep(labelDatum: LinearGaugeLabelDatum) {
+    return labelDatum.avoidCollisions === false && labelDatum.collision == null;
+}
+
+function layoutLinearGaugeLabel(
+    labelText: NormalisedTextOrSegments,
+    labelDatum: LinearGaugeLabelDatum,
+    placement: AgLinearGaugeLabelPlacement,
+    overflow: boolean,
+    opts: LinearGaugeLabelOpts,
+    bboxes: LinearGaugeLabelBBoxes
+): LinearGaugeLabelLayout | undefined {
+    const { gaugeRect } = bboxes;
+    const { padding, horizontal } = opts;
+    const legacyKeep = isLegacyKeep(labelDatum);
+    const bounds = labelBounds(placement, horizontal, bboxes);
+    const fitToGauge = bounds.inner && !legacyKeep;
+    const boundingWidth = bounds.width ?? (fitToGauge ? gaugeRect.width : Infinity);
+    const boundingHeight = bounds.height ?? (fitToGauge ? gaugeRect.height : Infinity);
+    const layout = measureLinearGaugeLabel(labelText, labelDatum, padding, boundingWidth, boundingHeight, overflow);
+    if (layout == null) return;
+
+    const s = bounds.anchor + bounds.direction * labelDatum.spacing * (horizontal ? 1 : -1);
+    const x = horizontal ? s : gaugeRect.x + gaugeRect.width / 2;
+    const y = horizontal ? gaugeRect.y + gaugeRect.height / 2 : s;
+
+    let box: BBox;
+    if (horizontal) {
+        box = new BBox(
+            x + horizontalAlignFactors[bounds.align] * layout.width,
+            y - layout.height / 2,
+            layout.width,
+            layout.height
+        );
+    } else {
+        box = new BBox(
+            x - layout.width / 2,
+            y + verticalAlignFactors[bounds.align] * layout.height,
+            layout.width,
+            layout.height
+        );
+    }
+
+    let region: BoxBounds | undefined;
+    const { bounds0, bounds1 } = bounds;
+    if (!legacyKeep && Number.isFinite(bounds0) && Number.isFinite(bounds1)) {
+        const min = Math.min(bounds0, bounds1);
+        const extent = Math.abs(bounds1 - bounds0);
+        region = horizontal
+            ? { x: min, y: box.y, width: extent, height: box.height }
+            : { x: box.x, y: min, width: box.width, height: extent };
+    }
+
+    return { layout, x, y, align: bounds.align, box, region };
+}
+
+/**
+ * Offers the label to the label manager at the final value. Each placement that fits is a candidate in
+ * order; with `alwaysShow`, placements that only fit by overflowing follow them as fallbacks.
+ */
+export function linearGaugeLabelDatum(
+    labelDatum: LinearGaugeLabelDatum,
+    labelText: NormalisedTextOrSegments,
+    opts: LinearGaugeLabelOpts,
+    bboxes: LinearGaugeLabelBBoxes
+): GaugePointLabelDatum | undefined {
+    const { placements, collision } = labelDatum;
+    const legacyKeep = isLegacyKeep(labelDatum);
+    const candidates: GaugeLabelCandidate[] = [];
+    const overflowing: GaugeLabelCandidate[] = [];
+    const placementCount = legacyKeep ? 1 : placements.length;
+    for (let index = 0; index < placementCount; index++) {
+        const fitted = layoutLinearGaugeLabel(labelText, labelDatum, placements[index], false, opts, bboxes);
+        if (fitted != null) {
+            candidates.push({ id: index, box: fitted.box, region: fitted.region });
+            continue;
+        }
+        const overflow = collision?.alwaysShow
+            ? layoutLinearGaugeLabel(labelText, labelDatum, placements[index], true, opts, bboxes)
+            : undefined;
+        if (overflow != null) {
+            overflowing.push({ id: placements.length + index, box: overflow.box, region: overflow.region });
+        }
+    }
+
+    const { seriesRect } = bboxes;
+    const seriesArea = { x: 0, y: 0, width: seriesRect.width, height: seriesRect.height };
+    return gaugeLabelDatum(
+        LINEAR_GAUGE_LABEL_KEY,
+        labelText,
+        candidates.concat(overflowing),
+        collision,
+        legacyKeep,
+        seriesArea
+    );
+}
+
+/** Lays the label out at the placement the label manager chose, at the current (possibly animated) value. */
 export function formatLinearGaugeLabels(
-    series: { id: string },
-    ctx: Ctx,
     selection: Selection<LinearGaugeLabelDatum, Text<LinearGaugeLabelDatum>>,
-    opts: { padding: number; horizontal: boolean; barEnabled: boolean },
+    labelText: NormalisedTextOrSegments | undefined,
+    opts: LinearGaugeLabelOpts,
     bboxes: LinearGaugeLabelBBoxes,
-    obstacles: readonly BBox[],
-    datumOverrides?: { label: AgNumericValue | undefined }
+    placements: GaugeLabelPlacements
 ) {
-    const { seriesRect, gaugeRect, barRect } = bboxes;
-    const { padding, horizontal, barEnabled } = opts;
+    const { barRect } = bboxes;
+    const { horizontal, barEnabled } = opts;
+    const candidateId = placements.get(LINEAR_GAUGE_LABEL_KEY);
+
+    const layoutPlaced = (labelDatum: LinearGaugeLabelDatum) => {
+        if (candidateId == null || labelText == null) return;
+        const { placements: labelPlacements } = labelDatum;
+        const placement = labelPlacements[candidateId % labelPlacements.length];
+        const overflow = candidateId >= labelPlacements.length;
+        return (
+            layoutLinearGaugeLabel(labelText, labelDatum, placement, overflow, opts, bboxes) ??
+            layoutLinearGaugeLabel(labelText, labelDatum, placement, true, opts, bboxes)
+        );
+    };
 
     selection.each((label, labelDatum) => {
-        const labelText = getLabelText(series.id, ctx, labelDatum, datumOverrides?.label);
-        if (labelText == null) return;
+        const placed = layoutPlaced(labelDatum);
 
-        const { placements, collision } = labelDatum;
-        // The deprecated `avoidCollisions: false` keeps the label at its natural size wherever it lands.
-        const legacyKeep = labelDatum.avoidCollisions === false && collision == null;
-        const avoidObstacles = collision != null && obstacles.length > 0;
-
-        const layoutCandidate = (
-            placement: AgLinearGaugeLabelPlacement,
-            alwaysShow: boolean
-        ): LinearGaugeLabelCandidate | undefined => {
-            const bounds = labelBounds(placement, horizontal, bboxes);
-            const fitToGauge = bounds.inner && !legacyKeep;
-            const boundingWidth = bounds.width ?? (fitToGauge ? gaugeRect.width : Infinity);
-            const boundingHeight = bounds.height ?? (fitToGauge ? gaugeRect.height : Infinity);
-            const layout = measureLinearGaugeLabel(
-                labelText,
-                labelDatum,
-                padding,
-                boundingWidth,
-                boundingHeight,
-                alwaysShow
-            );
-            if (layout == null) return;
-
-            const s = bounds.anchor + bounds.direction * labelDatum.spacing * (horizontal ? 1 : -1);
-            const x = horizontal ? s : gaugeRect.x + gaugeRect.width / 2;
-            const y = horizontal ? gaugeRect.y + gaugeRect.height / 2 : s;
-
-            let s0: number;
-            let box: BBox;
-            if (horizontal) {
-                s0 = x + horizontalAlignFactors[bounds.align] * layout.width;
-                box = new BBox(s0, y - layout.height / 2, layout.width, layout.height);
-            } else {
-                s0 = y + verticalAlignFactors[bounds.align] * layout.height;
-                box = new BBox(x - layout.width / 2, s0, layout.width, layout.height);
-            }
-            const s1 = s0 + (horizontal ? layout.width : layout.height);
-
-            const min = Math.min(bounds.bounds0, bounds.bounds1);
-            const max = Math.max(bounds.bounds0, bounds.bounds1);
-            const overflow = Math.max(0, min - s0) + Math.max(0, s1 - max);
-            const blocked = avoidObstacles && collidesWithAny(box, obstacles, collision.threshold);
-
-            const clipped =
-                box.x < 0 ||
-                box.y < 0 ||
-                box.x + box.width > seriesRect.width ||
-                box.y + box.height > seriesRect.height;
-
-            return { layout, x, y, align: bounds.align, box, overflow, blocked, clipped };
-        };
-
-        let chosen: LinearGaugeLabelCandidate | undefined;
-        if (legacyKeep) {
-            chosen = layoutCandidate(placements[0], false);
-        } else {
-            for (const placement of placements) {
-                const candidate = layoutCandidate(placement, false);
-                if (candidate?.overflow === 0 && !candidate.blocked) {
-                    chosen = candidate;
-                    break;
-                }
-            }
-        }
-
-        if (chosen == null && collision?.alwaysShow) {
-            for (const placement of placements) {
-                const candidate = layoutCandidate(placement, true);
-                if (candidate != null && isBetterFallback(candidate, chosen)) {
-                    chosen = candidate;
-                }
-            }
-        }
-
-        if (chosen == null) {
+        if (placed == null) {
             label.visible = false;
             return;
         }
 
-        const { layout, x, y, align, box } = chosen;
+        const { layout, x, y, align, box } = placed;
         const centre = box.computeCenter();
         const inside = barEnabled && barRect.containsPoint(centre.x, centre.y);
 
@@ -530,11 +572,4 @@ export function formatLinearGaugeLabels(
         label.x = x;
         label.y = y;
     });
-}
-
-function isBetterFallback(candidate: LinearGaugeLabelCandidate, current: LinearGaugeLabelCandidate | undefined) {
-    if (current == null) return true;
-    if (candidate.blocked !== current.blocked) return !candidate.blocked;
-    if (candidate.clipped !== current.clipped) return !candidate.clipped;
-    return candidate.overflow < current.overflow;
 }

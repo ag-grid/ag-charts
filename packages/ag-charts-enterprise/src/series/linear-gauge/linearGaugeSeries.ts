@@ -14,6 +14,7 @@ import {
     type NormalisedLinearGaugeLabelOptions,
     type NormalisedLinearGaugeSeriesOwnOptions,
     type NormalisedTextOrSegments,
+    type PlacedLabel,
     type Point,
     PointerEvents,
     Rect,
@@ -41,15 +42,17 @@ import { DatumUnion } from '../gauge-util/datumUnion';
 import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import {
+    type GaugeLabelPlacements,
+    type GaugePointLabelDatum,
     type GaugeTargetDatumLabel,
     type GaugeTargetLabelOptions,
-    avoidTargetLabelCollisions,
-    hasTargetLabelCollision,
+    gaugeLabelObstacles,
+    gaugeLabelPlacements,
+    gaugeTargetLabelDatum,
     layoutGaugeTargetLabel,
     pickGaugeTargetLabelOptions,
     updateGaugeTargetLabelNode,
-    visibleLabelBoxes,
-} from '../gauge-util/labelCollision';
+} from '../gauge-util/labelPlacement';
 import { LineMarker, lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { getGaugeSegments } from '../gauge-util/segmentation';
@@ -65,6 +68,7 @@ import {
     getLinearGaugeBarStyle,
     getLinearGaugeScaleStyle,
     getLinearGaugeTargetStyle,
+    linearGaugeLabelDatum,
     prepareLinearGaugeSeriesAnimationFunctions,
     resetLinearGaugeSeriesResetRectFunction,
 } from './linearGaugeUtil';
@@ -176,10 +180,16 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     public contextNodeData?: LinearGaugeNodeDataContext;
 
+    private labelPlacements: GaugeLabelPlacements = new Map();
+    private labelFrame?: { label: AgNumericValue };
+    private labelText?: NormalisedTextOrSegments;
+    private finalLabelText?: { labelDatum: LinearGaugeLabelDatum; text: NormalisedTextOrSegments | undefined };
+
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            usesPlacedLabels: true,
         });
         this.animationState = new StateMachine<GaugeAnimationState, GaugeAnimationEvent>('empty', {
             empty: {
@@ -1008,14 +1018,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private updateTargetLabelNodes() {
-        const { targetLabelSelection } = this;
-
-        targetLabelSelection.each((label, target) =>
-            updateGaugeTargetLabelNode(label, target.label, target.x, target.y)
-        );
-
-        avoidTargetLabelCollisions(targetLabelSelection, () =>
-            visibleLabelBoxes(this.labelSelection, visibleLabelBoxes(this.tickSelection))
+        const { labelPlacements } = this;
+        this.targetLabelSelection.each((label, target) =>
+            updateGaugeTargetLabelNode(label, target.label, target.x, target.y, labelPlacements.has(target.itemId))
         );
     }
 
@@ -1117,11 +1122,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return true;
     }
 
-    formatLabelText(datum?: { label: AgNumericValue }) {
-        const { labelSelection, horizontal, scale, seriesRect, gaugeRect } = this;
+    private labelBBoxes(value: AgNumericValue) {
+        const { horizontal, scale, seriesRect, gaugeRect } = this;
         const { x, y, width, height } = gaugeRect;
-
-        const value = datum?.label ?? this.options.value;
 
         let barRect: BBox;
         if (horizontal) {
@@ -1132,24 +1135,71 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             barRect = new BBox(x, yValue, width, y + height - yValue);
         }
 
-        const bboxes = { seriesRect, gaugeRect, barRect };
+        return { seriesRect, gaugeRect, barRect };
+    }
 
-        const { margin: padding, bar, label } = this.options;
-        const obstacles = label.collision == null ? [] : visibleLabelBoxes(this.tickSelection);
+    private labelLayoutOptions() {
+        const { margin: padding, bar } = this.options;
+        return { padding, horizontal: this.horizontal, barEnabled: bar.enabled };
+    }
 
-        formatLinearGaugeLabels(
-            this,
-            this.ctx,
-            labelSelection,
-            { padding, horizontal, barEnabled: bar.enabled },
-            bboxes,
-            obstacles,
-            datum
-        );
-
-        if (hasTargetLabelCollision(this.targetLabelSelection)) {
-            this.updateTargetLabelNodes();
+    formatLabelText(datum?: { label: AgNumericValue }) {
+        const labelDatum = this.contextNodeData?.labelData[0];
+        const text = labelDatum == null ? undefined : getLabelText(this.id, this.ctx, labelDatum, datum?.label);
+        if (datum == null && labelDatum != null) {
+            this.finalLabelText = { labelDatum, text };
         }
+        this.labelFrame = datum;
+        this.labelText = text;
+        this.layoutLabels();
+    }
+
+    private layoutLabels() {
+        formatLinearGaugeLabels(
+            this.labelSelection,
+            this.labelText,
+            this.labelLayoutOptions(),
+            this.labelBBoxes(this.labelFrame?.label ?? this.options.value),
+            this.labelPlacements
+        );
+    }
+
+    override getLabelData(): GaugePointLabelDatum[] {
+        const { seriesRect } = this;
+        const seriesArea = { x: 0, y: 0, width: seriesRect.width, height: seriesRect.height };
+        const labels: GaugePointLabelDatum[] = [];
+
+        const labelDatum = this.contextNodeData?.labelData[0];
+        const { finalLabelText } = this;
+        const text =
+            labelDatum == null || finalLabelText?.labelDatum === labelDatum
+                ? finalLabelText?.text
+                : getLabelText(this.id, this.ctx, labelDatum);
+        if (labelDatum != null && text != null) {
+            const bboxes = this.labelBBoxes(this.options.value);
+            const label = linearGaugeLabelDatum(labelDatum, text, this.labelLayoutOptions(), bboxes);
+            if (label != null) {
+                labels.push(label);
+            }
+        }
+
+        for (const target of this.contextNodeData?.targetData ?? []) {
+            const targetLabel = gaugeTargetLabelDatum(target.itemId, target.label, target.x, target.y, seriesArea);
+            if (targetLabel != null) {
+                labels.push(targetLabel);
+            }
+        }
+        return labels;
+    }
+
+    getLabelObstacles() {
+        return gaugeLabelObstacles(this.tickSelection);
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
+        this.labelPlacements = gaugeLabelPlacements(placed);
+        this.layoutLabels();
+        this.updateTargetLabelNodes();
     }
 
     protected resetAllAnimation() {

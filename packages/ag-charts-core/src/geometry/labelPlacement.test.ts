@@ -1736,6 +1736,27 @@ describe('placeLabels positioned candidates', () => {
         expect(placed[0].candidate).toBe(smallOverflow);
     });
 
+    it('ranks a fallback spilling out of its visibleRegion below one that only overflows its region (neverDrop)', () => {
+        const visibleRegion = { x: 0, y: 0, width: 200, height: 200 };
+        const clipped: BarCandidate = {
+            box: { x: 190, y: 0, width: 30, height: 10 },
+            region: { x: 190, y: 0, width: 25, height: 10 },
+            visibleRegion,
+            anchor: anchorOf(205, 5),
+            placement: 'outside-end',
+        };
+        const overflowing: BarCandidate = {
+            box: { x: 0, y: 0, width: 100, height: 10 },
+            region: { x: 0, y: 0, width: 20, height: 200 },
+            visibleRegion,
+            anchor: anchorOf(50, 5),
+            placement: 'inside-center',
+        };
+        const { placed } = place([clipped, overflowing]);
+        expect(placed).toHaveLength(1);
+        expect(placed[0].candidate).toBe(overflowing);
+    });
+
     it('keeps the least buried candidate when every one fits its region but collides (neverDrop)', () => {
         const buried: BarCandidate = {
             box: { x: 10, y: 10, width: 20, height: 10 },

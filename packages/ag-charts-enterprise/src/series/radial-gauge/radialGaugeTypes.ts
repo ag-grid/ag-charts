@@ -8,7 +8,7 @@ import type {
     FontWeight,
 } from 'ag-charts-types';
 
-import type { GaugeTargetDatumLabel } from '../gauge-util/labelCollision';
+import type { GaugeTargetDatumLabel } from '../gauge-util/labelPlacement';
 
 export enum NodeDataType {
     Node,

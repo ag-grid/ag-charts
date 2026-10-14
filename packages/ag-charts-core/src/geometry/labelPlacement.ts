@@ -162,6 +162,11 @@ export interface PositionedLabelCandidate {
      * flushing (a region-bound `neverDrop` label is clamped into its region).
      */
     readonly flushToRegion?: boolean;
+    /**
+     * Where the label is visible at all. A kept `neverDrop` fallback spilling out of it ranks below every
+     * fallback that only overflows its {@link region}; when unset, all overflow ranks alike.
+     */
+    readonly visibleRegion?: BoxBounds;
     /** Render rotation in degrees (engine convention, matching {@link PlacedLabel.rotation}); `0`/unset is upright. */
     readonly rotation?: number;
     /** Fit inputs for this candidate; used only when the datum carries a {@link PointLabelDatum.fit}. */
@@ -1975,6 +1980,8 @@ const TIER_FIT = 0;
 const TIER_COLLIDING = 1;
 /** Tier of a candidate that overflows its region; kept only to avoid dropping the label. */
 const TIER_OVERFLOWING = 2;
+/** Tier of a candidate partly outside its {@link PositionedLabelCandidate.visibleRegion}. */
+const TIER_CLIPPED = 3;
 /** Upper bound on {@link shrinkRatio}, keeping any amount of shrinking cheaper than losing one character. */
 const MAX_SHRINK_SCORE = 0.999;
 
@@ -2385,10 +2392,11 @@ function placeFromPositionedCandidates(
         }
         if (d.neverDrop === true) {
             const overflow = regionOverflow(region, x, y, cw, ch);
-            let tier = TIER_OVERFLOWING;
-            let score = overflow;
+            const clipped = c.visibleRegion == null ? 0 : regionOverflow(c.visibleRegion, x, y, cw, ch);
+            let tier = clipped > 0 ? TIER_CLIPPED : TIER_OVERFLOWING;
+            let score = clipped > 0 ? clipped : overflow;
             // Ranking colliding candidates by how buried they are only matters when there is one to choose.
-            if (overflow === 0 && ln > 1) {
+            if (overflow === 0 && clipped === 0 && ln > 1) {
                 candidateWorstOverlap = 0;
                 obstacleIndex.query(queryBox, worstObstacleOverlap);
                 tier = TIER_COLLIDING;

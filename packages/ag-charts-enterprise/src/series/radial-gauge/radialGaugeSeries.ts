@@ -14,6 +14,7 @@ import {
     type NormalisedGaugeSeriesStyle,
     type NormalisedRadialGaugeSeriesOwnOptions,
     type NormalisedTextOrSegments,
+    type PlacedLabel,
     type Point,
     PointerEvents,
     Sector,
@@ -43,15 +44,17 @@ import { DatumUnion } from '../gauge-util/datumUnion';
 import { getGaugeTooltipInfo } from '../gauge-util/gaugeTooltip';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import {
+    type GaugeLabelPlacements,
+    type GaugePointLabelDatum,
     type GaugeTargetDatumLabel,
     type GaugeTargetLabelOptions,
-    avoidTargetLabelCollisions,
-    hasTargetLabelCollision,
+    gaugeLabelObstacles,
+    gaugeLabelPlacements,
+    gaugeTargetLabelDatum,
     layoutGaugeTargetLabel,
     pickGaugeTargetLabelOptions,
     updateGaugeTargetLabelNode,
-    visibleLabelBoxes,
-} from '../gauge-util/labelCollision';
+} from '../gauge-util/labelPlacement';
 import { LineMarker, lineMarker } from '../gauge-util/lineMarker';
 import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { getGaugeSegments } from '../gauge-util/segmentation';
@@ -64,11 +67,15 @@ import {
     type RadialGaugeTargetDatum,
 } from './radialGaugeTypes';
 import {
+    type RadialGaugeLabelFrame,
+    type RadialGaugeLabelTexts,
     formatRadialGaugeLabels,
     getRadialGaugeBarStyle,
     getRadialGaugeScaleStyle,
     getRadialGaugeTargetStyle,
     prepareRadialGaugeSeriesAnimationFunctions,
+    radialGaugeLabelData,
+    radialGaugeLabelTexts,
     resetRadialGaugeSeriesResetNeedleFunction,
     resetRadialGaugeSeriesResetSectorFunction,
 } from './radialGaugeUtil';
@@ -148,6 +155,10 @@ const insideLabelPlacements: Array<{ textAlign: CanvasTextAlign; textBaseline: C
     { textAlign: 'right', textBaseline: 'top' },
 ];
 
+function targetLabelAnchor({ centerX, centerY, radius, angle }: RadialGaugeTargetDatum) {
+    return { x: centerX + radius * Math.cos(angle), y: centerY + radius * Math.sin(angle) };
+}
+
 export class RadialGaugeSeries
     extends _ModuleSupport.Series<
         RadialGaugeNodeDatum,
@@ -210,10 +221,15 @@ export class RadialGaugeSeries
 
     public contextNodeData?: RadialGaugeNodeDataContext;
 
+    private labelPlacements: GaugeLabelPlacements = new Map();
+    private labelTexts?: RadialGaugeLabelTexts;
+    private finalLabelTexts?: { labelData: RadialGaugeLabelDatum[]; texts: RadialGaugeLabelTexts | undefined };
+
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            usesPlacedLabels: true,
         });
 
         this.animationState = new StateMachine<GaugeAnimationState, GaugeAnimationEvent>('empty', {
@@ -1049,18 +1065,11 @@ export class RadialGaugeSeries
     }
 
     private updateTargetLabelNodes() {
-        const { targetLabelSelection } = this;
-
-        targetLabelSelection.each((label, target) => {
-            const { centerX, centerY, radius, angle } = target;
-            const x = centerX + radius * Math.cos(angle);
-            const y = centerY + radius * Math.sin(angle);
-            updateGaugeTargetLabelNode(label, target.label, x, y);
+        const { labelPlacements } = this;
+        this.targetLabelSelection.each((label, target) => {
+            const { x, y } = targetLabelAnchor(target);
+            updateGaugeTargetLabelNode(label, target.label, x, y, labelPlacements.has(target.itemId));
         });
-
-        avoidTargetLabelCollisions(targetLabelSelection, () =>
-            visibleLabelBoxes(this.labelSelection, visibleLabelBoxes(this.tickSelection))
-        );
     }
 
     private updateLabelSelection(opts: {
@@ -1244,25 +1253,66 @@ export class RadialGaugeSeries
         return true;
     }
 
-    formatLabelText(datum?: { label: AgNumericValue | undefined; secondaryLabel: AgNumericValue | undefined }) {
-        const { labelSelection, radius, textAlign, verticalAlign } = this;
-        const { spacing: padding, innerRadiusRatio, label, secondaryLabel } = this.options;
-        const obstacles =
-            label.collision == null && secondaryLabel.collision == null ? [] : visibleLabelBoxes(this.tickSelection);
+    private labelLayoutOptions() {
+        const { textAlign, verticalAlign } = this;
+        return { padding: this.options.spacing, textAlign, verticalAlign };
+    }
 
+    formatLabelText(datum?: RadialGaugeLabelFrame) {
+        const labelData = this.contextNodeData?.labelData ?? [];
+        const texts = radialGaugeLabelTexts(this, this.ctx, labelData, datum);
+        if (datum == null) {
+            this.finalLabelTexts = { labelData, texts };
+        }
+        this.labelTexts = texts;
+        this.layoutLabels();
+    }
+
+    private layoutLabels() {
         formatRadialGaugeLabels(
-            this,
-            this.ctx,
-            labelSelection,
-            { padding, textAlign, verticalAlign },
-            radius * innerRadiusRatio,
-            obstacles,
-            datum
+            this.labelSelection,
+            this.labelTexts,
+            this.labelLayoutOptions(),
+            this.radius * this.options.innerRadiusRatio,
+            this.labelPlacements
+        );
+    }
+
+    override getLabelData(): GaugePointLabelDatum[] {
+        const { seriesRectWidth: width, seriesRectHeight: height } = this.nodeDataDependencies;
+        const seriesArea = { x: 0, y: 0, width, height };
+        const labelData = this.contextNodeData?.labelData ?? [];
+        const { finalLabelTexts } = this;
+        const texts =
+            finalLabelTexts?.labelData === labelData
+                ? finalLabelTexts.texts
+                : radialGaugeLabelTexts(this, this.ctx, labelData);
+        const labels = radialGaugeLabelData(
+            labelData,
+            texts,
+            this.labelLayoutOptions(),
+            this.radius * this.options.innerRadiusRatio,
+            seriesArea
         );
 
-        if (hasTargetLabelCollision(this.targetLabelSelection)) {
-            this.updateTargetLabelNodes();
+        for (const target of this.contextNodeData?.targetData ?? []) {
+            const { x, y } = targetLabelAnchor(target);
+            const targetLabel = gaugeTargetLabelDatum(target.itemId, target.label, x, y, seriesArea);
+            if (targetLabel != null) {
+                labels.push(targetLabel);
+            }
         }
+        return labels;
+    }
+
+    getLabelObstacles() {
+        return gaugeLabelObstacles(this.tickSelection);
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
+        this.labelPlacements = gaugeLabelPlacements(placed);
+        this.layoutLabels();
+        this.updateTargetLabelNodes();
     }
 
     protected resetAllAnimation() {
