@@ -16,6 +16,7 @@ const { hideBin } = require('yargs/helpers');
 
 const { aggregateAllocation, allocationChange, formatMb } = require('./allocation');
 const { formatPercentageChange } = require('./format-utils');
+const { median, pctChange } = require('./stats');
 
 const argv = yargs(hideBin(process.argv))
     .option('base', {
@@ -143,13 +144,6 @@ function timeFormat(timeMs) {
 }
 
 // --- Statistics helpers ---
-
-function median(values) {
-    if (!values?.length) return null;
-    const sorted = values.toSorted((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-}
 
 /** Coefficient of variation (stddev / mean); null when not computable. */
 function coefficientOfVariation(values) {
@@ -326,8 +320,7 @@ for (const key of baseKeys) {
         }
         // Median is robust to outlier iterations (GC pauses, CI noise spikes);
         // it falls back to the average when raw timings are unavailable.
-        const pctTimeChange =
-            b.medianTime === 0 ? null : Math.round(((c.medianTime - b.medianTime) / b.medianTime) * 1000) / 10;
+        const pctTimeChange = pctChange(b.medianTime, c.medianTime);
         const noisy = (b.cv ?? 0) > NOISY_CV_THRESHOLD || (c.cv ?? 0) > NOISY_CV_THRESHOLD;
         // Run-to-run noise band: the worse side's cross-run CV, as a percentage. A change must
         // clear NOISE_BAND_FACTOR x this to be signal rather than measurement drift.
@@ -397,9 +390,11 @@ function isNotableRegression(r) {
 }
 const notable = rankedByTime.filter(isNotableRegression);
 
-// Allocation is reported, not gated: it never feeds `notable` or the exit code. Smallest delta
-// first, matching the time ranking (wins at the top, growth at the bottom).
-const rankedByAllocation = matched.filter((r) => r.deltaMb !== null).toSorted((a, b) => a.deltaMb - b.deltaMb);
+// Allocation is reported, not gated: it never feeds `notable` or the exit code. Deltas within the
+// sampling noise band are left out of the ranking; the rest sort smallest delta first, like time.
+const withAllocation = matched.filter((r) => r.deltaMb !== null);
+const rankedByAllocation = withAllocation.filter((r) => !r.withinNoise).toSorted((a, b) => a.deltaMb - b.deltaMb);
+const allocationWithinNoise = withAllocation.length - rankedByAllocation.length;
 
 /** Before/After/delta MB columns for a table row; empty when no memory reports were supplied. */
 function allocationColumns(r) {
@@ -407,7 +402,7 @@ function allocationColumns(r) {
     return {
         'Before (MB)': formatMb(r.beforeMb),
         'After (MB)': formatMb(r.afterMb),
-        'Δ (MB)': formatMb(r.deltaMb, { signed: true }),
+        'Δ (MB)': formatMb(r.deltaMb, { signed: true }) + (r.withinNoise ? ' (noise)' : ''),
     };
 }
 
@@ -462,7 +457,7 @@ if (argv.format === 'table') {
 
     if (showAllocation) {
         console.log(
-            `\nAllocation per iteration (top 5/bottom 5 by change; ${rankedByAllocation.length} of ${matched.length} with data on both sides)`
+            `\nAllocation per iteration (top 5/bottom 5 by change; ${withAllocation.length} of ${matched.length} with data on both sides, ${allocationWithinNoise} within sampling noise)`
         );
         if (rankedByAllocation.length > 0) {
             console.table(
@@ -472,10 +467,12 @@ if (argv.format === 'table') {
                         : { test: r.test, '%': formatPercentageChange(r.pctChange), ...allocationColumns(r) }
                 )
             );
-        } else {
+        } else if (withAllocation.length === 0) {
             console.log(
                 '  — no test has allocation data on both sides (is the base harness older than the memory pass?)'
             );
+        } else {
+            console.log('  — every change is within sampling noise');
         }
     }
 
@@ -505,8 +502,10 @@ if (argv.format === 'table') {
     if (showAllocation) {
         const lower = rankedByAllocation.filter((r) => r.deltaMb < 0).length;
         const higher = rankedByAllocation.filter((r) => r.deltaMb > 0).length;
+        const unjudged = rankedByAllocation.filter((r) => r.withinNoise === null).length;
         console.log(
-            `Allocation: ${lower} lower, ${higher} higher, ${rankedByAllocation.length} of ${matched.length} with data (not gated)`
+            `Allocation: ${lower} lower, ${higher} higher, ${allocationWithinNoise} within sampling noise ` +
+                `(${unjudged} of the changes have no noise estimate), ${withAllocation.length} of ${matched.length} with data (not gated)`
         );
     }
 } else if (argv.format === 'json') {

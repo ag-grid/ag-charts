@@ -52,15 +52,7 @@ interface BenchmarkReport {
     examples: Record<string, BenchmarkExampleResult>;
 }
 
-/**
- * Attach V8 allocation sampling to a page for the memory pass.
- *
- * Exposes `__benchmarkMemoryStart` / `__benchmarkMemoryStop`, which the in-page harness calls
- * around each measured iteration (and only when they exist). `stop` resolves to the bytes sampled
- * since `start`, counting objects already collected by minor and major GC, or null if sampling
- * failed. Neither hook ever rejects, so a CDP failure costs the example its allocation data
- * rather than the whole benchmark.
- */
+/** Exposes the memory hooks; neither rejects, so a CDP failure only costs that example its data. */
 async function attachMemorySampling(
     context: BrowserContext,
     page: Page,

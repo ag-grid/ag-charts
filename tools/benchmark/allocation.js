@@ -1,20 +1,16 @@
-/**
- * Allocation (memory-pass) helpers shared by the browser benchmark runner and the comparison scripts.
- *
- * The runner's memory pass samples V8 allocations through CDP `HeapProfiler` around each measured
- * iteration and records `allocation.bytesPerIteration` on the matching result. The comparison
- * reads those results from separate memory-pass reports, so timing medians are never taken from a
- * pass that ran with sampling attached.
- */
+/** Allocation (memory-pass) helpers shared by the browser benchmark runner and the comparison scripts. */
+
+const { median, pctChange } = require('./stats');
 
 const BYTES_PER_MB = 1024 * 1024;
 
+/** A delta within this many standard errors of zero is sampling noise, not a change. */
+const ALLOCATION_NOISE_SIGMAS = 2;
+
 /**
- * Total bytes in a CDP `HeapProfiler.stopSampling` profile.
- *
- * Every node's `selfSize` is already scaled by V8 to estimate the true allocated size, so the sum
- * over the call tree is the estimate for the whole window. Iterative: deep call trees would blow
- * the stack on a recursive walk.
+ * Total bytes in a CDP `HeapProfiler.stopSampling` profile. V8 already scales each node's `selfSize`
+ * to the estimated true size, so the sum over the tree is the estimate for the whole window.
+ * Iterative: a deep call tree would overflow the stack on a recursive walk.
  */
 function sumSamplingProfileBytes(profile) {
     let total = 0;
@@ -27,18 +23,13 @@ function sumSamplingProfileBytes(profile) {
     return total;
 }
 
-function median(values) {
-    if (values.length === 0) return null;
-    const sorted = values.toSorted((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
-}
+const isNonNegative = (value) => typeof value === 'number' && Number.isFinite(value) && value >= 0;
 
 /**
- * Per-test allocation of one report: Map(key -> bytes per measured iteration).
- *
- * Results without allocation data (a harness that predates the memory pass, or an example that
- * errored) are left out, so a missing key always means "no data" and never "zero bytes".
+ * Per-test allocation of one report: Map(key -> { bytes, stdErrBytes }) in bytes per measured
+ * iteration. Results without allocation data (an older harness, or an errored example) are left
+ * out, so a missing key always means "no data" and never "zero bytes". `stdErrBytes` is null when
+ * the harness recorded no standard error (fewer than two measured iterations).
  *
  * @param {object} report - A browser benchmark JSON report.
  * @param {(exampleName: string, result: object) => string} keyFn - Builds the comparison key.
@@ -48,43 +39,55 @@ function extractAllocationRun(report, keyFn) {
     for (const [exampleName, example] of Object.entries(report?.examples ?? {})) {
         if (example.status !== 'success' || !Array.isArray(example.data?.results)) continue;
         for (const result of example.data.results) {
-            const bytes = result.allocation?.bytesPerIteration;
-            if (typeof bytes !== 'number' || !Number.isFinite(bytes) || bytes < 0) continue;
-            results.set(keyFn(exampleName, result), bytes);
+            const { bytesPerIteration, stdErrBytes } = result.allocation ?? {};
+            if (!isNonNegative(bytesPerIteration)) continue;
+            results.set(keyFn(exampleName, result), {
+                bytes: bytesPerIteration,
+                stdErrBytes: isNonNegative(stdErrBytes) ? stdErrBytes : null,
+            });
         }
     }
     return results;
 }
 
-/** Median of each key's bytes per iteration across independent memory-pass reports. */
+/** Median of each key's bytes (and of its standard errors) across independent memory-pass reports. */
 function aggregateAllocation(reports, keyFn) {
     const perKey = new Map();
     for (const report of reports) {
-        for (const [key, bytes] of extractAllocationRun(report, keyFn)) {
+        for (const [key, value] of extractAllocationRun(report, keyFn)) {
             const values = perKey.get(key);
-            if (values) values.push(bytes);
-            else perKey.set(key, [bytes]);
+            if (values) values.push(value);
+            else perKey.set(key, [value]);
         }
     }
     const merged = new Map();
-    for (const [key, values] of perKey) merged.set(key, median(values));
+    for (const [key, values] of perKey) {
+        merged.set(key, {
+            bytes: median(values.map((v) => v.bytes)),
+            stdErrBytes: median(values.map((v) => v.stdErrBytes).filter((v) => v !== null)),
+        });
+    }
     return merged;
 }
 
 /**
- * Before/after allocation for one matched test. A side without data stays null, and the delta and
- * percentage need both sides, so a missing side reads as "unknown" rather than as a spurious win
- * or regression.
+ * Before/after allocation for one matched test, from `{ bytes, stdErrBytes }` values (undefined when
+ * a side has no data). The delta and percentage need both sides, so a missing side reads as
+ * "unknown" rather than as a win or regression. `withinNoise` is null when either side has no
+ * standard error to judge the delta against.
  */
-function allocationChange(beforeBytes, afterBytes) {
-    const toMb = (bytes) => (typeof bytes === 'number' ? bytes / BYTES_PER_MB : null);
-    const hasBoth = typeof beforeBytes === 'number' && typeof afterBytes === 'number';
+function allocationChange(before, after) {
+    const toMb = (side) => (side ? side.bytes / BYTES_PER_MB : null);
+    const hasBoth = Boolean(before && after);
+    const hasNoise = hasBoth && before.stdErrBytes !== null && after.stdErrBytes !== null;
+    const noiseBytes = hasNoise ? ALLOCATION_NOISE_SIGMAS * Math.hypot(before.stdErrBytes, after.stdErrBytes) : null;
     return {
-        beforeMb: toMb(beforeBytes),
-        afterMb: toMb(afterBytes),
-        deltaMb: hasBoth ? (afterBytes - beforeBytes) / BYTES_PER_MB : null,
-        pctChange:
-            hasBoth && beforeBytes !== 0 ? Math.round(((afterBytes - beforeBytes) / beforeBytes) * 1000) / 10 : null,
+        beforeMb: toMb(before),
+        afterMb: toMb(after),
+        deltaMb: hasBoth ? (after.bytes - before.bytes) / BYTES_PER_MB : null,
+        pctChange: hasBoth ? pctChange(before.bytes, after.bytes) : null,
+        noiseMb: hasNoise ? noiseBytes / BYTES_PER_MB : null,
+        withinNoise: hasNoise ? Math.abs(after.bytes - before.bytes) <= noiseBytes : null,
     };
 }
 
@@ -97,11 +100,11 @@ function formatMb(mb, { signed = false } = {}) {
 }
 
 module.exports = {
+    ALLOCATION_NOISE_SIGMAS,
     BYTES_PER_MB,
     aggregateAllocation,
     allocationChange,
     extractAllocationRun,
     formatMb,
-    median,
     sumSamplingProfileBytes,
 };

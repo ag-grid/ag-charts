@@ -105,11 +105,7 @@ interface GcStats {
     allocationRateBytesPerSec: number;
 }
 
-/**
- * JS heap allocation across the measured iterations, recorded only in the runner's memory pass.
- * Unlike `GcStats` it counts objects that were already collected by GC, so it sees allocation
- * inside a single long task.
- */
+/** Sampled JS heap allocation over the measured iterations, recorded only in the runner's memory pass. */
 interface AllocationStats {
     /** Estimated bytes allocated per measured iteration (`totalBytes / iterations`). */
     bytesPerIteration: number;
@@ -117,6 +113,8 @@ interface AllocationStats {
     totalBytes: number;
     /** Measured iterations that contributed. */
     iterations: number;
+    /** Standard error of `bytesPerIteration`; absent with fewer than two iterations. */
+    stdErrBytes?: number;
 }
 
 interface BenchmarkResult {
@@ -1397,11 +1395,7 @@ function readPerformanceMemory(): MemoryInfo | null {
     return mem;
 }
 
-/**
- * Start/stop hooks the Playwright runner exposes on `window` for its memory pass. `start` begins
- * V8 allocation sampling and `stop` ends it, resolving to the bytes sampled in between (null if
- * sampling failed). Absent in timing passes and in the browser, where nothing is sampled.
- */
+/** Hooks the runner exposes in its memory pass only; `stop` resolves to the bytes sampled, or null on failure. */
 interface MemoryHooks {
     start: () => Promise<void>;
     stop: () => Promise<number | null>;
@@ -1789,13 +1783,10 @@ class BenchmarkRunner {
 
         const { updatesPerTest, maxCollectionTimeMs, warmupUpdates } = this.config.config;
 
-        // The runner's memory pass exposes start/stop hooks around CDP heap sampling. Without them
-        // `measuredRun` is `variant.run` unchanged, so the timing passes execute exactly as before.
-        // The bracket covers all of `variant.run`, which can include setup that the returned timing
-        // excludes (e.g. destroying the previous chart), so allocation may slightly exceed what the
-        // timed span alone would account for.
+        // The sampling bracket covers all of `variant.run`, including any setup the returned timing
+        // excludes, so allocation can slightly exceed the timed span.
         const memoryHooks = getMemoryHooks();
-        const allocation = { totalBytes: 0, iterations: 0 };
+        const allocation = { totalBytes: 0, iterations: 0, mean: 0, m2: 0 };
         const variantRun = variant.run;
         const measuredRun = memoryHooks
             ? async () => {
@@ -1805,10 +1796,13 @@ class BenchmarkRunner {
                       elapsed = await variantRun();
                   } finally {
                       const bytes = await memoryHooks.stop();
-                      // Only iterations that enter `timings` count towards the per-iteration mean.
+                      // Only iterations that enter `timings` count; mean and m2 (Welford) give the standard error.
                       if (elapsed > 0 && bytes !== null) {
                           allocation.totalBytes += bytes;
                           allocation.iterations++;
+                          const delta = bytes - allocation.mean;
+                          allocation.mean += delta / allocation.iterations;
+                          allocation.m2 += delta * (bytes - allocation.mean);
                       }
                   }
                   return elapsed;
@@ -1886,6 +1880,12 @@ class BenchmarkRunner {
                                       bytesPerIteration: allocation.totalBytes / allocation.iterations,
                                       totalBytes: allocation.totalBytes,
                                       iterations: allocation.iterations,
+                                      stdErrBytes:
+                                          allocation.iterations > 1
+                                              ? Math.sqrt(
+                                                    allocation.m2 / (allocation.iterations - 1) / allocation.iterations
+                                                )
+                                              : undefined,
                                   }
                                 : undefined,
                     });

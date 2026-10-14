@@ -1,85 +1,20 @@
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
-const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 
 const yaml = require('js-yaml');
+
+const { COMPARE, MB, MERGE, lastCells, node, report, result, runCompare, withFiles } = require('./memory-fixtures');
 
 /**
  * End-to-end plumbing of the memory pass as CI uses it: shard reports -> merge-browser-results.js ->
  * compare-browser-results.js, plus the shape of the workflow and local scripts that wire them together.
  */
 
-const MB = 1024 * 1024;
 const BENCHMARK_DIR = __dirname;
 const REPO_ROOT = path.resolve(BENCHMARK_DIR, '../..');
-const MERGE = path.join(BENCHMARK_DIR, 'merge-browser-results.js');
-const COMPARE = path.join(BENCHMARK_DIR, 'compare-browser-results.js');
-
-function testResult(testCase, { allocationMb, timings = [10, 10, 10] } = {}) {
-    return {
-        testCase,
-        params: {},
-        averageTime: timings[0],
-        minTime: Math.min(...timings),
-        maxTime: Math.max(...timings),
-        sampleCount: timings.length,
-        timings,
-        ...(allocationMb === undefined
-            ? {}
-            : {
-                  allocation: {
-                      bytesPerIteration: allocationMb * MB,
-                      totalBytes: allocationMb * MB * timings.length,
-                      iterations: timings.length,
-                  },
-              }),
-    };
-}
-
-function report(examples, { memory = false } = {}) {
-    return {
-        timestamp: '2026-01-01T00:00:00.000Z',
-        environment: { browser: 'chromium' },
-        summary: { total: Object.keys(examples).length, success: Object.keys(examples).length, error: 0, timeout: 0 },
-        ...(memory && { memoryPass: { samplingIntervalBytes: 4096 } }),
-        examples: Object.fromEntries(
-            Object.entries(examples).map(([name, results]) => [
-                name,
-                { status: 'success', data: { version: '14.0.0', results }, durationMs: 1 },
-            ])
-        ),
-    };
-}
-
-function withFiles(files, fn) {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'memory-pipeline-'));
-    try {
-        const paths = { dir };
-        for (const [name, content] of Object.entries(files)) {
-            paths[name] = path.join(dir, `${name}.json`);
-            fs.writeFileSync(paths[name], JSON.stringify(content));
-        }
-        return fn(paths);
-    } finally {
-        fs.rmSync(dir, { recursive: true, force: true });
-    }
-}
-
-/** Last `n` cells of a table row, with console.table's quoting around string cells removed. */
-function lastCells(line, n) {
-    return line
-        .split('│')
-        .map((c) => c.trim().replace(/^'(.*)'$/, '$1'))
-        .filter(Boolean)
-        .slice(-n);
-}
-
-function node(script, args) {
-    return spawnSync(process.execPath, [script, ...args], { encoding: 'utf8' });
-}
 
 function merge(output, inputs) {
     const proc = node(MERGE, ['--output', output, ...inputs]);
@@ -88,41 +23,25 @@ function merge(output, inputs) {
 }
 
 const timing = report({
-    'high-perf-bar': [testResult('create'), testResult('update')],
-    'data-selection-zoom-line-area': [testResult('line')],
+    'high-perf-bar': [result('create'), result('update')],
+    'data-selection-zoom-line-area': [result('line')],
 });
+
+const memoryReport = (examples) => report(examples, { memory: true });
 
 test('shard memory reports merge into one report whose allocation survives to the comparison', () => {
     withFiles(
         {
             timing,
             // One shard per side holds each example, exactly as the sharded CI job produces them.
-            headShard0: report(
-                {
-                    'high-perf-bar': [
-                        testResult('create', { allocationMb: 30 }),
-                        testResult('update', { allocationMb: 4 }),
-                    ],
-                },
-                { memory: true }
-            ),
-            headShard1: report(
-                { 'data-selection-zoom-line-area': [testResult('line', { allocationMb: 12.5 })] },
-                { memory: true }
-            ),
-            baseShard0: report(
-                {
-                    'high-perf-bar': [
-                        testResult('create', { allocationMb: 40 }),
-                        testResult('update', { allocationMb: 4 }),
-                    ],
-                },
-                { memory: true }
-            ),
-            baseShard1: report(
-                { 'data-selection-zoom-line-area': [testResult('line', { allocationMb: 10 })] },
-                { memory: true }
-            ),
+            headShard0: memoryReport({
+                'high-perf-bar': [result('create', { allocationMb: 30 }), result('update', { allocationMb: 4 })],
+            }),
+            headShard1: memoryReport({ 'data-selection-zoom-line-area': [result('line', { allocationMb: 12.5 })] }),
+            baseShard0: memoryReport({
+                'high-perf-bar': [result('create', { allocationMb: 40 }), result('update', { allocationMb: 4 })],
+            }),
+            baseShard1: memoryReport({ 'data-selection-zoom-line-area': [result('line', { allocationMb: 10 })] }),
         },
         (p) => {
             const headMem = path.join(p.dir, 'head.mem.json');
@@ -133,20 +52,12 @@ test('shard memory reports merge into one report whose allocation survives to th
             // Merging keeps every result's allocation untouched.
             assert.equal(mergedHead.examples['high-perf-bar'].data.results[0].allocation.bytesPerIteration, 30 * MB);
 
-            const proc = node(COMPARE, [
-                '--base',
-                p.timing,
-                '--compare',
-                p.timing,
-                '--base-memory',
-                baseMem,
-                '--compare-memory',
-                headMem,
-                '--format',
-                'json',
-            ]);
-            assert.equal(proc.status, 0, proc.stderr);
-            const rows = Object.fromEntries(JSON.parse(proc.stdout).rankedByTime.map((r) => [r.test, r]));
+            const out = runCompare(
+                { base: p.timing, compare: p.timing, baseMemory: baseMem, compareMemory: headMem },
+                { format: 'json' }
+            );
+            assert.equal(out.status, 0, out.stderr);
+            const rows = Object.fromEntries(out.json.rankedByTime.map((r) => [r.test, r]));
             assert.equal(rows['high-perf-bar / create'].beforeMb, 40);
             assert.equal(rows['high-perf-bar / create'].afterMb, 30);
             assert.equal(rows['high-perf-bar / create'].deltaMb, -10);
@@ -161,102 +72,153 @@ test('a memory pass that covers only some examples leaves the others as an em da
         {
             timing,
             // The memory pass is limited to high-perf-* and data-selection-zoom-*, so other examples have no data.
-            baseMem: report({ 'high-perf-bar': [testResult('create', { allocationMb: 40 })] }, { memory: true }),
-            headMem: report({ 'high-perf-bar': [testResult('create', { allocationMb: 30 })] }, { memory: true }),
+            baseMem: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 40 })] }),
+            headMem: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 30 })] }),
         },
         (p) => {
-            const proc = node(COMPARE, [
-                '--base',
-                p.timing,
-                '--compare',
-                p.timing,
-                '--base-memory',
-                p.baseMem,
-                '--compare-memory',
-                p.headMem,
-            ]);
-            assert.equal(proc.status, 0, proc.stderr);
+            const out = runCompare({
+                base: p.timing,
+                compare: p.timing,
+                baseMemory: p.baseMem,
+                compareMemory: p.headMem,
+            });
+            assert.equal(out.status, 0, out.stderr);
 
-            const row = (name) => proc.stdout.split('\n').find((line) => line.includes(name));
+            const row = (name) => out.stdout.split('\n').find((line) => line.includes(name));
             // Cells are `| test | % | Before (ms) | After (ms) | Before (MB) | After (MB) | Δ (MB) |`.
             assert.deepEqual(lastCells(row('high-perf-bar / create'), 3), ['40.00', '30.00', '-10.00']);
             assert.deepEqual(lastCells(row('high-perf-bar / update'), 3), ['—', '—', '—']);
-            assert.match(proc.stdout, /Δ \(MB\)/);
+            assert.match(out.stdout, /Δ \(MB\)/);
         }
     );
 });
 
+test('a memory pass that recorded nothing on one side shows an em dash and does not fail', () => {
+    withFiles(
+        {
+            timing,
+            // A base site built before the memory pass existed: the pass ran but recorded nothing.
+            baseMem: memoryReport({ 'high-perf-bar': [result('create'), result('update')] }),
+            headMem: memoryReport({
+                'high-perf-bar': [result('create', { allocationMb: 30 }), result('update', { allocationMb: 4 })],
+            }),
+        },
+        (p) => {
+            const paths = { base: p.timing, compare: p.timing, baseMemory: p.baseMem, compareMemory: p.headMem };
+            const out = runCompare(paths, { format: 'json' });
+            assert.equal(out.status, 0, out.stderr);
+            assert.deepEqual(out.json.rankedByAllocation, []);
+            assert.deepEqual(out.json.notable, []);
+            // The head side still shows its figure; only the base side and the delta are unknown.
+            const create = out.json.rankedByTime.find((r) => r.test === 'high-perf-bar / create');
+            assert.deepEqual([create.beforeMb, create.afterMb, create.deltaMb], [null, 30, null]);
+
+            const table = runCompare(paths);
+            assert.equal(table.status, 0, table.stderr);
+            assert.match(table.stdout, /0 of 3 with data on both sides/);
+            assert.match(table.stdout, /Allocation: 0 lower, 0 higher/);
+        }
+    );
+});
+
+test('a memory pass with no examples at all counts as missing data', () => {
+    withFiles({ timing, baseMem: memoryReport({}), headMem: memoryReport({}) }, (p) => {
+        const out = runCompare(
+            { base: p.timing, compare: p.timing, baseMemory: p.baseMem, compareMemory: p.headMem },
+            { format: 'json' }
+        );
+        assert.equal(out.status, 0, out.stderr);
+        assert.deepEqual(out.json.rankedByAllocation, []);
+    });
+});
+
+test('only one side having a memory report still compares, with the other side as an em dash', () => {
+    withFiles({ timing, headMem: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 30 })] }) }, (p) => {
+        const out = runCompare({ base: p.timing, compare: p.timing, compareMemory: p.headMem });
+        assert.equal(out.status, 0, out.stderr);
+        const line = out.stdout.split('\n').find((l) => l.includes('high-perf-bar / create'));
+        assert.deepEqual(lastCells(line, 3), ['—', '30.00', '—']);
+    });
+});
+
+test('output has no allocation columns when no memory reports are supplied', () => {
+    withFiles({ timing }, (p) => {
+        const out = runCompare({ base: p.timing, compare: p.timing });
+        assert.equal(out.status, 0, out.stderr);
+        assert.doesNotMatch(out.stdout, /MB/);
+        assert.doesNotMatch(out.stdout, /Allocation/);
+    });
+});
+
 test('a timing regression is still gated when allocation improves, and an allocation increase does not trip the gate', () => {
-    const slow = report({ 'high-perf-bar': [testResult('create', { timings: [50, 50, 50] })] });
-    const fast = report({ 'high-perf-bar': [testResult('create', { timings: [10, 10, 10] })] });
+    const slow = report({ 'high-perf-bar': [result('create', { timings: [50, 50, 50] })] });
+    const fast = report({ 'high-perf-bar': [result('create', { timings: [10, 10, 10] })] });
     withFiles(
         {
             fast,
             slow,
-            lessMem: report({ 'high-perf-bar': [testResult('create', { allocationMb: 1 })] }, { memory: true }),
-            moreMem: report({ 'high-perf-bar': [testResult('create', { allocationMb: 500 })] }, { memory: true }),
+            lessMem: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 1 })] }),
+            moreMem: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 500 })] }),
         },
         (p) => {
             // Slower head with a big allocation win: the regression must still fail the run. Only the
             // table format sets the exit code, so that is the one CI gates on.
-            const regressed = node(COMPARE, [
-                '--base',
-                p.fast,
-                '--compare',
-                p.slow,
-                '--base-memory',
-                p.moreMem,
-                '--compare-memory',
-                p.lessMem,
-            ]);
-            assert.equal(regressed.status, 1);
-            assert.match(regressed.stdout, /Notable Regressions/);
-            const regressedJson = node(COMPARE, [
-                '--base',
-                p.fast,
-                '--compare',
-                p.slow,
-                '--base-memory',
-                p.moreMem,
-                '--compare-memory',
-                p.lessMem,
-                '--format',
-                'json',
-            ]);
-            assert.deepEqual(JSON.parse(regressedJson.stdout).notable, ['high-perf-bar / create']);
+            const regressed = { base: p.fast, compare: p.slow, baseMemory: p.moreMem, compareMemory: p.lessMem };
+            const failing = runCompare(regressed);
+            assert.equal(failing.status, 1);
+            assert.match(failing.stdout, /Notable Regressions/);
+            assert.deepEqual(runCompare(regressed, { format: 'json' }).json.notable, ['high-perf-bar / create']);
 
             // Same timings with a huge allocation increase: nothing to flag.
-            const growArgs = [
-                '--base',
-                p.fast,
-                '--compare',
-                p.fast,
-                '--base-memory',
-                p.lessMem,
-                '--compare-memory',
-                p.moreMem,
-            ];
-            const grew = node(COMPARE, growArgs);
-            assert.equal(grew.status, 0);
-            assert.doesNotMatch(grew.stdout, /Notable Regressions/);
-            const parsed = JSON.parse(node(COMPARE, [...growArgs, '--format', 'json']).stdout);
+            const grew = { base: p.fast, compare: p.fast, baseMemory: p.lessMem, compareMemory: p.moreMem };
+            const passing = runCompare(grew);
+            assert.equal(passing.status, 0);
+            assert.doesNotMatch(passing.stdout, /Notable Regressions/);
+            const parsed = runCompare(grew, { format: 'json' }).json;
             assert.deepEqual(parsed.notable, []);
             assert.equal(parsed.rankedByTime[0].deltaMb, 499);
         }
     );
 });
 
-test('only one side having a memory report still compares, with the other side as an em dash', () => {
+test('allocation deltas within the sampling noise band are left out of the ranking and the higher/lower counts', () => {
     withFiles(
         {
             timing,
-            headMem: report({ 'high-perf-bar': [testResult('create', { allocationMb: 30 })] }, { memory: true }),
+            baseMem: memoryReport({
+                'high-perf-bar': [
+                    result('create', { allocationMb: 40, stdErrMb: 1 }),
+                    result('update', { allocationMb: 4, stdErrMb: 0.1 }),
+                ],
+                'data-selection-zoom-line-area': [result('line', { allocationMb: 10 })],
+            }),
+            headMem: memoryReport({
+                'high-perf-bar': [
+                    // +1.5 MB against a +/-2.83 MB band: noise.
+                    result('create', { allocationMb: 41.5, stdErrMb: 1 }),
+                    // -2 MB against a +/-0.28 MB band: a real change.
+                    result('update', { allocationMb: 2, stdErrMb: 0.1 }),
+                ],
+                // No standard error recorded: the change is shown, but cannot be judged.
+                'data-selection-zoom-line-area': [result('line', { allocationMb: 12 })],
+            }),
         },
         (p) => {
-            const proc = node(COMPARE, ['--base', p.timing, '--compare', p.timing, '--compare-memory', p.headMem]);
-            assert.equal(proc.status, 0, proc.stderr);
-            const line = proc.stdout.split('\n').find((l) => l.includes('high-perf-bar / create'));
-            assert.deepEqual(lastCells(line, 3), ['—', '30.00', '—']);
+            const paths = { base: p.timing, compare: p.timing, baseMemory: p.baseMem, compareMemory: p.headMem };
+            const { json } = runCompare(paths, { format: 'json' });
+            assert.deepEqual(
+                json.rankedByAllocation.map((r) => r.test),
+                ['high-perf-bar / update', 'data-selection-zoom-line-area / line']
+            );
+            const create = json.rankedByTime.find((r) => r.test === 'high-perf-bar / create');
+            assert.equal(create.deltaMb, 1.5);
+            assert.equal(create.withinNoise, true);
+
+            const table = runCompare(paths);
+            assert.equal(table.status, 0, table.stderr);
+            const row = table.stdout.split('\n').find((l) => l.includes('high-perf-bar / create'));
+            assert.deepEqual(lastCells(row, 1), ['+1.50 (noise)']);
+            assert.match(table.stdout, /Allocation: 1 lower, 1 higher, 1 within sampling noise \(1 of the changes/);
         }
     );
 });
@@ -265,24 +227,22 @@ test('a merged memory report keeps its marker, so it is rejected as a timing inp
     withFiles(
         {
             timing,
-            shard0: report({ 'high-perf-bar': [testResult('create', { allocationMb: 30 })] }, { memory: true }),
-            shard1: report(
-                { 'data-selection-zoom-line-area': [testResult('line', { allocationMb: 12.5 })] },
-                { memory: true }
-            ),
+            shard0: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 30 })] }),
+            shard1: memoryReport({ 'data-selection-zoom-line-area': [result('line', { allocationMb: 12.5 })] }),
         },
         (p) => {
             const mergedPath = path.join(p.dir, 'merged.json');
             const merged = merge(mergedPath, [p.shard0, p.shard1]);
             assert.deepEqual(merged.memoryPass, { samplingIntervalBytes: 4096 });
 
-            const asBase = node(COMPARE, ['--base', mergedPath, '--compare', p.timing]);
-            assert.equal(asBase.status, 2);
-            assert.match(asBase.stderr, /memory-pass report/);
-
-            const asCompare = node(COMPARE, ['--base', p.timing, '--compare', mergedPath]);
-            assert.equal(asCompare.status, 2);
-            assert.match(asCompare.stderr, /memory-pass report/);
+            for (const paths of [
+                { base: mergedPath, compare: p.timing },
+                { base: p.timing, compare: mergedPath },
+            ]) {
+                const out = runCompare(paths);
+                assert.equal(out.status, 2);
+                assert.match(out.stderr, /memory-pass report/);
+            }
         }
     );
 });
@@ -290,8 +250,8 @@ test('a merged memory report keeps its marker, so it is rejected as a timing inp
 test('merged timing reports carry no memory marker', () => {
     withFiles(
         {
-            shard0: report({ 'high-perf-bar': [testResult('create')] }),
-            shard1: report({ 'data-selection-zoom-line-area': [testResult('line')] }),
+            shard0: report({ 'high-perf-bar': [result('create')] }),
+            shard1: report({ 'data-selection-zoom-line-area': [result('line')] }),
         },
         (p) => {
             const merged = merge(path.join(p.dir, 'merged.json'), [p.shard0, p.shard1]);
@@ -303,8 +263,8 @@ test('merged timing reports carry no memory marker', () => {
 test('memory-pass and timing shards cannot be merged together', () => {
     withFiles(
         {
-            mem: report({ 'high-perf-bar': [testResult('create', { allocationMb: 30 })] }, { memory: true }),
-            time: report({ 'data-selection-zoom-line-area': [testResult('line')] }),
+            mem: memoryReport({ 'high-perf-bar': [result('create', { allocationMb: 30 })] }),
+            time: report({ 'data-selection-zoom-line-area': [result('line')] }),
         },
         (p) => {
             const proc = node(MERGE, ['--output', path.join(p.dir, 'merged.json'), p.mem, p.time]);

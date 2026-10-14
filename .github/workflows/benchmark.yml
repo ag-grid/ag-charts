@@ -58,9 +58,7 @@ env:
     # cross-run CV — a single run per side cannot separate a real change from shared-runner CPU
     # drift (~half the suite has a >10% run-to-run noise floor on hosted VMs).
     AG_BENCHMARK_RUNS: 3
-    # Examples (regex over example names) that get the memory pass. Heap sampling adds one
-    # pass per side to each shard, so it is limited to the examples whose allocation the
-    # performance work targets; set to '.' to cover every example.
+    # Regex over example names that get the memory pass; '.' covers every example.
     AG_MEMORY_EXAMPLE_PATTERN: '^(high-perf-|data-selection-zoom-)'
     IBM_TELEMETRY_DISABLED: 'true'
 
@@ -368,11 +366,8 @@ jobs:
                     run_one base "${BASE_PORT}" "${run}"
                   done
 
-            # Allocated MB per iteration comes from V8 heap sampling, which slows the page, so it is
-            # a separate pass rather than part of the timing runs above (those never attach the
-            # sampler). Allocation is near-deterministic, so one pass per side is enough, unlike
-            # wall time. Advisory: a failure here is a warning and leaves "—" in the comparison;
-            # it never fails the job or touches the timing gate.
+            # Heap sampling slows the page, so it never runs in the timing passes above. Advisory: a
+            # failure only leaves "—" in the comparison, which judges deltas against sampling noise.
             - name: Run memory pass (heap sampling, once per side)
               env:
                   SHARD_EXAMPLES: ${{ matrix.examples }}
@@ -480,8 +475,7 @@ jobs:
                   fi
                   echo "Merged ${good_runs} complete run(s)."
 
-                  # Memory-pass reports: one per shard per side, absent for shards with no covered
-                  # examples. Advisory, so a missing or partial pass just leaves "—" in the report.
+                  # Shards with no covered examples have no memory report; a gap just leaves "—".
                   for side in head base; do
                     mem_shards=(reports/browser-benchmarks/shards/${side}-*.mem.json)
                     if [[ ${#mem_shards[@]} -gt 0 ]]; then
