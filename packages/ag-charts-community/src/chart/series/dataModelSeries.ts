@@ -201,6 +201,14 @@ export abstract class DataModelSeries<
         return result;
     }
 
+    private isDatumMissingOrInvalid(datumIndex: number): boolean {
+        const { processedData } = this;
+        return (
+            processedData?.missingData?.get(this.id)?.[datumIndex] === true ||
+            processedData?.invalidData?.get(this.id)?.[datumIndex] === true
+        );
+    }
+
     private findFocus(opts: PickFocusInputs, nodeData: TDatum[]): Pick<PickFocusOutputs, 'datum' | 'datumIndex'> {
         const clampedDatumIndex = clamp(0, opts.datumIndex, this.dataCount() - 1);
         const [lower, upper] = this.findNodeDataIndexBounds(clampedDatumIndex, nodeData);
@@ -226,7 +234,9 @@ export abstract class DataModelSeries<
             return node.datumIndex === desiredDatumIndex || this.isInBucket(node, desiredDatumIndex);
         };
         const boundaryFallbacks = (): number | undefined => {
-            if ((opts.otherIndexDelta satisfies number) !== 0) return lower ?? upper;
+            if ((opts.otherIndexDelta satisfies number) !== 0 && this.isDatumMissingOrInvalid(clampedDatumIndex)) {
+                return lower ?? upper;
+            }
         };
 
         const fullyBounded = lower !== undefined && upper !== undefined;

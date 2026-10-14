@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ChartAxisDirection } from 'ag-charts-core';
+import { ChartAxisDirection, Transformable } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 import type {
     AgBarSeriesItemStylerParams,
@@ -15,7 +15,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { Transformable } from '../../../scene/transformable';
 import {
     BIG,
     HIGH_VOLUME_COUNT,
