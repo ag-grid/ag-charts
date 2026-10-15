@@ -200,12 +200,18 @@ export class ChartCaption implements CaptionLike {
             ];
         }
 
-        // Signal interactivity only on captions that actually have a click listener.
-        if (this.isInteractive(moduleCtx)) {
+        if (this.hasClickListener(moduleCtx)) {
+            // Fully interactive (like a regular button).
             this.proxyText.setCursor('pointer');
             this.proxyText.setAriaRole('button');
             this.proxyText.setTabIndex(0);
+        } else if (this.contextMenuOpts.enabled) {
+            // Partially interactive (can focused on with the screenreader's Browse-mode)
+            this.proxyText.setCursor(undefined);
+            this.proxyText.setAriaRole('button');
+            this.proxyText.setTabIndex(-1);
         } else {
+            // Non-interactive
             this.proxyText.setCursor(undefined);
             this.proxyText.setAriaRole('presentation');
             this.proxyText.setTabIndex(undefined);
@@ -293,10 +299,6 @@ export class ChartCaption implements CaptionLike {
             { widgetEvent: event, canvasX, canvasY },
             { captionType: this.key, text: this.text ?? '' }
         );
-    }
-
-    private isInteractive(moduleCtx: DynamicContext<ChartRegistry>): boolean {
-        return this.hasClickListener(moduleCtx) || this.contextMenuOpts.enabled;
     }
 
     /**
