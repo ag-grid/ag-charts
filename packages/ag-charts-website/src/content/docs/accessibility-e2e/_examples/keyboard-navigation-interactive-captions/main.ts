@@ -1,6 +1,7 @@
 // @ag-skip-fws
 import {
     AgCaptionClickEvent,
+    AgCaptionListeners,
     AgCartesianChartOptions,
     AgCharts,
     BarSeriesModule,
@@ -60,15 +61,34 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
+type TestMode = {
+    titleListeners?: AgCaptionListeners;
+    chartListeners?: AgCartesianChartOptions['listeners'];
+    contextMenu?: boolean;
+};
+
+const testModes: Record<string, TestMode> = {
+    'non-interactive': {},
+    'global-caption-click': { chartListeners: { captionClick: recordEvent } },
+    'global-caption-double-click': { chartListeners: { captionDoubleClick: recordEvent } },
+    'local-click-title': { titleListeners: { click: recordEvent } },
+    'local-double-click-title': { titleListeners: { doubleClick: recordEvent } },
+    'local-click-title-global-caption-click': {
+        titleListeners: { click: recordEvent },
+        chartListeners: { captionClick: recordEvent },
+    },
+    'local-click-title-context-menu': { titleListeners: { click: recordEvent }, contextMenu: true },
+    'context-menus': { contextMenu: true },
+};
+
 export function onUpdate() {
-    const mode = (document.getElementById('myTestMode') as HTMLSelectElement).value;
-    const titleClick = mode === 'local-click-title' || mode === 'local-click-title-context-menu';
-    const contextMenu = mode === 'local-click-title-context-menu' || mode === 'context-menus';
+    const value = (document.getElementById('myTestMode') as HTMLSelectElement).value;
+    const { titleListeners, chartListeners = {}, contextMenu = false } = testModes[value];
     chart.update({
         ...options,
-        title: { ...options.title, listeners: titleClick ? { click: recordEvent } : undefined },
+        title: { ...options.title, listeners: titleListeners },
         contextMenu: { enabled: contextMenu },
-        listeners: mode === 'global-caption-click' ? { captionClick: recordEvent } : {},
+        listeners: chartListeners,
     });
 }
 
