@@ -93,7 +93,7 @@ describe('volumeProfileUtils', () => {
             `);
         });
 
-        it('should span the full tick for a level between the extremes that has no data, and for a single level', () => {
+        it('should span the full tick for a level between the extremes that has no data, and give a single level one tick', () => {
             expect({
                 gap: levelsFor([10, 15], 2.5),
                 single: levelsFor([10], 2.5),
@@ -126,14 +126,6 @@ describe('volumeProfileUtils', () => {
                   },
                 ],
                 "single": [
-                  {
-                    "downVolume": 0,
-                    "price": 12.5,
-                    "priceHigh": 13.75,
-                    "priceLow": 11.25,
-                    "total": 0,
-                    "upVolume": 0,
-                  },
                   {
                     "downVolume": 2,
                     "price": 10,
