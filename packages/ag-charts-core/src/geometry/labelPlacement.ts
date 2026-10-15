@@ -175,6 +175,11 @@ export interface PositionedLabelCandidate {
      */
     readonly flushToRegion?: boolean;
     /**
+     * Where the label is visible at all. A kept `neverDrop` fallback spilling out of it ranks below every
+     * fallback that only overflows its {@link region}; when unset, all overflow ranks alike.
+     */
+    readonly visibleRegion?: BoxBounds;
+    /**
      * Axis the box may move a few pixels along to clear an obstacle without leaving the placement it names;
      * across any other axis it stays on its anchor. Unset moves along neither.
      */
@@ -282,6 +287,12 @@ export interface PointLabelDatum {
     readonly neverDrop?: boolean;
     /** When `false`, the placed label is not an obstacle for the labels resolved after it. */
     readonly obstacle?: boolean;
+    /** Placed labels sharing a group never block one another. */
+    readonly labelGroup?: string;
+    /** Gives way only to placed labels and obstacles that {@link outranks outrank} it. */
+    readonly yields?: boolean;
+    /** The placed label is an obstacle to {@link yields yielding} labels resolved after it. */
+    readonly outranks?: boolean;
     /**
      * Authoritative pre-positioned candidates, tried in order; each carries its own region. When
      * present the engine cascades over these opaque boxes and never computes a placement itself
@@ -480,6 +491,10 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          /** The {@link PointLabelDatum.labelGroup} of the placed label this obstacle stands for. */
+          readonly labelGroup?: string;
+          /** Blocks {@link PointLabelDatum.yields yielding} labels too. */
+          readonly outranks?: boolean;
           readonly overlay?: boolean;
       }
     | {
@@ -489,6 +504,8 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          /** Blocks {@link PointLabelDatum.yields yielding} labels too. */
+          readonly outranks?: boolean;
           readonly overlay?: boolean;
       }
     | {
@@ -649,6 +666,8 @@ interface PooledLabelObstacle {
     box: BoxBounds;
     rect: OrientedRect;
     category: ObstacleCategory;
+    labelGroup: string | undefined;
+    outranks: boolean | undefined;
 }
 
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
@@ -688,6 +707,10 @@ let candidateOwnBox: BoxBounds | undefined;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
+// The candidate datum's label group: placed labels in the same group are never obstacles to it.
+let candidateLabelGroup: string | undefined;
+// The candidate datum gives way only to outranking obstacles.
+let candidateYields = false;
 // The label's text/box after the fit step, reused per candidate to keep the hot path allocation-free.
 // `dropped` is how many characters truncation removed and `shrink` how much of the source text's area the
 // glyph gave up, ranking candidates when none holds the full text at full size; `fontSize` is the
@@ -853,6 +876,13 @@ function worstObstacleOverlap(o: LabelObstacle): void {
 
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
+    if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
+        return true;
+    }
+    if (candidateYields && ((o.kind !== 'rect' && o.kind !== 'orientedRect') || o.outranks !== true)) {
+        return true;
+    }
+
     const category = o.category ?? 'seriesItem';
     // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it;
     // directional labels fall through to the circle test, which measures their real clearance.
@@ -1403,6 +1433,7 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
 function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     const box = labelObstacleBox(placed);
+    const { labelGroup, outranks } = placed.datum;
     let obstacle = labelObstaclePool[count];
     if (obstacle == null) {
         obstacle = {
@@ -1410,10 +1441,14 @@ function insertLabelObstacle(placed: PlacedLabel, count: number): number {
             box,
             rect: { cx: 0, cy: 0, halfWidth: 0, halfHeight: 0, cos: 1, sin: 0 },
             category: 'label',
+            labelGroup,
+            outranks,
         };
         labelObstaclePool.push(obstacle);
     } else {
         obstacle.box = box;
+        obstacle.labelGroup = labelGroup;
+        obstacle.outranks = outranks;
     }
     const { rotation } = placed;
     if (rotation != null && collidesByRotatedRect(placed.candidate, rotation)) {
@@ -2106,6 +2141,8 @@ const TIER_FIT = 0;
 const TIER_COLLIDING = 1;
 /** Tier of a candidate that overflows its region; kept only to avoid dropping the label. */
 const TIER_OVERFLOWING = 2;
+/** Tier of a candidate partly outside its {@link PositionedLabelCandidate.visibleRegion}. */
+const TIER_CLIPPED = 3;
 /** Upper bound on {@link shrinkRatio}, keeping any amount of shrinking cheaper than losing one character. */
 const MAX_SHRINK_SCORE = 0.999;
 
@@ -2404,6 +2441,8 @@ function placeAvoidingLabel(
     // leave it unset (their own marker is handled by the own-marker circle gate above).
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
+    candidateLabelGroup = d.labelGroup;
+    candidateYields = d.yields === true;
     cascadeRawRegion = d.region ?? bounds;
     cascadeContainThreshold = containmentThreshold(threshold);
     cascadeRegion = deflateRegion(deflatedRegionBox, cascadeRawRegion, cascadeContainThreshold);
@@ -2461,6 +2500,8 @@ function placeFromPositionedCandidates(
     candidateOwnMarkerR = -1;
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
+    candidateLabelGroup = d.labelGroup;
+    candidateYields = d.yields === true;
 
     const { fit } = d;
     // Measured once here rather than per candidate: every candidate refits the same source text. A
@@ -2595,10 +2636,11 @@ function positionedCandidatesPass(): PlacedLabel | undefined {
         if (!recordBest) continue;
         if (d.neverDrop === true) {
             const overflow = regionOverflow(region, x, y, cw, ch);
-            let tier = TIER_OVERFLOWING;
-            let score = overflow;
+            const clipped = c.visibleRegion == null ? 0 : regionOverflow(c.visibleRegion, x, y, cw, ch);
+            let tier = clipped > 0 ? TIER_CLIPPED : TIER_OVERFLOWING;
+            let score = clipped > 0 ? clipped : overflow;
             // Ranking colliding candidates by how buried they are only matters when there is one to choose.
-            if (overflow === 0 && ln > 1) {
+            if (overflow === 0 && clipped === 0 && ln > 1) {
                 candidateWorstOverlap = 0;
                 obstacleIndex.query(queryBox, worstObstacleOverlap);
                 tier = TIER_COLLIDING;
