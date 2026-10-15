@@ -8,6 +8,9 @@
                 "path": "/theme-builder"
             },
             {
+                "text": "Expanded Theme Parameters"
+            },
+            {
                 "text": "Volume Profile",
                 "path": "./financial-charts-volume-profile/"
             },
