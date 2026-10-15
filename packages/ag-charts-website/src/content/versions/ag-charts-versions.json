@@ -1,5 +1,23 @@
 [
     {
+        "version": "14.3.0",
+        "date": "November 4th, 2026",
+        "highlights": [
+            {
+                "text": "Theme Builder",
+                "path": "/theme-builder"
+            },
+            {
+                "text": "Volume Profile",
+                "path": "./financial-charts-volume-profile/"
+            },
+            {
+                "text": "Accessibility Improvements"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-14-3"
+    },
+    {
         "version": "14.2.0",
         "date": "September 16th, 2026",
         "highlights": [
