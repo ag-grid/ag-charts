@@ -132,6 +132,8 @@ export function resolveLabelFitDescriptors(
  */
 export interface CandidateFitTarget {
     readonly container?: { readonly width: number; readonly height: number };
+    /** Whether {@link container} is the label's own shape, kept clear by the collision threshold. Defaults to `true`. */
+    readonly ownShape?: boolean;
     /** Shape the text is fitted to, when the candidate's container is only its bounding box. */
     readonly shape?: FitRegion;
     /** Where the block sits against {@link anchor} within that shape; defaults to centred on it. */
@@ -2569,7 +2571,7 @@ function fitPositionedCandidate(
     threshold: number
 ): boolean {
     const fontSearch = candidateTrialFontSize == null;
-    const container = deflateContainer(fitTo.container, threshold);
+    const container = fitTo.ownShape === false ? fitTo.container : deflateContainer(fitTo.container, threshold);
     // The clearance a label keeps from its own surface must not erase it: refit to the surface
     // itself rather than draw the bare ellipsis the deflated container left.
     const fitted =
