@@ -99,6 +99,9 @@ import {
 } from './optionsStructuralCache';
 import type { SeriesGrouping } from './seriesGrouping';
 
+/** What a preset's data transform derives from the rows. */
+type PresetDataUpdate = ReturnType<NonNullable<PresetModuleDefinition<any>['processData']>>;
+
 interface FontAccumulator {
     /** Google font families to load from the CDN (gated by `loadGoogleFonts`). */
     googleFonts: Set<string>;
@@ -417,7 +420,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (
                 fastPathPossible &&
                 baseChartOptions != null &&
-                !this.dataChangeNeedsSlowPath(deltaOptions, baseChartOptions, presetDef, presetUpdate?.data)
+                !this.dataChangeNeedsSlowPath(deltaOptions, baseChartOptions, presetDef, presetUpdate)
             ) {
                 ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(
                     deltaOptions ?? null,
@@ -514,8 +517,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private fastSetup(
         deltaOptions: DeepPartial<T> | null,
         baseChartOptions: ChartOptions<T>,
-        presetDef: ReturnType<ChartOptions<T>['moduleRegistry']['getPresetModule']>,
-        presetUpdate?: { series?: unknown; data?: unknown }
+        presetDef: PresetModuleDefinition<any> | undefined,
+        presetUpdate?: PresetDataUpdate
     ) {
         const { activeTheme, processedOptions: baseOptions } = baseChartOptions;
 
@@ -1949,23 +1952,32 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * A change of row count can predict different axes from the sample of rows, and a preset without a data
-     * transform may have copied `data` into its own options, which only the slow path re-derives.
+     * A `data` that isn't an array needs the validation of the slow path. A change of row count can predict different
+     * axes from the sample of rows, or change the shape a preset transform derives from the rows, and a preset
+     * without a data transform may have copied `data` into its own options. Only the slow path re-derives those.
      */
     private dataChangeNeedsSlowPath(
         deltaOptions: DeepPartial<T> | null | undefined,
         baseChartOptions: ChartOptions<T>,
-        presetDef: ReturnType<ChartOptions<T>['moduleRegistry']['getPresetModule']>,
-        presetData: unknown
+        presetDef: PresetModuleDefinition<any> | undefined,
+        presetUpdate: PresetDataUpdate | undefined
     ) {
         const data = deltaOptions?.data;
+        if (!isArray(data)) return data !== undefined;
         const baseLength = baseChartOptions.userOptions.data?.length ?? 0;
-        if (!isArray(data) || data.length === baseLength) return false;
+        if (data.length === baseLength) return false;
         if (data.length === 0 || baseLength === 0) return true;
         if (this.optionMetadata.presetType != null && presetDef?.processData == null) return true;
 
+        // The transform can derive another series override or datum key (a sparkline of numbers or of tuples).
+        if (presetDef?.processData != null) {
+            const shapeOf = ({ series, datumKey }: PresetDataUpdate) => JSON.stringify([series, datumKey]);
+            const baseUpdate = presetDef.processData(baseChartOptions.userOptions.data);
+            if (presetUpdate == null || shapeOf(presetUpdate) !== shapeOf(baseUpdate)) return true;
+        }
+
         const { processedOptions: baseOptions } = baseChartOptions;
-        const rows = (presetDef?.processData == null ? data : presetData) as DatumDefault[];
+        const rows = presetUpdate?.data ?? data;
         return this.predictedAxesKeyOf(baseOptions, rows) !== baseChartOptions.predictedAxesKey;
     }
 

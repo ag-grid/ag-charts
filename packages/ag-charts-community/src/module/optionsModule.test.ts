@@ -6067,6 +6067,49 @@ describe('ChartOptions', () => {
                 ]);
                 expect(strip(updated.processedOptions)).toEqual(strip(fresh.processedOptions));
             });
+
+            it('re-derives the tooltip of a sparkline whose rows change shape along with their count', () => {
+                const metadata = SPARKLINE_METADATA;
+                const options = { type: 'line', data: [1, 2, 3] } as AgChartOptions;
+                const tuples = [1, 2, 3, 4, 5].map((v) => [v, v * 2]);
+                const base = new ChartOptions(undefined, options, {}, {}, metadata);
+
+                const updated = applyDelta(base, { data: tuples }, metadata);
+                const fresh = new ChartOptions(
+                    undefined,
+                    { ...options, data: tuples } as AgChartOptions,
+                    {},
+                    {},
+                    metadata
+                );
+
+                // A tuple's value is read from its `datum`, which the base's number rows don't have.
+                const tooltipOf = (chartOptions: ChartOptions) => {
+                    const { renderer } = (chartOptions.processedOptions.series?.[0] as any).tooltip;
+                    const datum = (chartOptions.processedOptions.data as any[])[3];
+                    return renderer({ datum, xKey: 'x', yKey: 'y' });
+                };
+                expect(updated.revalidated).toBe(true);
+                expect(tooltipOf(updated)).toEqual(tooltipOf(fresh));
+            });
+        });
+
+        describe('`data` that is not an array', () => {
+            it.each([
+                { name: 'a string', data: 'foo' },
+                { name: 'an object', data: {} },
+                { name: 'null', data: null },
+            ])('validates $name on the slow path', ({ data }) => {
+                const base = createBase({
+                    data: rows(4),
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                } as AgChartOptions);
+
+                const updated = applyDelta(base, { data });
+
+                expect(updated.revalidated).toBe(true);
+                expect(updated.processedOptions.data).not.toBe(data);
+            });
         });
 
         describe('deltas that do not pass `data`', () => {
