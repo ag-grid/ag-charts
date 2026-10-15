@@ -64,7 +64,7 @@ export const VolumeProfilePresetModule: PresetModuleDefinition<
     options: volumeProfileChartOptionsDef,
 
     create: volumeProfileChart,
-    transformSeriesData: (data, opts) => groupVolumeProfile(data, opts, opts.tickSize),
+    transformSeriesData: (data, opts, logger) => groupVolumeProfile(data, opts, opts.tickSize, logger),
 
     baseTheme: 'ag-financial',
     themeTemplate: {

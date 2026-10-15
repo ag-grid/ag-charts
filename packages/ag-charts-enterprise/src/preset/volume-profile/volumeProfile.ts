@@ -1,5 +1,6 @@
 import { _Theme } from 'ag-charts-community';
 import {
+    type Logger,
     type OptionsDefs,
     arrayOf,
     boolean,
@@ -23,15 +24,22 @@ import type {
     DatumDefault,
 } from 'ag-charts-types';
 
-import { type VolumeProfileDatum, inferVolumeProfileTickSize, normaliseVolumeProfile } from './volumeProfileUtils';
+import {
+    type VolumeProfileDatum,
+    inferVolumeProfileTickSize,
+    normaliseVolumeProfile,
+    warnMissingVolumeProfileKeys,
+} from './volumeProfileUtils';
 
 type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
 
 export function groupVolumeProfile(
     data: DatumDefault[],
     { priceKey = 'price', upKey, downKey }: Pick<AgVolumeProfileOptions, 'priceKey' | 'upKey' | 'downKey'>,
-    tickSize: number | undefined
+    tickSize: number | undefined,
+    logger: Logger
 ) {
+    warnMissingVolumeProfileKeys(data, { priceKey, upKey, downKey }, logger);
     return normaliseVolumeProfile(
         data,
         { priceKey, upKey, downKey },
