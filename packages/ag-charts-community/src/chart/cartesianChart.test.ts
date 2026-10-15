@@ -365,6 +365,24 @@ describe('CartesianChart', () => {
             ]);
             expectWarningsCalls().toEqual([]);
         });
+
+        it('should bind both axes to a series made horizontal by a theme override', async () => {
+            const options = {
+                data: getData(),
+                series: [{ type: 'bar', xKey: 'year', yKey: 'adults' }],
+                theme: { overrides: { bar: { series: { direction: 'horizontal' } } } },
+            } as AgCartesianChartOptions;
+            prepareTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options)) as CartesianChart;
+            await waitForChartStability(chart);
+
+            expect(chart.axes.map((axis) => [axis.type, axis.position, axis.boundSeries.length])).toEqual([
+                ['number', 'bottom', 1],
+                ['category', 'left', 1],
+            ]);
+            expectWarningsCalls().toEqual([]);
+        });
     });
 
     describe('Small chart width', () => {

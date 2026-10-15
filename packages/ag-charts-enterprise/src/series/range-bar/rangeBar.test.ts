@@ -42,6 +42,7 @@ import {
     isoEpochPair,
     magnitudePair,
     newFreezableMock,
+    prepareProcessedOptions,
     pressKey,
     scaleToBigIntFinite,
     setupMockCanvas,
@@ -1927,6 +1928,26 @@ describe('RangeBarSeries', () => {
                     { type: 'range-bar', xKey: 'x', yLowKey: 's3L', yHighKey: 's3H', yName: 'series 3' },
                 ],
             },
+        });
+    });
+
+    describe('theme overrides', () => {
+        const themedSeries = [
+            { type: 'range-bar', xKey: 'x', yLowKey: 's1L', yHighKey: 's1H' },
+            { type: 'range-bar', xKey: 'x', yLowKey: 's2L', yHighKey: 's2H' },
+        ] as const;
+
+        it('should ungroup series when a theme override sets grouped to false', () => {
+            const { processedOptions: themed } = prepareProcessedOptions({
+                series: themedSeries,
+                theme: { overrides: { 'range-bar': { series: { grouped: false } } } },
+            });
+            const { processedOptions: direct } = prepareProcessedOptions({
+                series: themedSeries.map((series) => ({ ...series, grouped: false })),
+            });
+
+            expect(themed.series).toEqual(direct.series);
+            expect(themed.series?.[0]).not.toHaveProperty('seriesGrouping');
         });
     });
 
