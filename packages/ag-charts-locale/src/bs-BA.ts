@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_BS_BA: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'Vol ${value}',
+    statusBarVolumeProfilePrice: 'Cijena',
+    statusBarVolumeProfileUp: 'Gore',
+    statusBarVolumeProfileDown: 'Dolje',
+    statusBarVolumeProfileTotal: 'Ukupno',
     tooltipPaginationStatus: '${index}[number] od ${count}[number]',
 };

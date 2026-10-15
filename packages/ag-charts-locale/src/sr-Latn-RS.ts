@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_SR_LATN_RS: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'Obim ${value}',
+    statusBarVolumeProfilePrice: 'Cena',
+    statusBarVolumeProfileUp: 'Gore',
+    statusBarVolumeProfileDown: 'Dole',
+    statusBarVolumeProfileTotal: 'Ukupno',
     tooltipPaginationStatus: '${index}[number] od ${count}[number]',
 };

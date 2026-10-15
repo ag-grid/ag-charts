@@ -203,5 +203,9 @@ export const AG_CHARTS_LOCALE_BN_IN: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'ভলিউম ${value}',
+    statusBarVolumeProfilePrice: 'মূল্য',
+    statusBarVolumeProfileUp: 'ঊর্ধ্বমুখী',
+    statusBarVolumeProfileDown: 'নিম্নমুখী',
+    statusBarVolumeProfileTotal: 'মোট',
     tooltipPaginationStatus: '${count}[number]টির মধ্যে ${index}[number]তম',
 };

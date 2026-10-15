@@ -6,6 +6,7 @@ import {
     compareImageSnapshot,
     deproxy,
     hoverAction,
+    isTooltipVisible,
     prepareFinancialTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -343,6 +344,181 @@ describe('priceVolumePreset', () => {
                     volumeProfile: { data, priceKey: 'level', upKey: 'buys', downKey: 'sells' },
                 })
             );
+            await compare();
+        });
+    });
+
+    describe('volume profile status bar', () => {
+        interface Measurable {
+            text?: string;
+            getBBox(): { x: number; width: number };
+        }
+
+        interface StatusBarState {
+            bandLabels: Array<{ title: Measurable; value: Measurable }>;
+            backgroundNode: { width: number };
+        }
+
+        interface NodeDatum {
+            datumIndex: number;
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            centerX?: number;
+        }
+
+        const volumeProfile = { data: getRegularVolumeProfile(), upKey: 'upVolume', downKey: 'downVolume' };
+
+        // Levels run highest price first, so index 2 is 200 and index 21 is 152.5, which has no volume.
+        const LEVEL_200 = 2;
+        const EMPTY_LEVEL = 21;
+        const BLOCK_LAYOUT = {
+            overrides: { common: { statusBar: { layoutStyle: 'block' } } },
+        } as AgFinancialChartOptions['theme'];
+
+        const create = async (options: Partial<AgFinancialChartOptions>, width?: number) => {
+            const prepared = prepareFinancialTestOptions({
+                data: getStockData(),
+                ...options,
+            } as AgFinancialChartOptions);
+            chart = AgCharts.createFinancialChart({ ...prepared, width: width ?? prepared.width });
+            await waitForChartStability(chart);
+        };
+
+        const nodeCentre = (type: string, yKey: string | undefined, datumIndex: number) => {
+            const series = deproxy(chart).ctx.chartService.series.find(
+                (s) => s.type === type && (yKey == null || s.options.yKey === yKey)
+            );
+            expect(series).toBeDefined();
+            const { nodeData } = (series as unknown as { contextNodeData: { nodeData: NodeDatum[] } }).contextNodeData;
+            const node = nodeData.find((n) => n.datumIndex === datumIndex);
+            expect(node).toBeDefined();
+            const { x, y } = deproxy(chart).ctx.chartService.seriesRect!;
+            return {
+                x: x + (node!.centerX ?? node!.x + node!.width / 2),
+                y: y + node!.y + node!.height / 2,
+            };
+        };
+
+        // The pointer sits over a candle's column, at the height of a level's bar.
+        const hoverCandleAtLevel = async (candleIndex: number, levelIndex: number) => {
+            const { x } = nodeCentre('candlestick', undefined, candleIndex);
+            const { y } = nodeCentre('bar', 'upVolume', levelIndex);
+            await hoverAction(x, y)(deproxy(chart));
+            await waitForChartStability(chart);
+        };
+
+        const expectProfileNotHovered = () => {
+            const highlight = deproxy(chart).ctx.highlightManager.getActiveHighlight();
+            expect(['upVolume', 'downVolume']).not.toContain(highlight?.yKey);
+            expect(isTooltipVisible(deproxy(chart))).toBe(false);
+        };
+
+        it('should render the hovered level in the status bar', async () => {
+            await create({ volumeProfile });
+            await hoverCandleAtLevel(50, LEVEL_200);
+
+            expectProfileNotHovered();
+            await compare();
+        });
+
+        it('should size each field for the widest level, not the largest value', async () => {
+            // The 200 level totals 999.00K, which is wider than the 1.00M of the largest level.
+            const volumes: Record<number, [number, number]> = { 197.5: [500_000, 500_000], 200: [600_000, 399_000] };
+            const data = getRegularVolumeProfile().map(({ price }) => {
+                const [upVolume, downVolume] = volumes[price] ?? [50_000, 50_000];
+                return { price, upVolume, downVolume };
+            });
+            data.push({ price: 95, upVolume: 1_000, downVolume: 1_000 });
+            await create({ volumeProfile: { data, upKey: 'upVolume', downKey: 'downVolume' } });
+            await hoverCandleAtLevel(50, LEVEL_200);
+
+            const { bandLabels, backgroundNode } =
+                deproxy(chart).modulesManager.getModule<StatusBarState>('statusBar')!;
+            expect(bandLabels.map(({ value }) => value.text)).toEqual([
+                '198.75-201.25',
+                '600.00K',
+                '399.00K',
+                '999.00K',
+            ]);
+
+            const rightEdge = ({ x, width }: { x: number; width: number }) => x + width;
+            const gaps = bandLabels.map(({ value }, i) => {
+                const next = bandLabels.at(i + 1);
+                return (next ? next.title.getBBox().x : backgroundNode.width) - rightEdge(value.getBBox());
+            });
+            expect(Math.min(...gaps)).toBeGreaterThanOrEqual(0);
+        });
+
+        describe('picking the volume profile', () => {
+            // The point is inside the start of the 200 level's up bar, in series coordinates.
+            const pick = (intent: 'tooltip' | 'highlight' | 'highlight-tooltip' | 'event' | 'context-menu') => {
+                const { y } = nodeCentre('bar', 'upVolume', LEVEL_200);
+                const { y: top } = deproxy(chart).ctx.chartService.seriesRect!;
+                // The bar series are the volume, then the up and down halves of the profile.
+                const [, series] = deproxy(chart).series.filter((s) => s.type === 'bar');
+                return series?.pickNodes({ x: 5, y: y - top }, intent)?.picks.length ?? 0;
+            };
+
+            it('should pick on a click or context menu but not on hover', async () => {
+                await create({ volumeProfile });
+
+                expect({
+                    tooltip: pick('tooltip'),
+                    highlight: pick('highlight'),
+                    'highlight-tooltip': pick('highlight-tooltip'),
+                    event: pick('event'),
+                    'context-menu': pick('context-menu'),
+                }).toMatchInlineSnapshot(`
+                  {
+                    "context-menu": 1,
+                    "event": 1,
+                    "highlight": 0,
+                    "highlight-tooltip": 0,
+                    "tooltip": 0,
+                  }
+                `);
+            });
+        });
+
+        it('should render only the hovered candle over a level without volume', async () => {
+            await create({ volumeProfile });
+            await hoverCandleAtLevel(50, EMPTY_LEVEL);
+
+            await compare();
+        });
+
+        it('should render the level on a second line on a narrow chart', async () => {
+            await create({ volumeProfile }, 450);
+            await hoverCandleAtLevel(50, LEVEL_200);
+
+            await compare();
+        });
+
+        it('should render the level on no more than two lines, reserved in a block layout, on a very narrow chart', async () => {
+            await create({ volumeProfile, theme: BLOCK_LAYOUT }, 300);
+            await hoverCandleAtLevel(50, LEVEL_200);
+
+            await compare();
+        });
+
+        it('should render no level when the status bar is off', async () => {
+            await create({ volumeProfile, statusBar: false });
+            const { x, y } = nodeCentre('bar', 'upVolume', LEVEL_200);
+            await hoverAction(x, y)(deproxy(chart));
+            await waitForChartStability(chart);
+
+            expectProfileNotHovered();
+            await compare();
+        });
+
+        it('should render no level when the volume profile is disabled', async () => {
+            await create({ volumeProfile: { ...volumeProfile, enabled: false } });
+            const { x, y } = nodeCentre('candlestick', undefined, 50);
+            await hoverAction(x, y)(deproxy(chart));
+            await waitForChartStability(chart);
+
             await compare();
         });
     });
