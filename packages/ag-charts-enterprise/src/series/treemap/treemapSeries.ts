@@ -883,11 +883,9 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     }
 
     private tileLabelDatum(node: TreemapNode): TreemapPlacedLabelDatum | undefined {
-        const { bbox, labelValue, secondaryLabelValue, labelText, secondaryLabelText } = node;
+        const { bbox, labelText: primaryText, secondaryLabelText: secondaryText } = node;
         if (bbox == null) return;
         const { tile } = this.options;
-        const primaryText = labelText ?? labelValue;
-        const secondaryText = secondaryLabelText ?? secondaryLabelValue;
         const primary =
             primaryText == null
                 ? undefined

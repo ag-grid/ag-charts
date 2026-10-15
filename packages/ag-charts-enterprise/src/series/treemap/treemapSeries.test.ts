@@ -1049,6 +1049,27 @@ describe('TreemapSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        it('should not call the secondaryLabel itemStyler without a secondaryLabelKey', async () => {
+            const secondaryStyler = vi.fn(() => ({}));
+            const options: AgChartOptions = {
+                data: [{ name: 'Group', children: [{ name: 'Alpha', size: 6 }] }],
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        tile: { secondaryLabel: { enabled: true, itemStyler: secondaryStyler } },
+                    },
+                ],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            expect(secondaryStyler).not.toHaveBeenCalled();
+        });
     });
 
     const testPointerEvents = (testParams: {
