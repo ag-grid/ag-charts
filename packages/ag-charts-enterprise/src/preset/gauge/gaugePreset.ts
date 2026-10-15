@@ -14,6 +14,8 @@ import {
     type AgSeriesTooltip,
 } from 'ag-charts-types';
 
+const DEFAULT_SERIES_ID = 'gauge';
+
 interface UndocumentedProperties {
     overrideDevicePixelRatio?: number;
     foreground?: object;
@@ -69,6 +71,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions): GaugeChartResult {
         theme,
         title,
         width,
+        id = DEFAULT_SERIES_ID,
         type,
         cursor,
         nodeClickRange,
@@ -102,6 +105,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions): GaugeChartResult {
 
     const seriesOpts: AgRadialGaugePreset = {
         ...seriesRest,
+        id,
         type,
         cursor,
         context,
@@ -175,6 +179,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): GaugeChartResult {
         theme,
         title,
         width,
+        id = DEFAULT_SERIES_ID,
         type,
         cursor,
         nodeClickRange,
@@ -201,6 +206,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): GaugeChartResult {
 
     const seriesOpts: AgLinearGaugePreset = {
         ...seriesRest,
+        id,
         type,
         cursor,
         nodeClickRange,

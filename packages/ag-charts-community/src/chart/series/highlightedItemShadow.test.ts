@@ -5,7 +5,7 @@ import type { AgCartesianChartOptions, AgChartOptions, AgDropShadowOptions } fro
 
 import { AgCharts } from '../../api/agCharts';
 import { Marker } from '../marker/marker';
-import { HIGHLIGHT_SHADOW, SERIES_SHADOW } from '../test/shadowFixtures';
+import { HIGHLIGHT_SHADOW, SERIES_SHADOW, legendHighlight } from '../test/shadowFixtures';
 import {
     deproxy,
     expectWarningMessages,
@@ -134,16 +134,6 @@ describe('highlightedItem.shadow', () => {
         chart?.destroy();
         chart = undefined;
     });
-
-    /** The highlight the legend raises for the series' first legend item: per sector, or the whole series. */
-    const legendHighlight = (series: any) => {
-        const [legendDatum] = series.getLegendData('category');
-        if (legendDatum == null) return undefined;
-        const { itemId, legendItemName } = legendDatum;
-        return typeof itemId === 'number'
-            ? { series, itemId: undefined, datum: undefined, datumIndex: itemId, legendItemName }
-            : { series, itemId, datum: undefined, datumIndex: Number.NaN, legendItemName };
-    };
 
     const hoverFirstItem = async (
         testCase: SeriesCase,

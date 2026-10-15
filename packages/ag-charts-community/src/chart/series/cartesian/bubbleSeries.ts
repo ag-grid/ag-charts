@@ -90,6 +90,7 @@ import {
     createCandidateStyleResolver,
     getLabelStyles,
     pickPlacementStyle,
+    withOverlayLabelObstacles,
 } from '../../labelUtil';
 import {
     type CategoryLegendDatum,
@@ -1154,6 +1155,10 @@ export abstract class BubbleScatterSeries<
 
     protected override isPathOrSelectionDirty(): boolean {
         return this.markerDirty;
+    }
+
+    getLabelObstacles() {
+        return withOverlayLabelObstacles(undefined, this.contextNodeData?.nodeData);
     }
 
     override getLabelData() {

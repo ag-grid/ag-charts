@@ -1,15 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { BBox, mapValues } from 'ag-charts-core';
-import type {
-    AgBaseChartOptions,
-    AgCartesianAxisPosition,
-    AgCartesianAxisType,
-    AgCartesianChartOptions,
-    AgPolarChartOptions,
-} from 'ag-charts-types';
+import { BBox } from 'ag-charts-core';
+import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
-import type { ChartAxis } from '../chartAxis';
+import { calculateAxisBBox, mixinDerivedCases } from '../test/axisTestCases';
 import {
     type ChartOrProxy,
     cartesianChartAssertions,
@@ -17,7 +11,6 @@ import {
     createChart,
     deproxy,
     prepareTestOptions,
-    reverseAxes,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -384,35 +377,6 @@ const TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA: AgCartesianChartOptions = {
     ],
 };
 
-function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
-    };
-}
-
-function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
-    const positionFlip = (position?: AgCartesianAxisPosition) => {
-        switch (position) {
-            case 'top':
-                return 'bottom';
-            case 'left':
-                return 'right';
-            case 'bottom':
-                return 'top';
-            case 'right':
-                return 'left';
-            default:
-                return position;
-        }
-    };
-
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
-    };
-}
-
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
     assertions: (chart: ChartOrProxy) => Promise<void> | void;
@@ -420,7 +384,7 @@ type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     compare?: (AgCartesianAxisType | 'unit-time')[];
 };
 const EXAMPLES: Record<string, TestCase> = {
-    ...mixinDerivedCases({
+    ...mixinDerivedCases<TestCase>({
         BASIC_TIME_AXIS_EXAMPLE: {
             options: BASIC_TIME_AXIS_EXAMPLE,
             compare: ['unit-time'],
@@ -460,40 +424,6 @@ const EXAMPLES: Record<string, TestCase> = {
         },
     }),
 };
-
-function mixinDerivedCases<T extends AgBaseChartOptions>(
-    baseCases: Record<string, TestCase<T>>
-): Record<string, TestCase<T>> {
-    const result = { ...baseCases };
-
-    for (const [name, baseCase] of Object.entries(baseCases)) {
-        // Add manual rotation.
-        result[name + '_MANUAL_ROTATION'] = {
-            ...baseCase,
-            options: applyRotation(baseCase.options, -30),
-        };
-
-        // Add flipped axes.
-        result[name + '_FLIP'] = {
-            ...baseCase,
-            options: applyAxesFlip(baseCase.options),
-        };
-
-        result[name + '_REVERSED_AXES'] = {
-            ...baseCase,
-            options: reverseAxes(baseCase.options, true),
-        };
-    }
-
-    return result;
-}
-
-function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: number; height: number } {
-    const bbox = axis.getBBox();
-
-    const { x, y, width, height } = bbox;
-    return { x, y, width, height };
-}
 
 describe('Time Axis Examples', () => {
     setupMockConsole();

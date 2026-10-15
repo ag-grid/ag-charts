@@ -1,23 +1,19 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import type {
-    AgBaseChartOptions,
-    AgCartesianAxisPosition,
-    AgCartesianAxisType,
-    AgCartesianChartOptions,
-    AgPolarChartOptions,
-} from 'ag-charts-community';
+import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { ChartOrProxy } from 'ag-charts-community-test';
 import {
+    applyIntervalBetween,
+    applyIntervalOn,
+    calculateAxisBBox,
     cartesianChartAssertions,
     compareImageSnapshot,
-    reverseAxes,
+    mixinDerivedCases,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { mapValues } from 'ag-charts-core';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -443,79 +439,6 @@ const ORDINAL_TIME_AXIS_REVERSED_ZOOM_END: AgCartesianChartOptions = {
     initialState: { zoom: { ratioX: { start: 0.7, end: 1 } } },
 };
 
-function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
-    };
-}
-
-function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
-    const positionFlip = (position?: AgCartesianAxisPosition) => {
-        switch (position) {
-            case 'top':
-                return 'bottom';
-            case 'left':
-                return 'right';
-            case 'bottom':
-                return 'top';
-            case 'right':
-                return 'left';
-            default:
-                return position;
-        }
-    };
-
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
-    };
-}
-
-const EXAMPLE_GRID_LINE = {
-    width: 2,
-    style: [
-        { fill: 'red', fillOpacity: 0.1, stroke: 'red' },
-        { fill: 'blue', fillOpacity: 0.1, stroke: 'blue' },
-        { fill: 'green', fillOpacity: 0.1, stroke: 'green' },
-        { fill: 'yellow', fillOpacity: 0.1, stroke: 'yellow' },
-    ],
-};
-
-function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
-    return {
-        ...opts,
-        axes:
-            mapValues(opts.axes ?? {}, (axis) =>
-                axis.type === 'ordinal-time'
-                    ? {
-                          ...axis,
-                          interval: { ...(axis.interval ?? {}), placement: 'on' },
-                          gridLine: EXAMPLE_GRID_LINE,
-                          tick: { ...(axis.tick ?? {}), enabled: true },
-                      }
-                    : axis
-            ) ?? undefined,
-    };
-}
-
-function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
-    return {
-        ...opts,
-        axes:
-            mapValues(opts.axes ?? {}, (axis) =>
-                axis.type === 'ordinal-time'
-                    ? {
-                          ...axis,
-                          interval: { ...(axis.interval ?? {}), placement: 'between' },
-                          gridLine: EXAMPLE_GRID_LINE,
-                          tick: { ...(axis.tick ?? {}), enabled: true },
-                      }
-                    : axis
-            ) ?? undefined,
-    };
-}
-
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
     assertions: (chart: ChartOrProxy) => Promise<void> | void;
@@ -523,7 +446,7 @@ type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     compare?: AgCartesianAxisType[];
 };
 const EXAMPLES: Record<string, TestCase> = {
-    ...mixinDerivedCases({
+    ...mixinDerivedCases<TestCase>({
         BASIC_ORDINAL_TIME_AXIS_EXAMPLE: {
             options: BASIC_ORDINAL_TIME_AXIS_EXAMPLE,
             compare: ['ordinal-time'],
@@ -582,40 +505,6 @@ const EXAMPLES: Record<string, TestCase> = {
         },
     }),
 };
-
-function mixinDerivedCases<T extends AgBaseChartOptions>(
-    baseCases: Record<string, TestCase<T>>
-): Record<string, TestCase<T>> {
-    const result = { ...baseCases };
-
-    for (const [name, baseCase] of Object.entries(baseCases)) {
-        // Add manual rotation.
-        result[name + '_MANUAL_ROTATION'] = {
-            ...baseCase,
-            options: applyRotation(baseCase.options, -30),
-        };
-
-        // Add flipped axes.
-        result[name + '_FLIP'] = {
-            ...baseCase,
-            options: applyAxesFlip(baseCase.options),
-        };
-
-        result[name + '_REVERSED_AXES'] = {
-            ...baseCase,
-            options: reverseAxes(baseCase.options, true),
-        };
-    }
-
-    return result;
-}
-
-function calculateAxisBBox(axis: _ModuleSupport.ChartAxis): { x: number; y: number; width: number; height: number } {
-    const bbox = axis.getBBox();
-
-    const { x, y, width, height } = bbox;
-    return { x, y, width, height };
-}
 
 describe('Ordinal Time Axis Examples', () => {
     setupMockConsole();
@@ -740,13 +629,13 @@ describe('Ordinal Time Axis Examples', () => {
     });
 
     it('should render interval on as expected', async () => {
-        const options = applyIntervalOn(BASIC_ORDINAL_TIME_AXIS_EXAMPLE);
+        const options = applyIntervalOn(BASIC_ORDINAL_TIME_AXIS_EXAMPLE, ['ordinal-time']);
         chart = await createEnterpriseChart(options);
         await compareImageSnapshot(chart, ctx);
     });
 
     it('should render interval between as expected', async () => {
-        const options = applyIntervalBetween(BASIC_ORDINAL_TIME_AXIS_EXAMPLE);
+        const options = applyIntervalBetween(BASIC_ORDINAL_TIME_AXIS_EXAMPLE, ['ordinal-time']);
         chart = await createEnterpriseChart(options);
         await compareImageSnapshot(chart, ctx);
     });

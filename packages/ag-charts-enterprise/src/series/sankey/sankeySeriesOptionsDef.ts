@@ -21,7 +21,7 @@ import {
     fillOptionsDef,
     fillPatternDefaults,
     labelAutoFontSizeOptionsDefs,
-    labelFitOptionsDefs,
+    labelCollisionFitOptionsDefs,
     lessThanOrEqual,
     lineDashOptionsDef,
     positiveNumber,
@@ -43,7 +43,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     strokes: arrayOf(colorOrRef),
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
         ...labelAutoFontSizeOptionsDefs,
         spacing: positiveNumber,
         placement: union('left', 'right', 'center'),

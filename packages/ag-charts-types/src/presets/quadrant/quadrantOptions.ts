@@ -55,9 +55,9 @@ export interface AgQuadrantPreset<TDatum, TContext>
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions<TDatum, TContext>;
     /**
-     * Primary identifier for the chart's series. This is provided as `seriesId` in user callbacks, and is how `setSelection()` addresses the series. Auto-generated ids are subject to future change without warning, so supply your own unique `id` value if you need to refer to the series.
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series, and is how `setSelection()` addresses the series.
      *
-     * Default: `auto-generated value`
+     * Default: `'quadrant'`
      */
     id?: string;
     /** Function used to return formatting for individual markers, based on the supplied information.*/

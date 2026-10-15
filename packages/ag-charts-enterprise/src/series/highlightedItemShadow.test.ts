@@ -2,7 +2,13 @@ import { type Mock, afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import {
+    deproxy,
+    legendHighlight,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 import { RadialColumnShape, Rect, Sector } from 'ag-charts-core';
 import type { Shape } from 'ag-charts-core';
 
@@ -419,17 +425,6 @@ describe('highlightedItem.shadow (enterprise series)', () => {
             inPlace: drawn(collectShapes(series.contentGroup)),
             highlighted: drawn(collectShapes(series.highlightGroup)),
         };
-    };
-
-    /** The highlight the legend raises for the series' first legend item: per stage or sector, or the whole series. */
-    const legendHighlight = (series: any) => {
-        const [legendDatum] = series.getLegendData('category');
-        // Series without legend items, like a treemap or a heatmap with a colour scale, have nothing to hover.
-        if (legendDatum == null) return undefined;
-        const { itemId, legendItemName } = legendDatum;
-        return typeof itemId === 'number'
-            ? { series, itemId: undefined, datum: undefined, datumIndex: itemId, legendItemName }
-            : { series, itemId, datum: undefined, datumIndex: Number.NaN, legendItemName };
     };
 
     const hoverItem = async (

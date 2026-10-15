@@ -156,6 +156,12 @@ export interface AgLinearGaugeThemeableOptions<
 export interface AgLinearGaugePreset<TContext = ContextDefault> extends AgLinearGaugeThemeableOptions<TContext> {
     /** Configuration for the Linear Gauge. */
     type: 'linear-gauge';
+    /**
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series.
+     *
+     * Default: `'gauge'`
+     */
+    id?: string;
     /** Value of the Linear Gauge. */
     value: AgNumericValue;
     /** Configuration for the targets. */

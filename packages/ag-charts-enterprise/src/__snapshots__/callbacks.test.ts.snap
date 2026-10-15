@@ -3265,7 +3265,21 @@ exports[`AG-15850 labels > linear-gauge > formatter 1`] = `
   [
     {
       "datum": undefined,
-      "seriesId": "LinearGaugeSeries-1",
+      "seriesId": "gauge",
+      "value": 40,
+    },
+  ],
+  [
+    {
+      "datum": undefined,
+      "seriesId": "gauge",
+      "value": 40,
+    },
+  ],
+  [
+    {
+      "datum": undefined,
+      "seriesId": "gauge",
       "value": 40,
     },
   ],
@@ -3994,14 +4008,28 @@ exports[`AG-15850 labels > radial-gauge > formatter 1`] = `
   [
     {
       "datum": undefined,
-      "seriesId": "RadialGaugeSeries-1",
+      "seriesId": "gauge",
       "value": 70,
     },
   ],
   [
     {
       "datum": undefined,
-      "seriesId": "RadialGaugeSeries-1",
+      "seriesId": "gauge",
+      "value": 70,
+    },
+  ],
+  [
+    {
+      "datum": undefined,
+      "seriesId": "gauge",
+      "value": 70,
+    },
+  ],
+  [
+    {
+      "datum": undefined,
+      "seriesId": "gauge",
       "value": 70,
     },
   ],

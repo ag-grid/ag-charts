@@ -242,6 +242,10 @@ describe('preview chart types', () => {
         expect(series.map((entry) => (entry as { type: string }).type)).toEqual(['candlestick']);
     });
 
+    it('keeps the financial drawing tools off the candlestick', () => {
+        expect(CANDLESTICK.buildOptions(DEFAULT_SERIES_COUNT, ALL_ON)).not.toHaveProperty('annotations');
+    });
+
     it('draws a series outline for the palette strokes to appear in', () => {
         // `strokeWidth` resolves to zero unless a stroke is asked for, which
         // leaves the palette editor's strokes column changing nothing visible.
