@@ -451,6 +451,37 @@ describe('priceVolumePreset', () => {
             expect(Math.min(...gaps)).toBeGreaterThanOrEqual(0);
         });
 
+        describe('picking the volume profile', () => {
+            // The point is inside the start of the 200 level's up bar, in series coordinates.
+            const pick = (intent: 'tooltip' | 'highlight' | 'highlight-tooltip' | 'event' | 'context-menu') => {
+                const { y } = nodeCentre('bar', 'upVolume', LEVEL_200);
+                const { y: top } = deproxy(chart).ctx.chartService.seriesRect!;
+                // The bar series are the volume, then the up and down halves of the profile.
+                const [, series] = deproxy(chart).series.filter((s) => s.type === 'bar');
+                return series?.pickNodes({ x: 5, y: y - top }, intent)?.picks.length ?? 0;
+            };
+
+            it('should pick on a click or context menu but not on hover', async () => {
+                await create({ volumeProfile });
+
+                expect({
+                    tooltip: pick('tooltip'),
+                    highlight: pick('highlight'),
+                    'highlight-tooltip': pick('highlight-tooltip'),
+                    event: pick('event'),
+                    'context-menu': pick('context-menu'),
+                }).toMatchInlineSnapshot(`
+                  {
+                    "context-menu": 1,
+                    "event": 1,
+                    "highlight": 0,
+                    "highlight-tooltip": 0,
+                    "tooltip": 0,
+                  }
+                `);
+            });
+        });
+
         it('should render only the hovered candle over a level without volume', async () => {
             await create({ volumeProfile });
             await hoverCandleAtLevel(50, EMPTY_LEVEL);

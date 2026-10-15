@@ -442,7 +442,7 @@ export abstract class Series<
         return true;
     }
 
-    /** Whether pointer hover can pick this series' nodes; clicks still can. */
+    /** Whether pointer hover can pick this series' nodes, for highlights and tooltips alike; clicks still can. */
     protected isHoverable(): boolean {
         // Override point for subclasses
         return true;
