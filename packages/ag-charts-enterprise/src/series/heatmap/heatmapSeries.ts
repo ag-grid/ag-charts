@@ -96,7 +96,7 @@ interface HeatmapItemStyleContext {
     readonly baseStyle: Omit<ItemStyle, 'fill'>;
     readonly selectionEnabled: boolean;
     readonly activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined;
-    /** Whether the active highlight is in a state (series or item) other than none for this series. */
+    /** Whether the active highlight is in a state other than none for this series. */
     readonly highlightActive: boolean;
 }
 
@@ -515,12 +515,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         mutableNode.midPoint.x = x;
         mutableNode.midPoint.y = y;
 
-        mutableNode.style = this.getItemStyle(
-            { datumIndex, datum, colorValue },
-            false,
-            undefined,
-            ctx.itemStyleContext
-        );
+        mutableNode.style = this.getItemStyle({ datumIndex, datum, colorValue }, false, ctx.itemStyleContext);
     }
 
     /**
@@ -654,7 +649,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     protected getItemStyle(
         { datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>,
         isHighlight: boolean,
-        highlightState?: _ModuleSupport.HighlightState,
         itemStyleContext: HeatmapItemStyleContext = this.createItemStyleContext()
     ): NormalisedHeatmapSeriesStyle {
         const { options } = this;
@@ -662,7 +656,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { missingDataFill } = options.colorScale;
         const { colorScaleValid, baseStyle, selectionEnabled, activeHighlight } = itemStyleContext;
 
-        highlightState ??= this.getHighlightState(activeHighlight, isHighlight, datumIndex);
+        const highlightState = this.getHighlightState(activeHighlight, isHighlight, datumIndex);
         const highlightStyle =
             highlightState === HighlightState.None
                 ? undefined
@@ -757,7 +751,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
 
         datumSelection.each((_, nodeDatum) => {
-            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, undefined, itemStyleContext);
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, itemStyleContext);
         });
     }
 
@@ -1039,11 +1033,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     private hasHighlightStateStyle(): boolean {
         const { highlight } = this.options;
-        return (
-            this.isHighlightEnabled() &&
-            (hasStateStyle(highlight?.highlightedSeries) ||
-                hasStateStyle(highlight?.unhighlightedItem) ||
-                hasStateStyle(highlight?.unhighlightedSeries))
-        );
+        return this.isHighlightEnabled() && hasStateStyle(highlight?.unhighlightedItem);
     }
 }
