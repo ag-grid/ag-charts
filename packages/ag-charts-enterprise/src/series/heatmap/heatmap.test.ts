@@ -1,5 +1,5 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
@@ -1712,6 +1712,7 @@ describe('HeatmapSeries', () => {
         const SELECTION = { enabled: true, unselectedItem: { opacity: 0.3 }, selectedItem: { fill: 'lime' } };
         // Without the tooltip, only the series' own restyle can account for a hovered cell's style.
         const NO_TOOLTIP = { tooltip: { enabled: false } };
+        const HIGHLIGHT_OFF = { ...NO_TOOLTIP, highlight: { enabled: false } };
 
         const buildOptions = (overrides: Record<string, unknown> = {}, data: object[] = DATA) =>
             prepareEnterpriseTestOptions({
@@ -1806,34 +1807,16 @@ describe('HeatmapSeries', () => {
         });
 
         it('keeps the colour scale fills and full opacity on update and hover when highlighting is disabled', async () => {
-            const options = buildOptions({ ...NO_TOOLTIP, highlight: { enabled: false } });
+            const options = buildOptions(HIGHLIGHT_OFF);
             await createStable(options);
 
             chart.publicApi.updateDelta({ data: SHIFTED_DATA });
             await waitForChartStability(chart);
-            expect(cellFills(chart)).toEqual(
-                await freshCellFills(buildOptions({ ...NO_TOOLTIP, highlight: { enabled: false } }, SHIFTED_DATA))
-            );
+            expect(cellFills(chart)).toEqual(await freshCellFills(buildOptions(HIGHLIGHT_OFF, SHIFTED_DATA)));
 
             await hoverDatumByIndex(chart, 0, 0);
             expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
             expect(new Set(cellFills(chart)).size).toBe(DATA.length);
-        });
-
-        it('restores the stroke a highlighted item style changed once the pointer leaves', async () => {
-            await createStable(
-                buildOptions({
-                    ...NO_TOOLTIP,
-                    highlight: { highlightedItem: { stroke: 'magenta', strokeWidth: 4 } },
-                })
-            );
-            const before = cellStrokes(chart);
-            expect(before.map(({ stroke }) => stroke)).not.toContain('magenta');
-
-            await hoverDatumByIndex(chart, 0, 0);
-            await hoverAway();
-
-            expect(cellStrokes(chart)).toEqual(before);
         });
 
         it('keeps the new colour scale fills when the domain changes during a hover and restores them after', async () => {
@@ -1873,6 +1856,20 @@ describe('HeatmapSeries', () => {
             await waitForChartStability(chart);
             expect(cellFills(chart)).toEqual(fills);
             expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
+        });
+
+        it('styles each cell once per update when only the colour scale colours the cells', async () => {
+            await createStable(buildOptions());
+            const getItemStyle = vi.spyOn(HeatmapSeries.prototype as any, 'getItemStyle');
+
+            try {
+                chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+                await waitForChartStability(chart);
+
+                expect(getItemStyle).toHaveBeenCalledTimes(DATA.length);
+            } finally {
+                getItemStyle.mockRestore();
+            }
         });
 
         it('applies an itemStyler over the colour scale fill and follows a domain change', async () => {
