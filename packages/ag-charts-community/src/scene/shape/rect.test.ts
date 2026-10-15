@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { BBox, BarShape, Group, Line, type Logger, Path, Rect } from 'ag-charts-core';
+import { BBox, BarShape, Group, Line, type Logger, Path, Rect, shadowPass } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
@@ -435,25 +435,47 @@ describe('Rect', () => {
             expect(ctx.globalAlpha).toBeCloseTo(0.8, 5);
         });
 
+        const IMAGE_URL = `data:image/svg+xml;utf8,${encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="red"/></svg>'
+        )}`;
+
+        const pixels = (ctx: CanvasRenderingContext2D) => Buffer.from(ctx.getImageData(0, 0, 100, 100).data);
+
         it.each([
             ['unaligned', { crisp: false }],
             ['crisp', { crisp: true }],
             ['translucent', { fill: 'rgba(255, 0, 0, 0.4)', fillOpacity: 0.7, opacity: 0.9 }],
             ['sub-pixel', { crisp: true, width: 0.4 }],
+            ['a stroke colour with no stroke width', { stroke: 'blue', strokeWidth: 0 }],
         ] as [string, Partial<Rect>][])('paints the same pixels as filling the path (%s)', (_, overrides) => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const fill = vi.spyOn(ctx, 'fill');
+            const fillRect = vi.spyOn(ctx, 'fillRect');
+
+            paint(plainRect(overrides), ctx);
+            const direct = pixels(ctx);
+            expect(fillRect).toHaveBeenCalledTimes(1);
+            expect(direct.some((byte) => byte !== 0)).toBe(true);
+
+            ctx.clearRect(0, 0, 100, 100);
+            fillRect.mockClear();
+            paint(pathPaintedRect(overrides), ctx);
+
+            expect(fillRect).not.toHaveBeenCalled();
+            expect(fill).toHaveBeenCalled();
+            expect(pixels(ctx).equals(direct)).toBe(true);
+        });
+
+        it.each([
+            ['a fill of none', { fill: 'none' }],
+            ['a fill opacity of zero', { fillOpacity: 0 }],
+            ['an opacity of zero', { opacity: 0 }],
+        ] as [string, Partial<Rect>][])('paints nothing with %s', (_, overrides) => {
             const ctx = canvasCtx.getRenderContext2D();
 
             paint(plainRect(overrides), ctx);
-            const direct = Buffer.from(ctx.getImageData(0, 0, 100, 100).data);
 
-            ctx.clearRect(0, 0, 100, 100);
-            const viaPath = plainRect(overrides);
-            vi.spyOn(viaPath as any, 'fillsDirectly').mockReturnValue(false);
-            const fill = vi.spyOn(ctx, 'fill');
-            paint(viaPath, ctx);
-            expect(fill).toHaveBeenCalled();
-
-            expect(direct.equals(Buffer.from(ctx.getImageData(0, 0, 100, 100).data))).toBe(true);
+            expect(pixels(ctx).every((byte) => byte === 0)).toBe(true);
         });
 
         it('leaves out the context save and restore for a plain rect only', () => {
@@ -473,13 +495,38 @@ describe('Rect', () => {
         it.each([
             ['rounded corners', { cornerRadius: 4 }],
             ['a stroke', { stroke: 'blue', strokeWidth: 2 }],
+            ['a stroke width and no stroke colour', { stroke: 'none', strokeWidth: 3 }],
             ['a clip box', { clipBBox: new BBox(12, 14, 10, 10) }],
+            ['a clip', { clip: true, clipX: 15, clipY: 10 }],
             ['a cutout', { drawingMode: 'cutout' as const }],
+            ['a shadow', { fillShadow: { enabled: true, color: 'black', xOffset: 2, yOffset: 2, blur: 3 } }],
             [
-                'a shadow',
+                'a gradient fill',
                 {
-                    fillShadow: { enabled: true, color: 'black', xOffset: 2, yOffset: 2, blur: 3 },
+                    fill: {
+                        type: 'gradient',
+                        rotation: 90,
+                        colorStops: [{ color: 'rgb(255, 0, 0)' }, { color: 'rgb(0, 0, 255)' }],
+                    },
                 },
+            ],
+            [
+                'a pattern fill',
+                {
+                    fill: {
+                        type: 'pattern',
+                        pattern: 'circles',
+                        fill: 'blue',
+                        backgroundFill: 'yellow',
+                        stroke: 'orange',
+                        width: 4,
+                        height: 4,
+                    },
+                },
+            ],
+            [
+                'an image fill',
+                { fill: { type: 'image', url: IMAGE_URL, backgroundFill: 'rgb(0, 128, 0)', backgroundFillOpacity: 1 } },
             ],
         ] as [string, Partial<Rect>][])('keeps filling the path with %s', (_, overrides) => {
             const ctx = canvasCtx.getRenderContext2D();
@@ -487,6 +534,32 @@ describe('Rect', () => {
             const fillRect = vi.spyOn(ctx, 'fillRect');
 
             paint(plainRect(overrides), ctx);
+
+            expect(fill).toHaveBeenCalled();
+            expect(fillRect).not.toHaveBeenCalled();
+        });
+
+        it('paints the background of an image fill', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const fill = { type: 'image' as const, url: IMAGE_URL, backgroundFill: 'rgb(0, 128, 0)' };
+
+            paint(plainRect({ x: 0, y: 0, width: 10, height: 10, fill }), ctx);
+
+            expect(Array.from(ctx.getImageData(5, 5, 1, 1).data)).toEqual([0, 128, 0, 255]);
+        });
+
+        it('keeps filling the path while a shadow batch is being drawn', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const fill = vi.spyOn(ctx, 'fill');
+            const fillRect = vi.spyOn(ctx, 'fillRect');
+            const previous = shadowPass.state;
+
+            shadowPass.state = 'suppress';
+            try {
+                paint(plainRect(), ctx);
+            } finally {
+                shadowPass.state = previous;
+            }
 
             expect(fill).toHaveBeenCalled();
             expect(fillRect).not.toHaveBeenCalled();
@@ -551,29 +624,6 @@ describe('Rect', () => {
             expect(rect.isPointInPath(1, 1)).toBe(false);
             expect(rect.isPointInPath(20, 20)).toBe(true);
             expect(rect.distanceSquared(1, 1)).toBeGreaterThan(0);
-        });
-
-        const pixels = (ctx: CanvasRenderingContext2D) => Buffer.from(ctx.getImageData(0, 0, 100, 100).data);
-
-        /** A stroke width of zero, or a stroke that draws nothing, leaves a rect plain: the same pixels as a path fill. */
-        it.each([
-            ['a stroke colour but no stroke width', { stroke: 'blue', strokeWidth: 0 }],
-            ['a stroke width but no stroke colour', { stroke: undefined, strokeWidth: 3 }],
-            ['a stroke colour of none', { stroke: 'none', strokeWidth: 3 }],
-            ['a transparent stroke', { stroke: 'blue', strokeWidth: 3, strokeOpacity: 0 }],
-            ['a fill opacity of zero', { fillOpacity: 0 }],
-            ['a fill of none', { fill: 'none' }],
-            ['an opacity of zero', { opacity: 0 }],
-        ] as [string, Partial<Rect>][])('paints the same pixels as the path with %s', (_, overrides) => {
-            const ctx = canvasCtx.getRenderContext2D();
-
-            paint(plainRect(overrides), ctx);
-            const actual = pixels(ctx);
-
-            ctx.clearRect(0, 0, 100, 100);
-            paint(pathPaintedRect(overrides), ctx);
-
-            expect(actual.equals(pixels(ctx))).toBe(true);
         });
 
         it('paints a stroke when the stroke width goes from zero to positive and back', () => {

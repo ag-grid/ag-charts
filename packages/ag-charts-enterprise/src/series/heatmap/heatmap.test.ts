@@ -1938,8 +1938,24 @@ describe('HeatmapSeries', () => {
             expect(content).toMatchObject({ type: 'structured', symbol: { marker: { fill: cellFills(chart)[2] } } });
         });
 
-        const isPaintedDirectly = (rect: unknown) => !(rect as { needsIsolatedState(): boolean }).needsIsolatedState();
-        const paintsDirectly = (c: Chart) => cellRects(c).map(isPaintedDirectly);
+        /** How many cells are filled with a `fillRect`, and how many are filled through a path, by the repaint `act` causes. */
+        async function countCellFills(act: () => Promise<void>) {
+            const proto = Object.getPrototypeOf(ctx.getRenderContext2D());
+            const fillRect = vi.spyOn(proto, 'fillRect');
+            const fill = vi.spyOn(proto, 'fill');
+            try {
+                await act();
+                return { rects: fillRect.mock.calls.length, paths: fill.mock.calls.length };
+            } finally {
+                fillRect.mockRestore();
+                fill.mockRestore();
+            }
+        }
+
+        const repaint = async () => {
+            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            await waitForChartStability(chart);
+        };
 
         it('repaints the cells in their new colours without rebuilding their paths', async () => {
             await createStable(buildOptions());
@@ -1960,53 +1976,65 @@ describe('HeatmapSeries', () => {
             expect(updated()).toBeGreaterThan(0);
         });
 
-        it('paints plain cells directly, and cells that need a path through it', async () => {
-            await createStable(buildOptions());
-            expect(paintsDirectly(chart)).toEqual([true, true, true, true]);
-            chart.destroy();
+        it('paints plain cells with a fillRect each, and cells that need a path through it', async () => {
+            const fills: Record<string, { rects: number; paths: number }> = {};
+            const variants = {
+                plain: {},
+                rounded: { cornerRadius: 4 },
+                stroked: { stroke: 'black', strokeWidth: 2 },
+                shadowed: { shadow: SHADOW },
+            };
+            for (const [name, overrides] of Object.entries(variants)) {
+                await createStable(buildOptions(overrides));
+                fills[name] = await countCellFills(repaint);
+                chart.destroy();
+            }
 
-            await createStable(buildOptions({ cornerRadius: 4 }));
-            expect(paintsDirectly(chart)).toEqual([false, false, false, false]);
-            chart.destroy();
-
-            await createStable(buildOptions({ stroke: 'black', strokeWidth: 2 }));
-            expect(paintsDirectly(chart)).toEqual([false, false, false, false]);
-            chart.destroy();
-
-            await createStable(buildOptions({ shadow: SHADOW }));
-            expect(paintsDirectly(chart)).toEqual([false, false, false, false]);
+            expect(fills.plain.rects - fills.rounded.rects).toBe(DATA.length);
+            expect(fills.rounded.paths - fills.plain.paths).toBe(DATA.length);
+            expect(fills.stroked.rects).toBe(fills.rounded.rects);
+            expect(fills.shadowed.rects).toBe(fills.rounded.rects);
         });
 
-        it('paints the highlight of a cell through its path and leaves the cells it highlights over painting directly', async () => {
+        /** The rects the chart fills apart from its cells and the highlighted cell, by a hover over rounded cells. */
+        async function nonCellRects(highlight: object) {
+            await createStable(buildOptions({ ...NO_TOOLTIP, cornerRadius: 4, highlight }));
+            const { rects } = await countCellFills(() => hoverDatumByIndex(chart, 0, 1));
+            chart.destroy();
+            return rects;
+        }
+
+        it('paints the highlight of a cell through its path and leaves the other cells painting directly', async () => {
             const highlight = {
                 highlightedItem: { stroke: 'black', strokeWidth: 3 },
                 unhighlightedItem: { opacity: 0.4 },
             };
+            const others = await nonCellRects(highlight);
             await createStable(buildOptions({ ...NO_TOOLTIP, highlight }));
             const series = classCast(chart.series[0], HeatmapSeries);
-            const highlighted = () => collectShapes(series.highlightNodeGroup).filter((shape) => shape.visible);
 
-            await hoverDatumByIndex(chart, 0, 1);
+            const { rects } = await countCellFills(() => hoverDatumByIndex(chart, 0, 1));
 
-            expect(highlighted()).toHaveLength(1);
-            expect(highlighted()[0]).toMatchObject({ stroke: 'black', strokeWidth: 3 });
-            expect(highlighted().map(isPaintedDirectly)).toEqual([false]);
-            expect(paintsDirectly(chart)).toEqual([true, true, true, true]);
+            const highlighted = collectShapes(series.highlightNodeGroup).filter((shape) => shape.visible);
+            expect(highlighted).toHaveLength(1);
+            expect(highlighted[0]).toMatchObject({ stroke: 'black', strokeWidth: 3 });
+            expect(rects).toBe(others + DATA.length);
         });
 
-        it('paints cells that a highlight strokes through their path and back to the direct fill once it ends', async () => {
+        it('paints cells that a highlight strokes through their path and back to a direct fill once it ends', async () => {
             const highlight = { unhighlightedItem: { stroke: 'black', strokeWidth: 3 } };
+            const others = await nonCellRects(highlight);
             await createStable(buildOptions({ ...NO_TOOLTIP, highlight }));
-            expect(paintsDirectly(chart)).toEqual([true, true, true, true]);
             const fills = cellFills(chart);
 
-            await hoverDatumByIndex(chart, 0, 1);
-            expect(cellStrokes(chart)).toEqual(Array(4).fill({ stroke: 'black', width: 3 }));
-            expect(paintsDirectly(chart)).toEqual([false, false, false, false]);
+            // Only the plain highlight node is filled directly.
+            const hovered = await countCellFills(() => hoverDatumByIndex(chart, 0, 1));
+            expect(cellStrokes(chart)).toEqual(Array(DATA.length).fill({ stroke: 'black', width: 3 }));
+            expect(hovered.rects).toBe(others + 1);
 
-            await hoverAway();
+            const away = await countCellFills(hoverAway);
             expect(cellStrokes(chart).map((style) => style.width)).toEqual([0, 0, 0, 0]);
-            expect(paintsDirectly(chart)).toEqual([true, true, true, true]);
+            expect(away.rects).toBe(others + DATA.length);
             expect(cellFills(chart)).toEqual(fills);
         });
 
@@ -2028,15 +2056,17 @@ describe('HeatmapSeries', () => {
 
             const labels = () =>
                 collectShapes(classCast(chart.series[0], HeatmapSeries).labelGroup).map(
-                    (shape) => (shape as any).text as string
+                    (shape) => (shape as { text?: string }).text
                 );
-            expect(labels().sort((a, b) => a.localeCompare(b))).toEqual(['10', '100', '40', '5']);
+            expect(labels().sort((a, b) => String(a).localeCompare(String(b)))).toEqual(['10', '100', '40', '5']);
 
+            const highlightedIndex = () => (chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex;
             await tabIntoChart(chart);
             await pressKey(chart, 'ArrowRight');
+            expect(highlightedIndex()).toBe(1);
             await pressKey(chart, 'ArrowRight');
+            expect(highlightedIndex()).toBe(2);
             expect(isTooltipVisible(chart)).toBe(true);
-            expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBeDefined();
         });
     });
 });
