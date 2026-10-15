@@ -96,7 +96,7 @@ interface HeatmapItemStyleContext {
     readonly baseStyle: Omit<ItemStyle, 'fill'>;
     readonly selectionEnabled: boolean;
     readonly activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined;
-    /** Whether a highlight is in play that can restyle cells of this series. */
+    /** Whether the active highlight is in a state (series or item) other than none for this series. */
     readonly highlightActive: boolean;
 }
 
@@ -741,7 +741,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         isHighlight: boolean;
     }) {
         const itemStyleContext = this.createItemStyleContext();
-        const { activeHighlight, selectionEnabled, highlightActive } = itemStyleContext;
+        const { selectionEnabled, highlightActive } = itemStyleContext;
 
         if (!isHighlight) {
             // OPTIMIZATION: createNodeData styled every cell; only a highlight, selection or styler needs a restyle.
@@ -757,8 +757,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
 
         datumSelection.each((_, nodeDatum) => {
-            const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, highlightState, itemStyleContext);
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, undefined, itemStyleContext);
         });
     }
 
@@ -1042,9 +1041,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { highlight } = this.options;
         return (
             this.isHighlightEnabled() &&
-            (hasStateStyle(highlight?.highlightedItem) ||
+            (hasStateStyle(highlight?.highlightedSeries) ||
                 hasStateStyle(highlight?.unhighlightedItem) ||
-                hasStateStyle(highlight?.highlightedSeries) ||
                 hasStateStyle(highlight?.unhighlightedSeries))
         );
     }
