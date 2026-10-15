@@ -373,6 +373,27 @@ describe('Ranges', () => {
             expect(textColor).toBe(expected);
         });
 
+        it('disabled button background derives from buttonBackgroundColor rather than chromeBackgroundColor', async () => {
+            const { fill } = (await resolvedRanges({ buttonBackgroundColor: 'red', chromeBackgroundColor: 'blue' }))
+                .button.disabled;
+            chart.destroy();
+            const expected = (await resolvedRanges({ chromeBackgroundColor: 'red' })).button.disabled.fill;
+            chart.destroy();
+            const fallback = (await resolvedRanges({})).button.disabled.fill;
+
+            expect(fill).toBe(expected);
+            expect(fill).not.toBe(fallback);
+        });
+
+        it('an explicit buttonDisabledBackgroundColor wins over a custom buttonBackgroundColor', async () => {
+            const ranges = await resolvedRanges({
+                buttonBackgroundColor: 'red',
+                buttonDisabledBackgroundColor: 'rgb(7, 7, 7)',
+            });
+
+            expect(ranges.button.disabled.fill).toBe('rgb(7, 7, 7)');
+        });
+
         it('button text falls back to chromeTextColor when buttonTextColor is unset', async () => {
             const ranges = await resolvedRanges({ chromeTextColor: 'blue' });
 
