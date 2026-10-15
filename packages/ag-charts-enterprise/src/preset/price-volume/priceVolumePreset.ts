@@ -149,6 +149,7 @@ const VOLUME_SERIES_ID = 'volume';
 
 interface PriceSeriesCommon {
     id: string;
+    focusIndex: number;
     pickOutsideVisibleMinorAxis: boolean;
     tooltip: { enabled: boolean };
     selection?: { enabled: boolean };
@@ -179,6 +180,7 @@ function createPriceSeries(
     };
     const common: PriceSeriesCommon = {
         id: PRICE_SERIES_ID,
+        focusIndex: 0,
         tooltip: { enabled: false },
         pickOutsideVisibleMinorAxis: true,
         ...(selection === undefined ? undefined : { selection }),
@@ -207,7 +209,6 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
     return [
         {
             type: 'ohlc',
-            focusIndex: 0,
             ...common,
             ...keys,
         } satisfies AgOhlcSeriesOptions,
@@ -218,7 +219,6 @@ function createPriceSeriesLine(common: PriceSeriesCommon, singleKeys: PriceSerie
     return [
         {
             type: 'line',
-            focusIndex: 0,
             ...common,
             ...singleKeys,
         } satisfies AgLineSeriesOptions,
@@ -229,7 +229,6 @@ function createPriceSeriesHLC(common: PriceSeriesCommon, { xKey, highKey, lowKey
     return [
         {
             type: 'hlc',
-            focusIndex: 0,
             ...common,
             xKey,
             highKey,
@@ -248,7 +247,6 @@ function createPriceSeriesHighLow(common: PriceSeriesCommon, { xKey, highKey, lo
             yHighKey: highKey,
             yLowKey: lowKey,
             tooltip: { range: 'nearest' },
-            focusIndex: 0,
         } satisfies AgRangeBarSeriesOptions,
     ];
 }
@@ -257,7 +255,6 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
     return [
         {
             type: 'candlestick',
-            focusIndex: 0,
             ...common,
             ...keys,
         } satisfies AgCandlestickSeriesOptions,
