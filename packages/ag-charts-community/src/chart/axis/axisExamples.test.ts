@@ -1,14 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { ChartAxisDirection, ChartUpdateType, mapValues } from 'ag-charts-core';
-import type {
-    AgCartesianAxisPosition,
-    AgCartesianAxisType,
-    AgCartesianChartOptions,
-    AgPolarChartOptions,
-} from 'ag-charts-types';
+import type { AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
-import type { ChartAxis } from '../chartAxis';
+import { applyRotation, calculateAxisBBox, mixinDerivedCases } from '../test/axisTestCases';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
 import type { CartesianTestCase, ChartOrProxy } from '../test/utils';
@@ -26,13 +21,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-
-function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
-    };
-}
 
 /**
  * Formats every axis label as two text segments of differing size, the trailing one carrying its own
@@ -55,33 +43,11 @@ function applyRichLabels<T extends AgCartesianChartOptions>(opts: T): T {
     };
 }
 
-function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
-    const positionFlip = (position?: AgCartesianAxisPosition) => {
-        switch (position) {
-            case 'top':
-                return 'bottom';
-            case 'left':
-                return 'right';
-            case 'bottom':
-                return 'top';
-            case 'right':
-                return 'left';
-            default:
-                return position;
-        }
-    };
-
-    return {
-        ...opts,
-        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })),
-    };
-}
-
 type TestCase = CartesianTestCase & {
     compare?: AgCartesianAxisType[];
 };
 const EXAMPLES: Record<string, TestCase> = {
-    ...mixinDerivedCases({
+    ...mixinDerivedCases<TestCase>({
         BASIC_CATEGORY_AXIS: {
             options: axesExamples.CATEGORY_AXIS_BASIC_EXAMPLE,
             assertions: cartesianChartAssertions({ seriesTypes: repeat('bar', 3) }),
@@ -242,7 +208,7 @@ const EXAMPLES_TICK_SPACING: Record<string, TestCase> = {
 };
 
 const EXAMPLES_CLIPPING: Record<string, TestCase> = {
-    ...mixinDerivedCases({
+    ...mixinDerivedCases<TestCase>({
         GRIDLINE_TICKLINE_CLIPPING: {
             options: axesExamples.GRIDLINE_TICKLINE_CLIPPING,
             assertions: cartesianChartAssertions({
@@ -330,31 +296,6 @@ const EXAMPLES_LABEL_VERTICAL_ALIGN: Record<string, TestCase> = {
     },
 };
 
-function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
-    const result = { ...baseCases };
-
-    for (const [name, baseCase] of Object.entries(baseCases)) {
-        // Add manual rotation.
-        result[name + '_MANUAL_ROTATION'] = {
-            ...baseCase,
-            options: applyRotation(baseCase.options, -30),
-        };
-
-        // Add flipped axes.
-        result[name + '_FLIP'] = {
-            ...baseCase,
-            options: applyAxesFlip(baseCase.options),
-        };
-
-        result[name + '_REVERSED_AXES'] = {
-            ...baseCase,
-            options: reverseAxes(baseCase.options, true),
-        };
-    }
-
-    return result;
-}
-
 function mixinReversedAxesCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
     const result = { ...baseCases };
 
@@ -366,13 +307,6 @@ function mixinReversedAxesCases(baseCases: Record<string, TestCase>): Record<str
     }
 
     return result;
-}
-
-function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: number; height: number } {
-    const bbox = axis.getBBox();
-
-    const { x, y, width, height } = bbox;
-    return { x, y, width, height };
 }
 
 describe('Axis Examples', () => {

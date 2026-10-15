@@ -112,20 +112,25 @@
     }
 
     /* Draw dividers on the next button's inline-start border: growing a button's own
-       inline-end border is absorbed by min-width clamping, so the row shifts. */
+       inline-end border is absorbed by min-width clamping, so the row shifts. A button that starts
+       a group is not adjacent to the previous one and draws its own border, so it is excluded. */
     .ag-charts-toolbar__button:hover:not(.ag-charts-toolbar__button--active, [aria-disabled='true'])
-        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active) {
+        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active, .ag-charts-toolbar__button--first) {
         border-inline-start-color: var(--toolbar-button-border-color--hover);
         border-inline-start-width: var(--toolbar-button-border-width--hover);
     }
 
     .ag-charts-toolbar__button[aria-disabled='true']
-        + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--active, :hover) {
+        + .ag-charts-toolbar__button:not(
+            .ag-charts-toolbar__button--active,
+            .ag-charts-toolbar__button--first,
+            :hover
+        ) {
         border-inline-start-color: var(--toolbar-button-border-color--disabled);
         border-inline-start-width: var(--toolbar-button-border-width--disabled);
     }
 
-    .ag-charts-toolbar__button--active + .ag-charts-toolbar__button {
+    .ag-charts-toolbar__button--active + .ag-charts-toolbar__button:not(.ag-charts-toolbar__button--first) {
         border-inline-start-color: var(--toolbar-button-border-color--active);
         border-inline-start-width: var(--toolbar-button-border-width--active);
     }

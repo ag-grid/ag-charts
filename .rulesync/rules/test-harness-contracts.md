@@ -26,8 +26,9 @@ Its `afterEach` asserts `console.warn`/`console.error` were not called. In suite
 
 ## Shared fixtures and helper extraction
 
+-   **Search before writing a helper.** Look in `packages/ag-charts-community/src/chart/test/` and `packages/ag-charts-enterprise/src/test/` for an existing helper (axis option mixins such as `applyAxesFlip` and `mixinDerivedCases` live in `chart/test/axisTestCases.ts`) before adding a local one; if one almost fits, extend it instead of copying it. Give a genuinely different variant its own name in the shared module rather than a second local copy under the same name.
 -   **If the same test body, builder, or stub appears in two or more files, hoist it** into the suite's shared fixture module before merging: community-wide fixtures in `packages/ag-charts-community/src/chart/test/` (exported via `src/main-test.ts` so enterprise imports from `ag-charts-community-test`), enterprise-only helpers in `packages/ag-charts-enterprise/src/test/`.
--   Helpers shared by community AND enterprise tests must live in community-test space — enterprise can import community, not vice versa.
+-   Helpers shared by community AND enterprise tests must live in community-test space — enterprise can import community, not vice versa. Helpers that call `expect` also belong there: enterprise `src/test` is linted as shippable source and stays `expect`-free.
 -   A copy-pasted explanatory comment travelling with a copy-pasted block is the strongest extraction signal: the comment belongs once, on the shared helper.
 -   Stub factories for internal interfaces (e.g. the `DataModel` stub in `chart/test/aggregationStubs.ts`) must be defined once so interface drift is caught in one place instead of silently diverging across files.
 

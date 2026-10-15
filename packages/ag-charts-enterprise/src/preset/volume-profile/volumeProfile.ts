@@ -39,6 +39,10 @@ export function groupVolumeProfile(
     );
 }
 
+/** Fixed series ids of the two profile series, in both the Volume Profile Chart and the Financial Chart. */
+export const VOLUME_PROFILE_UP_SERIES_ID = 'volumeProfileUp';
+export const VOLUME_PROFILE_DOWN_SERIES_ID = 'volumeProfileDown';
+
 // Without `levels`, the series read the chart's data, which must then hold the grouped levels.
 export function createVolumeProfileSeries(
     getTheme: () => ChartTheme,
@@ -53,6 +57,7 @@ export function createVolumeProfileSeries(
         {
             ...seriesData,
             ...seriesSelection,
+            id: VOLUME_PROFILE_UP_SERIES_ID,
             type: 'bar',
             direction: 'horizontal',
             xKey: 'price',
@@ -78,6 +83,7 @@ export function createVolumeProfileSeries(
         {
             ...seriesData,
             ...seriesSelection,
+            id: VOLUME_PROFILE_DOWN_SERIES_ID,
             type: 'bar',
             direction: 'horizontal',
             xKey: 'price',

@@ -21234,6 +21234,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
           "opacity": 0.2,
         },
       },
+      "id": "sparkline",
       "label": {
         "border": {
           "enabled": false,
@@ -21704,6 +21705,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar spar
           "opacity": 0.2,
         },
       },
+      "id": "sparkline",
       "label": {
         "border": {
           "enabled": false,
@@ -22174,6 +22176,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizont
           "opacity": 0.2,
         },
       },
+      "id": "sparkline",
       "label": {
         "border": {
           "enabled": false,
@@ -22635,6 +22638,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "opacity": 0.2,
         },
       },
+      "id": "sparkline",
       "interpolation": {
         "type": "linear",
       },
@@ -23101,6 +23105,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "opacity": 0.2,
         },
       },
+      "id": "sparkline",
       "interpolation": {
         "type": "linear",
       },
@@ -23566,6 +23571,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line spa
           "opacity": 0.2,
         },
       },
+      "id": "sparkline",
       "interpolation": {
         "type": "linear",
       },
@@ -24033,6 +24039,7 @@ exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sp
           "opacity": 0.2,
         },
       },
+      "id": "sparkline",
       "interpolation": {
         "type": "linear",
       },
