@@ -1547,6 +1547,41 @@ describe('CrossLine', () => {
             expect(realigned.height).toBeGreaterThan(padded.height);
         });
 
+        it('pad-chart reserves only the label extent the series area padding does not cover', async () => {
+            const build = (labelEnabled: boolean, top: number): AgCartesianChartOptions => ({
+                ...examples.LINE_CROSSLINES,
+                seriesArea: { padding: { top } },
+                axes: {
+                    ...examples.LINE_CROSSLINES.axes,
+                    x: {
+                        ...examples.LINE_CROSSLINES.axes!.x,
+                        crossLines: [
+                            {
+                                type: 'line',
+                                value: 13,
+                                label: { enabled: labelEnabled, text: 'Label', placement: 'top' },
+                            },
+                        ],
+                    },
+                },
+            });
+            const reservedFor = async (top: number) => {
+                await chart.publicApi!.update(build(false, top));
+                await waitForChartStability(chart);
+                const withoutLabel = (chart as any).seriesRect.y;
+                await chart.publicApi!.update(build(true, top));
+                await waitForChartStability(chart);
+                return (chart as any).seriesRect.y - withoutLabel;
+            };
+
+            chart = await createChart(build(false, 0));
+            const labelExtent = await reservedFor(0);
+
+            expect(labelExtent).toBeGreaterThan(10);
+            expect(await reservedFor(10)).toBeCloseTo(labelExtent - 10);
+            expect(await reservedFor(labelExtent + 10)).toBeCloseTo(0);
+        });
+
         it('renders the chart when a label demands more room than is spare', async () => {
             // `placement: 'left'` on the left-hand axis pads horizontally, so a very wide label is what
             // outgrows the space available.
