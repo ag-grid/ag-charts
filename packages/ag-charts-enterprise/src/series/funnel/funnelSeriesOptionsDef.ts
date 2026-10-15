@@ -85,7 +85,7 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
 
 export const funnelSeriesOptionsDef: OptionsDefs<AgFunnelSeriesOptions> = {
     ...funnelSeriesThemeableOptionsDef,
-    ...without(commonSeriesOptionsDefs, ['showInLegend', 'highlight']),
+    ...without(commonSeriesOptionsDefs, ['showInLegend', 'highlight', 'focusIndex']),
     type: required(constant('funnel')),
     stageKey: required(string),
     valueKey: required(string),

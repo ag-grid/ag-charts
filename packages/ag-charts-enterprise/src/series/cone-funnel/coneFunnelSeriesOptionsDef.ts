@@ -69,7 +69,7 @@ export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeries
 };
 
 export const coneFunnelSeriesOptionsDef: OptionsDefs<AgConeFunnelSeriesOptions> = {
-    ...without(commonSeriesOptionsDefs, ['showInLegend']),
+    ...without(commonSeriesOptionsDefs, ['showInLegend', 'focusIndex']),
     ...coneFunnelSeriesThemeableOptionsDef,
     type: required(constant('cone-funnel')),
     stageKey: required(string),

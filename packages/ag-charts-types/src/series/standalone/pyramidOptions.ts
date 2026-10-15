@@ -108,7 +108,7 @@ export interface AgPyramidSeriesOptionsNames {}
 
 export interface AgPyramidSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight' | 'focusIndex'>,
         AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
         AgPyramidSeriesThemeableOptions<TDatum, TContext> {

@@ -13,7 +13,7 @@ import type {
 
 export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection' | 'highlight' | 'focusIndex'>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
         AgChordSeriesThemeableOptions<TDatum, TContext> {

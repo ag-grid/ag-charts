@@ -5,6 +5,7 @@ import type { AgBarSeriesOptions, AgCartesianChartOptions } from 'ag-charts-type
 import {
     createChart,
     getCursor,
+    getSwapChainText,
     hoverAction,
     isTooltipVisible,
     pressKey,
@@ -206,5 +207,68 @@ describe('AG-18673 Escape dismisses the keyboard focus tooltip', () => {
 
         expect(event.defaultPrevented).toBe(false);
         expect(isTooltipVisible(chart)).toBe(true);
+    });
+});
+
+describe('focusIndex', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Awaited<ReturnType<typeof createChart>>;
+
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    const names = ['Alpha', 'Bravo', 'Charlie', 'Delta'];
+
+    function focusIndexSeries(focusIndices: Array<number | undefined>): AgBarSeriesOptions[] {
+        return focusIndices.map((focusIndex, i) => ({
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'abcd'[i],
+            yName: names[i],
+            focusIndex,
+        }));
+    }
+
+    function focusIndexOptions(focusIndices: Array<number | undefined>): AgCartesianChartOptions {
+        return { data: [{ month: 'January', a: 1, b: 2, c: 3, d: 4 }], series: focusIndexSeries(focusIndices) };
+    }
+
+    function focusedSeriesName() {
+        const text = getSwapChainText();
+        return names.find((name) => text?.includes(name));
+    }
+
+    async function readFocusOrder() {
+        await tabIntoChart(chart);
+        await pressKey(chart, 'ArrowRight');
+        const order = [focusedSeriesName()];
+        for (let i = 1; i < names.length; i++) {
+            await pressKey(chart, 'ArrowDown');
+            order.push(focusedSeriesName());
+        }
+        return order;
+    }
+
+    it.each([
+        ['follows array order when unset', [undefined, undefined, undefined, undefined], names],
+        ['orders by value, allowing gaps', [30, 10, 40, 20], ['Bravo', 'Delta', 'Alpha', 'Charlie']],
+        ['focuses series with a value first', [undefined, 5, undefined, 1], ['Delta', 'Bravo', 'Alpha', 'Charlie']],
+        ['breaks ties by array order', [1, 0, 1, 0], ['Bravo', 'Delta', 'Alpha', 'Charlie']],
+    ])('%s', async (_name, focusIndices, expected) => {
+        chart = await createChart(focusIndexOptions(focusIndices));
+
+        expect(await readFocusOrder()).toEqual(expected);
+    });
+
+    it('applies a focusIndex change from updateDelta', async () => {
+        chart = await createChart(focusIndexOptions([undefined, undefined, undefined, undefined]));
+
+        await chart.publicApi!.updateDelta({ series: focusIndexSeries([undefined, undefined, undefined, 0]) });
+        await waitForChartStability(chart);
+
+        expect(await readFocusOrder()).toEqual(['Delta', 'Alpha', 'Bravo', 'Charlie']);
     });
 });

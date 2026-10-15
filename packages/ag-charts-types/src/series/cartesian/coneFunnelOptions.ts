@@ -103,7 +103,7 @@ export interface AgConeFunnelSeriesOptionsNames {}
 
 export interface AgConeFunnelSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'showInLegend' | 'selection'>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'showInLegend' | 'selection' | 'focusIndex'>,
         AgConeFunnelSeriesOptionsKeys<TDatum>,
         AgConeFunnelSeriesOptionsNames,
         AgConeFunnelSeriesThemeableOptions<TDatum, TContext> {

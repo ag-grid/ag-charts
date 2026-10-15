@@ -50,7 +50,7 @@ const priceVolumePresetIgnoredMiniChartProperties = [
     'fillImageDefaults',
     'fillOpacity',
     'shadow',
-    'focusPriority',
+    'focusIndex',
     'highlight',
     'lineDash',
     'lineDashOffset',

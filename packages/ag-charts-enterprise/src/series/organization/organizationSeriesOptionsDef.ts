@@ -45,6 +45,7 @@ import {
     tooltipOptionsDefs,
     undocumentedDefs,
     union,
+    without,
 } from 'ag-charts-core';
 
 // TODO: duplicate series options defs here?
@@ -214,7 +215,7 @@ const stackedLayout: OptionsDefs<AgOrganizationSeriesStackedLayoutOptions> = {
 };
 
 export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptions> = {
-    ...commonSeriesOptionsDefs,
+    ...without(commonSeriesOptionsDefs, ['focusIndex']),
     ...organizationSeriesThemeableOptionsDef,
     type: required(constant('organization')),
     expander: expander,
