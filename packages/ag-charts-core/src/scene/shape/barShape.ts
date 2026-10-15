@@ -89,7 +89,7 @@ export class BarShape<D = any> extends Rect<D> {
         } = this;
         path.clear();
         borderPath.clear();
-        // The path is authored here, not as the rect `Rect.updatePath` last measured.
+        // This path isn't the plain rect `Rect.updatePath` measured, so don't fill it with `fillRect`.
         this.plainRect = false;
 
         if (direction === 'x') {

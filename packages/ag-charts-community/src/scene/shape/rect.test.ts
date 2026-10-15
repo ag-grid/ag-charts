@@ -699,6 +699,31 @@ describe('Rect', () => {
             expect(render(scene(false)).equals(isolated)).toBe(true);
         });
 
+        it('erases a cutout fully after a translucent plain rect', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+
+            function render(rectOf: (overrides: Partial<Rect>) => Rect) {
+                const group = new Group({ name: 'root' });
+                group.append([
+                    rectOf({ x: 0, y: 0, width: 60, height: 60, fill: 'rgb(255, 0, 0)' }),
+                    rectOf({ x: 70, y: 0, width: 20, height: 20, fill: 'rgba(0, 0, 255, 0.5)' }),
+                    plainRect({ x: 10, y: 10, width: 30, height: 30, fill: undefined, drawingMode: 'cutout' }),
+                ]);
+                ctx.clearRect(0, 0, 100, 100);
+                const renderCtx = renderContext(ctx);
+                group.preRender(renderCtx);
+                group.render(renderCtx);
+                return pixels(ctx);
+            }
+
+            const alphaAt = (data: Buffer, x: number, y: number) => data[(y * 100 + x) * 4 + 3];
+
+            const direct = render(plainRect);
+            expect(alphaAt(direct, 5, 5)).toBe(255);
+            expect(alphaAt(direct, 20, 20)).toBe(0);
+            expect(direct.equals(render(pathPaintedRect))).toBe(true);
+        });
+
         it('keeps a bar shape with square corners painting as it did, whether it is feathered or not', () => {
             const ctx = canvasCtx.getRenderContext2D();
             const fillRect = vi.spyOn(ctx, 'fillRect');

@@ -353,10 +353,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
 
     private lastUpdatePathStrokeWidth: number = this.__strokeWidth;
 
-    /**
-     * Only the stroke width needs checking here: it is written to its backing field without marking the path
-     * dirty (see `setStyleProperties`), and the rect's path is otherwise only authored by `updatePath`.
-     */
+    /** The stroke width is written without marking the path dirty (see `setStyleProperties`), so check it here. */
     protected override isDirtyPath() {
         return this.lastUpdatePathStrokeWidth !== this.__strokeWidth;
     }
@@ -367,17 +364,10 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
 
     private effectiveStrokeWidth: number = this.__strokeWidth;
 
-    /**
-     * Whether `updatePath` last ran with square corners, where the bounding box is the rect, so hit testing
-     * and distance can use it instead of the path.
-     */
+    /** Set by `updatePath` when the corners are square, so hit testing and distance can use the bbox, not the path. */
     private squareCorners = false;
 
-    /**
-     * Set by `updatePath` when the whole of what is drawn is one axis-aligned rectangle with square corners, no
-     * clip and no stroke, so painting can fill the rectangle directly instead of the path. Subclasses that author
-     * their path elsewhere must clear it.
-     */
+    /** Set by `updatePath` when just a square rect is filled. Subclasses with own paths clear it. */
     protected plainRect = false;
     private plainRectX = 0;
     private plainRectY = 0;
@@ -404,10 +394,11 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         let { __x: x, __y: y, __width: w, __height: h, __strokeWidth: strokeWidth, __clipBBox: clipBBox } = this;
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
         const pixelSize = 1 / pixelRatio;
+        const squareCorners = topLeft === 0 && topRight === 0 && bottomRight === 0 && bottomLeft === 0;
         let microPixelEffectOpacity = 1;
 
         path.clear();
-        // Nothing is drawn to the border path without a stroke, so there is nothing to clear.
+        // Skip `clear()` on an empty border path: it allocates a new Path2D.
         if (!borderPath.isEmpty()) {
             borderPath.clear();
         }
@@ -520,7 +511,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             this.borderClipPath = undefined;
             clippedRoundRect(path, x, y, w, h, cornerRadii, clipBBox);
 
-            if (clipBBox == null && topLeft === 0 && topRight === 0 && bottomRight === 0 && bottomLeft === 0) {
+            if (clipBBox == null && squareCorners) {
                 this.plainRect = true;
                 this.plainRectX = x;
                 this.plainRectY = y;
@@ -529,9 +520,8 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             }
         }
 
-        // Path's isPointInPath and distanceSquared are expensive computations,
-        // so just use a BBox if the corners aren't rounded.
-        this.squareCorners = topLeft === 0 && topRight === 0 && bottomRight === 0 && bottomLeft === 0;
+        // Path's isPointInPath and distanceSquared are expensive, so use the BBox if the corners aren't rounded.
+        this.squareCorners = squareCorners;
 
         this.effectiveStrokeWidth = strokeWidth;
         this.lastUpdatePathStrokeWidth = strokeWidth;
@@ -659,11 +649,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         }
     }
 
-    /**
-     * Whether the rect is a plain rectangle with a plain colour fill, which paints with a single `fillRect` and
-     * changes nothing on the context but the fill style. Anything that shades the shape (shadow, cutout, gradient,
-     * pattern, image fill), clips it or draws a stroke goes through the full path.
-     */
+    /** Whether the rect is one `fillRect` of a plain colour: no shadow, cutout, gradient, pattern, image or clip. */
     private fillsDirectly(): boolean {
         return (
             this.plainRect &&
@@ -677,29 +663,25 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         );
     }
 
-    /**
-     * A directly filled rect puts back the one thing it scales, `globalAlpha`, so it does not need the context
-     * saved and restored around it. Its fill style is set again by whichever shape draws next.
-     */
+    /** A directly filled rect only sets the fill style and restores `globalAlpha`, so it needs no save and restore. */
     protected override needsIsolatedState(): boolean {
         return !this.fillsDirectly();
     }
 
     override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger): void {
-        if (!this.fillsDirectly()) {
+        if (this.fillsDirectly()) {
+            // No path: `executeFill` fills the rect itself, and a plain rect has no stroke to draw.
+            this.fillStroke(ctx, logger);
+        } else {
             super.drawPath(ctx, logger);
-            return;
         }
+    }
 
-        const { __fill: fill, __fillOpacity: fillOpacity = 1 } = this;
-        if (fill != null && fill !== 'none' && fillOpacity > 0) {
-            const { globalAlpha } = ctx;
-            try {
-                this.applyFillAndAlpha(ctx, logger);
-                ctx.fillRect(this.plainRectX, this.plainRectY, this.plainRectWidth, this.plainRectHeight);
-            } finally {
-                ctx.globalAlpha = globalAlpha;
-            }
+    protected override executeFill(ctx: CanvasContext, path?: Path2D) {
+        if (path == null && this.plainRect) {
+            ctx.fillRect(this.plainRectX, this.plainRectY, this.plainRectWidth, this.plainRectHeight);
+        } else {
+            super.executeFill(ctx, path);
         }
     }
 

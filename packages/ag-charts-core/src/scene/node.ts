@@ -233,16 +233,12 @@ export abstract class Node<TDatum = unknown> {
         return this.childNodeCounts;
     }
 
-    /**
-     * Whether {@link isolatedRender} wraps {@link render} in `ctx.save()` / `ctx.restore()`. A node that leaves
-     * the Canvas2D state as it found it, apart from what every node sets for itself before it draws (such as
-     * the fill style), can return `false` and skip the cost of the save and restore.
-     */
+    /** Whether {@link isolatedRender} saves and restores the context. False only if `render` just sets `fillStyle`. */
     protected needsIsolatedState(): boolean {
         return true;
     }
 
-    /** Guaranteed isolated render - if there is any failure, the Canvas2D context is returned to its prior state. */
+    /** Isolated render - the context is returned to its prior state, unless {@link needsIsolatedState} is false. */
     isolatedRender(renderCtx: RenderContext): void {
         const isolate = this.needsIsolatedState();
         // Snapshot alongside ctx.save() — restore() reverts ctx.font, so tracker must too.
