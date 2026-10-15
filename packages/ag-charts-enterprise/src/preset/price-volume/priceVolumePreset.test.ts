@@ -5,6 +5,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     deproxy,
+    hoverAction,
     prepareFinancialTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -322,6 +323,111 @@ describe('priceVolumePreset', () => {
                 expect(series.filter((s) => s.type === 'range-area' || s.type === 'line')).toHaveLength(0);
             }
         );
+    });
+
+    describe('price crosshair', () => {
+        const TICK_SIZE = 2.5;
+        const HOVER_YS = [180, 223, 266, 311];
+
+        const crosshairLabel = (axisId: string) =>
+            document.querySelector<HTMLElement>(
+                `.ag-charts-crosshair-label[data-axis-id="${axisId}"]:not(.ag-charts-crosshair-label--hidden)`
+            );
+
+        const hoverLabels = async (options: AgFinancialChartOptions) => {
+            chart = AgCharts.createFinancialChart(prepareFinancialTestOptions({ data: getStockData(), ...options }));
+            await waitForChartStability(chart);
+            const labels: Array<{ price?: string; priceTop?: string; date?: string }> = [];
+            for (const y of HOVER_YS) {
+                await hoverAction(300, y)(deproxy(chart));
+                await waitForChartStability(chart);
+                const priceLabel = crosshairLabel('y');
+                labels.push({
+                    price: priceLabel?.textContent?.trim(),
+                    priceTop: priceLabel?.style.top,
+                    date: crosshairLabel('x')?.textContent?.trim(),
+                });
+            }
+            return labels;
+        };
+
+        const isTickMultiple = (text: string | undefined) => {
+            const ticks = Number(text) / TICK_SIZE;
+            return Math.abs(ticks - Math.round(ticks)) < 1e-9;
+        };
+
+        it.each<[string, AgFinancialChartOptions]>([
+            ['with volume', {}],
+            ['candlestick without volume', { volume: false, chartType: 'candlestick' }],
+            ['ohlc without volume', { volume: false, chartType: 'ohlc' }],
+            ['hlc without volume', { volume: false, chartType: 'hlc' }],
+            ['line without volume', { volume: false, chartType: 'line' }],
+            ['high-low without volume', { volume: false, chartType: 'high-low' }],
+        ])('snaps the price label to multiples of tickSize %s', async (_name, options) => {
+            const labels = await hoverLabels({ ...options, tickSize: TICK_SIZE });
+            const prices = labels.map((l) => l.price);
+            expect(prices.every(isTickMultiple)).toBe(true);
+            expect(new Set(prices).size).toBeGreaterThan(1);
+            expect(labels.map((l) => l.priceTop)).not.toEqual(HOVER_YS.map((y) => `${y}px`));
+        });
+
+        it.each<[string, AgFinancialChartOptions]>([
+            ['without tickSize', {}],
+            [
+                'when theme overrides turn snap off',
+                {
+                    tickSize: TICK_SIZE,
+                    theme: { overrides: { common: { axes: { number: { crosshair: { snap: false } } } } } },
+                },
+            ],
+        ])('follows the pointer continuously %s', async (_name, options) => {
+            const labels = await hoverLabels(options);
+            expect(labels.every((l) => l.price != null)).toBe(true);
+            expect(labels.map((l) => l.price).every(isTickMultiple)).toBe(false);
+            expect(labels.map((l) => l.priceTop)).toEqual(HOVER_YS.map((y) => `${y}px`));
+        });
+
+        it('snaps within a zoomed range', async () => {
+            const labels = await hoverLabels({
+                tickSize: TICK_SIZE,
+                initialState: { zoom: { ratioX: { start: 0.6, end: 0.8 }, ratioY: { start: 0.4, end: 0.6 } } },
+            });
+            expect(labels.map((l) => l.price).every(isTickMultiple)).toBe(true);
+        });
+
+        it.each<[string, AgFinancialChartOptions, boolean]>([
+            ['snapped with tickSize', { tickSize: TICK_SIZE }, true],
+            [
+                'continuous when theme overrides turn snap off',
+                {
+                    tickSize: TICK_SIZE,
+                    theme: { overrides: { common: { axes: { number: { crosshair: { snap: false } } } } } },
+                },
+                false,
+            ],
+        ])('adds a horizontal line from the price axis button %s', async (_name, options, snapped) => {
+            const labels = await hoverLabels(options);
+            const button = document.querySelector<HTMLElement>(
+                '.ag-charts-annotations__axis-button:not(.ag-charts-annotations__axis-button--hidden)'
+            );
+            expect(button).not.toBeNull();
+            button!.click();
+            await waitForChartStability(chart);
+
+            const { annotations } = chart.getState();
+            expect(annotations).toMatchObject([{ type: 'horizontal-line' }]);
+            const value = annotations![0].type === 'horizontal-line' ? annotations![0].value : undefined;
+            expect(Number(value).toFixed(2)).toBe(labels.at(-1)?.price);
+            expect(isTickMultiple(String(value))).toBe(snapped);
+        });
+
+        it('leaves the date label unchanged', async () => {
+            const snapped = await hoverLabels({ tickSize: TICK_SIZE });
+            chart.destroy();
+            const continuous = await hoverLabels({});
+            expect(snapped.map((l) => l.date)).toEqual(continuous.map((l) => l.date));
+            expect(snapped.every((l) => l.date != null)).toBe(true);
+        });
     });
 
     describe('toolbar button theme override (AG-17364)', () => {

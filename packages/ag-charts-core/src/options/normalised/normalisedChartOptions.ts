@@ -74,6 +74,7 @@ export type NormalisedChartSyncOptions = AgChartSyncOptions & {
 
 export type NormalisedAnnotationsOptions = AgAnnotationsOptions & {
     enabled: boolean;
+    axesButtons?: AgAnnotationsOptions['axesButtons'] & { snap?: boolean; snapInterval?: number };
     snap?: boolean;
     data?: unknown[];
     xKey?: string;

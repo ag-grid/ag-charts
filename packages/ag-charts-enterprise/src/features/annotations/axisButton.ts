@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-core';
 import { AbstractModuleInstance, ButtonWidget, ChartAxisDirection, clamp, getIconClassNames } from 'ag-charts-core';
 
+import { snapPositionToInterval } from '../../utils/axisSnap';
 import { convert, invert } from './utils/values';
 
 const { InteractionState } = _ModuleSupport;
@@ -21,6 +22,7 @@ export class AxisButton extends AbstractModuleInstance {
     private readonly button: ButtonWidget;
     private readonly snap: boolean = false;
     private padding: number = 0;
+    private snapInterval?: number;
     private coords?: Point;
 
     constructor(
@@ -51,9 +53,10 @@ export class AxisButton extends AbstractModuleInstance {
         );
     }
 
-    update(seriesRect: BBox, padding: number) {
+    update(seriesRect: BBox, padding: number, snapInterval?: number) {
         this.seriesRect = seriesRect;
         this.padding = padding;
+        this.snapInterval = snapInterval;
     }
 
     private setup() {
@@ -128,6 +131,14 @@ export class AxisButton extends AbstractModuleInstance {
         if (snap) {
             x = convert(invert(x - seriesRect.x, axisCtx), axisCtx) + seriesRect.x;
             y = convert(invert(y - seriesRect.y, axisCtx), axisCtx) + seriesRect.y;
+        } else if (this.snapInterval != null && axisCtx.continuous) {
+            const isX = direction === ChartAxisDirection.X;
+            const snapped = snapPositionToInterval(axisCtx, isX ? x : y, this.snapInterval);
+            if (snapped != null && isX) {
+                x = snapped.position;
+            } else if (snapped != null) {
+                y = snapped.position;
+            }
         }
 
         if (direction === ChartAxisDirection.X) {

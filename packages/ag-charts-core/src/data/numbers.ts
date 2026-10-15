@@ -101,6 +101,12 @@ export function roundTo(value: number, decimals: number = 2) {
     return Math.round(value * base) / base;
 }
 
+/** Rounds to the nearest multiple of `step`, dropping the float noise of a decimal step (e.g. 2.4999999999999716). */
+export function roundToMultiple(value: number, step: number) {
+    const index = Math.round(Number((value / step).toPrecision(12)));
+    return Number((index * step).toPrecision(12));
+}
+
 export function ceilTo(value: number, decimals: number = 2) {
     const base = 10 ** decimals;
     return Math.ceil(value * base) / base;

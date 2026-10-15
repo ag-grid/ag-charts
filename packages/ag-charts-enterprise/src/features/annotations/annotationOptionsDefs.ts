@@ -12,6 +12,7 @@ import {
     or,
     padding,
     positiveNumber,
+    positiveNumberNonZero,
     required,
     string,
     strokeOptionsDef,
@@ -222,6 +223,7 @@ export const annotationOptionsDef: OptionsDefs<AgAnnotationsOptions> = {
     axesButtons: {
         enabled: boolean,
         axes: union('x', 'y', 'xy'),
+        ...undocumentedDefs({ snap: boolean, snapInterval: positiveNumberNonZero }),
     },
     toolbar: {
         enabled: boolean,

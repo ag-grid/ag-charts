@@ -118,7 +118,7 @@ export function priceVolume(
             ...createPriceSeries(chartType, keys, logger, seriesSelection),
         ],
         axes: {
-            ...createPriceAxis(),
+            ...createPriceAxis(tickSize),
             ...createDateAxis(),
             ...createVolumeAxis(volume),
             ...createVolumeProfileAxis(volumeProfile),
@@ -296,15 +296,14 @@ function createPriceVolumeProfileSeries(
     return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, volumeProfile.selection);
 }
 
-function createPriceAxis() {
+function createPriceAxis(tickSize: number | undefined) {
+    // `snapInterval` is undocumented; `snap` is themed so that theme overrides can turn snapping off.
+    const crosshair = { enabled: true, snapInterval: tickSize };
     return {
         y: {
             type: 'number',
             position: 'right',
-            crosshair: {
-                enabled: true,
-                snap: false,
-            },
+            crosshair,
             // @ts-expect-error undocumented option
             layoutConstraints: {
                 stacked: false,
