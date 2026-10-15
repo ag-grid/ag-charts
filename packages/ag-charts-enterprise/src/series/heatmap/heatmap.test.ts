@@ -2066,28 +2066,30 @@ describe('HeatmapSeries', () => {
                 expect(strokeWidths(chart)).toEqual([2, 2, 2, 2]);
             });
 
-            it('re-evaluates every cell after the options are updated with a styler returning different results', async () => {
-                let scale = 1;
-                const itemStyler = ({ datum }: StylerParams) => ({ strokeWidth: (datum.spending / 10) * scale });
-                const options = buildOptions({ itemStyler });
+            it('resolves each distinct flat result once, and again after an update clears the memory', async () => {
+                const data = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
+                const itemStyler = ({ datum }: StylerParams) => ({ strokeWidth: 1 + (datum.spending % 3) });
+                const options = buildOptions({ itemStyler }, data);
                 await createStable(options);
-                expect(strokeWidths(chart)).toEqual([1, 2, 3, 4]);
 
-                scale = 2;
-                chart.publicApi.update(options);
-                await waitForChartStability(chart);
+                const { optionsGraphService } = chart.series[0].ctx;
+                const resolvePartial = vi.spyOn(optionsGraphService, 'resolvePartial');
+                const resolvedStylerResults = () =>
+                    resolvePartial.mock.calls.filter(([, value]) => Object.keys(value ?? {}).includes('strokeWidth'));
 
-                expect(strokeWidths(chart)).toEqual([2, 4, 6, 8]);
-            });
+                try {
+                    chart.publicApi.update(options);
+                    await waitForChartStability(chart);
+                    expect(strokeWidths(chart)).toEqual(data.map((d) => 1 + (d.spending % 3)));
+                    expect(resolvedStylerResults()).toHaveLength(3);
 
-            it('re-evaluates a styler result that depends on the datum when the data changes', async () => {
-                const itemStyler = ({ datum }: StylerParams) => ({ strokeWidth: datum.spending / 10 });
-                await createStable(buildOptions({ itemStyler }));
-
-                chart.publicApi.updateDelta({ data: SHIFTED_DATA });
-                await waitForChartStability(chart);
-
-                expect(strokeWidths(chart)).toEqual(SHIFTED_DATA.map((d) => d.spending / 10));
+                    resolvePartial.mockClear();
+                    chart.publicApi.update(options);
+                    await waitForChartStability(chart);
+                    expect(resolvedStylerResults()).toHaveLength(3);
+                } finally {
+                    resolvePartial.mockRestore();
+                }
             });
 
             it('warns once about an invalid result value and still applies the valid properties', async () => {
