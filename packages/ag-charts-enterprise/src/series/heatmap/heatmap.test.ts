@@ -2343,5 +2343,284 @@ describe('HeatmapSeries', () => {
 
             expect(isTooltipVisible(chart)).toBe(false);
         });
+
+        describe('against the changed fraction', () => {
+            const ids = GRID.map((cell) => cell.id);
+
+            it.each([
+                ['one cell', 1],
+                ['a quarter of the cells', 3],
+                ['half of the cells', 6],
+                ['every cell', GRID.length],
+            ])('matches a fresh render when the update changes %s', async (_name, count) => {
+                await create(GRID);
+                const updates = ids.slice(0, count).map((id, i) => UPDATED(id, 40 + i));
+                await transact({ update: updates });
+
+                expect(cells(chart)).toEqual(await freshCells(withUpdates(...updates)));
+            });
+
+            it('rebuilds only the updated cells whatever fraction changes', async () => {
+                await create(GRID);
+                // 0:0 holds the only minimum (0) and 3:2 the only maximum (11); leaving both alone and
+                // staying within 1..10 keeps the colour domain where it was, so only the cells themselves change.
+                const inner = ids.filter((id) => id !== '0:0' && id !== '3:2');
+                const counts: number[] = [];
+
+                for (const count of [1, 3, 6]) {
+                    const spy = spyOnCellRebuilds();
+                    try {
+                        await transact({
+                            update: inner.slice(0, count).map((id, i) => UPDATED(id, 1 + ((i + count) % 10))),
+                        });
+                        counts.push(spy.datums.mock.calls.length);
+                    } finally {
+                        spy.restore();
+                    }
+                }
+
+                expect(counts).toEqual([1, 3, 6]);
+            });
+        });
+
+        describe('colour domain', () => {
+            it('restyles every cell when the update sets a new minimum', async () => {
+                await create(GRID);
+                const before = cells(chart);
+                const spy = spyOnCellRebuilds();
+
+                try {
+                    await transact({ update: [UPDATED('2:2', -50)] });
+
+                    expect(spy.styles).toHaveBeenCalledTimes(GRID.length);
+                } finally {
+                    spy.restore();
+                }
+
+                const after = cells(chart);
+                expect(after.map((cell) => cell.fill)).not.toEqual(before.map((cell) => cell.fill));
+                expect(after).toEqual(await freshCells(withUpdates(UPDATED('2:2', -50))));
+            });
+
+            it('restyles every cell when the update shrinks the domain from the top', async () => {
+                await create(GRID);
+                const before = cells(chart);
+
+                // 3:2 holds the only maximum (11); lowering it pulls the top of the domain down to 10.
+                await transact({ update: [UPDATED('3:2', 2)] });
+
+                const after = cells(chart);
+                expect(after.map((cell) => cell.fill)).not.toEqual(before.map((cell) => cell.fill));
+                expect(after).toEqual(await freshCells(withUpdates(UPDATED('3:2', 2))));
+            });
+
+            it('matches a fresh render when a fixed domain already covers the new value', async () => {
+                const series = { colorScale: { domain: [0, 100], fills: [{ color: 'blue' }, { color: 'red' }] } };
+                await create(GRID, series);
+
+                await transact({ update: [UPDATED('1:1', 60)] });
+
+                expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('1:1', 60)), series));
+            });
+
+            it('colours every cell from the new domain after a run of transactions', async () => {
+                await create(GRID);
+                await transact({ update: [UPDATED('0:0', 80)] });
+                await transact({ update: [UPDATED('1:0', 5)] });
+                await transact({ update: [UPDATED('0:0', 3)] });
+
+                expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('0:0', 3), UPDATED('1:0', 5))));
+            });
+        });
+
+        describe('added and removed cells', () => {
+            it('adds a cell to an existing row and column', async () => {
+                const data = GRID.filter((cell) => cell.id !== '2:1');
+                await create(data);
+
+                await transact({ add: [GRID.find((cell) => cell.id === '2:1')!] });
+
+                expect(cells(chart)).toEqual(await freshCells([...data, GRID.find((cell) => cell.id === '2:1')!]));
+                expect(rects(chart)).toHaveLength(GRID.length);
+            });
+
+            it('removes a cell and leaves the rest where they were', async () => {
+                await create(GRID);
+
+                await transact({ remove: [{ id: '1:1' }] });
+
+                expect(rects(chart)).toHaveLength(GRID.length - 1);
+                expect(cells(chart)).toEqual(await freshCells(GRID.filter((cell) => cell.id !== '1:1')));
+            });
+
+            it('adds a cell in a new column and lays the grid out again', async () => {
+                await create(GRID);
+                const added: Cell = { id: '4:1', x: 'X4', y: 'Y1', v: 6 };
+
+                await transact({ add: [added] });
+
+                expect(cells(chart)).toEqual(await freshCells([...GRID, added]));
+            });
+
+            it('colours every cell from the new domain when an added cell extends it', async () => {
+                await create(GRID);
+                const added: Cell = { id: '0:3', x: 'X0', y: 'Y0', v: 500 };
+
+                await transact({ add: [added] });
+
+                expect(cells(chart)).toEqual(await freshCells([...GRID, added]));
+            });
+
+            it('colours every cell from the new domain when the removed cell held the maximum', async () => {
+                await create(GRID);
+                const before = cells(chart);
+
+                await transact({ remove: [{ id: '3:2' }] });
+
+                expect(cells(chart).map((cell) => cell.fill)).not.toEqual(before.map((cell) => cell.fill));
+                expect(cells(chart)).toEqual(await freshCells(GRID.filter((cell) => cell.id !== '3:2')));
+            });
+
+            it('updates, adds and removes in one transaction', async () => {
+                await create(GRID);
+                const updated = UPDATED('0:2', 4);
+                const added: Cell = { id: '4:2', x: 'X4', y: 'Y2', v: 2 };
+
+                await transact({ update: [updated], add: [added], remove: [{ id: '2:0' }] });
+
+                const expected = [...withUpdates(updated).filter((cell) => cell.id !== '2:0'), added];
+                expect(cells(chart)).toEqual(await freshCells(expected));
+            });
+        });
+
+        // The mock canvas only tracks the first chart created per test, so the painted pixels of the
+        // transacted chart are checked against the fills a separate reference chart resolves for the same data.
+        describe('canvas output', () => {
+            const NAMED: Record<string, number[]> = { blue: [0, 0, 255], red: [255, 0, 0] };
+            const parseFill = (fill: string) =>
+                NAMED[fill] ?? Array.from(fill.matchAll(/\d+/g), (match) => Number(match[0])).slice(0, 3);
+
+            const paintedColours = (c: Chart) => {
+                const { contentGroup } = heatmap(c);
+                const image = ctx.snapshot();
+                return rects(c).map((rect) => {
+                    const { canvasX, canvasY } = Transformable.toCanvasPoint(
+                        contentGroup,
+                        rect.x + rect.width / 2,
+                        rect.y + rect.height / 2
+                    );
+                    const offset = (Math.round(canvasY) * image.width + Math.round(canvasX)) * 4;
+                    return Array.from(image.data.slice(offset, offset + 3));
+                });
+            };
+
+            async function expectPaintedLikeFresh(data: Cell[]) {
+                const painted = paintedColours(chart);
+                const expected = (await freshCells(data)).map((cell) => parseFill(cell.fill));
+                expect(painted).toEqual(expected);
+            }
+
+            it('paints the fills of a fresh chart after cells are updated', async () => {
+                await create(GRID);
+                const original = paintedColours(chart);
+                const updates = [UPDATED('0:0', 9), UPDATED('2:1', 3)];
+                await transact({ update: updates });
+
+                expect(paintedColours(chart)).not.toEqual(original);
+                await expectPaintedLikeFresh(withUpdates(...updates));
+            });
+
+            it('paints the fills of a fresh chart after the colour domain moves', async () => {
+                await create(GRID);
+                const original = paintedColours(chart);
+                await transact({ update: [UPDATED('1:2', 90)] });
+
+                expect(paintedColours(chart)).not.toEqual(original);
+                await expectPaintedLikeFresh(withUpdates(UPDATED('1:2', 90)));
+            });
+
+            it('paints the fills of a fresh chart after cells are added and removed', async () => {
+                await create(GRID);
+                const added: Cell = { id: '4:0', x: 'X4', y: 'Y0', v: 5 };
+                await transact({ add: [added], remove: [{ id: '0:0' }] });
+
+                await expectPaintedLikeFresh([...GRID.filter((cell) => cell.id !== '0:0'), added]);
+            });
+        });
+
+        describe('labels', () => {
+            const labelTexts = (c: Chart) =>
+                (heatmap(c).contextNodeData?.labelData ?? []).map((label) => JSON.stringify(label.text));
+            const series = { label: { enabled: true } };
+
+            it('shows the new value on the updated cell and keeps the rest', async () => {
+                await create(GRID, series);
+                const before = labelTexts(chart);
+
+                await transact({ update: [UPDATED('1:1', 77)] });
+
+                const after = labelTexts(chart);
+                expect(after).not.toEqual(before);
+                expect(after.filter((text, i) => text !== before[i])).toHaveLength(1);
+
+                const reference = deproxy(AgCharts.create(buildOptions(withUpdates(UPDATED('1:1', 77)), series)));
+                await waitForChartStability(reference);
+                expect(after).toEqual(labelTexts(reference));
+                reference.destroy();
+            });
+        });
+
+        describe('tooltip and picking', () => {
+            it('picks a cell that the update did not touch with its original value', async () => {
+                await create(GRID);
+                await transact({ update: [UPDATED('2:1', 100)] });
+                const datumIndex = GRID.findIndex((cell) => cell.id === '0:0');
+
+                await hoverDatumByIndex(chart, 0, datumIndex);
+
+                expect(isTooltipVisible(chart)).toBe(true);
+                expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
+                expect(
+                    heatmap(chart)
+                        .getNodeData()
+                        ?.find((n) => n.datumIndex === datumIndex)?.colorValue
+                ).toBe(0);
+            });
+
+            it('shows the new value when the hovered cell itself is updated', async () => {
+                await create(GRID);
+                const datumIndex = GRID.findIndex((cell) => cell.id === '1:1');
+                await hoverDatumByIndex(chart, 0, datumIndex);
+                expect(isTooltipVisible(chart)).toBe(true);
+
+                await transact({ update: [UPDATED('1:1', 321)] });
+
+                expect(
+                    heatmap(chart)
+                        .getNodeData()
+                        ?.find((n) => n.datumIndex === datumIndex)?.colorValue
+                ).toBe(321);
+                expect(JSON.stringify(heatmap(chart).getTooltipContent(datumIndex))).toContain('321');
+            });
+
+            it('picks the moved cell at its new position and not its old one', async () => {
+                await create(GRID);
+                const datumIndex = GRID.findIndex((cell) => cell.id === '1:1');
+                const moved = UPDATED('1:1', 7, { x: 'X3', y: 'Y0' });
+                await transact({ update: [moved] });
+
+                const node = heatmap(chart)
+                    .getNodeData()
+                    ?.find((n) => n.datumIndex === datumIndex);
+                const target = GRID.findIndex((cell) => cell.id === '3:0');
+                const targetNode = heatmap(chart)
+                    .getNodeData()
+                    ?.find((n) => n.datumIndex === target);
+
+                // The moved cell now shares X3/Y0 with cell 3:0, so it sits on top of that cell's position.
+                expect(node?.point).toEqual(targetNode?.point);
+                expect(cells(chart)).toEqual(await freshCells(withUpdates(moved)));
+            });
+        });
     });
 });
