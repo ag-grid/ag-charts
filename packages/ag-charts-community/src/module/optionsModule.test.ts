@@ -71,6 +71,13 @@ function prepareOptions<T extends AgChartOptions>(userOptions: T, logger?: Logge
     return chartOptions.processedOptions;
 }
 
+const SPARKLINE_METADATA: ConstructorParameters<typeof ChartOptions>[4] = {
+    presetType: 'sparkline',
+    pool: true,
+    domMode: 'minimal',
+    withDragInterpretation: false,
+};
+
 // Mirrors AgCharts.__createSparkline() -> createOrUpdate(): no base options, the user options as the
 // new options, and the sparkline preset metadata.
 function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logger): AgChartOptions {
@@ -79,7 +86,7 @@ function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logge
         userOptions as AgChartOptions,
         {},
         {},
-        { presetType: 'sparkline', pool: true, domMode: 'minimal', withDragInterpretation: false },
+        SPARKLINE_METADATA,
         undefined,
         false,
         false,
@@ -5908,11 +5915,6 @@ describe('ChartOptions', () => {
         const rows = (count: number) =>
             Array.from({ length: count }, (_, i) => ({ id: `r${i}`, x: `c${i}`, y: i * 2 + 1, z: i }));
 
-        const sparklineMetadata: ConstructorParameters<typeof ChartOptions>[4] = {
-            presetType: 'sparkline',
-            pool: true,
-            domMode: 'minimal',
-        };
         const createBase = (userOptions: AgChartOptions) =>
             new ChartOptions(userOptions, {} as AgChartOptions, {}, {}, {});
         const applyDelta = (
@@ -5921,7 +5923,7 @@ describe('ChartOptions', () => {
             metadata: ConstructorParameters<typeof ChartOptions>[4] = {}
         ) => new ChartOptions(base, {} as AgChartOptions, {}, {}, metadata, delta as any);
 
-        // The same user options built from scratch, as `update()` of a new chart would.
+        // The container is a per-instance element, so it is left out when comparing options.
         const strip = (options: any) => ({ ...options, container: undefined });
 
         describe('growing `data`', () => {
@@ -5995,7 +5997,7 @@ describe('ChartOptions', () => {
             });
 
             it('keeps the preset data transform on a sparkline whose data grows', () => {
-                const metadata = sparklineMetadata;
+                const metadata = SPARKLINE_METADATA;
                 const options = { type: 'line', data: [1, 2, 3] } as AgChartOptions;
                 const base = new ChartOptions(undefined, options, {}, {}, metadata);
 
@@ -6056,7 +6058,7 @@ describe('ChartOptions', () => {
             });
 
             it('does not report the preset data of a sparkline as changed', () => {
-                const metadata = sparklineMetadata;
+                const metadata = SPARKLINE_METADATA;
                 const base = new ChartOptions(
                     undefined,
                     { type: 'line', data: [1, 2, 3] } as AgChartOptions,
@@ -6085,8 +6087,8 @@ describe('ChartOptions', () => {
                 const base = createBase({ ...options, data } as AgChartOptions);
 
                 const updated = applyDelta(base, { title: { text: 'After' } });
+                (updated.userOptions.data as unknown[]).push({ id: 'extra' });
 
-                expect(updated.userOptions.data).not.toBe(data);
                 expect(data).toEqual(rows(3));
             });
         });
