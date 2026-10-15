@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { _Theme } from 'ag-charts-community';
+import type { AgVolumeProfileChartPreset } from 'ag-charts-types';
 
 import { createVolumeProfileSeries } from './volumeProfile';
+import { volumeProfileChart } from './volumeProfilePreset';
 import { normaliseVolumeProfile } from './volumeProfileUtils';
 
 type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
@@ -50,14 +52,30 @@ describe('volume profile tooltips', () => {
     it('should give the range a level covers beside its up volume', () => {
         expect(render(upSeries)).toEqual([
             { label: 'Range', value: '145-155' },
-            { label: 'Up Volume', value: 56617298 },
+            { label: 'Up Volume', value: '56,617,298' },
         ]);
     });
 
-    it('should give the down volume and total of a level, without repeating the range', () => {
+    it('should give the down volume and total of a level with thousands separators, without repeating the range', () => {
         expect(render(downSeries)).toEqual([
-            { label: 'Down Volume', value: 68115020 },
-            { label: 'Total', value: 124732318 },
+            { label: 'Down Volume', value: '68,115,020' },
+            { label: 'Total', value: '124,732,318' },
+        ]);
+    });
+});
+
+describe('volume profile volume axis', () => {
+    const options = { data: [], upKey: 'up', downKey: 'down' } as AgVolumeProfileChartPreset;
+    const { yVolumeProfile } = volumeProfileChart(options, undefined, () => ({}) as ChartTheme).axes as any;
+
+    it('should abbreviate large volumes', () => {
+        const { formatter } = yVolumeProfile.label;
+        expect([0, 500, 12_500, 100_000_000, 200_000_000].map((value) => formatter({ value }))).toEqual([
+            '0',
+            '500',
+            '12.5K',
+            '100M',
+            '200M',
         ]);
     });
 });
