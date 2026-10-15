@@ -81,6 +81,93 @@ describe('DOMManager', () => {
         });
     });
 
+    describe('inside the claude.ai visualiser', () => {
+        // The visualiser's base rule, whose `form.elicit` exemption identifies the page.
+        const visualiserCss = `button:not(#action-btns button):not(form.elicit button) { padding: 8px 16px; }`;
+
+        const buildContainer = ({ stylesheet = true, insideVisContainer = true } = {}) => {
+            if (stylesheet) {
+                const style = doc.createElement('style');
+                style.textContent = visualiserCss;
+                doc.head.append(style);
+            }
+            const container = doc.createElement('div');
+            const wrapper = doc.createElement('div');
+            if (insideVisContainer) wrapper.setAttribute('id', 'vis-container');
+            wrapper.append(container);
+            doc.body.append(wrapper);
+            return { container, wrapper };
+        };
+
+        const isolatedRoot = (container: HTMLElement) => container.firstElementChild?.shadowRoot;
+
+        it('mounts the chart in a shadow root of its own, with its styles inside it', () => {
+            const { container } = buildContainer();
+            new DOMManager(eventsHub, 'vis', doc, container).addStyles('test', '.test {}');
+
+            const root = isolatedRoot(container);
+            expect(container.childElementCount).toBe(1);
+            expect(root?.querySelector('.ag-charts-wrapper')).not.toBeNull();
+            expect(root?.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
+            expect(root?.querySelector('style[data-ag-charts="test"]')).not.toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
+        });
+
+        it.each([
+            ['outside #vis-container', { insideVisContainer: false }, []],
+            ['without the visualiser stylesheet', { stylesheet: false }, []],
+            ['with a styleContainer', {}, [doc.head]],
+        ] as const)('stays in the light DOM %s', (_, setup, [styleContainer]) => {
+            const { container } = buildContainer(setup);
+            const dm = new DOMManager(eventsHub, 'vis-light', doc, container, styleContainer);
+
+            expect(dm.getParent('canvas').getRootNode()).toBe(doc.document);
+        });
+
+        it('stays in the light DOM for a minimal-mode chart', () => {
+            const { container } = buildContainer();
+            const dm = new DOMManager(eventsHub, 'vis-minimal', doc, container, undefined, undefined, 'minimal');
+
+            expect(dm.getParent('canvas').getRootNode()).toBe(doc.document);
+        });
+
+        describe('when the container is attached after initialisation', () => {
+            beforeEach(() => vi.useFakeTimers());
+            afterEach(() => vi.useRealTimers());
+
+            it('isolates the chart once the container joins the visualiser', () => {
+                const { wrapper } = buildContainer();
+                const container = doc.createElement('div');
+                const dm = new DOMManager(eventsHub, 'vis-late', doc, container);
+                expect(container.querySelector(':scope > .ag-charts-wrapper')).not.toBeNull();
+
+                wrapper.append(container);
+                dm.setDeferring(false);
+                vi.runAllTimers();
+
+                expect(isolatedRoot(container)?.querySelector('.ag-charts-wrapper')).not.toBeNull();
+                expect(doc.head.querySelector('style[data-ag-charts]')).toBeNull();
+            });
+        });
+
+        it('bounds overlays by the window, as in the light DOM', () => {
+            const { container } = buildContainer();
+            const dm = new DOMManager(eventsHub, 'vis-overlay', doc, container);
+
+            const { width, height } = dm.getOverlayClientRect();
+            expect({ width, height }).toEqual({ width: doc.innerWidth, height: doc.innerHeight });
+        });
+
+        it('leaves the container empty when destroyed', () => {
+            const { container } = buildContainer();
+            const dm = new DOMManager(eventsHub, 'vis-destroy', doc, container);
+
+            dm.destroy();
+
+            expect(container.childElementCount).toBe(0);
+        });
+    });
+
     describe('for charts in a second document', () => {
         // A chart in an iframe must not stop a later chart in the main document from getting its stylesheet.
         it('adds the head styles to each document', () => {
