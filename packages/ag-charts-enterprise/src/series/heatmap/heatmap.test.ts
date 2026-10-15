@@ -1938,7 +1938,8 @@ describe('HeatmapSeries', () => {
             expect(content).toMatchObject({ type: 'structured', symbol: { marker: { fill: cellFills(chart)[2] } } });
         });
 
-        const paintsDirectly = (c: Chart) => cellRects(c).map((rect) => !(rect as any).needsIsolatedState());
+        const isPaintedDirectly = (rect: unknown) => !(rect as { needsIsolatedState(): boolean }).needsIsolatedState();
+        const paintsDirectly = (c: Chart) => cellRects(c).map(isPaintedDirectly);
 
         it('repaints the cells in their new colours without rebuilding their paths', async () => {
             await createStable(buildOptions());
@@ -1974,6 +1975,39 @@ describe('HeatmapSeries', () => {
 
             await createStable(buildOptions({ shadow: SHADOW }));
             expect(paintsDirectly(chart)).toEqual([false, false, false, false]);
+        });
+
+        it('paints the highlight of a cell through its path and leaves the cells it highlights over painting directly', async () => {
+            const highlight = {
+                highlightedItem: { stroke: 'black', strokeWidth: 3 },
+                unhighlightedItem: { opacity: 0.4 },
+            };
+            await createStable(buildOptions({ ...NO_TOOLTIP, highlight }));
+            const series = classCast(chart.series[0], HeatmapSeries);
+            const highlighted = () => collectShapes(series.highlightNodeGroup).filter((shape) => shape.visible);
+
+            await hoverDatumByIndex(chart, 0, 1);
+
+            expect(highlighted()).toHaveLength(1);
+            expect(highlighted()[0]).toMatchObject({ stroke: 'black', strokeWidth: 3 });
+            expect(highlighted().map(isPaintedDirectly)).toEqual([false]);
+            expect(paintsDirectly(chart)).toEqual([true, true, true, true]);
+        });
+
+        it('paints cells that a highlight strokes through their path and back to the direct fill once it ends', async () => {
+            const highlight = { unhighlightedItem: { stroke: 'black', strokeWidth: 3 } };
+            await createStable(buildOptions({ ...NO_TOOLTIP, highlight }));
+            expect(paintsDirectly(chart)).toEqual([true, true, true, true]);
+            const fills = cellFills(chart);
+
+            await hoverDatumByIndex(chart, 0, 1);
+            expect(cellStrokes(chart)).toEqual(Array(4).fill({ stroke: 'black', width: 3 }));
+            expect(paintsDirectly(chart)).toEqual([false, false, false, false]);
+
+            await hoverAway();
+            expect(cellStrokes(chart).map((style) => style.width)).toEqual([0, 0, 0, 0]);
+            expect(paintsDirectly(chart)).toEqual([true, true, true, true]);
+            expect(cellFills(chart)).toEqual(fills);
         });
 
         it('picks, highlights and shows the tooltip of the cell under the pointer after a repaint', async () => {

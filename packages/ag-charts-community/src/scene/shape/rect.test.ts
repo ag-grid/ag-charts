@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { BBox, Rect } from 'ag-charts-core';
+import { BBox, BarShape, Group, Line, type Logger, Path, Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
@@ -407,6 +407,21 @@ describe('Rect', () => {
             return Object.assign(new Rect(), { x: 10.3, y: 12.7, width: 20.4, height: 15.2, fill: 'red' }, overrides);
         }
 
+        /** A rect that is always saved around and filled through its path, as every rect was. */
+        class PathPaintedRect extends Rect {
+            protected override needsIsolatedState() {
+                return true;
+            }
+
+            override drawPath(ctx: CanvasRenderingContext2D, logger: Logger) {
+                Path.prototype.drawPath.call(this, ctx, logger);
+            }
+        }
+
+        function pathPaintedRect(overrides: Partial<Rect>) {
+            return Object.assign(new PathPaintedRect(), plainRect(overrides));
+        }
+
         it('fills a plain rect with a fillRect and puts back the global alpha', () => {
             const ctx = canvasCtx.getRenderContext2D();
             const fill = vi.spyOn(ctx, 'fill');
@@ -536,6 +551,187 @@ describe('Rect', () => {
             expect(rect.isPointInPath(1, 1)).toBe(false);
             expect(rect.isPointInPath(20, 20)).toBe(true);
             expect(rect.distanceSquared(1, 1)).toBeGreaterThan(0);
+        });
+
+        const pixels = (ctx: CanvasRenderingContext2D) => Buffer.from(ctx.getImageData(0, 0, 100, 100).data);
+
+        /** A stroke width of zero, or a stroke that draws nothing, leaves a rect plain: the same pixels as a path fill. */
+        it.each([
+            ['a stroke colour but no stroke width', { stroke: 'blue', strokeWidth: 0 }],
+            ['a stroke width but no stroke colour', { stroke: undefined, strokeWidth: 3 }],
+            ['a stroke colour of none', { stroke: 'none', strokeWidth: 3 }],
+            ['a transparent stroke', { stroke: 'blue', strokeWidth: 3, strokeOpacity: 0 }],
+            ['a fill opacity of zero', { fillOpacity: 0 }],
+            ['a fill of none', { fill: 'none' }],
+            ['an opacity of zero', { opacity: 0 }],
+        ] as [string, Partial<Rect>][])('paints the same pixels as the path with %s', (_, overrides) => {
+            const ctx = canvasCtx.getRenderContext2D();
+
+            paint(plainRect(overrides), ctx);
+            const actual = pixels(ctx);
+
+            ctx.clearRect(0, 0, 100, 100);
+            paint(pathPaintedRect(overrides), ctx);
+
+            expect(actual.equals(pixels(ctx))).toBe(true);
+        });
+
+        it('paints a stroke when the stroke width goes from zero to positive and back', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const options = { x: 20, y: 20, width: 40, height: 30, fill: 'rgb(255, 0, 0)', stroke: 'rgb(0, 0, 255)' };
+            const rect = plainRect({ ...options, strokeWidth: 0 });
+
+            paint(rect, ctx);
+            const plain = pixels(ctx);
+            expect(Array.from(ctx.getImageData(20, 20, 1, 1).data)).toEqual([255, 0, 0, 255]);
+
+            ctx.clearRect(0, 0, 100, 100);
+            rect.strokeWidth = 4;
+            paint(rect, ctx);
+            expect(Array.from(ctx.getImageData(20, 20, 1, 1).data)).toEqual([0, 0, 255, 255]);
+            expect(pixels(ctx).equals(plain)).toBe(false);
+
+            ctx.clearRect(0, 0, 100, 100);
+            rect.strokeWidth = 0;
+            paint(rect, ctx);
+            expect(pixels(ctx).equals(plain)).toBe(true);
+        });
+
+        it('returns to a direct fill once a corner radius, clip box or shadow is removed', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const fillRect = vi.spyOn(ctx, 'fillRect');
+            const rect = plainRect({ cornerRadius: 4, clipBBox: new BBox(12, 14, 10, 10) });
+
+            paint(rect, ctx);
+            expect(fillRect).not.toHaveBeenCalled();
+
+            rect.cornerRadius = 0;
+            paint(rect, ctx);
+            expect(fillRect).not.toHaveBeenCalled();
+
+            rect.clipBBox = undefined;
+            paint(rect, ctx);
+            expect(fillRect).toHaveBeenCalledTimes(1);
+
+            rect.fillShadow = { enabled: true, color: 'black', xOffset: 2, yOffset: 2, blur: 3 };
+            paint(rect, ctx);
+            expect(fillRect).toHaveBeenCalledTimes(1);
+
+            rect.fillShadow = undefined;
+            paint(rect, ctx);
+            expect(fillRect).toHaveBeenCalledTimes(2);
+        });
+
+        it('paints where it was moved to and resized to', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const rect = plainRect({ x: 0, y: 0, width: 10, height: 10, fill: 'rgb(255, 0, 0)' });
+            const alphaAt = (x: number, y: number) => ctx.getImageData(x, y, 1, 1).data[3];
+
+            paint(rect, ctx);
+            expect(alphaAt(5, 5)).toBe(255);
+            expect(alphaAt(55, 55)).toBe(0);
+
+            ctx.clearRect(0, 0, 100, 100);
+            Object.assign(rect, { x: 50, y: 50, width: 20, height: 20 });
+            paint(rect, ctx);
+            expect(alphaAt(5, 5)).toBe(0);
+            expect(alphaAt(55, 55)).toBe(255);
+            expect(alphaAt(65, 65)).toBe(255);
+            expect(alphaAt(75, 75)).toBe(0);
+        });
+
+        it('does not paint a rect without width or height', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const fillRect = vi.spyOn(ctx, 'fillRect');
+
+            paint(plainRect({ width: 0 }), ctx);
+            paint(plainRect({ height: 0 }), ctx);
+
+            expect(fillRect).not.toHaveBeenCalled();
+            expect(pixels(ctx).every((byte) => byte === 0)).toBe(true);
+        });
+
+        it('leaves the canvas state to the nodes that follow a plain rect as they would find it', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+
+            function scene(isolateRects: boolean) {
+                const rectOf = isolateRects ? pathPaintedRect : plainRect;
+                const group = new Group({ name: 'root' });
+                group.opacity = 0.7;
+                const rects = [
+                    rectOf({ x: 5, y: 5, width: 30, height: 30, fill: 'rgb(255, 0, 0)', fillOpacity: 0.5 }),
+                    rectOf({ x: 20, y: 20, width: 30, height: 30, fill: 'rgb(0, 128, 0)', opacity: 0.6 }),
+                    rectOf({ x: 40, y: 40, width: 30, height: 30, fill: 'rgb(0, 0, 255)', crisp: true }),
+                ];
+                const line = Object.assign(new Line(), {
+                    x1: 0,
+                    y1: 90,
+                    x2: 100,
+                    y2: 60,
+                    stroke: 'black',
+                    strokeWidth: 3,
+                });
+                const path = new Path();
+                path.path.moveTo(60, 5);
+                path.path.lineTo(95, 5);
+                path.path.lineTo(95, 40);
+                path.path.closePath();
+                Object.assign(path, { fill: undefined, stroke: 'purple', strokeWidth: 2 });
+                const filled = new Path();
+                filled.path.rect(60, 50, 30, 20);
+                Object.assign(filled, { fill: 'orange' });
+                group.append([rects[0], line, rects[1], path, rects[2], filled]);
+                return group;
+            }
+
+            function render(group: Group) {
+                ctx.clearRect(0, 0, 100, 100);
+                ctx.globalAlpha = 1;
+                const renderCtx = renderContext(ctx);
+                group.preRender(renderCtx);
+                group.render(renderCtx);
+                expect(ctx.globalAlpha).toBe(1);
+                return pixels(ctx);
+            }
+
+            const isolated = render(scene(true));
+            expect(isolated.some((byte) => byte !== 0)).toBe(true);
+            expect(render(scene(false)).equals(isolated)).toBe(true);
+        });
+
+        it('keeps a bar shape with square corners painting as it did, whether it is feathered or not', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const fillRect = vi.spyOn(ctx, 'fillRect');
+            const fill = vi.spyOn(ctx, 'fill');
+            const bar = Object.assign(new BarShape(), { x: 10, y: 10, width: 30, height: 40, fill: 'red' });
+
+            bar.featherRatio = 0.3;
+            paint(bar, ctx);
+            expect(fillRect).not.toHaveBeenCalled();
+            expect(fill).toHaveBeenCalledTimes(1);
+            expect(bar.isPointInPath(15, 15)).toBe(true);
+
+            bar.featherRatio = 0;
+            paint(bar, ctx);
+            expect(fillRect).toHaveBeenCalledTimes(1);
+
+            bar.featherRatio = 0.3;
+            paint(bar, ctx);
+            expect(fillRect).toHaveBeenCalledTimes(1);
+            expect(fill).toHaveBeenCalledTimes(2);
+        });
+
+        it('hit tests where the rect is now, without a new pre-render', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const rect = plainRect({ x: 0, y: 0, width: 10, height: 10 });
+            rect.preRender(renderContext(ctx));
+            expect(rect.isPointInPath(5, 5)).toBe(true);
+            expect(rect.isPointInPath(55, 55)).toBe(false);
+
+            Object.assign(rect, { x: 50, y: 50 });
+            expect(rect.isPointInPath(55, 55)).toBe(true);
+            expect(rect.isPointInPath(5, 5)).toBe(false);
+            expect(rect.distanceSquared(5, 55)).toBe(45 * 45);
         });
     });
 
