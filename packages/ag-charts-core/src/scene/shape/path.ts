@@ -117,10 +117,20 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
     }
 
     override onChangeDetection(property: string): void {
-        // Always invalidate the cached bbox — a late position update (e.g. realign()) after
+        // Invalidate the cached bbox — a late position update (e.g. realign()) after
         // the layout pass would otherwise return stale values to image-fill pattern transforms.
-        this._dirtyPath = true;
+        if (this.affectsPath(property)) {
+            this._dirtyPath = true;
+        }
         super.onChangeDetection(property);
+    }
+
+    /**
+     * Whether a change to the property named `property` can alter the path, so that it has to be rebuilt.
+     * Override to exempt properties that only change how the path is painted.
+     */
+    protected affectsPath(_property: string): boolean {
+        return true;
     }
 
     protected override computeBBox(): BBox | undefined {

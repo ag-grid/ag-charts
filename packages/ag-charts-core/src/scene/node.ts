@@ -233,11 +233,23 @@ export abstract class Node<TDatum = unknown> {
         return this.childNodeCounts;
     }
 
+    /**
+     * Whether {@link isolatedRender} wraps {@link render} in `ctx.save()` / `ctx.restore()`. A node that leaves
+     * the Canvas2D state as it found it, apart from what every node sets for itself before it draws (such as
+     * the fill style), can return `false` and skip the cost of the save and restore.
+     */
+    protected needsIsolatedState(): boolean {
+        return true;
+    }
+
     /** Guaranteed isolated render - if there is any failure, the Canvas2D context is returned to its prior state. */
     isolatedRender(renderCtx: RenderContext): void {
+        const isolate = this.needsIsolatedState();
         // Snapshot alongside ctx.save() — restore() reverts ctx.font, so tracker must too.
         const savedFont = renderCtx.currentFont;
-        renderCtx.ctx.save();
+        if (isolate) {
+            renderCtx.ctx.save();
+        }
         try {
             this.render(renderCtx);
         } catch (e: any) {
@@ -252,8 +264,10 @@ export abstract class Node<TDatum = unknown> {
 
             renderCtx.logger.warnOnce('Error during rendering', e, e.stack);
         } finally {
-            renderCtx.ctx.restore();
-            renderCtx.currentFont = savedFont;
+            if (isolate) {
+                renderCtx.ctx.restore();
+                renderCtx.currentFont = savedFont;
+            }
         }
     }
 

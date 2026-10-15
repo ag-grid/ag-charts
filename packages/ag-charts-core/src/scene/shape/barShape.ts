@@ -89,6 +89,8 @@ export class BarShape<D = any> extends Rect<D> {
         } = this;
         path.clear();
         borderPath.clear();
+        // The path is authored here, not as the rect `Rect.updatePath` last measured.
+        this.plainRect = false;
 
         if (direction === 'x') {
             const featherInsetX = Math.abs(featherRatio) * width;

@@ -19,9 +19,11 @@ import {
     expectWarningsCalls,
     hoverAction,
     isTooltipVisible,
+    pressKey,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
+    tabIntoChart,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { Group, Rect, Transformable } from 'ag-charts-core';
@@ -1934,6 +1936,73 @@ describe('HeatmapSeries', () => {
             const series = classCast(chart.series[0], HeatmapSeries);
             const content = series.getTooltipContent(2);
             expect(content).toMatchObject({ type: 'structured', symbol: { marker: { fill: cellFills(chart)[2] } } });
+        });
+
+        const paintsDirectly = (c: Chart) => cellRects(c).map((rect) => !(rect as any).needsIsolatedState());
+
+        it('repaints the cells in their new colours without rebuilding their paths', async () => {
+            await createStable(buildOptions());
+            const before = cellFills(chart);
+            const updatePaths = cellRects(chart).map((rect) => vi.spyOn(rect as Rect, 'updatePath'));
+            const updated = () => updatePaths.filter((spy) => spy.mock.calls.length > 0).length;
+
+            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            await waitForChartStability(chart);
+
+            expect(cellFills(chart)).not.toEqual(before);
+            expect(updatePaths).toHaveLength(DATA.length);
+            expect(updated()).toBe(0);
+
+            // A change of layout still rebuilds them.
+            chart.publicApi.updateDelta({ data: [...SHIFTED_DATA, { year: '2022', person: 'A', spending: 50 }] });
+            await waitForChartStability(chart);
+            expect(updated()).toBeGreaterThan(0);
+        });
+
+        it('paints plain cells directly, and cells that need a path through it', async () => {
+            await createStable(buildOptions());
+            expect(paintsDirectly(chart)).toEqual([true, true, true, true]);
+            chart.destroy();
+
+            await createStable(buildOptions({ cornerRadius: 4 }));
+            expect(paintsDirectly(chart)).toEqual([false, false, false, false]);
+            chart.destroy();
+
+            await createStable(buildOptions({ stroke: 'black', strokeWidth: 2 }));
+            expect(paintsDirectly(chart)).toEqual([false, false, false, false]);
+            chart.destroy();
+
+            await createStable(buildOptions({ shadow: SHADOW }));
+            expect(paintsDirectly(chart)).toEqual([false, false, false, false]);
+        });
+
+        it('picks, highlights and shows the tooltip of the cell under the pointer after a repaint', async () => {
+            await createStable(buildOptions());
+            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            await waitForChartStability(chart);
+
+            await hoverDatumByIndex(chart, 0, 3);
+
+            expect(isTooltipVisible(chart)).toBe(true);
+            expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(3);
+        });
+
+        it('keeps keyboard navigation and labels working after a repaint', async () => {
+            await createStable(buildOptions({ label: { enabled: true } }));
+            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            await waitForChartStability(chart);
+
+            const labels = () =>
+                collectShapes(classCast(chart.series[0], HeatmapSeries).labelGroup).map(
+                    (shape) => (shape as any).text as string
+                );
+            expect(labels().sort((a, b) => a.localeCompare(b))).toEqual(['10', '100', '40', '5']);
+
+            await tabIntoChart(chart);
+            await pressKey(chart, 'ArrowRight');
+            await pressKey(chart, 'ArrowRight');
+            expect(isTooltipVisible(chart)).toBe(true);
+            expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBeDefined();
         });
     });
 });

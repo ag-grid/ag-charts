@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { BBox, Rect } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
@@ -378,6 +378,164 @@ describe('Rect', () => {
             // Check rendering.
             const imageData = extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
+        });
+    });
+
+    describe('painting', () => {
+        const canvasCtx = setupMockCanvas({ width: 100, height: 100 });
+
+        function renderContext(ctx: CanvasRenderingContext2D) {
+            return {
+                ctx,
+                direction: 'ltr' as const,
+                width: 100,
+                height: 100,
+                devicePixelRatio: 1,
+                logger: testLogger,
+                debugNodes: {},
+            };
+        }
+
+        /** Renders as the scene does: a pre-render, then an isolated render of the node. */
+        function paint(rect: Rect, ctx: CanvasRenderingContext2D) {
+            const renderCtx = renderContext(ctx);
+            rect.preRender(renderCtx);
+            rect.isolatedRender(renderCtx);
+        }
+
+        function plainRect(overrides: Partial<Rect> = {}) {
+            return Object.assign(new Rect(), { x: 10.3, y: 12.7, width: 20.4, height: 15.2, fill: 'red' }, overrides);
+        }
+
+        it('fills a plain rect with a fillRect and puts back the global alpha', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const fill = vi.spyOn(ctx, 'fill');
+            const fillRect = vi.spyOn(ctx, 'fillRect');
+            ctx.globalAlpha = 0.8;
+
+            paint(plainRect({ fillOpacity: 0.5, crisp: true }), ctx);
+
+            expect(fill).not.toHaveBeenCalled();
+            expect(fillRect).toHaveBeenCalledTimes(1);
+            expect(ctx.globalAlpha).toBeCloseTo(0.8, 5);
+        });
+
+        it.each([
+            ['unaligned', { crisp: false }],
+            ['crisp', { crisp: true }],
+            ['translucent', { fill: 'rgba(255, 0, 0, 0.4)', fillOpacity: 0.7, opacity: 0.9 }],
+            ['sub-pixel', { crisp: true, width: 0.4 }],
+        ] as [string, Partial<Rect>][])('paints the same pixels as filling the path (%s)', (_, overrides) => {
+            const ctx = canvasCtx.getRenderContext2D();
+
+            paint(plainRect(overrides), ctx);
+            const direct = Buffer.from(ctx.getImageData(0, 0, 100, 100).data);
+
+            ctx.clearRect(0, 0, 100, 100);
+            const viaPath = plainRect(overrides);
+            vi.spyOn(viaPath as any, 'fillsDirectly').mockReturnValue(false);
+            const fill = vi.spyOn(ctx, 'fill');
+            paint(viaPath, ctx);
+            expect(fill).toHaveBeenCalled();
+
+            expect(direct.equals(Buffer.from(ctx.getImageData(0, 0, 100, 100).data))).toBe(true);
+        });
+
+        it('leaves out the context save and restore for a plain rect only', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const save = vi.spyOn(ctx, 'save');
+            const restore = vi.spyOn(ctx, 'restore');
+
+            paint(plainRect(), ctx);
+            expect(save).not.toHaveBeenCalled();
+            expect(restore).not.toHaveBeenCalled();
+
+            paint(plainRect({ stroke: 'blue', strokeWidth: 2 }), ctx);
+            expect(save).toHaveBeenCalledTimes(1);
+            expect(restore).toHaveBeenCalledTimes(1);
+        });
+
+        it.each([
+            ['rounded corners', { cornerRadius: 4 }],
+            ['a stroke', { stroke: 'blue', strokeWidth: 2 }],
+            ['a clip box', { clipBBox: new BBox(12, 14, 10, 10) }],
+            ['a cutout', { drawingMode: 'cutout' as const }],
+            [
+                'a shadow',
+                {
+                    fillShadow: { enabled: true, color: 'black', xOffset: 2, yOffset: 2, blur: 3 },
+                },
+            ],
+        ] as [string, Partial<Rect>][])('keeps filling the path with %s', (_, overrides) => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const fill = vi.spyOn(ctx, 'fill');
+            const fillRect = vi.spyOn(ctx, 'fillRect');
+
+            paint(plainRect(overrides), ctx);
+
+            expect(fill).toHaveBeenCalled();
+            expect(fillRect).not.toHaveBeenCalled();
+        });
+
+        it('does not rebuild its path when only the paint changes', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const rect = plainRect();
+            const updatePath = vi.spyOn(rect, 'updatePath');
+            const renderCtx = renderContext(ctx);
+
+            rect.preRender(renderCtx);
+            expect(updatePath).toHaveBeenCalledTimes(1);
+
+            rect.preRender(renderCtx);
+            rect.fill = 'blue';
+            rect.fillOpacity = 0.5;
+            rect.stroke = 'green';
+            rect.opacity = 0.9;
+            rect.setStyleProperties({ fill: 'lime', fillOpacity: 0.3 });
+            rect.preRender(renderCtx);
+            expect(updatePath).toHaveBeenCalledTimes(1);
+
+            rect.x += 3;
+            rect.preRender(renderCtx);
+            expect(updatePath).toHaveBeenCalledTimes(2);
+
+            rect.crisp = true;
+            rect.preRender(renderCtx);
+            expect(updatePath).toHaveBeenCalledTimes(3);
+
+            rect.setStyleProperties({ fill: 'lime', stroke: 'black', strokeWidth: 2 });
+            rect.preRender(renderCtx);
+            expect(updatePath).toHaveBeenCalledTimes(4);
+        });
+
+        it('paints a repainted fill in the new colour', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const rect = plainRect({ x: 0, y: 0, width: 10, height: 10, fill: 'rgb(255, 0, 0)' });
+            const pixelAt = () => Array.from(ctx.getImageData(0, 0, 1, 1).data);
+
+            paint(rect, ctx);
+            expect(pixelAt()).toEqual([255, 0, 0, 255]);
+
+            rect.fill = 'rgb(0, 0, 255)';
+            paint(rect, ctx);
+            expect(pixelAt()).toEqual([0, 0, 255, 255]);
+        });
+
+        it('hit tests the rect by its bounds, and by its path once its corners are rounded', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const rect = plainRect({ x: 0, y: 0, width: 40, height: 40 });
+            const renderCtx = renderContext(ctx);
+
+            rect.preRender(renderCtx);
+            expect(rect.isPointInPath(1, 1)).toBe(true);
+            expect(rect.distanceSquared(1, 1)).toBe(0);
+            expect(rect.distanceSquared(50, 20)).toBe(100);
+
+            rect.cornerRadius = 20;
+            rect.preRender(renderCtx);
+            expect(rect.isPointInPath(1, 1)).toBe(false);
+            expect(rect.isPointInPath(20, 20)).toBe(true);
+            expect(rect.distanceSquared(1, 1)).toBeGreaterThan(0);
         });
     });
 
