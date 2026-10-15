@@ -10,6 +10,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Transformable } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../test/utils';
 import ukTopology from './map-test/ukTopology.json';
@@ -17,6 +18,13 @@ import { usData } from './map-test/usData';
 import usTopology from './map-test/usTopology.json';
 
 const ELLIPSIS = '…';
+
+type BBox = { x: number; y: number; width: number; height: number };
+const contains = (outer: BBox, inner: BBox, tolerance = 0.5) =>
+    inner.x >= outer.x - tolerance &&
+    inner.y >= outer.y - tolerance &&
+    inner.x + inner.width <= outer.x + outer.width + tolerance &&
+    inner.y + inner.height <= outer.y + outer.height + tolerance;
 
 // The label-fit options are undocumented, so labels are built untyped and cast at the AgCharts.create
 // boundary; `setupMockConsole` fails the test on any "property is unknown" warning.
@@ -36,8 +44,9 @@ describe('series label fit', () => {
         await waitForChartStability(chart);
     };
 
-    const renderAndSnapshot = async (options: object) => {
+    const renderAndSnapshot = async (options: object, size?: { width: number; height: number }) => {
         prepareEnterpriseTestOptions(options as AgChartOptions);
+        Object.assign(options, size);
         chart = deproxy(AgCharts.create(options as AgChartOptions));
         await compareImageSnapshot(chart, ctx);
     };
@@ -1199,7 +1208,9 @@ describe('series label fit', () => {
             return texts;
         };
         const heatmapLabelTexts = (): string[] =>
-            (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: unknown }) => String(d.text));
+            (chart.series[0].contextNodeData?.labelData ?? [])
+                .filter((d: { hidden?: boolean }) => d.hidden !== true)
+                .map((d: { text: unknown; fittedText?: unknown }) => String(d.fittedText ?? d.text));
         const longNameShown = (texts: string[]) => tileNames.filter((name) => texts.includes(name)).length;
 
         it.each([
@@ -1305,6 +1316,109 @@ describe('series label fit', () => {
             const texts = hierarchyLabelTexts();
             expect(someTruncated(texts)).toBe(true);
             expect(texts.length).toBe(data.length);
+        });
+
+        it('shrinks heatmap labels towards minimumFontSize to keep them inside their cells', async () => {
+            const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
+            const regions = ['Americas', 'EMEA', 'APAC'];
+            await renderAndSnapshot(
+                {
+                    title: { text: 'minimumFontSize: 8 only' },
+                    data: regions.flatMap((region, r) =>
+                        quarters.map((quarter, q) => ({ region, quarter, growth: 10 + r * 7 + q * 3 }))
+                    ),
+                    series: [
+                        {
+                            type: 'heatmap',
+                            xKey: 'quarter',
+                            yKey: 'region',
+                            colorKey: 'growth',
+                            label: {
+                                enabled: true,
+                                fontSize: 14,
+                                minimumFontSize: 8,
+                                formatter: ({ value }: any) => `Revenue growth of ${value} percent year on year`,
+                            },
+                        },
+                    ],
+                    legend: { enabled: false },
+                },
+                { width: 460, height: 340 }
+            );
+            const series = chart.series[0];
+            const cells = new Map<number, BBox>();
+            for (const rect of series.datumSelection.nodes()) {
+                cells.set(rect.datum.datumIndex, Transformable.toCanvas(rect));
+            }
+            const labels = (series.labelSelection.nodes() as any[]).filter((node) => node.visible && node.text !== '');
+            expect(labels.length).toBe(cells.size);
+            const overflowing = labels.filter(
+                (node) => !contains(cells.get(node.datum.datumIndex)!, Transformable.toCanvas(node))
+            );
+            expect(overflowing.map((node) => ({ text: node.text, fontSize: node.fontSize }))).toEqual([]);
+            expect(labels.some((node) => node.fontSize < 14)).toBe(true);
+        });
+
+        it('keeps sunburst labels shrunk and inside the chart when it is too small for them', async () => {
+            const leaf = (name: string, note: string, size: number) => ({ name, note, size });
+            await renderAndSnapshot(
+                {
+                    title: { text: 'minimumFontSize only' },
+                    data: [
+                        {
+                            name: 'Information Technology',
+                            note: 'Largest sector by market capitalisation',
+                            children: [
+                                leaf('Semiconductors and Semiconductor Equipment', 'Up 2.4% on the day', 40),
+                                leaf('Cloud', 'Up 0.9%', 14),
+                                leaf('Cybersecurity and Network Infrastructure', 'Down 1.2% on the day', 9),
+                                leaf('AI', 'Up 3.1%', 4),
+                            ],
+                        },
+                        {
+                            name: 'Health Care and Life Sciences',
+                            note: 'Defensive sector',
+                            children: [
+                                leaf('Pharmaceuticals and Biotechnology', 'Down 0.3% on the day', 30),
+                                leaf('Medical Devices', 'Up 0.4%', 12),
+                                leaf('Diagnostics and Research Tools', 'Up 1.7% on the day', 6),
+                            ],
+                        },
+                        {
+                            name: 'Financials',
+                            note: 'Rate sensitive',
+                            children: [
+                                leaf('Banks and Diversified Financial Services', 'Up 0.6% on the day', 25),
+                                leaf('Insurance', 'Flat', 10),
+                                leaf('Asset Management', 'Down 2.0%', 5),
+                            ],
+                        },
+                    ],
+                    series: [
+                        {
+                            type: 'sunburst',
+                            labelKey: 'name',
+                            secondaryLabelKey: 'note',
+                            sizeKey: 'size',
+                            label: { fontSize: 16, minimumFontSize: 8 },
+                            secondaryLabel: { fontSize: 14, minimumFontSize: 8 },
+                        },
+                    ],
+                },
+                { width: 220, height: 220 }
+            );
+            const drawn: { text: string; fontSize: number; box: BBox }[] = [];
+            chart.series[0].labelSelection.each((group: any) => {
+                for (const node of group.children()) {
+                    if (node.visible && node.text) {
+                        drawn.push({ text: node.text, fontSize: node.fontSize, box: Transformable.toCanvas(node) });
+                    }
+                }
+            });
+            expect(drawn.length).toBeGreaterThan(0);
+            expect(drawn.filter((label) => label.fontSize >= 14).map((label) => label.text)).toEqual([]);
+            const canvas = { x: 0, y: 0, width: 220, height: 220 };
+            expect(drawn.filter(({ box }) => !contains(canvas, box)).map((label) => label.text)).toEqual([]);
         });
     });
 

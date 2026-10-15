@@ -2,6 +2,7 @@ import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 
 import { toArray } from '../data/arrays';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
+import { measureLabelText } from '../rendering/textMeasurer';
 import { type LabelFit } from '../text/textWrapper';
 import type { Point } from '../types/scene';
 import type { FontOptions } from '../types/text';
@@ -17,7 +18,6 @@ import {
     type PointLabelDatum,
     type PositionedLabelCandidate,
     labelGlyphCentre,
-    measureLabelText,
     orientationAngles,
     resolveLabelFit,
 } from './labelPlacement';

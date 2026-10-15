@@ -133,6 +133,7 @@ export * from './geometry/distance';
 export * from './geometry/fill';
 export * from './geometry/fitRegion';
 export * from './geometry/labelPlacement';
+export * from './geometry/labelStack';
 export * from './geometry/lineInterpolation';
 export * from './geometry/panToBBox';
 export * from './geometry/placement';
