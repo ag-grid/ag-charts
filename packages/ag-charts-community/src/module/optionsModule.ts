@@ -298,6 +298,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     revalidated = true;
     // Provide the unmapped axis keys for error logging & callbacks.
     unmappedAxisKeys: Map<string, string> = new Map();
+    private seriesThemeOverrides?: PlainObject;
 
     // Validation runs in this constructor, before a chart exists; a new chart adopts this instance as
     // `ctx.logger`, and an existing one supplied its own.
@@ -662,7 +663,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Process series options _before_ passing to the OptionsGraph. This ensures the series themes are applied in
         // the correct order to the re-ordered series.
         this.processSeriesOptions(options);
-        const remappedAxisKeys = this.processAxesOptions(options, chartType);
+        const remappedAxisKeys = this.processAxesOptions(options, chartType, activeTheme.overrides);
 
         if (this.optionMetadata.presetType !== 'sparkline') {
             this.processedCSSVariables = this.processCSSVariables(options, activeTheme.params);
@@ -1104,7 +1105,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * Collates axis keys from the axis and series options to determine the full set of axis keys, defaults series to
      * the primary axes and renames the primary axes to the internal direction-based names.
      */
-    private processAxesOptions(options: T, chartType: string) {
+    private processAxesOptions(options: T, chartType: string, themeOverrides: PlainObject | undefined) {
+        this.seriesThemeOverrides = themeOverrides;
         const directions =
             chartType === 'polar'
                 ? [ChartAxisDirection.Angle, ChartAxisDirection.Radius]
@@ -1124,8 +1126,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         const isPrimarySeriesFlipped =
             isObject(primarySeriesOptions) &&
-            'direction' in primarySeriesOptions &&
-            primarySeriesOptions.direction === 'horizontal' &&
+            this.isSeriesHorizontal(primarySeriesOptions) &&
             this.moduleRegistry.getSeriesModule(primarySeriesOptions.type)?.axisKeysFlipped != null;
 
         if (!hasAxes && !hasNonDefaultSeriesAxisKeys && !isPrimarySeriesFlipped) {
@@ -1182,11 +1183,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const seriesModule = this.moduleRegistry.getSeriesModule(seriesOptions.type);
         if (!seriesModule) return;
 
-        const isFlipped = 'direction' in seriesOptions && seriesOptions.direction === 'horizontal';
-
-        return isFlipped && seriesModule.axisKeysFlipped
+        return this.isSeriesHorizontal(seriesOptions) && seriesModule.axisKeysFlipped
             ? seriesModule.axisKeysFlipped[direction]
             : seriesModule.axisKeys?.[direction];
+    }
+
+    /** Axis processing runs before the options graph applies the theme, so a themed direction is read here. */
+    private isSeriesHorizontal(seriesOptions: NonNullable<T['series']>[number]) {
+        const ownDirection = 'direction' in seriesOptions ? seriesOptions.direction : undefined;
+        const direction = ownDirection ?? this.seriesThemeOverrides?.[seriesOptions.type]?.series?.direction;
+        return direction === 'horizontal';
     }
 
     /** Swaps a series' axis keys when both axes are positioned for the other direction, as with swapped `x` and `y`. */

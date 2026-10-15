@@ -22,7 +22,7 @@ const CASES: Array<ProvenanceCase> = [
         series: { xKey: 'category', yLowKey: 'low', yHighKey: 'high' },
         data: DATA,
         coverage: { minChecked: 127, maxSkipped: 10, maxRejected: 1, maxIneffective: 0, minContainers: 5 },
-        asymmetries: ['direction', 'grouped'],
+        asymmetries: ['grouped'],
     },
     {
         seriesType: 'range-area',
@@ -35,14 +35,12 @@ const CASES: Array<ProvenanceCase> = [
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
         coverage: { minChecked: 226, maxSkipped: 19, maxRejected: 4, maxIneffective: 0, minContainers: 17 },
-        asymmetries: ['direction'],
     },
     {
         seriesType: 'box-plot',
         series: { xKey: 'category', minKey: 'low', q1Key: 'open', medianKey: 'value', q3Key: 'close', maxKey: 'high' },
         data: DATA,
         coverage: { minChecked: 111, maxSkipped: 8, maxRejected: 4, maxIneffective: 0, minContainers: 3 },
-        asymmetries: ['direction'],
     },
     {
         seriesType: 'heatmap',

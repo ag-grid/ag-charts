@@ -4270,6 +4270,59 @@ describe('ChartOptions', () => {
                 });
             });
 
+            it('should flip axes when a theme override makes a series horizontal', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    theme: { overrides: { bar: { series: { direction: 'horizontal' } } } },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'category', position: 'left' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    direction: 'horizontal',
+                    xKeyAxis: 'y',
+                    yKeyAxis: 'x',
+                });
+            });
+
+            it('should flip provided axes when a theme override makes a series horizontal', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        y: { type: 'category', position: 'left' },
+                        x: { type: 'number', position: 'bottom' },
+                    },
+                    theme: { overrides: { bar: { series: { direction: 'horizontal' } } } },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'category', position: 'left' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({ xKeyAxis: 'y', yKeyAxis: 'x' });
+            });
+
+            it('should let a series direction take precedence over a theme override', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', direction: 'vertical' }],
+                    theme: { overrides: { bar: { series: { direction: 'horizontal' } } } },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({ direction: 'vertical' });
+            });
+
             it('should flip axes when a series is horizontal and no axes are provided', () => {
                 const options: AgCartesianChartOptions = {
                     series: [

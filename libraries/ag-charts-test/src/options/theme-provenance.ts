@@ -79,17 +79,6 @@ export interface KnownAsymmetry {
  * reaching further than its reason accounts for — fails rather than quietly outliving its reason.
  */
 export const KNOWN_ASYMMETRIES: Record<string, KnownAsymmetry> = {
-    direction: {
-        reason: 'axis assignment is derived from the raw series options before overrides merge',
-        diffPaths: [
-            'series.0.direction',
-            'series.0.xKeyAxis',
-            'series.0.yKeyAxis',
-            'navigator.miniChart.series.0.direction',
-            'navigator.miniChart.series.0.xKeyAxis',
-            'navigator.miniChart.series.0.yKeyAxis',
-        ],
-    },
     grouped: {
         reason: 'series grouping is computed from the raw series options before overrides merge, so a themed value is neither applied nor stripped',
         diffPaths: ['series.0.grouped'],

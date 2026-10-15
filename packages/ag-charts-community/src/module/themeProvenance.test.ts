@@ -22,7 +22,6 @@ const CASES: Array<ProvenanceCase> = [
         series: { xKey: 'category', yKey: 'value' },
         data: DATA,
         coverage: { minChecked: 127, maxSkipped: 10, maxRejected: 1, maxIneffective: 14, minContainers: 6 },
-        asymmetries: ['direction'],
     },
     {
         seriesType: 'line',
