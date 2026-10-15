@@ -1,4 +1,4 @@
-import type { FontFamily, FontSize, FontStyle, FontWeight, ImageSegment } from 'ag-charts-types';
+import type { FontFamily, FontSize, FontStyle, FontWeight, ImageSegment, PixelSize } from 'ag-charts-types';
 
 import type { NormalisedTextSegment } from '../options/normalised/normalisedCommonOptions';
 import type { Writeable } from './global';
@@ -18,6 +18,7 @@ export interface FontOptions {
     fontStyle?: FontStyle;
     fontWeight?: FontWeight;
     fontFamily?: FontFamily;
+    lineHeight?: PixelSize;
 }
 
 export interface TextMetricsBox {

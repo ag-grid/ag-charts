@@ -504,6 +504,7 @@ export const fontOptionsDef: OptionsDefs<TextOptions> = {
     color: colorOrRef,
     fontFamily: fontFamilyFull,
     fontSize: positiveNumber,
+    lineHeight: positiveNumber,
     fontStyle: union('normal', 'italic', 'oblique'),
     fontWeight: fontWeight,
 };

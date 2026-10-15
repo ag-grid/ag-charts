@@ -6,6 +6,7 @@ import {
     SERIES_SELECTION_THEME,
     SERIES_TOOLTIP_THEME,
     SHADOW_THEME_DEFAULTS,
+    themeLineHeight,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -34,6 +35,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
             enabled: false,
             color: { $ref: 'textColor' },
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             wrapping: 'on-space',

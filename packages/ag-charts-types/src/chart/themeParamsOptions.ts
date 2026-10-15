@@ -1,4 +1,4 @@
-import type { CssColor, CssShadow, FontFamilyFull, FontSize, FontWeight, PixelSize, TextAlign } from './types';
+import type { CssColor, CssShadow, FontFamilyFull, FontSize, FontWeight, PixelSize, Ratio, TextAlign } from './types';
 
 type ColorKeys<T> = {
     [K in keyof T]: T[K] extends AgCssColorOrRef ? K : never;
@@ -135,6 +135,11 @@ export interface AgBaseChartThemeParams {
     /** Default font size used for all text. Titles and some other text are scaled to this font size. */
     fontSize?: FontSize;
     /**
+     * Default line height for all text, as a ratio of each text element's font size, e.g. `1.5`. When unset, text
+     * uses the natural line height of its font.
+     */
+    lineHeight?: Ratio;
+    /**
      * Background colour for text inputs. A colour string, or a theme-colour reference object.
      *
      * Default: `backgroundColor`
@@ -221,6 +226,12 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     axisLabelFontSize?: FontSize;
     /**
+     * Line height of axis tick labels, as a ratio of their font size.
+     *
+     * Default: `lineHeight`
+     */
+    axisLabelLineHeight?: Ratio;
+    /**
      * Font weight of axis tick labels.
      *
      * Default: `fontWeight`
@@ -255,6 +266,12 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     axisTitleFontSize?: FontSize;
     /**
+     * Line height of axis titles, as a ratio of their font size.
+     *
+     * Default: `lineHeight`
+     */
+    axisTitleLineHeight?: Ratio;
+    /**
      * Font weight of axis titles.
      *
      * Default: `fontWeight`
@@ -288,6 +305,12 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * Default: `fontSize`
      */
     chromeFontSize?: FontSize;
+    /**
+     * Line height of text in tooltips, menus, dialogs, toolbars, buttons and text inputs, as a ratio of their font size.
+     *
+     * Default: `lineHeight`
+     */
+    chromeLineHeight?: Ratio;
     /**
      * Font weight used for text in tooltips, menus, dialogs, toolbars, buttons and text inputs.
      *
@@ -325,6 +348,12 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     titleFontSize?: FontSize;
     /**
+     * Line height of the chart title, as a ratio of their font size.
+     *
+     * Default: `lineHeight`
+     */
+    titleLineHeight?: Ratio;
+    /**
      * Font weight of the chart title.
      *
      * Default: `fontWeight`
@@ -349,6 +378,12 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     subtitleFontSize?: FontSize;
     /**
+     * Line height of the chart subtitle, as a ratio of their font size.
+     *
+     * Default: `lineHeight`
+     */
+    subtitleLineHeight?: Ratio;
+    /**
      * Font weight of the chart subtitle.
      *
      * Default: `fontWeight`
@@ -372,6 +407,12 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * Default: `13`
      */
     footnoteFontSize?: FontSize;
+    /**
+     * Line height of the chart footnote, as a ratio of their font size.
+     *
+     * Default: `lineHeight`
+     */
+    footnoteLineHeight?: Ratio;
     /**
      * Font weight of the chart footnote.
      *
@@ -428,6 +469,12 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * Default: `fontSize`
      */
     legendLabelFontSize?: FontSize;
+    /**
+     * Line height of the legend item labels, the legend pagination label and the gradient legend scale labels, as a ratio of their font size.
+     *
+     * Default: `lineHeight`
+     */
+    legendLabelLineHeight?: Ratio;
     /**
      * Font weight of the legend item labels and the gradient legend scale labels.
      *
@@ -558,6 +605,12 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      * Default: `fontSize`
      */
     seriesLabelFontSize?: FontSize;
+    /**
+     * Line height of series labels, as a ratio of their font size.
+     *
+     * Default: `lineHeight`
+     */
+    seriesLabelLineHeight?: Ratio;
     /**
      * Font weight used for series labels. Treemap secondary labels and map-shape labels keep their own default weights (normal and bold) unless this differs from `fontWeight`. To change them when the two are equal, set `fontWeight` on the series label directly.
      *

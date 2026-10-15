@@ -130,11 +130,6 @@ export interface AgChartAutoSizedBaseLabelOptions<
     TContext = ContextDefault,
 > extends AgChartLabelOptions<TDatum, TParams, TContext> {
     /**
-     * Line height to use for the label.
-     */
-    lineHeight?: FontSize;
-
-    /**
      * If the label does not fit in the container, setting this will allow the label to pick a font size between its normal `fontSize` and `minimumFontSize` to fit within the container.
      */
     minimumFontSize?: FontSize;

@@ -19,6 +19,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     interpolationThemeTemplate,
+    themeLineHeight,
 } from 'ag-charts-core';
 
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
@@ -154,6 +155,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             enabled: false,
             placement: 'outside',
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             spacing: 10,

@@ -13,6 +13,7 @@ import {
     ratio,
     required,
     string,
+    themeLineHeight,
     undocumentedDefs,
     union,
 } from 'ag-charts-core';
@@ -116,6 +117,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
                 enableOutOfRange: true,
                 position: 'bottom-left',
                 fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM, 'chromeFontSize'] },
+                lineHeight: themeLineHeight('chromeLineHeight'),
                 // @ts-expect-error undocumented option
                 minSize: 34,
             },

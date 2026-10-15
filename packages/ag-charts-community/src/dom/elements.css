@@ -8,6 +8,7 @@
     color: var(--ag-charts-input-text-color);
     font-family: var(--ag-charts-chrome-font-family);
     font-size: var(--ag-charts-chrome-font-size-large);
+    line-height: var(--ag-charts-chrome-line-height);
     transition-duration: 0.25s;
     transition-property: none;
     transition-timing-function: ease-out;
@@ -100,7 +101,7 @@
 
 /* Textarea */
 .ag-charts-textarea {
-    --textarea-line-height: 1.38;
+    --textarea-line-height: var(--ag-charts-chrome-line-height, 1.38);
 
     background: var(--ag-charts-input-background-color);
     border-color: var(--ag-charts-input-border-color);

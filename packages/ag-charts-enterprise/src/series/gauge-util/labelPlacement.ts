@@ -10,6 +10,7 @@ import {
     type Selection,
     Text,
     type TextBoxingProperties,
+    fontWithSize,
     resolveCollideWith,
 } from 'ag-charts-core';
 import type { AgChartLabelCollisionOptions, FontStyle, FontWeight, PaddingOptions, TextWrap } from 'ag-charts-types';
@@ -172,6 +173,7 @@ export interface GaugeTargetLabelOptions {
     fontFamily: string;
     fontStyle: FontStyle | undefined;
     fontWeight: FontWeight | undefined;
+    lineHeight: number | undefined;
     maxWidth: number | undefined;
     maxHeight: number | undefined;
     wrapping: TextWrap | undefined;
@@ -196,6 +198,7 @@ export function pickGaugeTargetLabelOptions(
         fontFamily: label.fontFamily,
         fontStyle: label.fontStyle,
         fontWeight: label.fontWeight,
+        lineHeight: label.lineHeight,
         maxWidth: label.maxWidth,
         maxHeight: label.maxHeight,
         wrapping: label.wrapping,
@@ -219,6 +222,7 @@ export interface GaugeTargetLabelLayout {
     fontFamily: string;
     fontStyle: FontStyle | undefined;
     fontWeight: FontWeight | undefined;
+    lineHeight: number | undefined;
     collision: AgChartLabelCollisionOptions | undefined;
     box: TextBoxingProperties;
     boxExtent: Required<PaddingOptions>;
@@ -238,15 +242,31 @@ export function layoutGaugeTargetLabel(
     text: string | undefined,
     label: GaugeTargetLabelOptions
 ): GaugeTargetLabelLayout {
-    const { fontSize, fontFamily, fontStyle, fontWeight, collision, maxWidth, maxHeight, box } = label;
+    const { fontSize, fontFamily, fontStyle, fontWeight, lineHeight, collision, maxWidth, maxHeight, box } = label;
     const boxExtent = expandLabelBoxExtent(box);
-    const layout = { text: undefined, fontSize, fontFamily, fontStyle, fontWeight, collision, box, boxExtent };
+    const layout = {
+        text: undefined,
+        fontSize,
+        fontFamily,
+        fontStyle,
+        fontWeight,
+        lineHeight,
+        collision,
+        box,
+        boxExtent,
+    };
     if (!label.enabled || text == null) return layout;
     if (maxWidth == null && maxHeight == null) return { ...layout, text };
 
     const props = { ...label, wrapping: label.wrapping ?? 'on-space', truncate: label.truncate ?? true };
     const fitted = formatSingleLabel(text, props, { padding: 0 }, unboundedFitting)?.[0];
-    return fitted == null ? layout : { ...layout, text: fitted.text, fontSize: fitted.fontSize };
+    if (fitted == null) return layout;
+    return {
+        ...layout,
+        text: fitted.text,
+        fontSize: fitted.fontSize,
+        lineHeight: fontWithSize(label, fitted.fontSize).lineHeight,
+    };
 }
 
 export function gaugeTargetLabelDatum(
@@ -323,6 +343,7 @@ export function updateGaugeTargetLabelNode(
     node.fontWeight = label.fontWeight;
     node.fontSize = label.fontSize;
     node.fontFamily = label.fontFamily;
+    node.lineHeight = label.lineHeight;
     node.textAlign = label.textAlign;
     node.textBaseline = label.textBaseline;
 }

@@ -174,7 +174,6 @@ const textSegmentValidator = optionsDefs<TextSegment>({
     type: constant('text'),
     text: required(string),
     verticalAlign: verticalAlignValidator,
-    lineHeight: positiveNumber,
     minimumFontSize: and(positiveNumberNonZero, lessThanOrEqual('fontSize')),
     ...fontOptionsDef,
 });
@@ -805,7 +804,6 @@ export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<
 
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
-    lineHeight: positiveNumber,
     minimumFontSize: and(positiveNumber, lessThanOrEqual('fontSize')),
     wrapping: textWrap,
     truncate: boolean,

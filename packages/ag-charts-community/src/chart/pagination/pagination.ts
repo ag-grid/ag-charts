@@ -131,7 +131,7 @@ export class Pagination {
 
     private updateLabel(opts: NormalisedLegendPaginationOptions) {
         const { isRtl, labelNode, currentPage, totalPages } = this;
-        const { color, fontStyle, fontWeight, fontSize, fontFamily } = opts.label;
+        const { color, fontStyle, fontWeight, fontSize, fontFamily, lineHeight } = opts.label;
         const textLabels = [currentPage + 1, totalPages];
         if (isRtl) textLabels.reverse();
 
@@ -141,6 +141,7 @@ export class Pagination {
         labelNode.fontWeight = fontWeight;
         labelNode.fontSize = fontSize;
         labelNode.fontFamily = fontFamily;
+        labelNode.lineHeight = lineHeight;
     }
 
     updateMarkers(opts: NormalisedLegendPaginationOptions) {

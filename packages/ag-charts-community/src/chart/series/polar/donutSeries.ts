@@ -2337,11 +2337,12 @@ export class DonutSeries extends PolarSeries<
         const holeExtent = (innerRadius > 0 ? innerRadius : this.getOuterRadius()) * Math.SQRT2;
         const holeBox = { width: holeExtent, height: holeExtent };
         this.innerLabelsSelection.each((text, datum) => {
-            const { fontStyle, fontWeight, fontSize, fontFamily, color } = datum;
+            const { fontStyle, fontWeight, fontSize, fontFamily, lineHeight, color } = datum;
             text.fontStyle = fontStyle;
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
             text.fontFamily = fontFamily;
+            text.lineHeight = lineHeight;
             text.text = fitLabelToContainer(datum.text, undefined, datum, holeBox);
             text.x = 0;
             text.y = 0;

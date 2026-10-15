@@ -449,6 +449,14 @@ export function themeBorderWidth(param: ThemeBorderParam, options: ThemeBorderOp
     return themeBorderMember(param, 'width', { on, off, unset });
 }
 
+/** A ratio theme param: `lineHeight` or one of the form `*LineHeight`. */
+export type ThemeLineHeightParam = Extract<keyof AgChartAllThemeParams, 'lineHeight' | `${string}LineHeight`>;
+
+/** Pixel `lineHeight` for a text element: the ratio `param` times the element's own `fontSize`, unset when the param is. */
+export function themeLineHeight(param: ThemeLineHeightParam): Operation {
+    return { $if: [{ $ref: param }, { $multiply: [{ $ref: param }, { $path: './fontSize' }] }, undefined] };
+}
+
 const LABEL_BOXING_BORDER_DEFAULTS: WithThemeParams<Pick<LabelBoxOptions, 'border'>> = {
     border: {
         enabled: {
@@ -636,6 +644,7 @@ export const STROKE_STYLE_THEME_DEFAULTS = { strokeOpacity: 1, lineDash: [0], li
 /** Font size, family and weight taken from the theme params; most text theme blocks spread this. */
 export const FONT_THEME_DEFAULTS = {
     fontSize: { $ref: 'fontSize' },
+    lineHeight: themeLineHeight('lineHeight'),
     fontFamily: { $ref: 'fontFamily' },
     fontWeight: { $ref: 'fontWeight' },
 } as const;

@@ -302,7 +302,7 @@ export class Legend {
             padding,
             label,
             maxWidth: itemMaxWidth,
-            label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
+            label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily, lineHeight },
         } = item;
         this.updateItemSelection();
 
@@ -322,6 +322,7 @@ export class Legend {
             markerLabel.label.fontWeight = fontWeight;
             markerLabel.label.fontSize = fontSize;
             markerLabel.label.fontFamily = fontFamily;
+            markerLabel.label.lineHeight = lineHeight;
             markerLabel.isRtl = isRtl;
 
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled, item);

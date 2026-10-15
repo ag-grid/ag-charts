@@ -33,6 +33,7 @@ import {
     Vertex,
     boxCollides,
     boxContains,
+    cachedTextMeasurer,
     clamp,
     mergeDefaults,
     toPlainText,
@@ -1050,6 +1051,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 fontSize: text.fontSize,
                 fontStyle: text.fontStyle,
                 fontWeight: text.fontWeight,
+                lineHeight: text.lineHeight,
                 showAllChildren: text.showAllChildren,
                 showDirectChildren: text.showDirectChildren,
                 textAlign: text.textAlign,
@@ -1099,6 +1101,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fontSize: props.fontSize,
             fontStyle: props.fontStyle,
             fontWeight: props.fontWeight,
+            lineHeight: props.lineHeight,
             truncate: props.truncate,
             collision: {
                 threshold: props.collision.threshold,
@@ -1218,7 +1221,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             return style;
         }
 
-        const overrides = this.cachedDatumCallback(
+        const lineHeight = style.lineHeight ?? cachedTextMeasurer(style).lineHeight();
+        let overrides = this.cachedDatumCallback(
             _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix, datumState.isCollapsed),
             () => {
                 const params = this.makeNodeTextStylerParams(
@@ -1227,7 +1231,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                     datumIndex,
                     highlightState,
                     datumState,
-                    style
+                    { ...style, lineHeight }
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -1236,6 +1240,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             }
         );
 
+        // A natural line height echoed back unchanged stays natural, so it follows a restyled `fontSize`.
+        if (style.lineHeight == null && overrides?.lineHeight === lineHeight) {
+            overrides = { ...overrides, lineHeight: undefined };
+        }
         if (overrides) {
             style = mergeDefaults(overrides, style);
             // The deprecated `overflowStrategy` is only mapped by the theme, so map a styler-returned value here.
@@ -1336,6 +1344,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return {
             ...style,
             ...datumState,
+            lineHeight: style.lineHeight,
             datum,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),

@@ -12,6 +12,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     STROKE_STYLE_THEME_DEFAULTS,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgChartLabelPlacementStyleOptions, ExtensibleSeriesTheme, Operation } from 'ag-charts-types';
@@ -100,6 +101,7 @@ function itemTheme(
             fontStyle: inherited('fontStyle'),
             fontWeight: inherited('fontWeight'),
             fontSize: inherited('fontSize'),
+            lineHeight: inherited('lineHeight'),
             fontFamily: inherited('fontFamily'),
             format: inherited('format'),
             formatter: inherited('formatter'),
@@ -195,6 +197,7 @@ const seriesLabelTheme = {
     fontStyle: undefined,
     fontWeight: { $ref: 'seriesLabelFontWeight' as const },
     fontSize: { $ref: 'seriesLabelFontSize' as const },
+    lineHeight: themeLineHeight('seriesLabelLineHeight'),
     fontFamily: { $ref: 'seriesLabelFontFamily' as const },
     formatter: undefined,
     spacing: 6,

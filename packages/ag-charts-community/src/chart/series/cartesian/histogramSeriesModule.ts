@@ -14,6 +14,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
+    themeLineHeight,
 } from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -41,6 +42,7 @@ const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             spacing: 8,

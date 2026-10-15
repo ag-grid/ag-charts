@@ -733,10 +733,11 @@ export class SunburstSeries extends HierarchySeries<
             const props = primary ? this.options.label : this.options.secondaryLabel;
             const box = labelStack?.blocks[index].fit.boxPadding ?? expandLabelBoxExtent(props);
             const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black' } = props;
+            const fittedFont = fontWithSize(props, fitted.fontSize);
             const layout: LabelLayout = {
                 text: fitted.text,
                 fontSize: fitted.fontSize,
-                lineHeight: props.lineHeight ?? cachedTextMeasurer(fontWithSize(props, fitted.fontSize)).lineHeight(),
+                lineHeight: fittedFont.lineHeight ?? cachedTextMeasurer(fittedFont).lineHeight(),
                 fontStyle,
                 fontFamily,
                 fontWeight,
@@ -867,11 +868,12 @@ export class SunburstSeries extends HierarchySeries<
         const extent = radius * Math.SQRT2;
         const box = { width: extent, height: extent };
         this.innerLabelsSelection.each((text, datum) => {
-            const { fontStyle, fontWeight, fontSize, fontFamily, color } = datum;
+            const { fontStyle, fontWeight, fontSize, fontFamily, lineHeight, color } = datum;
             text.fontStyle = fontStyle;
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
             text.fontFamily = fontFamily;
+            text.lineHeight = lineHeight;
             text.text = fitLabelToContainer(datum.text, undefined, datum, box);
             text.x = 0;
             text.y = 0;

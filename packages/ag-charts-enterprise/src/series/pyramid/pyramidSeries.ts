@@ -1021,7 +1021,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const style = getLabelStyles(this, undefined, params, labelProperties, datumIsHighlighted, activeHighlight);
 
-            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
+            const { color: fill, fontSize, fontStyle, fontWeight, fontFamily, lineHeight } = style;
             label.visible = visible && style.enabled === true;
             label.x = x;
             label.y = y;
@@ -1033,6 +1033,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
+            label.lineHeight = lineHeight;
             label.textAlign = textAlign;
             label.textBaseline = textBaseline;
             label.setBoxing(style);

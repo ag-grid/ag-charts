@@ -103,12 +103,13 @@ export abstract class TextualPointScene<Datum extends TextualPointDatum> extends
     }
 
     protected getTextOptions(datum: TextualPointDatum): TextOptions & { width?: number } {
-        const { fontFamily, fontSize, fontStyle, fontWeight, textAlign } = datum;
+        const { fontFamily, fontSize, fontStyle, fontWeight, lineHeight, textAlign } = datum;
         return {
             fontFamily,
             fontSize,
             fontStyle,
             fontWeight,
+            lineHeight,
             textAlign,
             position: this.textPosition,
             width: this.textWidth,

@@ -37,6 +37,7 @@ import {
     WeakCache,
     ZIndexMap,
     arraysEqual,
+    cachedTextMeasurer,
     callWithContext,
     clamp,
     clampArray,
@@ -665,15 +666,22 @@ export abstract class Axis<
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
+            lineHeight: label.lineHeight,
             padding: label.padding,
             spacing: label.spacing,
         } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
+            const lineHeight = label.lineHeight ?? cachedTextMeasurer(label).lineHeight();
             stylerOutput = this.cachedCallWithContext(label.itemStyler, {
                 ...params,
                 ...defaultStyle,
+                lineHeight,
             });
+            // A natural line height echoed back unchanged stays natural, so it follows a restyled `fontSize`.
+            if (label.lineHeight == null && stylerOutput?.lineHeight === lineHeight) {
+                stylerOutput = { ...stylerOutput, lineHeight: undefined };
+            }
         }
         // OPTIMIZATION: with nothing to merge over it, `defaultStyle` is already the resolved style.
         if (stylerOutput == null && additionalStyles == null) return defaultStyle;
@@ -688,6 +696,7 @@ export abstract class Axis<
             fontSize: merged.fontSize,
             fontStyle: merged.fontStyle,
             fontWeight: merged.fontWeight,
+            lineHeight: merged.lineHeight,
             padding: merged.padding,
             spacing: merged.spacing,
         } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;

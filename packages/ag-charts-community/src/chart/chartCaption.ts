@@ -17,6 +17,7 @@ import {
     callWithContext,
     createId,
     fitLabelTextAutoSize,
+    fontWithSize,
     isArray,
     isSegmentTruncated,
     isTextTruncated,
@@ -54,6 +55,7 @@ export function captionFont(opts: NormalisedChartCaptionOptions) {
         fontStyle: opts.fontStyle,
         fontWeight: opts.fontWeight,
         fontFamily: opts.fontFamily ?? 'sans-serif',
+        lineHeight: opts.lineHeight,
     };
 }
 
@@ -125,6 +127,7 @@ export class ChartCaption implements CaptionLike {
         node.fontWeight = opts.fontWeight;
         node.fontSize = opts.fontSize ?? FONT_SIZE.SMALLER;
         node.fontFamily = opts.fontFamily ?? 'sans-serif';
+        node.lineHeight = opts.lineHeight;
         node.fill = opts.color;
         node.setBoxing({
             fill: opts.fill,
@@ -168,7 +171,7 @@ export class ChartCaption implements CaptionLike {
             ? fittedText.some(isSegmentTruncated)
             : isTextTruncated(toTextString(fittedText));
         this.node.text = fittedText;
-        this.node.fontSize = fontSize ?? font.fontSize;
+        this.node.setFont(fontWithSize(font, fontSize));
     }
 
     private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {

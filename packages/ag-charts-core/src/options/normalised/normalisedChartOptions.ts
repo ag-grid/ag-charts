@@ -227,6 +227,7 @@ export type NormalisedStatusBarLabelOptions = {
     fontSize: number;
     fontWeight?: FontWeight;
     fontStyle?: FontStyle;
+    lineHeight?: number;
 };
 
 export type NormalisedTooltipOptions = AgChartTooltipOptions & {

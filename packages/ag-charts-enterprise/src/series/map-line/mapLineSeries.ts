@@ -666,7 +666,7 @@ export class MapLineSeries
                 label.visible = false;
                 return;
             }
-            const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
+            const { color: fill, fontStyle, fontWeight, fontSize, fontFamily, lineHeight } = style;
             label.visible = true;
             label.x = x + width / 2;
             label.y = y + height / 2;
@@ -676,6 +676,7 @@ export class MapLineSeries
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
+            label.lineHeight = lineHeight;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
             const datumIndex = labelDatum?.datumIndex;

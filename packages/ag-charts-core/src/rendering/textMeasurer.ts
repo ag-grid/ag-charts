@@ -247,6 +247,8 @@ export function measureTextSegments(
 ): MultilineSegmentsMetricsBox {
     let currentLine = emptyLine();
     const lineMetrics: SegmentsLineMetrics[] = [currentLine];
+    // Largest `lineHeight` declared on each line, indexed alongside `lineMetrics`.
+    const lineHeights: Array<number | undefined> = [];
     let currentLineUncommitted = false;
 
     // Tracks the currently-open block row. `startLineIndex` is the index of the marker line in
@@ -336,11 +338,9 @@ export function measureTextSegments(
                 currentLine.ascent = Math.max(currentLine.ascent, textMetrics.ascent);
                 currentLine.descent = Math.max(currentLine.descent, textMetrics.descent);
                 currentLine.height = Math.max(currentLine.height, currentLine.ascent + currentLine.descent);
-                if (typeof lineHeight === 'number' && lineHeight > currentLine.height) {
-                    // Extra space is distributed to descent so the baseline-anchored layout in the
-                    // renderer (alphabetic) keeps following lines spaced by the override.
-                    currentLine.descent = lineHeight - currentLine.ascent;
-                    currentLine.height = lineHeight;
+                if (lineHeight != null) {
+                    const index = lineMetrics.length - 1;
+                    lineHeights[index] = Math.max(lineHeights[index] ?? 0, lineHeight);
                 }
                 currentLine.segments.push({ ...font, ...rest, text: textLine, textMetrics });
                 currentLineUncommitted = false;
@@ -352,7 +352,13 @@ export function measureTextSegments(
 
     // Grow each line to contain its inline images: the text-only ascent/descent are captured first, then
     // each image box is placed per its verticalAlign and the line's ascent/descent expanded to fit.
-    for (const line of lineMetrics) {
+    for (const [index, line] of lineMetrics.entries()) {
+        const lineHeight = lineHeights[index];
+        if (lineHeight != null) {
+            // Extra space goes to descent so the baseline-anchored renderer spaces following lines by the override.
+            line.descent = lineHeight - line.ascent;
+            line.height = lineHeight;
+        }
         line.textAscent = line.ascent;
         line.textDescent = line.descent;
         for (const seg of line.segments) {

@@ -1,7 +1,7 @@
 import { getSequentialColors } from 'ag-charts-core';
 import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
-import { ChartTheme } from './chartTheme';
+import { ChartTheme, type ThemeParamDefaults } from './chartTheme';
 
 const FINANCIAL_LIGHT_FILLS = {
     GREEN: '#089981',
@@ -39,7 +39,7 @@ export class FinancialLight extends ChartTheme {
         };
     }
 
-    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
+    override getThemeParameters(): ThemeParamDefaults<WithThemeParams<AgChartAllThemeParams>> {
         return {
             ...super.getThemeParameters(),
             chartPadding: 0,

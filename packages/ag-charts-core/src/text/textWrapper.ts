@@ -45,8 +45,6 @@ export interface LabelFit {
      * {@link overflowStrategy} applies, which it does only once the minimum size still does not fit.
      */
     readonly minimumFontSize?: number;
-    /** Line height the label is drawn at, when it overrides the font's own. */
-    readonly lineHeight?: number;
     /**
      * The shape the label sits in, when it is not a rectangle. Each line is then wrapped to the width the
      * shape offers where that line lands, instead of every line sharing one inscribed rectangle's width.
@@ -121,7 +119,7 @@ function shouldHideOverflow(clippedResult: string[], options: WrapOptions, sourc
 
 function firstLineOverflows(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
     if (!options.rejectTallFirstLine || lines.length === 0 || !isFiniteNumber(options.maxHeight)) return false;
-    const lineHeight = options.lineHeight ?? measurer.measureLines(lines[0]).lineMetrics[0].height;
+    const lineHeight = options.lineHeight ?? measurer.measureLines(lines[0]).height;
     return lineHeight > options.maxHeight;
 }
 
@@ -155,7 +153,7 @@ export function fitLabelText(
     font: FontOptions
 ): NormalisedTextOrSegments {
     if (fit == null) return text;
-    const { maxWidth, maxHeight, wrapping, overflowStrategy, region, lineHeight } = fit;
+    const { maxWidth, maxHeight, wrapping, overflowStrategy, region } = fit;
     if (maxWidth == null && maxHeight == null && region == null) return text;
     const overflow = overflowStrategy ?? 'preserve';
     const options: WrapOptions = {
@@ -163,7 +161,7 @@ export function fitLabelText(
         maxWidth: maxWidth ?? Infinity,
         // A height bound can only be honoured by dropping lines, which 'preserve' forbids.
         maxHeight: overflow === 'preserve' ? undefined : maxHeight,
-        lineHeight,
+        lineHeight: font.lineHeight,
         textWrap: wrapping,
         overflow,
         rejectTallFirstLine: true,
@@ -196,7 +194,7 @@ export function fitLabelTextToRegion(
             font,
             maxWidth: fit.maxWidth ?? Infinity,
             maxHeight: overflow === 'preserve' ? undefined : fit.maxHeight,
-            lineHeight: fit.lineHeight,
+            lineHeight: font.lineHeight,
             textWrap: fit.wrapping,
             overflow,
             rejectTallFirstLine: true,
@@ -477,10 +475,13 @@ export interface AutoSizedLabelText {
     readonly fontSize?: number;
 }
 
-/** `font` at `fontSize`, or `font` itself when the size is unchanged. */
+/** `font` at `fontSize`, or `font` itself when the size is unchanged. A `lineHeight` keeps its proportion to the size. */
 export function fontWithSize(font: FontOptions, fontSize: number | undefined): FontOptions {
     if (fontSize == null || fontSize === font.fontSize) return font;
-    return { fontSize, fontStyle: font.fontStyle, fontWeight: font.fontWeight, fontFamily: font.fontFamily };
+    const { fontStyle, fontWeight, fontFamily, lineHeight } = font;
+    const sized: FontOptions = { fontSize, fontStyle, fontWeight, fontFamily };
+    if (lineHeight != null) sized.lineHeight = (lineHeight * fontSize) / font.fontSize;
+    return sized;
 }
 
 /**
@@ -615,9 +616,11 @@ export function labelTextAtShrinkRatio(
     if (!isArray(text)) return { text, fontSize };
 
     const sized = text.map((segment) => {
+        if (segment.type === 'image') return segment;
         // A segment that overrides neither bound is drawn at the base size, which is already at `ratio`.
-        if (segment.type === 'image' || (segment.fontSize == null && segment.minimumFontSize == null)) {
-            return segment;
+        if (segment.fontSize == null && segment.minimumFontSize == null) {
+            if (segment.lineHeight == null) return segment;
+            return { ...segment, lineHeight: (segment.lineHeight * fontSize) / font.fontSize };
         }
         const range = segmentFontSizeRange(segment, minimumFontSize, font);
         const segmentSize = sizeAtRatio(range, ratio);
@@ -904,12 +907,13 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
 
     const { height, lineMetrics } = measurer.measureLines(lines);
     // An explicit line height is the spacing the text is drawn with, so it is what has to fit.
-    const totalHeight = options.lineHeight == null ? height : lines.length * options.lineHeight;
+    const { lineHeight } = options;
+    const totalHeight = lineHeight == null ? height : lines.length * lineHeight;
     if (totalHeight <= options.maxHeight) {
         return lines;
     }
 
-    const lineHeightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
+    const lineHeightAt = (i: number) => lineHeight ?? lineMetrics[i].height;
 
     for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
         const lineTop = cumulativeHeight;

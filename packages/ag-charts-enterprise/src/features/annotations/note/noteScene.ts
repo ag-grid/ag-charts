@@ -176,7 +176,7 @@ export class NoteScene extends TextualPointScene<NoteDatum> {
 
     protected override getLabelCoords(datum: NoteDatum, bbox: BoxBounds): Point {
         const isPositionTop = this.textPosition === 'top';
-        const padding = this.getPadding(datum).top + annotationLineHeight(datum.fontSize) / 2;
+        const padding = this.getPadding(datum).top + annotationLineHeight(datum) / 2;
 
         return { x: bbox.x, y: bbox.y + (isPositionTop ? padding / 2 : 0) };
     }

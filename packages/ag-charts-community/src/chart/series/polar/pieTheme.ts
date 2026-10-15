@@ -10,6 +10,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     cycledFillThemeTemplate,
+    themeLineHeight,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -21,6 +22,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
             showInLegend: false,
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'fontFamily' },
             color: { $ref: 'subtleTextColor' },
             spacing: 5,
@@ -30,6 +32,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
             ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'seriesLabelOutsideTextColor' },
@@ -43,6 +46,7 @@ export const pieTheme: ExtensibleSeriesTheme<'pie'> = {
             enabled: true,
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             color: { $ref: 'seriesLabelInsideTextColor' },
             positionOffset: 0,

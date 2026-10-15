@@ -40,6 +40,7 @@ import {
     dateToNumber,
     extent,
     findDiscreteColorBinLabel,
+    fontWithSize,
     formatValue,
     insetFitRegion,
     maskFitRegion,
@@ -1482,6 +1483,7 @@ export abstract class BubbleScatterSeries<
             text.fontWeight = style.fontWeight;
             text.fontSize = datum.label.fontSize ?? style.fontSize;
             text.fontFamily = style.fontFamily;
+            text.lineHeight = fontWithSize(style, datum.label.fontSize).lineHeight;
             text.textBaseline = 'top';
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
             text.setBoxing(style);

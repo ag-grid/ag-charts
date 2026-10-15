@@ -54,6 +54,7 @@ export class Caption implements CaptionLike {
     fontWeight?: FontWeight;
     fontSize: number = FONT_SIZE.SMALLER;
     fontFamily: string = 'sans-serif';
+    lineHeight?: number;
     color?: string;
     maxWidth?: number;
     maxHeight?: number;
@@ -69,6 +70,7 @@ export class Caption implements CaptionLike {
         this.fontSize = node.fontSize = title.fontSize;
         this.fontStyle = node.fontStyle = title.fontStyle;
         this.fontWeight = node.fontWeight = title.fontWeight;
+        this.lineHeight = node.lineHeight = title.lineHeight;
         this.wrapping = title.wrapping;
         this.truncate = title.truncate;
         this.maxWidth = title.maxWidth;

@@ -6,6 +6,7 @@ import {
     LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
     gradientLegendOptionsDefs,
+    themeLineHeight,
 } from 'ag-charts-core';
 
 import { GradientLegend } from './gradientLegend';
@@ -28,6 +29,7 @@ export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOption
             label: {
                 color: { $ref: 'legendLabelColor' },
                 fontSize: { $ref: 'legendLabelFontSize' },
+                lineHeight: themeLineHeight('legendLabelLineHeight'),
                 fontFamily: { $ref: 'legendLabelFontFamily' },
                 fontWeight: { $ref: 'legendLabelFontWeight' },
                 minSpacing: 5,

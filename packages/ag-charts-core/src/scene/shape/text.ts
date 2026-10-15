@@ -796,6 +796,7 @@ export class Text<D = unknown> extends Shape<D> {
         this.fontSize = props.fontSize;
         this.fontStyle = props.fontStyle;
         this.fontWeight = props.fontWeight;
+        this.lineHeight = props.lineHeight;
     }
 
     setAlign(props: { textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }) {

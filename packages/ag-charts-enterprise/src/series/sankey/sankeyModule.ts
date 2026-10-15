@@ -12,6 +12,7 @@ import {
     SHADOW_THEME_DEFAULTS,
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
+    themeLineHeight,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
@@ -55,6 +56,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                 enabled: true,
                 fontFamily: { $ref: 'seriesLabelFontFamily' },
                 fontSize: { $ref: 'seriesLabelFontSize' },
+                lineHeight: themeLineHeight('seriesLabelLineHeight'),
                 fontWeight: { $ref: 'seriesLabelFontWeight' },
                 color: { $ref: 'textColor' },
                 spacing: 10,

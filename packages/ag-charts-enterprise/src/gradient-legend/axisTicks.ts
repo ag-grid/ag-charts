@@ -141,6 +141,7 @@ export class AxisTicks {
                 node.fontSize = labelOptions.fontSize;
                 node.fontStyle = labelOptions.fontStyle;
                 node.fontWeight = labelOptions.fontWeight;
+                node.lineHeight = labelOptions.lineHeight;
                 node.fill = labelOptions.color;
             }
 

@@ -1,7 +1,7 @@
 import { getSequentialColors } from 'ag-charts-core';
 import type { AgChartAllThemeParams, AgChartPrivateThemeParams, WithThemeParams } from 'ag-charts-types';
 
-import { ChartTheme } from './chartTheme';
+import { ChartTheme, type ThemeParamDefaults } from './chartTheme';
 import type { DefaultColors } from './defaultColors';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
@@ -77,7 +77,7 @@ export class DarkTheme extends ChartTheme {
         };
     }
 
-    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
+    override getThemeParameters(): ThemeParamDefaults<WithThemeParams<AgChartAllThemeParams>> {
         return {
             ...super.getThemeParameters(),
             axisLineColor: { $foregroundBackgroundMix: 0.737 },

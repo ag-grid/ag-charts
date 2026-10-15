@@ -1033,6 +1033,7 @@ export class SankeySeries extends FlowProportionSeries<
             label.fontWeight = fontWeight;
             label.fontSize = fittedFontSize ?? fontSize;
             label.fontFamily = fontFamily;
+            label.lineHeight = fontWithSize(style, fittedFontSize).lineHeight;
             label.textAlign = textAlign;
             label.textBaseline = 'middle';
             const opacity = highlightStyle.opacity ?? 1;

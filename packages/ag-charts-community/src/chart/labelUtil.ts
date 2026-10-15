@@ -35,6 +35,7 @@ import {
     type NormalisedCollisionFreeSeriesLabelOptions,
     type NormalisedSeriesLabelOptions,
     barLabelObstacles,
+    cachedTextMeasurer,
     fitLabelTextOrOverflow,
     fitLabelTextOrOverflowAutoSize,
     fontWithSize,
@@ -795,6 +796,7 @@ export function getLabelStyles<TParams>(
             fontSize: resolvedLabel.fontSize,
             fontStyle: resolvedLabel.fontStyle,
             fontWeight: resolvedLabel.fontWeight,
+            lineHeight: resolvedLabel.lineHeight,
             itemId,
             itemType: nodeDatum?.itemType,
             seriesId: series.id,
@@ -806,12 +808,17 @@ export function getLabelStyles<TParams>(
             selectionState: series.getSelectionStateString(nodeDatum?.datumIndex),
             candidateState: series.getCandidateStateString(nodeDatum?.datumIndex),
         };
+        const lineHeight = resolvedLabel.lineHeight ?? cachedTextMeasurer(resolvedLabel).lineHeight();
         const stylerResult =
             series.ctx.optionsGraphService.resolvePartial(
                 labelPath,
-                series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
+                series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams, lineHeight }),
                 { pick: false }
             ) ?? {};
+        // A natural line height echoed back unchanged stays natural, so it follows a restyled `fontSize`.
+        if (resolvedLabel.lineHeight == null && stylerResult.lineHeight === lineHeight) {
+            return mergeDefaults({ ...stylerResult, lineHeight: undefined }, styleParams);
+        }
 
         return mergeDefaults(stylerResult, styleParams);
     }
@@ -874,6 +881,7 @@ export function updateLabelNode<TParams>(
         // the shared `Label` instance itself.
         if (labelDatum.fittedFontSize != null) {
             textNode.fontSize = labelDatum.fittedFontSize;
+            textNode.lineHeight = fontWithSize(style, labelDatum.fittedFontSize).lineHeight;
         }
         textNode.setBoxing(style);
         if (isRotatable(textNode)) {

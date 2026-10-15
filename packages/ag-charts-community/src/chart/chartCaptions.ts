@@ -105,7 +105,7 @@ export class ChartCaptions {
         const { lineMetrics } = isArray(floor.text)
             ? measureTextSegments(floor.text, floorFont)
             : cachedTextMeasurer(floorFont).measureLines(toTextString(floor.text));
-        const containerHeight = Math.max(lineMetrics[0].height, maxHeight);
+        const containerHeight = Math.max(floorFont.lineHeight ?? lineMetrics[0].height, maxHeight);
         caption.computeTextWrap(layoutBox.width, containerHeight);
     }
 

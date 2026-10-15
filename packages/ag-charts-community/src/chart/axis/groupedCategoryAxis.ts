@@ -364,6 +364,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                 fill: boxing.fill,
                 fontFamily: tempText.fontFamily,
                 fontSize: tempText.fontSize,
+                lineHeight: tempText.lineHeight,
                 fontStyle: tempText.fontStyle,
                 fontWeight: tempText.fontWeight,
                 padding: boxing.padding,

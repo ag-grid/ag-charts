@@ -53,6 +53,7 @@
     font-size: var(--ag-charts-ranges__button-font-size);
     font-family: var(--ag-charts-ranges__button-font-family);
     font-weight: var(--ag-charts-ranges__button-font-weight);
+    line-height: var(--ag-charts-ranges__button-line-height);
     padding-top: var(--ag-charts-ranges__button-padding-top);
     padding-right: var(--ag-charts-ranges__button-padding-right);
     padding-bottom: var(--ag-charts-ranges__button-padding-bottom);
@@ -66,6 +67,7 @@
     font-size: var(--ag-charts-ranges__dropdown-font-size);
     font-family: var(--ag-charts-ranges__dropdown-font-family);
     font-weight: var(--ag-charts-ranges__dropdown-font-weight);
+    line-height: var(--ag-charts-ranges__dropdown-line-height);
     padding-top: var(--ag-charts-ranges__dropdown-padding-top);
     padding-right: var(--ag-charts-ranges__dropdown-padding-right);
     padding-bottom: var(--ag-charts-ranges__dropdown-padding-bottom);
@@ -118,6 +120,7 @@
         font-size: var(--ag-charts-ranges__dropdown-font-size);
         font-family: var(--ag-charts-ranges__dropdown-font-family);
         font-weight: var(--ag-charts-ranges__dropdown-font-weight);
+        line-height: var(--ag-charts-ranges__dropdown-line-height);
         padding-top: var(--ag-charts-ranges__dropdown-padding-top);
         padding-right: var(--ag-charts-ranges__dropdown-padding-right);
         padding-bottom: var(--ag-charts-ranges__dropdown-padding-bottom);

@@ -12,6 +12,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     fillThemeTemplate,
     mergeDefaults,
+    themeLineHeight,
 } from 'ag-charts-core';
 import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -24,6 +25,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'
             ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             color: { $ref: 'textColor' },

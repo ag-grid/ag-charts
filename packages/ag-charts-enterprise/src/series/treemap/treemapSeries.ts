@@ -1083,7 +1083,8 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
         verticalAlign: VerticalAlign
     ): LabelLayout {
         const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black', textAlign } = props;
-        const lineHeight = props.lineHeight ?? cachedTextMeasurer(fontWithSize(props, fontSize)).lineHeight();
+        const font = fontWithSize(props, fontSize);
+        const lineHeight = font.lineHeight ?? cachedTextMeasurer(font).lineHeight();
         return {
             text,
             fontSize,

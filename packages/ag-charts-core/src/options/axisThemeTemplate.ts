@@ -1,3 +1,5 @@
+import { themeLineHeight } from './themeUtil';
+
 /**
  * Title defaults for axes that render a title (cartesian + radius). Composed via
  * `mergeDefaults` into the relevant module `themeTemplate`s so the Normalised
@@ -10,6 +12,7 @@ export const titleAxisThemeTemplate = {
         spacing: 25,
         fontWeight: { $ref: 'axisTitleFontWeight' },
         fontSize: { $ref: 'axisTitleFontSize' },
+        lineHeight: themeLineHeight('axisTitleLineHeight'),
         fontFamily: { $ref: 'axisTitleFontFamily' },
         color: { $ref: 'axisTitleColor' },
         wrapping: 'always',
@@ -38,6 +41,7 @@ export const parentLevelAxisThemeTemplate = {
             },
             fill: { $path: '../../label/fill' },
             fontSize: { $path: '../../label/fontSize' },
+            lineHeight: { $path: '../../label/lineHeight' },
             fontFamily: { $path: '../../label/fontFamily' },
             fontWeight: 'bold',
             spacing: { $path: '../../label/spacing' },
@@ -68,6 +72,7 @@ export const commonAxisThemeTemplate = {
     label: {
         enabled: true,
         fontSize: { $ref: 'axisLabelFontSize' },
+        lineHeight: themeLineHeight('axisLabelLineHeight'),
         fontFamily: { $ref: 'axisLabelFontFamily' },
         fontWeight: { $ref: 'axisLabelFontWeight' },
         spacing: 11,

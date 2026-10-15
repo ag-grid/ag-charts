@@ -16,6 +16,7 @@ import {
     STROKE_STYLE_THEME_DEFAULTS,
     type SeriesModuleDefinition,
     fillThemeTemplate,
+    themeLineHeight,
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
@@ -43,6 +44,7 @@ const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
             enabled: false,
             fontWeight: { $ref: 'seriesLabelFontWeight' },
             fontSize: { $ref: 'seriesLabelFontSize' },
+            lineHeight: themeLineHeight('seriesLabelLineHeight'),
             fontFamily: { $ref: 'seriesLabelFontFamily' },
             spacing: 8,
             padding: 8,

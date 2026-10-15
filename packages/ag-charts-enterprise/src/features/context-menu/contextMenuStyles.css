@@ -1,6 +1,7 @@
 .ag-charts-context-menu {
     font-family: var(--ag-charts-chrome-font-family);
     font-size: var(--ag-charts-chrome-font-size);
+    line-height: var(--ag-charts-chrome-line-height);
     font-weight: var(--ag-charts-chrome-font-weight);
     z-index: var(--ag-charts-layer-ui-overlay);
 }

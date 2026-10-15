@@ -224,6 +224,8 @@ export interface LineDashOptions {
 export interface FontOptions {
     /** The size of the font in pixels for text elements. */
     fontSize?: FontSize;
+    /** The line height in pixels for text elements. Defaults to the natural line height of the font. */
+    lineHeight?: PixelSize;
     /** The font family for text elements. */
     fontFamily?: FontFamily;
     /** The style to use for text elements. */

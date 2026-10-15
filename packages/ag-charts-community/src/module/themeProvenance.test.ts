@@ -63,7 +63,7 @@ const CASES: Array<ProvenanceCase> = [
         seriesType: 'donut',
         series: { angleKey: 'value' },
         data: DATA,
-        coverage: { minChecked: 130, maxSkipped: 11, maxRejected: 9, maxIneffective: 0, minContainers: 8 },
+        coverage: { minChecked: 130, maxSkipped: 11, maxRejected: 10, maxIneffective: 0, minContainers: 8 },
     },
 ];
 

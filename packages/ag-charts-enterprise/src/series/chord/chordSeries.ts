@@ -414,7 +414,7 @@ export class ChordSeries extends FlowProportionSeries<
                 label.visible = false;
                 return;
             }
-            const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = style;
+            const { fontStyle, fontWeight, fontSize, fontFamily, lineHeight, color: fill } = style;
             label.visible = true;
             label.translationX = centerX + radius * Math.cos(angle);
             label.translationY = centerY + radius * Math.sin(angle);
@@ -424,6 +424,7 @@ export class ChordSeries extends FlowProportionSeries<
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
             label.fontFamily = fontFamily;
+            label.lineHeight = lineHeight;
             label.textBaseline = 'middle';
             if (Math.cos(angle) >= 0) {
                 label.textAlign = 'left';
