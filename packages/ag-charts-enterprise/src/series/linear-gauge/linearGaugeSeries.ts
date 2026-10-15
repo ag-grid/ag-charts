@@ -46,9 +46,11 @@ import {
     type GaugePointLabelDatum,
     type GaugeTargetDatumLabel,
     type GaugeTargetLabelOptions,
-    gaugeLabelObstacles,
     gaugeLabelPlacements,
+    gaugeScaleLabelData,
     gaugeTargetLabelDatum,
+    gaugeTargetMarkerObstacles,
+    hideDroppedScaleLabels,
     layoutGaugeTargetLabel,
     pickGaugeTargetLabelOptions,
     updateGaugeTargetLabelNode,
@@ -1218,17 +1220,19 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 labels.push(targetLabel);
             }
         }
+        labels.push(...gaugeScaleLabelData(this.tickSelection, this.options.scale.label.enabled));
         return labels;
     }
 
     getLabelObstacles() {
-        return gaugeLabelObstacles(this.tickSelection);
+        return gaugeTargetMarkerObstacles(this.targetSelection);
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<unknown>[]) {
         this.labelPlacements = gaugeLabelPlacements(placed);
         this.layoutLabels();
         this.updateTargetLabelNodes();
+        hideDroppedScaleLabels(this.tickSelection, this.labelPlacements);
     }
 
     protected resetAllAnimation() {

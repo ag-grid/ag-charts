@@ -275,6 +275,10 @@ export interface PointLabelDatum {
     readonly obstacle?: boolean;
     /** Placed labels sharing a group never block one another. */
     readonly labelGroup?: string;
+    /** Gives way only to placed labels and `rect` obstacles that {@link outranks outrank} it. */
+    readonly yields?: boolean;
+    /** The placed label is an obstacle to {@link yields yielding} labels resolved after it. */
+    readonly outranks?: boolean;
     /**
      * Authoritative pre-positioned candidates, tried in order; each carries its own region. When
      * present the engine cascades over these opaque boxes and never computes a placement itself
@@ -468,6 +472,8 @@ export type LabelObstacle =
           readonly entityIndex?: number;
           /** The {@link PointLabelDatum.labelGroup} of the placed label this obstacle stands for. */
           readonly labelGroup?: string;
+          /** Blocks {@link PointLabelDatum.yields yielding} labels too. */
+          readonly outranks?: boolean;
       }
     | {
           readonly kind: 'custom';
@@ -631,6 +637,7 @@ interface PooledRectObstacle {
     box: BoxBounds;
     category: ObstacleCategory;
     labelGroup: string | undefined;
+    outranks: boolean | undefined;
 }
 
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
@@ -669,6 +676,8 @@ let candidateOwnBox: BoxBounds | undefined;
 let candidateOwnBoxLabelsCollide = false;
 // The candidate datum's label group: placed labels in the same group are never obstacles to it.
 let candidateLabelGroup: string | undefined;
+// The candidate datum gives way only to outranking obstacles.
+let candidateYields = false;
 // The label's text/box after the fit step, reused per candidate to keep the hot path allocation-free.
 // `dropped` is how many characters truncation removed and `shrink` how much of the source text's area the
 // glyph gave up, ranking candidates when none holds the full text at full size; `fontSize` is the
@@ -835,6 +844,9 @@ function worstObstacleOverlap(o: LabelObstacle): void {
 /** True when `o` is one of the obstacles the candidate is allowed to sit on, so no test applies to it. */
 function obstacleExcluded(o: LabelObstacle): boolean {
     if (candidateLabelGroup != null && o.kind === 'rect' && o.labelGroup === candidateLabelGroup) {
+        return true;
+    }
+    if (candidateYields && (o.kind !== 'rect' || o.outranks !== true)) {
         return true;
     }
 
@@ -1363,14 +1375,15 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
 /** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
 function insertLabelObstacle(placed: PlacedLabel, count: number): number {
     const box = labelObstacleBox(placed);
-    const { labelGroup } = placed.datum;
+    const { labelGroup, outranks } = placed.datum;
     let obstacle = labelObstaclePool[count];
     if (obstacle == null) {
-        obstacle = { kind: 'rect', box, category: 'label', labelGroup };
+        obstacle = { kind: 'rect', box, category: 'label', labelGroup, outranks };
         labelObstaclePool.push(obstacle);
     } else {
         obstacle.box = box;
         obstacle.labelGroup = labelGroup;
+        obstacle.outranks = outranks;
     }
     obstacleIndex.insert(box, obstacle);
     return count + 1;
@@ -2339,6 +2352,7 @@ function placeAvoidingLabel(
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     candidateLabelGroup = d.labelGroup;
+    candidateYields = d.yields === true;
     cascadeRawRegion = d.region ?? bounds;
     cascadeContainThreshold = containmentThreshold(threshold);
     cascadeRegion = deflateRegion(deflatedRegionBox, cascadeRawRegion, cascadeContainThreshold);
@@ -2397,6 +2411,7 @@ function placeFromPositionedCandidates(
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     candidateLabelGroup = d.labelGroup;
+    candidateYields = d.yields === true;
 
     const { fit } = d;
     // Measured once here rather than per candidate: every candidate refits the same source text. A

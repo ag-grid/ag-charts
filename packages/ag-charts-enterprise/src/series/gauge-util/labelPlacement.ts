@@ -67,6 +67,7 @@ export function gaugeLabelDatum(
         collideWith,
         threshold: collision?.threshold,
         labelGroup,
+        outranks: collision != null,
         positionedCandidates: candidates.map(({ box, region = box }) => ({
             box,
             region: area == null ? region : intersectBounds(region, area),
@@ -101,16 +102,68 @@ export function gaugeLabelPlacements(placed: readonly PlacedLabel<unknown>[]): G
     return placements;
 }
 
-export function gaugeLabelObstacles<T>(selection: Selection<T, Node<T>>): LabelObstacle[] {
+/** Target markers; those whose label sets `collision` outrank the scale labels, and none blocks its own label. */
+export function gaugeTargetMarkerObstacles<T extends GaugeTargetObstacleDatum>(
+    selection: Selection<T, Node<T>>
+): LabelObstacle[] {
     const obstacles: LabelObstacle[] = [];
-    for (const { node } of selection) {
+    for (const { node, datum } of selection) {
         if (!node.visible) continue;
         const box = node.getBBox();
         if (box.isFinite()) {
-            obstacles.push({ kind: 'rect', box, category: 'label' });
+            const outranks = datum.label.collision != null;
+            obstacles.push({ kind: 'rect', box, category: 'marker', labelGroup: datum.itemId, outranks });
         }
     }
     return obstacles;
+}
+
+interface GaugeTargetObstacleDatum {
+    readonly itemId: string;
+    readonly label: { readonly collision: AgChartLabelCollisionOptions | undefined };
+}
+
+const SCALE_LABEL_COLLIDE_WITH: CollideWith = { marker: true, label: true, seriesItem: false, seriesArea: false };
+
+function scaleLabelKey(index: number) {
+    return `scale-${index}`;
+}
+
+/** Scale labels, placed last and dropped where they overlap a label or marker that outranks them. */
+export function gaugeScaleLabelData<T>(selection: Selection<T, Text<T>>, enabled: boolean): GaugePointLabelDatum[] {
+    const data: GaugePointLabelDatum[] = [];
+    if (!enabled) return data;
+    let index = 0;
+    for (const { node } of selection) {
+        const key = scaleLabelKey(index++);
+        const box = node.getBBox();
+        if (!box.isFinite()) continue;
+        data.push({
+            key,
+            candidateIds: [0],
+            point: { x: box.x + box.width / 2, y: box.y + box.height / 2, size: 0 },
+            label: { text: node.text ?? '', width: box.width, height: box.height },
+            anchor: undefined,
+            placement: undefined,
+            alwaysShow: false,
+            collideWith: SCALE_LABEL_COLLIDE_WITH,
+            obstacle: false,
+            yields: true,
+            positionedCandidates: [
+                { box, region: box, flushToRegion: false, size: { width: box.width, height: box.height } },
+            ],
+        });
+    }
+    return data;
+}
+
+export function hideDroppedScaleLabels<T>(selection: Selection<T, Text<T>>, placements: GaugeLabelPlacements) {
+    let index = 0;
+    for (const { node } of selection) {
+        if (!placements.has(scaleLabelKey(index++))) {
+            node.visible = false;
+        }
+    }
 }
 
 export interface GaugeTargetLabelOptions {
@@ -208,7 +261,7 @@ export function gaugeTargetLabelDatum(
     const anchor = boxedTargetLabelAnchor(label, x, y);
     const textBox = Text.measureBBox(text, anchor.x, anchor.y, { font: label, textAlign, textBaseline });
     const box = growBox(textBox, boxExtent);
-    return gaugeLabelDatum(key, text, [{ id: 0, box }], label.collision, true, seriesArea);
+    return gaugeLabelDatum(key, text, [{ id: 0, box }], label.collision, true, seriesArea, key);
 }
 
 /** Text anchor that keeps the label's box edge, rather than its text, at the target label's offset. */

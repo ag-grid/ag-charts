@@ -1369,6 +1369,7 @@ describe('series label fit', () => {
         });
 
         const targetLabelTexts = () => visibleTexts(chart.series[0].targetLabelSelection);
+        const scaleLabelTexts = () => visibleTexts(chart.series[0].tickSelection);
         const firstLabelNode = () => chart.series[0].labelSelection.nodes()[0];
         const horizontalLinearGauge = (options: object) => ({
             type: 'linear-gauge',
@@ -1509,18 +1510,35 @@ describe('series label fit', () => {
             expect(gaugeLabelTexts()[0]).toContain('\n');
         });
 
-        it('hides a linear-gauge label that collides with a scale label only when collision is set', async () => {
+        it('drops the scale labels a linear-gauge label overlaps only when collision is set', async () => {
             const label = { enabled: true, text: 'Label', fontSize: 40, spacing: 0, placement: 'outside-end' };
+            const allScaleLabels = ['0', '20', '40', '60', '80', '100'];
             await renderGauge(horizontalLinearGauge({ thickness: 10, label }));
             expect(gaugeLabelTexts()).toEqual(['Label']);
+            expect(scaleLabelTexts()).toEqual(allScaleLabels);
 
             await renderGauge(horizontalLinearGauge({ thickness: 10, label: { ...label, collision: {} } }));
-            expect(gaugeLabelTexts()).toEqual([]);
-
-            await renderGauge(
-                horizontalLinearGauge({ thickness: 10, label: { ...label, collision: { alwaysShow: true } } })
-            );
             expect(gaugeLabelTexts()).toEqual(['Label']);
+            expect(scaleLabelTexts()).toEqual(['0', '20', '40', '60', '80']);
+        });
+
+        it.each([
+            ['radial-gauge', { type: 'radial-gauge', width: 400, height: 400 }],
+            ['linear-gauge', horizontalLinearGauge({})],
+        ] as const)('%s drops the scale labels under a target only when its label sets collision', async (_, base) => {
+            const options = (label?: object) => ({
+                ...base,
+                value: 50,
+                scale: { min: 0, max: 100 },
+                targets: [{ value: 40, text: 'Target label text', label }],
+            });
+            await renderGauge(options());
+            expect(targetLabelTexts()).toEqual(['Target label text']);
+            expect(scaleLabelTexts()).toEqual(['0', '20', '40', '60', '80', '100']);
+
+            await renderGauge(options({ collision: {} }));
+            expect(targetLabelTexts()).toEqual(['Target label text']);
+            expect(scaleLabelTexts()).toEqual(['0', '20', '60', '80', '100']);
         });
 
         it('warns once on the deprecated avoidCollisions and keeps the label at its natural size', async () => {
@@ -1653,9 +1671,10 @@ describe('series label fit', () => {
             expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
         });
 
-        it('renders linear-gauge fitted target labels avoiding scale labels with collision', async () => {
+        it('renders linear-gauge fitted target labels dropping the scale labels they overlap with collision', async () => {
             await renderGaugeAndSnapshot(fittedLinearGauge({ collision: {} }));
-            expect(targetLabelTexts()).toEqual([]);
+            expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
+            expect(scaleLabelTexts()).toEqual(['0', '40', '60', '100']);
         });
 
         it('renders radial-gauge fitted labels and target labels always shown without collision', async () => {
@@ -1663,9 +1682,10 @@ describe('series label fit', () => {
             expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
         });
 
-        it('renders radial-gauge fitted target labels avoiding scale labels with collision', async () => {
+        it('renders radial-gauge fitted target labels dropping the scale labels they overlap with collision', async () => {
             await renderGaugeAndSnapshot(fittedRadialGauge({ collision: {} }));
-            expect(targetLabelTexts()).toEqual(['Target']);
+            expect(targetLabelTexts()).toEqual(['Wrapped\ntarget\ntext', 'Target']);
+            expect(scaleLabelTexts()).toEqual(['0', '40', '60', '80', '100']);
         });
 
         it('renders boxed linear-gauge labels and target labels', async () => {
