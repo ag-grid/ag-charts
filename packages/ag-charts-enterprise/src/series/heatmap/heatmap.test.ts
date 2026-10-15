@@ -1,7 +1,7 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, type AgHeatmapSeriesItemStylerParams } from 'ag-charts-community';
 import {
     BIG,
     type Chart,
@@ -1738,22 +1738,23 @@ describe('HeatmapSeries', () => {
         const cellStrokes = (c: Chart) =>
             cellRects(c).map((rect) => ({ stroke: rect.stroke, width: rect.strokeWidth }));
 
-        async function freshCellFills(options: AgChartOptions) {
+        const strokeWidths = (c: Chart) => cellStrokes(c).map(({ width }) => width);
+
+        /** Reads a freshly created chart's cells (their fills unless `read` says otherwise), then destroys it. */
+        async function freshCellFills<T = string[]>(
+            options: AgChartOptions,
+            read: (c: Chart) => T = cellFills as unknown as (c: Chart) => T
+        ): Promise<T> {
             const reference = deproxy(AgCharts.create(options));
             await waitForChartStability(reference);
-            const fills = cellFills(reference);
+            const result = read(reference);
             reference.destroy();
-            return fills;
+            return result;
         }
 
         async function createStable(options: AgChartOptions) {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
-        }
-
-        async function createStableAndReturn(options: AgChartOptions) {
-            await createStable(options);
-            return chart as Chart;
         }
 
         async function hoverAway() {
@@ -1934,16 +1935,13 @@ describe('HeatmapSeries', () => {
         });
 
         describe('itemStyler results', () => {
-            type StylerParams = { datum: { year: string; person: string; spending: number }; highlightState: string };
-            const WIDTH_BY_SPENDING: Record<number, number> = { 10: 1, 20: 2, 30: 3, 40: 4 };
+            type StylerParams = AgHeatmapSeriesItemStylerParams<(typeof DATA)[number]>;
             // Six distinct results (more than any small result memory holds) in an order that revisits the early ones.
             const MANY_DATA = [10, 20, 30, 40, 50, 60, 10, 30, 60, 20, 50, 40].map((spending, i) => ({
                 year: `${2000 + i}`,
                 person: 'A',
                 spending,
             }));
-            const strokeWidths = (c: Chart) => cellStrokes(c).map(({ width }) => width);
-
             it('gives every cell the result its own datum produced, across more distinct results than a small memory holds', async () => {
                 const itemStyler = ({ datum }: StylerParams) => ({
                     stroke: 'black',
@@ -1970,19 +1968,17 @@ describe('HeatmapSeries', () => {
             it('does not let a styler that reuses and mutates one returned object leak between cells', async () => {
                 const shared: { strokeWidth?: number } = {};
                 const itemStyler = ({ datum }: StylerParams) => {
-                    shared.strokeWidth = WIDTH_BY_SPENDING[datum.spending];
+                    shared.strokeWidth = datum.spending / 10;
                     return shared;
                 };
                 await createStable(buildOptions({ itemStyler }));
 
-                expect(strokeWidths(chart)).toEqual(DATA.map((d) => WIDTH_BY_SPENDING[d.spending]));
+                expect(strokeWidths(chart)).toEqual(DATA.map((d) => d.spending / 10));
             });
 
             it('keeps the colour scale fill for undefined result values and for cells whose styler returns nothing', async () => {
-                const unstyledChart = await createStableAndReturn(buildOptions());
-                const unstyled = cellFills(unstyledChart);
-                const unstyledWidths = strokeWidths(unstyledChart);
-                chart.destroy();
+                const unstyled = await freshCellFills(buildOptions());
+                const unstyledWidths = await freshCellFills(buildOptions(), strokeWidths);
 
                 const itemStyler = ({ datum }: StylerParams) =>
                     datum.person === 'A' ? { fill: undefined, strokeWidth: 6 } : undefined;
@@ -1993,13 +1989,42 @@ describe('HeatmapSeries', () => {
             });
 
             it('lets a styler fill replace the colour scale fill only on the cells it styles', async () => {
-                const unstyled = cellFills(await createStableAndReturn(buildOptions()));
-                chart.destroy();
+                const unstyled = await freshCellFills(buildOptions());
 
                 const itemStyler = ({ datum }: StylerParams) => (datum.spending >= 30 ? { fill: 'lime' } : {});
                 await createStable(buildOptions({ itemStyler }));
 
                 expect(cellFills(chart)).toEqual(DATA.map((d, i) => (d.spending >= 30 ? 'lime' : unstyled[i])));
+            });
+
+            it('merges a gradient fill from the styler into the selected cell gradient rather than replacing it', async () => {
+                const selectedGradient = {
+                    type: 'gradient',
+                    gradient: 'linear',
+                    rotation: 45,
+                    colorStops: [{ color: 'white' }, { color: 'black' }],
+                };
+                const stylerGradient = {
+                    type: 'gradient',
+                    gradient: 'linear',
+                    colorStops: [{ color: 'red' }, { color: 'blue' }],
+                };
+                const itemStyler = ({ datum }: StylerParams) =>
+                    datum.person === 'A' ? { fill: stylerGradient } : { strokeWidth: 2 };
+                const selection = {
+                    enabled: true,
+                    selectedItem: { fill: selectedGradient },
+                };
+                await createStable(buildOptions({ selection, itemStyler }));
+                const fills = cellRects(chart).map((rect) => rect.fill);
+
+                await select(0);
+
+                // The styler's stops win, and the properties it leaves out (the rotation) come from the selection.
+                expect(cellRects(chart)[0].fill).toMatchObject({ ...stylerGradient, rotation: 45 });
+                // A cell that is not selected keeps its own styler fill; the styler gradient replaces a plain fill.
+                expect(cellRects(chart)[2].fill).toEqual(fills[2]);
+                expect(cellRects(chart)[2].fill).toMatchObject(stylerGradient);
             });
 
             it('applies each cell its own opacity result alongside the shared stroke values', async () => {
@@ -2014,8 +2039,12 @@ describe('HeatmapSeries', () => {
             });
 
             it('keeps the node and highlight results of the same cell apart while hovering', async () => {
+                const STROKE_WIDTH_BY_STATE: Record<string, number> = {
+                    'highlighted-item': 9,
+                    'unhighlighted-item': 7,
+                };
                 const itemStyler = vi.fn(({ highlightState }: StylerParams) => ({
-                    strokeWidth: { 'highlighted-item': 9, 'unhighlighted-item': 7 }[highlightState] ?? 2,
+                    strokeWidth: STROKE_WIDTH_BY_STATE[highlightState as string] ?? 2,
                 }));
                 const highlightWidths = () =>
                     collectShapes(classCast(chart.series[0], HeatmapSeries).highlightGroup).map((r) => r.strokeWidth);
@@ -2061,11 +2090,10 @@ describe('HeatmapSeries', () => {
                 expect(strokeWidths(chart)).toEqual(SHIFTED_DATA.map((d) => d.spending / 10));
             });
 
-            it('warns about an invalid result value once per use, as it did, and still applies the valid properties', async () => {
+            it('warns once about an invalid result value and still applies the valid properties', async () => {
                 const itemStyler = ({ datum }: StylerParams) =>
                     datum.person === 'A' ? { strokeWidth: 'thick', stroke: 'black' } : { strokeWidth: 5 };
-                const unstyled = strokeWidths(await createStableAndReturn(buildOptions()));
-                chart.destroy();
+                const unstyled = await freshCellFills(buildOptions(), strokeWidths);
 
                 await createStable(buildOptions({ itemStyler }));
                 expect(strokeWidths(chart)).toEqual(DATA.map((d, i) => (d.person === 'A' ? unstyled[i] : 5)));
