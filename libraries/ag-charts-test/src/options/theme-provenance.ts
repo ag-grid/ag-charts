@@ -50,8 +50,6 @@ export interface ProvenanceCase {
     series: PlainObject;
     data: Array<PlainObject>;
     coverage: CoverageBounds;
-    /** Keys of `KNOWN_ASYMMETRIES` this series is expected to exhibit — asserted exactly. */
-    asymmetries?: Array<string>;
     /** Type names `ag-charts-types` does not declare structurally, so their subtree cannot be enumerated. */
     unresolved?: Array<string>;
 }
@@ -66,20 +64,6 @@ export interface ProvenanceContext {
     prepare: (options: unknown) => PreparedOptions;
 }
 
-export interface KnownAsymmetry {
-    /** Why the divergence is tolerated. */
-    reason: string;
-    /** The only resolved paths allowed to differ. A divergence anywhere else is still a finding. */
-    diffPaths: Array<string>;
-}
-
-/**
- * Paths where the two routes are known to diverge, with the reason each is tolerated and the exact extent of
- * the divergence. Cases declare which of these they expect, so an entry that stops occurring — or starts
- * reaching further than its reason accounts for — fails rather than quietly outliving its reason.
- */
-export const KNOWN_ASYMMETRIES: Record<string, KnownAsymmetry> = {};
-
 export interface ProvenanceReport {
     seriesType: string;
     findings: Array<Finding>;
@@ -93,7 +77,6 @@ export interface ProvenanceReport {
     containers: number;
     /** Type names that blocked enumeration of a subtree, deduplicated. */
     unresolved: Array<string>;
-    matchedAsymmetries: Set<string>;
 }
 
 function sortNames(names: Iterable<string>) {
@@ -265,7 +248,6 @@ function checkEquivalence(
     const skipped: Array<string> = [];
     const rejected: Array<string> = [];
     const ineffective: Array<string> = [];
-    const matchedAsymmetries = new Set<string>();
     let checked = 0;
 
     for (const themeablePath of paths) {
@@ -305,17 +287,12 @@ function checkEquivalence(
         checked++;
 
         const diffs = diffTrees(viaUser.tree, viaOverride.tree).filter((diff) => !/(^|\.)enabled$/.test(diff.path));
-        const known = KNOWN_ASYMMETRIES[pathKey];
-        const unexplained = known == null ? diffs : diffs.filter((diff) => !known.diffPaths.includes(diff.path));
-
-        if (known != null && diffs.length > 0 && unexplained.length === 0) {
-            matchedAsymmetries.add(pathKey);
-        } else if (unexplained.length > 0) {
+        if (diffs.length > 0) {
             findings.push({
                 invariant: 'equivalence',
                 seriesType,
                 path: pathKey,
-                detail: `set ${format(value)} -> ${unexplained.map(({ detail }) => detail).join(' | ')}`,
+                detail: `set ${format(value)} -> ${diffs.map(({ detail }) => detail).join(' | ')}`,
             });
         }
 
@@ -330,7 +307,7 @@ function checkEquivalence(
         }
     }
 
-    return { findings, checked, skipped, rejected, ineffective, matchedAsymmetries };
+    return { findings, checked, skipped, rejected, ineffective };
 }
 
 function autoEnableContainers(baseline: unknown) {
@@ -462,7 +439,6 @@ export function runProvenanceChecks(ctx: ProvenanceContext, testCase: Provenance
         ineffective: equivalence.ineffective,
         containers: containers.length,
         unresolved: sortNames(new Set(paths.flatMap(({ unresolved }) => unresolved ?? []))),
-        matchedAsymmetries: equivalence.matchedAsymmetries,
         findings: [
             ...equivalence.findings,
             ...checkNonActivation(ctx, testCase, paths, series, containers),
@@ -532,8 +508,7 @@ export function defineProvenanceSuite(prepare: OptionsPreparer, cases: Array<Pro
             console.info(
                 `[${report.seriesType}] checked=${report.checked} skipped=${report.skipped.length} ` +
                     `rejected=${report.rejected.length} containers=${report.containers} ` +
-                    `findings=${report.findings.length} unresolved=[${report.unresolved}] ` +
-                    `asymmetries=[${[...report.matchedAsymmetries]}]\n` +
+                    `findings=${report.findings.length} unresolved=[${report.unresolved}]\n` +
                     // Listed rather than counted: which options prove nothing is the part worth auditing.
                     `  ineffective(${report.ineffective.length})=[${report.ineffective}]`
             );
@@ -548,11 +523,6 @@ export function defineProvenanceSuite(prepare: OptionsPreparer, cases: Array<Pro
             expect(report.ineffective.length).toBeLessThanOrEqual(testCase.coverage.maxIneffective);
             expect(report.containers).toBeGreaterThanOrEqual(testCase.coverage.minContainers);
             expect(report.unresolved).toEqual(testCase.unresolved ?? []);
-
-            const describeEntry = (path: string) => `${path} (${KNOWN_ASYMMETRIES[path]?.reason})`;
-            expect(sortNames(report.matchedAsymmetries).map(describeEntry)).toEqual(
-                sortNames(testCase.asymmetries ?? []).map(describeEntry)
-            );
         });
     });
 }
