@@ -489,6 +489,7 @@ export type LabelObstacle =
           readonly category?: ObstacleCategory;
           readonly sourceId?: string;
           readonly entityIndex?: number;
+          readonly overlay?: boolean;
       }
     | {
           readonly kind: 'custom';
