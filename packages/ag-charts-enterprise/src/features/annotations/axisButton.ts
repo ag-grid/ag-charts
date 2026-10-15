@@ -131,14 +131,8 @@ export class AxisButton extends AbstractModuleInstance {
         if (snap) {
             x = convert(invert(x - seriesRect.x, axisCtx), axisCtx) + seriesRect.x;
             y = convert(invert(y - seriesRect.y, axisCtx), axisCtx) + seriesRect.y;
-        } else if (this.snapInterval != null && axisCtx.continuous) {
-            const isX = direction === ChartAxisDirection.X;
-            const snapped = snapPositionToInterval(axisCtx, isX ? x : y, this.snapInterval);
-            if (snapped != null && isX) {
-                x = snapped.position;
-            } else if (snapped != null) {
-                y = snapped.position;
-            }
+        } else if (this.snapInterval != null && axisCtx.continuous && direction === ChartAxisDirection.Y) {
+            y = snapPositionToInterval(axisCtx, y, this.snapInterval)?.position ?? y;
         }
 
         if (direction === ChartAxisDirection.X) {

@@ -253,8 +253,7 @@ export class Crosshair
     /** A snap interval keeps a snapping crosshair on the pointer, snapped to the interval, rather than on the highlight. */
     private followsPointer(): boolean {
         const options = this.options;
-        if (!options?.snap) return true;
-        return options.snapInterval != null && this.axisCtx.continuous;
+        return !options?.snap || (options.snapInterval != null && this.axisCtx.continuous);
     }
 
     private isVertical(): boolean {
