@@ -28,6 +28,7 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
+    isPlainObject,
     joinFormatted,
     mergeDefaults,
     resolveTextAlign,
@@ -36,6 +37,7 @@ import {
 import type { BBox, QuadtreeNearest, Selection, Text } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
+import { ItemStylerResolutions } from './itemStylerResolutions';
 
 const {
     HighlightState,
@@ -49,7 +51,6 @@ const {
     valueProperty,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
-    createDatumId,
     addHitTestersToQuadtree,
     findQuadtreeMatch,
     getLabelStyles,
@@ -172,6 +173,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     /** Whether the stored cell styles were resolved under an active highlight, so they need a restyle when it ends. */
     private cellsStyledByHighlight = false;
+
+    private readonly itemStylerResolutions = new ItemStylerResolutions();
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -681,16 +684,28 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         let overrides;
         if (itemStyler != null && datumIndex != null) {
-            overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
+            // OPTIMIZATION: a numeric key avoids building a string per cell; highlight and node styles are distinct.
+            overrides = this.cachedDatumCallback(datumIndex * 2 + (isHighlight ? 1 : 0), () => {
                 const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
-                return this.ctx.optionsGraphService.resolvePartial(
+                const result = this.callWithContext(itemStyler, params);
+                const known = this.itemStylerResolutions.lookup(result);
+                if (known != null) return known;
+
+                const resolved = this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
-                    this.callWithContext(itemStyler, params)
+                    result
                 );
+                this.itemStylerResolutions.store(result, resolved);
+                return resolved;
             });
         }
 
-        return overrides ? mergeDefaults(overrides, style) : style;
+        return overrides ? applyOverrides(style, overrides) : style;
+    }
+
+    override resetDatumCallbackCache() {
+        super.resetDatumCallbackCache();
+        this.itemStylerResolutions.clear();
     }
 
     private makeLabelFormatterParams() {
@@ -1035,4 +1050,19 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { highlight } = this.options;
         return this.isHighlightEnabled() && hasStateStyle(highlight?.unhighlightedItem);
     }
+}
+
+/** Equivalent to `mergeDefaults(overrides, style)`, without its per-key recursion unless both sides are objects. */
+function applyOverrides(
+    style: Required<NormalisedHeatmapSeriesStyle>,
+    overrides: Partial<NormalisedHeatmapSeriesStyle>
+): Required<NormalisedHeatmapSeriesStyle> {
+    const merged: Record<string, unknown> = { ...style };
+    for (const key of Object.keys(overrides)) {
+        const value = (overrides as Record<string, unknown>)[key];
+        if (value == null) continue;
+        if (isPlainObject(value) && isPlainObject(merged[key])) return mergeDefaults(overrides, style);
+        merged[key] = value;
+    }
+    return merged as Required<NormalisedHeatmapSeriesStyle>;
 }
