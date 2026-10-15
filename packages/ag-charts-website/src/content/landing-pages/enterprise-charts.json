@@ -399,7 +399,7 @@
                 },
                 {
                     "question": "What is the difference between Community and Enterprise?",
-                    "answer": "[AG Charts Community](./quick-start/) is free and open-source with 7 chart types. [AG Charts Enterprise](/license-pricing/) adds Financial Charts, Maps, Gauges, Zoom, Navigator, Annotations, Crosshairs, and more. Visit the [Pricing](/license-pricing/) page for full details."
+                    "answer": "[AG Charts Community](./quick-start/) is free and open-source with 7 chart types. [AG Charts Enterprise](./community-vs-enterprise/) adds Financial Charts, Maps, Gauges, Zoom, Navigator, Annotations, Crosshairs, and more. Visit the [Pricing](/license-pricing/) page for full details."
                 },
                 {
                     "question": "How much does AG Charts Enterprise cost?",
