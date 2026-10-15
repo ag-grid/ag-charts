@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 
 import type { AgActiveChangeEvent, AgActiveState, AgInitialFocus } from 'ag-charts-types';
 
-import { PREVENT_DEFAULT_STUB, getChartState, popPreventables } from './agE2E';
+import { PREVENT_DEFAULT_STUB, evalPageFunction, getChartState, popPreventables } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -13,6 +13,7 @@ import {
     setupIntrinsicAssertions,
     toExamplePageUrl,
     toExamplePageUrls,
+    waitForAllChartUpdates,
 } from './util';
 
 test.describe('keyboard-nav', () => {
@@ -917,6 +918,218 @@ test.describe('keyboard-nav', () => {
             });
             test('state', async ({ page }) => {
                 expect(await getActive(page)).toEqual(state(datums[2]));
+            });
+        });
+    });
+
+    test.describe('AG-17708 interactive captions', () => {
+        type TestMode =
+            | 'Non-interactive'
+            | 'Global captionClick'
+            | 'Local click (title)'
+            | 'Local click (title) + Context Menu'
+            | 'Context Menus';
+
+        const TITLE = 'Book Sales';
+        const SUBTITLE = '(prices in USD)';
+        const FOOTNOTE = 'Disclaimer: This is a test';
+
+        const textMap = {
+            title: TITLE,
+            subtitle: SUBTITLE,
+            footnote: FOOTNOTE,
+        } as const;
+
+        function localClick(captionType: keyof typeof textMap) {
+            return { type: 'click', captionType, text: textMap[captionType] };
+        }
+
+        function globalClick(captionType: keyof typeof textMap) {
+            return { type: 'captionClick', captionType, text: textMap[captionType] };
+        }
+
+        let chartContainer: Locator;
+
+        async function selectTestMode(page: Page, mode: TestMode): Promise<void> {
+            await page.locator('#myTestMode').selectOption({ label: mode });
+            await page.locator('#myUpdate').click();
+            await waitForAllChartUpdates(page);
+        }
+
+        async function getActiveElementText(page: Page): Promise<string | null | undefined> {
+            return page.evaluate(() => document.activeElement?.textContent);
+        }
+
+        async function popEvents(page: Page): Promise<unknown> {
+            return evalPageFunction(page, 'popEvents');
+        }
+
+        // The series area takes focus through one of its (two) swap-chain children.
+        function seriesAreaFocus(page: Page): Locator {
+            return page.locator(`${SELECTORS.seriesArea} :focus`);
+        }
+
+        function captionProxy(page: Page, text: string): Locator {
+            return page.locator('div.ag-charts-proxy-elem').filter({ hasText: text });
+        }
+
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(
+                page,
+                toExamplePageUrl('accessibility-e2e', 'keyboard-navigation-interactive-captions', 'vanilla').url
+            );
+            chartContainer = page.locator('#myChart');
+        });
+
+        test.describe('TC1 global clicks', () => {
+            test.beforeEach(async ({ page }) => {
+                await selectTestMode(page, 'Global captionClick');
+            });
+
+            test('Tab and Space through every caption', async ({ page }) => {
+                // Title
+                await page.keyboard.press('Tab');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-title-focused.png');
+                expect(await getActiveElementText(page)).toBe(TITLE);
+
+                await page.keyboard.press('Space');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-title-focused.png');
+                expect(await getActiveElementText(page)).toBe(TITLE);
+                expect(await popEvents(page)).toEqual([globalClick('title')]);
+
+                // Subtitle
+                await page.keyboard.press('Tab');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-subtitle-focused.png');
+                expect(await getActiveElementText(page)).toBe(SUBTITLE);
+
+                await page.keyboard.press('Space');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-subtitle-focused.png');
+                expect(await getActiveElementText(page)).toBe(SUBTITLE);
+                expect(await popEvents(page)).toEqual([globalClick('subtitle')]);
+
+                // Series area
+                await page.keyboard.press('Tab');
+                await expect(seriesAreaFocus(page)).toHaveCount(1);
+
+                // Footnote
+                await page.keyboard.press('Tab');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-footnote-focused.png');
+                expect(await getActiveElementText(page)).toBe(FOOTNOTE);
+
+                await page.keyboard.press('Space');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-footnote-focused.png');
+                expect(await getActiveElementText(page)).toBe(FOOTNOTE);
+                expect(await popEvents(page)).toEqual([globalClick('footnote')]);
+            });
+        });
+
+        test.describe('TC2 local clicks', () => {
+            test.beforeEach(async ({ page }) => {
+                await selectTestMode(page, 'Local click (title)');
+            });
+
+            test('Tab skips the captions without listeners', async ({ page }) => {
+                await page.keyboard.press('Tab');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-title-focused.png');
+                expect(await getActiveElementText(page)).toBe(TITLE);
+
+                await page.keyboard.press('Space');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-title-focused.png');
+                expect(await getActiveElementText(page)).toBe(TITLE);
+                expect(await popEvents(page)).toEqual([localClick('title')]);
+
+                await page.keyboard.press('Tab');
+                await expect(seriesAreaFocus(page)).toHaveCount(1);
+            });
+
+            test('captions without listeners are presentational', async ({ page }) => {
+                await expect(captionProxy(page, SUBTITLE)).toHaveAttribute('role', 'presentation');
+                await expect(captionProxy(page, SUBTITLE)).not.toHaveAttribute('tabindex');
+                await expect(captionProxy(page, FOOTNOTE)).toHaveAttribute('role', 'presentation');
+                await expect(captionProxy(page, FOOTNOTE)).not.toHaveAttribute('tabindex');
+            });
+        });
+
+        test.describe('TC3 local clicks + context menu', () => {
+            test.beforeEach(async ({ page }) => {
+                await selectTestMode(page, 'Local click (title) + Context Menu');
+            });
+
+            test('Tab skips the captions without listeners', async ({ page }) => {
+                await page.keyboard.press('Tab');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-title-focused.png');
+                expect(await getActiveElementText(page)).toBe(TITLE);
+
+                await page.keyboard.press('Space');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-title-focused.png');
+                expect(await getActiveElementText(page)).toBe(TITLE);
+                expect(await popEvents(page)).toEqual([localClick('title')]);
+
+                await page.keyboard.press('Tab');
+                await expect(seriesAreaFocus(page)).toHaveCount(1);
+            });
+
+            test('captions without listeners are focusable but not tab-stoppable', async ({ page }) => {
+                await expect(captionProxy(page, SUBTITLE)).toHaveAttribute('role', 'button');
+                await expect(captionProxy(page, SUBTITLE)).toHaveAttribute('tabindex', '-1');
+                await expect(captionProxy(page, FOOTNOTE)).toHaveAttribute('role', 'button');
+                await expect(captionProxy(page, FOOTNOTE)).toHaveAttribute('tabindex', '-1');
+            });
+
+            test('programmatic focus on subtitle (screen reader browse mode)', async ({ page }) => {
+                await captionProxy(page, SUBTITLE).focus();
+                // Focus follows a mouse click on 'Update', so a key press is needed to show the focus indicator.
+                await page.keyboard.press('ArrowRight');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-subtitle-focused.png');
+                expect(await getActiveElementText(page)).toBe(SUBTITLE);
+            });
+        });
+
+        test.describe('TC4 context menus', () => {
+            test.beforeEach(async ({ page }) => {
+                await selectTestMode(page, 'Context Menus');
+            });
+
+            test('Tab skips every caption', async ({ page }) => {
+                await page.keyboard.press('Tab');
+                await expect(seriesAreaFocus(page)).toHaveCount(1);
+            });
+
+            test('every caption is focusable but not tab-stoppable', async ({ page }) => {
+                await expect(captionProxy(page, TITLE)).toHaveAttribute('role', 'button');
+                await expect(captionProxy(page, TITLE)).toHaveAttribute('tabindex', '-1');
+                await expect(captionProxy(page, SUBTITLE)).toHaveAttribute('role', 'button');
+                await expect(captionProxy(page, SUBTITLE)).toHaveAttribute('tabindex', '-1');
+                await expect(captionProxy(page, FOOTNOTE)).toHaveAttribute('role', 'button');
+                await expect(captionProxy(page, FOOTNOTE)).toHaveAttribute('tabindex', '-1');
+            });
+
+            test('programmatic focus on subtitle (screen reader browse mode)', async ({ page }) => {
+                await captionProxy(page, SUBTITLE).focus();
+                // Focus follows a mouse click on 'Update', so a key press is needed to show the focus indicator.
+                await page.keyboard.press('ArrowRight');
+                await expectChartScreenshot(page, chartContainer, 'AG-17708-subtitle-focused.png');
+                expect(await getActiveElementText(page)).toBe(SUBTITLE);
+            });
+        });
+
+        test.describe('TC5 non-interactive', () => {
+            test.beforeEach(async ({ page }) => {
+                await selectTestMode(page, 'Non-interactive');
+            });
+
+            test('Tab skips every caption', async ({ page }) => {
+                await page.keyboard.press('Tab');
+                await expect(seriesAreaFocus(page)).toHaveCount(1);
+            });
+
+            test('every caption is presentational', async ({ page }) => {
+                await expect(captionProxy(page, TITLE)).toHaveAttribute('role', 'presentation');
+                await expect(captionProxy(page, TITLE)).not.toHaveAttribute('tabindex');
+                await expect(captionProxy(page, SUBTITLE)).toHaveAttribute('role', 'presentation');
+                await expect(captionProxy(page, SUBTITLE)).not.toHaveAttribute('tabindex');
+                await expect(captionProxy(page, FOOTNOTE)).toHaveAttribute('role', 'presentation');
+                await expect(captionProxy(page, FOOTNOTE)).not.toHaveAttribute('tabindex');
             });
         });
     });
