@@ -13,6 +13,7 @@ import {
     minValue,
     modulus,
     roundTo,
+    roundToMultiple,
     toNumber,
 } from './numbers';
 
@@ -64,6 +65,13 @@ describe('Number Utilities', () => {
         expect(roundTo(5.1267, 2)).toBe(5.13);
         expect(roundTo(5, 3)).toBe(5);
         expect(roundTo(5.1234, 0)).toBe(5);
+    });
+
+    it('roundToMultiple rounds to the nearest multiple without float noise', () => {
+        expect(roundToMultiple(101.3742, 0.25)).toBe(101.25);
+        expect(roundToMultiple(101.38, 0.25)).toBe(101.5);
+        expect(roundToMultiple(0.3, 0.1)).toBe(0.3);
+        expect(roundToMultiple(-2.4, 0.5)).toBe(-2.5);
     });
 
     test('modulus', () => {

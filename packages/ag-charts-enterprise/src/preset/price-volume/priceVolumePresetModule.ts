@@ -79,6 +79,12 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
 
 const NO_UNHIGHLIGHT_THEME = { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } };
 
+// The axis theme is taken from the first series' type, and series themes set `snap` over `common`, so this is applied
+// to every series type the preset can put first.
+const PRICE_AXIS_THEME = {
+    number: { crosshair: { snap: { $if: [{ $preset: 'tickSize' }, true, false] } as any } },
+};
+
 export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
     type: 'preset',
     name: 'price-volume',
@@ -98,7 +104,14 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             chartToolbar: {
                 enabled: { $preset: ['toolbar', true] } as any,
             },
-            annotations: { ...annotationsTheme },
+            annotations: {
+                ...annotationsTheme,
+                axesButtons: {
+                    // @ts-expect-error undocumented option
+                    snap: { $path: '/axes/y/crosshair/snap' },
+                    snapInterval: { $path: '/axes/y/crosshair/snapInterval' },
+                },
+            },
             ranges: {
                 enableOutOfRange: true,
                 position: 'bottom-left',
@@ -169,12 +182,14 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             },
         },
         bar: {
+            axes: PRICE_AXIS_THEME,
             series: {
                 fillOpacity: 0.5,
                 highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
         candlestick: {
+            axes: PRICE_AXIS_THEME,
             series: {
                 highlight: NO_UNHIGHLIGHT_THEME,
                 item: {
@@ -191,6 +206,7 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             },
         },
         line: {
+            axes: PRICE_AXIS_THEME,
             series: {
                 marker: { enabled: false },
                 highlight: {
@@ -210,16 +226,19 @@ export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset
             },
         },
         hlc: {
+            axes: PRICE_AXIS_THEME,
             series: {
                 highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
         ohlc: {
+            axes: PRICE_AXIS_THEME,
             series: {
                 highlight: NO_UNHIGHLIGHT_THEME,
             },
         },
         'range-bar': {
+            axes: PRICE_AXIS_THEME,
             series: {
                 highlight: NO_UNHIGHLIGHT_THEME,
                 fill: {
