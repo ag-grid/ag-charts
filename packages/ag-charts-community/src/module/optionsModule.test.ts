@@ -5996,6 +5996,38 @@ describe('ChartOptions', () => {
                 expect(updated.processedOptions.data).toHaveLength(to);
             });
 
+            it("predicts a sparkline's axes from its transformed rows, so dated pairs stay on the fast path", () => {
+                const pairs = (count: number) =>
+                    Array.from({ length: count }, (_, i) => [new Date(2020, i, 1), i] as [Date, number]);
+                const base = new ChartOptions(
+                    undefined,
+                    { type: 'line', data: pairs(3) } as AgChartOptions,
+                    {},
+                    {},
+                    SPARKLINE_METADATA
+                );
+
+                const updated = applyDelta(base, { data: pairs(7) }, SPARKLINE_METADATA);
+
+                expect(updated.revalidated).toBe(false);
+                expect(updated.processedOptions.data).toHaveLength(7);
+            });
+
+            it('keeps a sparkline on the fast path when its data grows', () => {
+                const base = new ChartOptions(
+                    undefined,
+                    { type: 'line', data: [1, 2, 3] } as AgChartOptions,
+                    {},
+                    {},
+                    SPARKLINE_METADATA
+                );
+
+                const updated = applyDelta(base, { data: [1, 2, 3, 4, 5, 6, 7] }, SPARKLINE_METADATA);
+
+                expect(updated.revalidated).toBe(false);
+                expect(updated.processedOptions.data).toHaveLength(7);
+            });
+
             it('keeps the preset data transform on a sparkline whose data grows', () => {
                 const metadata = SPARKLINE_METADATA;
                 const options = { type: 'line', data: [1, 2, 3] } as AgChartOptions;
@@ -6080,6 +6112,31 @@ describe('ChartOptions', () => {
 
                 expect(updated.processedOptions.data).toEqual(data);
                 expect(updated.diffOptions(base)).toHaveProperty('data');
+            });
+
+            it('treats `data` inside a series delta as data the caller passed', () => {
+                const base = createBase({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', data: rows(5) }],
+                } as AgChartOptions);
+                const seriesData = rows(6);
+
+                const updated = applyDelta(base, {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', data: seriesData }],
+                });
+
+                const processed = updated.processedOptions.series?.[0] as { data?: unknown };
+                expect(processed.data).toEqual(rows(6));
+                expect(processed.data).not.toBe((base.processedOptions.series?.[0] as { data?: unknown }).data);
+                expect((updated.userOptions.series?.[0] as { data?: unknown }).data).not.toBe(seriesData);
+            });
+
+            it('does not read `data` inside `context` as a data change', () => {
+                const base = createBase(options);
+
+                const updated = applyDelta(base, { context: { data: rows(2) } });
+
+                expect(updated.userOptions.data).toBe(base.userOptions.data);
+                expect(updated.diffOptions(base)).not.toHaveProperty('data');
             });
 
             it('does not let later deltas mutate the data the caller passed', () => {

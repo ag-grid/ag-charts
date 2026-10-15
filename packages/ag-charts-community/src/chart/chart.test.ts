@@ -683,6 +683,30 @@ describe('Chart', () => {
                 expect(chart.data.data).toHaveLength(9);
             });
 
+            it.each([
+                { key: 'subtitle', delta: { subtitle: { text: 'After' } }, withTitle: true },
+                { key: 'footnote', delta: { footnote: { text: 'After' } } },
+                { key: 'padding', delta: { padding: { top: 60, left: 40 } } },
+                { key: 'background', delta: { background: { fill: 'red' } } },
+            ])('does not refresh node data for a $key delta on a chart with axes', async ({ delta, withTitle }) => {
+                const chartProxy = AgCharts.create(
+                    prepareTestOptions({
+                        data: rows(8),
+                        series: barSeries,
+                        axes,
+                        ...(withTitle && { title: { text: 'Before' }, subtitle: { text: 'Before' } }),
+                    } as any)
+                );
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+
+                spyOnProcessData(chart);
+                await chartProxy.updateDelta(delta as any);
+                await waitForChartStability(chart);
+
+                expect(processData).not.toHaveBeenCalled();
+            });
+
             it('does not refresh node data for a title after a growing data delta', async () => {
                 const chartProxy = AgCharts.create(prepareTestOptions({ data: rows(5), series: barSeries } as any));
                 chart = deproxy(chartProxy);
