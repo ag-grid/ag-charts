@@ -2120,7 +2120,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
 
     private applyAxes(chart: SeriesAxesHost, options: AgChartOptions, seriesStatus: SeriesChangeType) {
         if (!('axes' in options) || !options.axes) {
-            return false;
+            return;
         }
 
         const axes = options.axes;
@@ -2149,7 +2149,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
             axis.userKey = unmappedAxisKeys.get(axis.id) ?? axis.id;
             axis.setPickComputationEnabled(pickComputationEnabled);
         }
-        return true;
     }
 
     private createSeries(seriesOptions: SeriesOptionsTypes): UnknownSeries {

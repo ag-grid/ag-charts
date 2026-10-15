@@ -360,7 +360,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 stripSymbols ||= ChartOptions.containsRemovalSentinel(deltaOptions);
             }
 
-            // Every `data` array of a delta without one comes from the base's own clone, so it can be shared.
+            // A `data` array the delta doesn't carry is the base's own, so the clone shares it by reference.
             const cloneOpts = ChartOptions.containsDataKey(deltaOptions)
                 ? ChartOptions.OPTIONS_CLONE_OPTS_SLOW
                 : ChartOptions.OPTIONS_CLONE_OPTS_FAST;
@@ -422,6 +422,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(
                     deltaOptions ?? null,
                     baseChartOptions,
+                    presetDef,
                     presetUpdate
                 ));
                 this.predictedAxesKey = baseChartOptions.predictedAxesKey;
@@ -513,16 +514,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private fastSetup(
         deltaOptions: DeepPartial<T> | null,
         baseChartOptions: ChartOptions<T>,
+        presetDef: ReturnType<ChartOptions<T>['moduleRegistry']['getPresetModule']>,
         presetUpdate?: { series?: unknown; data?: unknown }
     ) {
         const { activeTheme, processedOptions: baseOptions } = baseChartOptions;
-        const { presetType } = this.optionMetadata;
 
-        if (presetType != null && deltaOptions != null) {
-            const presetDef = this.moduleRegistry.getPresetModule(presetType);
+        if (deltaOptions != null) {
             // Handle preset data transforms gracefully.
-            if (presetDef?.processData && deltaOptions.data != null) {
-                const { series, data } = presetUpdate ?? presetDef.processData(deltaOptions.data);
+            if (presetUpdate != null) {
+                const { series, data } = presetUpdate;
                 deltaOptions = mergeDefaults({ series, data }, deltaOptions) as DeepPartial<T>;
             }
             // Map preset-owned root keys (e.g. a gauge's `value`) onto the internal series shape.
@@ -1136,10 +1136,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * the primary axes and renames the primary axes to the internal direction-based names.
      */
     private processAxesOptions(options: T, chartType: string) {
-        const directions =
-            chartType === 'polar'
-                ? [ChartAxisDirection.Angle, ChartAxisDirection.Radius]
-                : [ChartAxisDirection.X, ChartAxisDirection.Y];
+        const directions = ChartOptions.axisDirections(chartType);
 
         const hasAxes = 'axes' in options && Object.keys(options.axes ?? {}).length > 0;
         const nonDefaultSeriesAxisKeysCount = this.countNonDefaultSeriesAxisKeys(options, directions);
@@ -1152,7 +1149,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             isObject(primarySeriesOptions) && this.isSeriesHorizontal(primarySeriesOptions);
         const seriesType = this.optionsType(options);
         const defaultAxes: Record<string, PlainObject> =
-            this.predictOptionsAxes(options, chartType) ?? this.cloneDefaultAxes(seriesType);
+            this.predictAxes(seriesType, directions, this.predictionSeriesOptions(primarySeriesOptions), options.data) ??
+            this.cloneDefaultAxes(seriesType);
 
         const isPrimarySeriesFlipped =
             isPrimarySeriesHorizontal &&
@@ -1972,22 +1970,27 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private predictedAxesKeyOf(options: Partial<T>, data = options.data) {
+        const chartType = detectChartType(options as AgChartOptions, this.moduleRegistry);
         return JSON.stringify(
-            this.predictOptionsAxes(options, detectChartType(options as AgChartOptions, this.moduleRegistry), data)
+            this.predictAxes(
+                this.optionsType(options),
+                ChartOptions.axisDirections(chartType),
+                this.predictionSeriesOptions(options.series?.[0]),
+                data
+            )
         );
     }
 
-    private predictOptionsAxes(options: Partial<T>, chartType: string, data = options.data) {
-        const directions =
-            chartType === 'polar'
-                ? [ChartAxisDirection.Angle, ChartAxisDirection.Radius]
-                : [ChartAxisDirection.X, ChartAxisDirection.Y];
-        const primarySeriesOptions = options.series?.[0];
-        const predictionSeriesOptions =
-            isObject(primarySeriesOptions) && this.isSeriesHorizontal(primarySeriesOptions)
-                ? { ...primarySeriesOptions, direction: 'horizontal' }
-                : primarySeriesOptions;
-        return this.predictAxes(this.optionsType(options), directions, predictionSeriesOptions, data);
+    private predictionSeriesOptions(seriesOptions: NonNullable<T['series']>[number] | undefined) {
+        return isObject(seriesOptions) && this.isSeriesHorizontal(seriesOptions)
+            ? { ...seriesOptions, direction: 'horizontal' }
+            : seriesOptions;
+    }
+
+    private static axisDirections(chartType: string) {
+        return chartType === 'polar'
+            ? [ChartAxisDirection.Angle, ChartAxisDirection.Radius]
+            : [ChartAxisDirection.X, ChartAxisDirection.Y];
     }
 
     private removeLeftoverSymbols(options: Partial<T>) {
