@@ -1045,17 +1045,17 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 }
 
-/** Equivalent to `mergeDefaults(overrides, style)`, without its per-key recursion unless both sides are objects. */
+/** Equivalent to `mergeDefaults(overrides, style)`, writing into the cell's own `style` unless both sides hold an object. */
 function applyOverrides(
     style: Required<NormalisedHeatmapSeriesStyle>,
     overrides: Partial<NormalisedHeatmapSeriesStyle>
 ): Required<NormalisedHeatmapSeriesStyle> {
-    const merged: Record<string, unknown> = { ...style };
+    const target = style as Record<string, unknown>;
     for (const key of Object.keys(overrides)) {
         const value = (overrides as Record<string, unknown>)[key];
         if (value == null) continue;
-        if (isPlainObject(value) && isPlainObject(merged[key])) return mergeDefaults(overrides, style);
-        merged[key] = value;
+        if (isPlainObject(value) && isPlainObject(target[key])) return mergeDefaults(overrides, style);
+        target[key] = value;
     }
-    return merged as Required<NormalisedHeatmapSeriesStyle>;
+    return style;
 }

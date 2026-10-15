@@ -9,11 +9,8 @@ interface Resolution {
 }
 
 /**
- * Remembers the last few flat `itemStyler` results with their resolution, so a styler that returns one of a few
- * objects across thousands of cells skips the options graph. Only results of numbers, booleans and non-`var()`
- * strings are remembered; `var()` colours are read from the DOM. Remembered inputs are held by reference, which
- * relies on the validated styler returning a fresh object per call. Resolved objects are shared and read-only.
- * Entries are evicted oldest first and cleared with the datum callback cache.
+ * Inputs are held by reference, relying on the validated styler returning a fresh object per call; resolved objects
+ * are shared and read-only. `var()` colours are never remembered because they are read from the DOM.
  */
 export class ItemStylerResolutions {
     private entries: Resolution[] = [];
