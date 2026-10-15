@@ -11,15 +11,19 @@
     pointer-events: none;
 }
 
+/* Host rules such as `.card button` outrank one class, hence `!important`; rules that draw on proxies must match.
+   `pointer-events` stays overridable because widgets toggle it inline via `setPointerEvents()`. */
 .ag-charts-proxy-elem {
-    -webkit-appearance: none;
-    appearance: none;
-    background: none;
-    border: none;
-    color: rgba(0, 0, 0, 0);
-    overflow: hidden;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: rgba(0, 0, 0, 0) !important;
+    overflow: hidden !important;
     pointer-events: auto;
-    position: absolute;
+    position: absolute !important;
+    text-shadow: none !important;
 }
 
 .ag-charts-proxy-elem::-moz-range-thumb,
@@ -34,13 +38,13 @@
 
 .ag-charts-proxy-elem[data-focus-override='true'],
 .ag-charts-proxy-elem:focus-visible {
-    outline: var(--ag-charts-focus-border);
-    box-shadow: var(--ag-charts-focus-border-shadow);
+    outline: var(--ag-charts-focus-border) !important;
+    box-shadow: var(--ag-charts-focus-border-shadow) !important;
 }
 
 .ag-charts-proxy-elem[data-focus-override='false'] {
-    outline: none;
-    box-shadow: none;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .ag-charts-proxy-elem svg {
@@ -48,13 +52,13 @@
 }
 
 .ag-charts-proxy-scrollbar-slider:focus-visible {
-    outline: none;
-    box-shadow: none;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .ag-charts-proxy-scrollbar-thumb-focus {
-    border: var(--ag-charts-focus-border);
-    box-shadow: var(--ag-charts-focus-border-shadow);
+    border: var(--ag-charts-focus-border) !important;
+    box-shadow: var(--ag-charts-focus-border-shadow) !important;
     box-sizing: border-box;
     opacity: 0;
     pointer-events: none;
