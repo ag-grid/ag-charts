@@ -1,7 +1,7 @@
 {
     "demo": "procurement",
     "framework": "react",
-    "sourceHash": "sha256-da7c1d76875c4e2c49f9b28576f79ea07dfa24ee3a6e34e0b7b335cd075fb477",
+    "sourceHash": "sha256-4a18af9e23242b4a39ff9a8ef7315a60cfec3f3ba4f1b72b7c09a41c7ce8f033",
     "sourceCommit": "7316405d07900bb5dd1016d0abd253742dc86e86",
     "pinnedVersion": "latest",
     "pinSource": "dist-tag",

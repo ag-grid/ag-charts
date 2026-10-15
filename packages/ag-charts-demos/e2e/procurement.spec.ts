@@ -53,10 +53,10 @@ const SPEND_PERIOD = {
 };
 /** The supplier-trend metric toggle group of My suppliers. */
 const METRIC = { name: 'Trend metric', options: ['Price', 'On time', 'Quality'], initial: 'Price' };
-/** The toggle groups of My spend; the two "View as" groups share a name, so each is found within its card. */
+/** The toggle groups of My spend. */
 const SPLIT_BY = { name: 'Split by', options: ['Material', 'Supplier'], initial: 'Material' };
-const BREAKDOWN_VIEW = { name: 'View as', options: ['Sunburst', 'Grouped table'], initial: 'Sunburst' };
-const SHARE_VIEW = { name: 'View as', options: ['Heatmap', 'Stacked bar'], initial: 'Heatmap' };
+const BREAKDOWN_VIEW = { name: 'View as: breakdown', options: ['Sunburst', 'Grouped table'], initial: 'Sunburst' };
+const SHARE_VIEW = { name: 'View as: concentration', options: ['Heatmap', 'Stacked bar'], initial: 'Heatmap' };
 
 /** Rows of the supplier roster grid, matched by the row class the demo sets. */
 const rosterRows = (page: Page) => page.locator('.ag-row.pc-supplier');
@@ -87,10 +87,6 @@ async function openWorklist(page: Page) {
     await page.locator('.pc-alert-trigger').click();
     await expect(page.locator('.pc-alert-panel')).toBeVisible();
 }
-
-/** The arrival schedule's chart card. */
-const scheduleCard = (page: Page) =>
-    page.locator('.pc-card', { has: page.getByRole('heading', { name: 'Arrival schedule' }) });
 
 /**
  * The shipment the schedule's keyboard focus is on, read from the chart's own announcement.
@@ -138,6 +134,25 @@ const SUBCATEGORY_FILTER = 'Material subcategory my orders are narrowed to';
 /** The chart card titled `title`. */
 const chartCard = (page: Page, title: string) =>
     page.locator('.pc-card', { has: page.getByRole('heading', { name: title }) });
+
+/** The centre of the bar keyboard focus is outlining, which gives a point on it to click. */
+async function focusedBarCentre(card: Locator) {
+    await card.locator('.ag-charts-series-area').focus();
+    const bar = await card.locator('.ag-charts-focus-indicator > div').boundingBox();
+    expect(bar, 'a focused bar').not.toBeNull();
+    return { x: bar!.x + bar!.width / 2, y: bar!.y + bar!.height / 2 };
+}
+
+/** Drills the quality-cost chart into its first bar's supplier, through the bar's context menu. */
+async function drillIntoFirstSupplier(page: Page, card: Locator) {
+    const { x, y } = await focusedBarCentre(card);
+    await page.mouse.click(x, y, { button: 'right' });
+    await page.getByRole('menuitem', { name: /^Drill down into .+'s materials$/ }).click();
+    await waitForAllChartUpdates(page);
+}
+
+/** The dollars of a formatted currency cell, such as "$43,805,391". */
+const parseCurrency = (text: string) => Number(text.replace(/[^\d.]/g, ''));
 
 /** Switch to a tab, then wait for its charts to mount and settle. */
 async function openTab(page: Page, name: string) {
@@ -288,7 +303,7 @@ test.describe(DEMO_ID, () => {
 
     test('Ctrl-click adds to the schedule selection, and a plain click narrows it to one', async ({ page }) => {
         const popConsoleIssues = watchConsole(page);
-        const card = scheduleCard(page);
+        const card = chartCard(page, 'Arrival schedule');
         await card.locator('.ag-charts-series-area').focus();
 
         const first = await focusedShipment(card);
@@ -313,7 +328,7 @@ test.describe(DEMO_ID, () => {
 
     test('the supplier filter narrows the freight, and drops a selected shipment it hides', async ({ page }) => {
         const popConsoleIssues = watchConsole(page);
-        const card = scheduleCard(page);
+        const card = chartCard(page, 'Arrival schedule');
         await card.locator('.ag-charts-series-area').focus();
         const selected = await focusedShipment(card);
         await page.keyboard.press('Space');
@@ -371,13 +386,7 @@ test.describe(DEMO_ID, () => {
         await openTab(page, 'My suppliers');
         const card = chartCard(page, 'Cost of rejected material');
 
-        // Keyboard focus outlines the first bar, which gives a point on it to right-click.
-        await card.locator('.ag-charts-series-area').focus();
-        const bar = await card.locator('.ag-charts-focus-indicator > div').boundingBox();
-        expect(bar, 'a focused bar').not.toBeNull();
-        await page.mouse.click(bar!.x + bar!.width / 2, bar!.y + bar!.height / 2, { button: 'right' });
-        await page.getByRole('menuitem', { name: /^Drill down into .+'s materials$/ }).click();
-        await waitForAllChartUpdates(page);
+        await drillIntoFirstSupplier(page, card);
 
         const back = card.getByRole('button', { name: '← Back to all suppliers' });
         await expect(back).toBeVisible();
@@ -389,6 +398,124 @@ test.describe(DEMO_ID, () => {
         await expect(back).toHaveCount(0);
 
         expect(popConsoleIssues(), 'console output while drilling into a supplier').toEqual([]);
+    });
+
+    test.describe('selection on My suppliers', () => {
+        const pressed = (page: Page) => page.locator('.pc-supplier-main[aria-pressed="true"]');
+        const costCard = (page: Page) => chartCard(page, 'Cost of rejected material');
+
+        test('a mouse click on a chart node selects its supplier', async ({ page }) => {
+            const popConsoleIssues = watchConsole(page);
+            await openTab(page, 'My suppliers');
+
+            const { x, y } = await focusedBarCentre(costCard(page));
+            await page.mouse.click(x, y);
+            await expect(pressed(page)).toHaveCount(1);
+            await expect(page.locator('.ag-row.is-selected').first()).toBeVisible();
+
+            expect(popConsoleIssues(), 'console output while clicking a chart node').toEqual([]);
+        });
+
+        test("a mouse click on a chart's empty series area clears the selection", async ({ page }) => {
+            const popConsoleIssues = watchConsole(page);
+            await openTab(page, 'My suppliers');
+            const card = costCard(page);
+
+            const { x, y } = await focusedBarCentre(card);
+            await page.mouse.click(x, y);
+            await expect(pressed(page)).toHaveCount(1);
+
+            // Bars run tallest first, so the top-right corner of the series area is above every bar.
+            const area = await card.locator('.ag-charts-series-area').boundingBox();
+            expect(area, 'the series area').not.toBeNull();
+            await page.mouse.click(area!.x + area!.width - 20, area!.y + 10);
+            await expect(pressed(page)).toHaveCount(0);
+            await expect(page.locator('.ag-row.is-selected')).toHaveCount(0);
+
+            expect(popConsoleIssues(), 'console output while clicking empty chart space').toEqual([]);
+        });
+
+        test('a Ctrl-click elsewhere on the page keeps the selection, and a plain click clears it', async ({
+            page,
+        }) => {
+            const popConsoleIssues = watchConsole(page);
+            await openTab(page, 'My suppliers');
+
+            await rosterRows(page).first().locator('.pc-supplier-main').click();
+            await expect(pressed(page)).toHaveCount(1);
+
+            await page.locator('.pc-page-title').click({ modifiers: ['ControlOrMeta'] });
+            await expect(pressed(page)).toHaveCount(1);
+
+            await page.locator('.pc-page-title').click();
+            await expect(pressed(page)).toHaveCount(0);
+
+            expect(popConsoleIssues(), 'console output while clicking away').toEqual([]);
+        });
+
+        test('selecting another supplier leaves the drill, but clearing the selection does not', async ({ page }) => {
+            const popConsoleIssues = watchConsole(page);
+            await openTab(page, 'My suppliers');
+            const card = costCard(page);
+            const back = card.getByRole('button', { name: '← Back to all suppliers' });
+            const from = card.locator('.pc-card-sub', { hasText: /^from / });
+
+            await drillIntoFirstSupplier(page, card);
+            await expect(back).toBeVisible();
+            await expect(from).toBeVisible();
+
+            // A plain click away clears the selection; the drill stays.
+            await page.locator('.pc-page-title').click();
+            await expect(pressed(page)).toHaveCount(0);
+            await expect(back).toBeVisible();
+            await expect(from).toBeVisible();
+
+            // Reselect the drilled supplier, then pick a different one from the scorecard.
+            const drilledName = (await from.innerText()).replace(/^from /, '');
+            await page.locator('.pc-supplier-main', { hasText: drilledName }).click();
+            await expect(pressed(page)).toHaveCount(1);
+            await expect(back).toBeVisible();
+
+            await page.locator('.pc-supplier-main', { hasNotText: drilledName }).first().click();
+            await expect(back).toHaveCount(0);
+            await expect(from).toHaveCount(0);
+            await expect(pressed(page)).toHaveCount(1);
+            await expect(pressed(page)).not.toContainText(drilledName);
+
+            expect(popConsoleIssues(), 'console output while leaving the drill').toEqual([]);
+        });
+    });
+
+    // Neither period has a zero-spend supplier leaf in the data, so the "No spend" branch has nothing to render.
+    test('the breakdown grouped table groups by subcategory then material, with a grand total', async ({ page }) => {
+        const popConsoleIssues = watchConsole(page);
+        await openTab(page, 'My spend');
+        const card = chartCard(page, 'Spend breakdown');
+
+        await card
+            .getByRole('radiogroup', { name: 'View as: breakdown', exact: true })
+            .getByRole('radio', { name: 'Grouped table' })
+            .click();
+        await waitForAllChartUpdates(page);
+
+        const grid = card.locator('.ag-root');
+        await expect(grid).toBeVisible();
+        // The first level is expanded: subcategories open onto their still-collapsed materials.
+        const subcategories = grid.locator('.ag-row-group.ag-row-level-0');
+        const materials = grid.locator('.ag-row-group.ag-row-level-1');
+        expect(await subcategories.count()).toBeGreaterThan(1);
+        expect(await materials.count()).toBeGreaterThan(0);
+        await expect(subcategories.first()).toHaveAttribute('aria-expanded', 'true');
+        await expect(materials.first()).toHaveAttribute('aria-expanded', 'false');
+
+        const total = grid.locator('.ag-row-footer [col-id="spend"]');
+        await expect(total).toHaveCount(1);
+        const subcategorySpend = await subcategories.locator('[col-id="spend"]').allInnerTexts();
+        const sum = subcategorySpend.reduce((acc, text) => acc + parseCurrency(text), 0);
+        // Each figure is rounded to whole dollars, so the sum may differ by a dollar or so per row.
+        expect(Math.abs(parseCurrency(await total.innerText()) - sum)).toBeLessThanOrEqual(subcategorySpend.length);
+
+        expect(popConsoleIssues(), 'console output while grouping the breakdown').toEqual([]);
     });
 
     /**
@@ -531,9 +658,9 @@ test.describe(DEMO_ID, () => {
 
         test('the spend toggle groups rove focus with the arrow keys', async ({ page }) => {
             await openTab(page, 'My spend');
-            await expectRadioGroupContract(page, SPLIT_BY, chartCard(page, 'Spend over time'));
-            await expectRadioGroupContract(page, BREAKDOWN_VIEW, chartCard(page, 'Spend breakdown'));
-            await expectRadioGroupContract(page, SHARE_VIEW, chartCard(page, 'Supplier concentration'));
+            await expectRadioGroupContract(page, SPLIT_BY);
+            await expectRadioGroupContract(page, BREAKDOWN_VIEW);
+            await expectRadioGroupContract(page, SHARE_VIEW);
         });
     });
 });

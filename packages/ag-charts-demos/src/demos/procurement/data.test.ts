@@ -16,6 +16,7 @@ import {
     buildSpendTree,
     deliveredInRange,
     inRange,
+    materialQualityCost,
     monthBuckets,
     onTimeByMonth,
     priceByMonth,
@@ -629,5 +630,22 @@ describe('cost of poor quality', () => {
     it('omits a supplier with no delivery record rather than showing a costless zero', () => {
         const undelivered = mine.filter((order) => order.acceptedQuantity == null);
         expect(qualityCost(undelivered, manager.supplierIds)).toEqual([]);
+    });
+
+    it("breaks each supplier's row down into materials that add back up to it", () => {
+        for (const row of rows) {
+            const materials = materialQualityCost(mine, row.supplierId);
+            expect(materials.length).toBeGreaterThan(0);
+            expect(materials.reduce((total, material) => total + material.rejectedValue, 0)).toBeCloseTo(
+                row.rejectedValue,
+                4
+            );
+            expect(materials.reduce((total, material) => total + material.deliveredCount, 0)).toBe(row.deliveredCount);
+            for (const material of materials) {
+                expect(MATERIALS.find(({ name }) => name === material.material)?.subcategory).toBe(
+                    material.subcategory
+                );
+            }
+        }
     });
 });

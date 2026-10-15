@@ -104,6 +104,11 @@ export function SpendView({
     subcategories,
 }: SpendViewProps) {
     const trendBuckets = spendTrend.rows.length;
+    // Weeks are named by their day, months by their month — the granularity the bars are drawn at.
+    const trendEndLabel = spendTrend.end.toLocaleDateString(
+        'en-US',
+        spendTrend.grain === 'week' ? { month: 'short', day: 'numeric' } : { month: 'short', year: 'numeric' }
+    );
 
     const [split, setSplit] = useState<SpendTrendSplit>('material');
     const trendStacks = useMemo<SpendTrendStack[]>(
@@ -148,6 +153,11 @@ export function SpendView({
                     <div className="pc-card-head">
                         <div>
                             <h2 className="pc-card-title">Spend over time</h2>
+                            {/* The bucket still in progress is left out, so the bars can stop short of today. */}
+                            <span className="pc-card-sub">
+                                {trendBuckets} complete {spendTrend.grain}
+                                {trendBuckets === 1 ? '' : 's'} to {trendEndLabel}
+                            </span>
                         </div>
                         <ToggleGroup
                             ariaLabel="Split by"
@@ -181,7 +191,7 @@ export function SpendView({
                             <h2 className="pc-card-title">Spend breakdown</h2>
                         </div>
                         <ToggleGroup
-                            ariaLabel="View as"
+                            ariaLabel="View as: breakdown"
                             label="View as"
                             value={breakdownView}
                             onValueChange={(value) => setBreakdownView(value as BreakdownView)}
@@ -202,7 +212,7 @@ export function SpendView({
                             <h2 className="pc-card-title">Supplier concentration</h2>
                         </div>
                         <ToggleGroup
-                            ariaLabel="View as"
+                            ariaLabel="View as: concentration"
                             label="View as"
                             value={shareView}
                             onValueChange={(value) => setShareView(value as SupplierShareView)}

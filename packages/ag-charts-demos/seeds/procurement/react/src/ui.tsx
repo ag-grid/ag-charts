@@ -4,7 +4,7 @@
 import * as RLabel from '@radix-ui/react-label';
 import * as RSelect from '@radix-ui/react-select';
 import * as RToggleGroup from '@radix-ui/react-toggle-group';
-import { type ButtonHTMLAttributes, type ReactNode, forwardRef, useId } from 'react';
+import { type ButtonHTMLAttributes, type ReactNode, forwardRef } from 'react';
 
 // Forwards its ref so a caller can put focus back on the control it came from — see `AttentionAlert`.
 export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement>>(
@@ -105,15 +105,13 @@ export function ToggleGroup({
     ariaLabel: string;
     label?: string;
 }) {
-    const labelId = useId();
     const hasLabel = label != null && label !== '';
     const group = (
         <RToggleGroup.Root
             className="pc-toggle-group"
             type="single"
             value={value}
-            aria-label={hasLabel ? undefined : ariaLabel}
-            aria-labelledby={hasLabel ? labelId : undefined}
+            aria-label={ariaLabel}
             onValueChange={(next) => {
                 if (next !== '') onValueChange(next);
             }}
@@ -140,7 +138,7 @@ export function ToggleGroup({
     if (!hasLabel) return group;
     return (
         <div className="pc-labeled-select">
-            <span id={labelId}>{label}</span>
+            <span aria-hidden="true">{label}</span>
             {group}
         </div>
     );

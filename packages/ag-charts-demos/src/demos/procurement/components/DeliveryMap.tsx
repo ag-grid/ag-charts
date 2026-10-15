@@ -98,7 +98,7 @@ const LANE_BOUNDS = boundsOf([
  * The zoom that spans the world's full width across the chart, with the band of latitudes it then
  * has room for centred on the shipping lanes. Undefined when the unzoomed map already fills the width.
  */
-function fitWidthZoom(width: number, height: number): AgInitialStateZoomOptions | undefined {
+export function fitWidthZoom(width: number, height: number): AgInitialStateZoomOptions | undefined {
     if (width <= 0 || height <= 0) return undefined;
 
     const top = mercatorY(WORLD_BOUNDS.north);
@@ -281,7 +281,8 @@ export function DeliveryMap({ shipments, selectedShipmentIds, onSelectionChange 
             ],
             legend: { enabled: false },
             padding: 0,
-            zoom: { enabled: true },
+            // The map sits in a scrolling page, so the wheel scrolls it rather than zooming the map.
+            zoom: { enabled: true, enableScrolling: false },
             initialState: initialZoom && { zoom: initialZoom },
             // Ctrl/Cmd-click adds or removes a marker; a click on empty sea clears.
             selection: { enabled: true },

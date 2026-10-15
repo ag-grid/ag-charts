@@ -133,8 +133,8 @@ function KpiSegmentBar({ segments }: { segments: KpiSegment[] }) {
 /**
  * Her delivery headline: the freight from her suppliers that needs watching.
  *
- * Scoped to her commodity rather than the portfolio, so the label says "my" and the denominator is
- * her commodity's in-transit count, not the company's. Spend against allocation is a spend-tab
+ * Scoped to her commodity rather than the portfolio, so the denominator is her commodity's
+ * in-transit count, not the company's. Spend against allocation is a spend-tab
  * figure — see `buildSpendKpis`.
  *
  * `filterLabel` names what the orders tab's filters narrow to, so the detail line says the figure is filtered.
