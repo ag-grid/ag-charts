@@ -28,8 +28,8 @@ import {
     Selection,
     Text,
     TransformableText,
-    cachedTextMeasurer,
     cycledValue,
+    drawnLineHeight,
     findDiscreteColorBinLabel,
     fontWithSize,
     formatValue,
@@ -737,7 +737,7 @@ export class SunburstSeries extends HierarchySeries<
             const layout: LabelLayout = {
                 text: fitted.text,
                 fontSize: fitted.fontSize,
-                lineHeight: fittedFont.lineHeight ?? cachedTextMeasurer(fittedFont).lineHeight(),
+                lineHeight: drawnLineHeight(fittedFont),
                 fontStyle,
                 fontFamily,
                 fontWeight,

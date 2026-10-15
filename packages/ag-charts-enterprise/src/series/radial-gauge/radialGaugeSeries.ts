@@ -25,9 +25,9 @@ import {
     Transformable,
     TransformableText,
     createBigIntTicks,
-    fontWithSize,
     isBetweenAngles,
     isNumberEqual,
+    lineHeightAtSize,
     mergeDefaults,
     normalizeAngle360,
     normalizeAngle360Inclusive,
@@ -458,8 +458,7 @@ export class RadialGaugeSeries
                 rotation,
                 label: {
                     ...pickGaugeTargetLabelOptions(label, target.label),
-                    lineHeight:
-                        target.label?.lineHeight ?? fontWithSize(defaultTarget.label, label.fontSize).lineHeight,
+                    lineHeight: target.label?.lineHeight ?? lineHeightAtSize(defaultTarget.label, label.fontSize),
                     color: label.color,
                     spacing: label.spacing,
                 },

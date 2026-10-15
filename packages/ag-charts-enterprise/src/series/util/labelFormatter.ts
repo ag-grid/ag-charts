@@ -2,6 +2,7 @@ import {
     type FontOptions,
     type NormalisedTextOrSegments,
     cachedTextMeasurer,
+    drawnLineHeight,
     findLargestFittingFontSize,
     findLargestFittingStep,
     fontWithSize,
@@ -172,8 +173,8 @@ export function formatStackedLabels<Meta>(
         const allowTruncation = index === 0;
         const labelFont = labelFontAt(labelProps, labelFontSize);
         const secondaryLabelFont = labelFontAt(secondaryLabelProps, secondaryLabelFontSize);
-        const labelLineHeight = cachedTextMeasurer(labelFont).lineHeight();
-        const secondaryLabelLineHeight = cachedTextMeasurer(secondaryLabelFont).lineHeight();
+        const labelLineHeight = drawnLineHeight(labelFont);
+        const secondaryLabelLineHeight = drawnLineHeight(secondaryLabelFont);
         const sizeFitting = sizeFittingHeight(
             labelLineHeight + secondaryLabelLineHeight + heightAdjust,
             allowTruncation

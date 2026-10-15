@@ -35,6 +35,7 @@ import {
     Transformable,
     cachedTextMeasurer,
     cycledValue,
+    drawnLineHeight,
     findDiscreteColorBinLabel,
     findLargestFittingFontSize,
     fitLabelText,
@@ -1084,7 +1085,7 @@ export class TreemapSeries extends HierarchySeries<TreemapNode, Rect<TreemapNode
     ): LabelLayout {
         const { fontStyle = 'normal', fontFamily, fontWeight = 'normal', color = 'black', textAlign } = props;
         const font = fontWithSize(props, fontSize);
-        const lineHeight = font.lineHeight ?? cachedTextMeasurer(font).lineHeight();
+        const lineHeight = drawnLineHeight(font);
         return {
             text,
             fontSize,

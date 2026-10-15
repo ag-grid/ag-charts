@@ -47,7 +47,6 @@ import { horizontalLineDatum, verticalLineDatum } from './cross-line/crossLineDa
 import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { TextualPointScene } from './scenes/textualPointScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
-import { annotationLineHeight } from './text/util';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { applyAnnotationOptions, resetAnnotationDatum, serialiseAnnotation } from './utils/datum';
 import { getGroupingValue } from './utils/scale';
@@ -348,7 +347,7 @@ export class Annotations extends AbstractModuleInstance {
                     fontSize: datum.fontSize,
                     fontStyle: datum.fontStyle,
                     fontWeight: datum.fontWeight,
-                    lineHeight: annotationLineHeight(datum),
+                    lineHeight: datum.lineHeight,
                     placeholderColor: node.getPlaceholderColor(datum),
                 };
 
@@ -379,7 +378,7 @@ export class Annotations extends AbstractModuleInstance {
             },
 
             updateTextInputFontSize: (font: FontFields) => {
-                const bbox = this.textInput.updateFontSize(font.fontSize, annotationLineHeight(font));
+                const bbox = this.textInput.updateFontSize(font.fontSize, font.lineHeight);
                 this.state.transition('updateTextInputBBox', bbox);
             },
 

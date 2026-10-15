@@ -2,10 +2,11 @@ import type { PaddingOptions } from 'ag-charts-types';
 
 import { isArray } from '../data/typeGuards';
 import type { NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
-import { cachedTextMeasurer, measureLabelText } from '../rendering/textMeasurer';
+import { measureLabelText } from '../rendering/textMeasurer';
 import {
     type LabelFit,
     type RegionAlign,
+    drawnLineHeight,
     findLargestFittingStep,
     fitLabelText,
     fontWithSize,
@@ -184,7 +185,7 @@ function fitStackAtSizes(
         for (let i = 0; i < included.length; i++) {
             const { fit } = blocks[included[i]];
             const font = fontWithSize(fit.font, sizes[i]);
-            const lineHeight = font.lineHeight ?? cachedTextMeasurer(font).lineHeight();
+            const lineHeight = drawnLineHeight(font);
             estimate += lineHeight + boxHeight(fit.boxPadding);
         }
         maxWidth = Math.min(maxWidth, shapeWidthAt(shape, shapeAlign, estimate));

@@ -121,11 +121,11 @@ export class TextInput {
         (this.element.firstElementChild as HTMLDivElement).style.color = color;
     }
 
-    public updateFontSize(fontSize: number, lineHeight: number) {
+    public updateFontSize(fontSize: number, lineHeight: number | undefined) {
         const textArea = this.element.firstElementChild as HTMLDivElement | null;
         if (!textArea) return;
         textArea.style.fontSize = `${fontSize}px`;
-        textArea.style.lineHeight = `${lineHeight}px`;
+        textArea.style.lineHeight = lineHeight == null ? '' : `${lineHeight}px`;
         this.updatePosition();
         return this.getBBox();
     }

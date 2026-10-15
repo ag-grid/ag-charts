@@ -37,15 +37,16 @@ import {
     WeakCache,
     ZIndexMap,
     arraysEqual,
-    cachedTextMeasurer,
     callWithContext,
     clamp,
     clampArray,
     deepFreeze,
+    drawnLineHeight,
     findMinMax,
     findRangeExtent,
     isArray,
     mergeDefaults,
+    stylerLineHeightOverrides,
     toPlainText,
 } from 'ag-charts-core';
 import type {
@@ -672,16 +673,13 @@ export abstract class Axis<
         } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
-            const lineHeight = label.lineHeight ?? cachedTextMeasurer(label).lineHeight();
+            const lineHeight = drawnLineHeight(label);
             stylerOutput = this.cachedCallWithContext(label.itemStyler, {
                 ...params,
                 ...defaultStyle,
                 lineHeight,
             });
-            // A natural line height echoed back unchanged stays natural, so it follows a restyled `fontSize`.
-            if (label.lineHeight == null && stylerOutput?.lineHeight === lineHeight) {
-                stylerOutput = { ...stylerOutput, lineHeight: undefined };
-            }
+            if (stylerOutput) stylerOutput = stylerLineHeightOverrides(stylerOutput, label, lineHeight);
         }
         // OPTIMIZATION: with nothing to merge over it, `defaultStyle` is already the resolved style.
         if (stylerOutput == null && additionalStyles == null) return defaultStyle;

@@ -148,6 +148,13 @@ describe('lineHeight', () => {
             expect(labels.length).toBeGreaterThan(0);
             expect(labels.every((label) => label.fontSize === 24 && label.lineHeight == null)).toBe(true);
         });
+
+        it('keeps a set line height in proportion when the itemStyler restyles only fontSize', async () => {
+            await render(barChart({ fontSize: 12, lineHeight: 18, itemStyler: () => ({ fontSize: 24 }) }));
+            const labels = getVisibleLabelNodes(chart!);
+            expect(labels.length).toBeGreaterThan(0);
+            expect(labels.every((label) => label.fontSize === 24 && label.lineHeight === 36)).toBe(true);
+        });
     });
 
     describe('rendering', () => {

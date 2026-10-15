@@ -10,7 +10,7 @@ import {
     type Selection,
     Text,
     type TextBoxingProperties,
-    fontWithSize,
+    lineHeightAtSize,
     resolveCollideWith,
 } from 'ag-charts-core';
 import type { AgChartLabelCollisionOptions, FontStyle, FontWeight, PaddingOptions, TextWrap } from 'ag-charts-types';
@@ -265,7 +265,7 @@ export function layoutGaugeTargetLabel(
         ...layout,
         text: fitted.text,
         fontSize: fitted.fontSize,
-        lineHeight: fontWithSize(label, fitted.fontSize).lineHeight,
+        lineHeight: lineHeightAtSize(label, fitted.fontSize),
     };
 }
 

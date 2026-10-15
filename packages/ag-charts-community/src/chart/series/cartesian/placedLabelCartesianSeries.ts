@@ -14,7 +14,7 @@ import type {
 import {
     PointerEvents,
     cachedTextMeasurer,
-    fontWithSize,
+    lineHeightAtSize,
     measurePlacedLabel,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
@@ -246,7 +246,7 @@ export abstract class PlacedLabelCartesianSeries<
                 text.fontWeight = fontWeight;
                 text.fontSize = datum.label.fontSize ?? fontSize;
                 text.fontFamily = fontFamily;
-                text.lineHeight = fontWithSize(style, datum.label.fontSize).lineHeight;
+                text.lineHeight = lineHeightAtSize(style, datum.label.fontSize);
                 text.textBaseline = 'top';
                 text.text = datum.label.text;
                 text.x = point.x + offset.x;

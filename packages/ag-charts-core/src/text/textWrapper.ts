@@ -478,10 +478,42 @@ export interface AutoSizedLabelText {
 /** `font` at `fontSize`, or `font` itself when the size is unchanged. A `lineHeight` keeps its proportion to the size. */
 export function fontWithSize(font: FontOptions, fontSize: number | undefined): FontOptions {
     if (fontSize == null || fontSize === font.fontSize) return font;
-    const { fontStyle, fontWeight, fontFamily, lineHeight } = font;
+    const { fontStyle, fontWeight, fontFamily } = font;
     const sized: FontOptions = { fontSize, fontStyle, fontWeight, fontFamily };
-    if (lineHeight != null) sized.lineHeight = (lineHeight * fontSize) / font.fontSize;
+    const lineHeight = lineHeightAtSize(font, fontSize);
+    if (lineHeight != null) sized.lineHeight = lineHeight;
     return sized;
+}
+
+/** `font`'s `lineHeight` kept in proportion at `fontSize`, unset when `font` sets none. */
+export function lineHeightAtSize(font: FontOptions, fontSize: number | undefined): number | undefined {
+    const { lineHeight } = font;
+    return lineHeight == null || fontSize == null || fontSize === font.fontSize
+        ? lineHeight
+        : (lineHeight * fontSize) / font.fontSize;
+}
+
+/** The line height `font` is drawn at, as passed to an `itemStyler`. */
+export function drawnLineHeight(font: FontOptions): number {
+    return font.lineHeight ?? cachedTextMeasurer(font).lineHeight();
+}
+
+/**
+ * Reconciles an `itemStyler` result with `font`: a natural line height echoed back stays unset, and a restyled
+ * `fontSize` without its own `lineHeight` keeps a set line height in proportion.
+ */
+export function stylerLineHeightOverrides<T extends { fontSize?: number; lineHeight?: number }>(
+    result: T,
+    font: FontOptions,
+    paramLineHeight: number
+): T {
+    if (font.lineHeight == null) {
+        return result.lineHeight === paramLineHeight ? { ...result, lineHeight: undefined } : result;
+    }
+    if (result.lineHeight == null && result.fontSize != null) {
+        return { ...result, lineHeight: lineHeightAtSize(font, result.fontSize) };
+    }
+    return result;
 }
 
 /**

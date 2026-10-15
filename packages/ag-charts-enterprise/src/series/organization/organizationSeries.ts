@@ -33,9 +33,10 @@ import {
     Vertex,
     boxCollides,
     boxContains,
-    cachedTextMeasurer,
     clamp,
+    drawnLineHeight,
     mergeDefaults,
+    stylerLineHeightOverrides,
     toPlainText,
 } from 'ag-charts-core';
 import type { Node, Selection } from 'ag-charts-core';
@@ -1221,8 +1222,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             return style;
         }
 
-        const lineHeight = style.lineHeight ?? cachedTextMeasurer(style).lineHeight();
-        let overrides = this.cachedDatumCallback(
+        const lineHeight = drawnLineHeight(style);
+        const overrides = this.cachedDatumCallback(
             _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix, datumState.isCollapsed),
             () => {
                 const params = this.makeNodeTextStylerParams(
@@ -1240,12 +1241,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             }
         );
 
-        // A natural line height echoed back unchanged stays natural, so it follows a restyled `fontSize`.
-        if (style.lineHeight == null && overrides?.lineHeight === lineHeight) {
-            overrides = { ...overrides, lineHeight: undefined };
-        }
         if (overrides) {
-            style = mergeDefaults(overrides, style);
+            style = mergeDefaults(stylerLineHeightOverrides(overrides, style, lineHeight), style);
             // The deprecated `overflowStrategy` is only mapped by the theme, so map a styler-returned value here.
             if (overrides.overflowStrategy != null && overrides.truncate == null) {
                 style.truncate = overrides.overflowStrategy === 'ellipsis';
