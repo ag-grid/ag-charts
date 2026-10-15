@@ -15,6 +15,7 @@ import {
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
+    expectDrawnAtFullRange,
     expectNoAnimation,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
@@ -221,15 +222,6 @@ describe('OhlcSeries', () => {
             const key = barKeys(sample).find((k) => k.startsWith(`series[0]/path[${datePrefix}`));
             expect(key, `bar for ${datePrefix}`).toBeDefined();
             return key!;
-        };
-
-        // Anti-vacuity: three subpaths over a real pixel height means the bar is drawn at full size,
-        // not parked collapsed at a baseline waiting to grow.
-        const expectDrawnAtFullRange = (sample: SceneGeometrySample, key: string) => {
-            const node = sample.get(key);
-            expect(node, key).toBeDefined();
-            expect(node!.subpaths, `${key} subpaths`).toBe(3);
-            expect(node!.height, `${key} height`).toBeGreaterThan(20);
         };
 
         const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {

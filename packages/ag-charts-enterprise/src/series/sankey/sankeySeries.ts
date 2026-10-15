@@ -8,10 +8,15 @@ import {
     type CallbackParamRules,
     type DynamicContext,
     type FontOptions,
+    type LabelFit,
+    type LabelObstacle,
+    type NormalisedChartLabelStyleOptions,
     type NormalisedSankeySeriesLinkOptions,
     type NormalisedSankeySeriesNodeOptions,
     type NormalisedSankeySeriesNodeStyle,
     type NormalisedSankeySeriesOwnOptions,
+    type PlacedLabel,
+    type PointLabelDatum,
     Rect,
     type RequireOptional,
     type TextMeasurer,
@@ -20,12 +25,19 @@ import {
     fitLabelTextAutoSize,
     fontWithSize,
     mergeDefaults,
+    resolveCollideWith,
     toPlainText,
+    writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type { Path, Selection, TransformableText } from 'ag-charts-core';
-import type { OverflowStrategy } from 'ag-charts-types';
+import type { OverflowStrategy, PaddingOptions } from 'ag-charts-types';
 
-import { type FlowLinkDatumIndex, type FlowNodeDatumIndex, toFlowNodeOffset } from '../flow-proportion/flowDatumIndex';
+import {
+    type FlowLinkDatumIndex,
+    type FlowNodeDatumIndex,
+    FlowProportionDatumType,
+    toFlowNodeOffset,
+} from '../flow-proportion/flowDatumIndex';
 import {
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
@@ -34,7 +46,7 @@ import {
 import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
 import { SankeyLink, type SankeyLinkNodeEdge } from './sankeyLink';
 
-const { SeriesNodePickMode, createDatumId, getShapeStyle, getLabelStyles } = _ModuleSupport;
+const { SeriesNodePickMode, createDatumId, expandLabelBoxExtent, getShapeStyle, getLabelStyles } = _ModuleSupport;
 
 interface SankeyNodeDatum extends FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum> {
     size: number;
@@ -61,9 +73,34 @@ interface SankeyNodeLabelDatum {
     textAlign: 'left' | 'right' | 'center';
     text: string;
     fontSize?: number;
+    hidden: boolean;
     size: number;
     nodeDatum: SankeyNodeDatum;
     datumIndex: _ModuleSupport.DatumIndex;
+    /** The label as laid out against the nodes, before the placement engine resolved collisions between labels. */
+    readonly layout: SankeyLabelLayout;
+}
+
+interface SankeyLabelLayout {
+    readonly x: number;
+    readonly y: number;
+    readonly text: string;
+    readonly width: number;
+    readonly height: number;
+    readonly source: string;
+    readonly font: FontOptions;
+    readonly padding: Required<PaddingOptions>;
+    readonly room: number;
+    readonly heightRoom: number;
+    readonly runsPastColumn: boolean;
+}
+
+interface SankeyPlacedLabelDatum extends PointLabelDatum {
+    readonly target: SankeyNodeLabelDatum;
+}
+
+function placedLabelTarget(placed: PlacedLabel<unknown>): SankeyNodeLabelDatum {
+    return (placed.datum as SankeyPlacedLabelDatum).target;
 }
 
 interface GhostNodeGraphEntry {
@@ -129,6 +166,7 @@ export class SankeySeries extends FlowProportionSeries<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            usesPlacedLabels: true,
         });
     }
 
@@ -355,7 +393,7 @@ export class SankeySeries extends FlowProportionSeries<
                 if (labelPlacement === 'center' && edgeLabelPlacement == null) maxWidth /= 2;
                 const { font, hidden } = this.getLabelLayoutStyle(node.datum.size);
                 if (hidden) return acc;
-                const { text, fontSize } = this.fitNodeLabel(node.datum.label, font, maxWidth, 'ellipsis');
+                const { text, fontSize } = this.fitNodeLabel(node.datum.label, font, maxWidth, Infinity, 'ellipsis');
                 let { width } = this.labelMeasurer(font, fontSize).measureLines(text);
                 if (labelPlacement === 'center' && edgeLabelPlacement == null) width /= 2;
                 return Math.max(acc, width);
@@ -586,7 +624,6 @@ export class SankeySeries extends FlowProportionSeries<
             const leading = index === 0;
             const trailing = index === columns.length - 1;
 
-            let bottom = -Infinity;
             column.nodes.sort((a, b) => a.datum.y - b.datum.y);
             for (const n of column.nodes) {
                 if ('ghost' in n && n.ghost) continue;
@@ -599,7 +636,7 @@ export class SankeySeries extends FlowProportionSeries<
                 };
                 nodeData.push(node);
 
-                bottom = this.createNodeLabelData(nodeGraph, columnWidth, labelData, node, leading, trailing, bottom);
+                this.createNodeLabelData(nodeGraph, columnWidth, labelData, node, leading, trailing);
             }
         }
     }
@@ -610,17 +647,16 @@ export class SankeySeries extends FlowProportionSeries<
         labelData: SankeyNodeLabelDatum[],
         node: SankeyNodeDatum,
         leading: boolean,
-        trailing: boolean,
-        bottom: number
+        trailing: boolean
     ) {
-        if (node.label == null) return bottom;
+        if (node.label == null) return;
 
         const {
-            label: { spacing: labelSpacing, edgePlacement: edgeLabelPlacement, truncate },
+            label: { spacing: labelSpacing, edgePlacement: edgeLabelPlacement },
             node: { width: nodeWidth },
         } = this.options;
         const { font, hidden } = this.getLabelLayoutStyle(node.size);
-        if (hidden) return bottom;
+        if (hidden) return;
 
         const y = node.y + node.height / 2;
         const { x, textAlign } = this.getNodeLabelPlacement(node, leading, trailing);
@@ -631,12 +667,12 @@ export class SankeySeries extends FlowProportionSeries<
         let fitted: { text: string; fontSize?: number; room: number } | undefined;
 
         if (!leading && !trailing) {
-            // A label may run past its column while nothing is in the way, but only if it fits whole.
+            // A label may run past its column into the room clear of nodes; neighbouring labels are the engine's job.
             const lineHeight = this.labelMeasurer(font, font.fontSize).lineHeight();
             let halfHeight = lineHeight;
             for (let attempt = 0; attempt < 3; attempt++) {
                 const room = this.getClearLabelRoom(nodeGraph, node, x, textAlign, y - halfHeight, y + halfHeight);
-                const candidate = { ...this.fitNodeLabel(node.label, font, room, 'hide', heightRoom), room };
+                const candidate = { ...this.fitNodeLabel(node.label, font, room, heightRoom), room };
                 if (candidate.text === '') break;
                 fitted = candidate;
                 if (!candidate.text.includes('\n')) break;
@@ -648,42 +684,45 @@ export class SankeySeries extends FlowProportionSeries<
             }
         }
 
-        if (fitted == null) {
-            const extendsOutward = (leading && textAlign === 'right') || (trailing && textAlign === 'left');
-            const labelInset = edgeLabelPlacement == null && (leading || trailing) ? labelSpacing : labelSpacing * 2;
-            const room =
-                textAlign === 'center' || extendsOutward
-                    ? columnWidth - labelInset
-                    : columnWidth - nodeWidth - labelSpacing * 2;
-            const overflowStrategy = truncate === false ? 'hide' : 'ellipsis';
-            fitted = { ...this.fitNodeLabel(node.label, font, room, overflowStrategy, heightRoom), room };
-        }
+        const extendsOutward = (leading && textAlign === 'right') || (trailing && textAlign === 'left');
+        const labelInset = edgeLabelPlacement == null && (leading || trailing) ? labelSpacing : labelSpacing * 2;
+        const columnRoom =
+            textAlign === 'center' || extendsOutward
+                ? columnWidth - labelInset
+                : columnWidth - nodeWidth - labelSpacing * 2;
+        fitted ??= { ...this.fitNodeLabel(node.label, font, columnRoom, heightRoom), room: columnRoom };
 
         const { text, room } = fitted;
-        if (text === '') return bottom;
+        if (text === '') return;
 
         const { width, height } = this.labelMeasurer(font, fitted.fontSize).measureLines(text);
         // Even a lone ellipsis can be wider than the room left, and must not be drawn over a node.
-        if (width > Math.max(room, 0) + 0.5) return bottom;
+        if (width > Math.max(room, 0) + 0.5) return;
 
-        const y0 = y - height / 2;
-        const y1 = y + height / 2;
-
-        if (y0 >= bottom) {
-            labelData.push({
+        labelData.push({
+            x,
+            y,
+            textAlign,
+            text,
+            fontSize: fitted.fontSize,
+            hidden: false,
+            size: node.size,
+            nodeDatum: node,
+            datumIndex: node.datumIndex,
+            layout: {
                 x,
                 y,
-                textAlign,
                 text,
-                fontSize: fitted.fontSize,
-                size: node.size,
-                nodeDatum: node,
-                datumIndex: node.datumIndex,
-            });
-            bottom = y1;
-        }
-
-        return bottom;
+                width,
+                height,
+                source: node.label,
+                font,
+                padding: expandLabelBoxExtent(font),
+                room,
+                heightRoom,
+                runsPastColumn: width > columnRoom + 0.5,
+            },
+        });
     }
 
     /** Room the label has before the nearest node across the band `[top, bottom]` on each side it extends to. */
@@ -735,8 +774,91 @@ export class SankeySeries extends FlowProportionSeries<
         return Math.max(room, this.labelMeasurer(font, undefined).measureLines(firstLine).height);
     }
 
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.isLabelEnabled()) return [];
+        const { collision } = this.options.label;
+        const policy = this.labelFitPolicy();
+        const collideWith = resolveCollideWith(collision);
+        const threshold = collision.threshold ?? 0;
+        const data: SankeyPlacedLabelDatum[] = [];
+        // Placement is greedy, so a label within its own column claims its room before one running past it.
+        for (const runsPastColumn of [false, true]) {
+            for (const target of this.contextNodeData?.labelData ?? []) {
+                if (target.layout.runsPastColumn !== runsPastColumn) continue;
+                const { x, y, text, source, font, padding, room, heightRoom } = target.layout;
+                const width = target.layout.width + padding.left + padding.right;
+                const height = target.layout.height + padding.top + padding.bottom;
+                const anchor = { x, y, textAlign: target.textAlign, textBaseline: 'middle' } as const;
+                const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, padding);
+                const box = { x: centre.x - width / 2, y: centre.y - height / 2, width, height };
+                // A narrower refit may wrap onto more lines, up to the height room around the anchor.
+                const top = Math.min(box.y, y - heightRoom / 2 - padding.top);
+                const bottom = Math.max(box.y + height, y + heightRoom / 2 + padding.bottom);
+                const region = { x: box.x, y: top, width, height: bottom - top };
+                const { nodeDatum } = target;
+                data.push({
+                    point: { x: 0, y: 0, size: 0 },
+                    label: { text, width, height },
+                    fit: { text: source, policy, font, boxPadding: padding, boundByRegion: false },
+                    anchor: undefined,
+                    placement: undefined,
+                    gap: 0,
+                    neverDrop: collision.alwaysShow,
+                    collideWith,
+                    threshold,
+                    positionedCandidates: [
+                        {
+                            box,
+                            region,
+                            flushToRegion: false,
+                            fitTo: {
+                                container: { width: room, height: heightRoom },
+                                ownShape: false,
+                                anchor,
+                                padding,
+                                font,
+                            },
+                        },
+                    ],
+                    ownBox: nodeDatum,
+                    ownBoxLabelsCollide: true,
+                    target,
+                });
+            }
+        }
+        return data;
+    }
+
+    getLabelObstacles(): LabelObstacle[] {
+        const obstacles: LabelObstacle[] = [];
+        for (const datum of this.contextNodeData?.nodeData ?? []) {
+            if (datum.type !== FlowProportionDatumType.Node) continue;
+            const { x, y, width, height } = datum;
+            obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'seriesItem' });
+        }
+        return obstacles;
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<SankeyNodeLabelDatum>[]) {
+        for (const target of this.contextNodeData?.labelData ?? []) {
+            target.hidden = true;
+        }
+        for (const label of placed) {
+            const target = placedLabelTarget(label);
+            target.hidden = false;
+            target.text = toPlainText(label.text);
+            target.fontSize = label.fontSize;
+            target.x = target.layout.x + (label.offsetX ?? 0);
+            target.y = target.layout.y + (label.offsetY ?? 0);
+        }
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
+    }
+
     /** Laid out with the unhighlighted `itemStyler` result, so hovering restyles a label without reflowing it. */
-    private getLabelLayoutStyle(size: number): { font: FontOptions; hidden: boolean } {
+    private getLabelLayoutStyle(size: number): {
+        font: NormalisedChartLabelStyleOptions & FontOptions;
+        hidden: boolean;
+    } {
         const { label } = this.options;
         if (label.itemStyler == null) return { font: label, hidden: false };
         const style = getLabelStyles(this, undefined, this.getLabelFormatterParams(size), label, false, undefined);
@@ -748,23 +870,33 @@ export class SankeySeries extends FlowProportionSeries<
         return { fromKey, size, sizeKey, toKey };
     }
 
+    private labelFitPolicy(): LabelFit {
+        const { maxWidth, maxHeight, wrapping = 'never', truncate, minimumFontSize } = this.options.label;
+        return {
+            maxWidth,
+            maxHeight,
+            wrapping,
+            overflowStrategy: truncate === false ? 'hide' : 'ellipsis',
+            minimumFontSize,
+        };
+    }
+
     private fitNodeLabel(
         text: string,
         font: FontOptions,
         room: number,
-        overflowStrategy: OverflowStrategy,
-        heightRoom = Infinity
+        heightRoom: number,
+        overflowStrategy?: OverflowStrategy
     ) {
-        const { label } = this.options;
-        const maxHeight = Math.min(heightRoom, label.maxHeight ?? Infinity);
+        const policy = this.labelFitPolicy();
+        const maxHeight = Math.min(heightRoom, policy.maxHeight ?? Infinity);
         const fitted = fitLabelTextAutoSize(
             text,
             {
-                maxWidth: Math.min(room, label.maxWidth ?? Infinity),
+                ...policy,
+                maxWidth: Math.min(room, policy.maxWidth ?? Infinity),
                 maxHeight: Number.isFinite(maxHeight) ? maxHeight : undefined,
-                wrapping: label.wrapping ?? 'never',
-                overflowStrategy,
-                minimumFontSize: label.minimumFontSize,
+                overflowStrategy: overflowStrategy ?? policy.overflowStrategy,
             },
             font
         );
@@ -871,6 +1003,10 @@ export class SankeySeries extends FlowProportionSeries<
         const activeHighlightDatum = this.getHighlightedDatum();
         opts.labelSelection.each((label, datum) => {
             const { x, y, textAlign, text, datumIndex, nodeDatum, fontSize: fittedFontSize } = datum;
+            if (datum.hidden) {
+                label.visible = false;
+                return;
+            }
             const params = this.getLabelFormatterParams(datum.size);
 
             const isHighlight = this.isLabelHighlighted(nodeDatum, activeHighlightDatum);

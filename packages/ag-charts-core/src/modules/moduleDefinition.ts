@@ -85,6 +85,8 @@ export interface SeriesPluginModuleInstance extends ModuleInstance {
     getPropertyDefinitions(opts: PropertyDefinitionOpts): any[] /* PropertyDefinition<unknown>[] */;
     getDomain(direction: any /* ChartAxisDirection */): any[];
     getTooltipParams(): object;
+    /** Writes the plugin's geometry onto a node datum while the series builds it, ahead of its label anchor. */
+    updateNodeDatum?(datum: unknown): void;
 }
 
 export interface ModuleDefinition<

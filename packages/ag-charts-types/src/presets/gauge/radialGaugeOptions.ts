@@ -153,6 +153,12 @@ export interface AgRadialGaugeThemeableOptions<
 export interface AgRadialGaugePreset<TContext = ContextDefault> extends AgRadialGaugeThemeableOptions<TContext> {
     /** Configuration for the Radial Gauge. */
     type: 'radial-gauge';
+    /**
+     * Primary identifier for the series. This is provided as `seriesId` in user callbacks to differentiate multiple series.
+     *
+     * Default: `'gauge'`
+     */
+    id?: string;
     /** Value of the Radial Gauge. */
     value: AgNumericValue;
     /** Configuration for the targets. */

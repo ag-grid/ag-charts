@@ -38,6 +38,8 @@ In this example:
 
 Set `selection.enabled` to let users click a price level to select it, highlighting both its up and down segments and the background behind it. In a Financial Chart, set the same options on `volumeProfile.selection`.
 
+The two segments have the fixed series ids `'volumeProfileUp'` and `'volumeProfileDown'`, in both chart types, for use in selection callbacks, `setSelection()` and `getSelection()`.
+
 {% chartExampleRunner title="Selecting Price Levels" name="selection" type="generated" /%}
 
 ```js format="snippet"
@@ -82,3 +84,13 @@ To have the price crosshair follow the pointer instead, set `snap` to `false` on
     },
 }
 ```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgVolumeProfileChartOptions" label="Options" %}
+{% apiReference id="AgVolumeProfileChartOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

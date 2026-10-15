@@ -3,6 +3,7 @@ import { describe, test } from 'vitest';
 import { type AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     compareImageSnapshot,
+    seedRandom,
     setupMockCanvas,
     setupMockConsole,
     touchDragAction,
@@ -70,26 +71,6 @@ describe('Touch', () => {
 
 // These options closely replicate the Touch page's `single-finger-touch-dragging` example.
 function getOptions(): AgCartesianChartOptions {
-    function seedRandom(seed = 1337): () => number {
-        function sfc32(a: number, b: number, c: number, d: number) {
-            return function () {
-                a >>>= 0;
-                b >>>= 0;
-                c >>>= 0;
-                d >>>= 0;
-                let t = Math.trunc(a + b);
-                a = b ^ (b >>> 9);
-                b = Math.trunc(c + (c << 3));
-                c = (c << 21) | (c >>> 11);
-                d = Math.trunc(d + 1);
-                t = Math.trunc(t + d);
-                c = Math.trunc(c + t);
-                return (t >>> 0) / 4294967296;
-            };
-        }
-        return sfc32(0x9e3779b9, 0x243f6a88, 0xb7e15162, seed ^ 0xdeadbeef);
-    }
-
     function getData(days: number) {
         const startPrice = 100;
         const maxDailyPriceChange = 5;

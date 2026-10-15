@@ -4,12 +4,12 @@ import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
     AgCartesianAxesOptions,
-    AgCartesianAxisPosition,
     AgCartesianChartOptions,
     AgChartOptions,
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
+    applyAxesFlip,
     compareImageSnapshot,
     deproxy,
     hoverAction,
@@ -22,28 +22,6 @@ import {
 import { mapValues } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-
-function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
-    const positionFlip = (position?: AgCartesianAxisPosition) => {
-        switch (position) {
-            case 'top':
-                return 'bottom';
-            case 'left':
-                return 'right';
-            case 'bottom':
-                return 'top';
-            case 'right':
-                return 'left';
-            default:
-                return position;
-        }
-    };
-
-    return {
-        ...opts,
-        axes: mapValues(opts['axes'] ?? {}, (axis) => ({ ...axis, position: positionFlip(axis?.position) })),
-    };
-}
 
 function applyCrosshairSnap<T extends AgCartesianChartOptions>(opts: T, snap: boolean): T {
     return {

@@ -137,7 +137,12 @@ export function priceVolume(
     } satisfies AgCartesianChartOptions<DatumDefault, never>;
 }
 
+/** Fixed series ids, so selection callbacks, `setSelection()` and `getSelection()` have a stable `seriesId`. */
+const PRICE_SERIES_ID = 'price';
+const VOLUME_SERIES_ID = 'volume';
+
 interface PriceSeriesCommon {
+    id: string;
     pickOutsideVisibleMinorAxis: boolean;
     tooltip: { enabled: boolean };
     selection?: { enabled: boolean };
@@ -167,6 +172,7 @@ function createPriceSeries(
         yKey: keys.closeKey,
     };
     const common: PriceSeriesCommon = {
+        id: PRICE_SERIES_ID,
         tooltip: { enabled: false },
         pickOutsideVisibleMinorAxis: true,
         ...(selection === undefined ? undefined : { selection }),
@@ -267,6 +273,7 @@ function createVolumeSeries(
 
     return [
         {
+            id: VOLUME_SERIES_ID,
             type: 'bar',
             xKey,
             yKey: volumeKey,
