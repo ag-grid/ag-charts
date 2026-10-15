@@ -25,11 +25,34 @@ export const fmtCurrencyCompact = (n: number) => {
     return currencyFmt.format(n);
 };
 
+/** Whole millions for spend axis ticks: $0, $20M. Pair with `wholeMillionStep` so no two ticks round alike. */
+export const fmtCurrencyMillions = (n: number) => (n === 0 ? '$0' : `$${Math.round(n / 1_000_000)}M`);
+
+/**
+ * The smallest 1-2-5 step of whole millions that spans `max` in at most `maxTicks` intervals. Never
+ * below $1M, since `fmtCurrencyMillions` would label finer ticks alike: suits spend in the millions only.
+ */
+export const wholeMillionStep = (max: number, maxTicks = 5) => {
+    if (!Number.isFinite(max) || max <= 0) return 1_000_000;
+    for (let magnitude = 1_000_000; ; magnitude *= 10) {
+        for (const multiple of [1, 2, 5]) {
+            const step = multiple * magnitude;
+            if (max / step <= maxTicks) return step;
+        }
+    }
+};
+
 /** Unit prices need cents; totals do not. */
 export const fmtPrice = (n: number) => priceFmt.format(n);
 
-/** Every rate in the demo is a 0–1 fraction, so this is the only percentage formatter. */
+/** Every rate in the demo is a 0–1 fraction, read to one decimal place. */
 export const fmtPct = (fraction: number) => `${percentFmt.format(fraction * 100)}%`;
+
+/** A rate to the whole percent, for axis ticks that are themselves whole percents. */
+export const fmtPctWhole = (fraction: number) => `${Math.round(fraction * 100)}%`;
+
+/** A price as a multiple of list price: `1.04x`, or `1.0x` on an axis tick. */
+export const fmtIndex = (index: number, digits = 2) => `${index.toFixed(digits)}x`;
 
 /** A variance, where the sign is the point: `+3%` over contract, `-1%` under. */
 export const fmtSignedPct = (fraction: number) =>
@@ -46,15 +69,4 @@ export const fmtDaysToGo = (days: number) => {
     if (days < 0) return `${Math.abs(days)}d overdue`;
     if (days === 0) return 'due today';
     return `${days}d to go`;
-};
-
-/**
- * Slack between a projected arrival and the date it is needed by. This, not time
- * remaining, is what a delivery status is derived from: a shipment can be a week from its
- * required date and still be late, because it is not projected to arrive until after it.
- */
-export const fmtSlack = (days: number) => {
-    if (days < 0) return `${Math.abs(days)}d past required`;
-    if (days === 0) return 'no buffer';
-    return `${days}d buffer`;
 };

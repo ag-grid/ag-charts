@@ -1,5 +1,5 @@
 import * as RTabs from '@radix-ui/react-tabs';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import { supplierColors as buildSupplierColors } from './chartTheme';
 import { AttentionAlert } from './components/AttentionAlert';
@@ -30,6 +30,7 @@ import {
     applySelectionChange,
     myAttentionItems,
     myBurnUp,
+    myMaterialQualityCost,
     myOrdersFilterOptions,
     myOrdersInRange,
     myOrdersScope,
@@ -88,6 +89,11 @@ const TAB_LABELS = new Map<string, string>(TABS.map((entry) => [entry.value, ent
 
 export function WorkspaceApp() {
     const [tab, setTab] = useState<string>('orders');
+    const bodyRef = useRef<HTMLDivElement>(null);
+    // The tabs share one scroll region, so each would otherwise open at the last one's offset.
+    useLayoutEffect(() => {
+        bodyRef.current?.scrollTo({ top: 0 });
+    }, [tab]);
     /**
      * Selection is per tab, and deliberately does not travel.
      *
@@ -142,11 +148,6 @@ export function WorkspaceApp() {
     const spendRange = useMemo(() => mySpendPeriod(spendPeriod), [spendPeriod]);
     const spendOrders = useMemo(() => myOrdersInRange(spendRange), [spendRange]);
 
-    // Selecting the same thing again clears it, on both tabs.
-    const onSelectSupplier = useCallback((supplierId: string) => {
-        setSelectedSupplierId((prev) => (prev === supplierId ? undefined : supplierId));
-    }, []);
-
     const onShipmentSelectionChange = useCallback((added: string[], removed: string[]) => {
         setSelectedShipmentIds((prev) => applySelectionChange(prev, added, removed));
     }, []);
@@ -196,6 +197,7 @@ export function WorkspaceApp() {
     const slipDistributions = useMemo(() => mySlipDistributions(months), [months]);
     const supplierTrend = useMemo(() => mySupplierTrend(months), [months]);
     const qualityCost = useMemo(() => myQualityCost(months), [months]);
+    const materialQualityCost = useMemo(() => myMaterialQualityCost(months), [months]);
 
     const shareRows = useMemo(() => mySupplierShare(spendOrders), [spendOrders]);
     // Fixed to the current quarter, matching the allocation it is paced against.
@@ -215,7 +217,14 @@ export function WorkspaceApp() {
     );
 
     const summary = useMemo(() => mySummary(spendOrders, ordersScope), [spendOrders, ordersScope]);
-    const kpis = useMemo(() => buildKpis(summary), [summary]);
+    const filterLabel = useMemo(() => {
+        const parts = [
+            ordersFilter.supplierId === ALL_FILTER ? undefined : SUPPLIER_NAMES.get(ordersFilter.supplierId),
+            ordersFilter.subcategory === ALL_FILTER ? undefined : ordersFilter.subcategory,
+        ].filter((part) => part != null);
+        return parts.length > 0 ? parts.join(' · ') : undefined;
+    }, [ordersFilter]);
+    const kpis = useMemo(() => buildKpis(summary, filterLabel), [summary, filterLabel]);
     const spendPosition = useMemo(() => mySpendPosition(spendPeriod), [spendPeriod]);
     const spendKpis = useMemo(
         () =>
@@ -271,7 +280,7 @@ export function WorkspaceApp() {
                 </div>
             </aside>
 
-            <div className="pc-body">
+            <div className="pc-body" ref={bodyRef}>
                 <div className="pc-view">
                     <div className="pc-page-head">
                         <h1 className="pc-page-title">{TAB_LABELS.get(tab) ?? ''}</h1>
@@ -369,9 +378,10 @@ export function WorkspaceApp() {
                             supplierNames={SUPPLIER_NAMES}
                             supplierColors={SUPPLIER_COLORS}
                             selectedSupplierId={selectedSupplierId}
-                            onSelectSupplier={onSelectSupplier}
+                            onSelectedSupplierChange={setSelectedSupplierId}
                             slipDistributions={slipDistributions}
                             qualityCost={qualityCost}
+                            materialQualityCost={materialQualityCost}
                             trend={supplierTrend}
                         />
                     </RTabs.Content>
