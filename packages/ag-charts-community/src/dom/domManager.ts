@@ -28,6 +28,7 @@ import type { EventsHub } from '../core/eventsHub';
 import STYLES from '../styles.css';
 import { DOMElementProxy, type DeferredMode } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';
+import { isInHostWithLeakingStyles } from './hostStyleIsolation';
 
 const DOM_ELEMENT_CLASSES = [
     'styles',
@@ -106,6 +107,13 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
     return div;
 }
 
+function createIsolationHost() {
+    // `display: contents` keeps the host out of layout, so the chart sizes against the container as before.
+    const host = createElement('div', { display: 'contents' });
+    host.attachShadow({ mode: 'open' });
+    return host;
+}
+
 // Singleton global-listener registry for minimal-mode charts — one DOM listener set per
 // Window, fanned out to all subscribers. Torn down when the last subscriber unregisters.
 
@@ -164,6 +172,8 @@ export class DOMManager extends BaseManager {
     private readonly element: HTMLElement;
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
+    // Shadow host this manager owns inside the container, isolating the chart from the host page's styles.
+    private isolationHost?: HTMLElement = undefined;
     private shadowDocumentRoot?: HTMLElement = undefined;
     // OPTIMIZATION: mirrors the registered CSS-variable watchers so `updateCSSVariableWatchers`
     // skips an O(children) DOM scan. Normal-path watchers are children of `this.element` and move
@@ -318,6 +328,7 @@ export class DOMManager extends BaseManager {
             this.sizeMonitor.unobserve(this.container);
         }
         this.element.remove();
+        this.isolationHost?.remove();
     }
 
     override destroy() {
@@ -344,6 +355,7 @@ export class DOMManager extends BaseManager {
         }
 
         this.element.remove();
+        this.isolationHost?.remove();
     }
 
     private scheduleFlush() {
@@ -425,7 +437,13 @@ export class DOMManager extends BaseManager {
 
         this.disconnectAttachObservers();
 
-        this.shadowDocumentRoot = this.getShadowDocumentRoot(this.container);
+        if (this.container == null) {
+            this.shadowDocumentRoot = undefined;
+        } else {
+            // Detection needs the attached page, so a container connected late is mounted again.
+            this.updateMountPoint(this.container);
+            this.appendElement(this.container);
+        }
         this.initiallyConnected = true;
         // Remove styles from our DOM tree before re-adding to correct location
         for (const id of this.rootElements['styles'].children.keys()) {
@@ -514,9 +532,9 @@ export class DOMManager extends BaseManager {
         this.agDocument.setContainer(pendingContainer);
         // Shadow-path watchers live on the shadow root; clearing the mirror for a move within the
         // same root would re-register duplicates.
-        const previousShadowRoot = this.shadowDocumentRoot?.getRootNode();
-        this.shadowDocumentRoot = this.getShadowDocumentRoot(pendingContainer);
-        if (this.shadowDocumentRoot?.getRootNode() !== previousShadowRoot) {
+        const previousShadowRoot = this.getShadowRoot();
+        this.updateMountPoint(pendingContainer);
+        if (this.getShadowRoot() !== previousShadowRoot) {
             this.shadowCssVariableWatchers.clear();
         }
         this.initiallyConnected = pendingContainer.isConnected;
@@ -528,7 +546,7 @@ export class DOMManager extends BaseManager {
             this.addStyles(id, styles);
         }
 
-        pendingContainer.appendChild(this.element);
+        this.appendElement(pendingContainer);
         this.sizeMonitor.observe(
             pendingContainer,
             (size) => {
@@ -712,8 +730,9 @@ export class DOMManager extends BaseManager {
         }
 
         let element: HTMLElement | null = this.element;
-        const fullScreenElement = (this.element.getRootNode() as any as DocumentOrShadowRoot | undefined)
-            ?.fullscreenElement;
+        const fullScreenElement = (
+            (this.isolationHost ?? this.element).getRootNode() as any as DocumentOrShadowRoot | undefined
+        )?.fullscreenElement;
 
         // Try and find a parent which will clip rendering of children - if found we should restrict
         // to that elements bounding box.
@@ -733,7 +752,11 @@ export class DOMManager extends BaseManager {
                 return element;
             }
 
-            element = element.parentElement;
+            // The chart element's parent is our shadow root, so continue the walk from the host's parent.
+            element =
+                element === this.element && this.isolationHost != null
+                    ? this.isolationHost.parentElement
+                    : element.parentElement;
         }
 
         this._cachedScrollableContainer = null;
@@ -766,8 +789,8 @@ export class DOMManager extends BaseManager {
         }
 
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
-        // viewport.
-        if (this.shadowDocumentRoot != null) {
+        // viewport. A shadow root of our own is invisible to the page, so overlays keep the window.
+        if (this.shadowDocumentRoot != null && this.isolationHost == null) {
             this._cachedRawOverlayRect = BBox.fromObject(this.shadowDocumentRoot.getBoundingClientRect());
             return this._cachedRawOverlayRect;
         }
@@ -776,6 +799,41 @@ export class DOMManager extends BaseManager {
         const { innerWidth, innerHeight } = this.agDocument;
         this._cachedRawOverlayRect = new BBox(0, 0, innerWidth, innerHeight);
         return this._cachedRawOverlayRect;
+    }
+
+    private updateMountPoint(container: HTMLElement) {
+        if (this.shouldIsolate(container)) {
+            this.isolationHost ??= createIsolationHost();
+            if (this.isolationHost.parentNode !== container) {
+                container.appendChild(this.isolationHost);
+            }
+            this.shadowDocumentRoot = this.element;
+        } else {
+            this.isolationHost?.remove();
+            this.isolationHost = undefined;
+            this.shadowDocumentRoot = this.getShadowDocumentRoot(container);
+        }
+    }
+
+    private shouldIsolate(container: HTMLElement) {
+        // Styles placed by the caller or skipped for SSR could not reach a shadow root of ours.
+        return (
+            this.mode === 'normal' &&
+            this.styleContainer == null &&
+            this.skipCss !== true &&
+            isInHostWithLeakingStyles(container)
+        );
+    }
+
+    private appendElement(container: HTMLElement) {
+        const parent = this.isolationHost?.shadowRoot ?? container;
+        if (this.element.parentNode !== parent) {
+            parent.appendChild(this.element);
+        }
+    }
+
+    private getShadowRoot(): Node | undefined {
+        return this.isolationHost?.shadowRoot ?? this.shadowDocumentRoot?.getRootNode();
     }
 
     private getShadowDocumentRoot(current = this.container) {
@@ -1124,7 +1182,7 @@ export class DOMManager extends BaseManager {
     }
 
     private updateCSSVariableWatchersShadowDOM(cssVariables: Record<string, string>) {
-        const shadowRoot = this.shadowDocumentRoot?.getRootNode() as HTMLElement | undefined;
+        const shadowRoot = this.getShadowRoot() as HTMLElement | undefined;
         if (!shadowRoot || !('addEventListener' in shadowRoot)) return;
 
         // Attach a single event listener to the shadow root to catch the bubbled events for every property, rather
