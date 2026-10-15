@@ -1119,14 +1119,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             hasNonDefaultSeriesAxisKeys && nonDefaultSeriesAxisKeysCount < (options?.series?.length ?? 0);
 
         const primarySeriesOptions = options.series?.[0];
+        const isPrimarySeriesHorizontal =
+            isObject(primarySeriesOptions) && this.isSeriesHorizontal(primarySeriesOptions);
+        const predictionSeriesOptions = isPrimarySeriesHorizontal
+            ? { ...primarySeriesOptions, direction: 'horizontal' }
+            : primarySeriesOptions;
         const seriesType = this.optionsType(options);
         const defaultAxes: Record<string, PlainObject> =
-            this.predictAxes(seriesType, directions, primarySeriesOptions, options.data) ??
+            this.predictAxes(seriesType, directions, predictionSeriesOptions, options.data) ??
             this.cloneDefaultAxes(seriesType);
 
         const isPrimarySeriesFlipped =
-            isObject(primarySeriesOptions) &&
-            this.isSeriesHorizontal(primarySeriesOptions) &&
+            isPrimarySeriesHorizontal &&
             this.moduleRegistry.getSeriesModule(primarySeriesOptions.type)?.axisKeysFlipped != null;
 
         if (!hasAxes && !hasNonDefaultSeriesAxisKeys && !isPrimarySeriesFlipped) {

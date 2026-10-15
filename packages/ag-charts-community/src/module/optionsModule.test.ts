@@ -4308,6 +4308,24 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.series?.[0]).toMatchObject({ xKeyAxis: 'y', yKeyAxis: 'x' });
             });
 
+            it('should predict axes for a series made horizontal by a theme override', () => {
+                const options: AgCartesianChartOptions = {
+                    data: [
+                        { x: new Date(2020, 0, 1), y: 1 },
+                        { x: new Date(2020, 0, 2), y: 2 },
+                    ],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    theme: { overrides: { bar: { series: { direction: 'horizontal' } } } },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'time', position: 'left' },
+                });
+            });
+
             it('should let a series direction take precedence over a theme override', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y', direction: 'vertical' }],
