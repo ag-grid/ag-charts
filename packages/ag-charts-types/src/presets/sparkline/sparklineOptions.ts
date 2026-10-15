@@ -82,6 +82,7 @@ type AgSparklineSeriesOmit =
     | 'tooltip'
     | 'listeners'
     | 'errorBar'
+    | 'focusIndex'
     | 'xKey'
     | 'yKey';
 

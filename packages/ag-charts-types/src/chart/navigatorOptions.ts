@@ -75,6 +75,7 @@ export interface AgNavigatorMiniChartLabelOptions<TContext = ContextDefault> {
 export type CommonIgnoredProperties =
     | 'context'
     | 'cursor'
+    | 'focusIndex'
     | 'highlight'
     | 'highlightStyle'
     | 'listeners'
