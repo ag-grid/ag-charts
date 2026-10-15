@@ -819,48 +819,48 @@ describe('Chart', () => {
                 }
             });
 
-            it('takes on the axes of a grown data set after a same-length type change', async () => {
+            describe('axes predicted from a grown data set', () => {
                 const series = [{ type: 'line', xKey: 'when', yKey: 'gdp' }];
                 const numbers = (count: number) => Array.from({ length: count }, (_, i) => ({ when: i, gdp: i }));
                 const dates = (count: number) =>
                     Array.from({ length: count }, (_, i) => ({ when: new Date(2020, i, 1), gdp: i }));
-                const chartProxy = AgCharts.create(prepareTestOptions({ data: numbers(5), series } as any));
-                chart = deproxy(chartProxy);
-                await waitForChartStability(chart);
+                const axisTypes = (c: Chart) => c.axes.map((axis) => axis.type);
 
-                await chartProxy.updateDelta({ data: dates(5) } as any);
-                await waitForChartStability(chart);
-                await chartProxy.updateDelta({ data: dates(6) } as any);
-                await waitForChartStability(chart);
+                it('takes on the axes of a grown data set after a same-length type change', async () => {
+                    const chartProxy = AgCharts.create(prepareTestOptions({ data: numbers(5), series } as any));
+                    chart = deproxy(chartProxy);
+                    await waitForChartStability(chart);
 
-                const fresh = deproxy(AgCharts.create(prepareTestOptions({ data: dates(6), series } as any)));
-                try {
-                    await waitForChartStability(fresh);
-                    expect(chart.axes.map((axis) => axis.type)).toEqual(fresh.axes.map((axis) => axis.type));
-                } finally {
-                    fresh.destroy();
-                }
-            });
+                    await chartProxy.updateDelta({ data: dates(5) } as any);
+                    await waitForChartStability(chart);
+                    await chartProxy.updateDelta({ data: dates(6) } as any);
+                    await waitForChartStability(chart);
 
-            it('takes on the axes a grown data set predicts, as a fresh chart does', async () => {
-                const series = [{ type: 'line', xKey: 'when', yKey: 'gdp' }];
-                const dates = Array.from({ length: 8 }, (_, i) => ({ when: new Date(2020, i, 1), gdp: i }));
-                const chartProxy = AgCharts.create(
-                    prepareTestOptions({ data: [{ when: 'a', gdp: 1 }], series } as any)
-                );
-                chart = deproxy(chartProxy);
-                await waitForChartStability(chart);
+                    const fresh = await createChart({ data: dates(6), series } as any);
+                    try {
+                        expect(axisTypes(chart)).toEqual(axisTypes(fresh));
+                    } finally {
+                        fresh.destroy();
+                    }
+                });
 
-                await chartProxy.updateDelta({ data: dates } as any);
-                await waitForChartStability(chart);
+                it('takes on the axes a grown data set predicts, as a fresh chart does', async () => {
+                    const chartProxy = AgCharts.create(
+                        prepareTestOptions({ data: [{ when: 'a', gdp: 1 }], series } as any)
+                    );
+                    chart = deproxy(chartProxy);
+                    await waitForChartStability(chart);
 
-                const fresh = await createChart({ data: dates, series } as any);
-                try {
-                    const axisTypes = (c: Chart) => c.axes.map((axis) => axis.type);
-                    expect(axisTypes(chart)).toEqual(axisTypes(fresh));
-                } finally {
-                    fresh.destroy();
-                }
+                    await chartProxy.updateDelta({ data: dates(8) } as any);
+                    await waitForChartStability(chart);
+
+                    const fresh = await createChart({ data: dates(8), series } as any);
+                    try {
+                        expect(axisTypes(chart)).toEqual(axisTypes(fresh));
+                    } finally {
+                        fresh.destroy();
+                    }
+                });
             });
         });
 

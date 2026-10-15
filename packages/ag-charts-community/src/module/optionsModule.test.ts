@@ -5969,6 +5969,22 @@ describe('ChartOptions', () => {
                 expect(strip(updated.processedOptions)).toEqual(strip(fresh.processedOptions));
             });
 
+            it('stays on the fast path through consecutive growing deltas of dated rows', () => {
+                const dated = (count: number) =>
+                    Array.from({ length: count }, (_, i) => ({ when: new Date(2020, i, 1), gdp: i }));
+                const base = createBase({
+                    data: dated(5),
+                    series: [{ type: 'line', xKey: 'when', yKey: 'gdp' }],
+                } as AgChartOptions);
+
+                const first = applyDelta(base, { data: dated(6) });
+                const second = applyDelta(first, { data: dated(7) });
+                const third = applyDelta(second, { data: dated(8) });
+
+                expect([first, second, third].map((options) => options.revalidated)).toEqual([false, false, false]);
+                expect(third.processedOptions.data).toHaveLength(8);
+            });
+
             it('takes the fast path for a shrinking data set', () => {
                 const base = createBase({
                     data: rows(20),

@@ -21,7 +21,10 @@ const numericNodeData = (chart: any) =>
         )
     );
 
-describe('updateDelta() layout keys on charts without axes', () => {
+const MULTI_LINE_TITLE = { title: { text: 'A\nmulti-line\ntitle' } };
+const PADDING = { padding: { top: 120, left: 100 } };
+
+describe('updateDelta() layout keys', () => {
     setupMockConsole();
     setupMockCanvas();
 
@@ -34,67 +37,64 @@ describe('updateDelta() layout keys on charts without axes', () => {
         chart = fresh = undefined;
     });
 
-    it.each([
-        { type: 'sankey', delta: { padding: { top: 120, left: 100 } } },
-        { type: 'sankey', delta: { title: { text: 'A\nmulti-line\ntitle' } } },
-        { type: 'chord', delta: { padding: { top: 120, left: 100 } } },
-    ])('lays out $type series as a fresh chart does after $delta', async ({ type, delta }) => {
-        const options = (extra: object) =>
-            prepareEnterpriseTestOptions({
-                data: FLOWS,
-                series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
-                ...extra,
-            } as any);
-        const proxy = AgCharts.create(options({}));
+    // Applies `delta` to a chart built from `options`, then compares `read` of it with a chart built with `delta` already
+    // in its options.
+    async function expectDeltaToMatchFreshChart(options: object, delta: object, read: (chart: any) => unknown) {
+        const create = (extra: object) =>
+            deproxy(AgCharts.create(prepareEnterpriseTestOptions({ ...options, ...extra } as any)));
+        const proxy = AgCharts.create(prepareEnterpriseTestOptions(options as any));
         chart = deproxy(proxy);
         await waitForChartStability(chart);
 
         await proxy.updateDelta(delta as any);
         await waitForChartStability(chart);
 
-        fresh = deproxy(AgCharts.create(options(delta)));
+        fresh = create(delta);
         await waitForChartStability(fresh);
-        expect(numericNodeData(chart)[0].length).toBeGreaterThan(0);
-        expect(numericNodeData(chart)).toEqual(numericNodeData(fresh));
+        expect(read(chart)).toEqual(read(fresh));
+        return read(chart);
+    }
+
+    describe('on charts without axes', () => {
+        it.each([
+            { type: 'sankey', delta: PADDING },
+            { type: 'sankey', delta: MULTI_LINE_TITLE },
+            { type: 'chord', delta: PADDING },
+        ])('lays out $type series as a fresh chart does after $delta', async ({ type, delta }) => {
+            const nodeData = await expectDeltaToMatchFreshChart(
+                { data: FLOWS, series: [{ type, fromKey: 'from', toKey: 'to', sizeKey: 'size' }] },
+                delta,
+                numericNodeData
+            );
+            expect((nodeData as unknown[][])[0].length).toBeGreaterThan(0);
+        });
+
+        it.each([PADDING, MULTI_LINE_TITLE])(
+            'projects map-shape series as a fresh chart does after %o',
+            async (delta) => {
+                const geometry = await expectDeltaToMatchFreshChart(
+                    { data: ukData, topology: ukTopology, series: [{ type: 'map-shape', idKey: 'name' }] },
+                    delta,
+                    (c) => JSON.stringify(c.series[0].contextNodeData.nodeData.map((d: any) => d.projectedGeometry))
+                );
+                expect((geometry as string).length).toBeGreaterThan(100);
+            }
+        );
     });
-});
 
-describe('updateDelta() layout keys on a map', () => {
-    setupMockConsole();
-    setupMockCanvas();
+    describe('on charts with axes', () => {
+        const cells = ['a', 'b', 'c'].flatMap((x) => ['p', 'q'].map((y, i) => ({ x, y, value: x.length + i })));
 
-    let chart: any;
-    let fresh: any;
-
-    afterEach(() => {
-        chart?.destroy();
-        fresh?.destroy();
-        chart = fresh = undefined;
+        it.each([
+            { type: 'heatmap', data: cells, series: { xKey: 'x', yKey: 'y', colorKey: 'value' } },
+            { type: 'bar', data: cells, series: { xKey: 'x', yKey: 'value' } },
+        ])('lays out a $type series as a fresh chart does after a multi-line title', async ({ type, data, series }) => {
+            const geometry = await expectDeltaToMatchFreshChart(
+                { data, series: [{ type, ...series }] },
+                MULTI_LINE_TITLE,
+                (c) => c.series[0].contextNodeData.nodeData.map((d: any) => [d.x, d.y, d.width, d.height])
+            );
+            expect((geometry as unknown[]).length).toBeGreaterThan(0);
+        });
     });
-
-    it.each([{ padding: { top: 120, left: 100 } }, { title: { text: 'A\nmulti-line\ntitle' } }])(
-        'projects map-shape series as a fresh chart does after %o',
-        async (delta) => {
-            const options = (extra: object) =>
-                prepareEnterpriseTestOptions({
-                    data: ukData,
-                    topology: ukTopology,
-                    series: [{ type: 'map-shape', idKey: 'name' }],
-                    ...extra,
-                } as any);
-            const proxy = AgCharts.create(options({}));
-            chart = deproxy(proxy);
-            await waitForChartStability(chart);
-
-            await proxy.updateDelta(delta as any);
-            await waitForChartStability(chart);
-
-            fresh = deproxy(AgCharts.create(options(delta)));
-            await waitForChartStability(fresh);
-            const geometry = (c: any) =>
-                JSON.stringify(c.series[0].contextNodeData.nodeData.map((d: any) => d.projectedGeometry));
-            expect(geometry(chart).length).toBeGreaterThan(100);
-            expect(geometry(chart)).toEqual(geometry(fresh));
-        }
-    );
 });
