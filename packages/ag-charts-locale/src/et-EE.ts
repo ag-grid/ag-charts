@@ -201,5 +201,9 @@ export const AG_CHARTS_LOCALE_ET_EE: Record<string, string> = {
     measurerPriceRangeValue: '${value}[number]',
     measurerPriceRangePercent: '${value}[percent]',
     measurerVolume: 'Maht ${value}',
+    statusBarVolumeProfilePrice: 'Hind',
+    statusBarVolumeProfileUp: 'Üles',
+    statusBarVolumeProfileDown: 'Alla',
+    statusBarVolumeProfileTotal: 'Kokku',
     tooltipPaginationStatus: '${index}[number] / ${count}[number]',
 };

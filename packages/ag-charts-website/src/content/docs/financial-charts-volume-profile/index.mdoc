@@ -34,6 +34,19 @@ In this example:
 - The column is as wide as its widest label, but never narrower than `minWidth` (60 pixels by default). Set `width` to fix the width instead, in which case labels that do not fit are shortened.
 - Price levels with no volume have no block, and labels are hidden when the price levels are too close together to read.
 
+## Hovering Price Levels
+
+In a Financial Chart, the Volume Profile bars cannot be hovered and show no tooltip. Instead, moving the pointer over the chart shows the details of the price level at the pointer's price in the status bar, after the values of the hovered candle:
+
+- `Price`: the range of prices the level covers, which is its price plus or minus half the `tickSize`.
+- `Up`: the up volume traded in the level, in the up colour.
+- `Down`: the down volume traded in the level, in the down colour.
+- `Total`: the total volume traded in the level.
+
+If the level does not fit beside the candle values, it moves to a second line below them. It never uses more than two lines, and runs past the edge of the chart if the chart is narrower still.
+
+Nothing is added for price levels with no volume, or if the status bar is disabled with `statusBar: false`. A Volume Profile Chart created with `AgCharts.createVolumeProfileChart()` has no status bar, so it shows a tooltip instead.
+
 ## Selecting Price Levels
 
 Set `selection.enabled` to let users click a price level to select it, highlighting both its up and down segments and the background behind it. In a Financial Chart, set the same options on `volumeProfile.selection`.

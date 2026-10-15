@@ -28,10 +28,14 @@ import {
     createSelectionChartOptions,
     createVolumeProfileAxis,
     createVolumeProfileSeries,
+    createVolumeProfileStatusBarOptions,
     groupVolumeProfile,
 } from '../volume-profile/volumeProfile';
+import type { VolumeProfileDatum } from '../volume-profile/volumeProfileUtils';
 
 type ChartTheme = InstanceType<typeof _Theme.ChartTheme>;
+
+const PRICE_AXIS_KEY = 'y';
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
 
@@ -104,6 +108,8 @@ export function priceVolume(
     const shownVolumeKey = volume ? volumeKey : undefined;
     const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
 
+    const profileLevels = volumeProfile && groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize);
+
     const chartSelection = createSelectionChartOptions(volumeProfile?.selection);
     // A chart-level `selection` object makes every series selectable, so the price and volume series opt out; only
     // the Volume Profile series opt in.
@@ -114,7 +120,7 @@ export function priceVolume(
         legend: { enabled: false },
         series: [
             ...createVolumeSeries(getTheme, keys, shownVolumeKey, seriesSelection),
-            ...createPriceVolumeProfileSeries(getTheme, volumeProfile, tickSize),
+            ...createPriceVolumeProfileSeries(getTheme, profileLevels, volumeProfile),
             ...createPriceSeries(chartType, keys, logger, seriesSelection),
         ],
         axes: {
@@ -129,7 +135,7 @@ export function priceVolume(
         ...createAnnotationsOptions(toolbar, themeOverrides, data, dateKey, shownVolumeKey),
         ...createNavigatorOptions(navigator, dateKey, shownVolumeKey),
         ...createRangesOptions(rangeButtons, zoom),
-        ...createStatusBarOptions(statusBar, keys, shownVolumeKey),
+        ...createStatusBarOptions(statusBar, keys, shownVolumeKey, profileLevels),
         ...createSyncOptions(sync),
         ...createZoomOptions(zoom),
         ...chartSelection,
@@ -294,20 +300,19 @@ function createVolumeSeries(
 
 function createPriceVolumeProfileSeries(
     getTheme: () => ChartTheme,
-    volumeProfile: AgVolumeProfileOptions | undefined,
-    tickSize: number | undefined
+    levels: VolumeProfileDatum[] | undefined,
+    volumeProfile: AgVolumeProfileOptions | undefined
 ) {
-    if (volumeProfile == null) return [];
+    if (volumeProfile == null || levels == null) return [];
 
-    const levels = groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize);
-    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, volumeProfile.selection);
+    return createVolumeProfileSeries(getTheme, 'xVolumeProfilePrice', levels, volumeProfile.selection, false);
 }
 
 function createPriceAxis(tickSize: number | undefined) {
     // `snapInterval` is undocumented; `snap` is themed so that theme overrides can turn snapping off.
     const crosshair = { enabled: true, snapInterval: tickSize };
     return {
-        y: {
+        [PRICE_AXIS_KEY]: {
             type: 'number',
             position: 'right',
             crosshair,
@@ -421,7 +426,8 @@ function createRangesOptions(rangeButtons: boolean, zoom: boolean) {
 function createStatusBarOptions(
     statusBar: boolean,
     { openKey, closeKey, highKey, lowKey }: PriceSeriesKeys,
-    volumeKey: string | undefined
+    volumeKey: string | undefined,
+    profileLevels: VolumeProfileDatum[] | undefined
 ) {
     if (!statusBar) return {};
 
@@ -433,6 +439,7 @@ function createStatusBarOptions(
             lowKey,
             closeKey,
             volumeKey,
+            volumeProfile: profileLevels && createVolumeProfileStatusBarOptions(profileLevels, PRICE_AXIS_KEY),
         },
     };
 }

@@ -8,10 +8,13 @@ import type { ShipmentStatus } from './types';
  * The theme's categorical slots, in the fixed order they must be assigned in.
  *
  * **The order is the colour-vision-deficiency mechanism, not a preference.** The sequence is what
- * was validated — worst adjacent pair ΔE 8.0 under deuteranopia, 19.1 under normal vision, every
+ * was validated — worst adjacent pair ΔE 12.1 under deuteranopia, 20.9 under normal vision, every
  * slot inside the lightness band, above the chroma floor and over 3:1 on the panel. Reordering or
  * cycling it silently breaks that, so a seventh series folds into the neutral rather than taking a
  * generated hue.
+ *
+ * Three earthy slots alternate with three cool ones and none leans magenta, so the palette stays in
+ * the family of the workspace's warm neutrals and brick accent.
  *
  * Two limits hold. Only the first three slots clear the harder all-pairs rule that applies where
  * marks sit side by side in a scatter, bubble or map; beyond that the charts carry direct labels as
@@ -23,12 +26,12 @@ import type { ShipmentStatus } from './types';
  * therefore lives both here and in procurement.css as tokens, and the two are mirrored.
  */
 export const PALETTE = [
-    '#b96b30', // 1 clay — the accent's own family, so a single-series chart reads as brand
-    '#0e8fa6', // 2 lagoon
-    '#8a4a9e', // 3 plum
-    '#d1798c', // 4 rose
-    '#3c63a6', // 5 indigo
-    '#8a7a15', // 6 bronze
+    '#ad6543', // 1 clay — the accent's own family, so a single-series chart reads as brand
+    '#119d9d', // 2 teal
+    '#4b55a0', // 3 indigo
+    '#a87a2a', // 4 ochre
+    '#3c7ebe', // 5 steel blue
+    '#6a7220', // 6 olive
     '#8c8680', // 7 warm neutral — baseline and dimmed marks, never an identity
 ] as const;
 
@@ -54,41 +57,18 @@ export function supplierColors(supplierIds: string[]): Record<string, string> {
 }
 
 /**
- * Steps of the neutral slot for the sunburst's subcategory ring, and a lighter set for the material
- * ring inside it.
+ * Slate steps for the spend trend's split by subcategory.
  *
- * The theme defines categorical slots and no sequential scale, and these rings are neither category
- * nor status: they are hierarchy. Tinting the neutral slot rather than spending categorical slots
- * on them is what keeps a categorical colour meaning supplier identity everywhere in the workspace
- * — the inner rings answer "what", the outer "who".
+ * The theme defines categorical slots and no sequential scale, and subcategories are neither
+ * category nor status: they are hierarchy. A low-chroma ramp rather than categorical slots is what
+ * keeps a categorical colour meaning supplier identity everywhere in the workspace.
  *
  * Stepped in OKLCH so the steps are evenly spaced *perceptually*; four of them, because no
  * commodity in the catalogue has more than four subcategories. Each step is ΔL 0.14 from its
  * neighbour and gains chroma as it darkens, so the bands differ in two channels at once — lightness
- * alone leaves four stacked bands hard to tell apart. The whole scale below `MATERIAL_INK` is this
- * ramp's to use.
+ * alone leaves four stacked bands hard to tell apart.
  */
-export const SUBCATEGORY_RAMP = ['#a79c93', '#807265', '#5a493a', '#372411'];
-
-/**
- * The material ring: one flat tone, lighter than every step of the subcategory ramp.
- *
- * Not a ramp, because there is nothing for a ramp to encode. Materials are nominal — swapping two
- * of them changes nothing — and which subcategory a material belongs to is already said by the
- * sector it sits inside.
- *
- * Held at 2.04:1 against the panel: a tone paler than that is a sector the reader cannot see.
- */
-export const MATERIAL_INK = '#b9b5b1';
-
-/**
- * Ink for the sunburst's centre: her commodity, which is context rather than a value.
- *
- * Placed midway between two steps of the ramp it touches, so it is no closer to either than the
- * steps are to each other. Below the darkest step it crowds that step and weighs the chart down;
- * paler than the rings it loses its label, which the series draws in one colour for every sector.
- */
-export const COMMODITY_INK = '#655f5b';
+export const SUBCATEGORY_RAMP = ['#96a0a9', '#687783', '#3e4f5e', '#162b3c'];
 
 /**
  * Delivery status, on the theme's RAG tokens rather than the categorical palette — the spec
@@ -99,12 +79,19 @@ export const COMMODITY_INK = '#655f5b';
  * label is set in type, the DOM takes the matching `-text` ink instead — see `--pc-bad` and its
  * siblings. Always paired with `STATUS_ICONS`: the accessibility requirement is that status never
  * rests on colour alone.
+ *
+ * On time takes the muted `--color-success-muted` rather than the full fill, so the exceptions are
+ * what stand out on the schedule and the map. Its 2.4:1 contrast is below the 3:1 a mark would
+ * otherwise need, which the glyph and the tooltip make up for.
  */
 export const STATUS_COLORS: Record<ShipmentStatus, string> = {
-    'On time': '#4ca96c',
+    'On time': '#87b094',
     'At risk': '#dfb240',
     Late: '#e23d3d',
 };
+
+/** The full `--color-success` fill, for a faint good-outcome tint where the muted on-time ink would vanish. */
+export const SUCCESS_FILL = '#4ca96c';
 
 /** Marker shape per status, so the map reads without colour. */
 export const STATUS_SHAPES: Record<ShipmentStatus, 'circle' | 'diamond' | 'triangle'> = {
@@ -175,7 +162,7 @@ export const THEME: AgChartTheme = {
                 },
             },
             legend: {
-                spacing: 8,
+                spacing: 12,
                 position: 'bottom',
                 item: {
                     marker: { size: 12 },

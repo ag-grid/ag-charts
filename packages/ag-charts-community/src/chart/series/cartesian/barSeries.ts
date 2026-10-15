@@ -2263,6 +2263,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return this.options.selectionGroup;
     }
 
+    protected override isHoverable(): boolean {
+        return this.options.hoverable !== false;
+    }
+
     protected override hasItemStylers(): boolean {
         return (
             this.isSelectionEnabled() ||

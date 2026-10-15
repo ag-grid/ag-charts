@@ -8,10 +8,11 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
-import { NEUTRAL, STATUS_COLORS, THEME } from '../chartTheme';
+import { STATUS_COLORS, THEME } from '../chartTheme';
 import { DEMO_NOW } from '../data';
-import { fmtCurrencyCompact, fmtDate, fmtSlack } from '../format';
+import { fmtCurrencyCompact, fmtDate } from '../format';
 import type { ShipmentStatus, TrackedShipment } from '../types';
+import { stylerOwnedSelection } from './chartSelection';
 import { useShipmentSelection } from './useShipmentSelection';
 
 /** One row of the schedule: a shipment's transit window plus the date it is needed. */
@@ -24,7 +25,6 @@ interface Leg {
     projected: number;
     required: number;
     status: TrackedShipment['status'];
-    slackDays: number;
     value: number;
     /** The transit window again, under its status's keys only, so each status series draws just its own bars. */
     onTimeDepart?: number;
@@ -87,7 +87,6 @@ export function ShipmentSchedule({ shipments, selectedShipmentIds, onSelectionCh
                     projected: shipment.projectedDate,
                     required: shipment.requiredDate,
                     status: shipment.status,
-                    slackDays: shipment.slackDays,
                     value: shipment.value,
                 })),
         [shipments]
@@ -126,27 +125,23 @@ export function ShipmentSchedule({ shipments, selectedShipmentIds, onSelectionCh
             yName: status,
             grouped: false,
             width: BAR_WIDTH,
-            cornerRadius: 3,
+            cornerRadius: 2,
             fill: STATUS_COLORS[status],
             fillOpacity: 0.9,
             strokeWidth: 0,
-            itemStyler: ({ datum }) => (dimmed(datum.shipmentId) ? { fill: NEUTRAL, fillOpacity: 0.3 } : {}),
-            // The styler draws both states; the theme's outline and fade on top would compound it.
-            selection: {
-                selectedItem: { strokeWidth: 0 },
-                unselectedItem: { opacity: 1 },
-                unselectedSeries: { opacity: 1 },
-            },
+            itemStyler: ({ datum }) => (dimmed(datum.shipmentId) ? { fillOpacity: 0.3 } : {}),
+            selection: stylerOwnedSelection(0),
+            highlight: { enabled: false },
             tooltip: {
                 renderer: ({ datum }) => ({
+                    heading: '',
                     title: `${datum.shipmentId} · ${datum.status}`,
                     data: [
                         { label: 'Lane', value: `${datum.supplier} → ${datum.plant}` },
                         { label: 'Cargo', value: datum.material },
-                        { label: 'Despatched', value: fmtDate(datum.depart) },
+                        { label: 'Dispatched', value: fmtDate(datum.depart) },
                         { label: 'Projected arrival', value: fmtDate(datum.projected) },
                         { label: 'Required by', value: fmtDate(datum.required) },
-                        { label: 'Against required', value: fmtSlack(datum.slackDays) },
                         { label: 'Value', value: fmtCurrencyCompact(datum.value) },
                     ],
                 }),
@@ -163,13 +158,17 @@ export function ShipmentSchedule({ shipments, selectedShipmentIds, onSelectionCh
             shape: 'diamond',
             size: 11,
             fill: 'var(--pc-text)',
-            stroke: 'var(--pc-text)',
-            strokeWidth: 2,
+            stroke: 'var(--pc-bg)',
+            strokeWidth: 1,
             itemStyler: ({ datum }) => (dimmed(datum.shipmentId) ? { fillOpacity: 0.3, strokeOpacity: 0.3 } : {}),
             tooltip: { enabled: false },
             highlight: { enabled: false },
-            // Not selectable, so each shipment is a single selection item: its bar.
-            selection: { enabled: false },
+            // Selectable only as a click target: the sync moves its shipment's selection onto the bar.
+            selection: {
+                enabled: true,
+                unselectedItem: { opacity: 1 },
+                unselectedSeries: { opacity: 1 },
+            },
         };
 
         return {
@@ -184,6 +183,7 @@ export function ShipmentSchedule({ shipments, selectedShipmentIds, onSelectionCh
                 x: {
                     type: 'time',
                     position: 'bottom',
+                    crosshair: { label: { formatter: ({ value }) => fmtDate(value) } },
                     crossLines: [
                         {
                             type: 'line',
@@ -205,7 +205,7 @@ export function ShipmentSchedule({ shipments, selectedShipmentIds, onSelectionCh
             // The rows overflow a short card, so panning is by scrollbar rather than by the
             // card growing to fit however many shipments are in transit.
             scrollbar: { enabled: true, vertical: { position: 'right' } },
-            padding: { top: 8, right: 16, bottom: 4, left: 4 },
+            padding: { top: 0, right: 16, bottom: 4, left: 4 },
             // Ctrl/Cmd-click adds or removes a shipment; a click off the bars clears.
             selection: { enabled: true },
             listeners: { selectionChange: onChartSelectionChange },

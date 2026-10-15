@@ -8,7 +8,9 @@ import {
     type NormalisedRadialGaugeBarOptions,
     type NormalisedRadialGaugeScaleOptions,
     type NormalisedRadialGaugeTargetOptions,
+    type NormalisedTextOrSegments,
     SectorBox,
+    Text,
     getColorStops,
     normalizeAngle360,
     normalizeAngle360Inclusive,
@@ -16,10 +18,17 @@ import {
     toNumberOrUndefined,
     toPlainText,
 } from 'ag-charts-core';
-import type { Sector, Selection, Text } from 'ag-charts-core';
+import type { BoxBounds, Sector, Selection } from 'ag-charts-core';
 import type { AgGaugeFillMode, AgNumericValue } from 'ag-charts-types';
 
 import { getLabelText } from '../gauge-util/label';
+import {
+    type GaugeLabelPlacements,
+    type GaugePointLabelDatum,
+    boxedTextOffset,
+    gaugeLabelDatum,
+    growBox,
+} from '../gauge-util/labelPlacement';
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
 import type { RadialGaugeNeedle } from './radialGaugeNeedle';
 import { LabelType, type RadialGaugeLabelDatum } from './radialGaugeTypes';
@@ -286,25 +295,48 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
     bottom: 1,
 };
 
-export function formatRadialGaugeLabels(
+interface RadialGaugeLabelLayout {
+    layout: LabelFormatting;
+    x: number;
+    y: number;
+    top: number;
+}
+
+interface RadialGaugeLabelOpts {
+    padding: number;
+    textAlign: TextAlign;
+    verticalAlign: VerticalAlign;
+}
+
+export type RadialGaugeLabelFrame = { label: AgNumericValue | undefined; secondaryLabel: AgNumericValue | undefined };
+
+function radialGaugeLabelKey(label: LabelType) {
+    return label === LabelType.Primary ? 'label' : 'secondaryLabel';
+}
+
+export interface RadialGaugeLabelTexts {
+    labelDatum: RadialGaugeLabelDatum;
+    labelText: NormalisedTextOrSegments;
+    secondaryLabelDatum: RadialGaugeLabelDatum | undefined;
+    secondaryLabelText: NormalisedTextOrSegments | undefined;
+}
+
+/** Formats the label text at the given (possibly animated) values; `undefined` when the first label has none. */
+export function radialGaugeLabelTexts(
     series: _ModuleSupport.Series<any, any, any>,
     ctx: Ctx,
-    selection: Selection<RadialGaugeLabelDatum, Text<RadialGaugeLabelDatum>>,
-    opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
-    innerRadius: number,
-    datumOverrides?: { label: AgNumericValue | undefined; secondaryLabel: AgNumericValue | undefined }
-) {
-    const { padding, textAlign, verticalAlign } = opts;
-
+    labelData: Iterable<RadialGaugeLabelDatum>,
+    datumOverrides?: RadialGaugeLabelFrame
+): RadialGaugeLabelTexts | undefined {
     let labelDatum: RadialGaugeLabelDatum | undefined;
     let secondaryLabelDatum: RadialGaugeLabelDatum | undefined;
-    selection.each((_node, datum) => {
+    for (const datum of labelData) {
         if (datum.label === LabelType.Primary) {
             labelDatum = datum;
         } else if (datum.label === LabelType.Secondary) {
             secondaryLabelDatum = datum;
         }
-    });
+    }
 
     if (labelDatum == null) return;
 
@@ -316,12 +348,39 @@ export function formatRadialGaugeLabels(
             ? undefined
             : getLabelText(series.id, ctx, secondaryLabelDatum, datumOverrides?.secondaryLabel);
 
+    return { labelDatum, labelText, secondaryLabelDatum, secondaryLabelText };
+}
+
+/** True when `frame` formats every label at its datum value, so it shares the final texts. */
+export function isFinalLabelFrame(labelData: Iterable<RadialGaugeLabelDatum>, frame: RadialGaugeLabelFrame) {
+    for (const datum of labelData) {
+        const value = frame[radialGaugeLabelKey(datum.label)];
+        if (value != null && value !== datum.value) return false;
+    }
+    return true;
+}
+
+function layoutRadialGaugeLabels(
+    texts: RadialGaugeLabelTexts | undefined,
+    opts: RadialGaugeLabelOpts,
+    innerRadius: number
+): Map<LabelType, RadialGaugeLabelLayout> {
+    const { padding, textAlign, verticalAlign } = opts;
+    const layouts = new Map<LabelType, RadialGaugeLabelLayout>();
+    if (texts == null) return layouts;
+
+    const { labelDatum, labelText, secondaryLabelDatum, secondaryLabelText } = texts;
     const params = { padding };
     const horizontalFactor = textAlign === 'center' ? 2 : 1;
     const verticalFactor = verticalAlign === 'middle' ? 2 : 1;
+    const stacked = secondaryLabelDatum != null && secondaryLabelText != null;
+    const boxWidth = Math.max(boxExtentWidth(labelDatum), stacked ? boxExtentWidth(secondaryLabelDatum) : 0);
+    const boxHeight = boxExtentHeight(labelDatum) + (stacked ? boxExtentHeight(secondaryLabelDatum) : 0);
     const sizeFittingHeight = (height: number) => ({
-        width: Math.sqrt(Math.max(innerRadius ** 2 - (height / verticalFactor) ** 2, 0)) * horizontalFactor,
-        height: Math.min(height, verticalFactor * innerRadius),
+        width:
+            Math.sqrt(Math.max(innerRadius ** 2 - ((height + boxHeight) / verticalFactor) ** 2, 0)) * horizontalFactor -
+            boxWidth,
+        height: Math.min(height, verticalFactor * innerRadius - boxHeight),
         meta: null,
     });
 
@@ -362,31 +421,93 @@ export function formatRadialGaugeLabels(
         secondaryLabelLayout = undefined;
         height = layout?.[0].height ?? 0;
     }
+    if (labelLayout != null) {
+        height += boxExtentHeight(labelDatum);
+    }
+    if (secondaryLabelLayout != null && secondaryLabelDatum != null) {
+        height += boxExtentHeight(secondaryLabelDatum);
+    }
 
     const rectYOffset = height * verticalAlignFactors[verticalAlign];
-    selection.each((label, datum) => {
-        let layout: LabelFormatting | undefined;
-        if (datum.label === LabelType.Primary) {
-            layout = labelLayout;
-        } else if (datum.label === LabelType.Secondary) {
-            layout = secondaryLabelLayout;
-        }
+    for (const datum of [labelDatum, secondaryLabelDatum]) {
+        const primary = datum?.label === LabelType.Primary;
+        const layout = primary ? labelLayout : secondaryLabelLayout;
+        if (datum == null || layout == null) continue;
 
-        if (layout == null) {
+        const { boxExtent } = datum;
+        const boxedHeight = layout.height + boxExtentHeight(datum);
+        const top = datum.centerY - rectYOffset + (primary ? 0 : height - boxedHeight);
+        const x = datum.centerX + boxedTextOffset(boxExtent, textAlign, 'middle').x;
+        const y = top + boxExtent.top + layout.height / 2;
+        layouts.set(datum.label, { layout, x, y, top });
+    }
+    return layouts;
+}
+
+function boxExtentWidth({ boxExtent }: RadialGaugeLabelDatum) {
+    return boxExtent.left + boxExtent.right;
+}
+
+function boxExtentHeight({ boxExtent }: RadialGaugeLabelDatum) {
+    return boxExtent.top + boxExtent.bottom;
+}
+
+/** Offers the labels to the label manager at the final values. */
+export function radialGaugeLabelData(
+    labelData: readonly RadialGaugeLabelDatum[],
+    texts: RadialGaugeLabelTexts | undefined,
+    opts: RadialGaugeLabelOpts,
+    innerRadius: number,
+    seriesArea: BoxBounds
+): GaugePointLabelDatum[] {
+    const layouts = layoutRadialGaugeLabels(texts, opts, innerRadius);
+    const { textAlign } = opts;
+    const data: GaugePointLabelDatum[] = [];
+    for (const datum of labelData) {
+        const placed = layouts.get(datum.label);
+        if (placed == null) continue;
+        const { layout, x, y, top } = placed;
+        const font = { ...datum, fontSize: layout.fontSize };
+        const textBox = Text.measureBBox(layout.text, x, y, { font, lineHeight: layout.lineHeight, textAlign });
+        const { boxExtent } = datum;
+        const textTop = top + boxExtent.top;
+        const box = growBox({ x: textBox.x, y: textTop, width: textBox.width, height: layout.height }, boxExtent);
+        const key = radialGaugeLabelKey(datum.label);
+        const candidates = [{ id: 0, box }];
+        const labelDatum = gaugeLabelDatum(key, layout.text, candidates, datum.collision, true, seriesArea, 'stacked');
+        if (labelDatum != null) {
+            data.push(labelDatum);
+        }
+    }
+    return data;
+}
+
+/** Lays the labels out at the current (possibly animated) values, showing those the label manager placed. */
+export function formatRadialGaugeLabels(
+    selection: Selection<RadialGaugeLabelDatum, Text<RadialGaugeLabelDatum>>,
+    texts: RadialGaugeLabelTexts | undefined,
+    opts: RadialGaugeLabelOpts,
+    innerRadius: number,
+    placements: GaugeLabelPlacements
+) {
+    const layouts = layoutRadialGaugeLabels(texts, opts, innerRadius);
+
+    selection.each((label, datum) => {
+        const placed = layouts.get(datum.label);
+        if (placed == null || !placements.has(radialGaugeLabelKey(datum.label))) {
             label.visible = false;
             return;
         }
 
+        const { layout, x, y } = placed;
         label.visible = true;
         label.text = layout.text;
         label.fontSize = layout.fontSize;
         label.lineHeight = layout.lineHeight;
-        label.textAlign = textAlign;
+        label.textAlign = opts.textAlign;
         label.textBaseline = 'middle';
-
-        const rectOriginInLabelRect =
-            datum.label === LabelType.Primary ? layout.height / 2 : height - layout.height / 2;
-        label.y = datum.centerY + rectOriginInLabelRect - rectYOffset;
-        label.x = datum.centerX;
+        label.x = x;
+        label.y = y;
+        label.setBoxing(datum.box);
     });
 }

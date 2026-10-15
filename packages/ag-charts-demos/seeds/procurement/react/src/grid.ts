@@ -19,7 +19,8 @@ export const gridTheme = themeQuartz.withParams({
     fontSize: 13,
     // The theme's data-grid pattern sets the header a step below body text, in the secondary ink.
     headerFontSize: 11,
-    wrapperBorderRadius: 8,
+    wrapperBorderRadius: 2,
+    borderRadius: 2,
     cellHorizontalPadding: 14,
 });
 
