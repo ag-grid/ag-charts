@@ -3,6 +3,8 @@ import { type CSSProperties, useRef, useState } from 'react';
 const NOTICE_ID = 'pc-demo-notice';
 const GAP = 6;
 const EDGE = 12;
+/** Below this much room to the right, the tip opens to the left of the icon instead. */
+const MIN_TIP_WIDTH = 200;
 
 function InfoIcon() {
     return (
@@ -18,13 +20,15 @@ function InfoIcon() {
 function tipPosition(trigger: HTMLElement): CSSProperties {
     const rect = trigger.getBoundingClientRect();
     const vertical =
-        rect.top > window.innerHeight / 2
-            ? { bottom: window.innerHeight - rect.top + GAP }
-            : { top: rect.bottom + GAP };
+        rect.top > window.innerHeight / 2 ? { bottom: window.innerHeight - rect.bottom } : { top: rect.top };
+    const roomRight = window.innerWidth - rect.right - GAP - EDGE;
     const horizontal =
-        rect.left > window.innerWidth / 2
-            ? { right: window.innerWidth - rect.right, maxWidth: `min(320px, ${rect.right - EDGE}px)` }
-            : { left: rect.left, maxWidth: `min(320px, ${window.innerWidth - rect.left - EDGE}px)` };
+        roomRight >= MIN_TIP_WIDTH
+            ? { left: rect.right + GAP, maxWidth: `min(320px, ${roomRight}px)` }
+            : {
+                  right: window.innerWidth - rect.left + GAP,
+                  maxWidth: `min(320px, ${rect.left - GAP - EDGE}px)`,
+              };
     return { ...vertical, ...horizontal };
 }
 
