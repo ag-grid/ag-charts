@@ -348,7 +348,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     titleFontSize?: FontSize;
     /**
-     * Line height of the chart title, as a ratio of their font size.
+     * Line height of the chart title, as a ratio of its font size.
      *
      * Default: `lineHeight`
      */
@@ -378,7 +378,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     subtitleFontSize?: FontSize;
     /**
-     * Line height of the chart subtitle, as a ratio of their font size.
+     * Line height of the chart subtitle, as a ratio of its font size.
      *
      * Default: `lineHeight`
      */
@@ -408,7 +408,7 @@ export interface AgChartThemeParams extends AgBaseChartThemeParams {
      */
     footnoteFontSize?: FontSize;
     /**
-     * Line height of the chart footnote, as a ratio of their font size.
+     * Line height of the chart footnote, as a ratio of its font size.
      *
      * Default: `lineHeight`
      */

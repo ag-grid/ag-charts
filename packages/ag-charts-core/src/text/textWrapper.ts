@@ -119,7 +119,7 @@ function shouldHideOverflow(clippedResult: string[], options: WrapOptions, sourc
 
 function firstLineOverflows(lines: string[], measurer: ITextMeasurer, options: WrapOptions) {
     if (!options.rejectTallFirstLine || lines.length === 0 || !isFiniteNumber(options.maxHeight)) return false;
-    const lineHeight = options.lineHeight ?? measurer.measureLines(lines[0]).height;
+    const lineHeight = options.lineHeight ?? measurer.measureLines(lines[0]).lineMetrics[0].height;
     return lineHeight > options.maxHeight;
 }
 
@@ -907,13 +907,12 @@ export function clipLines(lines: string[], measurer: ITextMeasurer, options: Wra
 
     const { height, lineMetrics } = measurer.measureLines(lines);
     // An explicit line height is the spacing the text is drawn with, so it is what has to fit.
-    const { lineHeight } = options;
-    const totalHeight = lineHeight == null ? height : lines.length * lineHeight;
+    const totalHeight = options.lineHeight == null ? height : lines.length * options.lineHeight;
     if (totalHeight <= options.maxHeight) {
         return lines;
     }
 
-    const lineHeightAt = (i: number) => lineHeight ?? lineMetrics[i].height;
+    const lineHeightAt = (i: number) => options.lineHeight ?? lineMetrics[i].height;
 
     for (let i = 0, cumulativeHeight = 0; i < lineMetrics.length; i++) {
         const lineTop = cumulativeHeight;
