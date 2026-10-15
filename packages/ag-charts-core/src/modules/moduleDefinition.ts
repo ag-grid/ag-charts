@@ -9,6 +9,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { AxisID } from '../identity/idBranding';
+import type { Logger } from '../logging/logger';
 import type { Normalised } from '../options/normalised/normalise';
 import type { OptionsDefs, ValidateParams, ValidationResult } from '../options/validation';
 import type { ScaleType } from '../types/scales';
@@ -158,7 +159,7 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
     processFastUpdate?(this: void, delta: Record<string, unknown>): Record<string, unknown>;
     // Maps the chart's data to the rows its series read. The options are as of the last slow options setup,
     // so it mustn't read keys the fast path applies.
-    transformSeriesData?(this: void, data: unknown[], options: Omit<TOptions, 'data'>): unknown[];
+    transformSeriesData?(this: void, data: unknown[], options: Omit<TOptions, 'data'>, logger: Logger): unknown[];
 }
 
 export interface AxisModuleDefinition<

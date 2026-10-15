@@ -108,7 +108,7 @@ export function priceVolume(
     const shownVolumeKey = volume ? volumeKey : undefined;
     const volumeProfile = volumeProfileOptions?.enabled === false ? undefined : volumeProfileOptions;
 
-    const profileLevels = volumeProfile && groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize);
+    const profileLevels = volumeProfile && groupVolumeProfile(volumeProfile.data, volumeProfile, tickSize, logger);
 
     const chartSelection = createSelectionChartOptions(volumeProfile?.selection);
     // A chart-level `selection` object makes every series selectable, so the price and volume series opt out; only

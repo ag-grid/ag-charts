@@ -1423,7 +1423,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (transform == null || presetOptions == null) return data;
 
         if (this.seriesData?.source !== data || this.seriesData.options !== presetOptions) {
-            const seriesData = DataSet.wrap(transform(data.data, presetOptions), this.ctx.logger);
+            const seriesData = DataSet.wrap(transform(data.data, presetOptions, this.ctx.logger), this.ctx.logger);
             this.seriesData = { source: data, options: presetOptions, data: seriesData };
         }
         return this.seriesData.data;

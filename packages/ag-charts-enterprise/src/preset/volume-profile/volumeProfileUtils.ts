@@ -1,10 +1,20 @@
-import { isFiniteNumber, stripFloatNoise } from 'ag-charts-core';
+import { type Logger, isFiniteNumber, stripFloatNoise } from 'ag-charts-core';
 import type { DatumDefault } from 'ag-charts-types';
 
 export interface VolumeProfileKeys {
     priceKey: string;
     upKey: string;
     downKey: string;
+}
+
+/** The series read the grouped levels, so the data model cannot see a key the rows lack. */
+export function warnMissingVolumeProfileKeys(data: DatumDefault[], keys: VolumeProfileKeys, logger: Logger) {
+    if (data.length === 0) return;
+
+    for (const key of new Set([keys.priceKey, keys.upKey, keys.downKey])) {
+        if (data.some((d) => d?.[key] !== undefined)) continue;
+        logger.warnOnce(`the key '${key}' was not found in any data element.`);
+    }
 }
 
 export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: string): number | undefined {

@@ -5,6 +5,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     deproxy,
+    expectWarningsCalls,
     hoverAction,
     isTooltipVisible,
     prepareFinancialTestOptions,
@@ -269,6 +270,18 @@ describe('priceVolumePreset', () => {
                 await compare();
             }
         );
+
+        it('should warn when a key is found in no data element', async () => {
+            chart = AgCharts.createFinancialChart(
+                prepareFinancialTestOptions({
+                    data: getStockData(),
+                    volumeProfile: { ...volumeProfile, upKey: 'nope' },
+                })
+            );
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([["AG Charts - the key 'nope' was not found in any data element."]]);
+        });
 
         describe('total segment', () => {
             it.each(['left', 'right'] as const)(
