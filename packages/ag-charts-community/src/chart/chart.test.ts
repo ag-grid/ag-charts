@@ -728,6 +728,86 @@ describe('Chart', () => {
                     fresh.destroy();
                 }
             });
+
+            it('keeps the processed data reference through a growing delta followed by a title delta', async () => {
+                const chartProxy = AgCharts.create(
+                    prepareTestOptions({
+                        data: rows(5),
+                        series: [{ type: 'bar', xKey: 'year', yKey: 'gdp' }],
+                    } as any)
+                );
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+                await chartProxy.updateDelta({ data: rows(6) } as any);
+                await waitForChartStability(chart);
+
+                const processData = vi.spyOn(Object.getPrototypeOf(chart), 'processData');
+                try {
+                    await chartProxy.updateDelta({ title: { text: 'After' } });
+                    await waitForChartStability(chart);
+                    expect(processData).not.toHaveBeenCalled();
+                } finally {
+                    processData.mockRestore();
+                }
+            });
+
+            it('rebuilds the labels after a context delta, as a fresh chart does', async () => {
+                const options = (p: string) =>
+                    prepareTestOptions({
+                        data: rows(3),
+                        context: { p },
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'year',
+                                yKey: 'gdp',
+                                label: {
+                                    enabled: true,
+                                    formatter: ({ value, context }: any) => `${context.p}${value}`,
+                                },
+                            },
+                        ],
+                    } as any);
+                const chartProxy = AgCharts.create(options('A'));
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+
+                await chartProxy.updateDelta({ context: { p: 'B' } } as any);
+                await waitForChartStability(chart);
+
+                const fresh = deproxy(AgCharts.create(options('B')));
+                try {
+                    await waitForChartStability(fresh);
+                    const labels = (c: Chart) =>
+                        (c.series[0] as any).getNodeData().map((d: { label?: { text: string } }) => d.label?.text);
+                    expect(labels(chart)).toEqual(['B1', 'B2', 'B3']);
+                    expect(labels(chart)).toEqual(labels(fresh));
+                } finally {
+                    fresh.destroy();
+                }
+            });
+
+            it('takes on the axes a grown data set predicts, as a fresh chart does', async () => {
+                const series = [{ type: 'line', xKey: 'when', yKey: 'gdp' }];
+                const dates = Array.from({ length: 8 }, (_, i) => ({ when: new Date(2020, i, 1), gdp: i }));
+                const chartProxy = AgCharts.create(
+                    prepareTestOptions({ data: [{ when: 'a', gdp: 1 }], series } as any)
+                );
+                chart = deproxy(chartProxy);
+                await waitForChartStability(chart);
+
+                await chartProxy.updateDelta({ data: dates } as any);
+                await waitForChartStability(chart);
+
+                const fresh = deproxy(AgCharts.create(prepareTestOptions({ data: dates, series } as any)));
+                try {
+                    await waitForChartStability(fresh);
+                    const axisTypes = (c: Chart) => c.axes.map((axis) => axis.type);
+                    expect(axisTypes(chart)).toEqual(axisTypes(fresh));
+                } finally {
+                    fresh.destroy();
+                }
+            });
         });
 
         // updateDelta must not reset data accumulated via applyTransaction.

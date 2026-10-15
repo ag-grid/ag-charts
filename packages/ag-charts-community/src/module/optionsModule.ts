@@ -358,11 +358,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 stripSymbols ||= ChartOptions.containsRemovalSentinel(deltaOptions);
             }
 
+            // Every `data` array of a delta without one comes from the base's own clone, so it can be shared.
+            const cloneOpts = ChartOptions.containsDataKey(deltaOptions)
+                ? ChartOptions.OPTIONS_CLONE_OPTS_SLOW
+                : ChartOptions.OPTIONS_CLONE_OPTS_FAST;
             this.userOptions = deepClone(merge(deltaOptions, baseChartOptions.userOptions), {
-                ...ChartOptions.OPTIONS_CLONE_OPTS_SLOW,
+                ...cloneOpts,
                 seen: [],
             }) as T;
-            this.reuseUnchangedData(this.userOptions, baseChartOptions.userOptions, deltaOptions);
         } else {
             // Full update case.
             this.userOptions = deepClone(currentUserOptions ?? newUserOptions, {
@@ -393,17 +396,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (stripSymbols) {
                 this.removeLeftoverSymbols(this.userOptions);
             }
-            // The fast path keeps the axes predicted from a sample of the previous data, and an empty data set
-            // has no sample to predict from, so only a change to or from empty needs the slow path.
-            const dataEmptinessChanged =
-                currentUserOptions instanceof ChartOptions &&
-                deltaOptions?.data !== undefined &&
-                ((deltaOptions.data?.length ?? 0) === 0) !== ((currentUserOptions.userOptions.data?.length ?? 0) === 0);
-
             const presetDef =
                 this.optionMetadata.presetType == null
                     ? undefined
                     : this.moduleRegistry.getPresetModule(this.optionMetadata.presetType);
+            const predictedAxesChanged =
+                baseChartOptions != null && this.dataChangesPredictedAxes(deltaOptions, baseChartOptions, presetDef);
+
             if (
                 !stripSymbols &&
                 !refreshCSSVariables &&
@@ -411,7 +410,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 deltaOptions !== undefined &&
                 ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
                 baseChartOptions != null &&
-                !dataEmptinessChanged
+                !predictedAxesChanged
             ) {
                 ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
                 themeParameters = baseChartOptions.themeParameters;
@@ -436,10 +435,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     remappedAxisKeys,
                     presetOptions,
                 } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
-                // The preset's data transform is a pure function of `data`, so its result carries over rather than
-                // reading as a data change to the chart.
-                if (presetDef?.processData != null && this.userOptions.data === baseChartOptions?.userOptions.data) {
-                    processedOptions.data = baseChartOptions?.processedOptions.data;
+                // Unchanged user data keeps the processed reference, so the chart doesn't read it as changed.
+                if (baseChartOptions != null && this.userOptions.data === baseChartOptions.userOptions.data) {
+                    processedOptions.data = baseChartOptions.processedOptions.data;
                 }
             }
         } catch (error) {
@@ -1929,21 +1927,39 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    /**
-     * Gives `data` back the reference it had in `baseOptions` when the delta left it alone. The clone of the merged
-     * options copies every `data` array, and the chart reads a new reference as changed data.
-     */
-    private reuseUnchangedData(options: Partial<T>, baseOptions: Partial<T>, deltaOptions: DeepPartial<T> | null) {
-        if (deltaOptions?.data === undefined && baseOptions.data !== undefined) {
-            options.data = baseOptions.data;
-        }
-        if (deltaOptions?.series !== undefined || options.series == null || baseOptions.series == null) return;
-        for (const [index, series] of (options.series as { data?: unknown }[]).entries()) {
-            const baseSeries = (baseOptions.series as { data?: unknown }[])[index];
-            if (baseSeries?.data !== undefined && series != null) {
-                series.data = baseSeries.data;
-            }
-        }
+    /** Whether `node` holds a `data` key anywhere, without looking inside one. */
+    private static containsDataKey(node: unknown, seen = new Set<unknown>()): boolean {
+        if (!isArray(node) && !isPlainObject(node)) return false;
+        if (seen.has(node)) return false;
+        seen.add(node);
+        return Object.keys(node).some(
+            (key) => key === 'data' || ChartOptions.containsDataKey((node as PlainObject)[key], seen)
+        );
+    }
+
+    /** Axes are predicted from a sample of the rows, so a new row count can predict different axes. */
+    private dataChangesPredictedAxes(
+        deltaOptions: DeepPartial<T> | null | undefined,
+        baseChartOptions: ChartOptions<T>,
+        presetDef: ReturnType<ChartOptions<T>['moduleRegistry']['getPresetModule']>
+    ) {
+        const data = deltaOptions?.data;
+        const baseLength = baseChartOptions.userOptions.data?.length ?? 0;
+        if (!isArray(data) || data.length === baseLength) return false;
+        if (data.length === 0 || baseLength === 0) return true;
+
+        const { processedOptions: baseOptions } = baseChartOptions;
+        const series = baseOptions.series?.[0] as { data?: unknown } | undefined;
+        if (series == null || series.data != null) return false;
+
+        const directions =
+            detectChartType(baseOptions, this.moduleRegistry) === 'polar'
+                ? [ChartAxisDirection.Angle, ChartAxisDirection.Radius]
+                : [ChartAxisDirection.X, ChartAxisDirection.Y];
+        const seriesType = this.optionsType(baseOptions);
+        const nextData = presetDef?.processData == null ? data : presetDef.processData(data).data;
+        const predict = (rows?: DatumDefault[]) => this.predictAxes(seriesType, directions, series, rows);
+        return JSON.stringify(predict(baseOptions.data)) !== JSON.stringify(predict(nextData as DatumDefault[]));
     }
 
     private removeLeftoverSymbols(options: Partial<T>) {

@@ -110,6 +110,9 @@ const SIZE_OPTIONS = [
     ['width', 'inWidth'],
 ] as const;
 
+/** Options whose change alone moves no datum, so the node data it was built from stays valid. */
+const LAYOUT_ONLY_DELTA_KEYS = new Set(['title', 'subtitle', 'footnote', 'padding', 'background']);
+
 /** A chart-like owner of series and axes: the chart itself or the navigator's mini chart. */
 interface SeriesAxesHost {
     series: UnknownSeries[];
@@ -1789,9 +1792,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        // Axes applied in place with unchanged options move no datum, so only new axes or axes in the delta refresh.
-        const axesRecreated = this.applyAxes(this, newOpts, seriesStatus);
-        if (axesRecreated || 'axes' in deltaOptions) {
+        // Only a delta of layout-only keys leaves the node data as it was.
+        const axesApplied = this.applyAxes(this, newOpts, seriesStatus);
+        if (axesApplied && !Object.keys(deltaOptions).every((key) => LAYOUT_ONLY_DELTA_KEYS.has(key))) {
             forceNodeDataRefresh = true;
         }
 
@@ -2116,7 +2119,6 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return isUpdated ? 'updated' : 'no-op';
     }
 
-    /** Returns true when the axes were created anew, rather than updated in place or absent. */
     private applyAxes(chart: SeriesAxesHost, options: AgChartOptions, seriesStatus: SeriesChangeType) {
         if (!('axes' in options) || !options.axes) {
             return false;
@@ -2148,7 +2150,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             axis.userKey = unmappedAxisKeys.get(axis.id) ?? axis.id;
             axis.setPickComputationEnabled(pickComputationEnabled);
         }
-        return !matchingTypes;
+        return true;
     }
 
     private createSeries(seriesOptions: SeriesOptionsTypes): UnknownSeries {

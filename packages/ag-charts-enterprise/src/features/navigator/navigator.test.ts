@@ -461,6 +461,22 @@ describe('Navigator', () => {
             expectWarningsCalls().toEqual([]);
         });
 
+        it('gives a mini chart enabled by updateDelta() its node data', async () => {
+            const options: AgCartesianChartOptions = {
+                data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9]),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await chart.updateDelta({ navigator: { enabled: true, miniChart: { enabled: true } } });
+            await waitForChartStability(chart);
+
+            const { miniChart } = deproxy(chart).modulesManager.getModule<any>('navigator');
+            expect(miniChart.series[0].getNodeData()).toHaveLength(10);
+        });
+
         it('keeps the main axis labels as label obstacles while the mini chart shares their axis ids', async () => {
             const options = (miniChartEnabled: boolean): AgCartesianChartOptions => ({
                 data: [
