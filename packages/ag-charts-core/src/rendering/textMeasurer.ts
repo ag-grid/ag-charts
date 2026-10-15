@@ -1,6 +1,7 @@
 import type { ImageSegment, Padding, PaddingOptions } from 'ag-charts-types';
 
-import type { NormalisedContentSegment } from '../options/normalised/normalisedCommonOptions';
+import { isArray } from '../data/typeGuards';
+import type { NormalisedContentSegment, NormalisedTextOrSegments } from '../options/normalised/normalisedCommonOptions';
 import { LRUCache } from '../structures/lruCache';
 import { toFontString, toTextString } from '../text/textUtil';
 import {
@@ -233,6 +234,11 @@ export function isBlockBoundary(segments: NormalisedContentSegment[], i: number)
 
 function emptyLine(): SegmentsLineMetrics {
     return { segments: [], width: 0, height: 0, ascent: 0, descent: 0, textAscent: 0, textDescent: 0 };
+}
+
+/** Measured size of a label's text or rich-text segments under the given font. */
+export function measureLabelText(text: NormalisedTextOrSegments, font: FontOptions): { width: number; height: number } {
+    return isArray(text) ? measureTextSegments(text, font) : cachedTextMeasurer(font).measureLines(String(text));
 }
 
 export function measureTextSegments(

@@ -62,6 +62,8 @@ export interface AgPriceVolumePreset {
     /** The height of each Volume Profile price level, in price units.
      *
      * If not set, the smallest gap between the prices in `volumeProfile.data` is used.
+     *
+     * When set, the price crosshair snaps to the nearest multiple of `tickSize`.
      */
     tickSize?: number;
     /** Whether to show the range buttons.
