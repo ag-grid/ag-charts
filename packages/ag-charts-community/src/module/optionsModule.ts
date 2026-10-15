@@ -287,6 +287,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     fastDelta?: DeepPartial<T>;
     /** The axes predicted from the data at the last slow pass, which a fast pass carries on unchanged. */
     predictedAxesKey?: string;
+    /** The series override and datum key the preset's data transform derived at the last slow pass. */
+    presetShapeKey?: string;
     chartDef?: ChartModuleDefinition<any>;
     optionsProcessingTime?: number;
     optionsGraph?: OptionsGraphAccessor;
@@ -429,6 +431,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     presetUpdate
                 ));
                 this.predictedAxesKey = baseChartOptions.predictedAxesKey;
+                this.presetShapeKey = baseChartOptions.presetShapeKey;
                 themeParameters = baseChartOptions.themeParameters;
                 annotationThemes = baseChartOptions.annotationThemes;
                 // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
@@ -456,6 +459,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     processedOptions.data = baseChartOptions.processedOptions.data;
                 }
                 this.predictedAxesKey = this.predictedAxesKeyOf(processedOptions);
+                if (presetDef?.processData != null) {
+                    this.presetShapeKey = ChartOptions.shapeKeyOf(presetDef.processData(this.userOptions.data));
+                }
             }
         } catch (error) {
             rejected = true;
@@ -1952,9 +1958,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     /**
-     * A `data` that isn't an array needs the validation of the slow path. A change of row count can predict different
-     * axes from the sample of rows, or change the shape a preset transform derives from the rows, and a preset
-     * without a data transform may have copied `data` into its own options. Only the slow path re-derives those.
+     * A `data` delta needs the slow path when it isn't an array, or when its rows change the axes or the preset's
+     * derived shape.
      */
     private dataChangeNeedsSlowPath(
         deltaOptions: DeepPartial<T> | null | undefined,
@@ -1969,16 +1974,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (data.length === 0 || baseLength === 0) return true;
         if (this.optionMetadata.presetType != null && presetDef?.processData == null) return true;
 
-        // The transform can derive another series override or datum key (a sparkline of numbers or of tuples).
-        if (presetDef?.processData != null) {
-            const shapeOf = ({ series, datumKey }: PresetDataUpdate) => JSON.stringify([series, datumKey]);
-            const baseUpdate = presetDef.processData(baseChartOptions.userOptions.data);
-            if (presetUpdate == null || shapeOf(presetUpdate) !== shapeOf(baseUpdate)) return true;
+        if (presetUpdate != null && ChartOptions.shapeKeyOf(presetUpdate) !== baseChartOptions.presetShapeKey) {
+            return true;
         }
 
         const { processedOptions: baseOptions } = baseChartOptions;
         const rows = presetUpdate?.data ?? data;
         return this.predictedAxesKeyOf(baseOptions, rows) !== baseChartOptions.predictedAxesKey;
+    }
+
+    private static shapeKeyOf({ series, datumKey }: PresetDataUpdate) {
+        return JSON.stringify([series, datumKey]);
     }
 
     private predictedAxesKeyOf(options: Partial<T>, data = options.data) {

@@ -5926,6 +5926,13 @@ describe('ChartOptions', () => {
         // The container is a per-instance element, so it is left out when comparing options.
         const strip = (options: any) => ({ ...options, container: undefined });
 
+        // A tuple's value is read from its `datum`, which a number row doesn't have.
+        const tooltipOf = (chartOptions: ChartOptions) => {
+            const { renderer } = (chartOptions.processedOptions.series?.[0] as any).tooltip;
+            const datum = (chartOptions.processedOptions.data as any[])[3];
+            return renderer({ datum, xKey: 'x', yKey: 'y' });
+        };
+
         describe('growing `data`', () => {
             it.each([
                 {
@@ -6083,14 +6090,34 @@ describe('ChartOptions', () => {
                     metadata
                 );
 
-                // A tuple's value is read from its `datum`, which the base's number rows don't have.
-                const tooltipOf = (chartOptions: ChartOptions) => {
-                    const { renderer } = (chartOptions.processedOptions.series?.[0] as any).tooltip;
-                    const datum = (chartOptions.processedOptions.data as any[])[3];
-                    return renderer({ datum, xKey: 'x', yKey: 'y' });
-                };
                 expect(updated.revalidated).toBe(true);
                 expect(tooltipOf(updated)).toEqual(tooltipOf(fresh));
+            });
+        });
+
+        describe('a sparkline whose shape changes', () => {
+            it('re-derives the tooltip of a sparkline that changes shape in a same-length delta, then grows', () => {
+                const metadata = SPARKLINE_METADATA;
+                const options = { type: 'line', data: [1, 2, 3] } as AgChartOptions;
+                const tuples = (count: number) => Array.from({ length: count }, (_, i) => [i + 1, i + 2]);
+                const base = new ChartOptions(undefined, options, {}, {}, metadata);
+
+                const sameLength = applyDelta(base, { data: tuples(3) }, metadata);
+                const grown = applyDelta(sameLength, { data: tuples(4) }, metadata);
+                const grownAgain = applyDelta(grown, { data: tuples(5) }, metadata);
+                const fresh = new ChartOptions(
+                    undefined,
+                    { ...options, data: tuples(4) } as AgChartOptions,
+                    {},
+                    {},
+                    metadata
+                );
+
+                expect(sameLength.revalidated).toBe(false);
+                expect(grown.revalidated).toBe(true);
+                expect(tooltipOf(grown)).toEqual(tooltipOf(fresh));
+                // The shape key follows the slow pass, so further growth stays on the fast path.
+                expect(grownAgain.revalidated).toBe(false);
             });
         });
 
