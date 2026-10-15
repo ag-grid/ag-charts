@@ -252,8 +252,12 @@ export class Crosshair
 
     /** A snap interval keeps a snapping crosshair on the pointer, snapped to the interval, rather than on the highlight. */
     private followsPointer(): boolean {
+        return !this.options?.snap || this.snapInterval() != null;
+    }
+
+    private snapInterval(): number | undefined {
         const options = this.options;
-        return !options?.snap || (options.snapInterval != null && this.axisCtx.continuous);
+        return options?.snap && this.axisCtx.continuous ? options.snapInterval : undefined;
     }
 
     private isVertical(): boolean {
@@ -432,13 +436,12 @@ export class Crosshair
             return { [key]: { position, value: datum?.[isVertical ? xKey : yKey] ?? '' } };
         }
 
-        const snapInterval = this.options?.snap ? this.options.snapInterval : undefined;
+        const snapInterval = this.snapInterval();
         if (snapInterval == null) {
             return { [key]: { position, value: axisCtx.scaleInvert(position) } };
         }
 
-        const snapped = snapPositionToInterval(axisCtx, position, snapInterval);
-        return snapped == null ? {} : { [key]: snapped };
+        return { [key]: snapPositionToInterval(axisCtx, position, snapInterval) };
     }
 
     private getActiveHighlightData(

@@ -1,4 +1,4 @@
-import { isFiniteNumber } from 'ag-charts-core';
+import { isFiniteNumber, stripFloatNoise } from 'ag-charts-core';
 import type { DatumDefault } from 'ag-charts-types';
 
 export interface VolumeProfileKeys {
@@ -20,7 +20,7 @@ export function inferVolumeProfileTickSize(data: DatumDefault[], priceKey: strin
     }
     if (!Number.isFinite(smallest)) return undefined;
 
-    return canonical(smallest);
+    return stripFloatNoise(smallest);
 }
 
 export function normaliseVolumeProfile(
@@ -43,7 +43,7 @@ export function normaliseVolumeProfile(
     const levels: VolumeProfileDatum[] = [];
     for (let index = highest; index >= lowest; index--) {
         const { upVolume = 0, downVolume = 0 } = byLevel.get(index) ?? {};
-        levels.push({ price: canonical(index * tickSize), upVolume, downVolume, total: upVolume + downVolume });
+        levels.push({ price: stripFloatNoise(index * tickSize), upVolume, downVolume, total: upVolume + downVolume });
     }
     return levels;
 }
@@ -66,16 +66,11 @@ function mergeVolumeProfileLevels(
     for (const d of data) {
         const price = d[priceKey];
         if (!isFiniteNumber(price)) continue;
-        const index = Math.round(canonical(price / tickSize));
+        const index = Math.round(stripFloatNoise(price / tickSize));
         const level = byLevel.get(index) ?? { upVolume: 0, downVolume: 0 };
         level.upVolume += d[upKey] ?? 0;
         level.downVolume += d[downKey] ?? 0;
         byLevel.set(index, level);
     }
     return byLevel;
-}
-
-// Decimal arithmetic carries float noise (e.g. 2.4999999999999716), and categories compare by exact value.
-function canonical(value: number) {
-    return Number(value.toPrecision(12));
 }

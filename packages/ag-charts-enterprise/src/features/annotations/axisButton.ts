@@ -97,12 +97,22 @@ export class AxisButton extends AbstractModuleInstance {
 
         this.toggleVisibility(true);
 
-        const buttonCoords = this.getButtonCoordinates({ x, y });
+        const snappedY = this.snapToInterval(y);
+        const buttonCoords = this.getButtonCoordinates({ x, y: snappedY ?? y });
         this.coords = {
             x: buttonCoords.x + this.button.clientWidth / 2,
-            y: buttonCoords.y + this.button.clientHeight / 2,
+            // The button is clamped inside the series area; the line still goes on the snapped price.
+            y: snappedY ?? buttonCoords.y + this.button.clientHeight / 2,
         };
         this.updatePosition(buttonCoords);
+    }
+
+    private snapToInterval(y: number) {
+        const { axisCtx, snapInterval } = this;
+        if (snapInterval == null || !axisCtx.continuous || axisCtx.direction !== ChartAxisDirection.Y) {
+            return;
+        }
+        return snapPositionToInterval(axisCtx, y, snapInterval).position;
     }
 
     private hide() {
@@ -131,8 +141,6 @@ export class AxisButton extends AbstractModuleInstance {
         if (snap) {
             x = convert(invert(x - seriesRect.x, axisCtx), axisCtx) + seriesRect.x;
             y = convert(invert(y - seriesRect.y, axisCtx), axisCtx) + seriesRect.y;
-        } else if (this.snapInterval != null && axisCtx.continuous && direction === ChartAxisDirection.Y) {
-            y = snapPositionToInterval(axisCtx, y, this.snapInterval)?.position ?? y;
         }
 
         if (direction === ChartAxisDirection.X) {

@@ -1,15 +1,18 @@
-import type { _ModuleSupport } from 'ag-charts-community';
 import { roundToMultiple } from 'ag-charts-core';
 
 /**
- * The multiple of `interval` nearest to the pointer `position` that lies within the axis range. A bigint value
- * is returned unsnapped, as `interval` is a number.
+ * The multiple of `interval` nearest to the pointer `position` that lies within the axis range. The pointer value is
+ * returned unsnapped when it is not a number (e.g. a bigint) or no multiple lies within the range.
  */
 export function snapPositionToInterval(
-    axisCtx: Pick<_ModuleSupport.AxisContext, 'scale' | 'scaleInvert' | 'inRange'>,
+    axisCtx: {
+        scale: { convert(value: number): number };
+        scaleInvert(position: number): unknown;
+        inRange(position: number): boolean;
+    },
     position: number,
     interval: number
-): { value: unknown; position: number } | undefined {
+): { value: unknown; position: number } {
     const value: unknown = axisCtx.scaleInvert(position);
     if (typeof value !== 'number') return { value, position };
 
@@ -22,4 +25,5 @@ export function snapPositionToInterval(
             return { value: candidate, position: candidatePosition };
         }
     }
+    return { value, position };
 }

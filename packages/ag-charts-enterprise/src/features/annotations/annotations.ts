@@ -821,7 +821,7 @@ export class Annotations extends AbstractModuleInstance {
                 seriesRect
             );
             const axisLabelPadding = calculateAxisLabelPadding(axisLayout);
-            button.update(seriesRect, axisLabelPadding, isDirectionX ? undefined : this.axesButtonsSnapInterval);
+            button.update(seriesRect, axisLabelPadding, this.axesButtonsSnapInterval);
         } else {
             button?.destroy();
             button = undefined;
