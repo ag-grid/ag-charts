@@ -298,7 +298,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     revalidated = true;
     // Provide the unmapped axis keys for error logging & callbacks.
     unmappedAxisKeys: Map<string, string> = new Map();
-    private seriesThemeOverrides?: PlainObject;
+    private themeOverrides?: PlainObject;
 
     // Validation runs in this constructor, before a chart exists; a new chart adopts this instance as
     // `ctx.logger`, and an existing one supplied its own.
@@ -1106,7 +1106,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * the primary axes and renames the primary axes to the internal direction-based names.
      */
     private processAxesOptions(options: T, chartType: string, themeOverrides: PlainObject | undefined) {
-        this.seriesThemeOverrides = themeOverrides;
+        this.themeOverrides = themeOverrides;
         const directions =
             chartType === 'polar'
                 ? [ChartAxisDirection.Angle, ChartAxisDirection.Radius]
@@ -1191,7 +1191,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     /** Axis processing runs before the options graph applies the theme, so a themed direction is read here. */
     private isSeriesHorizontal(seriesOptions: NonNullable<T['series']>[number]) {
         const ownDirection = 'direction' in seriesOptions ? seriesOptions.direction : undefined;
-        const direction = ownDirection ?? this.seriesThemeOverrides?.[seriesOptions.type]?.series?.direction;
+        const direction = ownDirection ?? this.themeOverrides?.[seriesOptions.type]?.series?.direction;
         return direction === 'horizontal';
     }
 
