@@ -174,7 +174,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     /** Whether the stored cell styles were resolved under an active highlight, so they need a restyle when it ends. */
     private cellsStyledByHighlight = false;
 
-    private readonly itemStylerResolutions = new ItemStylerResolutions();
+    private readonly itemStylerResolutions = new ItemStylerResolutions((result) =>
+        this.ctx.optionsGraphService.resolvePartial(['series', `${this.declarationOrder}`], result)
+    );
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -687,16 +689,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             // OPTIMIZATION: a numeric key avoids building a string per cell; highlight and node styles are distinct.
             overrides = this.cachedDatumCallback(datumIndex * 2 + (isHighlight ? 1 : 0), () => {
                 const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
-                const result = this.callWithContext(itemStyler, params);
-                const known = this.itemStylerResolutions.lookup(result);
-                if (known != null) return known;
-
-                const resolved = this.ctx.optionsGraphService.resolvePartial(
-                    ['series', `${this.declarationOrder}`],
-                    result
-                );
-                this.itemStylerResolutions.store(result, resolved);
-                return resolved;
+                return this.itemStylerResolutions.resolve(this.callWithContext(itemStyler, params));
             });
         }
 

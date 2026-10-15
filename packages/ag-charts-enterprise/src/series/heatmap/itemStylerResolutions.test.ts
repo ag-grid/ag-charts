@@ -1,41 +1,53 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+import type { PlainObject } from 'ag-charts-core';
 
 import { ItemStylerResolutions } from './itemStylerResolutions';
 
 describe('ItemStylerResolutions', () => {
-    const resolution = (tag: string) => ({ tag });
+    function createMemory(
+        resolve: (result: PlainObject | undefined) => PlainObject | undefined = (r) =>
+            r == null ? undefined : { ...r }
+    ) {
+        const resolveFn = vi.fn(resolve);
+        return { memory: new ItemStylerResolutions(resolveFn), resolveFn };
+    }
 
-    it('returns the stored resolution for an equal flat result', () => {
-        const memory = new ItemStylerResolutions();
-        const resolved = resolution('a');
-        memory.store({ strokeWidth: 2, stroke: 'black', enabled: true }, resolved);
+    it('resolves an equal flat result once and returns the stored resolution', () => {
+        const { memory, resolveFn } = createMemory();
 
-        expect(memory.lookup({ strokeWidth: 2, stroke: 'black', enabled: true })).toBe(resolved);
-        expect(memory.lookup({ enabled: true, stroke: 'black', strokeWidth: 2 })).toBe(resolved);
+        const first = memory.resolve({ strokeWidth: 2, stroke: 'black', enabled: true });
+
+        expect(memory.resolve({ strokeWidth: 2, stroke: 'black', enabled: true })).toBe(first);
+        expect(memory.resolve({ enabled: true, stroke: 'black', strokeWidth: 2 })).toBe(first);
+        expect(resolveFn).toHaveBeenCalledTimes(1);
     });
 
-    it('misses on a differing value, a missing key or an extra key', () => {
-        const memory = new ItemStylerResolutions();
-        memory.store({ strokeWidth: 2, stroke: 'black' }, resolution('a'));
+    it('resolves again on a differing value, a missing key or an extra key', () => {
+        const { memory, resolveFn } = createMemory();
+        memory.resolve({ strokeWidth: 2, stroke: 'black' });
 
-        expect(memory.lookup({ strokeWidth: 3, stroke: 'black' })).toBeUndefined();
-        expect(memory.lookup({ strokeWidth: 2 })).toBeUndefined();
-        expect(memory.lookup({ strokeWidth: 2, stroke: 'black', fill: 'red' })).toBeUndefined();
-        expect(memory.lookup({ strokeWidth: 2, stroke: undefined as any })).toBeUndefined();
+        memory.resolve({ strokeWidth: 3, stroke: 'black' });
+        memory.resolve({ strokeWidth: 2 });
+        memory.resolve({ strokeWidth: 2, stroke: 'black', fill: 'red' });
+
+        expect(resolveFn).toHaveBeenCalledTimes(4);
     });
 
     it('tells a result with no keys from an absent result', () => {
-        const memory = new ItemStylerResolutions();
-        const resolved = resolution('empty');
-        memory.store({}, resolved);
+        const { memory, resolveFn } = createMemory();
+        const empty = memory.resolve({});
 
-        expect(memory.lookup({})).toBe(resolved);
-        expect(memory.lookup(undefined)).toBeUndefined();
-        expect(memory.lookup({ strokeWidth: 1 })).toBeUndefined();
+        expect(memory.resolve({})).toBe(empty);
+        expect(resolveFn).toHaveBeenCalledTimes(1);
+
+        expect(memory.resolve(undefined)).toBeUndefined();
+        expect(resolveFn).toHaveBeenCalledTimes(2);
+        expect(resolveFn).toHaveBeenLastCalledWith(undefined);
     });
 
     it('does not remember results holding var() colours, objects, arrays or undefined', () => {
-        const memory = new ItemStylerResolutions();
+        const { memory, resolveFn } = createMemory();
         const results = [
             { fill: 'var(--cell)' },
             { stroke: 'black', fill: 'var(--cell, red)' },
@@ -46,57 +58,51 @@ describe('ItemStylerResolutions', () => {
         ] as any[];
 
         for (const result of results) {
-            memory.store(result, resolution('x'));
-            expect(memory.lookup({ ...result })).toBeUndefined();
+            memory.resolve(result);
+            memory.resolve({ ...result });
         }
+
+        expect(resolveFn).toHaveBeenCalledTimes(results.length * 2);
     });
 
-    it('does not store an absent result or an absent resolution', () => {
-        const memory = new ItemStylerResolutions();
-        memory.store(undefined, resolution('a'));
-        memory.store({ strokeWidth: 1 }, undefined);
+    it('does not remember an absent resolution', () => {
+        const { memory, resolveFn } = createMemory(() => undefined);
 
-        expect(memory.lookup({ strokeWidth: 1 })).toBeUndefined();
+        expect(memory.resolve({ strokeWidth: 1 })).toBeUndefined();
+        expect(memory.resolve({ strokeWidth: 1 })).toBeUndefined();
+
+        expect(resolveFn).toHaveBeenCalledTimes(2);
     });
 
-    it('is not changed by a styler mutating the object it returned after it was stored', () => {
-        const memory = new ItemStylerResolutions();
-        const shared = { strokeWidth: 1 };
-        const resolved = resolution('one');
-        memory.store(shared, resolved);
-
-        shared.strokeWidth = 2;
-        expect(memory.lookup({ strokeWidth: 1 })).toBe(resolved);
-        expect(memory.lookup({ strokeWidth: 2 })).toBeUndefined();
-    });
-
-    it('keeps the four most recent distinct results and evicts the oldest first', () => {
-        const memory = new ItemStylerResolutions();
-        const resolved = [1, 2, 3, 4, 5].map((n) => resolution(`r${n}`));
-        for (let i = 0; i < 4; i++) {
-            memory.store({ strokeWidth: i + 1 }, resolved[i]);
-        }
+    it('keeps the four most recently stored results and evicts the oldest first', () => {
+        const { memory, resolveFn } = createMemory();
+        const resolved = [1, 2, 3, 4].map((strokeWidth) => memory.resolve({ strokeWidth }));
+        expect(resolveFn).toHaveBeenCalledTimes(4);
         for (let i = 1; i <= 4; i++) {
-            expect(memory.lookup({ strokeWidth: i })).toBe(resolved[i - 1]);
+            expect(memory.resolve({ strokeWidth: i })).toBe(resolved[i - 1]);
         }
+        expect(resolveFn).toHaveBeenCalledTimes(4);
 
-        memory.store({ strokeWidth: 5 }, resolved[4]);
+        memory.resolve({ strokeWidth: 5 });
+        expect(resolveFn).toHaveBeenCalledTimes(5);
 
-        expect(memory.lookup({ strokeWidth: 1 })).toBeUndefined();
         for (let i = 2; i <= 5; i++) {
-            expect(memory.lookup({ strokeWidth: i })).toBe(resolved[i - 1]);
+            memory.resolve({ strokeWidth: i });
         }
+        expect(resolveFn).toHaveBeenCalledTimes(5);
+
+        memory.resolve({ strokeWidth: 1 });
+        expect(resolveFn).toHaveBeenCalledTimes(6);
     });
 
     it('forgets everything on clear', () => {
-        const memory = new ItemStylerResolutions();
-        memory.store({ strokeWidth: 1 }, resolution('a'));
+        const { memory, resolveFn } = createMemory();
+        memory.resolve({ strokeWidth: 1 });
         memory.clear();
 
-        expect(memory.lookup({ strokeWidth: 1 })).toBeUndefined();
+        memory.resolve({ strokeWidth: 1 });
+        memory.resolve({ strokeWidth: 1 });
 
-        const resolved = resolution('b');
-        memory.store({ strokeWidth: 1 }, resolved);
-        expect(memory.lookup({ strokeWidth: 1 })).toBe(resolved);
+        expect(resolveFn).toHaveBeenCalledTimes(2);
     });
 });

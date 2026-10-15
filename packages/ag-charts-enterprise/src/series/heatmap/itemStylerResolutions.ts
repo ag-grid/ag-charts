@@ -9,44 +9,41 @@ interface Resolution {
 }
 
 /**
- * Keeps the options-graph resolution of the most recent `itemStyler` results. A styler usually returns one of a few
- * flat objects across thousands of cells, so a shallow comparison replaces resolving each one against the graph.
- *
- * Only flat objects of numbers, booleans and non-`var()` strings are remembered: anything else can resolve
- * differently for equal input, and `var()` colours are read from the DOM. Resolved objects are shared between cells
- * and must not be mutated. Entries live as long as the datum callback cache they are cleared with.
+ * Remembers the last few flat `itemStyler` results with their resolution, so a styler that returns one of a few
+ * objects across thousands of cells skips the options graph. Only results of numbers, booleans and non-`var()`
+ * strings are remembered; `var()` colours are read from the DOM. Remembered inputs are held by reference, which
+ * relies on the validated styler returning a fresh object per call. Resolved objects are shared and read-only.
+ * Entries are evicted oldest first and cleared with the datum callback cache.
  */
 export class ItemStylerResolutions {
     private entries: Resolution[] = [];
     private nextSlot = 0;
+
+    constructor(private readonly resolveFn: (result: PlainObject | undefined) => PlainObject | undefined) {}
 
     clear() {
         this.entries = [];
         this.nextSlot = 0;
     }
 
-    lookup(result: PlainObject | undefined): PlainObject | undefined {
-        if (result == null) return;
+    resolve(result: PlainObject | undefined): PlainObject | undefined {
+        if (result == null) return this.resolveFn(result);
 
         const keys = Object.keys(result);
-        if (!isRememberable(result, keys)) return;
+        if (!isRememberable(result, keys)) return this.resolveFn(result);
 
         for (const entry of this.entries) {
             if (entry.keys.length === keys.length && matches(entry.input, result, keys)) {
                 return entry.resolved;
             }
         }
-    }
 
-    store(result: PlainObject | undefined, resolved: PlainObject | undefined) {
-        if (result == null || resolved == null) return;
-
-        const keys = Object.keys(result);
-        if (!isRememberable(result, keys)) return;
-
-        // A copy, so a styler that reuses and mutates its returned object cannot alter what later results match.
-        this.entries[this.nextSlot] = { input: { ...result }, keys, resolved };
-        this.nextSlot = (this.nextSlot + 1) % MAX_ENTRIES;
+        const resolved = this.resolveFn(result);
+        if (resolved != null) {
+            this.entries[this.nextSlot] = { input: result, keys, resolved };
+            this.nextSlot = (this.nextSlot + 1) % MAX_ENTRIES;
+        }
+        return resolved;
     }
 }
 
