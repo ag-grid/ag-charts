@@ -4308,6 +4308,28 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.series?.[0]).toMatchObject({ xKeyAxis: 'y', yKeyAxis: 'x' });
             });
 
+            it('should flip axes when a theme operator makes a series horizontal', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    theme: {
+                        // @ts-expect-error theme operations are resolved at runtime but not typed in overrides
+                        overrides: { bar: { series: { direction: { $lightDark: ['horizontal', 'vertical'] } } } },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'category', position: 'left' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    direction: 'horizontal',
+                    xKeyAxis: 'y',
+                    yKeyAxis: 'x',
+                });
+            });
+
             it('should predict axes for a series made horizontal by a theme override', () => {
                 const options: AgCartesianChartOptions = {
                     data: [

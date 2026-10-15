@@ -95,6 +95,29 @@ function resolveSeriesThemeDefaults(
     return Array.isArray(series) && isPlainObject(series[0]) ? series[0] : {};
 }
 
+export function resolveSeriesThemeOption(
+    theme: ChartTheme,
+    seriesOptions: PlainObject,
+    key: string,
+    moduleRegistry: ModuleScope
+): unknown {
+    const optionsGraph = new OptionsGraph(
+        theme.config,
+        { series: [seriesOptions] },
+        theme.params,
+        theme.getThemeParameters(),
+        theme.palette,
+        theme.overrides,
+        theme.isDark,
+        undefined,
+        undefined,
+        moduleRegistry
+    );
+    const { series } = optionsGraph.resolve(undefined);
+    optionsGraph.clearSafe();
+    return Array.isArray(series) && isPlainObject(series[0]) ? series[0][key] : undefined;
+}
+
 /** Only an object under a type key is a type block; any other value there stays a shared option. */
 function withoutTypeKeys(overrides: PlainObject, types: ReadonlyArray<string>): PlainObject {
     const typeKeys = types.filter((type) => isPlainObject(overrides[type]));

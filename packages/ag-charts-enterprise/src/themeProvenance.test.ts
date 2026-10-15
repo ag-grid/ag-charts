@@ -14,15 +14,14 @@ const DATA = [
 /**
  * See the community suite for what `coverage` pins and how to update it. Each `maxSkipped` counts
  * `highlight.highlightedItem.shadow`, which the theme leaves unset, except radial-bar's and cone-funnel's: neither
- * series has the option.
+ * series has the option. Range-bar's `maxIneffective` counts `grouped`, which resolves into `seriesGrouping`.
  */
 const CASES: Array<ProvenanceCase> = [
     {
         seriesType: 'range-bar',
         series: { xKey: 'category', yLowKey: 'low', yHighKey: 'high' },
         data: DATA,
-        coverage: { minChecked: 127, maxSkipped: 10, maxRejected: 1, maxIneffective: 0, minContainers: 5 },
-        asymmetries: ['grouped'],
+        coverage: { minChecked: 127, maxSkipped: 10, maxRejected: 1, maxIneffective: 1, minContainers: 5 },
     },
     {
         seriesType: 'range-area',

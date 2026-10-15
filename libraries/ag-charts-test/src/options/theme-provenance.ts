@@ -78,12 +78,7 @@ export interface KnownAsymmetry {
  * the divergence. Cases declare which of these they expect, so an entry that stops occurring — or starts
  * reaching further than its reason accounts for — fails rather than quietly outliving its reason.
  */
-export const KNOWN_ASYMMETRIES: Record<string, KnownAsymmetry> = {
-    grouped: {
-        reason: 'series grouping is computed from the raw series options before overrides merge, so a themed value is neither applied nor stripped',
-        diffPaths: ['series.0.grouped'],
-    },
-};
+export const KNOWN_ASYMMETRIES: Record<string, KnownAsymmetry> = {};
 
 export interface ProvenanceReport {
     seriesType: string;
