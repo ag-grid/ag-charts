@@ -1751,6 +1751,11 @@ describe('HeatmapSeries', () => {
             await waitForChartStability(chart);
         }
 
+        async function createStableAndReturn(options: AgChartOptions) {
+            await createStable(options);
+            return chart as Chart;
+        }
+
         async function hoverAway() {
             await hoverAction(1, 1)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
@@ -1926,6 +1931,166 @@ describe('HeatmapSeries', () => {
             await waitForChartStability(chart);
             expect(cellFills(chart)).not.toContain(missingDataFill);
             expect(cellFills(chart)).toEqual(await freshCellFills(buildOptions({ colorScale })));
+        });
+
+        describe('itemStyler results', () => {
+            type StylerParams = { datum: { year: string; person: string; spending: number }; highlightState: string };
+            const WIDTH_BY_SPENDING: Record<number, number> = { 10: 1, 20: 2, 30: 3, 40: 4 };
+            // Six distinct results (more than any small result memory holds) in an order that revisits the early ones.
+            const MANY_DATA = [10, 20, 30, 40, 50, 60, 10, 30, 60, 20, 50, 40].map((spending, i) => ({
+                year: `${2000 + i}`,
+                person: 'A',
+                spending,
+            }));
+            const strokeWidths = (c: Chart) => cellStrokes(c).map(({ width }) => width);
+
+            it('gives every cell the result its own datum produced, across more distinct results than a small memory holds', async () => {
+                const itemStyler = ({ datum }: StylerParams) => ({
+                    stroke: 'black',
+                    strokeWidth: datum.spending / 10,
+                });
+                await createStable(buildOptions({ itemStyler }, MANY_DATA));
+
+                expect(strokeWidths(chart)).toEqual(MANY_DATA.map((d) => d.spending / 10));
+            });
+
+            it('gives every cell its own result when the styler alternates between two results', async () => {
+                const data = Array.from({ length: 12 }, (_, i) => ({ year: `${2000 + i}`, person: 'A', spending: i }));
+                const itemStyler = ({ datum }: StylerParams) =>
+                    datum.spending % 2 === 0 ? { strokeWidth: 2, stroke: 'black' } : { strokeWidth: 7, stroke: 'red' };
+                await createStable(buildOptions({ itemStyler }, data));
+
+                expect(cellStrokes(chart)).toEqual(
+                    data.map((d) =>
+                        d.spending % 2 === 0 ? { stroke: 'black', width: 2 } : { stroke: 'red', width: 7 }
+                    )
+                );
+            });
+
+            it('does not let a styler that reuses and mutates one returned object leak between cells', async () => {
+                const shared: { strokeWidth?: number } = {};
+                const itemStyler = ({ datum }: StylerParams) => {
+                    shared.strokeWidth = WIDTH_BY_SPENDING[datum.spending];
+                    return shared;
+                };
+                await createStable(buildOptions({ itemStyler }));
+
+                expect(strokeWidths(chart)).toEqual(DATA.map((d) => WIDTH_BY_SPENDING[d.spending]));
+            });
+
+            it('keeps the colour scale fill for undefined result values and for cells whose styler returns nothing', async () => {
+                const unstyledChart = await createStableAndReturn(buildOptions());
+                const unstyled = cellFills(unstyledChart);
+                const unstyledWidths = strokeWidths(unstyledChart);
+                chart.destroy();
+
+                const itemStyler = ({ datum }: StylerParams) =>
+                    datum.person === 'A' ? { fill: undefined, strokeWidth: 6 } : undefined;
+                await createStable(buildOptions({ itemStyler }));
+
+                expect(cellFills(chart)).toEqual(unstyled);
+                expect(strokeWidths(chart)).toEqual(DATA.map((d, i) => (d.person === 'A' ? 6 : unstyledWidths[i])));
+            });
+
+            it('lets a styler fill replace the colour scale fill only on the cells it styles', async () => {
+                const unstyled = cellFills(await createStableAndReturn(buildOptions()));
+                chart.destroy();
+
+                const itemStyler = ({ datum }: StylerParams) => (datum.spending >= 30 ? { fill: 'lime' } : {});
+                await createStable(buildOptions({ itemStyler }));
+
+                expect(cellFills(chart)).toEqual(DATA.map((d, i) => (d.spending >= 30 ? 'lime' : unstyled[i])));
+            });
+
+            it('applies each cell its own opacity result alongside the shared stroke values', async () => {
+                const itemStyler = ({ datum }: StylerParams) => ({
+                    stroke: 'black',
+                    strokeWidth: 1,
+                    fillOpacity: datum.spending / 100,
+                });
+                await createStable(buildOptions({ itemStyler }));
+
+                expect(cellOpacities(chart)).toEqual(DATA.map((d) => d.spending / 100));
+            });
+
+            it('keeps the node and highlight results of the same cell apart while hovering', async () => {
+                const itemStyler = vi.fn(({ highlightState }: StylerParams) => ({
+                    strokeWidth: { 'highlighted-item': 9, 'unhighlighted-item': 7 }[highlightState] ?? 2,
+                }));
+                const highlightWidths = () =>
+                    collectShapes(classCast(chart.series[0], HeatmapSeries).highlightGroup).map((r) => r.strokeWidth);
+                await createStable(buildOptions({ ...NO_TOOLTIP, itemStyler }));
+                expect(itemStyler).toHaveBeenCalledTimes(DATA.length);
+                expect(strokeWidths(chart)).toEqual([2, 2, 2, 2]);
+
+                itemStyler.mockClear();
+                await hoverDatumByIndex(chart, 0, 1);
+
+                // Every cell, the hovered one included, keeps its own node result under the highlight copy.
+                expect(strokeWidths(chart)).toEqual([7, 7, 7, 7]);
+                expect(highlightWidths()).toEqual([9]);
+                const states = itemStyler.mock.calls.map(([params]) => params.highlightState);
+                expect(states.filter((s) => s === 'highlighted-item')).toHaveLength(1);
+                expect(states.filter((s) => s === 'unhighlighted-item')).toHaveLength(DATA.length);
+
+                await hoverAway();
+                expect(strokeWidths(chart)).toEqual([2, 2, 2, 2]);
+            });
+
+            it('re-evaluates every cell after the options are updated with a styler returning different results', async () => {
+                let scale = 1;
+                const itemStyler = ({ datum }: StylerParams) => ({ strokeWidth: (datum.spending / 10) * scale });
+                const options = buildOptions({ itemStyler });
+                await createStable(options);
+                expect(strokeWidths(chart)).toEqual([1, 2, 3, 4]);
+
+                scale = 2;
+                chart.publicApi.update(options);
+                await waitForChartStability(chart);
+
+                expect(strokeWidths(chart)).toEqual([2, 4, 6, 8]);
+            });
+
+            it('re-evaluates a styler result that depends on the datum when the data changes', async () => {
+                const itemStyler = ({ datum }: StylerParams) => ({ strokeWidth: datum.spending / 10 });
+                await createStable(buildOptions({ itemStyler }));
+
+                chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+                await waitForChartStability(chart);
+
+                expect(strokeWidths(chart)).toEqual(SHIFTED_DATA.map((d) => d.spending / 10));
+            });
+
+            it('warns about an invalid result value once per use, as it did, and still applies the valid properties', async () => {
+                const itemStyler = ({ datum }: StylerParams) =>
+                    datum.person === 'A' ? { strokeWidth: 'thick', stroke: 'black' } : { strokeWidth: 5 };
+                const unstyled = strokeWidths(await createStableAndReturn(buildOptions()));
+                chart.destroy();
+
+                await createStable(buildOptions({ itemStyler }));
+                expect(strokeWidths(chart)).toEqual(DATA.map((d, i) => (d.person === 'A' ? unstyled[i] : 5)));
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Callback \`series[0].itemStyler\` returned an invalid property \`series[0].itemStyler.strokeWidth\`: \`"thick"\`; expecting a number greater than or equal to 0, ignoring.",
+                    ],
+                  ]
+                `);
+            });
+
+            it('warns about an unknown result property', async () => {
+                const itemStyler = () => ({ strokeWidth: 3, notAnOption: 1 });
+                await createStable(buildOptions({ itemStyler }));
+
+                expect(strokeWidths(chart)).toEqual([3, 3, 3, 3]);
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Callback \`series[0].itemStyler\` returned an unknown property \`series[0].itemStyler.notAnOption\`, ignoring.",
+                    ],
+                  ]
+                `);
+            });
         });
 
         it('keeps the colour scale fill in the tooltip symbol', async () => {
