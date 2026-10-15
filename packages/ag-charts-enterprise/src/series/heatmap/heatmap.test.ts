@@ -2069,4 +2069,279 @@ describe('HeatmapSeries', () => {
             expect(isTooltipVisible(chart)).toBe(true);
         });
     });
+
+    describe('applyTransaction', () => {
+        type Cell = { id: string; x: string; y: string; v: number | null };
+
+        const GRID: Cell[] = [];
+        for (let x = 0; x < 4; x++) {
+            for (let y = 0; y < 3; y++) {
+                GRID.push({ id: `${x}:${y}`, x: `X${x}`, y: `Y${y}`, v: x * 3 + y });
+            }
+        }
+        const UPDATED = (id: string, v: number | null, move?: Partial<Cell>): Cell => ({
+            ...GRID.find((cell) => cell.id === id)!,
+            v,
+            ...move,
+        });
+        const NO_TOOLTIP = { tooltip: { enabled: false } };
+
+        const buildOptions = (data: Cell[], series: Record<string, unknown> = {}) =>
+            prepareEnterpriseTestOptions({
+                width: 400,
+                height: 300,
+                data,
+                dataIdKey: 'id',
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'x',
+                        yKey: 'y',
+                        colorKey: 'v',
+                        colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
+                        ...series,
+                    },
+                ],
+                legend: { enabled: false },
+            });
+
+        const heatmap = (c: Chart) => classCast(c.series[0], HeatmapSeries);
+        const rects = (c: Chart) => collectShapes(heatmap(c).contentGroup) as Rect[];
+        const cells = (c: Chart) =>
+            rects(c).map((rect) => ({
+                fill: String(rect.fill),
+                opacity: rect.fillOpacity,
+                stroke: rect.stroke,
+                strokeWidth: rect.strokeWidth,
+                x: rect.x,
+                y: rect.y,
+                width: rect.width,
+                height: rect.height,
+            }));
+
+        async function create(data: Cell[], series: Record<string, unknown> = {}) {
+            chart = deproxy(AgCharts.create(buildOptions(data, series)));
+            await waitForChartStability(chart);
+        }
+
+        async function transact(transaction: { update?: Cell[]; add?: Cell[]; remove?: { id: string }[] }) {
+            await chart.publicApi.applyTransaction(transaction);
+            await waitForChartStability(chart);
+        }
+
+        async function freshCells(data: Cell[], series: Record<string, unknown> = {}) {
+            const reference = deproxy(AgCharts.create(buildOptions(data, series)));
+            await waitForChartStability(reference);
+            const result = cells(reference);
+            reference.destroy();
+            return result;
+        }
+
+        const withUpdates = (...updates: Cell[]) =>
+            GRID.map((cell) => updates.find((update) => update.id === cell.id) ?? cell);
+
+        function spyOnCellRebuilds() {
+            const prototype = HeatmapSeries.prototype as any;
+            const datums = vi.spyOn(prototype, 'updateNodeDatum');
+            const styles = vi.spyOn(prototype, 'getItemStyle');
+            return {
+                datums,
+                styles,
+                restore() {
+                    datums.mockRestore();
+                    styles.mockRestore();
+                },
+            };
+        }
+
+        it('rebuilds and restyles only the updated cell', async () => {
+            await create(GRID);
+            const before = cells(chart);
+            const nodes = rects(chart);
+            const spy = spyOnCellRebuilds();
+
+            try {
+                await transact({ update: [UPDATED('1:1', 7)] });
+
+                expect(spy.datums).toHaveBeenCalledTimes(1);
+                expect(spy.styles).toHaveBeenCalledTimes(1);
+            } finally {
+                spy.restore();
+            }
+
+            const after = cells(chart);
+            expect(after).not.toEqual(before);
+            expect(after).toEqual(await freshCells(withUpdates(UPDATED('1:1', 7))));
+            expect(rects(chart).every((rect, i) => rect === nodes[i])).toBe(true);
+        });
+
+        it('rebuilds every updated cell, and only those', async () => {
+            await create(GRID);
+            const spy = spyOnCellRebuilds();
+            const updates = [UPDATED('0:1', 4), UPDATED('2:1', 8), UPDATED('3:1', 6)];
+
+            try {
+                await transact({ update: updates });
+
+                expect(spy.datums).toHaveBeenCalledTimes(updates.length);
+                expect(spy.styles).toHaveBeenCalledTimes(updates.length);
+            } finally {
+                spy.restore();
+            }
+
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(...updates)));
+        });
+
+        it('restyles every cell when the update moves the colour domain', async () => {
+            await create(GRID);
+            const before = cells(chart);
+            const spy = spyOnCellRebuilds();
+
+            try {
+                await transact({ update: [UPDATED('1:1', 100)] });
+
+                expect(spy.styles).toHaveBeenCalledTimes(GRID.length);
+            } finally {
+                spy.restore();
+            }
+
+            const after = cells(chart);
+            expect(after.map((cell) => cell.fill)).not.toEqual(before.map((cell) => cell.fill));
+            expect(after).toEqual(await freshCells(withUpdates(UPDATED('1:1', 100))));
+        });
+
+        it('restyles every cell when the update removes the only extreme value', async () => {
+            await create(GRID);
+            await transact({ update: [UPDATED('3:2', 1)] });
+
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('3:2', 1))));
+        });
+
+        it('repositions a cell that the update moves to another category', async () => {
+            await create(GRID);
+            const moved = UPDATED('1:1', 7, { x: 'X3', y: 'Y0' });
+            await transact({ update: [moved] });
+
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(moved)));
+        });
+
+        it('rebuilds the layout when the update introduces a category', async () => {
+            await create(GRID);
+            const moved = UPDATED('1:1', 7, { x: 'X9' });
+            const spy = spyOnCellRebuilds();
+
+            try {
+                await transact({ update: [moved] });
+
+                expect(spy.datums).toHaveBeenCalledTimes(GRID.length);
+            } finally {
+                spy.restore();
+            }
+
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(moved)));
+        });
+
+        it('follows added and removed cells', async () => {
+            await create(GRID);
+            const added: Cell = { id: '4:0', x: 'X4', y: 'Y0', v: 5 };
+            await transact({ add: [added], remove: [{ id: '0:0' }] });
+
+            const expected = [...GRID.filter((cell) => cell.id !== '0:0'), added];
+            expect(cells(chart)).toEqual(await freshCells(expected));
+        });
+
+        it('keeps up with a sequence of transactions', async () => {
+            await create(GRID);
+            const first = UPDATED('0:1', 9);
+            const second = UPDATED('3:0', 2);
+            await transact({ update: [first] });
+            await transact({ update: [second] });
+            await transact({ update: [UPDATED('0:1', 10)] });
+
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('0:1', 10), second)));
+        });
+
+        it('rebuilds every cell when an options change follows a transaction', async () => {
+            await create(GRID);
+            await transact({ update: [UPDATED('1:1', 7)] });
+            const data = withUpdates(UPDATED('1:1', 7));
+            const series = { cornerRadius: 6, colorScale: { fills: [{ color: 'green' }, { color: 'orange' }] } };
+
+            chart.publicApi.update(buildOptions(data, series));
+            await waitForChartStability(chart);
+
+            expect(cells(chart)).toEqual(await freshCells(data, series));
+        });
+
+        it('rebuilds every cell when the chart resizes after a transaction', async () => {
+            await create(GRID);
+            await transact({ update: [UPDATED('1:1', 7)] });
+
+            chart.publicApi.updateDelta({ width: 300, height: 200 });
+            await waitForChartStability(chart);
+
+            const reference = deproxy(
+                AgCharts.create({ ...buildOptions(withUpdates(UPDATED('1:1', 7))), width: 300, height: 200 })
+            );
+            await waitForChartStability(reference);
+            const expected = cells(reference);
+            reference.destroy();
+            expect(cells(chart)).toEqual(expected);
+        });
+
+        it('re-evaluates an itemStyler for the updated cell only', async () => {
+            const itemStyler = ({ datum }: { datum: Cell }) =>
+                (datum.v ?? 0) > 6 ? { stroke: 'black', strokeWidth: 3 } : {};
+            await create(GRID, { itemStyler });
+            const strokeWidths = () => cells(chart).map((cell) => cell.strokeWidth);
+            const before = strokeWidths();
+
+            await transact({ update: [UPDATED('0:0', 9)] });
+            await transact({ update: [UPDATED('3:2', 0)] });
+
+            const data = withUpdates(UPDATED('0:0', 9), UPDATED('3:2', 0));
+            const expected = await freshCells(data, { itemStyler });
+            expect(strokeWidths()).not.toEqual(before);
+            expect(cells(chart)).toEqual(expected);
+        });
+
+        it('keeps the highlight styling of a hovered cell while another cell updates', async () => {
+            const series = { ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } };
+            await create(GRID, series);
+            await hoverDatumByIndex(chart, 0, 0);
+            expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.4));
+
+            await transact({ update: [UPDATED('2:2', 8)] });
+
+            expect(cells(chart).map((cell) => cell.opacity)).toEqual(Array(GRID.length).fill(0.4));
+
+            await hoverAction(1, 1)(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+            expect(cells(chart)).toEqual(await freshCells(withUpdates(UPDATED('2:2', 8)), series));
+        });
+
+        it('picks and shows the tooltip of an updated cell', async () => {
+            await create(GRID);
+            await transact({ update: [UPDATED('2:1', 100)] });
+            const datumIndex = GRID.findIndex((cell) => cell.id === '2:1');
+
+            await hoverDatumByIndex(chart, 0, datumIndex);
+
+            expect(isTooltipVisible(chart)).toBe(true);
+            expect((chart as Chart).ctx.highlightManager.getActiveHighlight()?.datumIndex).toBe(datumIndex);
+            expect(JSON.stringify(heatmap(chart).getTooltipContent(datumIndex))).toContain('100');
+        });
+
+        it('stops picking a cell that the update left without a colour value', async () => {
+            await create(GRID);
+            const datumIndex = GRID.findIndex((cell) => cell.id === '1:2');
+            await hoverDatumByIndex(chart, 0, datumIndex);
+            expect(isTooltipVisible(chart)).toBe(true);
+
+            await transact({ update: [UPDATED('1:2', null)] });
+            await hoverDatumByIndex(chart, 0, datumIndex, MIN_TOOLTIP_HIDE_DELAY);
+
+            expect(isTooltipVisible(chart)).toBe(false);
+        });
+    });
 });

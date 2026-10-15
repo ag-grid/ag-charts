@@ -1936,8 +1936,13 @@ export abstract class Series<
         return undefined;
     }
 
-    public resetDatumCallbackCache() {
-        this.datumCallbackCache.clear();
+    /** Drops every cached datum callback result, or only the one cached under `id`. */
+    public resetDatumCallbackCache(id?: unknown) {
+        if (id === undefined) {
+            this.datumCallbackCache.clear();
+        } else {
+            this.datumCallbackCache.delete(id);
+        }
     }
 
     public cachedDatumCallback<T>(id: any, fn: () => T): T | undefined {

@@ -100,6 +100,17 @@ interface HeatmapItemStyleContext {
     readonly highlightActive: boolean;
 }
 
+/** What the cell node data was built from, so a later transaction can tell whether only some cells changed. */
+interface HeatmapBuildSignature {
+    readonly nodes: HeatmapNodeDatum[];
+    readonly processedData: object;
+    readonly dataVersion: number;
+    readonly nodeDataVersion: number;
+    readonly colorScaleValid: boolean;
+    readonly colorDomain: readonly unknown[];
+    readonly layout: readonly unknown[];
+}
+
 /** Context object caching expensive lookups for createNodeData(). */
 interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<HeatmapNodeDatum> {
     readonly yKey: string;
@@ -141,6 +152,28 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 const TEXT_ALIGNS: TextAlign[] = ['left', 'center', 'right', 'start', 'end'];
 const VERTICAL_ALIGNS: VerticalAlign[] = ['top', 'middle', 'bottom'];
 
+/** Everything about an axis that places a cell, flattened so two layouts compare element by element. */
+function scaleLayout(axis: _ModuleSupport.ChartAxis): unknown[] {
+    const { scale, visibleRange } = axis;
+    return [
+        ...scale.domain,
+        scale.domain.length,
+        ...scale.range,
+        scale.bandwidth,
+        scale.step,
+        scale.inset,
+        ...visibleRange,
+    ];
+}
+
+function sameValues(a: readonly unknown[], b: readonly unknown[]): boolean {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
 /**
  * Consolidated type interface for HeatmapSeries.
  * Defines all type parameters in one place for the series.
@@ -172,6 +205,17 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     /** Whether the stored cell styles were resolved under an active highlight, so they need a restyle when it ends. */
     private cellsStyledByHighlight = false;
+
+    private buildSignature: HeatmapBuildSignature | undefined;
+
+    /**
+     * Data indices of the cells an in-place transaction updated, set while their node data is the only part of
+     * the current pass that changed. Every other cell's datum, style and scene node is already up to date.
+     */
+    private touchedDatumIndices: number[] | undefined;
+
+    /** Whether the current pass restyled every cell, which makes the untouched cells' scene nodes stale too. */
+    private restyledEveryCell = false;
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -322,6 +366,36 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
      */
     protected override populateNodeData(ctx: HeatmapSeriesNodeDatumContext): void {
         this.cellsStyledByHighlight = ctx.itemStyleContext.highlightActive;
+        this.restyledEveryCell = false;
+
+        const previous = this.buildSignature;
+        const signature = this.captureBuildSignature(ctx);
+        const touched = this.findTouchedDatumIndices(ctx, signature);
+        this.touchedDatumIndices = touched;
+        this.buildSignature = signature;
+
+        // A transaction does not clear the datum callback cache, so a styler result cached for a changed
+        // datum would otherwise outlive it.
+        const transacted =
+            previous?.processedData === signature.processedData && previous.dataVersion !== signature.dataVersion;
+        if (touched != null && this.options.itemStyler != null) {
+            for (const datumIndex of touched) {
+                this.resetDatumCallbackCache(createDatumId(datumIndex, 'node'));
+                this.resetDatumCallbackCache(createDatumId(datumIndex, 'highlight'));
+            }
+        } else if (touched == null && transacted) {
+            this.resetDatumCallbackCache();
+        }
+
+        if (touched != null) {
+            // OPTIMIZATION: a transaction that only updated cells rebuilds just those cells' datums.
+            for (const datumIndex of touched) {
+                this.updateNodeDatum(ctx, ctx.nodes[datumIndex], datumIndex, ctx.rawData[datumIndex]);
+            }
+            ctx.nodeIndex = ctx.nodes.length;
+            return;
+        }
+
         for (const [datumIndex, datum] of ctx.rawData.entries()) {
             const nodeDatum = upsertNodeDatum(
                 ctx,
@@ -337,6 +411,63 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 }
             }
         }
+    }
+
+    private captureBuildSignature(ctx: HeatmapSeriesNodeDatumContext): HeatmapBuildSignature {
+        const { processedData } = this;
+        return {
+            nodes: ctx.nodes,
+            processedData: processedData!,
+            dataVersion: processedData!.version,
+            nodeDataVersion: this.nodeDataVersion,
+            colorScaleValid: ctx.itemStyleContext.colorScaleValid,
+            colorDomain: [...ctx.colorDomain],
+            layout: [...scaleLayout(ctx.xAxis), ...scaleLayout(ctx.yAxis)],
+        };
+    }
+
+    /**
+     * Returns the data indices of the cells a transaction updated in place, or `undefined` when anything
+     * else could have changed a cell: another invalidation, a colour scale or layout change, cells added or
+     * removed, or labels (which are rebuilt from scratch).
+     */
+    private findTouchedDatumIndices(
+        ctx: HeatmapSeriesNodeDatumContext,
+        next: HeatmapBuildSignature
+    ): number[] | undefined {
+        const previous = this.buildSignature;
+        const changes = this.processedData?.changeDescription;
+        if (!ctx.canIncrementallyUpdate || previous == null || changes == null) return undefined;
+
+        if (
+            previous.processedData !== next.processedData ||
+            previous.nodes !== next.nodes ||
+            previous.dataVersion + 1 !== next.dataVersion ||
+            previous.nodeDataVersion + 1 !== next.nodeDataVersion ||
+            previous.colorScaleValid !== next.colorScaleValid ||
+            !sameValues(previous.colorDomain, next.colorDomain) ||
+            !sameValues(previous.layout, next.layout) ||
+            this.isLabelEnabled()
+        ) {
+            return undefined;
+        }
+
+        const { indexMap } = changes;
+        const { nodes, rawData } = ctx;
+        const updateOnly =
+            indexMap.removedIndices.size === 0 &&
+            indexMap.totalPrependCount === 0 &&
+            indexMap.totalAppendCount === 0 &&
+            indexMap.originalLength === indexMap.finalLength &&
+            nodes.length === rawData.length;
+        if (!updateOnly) return undefined;
+
+        const touched: number[] = [];
+        for (const datumIndex of indexMap.updatedIndices) {
+            if (nodes[datumIndex]?.datumIndex !== datumIndex) return undefined;
+            touched.push(datumIndex);
+        }
+        return touched;
     }
 
     /**
@@ -642,6 +773,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         datumSelection: Selection<HeatmapNodeDatum, Rect<HeatmapNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
+        // OPTIMIZATION: an in-place update leaves every datum bound to its scene node.
+        if (this.touchedDatumIndices != null) return datumSelection;
         const data = nodeData ?? [];
         return datumSelection.update(data);
     }
@@ -748,6 +881,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 return;
             }
             this.cellsStyledByHighlight = highlightActive;
+            this.restyledEveryCell = true;
         }
 
         datumSelection.each((_, nodeDatum) => {
@@ -769,7 +903,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const { cornerRadius, shadow } = this.options;
 
-        datumSelection.each((rect, nodeDatum) => {
+        const updateNode = (rect: Rect<HeatmapNodeDatum>, nodeDatum: HeatmapNodeDatum) => {
             const { point, width, height, style } = nodeDatum;
 
             rect.setStyleProperties(style);
@@ -781,7 +915,24 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             rect.y = point.y - height / 2;
             rect.width = width;
             rect.height = height;
-        });
+        };
+
+        const { touchedDatumIndices } = this;
+        if (!isHighlight && touchedDatumIndices != null && !this.restyledEveryCell) {
+            // OPTIMIZATION: only the updated cells' nodes differ from what the scene already holds.
+            for (const datumIndex of touchedDatumIndices) {
+                const rect = datumSelection.at(datumIndex);
+                if (rect?.datum != null) updateNode(rect, rect.datum);
+            }
+            return;
+        }
+
+        datumSelection.each(updateNode);
+    }
+
+    protected override updateNodes(itemHighlighted: boolean, nodeRefresh: boolean) {
+        super.updateNodes(itemHighlighted, nodeRefresh);
+        this.touchedDatumIndices = undefined;
     }
 
     protected override updateLabelSelection(opts: {
