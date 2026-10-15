@@ -110,7 +110,7 @@ const SIZE_OPTIONS = [
     ['width', 'inWidth'],
 ] as const;
 
-/** Options whose change alone moves no datum, so the node data it was built from stays valid. */
+/** Options that change only the layout, which a chart with axes carries to its series through the axes' ranges. */
 const LAYOUT_ONLY_DELTA_KEYS = new Set(['title', 'subtitle', 'footnote', 'padding', 'background']);
 
 /** A chart-like owner of series and axes: the chart itself or the navigator's mini chart. */
@@ -1792,9 +1792,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        // Only a delta of layout-only keys leaves the node data as it was.
-        const axesApplied = this.applyAxes(this, newOpts, seriesStatus);
-        if (axesApplied && !Object.keys(deltaOptions).every((key) => LAYOUT_ONLY_DELTA_KEYS.has(key))) {
+        this.applyAxes(this, newOpts, seriesStatus);
+        if (this.axes.length === 0 || !Object.keys(deltaOptions).every((key) => LAYOUT_ONLY_DELTA_KEYS.has(key))) {
             forceNodeDataRefresh = true;
         }
 
