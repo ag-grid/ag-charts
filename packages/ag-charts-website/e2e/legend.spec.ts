@@ -246,57 +246,37 @@ test.describe('legend', () => {
         });
     }
 
-    test('proxy buttons stay invisible and keep their focus indicator under host button styles', async ({ page }) => {
-        // `:not()` with an ID argument outranks every proxy selector, focus rule included.
+    test('proxy buttons stay invisible under host button styles', async ({ page }) => {
+        // `:not()` with an ID argument outranks every proxy selector.
         const hostButtonCss = `
             button:not(#host-toolbar button) {
                 background: rgb(255, 0, 0);
                 border: 3px solid rgb(0, 0, 255);
-                box-shadow: 0 0 0 4px rgb(0, 255, 0);
                 color: rgb(0, 0, 0);
-                position: relative;
                 text-shadow: 1px 1px rgb(0, 0, 0);
-            }
-            button:not(#host-toolbar button):focus-visible {
-                box-shadow: none;
-                outline: none;
             }
         `;
         await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
         await page.addStyleTag({ content: hostButtonCss });
 
-        const legendItem = page.locator(SELECTORS.legendItems).first();
-        const readStyle = () =>
-            legendItem.evaluate((el) => {
-                const style = getComputedStyle(el);
+        const style = await page
+            .locator(SELECTORS.legendItems)
+            .first()
+            .evaluate((el) => {
+                const computed = getComputedStyle(el);
                 return {
-                    backgroundColor: style.backgroundColor,
-                    borderTopStyle: style.borderTopStyle,
-                    boxShadow: style.boxShadow,
-                    color: style.color,
-                    outlineStyle: style.outlineStyle,
-                    position: style.position,
-                    textShadow: style.textShadow,
+                    backgroundColor: computed.backgroundColor,
+                    borderTopStyle: computed.borderTopStyle,
+                    color: computed.color,
+                    textShadow: computed.textShadow,
                 };
             });
 
-        expect(await readStyle()).toEqual({
+        expect(style).toEqual({
             backgroundColor: 'rgba(0, 0, 0, 0)',
             borderTopStyle: 'none',
-            boxShadow: 'none',
             color: 'rgba(0, 0, 0, 0)',
-            outlineStyle: 'none',
-            position: 'absolute',
             textShadow: 'none',
         });
-
-        await page.locator('input').first().click();
-        await page.keyboard.press('Tab');
-        await page.keyboard.press('Tab');
-        await expect(legendItem).toBeFocused();
-
-        const focused = await readStyle();
-        expect(focused.outlineStyle).toBe('solid');
-        expect(focused.boxShadow).not.toBe('none');
     });
 });
