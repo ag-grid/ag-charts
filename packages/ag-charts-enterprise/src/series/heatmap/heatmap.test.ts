@@ -1938,8 +1938,8 @@ describe('HeatmapSeries', () => {
             expect(content).toMatchObject({ type: 'structured', symbol: { marker: { fill: cellFills(chart)[2] } } });
         });
 
-        /** How many cells are filled with a `fillRect`, and how many are filled through a path, by the repaint `act` causes. */
-        async function countCellFills(act: () => Promise<void>) {
+        /** Counts every canvas `fillRect` and path `fill` the chart makes during `act`, so compare against a baseline. */
+        async function countFills(act: () => Promise<void>) {
             const proto = Object.getPrototypeOf(ctx.getRenderContext2D());
             const fillRect = vi.spyOn(proto, 'fillRect');
             const fill = vi.spyOn(proto, 'fill');
@@ -1986,7 +1986,7 @@ describe('HeatmapSeries', () => {
             };
             for (const [name, overrides] of Object.entries(variants)) {
                 await createStable(buildOptions(overrides));
-                fills[name] = await countCellFills(repaint);
+                fills[name] = await countFills(repaint);
                 chart.destroy();
             }
 
@@ -1999,7 +1999,7 @@ describe('HeatmapSeries', () => {
         /** The rects the chart fills apart from its cells and the highlighted cell, by a hover over rounded cells. */
         async function nonCellRects(highlight: object) {
             await createStable(buildOptions({ ...NO_TOOLTIP, cornerRadius: 4, highlight }));
-            const { rects } = await countCellFills(() => hoverDatumByIndex(chart, 0, 1));
+            const { rects } = await countFills(() => hoverDatumByIndex(chart, 0, 1));
             chart.destroy();
             return rects;
         }
@@ -2013,7 +2013,7 @@ describe('HeatmapSeries', () => {
             await createStable(buildOptions({ ...NO_TOOLTIP, highlight }));
             const series = classCast(chart.series[0], HeatmapSeries);
 
-            const { rects } = await countCellFills(() => hoverDatumByIndex(chart, 0, 1));
+            const { rects } = await countFills(() => hoverDatumByIndex(chart, 0, 1));
 
             const highlighted = collectShapes(series.highlightNodeGroup).filter((shape) => shape.visible);
             expect(highlighted).toHaveLength(1);
@@ -2028,11 +2028,11 @@ describe('HeatmapSeries', () => {
             const fills = cellFills(chart);
 
             // Only the plain highlight node is filled directly.
-            const hovered = await countCellFills(() => hoverDatumByIndex(chart, 0, 1));
+            const hovered = await countFills(() => hoverDatumByIndex(chart, 0, 1));
             expect(cellStrokes(chart)).toEqual(Array(DATA.length).fill({ stroke: 'black', width: 3 }));
             expect(hovered.rects).toBe(others + 1);
 
-            const away = await countCellFills(hoverAway);
+            const away = await countFills(hoverAway);
             expect(cellStrokes(chart).map((style) => style.width)).toEqual([0, 0, 0, 0]);
             expect(away.rects).toBe(others + DATA.length);
             expect(cellFills(chart)).toEqual(fills);

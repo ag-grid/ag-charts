@@ -407,7 +407,7 @@ describe('Rect', () => {
             return Object.assign(new Rect(), { x: 10.3, y: 12.7, width: 20.4, height: 15.2, fill: 'red' }, overrides);
         }
 
-        /** A rect that is always saved around and filled through its path, as every rect was. */
+        /** A rect that is always saved around and filled through its path. */
         class PathPaintedRect extends Rect {
             protected override needsIsolatedState() {
                 return true;
@@ -548,20 +548,23 @@ describe('Rect', () => {
             expect(Array.from(ctx.getImageData(5, 5, 1, 1).data)).toEqual([0, 128, 0, 255]);
         });
 
-        it('keeps filling the path while a shadow batch is being drawn', () => {
+        it.each([
+            ['mask', false],
+            ['suppress', true],
+        ] as const)('does not fill directly in the %s pass of a shadow batch', (state, fillsPath) => {
             const ctx = canvasCtx.getRenderContext2D();
             const fill = vi.spyOn(ctx, 'fill');
             const fillRect = vi.spyOn(ctx, 'fillRect');
             const previous = shadowPass.state;
 
-            shadowPass.state = 'suppress';
+            shadowPass.state = state;
             try {
                 paint(plainRect(), ctx);
             } finally {
                 shadowPass.state = previous;
             }
 
-            expect(fill).toHaveBeenCalled();
+            expect(fill.mock.calls.length > 0).toBe(fillsPath);
             expect(fillRect).not.toHaveBeenCalled();
         });
 
