@@ -452,8 +452,17 @@ export function themeBorderWidth(param: ThemeBorderParam, options: ThemeBorderOp
 /** A ratio theme param: `lineHeight` or one of the form `*LineHeight`. */
 export type ThemeLineHeightParam = Extract<keyof AgChartAllThemeParams, 'lineHeight' | `${string}LineHeight`>;
 
+/** Declared in core so the theme templates' declaration files reference it relatively. */
+export interface ThemeLineHeightOperation {
+    $if: [
+        { $ref: ThemeLineHeightParam },
+        { $multiply: [{ $ref: ThemeLineHeightParam }, { $path: string }] },
+        undefined,
+    ];
+}
+
 /** Pixel `lineHeight` for a text element: the ratio `param` times the element's own `fontSize`, unset when the param is. */
-export function themeLineHeight(param: ThemeLineHeightParam): Operation {
+export function themeLineHeight(param: ThemeLineHeightParam): ThemeLineHeightOperation {
     return { $if: [{ $ref: param }, { $multiply: [{ $ref: param }, { $path: './fontSize' }] }, undefined] };
 }
 
