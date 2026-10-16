@@ -472,7 +472,9 @@ export function getVisibleLabelNodes<TDatum = any>(
 
 interface AxisLayoutInternals {
     position: string;
-    tickLabelGroupSelection: { nodes(): Iterable<DrawnLabelNode & { fill?: string; rotation: number }> };
+    tickLabelGroupSelection: {
+        nodes(): Iterable<DrawnLabelNode & { fill?: string; rotation: number; textAlign?: string }>;
+    };
     tickLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
     gridLineGroupSelection: { nodes(): Iterable<AxisLineNode> };
     calculateTickLayout(...args: unknown[]): unknown;
@@ -487,7 +489,15 @@ interface AxisLineNode {
 
 export interface AxisTickLayout {
     position: string;
-    labels: { text: string; x: number; y: number; visible: boolean; rotation: number; fill?: string }[];
+    labels: {
+        text: string;
+        x: number;
+        y: number;
+        visible: boolean;
+        rotation: number;
+        fill?: string;
+        textAlign?: string;
+    }[];
     tickLines: AxisLineNode[];
     gridLines: AxisLineNode[];
 }
@@ -504,14 +514,18 @@ export function getAxisTickLayouts(chartOrProxy: ChartOrProxy<any>): AxisTickLay
         Array.from(selection.nodes(), ({ x1, y1, x2, y2 }) => ({ x1, y1, x2, y2 })).sort(lineByPosition);
     return (deproxy(chartOrProxy).axes as unknown as AxisLayoutInternals[]).map((axis) => ({
         position: axis.position,
-        labels: Array.from(axis.tickLabelGroupSelection.nodes(), ({ text, x, y, visible, rotation, fill }) => ({
-            text,
-            x,
-            y,
-            visible,
-            rotation,
-            fill,
-        })).sort(byPosition),
+        labels: Array.from(
+            axis.tickLabelGroupSelection.nodes(),
+            ({ text, x, y, visible, rotation, fill, textAlign }) => ({
+                text,
+                x,
+                y,
+                visible,
+                rotation,
+                fill,
+                textAlign,
+            })
+        ).sort(byPosition),
         tickLines: lines(axis.tickLineGroupSelection),
         gridLines: lines(axis.gridLineGroupSelection),
     }));

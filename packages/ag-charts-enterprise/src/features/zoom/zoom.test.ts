@@ -180,6 +180,42 @@ describe('Zoom', () => {
         });
     };
 
+    describe('tick datums across a data update', () => {
+        it('gives a zoomed axis new label datums, so its animated labels update rather than fade in', async () => {
+            const rows = (shift: number) => Array.from({ length: 9 }, (_, x) => ({ x, y: ((x + shift) % 2) * 10 }));
+            const baseOptions: AgCartesianChartOptions = {
+                data: rows(0),
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', nice: false },
+                    y: { type: 'number', position: 'left' },
+                },
+                zoom: { enabled: true, axes: 'x' },
+            };
+            await prepareChart(undefined, { ratioX: { start: 0.1, end: 0.7 } }, baseOptions, false);
+            await waitForChartStability(chart);
+
+            const xAxis = deproxy(chart).axes.find((axis) => axis.direction === ChartAxisDirection.X);
+            expect(xAxis).toBeDefined();
+            const labelDatums = () =>
+                Array.from(
+                    (
+                        xAxis as unknown as { tickLabelGroupSelection: { nodes(): Iterable<{ datum: object }> } }
+                    ).tickLabelGroupSelection.nodes(),
+                    (node) => node.datum
+                );
+            const before = labelDatums();
+            expect(before.length).toBeGreaterThan(0);
+
+            await chart.updateDelta({ data: rows(1) });
+            await waitForChartStability(chart);
+
+            const after = labelDatums();
+            expect(after).toHaveLength(before.length);
+            expect(after.filter((datum) => before.includes(datum))).toEqual([]);
+        });
+    });
+
     describe('visibleDomain', () => {
         it('should match the zoomed domain for cartesian number axes', async () => {
             let lastVisibleDomain: [AgNumericValue, AgNumericValue] | undefined;

@@ -165,22 +165,11 @@ interface TickLayoutCache<D, TickLayoutMeta> {
     tickLayout: TickLayout<D, TickLayoutMeta>;
 }
 
-function domainsEqual<D>(a: D[], b: D[]): boolean {
-    if (a === b) return true;
-    const { length } = a;
-    if (length !== b.length) return false;
-    for (let i = 0; i < length; i++) {
-        if (a[i] !== b[i]) return false;
-    }
-    return true;
-}
-
 function tickLayoutCacheValid<D, TickLayoutMeta>(
     a: TickLayoutCache<D, TickLayoutMeta>,
     b: Omit<TickLayoutCache<D, TickLayoutMeta>, 'tickLayout'>
 ): boolean {
     return (
-        domainsEqual(a.domain, b.domain) &&
         a.rangeExtent === b.rangeExtent &&
         a.nice[0] === b.nice[0] &&
         a.nice[1] === b.nice[1] &&
@@ -189,7 +178,8 @@ function tickLayoutCacheValid<D, TickLayoutMeta>(
         a.visibleRange[1] === b.visibleRange[1] &&
         a.scrollbarKey === b.scrollbarKey &&
         a.initialPrimaryTickCount?.unzoomed === b.initialPrimaryTickCount?.unzoomed &&
-        a.initialPrimaryTickCount?.zoomed === b.initialPrimaryTickCount?.zoomed
+        a.initialPrimaryTickCount?.zoomed === b.initialPrimaryTickCount?.zoomed &&
+        (a.domain === b.domain || arraysEqual(a.domain, b.domain))
     );
 }
 
@@ -502,7 +492,8 @@ export abstract class Axis<
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering()),
             // The tick-layout cache key carries no font identity.
-            this.moduleCtx.eventsHub.on('font:load', () => this.invalidateLayoutCache())
+            this.moduleCtx.eventsHub.on('font:load', () => this.invalidateLayoutCache()),
+            this.moduleCtx.formatManager.addListener('format-changed', () => this.invalidateLayoutCache())
         );
     }
 
@@ -741,7 +732,14 @@ export abstract class Axis<
 
     private retainsTickLayoutAcrossData(): boolean {
         const { formatter, itemStyler } = this.options.label;
-        return this.tickLayoutIgnoresData && formatter == null && itemStyler == null;
+        const title = (this.options as { title?: { formatter?: unknown } }).title;
+        return (
+            this.tickLayoutIgnoresData &&
+            formatter == null &&
+            itemStyler == null &&
+            title?.formatter == null &&
+            this.moduleCtx.formatManager.formatter == null
+        );
     }
 
     getDomainExtentsNice(): [boolean, boolean] {
@@ -794,6 +792,7 @@ export abstract class Axis<
 
         const { unzoomedTickLayoutCache } = this;
         let unzoomedTickLayout: TickLayout<D, TickLayoutMeta>;
+        let unzoomedReused = false;
         if (
             unzoomedTickLayoutCache == null ||
             !tickLayoutCacheValid(unzoomedTickLayoutCache, {
@@ -812,7 +811,7 @@ export abstract class Axis<
             scale.domain = domain;
 
             const niceMode = nice.map((n) => (n ? NiceMode.TickAndDomain : NiceMode.Off));
-            unzoomedTickLayout = this.computeTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
+            unzoomedTickLayout = this.calculateTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
 
             scale.range = scaleRange;
 
@@ -828,29 +827,19 @@ export abstract class Axis<
             };
         } else {
             unzoomedTickLayout = unzoomedTickLayoutCache.tickLayout;
+            unzoomedReused = true;
         }
 
         this.updateScale();
 
         scale.domain = unzoomedTickLayout.niceDomain;
 
-        return { unzoomedTickLayout, domain: scale.domain };
+        return { unzoomedTickLayout, unzoomedReused, domain: scale.domain };
     }
 
     private tickLayoutCache: TickLayoutCache<D, TickLayoutMeta> | undefined;
     protected tickLayout: TickLayoutMeta | undefined = undefined;
-    private tickLayoutsComputed = 0;
     private tickDatumsStale = false;
-
-    private computeTickLayout(
-        domain: D[],
-        niceMode: NiceMode[],
-        visibleRange: [number, number],
-        primaryTickCount?: AxisPrimaryTickCount
-    ) {
-        this.tickLayoutsComputed++;
-        return this.calculateTickLayout(domain, niceMode, visibleRange, primaryTickCount);
-    }
 
     /** A copy of `layout` whose datums are new objects, so that the nodes bound to them animate as updated, not added. */
     protected refreshTickDatums(layout: TickLayoutMeta): TickLayoutMeta {
@@ -865,18 +854,22 @@ export abstract class Axis<
         bbox?: BBox;
     } {
         this.chartLayout = chartLayout;
-        const computedBefore = this.tickLayoutsComputed;
         const scrollbarKey = this.getScrollbarLayoutCacheKey(chartLayout);
 
         const { visibleRange } = this;
         const unzoomed = visibleRange[0] === 0 && visibleRange[1] === 1;
-        const { unzoomedTickLayout, domain } = this.calculateDomain(initialPrimaryTickCount, scrollbarKey);
+        const { unzoomedTickLayout, unzoomedReused, domain } = this.calculateDomain(
+            initialPrimaryTickCount,
+            scrollbarKey
+        );
 
         const nice = this.getDomainExtentsNice();
 
         let tickLayout: TickLayout<D, TickLayoutMeta>;
+        let reused: boolean;
         if (unzoomed) {
             tickLayout = unzoomedTickLayout;
+            reused = unzoomedReused;
         } else {
             const { range, gridLength } = this;
             const rangeExtent = findRangeExtent(range);
@@ -894,7 +887,7 @@ export abstract class Axis<
                     scrollbarKey,
                 })
             ) {
-                tickLayout = this.computeTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
+                tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
 
                 this.tickLayoutCache = {
                     domain,
@@ -906,8 +899,10 @@ export abstract class Axis<
                     scrollbarKey,
                     tickLayout,
                 };
+                reused = false;
             } else {
                 tickLayout = tickLayoutCache.tickLayout;
+                reused = true;
             }
         }
 
@@ -919,10 +914,12 @@ export abstract class Axis<
                 ? { zoomed: zoomedTickCount, unzoomed: unzoomedTickCount }
                 : undefined;
 
-        const reusedLayout = this.tickDatumsStale && this.tickLayoutsComputed === computedBefore;
+        if (reused && this.tickDatumsStale && tickLayout.layout != null) {
+            // Written back so that later passes of this update bind the same datums.
+            tickLayout.layout = this.refreshTickDatums(tickLayout.layout);
+        }
         this.tickDatumsStale = false;
-        this.tickLayout =
-            reusedLayout && tickLayout.layout != null ? this.refreshTickDatums(tickLayout.layout) : tickLayout.layout;
+        this.tickLayout = tickLayout.layout;
         this.layout.label = {
             fractionDigits: fractionDigits,
             spacing: this.options.label.spacing,
@@ -935,7 +932,7 @@ export abstract class Axis<
         return { primaryTickCount, bbox };
     }
 
-    protected invalidateLayoutCache() {
+    private invalidateLayoutCache() {
         this.unzoomedTickLayoutCache = undefined;
         this.tickLayoutCache = undefined;
         this.tickLayout = undefined;

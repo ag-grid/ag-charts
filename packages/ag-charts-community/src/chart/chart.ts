@@ -1792,7 +1792,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        this.applyAxes(this, newOpts, seriesStatus, 'axes' in deltaOptions || modulesChanged);
+        // Re-applying the axis options drops the cached tick layouts, which only a data-only delta leaves valid.
+        const axesChanged = modulesChanged || Object.keys(deltaOptions).some((key) => key !== 'data');
+        this.applyAxes(this, newOpts, seriesStatus, axesChanged);
         if (this.axes.length === 0 || !Object.keys(deltaOptions).every((key) => LAYOUT_ONLY_DELTA_KEYS.has(key))) {
             forceNodeDataRefresh = true;
         }

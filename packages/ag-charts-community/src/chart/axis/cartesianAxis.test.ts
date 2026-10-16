@@ -3736,6 +3736,20 @@ describe('CartesianAxis', () => {
             expect(getAxisLabelTexts(chart, 'left')).toContain('100');
         });
 
+        it('keeps the y ticks when a row is added within the y range, and recalculates the x ticks', async () => {
+            chart = await create({ axes: numberAxes, data: sequence(0, 10, alternating(0)) });
+            const yTickLayout = spyOnAxisTickLayout(chart, 'left');
+            const xTickLayout = spyOnAxisTickLayout(chart, 'bottom');
+
+            await update({ data: sequence(0, 11, alternating(0)) });
+
+            expect(yTickLayout).not.toHaveBeenCalled();
+            expect(xTickLayout).toHaveBeenCalled();
+            expect(getAxisTickLayouts(chart)).toEqual(
+                getAxisTickLayouts(await createFresh({ axes: numberAxes, data: sequence(0, 11, alternating(0)) }))
+            );
+        });
+
         it('matches a fresh chart when only the values change on a category axis', async () => {
             chart = await create({ axes: categoryAxes, data: categories(0, 8) });
 
@@ -3854,6 +3868,103 @@ describe('CartesianAxis', () => {
             );
             expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(wide));
             expect(getAxisTickLayouts(chart)).not.toEqual(getAxisTickLayouts(narrow));
+        });
+
+        describe('with an input other than the domain and range', () => {
+            const stable = sequence(0, 9, alternating(0));
+            const moved = sequence(0, 9, alternating(1));
+
+            it.each([
+                { name: 'alone', data: stable },
+                { name: 'with a data update', data: moved },
+            ])('matches a fresh chart after a chart formatter is added ($name)', async ({ data }) => {
+                const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}!` };
+                chart = await create({ axes: numberAxes, data: stable });
+
+                await update({ formatter, data });
+
+                const fresh = await createFresh({ axes: numberAxes, data, formatter });
+                expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10!');
+            });
+
+            it('matches a fresh chart after a chart formatter is removed', async () => {
+                const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}!` };
+                chart = await create({ axes: numberAxes, data: stable, formatter });
+
+                await update({ formatter: undefined });
+
+                const fresh = await createFresh({ axes: numberAxes, data: stable });
+                expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10');
+            });
+
+            it('re-runs a chart formatter on a data update that leaves the domain unchanged', async () => {
+                let suffix = 'a';
+                const formatter = { y: ({ value }: { value: unknown }) => `${String(value)}${suffix}` };
+                chart = await create({ axes: numberAxes, data: stable, formatter });
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10a');
+
+                suffix = 'b';
+                await update({ data: moved });
+
+                const fresh = await createFresh({ axes: numberAxes, data: moved, formatter });
+                expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
+                expect(getAxisLabelTexts(chart, 'left')[0]).toBe('10b');
+            });
+
+            it('re-measures an axis title whose formatter changes text on a data update that leaves the domain unchanged', async () => {
+                let text = 'Short';
+                const axes = {
+                    ...numberAxes,
+                    y: { ...numberAxes.y, title: { text: 'Title', formatter: () => text } },
+                };
+                chart = await create({ axes, data: stable });
+
+                text = 'Three\nlines\nof text';
+                await update({ data: moved });
+
+                const fresh = await createFresh({ axes, data: moved });
+                expect(deproxy(chart).seriesRect).toEqual(deproxy(fresh).seriesRect);
+                expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
+            });
+
+            it.each([
+                { name: 'alone', data: stable },
+                { name: 'with a data update', data: moved },
+            ])('matches a fresh chart after the direction becomes right-to-left ($name)', async ({ data }) => {
+                const axes = {
+                    ...numberAxes,
+                    x: { ...numberAxes.x, label: { textAlign: 'start' } },
+                };
+                chart = await create({ axes, data: stable });
+
+                await update({ enableRtl: true, data });
+
+                const fresh = await createFresh({ axes, data, enableRtl: true });
+                expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
+            });
+
+            it.each([
+                { name: 'alone', data: stable },
+                { name: 'with a data update', data: moved },
+            ])('hides the edge label that the padding no longer fits ($name)', async ({ data }) => {
+                const axes = {
+                    ...numberAxes,
+                    x: { ...numberAxes.x, label: { fontSize: 40 } },
+                };
+                const roomOnRight = { left: 0, right: 80, top: 20, bottom: 20 };
+                const roomOnLeft = { left: 80, right: 0, top: 20, bottom: 20 };
+                chart = await create({ axes, data: stable, padding: roomOnRight });
+                const labelled = () => getAxisTickLayouts(chart)[0].labels.filter((label) => label.text !== '').length;
+                const before = labelled();
+
+                await update({ padding: roomOnLeft, data });
+
+                const fresh = await createFresh({ axes, data, padding: roomOnLeft });
+                expect(getAxisTickLayouts(chart)).toEqual(getAxisTickLayouts(fresh));
+                expect(labelled()).toBeLessThan(before);
+            });
         });
     });
 });
