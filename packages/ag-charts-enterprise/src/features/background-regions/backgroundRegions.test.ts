@@ -1,6 +1,5 @@
 import { describe } from 'vitest';
 
-import { AgCharts } from 'ag-charts-community';
 import {
     type CartesianTestCase,
     cartesianChartAssertions,
@@ -11,9 +10,14 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgCartesianChartOptions, AgChartOptions, AgSeriesAreaBackgroundRegion } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartOptions,
+    AgSeriesAreaBackgroundRegion,
+} from 'ag-charts-types';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { anchors } from './cartesianBackgroundRegion';
 
 const NUMERIC: AgCartesianChartOptions = {
@@ -729,10 +733,10 @@ for (const position of labelPositions) {
 
 describe('Background Regions', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
@@ -748,11 +752,7 @@ describe('Background Regions', () => {
     it.each(Object.entries(EXAMPLES))(
         'for %s it should create chart instance as expected',
         async (_exampleName, example) => {
-            const options: AgCartesianChartOptions = { ...example.options };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(example.options);
             await example.assertions(chart);
 
             expectWarningsCalls().toEqual(example.warnings ?? []);
@@ -762,10 +762,7 @@ describe('Background Regions', () => {
     it.each(Object.entries(EXAMPLES))(
         'for %s it should render to canvas as expected',
         async (_exampleName, example) => {
-            const options: AgCartesianChartOptions = { ...example.options };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(example.options);
             await compare();
 
             if (example.extraScreenshotActions) {
@@ -782,10 +779,10 @@ describe('Background Regions removal', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
@@ -797,15 +794,13 @@ describe('Background Regions removal', () => {
             ...NUMERIC,
             seriesArea: { backgroundRegions: [{ fill: 'lightsalmon', xRange: { start: 20, end: 80 } }] },
         };
-        prepareEnterpriseTestOptions(options);
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         const regions = deproxy(chart).modulesManager.getModule<any>('background-regions');
         expect(regions.regions).toHaveLength(1);
 
-        await chart.update({ ...options, seriesArea: { clip: true } });
+        await chart.update(prepareEnterpriseTestOptions({ ...options, seriesArea: { clip: true } }));
         await waitForChartStability(chart);
 
         expect(regions.regions).toHaveLength(0);
@@ -817,10 +812,10 @@ describe('Background Region label fitting', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
@@ -832,10 +827,8 @@ describe('Background Region label fitting', () => {
         theme?: AgCartesianChartOptions['theme']
     ) {
         const options = { ...fitLabelOptions(label), theme };
-        prepareEnterpriseTestOptions(options);
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
         expectWarningsCalls().toEqual([]);
 
         const regions = deproxy(chart).modulesManager.getModule<any>('background-regions');
@@ -901,10 +894,8 @@ describe('Background Region label fitting', () => {
 
     it('rejects a minimumFontSize above fontSize', async () => {
         const options = fitLabelOptions({ maxWidth: 120, minimumFontSize: 30 });
-        prepareEnterpriseTestOptions(options);
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         expectWarningsCalls().toEqual([
             [
@@ -984,10 +975,8 @@ describe('Background Region label position validation', () => {
                     ],
                 },
             };
-            prepareEnterpriseTestOptions(options);
 
-            const chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            const chart = await createEnterpriseChart(options);
             chart.destroy();
         }
 
@@ -1014,10 +1003,10 @@ describe('Background Regions on unsupported chart types', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
@@ -1035,10 +1024,8 @@ describe('Background Regions on unsupported chart types', () => {
                 backgroundRegions: [{ fill: 'lightsalmon', xRange: { start: 20, end: 80 } }],
             },
         } as AgChartOptions;
-        prepareEnterpriseTestOptions(options);
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         expectWarningsCalls().toEqual([
             ['AG Charts - Option `seriesArea.backgroundRegions` is not supported by `pie` series, ignoring.'],
@@ -1050,10 +1037,10 @@ describe('Background Regions under the enterprise registry', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
@@ -1065,10 +1052,8 @@ describe('Background Regions under the enterprise registry', () => {
             ...NUMERIC,
             seriesArea: { backgroundRegions: [{ fill: 'lightsalmon', xRange: { start: 20, end: 80 } }] },
         };
-        prepareEnterpriseTestOptions(options);
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         expectWarningsCalls().toEqual([]);
     });
@@ -1078,10 +1063,10 @@ describe('Background Regions theme overrides', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(async () => {
-        if (chart) {
+        if (chart != null) {
             await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
@@ -1097,10 +1082,8 @@ describe('Background Regions theme overrides', () => {
             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             theme: { overrides: { line: { seriesArea: { backgroundRegions: { fill: 'lightsalmon' } } } } },
         };
-        prepareEnterpriseTestOptions(options);
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         expect(deproxy(chart).chartOptions.processedOptions.seriesArea ?? {}).not.toHaveProperty('backgroundRegions');
     });

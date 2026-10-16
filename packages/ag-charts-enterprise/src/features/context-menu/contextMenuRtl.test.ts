@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, test } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import {
     contextMenuAction,
     setupMockCanvas,
@@ -9,8 +8,9 @@ import {
     setupMockPointerEvent,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
 describe('Context Menu RTL', () => {
@@ -18,7 +18,7 @@ describe('Context Menu RTL', () => {
     setupMockCanvas();
     setupMockPointerEvent();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
         enableRtl: true,
@@ -79,16 +79,14 @@ describe('Context Menu RTL', () => {
             ...baseOptions,
             contextMenu: { ...baseOptions.contextMenu, ...(contextMenuOptions ?? {}) },
         };
-        prepareEnterpriseTestOptions(options);
-        cx = options.width! / 2;
-        cy = options.height! / 2;
+        cx = CANVAS_WIDTH / 2;
+        cy = CANVAS_HEIGHT / 2;
 
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
     }
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }

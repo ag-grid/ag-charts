@@ -1,11 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
 import type { AgRangesButtonValueFunctionParams, AgRangesButtonValueSource } from 'ag-charts-types';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 import { Ranges } from './ranges';
 
 describe('Ranges', () => {
@@ -93,7 +92,7 @@ describe('Ranges', () => {
 
     describe('buttonSize', () => {
         const create = async (ranges: Record<string, unknown>) => {
-            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes: {
@@ -101,8 +100,8 @@ describe('Ranges', () => {
                     y: { type: 'number', position: 'left' },
                 },
                 ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }], ...ranges },
-            } as any);
-            chart = AgCharts.create(options);
+            } as any;
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
             return deproxy(chart as any) as any;
         };
@@ -199,7 +198,7 @@ describe('Ranges', () => {
         it('should pass source parameter to AgRangesButtonValueFunction', async () => {
             const receivedSources: AgRangesButtonValueSource[] = [];
 
-            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes: {
@@ -218,9 +217,9 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any);
+            } as any;
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             // The range-check source should have been received during initial button enablement validation
@@ -232,7 +231,7 @@ describe('Ranges', () => {
         it('should pass a params object with the domain and window bounds', async () => {
             const receivedParams: AgRangesButtonValueFunctionParams[] = [];
 
-            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes: {
@@ -251,9 +250,9 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any);
+            } as any;
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             expect(receivedParams.length).toBeGreaterThan(0);
@@ -273,7 +272,7 @@ describe('Ranges', () => {
         it('should pass the chart-level context to the value function', async () => {
             const receivedContexts: Array<RangesContext | undefined> = [];
 
-            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes: {
@@ -293,9 +292,9 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any);
+            } as any;
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             expect(receivedContexts.length).toBeGreaterThan(0);
@@ -305,7 +304,7 @@ describe('Ranges', () => {
         it('should pass undefined context when none is configured', async () => {
             const receivedContexts: Array<RangesContext | undefined> = [];
 
-            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes: {
@@ -324,9 +323,9 @@ describe('Ranges', () => {
                         },
                     ],
                 },
-            } as any);
+            } as any;
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             expect(receivedContexts.length).toBeGreaterThan(0);
@@ -336,7 +335,7 @@ describe('Ranges', () => {
 
     describe('theme params', () => {
         const resolvedRanges = async (params: Record<string, unknown>) => {
-            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes: {
@@ -345,9 +344,9 @@ describe('Ranges', () => {
                 },
                 ranges: { enabled: true, buttons: [{ label: 'All', value: [0, 19] }] },
                 theme: { params },
-            } as any);
+            } as any;
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
             return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
         };
@@ -447,7 +446,7 @@ describe('Ranges', () => {
         });
 
         it('hover and disabled states inherit a user-set text colour and stroke', async () => {
-            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes: {
@@ -460,8 +459,8 @@ describe('Ranges', () => {
                     stroke: 'green',
                     buttons: [{ label: 'All', value: [0, 19] }],
                 },
-            } as any);
-            chart = AgCharts.create(options);
+            } as any;
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
             const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
 
@@ -542,13 +541,13 @@ describe('Ranges', () => {
         });
 
         it('a user-set strokeWidth applies in every state', async () => {
-            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { enabled: true, strokeWidth: 3, buttons: [{ label: 'All', value: [0, 19] }] },
                 theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
-            } as any);
-            chart = AgCharts.create(options);
+            } as any;
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
             const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
 
@@ -558,13 +557,13 @@ describe('Ranges', () => {
         });
 
         it('a user-set button strokeWidth applies in every button state', async () => {
-            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { enabled: true, button: { strokeWidth: 3 }, buttons: [{ label: 'All', value: [0, 19] }] },
                 theme: { params: { buttonHoverBorder: { color: 'orange', width: 6 } } },
-            } as any);
-            chart = AgCharts.create(options);
+            } as any;
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
             const ranges = (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges');
 
@@ -581,12 +580,12 @@ describe('Ranges', () => {
         });
 
         const resolvedUserPadding = async (padding: unknown) => {
-            const options: AgCartesianChartOptions = prepareEnterpriseTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 ranges: { enabled: true, padding, buttons: [{ label: 'All', value: [0, 19] }] },
-            } as any);
-            chart = AgCharts.create(options);
+            } as any;
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
             return (deproxy(chart as any) as any).ctx.chartState.getValue('options', 'ranges').button.padding;
         };

@@ -5,7 +5,6 @@ import {
     type AgChartInstance,
     type AgChartOptions,
     type AgChartState,
-    AgCharts,
     type AgInitialStateZoomOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -37,10 +36,10 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection, type DeepReadonly, Transformable } from 'ag-charts-core';
-import { Caster, WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
 import type { AgNumericValue } from 'ag-charts-types';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 
 describe('Zoom', () => {
     setupMockConsole();
@@ -142,16 +141,14 @@ describe('Zoom', () => {
             initialState: { zoom: initialState },
             zoom: { ...baseOptions.zoom, ...(zoomOptions ?? {}) },
         };
-        prepareEnterpriseTestOptions(options);
-        cx = options.width! / 2;
-        cy = options.height! / 2;
+        cx = CANVAS_WIDTH / 2;
+        cy = CANVAS_HEIGHT / 2;
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
 
         // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
         // event is triggered.
         if (clickAfterCreate) {
-            await waitForChartStability(chart);
             await clickAction(cx, cy)(chart);
         }
     }
@@ -715,9 +712,7 @@ describe('Zoom', () => {
                 initialState: { zoom: { ratioX: { start: 0.2, end: 0.4 } } },
                 legend: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const xValues = getAggregatedMarkerXValues(chart);
 
@@ -1815,9 +1810,7 @@ describe('Zoom', () => {
                     zoom: { ratioX: { start: 0, end: 0.005 }, ratioY: { start: 0, end: 0.25 } },
                 },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             // Datums 0 to 2 are in the viewport, datum 3 (y = 3) is above its top edge.
             await tabIntoChart(chart);
@@ -1885,9 +1878,7 @@ describe('Zoom', () => {
                     zoom: { enabled: true, axes: 'x' },
                     initialState: { zoom: { ratioX: { start: 0.3, end: 0.4 } } },
                 };
-                prepareEnterpriseTestOptions(options);
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
             });
 
             it('pans to the datum with the same index in the other series', async () => {

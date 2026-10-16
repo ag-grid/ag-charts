@@ -5,19 +5,17 @@ import type {
     AgBarSeriesOptions,
     AgCartesianAxesOptions,
     AgCartesianChartOptions,
-    AgChartOptions,
+    AgChartInstance,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import {
     applyAxesFlip,
     compareImageSnapshot,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 
 const BASE_OPTIONS: AgCartesianChartOptions = {
     theme: {
@@ -399,11 +397,11 @@ const ORDINAL_TIME_OPTIONS: AgCartesianChartOptions = {
 describe('bandHighlight', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -428,29 +426,23 @@ describe('bandHighlight', () => {
     ];
 
     it.each(CASES)(`should follow mouse pointer on series hover`, async (TEST_CASE) => {
-        const options: AgChartOptions = TEST_CASE;
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(TEST_CASE);
         await hoverAction(605, 300)(chart);
         await compare();
     });
 
     it.each(CASES)(`should layout correctly with series area padding`, async (TEST_CASE) => {
-        const options: AgChartOptions = TEST_CASE;
-        prepareEnterpriseTestOptions(options);
-        options.seriesArea = {
-            padding: {
-                left: 100,
-                right: 100,
-                bottom: 100,
-                top: 100,
+        chart = await createEnterpriseChart({
+            ...TEST_CASE,
+            seriesArea: {
+                padding: {
+                    left: 100,
+                    right: 100,
+                    bottom: 100,
+                    top: 100,
+                },
             },
-        };
-
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        });
         await hoverAction(300, 300)(chart);
         await compare();
     });

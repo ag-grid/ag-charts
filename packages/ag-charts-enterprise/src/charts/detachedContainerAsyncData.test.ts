@@ -49,6 +49,8 @@ describe('Chart on a detached container with async data and a series-type switch
     // Mirrors the Studio flow: create detached, swap the series type with empty data, then data arrives
     // async. jsdom fires no ResizeObserver callback, so the attach-transition re-measure must size it.
     const runScenario = async (container: HTMLElement, attach: () => void, attachPhase: 'early' | 'late') => {
+        // Bespoke: the suite exercises a detached container with no test preparation, and the chart must not be settled
+        // before the container is attached.
         proxy = AgCharts.create({ container, animation: { enabled: false } });
         await proxy.waitForUpdate();
 

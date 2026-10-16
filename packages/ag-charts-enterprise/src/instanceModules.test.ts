@@ -8,21 +8,15 @@ import {
     LineSeriesModule,
     NumberAxisModule,
 } from 'ag-charts-community';
-import {
-    clickAction,
-    expectErrorsCalls,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { clickAction, expectErrorsCalls, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 import { type ModuleDefinition, ModuleRegistry, ModuleScope } from 'ag-charts-core';
 
 import { NumberAxisModule as EnterpriseNumberAxisModule } from './axes/cartesian/cartesianAxisModules';
-import { AgCharts, RangeBarSeriesModule } from './main';
+import { RangeBarSeriesModule } from './main';
 import { AllCartesianAxesModule } from './module-bundles/cartesian-axes';
 import { PriceVolumePresetModule } from './preset/price-volume/priceVolumePresetModule';
 import { VolumeProfilePresetModule } from './preset/volume-profile/volumeProfilePresetModule';
-import { createEnterpriseChart, prepareEnterpriseTestOptions } from './test/utils';
+import { createEnterpriseChart } from './test/utils';
 
 describe('instance modules', () => {
     setupMockConsole();
@@ -40,8 +34,7 @@ describe('instance modules', () => {
             data: [{ x: 'A', y: 1 }],
             series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
         };
-        chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         expect(chart.isModuleRegistered('AxisInteractionModule')).toBe(true);
         expect(chart.isModuleRegistered('ZoomModule')).toBe(true);
@@ -144,17 +137,14 @@ describe('enterprise cartesian axis modules', () => {
     it('fires axis click listeners without registering AxisInteractionModule by hand', async () => {
         ModuleRegistry.registerModules([LineSeriesModule, EnterpriseNumberAxisModule]);
         const click = vi.fn();
-        chart = AgCharts.create(
-            prepareEnterpriseTestOptions({
-                data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
-                axes: {
-                    x: { type: 'number', listeners: { click } },
-                    y: { type: 'number' },
-                },
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-            })
-        );
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart({
+            data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
+            axes: {
+                x: { type: 'number', listeners: { click } },
+                y: { type: 'number' },
+            },
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+        });
 
         expect(chart.isModuleRegistered('AxisInteractionModule')).toBe(true);
 

@@ -34,6 +34,9 @@ describe('ChartSync', () => {
         }
     };
 
+    // Bespoke: every chart in this suite is one of several synced charts that are all created before any of them is
+    // awaited for stability, which the shared factory (create, then wait) cannot do. Hence the bare `AgCharts.create`
+    // calls below.
     describe('domain synchronization between charts', () => {
         beforeEach(async () => {
             charts = BAR_SHARED_Y_AXIS.map((o) => prepareEnterpriseTestOptions({ ...o })).map((o) =>

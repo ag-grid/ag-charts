@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, test, vi } from 'vitest';
 
-import type { AgChartOptions, AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-community';
+import type { AgChartInstance, AgChartOptions, AgContextMenuItem, AgContextMenuItemShowOn } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     clickAction,
@@ -16,10 +16,10 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection, Transformable } from 'ag-charts-core';
-import { Caster } from 'ag-charts-test';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster } from 'ag-charts-test';
 
 import { pointOnPolarCrossLine, polarCanvasPoint, polarCrossLineAt } from '../../test/polarCrossLines';
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
 
 describe('Context Menu', () => {
@@ -27,7 +27,7 @@ describe('Context Menu', () => {
     setupMockCanvas();
     setupMockPointerEvent();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     const EXAMPLE_OPTIONS: AgChartOptions = {
         data: [
@@ -171,19 +171,16 @@ describe('Context Menu', () => {
             ...baseOptions,
             contextMenu: { ...baseOptions.contextMenu, ...(contextMenuOptions ?? {}) },
         };
-        prepareEnterpriseTestOptions(options);
-        cx = options.width! / 2;
-        cy = options.height! / 2;
-
-        chart = AgCharts.create(options);
+        cx = CANVAS_WIDTH / 2;
+        cy = CANVAS_HEIGHT / 2;
 
         // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
         // event is triggered.
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
     }
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -400,6 +397,7 @@ describe('Context Menu', () => {
             ],
         };
         subsubmenu.items = contextMenu.items;
+        // Bespoke: the warnings are asserted synchronously, before the chart has settled.
         chart = AgCharts.create(prepareEnterpriseTestOptions({ ...EXAMPLE_OPTIONS, contextMenu }));
         expectWarningsCalls().toMatchSnapshot();
     });

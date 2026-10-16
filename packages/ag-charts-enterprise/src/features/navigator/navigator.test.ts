@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import {
     CROSSLINE_EXAMPLES,
     type CartesianTestCase,
@@ -14,7 +14,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const xyData = (ys: number[], key = 'y') => ys.map((y, x) => ({ x, [key]: y }));
 
@@ -340,10 +340,10 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
 describe('Navigator', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -361,8 +361,7 @@ describe('Navigator', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y', data: xyData([5, 7, 8, 3, 0, 2]) }],
                 navigator: { enabled: true },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             const toolbar = document.querySelector('.ag-charts-proxy-navigator-toolbar');
@@ -387,9 +386,7 @@ describe('Navigator', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
 
@@ -401,9 +398,7 @@ describe('Navigator', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await compare();
 
                 expectWarningsCalls().toEqual([]);
@@ -414,9 +409,7 @@ describe('Navigator', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
 
@@ -428,9 +421,7 @@ describe('Navigator', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const options: AgCartesianChartOptions = { ...example.options };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await compare();
 
                 if (example.warnings) expectWarningsCalls().toEqual(example.warnings);
@@ -444,18 +435,21 @@ describe('Navigator', () => {
                 ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
                 navigator: { enabled: true, miniChart: { enabled: true } },
             };
-            prepareEnterpriseTestOptions(base);
-            chart = AgCharts.create(base);
+            chart = await createEnterpriseChart(base);
             await waitForChartStability(chart);
             const navigator = deproxy(chart).modulesManager.getModule<any>('navigator');
             expect(navigator.miniChart.axes.length).toBeGreaterThan(0);
 
-            await chart.update({ ...base, navigator: { enabled: true, miniChart: { enabled: false } } });
+            await chart.update(
+                prepareEnterpriseTestOptions({ ...base, navigator: { enabled: true, miniChart: { enabled: false } } })
+            );
             await waitForChartStability(chart);
             expect(navigator.miniChart.axes.length).toBe(0);
             expect(navigator.miniChart.series.length).toBe(0);
 
-            await chart.update({ ...base, navigator: { enabled: true, miniChart: { enabled: true } } });
+            await chart.update(
+                prepareEnterpriseTestOptions({ ...base, navigator: { enabled: true, miniChart: { enabled: true } } })
+            );
             await waitForChartStability(chart);
             expect(navigator.miniChart.axes.length).toBeGreaterThan(0);
             expectWarningsCalls().toEqual([]);
@@ -496,8 +490,7 @@ describe('Navigator', () => {
                     .map((label: any) => label.placement);
 
             const base = options(true);
-            prepareEnterpriseTestOptions(base);
-            chart = AgCharts.create(base);
+            chart = await createEnterpriseChart(base);
             await waitForChartStability(chart);
             expect(placementsOnAxis()).toEqual(['top', 'top', 'top']);
 
@@ -513,9 +506,7 @@ describe('Navigator', () => {
                 ...NAVIGATOR_MINICHART_EXAMPLES.MINI_CHART_SERIES_OVERRIDE.options,
                 navigator: { miniChart: { series: [{ strokeWidth: 'thick' } as any] } },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([[expect.stringContaining('.strokeWidth` cannot be set to `"thick"`')]]);
@@ -526,9 +517,7 @@ describe('Navigator', () => {
                 ...NAVIGATOR_MINICHART_EXAMPLES.MINI_CHART_SERIES_OVERRIDE.options,
                 navigator: { miniChart: { series: [{ type: 'line', strokeWidth: 1 }] } },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([]);
@@ -543,8 +532,7 @@ describe('Navigator', () => {
                 ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
                 theme: { overrides: { common: { navigator: navigatorTheme } } } as AgCartesianChartOptions['theme'],
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
         };
 
@@ -609,9 +597,7 @@ describe('Navigator', () => {
                 initialState: { zoom: { ratioX: { start: 0.2, end: 0.7 } } },
                 theme: { baseTheme, params } as AgCartesianChartOptions['theme'],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         };
 
@@ -639,8 +625,7 @@ describe('Navigator', () => {
                 ...NAVIGATOR_MINICHART_EXAMPLES.SINGLE_LINE_SERIES.options,
                 navigator: { enabled: true, ...navigator },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
             return deproxy(chart).modulesManager.getModule<any>('navigator').track;
         };
@@ -697,9 +682,7 @@ describe('Navigator', () => {
                         navigator: { enabled: true, miniChart: {}, ...navigator },
                         initialState: { zoom: { ratioX: { start: 0.2, end: 0.7 } } },
                     };
-                    prepareEnterpriseTestOptions(options);
-
-                    chart = AgCharts.create(options);
+                    chart = await createEnterpriseChart(options);
                     await compare();
 
                     expectWarningsCalls().toEqual([]);
@@ -731,8 +714,7 @@ describe('Navigator', () => {
         };
 
         const create = async (options: AgCartesianChartOptions) => {
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
             return deproxy(chart).modulesManager.getModule<any>('navigator').miniChart;
         };
@@ -826,9 +808,7 @@ describe('Navigator', () => {
                 },
                 navigator: { miniChart: {} },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             const { x: miniX } = getMiniChartAxes(chart);
@@ -845,9 +825,7 @@ describe('Navigator', () => {
                 },
                 navigator: { miniChart: {} },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             const { x: miniX } = getMiniChartAxes(chart);
@@ -864,9 +842,7 @@ describe('Navigator', () => {
                 },
                 navigator: { miniChart: {} },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             const { y: miniY } = getMiniChartAxes(chart);
@@ -885,9 +861,7 @@ describe('Navigator', () => {
                 },
                 navigator: { miniChart: {} },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             const { x: miniX, y: miniY } = getMiniChartAxes(chart);
