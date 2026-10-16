@@ -158,7 +158,6 @@ describe('CandlestickSeries', () => {
                 },
             }) as AgCartesianChartOptions;
 
-        // For `update`; the factory prepares its own copy.
         const preparedCandlestickOptions = () => prepareEnterpriseTestOptions(candlestickOptions());
 
         // The Date key stringifies with a timezone suffix, so match on the leading `Day Mon DD YYYY`.

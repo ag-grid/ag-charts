@@ -650,7 +650,6 @@ describe('ChartValidations - chart integration', () => {
         } as AgCartesianChartOptions;
     }
 
-    // For bare `create` and `update`, which do not prepare.
     const preparedOptions = (extra: Partial<AgCartesianChartOptions>) => prepareTestOptions(options(extra));
 
     it('reports a series callback exception as a warning to the overlay and the listener, matching the console', async () => {

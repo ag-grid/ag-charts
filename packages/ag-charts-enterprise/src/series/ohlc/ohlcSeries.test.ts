@@ -207,7 +207,6 @@ describe('OhlcSeries', () => {
                 },
             }) as AgCartesianChartOptions;
 
-        // For `update`; the factory prepares its own copy.
         const preparedOhlcOptions = () => prepareEnterpriseTestOptions(ohlcOptions());
 
         // The Date key stringifies with a timezone suffix, so match on the leading `Day Mon DD YYYY`.
