@@ -1266,9 +1266,19 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
 
     let lineWidth = 0;
     let totalHeight = 0;
-    // The band the line being built occupies: the segment path already tracks its own vertical offset,
-    // so mixed line heights need no extra bookkeeping to ask the shape for that line's width.
-    const maxWidth = (height = 0) => lineMaxWidth(options, totalHeight, totalHeight + height);
+    // The open row's height, already counted in totalHeight, so a taller segment only adds the difference.
+    let rowHeight = 0;
+    const rowTop = () => totalHeight - rowHeight;
+    const maxWidth = (height = 0) => lineMaxWidth(options, rowTop(), rowTop() + height);
+
+    function growRow(height: number): boolean {
+        const extra = height - rowHeight;
+        if (extra <= 0) return true;
+        if (!preserveText && totalHeight + extra > maxHeight) return false;
+        totalHeight += extra;
+        rowHeight = height;
+        return true;
+    }
 
     function truncateLastSegment() {
         const lastSegment = result.pop();
@@ -1283,33 +1293,31 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
 
     // Wrap a text segment that overflows the current line into sub-segments, advancing
     // lineWidth/totalHeight. Returns true when the label is full and the line should stop.
-    // `pendingRowHeight` is the tallest segment already placed on the row the first wrapped line continues.
-    function wrapOverflowingTextSegment(segment: MeasuredTextSegment, pendingRowHeight: number): boolean {
+    function wrapOverflowingTextSegment(segment: MeasuredTextSegment): boolean {
         const measurer = cachedTextMeasurer(segment);
         const guardedText = guardTextEdges(segment.text);
         const { lineHeight } = segment;
         const segmentLineHeight = lineHeight ?? segment.textMetrics.height;
-        const budget = (rowCarry: number) => ({
+        // The first wrapped line shares the open row, so only its height above that row is new.
+        const budget = () => ({
             ...options,
             font: segment,
             lineHeight,
-            maxHeight: maxHeight - totalHeight - Math.max(0, rowCarry - segmentLineHeight),
+            maxHeight: maxHeight - totalHeight + Math.min(segmentLineHeight, rowHeight),
         });
-        let rowCarry = pendingRowHeight;
 
-        let wrappedLines = textWrap(guardedText, { ...budget(rowCarry), overflow: 'hide' }, lineWidth, totalHeight);
+        let wrappedLines = textWrap(guardedText, { ...budget(), overflow: 'hide' }, lineWidth, rowTop());
         if (wrappedLines.length === 0) {
             if (options.textWrap === 'never') {
-                wrappedLines = textWrap(guardedText, budget(rowCarry), lineWidth, totalHeight);
+                wrappedLines = textWrap(guardedText, budget(), lineWidth, rowTop());
             } else {
                 const lastSegment = result.at(-1);
                 if (lastSegment && lastSegment.type !== 'image') {
                     lastSegment.text += '\n';
                     lineWidth = 0;
-                    totalHeight += rowCarry;
-                    rowCarry = 0;
+                    rowHeight = 0;
                 }
-                wrappedLines = textWrap(guardedText, budget(rowCarry), 0, totalHeight);
+                wrappedLines = textWrap(guardedText, budget(), 0, rowTop());
             }
         }
 
@@ -1351,7 +1359,9 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 lineWidth = 0;
             }
             const subLineHeight = lineHeight ?? textMetrics.height;
-            totalHeight += i === 0 ? Math.max(rowCarry, subLineHeight) : subLineHeight;
+            if (i > 0) rowHeight = 0;
+            totalHeight += Math.max(0, subLineHeight - rowHeight);
+            rowHeight = Math.max(rowHeight, subLineHeight);
             result.push(subSegment);
         }
 
@@ -1363,6 +1373,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         if (!isFirstLine) {
             appendLineBreak(result, options.font);
             lineWidth = 0;
+            rowHeight = 0;
         }
         isFirstLine = false;
 
@@ -1376,18 +1387,20 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
         if (lineWidth + width <= maxWidth(height)) {
             lineWidth += width;
             totalHeight += height;
+            rowHeight = height;
             result.push(...segments);
             continue;
         }
 
-        // Only the image-wrap path below leaves a line unaccounted for in totalHeight.
-        let lineHeight = 0;
         for (const segment of segments) {
             const segmentHeight =
                 (segment.type === 'image' ? undefined : segment.lineHeight) ?? segment.textMetrics.height;
             if (lineWidth + segment.textMetrics.width <= maxWidth(segmentHeight)) {
+                if (!growRow(segmentHeight)) {
+                    truncateLastSegment();
+                    return result;
+                }
                 lineWidth += segment.textMetrics.width;
-                lineHeight = Math.max(lineHeight, segmentHeight);
                 result.push(segment);
                 continue;
             }
@@ -1400,20 +1413,20 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 if (
                     options.textWrap !== 'never' &&
                     lineWidth > 0 &&
-                    imageWidth <= maxWidth(imageHeight) &&
-                    totalHeight + lineHeight + imageHeight <= maxHeight
+                    imageWidth <= lineMaxWidth(options, totalHeight, totalHeight + imageHeight) &&
+                    totalHeight + imageHeight <= maxHeight
                 ) {
                     appendLineBreak(result, options.font);
                     lineWidth = imageWidth;
-                    totalHeight += lineHeight + imageHeight;
-                    lineHeight = 0;
+                    totalHeight += imageHeight;
+                    rowHeight = imageHeight;
                     result.push(segment);
                     continue;
                 }
 
                 if (preserveText) {
+                    growRow(imageHeight);
                     lineWidth += imageWidth;
-                    lineHeight = Math.max(lineHeight, imageHeight);
                     result.push(segment);
                     continue;
                 }
@@ -1424,8 +1437,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                 return result;
             }
 
-            if (wrapOverflowingTextSegment(segment, lineHeight)) break;
-            lineHeight = 0;
+            if (wrapOverflowingTextSegment(segment)) break;
         }
     }
 

@@ -999,6 +999,16 @@ describe('measureTextSegments — lineHeight', () => {
         expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
     });
 
+    it('budgets a wrapped row by a taller segment that follows it', () => {
+        const font = { ...baseFont, fontSize: 10, lineHeight: 20 };
+        const fitted = fitLabelText(
+            [text('AAA BBB'), text('C', { fontSize: 30 }), text('\nD')],
+            { maxWidth: 60, maxHeight: 60, wrapping: 'on-space', overflowStrategy: 'ellipsis' },
+            font
+        ) as MeasuredSegment[];
+        expect(measureTextSegments(fitted, font).height).toBeLessThanOrEqual(60);
+    });
+
     it("inherits the default font's lineHeight in proportion to each segment's fontSize", () => {
         const font = { ...baseFont, fontSize: 10, lineHeight: 15 };
         expect(lineHeights([text('A'), text('\nB', { fontSize: 20 }), text('\nC', { lineHeight: 40 })], font)).toEqual([
