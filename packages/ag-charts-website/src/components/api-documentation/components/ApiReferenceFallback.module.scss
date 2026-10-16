@@ -103,6 +103,8 @@
 .referenceRow {
     padding: $spacing-size-4 0;
     border-top: 1px solid var(--color-border-secondary);
+    /* Keeps an anchor's row clear of the sticky header when the page jumps to it. */
+    scroll-margin-top: calc(var(--header-nav-height) + var(--tab-bar-height));
 
     dt {
         display: flex;
@@ -118,6 +120,10 @@
             margin: 0;
         }
     }
+}
+
+.referenceNestedList {
+    margin: 0 0 0 $spacing-size-4;
 }
 
 .propertyName {

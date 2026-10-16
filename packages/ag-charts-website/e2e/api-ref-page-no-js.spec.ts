@@ -37,6 +37,13 @@ test.describe('api-ref-page without JavaScript', () => {
         await expect(page.locator('#reference-AgChartOptions-data')).toBeAttached();
     });
 
+    test('options root renders a target for each nested link', async ({ page }) => {
+        await page.goto(toPageUrl('options/'), { waitUntil: 'domcontentloaded' });
+
+        await expect(page.locator('#reference-AgChartOptions-legend-item')).toBeAttached();
+        await expect(page.locator('#reference-AgChartOptions-navigator-miniChart-series')).toBeAttached();
+    });
+
     test('reference page links to the rest of the section', async ({ page }) => {
         await page.goto(toPageUrl('options/series/bar/'), { waitUntil: 'domcontentloaded' });
 
@@ -59,5 +66,6 @@ test.describe('api-ref-page without JavaScript', () => {
         await expect(getNavLink(page, 'theme', 'Themes')).toHaveAttribute('aria-current', 'page');
         await expect(nav.locator('a[href$="/themes-api/#reference-AgChartTheme-palette-fills"]')).toHaveText('fills');
         await expect(nav.locator('a[href$="/themes-api/#reference-AgChartTheme-overrides-bar"]')).toHaveText('bar');
+        await expect(page.locator('#reference-AgChartTheme-palette-fills')).toBeAttached();
     });
 });

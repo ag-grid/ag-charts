@@ -1,7 +1,6 @@
 ---
 import type { SpecialTypesMap } from '@components/api-documentation/apiReferenceHelpers';
 import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
-import ApiReferenceFallbackNav from '@components/api-documentation/components/ApiReferenceFallbackNav.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { THEMES_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePageContent';
@@ -23,15 +22,13 @@ const specialTypes: SpecialTypesMap = {
         basePath="themes-api"
         specialTypes={specialTypes}
     >
-        <ApiReferenceFallback slot="fallback" rootInterface="AgChartTheme">
-            <ApiReferenceFallbackNav
-                slot="nav"
-                label="Themes API reference"
-                rootInterface="AgChartTheme"
-                rootLabel="theme"
-                basePath="themes-api"
-                specialTypes={specialTypes}
-            />
-        </ApiReferenceFallback>
+        <ApiReferenceFallback
+            slot="fallback"
+            rootInterface="AgChartTheme"
+            navLabel="Themes API reference"
+            rootLabel="theme"
+            basePath="themes-api"
+            specialTypes={specialTypes}
+        />
     </ApiReferencePage>
 </APIViewLayout>

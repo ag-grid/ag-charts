@@ -1,17 +1,39 @@
 ---
-import type { PageTitle } from '@components/api-documentation/apiReferenceHelpers';
+import {
+    buildFallbackNav,
+    findCurrentPage,
+    getNestedAnchors,
+} from '@components/api-documentation/apiReferenceFallbackNav';
+import type { PageTitle, SpecialTypesMap } from '@components/api-documentation/apiReferenceHelpers';
 import { parseJsDocs, processMembers } from '@components/api-documentation/apiReferenceHelpers';
 import { getInterfacesReference } from '@utils/server/getInterfacesReference';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import ApiReferenceFallbackList from './ApiReferenceFallbackList.astro';
+import ApiReferenceFallbackNav from './ApiReferenceFallbackNav.astro';
 import styles from './ApiReferenceFallback.module.scss';
+
+/**
+ * Levels of the navigation tree to list. Each level multiplies the links on every page in the section,
+ * and the content renders a target for each, so it stays at the depth that reaches every reference
+ * page while keeping the served HTML small.
+ */
+const NAV_DEPTH = 2;
 
 interface Props {
     rootInterface: string;
     pageInterface?: string;
     pageTitle?: PageTitle;
+    /** Accessible name of the `<nav>`. */
+    navLabel: string;
+    /** Label of the root navigation entry. */
+    rootLabel: string;
+    /** Path of the section's root page, without the site base or slashes, e.g. `options`. */
+    basePath: string;
+    specialTypes?: SpecialTypesMap;
+    noExpand?: string[];
 }
 
-const { rootInterface, pageInterface, pageTitle } = Astro.props;
+const { rootInterface, pageInterface, pageTitle, navLabel, rootLabel, basePath, specialTypes, noExpand } = Astro.props;
 
 const reference = getInterfacesReference();
 const id = pageInterface ?? rootInterface;
@@ -21,6 +43,19 @@ const interfaceRef = pageRef?.kind === 'interface' ? pageRef : undefined;
 const title = pageTitle ?? { name: id };
 const description = interfaceRef && parseJsDocs(interfaceRef.docs);
 const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
+
+const nav = buildFallbackNav({
+    reference,
+    rootInterface,
+    rootLabel,
+    basePath: `${urlWithBaseUrl(`/${basePath}`)}/`,
+    config: { specialTypes, noExpand },
+    pageInterface,
+    depth: NAV_DEPTH,
+});
+// Members the navigation links to beneath the top level, so each link has a target.
+const currentPage = findCurrentPage(nav);
+const anchors = currentPage ? getNestedAnchors(currentPage) : [];
 ---
 
 {
@@ -31,11 +66,11 @@ const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
 }
 <div class="api-reference-fallback layout-grid">
     {/*
-        Reserves the left-nav width so the page does not shift horizontally on hydration, and holds any
-        server-rendered links between reference pages passed in the `nav` slot.
+        Reserves the left-nav width so the page does not shift horizontally on hydration, and holds the
+        server-rendered links through the reference.
     */}
     <div class={styles.navPlaceholder}>
-        <slot name="nav" />
+        <ApiReferenceFallbackNav label={navLabel} root={nav} />
     </div>
 
     <div class={styles.referenceContent}>
@@ -56,6 +91,6 @@ const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
             {description && <p class="text-secondary">{description}</p>}
         </header>
 
-        <ApiReferenceFallbackList id={id} members={members} />
+        <ApiReferenceFallbackList id={id} members={members} anchors={anchors} />
     </div>
 </div>
