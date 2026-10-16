@@ -13,6 +13,10 @@ export class NumberAxis<
     static readonly className: string = 'NumberAxis';
     static readonly type: string = 'number';
 
+    protected override get tickLayoutIgnoresData() {
+        return true;
+    }
+
     constructor(
         moduleCtx: DynamicContext<ChartRegistry>,
         id: AxisID,

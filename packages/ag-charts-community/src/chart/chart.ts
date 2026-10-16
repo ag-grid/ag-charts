@@ -1792,7 +1792,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        this.applyAxes(this, newOpts, seriesStatus);
+        this.applyAxes(this, newOpts, seriesStatus, 'axes' in deltaOptions || modulesChanged);
         if (this.axes.length === 0 || !Object.keys(deltaOptions).every((key) => LAYOUT_ONLY_DELTA_KEYS.has(key))) {
             forceNodeDataRefresh = true;
         }
@@ -2118,7 +2118,12 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return isUpdated ? 'updated' : 'no-op';
     }
 
-    private applyAxes(chart: SeriesAxesHost, options: AgChartOptions, seriesStatus: SeriesChangeType) {
+    private applyAxes(
+        chart: SeriesAxesHost,
+        options: AgChartOptions,
+        seriesStatus: SeriesChangeType,
+        axesChanged = true
+    ) {
         if (!('axes' in options) || !options.axes) {
             return;
         }
@@ -2128,16 +2133,16 @@ export abstract class Chart implements ModuleInstance, ChartService {
         const matchingTypes = !forceRecreate && chart.axes.matches(axes);
 
         // Try to optimise series updates if series count and types didn't change.
-        if (matchingTypes) {
+        if (!matchingTypes) {
+            debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
+            chart.setAxes(this.createAxes(axes));
+        } else if (axesChanged) {
             for (const axis of chart.axes) {
                 const newOpts = axes[axis.id];
                 axis.applyOptions(newOpts as typeof axis.options);
                 syncAxisContext(axis, newOpts);
                 this.applyAxisModules(axis, newOpts);
             }
-        } else {
-            debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
-            chart.setAxes(this.createAxes(axes));
         }
 
         // Implicit primary axes have no unmapped key, so fall back to the canonical id to keep `userKey` usable.

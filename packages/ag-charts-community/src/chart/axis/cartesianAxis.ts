@@ -496,6 +496,18 @@ export abstract class CartesianAxis<
         return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox, layout };
     }
 
+    protected override refreshTickDatums(layout: GeneratedTicks): GeneratedTicks {
+        const copy = <T extends object>(datums: T[]) => datums.map((datum) => ({ ...datum }));
+        const { tickLines, gridLines, gridFills, labels } = layout;
+        return {
+            ...layout,
+            tickLines: copy(tickLines),
+            gridLines: copy(gridLines),
+            gridFills: copy(gridFills),
+            labels: copy(labels),
+        };
+    }
+
     protected calculateGridLines(ticks: GridLineStyleTickDatum[], p1: number, p2: number) {
         return ticks.map((tick, index) => this.calculateGridLine(tick, index, p1, p2, ticks));
     }

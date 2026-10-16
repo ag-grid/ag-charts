@@ -92,6 +92,10 @@ export class CategoryAxis<
         return ChartUpdateType.PROCESS_DOMAIN;
     }
 
+    protected override get tickLayoutIgnoresData() {
+        return CategoryScale.is(this.scale);
+    }
+
     protected override updateScale() {
         super.updateScale();
 
@@ -101,8 +105,12 @@ export class CategoryAxis<
             paddingInner ??= padding.inner;
             paddingOuter ??= padding.outer;
         }
-        this.scale.paddingInner = paddingInner ?? 0;
-        this.scale.paddingOuter = paddingOuter ?? 0;
+        const { scale } = this;
+        if (scale.paddingInner !== (paddingInner ?? 0) || scale.paddingOuter !== (paddingOuter ?? 0)) {
+            this.invalidateLayoutCache();
+        }
+        scale.paddingInner = paddingInner ?? 0;
+        scale.paddingOuter = paddingOuter ?? 0;
     }
 
     protected override calculateGridLines(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisLineDatum[] {

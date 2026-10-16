@@ -165,12 +165,22 @@ interface TickLayoutCache<D, TickLayoutMeta> {
     tickLayout: TickLayout<D, TickLayoutMeta>;
 }
 
+function domainsEqual<D>(a: D[], b: D[]): boolean {
+    if (a === b) return true;
+    const { length } = a;
+    if (length !== b.length) return false;
+    for (let i = 0; i < length; i++) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
 function tickLayoutCacheValid<D, TickLayoutMeta>(
     a: TickLayoutCache<D, TickLayoutMeta>,
     b: Omit<TickLayoutCache<D, TickLayoutMeta>, 'tickLayout'>
 ): boolean {
     return (
-        a.domain === b.domain &&
+        domainsEqual(a.domain, b.domain) &&
         a.rangeExtent === b.rangeExtent &&
         a.nice[0] === b.nice[0] &&
         a.nice[1] === b.nice[1] &&
@@ -712,13 +722,26 @@ export abstract class Axis<
     }
 
     processData() {
-        // Invalidate layout cache
-        this.invalidateLayoutCache();
+        if (this.retainsTickLayoutAcrossData()) {
+            this.tickDatumsStale = true;
+        } else {
+            this.invalidateLayoutCache();
+        }
 
         const { includeInvisibleDomains, boundSeries, direction } = this;
         const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
         const domains = visibleSeries.map((series) => series.getDomain(direction));
         this.setDomains(...domains);
+    }
+
+    /** Whether the tick layout is fully determined by the domain, range and options, and not by the series data. */
+    protected get tickLayoutIgnoresData(): boolean {
+        return false;
+    }
+
+    private retainsTickLayoutAcrossData(): boolean {
+        const { formatter, itemStyler } = this.options.label;
+        return this.tickLayoutIgnoresData && formatter == null && itemStyler == null;
     }
 
     getDomainExtentsNice(): [boolean, boolean] {
@@ -787,7 +810,7 @@ export abstract class Axis<
             this.setScaleRange([0, 1]);
 
             const niceMode = nice.map((n) => (n ? NiceMode.TickAndDomain : NiceMode.Off));
-            unzoomedTickLayout = this.calculateTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
+            unzoomedTickLayout = this.computeTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
 
             scale.range = scaleRange;
 
@@ -814,6 +837,24 @@ export abstract class Axis<
 
     private tickLayoutCache: TickLayoutCache<D, TickLayoutMeta> | undefined;
     protected tickLayout: TickLayoutMeta | undefined = undefined;
+    private tickLayoutsComputed = 0;
+    private tickDatumsStale = false;
+
+    private computeTickLayout(
+        domain: D[],
+        niceMode: NiceMode[],
+        visibleRange: [number, number],
+        primaryTickCount?: AxisPrimaryTickCount
+    ) {
+        this.tickLayoutsComputed++;
+        return this.calculateTickLayout(domain, niceMode, visibleRange, primaryTickCount);
+    }
+
+    /** A copy of `layout` whose datums are new objects, so that the nodes bound to them animate as updated, not added. */
+    protected refreshTickDatums(layout: TickLayoutMeta): TickLayoutMeta {
+        return layout;
+    }
+
     calculateLayout(
         initialPrimaryTickCount?: AxisPrimaryTickCount,
         chartLayout?: ChartLayout
@@ -822,6 +863,7 @@ export abstract class Axis<
         bbox?: BBox;
     } {
         this.chartLayout = chartLayout;
+        const computedBefore = this.tickLayoutsComputed;
         const scrollbarKey = this.getScrollbarLayoutCacheKey(chartLayout);
 
         const { visibleRange } = this;
@@ -850,7 +892,7 @@ export abstract class Axis<
                     scrollbarKey,
                 })
             ) {
-                tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
+                tickLayout = this.computeTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
 
                 this.tickLayoutCache = {
                     domain,
@@ -875,7 +917,10 @@ export abstract class Axis<
                 ? { zoomed: zoomedTickCount, unzoomed: unzoomedTickCount }
                 : undefined;
 
-        this.tickLayout = tickLayout.layout;
+        const reusedLayout = this.tickDatumsStale && this.tickLayoutsComputed === computedBefore;
+        this.tickDatumsStale = false;
+        this.tickLayout =
+            reusedLayout && tickLayout.layout != null ? this.refreshTickDatums(tickLayout.layout) : tickLayout.layout;
         this.layout.label = {
             fractionDigits: fractionDigits,
             spacing: this.options.label.spacing,
@@ -888,7 +933,7 @@ export abstract class Axis<
         return { primaryTickCount, bbox };
     }
 
-    private invalidateLayoutCache() {
+    protected invalidateLayoutCache() {
         this.unzoomedTickLayoutCache = undefined;
         this.tickLayoutCache = undefined;
         this.tickLayout = undefined;
