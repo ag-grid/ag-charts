@@ -1,5 +1,5 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
@@ -1698,6 +1698,241 @@ describe('HeatmapSeries', () => {
 
                 await compareImageSnapshot(chart, ctx);
             });
+        });
+    });
+    describe('cell styling', () => {
+        const DATA = [
+            { year: '2020', person: 'A', spending: 10 },
+            { year: '2020', person: 'B', spending: 20 },
+            { year: '2021', person: 'A', spending: 30 },
+            { year: '2021', person: 'B', spending: 40 },
+        ];
+        const SHIFTED_DATA = DATA.map((d, i) => ({ ...d, spending: [40, 5, 10, 100][i] }));
+        const SELECTION = { enabled: true, unselectedItem: { opacity: 0.3 }, selectedItem: { fill: 'lime' } };
+        // Without the tooltip, only the series' own restyle can account for a hovered cell's style.
+        const NO_TOOLTIP = { tooltip: { enabled: false } };
+        const HIGHLIGHT_OFF = { ...NO_TOOLTIP, highlight: { enabled: false } };
+
+        const buildOptions = (overrides: Record<string, unknown> = {}, data: object[] = DATA) =>
+            prepareEnterpriseTestOptions({
+                width: 400,
+                height: 300,
+                data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: { fills: [{ color: 'blue' }, { color: 'red' }] },
+                        ...overrides,
+                    },
+                ],
+                legend: { enabled: false },
+            });
+
+        const cellRects = (c: Chart) => collectShapes(classCast(c.series[0], HeatmapSeries).contentGroup);
+        const cellFills = (c: Chart) => cellRects(c).map((rect) => String(rect.fill));
+        const cellOpacities = (c: Chart) => cellRects(c).map((rect) => rect.fillOpacity);
+        const cellStrokes = (c: Chart) =>
+            cellRects(c).map((rect) => ({ stroke: rect.stroke, width: rect.strokeWidth }));
+
+        async function freshCellFills(options: AgChartOptions) {
+            const reference = deproxy(AgCharts.create(options));
+            await waitForChartStability(reference);
+            const fills = cellFills(reference);
+            reference.destroy();
+            return fills;
+        }
+
+        async function createStable(options: AgChartOptions) {
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+        }
+
+        async function hoverAway() {
+            await hoverAction(1, 1)(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+        }
+
+        async function select(datumIndex: number) {
+            const series = classCast(chart.series[0], HeatmapSeries);
+            const itemId = series.data!.getItemIdFromIndex(datumIndex);
+            chart.publicApi.setSelection([{ seriesId: series.id, itemId }]);
+            await waitForChartStability(chart);
+        }
+
+        it('restyles every cell when the colour scale domain changes', async () => {
+            await createStable(buildOptions());
+            const before = cellFills(chart);
+            expect(new Set(before).size).toBe(DATA.length);
+
+            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            await waitForChartStability(chart);
+
+            const after = cellFills(chart);
+            expect(after).not.toEqual(before);
+            expect(after).toEqual(await freshCellFills(buildOptions({}, SHIFTED_DATA)));
+        });
+
+        it('restyles every cell when the colour scale fills change', async () => {
+            await createStable(buildOptions());
+            const before = cellFills(chart);
+
+            const colorScale = { fills: [{ color: 'green' }, { color: 'yellow' }] };
+            chart.publicApi.updateDelta({ series: [{ ...buildOptions().series[0], colorScale }] });
+            await waitForChartStability(chart);
+
+            const after = cellFills(chart);
+            expect(after).not.toEqual(before);
+            expect(after).toEqual(await freshCellFills(buildOptions({ colorScale })));
+        });
+
+        it.each([
+            { name: 'an explicit unhighlightedItem', highlight: { unhighlightedItem: { opacity: 0.4 } }, dimmed: 0.4 },
+            { name: 'the theme highlight', highlight: undefined, dimmed: 0.6 },
+        ])('dims the cells on hover with $name and restores them afterwards', async ({ highlight, dimmed }) => {
+            await createStable(buildOptions({ ...NO_TOOLTIP, highlight }));
+            const fills = cellFills(chart);
+            expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
+
+            await hoverDatumByIndex(chart, 0, 0);
+            expect(cellOpacities(chart)).toEqual([dimmed, dimmed, dimmed, dimmed]);
+            expect(cellFills(chart)).toEqual(fills);
+
+            await hoverAway();
+            expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
+            expect(cellFills(chart)).toEqual(fills);
+        });
+
+        it('keeps the colour scale fills and full opacity on update and hover when highlighting is disabled', async () => {
+            const options = buildOptions(HIGHLIGHT_OFF);
+            await createStable(options);
+
+            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            await waitForChartStability(chart);
+            expect(cellFills(chart)).toEqual(await freshCellFills(buildOptions(HIGHLIGHT_OFF, SHIFTED_DATA)));
+
+            await hoverDatumByIndex(chart, 0, 0);
+            expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
+            expect(new Set(cellFills(chart)).size).toBe(DATA.length);
+        });
+
+        it('keeps the new colour scale fills when the domain changes during a hover and restores them after', async () => {
+            await createStable(buildOptions({ ...NO_TOOLTIP, highlight: { unhighlightedItem: { opacity: 0.4 } } }));
+            await hoverDatumByIndex(chart, 0, 0);
+
+            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            await waitForChartStability(chart);
+
+            const fills = cellFills(chart);
+            expect(fills).toEqual(await freshCellFills(buildOptions({}, SHIFTED_DATA)));
+            expect(new Set(fills).size).toBe(DATA.length);
+
+            await hoverAway();
+            expect(cellFills(chart)).toEqual(fills);
+            expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
+        });
+
+        it('applies the selection styles over the colour scale fill', async () => {
+            await createStable(buildOptions({ selection: SELECTION }));
+            const fills = cellFills(chart);
+
+            await select(1);
+
+            expect(cellOpacities(chart)).toEqual([0.3, 1, 0.3, 0.3]);
+            expect(cellFills(chart)).toEqual(fills.map((fill, i) => (i === 1 ? 'lime' : fill)));
+        });
+
+        it('restores the colour scale styling when the selection is cleared', async () => {
+            await createStable(buildOptions({ selection: SELECTION }));
+            const fills = cellFills(chart);
+
+            await select(1);
+            expect(cellFills(chart)).not.toEqual(fills);
+
+            chart.publicApi.setSelection([]);
+            await waitForChartStability(chart);
+            expect(cellFills(chart)).toEqual(fills);
+            expect(cellOpacities(chart)).toEqual([1, 1, 1, 1]);
+        });
+
+        it('styles each cell once per update when only the colour scale colours the cells', async () => {
+            await createStable(buildOptions());
+            const getItemStyle = vi.spyOn(HeatmapSeries.prototype as any, 'getItemStyle');
+
+            try {
+                chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+                await waitForChartStability(chart);
+
+                expect(getItemStyle).toHaveBeenCalledTimes(DATA.length);
+            } finally {
+                getItemStyle.mockRestore();
+            }
+        });
+
+        it('applies an itemStyler over the colour scale fill and follows a domain change', async () => {
+            const itemStyler = ({ datum }: { datum: { year: string; person: string } }) =>
+                datum.person === 'A' ? { stroke: 'black', strokeWidth: 3 } : {};
+
+            await createStable(buildOptions({ itemStyler }));
+            const strokes = cellStrokes(chart);
+            expect(strokes.filter(({ width }) => width === 3)).toHaveLength(2);
+
+            chart.publicApi.updateDelta({ data: SHIFTED_DATA });
+            await waitForChartStability(chart);
+
+            expect(cellFills(chart)).toEqual(await freshCellFills(buildOptions({ itemStyler }, SHIFTED_DATA)));
+            expect(cellStrokes(chart)).toEqual(strokes);
+        });
+
+        it('applies an itemStyler that depends on the highlight state and drops it when the pointer leaves', async () => {
+            const itemStyler = ({ highlightState }: { highlightState: string }) =>
+                highlightState === 'unhighlighted-item' ? { strokeWidth: 5 } : {};
+            await createStable(buildOptions({ ...NO_TOOLTIP, itemStyler }));
+            const before = cellStrokes(chart);
+
+            await hoverDatumByIndex(chart, 0, 0);
+            expect(cellStrokes(chart)).not.toEqual(before);
+
+            await hoverAway();
+            expect(cellStrokes(chart)).toEqual(before);
+        });
+
+        it('re-evaluates an itemStyler on an update that leaves the data and options alone', async () => {
+            let strokeWidth = 1;
+            const itemStyler = () => ({ strokeWidth });
+            const options = buildOptions({ itemStyler });
+            await createStable(options);
+            expect(cellStrokes(chart).map(({ width }) => width)).toEqual([1, 1, 1, 1]);
+
+            strokeWidth = 4;
+            chart.publicApi.update(options);
+            await waitForChartStability(chart);
+
+            expect(cellStrokes(chart).map(({ width }) => width)).toEqual([4, 4, 4, 4]);
+        });
+
+        it('fills cells without a colour value with missingDataFill and restyles them on update', async () => {
+            const missingDataFill = '#cccccc';
+            const colorScale = { fills: [{ color: 'blue' }, { color: 'red' }], missingDataFill };
+            const withGap = DATA.map((d, i) => (i === 1 ? { ...d, spending: undefined } : d));
+
+            await createStable(buildOptions({ colorScale }, withGap));
+            expect(cellFills(chart).filter((f) => f === missingDataFill)).toHaveLength(1);
+
+            chart.publicApi.updateDelta({ data: DATA });
+            await waitForChartStability(chart);
+            expect(cellFills(chart)).not.toContain(missingDataFill);
+            expect(cellFills(chart)).toEqual(await freshCellFills(buildOptions({ colorScale })));
+        });
+
+        it('keeps the colour scale fill in the tooltip symbol', async () => {
+            await createStable(buildOptions());
+
+            const series = classCast(chart.series[0], HeatmapSeries);
+            const content = series.getTooltipContent(2);
+            expect(content).toMatchObject({ type: 'structured', symbol: { marker: { fill: cellFills(chart)[2] } } });
         });
     });
 });
