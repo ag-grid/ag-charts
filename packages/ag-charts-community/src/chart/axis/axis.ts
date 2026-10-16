@@ -808,6 +808,8 @@ export abstract class Axis<
         ) {
             const scaleRange = scale.range;
             this.setScaleRange([0, 1]);
+            // Band geometry reads `scale.step` after tick generation has restored the scale's domain.
+            scale.domain = domain;
 
             const niceMode = nice.map((n) => (n ? NiceMode.TickAndDomain : NiceMode.Off));
             unzoomedTickLayout = this.computeTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
