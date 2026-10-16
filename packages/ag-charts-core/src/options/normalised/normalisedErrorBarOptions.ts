@@ -6,6 +6,6 @@ export type NormalisedErrorBarCapOptions = Normalised<ErrorBarCapOptions, 'lengt
 
 export type NormalisedErrorBarOptions = Normalised<
     AgErrorBarOptions<unknown, unknown>,
-    'visible' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'cap',
+    'visible' | 'offsetLabels' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'cap',
     { stroke?: CssColor; cap?: NormalisedErrorBarCapOptions }
 >;
