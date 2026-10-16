@@ -814,6 +814,7 @@ export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOpt
 
 export const errorBarThemeableOptionsDefs: OptionsDefs<AgErrorBarThemeableOptions> = {
     visible: boolean,
+    offsetLabels: boolean,
     cap: {
         visible: boolean,
         length: positiveNumber,
@@ -837,6 +838,7 @@ export const errorBarOptionsDefs: OptionsDefs<AgErrorBarOptions<any>> = {
     yUpperName: string,
     itemStyler: callbackDefs<AgErrorBarThemeableOptions>({
         visible: boolean,
+        offsetLabels: boolean,
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
         cap: {

@@ -1276,5 +1276,113 @@ describe('ErrorBars', () => {
                 expect(label.placement).toBe(expected);
             }
         });
+
+        describe('when offsetLabels is off', () => {
+            const POSITIVE_DATA = [
+                { q: 'Q1', v: 10, lo: 8, hi: 14 },
+                { q: 'Q2', v: 14, lo: 12, hi: 18 },
+            ];
+            const outsideEndBar = (errorBar: object = { offsetLabels: false }) => ({
+                type: 'bar' as const,
+                xKey: 'q',
+                yKey: 'v',
+                label: { placement: 'outside-end' as const, spacing: SPACING },
+                errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', ...errorBar },
+            });
+            const anchoredPastWhiskers = () =>
+                nodeDataOf(0).map(
+                    (node: any) => node.label.y < Math.min(node.yBar.lowerPoint.y, node.yBar.upperPoint.y)
+                );
+
+            it('anchors bar labels to the bar and keeps the whiskers as obstacles', async () => {
+                chart = await createEnterpriseChart({ data: POSITIVE_DATA, series: [outsideEndBar()] });
+                const nodes = nodeDataOf(0);
+                expect(nodes.length).toBe(2);
+                for (const node of nodes) {
+                    expect(node.label.y).toBeCloseTo(node.y - SPACING);
+                    expect(node.overlayBoxes.length).toBe(3);
+                }
+            });
+
+            it.each([
+                [
+                    'the theme',
+                    {},
+                    { overrides: { bar: { series: { errorBar: { offsetLabels: false } } } } },
+                    [false, false],
+                ],
+                [
+                    'an itemStyler',
+                    { itemStyler: ({ datum }: { datum: { q: string } }) => ({ offsetLabels: datum.q === 'Q1' }) },
+                    undefined,
+                    [true, false],
+                ],
+            ])('anchors labels to the bar when disabled by %s', async (_, errorBar, theme, expected) => {
+                chart = await createEnterpriseChart({
+                    theme,
+                    data: POSITIVE_DATA,
+                    series: [outsideEndBar(errorBar)],
+                } as AgCartesianChartOptions);
+                expect(anchoredPastWhiskers()).toEqual(expected);
+            });
+
+            it('re-anchors labels to the bar when disabled by an update', async () => {
+                chart = await createEnterpriseChart({ data: POSITIVE_DATA, series: [outsideEndBar({})] });
+                expect(anchoredPastWhiskers()).toEqual([true, true]);
+
+                await chart.update(prepareEnterpriseTestOptions({ data: POSITIVE_DATA, series: [outsideEndBar()] }));
+                await waitForChartStability(chart);
+                expect(anchoredPastWhiskers()).toEqual([false, false]);
+            });
+
+            it.each([
+                ['moves', { placement: ['top', 'right'] }, 'right'],
+                ['drops', { placement: 'top', collision: { alwaysShow: false } }, undefined],
+            ])('%s a label whose shape anchor collides with the whiskers', async (_, label, expected) => {
+                chart = await createEnterpriseChart({
+                    series: [
+                        {
+                            type: 'scatter',
+                            data: [
+                                { x: 1, y: 5, lo: 2, hi: 8 },
+                                { x: 2, y: 6, lo: 3, hi: 9 },
+                            ],
+                            xKey: 'x',
+                            yKey: 'y',
+                            label: { spacing: SPACING, ...label },
+                            errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', offsetLabels: false },
+                        } as AgScatterSeriesOptions,
+                    ],
+                    axes: {
+                        x: { type: 'number', position: 'bottom', min: 0, max: 3 },
+                        y: { type: 'number', position: 'left', min: 0, max: 10 },
+                    } as any,
+                });
+                const placements = placedLabelsOf(0).map((placed: any) => placed.placement);
+                expect(placements).toEqual(expected == null ? [] : [expected, expected]);
+            });
+
+            it('renders labels on the series shape, at their fallback or past the whiskers', async () => {
+                const off = (yKey: 'a' | 'b') => ({
+                    yLowerKey: `${yKey}Lo`,
+                    yUpperKey: `${yKey}Hi`,
+                    offsetLabels: false,
+                });
+                chart = await createEnterpriseChart({
+                    data: MIXED_SIGN_DATA,
+                    series: [
+                        { ...barSeries('a', 'outside-end'), yName: 'off', errorBar: off('a') },
+                        {
+                            ...barSeries('b', 'outside-end'),
+                            yName: 'off, with fallback',
+                            label: { placement: ['outside-end', 'inside-start'], spacing: SPACING },
+                            errorBar: off('b'),
+                        },
+                        { ...barSeries('b', 'outside-end'), yName: 'on' },
+                    ],
+                });
+                await compare();
+            });
+        });
     });
 });

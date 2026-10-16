@@ -239,10 +239,17 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     updateNodeDatum(datum: ErrorBarNodeDatum) {
+        const { offsetLabels, itemStyler } = this.options;
+        if (!offsetLabels && itemStyler == null) {
+            if (datum.overlayBounds != null) {
+                datum.overlayBounds = undefined;
+            }
+            return;
+        }
         if (!this.updateWhiskers(datum)) return;
         const styles = this.resolveStyles(datum);
         this.anchoredStyles.set(datum, styles);
-        if (this.options.visible) {
+        if (this.options.visible && styles.whiskerStyle.offsetLabels) {
             const capLength = errorBarCapLength(styles.capsStyle ?? {}, datum.capDefaults);
             datum.overlayBounds = errorBarDrawnBounds(datum, styles.whiskerStyle, styles.capsStyle, capLength);
         } else {
@@ -369,10 +376,11 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
         node.datum = datum;
-        node.draw(this.anchoredStyles.get(datum) ?? this.resolveStyles(datum));
+        const styles = this.anchoredStyles.get(datum) ?? this.resolveStyles(datum);
+        node.draw(styles);
         node.updateBBoxes();
         const { visible } = this.options;
-        datum.overlayBounds = visible ? node.drawnBounds() : undefined;
+        datum.overlayBounds = visible && styles.whiskerStyle.offsetLabels ? node.drawnBounds() : undefined;
         datum.overlayBoxes = visible ? node.drawnBBoxComponents : undefined;
     }
 
@@ -450,6 +458,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             stroke: baseStyle.stroke,
             strokeWidth: baseStyle.strokeWidth,
             strokeOpacity: baseStyle.strokeOpacity,
+            offsetLabels: this.options.offsetLabels,
             cap: mergeDefaults(this.options.cap, baseStyle),
         };
     }
