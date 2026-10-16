@@ -72,6 +72,7 @@ import ComparisonTable from './sections/comparison/ComparisonTable';
 
 // Site-specific components
 import { CustomerLogos } from '@components/customer-logos/CustomerLogos';
+import { FrameworkLinks } from '@components/framework-links/FrameworkLinks';
 
 interface Props {
     content: LandingPageContent;
@@ -331,5 +332,10 @@ const pageStyles = isFrameworkLandingPage ? frameworkStyles : styles;
                     return null;
             }
         })
+    }
+    {
+        content.analyticsPrefix === 'enterprise-charts' && (
+            <FrameworkLinks client:idle pageNames={['community-vs-enterprise', 'quick-start']} />
+        )
     }
 </Layout>
