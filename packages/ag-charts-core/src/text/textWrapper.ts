@@ -760,7 +760,8 @@ export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: nu
     return appendEllipsis(text);
 }
 
-function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop = 0) {
+// `firstLineHeight` is the height of a row the first line shares with segments placed before it.
+function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop = 0, firstLineHeight?: number) {
     const lines: string[] = text.split(LineSplitter);
     const measurer = cachedTextMeasurer(options.font);
     const result: string[] = [];
@@ -768,8 +769,10 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0, blockTop 
     // A shape-bounded label narrows per line, so every width test below asks for the line being built.
     // Lines are uniform height here: one font per call, with segments driving their own offset in.
     const lineHeight = options.maxWidthAt == null ? 0 : (options.lineHeight ?? measurer.lineHeight());
+    const firstHeight = options.maxWidthAt == null ? 0 : (firstLineHeight ?? lineHeight);
     const maxWidth = () => {
-        const top = blockTop + result.length * lineHeight;
+        if (result.length === 0) return lineMaxWidth(options, blockTop, blockTop + firstHeight);
+        const top = blockTop + firstHeight + (result.length - 1) * lineHeight;
         return lineMaxWidth(options, top, top + lineHeight);
     };
 
@@ -1317,10 +1320,17 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             maxHeight: maxHeight - totalHeight - (rowHeightWith(segment) - rowHeight) + segmentLineHeight,
         });
 
-        let wrappedLines = textWrap(guardedText, { ...budget(), overflow: 'hide' }, lineWidth, rowTop());
+        const sharedRowHeight = rowHeightWith(segment);
+        let wrappedLines = textWrap(
+            guardedText,
+            { ...budget(), overflow: 'hide' },
+            lineWidth,
+            rowTop(),
+            sharedRowHeight
+        );
         if (wrappedLines.length === 0) {
             if (options.textWrap === 'never') {
-                wrappedLines = textWrap(guardedText, budget(), lineWidth, rowTop());
+                wrappedLines = textWrap(guardedText, budget(), lineWidth, rowTop(), sharedRowHeight);
             } else {
                 const lastSegment = result.at(-1);
                 if (lastSegment && lastSegment.type !== 'image') {
