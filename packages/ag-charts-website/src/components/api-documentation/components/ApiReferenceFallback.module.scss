@@ -1,6 +1,24 @@
 @use 'design-system' as *;
 
 /*
+    With JavaScript, the React app replaces the fallback on mount and looks different enough that showing
+    the fallback first is a visible flash. So the fallback's content is hidden, leaving the nav
+    placeholder's borders and a viewport-high block so the page does not jump on hydration. Without
+    JavaScript the query does not match and the content stays visible.
+*/
+.fallback {
+    @media (scripting: enabled) {
+        max-height: 100vh;
+        overflow: hidden;
+
+        .referenceNav,
+        .referenceContent {
+            visibility: hidden;
+        }
+    }
+}
+
+/*
     Mirrors the two-column geometry the hydrated <ApiReferencePage> produces, so the swap to the
     React app does not shift the page horizontally.
 */

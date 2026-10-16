@@ -62,7 +62,7 @@ const anchors = currentPage ? getNestedAnchors(currentPage) : [];
     Server-rendered reference content for crawlers that don't execute JavaScript, replaced once the
     <ApiReferencePage> island hydrates. Deliberately flat, to keep the served HTML small.
 */}
-<div class="api-reference-fallback layout-grid">
+<div class:list={['api-reference-fallback', 'layout-grid', styles.fallback]}>
     {/*
         Reserves the left-nav width so the page does not shift horizontally on hydration, and holds the
         server-rendered links through the reference.
