@@ -99,15 +99,12 @@ describe('HeatmapSeries', () => {
     };
 
     it(`should render placeholder chart as expected`, async () => {
-        const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-        prepareEnterpriseTestOptions(options as any);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart({ ...EXAMPLE_OPTIONS });
         await compare();
     });
 
     it('AG-8290 label boxing', async () => {
-        const options = prepareEnterpriseTestOptions({
+        chart = await createEnterpriseChart({
             data: [
                 { year: '2018', month: 'Jan', temperature: 4.4 },
                 { year: '2018', month: 'Apr', temperature: 8.8 },
@@ -146,14 +143,12 @@ describe('HeatmapSeries', () => {
                 },
             ],
         });
-
-        chart = AgCharts.create(options);
         await compare();
     });
 
     describe('AG-16306 - clearing data', () => {
         it('should clear heatmap when data is updated to empty array', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 title: { text: 'Should render empty chart' },
                 data: [
                     { year: '2018', month: 'Jan', temperature: 4.4 },
@@ -171,9 +166,6 @@ describe('HeatmapSeries', () => {
                 ],
             });
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
             await chart.updateDelta({ data: [] });
 
             await compareImageSnapshot(chart, ctx);
@@ -182,7 +174,7 @@ describe('HeatmapSeries', () => {
 
     describe('AG-15645 - colorKey edge cases', () => {
         it('should handle some null color values', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     {
                         x: 1753866000000,
@@ -222,13 +214,11 @@ describe('HeatmapSeries', () => {
                     },
                 },
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should handle all null color values', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     {
                         x: 1753866000000,
@@ -268,13 +258,11 @@ describe('HeatmapSeries', () => {
                     },
                 },
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should handle no colorKey', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     {
                         x: 1753866000000,
@@ -310,13 +298,11 @@ describe('HeatmapSeries', () => {
                     },
                 },
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should handle null color values in colorKey', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     {
                         x: 1753866000000,
@@ -356,15 +342,13 @@ describe('HeatmapSeries', () => {
                     },
                 },
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
     });
 
     describe('colorScale', () => {
         it('should render with continuous colorScale', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 ...EXAMPLE_OPTIONS,
                 series: [
                     {
@@ -375,13 +359,11 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should render with discrete colorScale', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 ...EXAMPLE_OPTIONS,
                 series: [
                     {
@@ -393,13 +375,11 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should render with explicit domain colorScale', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 ...EXAMPLE_OPTIONS,
                 series: [
                     {
@@ -411,13 +391,11 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should render with discrete named stops colorScale', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 ...EXAMPLE_OPTIONS,
                 series: [
                     {
@@ -433,15 +411,13 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
     });
 
     describe('legend', () => {
         it('should render gradient legend with continuous colorScale', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: EXAMPLE_OPTIONS.data,
                 series: [
                     {
@@ -455,13 +431,11 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should render category legend with discrete colorScale', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: EXAMPLE_OPTIONS.data,
                 series: [
                     {
@@ -476,13 +450,11 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should render category legend with named discrete stops', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: EXAMPLE_OPTIONS.data,
                 series: [
                     {
@@ -501,13 +473,11 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should render gradient legend with continuous named stops', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: EXAMPLE_OPTIONS.data,
                 series: [
                     {
@@ -525,13 +495,11 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should render gradient legend with discrete named stops', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: EXAMPLE_OPTIONS.data,
                 series: [
                     {
@@ -552,45 +520,42 @@ describe('HeatmapSeries', () => {
                 legend: { enabled: false },
                 gradientLegend: { enabled: true, gradient: { preferredLength: 200 } },
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('AG-16043: moving from a normal legend item onto a suppressed bin clears the legend-scoped highlight', async () => {
-            const options = prepareEnterpriseTestOptions({
-                data: [
-                    { x: 1, y: 1, size: 10, v: 10 },
-                    { x: 2, y: 2, size: 20, v: 30 },
-                    { x: 3, y: 3, size: 30, v: 50 },
-                    { x: 4, y: 4, size: 40, v: 70 },
-                    { x: 5, y: 5, size: 50, v: 90 },
-                ],
-                series: [
-                    {
-                        type: 'bubble',
-                        xKey: 'x',
-                        yKey: 'y',
-                        sizeKey: 'size',
-                        title: 'Series A',
-                    },
-                    {
-                        type: 'bubble',
-                        xKey: 'x',
-                        yKey: 'y',
-                        sizeKey: 'size',
-                        colorKey: 'v',
-                        colorScale: {
-                            mode: 'discrete' as const,
-                            fills: [{ color: 'red' }, { color: 'green' }, { color: 'blue' }],
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: [
+                        { x: 1, y: 1, size: 10, v: 10 },
+                        { x: 2, y: 2, size: 20, v: 30 },
+                        { x: 3, y: 3, size: 30, v: 50 },
+                        { x: 4, y: 4, size: 40, v: 70 },
+                        { x: 5, y: 5, size: 50, v: 90 },
+                    ],
+                    series: [
+                        {
+                            type: 'bubble',
+                            xKey: 'x',
+                            yKey: 'y',
+                            sizeKey: 'size',
+                            title: 'Series A',
                         },
-                        title: 'Series B',
-                    },
-                ],
-            });
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+                        {
+                            type: 'bubble',
+                            xKey: 'x',
+                            yKey: 'y',
+                            sizeKey: 'size',
+                            colorKey: 'v',
+                            colorScale: {
+                                mode: 'discrete' as const,
+                                fills: [{ color: 'red' }, { color: 'green' }, { color: 'blue' }],
+                            },
+                            title: 'Series B',
+                        },
+                    ],
+                })
+            );
 
             // Drive Legend.onHover directly: its markerLabel nodes already carry the datum
             // association, and the MouseEvent is only used for tooltip positioning.
@@ -618,24 +583,23 @@ describe('HeatmapSeries', () => {
         });
 
         it('AG-16043: hovering a discrete-bin legend item must not register a highlight', async () => {
-            const options = prepareEnterpriseTestOptions({
-                data: EXAMPLE_OPTIONS.data,
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: {
-                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
-                            mode: 'discrete' as const,
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: EXAMPLE_OPTIONS.data,
+                    series: [
+                        {
+                            type: 'heatmap',
+                            xKey: 'year',
+                            yKey: 'person',
+                            colorKey: 'spending',
+                            colorScale: {
+                                fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                                mode: 'discrete' as const,
+                            },
                         },
-                    },
-                ],
-            });
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+                    ],
+                })
+            );
 
             const { highlightManager } = (chart as Chart).ctx;
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
@@ -650,24 +614,23 @@ describe('HeatmapSeries', () => {
         });
 
         it('AG-16043: discrete-bin legend items render with the default cursor, not pointer', async () => {
-            const options = prepareEnterpriseTestOptions({
-                data: EXAMPLE_OPTIONS.data,
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: {
-                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
-                            mode: 'discrete' as const,
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: EXAMPLE_OPTIONS.data,
+                    series: [
+                        {
+                            type: 'heatmap',
+                            xKey: 'year',
+                            yKey: 'person',
+                            colorKey: 'spending',
+                            colorScale: {
+                                fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                                mode: 'discrete' as const,
+                            },
                         },
-                    },
-                ],
-            });
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+                    ],
+                })
+            );
 
             // Discrete-bin items don't toggle, so a pointer cursor would imply interactivity.
             const legendButtons = document.querySelectorAll<HTMLElement>('button.ag-charts-proxy-elem[role="switch"]');
@@ -678,36 +641,35 @@ describe('HeatmapSeries', () => {
         });
 
         it('AG-16043: discrete-bin legend labels run through chart-level formatter.color', async () => {
-            const options = prepareEnterpriseTestOptions({
-                data: [
-                    { year: '2020', person: 'A', spending: 43384 },
-                    { year: '2020', person: 'B', spending: 250000 },
-                    { year: '2020', person: 'C', spending: 1500000 },
-                ],
-                formatter: {
-                    color: (p) => new Intl.NumberFormat('en', { notation: 'compact' }).format(p.value as number),
-                },
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: {
-                            mode: 'discrete' as const,
-                            fills: [
-                                { color: '#fdd49e', stop: 150000 },
-                                { color: '#fdbb84', stop: 500000 },
-                                { color: '#e34a33', stop: 1000000 },
-                                { color: '#b30000' },
-                            ],
-                        },
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data: [
+                        { year: '2020', person: 'A', spending: 43384 },
+                        { year: '2020', person: 'B', spending: 250000 },
+                        { year: '2020', person: 'C', spending: 1500000 },
+                    ],
+                    formatter: {
+                        color: (p) => new Intl.NumberFormat('en', { notation: 'compact' }).format(p.value as number),
                     },
-                ],
-            });
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+                    series: [
+                        {
+                            type: 'heatmap',
+                            xKey: 'year',
+                            yKey: 'person',
+                            colorKey: 'spending',
+                            colorScale: {
+                                mode: 'discrete' as const,
+                                fills: [
+                                    { color: '#fdd49e', stop: 150000 },
+                                    { color: '#fdbb84', stop: 500000 },
+                                    { color: '#e34a33', stop: 1000000 },
+                                    { color: '#b30000' },
+                                ],
+                            },
+                        },
+                    ],
+                })
+            );
 
             const series = (chart as Chart).series[0];
             const legendData = series.getLegendData('category') as { label: { text: string } }[];
@@ -720,7 +682,7 @@ describe('HeatmapSeries', () => {
 
     describe('null category key', () => {
         it('should render with null category key value', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     { year: '2020', person: 'Florian', spending: 10 },
                     { year: '2020', person: null, spending: 20 },
@@ -736,9 +698,6 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -752,7 +711,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('should filter undefined category key value', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     { year: '2020', person: 'Florian', spending: 10 },
                     { year: '2020', person: undefined, spending: 20 },
@@ -768,9 +727,6 @@ describe('HeatmapSeries', () => {
                 ],
             });
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
@@ -783,7 +739,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('should accept null category key when allowNullKeys is true', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     { year: '2020', person: 'Florian', spending: 10 },
                     { year: '2020', person: null, spending: 20 },
@@ -801,15 +757,12 @@ describe('HeatmapSeries', () => {
                 ],
             });
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
             expectWarningsCalls().toEqual([]);
             await compare();
         });
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     { year: '2020', person: 'Florian', spending: 10 },
                     { year: '2020', person: undefined, spending: 20 },
@@ -825,9 +778,6 @@ describe('HeatmapSeries', () => {
                     } as any,
                 ],
             });
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([]);
             await compare();
@@ -842,23 +792,23 @@ describe('HeatmapSeries', () => {
                 { year: '2021', person: 'Julian', spending: 30 },
                 { year: '2021', person: 'Martian', spending: 40 },
             ];
-            const options = prepareEnterpriseTestOptions({
-                data,
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: {
-                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
-                            missingDataFill: '#cccccc',
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data,
+                    series: [
+                        {
+                            type: 'heatmap',
+                            xKey: 'year',
+                            yKey: 'person',
+                            colorKey: 'spending',
+                            colorScale: {
+                                fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                                missingDataFill: '#cccccc',
+                            },
                         },
-                    },
-                ],
-            });
-
-            chart = deproxy(AgCharts.create(options));
+                    ],
+                })
+            );
             await compare();
 
             const seriesImpl = chart.series[0] as HeatmapSeries;
@@ -877,24 +827,23 @@ describe('HeatmapSeries', () => {
                 { year: '2021', person: 'Florian', spending: 30 },
                 { year: '2021', person: 'Julian', spending: 40 },
             ];
-            const options = prepareEnterpriseTestOptions({
-                data,
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: {
-                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
-                            missingDataFill: '#cccccc',
+            chart = deproxy(
+                await createEnterpriseChart({
+                    data,
+                    series: [
+                        {
+                            type: 'heatmap',
+                            xKey: 'year',
+                            yKey: 'person',
+                            colorKey: 'spending',
+                            colorScale: {
+                                fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                                missingDataFill: '#cccccc',
+                            },
                         },
-                    },
-                ],
-            });
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+                    ],
+                })
+            );
 
             const presentIndex = data.findIndex((d) => d.spending != null);
             const missingIndex = data.findIndex((d) => d.spending == null);
@@ -913,7 +862,7 @@ describe('HeatmapSeries', () => {
                 { year: '2021', person: 'Florian', spending: 30 },
                 { year: '2021', person: 'Julian', spending: 40 },
             ];
-            const options = prepareEnterpriseTestOptions({
+            const proxy = await createEnterpriseChart({
                 data,
                 series: [
                     {
@@ -924,10 +873,7 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
-            await waitForChartStability(chart);
 
             await hoverDatumByIndex(chart, 0, 0);
             expect(isTooltipVisible(chart)).toBe(true);
@@ -954,7 +900,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('should allow itemStyler to override missingDataFill', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     { year: '2020', person: 'Florian', spending: 10 },
                     { year: '2020', person: 'Julian', spending: null },
@@ -982,8 +928,6 @@ describe('HeatmapSeries', () => {
                     },
                 ],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
     });
@@ -1009,7 +953,7 @@ describe('HeatmapSeries', () => {
         ];
 
         it('should render with grouped-category X axis', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: GROUPED_DATA,
                 series: [
                     {
@@ -1027,13 +971,11 @@ describe('HeatmapSeries', () => {
                 },
                 legend: { enabled: false },
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should render with grouped-category Y axis', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: GROUPED_DATA,
                 series: [
                     {
@@ -1051,8 +993,6 @@ describe('HeatmapSeries', () => {
                 },
                 legend: { enabled: false },
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
@@ -1078,7 +1018,7 @@ describe('HeatmapSeries', () => {
                 }
             }
 
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data,
                 series: [
                     {
@@ -1095,8 +1035,6 @@ describe('HeatmapSeries', () => {
                 },
                 legend: { enabled: false },
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
@@ -1126,7 +1064,7 @@ describe('HeatmapSeries', () => {
                 }
             }
 
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 title: { text: 'Link Quality by Baud Rate (Even/Odd) and Line Rate' },
                 subtitle: {
                     text: 'AG Charts 13.2.1 heatmap requires category axes — Even/Odd pairs are grouped via category ordering and two-line label formatting (baud rate above, parity below).',
@@ -1150,13 +1088,11 @@ describe('HeatmapSeries', () => {
                 },
                 gradientLegend: { position: 'right' } as any,
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should render with a single group (degenerate grouping)', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     { category: ['Fruit', 'Apple'], quarter: 'Q1', sales: 10 },
                     { category: ['Fruit', 'Apple'], quarter: 'Q2', sales: 20 },
@@ -1178,15 +1114,13 @@ describe('HeatmapSeries', () => {
                 },
                 legend: { enabled: false },
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
     });
 
     describe('null category key', () => {
         it('should treat null and undefined as distinct categories', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     { year: '2020', person: 'Florian', spending: 10 },
                     { year: '2020', person: null, spending: 20 },
@@ -1206,15 +1140,13 @@ describe('HeatmapSeries', () => {
                 ],
             });
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
             expectWarningsCalls().toEqual([]);
             await compare();
         });
     });
 
     describe('block-leading image segments (treemap parity)', () => {
+        // Bespoke: the image loader is stubbed between create and first render.
         // A `block: true` image segment renders as in treemap: left of the cell label, text beside it.
         const iconSvg = (letter: string) =>
             `data:image/svg+xml;utf8,${encodeURIComponent(
@@ -1319,7 +1251,7 @@ describe('HeatmapSeries', () => {
             [...sample.keys()].filter((k) => /^series\[0\]\/rect\[/.test(k));
 
         it('update data: cells snap to their new layout without tweening', async () => {
-            const options = prepareEnterpriseTestOptions({
+            chart = await createEnterpriseChart({
                 data: [
                     { year: '2020', person: 'A', spending: 10 },
                     { year: '2020', person: 'B', spending: 20 },
@@ -1329,7 +1261,6 @@ describe('HeatmapSeries', () => {
                 series: [{ type: 'heatmap', xKey: 'year', yKey: 'person', colorKey: 'spending' }],
                 legend: { enabled: false },
             });
-            chart = AgCharts.create(options);
             const sampler = createSceneGeometrySampler(chart);
             const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
                 chart.updateDelta({
@@ -1369,27 +1300,25 @@ describe('HeatmapSeries', () => {
             return rects;
         };
 
-        const buildOptions = (cornerRadius?: number) =>
-            prepareEnterpriseTestOptions({
-                data: EXAMPLE_OPTIONS.data,
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
-                        stroke: 'black',
-                        strokeWidth: 4,
-                        cornerRadius,
-                    },
-                ],
-                legend: { enabled: false },
-            });
+        const buildOptions = (cornerRadius?: number): AgChartOptions => ({
+            data: EXAMPLE_OPTIONS.data,
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'year',
+                    yKey: 'person',
+                    colorKey: 'spending',
+                    colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
+                    stroke: 'black',
+                    strokeWidth: 4,
+                    cornerRadius,
+                },
+            ],
+            legend: { enabled: false },
+        });
 
         it('rounds every cell, with the stroke following the rounded shape', async () => {
-            chart = deproxy(AgCharts.create(buildOptions(16)));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(buildOptions(16)));
 
             const rects = cellRects(chart);
             expect(rects).toHaveLength(9);
@@ -1404,8 +1333,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('defaults to square corners', async () => {
-            chart = deproxy(AgCharts.create(buildOptions()));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(buildOptions()));
 
             const rects = cellRects(chart);
             expect(rects).toHaveLength(9);
@@ -1416,32 +1344,29 @@ describe('HeatmapSeries', () => {
     });
 
     describe('shadow', () => {
-        const buildOptions = (seriesShadow?: typeof SHADOW) =>
-            prepareEnterpriseTestOptions({
-                data: EXAMPLE_OPTIONS.data,
-                series: [
-                    {
-                        type: 'heatmap',
-                        xKey: 'year',
-                        yKey: 'person',
-                        colorKey: 'spending',
-                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
-                        shadow: seriesShadow,
-                    },
-                ],
-                legend: { enabled: false },
-            });
+        const buildOptions = (seriesShadow?: typeof SHADOW): AgChartOptions => ({
+            data: EXAMPLE_OPTIONS.data,
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'year',
+                    yKey: 'person',
+                    colorKey: 'spending',
+                    colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
+                    shadow: seriesShadow,
+                },
+            ],
+            legend: { enabled: false },
+        });
 
         it('defaults to a disabled shadow', async () => {
-            chart = deproxy(AgCharts.create(buildOptions()));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(buildOptions()));
 
             expect(chart.series[0]['options'].shadow).toEqual(DEFAULT_DISABLED_SHADOW);
         });
 
         it('shadows nothing when no shadow is set', async () => {
-            chart = deproxy(AgCharts.create(buildOptions()));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(buildOptions()));
 
             const shapes = collectShapes(chart.series[0].contentGroup);
             expect(shapes).toHaveLength(9);
@@ -1449,8 +1374,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('applies an enabled shadow to every cell', async () => {
-            chart = deproxy(AgCharts.create(buildOptions(SHADOW)));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
 
             const shapes = collectShapes(chart.series[0].contentGroup);
             expect(shapes).toHaveLength(9);
@@ -1460,7 +1384,7 @@ describe('HeatmapSeries', () => {
         });
 
         it('renders with the shadow enabled', async () => {
-            chart = deproxy(AgCharts.create(buildOptions(SHADOW)));
+            chart = deproxy(await createEnterpriseChart(buildOptions(SHADOW)));
             await compare();
         });
     });
@@ -1468,8 +1392,8 @@ describe('HeatmapSeries', () => {
     describe('label alignment', () => {
         const ITEM_PADDING = 12;
 
-        const buildOptions = (series: object) =>
-            prepareEnterpriseTestOptions({
+        const buildOptions = (series: object): AgChartOptions =>
+            ({
                 data: EXAMPLE_OPTIONS.data,
                 series: [
                     {
@@ -1483,13 +1407,12 @@ describe('HeatmapSeries', () => {
                     },
                 ],
                 legend: { enabled: false },
-            } as AgChartOptions);
+            }) as AgChartOptions;
 
         // Anchor offset of the first label, relative to its cell centre, plus the padded cell span it
         // should be a fraction of and the canvas alignment carried on the same datum.
         const readAnchor = async (options: AgChartOptions) => {
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const series = classCast(chart.series[0], HeatmapSeries);
             const context = series.contextNodeData;
@@ -1586,8 +1509,7 @@ describe('HeatmapSeries', () => {
                 });
 
             it('anchors every cell to the alignment its styler returned', async () => {
-                chart = deproxy(AgCharts.create(styledOptions()));
-                await waitForChartStability(chart);
+                chart = deproxy(await createEnterpriseChart(styledOptions()));
 
                 const context = classCast(chart.series[0], HeatmapSeries).contextNodeData;
                 expect(context).toBeDefined();
@@ -1611,8 +1533,7 @@ describe('HeatmapSeries', () => {
             });
 
             it('renders the nine styled cell alignments', async () => {
-                chart = deproxy(AgCharts.create(styledOptions()));
-                await waitForChartStability(chart);
+                chart = deproxy(await createEnterpriseChart(styledOptions()));
 
                 await compareImageSnapshot(chart, ctx);
             });
@@ -1695,8 +1616,9 @@ describe('HeatmapSeries', () => {
             ];
 
             it.each(cases)('renders %s / %s within the cell', async (textAlign, verticalAlign) => {
-                chart = deproxy(AgCharts.create(buildOptions({ label: { enabled: true, textAlign, verticalAlign } })));
-                await waitForChartStability(chart);
+                chart = deproxy(
+                    await createEnterpriseChart(buildOptions({ label: { enabled: true, textAlign, verticalAlign } }))
+                );
 
                 await compareImageSnapshot(chart, ctx);
             });

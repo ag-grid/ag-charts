@@ -134,6 +134,7 @@ describe('Log Axis interval property handling', () => {
             },
         };
 
+        // Bespoke: the update must follow create immediately, before the first render settles.
         prepareTestOptions(options);
         const apiChart = AgCharts.create(options);
         chart = deproxy(apiChart);

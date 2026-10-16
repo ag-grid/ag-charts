@@ -1,19 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { ChartUpdateType } from 'ag-charts-core';
+import { CANVAS_WIDTH } from 'ag-charts-test';
 import type { AgCartesianAxisPosition, AgCartesianChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../api/agCharts';
 import type { CartesianChart } from './cartesianChart';
 import { LayoutElement } from './layout/layoutManager';
-import {
-    createChart,
-    deproxy,
-    prepareTestOptions,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from './test/utils';
+import { createChart, deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
 
 const INSET = 30;
 
@@ -100,10 +93,8 @@ describe('CartesianChart series insets', () => {
 
     it('keeps the inset at a position without an axis through a resize', async () => {
         const options = structuredClone(OPTIONS);
-        prepareTestOptions(options);
-        const proxy = AgCharts.create(options);
+        const proxy = await createChart(options);
         chart = deproxy(proxy) as CartesianChart;
-        await waitForChartStability(chart);
         const before = chart.seriesRect!.clone();
 
         chart.ctx.layoutManager.registerElement(LayoutElement.SeriesInset, (layout) => {
@@ -117,7 +108,7 @@ describe('CartesianChart series insets', () => {
 
         // Narrowing the chart narrows the series area by the same amount and keeps the inset.
         const shrink = 100;
-        await proxy.updateDelta({ width: options.width! - shrink });
+        await proxy.updateDelta({ width: CANVAS_WIDTH - shrink });
         await waitForChartStability(chart);
 
         expect(chart.seriesRect!.width).toBe(withInset - shrink);

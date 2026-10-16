@@ -1,22 +1,21 @@
 import { describe, test } from 'vitest';
 
-import { type AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-community';
 import {
     compareImageSnapshot,
     seedRandom,
     setupMockCanvas,
     setupMockConsole,
     touchDragAction,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from './test/utils';
+import { createEnterpriseChart } from './test/utils';
 
 describe('Touch', () => {
     setupMockConsole();
     const ctx = setupMockCanvas();
 
-    let chart: any;
+    let chart: AgChartInstance;
 
     async function compare(customSnapshotIdentifier?: string) {
         await compareImageSnapshot(chart, ctx, {
@@ -29,9 +28,7 @@ describe('Touch', () => {
     describe('dragAction', () => {
         async function prepareChart(opts: AgCartesianChartOptions) {
             const options: AgChartOptions = { ...OPTIONS, ...opts };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
         }
 
         test(`'none'`, async () => {

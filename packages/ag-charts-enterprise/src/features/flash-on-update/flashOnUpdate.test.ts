@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import {
     clickAction,
     compareImageSnapshot,
@@ -14,7 +13,7 @@ import {
 } from 'ag-charts-community-test';
 import { expectWarningsCalls } from 'ag-charts-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 import type { BandFlashDatum } from './flashOnUpdate';
 import { mergeBands, shouldMergeBands } from './flashOnUpdate';
 
@@ -199,10 +198,9 @@ describe('FlashOnUpdate', () => {
         for (const ratio of PHASE_RATIOS) {
             it(`should flash on value update [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -213,10 +211,9 @@ describe('FlashOnUpdate', () => {
 
             it(`should flash on category add [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -227,10 +224,9 @@ describe('FlashOnUpdate', () => {
 
             it(`should flash on category remove [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -241,10 +237,9 @@ describe('FlashOnUpdate', () => {
 
             it(`should flash on mixed changes [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -258,10 +253,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS },
                     { enabled: true, item: 'chart', fill: '#ff0000' }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -275,10 +269,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS },
                     { enabled: true, item: 'chart', fillOpacity: 0.5 }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -292,10 +285,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS },
                     { enabled: true, item: 'chart', flashDuration: 500, fadeOutDuration: 500 }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -311,10 +303,9 @@ describe('FlashOnUpdate', () => {
             for (const ratio of PHASE_RATIOS) {
                 it(`should flash updated category bands [ratio ${ratio}]`, async () => {
                     const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
-                    prepareEnterpriseTestOptions(options);
 
                     animate(1200, 1);
-                    chart = AgCharts.create(options);
+                    chart = await createEnterpriseChart(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
@@ -325,10 +316,9 @@ describe('FlashOnUpdate', () => {
 
                 it(`should flash added category band [ratio ${ratio}]`, async () => {
                     const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
-                    prepareEnterpriseTestOptions(options);
 
                     animate(1200, 1);
-                    chart = AgCharts.create(options);
+                    chart = await createEnterpriseChart(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
@@ -339,10 +329,9 @@ describe('FlashOnUpdate', () => {
 
                 it(`should flash removed category band [ratio ${ratio}]`, async () => {
                     const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
-                    prepareEnterpriseTestOptions(options);
 
                     animate(1200, 1);
-                    chart = AgCharts.create(options);
+                    chart = await createEnterpriseChart(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
@@ -353,10 +342,9 @@ describe('FlashOnUpdate', () => {
 
                 it(`should flash mixed add, update, and remove bands [ratio ${ratio}]`, async () => {
                     const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
-                    prepareEnterpriseTestOptions(options);
 
                     animate(1200, 1);
-                    chart = AgCharts.create(options);
+                    chart = await createEnterpriseChart(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
@@ -371,10 +359,9 @@ describe('FlashOnUpdate', () => {
             for (const ratio of PHASE_RATIOS) {
                 it(`should flash horizontal category bands on value change [ratio ${ratio}]`, async () => {
                     const options = withFlash({ ...HORIZONTAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
-                    prepareEnterpriseTestOptions(options);
 
                     animate(1200, 1);
-                    chart = AgCharts.create(options);
+                    chart = await createEnterpriseChart(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
@@ -385,10 +372,9 @@ describe('FlashOnUpdate', () => {
 
                 it(`should flash horizontal removed band [ratio ${ratio}]`, async () => {
                     const options = withFlash({ ...HORIZONTAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
-                    prepareEnterpriseTestOptions(options);
 
                     animate(1200, 1);
-                    chart = AgCharts.create(options);
+                    chart = await createEnterpriseChart(options);
                     await waitForChartStability(chart);
 
                     animate(1200, ratio);
@@ -403,10 +389,9 @@ describe('FlashOnUpdate', () => {
             for (const ratio of PHASE_RATIOS) {
                 it(`should track previous bounds when removing a recently added category [ratio ${ratio}]`, async () => {
                     const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
-                    prepareEnterpriseTestOptions(options);
 
                     animate(1200, 1);
-                    chart = AgCharts.create(options);
+                    chart = await createEnterpriseChart(options);
                     await waitForChartStability(chart);
 
                     // First: add category E
@@ -424,10 +409,9 @@ describe('FlashOnUpdate', () => {
 
         it('should warn when no category axis is present', async () => {
             const options = withFlash({ ...LINE_CHART_NO_CATEGORY_AXIS }, { enabled: true, item: 'category' });
-            prepareEnterpriseTestOptions(options);
 
             animate(1200, 1);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             animate(1200, 0.3);
@@ -450,15 +434,14 @@ describe('FlashOnUpdate', () => {
         for (const ratio of PHASE_RATIOS) {
             it(`should flash on chart.update() with new data [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 // Use full options update (apiUpdate: true via applyOptions)
                 animate(1200, ratio);
-                await chart.update({ ...options, data: UPDATED_VALUES_DATA });
+                await chart.update(prepareEnterpriseTestOptions({ ...options, data: UPDATED_VALUES_DATA }));
                 await compareSnapshot();
                 assertChartFlashActive(chart);
             });
@@ -469,10 +452,9 @@ describe('FlashOnUpdate', () => {
         for (const ratio of PHASE_RATIOS) {
             it(`should not flash when enabled is false [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: false, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -483,10 +465,9 @@ describe('FlashOnUpdate', () => {
 
             it(`should not flash when data has not changed [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -497,10 +478,9 @@ describe('FlashOnUpdate', () => {
 
             it(`should not flash on legend click [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 // Click legend to toggle series visibility — triggers
@@ -514,10 +494,9 @@ describe('FlashOnUpdate', () => {
 
             it(`should flash on API update after a legend click [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 // Legend click (no flash)
@@ -541,10 +520,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS },
                     { enabled: true, item: 'category', fill: '#ff6600' }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -558,10 +536,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS },
                     { enabled: true, item: 'category', fillOpacity: 0.3 }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -575,10 +552,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS },
                     { enabled: true, item: 'category', flashDuration: 500, fadeOutDuration: 500 }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -597,10 +573,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS },
                     { enabled: true, item: 'chart', flashDuration: 1000, fadeOutDuration: 0 }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -615,10 +590,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS },
                     { enabled: true, item: 'chart', flashDuration: 0, fadeOutDuration: 1000 }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -633,10 +607,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS },
                     { enabled: true, item: 'chart', flashDuration: 25000, fadeOutDuration: 25000 }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -661,10 +634,9 @@ describe('FlashOnUpdate', () => {
                     },
                     { enabled: true, item: 'chart' }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -681,10 +653,9 @@ describe('FlashOnUpdate', () => {
                     },
                     { enabled: true, item: 'category' }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -701,10 +672,9 @@ describe('FlashOnUpdate', () => {
                     },
                     { enabled: true, item: 'chart' }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -723,10 +693,9 @@ describe('FlashOnUpdate', () => {
                     },
                     { enabled: true, item: 'category' }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 // Remove half, add new ones
@@ -758,10 +727,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS, data: THRESHOLD_DATA },
                     { enabled: true, item: 'chart' }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -775,10 +743,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS, data: THRESHOLD_DATA },
                     { enabled: true, item: 'category' }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 // With >1000 items the diff has empty category sets, so category mode
@@ -794,10 +761,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS, data: THRESHOLD_DATA },
                     { enabled: true, item: 'chart' }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -821,10 +787,9 @@ describe('FlashOnUpdate', () => {
         for (const ratio of PHASE_RATIOS) {
             it(`should chart flash on transaction add [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS, data: txData }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -837,10 +802,9 @@ describe('FlashOnUpdate', () => {
 
             it(`should chart flash on transaction remove [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS, data: txData }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -856,10 +820,9 @@ describe('FlashOnUpdate', () => {
                     { ...VERTICAL_BAR_OPTIONS, data: txData },
                     { enabled: true, item: 'category' }
                 );
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -872,10 +835,9 @@ describe('FlashOnUpdate', () => {
 
             it(`should chart flash on rapid transactions [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS, data: txData }, { enabled: true, item: 'chart' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -1037,10 +999,9 @@ describe('FlashOnUpdate', () => {
 
         it('should have non-zero fillOpacity on chart flash rect mid-animation', async () => {
             const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'chart' });
-            prepareEnterpriseTestOptions(options);
 
             animate(1200, 1);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             animate(1200, 0.31);
@@ -1057,10 +1018,9 @@ describe('FlashOnUpdate', () => {
 
         it('should have non-zero fillOpacity on category band rects mid-animation', async () => {
             const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
-            prepareEnterpriseTestOptions(options);
 
             animate(1200, 1);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             animate(1200, 0.31);
@@ -1079,10 +1039,9 @@ describe('FlashOnUpdate', () => {
 
         it('should have zero fillOpacity when flash is suppressed', async () => {
             const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: false, item: 'chart' });
-            prepareEnterpriseTestOptions(options);
 
             animate(1200, 1);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
 
             animate(1200, 0.31);
@@ -1098,10 +1057,9 @@ describe('FlashOnUpdate', () => {
         for (const ratio of PHASE_RATIOS) {
             it(`should stop previous flash and start new one on rapid update [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 animate(1200, ratio);
@@ -1122,10 +1080,9 @@ describe('FlashOnUpdate', () => {
 
             it(`should handle multiple rapid updates with interleaved diff types [ratio ${ratio}]`, async () => {
                 const options = withFlash({ ...VERTICAL_BAR_OPTIONS }, { enabled: true, item: 'category' });
-                prepareEnterpriseTestOptions(options);
 
                 animate(1200, 1);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await waitForChartStability(chart);
 
                 // Fire three updates without waiting — only the last should produce a visible flash

@@ -60,14 +60,11 @@ describe('Chart', () => {
 
     describe('DataSet logger threading', () => {
         it('routes DataSet validation warnings through the chart-scoped logger, not the module fallback', async () => {
-            const chartProxy = AgCharts.create(
-                prepareTestOptions({
-                    data: [],
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                } as AgCartesianChartOptions)
-            );
+            const chartProxy = await createChart({
+                data: [],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            } as AgCartesianChartOptions);
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
 
             // updateDelta re-creates chart.data via createDataSet, wiring the chart's ctx.logger into the DataSet.
             await chartProxy.updateDelta({
@@ -91,11 +88,11 @@ describe('Chart', () => {
         });
 
         it('keeps a single Logger across a chart-type switch', async () => {
-            const chartProxy = AgCharts.create(
-                prepareTestOptions({ series: [{ type: 'bar', xKey: 'x', yKey: 'y' }], data: [{ x: 'a', y: 1 }] })
-            ) as unknown as AgChartProxy;
+            const chartProxy = await createChart({
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                data: [{ x: 'a', y: 1 }],
+            });
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
 
             await chartProxy.update(
                 prepareTestOptions({ series: [{ type: 'line', xKey: 'x', yKey: 'y' }], data: [{ x: 'a', y: 1 }] })
@@ -600,10 +597,10 @@ describe('Chart', () => {
         });
 
         it('should clone supplied data array when using updateDelta()', async () => {
-            const chartOptions = prepareTestOptions<{
+            const chartOptions: {
                 data: { year: string; gdp: number }[];
                 series: any[];
-            }>({
+            } = {
                 data: [],
                 series: [
                     {
@@ -612,11 +609,10 @@ describe('Chart', () => {
                         yKey: 'gdp',
                     },
                 ],
-            });
+            };
 
-            const chartProxy = AgCharts.create(chartOptions);
+            const chartProxy = await createChart(chartOptions);
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
 
             const sourceData = [
                 { year: '2018', gdp: 10 },
@@ -873,10 +869,10 @@ describe('Chart', () => {
                 { x: 1, y: 20 },
             ];
 
-            const options = prepareTestOptions<{
+            const options: {
                 data: { x: number; y: number }[];
                 series: any[];
-            }>({
+            } = {
                 data: initialData,
                 series: [
                     {
@@ -886,11 +882,10 @@ describe('Chart', () => {
                         connectMissingData: false,
                     },
                 ],
-            });
+            };
 
-            const chartProxy = AgCharts.create(options);
+            const chartProxy = await createChart(options);
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
             expect(chart.data.data.length).toBe(2);
 
             await chartProxy.updateDelta({
@@ -1059,10 +1054,10 @@ describe('Chart', () => {
     });
 
     describe('Chart lifecycle', () => {
-        let agChartInstance: AgChartProxy;
+        let agChartInstance: AgChartInstance;
 
         beforeEach(async () => {
-            const options: AgCartesianChartOptions | AgPolarChartOptions = prepareTestOptions({
+            const options: AgCartesianChartOptions | AgPolarChartOptions = {
                 container: document.body,
                 series: [
                     {
@@ -1072,10 +1067,9 @@ describe('Chart', () => {
                         yKey: datasets.economy.valueKey,
                     },
                 ],
-            });
-            agChartInstance = AgCharts.create(options) as AgChartProxy;
+            };
+            agChartInstance = await createChart(options);
             chart = deproxy(agChartInstance);
-            await waitForChartStability(chart);
         });
 
         afterEach(() => {
@@ -1126,6 +1120,7 @@ describe('Chart', () => {
     });
 
     describe('chart-type switch DOM handover', () => {
+        // Bespoke: the chart is attached to a custom container rather than the default body, which `createChart` cannot do.
         it('detaches the outgoing element before the replacement attaches', async () => {
             const container = document.createElement('div');
             document.body.appendChild(container);
@@ -1176,11 +1171,11 @@ describe('Chart', () => {
     });
 
     describe('Combo chart series visibility updates (AG-13393)', () => {
-        let agChartInstance: AgChartProxy;
+        let agChartInstance: AgChartInstance;
         let options: AgCartesianChartOptions;
 
         beforeEach(async () => {
-            options = prepareTestOptions({
+            options = {
                 series: [
                     {
                         type: 'bubble',
@@ -1229,10 +1224,10 @@ describe('Chart', () => {
                         yName: 'Bubble 2',
                     },
                 ],
-            });
-            agChartInstance = AgCharts.create(options) as AgChartProxy;
+            };
+            agChartInstance = await createChart(options);
+            prepareTestOptions(options);
             chart = deproxy(agChartInstance);
-            await waitForChartStability(chart);
         });
 
         it('should allow visibility toggling of the first series', async () => {
@@ -1265,7 +1260,7 @@ describe('Chart', () => {
             const nodeDoubleClick = vi.fn();
             const seriesNodeClick = vi.fn();
             const seriesNodeDoubleClick = vi.fn();
-            const options = prepareTestOptions<AgCartesianChartOptions>({
+            const options: AgCartesianChartOptions = {
                 data: [
                     {
                         xValue: 'category',
@@ -1287,10 +1282,9 @@ describe('Chart', () => {
                     seriesNodeClick,
                     seriesNodeDoubleClick,
                 },
-            });
-            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            };
+            const agChartInstance = await createChart(options);
             chart = deproxy(agChartInstance);
-            await waitForChartStability(chart);
 
             await clickAction(200, 200)(agChartInstance);
 
@@ -1604,7 +1598,7 @@ describe('Chart', () => {
     describe('AG-16337 listeners undefined update', () => {
         it('should handle chart-level listeners set to undefined', async () => {
             const chartClick = vi.fn();
-            const options = prepareTestOptions<AgCartesianChartOptions>({
+            const options: AgCartesianChartOptions = {
                 data: [
                     {
                         xValue: 'category',
@@ -1621,10 +1615,10 @@ describe('Chart', () => {
                 listeners: {
                     click: chartClick,
                 },
-            });
-            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            };
+            const agChartInstance = await createChart(options);
+            prepareTestOptions(options);
             chart = deproxy(agChartInstance);
-            await waitForChartStability(chart);
 
             expect(chart.listeners.click).toBeDefined();
 
@@ -1645,7 +1639,7 @@ describe('Chart', () => {
 
         it('should handle series-level listeners set to undefined', async () => {
             const seriesNodeClick = vi.fn();
-            const options = prepareTestOptions<AgCartesianChartOptions>({
+            const options: AgCartesianChartOptions = {
                 data: [
                     {
                         xValue: 'category',
@@ -1662,10 +1656,10 @@ describe('Chart', () => {
                         },
                     },
                 ],
-            });
-            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            };
+            const agChartInstance = await createChart(options);
+            prepareTestOptions(options);
             chart = deproxy(agChartInstance);
-            await waitForChartStability(chart);
 
             expect(chart.series[0].options.listeners?.seriesNodeClick).toBeDefined();
 
@@ -1686,7 +1680,7 @@ describe('Chart', () => {
         it('should handle both chart and series listeners set to undefined', async () => {
             const chartClick = vi.fn();
             const seriesNodeClick = vi.fn();
-            const options = prepareTestOptions<AgCartesianChartOptions>({
+            const options: AgCartesianChartOptions = {
                 data: [
                     {
                         xValue: 'category',
@@ -1706,10 +1700,10 @@ describe('Chart', () => {
                 listeners: {
                     click: chartClick,
                 },
-            });
-            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            };
+            const agChartInstance = await createChart(options);
+            prepareTestOptions(options);
             chart = deproxy(agChartInstance);
-            await waitForChartStability(chart);
 
             expect(chart.listeners.click).toBeDefined();
             expect(chart.series[0].options.listeners?.seriesNodeClick).toBeDefined();
@@ -1739,7 +1733,7 @@ describe('Chart', () => {
         });
 
         it('should drop non-function listeners when options are applied', async () => {
-            const options = prepareTestOptions<AgCartesianChartOptions>({
+            const options: AgCartesianChartOptions = {
                 data: [{ xValue: 'category', yValue: 1 }],
                 series: [
                     {
@@ -1750,10 +1744,9 @@ describe('Chart', () => {
                     },
                 ],
                 listeners: { click: 'not-a-function' as never, doubleClick: undefined },
-            });
-            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            };
+            const agChartInstance = await createChart(options);
             chart = deproxy(agChartInstance);
-            await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
@@ -1773,7 +1766,7 @@ describe('Chart', () => {
         it('should keep firing chart-level listeners after clearing user series listeners', async () => {
             const seriesNodeClick = vi.fn();
             const seriesVisibilityChange = vi.fn();
-            const options = prepareTestOptions<AgCartesianChartOptions>({
+            const options: AgCartesianChartOptions = {
                 data: [
                     {
                         xValue: 'category',
@@ -1793,10 +1786,10 @@ describe('Chart', () => {
                 listeners: {
                     seriesVisibilityChange: seriesVisibilityChange,
                 },
-            });
-            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            };
+            const agChartInstance = await createChart(options);
+            prepareTestOptions(options);
             chart = deproxy(agChartInstance);
-            await waitForChartStability(chart);
 
             expect(chart.series[0].options.listeners?.seriesNodeClick).toBeDefined();
             expect(chart.listeners.seriesVisibilityChange).toBeDefined();
@@ -1820,13 +1813,13 @@ describe('Chart', () => {
     });
 
     describe('Transaction validation', () => {
-        let chartProxy: AgChartProxy;
+        let chartProxy: AgChartInstance;
 
         beforeEach(async () => {
-            const chartOptions = prepareTestOptions<{
+            const chartOptions: {
                 data: { x: number; y: number }[];
                 series: any[];
-            }>({
+            } = {
                 data: [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
@@ -1839,11 +1832,10 @@ describe('Chart', () => {
                         yKey: 'y',
                     },
                 ],
-            });
+            };
 
-            chartProxy = AgCharts.create(chartOptions);
+            chartProxy = await createChart(chartOptions);
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
         });
 
         describe('addIndex validation', () => {
@@ -2137,14 +2129,14 @@ describe('Chart', () => {
         });
 
         describe('pie chart transactions', () => {
-            let pieChartProxy: AgChartProxy;
+            let pieChartProxy: AgChartInstance;
             let pieChart: Chart;
 
             beforeEach(async () => {
-                const pieChartOptions = prepareTestOptions<{
+                const pieChartOptions: {
                     data: { category: string; value: number }[];
                     series: any[];
-                }>({
+                } = {
                     data: [
                         { category: 'A', value: 10 },
                         { category: 'B', value: 20 },
@@ -2157,11 +2149,10 @@ describe('Chart', () => {
                             calloutLabelKey: 'category',
                         },
                     ],
-                });
+                };
 
-                pieChartProxy = AgCharts.create(pieChartOptions);
+                pieChartProxy = await createChart(pieChartOptions);
                 pieChart = deproxy(pieChartProxy);
-                await waitForChartStability(pieChart);
             });
 
             afterEach(() => {
@@ -2399,6 +2390,8 @@ describe('validations.throwOn — runtime errors', () => {
         return calls;
     }
 
+    // Bespoke: most tests arm a `processData` stub between `create()` and the first update, and `throwOnOptions`
+    // already prepares the options that `update()` also receives, so `createChart` cannot stand in.
     it('throwOn: error resolves waitForUpdate() and update(), and throws the caught runtime error uncaught', async () => {
         const proxy = AgCharts.create(throwOnOptions({ throwOn: ['error'] })) as AgChartProxy;
         chart = deproxy(proxy);
@@ -2517,6 +2510,7 @@ describe('validations.issueRaised', () => {
         const issueRaised = vi.fn();
         const thrownError = new Error('processData boom');
 
+        // Bespoke: unprepared options, which `createChart` would prepare.
         const proxy = AgCharts.create({
             container: document.body,
             data: [

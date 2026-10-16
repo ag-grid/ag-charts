@@ -6,6 +6,7 @@ import { AgCharts } from '../../api/agCharts';
 import type { AgChartProxy } from '../chartProxy';
 import type { SceneNodeExpectation, ScenePropertyExpectation } from '../test/utils';
 import {
+    createChart,
     createSceneGeometrySampler,
     expectNoAnimation,
     expectSceneTrajectory,
@@ -56,23 +57,22 @@ describe('CartesianAxis animation', () => {
     const numberChartOptions = (
         data: Array<{ x: number; y: number }>,
         xAxisExtras: object = {}
-    ): AgCartesianChartOptions =>
-        prepareTestOptions({
-            data,
-            series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } }],
-            axes: {
-                x: { type: 'number', position: 'bottom', ...xAxisExtras },
-                y: { type: 'number', position: 'left' },
-            },
-        });
+    ): AgCartesianChartOptions => ({
+        data,
+        series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } }],
+        axes: {
+            x: { type: 'number', position: 'bottom', ...xAxisExtras },
+            y: { type: 'number', position: 'left' },
+        },
+    });
 
     it('number-axis domain growth slides surviving ticks and swaps the tick set with fades', async () => {
-        chart = AgCharts.create(
+        chart = (await createChart(
             numberChartOptions([
                 { x: 0, y: 0 },
                 { x: 100, y: 100 },
             ])
-        ) as AgChartProxy;
+        )) as AgChartProxy;
         await frames.runToEnd(chart);
         const sampleScene = createSceneGeometrySampler(chart);
 
@@ -97,11 +97,12 @@ describe('CartesianAxis animation', () => {
     });
 
     it('label rotation change interpolates via the shortest arc', async () => {
-        const options = numberChartOptions([
-            { x: 0, y: 0 },
-            { x: 100, y: 100 },
-        ]);
-        chart = AgCharts.create(options) as AgChartProxy;
+        chart = (await createChart(
+            numberChartOptions([
+                { x: 0, y: 0 },
+                { x: 100, y: 100 },
+            ])
+        )) as AgChartProxy;
         await frames.runToEnd(chart);
         const sampleScene = createSceneGeometrySampler(chart);
 
@@ -146,12 +147,12 @@ describe('CartesianAxis animation', () => {
     });
 
     it('ticks sliding out of the range are culled mid-flight', async () => {
-        chart = AgCharts.create(
+        chart = (await createChart(
             numberChartOptions([
                 { x: 0, y: 0 },
                 { x: 100, y: 100 },
             ])
-        ) as AgChartProxy;
+        )) as AgChartProxy;
         await frames.runToEnd(chart);
         const sampleScene = createSceneGeometrySampler(chart);
 
@@ -181,14 +182,15 @@ describe('CartesianAxis animation', () => {
     });
 
     it('reversed number-axis domain growth slides ticks in the opposite direction', async () => {
-        const options = numberChartOptions(
-            [
-                { x: 0, y: 0 },
-                { x: 100, y: 100 },
-            ],
-            { reverse: true }
-        );
-        chart = AgCharts.create(options) as AgChartProxy;
+        chart = (await createChart(
+            numberChartOptions(
+                [
+                    { x: 0, y: 0 },
+                    { x: 100, y: 100 },
+                ],
+                { reverse: true }
+            )
+        )) as AgChartProxy;
         await frames.runToEnd(chart);
         const sampleScene = createSceneGeometrySampler(chart);
 
@@ -219,20 +221,19 @@ describe('CartesianAxis animation', () => {
 
     it('time-axis domain growth re-ticks across the unit change with fades and slides', async () => {
         const day = (n: number) => new Date(2024, 0, n);
-        const timeChartOptions = (maxDay: number): AgChartOptions =>
-            prepareTestOptions({
-                data: [
-                    { x: day(1), y: 0 },
-                    { x: day(maxDay), y: 100 },
-                ],
-                series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } }],
-                axes: {
-                    x: { type: 'time', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                },
-            });
+        const timeChartOptions = (maxDay: number): AgChartOptions => ({
+            data: [
+                { x: day(1), y: 0 },
+                { x: day(maxDay), y: 100 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: false } }],
+            axes: {
+                x: { type: 'time', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+        });
 
-        chart = AgCharts.create(timeChartOptions(8)) as AgChartProxy;
+        chart = (await createChart(timeChartOptions(8))) as AgChartProxy;
         await frames.runToEnd(chart);
         const sampleScene = createSceneGeometrySampler(chart);
 
@@ -276,10 +277,13 @@ describe('CartesianAxis animation', () => {
     });
 
     it('resize snaps the axes to the new layout without tweening', async () => {
-        const options = numberChartOptions([
-            { x: 0, y: 0 },
-            { x: 100, y: 100 },
-        ]);
+        const options = prepareTestOptions(
+            numberChartOptions([
+                { x: 0, y: 0 },
+                { x: 100, y: 100 },
+            ])
+        );
+        // Bespoke: the prepared options are reused by `chart.update`.
         chart = AgCharts.create(options) as AgChartProxy;
         await frames.runToEnd(chart);
         const sampleScene = createSceneGeometrySampler(chart);

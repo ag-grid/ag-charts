@@ -75,9 +75,8 @@ describe('TreemapSeries', () => {
                 ...SIMPLIFIED_EXAMPLE,
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -87,10 +86,8 @@ describe('TreemapSeries', () => {
                 ...SIMPLIFIED_EXAMPLE,
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[0] as TreemapSeries;
             let node = seriesImpl.rootNode;
@@ -197,9 +194,7 @@ describe('TreemapSeries', () => {
                 series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size', colorKey: undefined }],
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             const series = chart.series[0] as TreemapSeries;
             expect(tileEnabled(series)).toBe(false);
             expect(groupEnabled(series)).toBe(false);
@@ -221,9 +216,7 @@ describe('TreemapSeries', () => {
                 ],
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             const series = chart.series[0] as TreemapSeries;
             expect(tileEnabled(series)).toBe(true);
             expect(groupEnabled(series)).toBe(true);
@@ -246,9 +239,7 @@ describe('TreemapSeries', () => {
                 tooltip: { range: 'exact' },
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const series = chart.series[0] as TreemapSeries;
             const tileNode = nodeAtPath(series, [0, 0]);
@@ -297,9 +288,7 @@ describe('TreemapSeries', () => {
                 series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size' }],
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             await tabIntoChart(chart);
             // jsdom cannot detect :focus-visible, so an arrow key switches to the keyboard device.
@@ -343,10 +332,8 @@ describe('TreemapSeries', () => {
                     ...example.options,
                     animation: { enabled: false },
                 };
-                prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart(options);
                 example.assertions(chart);
             });
 
@@ -355,9 +342,8 @@ describe('TreemapSeries', () => {
                     ...example.options,
                     animation: { enabled: false },
                 };
-                prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await compare();
             });
         }
@@ -365,12 +351,12 @@ describe('TreemapSeries', () => {
         it(`for TREEMAP_SERIES_LABELS it should render to canvas with group labels disabled`, async () => {
             const options = deepClone(TREEMAP_SERIES_LABELS);
             (options as any).series[0].group.label = { enabled: false };
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
         describe('block-leading image segments', () => {
+            // Bespoke: the image loader is stubbed between create and first render.
             // Vector paths rather than <text> keep glyph rendering identical across OS font sets.
             const LETTER_PATHS: Record<string, string> = {
                 A: 'M13 25L18 11L23 25M15.5 19.5L20.5 19.5',
@@ -549,8 +535,7 @@ describe('TreemapSeries', () => {
                         },
                     ],
                 };
-                prepareEnterpriseTestOptions(options);
-                chart = AgCharts.create(options);
+                chart = await createEnterpriseChart(options);
                 await compare();
                 expectWarningsCalls().toHaveLength(0);
             });
@@ -723,7 +708,6 @@ describe('TreemapSeries', () => {
                     { type: 'treemap', labelKey: 'name', secondaryLabelKey: 'detail', sizeKey: 'value', ...series },
                 ],
             } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
             return options;
         };
         const leaves = () => {
@@ -740,7 +724,7 @@ describe('TreemapSeries', () => {
 
         it('aligns each tile label and the group label on its own', async () => {
             chart = deproxy(
-                AgCharts.create(
+                await createEnterpriseChart(
                     alignmentOptions({
                         group: { label: { textAlign: 'right' } },
                         tile: {
@@ -759,7 +743,7 @@ describe('TreemapSeries', () => {
 
         it('keeps a middle label clear of a label aligned to an edge', async () => {
             chart = deproxy(
-                AgCharts.create(
+                await createEnterpriseChart(
                     alignmentOptions(
                         {
                             tile: {
@@ -772,7 +756,6 @@ describe('TreemapSeries', () => {
                     )
                 )
             );
-            await waitForChartStability(chart);
             const [primary, secondary] = textBBoxes();
             expect(secondary.y + secondary.height).toBeLessThanOrEqual(primary.y + 0.5);
         });
@@ -780,7 +763,7 @@ describe('TreemapSeries', () => {
         it('stacks labels aligned to different edges when alwaysShow keeps a pair that does not fit', async () => {
             const fixed = { fontSize: 14, minimumFontSize: 14, truncate: false };
             chart = deproxy(
-                AgCharts.create(
+                await createEnterpriseChart(
                     alignmentOptions(
                         {
                             tile: {
@@ -793,21 +776,19 @@ describe('TreemapSeries', () => {
                     )
                 )
             );
-            await waitForChartStability(chart);
             const [primary, secondary] = textBBoxes();
             expect(primary.y + primary.height).toBeLessThanOrEqual(secondary.y + 0.5);
         });
 
         it('forwards the deprecated tile and group alignment into the labels', async () => {
             chart = deproxy(
-                AgCharts.create(
+                await createEnterpriseChart(
                     alignmentOptions({
                         group: { textAlign: 'right' },
                         tile: { textAlign: 'left', verticalAlign: 'bottom' },
                     })
                 )
             );
-            await waitForChartStability(chart);
             expectWarningsCalls().toMatchInlineSnapshot(`
               [
                 [
@@ -850,12 +831,10 @@ describe('TreemapSeries', () => {
                 data,
                 series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'value', group: { label } }],
             } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
             return options;
         };
         const render = async (label: object, data?: object[]) => {
-            chart = deproxy(AgCharts.create(groupOptions(label, data as any)));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(groupOptions(label, data as any)));
         };
         const groups = () => {
             const out: any[] = [];
@@ -867,7 +846,7 @@ describe('TreemapSeries', () => {
 
         it('fits, shrinks and aligns group labels within their headers', async () => {
             chart = deproxy(
-                AgCharts.create(
+                await createEnterpriseChart(
                     groupOptions(
                         { fontSize: 16, minimumFontSize: 8, maxWidth: 150, maxHeight: 30, verticalAlign: 'bottom' },
                         [
@@ -998,9 +977,7 @@ describe('TreemapSeries', () => {
                 },
             ],
         } as AgChartOptions;
-        prepareEnterpriseTestOptions(options);
-        chart = deproxy(AgCharts.create(options));
-        await waitForChartStability(chart);
+        chart = deproxy(await createEnterpriseChart(options));
         let secondaryLineHeight: number | undefined;
         chart.series[0].rootNode.walk((node: any) => {
             if (node.secondaryLabel != null) secondaryLineHeight = node.secondaryLabel.lineHeight;
@@ -1041,9 +1018,8 @@ describe('TreemapSeries', () => {
                 ],
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1061,10 +1037,8 @@ describe('TreemapSeries', () => {
                 ],
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             expect(secondaryStyler).not.toHaveBeenCalled();
         });
     });
@@ -1303,9 +1277,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -1335,9 +1308,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
 
@@ -1368,9 +1340,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as AgChartOptions);
 
-            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            chart = await createEnterpriseChart(options as AgChartOptions);
             await compare();
         });
     });
@@ -1409,15 +1380,12 @@ describe('TreemapSeries', () => {
             ],
         }));
 
-        const treemapOptions = (data: any[], series: any = {}): AgChartOptions => {
-            const options = {
+        const treemapOptions = (data: any[], series: any = {}): AgChartOptions =>
+            ({
                 data,
                 series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size', ...series }],
                 animation: { enabled: false },
-            } as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
-            return options;
-        };
+            }) as AgChartOptions;
 
         const renderSeries = async (data: any[], series: any = {}) => {
             chart = deproxy(await createEnterpriseChart(treemapOptions(data, series)));
@@ -1514,12 +1482,15 @@ describe('TreemapSeries', () => {
         });
 
         it('re-resolves group fills on a runtime update', async () => {
-            const proxy = AgCharts.create(treemapOptions(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } }));
+            const proxy = await createEnterpriseChart(
+                treemapOptions(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } })
+            );
             chart = deproxy(proxy);
-            await waitForChartStability(chart);
             expect(fillOf(chart.series[0], 'A')).toBe('#ff0000');
 
-            await proxy.update(treemapOptions(DEEP_DATA, { group: { fills: ['#123456', '#654321'] } }));
+            await proxy.update(
+                prepareEnterpriseTestOptions(treemapOptions(DEEP_DATA, { group: { fills: ['#123456', '#654321'] } }))
+            );
             await waitForChartStability(chart);
 
             const styles = stylesByName(chart.series[0]);
@@ -1540,7 +1511,9 @@ describe('TreemapSeries', () => {
         });
 
         it('should render treemap series with group fills', async () => {
-            chart = deproxy(AgCharts.create(treemapOptions(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } })));
+            chart = await createEnterpriseChart(
+                treemapOptions(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } })
+            );
             await compare();
         });
 
@@ -1585,9 +1558,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1607,9 +1579,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1629,9 +1600,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1658,9 +1628,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
 
             const seriesImpl = chart.series[0] as TreemapSeries;
@@ -1692,9 +1661,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -1720,9 +1688,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1742,9 +1709,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1768,9 +1734,8 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1793,15 +1758,14 @@ describe('TreemapSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
 
     test('AG-8290 label boxing', async () => {
-        const options = prepareEnterpriseTestOptions({
+        const options: AgChartOptions = {
             ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
             series: [
                 {
@@ -1837,9 +1801,9 @@ describe('TreemapSeries', () => {
                     },
                 },
             ],
-        });
+        };
 
-        chart = deproxy(AgCharts.create(options));
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -1958,10 +1922,8 @@ describe('TreemapSeries', () => {
 
         it('should render updated data in the itemStyler specified colors', async () => {
             const options = { ...EXAMPLE_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
             await chart.updateDelta({ data: DATA2 });
             await compare();
         });
@@ -1985,9 +1947,8 @@ describe('TreemapSeries', () => {
         });
 
         it('shows the new top-left tile on hover after replacing options', async () => {
-            const proxy = AgCharts.create(prepareEnterpriseTestOptions(buildOptions(filteredData)));
+            const proxy = await createEnterpriseChart(buildOptions(filteredData));
             chart = deproxy(proxy);
-            await waitForChartStability(chart);
 
             await proxy.update(prepareEnterpriseTestOptions(buildOptions(fullData)));
             await waitForChartStability(chart);
@@ -2020,15 +1981,15 @@ describe('TreemapSeries', () => {
                 series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size', colorKey: undefined }],
                 animation: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
 
     describe('AG-17926 zero-area tiles do not consume layout space', () => {
+        // Bespoke: the size is set after preparation.
         // One large group dwarfs many small groups so each small group's box shrinks below its own
         // padding and can lay out no child — the content-less group tile this suite must not render.
         const skewedGroups = () => {
@@ -2213,11 +2174,11 @@ describe('TreemapSeries', () => {
             [...nodes].reverse().map((n) => ({ ...n, children: n.children ? reversed(n.children) : undefined }));
 
         const treemapOptions = (data: OrgNode[] = ORG_DATA): AgChartOptions =>
-            prepareEnterpriseTestOptions({
+            ({
                 data,
                 series: [{ type: 'treemap', labelKey: 'title', sizeKey: 'total' }],
                 animation: { enabled: true },
-            } as AgChartOptions);
+            }) as AgChartOptions;
 
         const RECT = /^series\[0\]\/rect\[/;
         const rectEntries = (sample: SceneGeometrySample) => [...sample].filter(([key]) => RECT.test(key));
@@ -2262,14 +2223,16 @@ describe('TreemapSeries', () => {
             }).length;
 
         // Reshuffle snaps at frame 0, so use captureSnap rather than captureUpdate's before-anchored flow.
-        const captureReshuffle = (create: AgChartOptions, next: AgChartOptions) => {
-            const proxy = AgCharts.create(create);
+        const captureReshuffle = async (create: AgChartOptions, next: AgChartOptions) => {
+            const proxy = await createEnterpriseChart(create);
             chart = deproxy(proxy);
-            return frames.captureSnap(proxy, createSceneGeometrySampler(proxy), () => proxy.update(next));
+            return frames.captureSnap(proxy, createSceneGeometrySampler(proxy), () =>
+                proxy.update(prepareEnterpriseTestOptions(next))
+            );
         };
 
         it('standalone: initial load snaps the full tile layout with no reveal animation', async () => {
-            const proxy = AgCharts.create(treemapOptions());
+            const proxy = await createEnterpriseChart(treemapOptions());
             chart = deproxy(proxy);
             const sample = createSceneGeometrySampler(proxy);
             const trajectory = await frames.captureAnimationFrames(proxy, sample);
@@ -2308,7 +2271,7 @@ describe('TreemapSeries', () => {
 
         // After a reshuffle rebuilds the tile tree, highlighting a node from the new tree must bind to that node's live tile, not a stale recycled rect.
         const withHighlight = (data: OrgNode[]): AgChartOptions =>
-            prepareEnterpriseTestOptions({
+            ({
                 data,
                 series: [
                     {
@@ -2319,7 +2282,7 @@ describe('TreemapSeries', () => {
                     },
                 ],
                 animation: { enabled: true },
-            } as AgChartOptions);
+            }) as AgChartOptions;
         const findTileNode = (series: TreemapSeries, title: string): any => {
             const dfs = (node: any): any =>
                 node?.datum?.title === title ? node : (node?.children ?? []).map(dfs).find(Boolean);
@@ -2330,9 +2293,8 @@ describe('TreemapSeries', () => {
             Array.from((series as any).datumSelection.nodes()).find((r: any) => r.datum === node);
 
         it('highlight through reshuffle: re-highlighting resolves the pointed node, not a stale tile', async () => {
-            const proxy = AgCharts.create(withHighlight(ORG_DATA));
+            const proxy = await createEnterpriseChart(withHighlight(ORG_DATA));
             chart = deproxy(proxy);
-            await waitForChartStability(chart);
             const series = chart.series[0] as TreemapSeries;
             const highlightManager = (chart as Chart).ctx.highlightManager;
 
@@ -2340,7 +2302,7 @@ describe('TreemapSeries', () => {
             await waitForChartStability(chart);
             expect(highlightTile(series)?.datum?.datum?.title).toBe('A2');
 
-            await proxy.update(withHighlight(reversed(ORG_DATA)));
+            await proxy.update(prepareEnterpriseTestOptions(withHighlight(reversed(ORG_DATA))));
             await waitForChartStability(chart);
 
             const b1 = findTileNode(series, 'B1');
@@ -2361,7 +2323,8 @@ describe('TreemapSeries', () => {
         });
 
         it('sanity: reshuffle endpoints match static renders', async () => {
-            const before = treemapOptions();
+            // Bespoke: the prepared options are reused by the updates inside `expectAnimatedEndpointsMatchStatic`.
+            const before = prepareEnterpriseTestOptions(treemapOptions());
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             await expectAnimatedEndpointsMatchStatic(
@@ -2369,7 +2332,7 @@ describe('TreemapSeries', () => {
                 () => ctx.snapshot(),
                 proxy,
                 before,
-                treemapOptions(reversed(ORG_DATA))
+                prepareEnterpriseTestOptions(treemapOptions(reversed(ORG_DATA)))
             );
         });
     });

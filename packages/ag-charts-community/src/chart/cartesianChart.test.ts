@@ -352,10 +352,7 @@ describe('CartesianChart', () => {
                     y: { type: 'category', position: 'bottom' },
                 },
             } as AgCartesianChartOptions;
-            prepareTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options)) as CartesianChart;
-            await waitForChartStability(chart);
+            chart = deproxy(await createChart(options)) as CartesianChart;
 
             expect(chart.axes.map((axis) => [axis.type, axis.position, axis.boundSeries.length])).toEqual([
                 ['category', 'bottom', 1],
@@ -370,10 +367,7 @@ describe('CartesianChart', () => {
                 series: [{ type: 'bar', xKey: 'year', yKey: 'adults' }],
                 theme: { overrides: { bar: { series: { direction: 'horizontal' } } } },
             } as AgCartesianChartOptions;
-            prepareTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options)) as CartesianChart;
-            await waitForChartStability(chart);
+            chart = deproxy(await createChart(options)) as CartesianChart;
 
             expect(chart.axes.map((axis) => [axis.type, axis.position, axis.boundSeries.length])).toEqual([
                 ['number', 'bottom', 1],
@@ -384,6 +378,7 @@ describe('CartesianChart', () => {
     });
 
     describe('Small chart width', () => {
+        // Bespoke: the width is set after preparation, which `createChart` would override.
         it.each([80, 160, 240, 320, 400])('should render chart correctly at width [%s]', async (width) => {
             const options: AgCartesianChartOptions = {
                 ...examples.SIMPLE_LINE_CHART_EXAMPLE,
@@ -421,6 +416,7 @@ describe('CartesianChart', () => {
     });
 
     describe('Small chart height', () => {
+        // Bespoke: the height is set after preparation, which `createChart` would override.
         it.each([80, 160, 240, 320, 400])('should render chart correctly at height [%s]', async (height) => {
             const options: AgCartesianChartOptions = {
                 ...examples.SIMPLE_LINE_CHART_EXAMPLE,

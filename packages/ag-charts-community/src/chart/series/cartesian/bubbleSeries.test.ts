@@ -109,9 +109,7 @@ describe('BubbleSeries', () => {
                 legend: { enabled: false },
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -132,9 +130,7 @@ describe('BubbleSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -142,10 +138,8 @@ describe('BubbleSeries', () => {
     describe('null category key', () => {
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = examples.BUBBLE_NULL_CATEGORY_KEY_EXAMPLE;
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -160,10 +154,8 @@ describe('BubbleSeries', () => {
 
         it('should accept null category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.BUBBLE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -173,10 +165,8 @@ describe('BubbleSeries', () => {
     describe('undefined category key', () => {
         it('should reject undefined category key with warning', async () => {
             const options: AgChartOptions = examples.BUBBLE_UNDEFINED_CATEGORY_KEY_EXAMPLE;
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -191,10 +181,8 @@ describe('BubbleSeries', () => {
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.BUBBLE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -202,10 +190,8 @@ describe('BubbleSeries', () => {
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.BUBBLE_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -242,9 +228,7 @@ describe('BubbleSeries', () => {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
     });
@@ -273,9 +257,7 @@ describe('BubbleSeries', () => {
                     ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
                 };
 
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare(PATTERN_SNAPSHOT_DEFAULTS);
             }
         );
@@ -301,9 +283,7 @@ describe('BubbleSeries', () => {
                     ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
                 };
 
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare(PATTERN_SNAPSHOT_DEFAULTS);
             }
         );
@@ -328,9 +308,7 @@ describe('BubbleSeries', () => {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -353,9 +331,7 @@ describe('BubbleSeries', () => {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -378,9 +354,7 @@ describe('BubbleSeries', () => {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -404,9 +378,7 @@ describe('BubbleSeries', () => {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -429,9 +401,7 @@ describe('BubbleSeries', () => {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -455,9 +425,7 @@ describe('BubbleSeries', () => {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -479,9 +447,7 @@ describe('BubbleSeries', () => {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -504,9 +470,7 @@ describe('BubbleSeries', () => {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -536,9 +500,7 @@ describe('BubbleSeries', () => {
                 ...examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -550,15 +512,16 @@ describe('BubbleSeries', () => {
 
         // Pinned x/y domains make every data mutation below provably non-scale-affecting: within
         // [0,6] x [0,200] the markers reposition, resize, or enter/leave without moving the axes.
-        const bubbleOptions = (data: Array<{ x: number; y: number; s: number }>): AgCartesianChartOptions =>
-            prepareTestOptions({
-                data,
-                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', minSize: 10, maxSize: 40 }],
-                axes: {
-                    x: { type: 'number', position: 'bottom', min: 0, max: 6 },
-                    y: { type: 'number', position: 'left', min: 0, max: 200 },
-                },
-            });
+        const bubbleOptions = (data: Array<{ x: number; y: number; s: number }>): AgCartesianChartOptions => ({
+            data,
+            series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', minSize: 10, maxSize: 40 }],
+            axes: {
+                x: { type: 'number', position: 'bottom', min: 0, max: 6 },
+                y: { type: 'number', position: 'left', min: 0, max: 200 },
+            },
+        });
+        const preparedBubbleOptions = (data: Array<{ x: number; y: number; s: number }>) =>
+            prepareTestOptions(bubbleOptions(data));
 
         const DATA = [
             { x: 1, y: 40, s: 5 },
@@ -586,8 +549,8 @@ describe('BubbleSeries', () => {
 
         // Only the initial load animates, so updates SNAP; a data update also re-keys the marker nodes,
         // so constancy is asserted over the trajectory rather than before->after.
-        const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
-            chart = AgCharts.create(options);
+        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+            chart = await createChart(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
@@ -600,15 +563,15 @@ describe('BubbleSeries', () => {
                 { x: 2, y: -40, s: 15 },
                 { x: 5, y: 90, s: 25 },
             ];
-            const options = prepareTestOptions({
+            const options: AgCartesianChartOptions = {
                 data: NEG,
                 series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', minSize: 10, maxSize: 40 }],
                 axes: {
                     x: { type: 'number', position: 'bottom', min: -6, max: 6 },
                     y: { type: 'number', position: 'left', min: -100, max: 100 },
                 },
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createChart(options);
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             await frames.runToEnd(chart);
@@ -647,7 +610,7 @@ describe('BubbleSeries', () => {
         // Initial load scales every marker in from zero to its own sizeKey radius at opacity 1 — a
         // scale-in, not a fade.
         it('initial load: markers scale in to their sizeKey-mapped radii', async () => {
-            chart = AgCharts.create(bubbleOptions(DATA));
+            chart = await createChart(bubbleOptions(DATA));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             // Anti-vacuity: markers start collapsed yet fully opaque on frame 0, so `opacity: constant` is
@@ -714,8 +677,9 @@ describe('BubbleSeries', () => {
 
         // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped render
         // of the same options produces. One chart per test — the mock canvas only snapshots the first.
+        // Bespoke: the prepared options are reused for the static render.
         it('sanity: update data endpoints match static renders', async () => {
-            const options = bubbleOptions(DATA);
+            const options = preparedBubbleOptions(DATA);
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -724,7 +688,7 @@ describe('BubbleSeries', () => {
         });
 
         it('sanity: remove points endpoints match static renders', async () => {
-            const options = bubbleOptions(DATA);
+            const options = preparedBubbleOptions(DATA);
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -787,46 +751,43 @@ describe('BubbleSeries', () => {
             beforeEach(async () => {
                 c1 = { name: 'male context' };
                 c2 = { name: 'female context' };
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        legend: { item: { marker: { size: 40 } } },
-                        series: [
-                            {
-                                type: 'bubble',
-                                title: 'Male',
-                                data: maleHeightWeight,
-                                xKey: 'height',
-                                yKey: 'weight',
-                                sizeKey: 'age',
-                                minSize: 30,
-                                maxSize: 100,
-                                context: c1,
+                chart = await createChart({
+                    legend: { item: { marker: { size: 40 } } },
+                    series: [
+                        {
+                            type: 'bubble',
+                            title: 'Male',
+                            data: maleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            sizeKey: 'age',
+                            minSize: 30,
+                            maxSize: 100,
+                            context: c1,
 
-                                styler: styler.frozen,
-                                shape: 'star', // not ignored
-                                strokeWidth: 0, // not ignored
-                                fill: 'magenta', // ignored
-                            },
-                            {
-                                type: 'bubble',
-                                title: 'Female',
-                                data: femaleHeightWeight,
-                                xKey: 'height',
-                                yKey: 'weight',
-                                sizeKey: 'age',
-                                minSize: 30,
-                                maxSize: 100,
-                                context: c2,
+                            styler: styler.frozen,
+                            shape: 'star', // not ignored
+                            strokeWidth: 0, // not ignored
+                            fill: 'magenta', // ignored
+                        },
+                        {
+                            type: 'bubble',
+                            title: 'Female',
+                            data: femaleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            sizeKey: 'age',
+                            minSize: 30,
+                            maxSize: 100,
+                            context: c2,
 
-                                styler: styler.frozen,
-                                shape: 'plus', // ignored
-                                fillOpacity: 0.5, // not ignored
-                                strokeWidth: 3, // not ignored
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                            styler: styler.frozen,
+                            shape: 'plus', // ignored
+                            fillOpacity: 0.5, // not ignored
+                            strokeWidth: 3, // not ignored
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -848,50 +809,47 @@ describe('BubbleSeries', () => {
         });
         describe('fill types', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        legend: {},
-                        series: [
-                            {
-                                type: 'bubble',
-                                title: 'Male',
-                                data: maleHeightWeight,
-                                xKey: 'height',
-                                yKey: 'weight',
-                                sizeKey: 'age',
-                                minSize: 30,
-                                maxSize: 100,
-                                styler: () => {
-                                    return {
-                                        fill: {
-                                            type: 'gradient',
-                                            colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
-                                        },
-                                    };
-                                },
+                chart = await createChart({
+                    legend: {},
+                    series: [
+                        {
+                            type: 'bubble',
+                            title: 'Male',
+                            data: maleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            sizeKey: 'age',
+                            minSize: 30,
+                            maxSize: 100,
+                            styler: () => {
+                                return {
+                                    fill: {
+                                        type: 'gradient',
+                                        colorStops: [{ color: 'dodgerblue', stop: 0.1 }, { color: 'lightcyan' }],
+                                    },
+                                };
                             },
-                            {
-                                type: 'bubble',
-                                title: 'Female',
-                                data: femaleHeightWeight,
-                                xKey: 'height',
-                                yKey: 'weight',
-                                sizeKey: 'age',
-                                minSize: 30,
-                                maxSize: 100,
-                                styler: () => {
-                                    return {
-                                        fill: {
-                                            type: 'pattern',
-                                            pattern: 'stars',
-                                        },
-                                    };
-                                },
+                        },
+                        {
+                            type: 'bubble',
+                            title: 'Female',
+                            data: femaleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            sizeKey: 'age',
+                            minSize: 30,
+                            maxSize: 100,
+                            styler: () => {
+                                return {
+                                    fill: {
+                                        type: 'pattern',
+                                        pattern: 'stars',
+                                    },
+                                };
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -963,8 +921,7 @@ describe('BubbleSeries', () => {
                         },
                     ],
                 };
-                chart = AgCharts.create(prepareTestOptions(opts));
-                await waitForChartStability(chart);
+                chart = await createChart(opts);
             });
             test('snapshot', async () => {
                 await compare();
@@ -992,8 +949,7 @@ describe('BubbleSeries', () => {
                         },
                     ],
                 };
-                chart = AgCharts.create(prepareTestOptions(opts));
-                await waitForChartStability(chart);
+                chart = await createChart(opts);
             });
             test('snapshot', async () => {
                 await compare();
@@ -1040,10 +996,8 @@ describe('BubbleSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(200, 300)(chart);
             await compare();
         });
@@ -1083,10 +1037,8 @@ describe('BubbleSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(250, 350)(chart);
             await compare();
         });
@@ -1138,10 +1090,8 @@ describe('BubbleSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
-            await waitForChartStability(chart);
             await hoverAction(180, 280)(chart);
             await compare();
         });
@@ -1171,24 +1121,20 @@ describe('BubbleSeries', () => {
         } satisfies AgCartesianChartOptions;
 
         it('should hide bubble series from legend when showInLegend is false', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 ...commonOptions,
                 title: { text: 'Two series, only female series should be shown in legend' },
                 series: [commonOptions.series[0], { ...commonOptions.series[1], showInLegend: false }],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
 
         it('should show bubble series in legend when showInLegend is true (default)', async () => {
-            const options = prepareTestOptions({
+            chart = await createChart({
                 ...commonOptions,
                 title: { text: 'One series, only male series should be shown in legend' },
                 series: [{ ...commonOptions.series[0], showInLegend: true }],
             });
-
-            chart = AgCharts.create(options);
             await compare();
         });
     });
@@ -1205,9 +1151,7 @@ describe('BubbleSeries', () => {
                 series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 15 }],
                 legend: { enabled: false },
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -1228,9 +1172,7 @@ describe('BubbleSeries', () => {
                 series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 15 }],
                 legend: { enabled: false },
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
@@ -1245,9 +1187,7 @@ describe('BubbleSeries', () => {
                 series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 15 }],
                 legend: { enabled: false },
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
@@ -1262,9 +1202,7 @@ describe('BubbleSeries', () => {
                 series: [{ type: 'scatter', xKey: 'x', yKey: 'y', maxRenderedItems: 200 }],
                 legend: { enabled: false },
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
@@ -1286,8 +1224,7 @@ describe('BubbleSeries', () => {
         });
 
         it('should render the same markers with a sizeKey when the x-axis is reversed and maxRenderedItems is exceeded', async () => {
-            chart = AgCharts.create(prepareTestOptions(aggregatedOptions(false)));
-            await waitForChartStability(chart);
+            chart = await createChart(aggregatedOptions(false));
             const expected = getAggregatedMarkerXValues(chart);
             expect(expected.length).toBeGreaterThan(0);
             expect(expected.length).toBeLessThan(300);
@@ -1310,8 +1247,7 @@ describe('BubbleSeries', () => {
                 ],
                 legend: { enabled: false },
             };
-            chart = AgCharts.create(prepareTestOptions(options));
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.contextNodeData?.nodeData?.length).toBeLessThan(600);
@@ -1326,8 +1262,7 @@ describe('BubbleSeries', () => {
                 ],
                 legend: { enabled: false },
             };
-            chart = AgCharts.create(prepareTestOptions(options));
-            await waitForChartStability(chart);
+            chart = await createChart(options);
             expectAggregatedMarkersCoverEveryDatumOnce(chart, 500);
 
             await chart.update(
@@ -1343,7 +1278,7 @@ describe('BubbleSeries', () => {
 
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            create: async (o) => (chart = await createChart(o)),
             compare,
             chartOptions: {
                 data: [
@@ -1398,8 +1333,7 @@ describe('BubbleSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -1425,8 +1359,7 @@ describe('BubbleSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -1436,9 +1369,7 @@ describe('BubbleSeries', () => {
                 series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 10 }],
                 legend: { enabled: false },
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
@@ -1456,9 +1387,7 @@ describe('BubbleSeries', () => {
                 series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
                 legend: { enabled: false },
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
@@ -1509,9 +1438,7 @@ describe('BubbleSeries', () => {
                 legend: { enabled: false },
                 axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
             } as AgCartesianChartOptions;
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
             // Zero-width domains resolve to the range midpoint (10 + 30) / 2, never NaN/Infinity.
             expect(nodeSizes(chart)).toEqual([20, 20, 20]);
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -1598,9 +1525,7 @@ describe('BubbleSeries', () => {
                 series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 12, minSize: 5 } as object],
                 legend: { enabled: false },
             } as AgCartesianChartOptions;
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             // `size` is honoured (fixed marker size); `minSize` is rejected as an unknown option.
             expect(nodeSizes(chart)).toEqual([12, 12]);
@@ -1768,34 +1693,30 @@ describe('BubbleSeries', () => {
 
     describe('bigint values (AG-16608)', () => {
         it('renders a bubble series with out-of-safe-range bigint x, y and size values', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: BIG, y: BIG, size: BIG },
-                        { x: BIG * 2n, y: NEG_BIG, size: BIG * 2n },
-                        { x: NEG_BIG, y: BIG * 2n, size: BIG * 3n },
-                    ],
-                    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size' }],
-                    axes: { x: { type: 'number' }, y: { type: 'number' } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: BIG, y: BIG, size: BIG },
+                    { x: BIG * 2n, y: NEG_BIG, size: BIG * 2n },
+                    { x: NEG_BIG, y: BIG * 2n, size: BIG * 3n },
+                ],
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size' }],
+                axes: { x: { type: 'number' }, y: { type: 'number' } },
+            });
             await compare();
         });
     });
 
     describe('ISO datetime (AG-16654)', () => {
         it('renders a bubble series with ISO-8601 datetime-string x values on a time axis', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { time: '2024-01-15T09:00:00Z', y: 12, size: 4 },
-                        { time: '2024-01-15T10:30:00Z', y: 15, size: 8 },
-                        { time: '2024-01-15T11:45:00Z', y: 11, size: 6 },
-                    ],
-                    series: [{ type: 'bubble', xKey: 'time', yKey: 'y', sizeKey: 'size' }],
-                    axes: { x: { type: 'time' }, y: { type: 'number' } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { time: '2024-01-15T09:00:00Z', y: 12, size: 4 },
+                    { time: '2024-01-15T10:30:00Z', y: 15, size: 8 },
+                    { time: '2024-01-15T11:45:00Z', y: 11, size: 6 },
+                ],
+                series: [{ type: 'bubble', xKey: 'time', yKey: 'y', sizeKey: 'size' }],
+                axes: { x: { type: 'time' }, y: { type: 'number' } },
+            });
             await compare();
         });
     });
@@ -1942,9 +1863,7 @@ describe('BubbleSeries', () => {
                     y2: { type: 'number', position: 'right' },
                 },
             } as AgCartesianChartOptions;
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
 
             // No no-data overlay is raised while one series resolves, so no axis may drop its grid.
             expect(gridLinesVisible(chart)).toEqual([true, true, true]);
@@ -2028,9 +1947,7 @@ describe('BubbleSeries undefined size value emits no warning on visible-range co
             series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's' }],
             legend: { enabled: false },
         };
-        prepareTestOptions(options);
-        const chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        const chart = await createChart(options);
 
         const series = deproxy(chart).series[0] as unknown as {
             xCoordinateRange(xValue: number, pixelSize: number, index: number): [number, number];

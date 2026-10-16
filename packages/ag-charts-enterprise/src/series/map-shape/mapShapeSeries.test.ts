@@ -8,7 +8,6 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -83,9 +82,7 @@ describe('MapShapeSeries', () => {
     describe('Simple Chart', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -93,10 +90,7 @@ describe('MapShapeSeries', () => {
     describe('Series Highlighting', () => {
         it.each([0, 1, 2, 3])('should render a highlight at index %i', async (i: number) => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[0] as MapShapeSeries;
             const node = seriesImpl?.['contextNodeData']?.nodeData[i];
@@ -215,10 +209,7 @@ describe('MapShapeSeries', () => {
                 ...SIMPLIFIED_EXAMPLE,
                 series: [{ type: 'map-shape', idKey: 'name', highlight: { enabled } }],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[0] as MapShapeSeries;
             await hoverFirstShape(seriesImpl);
@@ -235,9 +226,7 @@ describe('MapShapeSeries', () => {
     describe('Heatmap', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...HEATMAP_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -259,10 +248,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const seriesImpl = chart.series[0] as MapShapeSeries;
             const nodeIds = seriesImpl?.['contextNodeData']?.nodeData?.map((datum) => datum.idValue) ?? [];
@@ -296,10 +282,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             await compare({
                 failureThreshold: 1,
             });
@@ -321,10 +304,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             await compare({
                 failureThreshold: 1,
             });
@@ -337,9 +317,7 @@ describe('MapShapeSeries', () => {
                     topology: usTopology,
                     series: [{ type: 'map-shape', idKey: 'name', labelKey: 'code', label: { fontSize: 10, ...label } }],
                 } as AgChartOptions;
-                prepareEnterpriseTestOptions(options);
-                chart = deproxy(AgCharts.create(options));
-                await waitForChartStability(chart);
+                chart = deproxy(await createEnterpriseChart(options));
                 return (chart.series[0].contextNodeData?.labelData ?? []).map((d: { fontSize: number }) => d.fontSize);
             };
 
@@ -366,9 +344,7 @@ describe('MapShapeSeries', () => {
                         { type: 'map-shape', idKey: 'name', labelKey: 'label', label: { fontSize: 10, ...label } },
                     ],
                 } as AgChartOptions;
-                prepareEnterpriseTestOptions(options);
-                chart = deproxy(AgCharts.create(options));
-                await waitForChartStability(chart);
+                chart = deproxy(await createEnterpriseChart(options));
                 return (chart.series[0].contextNodeData?.labelData ?? []).map((d: { text: string }) => d.text);
             };
 
@@ -593,7 +569,7 @@ describe('MapShapeSeries', () => {
 
     describe('AG-16858 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            create: async (o) => (chart = await createEnterpriseChart(o)),
             compare,
             chartOptions: {
                 topology: ukTopology,
@@ -617,10 +593,8 @@ describe('MapShapeSeries', () => {
                     { type: 'map-shape', idKey: 'name', data: [{ name: 'Wales' }], legendItemName: 'Group B' },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
             resetMockConsole();
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             expectWarningMessages([
                 `AG Charts - legend item 'Group A' has multiple fill colours, this may cause unexpected behaviour.`,
             ]);
@@ -657,9 +631,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -676,9 +648,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -695,9 +665,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -718,9 +686,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -745,10 +711,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expectWarningsCalls().toEqual([]);
         });
@@ -773,9 +736,7 @@ describe('MapShapeSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -786,9 +747,7 @@ describe('MapShapeSeries', () => {
                 ...HEATMAP_EXAMPLE,
                 gradientLegend: { enabled: true },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -807,9 +766,7 @@ describe('MapShapeSeries', () => {
                 legend: { enabled: true },
                 gradientLegend: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -832,9 +789,7 @@ describe('MapShapeSeries', () => {
                 legend: { enabled: true },
                 gradientLegend: { enabled: false },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
 
@@ -855,9 +810,7 @@ describe('MapShapeSeries', () => {
                 ],
                 gradientLegend: { enabled: true },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
+            chart = deproxy(await createEnterpriseChart(options));
             await compare();
         });
     });
@@ -879,10 +832,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             await compare({
                 failureThreshold: 1,
             });
@@ -912,10 +862,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             await compare({
                 failureThreshold: 1,
             });
@@ -946,10 +893,7 @@ describe('MapShapeSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             await compare({
                 failureThreshold: 1,
             });
@@ -959,10 +903,8 @@ describe('MapShapeSeries', () => {
     describe('Logger threading', () => {
         it('routes the map-shape no-topology warning through the chart-scoped logger, not the module fallback', async () => {
             const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-            const chartProxy = AgCharts.create(options);
+            const chartProxy = await createEnterpriseChart(options);
             chart = deproxy(chartProxy);
-            await waitForChartStability(chart);
 
             const scopedWarnOnce = vi.spyOn(chart.ctx.logger, 'warnOnce').mockImplementation(() => {});
             const fallbackWarnOnce = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});

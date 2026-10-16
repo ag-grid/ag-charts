@@ -10,9 +10,9 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
 
 const TIME_AXIS_DATA = [];
 for (let i = 0; i < 200; i++) {
@@ -60,7 +60,7 @@ const TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
 
 describe('Time Axis Examples', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     const compare = async () => {
@@ -85,7 +85,7 @@ describe('Time Axis Examples', () => {
     };
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -103,6 +103,7 @@ describe('Time Axis Examples', () => {
         ];
         for (const [start, end] of ZOOM_LEVELS) {
             it(`for should render as expected as zoom [${start}, ${end}]`, async () => {
+                // Bespoke: `updateDelta` is applied straight after creation, before the chart has settled.
                 chart = AgCharts.create(prepareEnterpriseTestOptions({ ...TIME_AXIS_EXAMPLE }));
                 await chart.updateDelta({ initialState: { zoom: { ratioX: { start, end } } } });
                 await axisCompare();
@@ -147,32 +148,30 @@ describe('Time Axis Examples', () => {
                 initialState: { zoom: { ratioX: { start: 0.95, end: 1 } } },
             };
 
-            chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
 
     it('should prioritise parentLevel.tick over tick', async () => {
-        chart = AgCharts.create(
-            prepareEnterpriseTestOptions({
-                ...TIME_AXIS_EXAMPLE,
-                initialState: { zoom: { ratioX: { start: 0.2, end: 0.5 } } },
-                axes: {
-                    ...TIME_AXIS_EXAMPLE.axes,
-                    x: {
-                        ...TIME_AXIS_EXAMPLE.axes!.x!,
-                        parentLevel: {
-                            tick: {
-                                enabled: false,
-                            },
-                        },
+        chart = await createEnterpriseChart({
+            ...TIME_AXIS_EXAMPLE,
+            initialState: { zoom: { ratioX: { start: 0.2, end: 0.5 } } },
+            axes: {
+                ...TIME_AXIS_EXAMPLE.axes,
+                x: {
+                    ...TIME_AXIS_EXAMPLE.axes!.x!,
+                    parentLevel: {
                         tick: {
-                            enabled: true,
+                            enabled: false,
                         },
                     },
+                    tick: {
+                        enabled: true,
+                    },
                 },
-            })
-        );
+            },
+        });
         await axisCompare();
     });
 });

@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ChartUpdateType, type Point, Sector, Selection, Transformable } from 'ag-charts-core';
 import type { AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
-import { AgCharts } from '../../../api/agCharts';
 import type { ChartOrProxy, PolarTestCase } from '../../test/utils';
 import {
     type Chart,
@@ -14,7 +13,6 @@ import {
     deproxy,
     hoverAction,
     polarChartAssertions,
-    prepareTestOptions,
     repeat,
     setupMockCanvas,
     setupMockConsole,
@@ -129,10 +127,8 @@ describe('PolarSeries', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgPolarChartOptions = { ...example.options };
-                prepareTestOptions(options);
 
-                chart = deproxy(AgCharts.create(options));
-                await waitForChartStability(chart);
+                chart = deproxy(await createChart(options));
                 await example.assertions(chart);
             }
         );
@@ -141,9 +137,8 @@ describe('PolarSeries', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const options: AgPolarChartOptions = { ...example.options };
-                prepareTestOptions(options);
 
-                chart = deproxy(AgCharts.create(options));
+                chart = deproxy(await createChart(options));
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -166,10 +161,9 @@ describe('PolarSeries', () => {
             };
 
             const options: AgPolarChartOptions = { ...examples.PIE_SERIES };
-            prepareTestOptions(options);
             options.legend = { enabled: true };
 
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             const deproxied = deproxy(chart);
             const reference = await snapshot();
 
@@ -213,11 +207,8 @@ describe('PolarSeries', () => {
                 },
                 ...examples.PIE_SECTORS_LABELS,
             };
-            prepareTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
-
-            await waitForChartStability(chart);
+            chart = deproxy(await createChart(options));
 
             const series = chart.series[0];
             const nodeToHighlight = (series as any).nodeData[0];

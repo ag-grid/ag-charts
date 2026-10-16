@@ -173,9 +173,7 @@ describe('RangeAreaSeries', () => {
 
     it(`should render a range-area chart as expected`, async () => {
         const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -246,9 +244,7 @@ describe('RangeAreaSeries', () => {
                 high: datum.low,
             })),
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -263,9 +259,7 @@ describe('RangeAreaSeries', () => {
                 high: invertedDataIndices.includes(index) ? datum.low : datum.high,
             })),
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -279,9 +273,7 @@ describe('RangeAreaSeries', () => {
                 high: invalidDataIndices.includes(index) ? `invalid` : datum.high,
             })),
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
         expectWarningsCalls().toMatchInlineSnapshot(`[]`);
     });
@@ -302,9 +294,7 @@ describe('RangeAreaSeries', () => {
             width: 400,
             height: 300,
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
         expectWarningsCalls().toMatchInlineSnapshot(`[]`);
     });
@@ -333,9 +323,7 @@ describe('RangeAreaSeries', () => {
             width: 400,
             height: 300,
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
         expectWarningsCalls().toMatchInlineSnapshot(`[]`);
     });
@@ -356,9 +344,7 @@ describe('RangeAreaSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -377,9 +363,7 @@ describe('RangeAreaSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -399,9 +383,7 @@ describe('RangeAreaSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -424,9 +406,7 @@ describe('RangeAreaSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -458,9 +438,7 @@ describe('RangeAreaSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -487,9 +465,7 @@ describe('RangeAreaSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -525,9 +501,7 @@ describe('RangeAreaSeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -542,11 +516,7 @@ describe('RangeAreaSeries', () => {
         });
 
         it('reveal by a left-to-right swipe with markers scaling in on the initial load', async () => {
-            const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            const proxy = AgCharts.create(options);
-            chart = deproxy(proxy);
+            chart = deproxy(await createEnterpriseChart({ ...RANGE_AREA_OPTIONS } as AgChartOptions));
             const sampler = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampler);
             await frames.runToEnd(chart);
@@ -609,6 +579,7 @@ describe('RangeAreaSeries', () => {
                 data: CATEGORY_DATA.map((d) => ({ ...d, low: d.low - 1, high: d.high + 1 })),
             };
 
+            // Bespoke: the prepared options are reused by the update inside `expectAnimatedEndpointsMatchStatic`.
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, widened);
         });
@@ -631,10 +602,7 @@ describe('RangeAreaSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = AgCharts.create(options as AgChartOptions);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options as AgChartOptions);
 
             await compare();
         });
@@ -663,10 +631,7 @@ describe('RangeAreaSeries', () => {
                 ],
             };
 
-            prepareEnterpriseTestOptions(options as AgChartOptions);
-
-            chart = AgCharts.create(options as AgChartOptions);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options as AgChartOptions);
 
             await compare();
         });
@@ -677,17 +642,15 @@ describe('RangeAreaSeries', () => {
             labelOpts: { placement: AgRangeAreaSeriesLabelPlacement; spacing?: number },
             name: string
         ) {
-            chart = AgCharts.create(
-                prepareEnterpriseTestOptions({
-                    data: [
-                        { x: '1', yL: 140, yH: 160 },
-                        { x: '2', yL: 124, yH: 141 },
-                        { x: '3', yL: 112, yH: 165 },
-                        { x: '4', yL: 118, yH: 132 },
-                    ],
-                    series: [{ type: 'range-area', xKey: 'x', yLowKey: 'yL', yHighKey: 'yH', label: { ...labelOpts } }],
-                })
-            );
+            chart = await createEnterpriseChart({
+                data: [
+                    { x: '1', yL: 140, yH: 160 },
+                    { x: '2', yL: 124, yH: 141 },
+                    { x: '3', yL: 112, yH: 165 },
+                    { x: '4', yL: 118, yH: 132 },
+                ],
+                series: [{ type: 'range-area', xKey: 'x', yLowKey: 'yL', yHighKey: 'yH', label: { ...labelOpts } }],
+            });
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
         describe('spacing sets the gap between the bar and the label', () => {
@@ -732,9 +695,7 @@ describe('RangeAreaSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compareImageSnapshot(chart, ctx);
         });
 
@@ -787,9 +748,7 @@ describe('RangeAreaSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compareImageSnapshot(chart, ctx);
         });
 
@@ -842,9 +801,7 @@ describe('RangeAreaSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compareImageSnapshot(chart, ctx);
         });
 
@@ -906,9 +863,7 @@ describe('RangeAreaSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compareImageSnapshot(chart, ctx);
         });
 
@@ -957,9 +912,7 @@ describe('RangeAreaSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            prepareEnterpriseTestOptions(options as any);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compareImageSnapshot(chart, ctx);
         });
     });
@@ -1011,39 +964,36 @@ describe('RangeAreaSeries', () => {
             beforeEach(async () => {
                 c1 = { name: 'gain context' };
                 c2 = { name: 'loss context' };
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions({
-                        data,
-                        series: [
-                            {
-                                type: 'range-area',
-                                context: c1,
-                                xKey: 'month',
-                                yName: 'Gain',
-                                yLowKey: 'gain_low',
-                                yHighKey: 'gain_high',
-                                fill: 'cyan',
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'range-area',
-                                context: c2,
-                                xKey: 'month',
-                                yName: 'Loss',
-                                yLowKey: 'loss_low',
-                                yHighKey: 'loss_high',
-                                styler: styler.frozen,
-                                item: lowAndHigh({
-                                    marker: {
-                                        fill: 'lime', // ignored
-                                        fillOpacity: 0.5, // not ignored
-                                    },
-                                }),
-                            },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                chart = await createEnterpriseChart({
+                    data,
+                    series: [
+                        {
+                            type: 'range-area',
+                            context: c1,
+                            xKey: 'month',
+                            yName: 'Gain',
+                            yLowKey: 'gain_low',
+                            yHighKey: 'gain_high',
+                            fill: 'cyan',
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'range-area',
+                            context: c2,
+                            xKey: 'month',
+                            yName: 'Loss',
+                            yLowKey: 'loss_low',
+                            yHighKey: 'loss_high',
+                            styler: styler.frozen,
+                            item: lowAndHigh({
+                                marker: {
+                                    fill: 'lime', // ignored
+                                    fillOpacity: 0.5, // not ignored
+                                },
+                            }),
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -1071,53 +1021,50 @@ describe('RangeAreaSeries', () => {
                     }
                     return {};
                 };
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions<AgCartesianChartOptions<D, C>>({
-                        data,
-                        series: [
-                            {
-                                type: 'range-area',
-                                id: 'gain-series',
-                                xKey: 'month',
-                                yName: 'Gain',
-                                yLowKey: 'gain_low',
-                                yHighKey: 'gain_high',
-                                fill: 'lime', // ignored
-                                marker: {
-                                    itemStyler,
-                                },
-                                item: lowAndHigh({
-                                    marker: {
-                                        size: 15,
-                                    },
-                                }),
-                                styler: styler.frozen,
+                chart = await createEnterpriseChart<AgCartesianChartOptions<D, C>>({
+                    data,
+                    series: [
+                        {
+                            type: 'range-area',
+                            id: 'gain-series',
+                            xKey: 'month',
+                            yName: 'Gain',
+                            yLowKey: 'gain_low',
+                            yHighKey: 'gain_high',
+                            fill: 'lime', // ignored
+                            marker: {
+                                itemStyler,
                             },
-                            {
-                                type: 'range-area',
-                                id: 'loss-series',
-                                xKey: 'month',
-                                yName: 'Loss',
-                                yLowKey: 'loss_low',
-                                yHighKey: 'loss_high',
-                                fill: 'olive', // ignored
+                            item: lowAndHigh({
                                 marker: {
-                                    itemStyler,
+                                    size: 15,
                                 },
-                                item: lowAndHigh({
-                                    stroke: 'navy', // not ignored
-                                    strokeWidth: 7, // not ignored
-                                    marker: {
-                                        fill: 'lime', // ignored
-                                        fillOpacity: 0.5, // not ignored
-                                    },
-                                }),
-                                styler: styler.frozen,
+                            }),
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'range-area',
+                            id: 'loss-series',
+                            xKey: 'month',
+                            yName: 'Loss',
+                            yLowKey: 'loss_low',
+                            yHighKey: 'loss_high',
+                            fill: 'olive', // ignored
+                            marker: {
+                                itemStyler,
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                            item: lowAndHigh({
+                                stroke: 'navy', // not ignored
+                                strokeWidth: 7, // not ignored
+                                marker: {
+                                    fill: 'lime', // ignored
+                                    fillOpacity: 0.5, // not ignored
+                                },
+                            }),
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -1125,34 +1072,31 @@ describe('RangeAreaSeries', () => {
         });
         describe('gradient-pattern', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareEnterpriseTestOptions({
-                        data,
-                        series: [
-                            {
-                                type: 'range-area',
-                                xKey: 'month',
-                                yName: 'Gain',
-                                yLowKey: 'gain_low',
-                                yHighKey: 'gain_high',
-                                styler: () => {
-                                    return { fill: { type: 'gradient' } };
-                                },
+                chart = await createEnterpriseChart({
+                    data,
+                    series: [
+                        {
+                            type: 'range-area',
+                            xKey: 'month',
+                            yName: 'Gain',
+                            yLowKey: 'gain_low',
+                            yHighKey: 'gain_high',
+                            styler: () => {
+                                return { fill: { type: 'gradient' } };
                             },
-                            {
-                                type: 'range-area',
-                                xKey: 'month',
-                                yName: 'Loss',
-                                yLowKey: 'loss_low',
-                                yHighKey: 'loss_high',
-                                styler: () => {
-                                    return { fill: { type: 'pattern' } };
-                                },
+                        },
+                        {
+                            type: 'range-area',
+                            xKey: 'month',
+                            yName: 'Loss',
+                            yLowKey: 'loss_low',
+                            yHighKey: 'loss_high',
+                            styler: () => {
+                                return { fill: { type: 'pattern' } };
                             },
-                        ],
-                    })
-                );
-                await waitForChartStability(chart);
+                        },
+                    ],
+                });
             });
             test('snapshot', async () => {
                 await compare();
@@ -1183,9 +1127,7 @@ describe('RangeAreaSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1211,9 +1153,7 @@ describe('RangeAreaSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1248,9 +1188,7 @@ describe('RangeAreaSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1284,9 +1222,7 @@ describe('RangeAreaSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1320,9 +1256,7 @@ describe('RangeAreaSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1360,9 +1294,7 @@ describe('RangeAreaSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1387,9 +1319,7 @@ describe('RangeAreaSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1414,9 +1344,7 @@ describe('RangeAreaSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1445,9 +1373,7 @@ describe('RangeAreaSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -1493,7 +1419,7 @@ describe('RangeAreaSeries', () => {
                     },
                 ],
             };
-            chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
 
@@ -1565,7 +1491,7 @@ describe('RangeAreaSeries', () => {
                     },
                 ],
             };
-            chart = AgCharts.create(prepareEnterpriseTestOptions(opts));
+            chart = await createEnterpriseChart(opts);
             await compare();
         });
     });
@@ -1598,9 +1524,8 @@ describe('RangeAreaSeries', () => {
             ],
         };
 
-        chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+        chart = await createEnterpriseChart(options);
 
-        await waitForChartStability(chart);
         await hoverAction(200, 220)(chart);
         await waitForChartStability(chart);
         await compare();
@@ -1608,7 +1533,7 @@ describe('RangeAreaSeries', () => {
 
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            create: async (o) => (chart = await createEnterpriseChart(o)),
             compare,
             chartOptions: {
                 data: [
@@ -1649,10 +1574,7 @@ describe('RangeAreaSeries', () => {
 
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = { ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -1675,10 +1597,7 @@ describe('RangeAreaSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1733,10 +1652,7 @@ describe('RangeAreaSeries', () => {
 
         it('should reject undefined category key with warning', async () => {
             const options: AgChartOptions = { ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -1759,10 +1675,7 @@ describe('RangeAreaSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1778,10 +1691,7 @@ describe('RangeAreaSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();

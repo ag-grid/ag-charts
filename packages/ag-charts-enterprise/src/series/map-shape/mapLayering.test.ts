@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -16,7 +15,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 import { data as heatmapData } from './map-layering-fixtures/heatmap-floating/data';
 import { topology as heatmapTopology } from './map-layering-fixtures/heatmap-floating/topology';
 import { cityData } from './map-layering-fixtures/routing/cityData';
@@ -161,10 +160,7 @@ describe('Map layering', () => {
     describe('routing (map-shape + map-line + map-marker)', () => {
         it('renders all three layers composed in a single projection', async () => {
             const options: AgChartOptions = { ...ROUTING_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             // One legend entry per layer confirms the three series are laid out together.
             const legendItems = getLegendModule(chart as Chart).itemSelection.nodes();
@@ -181,10 +177,7 @@ describe('Map layering', () => {
             { label: 'Cities', index: 2 },
         ])('toggling the $label legend entry hides and restores only series[$index]', async ({ label, index }) => {
             const options: AgChartOptions = { ...ROUTING_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             expect(chart.series.every((series: any) => series.visible)).toBe(true);
 
             const composed = ctx.snapshot();
@@ -206,10 +199,7 @@ describe('Map layering', () => {
 
         it('hiding a layer greys its legend entry and removes it from the plot', async () => {
             const options: AgChartOptions = { ...ROUTING_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             await clickLegendItem('Cities');
             expect(chart.series[2].visible).toBe(false);
@@ -220,10 +210,7 @@ describe('Map layering', () => {
     describe('heatmap with floating gradient legend', () => {
         it('renders the map-shape-background base under a colour-keyed map-shape with a floating gradient legend', async () => {
             const options: AgChartOptions = { ...HEATMAP_FLOATING_EXAMPLE };
-            prepareEnterpriseTestOptions(options);
-
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             // The floating gradient legend is present and both layers are laid out.
             expect((chart as Chart).modulesManager.getModule('gradientLegend')).toBeDefined();

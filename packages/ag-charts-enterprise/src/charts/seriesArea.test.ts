@@ -1,17 +1,11 @@
 import { afterEach, describe, it } from 'vitest';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
-import {
-    GALLERY_EXAMPLES,
-    compareImageSnapshot,
-    deproxy,
-    setupMockCanvas,
-    setupMockConsole,
-} from 'ag-charts-community-test';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import { GALLERY_EXAMPLES, compareImageSnapshot, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { ukData } from '../series/map-test/ukData';
 import ukTopology from '../series/map-test/ukTopology.json';
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart } from '../test/utils';
 
 const SERIES_AREA_OPTIONS = {
     seriesArea: {
@@ -32,10 +26,10 @@ const SERIES_AREA_OPTIONS = {
 
 describe('SeriesArea', () => {
     setupMockConsole();
-    let chart: any;
+    let chart: AgChartInstance;
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -53,9 +47,8 @@ describe('SeriesArea', () => {
                 ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
                 ...SERIES_AREA_OPTIONS,
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });
@@ -73,9 +66,8 @@ describe('SeriesArea', () => {
                 ],
                 ...SERIES_AREA_OPTIONS,
             };
-            prepareEnterpriseTestOptions(options);
 
-            chart = deproxy(AgCharts.create(options));
+            chart = await createEnterpriseChart(options);
             await compare();
         });
     });

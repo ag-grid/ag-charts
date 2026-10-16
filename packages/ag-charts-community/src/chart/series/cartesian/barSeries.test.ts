@@ -385,7 +385,7 @@ describe('BarSeries', () => {
         });
 
         test('no data', async () => {
-            chart = AgCharts.create(prepareTestOptions({ data: [], series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] }));
+            chart = await createChart({ data: [], series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] });
             await compare();
         });
 
@@ -393,9 +393,7 @@ describe('BarSeries', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
 
@@ -417,9 +415,7 @@ describe('BarSeries', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare(example.imageSnapshotDefaults);
 
                 if (example.extraScreenshotActions) {
@@ -478,8 +474,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             // Visual snapshot to ensure no spurious bars are rendered
@@ -535,8 +530,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             // Visual snapshot to ensure no spurious bars are rendered
@@ -567,6 +561,7 @@ describe('BarSeries', () => {
                     options.series = reducedSeries;
                 }
 
+                // Bespoke: the prepared `options` are reused by `chart.update`.
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
@@ -602,13 +597,13 @@ describe('BarSeries', () => {
                     y: { type: 'number', position: 'left', min: 0, max: 100 },
                 },
             };
-            return prepareTestOptions(options);
+            return options;
         };
 
         // CASE 1 — non-scale-affecting data update on a vertical (column) series. The changed bar should
         // grow/shrink in one dimension only, while sibling bars and the changed bar's x/width stay put.
         it('CASE 1: column data-update animates height only, monotonically, without disturbing siblings', async () => {
-            chart = AgCharts.create(
+            chart = await createChart(
                 columnOptions([
                     { x: 'A', y: 100 },
                     { x: 'B', y: 40 },
@@ -649,7 +644,7 @@ describe('BarSeries', () => {
         // sibling HEIGHTS and the whole value axis must not move.
         it('CASE 2: added bar grows in and removed bar collapses, monotonically', async () => {
             // ADD: A,B,C -> A,B,C,D.
-            chart = AgCharts.create(
+            chart = await createChart(
                 columnOptions([
                     { x: 'A', y: 100 },
                     { x: 'B', y: 40 },
@@ -738,7 +733,7 @@ describe('BarSeries', () => {
                     y: { type: 'number', position: 'left', min: 0 },
                 },
             };
-            chart = AgCharts.create(prepareTestOptions(options));
+            chart = await createChart(options);
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
             const before = sampleScene();
@@ -822,6 +817,7 @@ describe('BarSeries', () => {
             const options: AgChartOptions = { ...examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 };
             prepareTestOptions(options);
             const allSeries = options.series!;
+            // Bespoke: the prepared `options` are reused by `chart.update`.
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
@@ -866,16 +862,17 @@ describe('BarSeries', () => {
             if (mode != null) {
                 (options as AgChartOptions & { mode: string }).mode = mode;
             }
-            return prepareTestOptions(options);
+            return options;
         };
+        // Bespoke: the bare creates in this suite pass prepared options that are reused by a later `chart.update`.
+        const preparedGroupedOptions = (mode?: 'integrated') => prepareTestOptions(groupedOptions(mode));
 
         const rectCount = (sample: SceneGeometrySample) =>
             [...sample.keys()].filter((k) => /^series\[\d+\]\/rect/.test(k)).length;
 
-        const groupedCategoryOptions = () => {
-            const options: AgChartOptions = { ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE };
-            return prepareTestOptions(options);
-        };
+        const groupedCategoryOptions = (): AgChartOptions => ({
+            ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
+        });
 
         // The initial-load reveal: bars grow from the baseline along the value axis while their
         // bands land immediately (the crisp-pixel snap moves band coords by <1px, so 'bounded').
@@ -925,7 +922,7 @@ describe('BarSeries', () => {
 
         // "Remove Series" — only the survivors' reflow is observable (the removed series' exit is not).
         it('remove series: surviving bars widen monotonically into the vacated band', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             const allSeries = options.series!;
             chart = AgCharts.create(options);
             const sampleScene = createSceneGeometrySampler(chart);
@@ -947,7 +944,7 @@ describe('BarSeries', () => {
 
         // "Add Series" — survivors narrow; the entering series fades in at full size.
         it('add series: existing bars narrow and entering bars fade in at full size', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             const allSeries = options.series!;
             options.series = allSeries.slice(0, 2);
             chart = AgCharts.create(options);
@@ -985,8 +982,7 @@ describe('BarSeries', () => {
 
         // "Randomise" — bars tween height only; bands and axes hold because the domain is pinned.
         it('randomise: all bars tween height only, monotonically toward their new values', async () => {
-            const options = groupedOptions();
-            chart = AgCharts.create(options);
+            chart = await createChart(groupedOptions());
             const sampleScene = createSceneGeometrySampler(chart);
 
             const { trajectory } = await frames.captureUpdate(chart, sampleScene, () =>
@@ -1007,8 +1003,7 @@ describe('BarSeries', () => {
 
         // "Remove Data" — leaving bars collapse while the surviving band widens to fill the axis.
         it('remove data: last category collapses and the surviving band widens', async () => {
-            const options = groupedOptions();
-            chart = AgCharts.create(options);
+            chart = await createChart(groupedOptions());
             const sampleScene = createSceneGeometrySampler(chart);
 
             const { trajectory, after } = await frames.captureUpdate(chart, sampleScene, () =>
@@ -1042,7 +1037,7 @@ describe('BarSeries', () => {
                 return sample.get(matches[0])!;
             };
 
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             const allSeries = options.series! as AgBarSeriesOptions[];
             chart = AgCharts.create(options);
             const sampleScene = createSceneGeometrySampler(chart);
@@ -1078,7 +1073,7 @@ describe('BarSeries', () => {
 
         // A direction flip re-creates the series: widths re-reveal from the left baseline.
         it('switch direction: bars re-reveal along the new value axis', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             // Default axes: explicit positions cannot follow the direction flip.
             delete options.axes;
             const allSeries = options.series! as AgBarSeriesOptions[];
@@ -1096,7 +1091,7 @@ describe('BarSeries', () => {
 
         // Integrated mode: initial load must animate exactly as standalone does.
         it('integrated mode: initial load reveals bars from the baseline', async () => {
-            chart = AgCharts.create(groupedOptions('integrated'));
+            chart = await createChart(groupedOptions('integrated'));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectSceneTrajectory(trajectory, revealFromBaseline('height'));
@@ -1106,8 +1101,7 @@ describe('BarSeries', () => {
         // Integrated chart-type switches call resetAnimations() first: bars must re-grow from the
         // baseline instead of tweening from their old heights.
         it('integrated mode: resetAnimations before a data update replays the initial reveal', async () => {
-            const options = groupedOptions('integrated');
-            chart = AgCharts.create(options);
+            chart = await createChart(groupedOptions('integrated'));
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
 
@@ -1127,7 +1121,7 @@ describe('BarSeries', () => {
 
         // A legend move must always snap: the product skips the batch when the layout rect changes.
         it('integrated mode: legend move snaps without tweening', async () => {
-            const options = groupedOptions('integrated');
+            const options = preparedGroupedOptions('integrated');
             options.legend = { position: 'bottom' };
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
@@ -1145,7 +1139,7 @@ describe('BarSeries', () => {
         // The create-time reveal in standalone mode (the integrated variants below re-run it via
         // resetAnimations; this pins the plain first render).
         it('standalone: initial load reveals bars from the baseline', async () => {
-            chart = AgCharts.create(groupedOptions());
+            chart = await createChart(groupedOptions());
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectSceneTrajectory(trajectory, revealFromBaseline('height'));
@@ -1154,7 +1148,7 @@ describe('BarSeries', () => {
 
         // The grouped-category axis is what AG Grid integrated charts use for row groups.
         it('integrated mode: grouped-category chart reveals bars from the baseline on initial load', async () => {
-            chart = AgCharts.create(groupedCategoryOptions());
+            chart = await createChart(groupedCategoryOptions());
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             expectSceneTrajectory(trajectory, revealFromBaseline('height', { progresses: false }));
@@ -1162,7 +1156,7 @@ describe('BarSeries', () => {
 
         // Standalone has no skipAnimations() call — the layout-rect-change skip must cover it.
         it('standalone: legend move snaps without tweening', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             options.legend = { position: 'bottom' };
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
@@ -1177,7 +1171,7 @@ describe('BarSeries', () => {
 
         // "Change Theme" — a restyle, not a data change: like the legend move it must snap.
         it('standalone: theme change snaps without tweening', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             options.theme = 'ag-default';
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
@@ -1195,7 +1189,7 @@ describe('BarSeries', () => {
         // Grouped-category data updates snap (no tween runs); the contract is post-snap alignment
         // of labels and bars within the reflowed bands.
         it('integrated mode: grouped-category remove data snaps with labels aligned to their bands', async () => {
-            chart = AgCharts.create(groupedCategoryOptions());
+            chart = await createChart(groupedCategoryOptions());
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
 
@@ -1257,7 +1251,7 @@ describe('BarSeries', () => {
 
         // Two-beat exit: toggled-off bars collapse to the baseline, then survivors widen into the vacated band.
         it('legend hide: toggled-off bars collapse to the baseline before survivors widen', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             const { trajectory, after } = await captureToggle(options, () =>
                 chart.update({
                     ...options,
@@ -1280,7 +1274,7 @@ describe('BarSeries', () => {
         // "Toggle series back on" — the exit in reverse: survivors narrow to re-make room (update
         // phase), then the re-shown bars grow back from the baseline (add phase) — a grow, not a fade.
         it('legend show: survivors narrow before the re-shown bars grow from the baseline', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             const hidden = {
                 ...options,
                 series: options.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
@@ -1364,7 +1358,7 @@ describe('BarSeries', () => {
         // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
         // render of the same options produces (see expectAnimatedEndpointsMatchStatic).
         it('sanity: randomise endpoints match static renders', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -1376,7 +1370,7 @@ describe('BarSeries', () => {
         });
 
         it('sanity: remove series endpoints match static renders', async () => {
-            const options = groupedOptions();
+            const options = preparedGroupedOptions();
             chart = AgCharts.create(options);
             await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
                 ...options,
@@ -1394,7 +1388,7 @@ describe('BarSeries', () => {
         // Meta-tests: the endpoint guard must fail loudly in both comparison directions.
         describe('endpoint sanity guard validation', () => {
             it('rejects when a static render diverges from the animated settle', async () => {
-                const options = groupedOptions();
+                const options = preparedGroupedOptions();
                 chart = AgCharts.create(options);
                 const divergedStart = {
                     ...options,
@@ -1412,7 +1406,7 @@ describe('BarSeries', () => {
             });
 
             it('rejects a transition that changes no pixels', async () => {
-                const options = groupedOptions();
+                const options = preparedGroupedOptions();
                 chart = AgCharts.create(options);
                 await expect(
                     expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, { ...options })
@@ -1444,6 +1438,7 @@ describe('BarSeries', () => {
             };
             prepareTestOptions(options);
 
+            // Bespoke: the prepared `options` are reused by `chart.update`.
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
@@ -1469,9 +1464,7 @@ describe('BarSeries', () => {
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
 
@@ -1487,9 +1480,7 @@ describe('BarSeries', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const options: AgChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare();
 
                 if (example.extraScreenshotActions) {
@@ -1533,9 +1524,7 @@ describe('BarSeries', () => {
                         ],
                     };
 
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
+                    chart = await createChart(options);
                     await compare();
                 });
             }
@@ -1575,9 +1564,7 @@ describe('BarSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
 
             // The text anchor clears the bar by more than `spacing`: the extra is the padding + border the
@@ -1616,9 +1603,7 @@ describe('BarSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
 
             const series = deproxy(chart as any).series[0] as unknown as {
@@ -1649,9 +1634,7 @@ describe('BarSeries', () => {
                     series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { placement, spacing: 10, color: 'black' } }],
                 };
 
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare();
             });
         });
@@ -1673,9 +1656,7 @@ describe('BarSeries', () => {
                     ],
                 };
 
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare();
             }
         );
@@ -1699,9 +1680,7 @@ describe('BarSeries', () => {
                 } as any,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -1723,9 +1702,7 @@ describe('BarSeries', () => {
                 } as any,
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -1785,9 +1762,7 @@ describe('BarSeries', () => {
             async (direction) => {
                 const options = stackedCascadeOptions(direction);
 
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare();
             }
         );
@@ -1797,9 +1772,7 @@ describe('BarSeries', () => {
         it('accepts an outside label once the stacked neighbour beyond it is hidden', async () => {
             const options = stackedCascadeOptions('vertical', true);
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -1848,8 +1821,7 @@ describe('BarSeries', () => {
 
         it('restores hidden labels when alwaysShow is toggled back on', async () => {
             const hiddenOptions = wideLabel(false);
-            prepareTestOptions(hiddenOptions);
-            chart = AgCharts.create(hiddenOptions);
+            chart = await createChart(hiddenOptions);
             await waitForChartStability(chart);
             const series = deproxy(chart).series[0] as any;
             const visible = () => series.labelSelection.nodes().filter((node: any) => node.visible).length;
@@ -2019,8 +1991,7 @@ describe('BarSeries', () => {
             'cascades a long label across placement/orientation candidates (%s bars)',
             async (direction) => {
                 const options = cascadeOptions(direction);
-                prepareTestOptions(options);
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare();
             }
         );
@@ -2062,9 +2033,7 @@ describe('BarSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2106,9 +2075,7 @@ describe('BarSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -2137,9 +2104,7 @@ describe('BarSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2172,9 +2137,7 @@ describe('BarSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2208,9 +2171,7 @@ describe('BarSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -2281,9 +2242,8 @@ describe('BarSeries', () => {
 
         it('should render updated data in the itemStyler specified colors', async () => {
             const options = { ...EXAMPLE_OPTIONS };
-            prepareTestOptions(options);
 
-            chart = AgCharts.create(options) as AgChartInstance;
+            chart = await createChart(options);
             await waitForChartStability(chart);
             await chart.updateDelta({ data: DATA2 });
             await compare();
@@ -2327,15 +2287,13 @@ describe('BarSeries', () => {
             beforeEach(async () => {
                 c1 = { name: 'sales context' };
                 c2 = { name: 'expenses context' };
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data,
-                        series: [
-                            { type: 'bar', xKey: 'month', yKey: 'sales', styler: styler.frozen, context: c1 },
-                            { type: 'bar', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
-                        ],
-                    })
-                );
+                chart = await createChart({
+                    data,
+                    series: [
+                        { type: 'bar', xKey: 'month', yKey: 'sales', styler: styler.frozen, context: c1 },
+                        { type: 'bar', xKey: 'month', yKey: 'expenses', styler: styler.frozen, context: c2 },
+                    ],
+                });
                 await waitForChartStability(chart);
             });
             test('snapshot', async () => {
@@ -2364,32 +2322,30 @@ describe('BarSeries', () => {
                     }
                     return {};
                 };
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data,
-                        series: [
-                            {
-                                type: 'bar',
-                                xKey: 'month',
-                                yKey: 'sales',
-                                fill: 'lime', // ignored
-                                cornerRadius: 45, // ignored only for February
-                                itemStyler,
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'bar',
-                                xKey: 'month',
-                                yKey: 'expenses',
-                                fill: 'olive', // ignored
-                                stroke: 'navy', // not ignored
-                                strokeWidth: 3, // not ignored
-                                itemStyler,
-                                styler: styler.frozen,
-                            },
-                        ],
-                    })
-                );
+                chart = await createChart({
+                    data,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'month',
+                            yKey: 'sales',
+                            fill: 'lime', // ignored
+                            cornerRadius: 45, // ignored only for February
+                            itemStyler,
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'bar',
+                            xKey: 'month',
+                            yKey: 'expenses',
+                            fill: 'olive', // ignored
+                            stroke: 'navy', // not ignored
+                            strokeWidth: 3, // not ignored
+                            itemStyler,
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
                 await waitForChartStability(chart);
             });
             test('snapshot', async () => {
@@ -2398,29 +2354,27 @@ describe('BarSeries', () => {
         });
         describe('gradient-pattern', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data,
-                        series: [
-                            {
-                                type: 'bar',
-                                xKey: 'month',
-                                yKey: 'sales',
-                                styler: () => {
-                                    return { fill: { type: 'gradient' } };
-                                },
+                chart = await createChart({
+                    data,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'month',
+                            yKey: 'sales',
+                            styler: () => {
+                                return { fill: { type: 'gradient' } };
                             },
-                            {
-                                type: 'bar',
-                                xKey: 'month',
-                                yKey: 'expenses',
-                                styler: () => {
-                                    return { fill: { type: 'pattern' } };
-                                },
+                        },
+                        {
+                            type: 'bar',
+                            xKey: 'month',
+                            yKey: 'expenses',
+                            styler: () => {
+                                return { fill: { type: 'pattern' } };
                             },
-                        ],
-                    })
-                );
+                        },
+                    ],
+                });
                 await waitForChartStability(chart);
             });
             test('snapshot', async () => {
@@ -2429,31 +2383,29 @@ describe('BarSeries', () => {
         });
         describe('stroke-strokeWidth-defaults', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data,
-                        series: [
-                            {
-                                type: 'bar',
-                                xKey: 'month',
-                                yKey: 'sales',
-                                styler: () => {
-                                    // check that default `strokeWidth: 2` is resolved.
-                                    return { stroke: 'lime' };
-                                },
+                chart = await createChart({
+                    data,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'month',
+                            yKey: 'sales',
+                            styler: () => {
+                                // check that default `strokeWidth: 2` is resolved.
+                                return { stroke: 'lime' };
                             },
-                            {
-                                type: 'bar',
-                                xKey: 'month',
-                                yKey: 'expenses',
-                                styler: () => {
-                                    // check that theme-default `stroke` is resolved.
-                                    return { strokeWidth: 4 };
-                                },
+                        },
+                        {
+                            type: 'bar',
+                            xKey: 'month',
+                            yKey: 'expenses',
+                            styler: () => {
+                                // check that theme-default `stroke` is resolved.
+                                return { strokeWidth: 4 };
                             },
-                        ],
-                    })
-                );
+                        },
+                    ],
+                });
                 await waitForChartStability(chart);
             });
             test('snapshot', async () => {
@@ -2462,26 +2414,24 @@ describe('BarSeries', () => {
         });
         describe('highlights', () => {
             beforeEach(async () => {
-                chart = AgCharts.create(
-                    prepareTestOptions({
-                        data,
-                        series: [
-                            {
-                                type: 'bar',
-                                xKey: 'month',
-                                yKey: 'sales',
-                                highlight: { highlightedSeries: { fill: 'yellow' } },
-                                styler: styler.frozen,
-                            },
-                            {
-                                type: 'bar',
-                                xKey: 'month',
-                                yKey: 'expenses',
-                                styler: styler.frozen,
-                            },
-                        ],
-                    })
-                );
+                chart = await createChart({
+                    data,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'month',
+                            yKey: 'sales',
+                            highlight: { highlightedSeries: { fill: 'yellow' } },
+                            styler: styler.frozen,
+                        },
+                        {
+                            type: 'bar',
+                            xKey: 'month',
+                            yKey: 'expenses',
+                            styler: styler.frozen,
+                        },
+                    ],
+                });
                 await waitForChartStability(chart);
             });
 
@@ -2579,8 +2529,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2632,8 +2581,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2677,8 +2625,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2741,8 +2688,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2775,8 +2721,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2836,8 +2781,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
         });
 
@@ -2908,8 +2852,7 @@ describe('BarSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2953,8 +2896,7 @@ describe('BarSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -2989,8 +2931,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3024,8 +2965,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3059,8 +2999,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3101,8 +3040,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3135,8 +3073,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3179,8 +3116,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
     });
@@ -3226,8 +3162,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
 
             await waitForChartStability(chart);
             await hoverAction(135, 330)(chart);
@@ -3237,7 +3172,7 @@ describe('BarSeries', () => {
 
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
-            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            create: async (o) => (chart = await createChart(o)),
             compare,
             chartOptions: {
                 data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
@@ -3280,8 +3215,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
             await compare();
         });
@@ -3326,8 +3260,7 @@ describe('BarSeries', () => {
                 },
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
             await compare();
         });
@@ -3352,8 +3285,7 @@ describe('BarSeries', () => {
                 ],
             };
 
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             // Get initial node data references
@@ -3373,10 +3305,12 @@ describe('BarSeries', () => {
                 y: d.y * 1.1, // Slight change to values
             }));
 
-            await chart.update({
-                ...options,
-                data: updatedData,
-            });
+            await chart.update(
+                prepareTestOptions({
+                    ...options,
+                    data: updatedData,
+                })
+            );
             await waitForChartStability(chart);
 
             // Verify nodes were reused (same object references)
@@ -3600,8 +3534,7 @@ describe('BarSeries', () => {
                     x: axisOptions,
                 },
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3615,11 +3548,10 @@ describe('BarSeries', () => {
                     { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables' },
                 ],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
             (options.series as any)[0].width = 40;
-            await chart.update(options);
+            await chart.update(prepareTestOptions(options));
             await compare();
         });
 
@@ -3633,8 +3565,7 @@ describe('BarSeries', () => {
                 data: manyCategories,
                 series: [{ type: 'bar', xKey: 'quarter', yKey: 'iphone', width: fixedWidth }],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             const instance = deproxy(chart);
@@ -3655,9 +3586,7 @@ describe('BarSeries', () => {
     describe('null category key', () => {
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = examples.BAR_NULL_CATEGORY_KEY_EXAMPLE;
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
@@ -3673,9 +3602,7 @@ describe('BarSeries', () => {
 
         it('should accept null category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -3684,9 +3611,7 @@ describe('BarSeries', () => {
 
         it('should accept undefined category key when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.BAR_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -3695,9 +3620,7 @@ describe('BarSeries', () => {
 
         it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -3706,9 +3629,7 @@ describe('BarSeries', () => {
 
         it('should accept null category key in stacked bar when allowNullKeys is true', async () => {
             const options: AgChartOptions = examples.STACKED_BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
@@ -3743,9 +3664,7 @@ describe('BarSeries', () => {
                     } as any,
                 ],
             };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             // Click on the first bar (null category) - approximate center
@@ -3783,9 +3702,7 @@ describe('BarSeries', () => {
                     },
                 },
             };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3832,9 +3749,7 @@ describe('BarSeries', () => {
                     },
                 },
             };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3913,9 +3828,7 @@ describe('BarSeries', () => {
                     },
                 },
             };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3935,9 +3848,7 @@ describe('BarSeries', () => {
                     },
                 },
             };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await compare();
         });
 
@@ -3962,9 +3873,7 @@ describe('BarSeries', () => {
                         },
                     },
                 };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart(options);
                 await compare();
             });
         });
@@ -3983,11 +3892,11 @@ describe('BarSeries', () => {
         it('unstacked: yKey less than yFilterKey', async () => {
             // For unstacked bars, filterValidation is not used; phantom nodes always exist.
             // node.yValue is set to the filter value (yFilter > y in this case).
-            const options = prepareTestOptions({
+            const options = {
                 data: filterLargerData,
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', yFilterKey: 'yFilter' } as any],
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             await compare();
@@ -3996,11 +3905,11 @@ describe('BarSeries', () => {
         it('unstacked: yKey greater than yFilterKey', async () => {
             // For unstacked bars, filterValidation is not used; phantom nodes always exist.
             // node.yValue is set to the filter value (yFilter < y in this case).
-            const options = prepareTestOptions({
+            const options = {
                 data: filterSmallerData,
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y', yFilterKey: 'yFilter' } as any],
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             await compare();
@@ -4011,14 +3920,14 @@ describe('BarSeries', () => {
                 { x: 'A', y1: 10, y2: 5, yFilter1: 20, yFilter2: 8 },
                 { x: 'B', y1: 8, y2: 7, yFilter1: 15, yFilter2: 12 },
             ];
-            const options = prepareTestOptions({
+            const options = {
                 data: stackData,
                 series: [
                     { type: 'bar', xKey: 'x', yKey: 'y1', yFilterKey: 'yFilter1', stacked: true } as any,
                     { type: 'bar', xKey: 'x', yKey: 'y2', yFilterKey: 'yFilter2', stacked: true } as any,
                 ],
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             await compare();
@@ -4029,14 +3938,14 @@ describe('BarSeries', () => {
                 { x: 'A', y1: 20, y2: 15, yFilter1: 10, yFilter2: 8 },
                 { x: 'B', y1: 18, y2: 12, yFilter1: 9, yFilter2: 6 },
             ];
-            const options = prepareTestOptions({
+            const options = {
                 data: stackData,
                 series: [
                     { type: 'bar', xKey: 'x', yKey: 'y1', yFilterKey: 'yFilter1', stacked: true } as any,
                     { type: 'bar', xKey: 'x', yKey: 'y2', yFilterKey: 'yFilter2', stacked: true } as any,
                 ],
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             await compare();
@@ -4047,32 +3956,31 @@ describe('BarSeries', () => {
             { quarter: 'Q2', a: 500, b: 500, aFiltered: 300, bFiltered: 100 },
             { quarter: 'Q3', a: 800, b: 200, aFiltered: 400, bFiltered: 100 },
         ];
-        const normalizedFilterOptions = (data: any[] = normalizedFilterData) =>
-            prepareTestOptions({
-                data,
-                series: [
-                    {
-                        type: 'bar',
-                        xKey: 'quarter',
-                        yKey: 'a',
-                        stacked: true,
-                        normalizedTo: 100,
-                        yFilterKey: 'aFiltered',
-                    } as any,
-                    {
-                        type: 'bar',
-                        xKey: 'quarter',
-                        yKey: 'b',
-                        stacked: true,
-                        normalizedTo: 100,
-                        yFilterKey: 'bFiltered',
-                    } as any,
-                ],
-            });
+        const normalizedFilterOptions = (data: any[] = normalizedFilterData) => ({
+            data,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'a',
+                    stacked: true,
+                    normalizedTo: 100,
+                    yFilterKey: 'aFiltered',
+                } as any,
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'b',
+                    stacked: true,
+                    normalizedTo: 100,
+                    yFilterKey: 'bFiltered',
+                } as any,
+            ],
+        });
 
         it('normalizedTo: y-axis domain stays [0, normalizedTo] when yFilterKey is set', async () => {
             // Filter values all sit below their base values, so only the raw-column domain union can stretch the axis.
-            chart = AgCharts.create(normalizedFilterOptions());
+            chart = await createChart(normalizedFilterOptions());
             await waitForChartStability(chart);
 
             const { axes } = deproxy(chart);
@@ -4081,7 +3989,7 @@ describe('BarSeries', () => {
         });
 
         it('normalizedTo: filtered overlay is drawn as its true proportion of the bar', async () => {
-            chart = AgCharts.create(normalizedFilterOptions());
+            chart = await createChart(normalizedFilterOptions());
             await waitForChartStability(chart);
 
             const series = deproxy(chart).series as any[];
@@ -4119,7 +4027,7 @@ describe('BarSeries', () => {
 
         it('normalizedTo: a null filter value produces no NaN geometry', async () => {
             const data = normalizedFilterData.map((d, i) => (i === 1 ? { ...d, aFiltered: null } : d));
-            chart = AgCharts.create(normalizedFilterOptions(data));
+            chart = await createChart(normalizedFilterOptions(data));
             await waitForChartStability(chart);
 
             const { nodeData, phantomNodeData } = (deproxy(chart).series[0] as any).contextNodeData;
@@ -4139,7 +4047,7 @@ describe('BarSeries', () => {
             }
         });
         it('normalizedTo: a stack mixing filtered and unfiltered series keeps the normalised domain', async () => {
-            const options = prepareTestOptions({
+            const options = {
                 data: normalizedFilterData,
                 series: [
                     {
@@ -4152,8 +4060,8 @@ describe('BarSeries', () => {
                     } as any,
                     { type: 'bar', xKey: 'quarter', yKey: 'b', stacked: true, normalizedTo: 100 } as any,
                 ],
-            });
-            chart = AgCharts.create(options);
+            };
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             const { axes, series } = deproxy(chart);
@@ -4171,7 +4079,7 @@ describe('BarSeries', () => {
 
     describe('AG-16933 reverse + bandAlignment', () => {
         it('should maintain reversed domain when processDomains is called multiple times', async () => {
-            const options = prepareTestOptions({
+            const options = {
                 data: [
                     { category: 'A', value: 1 },
                     { category: 'B', value: 2 },
@@ -4182,8 +4090,8 @@ describe('BarSeries', () => {
                     y: { type: 'number', position: 'left' },
                 },
                 series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-            } as any);
-            chart = AgCharts.create(options);
+            } as any;
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             const chartObj = deproxy(chart);
@@ -4203,86 +4111,76 @@ describe('BarSeries', () => {
         const categoryNumberAxes = { x: { type: 'category' as const }, y: { type: 'number' as const } };
 
         it('renders a plain bar series with out-of-safe-range bigint values', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', y: BIG },
-                        { x: 'b', y: BIG * 2n },
-                        { x: 'c', y: NEG_BIG },
-                    ],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', y: BIG },
+                    { x: 'b', y: BIG * 2n },
+                    { x: 'c', y: NEG_BIG },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                axes: categoryNumberAxes,
+            });
             await compare();
         });
 
         it('renders a grouped bar series with bigint values', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', a: BIG, b: BIG * 2n },
-                        { x: 'b', a: BIG * 3n, b: BIG },
-                    ],
-                    series: [
-                        { type: 'bar', xKey: 'x', yKey: 'a', grouped: true },
-                        { type: 'bar', xKey: 'x', yKey: 'b', grouped: true },
-                    ],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', a: BIG, b: BIG * 2n },
+                    { x: 'b', a: BIG * 3n, b: BIG },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a', grouped: true },
+                    { type: 'bar', xKey: 'x', yKey: 'b', grouped: true },
+                ],
+                axes: categoryNumberAxes,
+            });
             await compare();
         });
 
         it('renders a stacked bar series with bigint values', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', a: BIG, b: BIG * 2n },
-                        { x: 'b', a: BIG * 3n, b: BIG },
-                    ],
-                    series: [
-                        { type: 'bar', xKey: 'x', yKey: 'a', stacked: true },
-                        { type: 'bar', xKey: 'x', yKey: 'b', stacked: true },
-                    ],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', a: BIG, b: BIG * 2n },
+                    { x: 'b', a: BIG * 3n, b: BIG },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a', stacked: true },
+                    { type: 'bar', xKey: 'x', yKey: 'b', stacked: true },
+                ],
+                axes: categoryNumberAxes,
+            });
             await compare();
         });
 
         it('renders a 100%-stacked bar series with bigint values (normalizedTo degrades to Number)', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', a: BIG, b: BIG * 2n },
-                        { x: 'b', a: BIG * 3n, b: BIG },
-                    ],
-                    series: [
-                        { type: 'bar', xKey: 'x', yKey: 'a', stacked: true, normalizedTo: 100 },
-                        { type: 'bar', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 },
-                    ],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', a: BIG, b: BIG * 2n },
+                    { x: 'b', a: BIG * 3n, b: BIG },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a', stacked: true, normalizedTo: 100 },
+                    { type: 'bar', xKey: 'x', yKey: 'b', stacked: true, normalizedTo: 100 },
+                ],
+                axes: categoryNumberAxes,
+            });
             await compare();
         });
 
         it('does not throw when a bigint series is stacked with a fractional Number series', async () => {
             // addAccumulated's BigInt() path would throw on a fractional Number; the mixed stack must degrade.
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: 'a', a: 1000n, b: 1.5 },
-                        { x: 'b', a: 2000n, b: 2.5 },
-                    ],
-                    series: [
-                        { type: 'bar', xKey: 'x', yKey: 'a', stacked: true },
-                        { type: 'bar', xKey: 'x', yKey: 'b', stacked: true },
-                    ],
-                    axes: categoryNumberAxes,
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: 'a', a: 1000n, b: 1.5 },
+                    { x: 'b', a: 2000n, b: 2.5 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'a', stacked: true },
+                    { type: 'bar', xKey: 'x', yKey: 'b', stacked: true },
+                ],
+                axes: categoryNumberAxes,
+            });
             await waitForChartStability(chart);
             expect(chart).toBeDefined();
         });
@@ -4290,19 +4188,17 @@ describe('BarSeries', () => {
 
     describe('ISO datetime (AG-16654)', () => {
         it('renders a bar series with ISO-8601 datetime-string x values on a time axis', async () => {
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { time: '2024-01-15T09:00:00Z', y: 12 },
-                        { time: '2024-01-15T10:00:00Z', y: 15 },
-                        { time: '2024-01-15T11:00:00Z', y: 11 },
-                        { time: '2024-01-15T12:00:00Z', y: 18 },
-                    ],
-                    series: [{ type: 'bar', xKey: 'time', yKey: 'y' }],
-                    // Bars need a banded time axis, so `unit-time` stands in for the continuous `time` type.
-                    axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { time: '2024-01-15T09:00:00Z', y: 12 },
+                    { time: '2024-01-15T10:00:00Z', y: 15 },
+                    { time: '2024-01-15T11:00:00Z', y: 11 },
+                    { time: '2024-01-15T12:00:00Z', y: 18 },
+                ],
+                series: [{ type: 'bar', xKey: 'time', yKey: 'y' }],
+                // Bars need a banded time axis, so `unit-time` stands in for the continuous `time` type.
+                axes: { x: { type: 'unit-time' }, y: { type: 'number' } },
+            });
             await compare();
         });
     });
@@ -4409,16 +4305,14 @@ describe('BarSeries', () => {
     describe('object-valued category data', () => {
         it('should resolve object-valued category data without a data-type warning', async () => {
             const category = (label: string) => ({ id: label, label, toString: () => label });
-            chart = AgCharts.create(
-                prepareTestOptions({
-                    data: [
-                        { x: category('A'), y: 10 },
-                        { x: category('B'), y: 20 },
-                        { x: category('C'), y: 15 },
-                    ],
-                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-                })
-            );
+            chart = await createChart({
+                data: [
+                    { x: category('A'), y: 10 },
+                    { x: category('B'), y: 20 },
+                    { x: category('C'), y: 15 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
             await waitForChartStability(chart);
 
             expectWarningsCalls().toEqual([]);
@@ -4436,9 +4330,7 @@ describe('BarSeries', () => {
                 ],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             const series = deproxy(chart).series[0] as any;
@@ -4461,8 +4353,7 @@ describe('BarSeries', () => {
                 ],
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createChart(options);
             await waitForChartStability(chart);
 
             const series = deproxy(chart).series[0] as any;
@@ -4768,6 +4659,7 @@ describe('BarSeries category/gridline pixel alignment', () => {
                     options.height = 400;
                     options.overrideDevicePixelRatio = dpr;
 
+                    // Bespoke: width, height and overrideDevicePixelRatio are set after preparation.
                     chart = AgCharts.create(options);
                     await waitForChartStability(chart);
 

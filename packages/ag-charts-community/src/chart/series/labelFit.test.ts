@@ -553,7 +553,8 @@ describe('series label fit', () => {
                     ],
                 };
                 prepareTestOptions(options);
-                // prepareTestOptions fixes the canvas size, so the size under test is applied after it.
+                // Bespoke: prepareTestOptions fixes the canvas size, so the size under test is applied after it,
+                // which the shared factory would overwrite.
                 options.width = size;
                 options.height = size;
                 chart = AgCharts.create(options);

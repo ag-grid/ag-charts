@@ -180,9 +180,7 @@ describe('WaterfallSeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options as any);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         expect(typeof captured).toBe('bigint');
         expect(captured).toBe(BIG_VALUE);
@@ -238,9 +236,7 @@ describe('WaterfallSeries', () => {
             const options = totalValueOptions({
                 item: { positive: { label }, negative: { label }, total: { label } },
             });
-            prepareEnterpriseTestOptions(options as any);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             for (const entry of captured.filter((e) => e.itemType === 'positive' || e.itemType === 'negative')) {
                 expect(entry.totalValue).toBeUndefined();
@@ -252,9 +248,7 @@ describe('WaterfallSeries', () => {
         it('passes totalValue to the tooltip renderer for total/subtotal and undefined otherwise', async () => {
             const renderer = vi.fn((_params: any) => ({}));
             const options = totalValueOptions({ tooltip: { renderer } });
-            prepareEnterpriseTestOptions(options as any);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const series = seriesOf(chart);
             const captured = new Map<string, unknown>();
@@ -274,9 +268,7 @@ describe('WaterfallSeries', () => {
             const seriesNodeClick = vi.fn();
             const options = totalValueOptions();
             (options as AgChartOptions).listeners = { seriesNodeClick };
-            prepareEnterpriseTestOptions(options as any);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const series = seriesOf(chart);
             fireNodeClick(series, nodeOfType(chart, 'subtotal'));
@@ -295,9 +287,7 @@ describe('WaterfallSeries', () => {
                     { totalType: 'subtotal', index: 3, axisLabel: 'Sub 2' },
                 ],
             });
-            prepareEnterpriseTestOptions(options as any);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             const subtotals = seriesOf(chart)
                 .getNodeData()
@@ -336,9 +326,7 @@ describe('WaterfallSeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options as any);
-        chart = AgCharts.create(options);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
 
         expect(positiveStyler).toHaveBeenCalled();
         expect(negativeStyler).toHaveBeenCalled();
@@ -347,9 +335,8 @@ describe('WaterfallSeries', () => {
 
     it(`should render a waterfall chart as expected`, async () => {
         const options: AgChartOptions = { ...WATERFALL_COLUMN_OPTIONS };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -368,9 +355,8 @@ describe('WaterfallSeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options as any);
+        chart = await createEnterpriseChart(options as any);
         await compare();
     });
 
@@ -390,10 +376,8 @@ describe('WaterfallSeries', () => {
                 },
             ],
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options as any);
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options as any);
 
         const series: any = deproxy(chart).series[0];
         const nodes = series.datumSelection.nodes();
@@ -405,9 +389,8 @@ describe('WaterfallSeries', () => {
 
     it(`should render a horizontal waterfall chart as expected`, async () => {
         const options: AgChartOptions = { ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal') };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -417,9 +400,8 @@ describe('WaterfallSeries', () => {
             ...WATERFALL_COLUMN_OPTIONS,
             series: [{ ...WATERFALL_COLUMN_SERIES_OPTIONS[0], totals: TOTALS_META_DATA }],
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -446,9 +428,8 @@ describe('WaterfallSeries', () => {
             },
             ...WATERFALL_COLUMN_OPTIONS,
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -468,9 +449,8 @@ describe('WaterfallSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -491,9 +471,8 @@ describe('WaterfallSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -513,9 +492,8 @@ describe('WaterfallSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -536,9 +514,8 @@ describe('WaterfallSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -560,9 +537,8 @@ describe('WaterfallSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -585,9 +561,8 @@ describe('WaterfallSeries', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -598,9 +573,8 @@ describe('WaterfallSeries', () => {
             ...WATERFALL_BAR_OPTIONS,
             series: [{ ...WATERFALL_BAR_SERIES_OPTIONS, totals: TOTALS_META_DATA }],
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
     });
 
@@ -611,9 +585,8 @@ describe('WaterfallSeries', () => {
             data: DATA_WITH_MISSING_INVALID_VALUES,
             series: [{ ...WATERFALL_COLUMN_SERIES_OPTIONS[0], totals: TOTALS_META_DATA }],
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
 
         expectWarningsCalls().toMatchInlineSnapshot(`
@@ -638,9 +611,8 @@ describe('WaterfallSeries', () => {
             data: DATA_WITH_MISSING_INVALID_VALUES,
             series: [{ ...WATERFALL_BAR_SERIES_OPTIONS, totals: TOTALS_META_DATA }],
         };
-        prepareEnterpriseTestOptions(options as any);
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await compare();
 
         expectWarningsCalls().toMatchInlineSnapshot(`
@@ -705,6 +677,7 @@ describe('WaterfallSeries', () => {
 
             // The near edge slides for floating/negative bars, so it is `bounded` by its own endpoints, not pinned constant.
             it(`initial load (${direction}): bars and the connector reveal from the baseline`, async () => {
+                // Bespoke: the frame spy and sampler attach before the first render.
                 chart = AgCharts.create(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
                 const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
@@ -835,9 +808,8 @@ describe('WaterfallSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = AgCharts.create(options as any);
+            chart = await createEnterpriseChart(options as any);
             await compare();
         });
 
@@ -878,9 +850,8 @@ describe('WaterfallSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = AgCharts.create(options as any);
+            chart = await createEnterpriseChart(options as any);
             await compare();
         });
     });
@@ -890,40 +861,38 @@ describe('WaterfallSeries', () => {
             labelOpts: { placement: AgWaterfallSeriesLabelPlacement; spacing?: number },
             name: string
         ) {
-            chart = AgCharts.create(
-                prepareEnterpriseTestOptions({
-                    data: [
-                        { x: 'A', y: 185 },
-                        { x: 'B', y: 145 },
-                        { x: 'C', y: 134 },
-                        { x: 'D', y: 55 },
-                        { x: 'E', y: 34 },
-                        { x: 'F', y: -155 },
-                        { x: 'G', y: -112 },
-                        { x: 'H', y: -165 },
-                        { x: 'I', y: -163 },
-                        { x: 'J', y: -91 },
-                    ],
-                    series: [
-                        {
-                            type: 'waterfall',
-                            xKey: 'x',
-                            yKey: 'y',
-                            item: {
-                                // Pin the colour so these spacing snapshots ignore the placement default.
-                                positive: { label: { color: { ref: 'textColor' }, ...labelOpts } },
-                                negative: { label: { color: { ref: 'textColor' }, ...labelOpts } },
-                                total: { label: { color: { ref: 'textColor' }, ...labelOpts } },
-                            },
-                            totals: [
-                                { totalType: 'subtotal', index: 4, axisLabel: 'ABCDE' },
-                                { totalType: 'subtotal', index: 9, axisLabel: 'FGHIJ' },
-                                { totalType: 'total', index: 9, axisLabel: 'Total' },
-                            ],
+            chart = await createEnterpriseChart({
+                data: [
+                    { x: 'A', y: 185 },
+                    { x: 'B', y: 145 },
+                    { x: 'C', y: 134 },
+                    { x: 'D', y: 55 },
+                    { x: 'E', y: 34 },
+                    { x: 'F', y: -155 },
+                    { x: 'G', y: -112 },
+                    { x: 'H', y: -165 },
+                    { x: 'I', y: -163 },
+                    { x: 'J', y: -91 },
+                ],
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'x',
+                        yKey: 'y',
+                        item: {
+                            // Pin the colour so these spacing snapshots ignore the placement default.
+                            positive: { label: { color: { ref: 'textColor' }, ...labelOpts } },
+                            negative: { label: { color: { ref: 'textColor' }, ...labelOpts } },
+                            total: { label: { color: { ref: 'textColor' }, ...labelOpts } },
                         },
-                    ],
-                })
-            );
+                        totals: [
+                            { totalType: 'subtotal', index: 4, axisLabel: 'ABCDE' },
+                            { totalType: 'subtotal', index: 9, axisLabel: 'FGHIJ' },
+                            { totalType: 'total', index: 9, axisLabel: 'Total' },
+                        ],
+                    },
+                ],
+            });
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
         describe('spacing sets the gap between the bar and the label', () => {
@@ -973,9 +942,8 @@ describe('WaterfallSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = AgCharts.create(options as any);
+            chart = await createEnterpriseChart(options as any);
             await compare();
         });
     });
@@ -1004,10 +972,8 @@ describe('WaterfallSeries', () => {
 
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = { ...WATERFALL_NULL_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -1030,10 +996,8 @@ describe('WaterfallSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1086,10 +1050,8 @@ describe('WaterfallSeries', () => {
 
         it('should reject undefined category key with warning', async () => {
             const options: AgChartOptions = { ...WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -1112,10 +1074,8 @@ describe('WaterfallSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1131,10 +1091,8 @@ describe('WaterfallSeries', () => {
                     } as any,
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(options);
 
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
@@ -1170,10 +1128,8 @@ describe('WaterfallSeries', () => {
 
         it('should return valid tooltip content for subtotal nodes', async () => {
             const options = { ...WATERFALL_TOTALS_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const series = chart.series[0] as WaterfallSeries;
 
@@ -1188,10 +1144,8 @@ describe('WaterfallSeries', () => {
 
         it('should return valid tooltip content for total nodes', async () => {
             const options = { ...WATERFALL_TOTALS_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const series = chart.series[0] as WaterfallSeries;
 
@@ -1208,10 +1162,8 @@ describe('WaterfallSeries', () => {
 
         it('should return valid tooltip content for regular data nodes', async () => {
             const options = { ...WATERFALL_TOTALS_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const series = chart.series[0] as WaterfallSeries;
 
@@ -1225,10 +1177,8 @@ describe('WaterfallSeries', () => {
 
         it('should return non-missing tooltip content for all node types in sequence', async () => {
             const options = { ...WATERFALL_TOTALS_OPTIONS };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const series = chart.series[0] as WaterfallSeries;
             const nodeData = series['contextNodeData']?.nodeData;
@@ -1289,10 +1239,8 @@ describe('WaterfallSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expect(await hoverDatum(0)).toContain('POSITIVE-ITEM');
             expect(await hoverDatum(1)).not.toContain('POSITIVE-ITEM');
@@ -1309,10 +1257,8 @@ describe('WaterfallSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             const positiveHtml = await hoverDatum(0);
             expect(positiveHtml).toContain('ITEM-LEVEL');
@@ -1331,10 +1277,8 @@ describe('WaterfallSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             expect(await hoverDatum(2)).toContain('TOTAL-ITEM');
             expect(await hoverDatum(0)).not.toContain('TOTAL-ITEM');
@@ -1351,10 +1295,8 @@ describe('WaterfallSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
 
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
 
             // Returning undefined must fall through to the default structured tooltip, not render literal "undefined".
             const html = await hoverDatum(0);
@@ -1388,9 +1330,7 @@ describe('WaterfallSeries', () => {
 
         const createWaterfall = async (series: AgWaterfallSeriesOptions) => {
             const options: AgCartesianChartOptions = { ...TOTALS_OPTIONS, series: [series] };
-            prepareEnterpriseTestOptions(options as any);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             return chart.series[0] as WaterfallSeries;
         };
 
@@ -1503,9 +1443,7 @@ describe('WaterfallSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             const series = chart.series[0] as WaterfallSeries;
             const nodeData = getNodeData(series);
 
@@ -1540,9 +1478,7 @@ describe('WaterfallSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options as any);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             const series = chart.series[0] as WaterfallSeries;
             const nodeData = getNodeData(series) as ({ x: number } & ReturnType<typeof getNodeData>[number])[];
 
@@ -1606,9 +1542,7 @@ describe('WaterfallSeries', () => {
                 ...TOTALS_OPTIONS,
                 listeners: { activeChange: (e) => events.push(e) },
             };
-            prepareEnterpriseTestOptions(options as any);
-            chart = deproxy(AgCharts.create(options));
-            await waitForChartStability(chart);
+            chart = deproxy(await createEnterpriseChart(options));
             const series = chart.series[0] as WaterfallSeries;
             const total = series.getNodeData()!.find((n) => n.itemType === 'total')!;
 
@@ -1758,6 +1692,7 @@ describe('WaterfallSeries category/gridline pixel alignment', () => {
         options.height = 400;
         options.overrideDevicePixelRatio = 1.75;
 
+        // Bespoke: the size is set after preparation.
         chart = AgCharts.create(options);
         await waitForChartStability(chart);
 

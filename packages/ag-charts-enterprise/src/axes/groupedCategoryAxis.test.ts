@@ -1,6 +1,5 @@
 import { afterEach, describe, it, vi } from 'vitest';
 
-import { AgCharts } from 'ag-charts-community';
 import {
     type ChartOrProxy,
     INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE,
@@ -26,7 +25,7 @@ import type {
 } from 'ag-charts-types';
 
 import { DEFAULT_CONTEXT_MENU_CLASS } from '../features/context-menu/contextMenuStyles';
-import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart } from '../test/utils';
 
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
@@ -67,15 +66,12 @@ describe('Grouped Category Axis Examples', () => {
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
         it(`for ${exampleName} it should create chart instance as expected`, async () => {
-            const options = prepareEnterpriseTestOptions(example.options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createEnterpriseChart(example.options);
             await example.assertions(chart);
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const options = prepareEnterpriseTestOptions(example.options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(example.options);
             await compareImageSnapshot(chart, ctx);
         });
     }

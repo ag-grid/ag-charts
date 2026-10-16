@@ -216,7 +216,7 @@ describe('focusIndex', () => {
     setupMockConsole();
     setupMockCanvas();
 
-    let chart: Awaited<ReturnType<typeof createChart>>;
+    let chart: AgChartInstance;
 
     afterEach(() => {
         chart?.destroy();

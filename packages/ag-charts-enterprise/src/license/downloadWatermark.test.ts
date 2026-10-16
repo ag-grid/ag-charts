@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
-import { setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-community';
+import { setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 import { ModuleRegistry, enterpriseRegistry } from 'ag-charts-core';
 
 import { Foreground } from '../features/foreground/foreground';
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { createEnterpriseChart } from '../test/utils';
 
 class ObservedForeground extends Foreground {
     get text() {
@@ -55,8 +55,7 @@ describe('download watermark', () => {
             data: [{ x: 'a', y: 1 }],
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
         };
-        chart = AgCharts.create(prepareEnterpriseTestOptions(options));
-        await waitForChartStability(chart);
+        chart = await createEnterpriseChart(options);
         expect(foregrounds.map((f) => f.text)).toEqual([undefined]);
 
         ModuleRegistry.clearRegistryModes();

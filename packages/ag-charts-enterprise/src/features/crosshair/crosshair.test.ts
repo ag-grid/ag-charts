@@ -5,9 +5,9 @@ import type {
     AgBarSeriesOptions,
     AgCartesianAxesOptions,
     AgCartesianChartOptions,
+    AgChartInstance,
     AgChartOptions,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
 import {
     applyAxesFlip,
     compareImageSnapshot,
@@ -21,7 +21,7 @@ import {
 } from 'ag-charts-community-test';
 import { mapValues } from 'ag-charts-core';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
+import { createEnterpriseChart } from '../../test/utils';
 
 function applyCrosshairSnap<T extends AgCartesianChartOptions>(opts: T, snap: boolean): T {
     return {
@@ -241,11 +241,11 @@ const HISTOGRAM_OPTIONS: AgCartesianChartOptions = {
 describe('Crosshair', () => {
     setupMockConsole();
 
-    let chart: any;
+    let chart: AgChartInstance;
     const ctx = setupMockCanvas();
 
     afterEach(() => {
-        if (chart) {
+        if (chart != null) {
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -272,9 +272,7 @@ describe('Crosshair', () => {
 
     it.each(CASES)(`should follow mouse pointer on series hover`, async (TEST_CASE) => {
         const options: AgChartOptions = TEST_CASE;
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await waitForChartStability(chart);
         await hoverAction(605, 300)(chart);
         await compare();
@@ -282,9 +280,7 @@ describe('Crosshair', () => {
 
     it.each(CASES)(`should snap to the closest highlighted node datum`, async (TEST_CASE) => {
         const options: AgChartOptions = applyCrosshairSnap(TEST_CASE, true);
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await waitForChartStability(chart);
         await hoverAction(605, 125)(chart);
         await compare();
@@ -292,7 +288,6 @@ describe('Crosshair', () => {
 
     it.each(CASES)(`should layout correctly with series area padding`, async (TEST_CASE) => {
         const options: AgChartOptions = TEST_CASE;
-        prepareEnterpriseTestOptions(options);
         options.seriesArea = {
             padding: {
                 left: 100,
@@ -302,7 +297,7 @@ describe('Crosshair', () => {
             },
         };
 
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await waitForChartStability(chart);
         await hoverAction(300, 300)(chart);
         await compare();
@@ -351,9 +346,7 @@ describe('Crosshair', () => {
             ],
         };
 
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await waitForChartStability(chart);
         await hoverAction(260, 140)(chart);
         await compare();
@@ -390,9 +383,7 @@ describe('Crosshair', () => {
             tooltip: { range: 'exact' },
         };
 
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await waitForChartStability(chart);
         await hoverAction(300, 300)(chart);
         await compare();
@@ -430,9 +421,7 @@ describe('Crosshair', () => {
             },
         };
 
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await waitForChartStability(chart);
 
         const visibleLabels = (axisId: string) =>
@@ -489,9 +478,7 @@ describe('Crosshair', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await waitForChartStability(chart);
         await hoverAction(300, 300)(chart);
         await waitForChartStability(chart);
@@ -551,9 +538,7 @@ describe('Crosshair', () => {
                 },
             },
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await waitForChartStability(chart);
         await hoverAction(300, 300)(chart);
         await waitForChartStability(chart);
@@ -604,8 +589,7 @@ describe('Crosshair', () => {
                 .filter((text) => text.length > 0);
 
         const hoverOverNegativeValues = async (options: AgCartesianChartOptions) => {
-            prepareEnterpriseTestOptions(options);
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
             await hoverAction(300, 450)(chart);
             await waitForChartStability(chart);
@@ -658,9 +642,7 @@ describe('Crosshair', () => {
                 y: { type: 'number', position: 'left', crosshair: { enabled: true, snap: false } },
             },
         };
-        prepareEnterpriseTestOptions(options);
-
-        chart = AgCharts.create(options);
+        chart = await createEnterpriseChart(options);
         await waitForChartStability(chart);
         await hoverAction(480, 250)(chart);
         await waitForChartStability(chart);
@@ -686,9 +668,7 @@ describe('Crosshair', () => {
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 axes,
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
+            chart = await createEnterpriseChart(options);
             await waitForChartStability(chart);
             await hoverAction(480, 250)(chart);
             await waitForChartStability(chart);
@@ -838,7 +818,7 @@ describe('Crosshair', () => {
                 await hoverAction(to.x + 10, to.y)(chart);
                 await waitForChartStability(chart);
                 expectLabels({ hidden: [], shown: ['x', 'y'] });
-                expect(testCase.moved(chart.getState().annotations[0]), 'annotation moved').toBe(true);
+                expect(testCase.moved(chart.getState().annotations![0]), 'annotation moved').toBe(true);
             });
 
             it('hovering a labelled cross-line without dragging keeps both labels', async () => {
